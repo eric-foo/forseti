@@ -181,9 +181,10 @@ shape:
 }
 ```
 
-Before a Codex managed-worktree task relies on the tracked project hook for a
-protected gate, run this exact command as a top-level shell tool call from that
-task's root, without a command-level `workdir` override:
+Run the live-adoption probe only when hook adoption testing is itself the
+commissioned task. It is not routine work-unit preflight. For that test, use
+this exact top-level command from the task root without a command-level
+`workdir` override:
 
 ```powershell
 python .codex/hooks/forseti_guard_codex_adapter.py --live-adoption-probe
@@ -210,13 +211,14 @@ Claude-style `Write` / `Edit` events.
 
 The adapter additionally blocks Codex write tools when the target is inside a
 registered git worktree other than the one running the hook. If a lane needs
-that worktree, reroot Codex in the target worktree and rerun the lane-start
-writeability preflight; do not edit nested worktrees from the parent checkout.
+that worktree, use a task created and rooted there; do not edit nested worktrees
+from the parent checkout.
 Registering, discovering, or naming another worktree does not change the
 running receiver's root, and this adapter does not reroot collaboration
 subagents. Select a receiver actually rooted in the target before repo-changing
-dispatch under `.agents/workflow-overlay/decision-routing.md`; the adapter is
-the later deterministic denial boundary, not the receiver selector.
+dispatch under `.agents/workflow-overlay/decision-routing.md`. Reuse that one-
+time binding through landing; the adapter is the deterministic backstop, not a
+repeated proof obligation or receiver selector.
 
 For `Bash` / `PowerShell`, the adapter blocks raw durable-write primitives when
 the command text names repo source/docs file types (`.md`, `.py`, `.yml`,

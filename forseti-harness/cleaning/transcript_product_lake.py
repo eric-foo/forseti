@@ -51,15 +51,20 @@ LEGACY_PRODUCT_MENTIONS_SET_LANE = "silver__cleaning__product_mentions__set"
 # record (the producer is this Pass-1 extractor; its schema version is the rubric).
 PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
 
-# Record-SHAPE and durable-identity schema token. V2 binds record/completion identity
-# to the exact product-mention policy fingerprint; prior V1 records re-surface so the
+# Record-SHAPE and durable-identity schema token. V3 binds explicit unknown-time grammar; V2 bound identity
+# to the exact product-mention policy fingerprint. Prior records re-surface so the
 # current-policy record can be written under its distinct identity.
-PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"
+PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v3"
 
-def product_mentions_policy_fingerprint(policy_version: str) -> str:
+def product_mentions_policy_fingerprint(
+    policy_version: str,
+    record_schema_version: str = PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
+) -> str:
     """Stable identity shared by record ids, payloads, and pickup obligations."""
     return hashlib.sha256(
-        f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{policy_version}".encode("utf-8")
+        f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{policy_version}\0{record_schema_version}".encode(
+            "utf-8"
+        )
     ).hexdigest()
 
 
@@ -180,6 +185,15 @@ def _product_mentions_payload(
         raise ValueError("Product-mention Silver output requires exact transcript lineage")
     lineage = validate_silver_lineage(transcript.source_lineage)
     lineage_fields = lineage.to_record_fields()
+    recorded_at = lineage_fields.get("captured_at")
+    if not isinstance(recorded_at, str) or not recorded_at.strip():
+        raise ValueError(
+            "Product-mention Silver output requires the transcript packet capture time "
+            "as recorded_at; it must not be substituted for observed_at."
+        )
+    evidence_refs = [*lineage_fields["raw_refs"], *lineage_fields["derived_refs"]]
+    if not evidence_refs:
+        raise ValueError("Product-mention Silver output requires source-backed evidence_refs")
     rows = []
     for mention in result.mentions:
         body = mention.model_dump(mode="json")
@@ -225,6 +239,20 @@ def _product_mentions_payload(
                         "native_id": transcript.video_id,
                     },
                 },
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": (
+                        "The transcript source does not carry a source-effective "
+                        "observation time."
+                    ),
+                },
+                "recorded_at": recorded_at,
+                "evidence_refs": evidence_refs,
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is the transcript "
+                    "packet capture time and is not observed_at."
+                ],
                 "observation_set_kind": "transcript_product_mentions",
                 "policy_version": policy_version,
                 "policy_fingerprint_sha256": policy_fingerprint_sha256,

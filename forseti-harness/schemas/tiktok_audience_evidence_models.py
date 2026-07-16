@@ -38,10 +38,10 @@ class AudienceTriangulationClaim(StrictModel):
     support_scope: Literal[
         "single_comment", "single_video", "multi_video", "content_only", "mixed_multi_video"
     ]
-    representative_evidence_ids: list[str] = Field(min_length=1, max_length=5)
-    all_support_evidence_ids: list[str] = Field(min_length=1)
+    representative_evidence_ids: list[str] = Field(max_length=5)
+    all_support_evidence_ids: list[str]
     counterevidence_ids: list[str] = []
-    source_video_ids: list[str] = Field(min_length=1)
+    source_video_ids: list[str]
     limitation: str | None = None
 
     @field_validator("claim_id", "statement", "commercial_implication")
@@ -50,6 +50,30 @@ class AudienceTriangulationClaim(StrictModel):
         if not value.strip():
             raise ValueError("claim text must be non-blank")
         return value.strip()
+
+    @model_validator(mode="after")
+    def evidence_presence_matches_relation(self) -> "AudienceTriangulationClaim":
+        evidence_lists = (
+            self.representative_evidence_ids,
+            self.all_support_evidence_ids,
+            self.counterevidence_ids,
+            self.source_video_ids,
+        )
+        if self.relation == "missing":
+            if any(evidence_lists):
+                raise ValueError(
+                    "missing claims must not cite evidence or source videos"
+                )
+        elif (
+            not self.representative_evidence_ids
+            or not self.all_support_evidence_ids
+            or not self.source_video_ids
+        ):
+            raise ValueError(
+                "non-missing claims require non-empty representative_evidence_ids, "
+                "all_support_evidence_ids, and source_video_ids"
+            )
+        return self
 
 
 class AudienceProjectionPoint(StrictModel):

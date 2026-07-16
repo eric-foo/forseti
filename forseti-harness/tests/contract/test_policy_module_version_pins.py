@@ -42,7 +42,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Output-shaping: temporal pairing, amplification/rank context, and the
         # cid-less mechanics fix now ride the producer's v1 recipe/schema tokens.
-        "88588cca1a2a4e088c1f04bde99602af2ad38117e86160c231bb957f7b6e3141",
+        "38def9d04a913acd1818be5194d23122f51c182ca0f59bfdf0859606b0e2dcd6",
     ),
     "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
         (
@@ -109,7 +109,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Output-shaping: the official Silver envelope is retained, while durable
         # record/completion identity now binds the full policy fingerprint; the
         # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
-        "10cc4eb51d7f8c5307d02eb96ff606c70d8af70318574ef3ce59641093b3ea99",
+        "6885729bc1b5bee6b250ce2d40f4b3bd7ca66e225fbbc6cc3c6c5649dd1afbef",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
@@ -170,7 +170,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
 # accidentally drops the payload field itself.
 RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
     "cleaning/transcript_product_lake.py": (
-        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"',
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v3"',
         '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
     ),
     "source_capture/fragrance_review_coverage.py": (

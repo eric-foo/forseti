@@ -66,6 +66,15 @@ Conforms to the Silver Vault record contract's MetricObservation discipline.
 `source_surface_count_candidates`, `unit`. Lane `creator_metric_silver`.
 Anchored to its source projection's raw packet via `raw_refs`.
 
+A source projection row with known `capture_time` keeps that value in
+`observed_at`. If the row's source-effective time is genuinely unknown, the
+producer keeps `observed_at: null` and uses the generic Silver explicit-unknown
+grammar in `payload.observation`: `effective_interval.start: null`,
+`start_precision: unknown`, a non-empty reason, seed `generated_at_utc` as
+`recorded_at`/`captured_at`, the exact `raw_ref` as `evidence_refs`, and a visible
+limitation that the recorded time is not source-effective time. The producer
+schema token changes so normal re-derivation re-surfaces affected packets.
+
 ### MetricRollupObservation (new payload_kind)
 
 `payload.observation` carries: `subject` (the platform-account `entity_key`),

@@ -63,6 +63,8 @@ def _complete_lineage_fields(root: DataLakeRoot, packet_id: str) -> dict:
         producer_schema_version="v0",
         source_surface="youtube_captions",
         source_object=SilverSourceObject(namespace="youtube", kind="transcript", native_id="vid1"),
+        observed_at="2026-07-15T00:00:00Z",
+        captured_at="2026-07-15T00:00:00Z",
         raw_refs=[
             SilverRawRef(
                 packet_id=packet_id,

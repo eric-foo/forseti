@@ -7,6 +7,7 @@ from pathlib import Path
 from data_lake.root import DataLakeRoot, raw_shard
 from data_lake.silver_census import (
     FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
+    _observation_window,
     build_silver_observation_census,
 )
 from data_lake.silver_record import append_silver_record, silver_content_hash
@@ -24,6 +25,19 @@ PARFUMO_PACKET = "01KW2MJM01Y0936VNECWB3MHSE"
 FAILED_DEEP_CAPTURE_PACKET = "01KW2MJM01Y0936VNECWB3MHSF"
 FAILED_IG_GRID_PACKET = "01KW2MJM01Y0936VNECWB3MHSG"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
+
+
+def test_census_does_not_substitute_capture_time_for_unknown_observed_at() -> None:
+    observation = {
+        "effective_interval": {
+            "start": None,
+            "start_precision": "unknown",
+            "unknown_reason": "source exposes no effective timestamp",
+        }
+    }
+    record = {"observed_at": None, "captured_at": OBSERVED_AT}
+
+    assert _observation_window(record, observation) == "unknown"
 
 
 def _write_deep_capture(root: DataLakeRoot, shortcode: str, comment_id: str, audio: bytes):
