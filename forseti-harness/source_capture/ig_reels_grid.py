@@ -12,6 +12,8 @@ from datetime import datetime, timezone
 from typing import Any, Iterable
 from urllib.parse import urljoin, urlparse
 
+from harness_utils import int_or_none as _int_or_none
+
 DOM_GRID_ENGAGEMENT = "dom_grid_engagement"
 PASSIVE_PAGE_JSON_METADATA = "passive_page_json_metadata"
 CLIPS_USER_JSON_METADATA = "clips_user_json_metadata"
@@ -536,19 +538,6 @@ def _edge_count(value: object) -> int | None:
     return None
 
 
-def _int_or_none(value: object) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
-    return None
-
-
 def _timestamp_to_utc(value: int | None) -> str | None:
     if value is None:
         return None
@@ -566,6 +555,7 @@ def _shortcode_string_or_none(value: object) -> str | None:
 
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: int branch lacks the bool guard (True -> "True"), unlike harness_utils.string_or_none.
     if isinstance(value, str):
         stripped = value.strip()
         return stripped or None

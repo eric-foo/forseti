@@ -143,7 +143,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        "b98de11e2a67abe4fd75c048926ba2b3e95b3dddfc9446a20cdef93adb6a1bad",
+        "df33ab6c6de41986fcc796fbb9b4e162884ef650796a25398cdd1597cc1b29fc",
     ),
     "source_capture/fragrance_review_lake.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION (source_capture/fragrance_review_coverage.py; weak-envelope residual)",),
@@ -155,7 +155,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "6ad096feefc6e992c56135f87f6f343da9b3d05d895fd30c0435b3862ade1729",
+        "47c5b75baefc4543363b09513ee55e712368ce5682d10240f8a9c97e66623213",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
