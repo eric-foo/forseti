@@ -185,7 +185,12 @@ check_ontology_tag_validity.
 
 ## Section 5 — Owner Decision List (kept/cut, ranked by surface at stake)
 
-Owner-gated; nothing below was executed. One line each; details in Section 1.
+Owner-gated. ADJUDICATED 2026-07-17 by the owner (recorded in the commissioning
+session): rows 1–3 CUT (executed on this branch — `check_doc_terms.py`,
+`check_registry_list_sync.py`, `check_engagement_stale_phrases.py`,
+`check_commission_signal_board_output.py` deleted, ~2,447 lines; README rows
+removed; historical doc references left intact as records). Rows 4–11 KEEP per
+recommendation. Original list preserved below as the decision record.
 
 1. **check_commission_signal_board_output.py — WIRE or CUT** (1,264 unwired lines). Recommendation: decide with CSB workstream status; if kept, wire `--strict` on changed board outputs and merge the duplicated overclaim engine with the scanning checker.
 2. **check_doc_terms.py — CUT** (371 unwired report-only lines, fake-success selftest wrapper). Recommendation: cut.

@@ -19,7 +19,7 @@ open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/artifact-folders.md
   - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
-  - .agents/hooks/check_commission_signal_board_output.py
+  - .agents/hooks/check_commission_signal_board_output.py # nonresolving: checker retired 2026-07-17 (unwired, no-catch; owner-adjudicated cut, see docs/hygiene/hooks_smallest_complete_audit_ledger_v0.md Section 5)
   - .agents/hooks/check_csb_scanning_artifact.py
 ```
 

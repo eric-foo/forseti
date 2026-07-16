@@ -25,8 +25,6 @@ is harness-specific.
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt.py` | **CI** (`--strict`) + manual maintenance | Diff-scoped strict gate validates the shape of real DCP receipts/blockers present in changed Markdown files and reports changed-file/receipt counts. `--audit` is maintenance-only for checker/contract changes or explicit legacy-corpus repair. Shape only; never receipt need, truth, validation, readiness, or acceptance. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts or a new unauthorized standalone DCP receipt file. The legacy archive is frozen and pointers are not required. Shape only; never receipt truth, validation, readiness, or acceptance. |
-| `check_registry_list_sync.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on explicitly registered vocabulary-list drift. Current binding: Foundation Allowed Signal Uses must be contained by the engagement registry Signal Use Classification list. Shape only; never category correctness or auto-promotion. |
-| `check_engagement_stale_phrases.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on curated stale engagement/resonance doctrine phrases in live doctrine paths. Leakage detection only; default excludes historical prompts/reviews and DCP self-reference noise. |
 | `check_review_output_provenance.py` | manual + **CI** (`--diff "$FORSETI_DIFF_BASE" --strict`) | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, review-use boundary/non-approval wording, balanced/valid fences, proper `diff` fencing, non-collapsed diffs, observed-check wording, or whitespace hygiene. Shape/integrity only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
 | `check_csb_scanning_artifact.py` | manual + **CI** (`--diff "$FORSETI_DIFF_BASE" --strict`) | Diff-scoped, forward-only for CSB-first scan artifacts under `docs/research/`: validates minimum receipt shape including capture-request accounting and the Creator Registry preflight block (`not_applicable` for non-social requests; receipt-backed `can_start_new_capture` for new social creator/account capture). Shape only; never scan quality, buyer proof, registry truth, or Capture route authorization. |
 | `check_review_routing.py` | **commit-msg** (advisory) + **CI** (`--strict`) | Diff-scoped, forward-only: a change touching code roots (`forseti-harness/`, `.agents/hooks/`) must add a review artifact under `docs/prompts/reviews/`/`docs/review-outputs/` or carry a shape-valid `review_routing_status:` commit-message line (`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`). Disposition presence/shape only; never review quality, reason truth, or whether review should have been recommended. |
@@ -148,8 +146,6 @@ Verify:
 python .agents/hooks/_hooklib.py --selftest
 python .agents/hooks/guard_protected_actions.py --selftest
 python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
-python .agents/hooks/check_registry_list_sync.py --selftest
-python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
 python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
@@ -253,8 +249,6 @@ Verify:
 ```powershell
 python .agents/hooks/guard_protected_actions.py --selftest
 python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
-python .agents/hooks/check_registry_list_sync.py --selftest
-python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
 python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
