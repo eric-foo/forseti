@@ -82,11 +82,11 @@ def test_creator_registry_index_counts_and_contract() -> None:
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "materialized_known_public_account_dedupe_and_onboarding_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 51,
+        "platform_accounts_total": 52,
         "creator_records_total": 2,
-        "known_account_rows_total": 51,
-        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 6, "youtube": 40},
-        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 38},
+        "known_account_rows_total": 52,
+        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 7, "youtube": 40},
+        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 39},
     }
     assert [record["creator_record_id"] for record in registry["creator_records"]] == [
         "creator_fragranceknowledge_001",
@@ -154,6 +154,7 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         "acct_ig_fragrance_006",
         "acct_tiktok_fragrance_006",
     }
+    content_packet_account_ids = {"acct_tiktok_fragrance_007"}
 
 
     for source_account in ledger["platform_accounts"]:
@@ -178,6 +179,9 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
 
         if source_account["platform_account_id"] in profile_packet_account_ids:
             assert indexed["capture_state"] == "identity_observed_profile_packet_available"
+            assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
+        elif source_account["platform_account_id"] in content_packet_account_ids:
+            assert indexed["capture_state"] == "identity_observed_content_packet_available"
             assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
         elif source_account["platform_account_id"] >= "acct_yt_fragrance_032":
             assert indexed["capture_state"] == "never_captured"
