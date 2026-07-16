@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -20,6 +19,7 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_WRAPPER_KEY,
     has_blocking_preflight_results,
 )
+from harness_utils import utc_now_z
 
 
 
@@ -150,7 +150,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.check == args.write:
         parser.error("choose exactly one of --check or --write")
 
-    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
+    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or utc_now_z()
     metric_seeds = tuple(args.metric_seeds) if args.metric_seeds else DEFAULT_METRIC_SEEDS
     audience_snapshots = tuple(args.audience_triangulation_snapshots or ())
     audience_outcomes = tuple(args.audience_judgment_outcomes or ())
@@ -302,10 +302,6 @@ def _existing_generated_at(path: Path) -> str | None:
     except (KeyError, TypeError, ValueError):
         return None
     return value if isinstance(value, str) and value.strip() else None
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 if __name__ == "__main__":
