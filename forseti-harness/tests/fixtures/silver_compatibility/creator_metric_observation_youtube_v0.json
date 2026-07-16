@@ -1,0 +1,81 @@
+{
+  "captured_at": "2026-01-01T00:00:00Z",
+  "content_hash": "sha256:f39423168f2565ead5c2e43ab0c70254f4f2d92e30ad5503cbe20ad3950201ad",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
+  "derived_refs": [],
+  "lane_namespace": "creator_metric_silver",
+  "non_claims": [
+    "not a follower graph or audience estimate",
+    "not a representative creator average",
+    "not an engagement-rate, like, or comment metric",
+    "not buyer proof",
+    "not channel-wide creator influence",
+    "not cross-platform identity linkage"
+  ],
+  "observed_at": "2026-01-01T00:00:00Z",
+  "payload": {
+    "observation": {
+      "content_url": "https://www.youtube.com/shorts/fixture00001",
+      "coverage_window": {
+        "end": null,
+        "start": null
+      },
+      "metric_name": "view_count",
+      "metric_posture": {
+        "kind": "observed",
+        "reason_code": null,
+        "reason_detail": null
+      },
+      "metric_value": 123456,
+      "source_publication_or_event": "2026-01-01T00:00:00-08:00",
+      "source_surface": "youtube_shorts",
+      "subject": {
+        "ref": {
+          "kind": "public_content_object",
+          "namespace": "youtube",
+          "native_id": "fixture00001",
+          "native_id_kind": "youtube_video_id",
+          "orca_platform_account_id": "acct_yt_fixture_001",
+          "published_by_account_native_id": "UCfixture0000000000000001",
+          "published_by_account_native_id_kind": "youtube_channel_id"
+        },
+        "ref_type": "entity_key"
+      },
+      "unit": "count",
+      "watch_url": "https://www.youtube.com/watch?v=fixture00001"
+    }
+  },
+  "payload_kind": "MetricObservation",
+  "producer_id": "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer.derive_youtube_creator_metric_silver_records_from_seed#metric_observation",
+  "producer_row_kind": "yt_media_metric",
+  "producer_schema_version": "youtube_creator_metric_silver_metricobservation_v0",
+  "provenance": {
+    "creator_handle_query": "FixtureCreator",
+    "metric_registry_version": "creator_metric_seed_youtube_view_count_v0",
+    "observed_at_source": "attempted_at_utc",
+    "seed_metric_observation_id": "yt_fixture_view_obs_v0_001",
+    "source_field": "/attempts/0/view_count",
+    "source_pointer": "docs/review-inputs/fixture_capture_v0.json#/attempts/0",
+    "source_pool_row_id": "yt-fixture-pool-v0-001",
+    "youtube_creator_observation_id": "yt_fixture_creator_observation_v0_001"
+  },
+  "raw_anchor": "01J000000000000000000000Y1",
+  "raw_refs": [
+    {
+      "hash_basis": "source_captured_watch_html_sha256",
+      "packet_id": "01J000000000000000000000Y1",
+      "sha256": "b8dfe665de3d42df80b20fc532d5c1b227949c5c572360a78bd953c0a1ffb1a0",
+      "shorts_html_sha256": "72084cc4fc58bb7be718ed14f95ec6f9e73f831fea23942f225f8b4ddfa59901",
+      "source_field": "/attempts/0/view_count",
+      "source_file": "docs/review-inputs/fixture_capture_v0.json",
+      "source_pointer": "docs/review-inputs/fixture_capture_v0.json#/attempts/0",
+      "source_row_id": "yt-fixture-expansion-v0-001",
+      "watch_html_sha256": "b8dfe665de3d42df80b20fc532d5c1b227949c5c572360a78bd953c0a1ffb1a0"
+    }
+  ],
+  "record_id": "01J00000000000000000000YO1.json",
+  "record_kind": "observation",
+  "schema_version": "silver_vault_record_v0",
+  "source_family": "social_media",
+  "source_surface": "youtube_shorts"
+}

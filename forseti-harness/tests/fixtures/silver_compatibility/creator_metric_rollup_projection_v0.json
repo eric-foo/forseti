@@ -1,0 +1,148 @@
+{
+  "captured_at": "2026-01-01T01:00:00Z",
+  "content_hash": "sha256:c516efde7261038c231785551db3544fa4d4d5d1b0025d5a35d75865e3bfb37e",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
+  "derived_refs": [
+    {
+      "content_hash": "sha256:35917bbdd4535a7651322f427537fceea4ba0acf7970bf0df81243a0b3d824a2",
+      "content_hash_basis": "canonical_json_excluding_content_hash",
+      "edge_type": "derived_from_record",
+      "lane_namespace": "creator_metric_silver",
+      "record_id": "01J00000000000000000000PO1.json"
+    }
+  ],
+  "lane_namespace": "creator_metric_rollup_silver",
+  "non_claims": [
+    "not a follower graph or audience estimate",
+    "not a representative creator average",
+    "not buyer proof",
+    "not channel-wide creator influence",
+    "not cross-platform identity linkage"
+  ],
+  "observed_at": "2026-01-01T01:00:00Z",
+  "payload": {
+    "observation": {
+      "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+      "computed_at": "2026-01-01T01:00:00Z",
+      "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+      "derivation": {
+        "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+        "kind": "computed_metric_rollup",
+        "metric_posture_semantics": "source_input_support_not_raw_aggregate_visibility",
+        "source_record_ref_kind": "derived_refs"
+      },
+      "freshness_state": "partial",
+      "limitations": [
+        "Rollup covers the synthetic fixture grid rows only; it is not a full-account average.",
+        "View, like, and comment counts are capture-time observations and may have changed since capture."
+      ],
+      "metric_rollups": {
+        "average_comment_count": {
+          "metric_posture": {
+            "kind": "observed",
+            "reason_code": null,
+            "reason_detail": null
+          },
+          "metric_value": 10.5,
+          "unit": "count"
+        },
+        "average_like_count": {
+          "metric_posture": {
+            "kind": "observed",
+            "reason_code": null,
+            "reason_detail": null
+          },
+          "metric_value": 25.25,
+          "unit": "count"
+        },
+        "average_views": {
+          "metric_posture": {
+            "kind": "observed",
+            "reason_code": null,
+            "reason_detail": null
+          },
+          "metric_value": 123.45,
+          "unit": "count"
+        },
+        "engagement_rate": {
+          "metric_posture": {
+            "kind": "observed",
+            "reason_code": null,
+            "reason_detail": null
+          },
+          "metric_value": 0.012345,
+          "unit": "rate"
+        },
+        "median_views": {
+          "metric_posture": {
+            "kind": "observed",
+            "reason_code": null,
+            "reason_detail": null
+          },
+          "metric_value": 67.5,
+          "unit": "count"
+        },
+        "posting_cadence": {
+          "metric_posture": {
+            "kind": "not_attempted",
+            "reason_code": null,
+            "reason_detail": "cadence recipe is out of scope for this metric seed"
+          },
+          "metric_value": null,
+          "unit": "rate"
+        },
+        "recent_velocity": {
+          "metric_posture": {
+            "kind": "not_attempted",
+            "reason_code": null,
+            "reason_detail": "velocity recipe is out of scope for this metric seed"
+          },
+          "metric_value": null,
+          "unit": "rate"
+        }
+      },
+      "observation_count": 1,
+      "platform_account_ids": [
+        "acct_ig_fixture_001"
+      ],
+      "platform_scope": "instagram",
+      "rollup_kind": "creator_account_metric_rollup",
+      "rollup_window": "custom",
+      "rollup_window_description": "fixture_selected_ig_reels_grid_projection_v0; not a full-account history window",
+      "sample_support": {
+        "observation_count": 1,
+        "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+        "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+        "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+      },
+      "source_metric_observation_ids": [
+        "ig_fixture_metric_obs_v0_001"
+      ],
+      "subject": {
+        "ref": {
+          "kind": "platform_public_account",
+          "namespace": "instagram",
+          "native_id": "fixture_creator",
+          "orca_platform_account_id": "acct_ig_fixture_001"
+        },
+        "ref_type": "entity_key"
+      },
+      "view_count_max": 123456,
+      "view_count_min": 123456
+    }
+  },
+  "payload_kind": "MetricRollupObservation",
+  "producer_id": "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_rollup",
+  "producer_row_kind": "creator_account_metric_rollup",
+  "producer_schema_version": "creator_metric_silver_metricrollupobservation_v0",
+  "provenance": {
+    "seed_metric_rollup_id": "ig_fixture_account_engagement_rollup_v0_001"
+  },
+  "raw_anchor": "01J000000000000000000000P1",
+  "raw_refs": [],
+  "record_id": "01J00000000000000000000PR1.json",
+  "record_kind": "observation",
+  "schema_version": "silver_vault_record_v0",
+  "source_family": "social_media",
+  "source_surface": "instagram_reels_grid"
+}
