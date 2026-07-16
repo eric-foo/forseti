@@ -38,11 +38,15 @@ stale_if:
 
 - `long_term_goal`: Establish which company information materially improves a consequential beauty-company decision and build reusable learning from the decision trace and later reveal.
 - `anchor_goal`: Select and bind the first decision-specific proving run under the accepted company-intelligence information architecture.
-- `success_signal`: One company, decision, owner proxy, deadline/cutoff, smallest-complete evidence world, paid-access posture, proxy ceilings, hold condition, and reveal path are accepted before research begins.
+- `success_signal`: One company, decision, owner proxy, deadline/cutoff, smallest-complete evidence world, paid-access posture, proxy ceilings, hold condition, reveal path, and a feasible route to the ideal `MATERIAL_CONTRIBUTION_SUPPORTED` claim are accepted before research begins.
 
 ## Active Objective
 
-Choose the first beauty decision family and proving case. Produce the Decision Frame and atomic information-requirements plan only. Stop for owner acceptance before commissioning CSB, Scanning, Capture, or external research.
+Choose the first beauty decision family and proving case. Produce the Decision Frame and atomic information-requirements plan only. Design the run to reach a bounded material-contribution inference where the evidence permits; do not create a separate causal-magnitude target. Stop for owner acceptance before commissioning CSB, Scanning, Capture, or external research.
+
+## Owner Correction — Ideal Claim Ceiling
+
+For this proving lane, `MATERIAL_CONTRIBUTION_SUPPORTED` is the ideal target and intended ceiling. Exact causal magnitude is not a third level, not a proving requirement, and not a reason to wait for proprietary data, customer-authorized data, experimental evidence, or delayed public reporting. Those sources may strengthen or quantify a case when worth acquiring, but they do not define whether Forseti may make a disciplined contribution inference from public evidence.
 
 ## Open Decision
 
@@ -64,23 +68,21 @@ Compare no more than three candidates on:
 4. observable later action or outcome;
 5. leakage-resistant cutoff/reveal feasibility;
 6. repeated-work potential without inventing a monitoring product; and
-7. a feasible contribution design that distinguishes input use, outcome-aligned
-   response, material contribution, and causal magnitude.
+7. a feasible contribution design that can move from input use to the ideal
+   bounded material-contribution inference without requiring exact causal magnitude.
 
 Recommend one or return `NO_PROVING_DECISION_CLEARS`.
 
 ## Outcome-Contribution Evidence Rule
 
-Knowing that a company used an input makes that input more decision-relevant than a generic public clue. It does **not** establish that the input had a higher-than-normal effect on the final outcome.
-
-Keep three claim levels separate:
+Use two claim states for this proving lane:
 
 1. `INPUT_USE_ESTABLISHED`: contemporaneous evidence shows the company used the information in the decision.
-2. `MATERIAL_CONTRIBUTION_SUPPORTED`: time-ordered evidence supports the inference that the input materially helped or hurt the outcome after plausible alternative drivers and counterevidence are considered.
-3. `CAUSAL_MAGNITUDE_ESTABLISHED`: a credible counterfactual or equivalent design supports how much outcome change the input caused. This will often remain unavailable.
+2. `MATERIAL_CONTRIBUTION_SUPPORTED`: time-ordered, convergent evidence supports the bounded inference that the input materially helped or hurt the outcome after plausible alternative drivers and counterevidence are considered. This is the ideal target.
 
-Level 2 is an inference from a contribution chain, not a fact found in one
-source. The plan must seek evidence for all four links:
+Material contribution is a causal inference, not a direct observation and not a
+claim about exact magnitude. The plan should seek a smallest-complete
+contribution chain:
 
 1. **Input before decision:** the input was observable before the decision,
    specific enough to act on, and attributable to the relevant customer or
@@ -88,37 +90,37 @@ source. The plan must seek evidence for all four links:
 2. **Decision translation:** the resulting product or action materially
    implemented that input rather than merely using similar marketing language.
 3. **Mechanism-aligned response:** the intended segment adopted, repeated,
-   switched, paid, or otherwise responded for reasons consistent with the
-   implemented input.
-4. **Comparative outcome and alternatives:** the response differs from an
-   appropriate baseline or comparator, and distribution, promotion, creator
-   spend, novelty, availability, seasonality, brand strength, and unrelated
-   portfolio effects have been tested as rival explanations.
+   switched, paid, advocated, searched, reviewed, or otherwise responded in a
+   way consistent with the implemented input.
+4. **Convergent outcome and rival assessment:** outcome evidence supports the
+   same mechanism, while distribution, promotion, creator spend, novelty,
+   availability, seasonality, brand strength, and unrelated portfolio effects
+   are named and tested as plausible rival contributors.
 
-Useful evidence designs, strongest first when feasible, include:
+Useful evidence designs include public customer language and behavior, product
+and price implementation, retailer or channel observations, search and review
+patterns, company or partner attribution, matched products or periods, rollout
+variation, and—when decision value justifies them—paid or customer-authorized
+measurements. No source class is privileged merely because it is proprietary,
+paid, delayed, or quantitative.
 
-- staggered rollout or variation across retailers, regions, channels, prices,
-  promotions, or customer cohorts;
-- a matched launch, product, SKU, feature, or pre-period comparison;
-- customer-authorized conversion, repeat, return, margin, or cohort data;
-- paid sell-through, panel, search, or market data with a defined denominator;
-- mechanism evidence from customer language, substitution, use, repurchase, or
-  price response; and
-- contemporaneous company, retailer, or partner attribution corroborated by
-  independent outcome evidence.
+A baseline or comparator strengthens the inference but is not universally
+mandatory. Decision-specific multi-source triangulation may clear material
+contribution when the time order, implementation, response mechanism, outcome,
+and rival-driver assessment form a coherent chain. If that chain is materially
+incomplete, remain at `INPUT_USE_ESTABLISHED` or return
+`CONTRIBUTION_PLAUSIBLE_NOT_ESTABLISHED`. Do not invent a third causal-magnitude
+level, and do not delay the proving run merely to await later financial reporting.
 
-No single design is universally mandatory. The smallest-complete contribution
-case must, however, contain a credible baseline or contrast, mechanism-aligned
-evidence, and an explicit alternative-driver assessment. If any of those three
-is absent, remain at `INPUT_USE_ESTABLISHED` or return
-`CONTRIBUTION_PLAUSIBLE_NOT_ESTABLISHED`; do not clear level 2.
-
-For the e.l.f. example, the existing statements clear input use. A level-2 case
-would still need evidence that Bronzing Drops implemented the requested
-attributes and price position, that the requesting customer segment bought or
-repeated for those reasons, and that performance was unusually strong against
-a suitable e.l.f. or category comparison after accounting for distribution,
-promotion, novelty, and brand strength.
+For e.l.f. Bronzing Drops, current public evidence can support a bounded level-2
+model once reverified: community demand was identified before launch; the
+company implemented the requested product with explicit accessible-value
+positioning; and later company material described the product as a viral
+success. The defensible inference is that community demand and value positioning
+likely made a material contribution to launch resonance. Distribution, promotion,
+novelty, and existing brand strength remain rival contributors to state openly;
+they do not make material-contribution inference impossible, and the run need not
+quantify each contributor's exact share.
 
 ## Drift Guard
 
@@ -128,10 +130,10 @@ promotion, novelty, and brand strength.
 - Do not treat Reddit, reviews, paid databases, or any other source as a fact.
 - Do not treat paid evidence as inherently stronger than open evidence.
 - Do not replace a decisive unavailable fact with a proxy.
-- Do not infer above-normal outcome impact merely because an input entered the decision.
-- Do not clear material contribution from company attribution plus a strong
-  outcome alone; require the contribution chain and a baseline or contrast.
-- Do not demand experimental causal proof when a bounded material-contribution claim is the strongest feasible ceiling; preserve that ceiling explicitly.
+- Do not infer material contribution merely because an input entered the decision; require the smallest-complete contribution chain.
+- Do not treat a baseline, experiment, proprietary dataset, delayed financial report, or exact quantification as universally mandatory for level 2.
+- Do not privilege paid evidence over equally decision-specific open evidence.
+- Do not create or pursue a separate causal-magnitude level. Preserve `MATERIAL_CONTRIBUTION_SUPPORTED` as the ideal claim ceiling and state rival contributors and uncertainty explicitly.
 - Do not implement or mutate Company Surface.
 - Do not run research before the owner accepts the Decision Frame and smallest-complete information requirements.
 
@@ -144,8 +146,9 @@ promotion, novelty, and brand strength.
 5. Recommend one candidate and write its proposed Decision Frame plus atomic
    information-requirements register, including open/paid/internal/unavailable
    access classes, rights needs, proxy ceilings, missing behavior, reveal path,
-   and a feasible contribution design naming its baseline or contrast,
-   mechanism evidence, alternative-driver tests, and claim ceiling.
+   and a feasible contribution design targeting `MATERIAL_CONTRIBUTION_SUPPORTED`,
+   naming its time-ordered chain, mechanism evidence, available triangulation or
+   comparison, alternative-driver tests, and honest residual uncertainty.
 6. Stop for owner adjudication. Do not commission or execute research.
 
 ## Forseti Prompt Preflight
@@ -168,4 +171,4 @@ promotion, novelty, and brand strength.
 
 ## Do Not Forget
 
-First decide what decision is being improved. Then identify the smallest complete set of facts that could change it. Only after that should Forseti decide where to search, what paid access is worth buying, and whether research can support an action or must return a hold.
+First decide what decision is being improved. Then identify the smallest complete set of facts that could change it. Aim for a bounded material-contribution inference from the strongest lawful evidence available; do not confuse exact quantification with causal reasoning or wait for a privileged source class. Only after the facts are named should Forseti decide where to search, what paid access is worth buying, and whether research can support an action or must return a hold.
