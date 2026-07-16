@@ -24,6 +24,7 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from capture_spine import shared_validation as _spine_shared
 from capture_spine.linkedin_lane.models import LinkedInLaneError
 
 
@@ -84,25 +85,14 @@ _FORBIDDEN_OUTPUT_VALUE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 
 def assert_no_forbidden_output_fields(value: Any, *, path: str = "$") -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            lowered = str(key).lower()
-            if lowered in FORBIDDEN_OUTPUT_FIELDS:
-                fail("forbidden_output_field", f"forbidden output field at {path}.{key}")
-            assert_no_forbidden_output_fields(child, path=f"{path}.{key}")
-        return
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        for index, child in enumerate(value):
-            assert_no_forbidden_output_fields(child, path=f"{path}[{index}]")
-        return
-    if isinstance(value, str):
-        _assert_no_forbidden_output_value(value, path=path)
-
-
-def _assert_no_forbidden_output_value(value: str, *, path: str) -> None:
-    for marker, pattern in _FORBIDDEN_OUTPUT_VALUE_PATTERNS:
-        if pattern.search(value):
-            fail("forbidden_output_value", f"forbidden secret-like value ({marker}) at {path}")
+    _spine_shared.assert_no_forbidden_output_fields(
+        value,
+        forbidden_fields=FORBIDDEN_OUTPUT_FIELDS,
+        value_patterns=_FORBIDDEN_OUTPUT_VALUE_PATTERNS,
+        fail=fail,
+        value_message_prefix="forbidden secret-like value",
+        path=path,
+    )
 
 
 # --- visible influence values: minimized counts / coarse bands only ---
@@ -147,16 +137,11 @@ def validate_visible_influence_value(field_name: str, value: Any) -> None:
 
 # --- key allowlist + required fields ---
 def reject_unknown_keys(value_map: Mapping[str, Any], allowed_keys: frozenset[str], label: str) -> None:
-    unknown = sorted(str(key) for key in value_map if str(key) not in allowed_keys)
-    if unknown:
-        fail("unknown_field", f"{label} contains unknown field(s): {unknown}")
+    _spine_shared.reject_unknown_keys(value_map, allowed_keys, label, fail=fail)
 
 
 def require_fields(value_map: Mapping[str, Any], field_names: Sequence[str], label: str) -> None:
-    for field_name in field_names:
-        value = value_map.get(field_name)
-        if value is None or (isinstance(value, str) and not value.strip()):
-            fail(f"missing_{field_name}", f"{label} missing required field: {field_name}")
+    _spine_shared.require_fields(value_map, field_names, label, fail=fail)
 
 
 # --- non_claims: NEGATED category check ---

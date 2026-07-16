@@ -46,13 +46,12 @@ The decision is:
 - a company roll-up is a time-bounded view across asserted relationships, not a
   destructive merge of brands and organizations.
 
-This contract does not graduate the currently reserved Org ontology type or
-authorize schema, storage, API, matching, or runtime work. It binds the semantic
-boundary that those later decisions must preserve.
-
-Until that graduation, a later record design must preserve Org as a required
-semantic distinction and return through the ontology gate before encoding it in
-an ontology-governed payload.
+This contract did not itself graduate Org or authorize schema, storage, API,
+matching, or runtime work. Foundation subsequently graduated Org by dated
+owner-authorized amendment on 2026-07-15 after the company-aggregate producer
+schema landed. This contract still binds the semantic boundary that physical
+records must preserve; the graduation adds no matcher, registry, or canonical
+identity resolver.
 
 ## Why This Boundary Exists
 
@@ -263,9 +262,11 @@ This contract does not establish:
   intervention choice.
 
 The companion `company_logical_record_and_view_contract_v0.md` implements this
-boundary and the owner-signed purpose without choosing physical storage. Org
-graduation and the first physical mapping into Data Lake records remain
-separate later decisions.
+boundary and the owner-signed purpose. Foundation subsequently graduated Org
+by dated owner-authorized amendment, and
+`company_surface_silver_mapping_contract_v0.md` now controls the first physical
+mapping into Data Lake records. Neither later decision adds a matcher,
+registry, canonical identity resolver, or unsupported relationship fact.
 
 ## Direction Change Propagation
 

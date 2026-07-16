@@ -102,6 +102,57 @@ source registry, forecast-target schema, and graph retrieval schema. Installing
 that bundle as authority would silently decide product, Judgment, Data Capture,
 and prompt-packaging questions that are not all settled.
 
+## Company Competitive-Intelligence Extension
+
+The canonical representation is:
+
+```yaml
+mode: backtest | forward
+commission_profile: standard_signal_board | company_competitive_intelligence
+time_posture: recency_first | longitudinal
+```
+
+These axes are orthogonal. A one-company subject whose identity is a Brand or
+Org defaults to `company_competitive_intelligence`, including when the
+Brand/Org identity remains unresolved. Preserve one-company-at-a-time:
+comparators may interpret the subject, but deep competitor treatment requires a
+separately named follow-up commission.
+
+`recency_first` is the universal default. It uses the deterministic `0-30`,
+`31-90`, `91-180`, and `>180` day ladder. `longitudinal` is an explicit
+override only for change, recurrence, or trajectory across a declared period,
+and it requires both the period and rationale. A named event is a route or
+query inside the selected posture. Historical observations may be primary only
+inside the declared longitudinal period and must never be relabeled current.
+
+The one-company report is decision-neutral. Its required lenses are observable
+positioning; offerings and claims; markets and channels; recent strategic and
+operating moves; customer and community response; bounded competitor or
+substitute context; contradictions; and evidence gaps. It must not infer pain,
+buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
+
+Every material observation preserves source URL, publisher, publication date,
+event date, access date, evidence status, source class, fact domain, and
+syndication group. A current page is not evidence that every claim on it is a
+current event. Community observations remain external/customer evidence and
+cannot establish representative demand or internal company fact. Syndicated
+copies are not independent corroboration.
+
+Company source coverage requires a bounded Reddit scout for every report; zero
+yield is valid. Initial proving runs also require an explicit experimental
+Quora scout, preserving yield, recency, access, and relevance without
+pre-labeling it stale or low-yield. Generic and specialist forums use
+category-aware hidden-venue discovery rather than a universal platform list.
+Blocked or missing coverage becomes a typed gap/request; `not_applicable` needs
+a rationale.
+
+CSB owns profiles, source-family requirements, time posture, and typed
+gaps/requests. Scanning owns intelligent-walk selection. Capture owns venue
+access and preservation adapters. CSB does not contain either runtime.
+Company Surface references are `candidate_only` and `not_imported`. The report
+has no arbitrary length, page, source-count, or observation cap; remove
+duplication and ornament, not necessary completeness.
+
 ## Current Source State
 
 The controlling product thesis says Forseti is outside-in consumer-demand decision
@@ -219,7 +270,7 @@ noise, provenance, independence, and graph behavior.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit, Quora, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, question-and-answer threads, rebuttals, corrections | Reddit and Quora are explicit subfamilies; boards include Quora Q&A route rows when consumer/buyer questions, comparisons, objections, or recommendation-seeking are commission-relevant, with `capture_posture: manual_only` and capture execution routed to the Capture spine. Discord is noisy/deferred unless a public, repeatable, bounded slice exists with noise controls. |
+| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Every company report requires a bounded Reddit scout; zero yield is valid. Initial proving runs require an experimental Quora scout that preserves yield, recency, access, and relevance without pre-labeling. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |

@@ -7,9 +7,9 @@ scope: >
   The deletion-evidence contract for the Phase-2 bloat-cut fan-out: deleting a
   governed artifact carries a complete evidence record in the deletion-evidence
   register, and a STRICT CI gate (check_deletion_evidence.py) fails any PR that
-  deletes a governed artifact without one. Adjudication is the existing
-  router->human-merge flow; provenance lives in git; the register holds only the
-  evidence git cannot derive.
+  deletes a governed artifact without one. Substantive evidence review plus
+  home/Chief Architect adjudication is a resident completion gate; provenance
+  lives in git; the register holds only the evidence git cannot derive.
 use_when:
   - Proposing or executing a deletion of a governed artifact (under GOVERNED_ROOTS).
   - Reviewing or adjudicating a deletion PR.
@@ -23,6 +23,7 @@ stale_if:
   - The register schema or GOVERNED_ROOTS changes (update this doctrine + the checker together).
   - The CI gate's enforcement placement (strict, pre-merge, in ci.yml) changes.
   - The router stops routing deleting PRs to manual review.
+  - The completed-work self-merge or resident review/adjudication contract changes.
 ```
 
 ## Status
@@ -54,10 +55,10 @@ pathspec.
 
 ## The four evidence elements (all required, non-empty)
 
-- **reverse_ref_check** — who/what still references the target; confirmed safe to remove. *(Human-judged; read by the adjudicator.)*
+- **reverse_ref_check** — who/what still references the target; confirmed safe to remove. *(Judgment-bearing; read by the independent reviewer/adjudicator.)*
 - **successor** — the replacing path, or the literal `none -- pure bloat`. *(Machine-checked: a named path must resolve in the tree.)*
-- **semantic_delta** — what meaning is lost vs preserved by the deletion. *(Human-judged.)*
-- **rollback** — how to restore (e.g. `git revert <executing merge sha>`). *(Human-judged.)*
+- **semantic_delta** — what meaning is lost vs preserved by the deletion. *(Judgment-bearing.)*
+- **rollback** — how to restore (e.g. `git revert <executing merge sha>`). *(Judgment-bearing.)*
 
 ## Adjudication, not a record lifecycle
 
@@ -66,10 +67,11 @@ nothing can transition a record; a phase nothing flips is a fiction. Instead:
 
 - **Evidence** is the register record — present and complete, or the gate fails.
 - **Adjudication** is the existing flow: the PR-risk router labels a deleting PR
-  `risk/manual-review-required`, so the unattended bot will not land it and a
-  human merges it. The plan's Phase-2 shape (a propose PR, then a separate
-  execute PR — consolidation worksheet) is the "two phases", as two PRs, not two
-  states of one record.
+  `risk/manual-review-required`, so the unattended bot will not land it. The
+  evidence must receive independent substantive review plus home/Chief Architect
+  adjudication before the completed lane author may self-merge. The plan's
+  Phase-2 shape (a propose PR, then a separate execute PR — consolidation
+  worksheet) is the "two phases", as two PRs, not two states of one record.
 - **Provenance** (who merged, when, which commit) is recovered from git, its
   single authoritative home; it is not duplicated into the record.
 
@@ -94,20 +96,20 @@ or a successor that does not resolve are real findings. A **missing** register i
 treated as empty (governed deletions then fail) — a deleted register cannot
 un-govern the corpus.
 
-## Presence vs truth, and the human adjudicator
+## Presence vs truth, and resident adjudication
 
 This gate enforces that evidence is **present and machine-consistent** — the
 deleted governed path is covered by a complete record, and the declared successor
 resolves to a committed file (or is the no-successor literal). It does **not**
-verify that the human-judged fields (`reverse_ref_check`, `semantic_delta`) are
-**true**. That substantive adjudication is the human merger's job, and it is
-mechanically guaranteed: the PR-risk router flags every governed-deletion PR
-`risk/manual-review-required`, and the protected-action guard
-(`.agents/hooks/guard_protected_actions.py`) **refuses to self-merge a
-manual/blocked-flagged PR** — so a governed deletion is always landed by a human
-who reads the evidence. (Previously the guard honored only CLEAN + green + label
-and could self-merge a router-flagged deletion carrying junk-but-present
-evidence; honoring the router label closes that.)
+verify that the judgment-bearing fields (`reverse_ref_check`, `semantic_delta`) are
+**true**. That substantive review and home/Chief Architect adjudication is a
+resident completion gate: it must close before the lane author self-merges. The
+router's `risk/manual-review-required` label mechanically excludes the PR from
+the unattended bot and signals the gate, but it neither certifies that judgment
+occurred nor chooses a human merge actor. This is an explicit limitation: the
+strict checker proves evidence presence and machine-consistency; the acting lane
+must truthfully verify the independent review return and adjudication before
+landing its own PR.
 
 ## What this does NOT cover (named boundaries)
 
@@ -120,11 +122,12 @@ evidence; honoring the router label closes that.)
 - **A PR that edits the gate itself.** Because CI runs the PR's own checker and
   workflow, a PR could in principle delete a governed file and neuter the gate in
   the same diff. Such a PR touches `.agents/` or `.github/`, which the router
-  flags `risk/manual-review-required` → the guard refuses self-merge → a human
-  lands it and sees the tampering. The residual is the same as any human-gated
-  control (a careless human merge); a server-side required check, or a
-  `pull_request_target` gate running **main's** checker against the PR, would
-  close it further and is the next hardening if warranted.
+  flags `risk/manual-review-required`, so unattended auto-merge remains blocked
+  and independent review plus home/Chief Architect adjudication is required
+  before author landing. That completion truth is resident rather than
+  mechanically proven. A `pull_request_target` gate running **main's** checker
+  against the PR, or another server-owned check immune to PR-side tampering,
+  would close the residual further and is the next hardening if warranted.
 
 ## Emergency deletions
 
@@ -144,10 +147,10 @@ waiver record, so the emergency path itself stays evidence-bearing.
   provenance's authoritative home; duplicating it invites register-vs-git drift.
 - **Report-mode now, strict in Phase-3** — report-mode leaves the self-merge path
   open during the exact phase deletions happen; it is no safety.
-- **No gate (router + PR template only)** — routing a deletion to a human does
+- **No gate (router + PR template only)** — routing a deletion to review does
   not guarantee a complete, machine-consistent record exists; the strict gate
   guarantees presence + machine facts (targets match the diff, successor
-  resolves) so the human adjudicates a well-formed record, not a checklist.
+  resolves) so the adjudicator receives a well-formed record, not a checklist.
 - **PreToolUse hook on the delete tool-call** — Claude-Code-scoped only (the bot
   and other harnesses are not guarded) and per-call (it cannot see the merged
   diff or a rename); the merge-time CI gate is harness-agnostic.
@@ -201,6 +204,59 @@ direction_change_propagation:
     - not readiness
     - not deletion approval
     - not a narrowed governed scope
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Governed deletions retain independent substantive review plus home/Chief
+    Architect adjudication as a required completion gate, while the completed
+    lane author remains the merge actor. The manual-review label mechanically
+    excludes unattended auto-merge and signals the gate; it does not prove that
+    judgment occurred or require a human merger.
+  trigger: review_authority
+  related_triggers:
+    - workflow_authority
+    - lifecycle_boundary
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/deletion_evidence_doctrine_v0.md
+    - .agents/hooks/check_deletion_evidence.py
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/hooks/guard_protected_actions.py
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .github/workflows/pr-risk-router.yml
+    - .github/workflows/auto-merge.yml
+  intentionally_not_updated:
+    - path: AGENTS.md and .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Both already require completion of commissioned review and home/Chief
+        Architect adjudication before own-PR self-merge.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        It already distinguishes mechanically checkable inputs from resident
+        judgment and does not claim that a routing label certifies review.
+    - path: .github/workflows/pr-risk-router.yml and .github/workflows/auto-merge.yml
+      reason: >
+        The router still sends deletions to manual review and the unattended bot
+        still excludes that label; no workflow behavior changed.
+  stale_language_search: >
+    rg -n -i "human merger|human adjudicator|human merges|always reads the evidence|refuses (to )?self-merge.*manual|manual.*human merge"
+    docs/decisions/deletion_evidence_doctrine_v0.md .agents/hooks/check_deletion_evidence.py
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .agents/hooks/README.md
+  stale_language_search_result: >
+    Executed 2026-07-15. Remaining hits are this receipt's search terms and
+    explicit statements that the manual-review label does not require a human
+    merger; no live statement couples the label to human landing.
+  non_claims:
+    - not validation or readiness
+    - not mechanical proof that independent review or adjudication completed
+    - not unattended auto-merge authority for governed deletions
+    - not authority to bypass a required owner hold
 ```
 
 ## Worked skeleton (illustrative)

@@ -30,8 +30,14 @@ from data_lake.creator_metric_lineage import (
     build_creator_metric_lineage_index,
 )
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    HISTORICAL_COMPATIBLE_AUTHORITY,
+    INVALID_SILVER_AUTHORITY,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    classify_silver_vault_record_sources,
+    silver_raw_refs_bound_to_own_anchor,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 
 CENSUS_SCHEMA_VERSION = "silver_observation_census_v0"
@@ -48,6 +54,10 @@ _FRAGRANTICA_REVIEW_VOTE_VALUES: dict[str, frozenset[int]] = {
 
 _ADDITIVE_FIELDS = (
     "silver_records",
+    "current_source_backed_silver_records",
+    "historical_compatible_silver_records",
+    "retired_audit_only_silver_records",
+    "identity_entity_records",
     "content_observations",
     "directly_observed_atomic_metric_values",
     "current_policy_qualified_direct_metric_values",
@@ -78,6 +88,10 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
     "cleaning_basenotes_silver": (("fragrance_native_database", "basenotes_"),),
     "cleaning_fragrantica_silver": (("fragrance_native_database", "fragrantica_"),),
     "cleaning_parfumo_silver": (("fragrance_native_database", "parfumo_"),),
+    # The vertical slice has no authorized source-access route.  Populated
+    # records are counted normally; an empty lane is intentionally inactive
+    # rather than inferred applicable from unrelated raw packets.
+    "company_surface_silver": (),
     "creator_metric_silver": (
         ("youtube", None),
         ("instagram_creator", None),
@@ -100,7 +114,10 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
         ("instagram_creator", None),
     ),
-    "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
+    "retail_pdp_silver": (
+        ("fragrance_purchase_review_pdp", None),
+        ("retail_pdp", None),
+    ),
     "silver__capture__audience_comments": _DEEP_CAPTURE_APPLICABILITY,
     "silver__capture__reel_transcript": _DEEP_CAPTURE_APPLICABILITY,
 }
@@ -241,7 +258,7 @@ def _observation_window(record: Mapping[str, Any], observation: Mapping[str, Any
         return f"coverage:{coverage.get('start') or '<open>'}/{coverage.get('end') or '<open>'}"
     if observation.get("rollup_window"):
         return f"rollup:{observation.get('rollup_window')}"
-    point = record.get("observed_at") or record.get("captured_at")
+    point = record.get("observed_at")
     return f"point:{point}" if point else "unknown"
 
 
@@ -460,6 +477,22 @@ def _classify_record(
     manifest_by_packet: Mapping[str, Mapping[str, Any]],
 ) -> None:
     payload = record.get("payload")
+    if not isinstance(payload, Mapping):
+        context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
+        accumulator.increment("unclassified_silver_records", context)
+        return
+    if record.get("record_kind") == "entity":
+        entity = payload.get("entity")
+        if not isinstance(entity, Mapping):
+            context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
+            accumulator.increment("unclassified_silver_records", context)
+            return
+        context = _context(record, entity, lane=lane, manifest_by_packet=manifest_by_packet)
+        accumulator.increment("identity_entity_records", context)
+        accumulator.remember_subject(
+            {"ref_type": "entity_key", "ref": entity.get("entity_key")}
+        )
+        return
     observation = payload.get("observation") if isinstance(payload, Mapping) else None
     if not isinstance(observation, Mapping):
         context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
@@ -564,31 +597,6 @@ def _eligible(manifest: Mapping[str, Any], selectors: tuple[tuple[str, str | Non
     family = str(manifest.get("source_family") or "")
     surface = str(manifest.get("source_surface") or "")
     return any(family == wanted and (prefix is None or surface.startswith(prefix)) for wanted, prefix in selectors)
-
-
-def _deep_capture_raw_refs_resolve(data_root: Any, record: Mapping[str, Any]) -> bool:
-    raw_anchor = record.get("raw_anchor")
-    raw_refs = record.get("raw_refs")
-    if not isinstance(raw_anchor, str) or not isinstance(raw_refs, list) or not raw_refs:
-        return False
-    try:
-        loaded = data_root.load_raw_packet(raw_anchor)
-    except Exception:  # noqa: BLE001 - census eligibility fails closed
-        return False
-    files = {
-        item.get("file_id"): item
-        for item in loaded.manifest.get("preserved_files", [])
-        if isinstance(item, Mapping)
-    }
-    for ref in raw_refs:
-        if not isinstance(ref, Mapping) or ref.get("packet_id") != raw_anchor:
-            return False
-        source = files.get(ref.get("file_id"))
-        if not isinstance(source, Mapping):
-            return False
-        if any(ref.get(key) != source.get(key) for key in ("relative_packet_path", "sha256", "hash_basis")):
-            return False
-    return True
 
 
 def _lane_states(
@@ -712,6 +720,17 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                 )
                 context = _context(record, observation, lane=lane, manifest_by_packet=manifest_by_packet)
                 accumulator.increment("silver_records", context)
+                if role_of(lane) is LaneRole.RETIRED_SILVER_LINEAGE:
+                    accumulator.increment("retired_audit_only_silver_records", context)
+                    audit_only_residuals.append(
+                        {
+                            "kind": "retired_audit_only",
+                            "lane": lane,
+                            "path": relative,
+                            "reason": "registered retired_silver_lineage bytes are audit-only",
+                        }
+                    )
+                    continue
                 if record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION:
                     if lane in _DEEP_CAPTURE_SILVER_LANES:
                         accumulator.increment("deep_capture_historical_audit_only_records", context)
@@ -726,22 +745,46 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         continue
                     accumulator.increment("unclassified_silver_records", context)
                     continue
-                try:
-                    validate_silver_vault_record(record)
-                except (TypeError, ValueError) as exc:
+                authority = classify_silver_vault_record_sources(
+                    data_root,
+                    record,
+                    record_path=path,
+                    creator_metric_lineage=creator_metric_lineage,
+                )
+                if authority.status in {INVALID_SILVER_AUTHORITY, "unresolved"}:
                     accumulator.increment("unclassified_silver_records", context)
                     errors.append(
-                        {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
+                        {
+                            "kind": (
+                                "silver_record_invalid"
+                                if authority.status == INVALID_SILVER_AUTHORITY
+                                else "silver_record_source_unresolved"
+                            ),
+                            "path": relative,
+                            "reason_code": authority.reason_code,
+                            "error": authority.error or authority.reason_code,
+                        }
                     )
                     continue
+                if authority.status == HISTORICAL_COMPATIBLE_AUTHORITY:
+                    accumulator.increment("historical_compatible_silver_records", context)
+                    if lane in creator_metric_lanes:
+                        lineage = creator_metric_lineage.classification_for_path(path)
+                        accumulator.increment(
+                            creator_metric_status_fields[lineage.status], context
+                        )
+                    continue
+                if authority.status != CURRENT_SOURCE_BACKED_AUTHORITY:
+                    raise AssertionError(f"unknown Silver authority status: {authority}")
+                accumulator.increment("current_source_backed_silver_records", context)
                 if lane in _DEEP_CAPTURE_SILVER_LANES:
-                    if not _deep_capture_raw_refs_resolve(data_root, record):
+                    if not silver_raw_refs_bound_to_own_anchor(record):
                         accumulator.increment("unclassified_silver_records", context)
                         errors.append(
                             {
                                 "kind": "deep_capture_source_ref_unresolved",
                                 "path": relative,
-                                "error": "Silver envelope raw packet/file/hash did not resolve exactly",
+                                "error": "Silver raw_refs cite a packet other than the record's own raw_anchor",
                             }
                         )
                         continue
@@ -804,12 +847,16 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                     validate_silver_vault_record(member)
                 except (TypeError, ValueError):
                     continue
+                try:
+                    verify_silver_vault_record_sources(data_root, member)
+                except (TypeError, ValueError):
+                    continue
                 if (
                     marker_complete
                     and member.get("raw_anchor") == raw_anchor
                     and member.get("record_id") == marker_path.name
                     and member.get("lane_namespace") == lane
-                    and _deep_capture_raw_refs_resolve(data_root, member)
+                    and silver_raw_refs_bound_to_own_anchor(member)
                 ):
                     current_member = True
                     break

@@ -8,28 +8,31 @@ dedupe near-matches, or make Judgment claims.
 from __future__ import annotations
 
 import json
-import re
-from typing import Any
 
+from cleaning._shared import (
+    ecr_ref as _ecr_ref,
+    length_bin as _length_bin,
+    non_empty_string_or_none as _non_empty_string_or_none,
+    normalization_entry as _normalization_entry,
+    normalize_space as _normalize_space,
+    preservation as _preservation,
+    raw_pull_triggers_for_packet_residuals as _raw_pull_triggers_for_packet_residuals,
+)
 from cleaning.models import (
-    CleaningEcrRef,
     CleaningInputGrain,
     CleaningPacket,
-    CleaningPreservationCheck,
     CleaningRuleScope,
     CleaningTransform,
     CleaningTransformClass,
     CleaningTransformLedgerEntry,
 )
 from cleaning.projection import cleaning_input_handles_from_projection_rows
-from ecr.models import ECR_SOURCE_SIDE_REF_KIND
 from source_capture.fragrantica_projection import FragranticaProjectionPacket, FragranticaProjectionRow
 
 FRAGRANTICA_CLEANING_HANDLE_PREFIX = "cleaning:fragrantica"
 
 _FRAGRANTICA_SOURCE_FAMILY = "fragrance_native_database"
 _FRAGRANTICA_SOURCE_SURFACE = "fragrantica_product_page_direct_http"
-_ECR_REF_STATUS_BY_CONVENTION = "by_convention_not_existence_checked"
 
 _VOTE_FIELD_NAMES = (
     "rating",
@@ -82,7 +85,9 @@ def build_fragrantica_cleaning_packet(
     row_by_id = {row.row_id: row for row in projection.rows}
     ecr_ref = _ecr_ref(projection.packet_id) if attach_ecr_ref else None
     packet_residuals = sorted(set(projection.residuals))
-    packet_raw_pull_triggers = _raw_pull_triggers_for_packet_residuals(packet_residuals)
+    packet_raw_pull_triggers = _raw_pull_triggers_for_packet_residuals(
+        packet_residuals, _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL
+    )
 
     enriched_handles = []
     handle_id_by_row_id: dict[str, str] = {}
@@ -186,76 +191,6 @@ def _review_card_transform_entries(
         )
 
     return entries
-
-
-def _normalization_entry(
-    *,
-    input_handle_id: str,
-    method_or_rule: str,
-    input_grain: CleaningInputGrain,
-    original_value: str,
-    transformed_value: str,
-) -> CleaningTransformLedgerEntry:
-    return CleaningTransformLedgerEntry(
-        input_handle_id=input_handle_id,
-        transform=CleaningTransform(
-            transform_class=CleaningTransformClass.NORMALIZATION,
-            rule_scope=CleaningRuleScope.SOURCE_FAMILY_ADAPTATION,
-            method_or_rule=method_or_rule,
-            input_grain=input_grain,
-            original_value=original_value,
-            transformed_value=transformed_value,
-        ),
-        preservation=_preservation(),
-    )
-
-
-def _preservation() -> CleaningPreservationCheck:
-    return CleaningPreservationCheck(
-        originals_addressable=True,
-        source_identity_preserved=True,
-        timing_preserved=True,
-        hierarchy_preserved=True,
-        semantic_binding_preserved=True,
-        counts_preserved=True,
-    )
-
-
-def _normalize_space(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
-
-
-def _non_empty_string_or_none(value: Any) -> str | None:
-    if not isinstance(value, str):
-        return None
-    return value if _normalize_space(value) else None
-
-
-def _length_bin(length: int) -> str:
-    if length < 200:
-        return "chars_0000_0199"
-    if length < 500:
-        return "chars_0200_0499"
-    if length < 1000:
-        return "chars_0500_0999"
-    return "chars_1000_plus"
-
-
-def _ecr_ref(packet_id: str) -> CleaningEcrRef:
-    return CleaningEcrRef(
-        packet_id=packet_id,
-        ref_id=f"ecr:{packet_id}:{ECR_SOURCE_SIDE_REF_KIND}",
-        posture_kind=ECR_SOURCE_SIDE_REF_KIND,
-        status=_ECR_REF_STATUS_BY_CONVENTION,
-    )
-
-
-def _raw_pull_triggers_for_packet_residuals(residuals: list[str]) -> list[str]:
-    return sorted(
-        trigger
-        for residual, trigger in _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL.items()
-        if residual in residuals
-    )
 
 
 __all__ = ["FRAGRANTICA_CLEANING_HANDLE_PREFIX", "build_fragrantica_cleaning_packet"]

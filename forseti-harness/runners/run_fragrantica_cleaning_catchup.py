@@ -91,7 +91,7 @@ _SOURCE_FAMILY = "fragrance_native_database"
 _FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
 _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
     {
-        "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
+        "basenotes_product_page_user_cleared_persistent_chrome_current_window",
         "parfumo_product_page_direct_http",
         "parfumo_product_page_chrome_extension_targeted_rendered_session",
     }

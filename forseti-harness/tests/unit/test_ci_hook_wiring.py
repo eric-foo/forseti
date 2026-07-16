@@ -6,6 +6,8 @@ import importlib
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -15,6 +17,16 @@ CI_PATH = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 PRE_PUSH_PATH = REPO_ROOT / ".agents" / "hooks" / "pre_push_guard.py"
 HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
 HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
+CODEX_HOOKS_PATH = REPO_ROOT / ".codex" / "hooks.json"
+CODEX_ADAPTER_PATH = REPO_ROOT / ".codex" / "hooks" / "forseti_guard_codex_adapter.py"
+DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-routing.md"
+PROMPT_ORCHESTRATION_PATH = (
+    REPO_ROOT / ".agents" / "workflow-overlay" / "prompt-orchestration.md"
+)
+PROMPT_GATE_PATH = REPO_ROOT / ".agents" / "hooks" / "check_prompt_output_mode.py"
+HOOK_README_PATH = REPO_ROOT / ".agents" / "hooks" / "README.md"
+HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
+HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
 EVENT_BASE_SHA = "1" * 40
 DIFF_BASE_RESOLVERS = (
     ("check_source_input_hashes.py", "resolve_base_ref", False),
@@ -30,6 +42,7 @@ DIFF_BASE_RESOLVERS = (
     ("check_prompt_output_mode.py", "resolve_base_ref", False),
     ("check_review_summary.py", "resolve_base_ref", False),
     ("check_hash_pin_freshness.py", "resolve_base_ref", False),
+    ("check_shared_helper_duplication.py", "resolve_base_ref", False),
     ("check_full_gt_claims.py", "resolve_base_ref", False),
 )
 
@@ -44,6 +57,24 @@ def _load_pre_push_guard():
 
 def _load_harness_coupling():
     spec = importlib.util.spec_from_file_location("check_harness_coupling", HARNESS_COUPLING_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_prompt_gate():
+    spec = importlib.util.spec_from_file_location("check_prompt_output_mode", PROMPT_GATE_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_codex_adapter():
+    spec = importlib.util.spec_from_file_location(
+        "forseti_guard_codex_adapter", CODEX_ADAPTER_PATH
+    )
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -67,6 +98,410 @@ def test_ci_has_no_duplicate_python_commands() -> None:
     assert duplicates == []
 
 
+def test_codex_live_hook_adoption_probe_fails_closed() -> None:
+    config = json.loads(CODEX_HOOKS_PATH.read_text(encoding="utf-8"))
+    pre_tool = config["hooks"]["PreToolUse"]
+    matching_entries = [
+        entry
+        for entry in pre_tool
+        if {"Bash", "PowerShell"} <= set(entry["matcher"].split("|"))
+    ]
+    assert len(matching_entries) == 1
+    configured_hook = matching_entries[0]["hooks"][0]
+    assert "forseti_guard_codex_adapter.py" in configured_hook["commandWindows"]
+
+    direct = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH), "--live-adoption-probe"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    assert direct.returncode == 3
+    assert direct.stderr.strip() == HOOK_ADOPTION_NOT_INTERCEPTED
+
+    event = {
+        "tool_name": "PowerShell",
+        "tool_input": {
+            "command": (
+                "python .codex/hooks/forseti_guard_codex_adapter.py "
+                "--live-adoption-probe"
+            )
+        },
+    }
+    intercepted = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH)],
+        cwd=REPO_ROOT,
+        input=json.dumps(event),
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    denial = json.loads(intercepted.stdout)
+    assert intercepted.returncode == 0
+    assert denial["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert (
+        denial["hookSpecificOutput"]["permissionDecisionReason"]
+        == HOOK_ADOPTION_ADOPTED
+    )
+
+
+def test_one_time_binding_preserves_guard_and_limits_canary() -> None:
+    routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
+    hook_readme = HOOK_README_PATH.read_text(encoding="utf-8")
+    adapter = CODEX_ADAPTER_PATH.read_text(encoding="utf-8")
+    probe_command = (
+        "python .codex/hooks/forseti_guard_codex_adapter.py "
+        "--live-adoption-probe"
+    )
+
+    assert "## One-Time Writable-Root Binding" in routing
+    assert "revision_mode: exact | ancestor" in routing
+    assert "`HEAD` equals `required_revision`" in routing
+    assert "git merge-base --is-ancestor <required_revision> HEAD" in routing
+    assert "one effective target" in routing
+    assert "Launch-root mismatch alone is not a blocker" in routing
+    assert "ordinary work does not run it" in routing
+    assert probe_command in hook_readme
+    assert "only when hook adoption testing is itself" in hook_readme
+    assert "_nested_worktree_reason" not in adapter
+    assert "registered non-current worktree" not in adapter
+
+    guard = _load_codex_adapter()
+    other_target = REPO_ROOT.parent / "forseti-worktrees" / "other-lane" / "docs" / "x.md"
+    patch_text = (
+        "*** Begin Patch\n"
+        f"*** Update File: {other_target}\n"
+        "@@\n-old\n+new\n"
+        "*** End Patch\n"
+    )
+    assert guard._check_apply_patch_paths({"command": patch_text}) == ""
+    protected_target = Path.home() / ".codex" / "skills" / "x" / "SKILL.md"
+    protected_patch = patch_text.replace(str(other_target), str(protected_target))
+    assert "EP-01 protected-path write" in guard._check_apply_patch_paths(
+        {"command": protected_patch}
+    )
+    shell_reason = guard._check_shell_durable_write(
+        {"command": "Set-Content docs/x.md 'x'"}
+    )
+    assert "raw shell durable-write blocked" in shell_reason
+    assert "created and rooted there" not in shell_reason
+
+    direct = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH)],
+        cwd=REPO_ROOT,
+        input=json.dumps(
+            {
+                "tool_name": "Write",
+                "tool_input": {"file_path": str(protected_target)},
+            }
+        ),
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    denial = json.loads(direct.stdout)
+    assert direct.returncode == 0
+    assert denial["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert "EP-01 protected-path write" in denial["hookSpecificOutput"][
+        "permissionDecisionReason"
+    ]
+
+def test_codex_apply_patch_guard_checks_all_payload_fields() -> None:
+    guard = _load_codex_adapter()
+    protected_target = Path.home() / ".codex" / "skills" / "x" / "SKILL.md"
+    patch_text = f"""*** Begin Patch
+*** Update File: {protected_target}
+@@
+-old
++new
+*** End Patch
+"""
+
+    for payload_key in ("command", "patch", "input"):
+        reason = guard._check_apply_patch_paths({payload_key: patch_text})
+        assert "EP-01 protected-path write" in reason
+
+    # Allow path: a benign repository target must pass through every payload
+    # field, so a regression that denies all apply_patch calls cannot pass.
+    benign_target = REPO_ROOT / "docs" / "x.md"
+    benign_patch = patch_text.replace(str(protected_target), str(benign_target))
+    for payload_key in ("command", "patch", "input"):
+        assert guard._check_apply_patch_paths({payload_key: benign_patch}) == ""
+
+
+def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
+    routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
+    prompt_contract = PROMPT_ORCHESTRATION_PATH.read_text(encoding="utf-8")
+
+    for required in (
+        "receiver_creation_authorization:",
+        "authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "condition: current_task_not_receiver_verified",
+        "initial_prompt: this_frozen_commission_verbatim",
+        "dispatch: immediate_same_turn",
+        "current_turn_authorization: read_only_scoping_only",
+    ):
+        assert required in prompt_contract
+
+    assert "already-authorized capable worktree-backed task" in routing
+    assert "a task's mere existence is never authority" in routing
+    assert "does not require launch-root equality" in routing
+    assert "read-only/scoping/review work" in routing
+    assert "Creating a user-visible Codex task still requires explicit product/user" in routing
+    assert "do not create that authority" in routing
+
+
+def test_managed_receiver_commission_gate_rejects_contradictions() -> None:
+    gate = _load_prompt_gate()
+    receiver = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+    ]
+    corrected_authorization = [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "  condition: current_task_not_receiver_verified",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+        "  initial_prompt: this_frozen_commission_verbatim",
+        "  dispatch: immediate_same_turn",
+    ]
+
+    defective = receiver + [
+        "If this current task is not the receiver, stop; do not create another worktree.",
+        "If the controlling prompt contract cannot be freshly loaded, fall back to project-owned prompt rules.",
+    ]
+    defective_findings = gate.evaluate_managed_receiver_lines("defective.md", defective)
+    defective_kinds = {finding.kind for finding in defective_findings}
+    assert "managed_receiver_creation_authorization_count" in defective_kinds
+    assert "source_context_failure_not_typed" in defective_kinds
+    assert "stale_source_fallback" in defective_kinds
+    assert any("wrong-task stop" in finding.detail for finding in defective_findings)
+
+    corrected = receiver + corrected_authorization + [
+        "If a controlling source cannot be freshly loaded, declare SOURCE_CONTEXT_INCOMPLETE and stop.",
+        "Do not manually create, discover, or target a Git worktree.",
+        "Do not create a second receiver.",
+    ]
+    assert gate.evaluate_managed_receiver_lines("corrected.md", corrected) == []
+
+    read_only = [line.replace("implementation-authorized", "read-only") for line in receiver]
+    assert gate.evaluate_managed_receiver_lines("read_only.md", read_only) == []
+    assert any(
+        finding.kind == "receiver_creation_authority_on_read_only_commission"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "read_only_bad.md", read_only + corrected_authorization
+        )
+    )
+
+    manual = corrected + ["Run `git worktree add ../receiver origin/main` and continue there."]
+    assert any(
+        finding.kind == "manual_git_worktree_substitution"
+        for finding in gate.evaluate_managed_receiver_lines("manual.md", manual)
+    )
+
+    mixed_clause_manual = corrected + [
+        "Do not pause; run `git worktree add ../receiver origin/main` and continue there."
+    ]
+    assert any(
+        finding.kind == "manual_git_worktree_substitution"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "mixed_clause_manual.md", mixed_clause_manual
+        )
+    )
+
+    mixed_clause_repeat = corrected + [
+        "Do not wait; create another managed receiver task."
+    ]
+    assert any(
+        finding.kind == "repeat_receiver_creation_authority"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "mixed_clause_repeat.md", mixed_clause_repeat
+        )
+    )
+
+    orphan_authorization = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        *corrected_authorization,
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_count"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "orphan_authorization.md", orphan_authorization
+        )
+    )
+
+    conflicting_binding = corrected + [
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: other/ref",
+        "  required_revision: deadbeef",
+        "  revision_mode: exact",
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_count"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "conflicting_binding.md", conflicting_binding
+        )
+    )
+
+    preparation_only_state = [
+        line.replace("receiver_to_verify", "receiver_to_bind")
+        for line in corrected
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_state"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "preparation_only_state.md", preparation_only_state
+        )
+    )
+
+    duplicate_authorization = corrected.copy()
+    duplicate_authorization.insert(
+        duplicate_authorization.index(
+            "  authorization: create_exactly_one_fresh_codex_managed_worktree_task"
+        ),
+        "  authorization: create_many_tasks",
+    )
+    assert any(
+        finding.kind == "managed_receiver_duplicate_field"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "duplicate_authorization.md", duplicate_authorization
+        )
+    )
+
+    broadened_authorization = corrected.copy()
+    broadened_authorization.insert(
+        broadened_authorization.index("  dispatch: immediate_same_turn") + 1,
+        "  allow_repeat: true",
+    )
+    assert any(
+        finding.kind == "managed_receiver_authorization_field"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "broadened_authorization.md", broadened_authorization
+        )
+    )
+
+    multiline_stale = corrected + [
+        "If the controlling prompt contract cannot be freshly loaded,",
+        "continue from remembered rules.",
+    ]
+    assert any(
+        finding.kind == "stale_source_fallback"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "multiline_stale.md", multiline_stale
+        )
+    )
+
+
+def test_delegated_patch_gate_requires_cross_vendor_repo_courier() -> None:
+    gate = _load_prompt_gate()
+    couriered = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "target_kind: delegated_code_review_and_patch",
+        "author_vendor: OpenAI",
+        "delegate_vendor: operator_to_fill",
+        "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
+        "access: repo",
+        "delivery: operator_courier_only",
+        "receiver_binding:",
+        "  receiver_class: receiver_to_bind",
+        "  binding_state: receiver_to_bind",
+    ]
+    assert gate.evaluate_delegated_patch_lines("couriered.md", couriered) == []
+
+    same_vendor = [
+        line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered
+    ] + ["review_claim_boundary: same_vendor_sanity_only"]
+    assert any(
+        finding.kind == "delegated_patch_same_vendor"
+        for finding in gate.evaluate_delegated_patch_lines("same_vendor.md", same_vendor)
+    )
+
+    managed_fallback = couriered + [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+    ]
+    assert any(
+        finding.kind == "delegated_patch_task_creation"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "managed_fallback.md", managed_fallback
+        )
+    )
+
+    no_repo = [line.replace("access: repo", "access: no_repo") for line in couriered]
+    assert any(
+        finding.kind == "delegated_patch_access"
+        for finding in gate.evaluate_delegated_patch_lines("no_repo.md", no_repo)
+    )
+
+    missing_receiver = couriered[:-3]
+    assert any(
+        finding.kind == "delegated_patch_receiver_count"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "missing_receiver.md", missing_receiver
+        )
+    )
+
+    commented_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            'target_kind: "delegated_code_review_and_patch" # courier target',
+        ).replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_same_vendor"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "commented_trigger.md", commented_trigger
+        )
+    )
+
+    cased_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: Delegated_Code_Review_And_Patch",
+        ).replace("access: repo", "access: no_repo")
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_access"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "cased_trigger.md", cased_trigger
+        )
+    )
+
+    cased_placeholder = [
+        line.replace(
+            "delegate_vendor: operator_to_fill", "delegate_vendor: Operator_To_Fill"
+        ).replace("receiver_class: receiver_to_bind", "receiver_class: external_direct_write")
+        for line in couriered
+    ]
+    cased_findings = gate.evaluate_delegated_patch_lines(
+        "cased_placeholder.md", cased_placeholder
+    )
+    assert any(
+        finding.kind == "delegated_patch_delegate_vendor"
+        for finding in cased_findings
+    )
+    assert any(
+        finding.kind == "delegated_patch_receiver_class"
+        for finding in cased_findings
+    )
+
+
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()
     ci_commands = {
@@ -84,7 +519,7 @@ def test_observed_fast_failure_classes_are_mirrored_pre_push() -> None:
     guard = _load_pre_push_guard()
     names = {name for name, _command in guard.SELECTED_GATES}
     assert {
-        "prompt output-mode",
+        "prompt contract shape",
         "review-output provenance",
         "handoff-pointer resolution",
         "ontology tag validity",

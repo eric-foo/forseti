@@ -111,19 +111,13 @@ At that historical point, this record did not assert that any server-side gate w
    A handoff-only packet is transport rather than a publication work unit until item 15's landing
    condition is met; this exception does not apply to implementation, doctrine, code, or another
    independently publishable artifact.
-   **Codex/sandboxed lane-start writeability (harness-scoped, not a Claude Code rule).** For Codex or
-   any sandboxed harness whose writes are mediated by workspace writable roots, the lane is not ready
-   for repo-changing edits until the active worktree is the harness workspace root (or otherwise
-   owner-configured as a writable root) and a lane-start write + git-index preflight passes in that
-   worktree. The preflight writes a throwaway file, stages it, unstages it, deletes it, and reads
-   `git status --short`; failure to create, stage, unstage, or cleanly remove the probe is a stop
-   condition: reroot/reopen the harness on the active worktree, or create a new owner-configured
-   writable worktree and retry. Escalated writes are a bounded fallback for the current operation only,
-   not the normal lane path. This is Codex/sandboxed-harness scoped; it does **not** add a mandatory
-   lane-start probe to Claude Code lanes whose harness already writes to their active worktree and
-   reports write failures directly. Avoid relying on nested or secondary writable roots for Codex on
-   Windows unless this preflight passes.
-
+   **One-time effective-target binding.** At the first repo-changing act, select isolation under
+   `decision-routing.md`: branch in the current checkout for clean solo/sequential work; a worktree off
+   the required base for dirty-base, concurrent, or independent work; neither for read-only work. The
+   current actor may continue the same commissioned work unit in that selected worktree after one target,
+   revision, dirty-state, and writer snapshot. Launch-root mismatch alone is not failure. Use a separate
+   receiver only for an independent concurrent actor or an observed required-tool, sandbox, hook, or guard
+   denial. Exact/ancestor revision rules, dirty-byte identity, protected guards, and server protection stay.
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
    condition: read the live target lines, then patch from observed current text before continuing. Before
@@ -159,7 +153,7 @@ At that historical point, this record did not assert that any server-side gate w
    `risk/blocked-for-merge-policy` hold.** Every other case — a non-main base, fork, head/current-
    branch mismatch, live merge-policy hold, non-CLEAN state (`UNSTABLE` / `BLOCKED` / `BEHIND` /
    `DIRTY` / `DRAFT` / `UNKNOWN` / …), pending or failing checks, an empty check set, a
-   missing/ambiguous PR number, the no-arg form, the lower-level `gh api .../merge` form, a foreign
+   missing/ambiguous PR number, the no-arg form, `gh pr merge --admin`, the lower-level `gh api .../merge` form, a foreign
    `--repo`, or any lookup error/timeout — **fails
    closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
    (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
@@ -549,11 +543,14 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The static risk/manual-review-required classification now excludes a PR from
+    The static risk/manual-review-required classification excludes a PR from
     unattended auto-merge without forcing a human merge actor after its resident
-    completion and review gates close; the in-session guard instead requires the
-    current lane to match the same-repo main-targeting PR head and keeps live
-    risk/blocked-for-merge-policy holds fail-closed.
+    completion, independent-review, and home/Chief Architect adjudication gates
+    close. Governed deletions retain that substantive resident gate without
+    claiming it is mechanically certified by the label. The in-session guard
+    requires the current lane to match the same-repo main-targeting PR head,
+    keeps live risk/blocked-for-merge-policy holds fail-closed, and rejects the
+    `--admin` branch-protection bypass.
   trigger: workflow_authority
   related_triggers:
     - lifecycle_boundary
@@ -564,6 +561,8 @@ direction_change_propagation:
     - .agents/hooks/README.md
     - .github/workflows/pr-risk-router.yml
     - .github/workflows/auto-merge.yml
+    - docs/decisions/deletion_evidence_doctrine_v0.md
+    - .agents/hooks/check_deletion_evidence.py
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/safety-rules.md
@@ -597,16 +596,20 @@ direction_change_propagation:
         no path or owner changed.
   stale_language_search: >
     Targeted branch-content search for manual-review-required coupled to a human
-    merge actor, "human/manual merge decision", "same opt-in PRs", and "blocks
-    in-session gh pr merge" across the changed files and checked downstream
-    surfaces.
+    merge actor, "human/manual merge decision", "human merger", "same opt-in
+    PRs", and "blocks in-session gh pr merge" across the changed files and
+    checked downstream surfaces.
   stale_language_search_result: >
-    No live stale merge-actor statement remains. Historical records retain their
-    dated pre-amendment behavior; the unattended workflow still intentionally
-    skips manual-review-required PRs and now names the separate author route.
+    Executed 2026-07-15. Remaining hits are receipt search terms, dated history,
+    and explicit statements that the manual-review label does not choose a human
+    merge actor. The deletion-evidence doctrine and checker now name independent
+    review plus home/Chief Architect adjudication as a resident, non-mechanically
+    certified completion gate; no live statement couples the label to human
+    landing.
   non_claims:
     - not validation or readiness
     - not proof that a specific PR completed its review gates
+    - not mechanical proof that independent review or adjudication completed
     - not unattended auto-merge authority for high-risk PRs
     - not authority to merge another lane's PR or bypass branch protection
 ```

@@ -33,6 +33,7 @@ stale_if:
 ## Scan Intake Receipt
 
 ```yaml
+scan_receipt_version: 0
 commission_id: scanning_mgt_imaginary_authors_csb_first_venue_eval_v0
 scan_date: 2026-06-21
 mode: forward

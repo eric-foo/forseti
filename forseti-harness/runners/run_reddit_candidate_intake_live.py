@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-from datetime import UTC, datetime
 import sys
 from pathlib import Path
 from typing import Callable, Sequence
@@ -12,6 +11,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z_microseconds
 from capture_spine.reddit_candidate_intake import (
     CandidateSurface,
     CapType,
@@ -60,7 +60,7 @@ def run_reddit_candidate_intake_live(
     fetch_html: FetchHtml | None = None,
 ) -> tuple[int, str]:
     fetch = fetch_html or _fetch_old_reddit_html
-    timestamp = _utc_now()
+    timestamp = utc_now_z_microseconds()
     method_category = "live_old_reddit_direct_http_candidate_intake"
     envelope = RunEnvelope(
         run_id=run_id,
@@ -241,10 +241,6 @@ def _fetch_old_reddit_html(url: str, timeout_seconds: float, max_bytes: int) -> 
         if "html" not in content_type.lower():
             raise ValueError(f"expected HTML response, got Content-Type={content_type!r}")
         return int(response.getcode()), body.decode("utf-8", errors="replace")
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _build_parser() -> argparse.ArgumentParser:

@@ -1,96 +1,22 @@
+from _ecr_builders import build_packet
 from ecr.deriver import derive_inspectability_postures
 from ecr.models import InspectabilityState
-from source_capture.models import (
-    OBLIGATION_CONTRACT_VERSION,
-    SOURCE_CAPTURE_MANIFEST_VERSION,
-    CaptureModeCategory,
-    PacketTiming,
-    PreservedFile,
-    ReceiptMetadata,
-    SourceCapturePacket,
-    SourceCaptureSlice,
-    known_fact,
-    not_applicable,
-)
+from source_capture.models import SourceCapturePacket, not_applicable
 
 _REAL_SHA = "a" * 64  # 64 hex, not all-zero -> verifiable
 _ZERO_SHA = "0" * 64  # all-zero sentinel -> placeholder
 _BAD_SHA = "not-a-real-hash"  # not 64 hex -> placeholder
 
 
-def _timing() -> PacketTiming:
-    na = not_applicable("test")
-    return PacketTiming(
-        source_publication_or_event=na,
-        source_edit_or_version=na,
-        capture_time=na,
-        recapture_time=na,
-        cutoff_posture=na,
-    )
-
-
 def _packet(slice_specs: list[dict]) -> SourceCapturePacket:
-    """Build a minimal valid packet from per-slice specs.
-
-    Each spec: ``{"id": str, "files": [(file_id, sha256)], "locator_known": bool}``.
-    Every preserved file is referenced by the slice that lists it, so the packet's
-    no-orphan invariant holds. At least one slice must list a file (the packet
-    requires >=1 preserved file).
-    """
-    preserved: dict[str, str] = {}
-    slices: list[SourceCaptureSlice] = []
-    for spec in slice_specs:
-        files = spec.get("files", [])
-        for file_id, sha in files:
-            preserved[file_id] = sha
-        slices.append(
-            SourceCaptureSlice(
-                slice_id=spec["id"],
-                locator=(
-                    known_fact("loc") if spec.get("locator_known") else not_applicable("test")
-                ),
-                timing=_timing(),
-                access_posture=not_applicable("test"),
-                archive_history_posture=not_applicable("test"),
-                media_modality_posture=not_applicable("test"),
-                re_capture_relationship=not_applicable("test"),
-                preserved_file_ids=[file_id for file_id, _ in files],
-            )
-        )
-    preserved_files = [
-        PreservedFile(
-            file_id=file_id,
-            original_path="/tmp/x",
-            relative_packet_path=file_id,
-            sha256=sha,
-            hash_basis="raw_stored_bytes",
-            size_bytes=0,
-        )
-        for file_id, sha in preserved.items()
-    ]
-    return SourceCapturePacket(
-        packet_id="pkt-test",
-        manifest_version=SOURCE_CAPTURE_MANIFEST_VERSION,
-        obligation_contract_version=OBLIGATION_CONTRACT_VERSION,
+    """Build a minimal valid packet from per-slice specs (see ``_ecr_builders``)."""
+    # helper-delta vs _ecr_builders.build_packet defaults: this file keeps its
+    # original neutral packet identity (test_family / test_surface / n-a locator).
+    return build_packet(
+        slice_specs,
         source_family="test_family",
         source_surface="test_surface",
         source_locator=not_applicable("test"),
-        requested_decision_context=not_applicable("test"),
-        capture_context=not_applicable("test"),
-        actor_audience_context=not_applicable("test"),
-        capture_mode=CaptureModeCategory.MIXED,
-        operator_category="test",
-        session_identity="test",
-        timing=_timing(),
-        access_posture=not_applicable("test"),
-        archive_history_posture=not_applicable("test"),
-        media_modality_posture=not_applicable("test"),
-        re_capture_relationship=not_applicable("test"),
-        source_slices=slices,
-        preserved_files=preserved_files,
-        receipt_metadata=ReceiptMetadata(
-            title="t", generated_at="2026-01-01T00:00:00Z", summary="s"
-        ),
     )
 
 

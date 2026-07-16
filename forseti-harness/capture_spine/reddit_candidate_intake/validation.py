@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from typing import Any
 
+from capture_spine import shared_validation as _spine_shared
 from capture_spine.reddit_candidate_intake.models import (
     CandidateSurface,
     CapType,
@@ -169,25 +170,14 @@ _FORBIDDEN_OUTPUT_VALUE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 
 def assert_no_forbidden_output_fields(value: Any, *, path: str = "$") -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            lowered = str(key).lower()
-            if lowered in FORBIDDEN_OUTPUT_FIELDS:
-                _fail("forbidden_output_field", f"forbidden output field at {path}.{key}")
-            assert_no_forbidden_output_fields(child, path=f"{path}.{key}")
-        return
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        for index, child in enumerate(value):
-            assert_no_forbidden_output_fields(child, path=f"{path}[{index}]")
-        return
-    if isinstance(value, str):
-        _assert_no_forbidden_output_value(value, path=path)
-
-
-def _assert_no_forbidden_output_value(value: str, *, path: str) -> None:
-    for marker, pattern in _FORBIDDEN_OUTPUT_VALUE_PATTERNS:
-        if pattern.search(value):
-            _fail("forbidden_output_value", f"forbidden secret-like value ({marker}) at {path}")
+    _spine_shared.assert_no_forbidden_output_fields(
+        value,
+        forbidden_fields=FORBIDDEN_OUTPUT_FIELDS,
+        value_patterns=_FORBIDDEN_OUTPUT_VALUE_PATTERNS,
+        fail=_fail,
+        value_message_prefix="forbidden secret-like value",
+        path=path,
+    )
 
 
 def validate_promotion_receipt(receipt: PromotionReceipt) -> None:

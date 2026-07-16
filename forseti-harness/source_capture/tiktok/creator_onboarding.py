@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 from urllib.parse import urlparse
 
+from harness_utils import hash_file
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -514,6 +515,7 @@ ProgressFn = Callable[[str, dict[str, object]], None]
 
 
 def _utc_now() -> datetime:
+    # Not harness_utils.utc_now_z: returns an aware datetime (for injectable clocks), not a Z string.
     return datetime.now(UTC)
 
 
@@ -703,7 +705,7 @@ def run_tiktok_creator_onboarding(
         selection["onboarding_binding"] = {
             "creator_handle": normalized_handle,
             "grid_window_file": paths.grid_window_json_path.name,
-            "grid_window_sha256": _sha256_path(paths.grid_window_json_path),
+            "grid_window_sha256": hash_file(paths.grid_window_json_path),
         }
         _write_json(paths.selection_json_path, selection)
         artifacts_written.append(paths.selection_json_path.name)
@@ -2590,12 +2592,6 @@ def _output_paths(output_dir: Path) -> TikTokCreatorOnboardingOutputPaths:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_sensitive_tiktok_material(payload)
     path.write_bytes(json_dumps_sanitized(payload))
-
-
-def _sha256_path(path: Path) -> str:
-    import hashlib
-
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _normalize_handle(handle: str) -> str:

@@ -52,7 +52,7 @@ from data_lake.product_mention_selection import (
     select_product_mention_records,
 )
 from data_lake.root import DataLakeRootError
-from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS
+from data_lake.silver_record import PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
 
 METRIC_FAMILY = "source_backed_brand_line_share_of_voice"
 FAMILY_SCHEMA_VERSION = 2
@@ -395,7 +395,7 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
     }
     selection_policy_versions = {
         "product_mention_policy": selection.policy,
-        "silver_lineage_gate": SOURCE_BACKED_COMPLETE_STATUS,
+        "silver_lineage_gate": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
         "family_schema_version": FAMILY_SCHEMA_VERSION,
         "brand_grouping": GROUPING_BASIS,
         "cohort_selection": normalized["cohort_selection"],

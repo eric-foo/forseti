@@ -118,7 +118,15 @@ BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
 # declaration. Backfilled 2026-07-03 from a source read of each runner
 # (including the source_capture fetch/writer path it delegates to).
 RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
-    "run_fragrance_review_lake_packet.py": {
+    "run_basenotes_mgt_capture.py": {
+        "status": "bound",
+        "mechanism": (
+            "before packet write, the bundle metadata requested_url and final_url must equal "
+            "the caller-supplied Basenotes product URL, and the rendered DOM must contain the "
+            "exact caller-bound product path plus Product/review/reviewBody JSON-LD markers; "
+            "challenge-only content fails closed"
+        ),
+    },    "run_fragrance_review_lake_packet.py": {
         "status": "unbound",
         "reason": (
             "preserved bytes must match the companion receipt's capture-time "
@@ -430,7 +438,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "detection": "declared_free_walk",
         "posture": "selection_rule",
         "mechanism": "local:read_social_metric_history",
-        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with no latest-sibling guess",
+        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with shared physical source verification and no latest-sibling guess",
     },
     "capture_spine/creator_profile_current/silver_metric_reader.py": {
         "detection": "lane_dir",
@@ -459,21 +467,27 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
     },
-    "data_lake/silver_census.py": {
+    "data_lake/silver_record.py": {
         "detection": "declared_free_walk",
-        "posture": "all_siblings",
-        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
+        "posture": "fail_closed_singleton",
+        "reason": "physical authority verification resolves only the exact derived raw_anchor + lane + record_id address claimed by each Silver ref; it never selects among siblings",
     },
     "runners/run_capture_ecr_cleaning_smoke.py": {
         "detection": "lane_dir",
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
     },
+    "runners/run_instagram_creator_audience_triangulation.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "mechanism": "local:prepare_instagram_subscription_judgment",
+        "reason": "the caller supplies explicit admitted comment/transcript record paths; the runner verifies data-root containment, requested lane, canonical record path, raw-anchor identity, and current source validity, while lane_dir is used only for path-shape validation and never to select an arbitrary sibling",
+    },
     "runners/run_tiktok_creator_audience_triangulation.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",
         "mechanism": "local:select_current_audience_silver_records",
-        "reason": "selects source-backed grid-observation and comment-attention records under the current exact policy, names policy mismatches as residuals, and fails closed on ambiguous current evidence",
+        "reason": "selects physically resolved source-backed grid-observation and comment-attention records under the current exact policy, names unresolved refs and policy mismatches as residuals, and fails closed on ambiguous current evidence",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",

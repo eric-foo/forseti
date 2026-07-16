@@ -59,6 +59,9 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 MAP_PATH = "repo-structure.yaml"
 AUTHORITY = ".agents/workflow-overlay/artifact-folders.md"
 BINDING = "docs/decisions/forseti_repo_structure_binding_v0.md"
@@ -72,10 +75,6 @@ SCRATCH = "scratch_excluded"
 EXCLUDED = "excluded_tree"
 LEGACY = "legacy_tolerated"
 VIOLATION = "unplaced"
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
 
 
 def load_map(root: Path):

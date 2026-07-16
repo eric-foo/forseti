@@ -37,7 +37,7 @@ from pydantic import Field, field_validator, model_validator
 
 from data_lake.catalog import load_attachment_record_body, source_surface_catalog_rows
 from data_lake.root import DataLakeRootError
-from harness_utils import generate_ulid
+from harness_utils import generate_ulid, string_or_none as _string_or_none
 from schemas.case_models import StrictModel
 from source_capture.ig_projection import (
     IgProjectionRawAnchor,
@@ -947,16 +947,8 @@ def _escape_json_pointer_token(value: str) -> str:
     return value.replace("~", "~0").replace("/", "~1")
 
 
-def _string_or_none(value: object) -> str | None:
-    if isinstance(value, str):
-        stripped = value.strip()
-        return stripped or None
-    if isinstance(value, int) and not isinstance(value, bool):
-        return str(value)
-    return None
-
-
 def _int_or_none(value: object) -> int | None:
+    # helper-delta: also parses compact K/M-suffixed strings, unlike harness_utils.int_or_none.
     if isinstance(value, bool):
         return None
     if isinstance(value, int):

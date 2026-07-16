@@ -21,6 +21,7 @@ from urllib.parse import urljoin, urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import int_or_none as _int_or_none
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -710,20 +711,8 @@ def _list_count(value: object) -> int | None:
     return None
 
 
-def _int_or_none(value: object) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
-    return None
-
-
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: int branch lacks the bool guard (True -> "True"), unlike harness_utils.string_or_none.
     if isinstance(value, str):
         stripped = value.strip()
         return stripped or None

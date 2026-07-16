@@ -106,6 +106,27 @@ $25.50
     )
 
 
+def test_sephora_distribution_profile_accepts_current_color_prose_without_colon() -> None:
+    profile = get_retail_capture_profile("sephora_pdp_distribution")
+    visible_text = """
+    Lip Sleeping Mask in Berry - 2.5g
+    Highly Rated By Customers For: Satisfaction (57), Color (55), Sticky (50)
+    Ratings & Reviews (3)
+    Summary
+    5 4 3 2 1 3
+    Verified Purchases
+    """
+
+    result = evaluate_source_detail_sufficiency(
+        requirements=profile.requirements,
+        access_block_reason=None,
+        visible_text=visible_text,
+        rendered_dom="<html><body>current Sephora product detail</body></html>",
+    )
+
+    assert result.passed is True
+
+
 def test_cloakbrowser_cli_uses_profile_wait_until_unless_operator_overrides(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -198,5 +219,5 @@ def test_profile_requirements_merge_with_explicit_requirements_without_weakening
         "operator marker",
         "Lip Sleeping Mask",
         "Ratings & Reviews",
-        "Color:",
+        "Color",
     )

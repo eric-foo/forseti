@@ -8,7 +8,8 @@ import pytest
 
 from data_lake.lane_registry import LaneRole, role_of
 from data_lake.root import DataLakeRoot
-from data_lake.silver_lineage import is_silver_record_source_backed_complete
+from data_lake.silver_census import build_silver_observation_census
+from data_lake.silver_lineage import has_complete_silver_lineage_structure
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
     PROJECTION_RETAIL_PDP_LANE,
@@ -90,7 +91,7 @@ def test_amazon_projection_emits_generic_source_backed_silver(tmp_path: Path) ->
     ]
     assert len(result.paths) == 3
     assert all(path.parent.name == RETAIL_PDP_SILVER_LANE for path in result.paths)
-    assert all(is_silver_record_source_backed_complete(record) for record in result.records)
+    assert all(has_complete_silver_lineage_structure(record) for record in result.records)
     assert all(record["content_hash"] == _computed_content_hash(record) for record in result.records)
 
     entity = result.records[0]["payload"]["entity"]
@@ -107,6 +108,15 @@ def test_amazon_projection_emits_generic_source_backed_silver(tmp_path: Path) ->
     review_fields = result.records[2]["payload"]["observation"]["source_visible_fields"]
     assert review_fields["review_count"] == "36,799"
     assert "Best Sellers Rank" in review_fields["best_sellers_rank_text"]
+
+    census = build_silver_observation_census(root)
+    assert census["totals"]["identity_entity_records"] == 1
+    assert census["totals"]["unclassified_silver_records"] == 0
+    assert census["totals"]["unique_products"] == 1
+    retail_state = next(
+        state for state in census["lane_states"] if state["lane"] == RETAIL_PDP_SILVER_LANE
+    )
+    assert retail_state["eligible_capture_packets"] == 1
 
     projection_sha256 = hashlib.sha256(projection_path.read_bytes()).hexdigest()
     for record in result.records:

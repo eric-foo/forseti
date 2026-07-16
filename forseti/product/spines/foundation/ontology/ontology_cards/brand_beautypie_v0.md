@@ -14,8 +14,9 @@ review_by: 2027-01-05   # R0 card-convention conformance 2026-07-05
 naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md  # §2.2 (type Brand) + §2.1 (ID grammar)
 ```
 
-> Dated instance hint, fail-soft — **not** a current-state claim, **not** authority. Reserved
-> types (`Org`) get no card; a link to a reserved type is omitted/provisional.
+> Dated instance hint, fail-soft — **not** a current-state claim, **not** authority.
+> Org is adopted, but this card still omits an ownership edge because the backing
+> pointer does not establish a source-backed owner Org for this instance.
 
 - **id:** `brand:beautypie` (§2.1 grammar)
 - **type:** `Brand` — §2.2 row 2 ("a consumer brand; consumer-facing label")
@@ -27,12 +28,14 @@ naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_ba
   - `brand:beautypie —can_act_as→ WindCaller` — **guarded:** a Brand's own moves are
     `self_originated` for its own Product/DecisionEvent and **excluded from the G1
     independent-origin count** (§2.3 self-origin guard; pointer, not restated).
-  - `brand:beautypie —owned_by→ org:…` — **OMITTED / provisional:** `Org` is RESERVED
-    (not adopted), so parent-resolution is deferred until `Org` graduates (§6.1).
+  - `brand:beautypie —owned_by→ org:…` — **OMITTED / unresolved:** the relationship
+    vocabulary is active, but this dated backing pointer does not identify and
+    support the owner Org; adoption never fabricates an instance edge.
 - **backing artifact** (pointer — NOT restated): `forseti/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md`
   (candidate-pool handoff).
 
 ## Non-Claims
 
-Dated hint only. Points to the candidate-pool handoff; restates none of it. The `—owned_by→ Org`
-link is intentionally absent (reserved type). Not validation, not readiness.
+Dated hint only. Points to the candidate-pool handoff; restates none of it. The
+`—owned_by→ Org` link is intentionally absent for lack of relationship-specific
+evidence. Not validation, not readiness.

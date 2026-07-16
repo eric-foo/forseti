@@ -3,8 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
+from cleaning.transcript_product_extractor import TranscriptExtractionResult, TranscriptInput
+from cleaning.transcript_product_lake import (
+    PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_SET_LANE,
+    build_transcript_source_lineage,
+    write_product_mentions_result_into_lake,
+)
 from data_lake.root import DataLakeRoot
+from data_lake.silver_lineage import SilverDerivedRef
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_behavioral_lake import (
     IG_REELS_BEHAVIORAL_LAKE_ADAPTER_METHOD,
@@ -91,7 +98,7 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     assert f"ig_grid_candidate_absent:{_SHORTCODE}" in residuals
 
 
-def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_path: Path) -> None:
+def test_lake_adapter_blocks_complete_non_envelope_product_record(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_grid_packet(root)
     deep_anchor, deep_record_id = _write_deep_capture(root)
@@ -111,12 +118,12 @@ def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_
     )
 
     source_status = projection["extraction"]["source_statuses"][0]
-    assert source_status["extraction_status"] == "source_lineage_missing"
-    assert source_status["source_backed_status"] == "source_lineage_missing"
+    assert source_status["extraction_status"] == "invalid_silver_envelope"
+    assert source_status["source_backed_status"] == "invalid_silver_envelope"
     assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
     assert projection["behavioral_completeness"]["complete"] is False
     assert (
-        f"ig_transcript_extraction_source_lineage_missing:{deep_key}"
+        f"ig_transcript_extraction_invalid_silver_envelope:{deep_key}"
         in projection["behavioral_completeness"]["residuals"]
     )
 
@@ -489,6 +496,46 @@ def _write_product_mentions(
     asr_record_id: str | None = None,
     source_lineage: bool = True,
 ) -> None:
+    if source_lineage:
+        if source_route == "deep_capture_render_audio":
+            source_surface = "ig_reels_deep_capture_render_audio"
+            lane = REEL_TRANSCRIPT_LANE
+        else:
+            source_surface = "ig_reels_audio"
+            lane = "transcript_asr"
+        lineage = build_transcript_source_lineage(
+            namespace="instagram",
+            source_surface=source_surface,
+            video_id=_SHORTCODE,
+            derived_ref=SilverDerivedRef(
+                raw_anchor=raw_anchor,
+                lane=lane,
+                record_id=asr_record_id or "asr_unknown.json",
+            ),
+            captured_at=_CAPTURE_TIME,
+        )
+        transcript = TranscriptInput(
+            video_id=_SHORTCODE,
+            transcript_anchor=raw_anchor,
+            transcript_source="asr",
+            cues=list(_CUES),
+            source_lineage=lineage,
+            transcript_source_key=transcript_source_key,
+            source_route=source_route,
+            asr_record_id=asr_record_id,
+        )
+        write_product_mentions_result_into_lake(
+            data_root=root,
+            transcript=transcript,
+            result=TranscriptExtractionResult(),
+            model="test",
+            record_id="mentions_test__0000000000000000.json",
+            extraction_backend="test",
+        )
+        return
+
+    # Explicit pre-envelope fixture: proves read-side rejection only and never
+    # passes through the authoritative Silver append API.
     payload = {
         "video_id": _SHORTCODE,
         "transcript_anchor": raw_anchor,
@@ -503,14 +550,6 @@ def _write_product_mentions(
         "mentions": [],
         "rejected": [],
     }
-    if source_lineage:
-        payload.update(
-            _source_lineage_fields(
-                raw_anchor=raw_anchor,
-                source_route=source_route,
-                asr_record_id=asr_record_id,
-            )
-        )
     root.append_record_set(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -522,38 +561,3 @@ def _write_product_mentions(
         },
         completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
-
-
-def _source_lineage_fields(
-    *,
-    raw_anchor: str,
-    source_route: str | None,
-    asr_record_id: str | None,
-) -> dict[str, object]:
-    if source_route == "deep_capture_render_audio":
-        source_surface = "ig_reels_deep_capture_render_audio"
-        derived_ref = {
-            "ref_type": "derived_record",
-            "raw_anchor": raw_anchor,
-            "lane": REEL_TRANSCRIPT_LANE,
-            "record_id": asr_record_id or "deepcap_unknown.json",
-            "record_set_completion_lane": DEEP_CAPTURE_SET_LANE,
-        }
-    else:
-        source_surface = "ig_reels_audio"
-        derived_ref = {
-            "ref_type": "derived_record",
-            "raw_anchor": raw_anchor,
-            "lane": "transcript_asr",
-            "record_id": asr_record_id or "asr_unknown.json",
-        }
-    return {
-        "lineage_schema_version": "silver_lineage_v0",
-        "producer_id": "cleaning.transcript_product_extractor",
-        "producer_schema_version": "test",
-        "source_surface": source_surface,
-        "source_object": {"namespace": "instagram", "kind": "transcript", "native_id": _SHORTCODE},
-        "raw_refs": [],
-        "derived_refs": [derived_ref],
-        "lineage_limitations": [],
-    }

@@ -4,158 +4,271 @@ import argparse
 import json
 import re
 import sys
-from datetime import datetime, timezone
+import zlib
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Mapping, Sequence
+from typing import TYPE_CHECKING, Mapping, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from runners.run_source_capture_cloakbrowser_packet import run_source_capture_cloakbrowser_packet
-from source_capture import CaptureModeCategory, known_fact, not_applicable, unknown_with_reason
-from source_capture.proxy_profiles import ProxyProfile, load_proxy_profile_by_label
+from harness_utils import utc_now_z
+from source_capture import (
+    CaptureModeCategory,
+    PacketTiming,
+    SourceCaptureSlice,
+    known_fact,
+    not_applicable,
+    not_attempted,
+    unknown_with_reason,
+    write_local_source_capture_packet,
+)
+from source_capture.adapters.browser_snapshot import (
+    BROWSER_BACKEND_CHROME_CDP,
+    BrowserPageObservationSuccess,
+    BrowserSnapshotFailure,
+    ChromeCdpPageObservationSessionEngine,
+    fetch_browser_page_observation_capture,
+)
+from source_capture.source_detail_sufficiency import (
+    SourceDetailSufficiencyRequirements,
+    evaluate_source_detail_sufficiency,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
 
 
 SOURCE_FAMILY = "fragrance_native_database"
-CAPTURE_PROFILE = "basenotes_native_cloakbrowser_residential_proxy_v0"
+CAPTURE_PROFILE = "basenotes_user_cleared_persistent_chrome_v0"
 SUMMARY_FILENAME = "basenotes_native_capture_summary.json"
 
-CLOAKBROWSER_SLOT = "cloakbrowser_packet"
-CLOAKBROWSER_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+PERSISTENT_CHROME_SLOT = "persistent_chrome_packet"
+PERSISTENT_CHROME_SURFACE = (
+    "basenotes_product_page_user_cleared_persistent_chrome_current_window"
+)
 
-# Capture-route facts (anonymous direct/anti-block/browser all hit Cloudflare; the
-# residential-proxy CloakBrowser route is the only reaching route) are pinned in
-# docs/research/orca_fragrance_native_database_live_probe_v0.md -- PIN-003 plus its
-# Proxy Route Verification Addendum. Referenced here, not restated.
-PROXY_PROFILE_LABEL = "reddit-res-01"
+REQUIRED_BUNDLE_FILENAMES = (
+    "browser_rendered_dom.html",
+    "browser_visible_text.txt",
+    "browser_viewport_screenshot.png",
+    "browser_snapshot_metadata.json",
+)
 
 DEFAULT_DECISION_QUESTION = (
     "What public Basenotes product-page evidence was available for this fragrance at capture time?"
 )
-DEFAULT_OPERATOR_CATEGORY = "basenotes_native_capture_runner"
-DEFAULT_TIMEOUT_SECONDS = 90.0
-DEFAULT_SETTLE_SECONDS = 15.0
-DEFAULT_SCROLL_PASSES = 20
+DEFAULT_OPERATOR_CATEGORY = "basenotes_user_assisted_persistent_chrome_capture_runner"
 DEFAULT_MAX_ARTIFACT_BYTES = 10_000_000
-DEFAULT_WAIT_UNTIL = "load"
-DEFAULT_VIEWPORT_WIDTH = 1280
-DEFAULT_VIEWPORT_HEIGHT = 720
+DEFAULT_CDP_ENDPOINT = "http://127.0.0.1:9222"
+DEFAULT_CDP_TIMEOUT_SECONDS = 45.0
+DEFAULT_CDP_VIEWPORT_WIDTH = 1440
+DEFAULT_CDP_VIEWPORT_HEIGHT = 900
+_CDP_DOM_EXTRACT_SCRIPT = "() => document.documentElement.outerHTML"
 
 ACCEPTED_RESIDUALS = [
-    "Basenotes is Cloudflare-blocked for anonymous direct, anti-block, and browser routes; "
-    "capture uses CloakBrowser through a label-indirected residential proxy (PIN-003 addendum)",
+    "capture requires a user-visible persistent Chrome session; direct mode observes accepted "
+    "content and fails on challenge markers but does not automate or solve an access gate",
+    "the runner ingests public rendered DOM, visible text, one viewport screenshot, and "
+    "non-secret metadata; it does not inspect or export cookies, credentials, or browser-profile data",
     "rendered current-window product page only; in-page JSON-LD carries a review subset, not the "
     "declared full review corpus reachable through the /reviews/ sub-URL and sentiment tabs",
-    "linked media assets are not independently fetched or preserved beyond the viewport screenshot",
-    "projection, ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
+    "one successful page does not establish unattended reliability, site-wide completeness, scale, "
+    "or production readiness",
 ]
 
 NON_CLAIMS = [
+    "not unattended Basenotes capture proof",
     "not full Basenotes review-corpus capture",
-    "not account-authenticated capture",
-    "not anti-bot evasion proof",
+    "not login, credential, cookie, or browser-profile export",
+    "not CAPTCHA automation or solving by the runner",
+    "not proxy or session injection",
     "not review sub-URL pagination invocation",
-    "not projection",
-    "not ECR design",
-    "not Cleaning implementation",
-    "not Judgment scoring",
-    "not buyer proof",
+    "not projection, Cleaning, Judgment, buyer proof, or production readiness",
 ]
 
-PacketRunner = Callable[..., tuple[int, str]]
+_CHALLENGE_TEXT_RE = re.compile(
+    r"performing security verification|verif(?:y|ies) you are not a bot|just a moment",
+    flags=re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True)
+class PersistentChromeBundle:
+    paths: tuple[Path, ...]
+    rendered_dom: str
+    visible_text: str
+    metadata: Mapping[str, object]
 
 
 def run_basenotes_mgt_capture(
     *,
     url: str,
+    bundle_directory: Path,
     output_root: Path,
     data_root: "DataLakeRoot | None" = None,
     decision_question: str = DEFAULT_DECISION_QUESTION,
-    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
-    settle_seconds: float = DEFAULT_SETTLE_SECONDS,
-    scroll_passes: int = DEFAULT_SCROLL_PASSES,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
-    proxy_profile: ProxyProfile | None = None,
-    cloakbrowser_runner: PacketRunner = run_source_capture_cloakbrowser_packet,
+    cdp_endpoint: str | None = None,
+    cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
 ) -> tuple[int, str]:
-    """Run the Basenotes residential-proxy CloakBrowser capture recipe and write a summary.
+    """Validate a user-cleared persistent-Chrome export and publish one packet.
 
-    The live path captures via ``fetch_cloakbrowser_snapshot_capture`` (through
-    ``run_source_capture_cloakbrowser_packet``) using the residential proxy profile;
-    anonymous routes are Cloudflare-blocked (PIN-003 + Proxy Route Verification
-    Addendum). The proxy profile is loaded by label when not injected, so a caller
-    that has not provisioned the secret store can still run the no-network preflight.
+    Manual mode consumes an exact four-file bundle. Optional direct mode creates that
+    same bundle from an already-running local Chrome CDP session,
+    then passes it through the same fail-closed bundle validator and packet writer.
     """
 
     _validate_basenotes_url(url)
-    _validate_positive("timeout_seconds", timeout_seconds)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
-    _validate_non_negative("settle_seconds", settle_seconds)
-    _validate_non_negative("scroll_passes", scroll_passes)
+    if cdp_endpoint is not None:
+        _assert_output_root_available(output_root)
+        capture_basenotes_bundle_via_cdp(
+            url=url,
+            bundle_directory=bundle_directory,
+            cdp_endpoint=cdp_endpoint,
+            max_artifact_bytes=max_artifact_bytes,
+            engine=cdp_engine,
+        )
+    elif cdp_engine is not None:
+        raise ValueError("cdp_engine requires direct CDP mode")
+    bundle = _load_and_validate_bundle(
+        bundle_directory=bundle_directory,
+        url=url,
+        max_artifact_bytes=max_artifact_bytes,
+    )
     _prepare_output_root(output_root)
 
-    if proxy_profile is None:
-        proxy_profile = load_proxy_profile_by_label(PROXY_PROFILE_LABEL)
-
-    exit_code, message = cloakbrowser_runner(
-        url=url,
-        source_family=SOURCE_FAMILY,
-        source_surface=CLOAKBROWSER_SURFACE,
-        decision_question=decision_question,
-        output_directory=None if data_root is not None else output_root / CLOAKBROWSER_SLOT,
-        data_root=data_root,
-        capture_context=(
-            "Basenotes native CloakBrowser anti-blocking browser capture of the rendered "
-            "product page through a label-indirected residential proxy, with a settle and "
-            "deep-scroll pass so the lazy-rendered review section populates; no login, "
-            "stored session, browser profile, or credential injection."
-        ),
-        operator_category=DEFAULT_OPERATOR_CATEGORY,
-        capture_mode=CaptureModeCategory.MULTIMODAL,
-        session_id=None,
-        proxy_profile=proxy_profile,
-        actor_audience_context=_anonymous_actor_context(),
-        visible_mode_changes=[
-            "rendered browser viewport captured after settle and deep-scroll; "
-            "no logged-in session"
-        ],
+    timing = PacketTiming(
         source_publication_or_event=_unknown_source_publication(),
         source_edit_or_version=_unknown_source_edit(),
-        cutoff_posture=_unknown_cutoff_posture(),
+        capture_time=known_fact(str(bundle.metadata["capture_timestamp"])),
         recapture_time=_not_a_recapture(),
-        re_capture_relationship=_not_a_recapture_relationship(),
-        warnings=[],
-        limitations=ACCEPTED_RESIDUALS,
-        timeout_seconds=timeout_seconds,
-        wait_until=DEFAULT_WAIT_UNTIL,
-        viewport_width=DEFAULT_VIEWPORT_WIDTH,
-        viewport_height=DEFAULT_VIEWPORT_HEIGHT,
-        max_artifact_bytes=max_artifact_bytes,
-        block_heavy_assets=False,
-        settle_seconds=settle_seconds,
-        scroll_passes=scroll_passes,
-        session_visibility_pin=_anonymous_session_pin(),
+        cutoff_posture=_unknown_cutoff_posture(),
     )
-    if exit_code != 0:
-        return exit_code, f"{CLOAKBROWSER_SLOT} failed: {message}"
-    cloak_dir = Path(message)
-    _read_manifest(cloak_dir)
+    bundle_originated_from_cdp = (
+        bundle.metadata.get("capture_transport") == "credential_free_loopback_cdp"
+    )
+    capture_performed_this_run = cdp_endpoint is not None
+    if bundle_originated_from_cdp:
+        access_posture = known_fact(
+            "bundle metadata records that accepted public Basenotes product content was observed "
+            "at the exact requested URL in a persistent Chrome session at capture time; challenge "
+            "markers were absent and source-detail sufficiency passed; no current-run human access "
+            "action is asserted"
+        )
+        warnings = [
+            "accepted_access_observed_at_bundle_capture: exact final URL, challenge-free rendered "
+            "content, and source-detail sufficiency passed"
+        ]
+        capture_context = (
+            "bundle originating from an existing Chrome CDP public-page observation; rendered DOM, "
+            "visible text, viewport screenshot, and non-secret metadata only"
+        )
+        visible_mode_changes = ["persistent_user_session", "accepted_access_observed"]
+        receipt_summary = (
+            "Observed-access persistent Chrome packet for one public Basenotes product page "
+            "with mechanically sufficient product and review evidence."
+        )
+    else:
+        access_posture = known_fact(
+            "public Basenotes product content captured only after the user completed Cloudflare "
+            "verification in a persistent Chrome tab; session state was used but cookies and "
+            "credentials were not inspected or exported"
+        )
+        warnings = [
+            "user_assisted_access_gate: user completed Cloudflare verification before public "
+            "page artifacts were exported"
+        ]
+        capture_context = (
+            "user-cleared persistent Chrome public-page export; rendered DOM, visible text, "
+            "viewport screenshot, and non-secret metadata only"
+        )
+        visible_mode_changes = ["human_cleared_access_gate", "persistent_user_session"]
+        receipt_summary = (
+            "User-cleared persistent Chrome packet for one public Basenotes product page with "
+            "mechanically sufficient product and review evidence."
+        )
+    archive_posture = not_attempted(
+        "the persistent Chrome bundle did not query archive or history services"
+    )
+    media_posture = known_fact(
+        "rendered DOM, visible text, and one viewport screenshot were preserved; linked media "
+        "files were not independently preserved"
+    )
+    recapture_posture = _not_a_recapture_relationship()
+    result = write_local_source_capture_packet(
+        output_directory=None if data_root is not None else output_root / PERSISTENT_CHROME_SLOT,
+        data_root=data_root,
+        input_files=list(bundle.paths),
+        source_family=SOURCE_FAMILY,
+        source_surface=PERSISTENT_CHROME_SURFACE,
+        source_locator=known_fact(url),
+        decision_question=decision_question,
+        capture_context=capture_context,
+        actor_audience_context=known_fact(
+            "public Basenotes fragrance product page and its source-visible review audience"
+        ),
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        operator_category=DEFAULT_OPERATOR_CATEGORY,
+        session_identity=None,
+        visible_mode_changes=visible_mode_changes,
+        source_publication_or_event=timing.source_publication_or_event,
+        source_edit_or_version=timing.source_edit_or_version,
+        cutoff_posture=timing.cutoff_posture,
+        recapture_time=timing.recapture_time,
+        access_posture=access_posture,
+        archive_history_posture=archive_posture,
+        media_modality_posture=media_posture,
+        re_capture_relationship=recapture_posture,
+        source_slices=[
+            SourceCaptureSlice(
+                slice_id="browser_snapshot_01",
+                locator=known_fact(str(bundle.metadata["final_url"])),
+                timing=timing,
+                access_posture=access_posture,
+                archive_history_posture=archive_posture,
+                media_modality_posture=media_posture,
+                re_capture_relationship=recapture_posture,
+                limitations=list(ACCEPTED_RESIDUALS),
+                warning_notes=warnings,
+                preserved_file_ids=["file_01", "file_02", "file_03", "file_04"],
+            )
+        ],
+        warnings=warnings,
+        limitations=list(ACCEPTED_RESIDUALS),
+        receipt_summary=receipt_summary,
+        receipt_non_claims=list(NON_CLAIMS),
+    )
+    packet_dir = Path(result.output_directory)
+    _read_manifest(packet_dir)
 
     summary = build_basenotes_mgt_capture_summary(
         url=url,
         output_root=output_root,
         data_root_path=Path(data_root.path) if data_root is not None else None,
-        packet_directories={CLOAKBROWSER_SLOT: cloak_dir},
+        packet_directories={PERSISTENT_CHROME_SLOT: packet_dir},
         capture_parameters={
-            "timeout_seconds": timeout_seconds,
-            "settle_seconds": settle_seconds,
-            "scroll_passes": scroll_passes,
+            "bundle_directory": str(bundle_directory),
             "max_artifact_bytes": max_artifact_bytes,
-            "proxy_profile_label_indirected": True,
+            "persistent_user_session": True,
+            "human_cleared_access_gate": bundle.metadata.get("human_cleared_access_gate"),
+            "access_readiness_basis": bundle.metadata.get("access_readiness_basis"),
+            "cookies_or_credentials_exported": False,
+            "proxy_used": False,
+            "capture_transport": (
+                "existing_chrome_cdp_loopback"
+                if capture_performed_this_run
+                else "none_existing_bundle"
+            ),
+            "bundle_origin_transport": (
+                "credential_free_loopback_cdp"
+                if bundle_originated_from_cdp
+                else "manual_bundle"
+            ),
+            "capture_performed_this_run": capture_performed_this_run,
         },
     )
     summary_path = output_root / SUMMARY_FILENAME
@@ -189,7 +302,7 @@ def build_basenotes_mgt_capture_summary(
         "source_family": SOURCE_FAMILY,
         "source_url": url,
         "basenotes_product_slug": extract_basenotes_product_slug(url),
-        "summary_generated_at": _utc_now_z(),
+        "summary_generated_at": utc_now_z(),
         "packet_publication_mode": (
             "data_lake_raw_packets_with_local_summary"
             if data_root_path is not None
@@ -211,33 +324,352 @@ def extract_basenotes_product_slug(url: str) -> str | None:
     return match.group(1) if match else None
 
 
-def preflight_basenotes_mgt_capture(*, url: str, output_root: Path) -> str:
+def preflight_basenotes_mgt_capture(
+    *,
+    url: str,
+    bundle_directory: Path,
+    output_root: Path,
+    max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    cdp_endpoint: str | None = None,
+    cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
+) -> str:
     _validate_basenotes_url(url)
+    _validate_positive("max_artifact_bytes", max_artifact_bytes)
     _assert_output_root_available(output_root)
-    slug = extract_basenotes_product_slug(url) or "unknown"
-    return (
-        "basenotes native capture preflight passed; no network capture attempted; "
-        f"product_slug={slug}; proxy_profile_label={PROXY_PROFILE_LABEL}; output_root={output_root}"
+    if cdp_endpoint is not None:
+        capture_basenotes_bundle_via_cdp(
+            url=url,
+            bundle_directory=bundle_directory,
+            cdp_endpoint=cdp_endpoint,
+            max_artifact_bytes=max_artifact_bytes,
+            engine=cdp_engine,
+        )
+    elif cdp_engine is not None:
+        raise ValueError("cdp_engine requires direct CDP mode")
+    _load_and_validate_bundle(
+        bundle_directory=bundle_directory,
+        url=url,
+        max_artifact_bytes=max_artifact_bytes,
     )
+    slug = extract_basenotes_product_slug(url) or "unknown"
+    capture_clause = (
+        "direct loopback CDP capture observed accepted challenge-free source content and wrote "
+        "a reusable exact four-file bundle; publish that bundle later without --cdp-endpoint"
+        if cdp_endpoint is not None
+        else "no network capture attempted"
+    )
+    prerequisite_clause = (
+        "requires user-visible persistent Chrome"
+        if cdp_endpoint is not None
+        else "requires user-visible persistent Chrome plus a user-cleared access gate"
+    )
+    return (
+        f"basenotes persistent Chrome bundle preflight passed; {capture_clause}; "
+        f"{prerequisite_clause}; public-page "
+        "bundle validated with no cookie, credential, browser-profile, or proxy export; "
+        f"product_slug={slug}; bundle_directory={bundle_directory}; output_root={output_root}"
+    )
+
+
+def capture_basenotes_bundle_via_cdp(
+    *,
+    url: str,
+    bundle_directory: Path,
+    cdp_endpoint: str,
+    max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    timeout_seconds: float = DEFAULT_CDP_TIMEOUT_SECONDS,
+    engine: ChromeCdpPageObservationSessionEngine | None = None,
+) -> Path:
+    """Create the manual-mode bundle after observing accepted content in a CDP session."""
+
+    _validate_basenotes_url(url)
+    _validate_positive("max_artifact_bytes", max_artifact_bytes)
+    _validate_positive("timeout_seconds", timeout_seconds)
+    _validate_cdp_endpoint(cdp_endpoint)
+    _assert_bundle_output_available(bundle_directory)
+
+    capture_engine = engine or ChromeCdpPageObservationSessionEngine(cdp_endpoint=cdp_endpoint)
+    try:
+        observation = fetch_browser_page_observation_capture(
+            url=url,
+            dom_extract_script=_CDP_DOM_EXTRACT_SCRIPT,
+            dom_extract_arg=None,
+            response_url_predicate=lambda _url: False,
+            timeout_seconds=timeout_seconds,
+            wait_until="load",
+            viewport_width=DEFAULT_CDP_VIEWPORT_WIDTH,
+            viewport_height=DEFAULT_CDP_VIEWPORT_HEIGHT,
+            max_response_bytes=max_artifact_bytes,
+            settle_seconds=2.0,
+            proxy_profile=None,
+            storage_state_path=None,
+            headless=False,
+            browser_channel=None,
+            browser_backend=BROWSER_BACKEND_CHROME_CDP,
+            engine=capture_engine,
+        )
+        if isinstance(observation, BrowserSnapshotFailure):
+            raise ValueError(f"direct CDP page observation failed: {observation.message}")
+        if not isinstance(observation, BrowserPageObservationSuccess):
+            raise ValueError("direct CDP page observation returned an unsupported result")
+        if not isinstance(observation.dom_observation, str) or not observation.dom_observation:
+            raise ValueError("direct CDP page observation returned no rendered DOM")
+
+        metadata: dict[str, object] = {
+            "capture_timestamp": observation.metadata.get("capture_timestamp") or utc_now_z(),
+            "requested_url": url,
+            "final_url": observation.final_url,
+            "title": observation.title,
+            "browser_channel": "existing_chrome_cdp",
+            "headless": False,
+            "persistent_user_session": True,
+            "human_cleared_access_gate": False,
+            "access_readiness_basis": "observed_exact_url_challenge_free_sufficient_content",
+            "cookies_exported": False,
+            "credentials_exported": False,
+            "proxy_used": False,
+            "capture_transport": "credential_free_loopback_cdp",
+        }
+        _validate_captured_page_content(
+            rendered_dom=observation.dom_observation,
+            visible_text=observation.visible_text,
+            title=observation.title,
+            url=url,
+        )
+        _validate_bundle_metadata(metadata=metadata, url=url)
+        _validate_artifact_size(
+            name="browser_rendered_dom.html",
+            body=observation.dom_observation.encode("utf-8"),
+            max_artifact_bytes=max_artifact_bytes,
+        )
+        _validate_artifact_size(
+            name="browser_visible_text.txt",
+            body=observation.visible_text.encode("utf-8"),
+            max_artifact_bytes=max_artifact_bytes,
+        )
+        screenshot_png = capture_engine.capture_current_viewport_png(
+            timeout_seconds=timeout_seconds
+        )
+    finally:
+        capture_engine.close()
+
+    _validate_png_bytes(screenshot_png)
+    _validate_artifact_size(
+        name="browser_viewport_screenshot.png",
+        body=screenshot_png,
+        max_artifact_bytes=max_artifact_bytes,
+    )
+    metadata_bytes = (json.dumps(metadata, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    _validate_artifact_size(
+        name="browser_snapshot_metadata.json",
+        body=metadata_bytes,
+        max_artifact_bytes=max_artifact_bytes,
+    )
+
+    bundle_directory.mkdir(parents=True, exist_ok=True)
+    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[0]).write_text(
+        observation.dom_observation, encoding="utf-8"
+    )
+    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[1]).write_text(
+        observation.visible_text, encoding="utf-8"
+    )
+    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[2]).write_bytes(screenshot_png)
+    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[3]).write_bytes(metadata_bytes)
+    return bundle_directory
+
+
+def _load_and_validate_bundle(
+    *, bundle_directory: Path, url: str, max_artifact_bytes: int
+) -> PersistentChromeBundle:
+    if not bundle_directory.is_dir():
+        raise ValueError(f"persistent Chrome bundle directory does not exist: {bundle_directory}")
+    actual_names = {path.name for path in bundle_directory.iterdir()}
+    required_names = set(REQUIRED_BUNDLE_FILENAMES)
+    if actual_names != required_names:
+        missing = sorted(required_names - actual_names)
+        unexpected = sorted(actual_names - required_names)
+        raise ValueError(
+            "persistent Chrome bundle must contain exactly the four public-page artifacts; "
+            f"missing={missing}; unexpected={unexpected}"
+        )
+    paths = tuple(bundle_directory / name for name in REQUIRED_BUNDLE_FILENAMES)
+    for path in paths:
+        if not path.is_file() or path.is_symlink():
+            raise ValueError(f"persistent Chrome bundle artifact must be a regular file: {path}")
+        size = path.stat().st_size
+        if size <= 0:
+            raise ValueError(f"persistent Chrome bundle artifact is empty: {path}")
+        if size > max_artifact_bytes:
+            raise ValueError(
+                f"persistent Chrome bundle artifact exceeds max_artifact_bytes: {path} ({size})"
+            )
+
+    rendered_dom = paths[0].read_text(encoding="utf-8")
+    visible_text = paths[1].read_text(encoding="utf-8")
+    _validate_png_bytes(paths[2].read_bytes())
+    try:
+        metadata = json.loads(paths[3].read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"persistent Chrome metadata is not valid JSON: {exc}") from exc
+    if not isinstance(metadata, dict):
+        raise ValueError("persistent Chrome metadata must be a JSON object")
+    _validate_bundle_metadata(metadata=metadata, url=url)
+
+    _validate_captured_page_content(
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+        title=str(metadata.get("title") or ""),
+        url=url,
+    )
+    return PersistentChromeBundle(
+        paths=paths,
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+        metadata=metadata,
+    )
+
+
+def _validate_captured_page_content(
+    *, rendered_dom: str, visible_text: str, title: str | None, url: str
+) -> None:
+    challenge_text = f"{title}\n{visible_text}"
+    access_block_reason = (
+        "persistent Chrome export contains Cloudflare challenge text"
+        if _CHALLENGE_TEXT_RE.search(challenge_text)
+        else None
+    )
+    sufficiency = evaluate_source_detail_sufficiency(
+        requirements=_sufficiency_requirements(url),
+        access_block_reason=access_block_reason,
+        visible_text=visible_text,
+        rendered_dom=rendered_dom,
+    )
+    if not sufficiency.passed:
+        raise ValueError(
+            "persistent Chrome bundle failed source-detail sufficiency: "
+            + "; ".join(sufficiency.failure_reasons)
+        )
+
+
+def _validate_png_bytes(body: bytes) -> None:
+    if len(body) < 45 or body[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+    offset = 8
+    seen_ihdr = False
+    seen_idat = False
+    seen_iend = False
+    while offset + 12 <= len(body):
+        chunk_length = int.from_bytes(body[offset : offset + 4], "big")
+        chunk_type = body[offset + 4 : offset + 8]
+        chunk_end = offset + 12 + chunk_length
+        if chunk_end > len(body):
+            raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+        chunk_data = body[offset + 8 : offset + 8 + chunk_length]
+        observed_crc = int.from_bytes(body[offset + 8 + chunk_length : chunk_end], "big")
+        expected_crc = zlib.crc32(chunk_type + chunk_data) & 0xFFFFFFFF
+        if observed_crc != expected_crc:
+            raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+        if not seen_ihdr:
+            if chunk_type != b"IHDR" or chunk_length != 13:
+                raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+            width = int.from_bytes(chunk_data[:4], "big")
+            height = int.from_bytes(chunk_data[4:8], "big")
+            if width <= 0 or height <= 0:
+                raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+            seen_ihdr = True
+        if chunk_type == b"IDAT" and chunk_length > 0:
+            seen_idat = True
+        if chunk_type == b"IEND":
+            if chunk_length != 0 or chunk_end != len(body):
+                raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+            seen_iend = True
+            break
+        offset = chunk_end
+    if not seen_ihdr or not seen_idat or not seen_iend:
+        raise ValueError("persistent Chrome screenshot is not a genuine PNG")
+
+
+def _validate_artifact_size(*, name: str, body: bytes, max_artifact_bytes: int) -> None:
+    if not body:
+        raise ValueError(f"persistent Chrome bundle artifact is empty: {name}")
+    if len(body) > max_artifact_bytes:
+        raise ValueError(
+            f"persistent Chrome bundle artifact exceeds max_artifact_bytes: {name} ({len(body)})"
+        )
+
+
+def _sufficiency_requirements(url: str) -> SourceDetailSufficiencyRequirements:
+    product_path = urlparse(url).path.lstrip("/")
+    return SourceDetailSufficiencyRequirements(
+        require_not_access_blocked=True,
+        min_visible_text_bytes=500,
+        rendered_dom_regexes=(
+            rf"(?is){re.escape(product_path)}",
+            r'(?is)"@type"\s*:\s*"(?:https?://schema\.org/)?Product"',
+            r'(?is)"review"\s*:',
+            r'(?is)"reviewBody"\s*:',
+        ),
+    )
+
+
+def _validate_bundle_metadata(*, metadata: Mapping[str, object], url: str) -> None:
+    capture_transport = metadata.get("capture_transport")
+    if capture_transport not in {None, "manual_bundle", "credential_free_loopback_cdp"}:
+        raise ValueError(
+            "persistent Chrome metadata capture_transport must be manual_bundle or "
+            "credential_free_loopback_cdp"
+        )
+    required_values = {
+        "requested_url": url,
+        "final_url": url,
+        "headless": False,
+        "persistent_user_session": True,
+        "cookies_exported": False,
+        "credentials_exported": False,
+        "proxy_used": False,
+    }
+    if capture_transport == "credential_free_loopback_cdp":
+        required_values.update(
+            {
+                "human_cleared_access_gate": False,
+                "access_readiness_basis": (
+                    "observed_exact_url_challenge_free_sufficient_content"
+                ),
+            }
+        )
+    else:
+        required_values["human_cleared_access_gate"] = True
+    for key, expected in required_values.items():
+        if metadata.get(key) != expected:
+            raise ValueError(
+                f"persistent Chrome metadata requires {key}={expected!r}; "
+                f"observed {metadata.get(key)!r}"
+            )
+    browser_channel = metadata.get("browser_channel")
+    if not isinstance(browser_channel, str) or not browser_channel.strip():
+        raise ValueError("persistent Chrome metadata requires a non-blank browser_channel")
+    capture_timestamp = metadata.get("capture_timestamp")
+    if not isinstance(capture_timestamp, str) or not capture_timestamp.strip():
+        raise ValueError("persistent Chrome metadata requires capture_timestamp")
+    try:
+        datetime.fromisoformat(capture_timestamp.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("persistent Chrome metadata capture_timestamp must be ISO-8601") from exc
 
 
 def _slice_postures(manifest: Mapping[str, object]) -> list[dict[str, object]]:
     source_slices = manifest.get("source_slices")
     if not isinstance(source_slices, list):
         return []
-
-    postures: list[dict[str, object]] = []
-    for source_slice in source_slices:
-        if not isinstance(source_slice, dict):
-            continue
-        postures.append(
-            {
-                "slice_id": source_slice.get("slice_id"),
-                "access_posture": source_slice.get("access_posture"),
-                "archive_history_posture": source_slice.get("archive_history_posture"),
-            }
-        )
-    return postures
+    return [
+        {
+            "slice_id": source_slice.get("slice_id"),
+            "access_posture": source_slice.get("access_posture"),
+            "archive_history_posture": source_slice.get("archive_history_posture"),
+        }
+        for source_slice in source_slices
+        if isinstance(source_slice, dict)
+    ]
 
 
 def _read_manifest(packet_dir: Path) -> dict[str, object]:
@@ -267,14 +699,34 @@ def _is_basenotes_hostname(hostname: str) -> bool:
     return hostname == "basenotes.com" or hostname.endswith(".basenotes.com")
 
 
+def _validate_cdp_endpoint(cdp_endpoint: str) -> None:
+    parsed = urlparse(cdp_endpoint)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}
+        or parsed.path not in {"", "/"}
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("cdp_endpoint must be a credential-free loopback http(s) endpoint")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("cdp_endpoint has an invalid port") from exc
+
+
+def _assert_bundle_output_available(bundle_directory: Path) -> None:
+    if bundle_directory.exists() and not bundle_directory.is_dir():
+        raise ValueError(f"CDP bundle output exists and is not a directory: {bundle_directory}")
+    if bundle_directory.exists() and any(bundle_directory.iterdir()):
+        raise ValueError(f"CDP bundle output must be absent or empty: {bundle_directory}")
+
+
 def _validate_positive(name: str, value: int | float) -> None:
     if value <= 0:
         raise ValueError(f"{name} must be positive")
-
-
-def _validate_non_negative(name: str, value: int | float) -> None:
-    if value < 0:
-        raise ValueError(f"{name} must be non-negative")
 
 
 def _prepare_output_root(output_root: Path) -> None:
@@ -287,19 +739,6 @@ def _assert_output_root_available(output_root: Path) -> None:
         raise ValueError(f"output root exists and is not a directory: {output_root}")
     if output_root.exists() and any(output_root.iterdir()):
         raise ValueError(f"output root must be absent or empty: {output_root}")
-
-
-def _anonymous_actor_context():
-    return known_fact(
-        "anonymous public Basenotes visitor through a label-indirected residential proxy; "
-        "no login, stored session, browser profile, or credentials supplied"
-    )
-
-
-def _anonymous_session_pin():
-    return known_fact(
-        "anonymous logged-out capture; no stored session, browser profile, or credentials supplied"
-    )
 
 
 def _unknown_source_publication():
@@ -322,18 +761,16 @@ def _not_a_recapture_relationship():
     return not_applicable("Basenotes native wrapper did not receive a prior packet relationship")
 
 
-def _utc_now_z() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the Basenotes native CloakBrowser residential-proxy capture recipe "
-            "(anonymous routes are Cloudflare-blocked; see live-probe PIN-003 addendum)."
+            "Validate and publish a public-page export from a user-cleared persistent Chrome "
+            "Basenotes product tab. Optional direct mode attaches to an existing local Chrome "
+            "CDP session; neither mode automates the access gate."
         )
     )
     parser.add_argument("--url", required=True)
+    parser.add_argument("--bundle-directory", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument(
         "--data-root",
@@ -345,14 +782,24 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--decision-question", default=DEFAULT_DECISION_QUESTION)
-    parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
-    parser.add_argument("--settle-seconds", type=float, default=DEFAULT_SETTLE_SECONDS)
-    parser.add_argument("--scroll-passes", type=int, default=DEFAULT_SCROLL_PASSES)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
+    parser.add_argument(
+        "--cdp-endpoint",
+        default=None,
+        help=(
+            "Enable direct mode against a credential-free loopback endpoint such as "
+            f"{DEFAULT_CDP_ENDPOINT}; --bundle-directory becomes the fresh generated bundle."
+        ),
+    )
     parser.add_argument(
         "--preflight-only",
         action="store_true",
-        help="Validate Basenotes URL and output-root availability, then exit without network capture.",
+        help=(
+            "Validate URL, exact four-file public-page bundle, route metadata, sufficiency, and "
+            "output-root availability, then exit without publishing a packet. With "
+            "--cdp-endpoint this performs live capture and writes the reusable fresh bundle; "
+            "publish it in a later run without --cdp-endpoint."
+        ),
     )
     return parser
 
@@ -362,7 +809,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.preflight_only:
-            print(preflight_basenotes_mgt_capture(url=args.url, output_root=args.output_root))
+            print(
+                preflight_basenotes_mgt_capture(
+                    url=args.url,
+                    bundle_directory=args.bundle_directory,
+                    output_root=args.output_root,
+                    max_artifact_bytes=args.max_artifact_bytes,
+                    cdp_endpoint=args.cdp_endpoint,
+                )
+            )
             return 0
 
         data_root = None
@@ -373,13 +828,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         exit_code, message = run_basenotes_mgt_capture(
             url=args.url,
+            bundle_directory=args.bundle_directory,
             output_root=args.output_root,
             data_root=data_root,
             decision_question=args.decision_question,
-            timeout_seconds=args.timeout_seconds,
-            settle_seconds=args.settle_seconds,
-            scroll_passes=args.scroll_passes,
             max_artifact_bytes=args.max_artifact_bytes,
+            cdp_endpoint=args.cdp_endpoint,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"basenotes native capture failed: {exc}\n")
