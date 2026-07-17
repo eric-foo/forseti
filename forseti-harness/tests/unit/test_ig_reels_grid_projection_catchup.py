@@ -137,7 +137,13 @@ def _slices() -> list[SourceCaptureSlice]:
     ]
 
 
-def _commit_packet(root: DataLakeRoot, tmp_path: Path, *, source_surface: str | None = None) -> str:
+def _commit_packet(
+    root: DataLakeRoot,
+    tmp_path: Path,
+    *,
+    source_surface: str | None = None,
+    locator: str | None = None,
+) -> str:
     capture_path = tmp_path / f"capture_{generate_ulid()}" / "ig_reels_grid_capture.json"
     capture_path.parent.mkdir(parents=True)
     capture_path.write_bytes(json.dumps(_capture_payload(), sort_keys=True).encode("utf-8"))
@@ -146,7 +152,7 @@ def _commit_packet(root: DataLakeRoot, tmp_path: Path, *, source_surface: str | 
         input_files=[capture_path],
         source_family="instagram_creator",
         source_surface=source_surface or "ig_reels_grid_dom_passive_json",
-        source_locator=known_fact(FINAL_URL),
+        source_locator=known_fact(locator or FINAL_URL),
         decision_question="creator monitoring",
         capture_context="logged-out IG public /reels/ grid capture",
         capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
@@ -280,7 +286,10 @@ def test_derive_failure_is_loud_isolated_and_never_acked(tmp_path: Path) -> None
     # stays unacknowledged (re-surfaces), and a healthy packet still derives.
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     bad_pid = _commit_packet(root, tmp_path)
-    good_pid = _commit_packet(root, tmp_path)
+    # Distinct locator: the packet tampered below is otherwise byte-identical to
+    # the healthy one and would collide with the Bronze write-gate's duplicate
+    # check if they shared a locator.
+    good_pid = _commit_packet(root, tmp_path, locator=f"{FINAL_URL}?second")
     container = root.path / "raw" / raw_shard(bad_pid) / bad_pid
     manifest = json.loads((container / "manifest.json").read_text(encoding="utf-8"))
     preserved_relpath = manifest["preserved_files"][0]["relative_packet_path"]
