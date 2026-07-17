@@ -16,6 +16,7 @@ import pytest
 from data_lake.consumption import append_ack
 from data_lake.derived_retrieval_views import (
     MENTIONS_LANE,
+    build_by_creator_view,
     build_by_mention_view,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
@@ -179,19 +180,19 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     legacy_root.mkdir(parents=True)
     (legacy_root / "by_mention.json").write_text("legacy", encoding="utf-8")
     silver_core = root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
-    deferred = silver_core / "query_tables" / "by_creator.json"
-    deferred.parent.mkdir(parents=True, exist_ok=True)
-    deferred.write_text("deferred-sentinel", encoding="utf-8")
 
     report = rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert report["status"] == "rebuilt"
-    assert report["views"] == ["by_mention", "undone"]
-    assert report["deferred_views"] == ["by_creator"]
+    assert report["views"] == ["by_creator", "by_mention", "undone"]
+    assert report["deferred_views"] == []
 
     assert not legacy_root.exists()
-    assert deferred.read_text("utf-8") == "deferred-sentinel"
+    by_creator = json.loads((silver_core / "query_tables" / "by_creator.json").read_text("utf-8"))
     by_mention = json.loads((silver_core / "query_tables" / "by_mention.json").read_text("utf-8"))
     undone = json.loads((silver_core / "query_tables" / "undone.json").read_text("utf-8"))
+    assert by_creator["view_schema_version"] == 2
+    assert "no cross-platform identity" in by_creator["semantics"]
+    assert "identity kinds never merge" in by_creator["semantics"]
 
     # lineage gate: the complete record is evidence; the lineage-missing one is a residual.
     refs = by_mention["mentions"]["Dior"]["Sauvage Elixir"]
@@ -210,7 +211,7 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     assert "NOT current-obligation satisfied" in undone["zero_rows_meaning"]
     assert undone["anchors_with_acks"] == {_NS: 1}
 
-    for view_name in ("by_mention", "undone"):
+    for view_name in ("by_creator", "by_mention", "undone"):
         manifest = json.loads(
             (silver_core / "manifests" / f"{view_name}.json").read_text("utf-8")
         )
@@ -307,7 +308,11 @@ def test_prove_rebuildability_green_then_tamper_fails(tmp_path: Path) -> None:
 
     proof = prove_derived_retrieval_rebuildability(root)
     assert proof["status"] == "proven"
-    assert proof["results"] == {"by_mention": "rebuildable", "undone": "rebuildable"}
+    assert proof["results"] == {
+        "by_creator": "rebuildable",
+        "by_mention": "rebuildable",
+        "undone": "rebuildable",
+    }
 
     view_path = (
         root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
@@ -339,9 +344,424 @@ def test_prove_on_empty_store_is_absent_not_failure(tmp_path: Path) -> None:
     proof = prove_derived_retrieval_rebuildability(root)
     assert proof["status"] == "proven"
     assert proof["results"] == {
+        "by_creator": "absent_nothing_to_prove",
         "by_mention": "absent_nothing_to_prove",
         "undone": "absent_nothing_to_prove",
     }
+
+
+def _write_creator_metric_record(
+    root: DataLakeRoot,
+    raw_anchor: str,
+    record_id: str,
+    *,
+    subject_ref: dict,
+) -> None:
+    """One strict-current MetricObservation with an account-bearing subject."""
+    record = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": "creator_metric_silver",
+        "producer_id": "test.creator_metric_producer",
+        "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": "test_creator_metric_v1",
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+        "record_kind": "observation",
+        "payload_kind": "MetricObservation",
+        "producer_row_kind": "test_creator_metric",
+        "source_surface": "test_surface",
+        "observed_at": "2026-07-15T00:00:00Z",
+        "captured_at": "2026-07-15T00:00:00Z",
+        **{
+            key: value
+            for key, value in _complete_lineage_fields(root, raw_anchor).items()
+            if key in ("raw_refs", "derived_refs")
+        },
+        "payload": {
+            "observation": {
+                "subject": {"ref_type": "entity_key", "ref": subject_ref},
+                "metric_name": "follower_count",
+                "metric_value": 1000,
+                "metric_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+            }
+        },
+    }
+    record["content_hash"] = "sha256:" + silver_content_hash(record)
+    root.append_record(
+        subtree="derived",
+        raw_anchor=raw_anchor,
+        lane="creator_metric_silver",
+        record_id=record_id,
+        data=canonical_record_bytes(record),
+    )
+
+
+def _write_fragrantica_projection(
+    root: DataLakeRoot,
+    raw_anchor: str,
+    *,
+    record_id: str = "projection.json",
+    rows: list[dict] | None = None,
+) -> None:
+    projection = {
+        "packet_id": raw_anchor,
+        "certification": "view_only; not_cleaned; not_normalized; not_judgment_ready",
+        "rows": rows or [
+            {
+                "row_id": "slice_01:fragrantica:product_snapshot",
+                "row_kind": "fragrance_product_snapshot",
+                "brand_or_house": "Ariana Grande",
+                "source_object_name": "Cloud",
+                "source_object_site_id": "50384",
+                "source_platform": "fragrantica",
+                "source_visible_fields": {
+                    "canonical_url": "https://www.fragrantica.com/perfume/Ariana-Grande/Cloud-50384.html"
+                },
+            }
+        ],
+    }
+    root.append_record(
+        subtree="derived",
+        raw_anchor=raw_anchor,
+        lane="projection_fragrantica",
+        record_id=record_id,
+        data=canonical_record_bytes(projection),
+    )
+
+
+def test_by_creator_indexes_account_subjects_with_classified_authority(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "creator")
+    _write_creator_metric_record(
+        root,
+        pid,
+        "account_metric.json",
+        subject_ref={
+            "namespace": "instagram",
+            "kind": "platform_public_account",
+            "native_id": "fixture_creator",
+            "orca_platform_account_id": "acct_ig_fixture_001",
+        },
+    )
+    _write_creator_metric_record(
+        root,
+        pid,
+        "content_metric.json",
+        subject_ref={
+            "namespace": "youtube",
+            "kind": "public_content_object",
+            "native_id": "vid123",
+            "published_by_account_native_id": "UCfixturechannel",
+        },
+    )
+
+    view, source_refs = build_by_creator_view(root)
+
+    assert view["creator_count"] == 2
+    ig_entry = view["creators"]["instagram"]["unspecified"]["fixture_creator"]
+    assert ig_entry["aliases"]["orca_platform_account_id"] == "acct_ig_fixture_001"
+    evidence = ig_entry["packets"][pid]["subject_evidence"]
+    assert [ref["record_id"] for ref in evidence] == ["account_metric.json"]
+    assert evidence[0]["authority_status"] == "current_source_backed"
+    lane_status = ig_entry["packets"][pid]["anchor_silver_records_by_lane_status"]
+    assert lane_status["creator_metric_silver"] == {"current_source_backed": 2}
+    # content-object subject keys under its publishing account
+    assert "UCfixturechannel" in view["creators"]["youtube"]["unspecified"]
+    assert f"{pid}/creator_metric_silver/account_metric.json" in source_refs
+
+
+def test_by_creator_distinct_identity_kinds_never_merge(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "creator-kind-split")
+    _write_creator_metric_record(
+        root,
+        pid,
+        "id_keyed.json",
+        subject_ref={
+            "namespace": "youtube",
+            "kind": "platform_public_account",
+            "native_id": "same_string",
+            "native_id_kind": "youtube_channel_id",
+        },
+    )
+    _write_creator_metric_record(
+        root,
+        pid,
+        "handle_keyed.json",
+        subject_ref={
+            "namespace": "youtube",
+            "kind": "platform_public_account",
+            "native_id": "same_string",
+        },
+    )
+
+    view, _source_refs = build_by_creator_view(root)
+
+    kinds = view["creators"]["youtube"]
+    assert "same_string" in kinds["youtube_channel_id"]
+    assert "same_string" in kinds["unspecified"]
+    assert view["creator_count"] == 2
+
+
+def test_by_creator_unfileable_account_shapes_are_named_residuals(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "creator-unfiled")
+    # Unknown platform namespace: never a new platform key, always a residual.
+    _write_creator_metric_record(
+        root,
+        pid,
+        "unknown_namespace.json",
+        subject_ref={
+            "namespace": "myspace",
+            "kind": "platform_public_account",
+            "native_id": "fixture_creator",
+        },
+    )
+    # Account subject missing its identifier: residual, not a silent drop.
+    _write_creator_metric_record(
+        root,
+        pid,
+        "missing_native_id.json",
+        subject_ref={
+            "namespace": "instagram",
+            "kind": "platform_public_account",
+            "native_id": "",
+        },
+    )
+    # Unknown subject kind carrying an account-identifier field: residual.
+    _write_creator_metric_record(
+        root,
+        pid,
+        "unknown_kind.json",
+        subject_ref={
+            "namespace": "instagram",
+            "kind": "reddit_author_profile",
+            "native_id": "some_author",
+        },
+    )
+    # Known non-account subject kind: neither a card nor a residual.
+    _write_creator_metric_record(
+        root,
+        pid,
+        "retail_product.json",
+        subject_ref={
+            "namespace": "sephora",
+            "kind": "retailer_product",
+            "native_id": "P12345",
+        },
+    )
+
+    view, _source_refs = build_by_creator_view(root)
+
+    assert view["creators"] == {}
+    statuses = sorted(
+        (residual["status"], residual["record_id"])
+        for residual in view["residuals"]
+        if residual["status"].startswith("unrecognized_")
+    )
+    assert statuses == [
+        ("unrecognized_account_subject_shape", "missing_native_id.json"),
+        ("unrecognized_account_subject_shape", "unknown_kind.json"),
+        ("unrecognized_platform_namespace", "unknown_namespace.json"),
+    ]
+
+
+def test_by_creator_surfaces_conflicting_account_aliases(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "creator-alias-conflict")
+    for record_id, account_id in (
+        ("first.json", "acct_ig_fixture_001"),
+        ("second.json", "acct_ig_fixture_002"),
+    ):
+        _write_creator_metric_record(
+            root,
+            pid,
+            record_id,
+            subject_ref={
+                "namespace": "instagram",
+                "kind": "platform_public_account",
+                "native_id": "fixture_creator",
+                "orca_platform_account_id": account_id,
+            },
+        )
+
+    view, _source_refs = build_by_creator_view(root)
+
+    assert view["creators"]["instagram"]["unspecified"]["fixture_creator"]["aliases"] == {
+        "orca_platform_account_id": "acct_ig_fixture_001"
+    }
+    assert any(
+        residual["status"] == "account_alias_conflict"
+        and residual["namespace"] == "instagram"
+        and residual["identity_kind"] == "unspecified"
+        and residual["native_id"] == "fixture_creator"
+        and residual["alias_values"]
+        == ["acct_ig_fixture_001", "acct_ig_fixture_002"]
+        for residual in view["residuals"]
+    )
+
+
+def test_by_mention_carries_native_product_page_identity(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "product")
+    _write_fragrantica_projection(root, pid)
+
+    view, source_refs = build_by_mention_view(root, product_mention_policy=_POLICY)
+
+    entry = view["native_product_pages"]["Ariana Grande"]["Cloud"]
+    assert len(entry) == 1
+    assert entry[0]["raw_anchor"] == pid
+    assert entry[0]["site_native_id"] == "50384"
+    assert entry[0]["canonical_url"].endswith("Cloud-50384.html")
+    assert "not Silver authority" in entry[0]["identity_source"]
+    assert f"{pid}/projection_fragrantica/projection.json" in source_refs
+    assert "never be read as an observed zero" in view["zero_rows_meaning"]
+
+
+def test_by_mention_rejects_partial_and_conflicting_native_product_identity(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "product-identity")
+    base_row = {
+        "row_kind": "fragrance_product_snapshot",
+        "brand_or_house": "Ariana Grande",
+        "source_object_name": "Cloud",
+        "source_object_site_id": "50384",
+        "source_platform": "fragrantica",
+    }
+    _write_fragrantica_projection(
+        root,
+        pid,
+        record_id="first.json",
+        rows=[
+            {
+                **base_row,
+                "row_id": "first",
+                "source_visible_fields": {
+                    "canonical_url": "https://www.fragrantica.com/perfume/Ariana-Grande/Cloud-50384.html"
+                },
+            },
+            {
+                **base_row,
+                "row_id": "missing-brand",
+                "brand_or_house": None,
+                "source_object_name": "Cloud Pink",
+                "source_object_site_id": "81442",
+                "source_visible_fields": {
+                    "canonical_url": "https://www.fragrantica.com/perfume/Ariana-Grande/Cloud-Pink-81442.html"
+                },
+            },
+        ],
+    )
+    _write_fragrantica_projection(
+        root,
+        pid,
+        record_id="second.json",
+        rows=[
+            {
+                **base_row,
+                "row_id": "second",
+                "brand_or_house": "Impostor Brand",
+                "source_visible_fields": {
+                    "canonical_url": "https://www.fragrantica.com/perfume/Ariana-Grande/Cloud-50384.html?duplicate=1"
+                },
+            }
+        ],
+    )
+
+    view, source_refs = build_by_mention_view(root, product_mention_policy=_POLICY)
+
+    assert "unknown" not in view["native_product_pages"]
+    assert "Impostor Brand" not in view["native_product_pages"]
+    assert len(view["native_product_pages"]["Ariana Grande"]["Cloud"]) == 1
+    statuses = [residual["status"] for residual in view["residuals"]]
+    assert "native_product_page_identity_incomplete" in statuses
+    assert "native_product_page_identity_conflict" in statuses
+    assert f"{pid}/projection_fragrantica/first.json" in source_refs
+    assert f"{pid}/projection_fragrantica/second.json" in source_refs
+
+
+def test_lookup_runner_resolves_creator_and_mention(tmp_path: Path, capsys, monkeypatch) -> None:
+    from runners.run_derived_retrieval_lookup import main as lookup_main
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "creator")
+    _write_creator_metric_record(
+        root,
+        pid,
+        "account_metric.json",
+        subject_ref={
+            "namespace": "instagram",
+            "kind": "platform_public_account",
+            "native_id": "fixture_creator",
+            "orca_platform_account_id": "acct_ig_fixture_001",
+        },
+    )
+    _write_fragrantica_projection(root, pid)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
+
+    assert lookup_main(["--creator", "fixture_creator"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert found["status"] == "found"
+    assert found["matches"][0]["namespace"] == "instagram"
+    assert found["matches"][0]["identity_kind"] == "unspecified"
+    assert found["view_provenance"]["generation_id"] == _STAMP["generation_id"]
+
+    assert lookup_main(["--creator", "acct_ig_fixture_001"]) == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "found"
+
+    assert lookup_main(["--mention", "cloud"]) == 0
+    mention = json.loads(capsys.readouterr().out)
+    assert mention["matches"][0]["source_class"] == "native_product_pages"
+    assert mention["matches"][0]["brand"] == "Ariana Grande"
+
+    assert lookup_main(["--mention", "grand"]) == 1
+    assert json.loads(capsys.readouterr().out)["status"] == "not_found"
+
+    assert lookup_main(["--creator", "nobody_here"]) == 1
+    assert json.loads(capsys.readouterr().out)["status"] == "not_found"
+
+
+def test_lookup_runner_fails_closed_on_absent_or_tampered_view_pair(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    from runners.run_derived_retrieval_lookup import main as lookup_main
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
+
+    assert lookup_main(["--creator", "fixture_creator"]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "view_not_built"
+
+    pid = _commit_packet(root, tmp_path, "tampered-view")
+    _write_fragrantica_projection(root, pid)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    view_path = (
+        root.path
+        / "indexes"
+        / "derived_retrieval"
+        / "silver_vault"
+        / "core"
+        / "query_tables"
+        / "by_mention.json"
+    )
+    tampered = json.loads(view_path.read_text(encoding="utf-8"))
+    tampered["native_product_pages"]["Ariana Grande"]["Cloud"][0][
+        "canonical_url"
+    ] = "https://example.test/tampered"
+    view_path.write_bytes(canonical_record_bytes(tampered))
+
+    assert lookup_main(["--mention", "cloud"]) == 2
+    error = json.loads(capsys.readouterr().out)
+    assert error["status"] == "error"
+    assert "view_sha256" in error["error"]
 
 
 def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None:
