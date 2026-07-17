@@ -834,6 +834,12 @@ in `AGENTS.md`. No fourth candidate or threshold change was used.
 
 ### Same-lane ceremony and silent-stall dogfood (2026-07-16)
 
+Superseded-terminology note (2026-07-17): the "revision/dirty-byte mismatch"
+and "exact or dirty-byte state" phrasings below are historical observations
+that predate the frozen-commit-pin amendment; couriered repo-bound target
+identity is now owned by `.agents/workflow-overlay/prompt-orchestration.md`
+-> "Repo-Bound Review Target Resolution".
+
 Cold handoff and delegated-review runs exposed one real false blocker and one
 platform-latency defect. The same actor selected a clean worktree for the same
 lane, but the adapter rejected it solely because the launch checkout differed.
