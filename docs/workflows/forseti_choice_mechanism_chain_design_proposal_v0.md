@@ -27,10 +27,7 @@ stale_if:
 
 ## Provenance and load contract
 
-- Commissioned by the handoff packet
-  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md`
-  (authored on branch `claude/tower28-c1-corrections-c5-validator`; packet is
-  consumed by this proposal's delivery).
+- Commissioned by the handoff packet `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` (authored on branch `claude/tower28-c1-corrections-c5-validator`; packet is consumed by this proposal's delivery).
 - Binding constraints reread directly from
   `docs/decisions/forseti_ci_report_external_review_adjudication_ledger_v0.md`
   (items 4, 9, 10, 12), not from the packet paraphrase.
