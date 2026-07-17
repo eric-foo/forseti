@@ -419,7 +419,7 @@ def build_parfumo_targeted_content_record(
                 file_id=f"content_input_{role}",
                 relative_packet_path=relative_path,
                 sha256=hashlib.sha256(body).hexdigest(),
-                hash_basis="raw_bytes",
+                hash_basis="raw_stored_bytes",
             )
             projected = _project_parfumo_html(
                 body,
