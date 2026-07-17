@@ -131,7 +131,7 @@ promotion.
 
 ## Known Source Documents
 
-- `README.md`: workspace entrypoint.
+- `README.md`: intentionally non-authoritative front page; not a workspace entrypoint. Use `docs/workflows/forseti_repo_map_v0.md` or `.agents/workflow-overlay/README.md` for real entry.
 - `AGENTS.md`: agent operating instructions.
 - `CLAUDE.md`: Claude Code instruction shim that imports `AGENTS.md`; no Forseti project authority of its own.
 - `.agents/workflow-overlay/README.md`: overlay entrypoint.

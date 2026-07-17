@@ -237,6 +237,8 @@ Generated or gitignored scratch — do not enumerate or treat as authoritative:
 | Harness identity migration | `docs/decisions/forseti_harness_identity_migration_plan_v0.md` |
 | Current migration status | `docs/workflows/forseti_post_harness_migration_status_v0.md` |
 | Historical path lookup | Open the relevant `docs/migration/` moved-path index; do not copy all index rows into T1. |
+| Bootstrap record | `docs/workflows/orca_bootstrap_record.md` |
+| Migration import queue | `docs/migration/import_queue.md` |
 
 Compatibility paths and moved-path indexes are resolution aids. They do not
 promote historical artifacts, prove migration completeness, or authorize a new
