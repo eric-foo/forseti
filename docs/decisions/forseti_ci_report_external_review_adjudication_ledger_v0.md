@@ -110,9 +110,15 @@ mechanism is extended, one small change per seam:
   improve the contract from this ledger -> run a fresh company (or rerun)
   under the upgraded contract -> give the new bundle to a fresh external
   session and compare against this round's findings.
-- Choice-mechanism chain design handoff: owner is weighing a bounded design
-  handoff for the chain pillar (evidence-acquisition lenses below title-level
-  + client-facing presentation format). Not yet commissioned.
+- Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
+  (2026-07-17). Packet
+  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md`
+  (authored on branch `claude/tower28-c1-corrections-c5-validator`) was
+  executed; the design proposal is at
+  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md`,
+  awaiting owner adjudication into the item 4 chain section of the contract
+  pass. Delivery is not acceptance; the contract pass still executes only
+  from owner-adjudicated items recorded here.
 
 ## Rejected (do not resurrect without new owner word)
 
