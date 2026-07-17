@@ -82,6 +82,32 @@ Tower 28 report). This screenshot is owner-provided context, not a lane
 observation: the page must be re-read in-lane (and is itself a preservation-
 trigger candidate) before anything cites it.
 
+## Subject-bound add-on tasks (owner-authorized 2026-07-18; subject: Tower 28)
+
+Three bounded checks from the silent-pain taxonomy
+(`forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md`),
+run with Step 2 (or standalone if binding stalls). Each produces observation
+rows with the class's hard limit attached; none authorizes cart interaction.
+
+1. **Price-ladder read (taxonomy class 2, observation half).** For 2-3 hero
+   SKUs: per-unit effective price across DTC single / DTC bundle / any DTC
+   subscription state vs Sephora US shelf price, read on an ordinary
+   (non-event) date, same size and market, arithmetic shown. Divergence or
+   its absence is the finding; no margin, redemption, or agreement claims.
+2. **Certification-directory read (taxonomy class 9).** The claims Tower 28's
+   own surfaces make (cruelty-free / vegan wording and any logos) vs the
+   certifiers' OWN directories (Leaping Bunny; PETA Beauty Without Bunnies),
+   under which entity name. Third-party tracker sites are scouting context
+   only, never citable evidence. Absence in a directory is a typed
+   observation, never a misconduct claim.
+3. **Diversion read (taxonomy class 10).** Re-observe
+   `tower28beauty.com/pages/stores` in-lane (preservation-trigger candidate,
+   including its anti-diversion language), then the Amazon listing state for
+   2-3 hero SKUs: distinct "sold by" sellers, first-party vs third-party,
+   price vs the DTC/Sephora price. The strong form is authorized-list absence
+   plus multiple independent sellers; quiet distributor authorization stays a
+   named falsifier and the leak's origin/volume stays out of claim reach.
+
 ## Drift Guard
 
 - Subject-agnostic: the target list serves the pool, not one company.
