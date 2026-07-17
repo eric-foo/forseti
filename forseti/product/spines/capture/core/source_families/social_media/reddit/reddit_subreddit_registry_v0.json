@@ -653,12 +653,21 @@
             "source_surface": "old_reddit_grid_packet",
             "provenance_pointer": "F:\\forseti-data-lake\\raw\\d20\\01KXQ7QPGFDD7AXG54ZA4XSP74\\manifest.json",
             "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\19e\\01KXR4VM3XJQFGYT5TXNAPWKX8\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
         "register_pointers": [
           "F:\\forseti-data-lake\\raw\\d20\\01KXQ7QPGFDD7AXG54ZA4XSP74\\manifest.json",
-          "F:\\forseti-data-lake\\raw\\2f5\\01KXQ7ZXF4QTC9EW75RNK8QKR9\\manifest.json"
+          "F:\\forseti-data-lake\\raw\\2f5\\01KXQ7ZXF4QTC9EW75RNK8QKR9\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\19e\\01KXR4VM3XJQFGYT5TXNAPWKX8\\manifest.json"
         ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
@@ -1352,12 +1361,21 @@
             "source_surface": "old_reddit_grid_packet",
             "provenance_pointer": "F:\\forseti-data-lake\\raw\\0ee\\01KXQ7RDA367XX16FZH8RJ39ZW\\manifest.json",
             "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\9f0\\01KXR4W2YH8M58H37E0BDNY1HJ\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
         "register_pointers": [
           "F:\\forseti-data-lake\\raw\\0ee\\01KXQ7RDA367XX16FZH8RJ39ZW\\manifest.json",
-          "F:\\forseti-data-lake\\raw\\4e3\\01KXQ80F2ARTFNJRW3AAGZC9BX\\manifest.json"
+          "F:\\forseti-data-lake\\raw\\4e3\\01KXQ80F2ARTFNJRW3AAGZC9BX\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\9f0\\01KXR4W2YH8M58H37E0BDNY1HJ\\manifest.json"
         ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"

@@ -28,9 +28,18 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harness_utils import utc_now_z_microseconds
+from capture_spine.reddit_subreddit_grid.grid_projection import (
+    GRID_PROJECTION_PARSER_VERSION,
+    build_grid_content_record,
+)
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory
 from source_capture.cadence import CadenceMode, build_cadence_plan
+from source_capture.content_capture import (
+    CAPTURE_ARTIFACT_MODES,
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    ContentCaptureSpec,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -43,6 +52,10 @@ DEFAULT_MAX_SUBREDDITS = 10
 DEFAULT_DELAY_SECONDS = 30.0
 DEFAULT_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_BYTES = 5_000_000
+# Content-mode is the standard fleet posture (storage-and-retention doctrine,
+# 2026-07-17): derived record preserved, raw hashed then discarded. Raw and
+# sample modes are the operator-selected exceptions (daily parser-fit rotation).
+DEFAULT_CAPTURE_ARTIFACT_MODE = "content"
 
 SOURCE_POLICY_POSTURE_RECEIPT = (
     "source-policy posture: reddit robots.txt disallows subreddit listing surfaces for "
@@ -83,7 +96,12 @@ def run_reddit_grid_capture(
     cadence_min_gap_seconds: float | None = None,
     cadence_max_gap_seconds: float | None = None,
     cadence_random_seed: int | None = None,
+    capture_artifact_mode: str = DEFAULT_CAPTURE_ARTIFACT_MODE,
 ) -> tuple[int, str]:
+    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+        raise ValueError(
+            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}, got {capture_artifact_mode!r}"
+        )
     _validate_grid_inputs(
         subreddits=subreddits,
         output_root=output_root,
@@ -122,7 +140,21 @@ def run_reddit_grid_capture(
             "planned_start_offset_seconds": cadence_plan.planned_offsets_seconds[index],
             "capture_started_at": None,
             "capture_finished_at": None,
+            "content_projection_failed": False,
         }
+        content_spec = None
+        if capture_artifact_mode != "raw":
+            content_spec = ContentCaptureSpec(
+                capture_artifact_mode=capture_artifact_mode,
+                parser_version=GRID_PROJECTION_PARSER_VERSION,
+                projector=(
+                    lambda html_text, _final_url, _name=name, _url=url: build_grid_content_record(
+                        html_text=html_text,
+                        subreddit=_name,
+                        listing_url=_url,
+                    )
+                ),
+            )
         try:
             row["capture_started_at"] = utc_now_z_microseconds()
             capture_exit, capture_message = run_source_capture_http_packet(
@@ -156,11 +188,14 @@ def run_reddit_grid_capture(
                 ],
                 timeout_seconds=timeout_seconds,
                 max_bytes=max_bytes,
+                content_capture=content_spec,
             )
             row["capture_exit"] = capture_exit
             row["capture_message"] = capture_message
-            if capture_exit == 0:
+            if capture_exit in (0, CONTENT_PROJECTION_FAILED_EXIT_CODE):
                 row["packet_path"] = capture_message
+            if capture_exit == CONTENT_PROJECTION_FAILED_EXIT_CODE:
+                row["content_projection_failed"] = True
         except Exception as exc:
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
@@ -178,6 +213,10 @@ def run_reddit_grid_capture(
         "method": GRID_SOURCE_SURFACE,
         "listing": listing,
         "time_window": time_window,
+        "capture_artifact_mode": capture_artifact_mode,
+        "content_projection_failure_count": sum(
+            1 for row in results if row["content_projection_failed"]
+        ),
         "lake_committed": data_root is not None,
         "source_policy_posture": SOURCE_POLICY_POSTURE_RECEIPT,
         "non_claims": [
@@ -259,6 +298,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cadence-min-gap-seconds", type=float, default=None)
     parser.add_argument("--cadence-max-gap-seconds", type=float, default=None)
     parser.add_argument("--cadence-random-seed", type=int, default=None)
+    parser.add_argument(
+        "--capture-mode",
+        choices=list(CAPTURE_ARTIFACT_MODES),
+        default=DEFAULT_CAPTURE_ARTIFACT_MODE,
+        dest="capture_artifact_mode",
+        help=(
+            "content (default): preserve the derived grid record, hash then discard raw; "
+            "sample: preserve raw AND derived for parser-fit drift checks; "
+            "raw: preserve raw only (legacy posture)."
+        ),
+    )
     return parser
 
 
@@ -287,6 +337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_min_gap_seconds=args.cadence_min_gap_seconds,
             cadence_max_gap_seconds=args.cadence_max_gap_seconds,
             cadence_random_seed=args.cadence_random_seed,
+            capture_artifact_mode=args.capture_artifact_mode,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"reddit grid capture failed: {exc}\n")

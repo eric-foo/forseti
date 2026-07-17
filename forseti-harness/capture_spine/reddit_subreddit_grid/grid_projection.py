@@ -15,8 +15,15 @@ and nothing here ranks, scores quality, or claims demand.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from html.parser import HTMLParser
+
+# Bump on ANY behavior change to this projection so content packets written
+# under the old behavior stay distinguishable from re-projections under the
+# new one (parser-fit drift checks compare records only within one version).
+GRID_PROJECTION_PARSER_VERSION = "1"
+
+GRID_CONTENT_RECORD_KIND = "reddit_subreddit_grid_view_v0"
 
 
 class RedditGridProjectionError(ValueError):
@@ -89,6 +96,63 @@ def project_old_reddit_grid_html(
         visible_volume_signal_absent_reason_or_none=absent_reason,
         thread_rows=tuple(rows),
     )
+
+
+def build_grid_content_record(
+    *,
+    html_text: str,
+    subreddit: str,
+    listing_url: str,
+) -> dict:
+    """Project one grid page into the deterministic content-packet record.
+
+    Pure function of its inputs (no timestamps, no environment reads) so a
+    parser-fit check can re-project sampled raw bytes and compare the result
+    byte-for-byte against the stored record.
+    """
+    view = project_old_reddit_grid_html(
+        html_text=html_text,
+        subreddit=subreddit,
+        listing_url=listing_url,
+    )
+    return {
+        "record_kind": GRID_CONTENT_RECORD_KIND,
+        "parser_version": GRID_PROJECTION_PARSER_VERSION,
+        "grid_view": grid_view_to_dict(view),
+    }
+
+
+def grid_view_to_dict(view: GridView) -> dict:
+    payload = asdict(view)
+    payload["thread_rows"] = list(payload["thread_rows"])
+    return payload
+
+
+def grid_view_from_record(record: dict) -> GridView:
+    """Rebuild a GridView from a content-packet record (materializer read path)."""
+    if not isinstance(record, dict) or record.get("record_kind") != GRID_CONTENT_RECORD_KIND:
+        raise RedditGridProjectionError(
+            "record_kind_mismatch",
+            f"expected a {GRID_CONTENT_RECORD_KIND!r} record, got {record.get('record_kind') if isinstance(record, dict) else type(record).__name__!r}",
+        )
+    payload = record.get("grid_view")
+    if not isinstance(payload, dict):
+        raise RedditGridProjectionError("record_shape", "content record carries no grid_view object")
+    try:
+        rows = tuple(GridThreadRow(**row) for row in payload.get("thread_rows", []))
+        return GridView(
+            subreddit=payload["subreddit"],
+            listing_url=payload["listing_url"],
+            visible_subscriber_count_or_none=payload["visible_subscriber_count_or_none"],
+            visible_active_user_count_or_none=payload["visible_active_user_count_or_none"],
+            visible_volume_signal_absent_reason_or_none=payload["visible_volume_signal_absent_reason_or_none"],
+            thread_rows=rows,
+        )
+    except (KeyError, TypeError) as exc:
+        raise RedditGridProjectionError(
+            "record_shape",
+            f"content record grid_view does not match the GridView shape: {exc}",
+        ) from exc
 
 
 class _OldRedditGridParser(HTMLParser):
