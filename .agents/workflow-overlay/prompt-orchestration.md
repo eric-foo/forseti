@@ -655,6 +655,19 @@ steelman-defeated candidates are listed one line each in a
 `considered_and_defended` section rather than silently dropped. Optional
 hardening may be named only when clearly labeled optional and non-required.
 
+When the review target is an evidence-bearing artifact (a report, scan
+receipt, board, or ledger whose claims cite sources, ids, dates, or figures),
+the review prompt must name provenance accuracy as an explicit goal with
+observable success signals: every internal cross-reference id dereferenced to
+its ledger row and checked for semantic match, not just existence; every
+stated count, sum, and range recomputed from the rows it claims to summarize;
+every quoted price or figure traced to a cited excerpt or named untraceable;
+and every date checked for anchor-type laundering (page-read or publication
+dates presented as event dates). A review that did not perform these checks
+must say so rather than imply them. This pass exists because arithmetic,
+pointer, and traceability defects empirically survive reviews prompted only
+for overclaim and contract compliance.
+
 For intent-bearing review targets, review prompts should bind or point at the
 `fitness_reference` (a goal plus an observable success signal, pointer-preferred)
 so the review's decision criteria are anchored to the work unit's intended

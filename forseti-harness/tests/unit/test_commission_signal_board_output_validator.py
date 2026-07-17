@@ -191,6 +191,15 @@ def test_company_report_rejects_engagement_overclaim() -> None:
     assert "engagement_as_proof" in _company_codes(text)
 
 
+def test_company_report_rejects_dangling_observation_reference() -> None:
+    text = _valid_company_text().replace(
+        "presents Product One as the flagship (OBS-001)",
+        "presents Product One as the flagship (OBS-099)",
+        1,
+    )
+    assert "dangling_observation_reference" in _company_codes(text)
+
+
 def test_company_source_family_uses_shared_vocabulary() -> None:
     text = _valid_company_text().replace(
         "    source_family: owned_channels",
