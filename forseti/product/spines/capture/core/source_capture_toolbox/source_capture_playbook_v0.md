@@ -344,17 +344,18 @@ as source facts, not proof.
 
 For cadenced fleet capture, the standard artifact posture is **content mode**:
 the source family's projector runs in flight and the packet preserves the
-DERIVED content record as its hash-anchored file, while the raw response is
-sha256-hashed and then discarded (the hash, parser version, byte count, and
-projection status live in the preserved HTTP metadata — the provenance floor).
-A small rotating daily **sample** preserves BOTH raw and derived in one packet
-so a parser-fit drift check can re-project the raw and diff against the stored
-record. **Raw** mode remains for probes, one-off captures, and any claim that
-needs third-party re-verifiable bytes. This is a standard posture, not a
-volume-triggered exception (efficiency first): families flip to capture-time
-derivation as their lanes are next touched, retiring their post-hoc projection
-lanes as they flip; ECR stays source-agnostic and reads whatever hash-anchored
-preserved file the packet carries.
+DERIVED content record as its hash-anchored file, while disposable projector
+inputs are sha256-hashed and then discarded (their hashes, parser version, byte
+counts, roles, preservation states, and projection status remain in
+route-appropriate capture metadata — the provenance floor). A small rotating
+daily **sample** preserves BOTH projector inputs and derived content in one
+packet so a parser-fit drift check can re-project the inputs and diff against
+the stored record. **Raw** mode remains for probes, one-off captures, and any
+claim that needs third-party re-verifiable bytes. This is a standard posture,
+not a volume-triggered exception (efficiency first): families flip to
+capture-time derivation as their lanes are next touched, retiring the standard
+post-hoc path only for the surface that flipped; ECR stays source-agnostic and
+reads whatever hash-anchored preserved file the packet carries.
 
 Seam: `forseti-harness/source_capture/content_capture.py`
 (`ContentCaptureSpec` into `run_source_capture_http_packet`); first flipped
@@ -364,6 +365,16 @@ drift check: `run_reddit_parser_fit_check.py`). Owning doctrine:
 (Storage and retention). Named residual: a content-only packet is
 attestation-grade, not third-party re-reproducible; a projector failure in
 flight falls back loudly to a preserved raw packet, never silent loss.
+
+Parfumo's pinned targeted-rendered product-page surface is the second
+family-owned adoption. Its adapter hashes and discards rendered DOM and visible
+text after successful projection, preserves the route receipt and any supplied
+screenshot as source evidence, and records the content binding in
+`content_record.json` plus `content_capture_metadata.json`. Sample packets are
+checked by `run_parfumo_parser_fit_check.py`. The direct-HTTP canary and the
+shared projection runner remain raw/legacy paths. This targeted adapter does
+not establish a generic multi-artifact content seam; another route must prove
+that abstraction before it is added.
 
 ## Step 3 — The verdict + receipt
 

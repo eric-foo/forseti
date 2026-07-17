@@ -14,8 +14,10 @@ from runners.run_parfumo_projection import main as projection_main
 from source_capture.models import known_fact
 from source_capture.parfumo_projection import (
     PARFUMO_PROJECTION_CERTIFICATION,
+    PARFUMO_TARGETED_PARSER_VERSION,
     build_parfumo_projection,
     build_parfumo_projection_from_packet_directory,
+    build_parfumo_targeted_content_record,
 )
 from source_capture.writer import write_local_source_capture_packet
 
@@ -118,6 +120,35 @@ def test_builds_parfumo_projection_from_targeted_rendered_packet_without_slice_d
     )
     assert statement.raw_ref.slice_id == "parfumo_targeted:statement_latest_recent"
     assert statement.source_visible_fields["statement_text"] == "Airy amber trail."
+    assert all(row.raw_anchor.anchor_kind == "json_pointer" for row in projection.rows)
+    assert all(row.raw_anchor.json_pointer for row in projection.rows)
+    assert all(row.raw_anchor.relative_packet_path.endswith("content_record.json") for row in projection.rows)
+
+
+def test_targeted_content_record_is_deterministic_and_packet_unbound() -> None:
+    first = build_parfumo_targeted_content_record(
+        rendered_dom=_TARGETED_HTML.encode("utf-8"),
+        visible_text=b"Baccarat Rouge 540\nReviews 369\nStatements 1390\n",
+        source_url=_LOCATOR,
+    )
+    second = build_parfumo_targeted_content_record(
+        rendered_dom=_TARGETED_HTML.encode("utf-8"),
+        visible_text=b"Baccarat Rouge 540\nReviews 369\nStatements 1390\n",
+        source_url=_LOCATOR,
+    )
+
+    assert first == second
+    assert first["parser_version"] == PARFUMO_TARGETED_PARSER_VERSION
+    assert first["rows"]
+    assert {row["slice_id"] for row in first["rows"]} == {
+        "parfumo_targeted:product_context",
+        "parfumo_targeted:review_latest_recent",
+        "parfumo_targeted:review_source_visible_high_rating",
+        "parfumo_targeted:review_source_visible_low_rating",
+        "parfumo_targeted:statement_latest_recent",
+    }
+    assert all("raw_ref" not in row and "raw_anchor" not in row for row in first["rows"])
+    assert "packet_id" not in json.dumps(first, sort_keys=True)
 
 
 def test_targeted_projection_parses_live_rendered_parfumo_cards(tmp_path: Path) -> None:

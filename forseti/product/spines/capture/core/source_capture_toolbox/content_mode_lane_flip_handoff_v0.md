@@ -15,6 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - docs/workflows/parfumo_targeted_capture_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md
   - forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
 stale_if:
@@ -27,20 +28,26 @@ stale_if:
 
 Make capture-time content packets the standard capture posture for every
 projection lane and future incoming source (owner direction, 2026-07-17:
-"we want this way for all lanes and future incoming sources too"), retiring
-each family's post-hoc projection lane as it flips. Efficiency-first: flips
-happen as lanes are next touched, never waiting for volume pressure.
+"we want this way for all lanes and future incoming sources too"), retiring the
+post-hoc projection lane as the standard path for each exact surface that
+flips. Efficiency-first: flips happen as lanes are next touched, never waiting
+for volume pressure.
 
 ## Authority and Currentness
 
 - The content-mode standard is owned by
   `source_capture_playbook_v0.md` ("Capture artifact mode — content-mode
-  standard"); the reference implementation and semantics (content/sample/raw
-  modes, provenance floor, raw-fallback, parser-version discipline, parser-fit
-  drift check) are the Reddit lane: design doc
+  standard"). The generic HTTP-seam reference implementation and semantics
+  (content/sample/raw modes, provenance floor, raw-fallback, parser-version
+  discipline, parser-fit drift check) remain the Reddit lane: design doc
   `reddit_radar_grid_capture_maintenance_design_v0.md`, seam
   `forseti-harness/source_capture/content_capture.py`, runner
   `forseti-harness/runners/run_source_capture_http_packet.py`.
+- Parfumo's pinned targeted-rendered product-page surface is a second,
+  family-owned implementation because its projector consumes multiple local
+  browser artifacts. Its contract is
+  `docs/workflows/parfumo_targeted_capture_contract_v0.md`; this does not
+  establish a generic multi-artifact seam.
 - "Projection spine" was never an accepted spine. The operating-model v2
   Bloat-Cut Queue explicitly excludes a "Standalone Projection Spine …
   or any projection practice that drops evidence rows before ECR/Cleaning"
@@ -49,11 +56,12 @@ happen as lanes are next touched, never waiting for volume pressure.
   post-hoc projection runners/invocations. Content mode is compatible with
   the bloat-cut clause: it discards raw bytes with hash provenance, never
   evidence rows.
-- Retirement semantics (from the Reddit flip): the projector codebase is
-  shared between capture-time and post-hoc invocation. What retires per
-  family is the post-hoc lane as the standard path. The post-hoc invocation
-  survives for sample-mode packets (parser-fit drift checks) and legacy raw
-  packets. Bump the family's parser version on any projector behavior change.
+- Retirement semantics: projector code may remain shared between capture-time
+  and post-hoc invocation. What retires is post-hoc projection as the standard
+  path for the exact surface that flipped. The shared invocation survives for
+  sample-mode drift checks, legacy/raw packets, and any unflipped canary or
+  sibling surface. Bump the family's parser version on any projector behavior
+  change.
 
 ## Seam Hardening Provenance
 
@@ -70,7 +78,7 @@ build on the hardened seam.
 | Lane | Capture mechanism | Post-hoc projection | Flip feasibility |
 | --- | --- | --- | --- |
 | Reddit grid + threads | HTTP packet seam | `source_capture/reddit_projection.py` (legacy), consolidation | DONE (content mode default; PR #1057) |
-| Parfumo MGT | HTTP packet seam (`run_parfumo_mgt_capture.py` calls `http_runner`) | `parfumo_projection.py`, cleaning catchup | NEAREST DROP-IN: seam already available; wire a ContentCaptureSpec projector |
+| Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
 | Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | HTTP slice flippable now; CloakBrowser slices need the seam extended to `run_source_capture_cloakbrowser_packet.py` |
 | Basenotes MGT | Browser snapshot adapter (`source_capture/adapters/browser_snapshot`) | `basenotes_projection.py`, cleaning catchup | Needs cloakbrowser/browser-snapshot seam |
 | Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | Flippable once cloakbrowser seam exists; largest raw pages after Reddit |
@@ -81,17 +89,18 @@ build on the hardened seam.
 
 ## Flip Order (recommended)
 
-1. Discharge the open blocker (delegated patch follow-up PR), if not already landed.
-2. Parfumo: first Phase B flip (HTTP seam drop-in). Dogfood with a live
-   capture + parser-fit check + size compare, mirroring the Reddit dogfood.
-3. Extend ContentCaptureSpec to the CloakBrowser packet runner (one bounded
+1. Parfumo pinned targeted-rendered surface: flipped with a family-owned
+   multi-input adapter after live parser-fit, Cleaning-equivalence, retention,
+   and size-reduction gates. Direct HTTP remains an unflipped raw canary.
+2. Extend content capture to the CloakBrowser packet runner (one bounded
    seam change; same provenance floor and raw-fallback semantics).
-4. Fragrantica, basenotes, retail PDP/grid on the extended seam, one family
+3. Fragrantica, basenotes, retail PDP/grid on the extended seam, one family
    per work unit, each with its own parser version constant and drift check.
-5. Re-point each family's cleaning catchup consumers at content records, then
-   retire that family's post-hoc lane in the same work unit (reconcile the
-   family design doc and any playbook mention).
-6. IG family: separate design pass for catchup/derivation-rank semantics
+4. Re-point each flipped surface's cleaning catchup consumers at content
+   records, then retire that surface's post-hoc lane as its standard path in
+   the same work unit (reconcile the family design doc and any playbook
+   mention).
+5. IG family: separate design pass for catchup/derivation-rank semantics
    before any flip. TikTok/YouTube aggregation lanes stay as they are — they
    are not raw-to-derived projections.
 

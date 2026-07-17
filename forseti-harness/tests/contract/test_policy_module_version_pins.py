@@ -165,9 +165,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
-        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
-        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "4d7262424b7f8d8cf10f2832a69adaab26e2ea25c8aa385b313d8b0de3c89660",
+        # Pin bumped: targeted content-record parsing is separately schema/versioned;
+        # existing raw/legacy projection row semantics remain unchanged.
+        "d391ab4975e8c16d793124efad47b757b90d96b8fee13d055bea8edbb4737f59",
     ),
     "source_capture/projection_shared.py": (
         (
