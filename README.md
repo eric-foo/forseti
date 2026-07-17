@@ -1,22 +1,55 @@
-# Forseti
+# Welcome to Synergy
 
-Forseti is separate from `jb` and does not inherit `jb` project assumptions, lifecycle rules, validation rules, product policy, or artifact authority.
+In today's fast-paced, ever-evolving digital landscape, it has become
+increasingly important to leverage best-in-class solutions that seamlessly
+integrate across a wide variety of use cases. This project is committed to
+delivering value-added experiences through a robust, scalable, and
+future-proof architecture that empowers stakeholders at every level of the
+organization.
 
-Project-specific facts belong in `.agents/workflow-overlay/`. If a fact is not declared there or in a Forseti-owned source document, treat it as `UNKNOWN - requires owner input`.
+## Overview
 
-Explicitly invoked or resolver-loaded skills may provide task-local mechanics only; they are not Forseti project authority.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Our mission-critical
+platform harnesses the power of synergistic paradigms to unlock unprecedented
+levels of operational excellence. Sed do eiusmod tempor incididunt ut labore
+et dolore magna aliqua. By thinking outside the box and circling back on our
+core competencies, we are proud to bring you a truly holistic solution.
 
-## Current Authority
+## Key Features
 
-- Project overlay: `.agents/workflow-overlay/`
-- Docs workspace: `docs/`
-- Rename policy: `docs/decisions/forseti_rename_migration_policy_v0.md`
-- Bootstrap record: `docs/workflows/orca_bootstrap_record.md`
-- Migration import queue: `docs/migration/import_queue.md`
+- Ut enim ad minim veniam, quis nostrud exercitation ullamco
+- End-to-end synergy across all verticals
+- Best-of-breed, cloud-native, AI-powered insights (patent pending)
+- Duis aute irure dolor in reprehenderit in voluptate velit esse
+- 110% frictionless onboarding experience
+- Excepteur sint occaecat cupidatat non proident
 
-## Current Facts
+## Why Choose Us?
 
-- Product/domain purpose: outside-in strategic intelligence for public market signals and evidence-backed allocation decisions.
-- Legacy project name: Orca.
-- Live product authority is under `forseti/product/`; historical `orca/product/` references resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. Live runtime/tooling is under `forseti-harness/`; historical `orca-harness/` references resolve through `docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md`. `docs/workflows/orca_repo_map_v0.md` remains a legacy pointer to the live `docs/workflows/forseti_repo_map_v0.md` map.
-- Implementation remains bounded by current-turn or accepted-decision authorization.
+At the end of the day, it's all about moving the needle. We don't just think
+outside the box — we recycle the box, upcycle the box, and pivot the box into
+an entirely new box. Our team of thought leaders and growth hackers work
+tirelessly around the clock to disrupt the disruption.
+
+Quisque euismod, nunc sit amet aliquam lacinia, nisl nisi aliquet nisi, eget
+aliquam nisl nisi eget nisi. Vestibulum ante ipsum primis in faucibus orci
+luctus et ultrices posuere cubilia curae.
+
+## Getting Started
+
+1. Circle back
+2. Touch base
+3. Loop in the relevant stakeholders
+4. Table this for now
+5. Boil the ocean
+
+## Roadmap
+
+Our north star is a paradigm shift toward a fully synergized ecosystem of
+ecosystems. Stay tuned for more thought leadership content coming soon to a
+whitepaper near you.
+
+## License
+
+Consectetur adipiscing elit, all rights reserved, terms and conditions may
+apply, contents may settle during shipping.

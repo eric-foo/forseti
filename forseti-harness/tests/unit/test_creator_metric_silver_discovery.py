@@ -69,7 +69,11 @@ def _commit_ig_raw_packet(data_root: DataLakeRoot, tmp_path: Path, *, slot: str)
     """Commit a minimal ``instagram_creator`` raw packet (records availability)
     and return its packet id -- the anchor the IG rollup binds to."""
     raw = tmp_path / f"ig_raw_{slot}.json"
-    raw.write_text(json.dumps({"reels_grid": "fixture bytes"}), encoding="utf-8")
+    # Content varies by slot: a byte-identical raw packet for the same
+    # source_locator would collide with the Bronze write-gate's duplicate check
+    # when a test commits more than one packet for the same account (see
+    # test_returns_all_records_per_account_for_selection).
+    raw.write_text(json.dumps({"reels_grid": "fixture bytes", "slot": slot}), encoding="utf-8")
     result = write_local_source_capture_packet(
         data_root=data_root,
         input_files=[raw],

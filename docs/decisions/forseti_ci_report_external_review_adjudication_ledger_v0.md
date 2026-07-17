@@ -1,0 +1,155 @@
+# CI Report External Review Adjudication Ledger v0
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Decision record
+scope: >
+  Adjudicated agreements from the external (multi-vendor LLM) assessments of
+  the Tower 28 Phase 1 CI report bundle, plus the owner rulings that bind them.
+  This ledger is the single accumulation point for the deferred CSB
+  company-profile contract synthesis upgrade: the contract pass executes only
+  from items recorded here, after all external responses are adjudicated.
+use_when:
+  - Executing or planning the CSB company-profile contract synthesis upgrade
+    (exec brief, concentration, choice-mechanism chain, readability).
+  - Adjudicating a further external assessment of a CI report bundle.
+  - Checking whether a proposed report-shape idea was already accepted,
+    deferred, or rejected.
+authority_boundary: retrieval_only
+open_next:
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+  - docs/research/forseti_beauty_tower28_company_intelligence_report_v1.md
+stale_if:
+  - The CSB company-profile contract lands the synthesis upgrade (this ledger
+    then becomes historical input, superseded by the contract itself).
+  - The owner reverses any ruling recorded here.
+```
+
+Authority: owner rulings in chat, 2026-07-17. Status: COMPLETE — all external
+input adjudicated (one session total); the contract pass awaits the owner's
+"go" plus the chain design handoff's returned proposal. Next source after the
+contract pass lands: the CSB contract files named in `open_next`.
+
+## How this ledger works
+
+One external ChatGPT Pro session assessed the Tower 28 Phase 1 bundle
+(report + scan receipt + CSB board; Phase 2 excluded) for CI-worthiness,
+returning two batches. Each batch is adjudicated confirm-don't-trust against the
+artifacts; every falsifiable claim is verified by direct read before
+acceptance. Batch 1's falsifiable defect claims verified 4-for-4 correct.
+
+## Accepted — corrections (EXECUTED, this lane)
+
+| Item | Disposition |
+| --- | --- |
+| Sub-scout operations arithmetic (91 vs actual 101; ~110 vs ~120) | Fixed in scan receipt; per-scout addends now stated inline |
+| OBS-002 pointer cited OBS-016 (lipgloss thread) for leadership-continuity absence; correct row is OBS-015 (negative bundle) | Fixed in report |
+| Scan "seven-item" SOS family listing 8 tokens | Fixed: refill-folds-into-spray convention stated in scan (report already carried it) |
+| $12-$34 price range untraceable to any excerpt | Fixed: serum $34 (genuinely observed in the M01 Sephora page-state read) added to OBS-008 excerpt; CSC-002 reworded to match observed catalog states |
+| Scan SOBS-027 asserted "2026-02" Pvolve placement flatly | Fixed: month is article framing, not verified event date (report already caveated) |
+| Report as_of 2026-07-17 vs commission as_of 2026-07-16 | Fixed: amendment note added; no claim gains recency from the advance |
+| Overreach wording ("dominate creator titles", "recurring" without volume, "claims-contradiction complaint", "owning legal entity resolves to") | Softened to literal observed strength |
+| Dangling observation references possible | Validator now emits `dangling_observation_reference` for any OBS token without a ledger row (mechanical; semantic mispointing remains review work) |
+| Reviews missed arithmetic/pointer/traceability defects | Review Prompt Defaults now bind a provenance-accuracy goal with observable success signals for evidence-bearing artifacts |
+
+## Accepted — contract synthesis upgrade (DEFERRED until this ledger closes)
+
+Owner rule: guidance-only, no new schema, ledgers, or validator fields unless
+separately agreed; recurring toll must stay "write better conclusions", not
+"fill more forms". Owner rule on lens-status vocabulary: do not over-restrict —
+a definition line at most.
+
+| # | Item | Owner ruling |
+| --- | --- | --- |
+| 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
+| 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
+| 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below. **Chain section EXECUTED** (owner-directed, 2026-07-17): the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` landed in the company contract Section 7, refining the interim chain paragraph the synthesis-layer pass had placed there; the chain-local item 9 five-field compression and item 12 CSB capture-trigger pointer travel with this section |
+| 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
+| 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
+| 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
+| 8 | Linked-commercial-claim admission principle | Principle accepted; their typed relationship schema rejected — we use our existing observation/candidate structure |
+| 9 | 5-field front-page conclusions (claim / evidence / consequence / confidence / next observable) | Accepted; owner ruling: maximum aggressiveness in decision consequence and confidence-stating — the admission fields (evidence bound + next observable) are what make aggressiveness safe; never aggressiveness via evidence overclaim |
+| 10 | Central promise (where value resides, what drives it, is it strengthening, what threatens it) | Accepted as the report's front-page voice AND as the internal decision-adjudication frame; rejected as the product center (product center stays decision adjudication, owner-locked) |
+| 11 | Readability | Owner requires the report be "way more readable": exec brief as h2 preamble, plain-language section leads, the two cheap matrices (SKU reception; known/inferred/unknown) as plain markdown tables; audit ledgers stay but move visually behind the narrative |
+| 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl. Mechanics (owner discussion 2026-07-17): single-file HTML (MHTML/SingleFile-style) preferred — text-searchable, diffable, ~1-5 MB raw and compresses 80-90%; full-page screenshot only when layout itself is the evidence, auto-compressed to WebP; auto-compression is a one-line adapter step, worth doing, no further engineering |
+
+## Chain-card presentation principle (accepted 2026-07-17)
+
+The client-facing form of the choice-mechanism chain is "five sentences with
+receipts", one card per hero product, read top to bottom as one story:
+
+1. **The promise** — the claim, cited to the brand's own surface.
+2. **Why people pay** — the buy motivation, cited to customer-world evidence.
+3. **What actually happens** — reception state, cited to review/rating rows.
+4. **The dangerous complaint** — dangerous not because of volume but because
+   it attacks the promise itself (claim-amplification principle), cited.
+5. **Where they go next** — the substitute waiting when the promise breaks,
+   cited.
+
+Together: "here is why your customers pay extra, here is the exact sentence
+that breaks the spell, and here is who catches them when it does." The report
+front page is three or four such stories at one line each; every aggressive
+sentence sits on five receipts a skeptic can click through. The chain design
+handoff's D4 deliverable implements this form.
+
+## Preservation seam design (agreed 2026-07-17; lands with the contract pass)
+
+No new spine, no data-lake build — the existing CR-### capture-request
+mechanism is extended, one small change per seam:
+
+- **CSB (commission layer)**: guidance only — states the trigger rule
+  (preserve what could change a conclusion, be disputed, or disappear;
+  negatives need route+date+query only). No schema change.
+- **Scanning**: at observation time, an observation meeting the trigger emits
+  a typed capture request carrying a `preservation_reason`
+  (`conclusion_bearing` | `disputable` | `volatile`), the exact URL, and which
+  conclusion depends on it. This reuses the existing CR-### rows (Tower 28
+  already emitted 3).
+- **Capture**: fulfills the CR with a single-file HTML capture (full-page
+  screenshot only when layout itself is the evidence), auto-compressed,
+  stored under the commission's folder in the data lake per the lake
+  physicality contract, returning a capture receipt (path, hash, capture
+  date) — or typed route failure.
+- **Report**: an observation row backed by a fulfilled capture cites the
+  capture receipt locator, so the claim chain ends at an artifact we hold,
+  not a live URL.
+
+## Open questions feeding the same pass
+
+- Retailer breadth: HANDOFF WRITTEN (owner-directed, 2026-07-17) —
+  `docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md`.
+  Capture spine first proposes a subject-agnostic bound-target list beyond the
+  four known candidates; owner binds before any probe. Geographic default:
+  US-first comparison spine + one bounded home-market read where the subject's
+  home market differs (owner-overridable at binding).
+- External input COMPLETE (owner, 2026-07-17): one ChatGPT Pro session was
+  run in total; both adjudicated batches came from it. Comparison loop bound:
+  improve the contract from this ledger -> run a fresh company (or rerun)
+  under the upgraded contract -> give the new bundle to a fresh external
+  session and compare against this round's findings.
+- Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
+  (2026-07-17). Packet
+  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` was
+  executed; the design proposal at
+  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` was
+  adversarially reviewed, patched, delegate-hardened, and implemented into
+  the company contract Section 7 by owner direction — see the item 4
+  execution note above. Packet consumed.
+
+## Rejected (do not resurrect without new owner word)
+
+- CI report as the product center (product center: decision adjudication).
+- Demand-leakage phrasing and any "captures customers" style demand claims
+  from public proxies.
+- Standing monitoring / crawler now (monitoring-eligibility gate stands).
+- Their typed relationship-ledger schema (ceremony debt).
+- Arithmetic-reconciliation validator checks (brittle; provenance review pass
+  covers the class).
+
+## Trigger to close this ledger
+
+All external batches adjudicated + owner says "go" on the contract pass →
+one bounded PR to the CSB company-profile contract files applies every
+DEFERRED-accepted item above, then this ledger's stale_if fires.

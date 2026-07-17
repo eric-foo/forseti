@@ -285,8 +285,11 @@ def test_yt_probe_surfaces_are_acked_out_of_scope(tmp_path: Path) -> None:
     # unsupported_surface; their manifests declare "media bytes out of scope",
     # so they are gated out like the other known non-audio YT surfaces.
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    # Distinct ident per surface: it feeds both the preserved bytes and the
+    # source_locator, so two otherwise-identical fixture packets for the same
+    # default ident would collide with the Bronze write-gate's duplicate check.
     pids = [
-        _commit_audio_packet(root, tmp_path, surface=surface)
+        _commit_audio_packet(root, tmp_path, surface=surface, ident=surface)
         for surface in ("yt_shorts_channel_grid_probe_v0", "yt_channel_rss_feed_probe_v0")
     ]
 

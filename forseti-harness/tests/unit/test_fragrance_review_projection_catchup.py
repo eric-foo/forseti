@@ -65,12 +65,14 @@ def _synthetic_widget_response() -> FragranceWidgetResponseCapture:
     )
 
 
-def _commit_packet(root: DataLakeRoot, *, source_surface: str | None = None) -> str:
+def _commit_packet(
+    root: DataLakeRoot, *, source_surface: str | None = None, product_url: str | None = None
+) -> str:
     kwargs = {} if source_surface is None else {"source_surface": source_surface}
     result = write_fragrance_review_capture_packet(
         data_root=root,
         widget_responses=[_synthetic_widget_response()],
-        product_url=_PRODUCT_URL,
+        product_url=product_url or _PRODUCT_URL,
         **kwargs,
     )
     return result.packet.packet_id
@@ -154,7 +156,11 @@ def test_derive_failure_is_loud_isolated_and_never_acked(tmp_path: Path) -> None
     # unacknowledged (re-surfaces), and a healthy packet still derives.
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     bad_pid = _commit_packet(root)
-    good_pid = _commit_packet(root)
+    # Two genuinely distinct products (different source_locator) -- the packet
+    # tampered below is otherwise byte-identical to the healthy one and would
+    # collide with the Bronze write-gate's duplicate check if they shared a
+    # locator.
+    good_pid = _commit_packet(root, product_url=f"{_PRODUCT_URL}-second")
     container = _manifest_path(root, bad_pid).parent
     manifest = json.loads(_manifest_path(root, bad_pid).read_text(encoding="utf-8"))
     preserved_relpath = manifest["preserved_files"][0]["relative_packet_path"]

@@ -18,6 +18,7 @@ from source_capture.models import (
     SourceCapturePacket,
     SourceCaptureSlice,
     VisibleFact,
+    VisibleFactStatus,
     known_fact,
     not_applicable,
     not_attempted,
@@ -26,6 +27,19 @@ from source_capture.models import (
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
+
+
+class DuplicateCapturePacketError(ValueError):
+    """Raised when a byte-identical RAW capture already exists in the lake for
+    the same source_locator: the Bronze write front door rejects a duplicate by
+    default (fail loud, no silent skip). ``existing_packet_id`` names the
+    already-committed packet so a deliberate unchanged-content-monitor flow
+    could catch this exception explicitly and choose different handling;
+    ordinary callers should let it propagate."""
+
+    def __init__(self, message: str, *, existing_packet_id: str) -> None:
+        super().__init__(message)
+        self.existing_packet_id = existing_packet_id
 
 
 NON_CLAIMS = [
@@ -95,6 +109,31 @@ def write_local_source_capture_packet(
             raise FileNotFoundError(f"input file does not exist: {path}")
         if not path.is_file():
             raise ValueError(f"input path is not a file: {path}")
+
+    # Bronze write front door: reject a byte-identical duplicate RAW capture
+    # for the same source_locator before any staging/publish work begins.
+    # Scoped to data_root (the lake) only -- output_directory-only local mode
+    # has no committed-packet registry to check against. Only runs when
+    # source_locator is a KNOWN fact (an unknown/not_applicable locator is not
+    # soundly comparable, so no lookup is attempted for it).
+    if data_root is not None and source_locator.status == VisibleFactStatus.KNOWN:
+        locator_value = source_locator.value
+        if locator_value:
+            candidate_sha256_multiset = sorted(hash_file(path) for path in resolved_inputs)
+            duplicate_packet_id = _find_duplicate_committed_packet(
+                data_root,
+                source_family=source_family,
+                locator_value=locator_value,
+                candidate_sha256_multiset=candidate_sha256_multiset,
+            )
+            if duplicate_packet_id is not None:
+                raise DuplicateCapturePacketError(
+                    "byte-identical RAW capture already committed for this "
+                    f"source_locator as packet_id={duplicate_packet_id!r}; refusing to "
+                    "publish a duplicate. Catch DuplicateCapturePacketError explicitly "
+                    "for a deliberate unchanged-content-monitor flow.",
+                    existing_packet_id=duplicate_packet_id,
+                )
 
     packet_id = generate_ulid()
     final_output_directory: Path | None = None
@@ -308,6 +347,58 @@ def render_receipt(packet: SourceCapturePacket) -> str:
         ]
     )
     return "\n".join(lines)
+
+
+def _find_duplicate_committed_packet(
+    data_root: "DataLakeRoot",
+    *,
+    source_family: str,
+    locator_value: str,
+    candidate_sha256_multiset: list[str],
+) -> str | None:
+    """Bounded, sound lookup for an already-committed packet that is a byte-identical
+    duplicate of this write: same source_locator AND the same FULL multiset of
+    preserved-file sha256s (order-independent; content files only -- manifest/capture-time
+    metadata is never part of the comparison and naturally differs).
+
+    Cost bound per write: one pass over the content-free ``indexes/availability`` listing
+    (cheap, small JSON entries; already the lake's standard by-key discovery path -- never
+    the rebuildable Bronze catalog under ``indexes/derived_retrieval``, which is only
+    current after an explicit rebuild and is not a sound write-gate source of truth), then
+    one ``manifest.json`` read per committed packet that shares ``source_family`` -- never a
+    full-lake byte re-hash; the manifests' already-recorded sha256s are the comparison
+    source.
+    """
+    for packet_id in data_root.list_available(source_family=source_family):
+        container = data_root.find_packet(packet_id)
+        if container is None:
+            continue
+        manifest_path = container / "manifest.json"
+        if not manifest_path.is_file():
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if _known_manifest_fact_value(manifest.get("source_locator")) != locator_value:
+            continue
+        existing_preserved = manifest.get("preserved_files")
+        if not isinstance(existing_preserved, list):
+            continue
+        existing_sha256_multiset = sorted(
+            item.get("sha256") for item in existing_preserved if isinstance(item, dict)
+        )
+        if existing_sha256_multiset == candidate_sha256_multiset:
+            return packet_id
+    return None
+
+
+def _known_manifest_fact_value(value: object) -> str | None:
+    """Extract a ``VisibleFact``-shaped manifest field's value, but only when its
+    status is ``known`` -- mirrors ``VisibleFact`` semantics without importing the
+    data_lake package into source_capture."""
+    if isinstance(value, dict) and value.get("status") == "known":
+        raw = value.get("value")
+        if isinstance(raw, str) and raw:
+            return raw
+    return None
 
 
 def _copy_preserved_files(raw_directory: Path, input_files: Sequence[Path]) -> list[PreservedFile]:

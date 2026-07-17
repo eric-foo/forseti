@@ -29,6 +29,8 @@ from urllib.parse import urlparse
 from harness_utils import hash_file
 from capture_spine.reddit_subreddit_grid.grid_projection import (
     GridView,
+    RedditGridProjectionError,
+    grid_view_from_record,
     project_old_reddit_grid_html,
 )
 from source_capture.models import SOURCE_CAPTURE_MANIFEST_VERSION
@@ -147,19 +149,6 @@ def read_grid_packet(*, packet_or_manifest_path: Path) -> PacketGridRead:
     if subreddit is None:
         raise RegistryRefreshError("locator_unparseable", f"cannot parse subreddit from locator: {locator!r}")
 
-    raw_file = _resolve_preserved_file(packet, file_name="http_response_body.bin")
-    raw_path = _resolve_packet_file_path(
-        packet_dir=manifest_path.parent,
-        relative_packet_path=raw_file["relative_packet_path"],
-        error_code="raw_body_outside_packet",
-        file_label="preserved body",
-    )
-    _verify_preserved_file_hash(
-        path=raw_path,
-        expected_hash=raw_file["sha256"],
-        error_code="raw_file_hash_mismatch",
-    )
-
     metadata_file = _resolve_preserved_file(packet, file_name="http_response_metadata.json")
     metadata_path = _resolve_packet_file_path(
         packet_dir=manifest_path.parent,
@@ -178,12 +167,58 @@ def read_grid_packet(*, packet_or_manifest_path: Path) -> PacketGridRead:
         expected_subreddit=subreddit,
     )
 
-    html = raw_path.read_text(encoding="utf-8", errors="replace")
-    grid_view = project_old_reddit_grid_html(
-        html_text=html,
-        subreddit=subreddit,
-        listing_url=locator,
+    # Content-mode packets preserve the capture-time derived record instead of
+    # raw HTML (storage-and-retention doctrine, 2026-07-17); sample packets
+    # carry both and the stored derived record is authoritative here (drift
+    # between raw and derived is the parser-fit check runner's job, not the
+    # registry's). Raw-only packets keep the original re-projection path.
+    content_file = _resolve_preserved_file(
+        packet, file_name="content_record.json", required=False
     )
+    if content_file is not None:
+        content_path = _resolve_packet_file_path(
+            packet_dir=manifest_path.parent,
+            relative_packet_path=content_file["relative_packet_path"],
+            error_code="content_record_outside_packet",
+            file_label="content record",
+        )
+        _verify_preserved_file_hash(
+            path=content_path,
+            expected_hash=content_file["sha256"],
+            error_code="content_record_hash_mismatch",
+        )
+        try:
+            record = json.loads(content_path.read_text(encoding="utf-8"))
+            grid_view = grid_view_from_record(record)
+        except (RedditGridProjectionError, ValueError) as exc:
+            raise RegistryRefreshError(
+                "content_record_invalid",
+                f"preserved content record is not a valid grid record: {exc}",
+            ) from exc
+        if grid_view.subreddit != subreddit:
+            raise RegistryRefreshError(
+                "content_record_subreddit_mismatch",
+                f"content record names subreddit {grid_view.subreddit!r}, expected {subreddit!r}",
+            )
+    else:
+        raw_file = _resolve_preserved_file(packet, file_name="http_response_body.bin")
+        raw_path = _resolve_packet_file_path(
+            packet_dir=manifest_path.parent,
+            relative_packet_path=raw_file["relative_packet_path"],
+            error_code="raw_body_outside_packet",
+            file_label="preserved body",
+        )
+        _verify_preserved_file_hash(
+            path=raw_path,
+            expected_hash=raw_file["sha256"],
+            error_code="raw_file_hash_mismatch",
+        )
+        html = raw_path.read_text(encoding="utf-8", errors="replace")
+        grid_view = project_old_reddit_grid_html(
+            html_text=html,
+            subreddit=subreddit,
+            listing_url=locator,
+        )
     observed_at = _observed_date(packet)
     return PacketGridRead(
         manifest_path=str(manifest_path),
@@ -236,12 +271,14 @@ def _apply_two_speed_refresh(
     return True
 
 
-def _resolve_preserved_file(packet, *, file_name: str) -> dict[str, str]:
+def _resolve_preserved_file(packet, *, file_name: str, required: bool = True) -> dict[str, str] | None:
     matching_files = [
         {"relative_packet_path": item.relative_packet_path, "sha256": item.sha256}
         for item in packet.preserved_files
         if item.relative_packet_path.replace("\\", "/").endswith(file_name)
     ]
+    if not matching_files and not required:
+        return None
     if len(matching_files) != 1:
         raise RegistryRefreshError(
             "preserved_file_unresolved",

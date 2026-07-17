@@ -131,6 +131,8 @@ def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_netwo
     assert summary["packet_roles"][TARGETED_RENDERED_SLOT]["source_surface"] == TARGETED_RENDERED_SURFACE
     assert "not full Parfumo corpus capture" in summary["non_claims"]
     assert "not live network capture by this local packet writer" in summary["non_claims"]
+    assert summary["capture_parameters"]["capture_artifact_mode"] == "content"
+    assert summary["projection_status"] == "succeeded"
 
     packet_path = Path(summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"])
     manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
@@ -155,11 +157,111 @@ def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_netwo
     preserved_paths = {
         preserved_file["relative_packet_path"] for preserved_file in manifest["preserved_files"]
     }
+    assert not any(path.endswith("rendered_dom.html") for path in preserved_paths)
+    assert not any(path.endswith("visible_text.txt") for path in preserved_paths)
+    assert any(path.endswith("route_receipt.json") for path in preserved_paths)
+    assert any(path.endswith("viewport_screenshot.png") for path in preserved_paths)
+    assert any(path.endswith("content_record.json") for path in preserved_paths)
+    assert any(path.endswith("content_capture_metadata.json") for path in preserved_paths)
     assert any(path.endswith("/05_parfumo_targeted_capture_plan.json") for path in preserved_paths)
     assert all(
         source_slice["preserved_file_ids"] == ["file_01", "file_02", "file_03", "file_04", "file_05"]
         for source_slice in manifest["source_slices"]
     )
+
+
+@pytest.mark.parametrize(
+    ("mode", "expect_content", "expect_projector_inputs"),
+    [
+        ("sample", True, True),
+        ("raw", False, True),
+    ],
+)
+def test_parfumo_targeted_rendered_artifact_modes(
+    tmp_path: Path,
+    mode: str,
+    expect_content: bool,
+    expect_projector_inputs: bool,
+) -> None:
+    artifacts = _write_targeted_artifacts(tmp_path / "artifacts")
+
+    exit_code, message = run_parfumo_targeted_rendered_capture(
+        url=_LOCATOR,
+        output_root=tmp_path / "out",
+        rendered_dom_path=artifacts["rendered_dom"],
+        visible_text_path=artifacts["visible_text"],
+        route_receipt_path=artifacts["route_receipt"],
+        screenshot_path=artifacts["screenshot"],
+        capture_artifact_mode=mode,
+    )
+
+    assert exit_code == 0
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    packet_path = Path(summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"])
+    manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
+    paths = [item["relative_packet_path"] for item in manifest["preserved_files"]]
+    assert any(path.endswith("content_record.json") for path in paths) is expect_content
+    assert any(path.endswith("rendered_dom.html") for path in paths) is expect_projector_inputs
+    assert any(path.endswith("visible_text.txt") for path in paths) is expect_projector_inputs
+    metadata_path = next(
+        packet_path / path for path in paths if path.endswith("content_capture_metadata.json")
+    )
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["capture_artifact_mode"] == mode
+    assert metadata["projection_status"] == (
+        "succeeded" if mode == "sample" else "not_attempted: raw mode"
+    )
+
+
+def test_parfumo_targeted_projection_failure_preserves_raw_and_stays_loud(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    artifacts = _write_targeted_artifacts(tmp_path / "artifacts")
+
+    def broken_projector(**_kwargs):
+        raise RuntimeError("fixture parser failure")
+
+    monkeypatch.setattr(runner_module, "build_parfumo_targeted_content_record", broken_projector)
+    exit_code, message = run_parfumo_targeted_rendered_capture(
+        url=_LOCATOR,
+        output_root=tmp_path / "out",
+        rendered_dom_path=artifacts["rendered_dom"],
+        visible_text_path=artifacts["visible_text"],
+        route_receipt_path=artifacts["route_receipt"],
+        screenshot_path=artifacts["screenshot"],
+    )
+
+    assert exit_code == 4
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    assert summary["projection_status"] == "failed: RuntimeError: fixture parser failure"
+    packet_path = Path(summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"])
+    manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
+    paths = [item["relative_packet_path"] for item in manifest["preserved_files"]]
+    assert any(path.endswith("rendered_dom.html") for path in paths)
+    assert any(path.endswith("visible_text.txt") for path in paths)
+    assert not any(path.endswith("content_record.json") for path in paths)
+    assert any(
+        "content-mode projection failed in flight" in limitation
+        for limitation in manifest["limitations"]
+    )
+
+
+def test_parfumo_direct_http_rejects_content_mode(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        runner_module.main(
+            [
+                "--direct-http",
+                "--capture-mode",
+                "content",
+                "--url",
+                _LOCATOR,
+                "--output-root",
+                str(tmp_path / "out"),
+            ]
+        )
+
+    assert exc_info.value.code == 2
 
 
 def test_parfumo_targeted_rendered_runner_rejects_browser_secret_material(tmp_path: Path) -> None:

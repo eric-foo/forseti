@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import uuid
@@ -12,12 +13,19 @@ from capture_spine.reddit_subreddit_grid import (
     project_old_reddit_grid_html,
     refresh_registry_from_grid_packets,
 )
+from capture_spine.reddit_subreddit_grid.grid_projection import (
+    GRID_PROJECTION_PARSER_VERSION,
+    build_grid_content_record,
+    grid_view_from_record,
+)
 from runners import run_reddit_grid_capture as grid_runner
 from runners import run_reddit_old_http_batch as batch_runner
 from runners import run_source_capture_http_packet as http_packet_runner
 from runners.run_reddit_grid_capture import build_grid_listing_url, run_reddit_grid_capture
 from runners.run_reddit_old_http_batch import BatchSlot, run_reddit_old_http_batch
+from runners.run_reddit_parser_fit_check import run_reddit_parser_fit_check
 from source_capture.adapters.direct_http import DirectHttpCaptureSuccess
+from source_capture.content_capture import ContentCaptureSpec
 
 
 GRID_HTML = """
@@ -94,12 +102,33 @@ def _mini_registry(path: Path) -> Path:
     return registry_path
 
 
+def _grid_content_spec(
+    *,
+    mode: str = "content",
+    subreddit: str = "makeupaddiction",
+    projector=None,
+) -> ContentCaptureSpec:
+    url = f"https://old.reddit.com/r/{subreddit}/top/?t=day"
+    return ContentCaptureSpec(
+        capture_artifact_mode=mode,
+        parser_version=GRID_PROJECTION_PARSER_VERSION,
+        projector=projector
+        or (
+            lambda html_text, final_url: build_grid_content_record(
+                html_text=html_text, subreddit=subreddit, listing_url=url
+            )
+        ),
+    )
+
+
 def _write_grid_packet(
     scratch_dir: Path,
     monkeypatch: pytest.MonkeyPatch,
     *,
     subreddit: str = "makeupaddiction",
     status: int = 200,
+    content_capture: ContentCaptureSpec | None = None,
+    expected_exit: int = 0,
 ) -> Path:
     url = f"https://old.reddit.com/r/{subreddit}/top/?t=day"
 
@@ -109,7 +138,12 @@ def _write_grid_packet(
             final_url=url,
             status=status,
             reason="OK" if 200 <= status < 300 else "Not Found",
-            metadata={"capture_timestamp": "2026-07-17T05:00:00Z"},
+            metadata={
+                "capture_timestamp": "2026-07-17T05:00:00Z",
+                "requested_url": url,
+                "final_url": url,
+                "status": status,
+            },
             body=GRID_HTML.encode("utf-8"),
             warning_notes=[],
             limitation_notes=[],
@@ -138,8 +172,9 @@ def _write_grid_packet(
         limitations=[],
         timeout_seconds=5.0,
         max_bytes=1_000_000,
+        content_capture=content_capture,
     )
-    assert exit_code == 0, message
+    assert exit_code == expected_exit, message
     return packet_dir
 
 
@@ -612,13 +647,302 @@ def test_batch_runner_threads_data_root_and_consolidates_lake_packet(
         decision_question="lake batch?",
         data_root=sentinel,  # type: ignore[arg-type]
         delay_seconds=0.0,
+        capture_artifact_mode="raw",
     )
     assert exit_code == 0
     capture_kwargs = calls[0][1]
     assert capture_kwargs["data_root"] is sentinel
     assert capture_kwargs["output_directory"] is None
+    assert capture_kwargs["content_capture"] is None
     consolidate_kwargs = calls[1][1]
     assert consolidate_kwargs["packet_or_manifest_path"] == lake_packet_dir
     summary = json.loads(Path(message).read_text(encoding="utf-8"))
     assert summary["lake_committed"] is True
+    assert summary["capture_artifact_mode"] == "raw"
     assert summary["results"][0]["packet_dir"] == str(lake_packet_dir)
+
+
+def test_batch_runner_content_mode_parses_in_flight_and_skips_post_hoc(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lake_packet_dir = scratch_dir / "lake" / "raw" / "abc" / "packet_z"
+    captured_specs: list[object] = []
+
+    def fake_capture(**kwargs: object) -> tuple[int, str]:
+        captured_specs.append(kwargs["content_capture"])
+        lake_packet_dir.mkdir(parents=True)
+        (lake_packet_dir / "content_record.json").write_text("{}\n", encoding="utf-8")
+        return 0, str(lake_packet_dir)
+
+    def fail_consolidate(**kwargs: object) -> dict[str, str]:
+        raise AssertionError("post-hoc consolidation must not run in content mode")
+
+    monkeypatch.setattr(batch_runner, "run_source_capture_http_packet", fake_capture)
+    monkeypatch.setattr(batch_runner, "consolidate_reddit_packet", fail_consolidate)
+    monkeypatch.setattr(batch_runner.time, "sleep", lambda seconds: None)
+
+    exit_code, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://old.reddit.com/r/SaaS/comments/abc/example/")],
+        output_root=scratch_dir / "batch_content",
+        decision_question="content batch?",
+        data_root=object(),  # type: ignore[arg-type]
+        delay_seconds=0.0,
+    )
+    assert exit_code == 0
+    spec = captured_specs[0]
+    assert isinstance(spec, ContentCaptureSpec)
+    assert spec.capture_artifact_mode == "content"
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    assert summary["capture_artifact_mode"] == "content"
+    row = summary["results"][0]
+    assert row["consolidation_exit"] == 0
+    assert row["consolidation_message"]["mode"] == "parse_in_flight"
+    assert row["content_projection_failed"] is False
+
+
+def test_batch_runner_content_mode_raw_fallback_runs_post_hoc_consolidation(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    packet_dirs: list[Path] = []
+
+    def fake_capture(**kwargs: object) -> tuple[int, str]:
+        calls.append("capture")
+        packet_dir = Path(kwargs["output_directory"])
+        packet_dirs.append(packet_dir)
+        packet_dir.mkdir(parents=True)
+        (packet_dir / "http_response_body.bin").write_bytes(b"non-2xx response")
+        return 0, str(packet_dir)
+
+    def fake_consolidate(**kwargs: object) -> dict[str, str]:
+        calls.append("consolidate")
+        assert kwargs["packet_or_manifest_path"] == packet_dirs[0]
+        return {
+            "json_path": "x",
+            "receipt_path": "y",
+            "comment_count": "0",
+            "observable_comment_node_count": "0",
+        }
+
+    monkeypatch.setattr(batch_runner, "run_source_capture_http_packet", fake_capture)
+    monkeypatch.setattr(batch_runner, "consolidate_reddit_packet", fake_consolidate)
+
+    _, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://old.reddit.com/r/SaaS/comments/abc/example/")],
+        output_root=scratch_dir / "batch_raw_fallback",
+        decision_question="Does raw fallback stay consumable?",
+        delay_seconds=0.0,
+    )
+
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    assert calls == ["capture", "consolidate"]
+    row = summary["results"][0]
+    assert row["content_projection_failed"] is False
+    assert row["consolidation_exit"] == 0
+    assert row["consolidation_message"]["json_path"] == "x"
+
+
+def _single_file(packet_dir: Path, name_suffix: str) -> Path:
+    matches = [path for path in packet_dir.rglob("*") if path.name.endswith(name_suffix)]
+    assert len(matches) == 1, f"expected exactly one {name_suffix} in {packet_dir}, found {len(matches)}"
+    return matches[0]
+
+
+def _no_file(packet_dir: Path, name_suffix: str) -> None:
+    matches = [path for path in packet_dir.rglob("*") if path.name.endswith(name_suffix)]
+    assert not matches, f"expected no {name_suffix} in {packet_dir}, found {matches}"
+
+
+def test_grid_content_record_round_trip() -> None:
+    url = "https://old.reddit.com/r/makeupaddiction/top/?t=day"
+    record = build_grid_content_record(
+        html_text=GRID_HTML, subreddit="makeupaddiction", listing_url=url
+    )
+    assert record["record_kind"] == "reddit_subreddit_grid_view_v0"
+    assert record["parser_version"] == GRID_PROJECTION_PARSER_VERSION
+    rebuilt = grid_view_from_record(record)
+    direct = project_old_reddit_grid_html(
+        html_text=GRID_HTML, subreddit="makeupaddiction", listing_url=url
+    )
+    assert rebuilt == direct
+
+
+def test_content_mode_packet_discards_raw_and_records_provenance(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import hashlib
+
+    packet_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="content")
+    )
+    _no_file(packet_dir, "http_response_body.bin")
+    content_path = _single_file(packet_dir, "content_record.json")
+    record = json.loads(content_path.read_text(encoding="utf-8"))
+    assert record["record_kind"] == "reddit_subreddit_grid_view_v0"
+
+    metadata_path = _single_file(packet_dir, "http_response_metadata.json")
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    block = metadata["content_capture"]
+    assert block["capture_artifact_mode"] == "content"
+    assert block["parser_version"] == GRID_PROJECTION_PARSER_VERSION
+    assert block["raw_sha256"] == hashlib.sha256(GRID_HTML.encode("utf-8")).hexdigest()
+    assert block["raw_byte_count"] == len(GRID_HTML.encode("utf-8"))
+    assert block["raw_preserved"] is False
+    assert block["projection_status"] == "succeeded"
+
+
+def test_sample_mode_packet_preserves_raw_and_derived(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="sample")
+    )
+    _single_file(packet_dir, "http_response_body.bin")
+    _single_file(packet_dir, "content_record.json")
+    metadata = json.loads(
+        _single_file(packet_dir, "http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    assert metadata["content_capture"]["raw_preserved"] is True
+    assert metadata["content_capture"]["projection_status"] == "succeeded"
+
+
+def test_content_projection_failure_falls_back_to_raw(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken_projector(html_text: str, final_url: str) -> dict:
+        raise ValueError("boom: markup changed")
+
+    packet_dir = _write_grid_packet(
+        scratch_dir,
+        monkeypatch,
+        content_capture=_grid_content_spec(mode="content", projector=broken_projector),
+        expected_exit=4,
+    )
+    _single_file(packet_dir, "http_response_body.bin")
+    _no_file(packet_dir, "content_record.json")
+    metadata = json.loads(
+        _single_file(packet_dir, "http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    block = metadata["content_capture"]
+    assert block["raw_preserved"] is True
+    assert block["projection_status"].startswith("failed: ValueError: boom")
+
+
+def test_non_object_content_projection_falls_back_to_raw(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def invalid_projector(html_text: str, final_url: str) -> dict:
+        return []  # type: ignore[return-value]
+
+    packet_dir = _write_grid_packet(
+        scratch_dir,
+        monkeypatch,
+        content_capture=_grid_content_spec(mode="content", projector=invalid_projector),
+        expected_exit=4,
+    )
+    _single_file(packet_dir, "http_response_body.bin")
+    _no_file(packet_dir, "content_record.json")
+    metadata = json.loads(
+        _single_file(packet_dir, "http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    assert metadata["content_capture"]["raw_preserved"] is True
+    assert metadata["content_capture"]["projection_status"].startswith("failed: TypeError:")
+
+
+def test_materializer_accepts_content_mode_packet(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="content")
+    )
+    registry_path = _mini_registry(scratch_dir)
+
+    outcome = refresh_registry_from_grid_packets(
+        registry_path=registry_path, packet_paths=[packet_dir]
+    )
+    assert outcome.refreshed_subreddits == ["makeupaddiction"]
+    assert outcome.unknown_subreddits == []
+    document = json.loads(registry_path.read_text(encoding="utf-8"))
+    row = document["reddit_subreddit_registry"]["subreddits"][0]
+    assert row["capture_state"] == "grid_packets_recorded"
+    assert row["observations"][0]["subscriber_count_or_none"] == "7491826"
+
+
+def test_parser_fit_check_match_drift_and_content_only_rejection(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    url = "https://old.reddit.com/r/makeupaddiction/top/?t=day"
+    honest_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="sample")
+    )
+
+    def tampering_projector(html_text: str, final_url: str) -> dict:
+        record = build_grid_content_record(
+            html_text=html_text, subreddit="makeupaddiction", listing_url=url
+        )
+        record["grid_view"]["visible_subscriber_count_or_none"] = "1"
+        return record
+
+    drifted_dir = _write_grid_packet(
+        scratch_dir / "drifted",
+        monkeypatch,
+        content_capture=_grid_content_spec(mode="sample", projector=tampering_projector),
+    )
+    content_only_dir = _write_grid_packet(
+        scratch_dir / "content_only",
+        monkeypatch,
+        content_capture=_grid_content_spec(mode="content"),
+    )
+
+    exit_code, report = run_reddit_parser_fit_check(
+        packet_paths=[honest_dir, drifted_dir, content_only_dir],
+        report_path=scratch_dir / "fit_report.json",
+    )
+    assert exit_code == 1
+    by_status = {row["status"] for row in report["results"]}
+    assert by_status == {"match", "drift", "check_failed"}
+    assert report["match_count"] == 1
+    assert report["drift_count"] == 1
+    assert report["check_failure_count"] == 1
+    drift_row = next(row for row in report["results"] if row["status"] == "drift")
+    assert drift_row["diff_summary"]["differing_top_level_keys"] == ["grid_view"]
+
+    honest_only_exit, honest_report = run_reddit_parser_fit_check(packet_paths=[honest_dir])
+    assert honest_only_exit == 0
+    assert honest_report["results"][0]["status"] == "match"
+
+
+def test_parser_fit_check_rejects_record_subreddit_not_bound_to_packet(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="sample")
+    )
+    content_path = _single_file(packet_dir, "content_record.json")
+    record = json.loads(content_path.read_text(encoding="utf-8"))
+    record["grid_view"]["subreddit"] = "fragrance"
+    content_path.write_text(
+        json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    manifest_path = packet_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    content_entry = next(
+        item
+        for item in manifest["preserved_files"]
+        if item["relative_packet_path"].endswith("content_record.json")
+    )
+    content_entry["sha256"] = hashlib.sha256(content_path.read_bytes()).hexdigest()
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    exit_code, report = run_reddit_parser_fit_check(packet_paths=[packet_dir])
+
+    assert exit_code == 1
+    row = report["results"][0]
+    assert row["status"] == "check_failed"
+    assert row["failure_code"] == "grid_subreddit_mismatch"
