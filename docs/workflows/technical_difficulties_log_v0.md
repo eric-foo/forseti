@@ -464,7 +464,13 @@ outside the edited root because deleting it would reintroduce an acquisition
 race. A hard exit can still strand `.<name>.atomic-exact-edit-*` temporaries
 beside their targets; those target temporaries and a retained journal are not
 gitignored, so an interrupted operation remains visible to downstream clean-tree
-checks while normal successful use leaves no root-local lock residue.
+checks while normal successful use leaves no root-local lock residue. The
+journal is written with `chmod 0600`, which restricts other local users' read
+access on POSIX only; Windows enforces file access through ACLs rather than
+the mode bits, so 0600 is not a Windows confidentiality guarantee there.
+Because the journal is deliberately not gitignored, a broad `git add` run
+during an interrupted state — before `--recover` runs — could commit its
+duplicated original/updated file bytes into history.
 
 Dogfood terminated the helper with exit 86 after the first file in a two-file
 edit. The first file contained updated bytes, the second retained original

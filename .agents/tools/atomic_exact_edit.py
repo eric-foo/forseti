@@ -19,12 +19,14 @@ helper rejects mixed-newline files, symlinks, path escapes, ambiguous matches,
 and no-op replacements. ``--apply`` performs preflight and apply in one call.
 
 The defensive preflight/rollback machinery here is deliberate, not bloat: the
-AGENTS.md stalled-edit fallback route depends on it. Applies use a durable
-root-local journal so an interrupted multi-file edit can be recovered before a
+AGENTS.md stalled-edit fallback route depends on it. Applies use a root-local
+recovery journal so an interrupted multi-file edit can be recovered before a
 later edit begins, and a per-root OS lock outside the edited root so a
 concurrent invocation fails loudly without leaving normal-use repository
 residue. Each file is replaced atomically; the multi-file sequence is
-recoverable, not atomic. Do not simplify this machinery away.
+recoverable, not atomic. The journal's contents are fsynced, but the edited
+directory is not, so it protects against a killed process or an interrupted
+sandbox, not against power loss. Do not simplify this machinery away.
 """
 from __future__ import annotations
 
