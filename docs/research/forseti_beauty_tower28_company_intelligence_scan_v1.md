@@ -35,9 +35,10 @@ run_caps:
     UNIT DEFINITION (do not mix units when reading this receipt): the capped
     and counted unit is the ORCHESTRATOR-LEDGER MOVE — one bounded orchestrator
     read/attempt, or one bounded delegated sub-scout run counted as a single
-    move. By that unit, 24 of 40 were used. The five sub-scout runs comprise 91
-    internal web operations in aggregate (search + fetch calls), so total web
-    operations across the scan were approximately 110; that aggregate is
+    move. By that unit, 24 of 40 were used. The five sub-scout runs comprise 101
+    internal web operations in aggregate (search + fetch calls per the move
+    ledger: 23 + 22 + 15 + 21 + 20), so total web operations across the scan
+    were approximately 120; that aggregate is
     disclosed for transparency but is NOT the capped unit — each sub-scout was
     separately bounded by the per-scout budget stated in its dispatch and
     reported in its return. The intake field names (screening_moves_used,
@@ -236,7 +237,7 @@ observations:
     source_move_id: M01
     url: https://www.sephora.com/brand/tower-28
     retrieval_date: "2026-07-16"
-    short_quote_or_summary: "25 Tower 28 items live at Sephora US incl. a seven-item SOS skincare family (spray, refill, moisturizer, cleanser, serum, lip balm, body wash, SPF)."
+    short_quote_or_summary: "25 Tower 28 items live at Sephora US incl. a seven-product SOS skincare family listed under eight catalog tokens (spray + its jumbo refill counted as one product, moisturizer, cleanser, serum, lip balm, body wash, SPF)."
     signal_stage: candidate_support
     claim_it_might_support: current Sephora assortment breadth and observable makeup-to-skincare line expansion
     gate_role: none
@@ -496,12 +497,12 @@ observations:
     source_move_id: M20
     url: https://drugstorenews.com/tower-28-announces-pvolve-partnership
     retrieval_date: "2026-07-16"
-    short_quote_or_summary: "2026-02: SOS line placed into Pvolve fitness studios (experiential/wellness channel partnership)."
+    short_quote_or_summary: "Trade item framed as February 2026: SOS line placed into Pvolve fitness studios (experiential/wellness channel partnership); the month anchors the article's framing, not an independently verified placement date."
     signal_stage: candidate_support
     claim_it_might_support: dated channel-motion event beyond beauty retail
     gate_role: decision_event
     independence_hypothesis: trade item likely sourced from announcement — one origin
-    uncertainty_or_limits: scope/door count and commercial terms not stated
+    uncertainty_or_limits: scope/door count and commercial terms not stated; event date is month-level article framing only
   - observation_id: SOBS-028
     source_move_id: M20
     url: https://nationaleczema.org/press-release/tower28scholarshipfund/

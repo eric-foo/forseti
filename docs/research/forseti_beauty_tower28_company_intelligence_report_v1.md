@@ -29,7 +29,11 @@ never carries a current-pressure claim. Proxies are labeled with their ceilings
 purchase, or representative demand; community language is external customer
 evidence, never internal company fact; job postings are org motion, never
 execution capacity. Scan-move provenance (M/EQ/SOBS/CR ids) lives in the sealed
-scan receipt.
+scan receipt. Amendment note: the commission sealed with
+`as_of_date: 2026-07-16`; this report carries `as_of_date: 2026-07-17` because
+part of the scan (M15 and several sanctioned listing reads) executed on
+2026-07-17. Every observation row carries its own `observation_at` and age
+anchor, so no claim gains recency from this one-day advance.
 
 ### 1. Company Commission And Identity Receipt
 
@@ -386,7 +390,7 @@ observation_ledger:
     access_limitation: "self-reported narrative; founder history not independently dated"
     independence_syndication_group: tower28_owned
     independent_corroboration_ids: []
-    ambiguity_limitation: "leadership continuity corroborated only by absence of contrary press (OBS-016)"
+    ambiguity_limitation: "leadership continuity corroborated only by absence of contrary press (OBS-015)"
     contradiction_state: none_observed
     fact_domain: company_fact
     current_state_use: primary_current
@@ -549,7 +553,7 @@ observation_ledger:
     age_anchor_date: "2026-07-16"
     age_anchor_basis: current_page_observation
     exact_locator: "brand page product grid (25 items) read from page state"
-    evidence_excerpt: "Sephora US carries 25 Tower 28 items including a seven-product SOS skincare family (spray $12-$68 with jumbo refill, moisturizer, cleanser, serum, lip balm, body wash, FaceGuard SPF $18-$32) alongside makeup heroes (Swipe $24, ShineOn $16, BeachPlease $20, MakeWaves $12-$20)."
+    evidence_excerpt: "Sephora US carries 25 Tower 28 items including a seven-product SOS skincare family (spray $12-$68 with jumbo refill, moisturizer, cleanser, serum $34, lip balm, body wash, FaceGuard SPF $18-$32) alongside makeup heroes (Swipe $24, ShineOn $16, BeachPlease $20, MakeWaves $12-$20)."
     lawful_access_route: public_web_browser
     access_limitation: "assortment state only; not velocity, productivity, or sell-through"
     independence_syndication_group: sephora_catalog
@@ -1025,7 +1029,7 @@ observation_ledger:
     age_anchor_date: null
     age_anchor_basis: unknown
     exact_locator: "search-index title state; pages not accessed in this lane; underlying video dates unknown, so no current-state tier is claimed"
-    evidence_excerpt: "Indexed topic-page titles: 'Tower 28 Spray Broke Me Out', 'Does Tower 28 Spray Cause Purging', 'Tower 28 Concealer Made Me Breakout' — a recurring public breakout/purging complaint theme set against the sensitive-skin positioning."
+    evidence_excerpt: "Indexed topic-page titles: 'Tower 28 Spray Broke Me Out', 'Does Tower 28 Spray Cause Purging', 'Tower 28 Concealer Made Me Breakout' — a breakout/purging complaint theme repeated across multiple indexed topic titles, set against the sensitive-skin positioning."
     lawful_access_route: search_index_only_no_platform_access
     access_limitation: "titles are aggregator metadata; underlying video volume, dates, and content unverified (CR-002)"
     independence_syndication_group: tiktok_topic_titles
@@ -1207,15 +1211,16 @@ praise with repurchase intent from an independent reviewer (OBS-024), and
 archival 2023 flare-relief language (OBS-022). Failure modes and rejection:
 lipgloss/makeup separation question (OBS-016, 2026-07-04), concealer rejection
 title (OBS-017, 2026-06-06), mascara rejection with switching intent (OBS-018,
-2026-05-31), a verified 2024 claims-contradiction complaint on the concealer
-(OBS-023), an unverified but recurring TikTok breakout/purging complaint theme
-(OBS-025), and historical shade-range boundary language (OBS-021). Reception
+2026-05-31), a verified 2024 complaint alleging a claims contradiction on the concealer
+(OBS-023), an unverified TikTok breakout/purging complaint theme repeated
+across indexed topic titles (OBS-025), and historical shade-range boundary
+language (OBS-021). Reception
 dispersion at Sephora separates heroes (4.3-4.6 ratings) from a sub-4.0 cluster
 — mascara, pressed powder, highlighter, skin tint — with the hero SOS spray
 itself at 4.09 across 4,855 reviews (OBS-009; ratings are reception proxies
 with explicit ceilings). The eczema need-state community discusses the brand
 and its ingredient class directly (OBS-020). Value-skepticism and comparison
-framing dominate creator titles (OBS-026). Decisive coverage limits: Reddit
+framing recur across the sampled creator titles (OBS-026). Decisive coverage limits: Reddit
 thread bodies are unread (login-walled to the sanctioned route; CR-001), TikTok
 content is unverified beyond titles (CR-002), Quora is blocked (GAP-006), and
 the subreddit-graph dependency remains unsupplied (GAP-001) — no mapped
@@ -1269,7 +1274,7 @@ company_surface_candidate_ledger:
     candidate_only: true
     import_status: not_imported
     candidate_fact_class: company_fact
-    bounded_fact: "As observed 2026-07-16, Sephora US carried 25 Tower 28 items including a seven-product SOS skincare family; DTC price architecture ran $12-$34 single items with bundles to $88."
+    bounded_fact: "As observed 2026-07-16, Sephora US carried 25 Tower 28 items including a seven-product SOS skincare family; single-item prices across the observed Sephora and DTC catalog states ran $12-$34 (jumbo refill $68 excluded), with DTC bundles to $88."
     identity_state: resolved
     time_scope: observed_current_page_at_2026-07-16
     limitations: "Assortment and price state only; no velocity, productivity, or sell-through."
@@ -1278,7 +1283,7 @@ company_surface_candidate_ledger:
     candidate_only: true
     import_status: not_imported
     candidate_fact_class: company_fact
-    bounded_fact: "Owning legal entity resolves to Tower 28 Beauty, Inc., Los Angeles, CA (USPTO Reg. 6925089, registered 2022-12-13); no parent organization surfaced in any consulted source."
+    bounded_fact: "The TOWER 28 word mark is registered to Tower 28 Beauty, Inc., Los Angeles, CA (USPTO Reg. 6925089, registered 2022-12-13); no parent organization surfaced in any consulted source."
     identity_state: resolved
     time_scope: registration_effective_2022-12-13_checked_2026-07-16
     limitations: "Absence of a parent is bounded by source coverage, not proven."
