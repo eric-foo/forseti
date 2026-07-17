@@ -8,7 +8,6 @@ the runner before expanding to live browser/profile-grid/batch capture.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -16,7 +15,10 @@ from typing import Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from runners._scaffold import SUPPLY_ONLY_ONE_DETAIL, exit_on_failure, resolve_output_root
 from source_capture.tiktok import COMPLETE_LANE_NOTE, write_tiktok_video_packet
+
+_RUNNER_NAME = "source capture tiktok video"
 
 
 def run_source_capture_tiktok_video_packet(
@@ -77,20 +79,10 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    try:
-        data_root = None
-        data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
-        if args.output is not None and args.data_root is not None:
-            parser.exit(status=2, message="source capture tiktok video failed: supply only one of --output or --data-root\n")
-        if args.output is None and not data_root_requested:
-            parser.exit(
-                status=2,
-                message="source capture tiktok video failed: exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
-            )
-        if data_root_requested:
-            from data_lake.root import DataLakeRoot
-
-            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+    with exit_on_failure(parser, runner_name=_RUNNER_NAME, include_unexpected_type=True):
+        data_root = resolve_output_root(
+            args, parser, runner_name=_RUNNER_NAME, both_supplied_detail=SUPPLY_ONLY_ONE_DETAIL
+        )
         exit_code, message = run_source_capture_tiktok_video_packet(
             video_id=args.video_id,
             video_url=args.video_url,
@@ -103,16 +95,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile_list_source_surface=args.profile_list_source_surface,
             subtitle_webvtt_path=args.subtitle_webvtt,
         )
-    except ValueError as exc:
-        parser.exit(status=2, message=f"source capture tiktok video failed: {exc}\n")
-    except Exception as exc:  # noqa: BLE001 - surface capture/lake failures visibly
-        parser.exit(status=3, message=f"source capture tiktok video failed: {type(exc).__name__}: {exc}\n")
 
     if exit_code == 0:
         print(COMPLETE_LANE_NOTE)
         print(message)
         return 0
-    parser.exit(status=exit_code, message=f"source capture tiktok video failed: {message}\n")
+    parser.exit(status=exit_code, message=f"{_RUNNER_NAME} failed: {message}\n")
     return exit_code
 
 
