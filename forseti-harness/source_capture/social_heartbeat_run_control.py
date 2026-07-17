@@ -270,7 +270,7 @@ def freeze_plan(
         "seed_version": DEFAULT_SEED_VERSION,
         "seed_salt_id": seed_salt_id,
         "storage_namespace": (policy.namespace / plan_date).as_posix(),
-        "non_claims": ["not Gold", "not live capture authorization"],
+        "non_claims": ["not Silver", "not Gold", "not live capture authorization"],
         "creators": normalized,
     }
     if plan_metadata:
@@ -499,7 +499,7 @@ def summarize_day(
         "skipped_count": counts["skipped"],
         "missed_count": max(planned - attempted, 0),
         "attempts_path": str(day_dir / "attempts.jsonl"),
-        "non_claims": ["operational coverage summary only", "not Gold"],
+        "non_claims": ["operational coverage summary only", "not Silver", "not Gold"],
     }
     summary_path = day_dir / "daily_summary.json"
     _write_json(summary_path, summary)
@@ -754,7 +754,7 @@ def _session_summary(
         "receipt_contract_error_count": len(contract_errors),
         "receipt_contract_errors": list(contract_errors),
         "receipt_jsonl": str(receipt_jsonl),
-        "non_claims": ["operational session summary only", "not Gold"],
+        "non_claims": ["operational session summary only", "not Silver", "not Gold"],
     }
 
 
