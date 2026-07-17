@@ -34,6 +34,7 @@ _ALLOWED_WRAPPER_KEYS = frozenset(
         "view_mode",
         "generated_at_utc",
         "source_policy_posture",
+        "engagement_rate_definition",
         "authority_pointers",
         "source_inputs",
         "counts",
@@ -117,6 +118,7 @@ _ALLOWED_METRIC_KEYS = frozenset(
         "average_views",
         "median_views",
         "engagement_rate",
+        "engagement_rate_percent",
         "average_like_count",
         "average_comment_count",
         "posting_cadence",
@@ -212,6 +214,7 @@ def _validate_wrapper(wrapper: Mapping[str, Any]) -> None:
             "view_mode",
             "generated_at_utc",
             "source_policy_posture",
+            "engagement_rate_definition",
             "authority_pointers",
             "source_inputs",
             "counts",
@@ -223,6 +226,7 @@ def _validate_wrapper(wrapper: Mapping[str, Any]) -> None:
         _fail("invalid_schema_version", "unexpected creator_profile_current schema_version")
     if wrapper["view_mode"] != "source_backed_static_json_export":
         _fail("invalid_view_mode", "view_mode must be source_backed_static_json_export")
+    _validate_non_empty_str(wrapper["engagement_rate_definition"], "engagement_rate_definition")
     _validate_str_list(wrapper["authority_pointers"], "authority_pointers", allow_empty=False)
     _validate_source_inputs(wrapper["source_inputs"])
     profiles = _validate_profiles(wrapper["profiles"])
@@ -507,6 +511,29 @@ def _validate_metric_values(value: Any) -> None:
             reason = metric.get("posture_reason_or_none")
             if not isinstance(reason, str) or not reason.strip():
                 _fail("missing_metric_posture_reason", f"non-observed metric {metric_name} requires posture_reason_or_none")
+    _validate_engagement_rate_percent_twin(value)
+
+
+def _validate_engagement_rate_percent_twin(value: Mapping[str, Any]) -> None:
+    """engagement_rate_percent must mirror engagement_rate's posture exactly --
+    it is a presentation-layer twin (value*100, round 2), never an independently
+    observed metric, so it can never claim a percent for a non-observed rate."""
+    engagement_rate = value["engagement_rate"]
+    percent = value["engagement_rate_percent"]
+    if percent["posture"] != engagement_rate["posture"]:
+        _fail(
+            "engagement_rate_percent_posture_mismatch",
+            "engagement_rate_percent posture must match engagement_rate posture",
+        )
+    if engagement_rate["posture"] == "observed":
+        expected_percent = round(engagement_rate["value_or_none"] * 100, 2)
+        if percent["value_or_none"] != expected_percent:
+            _fail(
+                "engagement_rate_percent_value_mismatch",
+                "engagement_rate_percent must equal engagement_rate value_or_none * 100, rounded 2",
+            )
+    if percent["metric_unit"] != "percent":
+        _fail("engagement_rate_percent_unit_mismatch", "engagement_rate_percent metric_unit must be percent")
 
 
 def _validate_observation_count(value: Any) -> None:
