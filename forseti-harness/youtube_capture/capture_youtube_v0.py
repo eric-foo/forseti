@@ -24,6 +24,13 @@ try:
 except ImportError:  # script-mode compatibility
     from stealth_client import http_get, BACKEND  # Chrome-impersonating client (curl_cffi) + urllib fallback
 
+try:
+    from harness_utils import int_or_none as _integer
+except ImportError:  # script-mode compatibility: harness root not on sys.path
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from harness_utils import int_or_none as _integer
+
 
 VIDEO_AVAILABILITY_STATES = {
     "playable",
@@ -147,20 +154,6 @@ def youtubei_next(api_key, ver, token):
 def first(pattern, text, cast=str):
     m = re.search(pattern, text)
     return cast(m.group(1)) if m else None
-
-
-def _integer(value):
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        if stripped.isdigit():
-            return int(stripped)
-    return None
 
 
 def player_view_count(player):

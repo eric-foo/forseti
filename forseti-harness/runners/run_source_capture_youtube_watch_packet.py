@@ -9,7 +9,6 @@ the data-lake seam.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 from typing import Callable, Sequence
@@ -23,7 +22,10 @@ from source_capture.youtube_watch_packet import (
     write_youtube_watch_packet,
 )
 from youtube_capture.capture_youtube_v0 import fetch_youtube_watch
+from runners._scaffold import SUPPLY_ONLY_ONE_DETAIL, exit_on_failure, resolve_output_root
 from runners._youtube_cli import normalize_video_id_argv
+
+_RUNNER_NAME = "source capture youtube watch"
 
 
 def run_source_capture_youtube_watch_packet(
@@ -85,20 +87,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(
         normalize_video_id_argv(raw_argv, option_strings=parser._option_string_actions)
     )
-    try:
-        data_root = None
-        data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
-        if args.output is not None and args.data_root is not None:
-            parser.exit(status=2, message="source capture youtube watch failed: supply only one of --output or --data-root\n")
-        if args.output is None and not data_root_requested:
-            parser.exit(
-                status=2,
-                message="source capture youtube watch failed: exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
-            )
-        if data_root_requested:
-            from data_lake.root import DataLakeRoot
-
-            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+    with exit_on_failure(parser, runner_name=_RUNNER_NAME, include_unexpected_type=True):
+        data_root = resolve_output_root(
+            args, parser, runner_name=_RUNNER_NAME, both_supplied_detail=SUPPLY_ONLY_ONE_DETAIL
+        )
         exit_code, message = run_source_capture_youtube_watch_packet(
             video_id=args.video_id,
             output_directory=args.output if data_root is None else None,
@@ -106,15 +98,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             decision_question=args.decision_question,
             comment_pages=args.comment_pages,
         )
-    except ValueError as exc:
-        parser.exit(status=2, message=f"source capture youtube watch failed: {exc}\n")
-    except Exception as exc:  # noqa: BLE001 - surface capture/lake failures visibly
-        parser.exit(status=3, message=f"source capture youtube watch failed: {type(exc).__name__}: {exc}\n")
 
     if exit_code == 0:
         print(message)
         return 0
-    parser.exit(status=exit_code, message=f"source capture youtube watch failed: {message}\n")
+    parser.exit(status=exit_code, message=f"{_RUNNER_NAME} failed: {message}\n")
     return exit_code
 
 
