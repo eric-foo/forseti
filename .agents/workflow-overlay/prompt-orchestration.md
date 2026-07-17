@@ -390,7 +390,7 @@ Mini God Tier is the only named assurance uplift for this prompt family. It is
 owner-invoked only and never inferred. It selects the bounded capability target
 defined by `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`; it does not
 widen scope, establish readiness, or create a claim tier. Use full orchestration
-and add deep-thinking, source-gated method sequencing, durable reporting, and
+and add source-gated method sequencing, durable reporting, and
 provenance evidence only to the degree necessary for that target, remaining
 pointer-first and naming every accepted residual.
 
@@ -582,52 +582,20 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts include a deep-thinking framing pass before the relevant
-review skill when the owner explicitly invokes `workflow-deep-thinking` or Mini
-God Tier, or when the review is doctrine- or authority-changing, source-heavy,
-materially ambiguous, or carries substantial seam risk whose framing could
-change the review route. Adversarial wording, a formal-verdict request,
-delegation, patch authorization, multiple named files in one bounded technical
-diff, or a high-stakes label alone does not trigger deep-thinking. A bounded
-technical review with an exact revision, file scope, authority, and validation
-route may omit it. For a review commission, the review lane's own internalized
-failure-mode-framing discipline satisfies the pass -- the adversarial review
-skill carries it and the review templates define it -- without a second skill
-load; a separate `workflow-deep-thinking` load remains the route for
-owner-invoked decision work.
-
-When the framing pass is triggered, the reviewer may `REFERENCE-LOAD` the
-methods before source loading, but must not `APPLY` the framing pass or the
-review method until the required source context is ready. The step frames the
-boundary problem, failure modes, and decision criteria before findings are
-listed. It does not
-widen review scope, authorize patching, or turn a narrow review into product
-planning.
+After source readiness, a review prompt invokes the relevant review method.
+Before listing findings, that method frames the boundary problem, identifies
+failure modes, and establishes decision criteria. This does not widen review
+scope, authorize patching, or turn a narrow review into product planning.
 
 Review prompts should still return the requested review output shape. The final
 answer remains a review result with findings, non-findings, not-proven
-boundaries, and next authorized step whether deep-thinking was triggered or
-explicitly omitted.
+boundaries, and next authorized step.
 
-Every Forseti review prompt and any review-return or courier prompt must also
-instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
-Chief Architect in a delegated pass, never the delegate mid-review -- to close
-adjudication in this order: first adjudicate the findings, diff, verdict, and
-residuals as claims; close self-closable material issues (closure within the
-adjudicator's own authority and the commissioned scope) in the same turn; route
-the smallest complete closure step only for an issue that needs another review
-round, another lane, an architecture pass, or an owner decision; once no
-unresolved material issue remains, batch all admin/lifecycle follow-ups
-(commit, push, PR, merge) into exactly one named land step. If a visible active
-goal or accepted next objective exists, identify the 1-5 material moves that
-best advance it in the same turn. If none exists, record that compactly and do
-not invent material moves. The closure/land step plus this goal-conditioned
-material-move check are a required closeout tail; do not defer the check to
-another turn. It uses ordinary next-step reasoning, does not invoke deep
-thinking, widen review scope, or authorize patching, and produces the closeout's
-next step. The exact shape is owned by
-`.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
-Step); do not restate it here.
+Every Forseti delegated-review prompt and any delegated review-return or courier
+prompt must point the commissioning adjudicator to the closeout and same-turn
+material-continuation rule in `delegated-review-patch.md`. That file owns the
+rule; prompt artifacts may expose the needed output slot but must not fork its
+semantics.
 
 Delegated review-and-patch commissions require direct repo access. `no_repo` is
 outside that lane and routes to a separately named ordinary read-only review;

@@ -87,6 +87,20 @@ values, but only as output shape: same-strength newer/current URL-backed rows
 can deserve more scan attention, and that attention is not buyer proof, demand
 classification, classifier mapping, evidence weighting, or graph weight.
 
+Current prompt amendment (2026-07-17): the company competitive-intelligence
+completion ledger now carries commission-stage vocabulary. A company board
+sealed before its scan uses `run_boundary: COMMISSION_SEALED_PRE_SCAN` — valid
+only while the coverage ledger still contains `not_checked` rows — and may set
+`reddit_scout_status` / `quora_scout_status` to `commissioned_not_yet_run` at
+that stage only. This exists so a truthful pre-scan commission never has to
+borrow the completed-report boundary (origin: adversarial-review finding AR-07
+against the Tower 28 Phase 1 commission). It changes lifecycle vocabulary only:
+no scan, capture, classification, or proof semantics change, and a completed
+company report must still carry earned checked/blocked scout values.
+Each completion-ledger scout value must agree with its corresponding coverage
+row's status and yield; the completion ledger cannot claim a checked, blocked,
+pending, or not-required result that the coverage ledger does not show.
+
 Public-reaction engagement belongs in the board as resonance context, not
 judgment. CSB may ask rows to preserve source-visible upvotes, helpful votes,
 likes, views, shares, comment counts, reply counts, score state, visible

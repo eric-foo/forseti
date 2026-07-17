@@ -11,7 +11,7 @@ import json
 import random
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -546,14 +546,159 @@ def run_tiktok_creator_onboarding(
 
     normalized_handle = _normalize_handle(creator_handle)
     run_started_monotonic = monotonic_fn()
-    phase_chronology = [
-        _phase_chronology_row(
-            "onboarding_started",
+    state = _OnboardingRunState(
+        phase_chronology=[
+            _phase_chronology_row(
+                "onboarding_started",
+                run_started_monotonic=run_started_monotonic,
+                monotonic_fn=monotonic_fn,
+                utc_now_fn=utc_now_fn,
+            )
+        ]
+    )
+    _validate_onboarding_inputs(
+        session_profile=session_profile,
+        window_size=window_size,
+        selection_count=selection_count,
+        max_grid_scroll_passes=max_grid_scroll_passes,
+    )
+
+    storage_state_path = validate_auth_state_provenance_requirement(
+        session_profile.state_label,
+        session_mode=session_profile.session_mode,
+        required_harness_proxy_profile_posture=(
+            session_profile.required_harness_proxy_profile_posture
+        ),
+        auth_state_root=auth_state_root,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    paths = _output_paths(output_dir)
+    profile_url = f"https://www.tiktok.com/@{normalized_handle}"
+    owned_engine = engine is None
+    observation_engine = _acquire_or_reuse_observation_engine(
+        engine=engine,
+        session_profile=session_profile,
+        browser_user_data_root=browser_user_data_root,
+    )
+
+    try:
+        _run_suggested_grid_and_selection_phase(
+            state,
+            profile_url=profile_url,
+            creator_handle=normalized_handle,
+            storage_state_path=storage_state_path,
+            paths=paths,
+            window_size=window_size,
+            selection_count=selection_count,
+            max_grid_scroll_passes=max_grid_scroll_passes,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            engine=observation_engine,
+            progress_fn=progress_fn,
             run_started_monotonic=run_started_monotonic,
             monotonic_fn=monotonic_fn,
             utc_now_fn=utc_now_fn,
         )
-    ]
+        _run_grid_overlay_deep_capture_phase(
+            state,
+            profile_url=profile_url,
+            creator_handle=normalized_handle,
+            session_profile=session_profile,
+            auth_state_root=auth_state_root,
+            storage_state_path=storage_state_path,
+            paths=paths,
+            max_grid_scroll_passes=max_grid_scroll_passes,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            cadence_min_gap_seconds=cadence_min_gap_seconds,
+            cadence_max_gap_seconds=cadence_max_gap_seconds,
+            cadence_window_seconds=cadence_window_seconds,
+            random_seed=random_seed,
+            engine=observation_engine,
+            progress_fn=progress_fn,
+            deep_capture_fn=deep_capture_fn,
+            sleep_fn=sleep_fn,
+            monotonic_fn=monotonic_fn,
+            utc_now_fn=utc_now_fn,
+            run_started_monotonic=run_started_monotonic,
+        )
+        state.stage = "close"
+        _notify_progress(progress_fn, state.stage, completed_count=state.completed_count)
+    except Exception as exc:
+        state.error = f"{type(exc).__name__}: {exc}"
+        raise
+    finally:
+        if owned_engine:
+            close = getattr(observation_engine, "close", None)
+            if callable(close):
+                try:
+                    close()
+                except Exception as exc:
+                    state.close_error = f"{type(exc).__name__}: {exc}"
+                    state.error = (
+                        f"{state.error}; close failed: {state.close_error}"
+                        if state.error
+                        else f"close failed: {state.close_error}"
+                    )
+                    state.status = "failed"
+                    state.stage = "close"
+        receipt = _build_onboarding_receipt(
+            state,
+            observation_engine=observation_engine,
+            owned_engine=owned_engine,
+            creator_handle=normalized_handle,
+            session_profile=session_profile,
+            window_size=window_size,
+            selection_count=selection_count,
+        )
+        _write_json(paths.onboarding_receipt_json_path, receipt)
+
+    if state.close_error is not None:
+        raise TikTokCreatorOnboardingError(
+            f"browser session close failed: {state.close_error}"
+        )
+    return paths
+
+
+@dataclass
+class _OnboardingRunState:
+    """Mutable per-run state shared by onboarding phases and the finally-path receipt.
+
+    Field defaults are the values the receipt reports when a phase fails before
+    assigning them; `None` optional fields stand in for the original inline
+    body's single-assignment locals (still `None` == never reached).
+    """
+
+    stage: str = "acquire_session"
+    status: str = "failed"
+    error: str | None = None
+    close_error: str | None = None
+    selected_video_ids: list[str] = field(default_factory=list)
+    challenge_count: int = 0
+    human_challenge_handoff_count: int = 0
+    completed_count: int = 0
+    account_safety_stop: bool = False
+    suggested_status: str | None = None
+    suggested_outer_ui_route: str | None = None
+    suggested_surface_close: dict[str, object] | None = None
+    initial_deep_capture_wait: dict[str, object] | None = None
+    grid_deep_entry: dict[str, object] | None = None
+    artifacts_written: list[str] = field(default_factory=list)
+    phase_chronology: list[dict[str, Any]] = field(default_factory=list)
+    grid_capture: BrowserPageObservationSuccess | None = None
+    grid_window: dict[str, Any] | None = None
+    window_by_id: dict[str, Any] | None = None
+    captured_video_ids: list[str] | None = None
+    deep_capture: dict[str, Any] | None = None
+
+
+def _validate_onboarding_inputs(
+    *,
+    session_profile: SourceCaptureSessionProfile,
+    window_size: int,
+    selection_count: int,
+    max_grid_scroll_passes: int,
+) -> None:
     if session_profile.platform != "tiktok":
         raise TikTokCreatorOnboardingError("session profile platform must be tiktok")
     if session_profile.browser_backend != TIKTOK_BROWSER_BACKEND_CHROME_CDP:
@@ -583,396 +728,418 @@ def run_tiktok_creator_onboarding(
             "max_grid_scroll_passes must be a positive integer"
         )
 
-    storage_state_path = validate_auth_state_provenance_requirement(
-        session_profile.state_label,
+
+def _acquire_or_reuse_observation_engine(
+    *,
+    engine: BrowserPageObservationEngine | None,
+    session_profile: SourceCaptureSessionProfile,
+    browser_user_data_root: Path | None,
+) -> BrowserPageObservationEngine:
+    if engine is not None:
+        return engine
+    if session_profile.browser_user_data_label is None:
+        raise TikTokCreatorOnboardingError(
+            "TikTok onboarding requires a retained browser_user_data_label"
+        )
+    user_data_dir = browser_user_data_path_for_label(
+        session_profile.browser_user_data_label,
+        user_data_root=browser_user_data_root,
+    )
+    if not user_data_dir.is_dir() or not any(user_data_dir.iterdir()):
+        raise TikTokCreatorOnboardingError(
+            "retained browser profile is missing or empty; bootstrap it manually before onboarding"
+        )
+    return ChromeCdpPageObservationSessionEngine(
+        pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
+        human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        human_challenge_handoff_timeout_seconds=180.0,
+        human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+    )
+
+
+def _run_suggested_grid_and_selection_phase(
+    state: _OnboardingRunState,
+    *,
+    profile_url: str,
+    creator_handle: str,
+    storage_state_path: Path,
+    paths: TikTokCreatorOnboardingOutputPaths,
+    window_size: int,
+    selection_count: int,
+    max_grid_scroll_passes: int,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+    progress_fn: ProgressFn | None,
+    run_started_monotonic: float,
+    monotonic_fn: MonotonicFn,
+    utc_now_fn: UtcNowFn,
+) -> None:
+    state.stage = "collect_suggested_accounts"
+    _notify_progress(progress_fn, state.stage)
+    suggested_capture = _capture_suggested_accounts(
+        profile_url=profile_url,
+        creator_handle=creator_handle,
+        storage_state_path=storage_state_path,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        engine=engine,
+    )
+    suggested_receipt = _build_suggested_accounts_receipt(
+        creator_handle=creator_handle,
+        capture=suggested_capture,
+    )
+    state.suggested_status = str(suggested_receipt["status"])
+    state.suggested_outer_ui_route = str(suggested_receipt["outer_ui_route"])
+    _write_json(paths.suggested_accounts_json_path, suggested_receipt)
+    state.artifacts_written.append(paths.suggested_accounts_json_path.name)
+    if state.suggested_status == "failed":
+        raise TikTokCreatorOnboardingError("suggested-account observation failed")
+
+    state.stage = "close_suggested_surface"
+    _notify_progress(progress_fn, state.stage)
+    state.suggested_surface_close = _close_suggested_surface_before_grid(
+        profile_url=profile_url,
+        creator_handle=creator_handle,
+        suggested_status=state.suggested_status,
+        suggested_outer_ui_route=state.suggested_outer_ui_route,
+        storage_state_path=storage_state_path,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        engine=engine,
+    )
+
+    state.stage = "collect_grid"
+    _notify_progress(progress_fn, state.stage)
+    grid_capture = capture_tiktok_creator_grid(
+        profile_url=profile_url,
+        creator_handle=creator_handle,
+        storage_state_path=storage_state_path,
+        window_size=window_size,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        max_grid_scroll_passes=max_grid_scroll_passes,
+        engine=engine,
+    )
+    if isinstance(grid_capture, BrowserSnapshotFailure):
+        raise TikTokCreatorOnboardingError(
+            f"grid capture failed: {grid_capture.failure_kind.value}"
+        )
+    state.grid_capture = grid_capture
+
+    state.stage = "freeze_window"
+    _notify_progress(progress_fn, state.stage)
+    grid_window = build_tiktok_grid_window(
+        creator_handle=creator_handle,
+        capture=grid_capture,
+        window_size=window_size,
+        minimum_window_size=selection_count,
+    )
+    state.grid_window = grid_window
+    _write_json(paths.grid_window_json_path, grid_window)
+    state.artifacts_written.append(paths.grid_window_json_path.name)
+
+    state.stage = "select"
+    _notify_progress(progress_fn, state.stage)
+    selection = build_tiktok_grid_video_selection(
+        grid_window["items"],
+        expected_item_count=len(grid_window["items"]),
+        selection_count=selection_count,
+    )
+    selection["onboarding_binding"] = {
+        "creator_handle": creator_handle,
+        "grid_window_file": paths.grid_window_json_path.name,
+        "grid_window_sha256": hash_file(paths.grid_window_json_path),
+    }
+    _write_json(paths.selection_json_path, selection)
+    state.artifacts_written.append(paths.selection_json_path.name)
+
+    state.window_by_id = {
+        str(item["video_id"]): item for item in grid_window["items"]
+    }
+    state.selected_video_ids = list(
+        selection["selection_summary"][
+            "selected_video_ids_in_review_priority_order"
+        ]
+    )
+    state.phase_chronology.append(
+        _phase_chronology_row(
+            "grid_and_selection_complete",
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+            utc_now_fn=utc_now_fn,
+        )
+    )
+
+
+def _run_grid_overlay_deep_capture_phase(
+    state: _OnboardingRunState,
+    *,
+    profile_url: str,
+    creator_handle: str,
+    session_profile: SourceCaptureSessionProfile,
+    auth_state_root: Path | None,
+    storage_state_path: Path,
+    paths: TikTokCreatorOnboardingOutputPaths,
+    max_grid_scroll_passes: int,
+    timeout_seconds: float,
+    settle_seconds: float,
+    cadence_min_gap_seconds: float,
+    cadence_max_gap_seconds: float,
+    cadence_window_seconds: float | None,
+    random_seed: int | None,
+    engine: BrowserPageObservationEngine,
+    progress_fn: ProgressFn | None,
+    deep_capture_fn: DeepCaptureFn,
+    sleep_fn: SleepFn,
+    monotonic_fn: MonotonicFn,
+    utc_now_fn: UtcNowFn,
+    run_started_monotonic: float,
+) -> None:
+    assert state.grid_capture is not None
+    assert state.window_by_id is not None
+    run_rng = (
+        random.Random(random_seed)
+        if random_seed is not None
+        else random.SystemRandom()
+    )
+    planned_wait_seconds = run_rng.uniform(
+        INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
+        INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
+    )
+    wait_observed_at_utc = _utc_iso(utc_now_fn())
+    wait_started_monotonic = monotonic_fn()
+    sleep_fn(planned_wait_seconds)
+    wait_finished_monotonic = monotonic_fn()
+    state.initial_deep_capture_wait = {
+        "policy": "randomized_wait_after_grid_before_first_deep_capture",
+        "minimum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
+        "maximum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
+        "planned_seconds": round(planned_wait_seconds, 6),
+        "actual_seconds": round(
+            max(0.0, wait_finished_monotonic - wait_started_monotonic), 6
+        ),
+        "observed_at_utc": wait_observed_at_utc,
+    }
+    state.phase_chronology.append(
+        _phase_chronology_row(
+            "first_deep_capture_released",
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+            utc_now_fn=utc_now_fn,
+        )
+    )
+
+    state.stage = "enter_grid_overlay_capture_sequence"
+    _notify_progress(progress_fn, state.stage, selected_count=len(state.selected_video_ids))
+    grid_deep_entry: dict[str, object] = {
+        "policy": "all_selected_via_visible_grid_tile_overlay_with_bounded_pagination",
+        "deep_capture_route": "grid_tile_overlay",
+        "direct_video_navigation_count": 0,
+        "targeted_tile_scroll_performed": False,
+        "grid_pagination_allowed": True,
+        "grid_pagination_input_method": "mouse_wheel_burst",
+        "logical_grid_positions_remembered": True,
+        "absolute_pixel_positions_cached": False,
+        "tile_click_target_policy": "link_routed_video_count_footer",
+        "hover_preview_body_click_allowed": False,
+        "click_target_safe_inset_fraction": 0.15,
+        "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
+        "grid_pagination_total_pass_cap": (
+            max_grid_scroll_passes * len(state.selected_video_ids)
+        ),
+        "grid_pagination_passes_executed": 0,
+        "grid_pagination_passes": [],
+        "grid_pagination_stop_reason": None,
+        "frozen_window_identity_drift_detected": False,
+        "frozen_window_live_overlap_count_at_stop_or_none": None,
+        "loaded_grid_video_count_at_stop_or_none": None,
+        "attempts": [],
+        "retry_waits": [],
+        "status": "in_progress",
+    }
+    state.grid_deep_entry = grid_deep_entry
+    selected_urls = [
+        str(state.window_by_id[video_id]["video_url"])
+        for video_id in state.selected_video_ids
+    ]
+    profile_grid_subtitle_sources = _profile_grid_subtitle_sources_from_capture(
+        state.grid_capture,
+        creator_handle=creator_handle,
+    )
+    selected_profile_grid_subtitle_sources = {
+        video_id: profile_grid_subtitle_sources[video_id]
+        for video_id in state.selected_video_ids
+        if video_id in profile_grid_subtitle_sources
+    }
+    overlay_capture_sequence = _GridOverlayCaptureSequence(
+        profile_url=profile_url,
+        creator_handle=creator_handle,
+        selected_video_ids=state.selected_video_ids,
+        window_by_id=state.window_by_id,
+        storage_state_path=storage_state_path,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        pagination_pass_cap=max_grid_scroll_passes,
+        engine=engine,
+        rng=run_rng,
+        sleep_fn=sleep_fn,
+        monotonic_fn=monotonic_fn,
+        utc_now_fn=utc_now_fn,
+        receipt=grid_deep_entry,
+    )
+
+    state.stage = "deep_capture"
+    _notify_progress(progress_fn, state.stage, selected_count=len(state.selected_video_ids))
+    deep_capture = deep_capture_fn(
+        creator_handle=creator_handle,
+        creator_profile_url=profile_url,
+        video_urls=selected_urls,
+        state_label=session_profile.state_label,
         session_mode=session_profile.session_mode,
+        logged_out=False,
+        auth_state_root=auth_state_root,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        browser_backend=session_profile.browser_backend,
         required_harness_proxy_profile_posture=(
             session_profile.required_harness_proxy_profile_posture
         ),
-        auth_state_root=auth_state_root,
+        human_challenge_handoff=True,
+        cadence_min_gap_seconds=cadence_min_gap_seconds,
+        cadence_max_gap_seconds=cadence_max_gap_seconds,
+        cadence_window_seconds=cadence_window_seconds,
+        random_seed=random_seed,
+        engine=engine,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=overlay_capture_sequence,
+        grid_candidates_by_video_id=state.window_by_id,
+        profile_grid_subtitle_sources_by_video_id=(
+            selected_profile_grid_subtitle_sources
+        ),
     )
-    output_dir.mkdir(parents=True, exist_ok=True)
-    paths = _output_paths(output_dir)
-    profile_url = f"https://www.tiktok.com/@{normalized_handle}"
-    owned_engine = engine is None
-    if engine is None:
-        if session_profile.browser_user_data_label is None:
-            raise TikTokCreatorOnboardingError(
-                "TikTok onboarding requires a retained browser_user_data_label"
-            )
-        user_data_dir = browser_user_data_path_for_label(
-            session_profile.browser_user_data_label,
-            user_data_root=browser_user_data_root,
-        )
-        if not user_data_dir.is_dir() or not any(user_data_dir.iterdir()):
-            raise TikTokCreatorOnboardingError(
-                "retained browser profile is missing or empty; bootstrap it manually before onboarding"
-            )
-        observation_engine = ChromeCdpPageObservationSessionEngine(
-            pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
-            human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
-            human_challenge_handoff_timeout_seconds=180.0,
-            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
-        )
-    else:
-        observation_engine = engine
-
-    stage = "acquire_session"
-    status = "failed"
-    error: str | None = None
-    close_error: str | None = None
-    selected_video_ids: list[str] = []
-    challenge_count = 0
-    human_challenge_handoff_count = 0
-    completed_count = 0
-    account_safety_stop = False
-    suggested_status: str | None = None
-    suggested_outer_ui_route: str | None = None
-    suggested_surface_close: dict[str, object] | None = None
-    initial_deep_capture_wait: dict[str, object] | None = None
-    grid_deep_entry: dict[str, object] | None = None
-    artifacts_written: list[str] = []
-    try:
-        stage = "collect_suggested_accounts"
-        _notify_progress(progress_fn, stage)
-        suggested_capture = _capture_suggested_accounts(
-            profile_url=profile_url,
-            creator_handle=normalized_handle,
-            storage_state_path=storage_state_path,
-            timeout_seconds=timeout_seconds,
-            settle_seconds=settle_seconds,
-            engine=observation_engine,
-        )
-        suggested_receipt = _build_suggested_accounts_receipt(
-            creator_handle=normalized_handle,
-            capture=suggested_capture,
-        )
-        suggested_status = str(suggested_receipt["status"])
-        suggested_outer_ui_route = str(suggested_receipt["outer_ui_route"])
-        _write_json(paths.suggested_accounts_json_path, suggested_receipt)
-        artifacts_written.append(paths.suggested_accounts_json_path.name)
-        if suggested_status == "failed":
-            raise TikTokCreatorOnboardingError("suggested-account observation failed")
-
-        stage = "close_suggested_surface"
-        _notify_progress(progress_fn, stage)
-        suggested_surface_close = _close_suggested_surface_before_grid(
-            profile_url=profile_url,
-            creator_handle=normalized_handle,
-            suggested_status=suggested_status,
-            suggested_outer_ui_route=suggested_outer_ui_route,
-            storage_state_path=storage_state_path,
-            timeout_seconds=timeout_seconds,
-            settle_seconds=settle_seconds,
-            engine=observation_engine,
-        )
-
-        stage = "collect_grid"
-        _notify_progress(progress_fn, stage)
-        grid_capture = capture_tiktok_creator_grid(
-            profile_url=profile_url,
-            creator_handle=normalized_handle,
-            storage_state_path=storage_state_path,
-            window_size=window_size,
-            timeout_seconds=timeout_seconds,
-            settle_seconds=settle_seconds,
-            max_grid_scroll_passes=max_grid_scroll_passes,
-            engine=observation_engine,
-        )
-        if isinstance(grid_capture, BrowserSnapshotFailure):
-            raise TikTokCreatorOnboardingError(
-                f"grid capture failed: {grid_capture.failure_kind.value}"
-            )
-
-        stage = "freeze_window"
-        _notify_progress(progress_fn, stage)
-        grid_window = build_tiktok_grid_window(
-            creator_handle=normalized_handle,
-            capture=grid_capture,
-            window_size=window_size,
-            minimum_window_size=selection_count,
-        )
-        _write_json(paths.grid_window_json_path, grid_window)
-        artifacts_written.append(paths.grid_window_json_path.name)
-
-        stage = "select"
-        _notify_progress(progress_fn, stage)
-        selection = build_tiktok_grid_video_selection(
-            grid_window["items"],
-            expected_item_count=len(grid_window["items"]),
-            selection_count=selection_count,
-        )
-        selection["onboarding_binding"] = {
-            "creator_handle": normalized_handle,
-            "grid_window_file": paths.grid_window_json_path.name,
-            "grid_window_sha256": hash_file(paths.grid_window_json_path),
-        }
-        _write_json(paths.selection_json_path, selection)
-        artifacts_written.append(paths.selection_json_path.name)
-
-        window_by_id = {
-            str(item["video_id"]): item for item in grid_window["items"]
-        }
-        selected_video_ids = list(
-            selection["selection_summary"][
-                "selected_video_ids_in_review_priority_order"
-            ]
-        )
-        phase_chronology.append(
+    state.deep_capture = deep_capture
+    state.captured_video_ids = [
+        str(row["video_id"])
+        for row in deep_capture["cadence_result"].get("results", [])
+        if isinstance(row, dict) and row.get("video_id")
+    ]
+    if grid_deep_entry.get("status") == "complete":
+        state.phase_chronology.append(
             _phase_chronology_row(
-                "grid_and_selection_complete",
+                "grid_overlay_deep_capture_sequence_completed",
                 run_started_monotonic=run_started_monotonic,
                 monotonic_fn=monotonic_fn,
                 utc_now_fn=utc_now_fn,
             )
         )
-        run_rng = (
-            random.Random(random_seed)
-            if random_seed is not None
-            else random.SystemRandom()
+    _write_json(paths.live_grid_json_path, deep_capture["grid_result"])
+    state.artifacts_written.append(paths.live_grid_json_path.name)
+    _write_json(paths.live_cadence_json_path, deep_capture["cadence_result"])
+    state.artifacts_written.append(paths.live_cadence_json_path.name)
+    state.challenge_count = int(
+        deep_capture["cadence_result"].get("challenge_count", 0)
+    )
+    state.human_challenge_handoff_count = int(
+        deep_capture["cadence_result"].get(
+            "human_challenge_handoff_count", 0
         )
-        planned_wait_seconds = run_rng.uniform(
-            INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
-            INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
+    )
+    state.completed_count = int(deep_capture["cadence_result"]["completed_count"])
+    state.account_safety_stop = _has_account_safety_stop(
+        deep_capture["cadence_result"]
+    )
+    state.status = (
+        "complete"
+        if state.completed_count == len(state.selected_video_ids)
+        else "partial_failure"
+    )
+    if state.status != "complete":
+        if state.account_safety_stop:
+            raise TikTokCreatorOnboardingError("account_safety_stop")
+        raise TikTokCreatorOnboardingError(
+            "one or more selected video deep captures did not complete"
         )
-        wait_observed_at_utc = _utc_iso(utc_now_fn())
-        wait_started_monotonic = monotonic_fn()
-        sleep_fn(planned_wait_seconds)
-        wait_finished_monotonic = monotonic_fn()
-        initial_deep_capture_wait = {
-            "policy": "randomized_wait_after_grid_before_first_deep_capture",
-            "minimum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
-            "maximum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
-            "planned_seconds": round(planned_wait_seconds, 6),
-            "actual_seconds": round(
-                max(0.0, wait_finished_monotonic - wait_started_monotonic), 6
-            ),
-            "observed_at_utc": wait_observed_at_utc,
-        }
-        phase_chronology.append(
-            _phase_chronology_row(
-                "first_deep_capture_released",
-                run_started_monotonic=run_started_monotonic,
-                monotonic_fn=monotonic_fn,
-                utc_now_fn=utc_now_fn,
-            )
-        )
-
-        stage = "enter_grid_overlay_capture_sequence"
-        _notify_progress(progress_fn, stage, selected_count=len(selected_video_ids))
-        grid_deep_entry = {
-            "policy": "all_selected_via_visible_grid_tile_overlay_with_bounded_pagination",
-            "deep_capture_route": "grid_tile_overlay",
-            "direct_video_navigation_count": 0,
-            "targeted_tile_scroll_performed": False,
-            "grid_pagination_allowed": True,
-            "grid_pagination_input_method": "mouse_wheel_burst",
-            "logical_grid_positions_remembered": True,
-            "absolute_pixel_positions_cached": False,
-            "tile_click_target_policy": "link_routed_video_count_footer",
-            "hover_preview_body_click_allowed": False,
-            "click_target_safe_inset_fraction": 0.15,
-            "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
-            "grid_pagination_total_pass_cap": (
-                max_grid_scroll_passes * len(selected_video_ids)
-            ),
-            "grid_pagination_passes_executed": 0,
-            "grid_pagination_passes": [],
-            "grid_pagination_stop_reason": None,
-            "frozen_window_identity_drift_detected": False,
-            "frozen_window_live_overlap_count_at_stop_or_none": None,
-            "loaded_grid_video_count_at_stop_or_none": None,
-            "attempts": [],
-            "retry_waits": [],
-            "status": "in_progress",
-        }
-        selected_urls = [
-            str(window_by_id[video_id]["video_url"])
-            for video_id in selected_video_ids
-        ]
-        profile_grid_subtitle_sources = _profile_grid_subtitle_sources_from_capture(
-            grid_capture,
-            creator_handle=normalized_handle,
-        )
-        selected_profile_grid_subtitle_sources = {
-            video_id: profile_grid_subtitle_sources[video_id]
-            for video_id in selected_video_ids
-            if video_id in profile_grid_subtitle_sources
-        }
-        overlay_capture_sequence = _GridOverlayCaptureSequence(
-            profile_url=profile_url,
-            creator_handle=normalized_handle,
-            selected_video_ids=selected_video_ids,
-            window_by_id=window_by_id,
-            storage_state_path=storage_state_path,
-            timeout_seconds=timeout_seconds,
-            settle_seconds=settle_seconds,
-            pagination_pass_cap=max_grid_scroll_passes,
-            engine=observation_engine,
-            rng=run_rng,
-            sleep_fn=sleep_fn,
+    state.phase_chronology.append(
+        _phase_chronology_row(
+            "deep_capture_completed",
+            run_started_monotonic=run_started_monotonic,
             monotonic_fn=monotonic_fn,
             utc_now_fn=utc_now_fn,
-            receipt=grid_deep_entry,
         )
+    )
 
-        stage = "deep_capture"
-        _notify_progress(progress_fn, stage, selected_count=len(selected_video_ids))
-        deep_capture = deep_capture_fn(
-            creator_handle=normalized_handle,
-            creator_profile_url=profile_url,
-            video_urls=selected_urls,
-            state_label=session_profile.state_label,
-            session_mode=session_profile.session_mode,
-            logged_out=False,
-            auth_state_root=auth_state_root,
-            timeout_seconds=timeout_seconds,
-            settle_seconds=settle_seconds,
-            browser_backend=session_profile.browser_backend,
-            required_harness_proxy_profile_posture=(
-                session_profile.required_harness_proxy_profile_posture
-            ),
-            human_challenge_handoff=True,
-            cadence_min_gap_seconds=cadence_min_gap_seconds,
-            cadence_max_gap_seconds=cadence_max_gap_seconds,
-            cadence_window_seconds=cadence_window_seconds,
-            random_seed=random_seed,
-            engine=observation_engine,
-            capture_route="grid_tile_overlay",
-            page_capture_sequence_fn=overlay_capture_sequence,
-            grid_candidates_by_video_id=window_by_id,
-            profile_grid_subtitle_sources_by_video_id=(
-                selected_profile_grid_subtitle_sources
-            ),
-        )
-        captured_video_ids = [
-            str(row["video_id"])
-            for row in deep_capture["cadence_result"].get("results", [])
-            if isinstance(row, dict) and row.get("video_id")
-        ]
-        if grid_deep_entry.get("status") == "complete":
-            phase_chronology.append(
-                _phase_chronology_row(
-                    "grid_overlay_deep_capture_sequence_completed",
-                    run_started_monotonic=run_started_monotonic,
-                    monotonic_fn=monotonic_fn,
-                    utc_now_fn=utc_now_fn,
-                )
-            )
-        _write_json(paths.live_grid_json_path, deep_capture["grid_result"])
-        artifacts_written.append(paths.live_grid_json_path.name)
-        _write_json(paths.live_cadence_json_path, deep_capture["cadence_result"])
-        artifacts_written.append(paths.live_cadence_json_path.name)
-        challenge_count = int(
-            deep_capture["cadence_result"].get("challenge_count", 0)
-        )
-        human_challenge_handoff_count = int(
-            deep_capture["cadence_result"].get(
-                "human_challenge_handoff_count", 0
-            )
-        )
-        completed_count = int(deep_capture["cadence_result"]["completed_count"])
-        account_safety_stop = _has_account_safety_stop(
-            deep_capture["cadence_result"]
-        )
-        status = (
-            "complete"
-            if completed_count == len(selected_video_ids)
-            else "partial_failure"
-        )
-        if status != "complete":
-            if account_safety_stop:
-                raise TikTokCreatorOnboardingError("account_safety_stop")
-            raise TikTokCreatorOnboardingError(
-                "one or more selected video deep captures did not complete"
-            )
-        phase_chronology.append(
-            _phase_chronology_row(
-                "deep_capture_completed",
-                run_started_monotonic=run_started_monotonic,
-                monotonic_fn=monotonic_fn,
-                utc_now_fn=utc_now_fn,
-            )
-        )
-        stage = "close"
-        _notify_progress(progress_fn, stage, completed_count=completed_count)
-    except Exception as exc:
-        error = f"{type(exc).__name__}: {exc}"
-        raise
-    finally:
-        if owned_engine:
-            close = getattr(observation_engine, "close", None)
-            if callable(close):
-                try:
-                    close()
-                except Exception as exc:
-                    close_error = f"{type(exc).__name__}: {exc}"
-                    error = f"{error}; close failed: {close_error}" if error else f"close failed: {close_error}"
-                    status = "failed"
-                    stage = "close"
-        lifecycle_receipt = getattr(observation_engine, "lifecycle_receipt", None)
-        grid_overlay_capture_order = (
-            list(grid_deep_entry.get("selected_video_ids_in_capture_order", []))
-            if isinstance(grid_deep_entry, dict)
-            and isinstance(
-                grid_deep_entry.get("selected_video_ids_in_capture_order"), list
-            )
-            else []
-        )
-        receipt = {
-            "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
-            "status": status,
-            "terminal_stage": stage,
-            "creator_handle": normalized_handle,
-            "session_profile": session_profile.alias,
-            "window_size": len(grid_window["items"]) if "grid_window" in locals() else 0,
-            "window_cap": window_size,
-            "selection_count": selection_count,
-            "suggested_accounts_status_or_none": suggested_status,
-            "suggested_outer_ui_route_or_none": suggested_outer_ui_route,
-            "suggested_surface_close_before_grid_or_none": suggested_surface_close,
-            "candidate_profiles_opened": 0,
-            "account_mutations_taken": 0,
-            "selected_video_ids_in_capture_order": (
-                captured_video_ids
-                if "captured_video_ids" in locals()
-                else grid_overlay_capture_order
-            ),
-            "selected_count": len(selected_video_ids),
-            "challenge_count": challenge_count,
-            "human_challenge_handoff_count": human_challenge_handoff_count,
-            "account_safety_stop": account_safety_stop,
-            "completed_deep_capture_count": completed_count,
-            "completed_deep_capture_count_source": (
-                "cadence_result" if "deep_capture" in locals() else "no_cadence_result"
-            ),
-            "completed_grid_overlay_capture_count": len(grid_overlay_capture_order),
-            "initial_deep_capture_wait_or_none": initial_deep_capture_wait,
-            "grid_deep_entry_or_none": grid_deep_entry,
-            "phase_chronology": phase_chronology,
-            "artifacts_written": artifacts_written,
-            "browser_lifecycle": (
-                lifecycle_receipt
-                if isinstance(lifecycle_receipt, dict)
-                else {
-                    "engine": type(observation_engine).__name__,
-                    "owned_by_onboarding_runner": owned_engine,
-                    "closed_or_none": True if owned_engine else None,
-                }
-            ),
-            "error_or_none": error,
-            "non_claims": [
-                "not a standing scanner or crawler",
-                "not Creator Registry mutation",
-                "not an exhaustive suggested-account graph",
-                "not paid or organic distribution classification",
-            ],
-        }
-        _write_json(paths.onboarding_receipt_json_path, receipt)
 
-    if close_error is not None:
-        raise TikTokCreatorOnboardingError(f"browser session close failed: {close_error}")
-    return paths
+def _build_onboarding_receipt(
+    state: _OnboardingRunState,
+    *,
+    observation_engine: BrowserPageObservationEngine,
+    owned_engine: bool,
+    creator_handle: str,
+    session_profile: SourceCaptureSessionProfile,
+    window_size: int,
+    selection_count: int,
+) -> dict[str, Any]:
+    lifecycle_receipt = getattr(observation_engine, "lifecycle_receipt", None)
+    grid_overlay_capture_order = (
+        list(state.grid_deep_entry.get("selected_video_ids_in_capture_order", []))
+        if isinstance(state.grid_deep_entry, dict)
+        and isinstance(
+            state.grid_deep_entry.get("selected_video_ids_in_capture_order"), list
+        )
+        else []
+    )
+    return {
+        "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
+        "status": state.status,
+        "terminal_stage": state.stage,
+        "creator_handle": creator_handle,
+        "session_profile": session_profile.alias,
+        "window_size": (
+            len(state.grid_window["items"]) if state.grid_window is not None else 0
+        ),
+        "window_cap": window_size,
+        "selection_count": selection_count,
+        "suggested_accounts_status_or_none": state.suggested_status,
+        "suggested_outer_ui_route_or_none": state.suggested_outer_ui_route,
+        "suggested_surface_close_before_grid_or_none": state.suggested_surface_close,
+        "candidate_profiles_opened": 0,
+        "account_mutations_taken": 0,
+        "selected_video_ids_in_capture_order": (
+            state.captured_video_ids
+            if state.captured_video_ids is not None
+            else grid_overlay_capture_order
+        ),
+        "selected_count": len(state.selected_video_ids),
+        "challenge_count": state.challenge_count,
+        "human_challenge_handoff_count": state.human_challenge_handoff_count,
+        "account_safety_stop": state.account_safety_stop,
+        "completed_deep_capture_count": state.completed_count,
+        "completed_deep_capture_count_source": (
+            "cadence_result" if state.deep_capture is not None else "no_cadence_result"
+        ),
+        "completed_grid_overlay_capture_count": len(grid_overlay_capture_order),
+        "initial_deep_capture_wait_or_none": state.initial_deep_capture_wait,
+        "grid_deep_entry_or_none": state.grid_deep_entry,
+        "phase_chronology": state.phase_chronology,
+        "artifacts_written": state.artifacts_written,
+        "browser_lifecycle": (
+            lifecycle_receipt
+            if isinstance(lifecycle_receipt, dict)
+            else {
+                "engine": type(observation_engine).__name__,
+                "owned_by_onboarding_runner": owned_engine,
+                "closed_or_none": True if owned_engine else None,
+            }
+        ),
+        "error_or_none": state.error,
+        "non_claims": [
+            "not a standing scanner or crawler",
+            "not Creator Registry mutation",
+            "not an exhaustive suggested-account graph",
+            "not paid or organic distribution classification",
+        ],
+    }
 
 
 def _capture_suggested_accounts(

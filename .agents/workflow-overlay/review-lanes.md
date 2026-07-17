@@ -201,11 +201,6 @@ handoffs remain prompt-orchestration work.
 ## Rules
 
 - Reviewer threads are source-read-only unless explicitly assigned patch execution.
-- The deep-thinking trigger rule for review prompts is owned solely by
-  `.agents/workflow-overlay/prompt-orchestration.md` (Review Prompt Defaults);
-  do not restate or fork it here. Where that rule fires for a review
-  commission, the review lane's internalized failure-mode framing satisfies it
-  without a separate `workflow-deep-thinking` load.
 - Adversarial artifact review prompts must explicitly invoke
   `workflow-adversarial-artifact-review` after source readiness. If the skill is
   unavailable or not invoked, the prompt must block strict review claims or

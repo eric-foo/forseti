@@ -28,7 +28,7 @@ from source_capture.auth_state import (
     validate_auth_state_session_mode,
 )
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
-from source_capture.cadence import build_cadence_plan
+from source_capture.cadence import CadencePlan, build_cadence_plan
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
     decoded_aweme_id_create_time_utc,
@@ -533,6 +533,106 @@ def _run_tiktok_live_batch_probe_with_engine(
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
     profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None,
 ) -> JsonObject:
+    inputs = _normalize_and_validate_probe_inputs(
+        creator_handle=creator_handle,
+        creator_profile_url=creator_profile_url,
+        video_urls=video_urls,
+        state_label=state_label,
+        session_mode=session_mode,
+        logged_out=logged_out,
+        auth_state_root=auth_state_root,
+        browser_backend=browser_backend,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        cadence_min_gap_seconds=cadence_min_gap_seconds,
+        cadence_max_gap_seconds=cadence_max_gap_seconds,
+        cadence_window_seconds=cadence_window_seconds,
+        random_seed=random_seed,
+        allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+        subtitle_fetcher=subtitle_fetcher,
+        capture_route=capture_route,
+        page_capture_sequence_fn=page_capture_sequence_fn,
+        grid_candidates_by_video_id=grid_candidates_by_video_id,
+        profile_grid_subtitle_sources_by_video_id=profile_grid_subtitle_sources_by_video_id,
+    )
+    outcome = _capture_video_cadence_rows(
+        inputs=inputs,
+        engine=engine,
+        sleep_fn=sleep_fn,
+        timeout_seconds=timeout_seconds,
+        wait_until=wait_until,
+        viewport_width=viewport_width,
+        viewport_height=viewport_height,
+        max_response_bytes=max_response_bytes,
+        settle_seconds=settle_seconds,
+        selector_timeout_seconds=selector_timeout_seconds,
+        browser_channel=browser_channel,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        human_challenge_handoff=human_challenge_handoff,
+        human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+        random_seed=random_seed,
+        allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+        capture_route=capture_route,
+        page_capture_sequence_fn=page_capture_sequence_fn,
+        grid_candidates_by_video_id=grid_candidates_by_video_id,
+    )
+    return _build_probe_result_payload(
+        inputs=inputs,
+        outcome=outcome,
+        engine=engine,
+        session_mode=session_mode,
+        logged_out=logged_out,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        human_challenge_handoff=human_challenge_handoff,
+        human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+        allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+        capture_route=capture_route,
+    )
+
+
+@dataclass(frozen=True)
+class _NormalizedProbeInputs:
+    """Validated, normalized probe inputs shared by the capture loop and payload build."""
+
+    browser_backend: str
+    creator_handle: str
+    creator_profile_url: str
+    video_urls: list[str]
+    subtitle_fetcher: SubtitleFetchFn
+    profile_grid_subtitle_sources: dict[str, JsonObject]
+    storage_state_path: Path | None
+    comment_response_cap: int
+    cadence_plan: CadencePlan
+
+
+def _normalize_and_validate_probe_inputs(
+    *,
+    creator_handle: str,
+    creator_profile_url: str,
+    video_urls: Sequence[str],
+    state_label: str | None,
+    session_mode: AuthenticatedSessionMode | None,
+    logged_out: bool,
+    auth_state_root: Path | None,
+    browser_backend: str,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None,
+    cloakbrowser_humanize: bool,
+    cadence_min_gap_seconds: float,
+    cadence_max_gap_seconds: float,
+    cadence_window_seconds: float | None,
+    random_seed: int | None,
+    allow_challenge_close_diagnostic: bool,
+    allow_challenge_close_followthrough: bool,
+    subtitle_fetcher: SubtitleFetchFn | None,
+    capture_route: str,
+    page_capture_sequence_fn: PageCaptureSequenceFn | None,
+    grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
+    profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None,
+) -> _NormalizedProbeInputs:
     normalized_browser_backend = browser_backend.strip().lower()
     normalized_handle = _normalize_handle(creator_handle)
     normalized_profile_url = _normalize_profile_url(creator_profile_url, normalized_handle)
@@ -630,6 +730,64 @@ def _run_tiktok_live_batch_probe_with_engine(
         window_seconds=cadence_window_seconds,
         random_seed=random_seed,
     )
+    return _NormalizedProbeInputs(
+        browser_backend=browser_backend,
+        creator_handle=normalized_handle,
+        creator_profile_url=normalized_profile_url,
+        video_urls=normalized_video_urls,
+        subtitle_fetcher=subtitle_fetcher,
+        profile_grid_subtitle_sources=normalized_profile_grid_subtitle_sources,
+        storage_state_path=storage_state_path,
+        comment_response_cap=comment_response_cap,
+        cadence_plan=cadence_plan,
+    )
+
+
+@dataclass(frozen=True)
+class _CadenceCaptureOutcome:
+    """Counters and row/failure accumulations from one cadence capture loop."""
+
+    attempts: int
+    challenge_count: int
+    human_challenge_handoff_count: int
+    cleared_human_challenge_handoff_count: int
+    challenge_close_followthrough_count: int
+    results: list[JsonObject]
+    failures: list[JsonObject]
+    grid_items: list[JsonObject]
+
+
+def _capture_video_cadence_rows(
+    *,
+    inputs: _NormalizedProbeInputs,
+    engine: BrowserPageObservationEngine | None,
+    sleep_fn: SleepFn,
+    timeout_seconds: float,
+    wait_until: str,
+    viewport_width: int,
+    viewport_height: int,
+    max_response_bytes: int,
+    settle_seconds: float,
+    selector_timeout_seconds: float,
+    browser_channel: str | None,
+    cloakbrowser_humanize: bool,
+    human_challenge_handoff: bool,
+    human_challenge_handoff_timeout_seconds: float,
+    random_seed: int | None,
+    allow_challenge_close_diagnostic: bool,
+    allow_challenge_close_followthrough: bool,
+    capture_route: str,
+    page_capture_sequence_fn: PageCaptureSequenceFn | None,
+    grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
+) -> _CadenceCaptureOutcome:
+    browser_backend = inputs.browser_backend
+    normalized_handle = inputs.creator_handle
+    normalized_video_urls = inputs.video_urls
+    subtitle_fetcher = inputs.subtitle_fetcher
+    normalized_profile_grid_subtitle_sources = inputs.profile_grid_subtitle_sources
+    storage_state_path = inputs.storage_state_path
+    comment_response_cap = inputs.comment_response_cap
+    cadence_plan = inputs.cadence_plan
 
     attempts = 0
     challenge_count = 0
@@ -1022,6 +1180,47 @@ def _run_tiktok_live_batch_probe_with_engine(
 
         results.append(row)
         grid_items.append(grid_candidate)
+
+    return _CadenceCaptureOutcome(
+        attempts=attempts,
+        challenge_count=challenge_count,
+        human_challenge_handoff_count=human_challenge_handoff_count,
+        cleared_human_challenge_handoff_count=cleared_human_challenge_handoff_count,
+        challenge_close_followthrough_count=challenge_close_followthrough_count,
+        results=results,
+        failures=failures,
+        grid_items=grid_items,
+    )
+
+
+def _build_probe_result_payload(
+    *,
+    inputs: _NormalizedProbeInputs,
+    outcome: _CadenceCaptureOutcome,
+    engine: BrowserPageObservationEngine | None,
+    session_mode: AuthenticatedSessionMode | None,
+    logged_out: bool,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None,
+    cloakbrowser_humanize: bool,
+    human_challenge_handoff: bool,
+    human_challenge_handoff_timeout_seconds: float,
+    allow_challenge_close_diagnostic: bool,
+    allow_challenge_close_followthrough: bool,
+    capture_route: str,
+) -> JsonObject:
+    normalized_handle = inputs.creator_handle
+    normalized_profile_url = inputs.creator_profile_url
+    normalized_video_urls = inputs.video_urls
+    browser_backend = inputs.browser_backend
+    cadence_plan = inputs.cadence_plan
+    results = outcome.results
+    failures = outcome.failures
+    grid_items = outcome.grid_items
+    attempts = outcome.attempts
+    challenge_count = outcome.challenge_count
+    human_challenge_handoff_count = outcome.human_challenge_handoff_count
+    cleared_human_challenge_handoff_count = outcome.cleared_human_challenge_handoff_count
+    challenge_close_followthrough_count = outcome.challenge_close_followthrough_count
 
     completed_count = sum(1 for row in results if row.get("status") == "completed")
     partial_count = sum(
