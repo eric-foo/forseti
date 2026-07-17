@@ -384,12 +384,21 @@ A screenshot is optional source-media evidence. Request one only when the
 capture needs to establish or inspect a visual fact that DOM, visible text,
 route provenance, and the projected content record do not independently carry:
 
-- the first live baseline for a new or materially changed rendered route;
+- the first active-Capture baseline for a new or materially changed rendered
+  route after that route has been selected for capture;
 - source-visible image, layout, placement, or other visual content is part of
   the information job;
 - access state, rendered-route drift, projection ambiguity/failure, or a UI
   overlay needs diagnosis; or
 - the owner explicitly requests current visual evidence.
+
+Screenshot production belongs to **Capture**, not to CSB or Scanning/radaring.
+CSB may name a visual-evidence requirement in the commission, and Scanning may
+return a `capture_request` whose information job requires that evidence, but
+neither lane takes or preserves the screenshot as ordinary output. Capture
+creates it only while executing the selected `capture_request`. A transient
+operator view used to route or diagnose a scan is not a capture artifact and
+must not be packetized or admitted to the lake.
 
 A repeat semantic refresh with the same working route, capture plan, and
 projector does **not** request a screenshot merely because an earlier packet
@@ -537,9 +546,10 @@ failure visibility.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Rendered-browser capture now treats screenshots as trigger-based source
-    media rather than a repeat-capture default and defines a site-agnostic
-    benign-overlay contract whose actions remain deterministic and route-owned.
+    Screenshots are now trigger-based source media produced only by active
+    Capture, never ordinary CSB or Scanning/radar output, while the
+    site-agnostic benign-overlay contract keeps actions deterministic and
+    route-owned.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
@@ -552,6 +562,9 @@ direction_change_propagation:
     - docs/workflows/orca_repo_map_v0.md
     - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
     - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - forseti/product/spines/scanning/README.md
+    - docs/workflows/forseti_research_engine_map_v0.md
     - forseti-harness/runners/run_parfumo_mgt_capture.py
     - forseti-harness/source_capture/adapters/browser_snapshot.py
   intentionally_not_updated:
@@ -571,21 +584,27 @@ direction_change_propagation:
       reason: >
         Its source-owned benign-overlay and challenge actions already satisfy
         the shared split; no TikTok action or challenge authority changed.
+    - path: CSB and Scanning controlling sources
+      reason: >
+        They already route CSB commission requirements through Scanning
+        `capture_request`s into Capture and grant neither upstream lane
+        preservation-adapter ownership; no duplicate screenshot rule added.
     - path: runtime browser and Parfumo capture code
       reason: >
         This doctrine unit does not add a generic visual actor or pretend the
         local-artifact Parfumo packet writer owns live page interaction. A
         route-owned executable action remains separate implementation work.
   stale_language_search: >
-    rg -n -i "screenshot.*every|always.*screenshot|accept all|generic.*click|benign_dismissible_overlay"
-    forseti/product/spines/capture/core/source_capture_toolbox
+    rg -n -i "CSB.*screenshot|Scanning.*screenshot|radar.*screenshot|active.Capture|capture_request.*visual"
+    forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
     docs/workflows/parfumo_targeted_capture_contract_v0.md
-    docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    forseti/product/spines/commission_signal_board
+    forseti/product/spines/scanning
   stale_language_search_result: >
-    Executed 2026-07-18. Hits are the new shared and Parfumo rules, their DCP
-    search literals, and TikTok's compatible stop on unknown generic clicking;
-    no checked surface requires a screenshot on every capture or authorizes
-    accept-all/generic visual dismissal.
+    Executed 2026-07-18. Hits are the corrected active-Capture rules, their DCP
+    search literals, and unrelated existing active-capture risk-posture wording;
+    no CSB or Scanning controlling source claims screenshot production or
+    preservation-adapter ownership.
   non_claims:
     - not validation
     - not readiness
