@@ -23,7 +23,8 @@ authority_boundary: retrieval_only
   onboarding/on-demand firing point; `forseti-worktree-retirement`, which
   supplies the guarded high-concurrency worktree-retirement procedure; and the
   experimental generic `success-implement` source. None is accepted/frozen or
-  externally deployed; `success-implement` has not been dogfooded or activated.
+  externally deployed; `success-implement` has controlled paired-dogfood
+  evidence but is not activated.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -146,8 +147,8 @@ behavior was not proven in-thread.
 
 - `success-implement`
   - Source path: `.agents/skills/success-implement/SKILL.md`.
-  - Normalized LF sha256: `024cee3a279ed6a5f212a84abb5d33bcc2139c24d0a7589597d1c5fedae0a09c`
-    (observed 2026-07-17 after source creation).
+  - Normalized LF sha256: `e91ff6467416072929510ebad36bdfa615d166a494f6bbe73ae2e4ccf515adca`
+    (observed 2026-07-18 after paired-dogfood hardening).
   - Scope: explicit-only mechanics for binding falsifiable success signals,
     implementing the smallest complete authorized change, validating the
     owner-visible outcome, and asking the operator to commission delegated
@@ -155,9 +156,13 @@ behavior was not proven in-thread.
   - Collision: no same-name repo/project, user Codex/Agents/Claude, installed
     plugin skill directory, or current resolver-visible skill was observed
     before creation on 2026-07-17.
+  - Dogfood: controlled blinded paired runs against four historical
+    implementation scenarios completed 2026-07-18. Evidence informed direct
+    cardinality/envelope signals, detector pressure tests, absent-surface
+    baselines, and exception-boundary review routing. This is evidence, not
+    acceptance.
   - Boundary: experimental Forseti-local source only; generic mechanics, not
-    Forseti authority; not accepted/frozen, dogfooded, installed, deployed, or
-    activated.
+    Forseti authority; not accepted/frozen, installed, deployed, or activated.
   - Rollback: remove this source and this candidate record. Do not modify
     plugin, installed-cache, user-level, or external skill source.
 
