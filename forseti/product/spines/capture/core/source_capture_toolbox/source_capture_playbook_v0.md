@@ -340,6 +340,31 @@ helpful votes, or official-response markers stay source facts. Capture still
 runs Step 0, chooses the cheapest matching route, and records the captured state
 as source facts, not proof.
 
+## Capture artifact mode — content-mode standard (owner direction, 2026-07-17)
+
+For cadenced fleet capture, the standard artifact posture is **content mode**:
+the source family's projector runs in flight and the packet preserves the
+DERIVED content record as its hash-anchored file, while the raw response is
+sha256-hashed and then discarded (the hash, parser version, byte count, and
+projection status live in the preserved HTTP metadata — the provenance floor).
+A small rotating daily **sample** preserves BOTH raw and derived in one packet
+so a parser-fit drift check can re-project the raw and diff against the stored
+record. **Raw** mode remains for probes, one-off captures, and any claim that
+needs third-party re-verifiable bytes. This is a standard posture, not a
+volume-triggered exception (efficiency first): families flip to capture-time
+derivation as their lanes are next touched, retiring their post-hoc projection
+lanes as they flip; ECR stays source-agnostic and reads whatever hash-anchored
+preserved file the packet carries.
+
+Seam: `forseti-harness/source_capture/content_capture.py`
+(`ContentCaptureSpec` into `run_source_capture_http_packet`); first flipped
+family: Reddit (grid + deep-dive runners, `--capture-mode content|raw|sample`;
+drift check: `run_reddit_parser_fit_check.py`). Owning doctrine:
+`forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md`
+(Storage and retention). Named residual: a content-only packet is
+attestation-grade, not third-party re-reproducible; a projector failure in
+flight falls back loudly to a preserved raw packet, never silent loss.
+
 ## Step 3 — The verdict + receipt
 
 - **GO:** source-native content captured AND independently checkable — raw bytes/hash, magic bytes
