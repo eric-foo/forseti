@@ -94,12 +94,13 @@ faster cadence makes raw retention hundreds of GB/year of junk. The
 accepted retention scheme is **sampled-raw with full derived**:
 
 1. **Daily parser-fit checks (raw kept).** A small rotating sample — a few
-   subreddits per day spread across layout classes, plus one deep-dive
-   thread — captured as full raw packets. Each sample is re-projected
-   through the current parser and diffed against its derived record; drift
-   means Reddit changed markup and alarms before the fleet silently
-   degrades. This bounds any parser bug's blast radius to roughly one day
-   of passes.
+   subreddits per day spread across layout classes, plus one or two
+   deep-dive threads — captured as sample packets preserving **both** the
+   raw HTML and the capture-time derived record in one packet. Each sample
+   is re-projected through the current parser and diffed against its own
+   stored derived record; drift means Reddit changed markup and alarms
+   before the fleet silently degrades. This bounds any parser bug's blast
+   radius to roughly one day of passes.
 2. **Fleet captures: content packets.** All other grid captures preserve
    the **derived record** (grid rows + venue envelope) as the packet's
    hash-anchored file instead of raw HTML. Raw bytes are hashed and then
@@ -112,14 +113,34 @@ accepted retention scheme is **sampled-raw with full derived**:
    content-only packet cannot be re-projected under a future parser; the
    daily raw sample plus on-demand live re-capture of later-material
    threads are the accepted mitigations.
-4. **Deep dives keep raw by default** (breakout threads only — low volume,
-   highest drill-back value). Flipping deep dives to sampled/content-only
-   is an owner knob, not the default.
+4. **Deep dives follow the same rule** (owner correction, 2026-07-17,
+   replacing an earlier keep-raw default): breakout-thread volume at scale
+   is unproven and may reach 50–100/day, and the thread consolidation
+   already keeps every word — title, post, all comments, deletion/removal
+   postures, thread structure. Content mode discards only the HTML shell
+   and third-party re-verifiability. Deep dives therefore capture as
+   content packets too; the daily raw sample rotation covers both surface
+   shapes, and a later-material thread can be re-captured live as raw on
+   demand when a claim needs raw-verifiable backing.
 
-**Build gate:** the content-packet writer (parse-in-flight capture mode)
-must exist before the cadence scales beyond the current registry (~35
-subs). Until then the fleet is small enough that current keep-raw behavior
-stands, and no existing Bronze packet is deleted retroactively.
+Content-mode capture is the **standard posture, not a volume-triggered
+exception** (owner direction, 2026-07-17: efficiency first). The
+content-packet writer seam is built family-agnostic (it takes each
+family's projector); other source families flip to capture-time
+derivation as their lanes are next touched, retiring their post-hoc
+projection lanes as they flip — no waiting for volume pain. Projection
+thereby stops being a separate artifact layer and becomes one derivation
+codebase invoked at capture time (fleet default) or post-hoc (raw
+samples and legacy raw Bronze packets). ECR stays source-agnostic and
+unchanged: it reads whatever hash-anchored preserved file the packet
+carries.
+
+**Build gate:** the content-packet writer (parse-in-flight capture mode:
+the shared seam plus `--capture-mode content|raw|sample` on the grid and
+deep-dive runners) must exist before the cadence scales beyond the
+current registry (~35 subs). Until then the fleet is small enough that
+current keep-raw behavior stands, and no existing Bronze packet is
+deleted retroactively.
 
 ## Remaining gates before execution
 
@@ -153,11 +174,17 @@ stands, and no existing Bronze packet is deleted retroactively.
 direction_change_propagation:
   doctrine_changed: >
     Reddit radar storage moves from implicit keep-all-raw to sampled-raw
-    with full derived: a small rotating daily raw sample for parser-fit
-    checks, content packets (derived record preserved, raw hashed then
-    discarded) for the grid fleet, deep-dive raw kept by default, and a
-    never-dropped provenance floor (URL, timestamp, status, posture
-    receipt, raw sha256, parser version, derived-record hash). The
+    with full derived: a small rotating daily raw sample (both raw and
+    derived preserved per sample packet) for parser-fit checks, content
+    packets (derived record preserved, raw hashed then discarded) for the
+    grid fleet AND for deep dives (owner correction 2026-07-17 replacing
+    the earlier deep-dive keep-raw default), and a never-dropped
+    provenance floor (URL, timestamp, status, posture receipt, raw
+    sha256, parser version, derived-record hash). Content-mode capture is
+    the standard repo posture, not a volume-triggered exception: the
+    writer seam is family-agnostic, other families flip as their lanes
+    are next touched, and post-hoc projection lanes retire per family as
+    they flip while ECR stays source-agnostic and unchanged. The
     content-packet writer is a named build gate before cadence scales
     beyond the current registry; no existing Bronze packet is deleted
     retroactively.
@@ -181,6 +208,12 @@ direction_change_propagation:
       reason: >
         Current keep-raw behavior stands until the content-packet writer
         build gate; no code change is authorized by this direction alone.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        The repo-wide content-mode-standard posture lands in the playbook
+        in the same work unit that builds the family-agnostic writer seam
+        (Phase A); recording it there before the capture mode exists would
+        instruct operators toward a route that does not run yet.
   stale_language_search: >
     rg -n -i "keep raw|keep-all|retention|content packet|raw sample"
     forseti/product/spines/capture/core/source_families/social_media/reddit
