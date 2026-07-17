@@ -28,6 +28,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harness_utils import utc_now_z_microseconds
+from runners._scaffold import exit_on_failure
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory
 from source_capture.cadence import CadenceMode, build_cadence_plan
@@ -265,7 +266,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    try:
+    with exit_on_failure(parser, runner_name="reddit grid capture"):
         data_root = None
         if args.data_root is not None:
             from data_lake.root import DataLakeRoot
@@ -288,10 +289,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_max_gap_seconds=args.cadence_max_gap_seconds,
             cadence_random_seed=args.cadence_random_seed,
         )
-    except ValueError as exc:
-        parser.exit(status=2, message=f"reddit grid capture failed: {exc}\n")
-    except Exception as exc:
-        parser.exit(status=3, message=f"reddit grid capture failed: {exc}\n")
 
     print(message)
     return exit_code
