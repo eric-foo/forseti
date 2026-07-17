@@ -65,7 +65,7 @@ a definition line at most.
 | 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
 | 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
-| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below. **Chain section EXECUTED** (owner-directed, 2026-07-17): the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` landed in the company contract Section 7, refining the interim chain paragraph the synthesis-layer pass had placed there; the chain-local item 9 five-field compression and item 12 CSB capture-trigger pointer travel with this section |
 | 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
@@ -129,14 +129,14 @@ mechanism is extended, one small change per seam:
   improve the contract from this ledger -> run a fresh company (or rerun)
   under the upgraded contract -> give the new bundle to a fresh external
   session and compare against this round's findings.
-- Choice-mechanism chain design handoff: COMMISSIONED (owner-shaped scope,
-  2026-07-17) —
-  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md`.
-  Scope: acquisition lenses below title-level (sanctioned routes as already
-  used, no extra restraint language), review classification method (five-way
-  classes + substantive-review filter), proportionality mechanics per item 4
-  rulings, chain-card presentation format. Output lands as the chain section
-  of the contract pass, not standalone doctrine.
+- Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
+  (2026-07-17). Packet
+  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` was
+  executed; the design proposal at
+  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` was
+  adversarially reviewed, patched, delegate-hardened, and implemented into
+  the company contract Section 7 by owner direction — see the item 4
+  execution note above. Packet consumed.
 
 ## Rejected (do not resurrect without new owner word)
 

@@ -864,18 +864,84 @@ Summarize customer and community response with observation IDs. State that the
 evidence is not representative demand and not internal company fact. Preserve
 contradictions and evidence gaps.
 
-Where the evidence supports it, build the customer-choice mechanism chain —
-claim, buy motivation, experience, claim-attacking complaint, substitute —
-and classify complaint themes five ways: core-positioning threat, ordinary
-defect, education gap, price-value, substantiation risk. Proportionality
-rules: proportions are of stated samples only, never population rates; the
-strongest denominator is substantive review bodies (verified purchase where
-the surface exposes it, non-trivial text) — contentless drive-by ratings stay
-in the aggregate star distribution, not the classification sample; weigh a
-theme by which claim it attacks, not by its volume; assume unavoidable
-category background rather than tracking comparator base rates; an explicit
-brand claim amplifies any complaint that attacks it — the stronger the claim,
-the more a claim-attacking complaint counts.
+For each hero product (the small set the evidence itself marks as central:
+assortment prominence, review volume, brand-labeled bestsellers), add one
+choice-mechanism chain card: claim -> why customers buy -> what they
+experience -> which complaints attack the claim -> where defectors go, every
+link citing observation IDs. Feed each link only from sources that can
+observe it; no route observes population rates, switching volume, or
+sell-through, so no cell may state one. Buy-reason carries reported
+motivation and positioned draws, never measured demand; substitutes are cited
+alternatives and price gaps, never switching.
+
+When substantive review text has been sampled, record each classified review
+as one row in this block (the only durable structure this section adds), and
+otherwise omit the block rather than inventing rows:
+
+```yaml
+review_classification_rows:
+  - parent_observation_id: OBS-NNN  # the review-sampling observation row; venue, access route, observation date, and independence lineage live there
+    product:
+    star:
+    class: substantiation_risk | core_positioning_threat | price_value | education_gap | ordinary_defect | held_background
+    claim_attacked: <claim token> | none
+    specificity: vague | mechanism_or_ingredient_specific
+    date: YYYY-MM-DD | null  # the review's own publication date as the surface shows it
+```
+
+Chain rules (conclusion-writing guidance; no other durable structure):
+
+- Admission: where the surface exposes a verified-purchase marker, only
+  marker-bearing reviews with non-trivial body text are classified; where it
+  does not, non-trivial body text alone admits. Contentless star ratings stay
+  in aggregate rating observations and are never classified.
+- Classify relative to the brand's stated load-bearing claim set, stated
+  first. `substantiation_risk` names a specific stated claim plus a specific
+  checkable counter; `core_positioning_threat` reports the harm the
+  load-bearing positioning promises to prevent and clears the graduation bar;
+  `price_value` makes worth, price, or a cheaper equivalent the grievance;
+  `education_gap` is an expectation or use mismatch where the product
+  performed as designed and never claimed otherwise; `ordinary_defect` is the
+  residual performance or quality failure unrelated to a load-bearing claim.
+- Reaction complaints default to `held_background` — counted in the stated
+  sample and named as category background, never a claim-attack. A held
+  complaint graduates only when it is ingredient-specific, repeated across
+  independent venues, or directly attacks a stated load-bearing claim; an
+  ingredient-specific complaint attacking no stated claim never graduates.
+  Tie-break precedence for the primary class: substantiation_risk >
+  core_positioning_threat > price_value > education_gap > ordinary_defect.
+  Rows carry the primary class only; a secondary reading that changes the
+  read is carried by the narrative citing the row.
+- Proportions are of stated samples only: `<n> of <N> sampled substantive
+  <negative | all> reviews — <venue>, <date range>, <selection route and
+  admission handling>`, stated so a second scanner could reproduce `N`.
+  Never a population rate. With no sample, state the named instances and the
+  next observable instead. State once, adapting the category wording:
+  *Sensitive-skin cosmetics accrue idiosyncratic-reaction complaints as
+  category background; this card tracks no comparator base rate and makes no
+  cross-brand rate claim.*
+- Amplification is a property of the attacked claim, never of volume: an
+  explicit and specific claim (named label word, ingredient-level, or seal)
+  amplifies High; explicit but general amplifies Medium; no stated claim
+  means no claim-attack amplification (the complaint keeps its class).
+  Amplification raises decision weight, never the stated number, and appears
+  beside the denominator or its stated absence.
+- Card shape: one mechanism sentence whose every load-bearing noun traces to
+  a cited cell; five cells (claim / buy-reason / experience / complaint
+  class / substitute), each carrying its observation IDs, what each ID shows
+  — staying inside that row's excerpt, time anchor, fact domain, and
+  ambiguity limitation — and a confidence mark (verified / corroborated /
+  proxy / thin / unverified; a cell takes the weakest load-bearing input;
+  the complaint cell may split existence vs prevalence, using `unsampled` for
+  the prevalence side when no denominator exists). A link with no substantive
+  evidence states so with its gap or request ID. Cells whose evidence could
+  change a conclusion, be disputed, or disappear emit the existing
+  capture-request trigger.
+- Compress each card to one 5-field conclusion row — claim / evidence /
+  consequence / confidence / next observable — with maximum aggressiveness
+  in consequence and confidence, made safe by the evidence bound and the
+  next observable, never by evidence overclaim. Conclusion rows feed the
+  Executive Intelligence Brief preamble.
 
 ### 8. Competitor Context, Contradictions, And Gaps
 
@@ -1015,6 +1081,70 @@ COMMISSION INPUTS FOLLOW:
 ````
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The company competitive-intelligence contract's Section 7 gains the
+    choice-mechanism chain: a per-hero chain card (claim -> buy-reason ->
+    experience -> claim-attacking complaints -> substitutes), the five-way
+    claims-to-complaints classification with held_background default and
+    graduation triggers, stated-sample-only proportionality with a
+    claim-specificity amplification rule, card/front-page-row shape rules,
+    and the commissioned review_classification_rows block keyed to parent
+    observation rows — the only durable structure added. Origin: adjudication
+    ledger item 4 chain section, owner-directed implementation 2026-07-17,
+    design docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md.
+    This is the Section 7 chain refinement anticipated by the synthesis-layer
+    receipt below, and it supersedes that pass's interim Section 7 chain
+    paragraph; the chain-local item 9 compression and item 12 capture-trigger
+    pointer travel with it. The broader synthesis layer (exec brief,
+    concentration, invalidation, defensibility priming, readability,
+    preservation trigger) landed separately under that receipt.
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - docs/decisions/forseti_ci_report_external_review_adjudication_ledger_v0.md
+    - docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - forseti/product/spines/commission_signal_board/README.md
+  intentionally_not_updated:
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        Owner rule for the synthesis upgrade: guidance-only, no new validator
+        fields. Section titles, numbering, and every existing typed company
+        document are unchanged; the one commissioned rows block lives inside
+        narrative Section 7, which the validator does not parse.
+    - path: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+      reason: >
+        That record adjudicates the original external prompt's sections, not
+        the live company contract's Section 7 semantics; the chain
+        adjudication is carried by the ledger and this receipt.
+    - path: forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+      reason: >
+        Operating sequence and validator applicability are unchanged.
+  stale_language_search: >
+    rg -n "choice-mechanism|chain card|review_classification_rows|held_background"
+    forseti/product/spines/commission_signal_board .agents/hooks docs/decisions
+    docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-17 after edits. Hits are exactly the amended contract
+    (Section 7 plus this receipt), the design proposal (superseded_by-pinned
+    to this contract), and the adjudication ledger item 4 execution note. No
+    surface still describes Section 7 without the chain or contradicts the
+    six-field block.
+  non_claims:
+    - not validation or readiness
+    - not scanning, capture, sampling execution, or monitoring authorization
+    - not the full contract synthesis pass; this receipt covers only the Section 7 chain refinement (the synthesis layer landed under the next receipt)
+    - not a change to profile routing, classifier boundaries, recency doctrine, or the observation ledger schema
+```
 
 ```yaml
 direction_change_propagation:
