@@ -61,15 +61,50 @@ SHA-256, byte count, and preservation state. A projector failure is loud: all
 supplied artifacts are preserved as fallback and the runner exits `4`.
 
 The screenshot is not a discardable projector input. When supplied, it remains
-preserved in every mode because it is source media evidence. The route receipt
-and capture plan also remain preserved because they establish access and capture
-scope rather than page-content payload.
+preserved in every mode because it is source media evidence. This is a retention
+rule, not a requirement to acquire a screenshot on every capture. The first
+live BR540 content-mode bundle established the route/access and overlay
+baseline; because the cookie layer obscured the page, it was diagnostic rather
+than unobstructed product-content evidence. A routine repeat semantic refresh
+does not request another screenshot unless the shared visual triggers in
+`source_capture_playbook_v0.md` apply. The route receipt and capture plan also
+remain preserved because they establish access and capture scope rather than
+page-content payload.
 
 Projection and Cleaning prefer a valid content record and bind rows to its
 packet-local JSON pointers. Raw and legacy packets retain the existing raw
 projection path. The shared projection runner therefore remains available for
 raw, legacy, and direct-HTTP canary packets; only its standard use for the pinned
 targeted route retires.
+
+## Rendered Overlay And Repeat-Screenshot Policy
+
+This route follows the site-agnostic classification and receipt contract in
+`source_capture_playbook_v0.md` while keeping Parfumo/CMP detection and actions
+route-owned.
+
+- A cookie layer over a real Parfumo product page may be treated as
+  `benign_dismissible_overlay` only when no challenge/security, login/auth,
+  payment, or account-risk marker is present.
+- Automated dismissal requires a named Parfumo/CMP action that binds the
+  observed overlay, the complete deterministic route to `Reject`, `Decline`,
+  `Necessary only`, or an equivalent non-consent outcome, and the verified
+  postcondition. `Accept`/`Accept all`, a generic X, broad model-selected text,
+  and unbounded visual clicking are forbidden.
+- The current packet runner packages local browser artifacts; it has no live
+  page-action seam. Until a route-owned action is implemented and tested, the
+  operator may use an unambiguous non-consent control before artifact capture,
+  or the capture records the unresolved overlay. It must not claim automated
+  dismissal.
+- After a verified dismissal, normal DOM/text capture may proceed. A screenshot
+  is still omitted on an ordinary repeat capture unless a separate visual
+  trigger applies. If dismissal fails or the overlay is ambiguous, one
+  diagnostic screenshot may be retained and labeled as overlay evidence, not
+  unobstructed product-page evidence.
+
+Therefore a next-day capture of the same product using the same healthy route
+and projector requests no screenshot by default. The earlier screenshot's
+existence is not itself a screenshot trigger.
 
 ## Non-Goals
 
@@ -121,4 +156,43 @@ direction_change_propagation:
     - not live-route validation
     - not full Parfumo family retirement
     - not corpus completeness
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Parfumo targeted route now inherits trigger-based screenshot acquisition
+    and a site-agnostic benign-overlay boundary while keeping executable
+    dismissal actions Parfumo/CMP-owned and explicitly unimplemented here.
+  trigger: product_doctrine
+  related_triggers: [architecture_doctrine, output_authority]
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - docs/workflows/parfumo_targeted_capture_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - forseti-harness/runners/run_parfumo_mgt_capture.py
+    - forseti-harness/source_capture/adapters/browser_snapshot.py
+    - forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md
+  intentionally_not_updated:
+    - {path: forseti-harness/runners/run_parfumo_mgt_capture.py, reason: "It already accepts an optional screenshot and preserves one when supplied; it does not own live browser acquisition."}
+    - {path: forseti-harness/source_capture/adapters/browser_snapshot.py, reason: "No generic visual clicker is authorized; a deterministic route-owned action needs a separate implementation unit."}
+    - {path: forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md, reason: "Its retention semantics remain accurate; the new rule governs whether acquisition requests a screenshot."}
+    - {path: forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md, reason: "The route index already points to this contract; no route status or family boundary changed."}
+  stale_language_search: >
+    rg -n -i "screenshot.*every|always.*screenshot|accept all|generic.*click|benign_dismissible_overlay"
+    forseti/product/spines/capture/core/source_capture_toolbox
+    docs/workflows/parfumo_targeted_capture_contract_v0.md
+    docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-18. Hits are the new shared and Parfumo rules, their DCP
+    search literals, and TikTok's compatible stop on unknown generic clicking;
+    no checked surface requires a screenshot on every capture or authorizes
+    accept-all/generic visual dismissal.
+  non_claims:
+    - not overlay-action implementation
+    - not live-route validation
+    - not retroactive packet mutation
+    - not CAPTCHA or challenge-close authority
 ```
