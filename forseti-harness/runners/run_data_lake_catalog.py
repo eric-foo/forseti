@@ -39,6 +39,10 @@ def main(argv: list[str] | None = None) -> int:
             report = catalog_coverage_census(root)
         else:
             report = inspect_catalog(root)
+    # helper-delta: vs runners/_scaffold.exit_on_failure -- this runner reports
+    # failures as a machine-readable JSON report on stdout with a returned exit
+    # code (no parser.exit/stderr), and has no --output/--data-root pair for
+    # runners/_scaffold.resolve_output_root; both blocks stay local on purpose.
     except DataLakeRootError as exc:
         report = {"status": "error", "error": str(exc)}
         print(json.dumps(report, indent=2, sort_keys=True))

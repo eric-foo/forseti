@@ -93,6 +93,16 @@ def bool_or_none(value: Any) -> bool | None:
     return value if isinstance(value, bool) else None
 
 
+def append_residual_once(residuals: list[str], residual: str) -> None:
+    """Append ``residual`` to ``residuals`` unless it is already present.
+
+    Contract: order-preserving, first-occurrence-wins dedup by equality;
+    the list is mutated in place and nothing is returned.
+    """
+    if residual not in residuals:
+        residuals.append(residual)
+
+
 @contextmanager
 def staged_directory_publish(destination: Path) -> Iterator[Path]:
     """Build a complete directory off-tree, then publish it with one rename."""

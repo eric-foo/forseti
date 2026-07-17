@@ -262,6 +262,53 @@ def test_current_bronze_writer_runner_surface_is_explicit() -> None:
     assert _bronze_writer_runners() == EXPECTED_BRONZE_WRITER_RUNNERS
 
 
+def test_scaffold_resolver_detector_rejects_non_executable_certification() -> None:
+    """The scaffold-seam detector must require a real, reachable resolver call.
+
+    Adversarial cases from the 2026-07-17 cross-vendor review: a comment
+    mention, a shadowed binding, a call under a statically dead branch, or a
+    call only inside an unused helper must not certify the seam; a genuine
+    module-level import plus a reachable call inside ``main`` must.
+    """
+    from data_lake.inventory import uses_scaffold_resolver
+
+    cases = {
+        "real": (
+            "from runners._scaffold import resolve_output_root\n"
+            "def main():\n    root = resolve_output_root(args, parser, runner_name='x')\n",
+            True,
+        ),
+        "comment_only": ("# resolve_output_root mentioned\ndef main():\n    pass\n", False),
+        "shadowed": (
+            "from runners._scaffold import resolve_output_root\n"
+            "def main():\n    resolve_output_root = None\n    resolve_output_root()\n",
+            False,
+        ),
+        "dead_branch": (
+            "from runners._scaffold import resolve_output_root\n"
+            "def main():\n    if False:\n        resolve_output_root(args, parser, runner_name='x')\n",
+            False,
+        ),
+        "unused_helper": (
+            "from runners._scaffold import resolve_output_root\n"
+            "def helper():\n    resolve_output_root(args, parser, runner_name='x')\n"
+            "def main():\n    pass\n",
+            False,
+        ),
+        "reachable_constant_branch": (
+            "from runners._scaffold import resolve_output_root\n"
+            "def main():\n    if True:\n        resolve_output_root(args, parser, runner_name='x')\n",
+            True,
+        ),
+    }
+    mismatches = {
+        name: got
+        for name, (source, expected) in cases.items()
+        if (got := uses_scaffold_resolver(ast.parse(source))) != expected
+    }
+    assert not mismatches, f"scaffold-seam detector misclassified: {mismatches}"
+
+
 def test_non_raw_lake_touchpoint_inventory_is_explicit() -> None:
     actual = _non_raw_lake_touchpoints()
     added = +(actual - EXPECTED_NON_RAW_LAKE_TOUCHPOINTS)

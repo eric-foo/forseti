@@ -588,25 +588,11 @@ Review prompts should still return the requested review output shape. The final
 answer remains a review result with findings, non-findings, not-proven
 boundaries, and next authorized step.
 
-Every Forseti review prompt and any review-return or courier prompt must also
-instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
-Chief Architect in a delegated pass, never the delegate mid-review -- to close
-adjudication in this order: first adjudicate the findings, diff, verdict, and
-residuals as claims; close self-closable material issues (closure within the
-adjudicator's own authority and the commissioned scope) in the same turn; route
-the smallest complete closure step only for an issue that needs another review
-round, another lane, an architecture pass, or an owner decision; once no
-unresolved material issue remains, batch all admin/lifecycle follow-ups
-(commit, push, PR, merge) into exactly one named land step. If a visible active
-goal or accepted next objective exists, identify the 1-5 material moves that
-best advance it in the same turn. If none exists, record that compactly and do
-not invent material moves. The closure/land step plus this goal-conditioned
-material-move check are a required closeout tail; do not defer the check to
-another turn. It uses ordinary next-step reasoning, does not widen review
-scope or authorize patching, and produces the closeout's
-next step. The exact shape is owned by
-`.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
-Step); do not restate it here.
+Every Forseti delegated-review prompt and any delegated review-return or courier
+prompt must point the commissioning adjudicator to the closeout and same-turn
+material-continuation rule in `delegated-review-patch.md`. That file owns the
+rule; prompt artifacts may expose the needed output slot but must not fork its
+semantics.
 
 Delegated review-and-patch commissions require direct repo access. `no_repo` is
 outside that lane and routes to a separately named ordinary read-only review;

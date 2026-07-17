@@ -102,12 +102,15 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step; then, when a visible active goal or accepted next objective exists,
-identify the 1-5 material next moves that best advance it. When none exists, record
-`no_visible_active_goal` rather than inventing a roadmap. The land/closure step
-plus this goal-conditioned material-move check are a required same-turn tail;
-do not defer the check to another turn. This is an adjudicator obligation, not
-permission for the delegate to decide what is kept or widen review scope.
+step. Then, when a visible active goal or accepted next objective exists, state
+the best next material move in the same turn so the owner does not need a
+separate "what next?" round. Add further moves only when the immediate sequence
+is genuinely needed to make that first move usable. A material move must
+substantively advance the goal; commit, push, PR, merge, and other admin or
+lifecycle work never qualify. When no goal or objective is visible, close
+normally without inventing a roadmap or emitting an empty-result placeholder.
+This is an adjudicator obligation, not permission for the delegate to decide
+what is kept or widen review scope.
 
 **Delegated review-output finalization gate.** Any delegated review output
 written under `docs/review-outputs/` blocks final chat closeout until, after the
