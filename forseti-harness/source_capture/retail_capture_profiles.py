@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import ScrollStopCondition
 from source_capture.source_detail_sufficiency import (
@@ -11,6 +12,21 @@ from source_capture.source_detail_sufficiency import (
 
 
 RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2
+
+
+_AMAZON_ASIN_IN_PATH = re.compile(r"/(?:dp|gp/product|gp/aw/d)/([A-Za-z0-9]{10})(?:[/?]|$)")
+
+
+def extract_amazon_asin_from_url(url: str) -> str | None:
+    match = _AMAZON_ASIN_IN_PATH.search(urlparse(url).path)
+    return match.group(1) if match else None
+
+
+def extract_amazon_search_query_from_url(url: str) -> str | None:
+    values = parse_qs(urlparse(url).query).get("k")
+    if not values or not values[0].strip():
+        return None
+    return values[0].strip()
 
 
 @dataclass(frozen=True)
@@ -28,6 +44,47 @@ class RetailCaptureProfile:
     scroll_step_px: int = 0
     scroll_target_selector: str | None = None
     block_heavy_assets: bool = False
+    derive_target_asin_from_url: bool = False
+    derive_target_query_from_url: bool = False
+
+    def requirements_for_capture(self, *, url: str) -> SourceDetailSufficiencyRequirements:
+        """Sufficiency requirements for one capture, with any per-target identity resolved.
+
+        Structural/block-detection literals stay fixed on the profile. A per-target
+        identity check is layered on top from ``url`` (rather than a hardcoded canary
+        product) so the gate validates the SKU/query actually being captured:
+
+        - ``derive_target_asin_from_url``: single-SKU PDP pages. The ASIN in ``url``
+          (``.../dp/<ASIN>`` or ``.../gp/product/<ASIN>``) must appear in the rendered DOM.
+        - ``derive_target_query_from_url``: search-results grid pages. The ``k`` query
+          parameter in ``url`` must appear in the rendered visible text (Amazon's own
+          "1-N of M results for '<query>'" banner echoes it back), proving the grid
+          rendered real results for the query actually searched rather than a block page
+          or unrelated content.
+        """
+        if self.derive_target_asin_from_url:
+            asin = extract_amazon_asin_from_url(url)
+            if asin is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires an Amazon ASIN in --url "
+                    f"(expected .../dp/<ASIN> or .../gp/product/<ASIN>); got {url!r}"
+                )
+            target_identity = SourceDetailSufficiencyRequirements(
+                rendered_dom_regexes=(re.escape(asin),),
+            )
+            return merge_source_detail_sufficiency_requirements(self.requirements, target_identity)
+        if self.derive_target_query_from_url:
+            query = extract_amazon_search_query_from_url(url)
+            if query is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a non-empty Amazon search "
+                    f"query in --url (expected .../s?k=<query>); got {url!r}"
+                )
+            target_identity = SourceDetailSufficiencyRequirements(
+                visible_text_regexes=(f"(?i){re.escape(query)}",),
+            )
+            return merge_source_detail_sufficiency_requirements(self.requirements, target_identity)
+        return self.requirements
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
         if self.source_surface != "cloakbrowser_snapshot":
@@ -94,15 +151,15 @@ _PROFILES = {
             ordinary_operation=True,
             wait_until="domcontentloaded",
             settle_seconds=0.0,
+            derive_target_query_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_contains=("New York 10001",),
                 visible_text_regexes=(
                     r"1-\d+ of \d+ results",
                     r"\d(?:\.\d)? out of 5 stars\s+\([\d.]+[KM]?\)",
                     r"\$\d+(?:\.\d{2})?",
                     r"\d+(?:\.\d+)?[KM]?\+ bought in past month",
                 ),
-                rendered_dom_regexes=(r"B07XXPHQZK",),
             ),
         ),
         RetailCaptureProfile(
@@ -114,8 +171,9 @@ _PROFILES = {
             ordinary_operation=True,
             wait_until="domcontentloaded",
             settle_seconds=0.0,
+            derive_target_asin_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_contains=("New York 10001",),
                 visible_text_regexes=(
                     r"\d(?:\.\d)? out of 5 stars",
                     r"\$\d+(?:\.\d{2})?",
@@ -128,7 +186,6 @@ _PROFILES = {
                     'name="currencyOfPreference" value="USD"',
                     "/gp/customer-reviews/",
                 ),
-                rendered_dom_regexes=(r"B07XXPHQZK",),
             ),
         ),
         RetailCaptureProfile(
@@ -140,8 +197,9 @@ _PROFILES = {
             ordinary_operation=True,
             wait_until="domcontentloaded",
             settle_seconds=0.0,
+            derive_target_asin_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_contains=("New York 10001",),
                 visible_text_regexes=(
                     r"\d(?:\.\d)? out of 5 stars",
                     r"\$\d+(?:\.\d{2})?",
@@ -156,10 +214,7 @@ _PROFILES = {
                     'name="currencyOfPreference" value="USD"',
                     "/gp/customer-reviews/",
                 ),
-                rendered_dom_regexes=(
-                    r"B07XXPHQZK",
-                    r"[\d,]+ customers mention",
-                ),
+                rendered_dom_regexes=(r"[\d,]+ customers mention",),
             ),
         ),
         RetailCaptureProfile(
