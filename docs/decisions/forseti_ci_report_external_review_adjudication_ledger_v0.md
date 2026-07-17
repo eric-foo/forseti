@@ -64,26 +64,27 @@ a definition line at most.
 | --- | --- | --- |
 | 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
-| 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; MUST be renamed (name not yet chosen); not adoptable now — consumes time series we deliberately do not collect |
-| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture) |
-| 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate |
+| 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rule (owner, 2026-07-17): never state a complaint rate without a denominator; classify a theme by WHICH claim it attacks, not by volume; name an expected-background class (idiosyncratic/allergy-type reactions every sensitive-skin brand accrues) — a theme graduates from background to core-positioning threat only when it is ingredient-specific, repeated across independent venues, or attacks the load-bearing claim directly |
+| 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
 | 8 | Linked-commercial-claim admission principle | Principle accepted; their typed relationship schema rejected — we use our existing observation/candidate structure |
 | 9 | 5-field front-page conclusions (claim / evidence / consequence / confidence / next observable) | Accepted; owner ruling: maximum aggressiveness in decision consequence and confidence-stating — the admission fields (evidence bound + next observable) are what make aggressiveness safe; never aggressiveness via evidence overclaim |
 | 10 | Central promise (where value resides, what drives it, is it strengthening, what threatens it) | Accepted as the report's front-page voice AND as the internal decision-adjudication frame; rejected as the product center (product center stays decision adjudication, owner-locked) |
 | 11 | Readability | Owner requires the report be "way more readable": exec brief as h2 preamble, plain-language section leads, the two cheap matrices (SKU reception; known/inferred/unknown) as plain markdown tables; audit ledgers stay but move visually behind the narrative |
-| 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl |
+| 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl. Mechanics (owner discussion 2026-07-17): single-file HTML (MHTML/SingleFile-style) preferred — text-searchable, diffable, ~1-5 MB raw and compresses 80-90%; full-page screenshot only when layout itself is the evidence, auto-compressed to WebP; auto-compression is a one-line adapter step, worth doing, no further engineering |
 
 ## Open questions feeding the same pass
 
-- Retailer breadth: probe Sephora at Kohl's, Credo, Mecca, Revolve (and
-  re-check Ulta) as a bounded capture/scan increment so concentration synthesis
-  has more than one retailer read. Not yet commissioned.
-- Momentum rename: owner to choose the Forseti-native name before the
-  longitudinal seed is written anywhere durable.
-- Remaining 1-2 external responses: adjudicate into this ledger before the
-  contract pass.
+- Retailer breadth: HANDOFF WRITTEN (owner-directed, 2026-07-17) —
+  `docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md`.
+  Capture spine first proposes a subject-agnostic bound-target list beyond the
+  four known candidates; owner binds before any probe. Geographic default:
+  US-first comparison spine + one bounded home-market read where the subject's
+  home market differs (owner-overridable at binding).
+- Remaining external responses: adjudicate into this ledger before the
+  contract pass (owner to confirm how many are still outstanding).
 
 ## Rejected (do not resurrect without new owner word)
 
