@@ -17,7 +17,6 @@ use_when:
   - Implementing Phase 1 after adjudication (implement exactly the adjudicated plan).
 authority_boundary: retrieval_only
 open_next:
-  - docs/workflows/forseti_capture_ats_job_posting_port_handoff_v0.md
   - forseti-harness/docs/adapter_author_contract.md
   - forseti-harness/source_capture/adapters/direct_http.py
   - forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
@@ -29,9 +28,11 @@ stale_if:
 
 ## What this is
 
-This is the Phase 0 deliverable commissioned by
-[`forseti_capture_ats_job_posting_port_handoff_v0.md`](forseti_capture_ats_job_posting_port_handoff_v0.md).
-It is a **plan for owner adjudication**. No adapter, registry, or projection
+This is the Phase 0 deliverable commissioned by the plan-first handoff packet
+`forseti_capture_ats_job_posting_port_handoff_v0.md` (a single-consumption
+cross-lane packet authored in the Tower 28 lane; not tracked in this repo, so it
+is named here for provenance rather than linked). It is a **plan for owner
+adjudication**. No adapter, registry, or projection
 code is written. Phase 1 (implementation) is authorized only after the owner
 adjudicates this plan; any discovered deviation returns as a plan amendment, not
 a silent change.
