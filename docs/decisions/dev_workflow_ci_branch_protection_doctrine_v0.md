@@ -117,7 +117,7 @@ At that historical point, this record did not assert that any server-side gate w
    current actor may continue the same commissioned work unit in that selected worktree after one target,
    revision, dirty-state, and writer snapshot. Launch-root mismatch alone is not failure. Use a separate
    receiver only for an independent concurrent actor or an observed required-tool, sandbox, hook, or guard
-   denial. Exact/ancestor revision rules, dirty-byte identity, protected guards, and server protection stay.
+   denial. Exact/ancestor revision rules, frozen-commit target identity, protected guards, and server protection stay.
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
    condition: read the live target lines, then patch from observed current text before continuing. Before
