@@ -21,6 +21,8 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/ak_fragrances1_creator_audience_triangulation_snapshot_v1.json
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/ak_fragrances1_creator_audience_judgment_outcome_v1.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
@@ -46,6 +48,12 @@ different speeds and carry different authority:
   rejected links.
 - `creator_profile_current_view_v0.json` is the current one-stop profile export:
   identity plus joined rollups and source drill-back for operator/dashboard use.
+- `ak_fragrances1_creator_audience_triangulation_snapshot_v1.json` is the exact
+  checked-in export of AK Fragrances' validated v1 transcript/comment audience
+  snapshot for reproducible profile-current materialization.
+- `ak_fragrances1_creator_audience_judgment_outcome_v1.json` is its exact paired
+  successful Judgment outcome; the persisted lake record `cajo_ee7c184a02dfee07534e`
+  remains the producer record, while this copy is the clean-checkout verification input.
 - `creator_profile_current_record_contract_v0.md` pins the per-profile visible
   field surface, consumer interpretation promise, and declared-deferred global
   metric recipes for `posting_cadence` and `recent_velocity`.
@@ -58,9 +66,10 @@ different speeds and carry different authority:
 - `creator_registry_gt_roadmap_v0.md` records what to optimize for after the
   Mini God Tier slice, including bounded scanning, account/evidence graphing,
   public-link exploration, and the road toward fuller God Tier efficacy.
-- Metric observations, rollups, capture receipts, and future audience snapshots
-  remain in their owning Capture/Silver producer records. They are not copied
-  into the registry index as raw truth.
+- Metric observations, rollups, capture receipts, and audience snapshots remain
+  in their owning Capture/Silver producer records. Checked-in producer exports
+  may support deterministic current-view rebuilds, but they are not copied into
+  the registry index as raw truth.
 
 Run `forseti-harness/runners/run_creator_registry_onboarding_refresh.py` after
 official captures to refresh `not_onboarded` / `onboarded` from exact committed

@@ -1,9 +1,10 @@
-"""Derive Creator Registry onboarding state from committed Bronze packets.
+"""Derive Creator Registry onboarding state from public committed Bronze packets.
 
-Onboarding is account-scoped and monotonic: a registry account is onboarded
-after at least one complete, verified packet from a qualifying content-capture
+Onboarding is account-scoped: a registry account is onboarded after at least one
+complete, verified, publicly available packet from a qualifying content-capture
 surface can be attributed exactly to that account. Discovery packets, RSS
-heartbeats, scratch directories, and staging output never qualify.
+heartbeats, scratch directories, staging output, and public-consumption
+tombstones never qualify.
 """
 from __future__ import annotations
 
@@ -216,16 +217,20 @@ def refresh_creator_registry_index_document(
         ],
         "explicitly_non_qualifying_surfaces": list(EXCLUDED_SURFACES),
         "state_semantics": (
-            "not_onboarded means no exactly attributable qualifying committed Bronze packet "
-            "was found; onboarded means at least one such packet was verified"
+            "not_onboarded means no exactly attributable, publicly available qualifying "
+            "committed Bronze packet was found; onboarded means at least one such packet "
+            "was verified"
         ),
-        "monotonicity": "onboarded does not regress when later packets disappear from a bounded feed",
+        "monotonicity": (
+            "onboarded is monotonic over publicly available immutable Bronze history; "
+            "owner-directed public-consumption tombstones remove packets from eligibility"
+        ),
         "derivation_diagnostics": deepcopy(dict(derivation_diagnostics or {})),
     }
     refreshed["platform_accounts"] = refreshed_rows
     refreshed["counts"] = _registry_counts(refreshed_rows, refreshed.get("creator_records", []))
     refreshed["accepted_residuals"] = [
-        "Onboarding proves one qualifying committed capture for one platform account; it does not prove capture freshness, completeness across all content, or recurring monitoring.",
+        "Onboarding proves one publicly available qualifying committed capture for one platform account; it does not prove capture freshness, completeness across all content, or recurring monitoring.",
         "Accounts without a qualifying packet remain not_onboarded even when discovery, RSS, challenge-limited profile, or scratch/staging evidence exists.",
         "TikTok and Instagram handle-only attribution remains exact same-platform handle matching until a platform-native public account id is available; ambiguous registry keys fail the refresh.",
         "The checked-in registry remains a generated static projection refreshed by an operator runner, not a runtime database.",
@@ -246,6 +251,7 @@ def _iter_committed_manifests(data_root: DataLakeRoot):
     raw_root = data_root.path / "raw"
     if not raw_root.is_dir():
         return
+    tombstoned_packet_ids = data_root.tombstoned_packet_ids()
     for shard in sorted(raw_root.iterdir()):
         if not shard.is_dir():
             continue
@@ -253,6 +259,8 @@ def _iter_committed_manifests(data_root: DataLakeRoot):
             if not container.is_dir():
                 continue
             packet_id = container.name
+            if packet_id in tombstoned_packet_ids:
+                continue
             manifest_path = container / "manifest.json"
             if not manifest_path.is_file():
                 raise DataLakeRootError(

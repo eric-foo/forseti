@@ -79,7 +79,7 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
 
     wrapper = _wrapper(loaded)
     assert wrapper["ledger_mode"] == "public_handle_ledger"
-    assert len(wrapper["platform_accounts"]) == 51
+    assert len(wrapper["platform_accounts"]) == 52
     assert len(wrapper["account_link_evidence"]) == 2
     assert len(wrapper["creator_records"]) == 2
     assert "not populated creator ledger" not in wrapper["non_claims"]
@@ -96,7 +96,7 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
     assert all(account["platform_public_account_id_or_none"] is None for account in ig_accounts)
 
     tiktok_accounts = [account for account in wrapper["platform_accounts"] if account["platform"] == "tiktok"]
-    assert [account["public_handle"] for account in tiktok_accounts] == ["funmimonet", "redolessence", "perfumerism", "fragranceknowledge", "noeldeyzel_fragrance", "topfrag.official"]
+    assert [account["public_handle"] for account in tiktok_accounts] == ["funmimonet", "redolessence", "perfumerism", "fragranceknowledge", "noeldeyzel_fragrance", "topfrag.official", "ak.fragrances1"]
     assert all(account["platform_public_account_id_or_none"] is None for account in tiktok_accounts)
 
     creator_record = wrapper["creator_records"][0]

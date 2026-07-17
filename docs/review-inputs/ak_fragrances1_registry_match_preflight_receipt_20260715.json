@@ -1,0 +1,67 @@
+{
+  "creator_registry_match_preflight_receipt": {
+    "accepted_residuals": [
+      "Exact preflight does not perform fuzzy display-name matching.",
+      "Exact preflight does not prove cross-platform creator identity.",
+      "Exact preflight does not prove discovery search quality.",
+      "Exact preflight does not refresh silver metrics or mutate capture outputs."
+    ],
+    "generated_at_utc": "2026-07-15T07:08:41Z",
+    "non_claims": [
+      "not fuzzy identity resolver",
+      "not cross-platform linkage proof",
+      "not capture authorization without receipt review",
+      "not registry mutation",
+      "not live social search",
+      "not silver metric refresh"
+    ],
+    "registry_source": {
+      "generated_at_utc": "2026-07-08T15:12:00Z",
+      "profiles_total": 51,
+      "schema_version": "creator_profile_current_view_v0",
+      "sha256": "20ab48c465d07fe720e4e3db789a7494f72a296099c8ce01de8007dea8539ba8",
+      "source_pointer": "forseti\\product\\spines\\capture\\core\\source_families\\social_media\\creator_registry\\creator_profile_current_view_v0.json"
+    },
+    "results": [
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": [
+          "new_capture"
+        ],
+        "can_start_new_capture": true,
+        "candidate_id": "tiktok-ak.fragrances1",
+        "decision": "new_candidate",
+        "duplicate_candidate_identity_keys": [],
+        "errors": [],
+        "input_index": 0,
+        "intended_action": "new_capture",
+        "matched_registry_profiles": [],
+        "normalized_candidate": {
+          "display_name_or_none": null,
+          "handles": [
+            "ak.fragrances1"
+          ],
+          "platform_account_id_or_none": null,
+          "platform_or_none": "tiktok",
+          "platform_public_account_id_or_none": null,
+          "profile_subject_id_or_none": null,
+          "profile_urls": [
+            "https://tiktok.com/@ak.fragrances1"
+          ],
+          "source_url_or_none": "https://www.tiktok.com/@ak.fragrances1"
+        }
+      }
+    ],
+    "schema_version": "creator_registry_match_preflight_receipt_v0",
+    "summary": {
+      "ambiguous_matches": 0,
+      "blocked_actions": 0,
+      "existing_matches": 0,
+      "invalid_candidates": 0,
+      "new_candidates": 1,
+      "safe_to_capture_new": 1,
+      "total_candidates": 1
+    }
+  }
+}

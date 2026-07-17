@@ -16,14 +16,14 @@
       "cross_platform_rollup_profiles": 0,
       "engagement_rate_observed_profiles": 31,
       "not_onboarded_profiles": 13,
-      "onboarded_profiles": 38,
-      "platform_account_profiles": 51,
-      "profiles_total": 51,
-      "profiles_with_audience_triangulation": 0,
+      "onboarded_profiles": 39,
+      "platform_account_profiles": 52,
+      "profiles_total": 52,
+      "profiles_with_audience_triangulation": 1,
       "profiles_with_metric_rollups": 33
     },
     "engagement_rate_definition": "engagement_rate = (sum(likes) + sum(comments)) / sum(views) over videos with a complete view/like/comment trio; recipe pinned per record by calculation_recipe_version; percent twin is value*100",
-    "generated_at_utc": "2026-07-08T15:12:00Z",
+    "generated_at_utc": "2026-07-16T18:42:39.7300278Z",
     "non_claims": [
       "not SQLite adoption",
       "not data-lake physicalization",
@@ -137,7 +137,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
@@ -332,7 +332,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
@@ -521,7 +521,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
@@ -686,7 +686,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
@@ -872,7 +872,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
@@ -1073,7 +1073,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
@@ -1265,7 +1265,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
@@ -1451,7 +1451,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
@@ -1635,7 +1635,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
@@ -1843,7 +1843,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
@@ -2045,7 +2045,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
@@ -2231,7 +2231,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
@@ -2429,7 +2429,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
@@ -2621,7 +2621,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
@@ -2804,7 +2804,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
@@ -2987,7 +2987,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
@@ -3159,7 +3159,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
@@ -3350,7 +3350,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
@@ -3548,7 +3548,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
@@ -3726,7 +3726,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
@@ -3931,7 +3931,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
@@ -4135,7 +4135,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
@@ -4329,7 +4329,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
@@ -4532,7 +4532,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
@@ -4733,7 +4733,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
@@ -4935,7 +4935,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
@@ -5121,7 +5121,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
@@ -5291,7 +5291,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
@@ -5464,7 +5464,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
@@ -5639,7 +5639,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
@@ -5842,7 +5842,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-29T13:47:06Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30",
@@ -6067,7 +6067,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-29T13:47:50Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31",
@@ -6292,7 +6292,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-30T12:33:04Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32",
@@ -6401,7 +6401,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:41:47Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/33",
@@ -6473,7 +6473,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:41:57Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/34",
@@ -6545,7 +6545,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:42:07Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/35",
@@ -6617,7 +6617,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-07T15:01:16Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/36",
@@ -6689,7 +6689,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-07T15:01:16Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/37",
@@ -6760,7 +6760,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-08T15:01:18Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
@@ -6832,7 +6832,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-08T15:11:47Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
@@ -6904,7 +6904,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-08T18:52:19.366Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/40",
@@ -6969,6 +6969,367 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": {
+          "actual_audience_demographics": "not_estimated",
+          "creator_id": "tiktok:@ak.fragrances1",
+          "creator_signal_projection": {
+            "briefing_instructions": [
+              {
+                "claim_ids": [
+                  "cac_5f65dc6b73629f1181a2",
+                  "cac_7eec9306ec3c9d889698"
+                ],
+                "statement": "Give AK the product, two or three comparison references, and permission to rank them; require concrete notes on scent DNA, longevity, projection, and availability."
+              },
+              {
+                "claim_ids": [
+                  "cac_8949fb95456a34c26e87",
+                  "cac_12fd29034b3d0f6aacd2"
+                ],
+                "statement": "Keep collaboration beats natural and product-centered; do not script universal praise, and require disclosure when he has not tested a reference."
+              },
+              {
+                "claim_ids": [
+                  "cac_35c567f9c50f8a027f02"
+                ],
+                "statement": "Treat geography as unknown and keep targeting claims out of the brief unless audience-location evidence is added."
+              }
+            ],
+            "creator_specific_execution": {
+              "claim_ids": [
+                "cac_5f65dc6b73629f1181a2",
+                "cac_8949fb95456a34c26e87",
+                "cac_12fd29034b3d0f6aacd2"
+              ],
+              "statement": "Build around ranked comparisons, candid first impressions, and creator-to-creator tests; let him state dislikes, uncertainty, and performance trade-offs."
+            },
+            "hire_verdict": {
+              "claim_ids": [
+                "cac_5f65dc6b73629f1181a2",
+                "cac_7eec9306ec3c9d889698",
+                "cac_86fe9bc5f1dbff35e82a"
+              ],
+              "statement": "Hire AK Fragrances when a fragrance campaign needs a fast, candid comparison that helps shoppers choose between scents, alternatives, and performance trade-offs."
+            },
+            "observed_audience_response": {
+              "claim_ids": [
+                "cac_86fe9bc5f1dbff35e82a",
+                "cac_12fd29034b3d0f6aacd2"
+              ],
+              "statement": "Captured participants ask whether products are good, what they smell like, what they dupe, and whether they are worth trying; a separate objection challenges shallow bestseller-led authority."
+            },
+            "product_advantage": {
+              "claim_ids": [
+                "cac_5f65dc6b73629f1181a2",
+                "cac_7eec9306ec3c9d889698"
+              ],
+              "statement": "His evidenced advantage is converting scent language into a shortlist: what a fragrance resembles, how it performs, where it compromises, and whether it is worth trying."
+            },
+            "robustness_stamp": null,
+            "strongest_campaign_jobs": [
+              {
+                "claim_ids": [
+                  "cac_5f65dc6b73629f1181a2",
+                  "cac_86fe9bc5f1dbff35e82a"
+                ],
+                "statement": "Launch or relaunch a fragrance with a candid first impression and a clear comparison anchor."
+              },
+              {
+                "claim_ids": [
+                  "cac_7eec9306ec3c9d889698",
+                  "cac_5f65dc6b73629f1181a2"
+                ],
+                "statement": "Position an accessible alternative against an OG while naming the performance compromise."
+              },
+              {
+                "claim_ids": [
+                  "cac_8949fb95456a34c26e87",
+                  "cac_86fe9bc5f1dbff35e82a"
+                ],
+                "statement": "Use a creator-event collaboration to gather quick sensory reactions and answer availability questions."
+              }
+            ],
+            "wrong_hire_boundary": {
+              "claim_ids": [
+                "cac_35c567f9c50f8a027f02",
+                "cac_12fd29034b3d0f6aacd2"
+              ],
+              "statement": "Do not hire AK Fragrances to prove audience geography, conversion, or uncontested luxury-expert authority."
+            }
+          },
+          "evidence_cutoff": "2026-07-15T12:55:34Z",
+          "generated_at": "2026-07-16T18:04:49.6613445Z",
+          "input_bundle_hash": "sha256:bd38f0602bff0ddb8c3e3e50836767131e8757c437d5079f170e1bd105b3571c",
+          "input_bundle_id": "caeb_c909ee47a864edf96a9a",
+          "judgment_claim_set": {
+            "agreements": [
+              "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes."
+            ],
+            "claims": [
+              {
+                "all_support_evidence_ids": [
+                  "ttte_548ca39f733e887618f9",
+                  "ttte_aba3c592f3bebafae639",
+                  "ttte_97b028f6d002bfa8851c",
+                  "ttte_b6fd1505684e6acefb55",
+                  "ttte_d368867ccd1aeff61600"
+                ],
+                "axis": "purchase_decision_stage",
+                "claim_id": "cac_5f65dc6b73629f1181a2",
+                "commercial_implication": "Use him when a buyer needs a reasoned shortlist or candid first impression, not undifferentiated praise.",
+                "counterevidence_ids": [],
+                "limitation": "The capture shows selected videos, not every format AK publishes.",
+                "modality": "creator_content",
+                "relation": "creator_only",
+                "representative_evidence_ids": [
+                  "ttte_548ca39f733e887618f9",
+                  "ttte_aba3c592f3bebafae639",
+                  "ttte_97b028f6d002bfa8851c",
+                  "ttte_b6fd1505684e6acefb55",
+                  "ttte_d368867ccd1aeff61600"
+                ],
+                "source_item_ids": [
+                  "7658329072484863264",
+                  "7659292309883735328",
+                  "7659421510498635040"
+                ],
+                "statement": "AK repeatedly turns fragrance choice into ranked comparisons and explicit trade-offs across scent character, projection, smoothness, longevity, and availability.",
+                "support_scope": "content_only"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttte_b91a3cb501703d7b95fe",
+                  "ttte_2f19e1485a794f0604ca",
+                  "ttte_e402ef8f2b8ba14de832",
+                  "ttce_d07ad32402dd26daf959"
+                ],
+                "axis": "price_value_posture",
+                "claim_id": "cac_7eec9306ec3c9d889698",
+                "commercial_implication": "This supports briefs for accessible alternatives when the comparison and compromise are stated plainly.",
+                "counterevidence_ids": [],
+                "limitation": "No price or purchase outcome was verified.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttte_b91a3cb501703d7b95fe",
+                  "ttte_2f19e1485a794f0604ca",
+                  "ttte_e402ef8f2b8ba14de832",
+                  "ttce_d07ad32402dd26daf959"
+                ],
+                "source_item_ids": [
+                  "7658329072484863264",
+                  "7658931548883864864",
+                  "7659421510498635040"
+                ],
+                "statement": "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_df0b008d68962b47caaf",
+                  "ttce_d07ad32402dd26daf959",
+                  "ttce_1dceb6f46dc83e8bc21d",
+                  "ttce_4ad2496eae167f365027",
+                  "ttce_0e6242ada6bc062c72bb",
+                  "ttce_7afc4327e49f44e9e392"
+                ],
+                "axis": "purchase_decision_stage",
+                "claim_id": "cac_86fe9bc5f1dbff35e82a",
+                "commercial_implication": "A campaign should answer with a concrete scent description, comparison anchor, trade-off, and availability detail.",
+                "counterevidence_ids": [],
+                "limitation": "These are captured top-level comments, not conversion evidence or a platform census.",
+                "modality": "observed_comments",
+                "relation": "audience_emergent",
+                "representative_evidence_ids": [
+                  "ttce_df0b008d68962b47caaf",
+                  "ttce_d07ad32402dd26daf959",
+                  "ttce_1dceb6f46dc83e8bc21d",
+                  "ttce_4ad2496eae167f365027",
+                  "ttce_0e6242ada6bc062c72bb"
+                ],
+                "source_item_ids": [
+                  "7658684731696893217",
+                  "7658931548883864864",
+                  "7659006132144344352",
+                  "7659292309883735328",
+                  "7659469523459902753"
+                ],
+                "statement": "Captured participants ask whether products are good, what they smell like, whether they are dupes, and express interest in buying or trying them.",
+                "support_scope": "multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_45ff7e3f8a3611067761",
+                  "ttce_48d38db76c378eda13a0",
+                  "ttce_2d252ca5e8a4c648def5",
+                  "ttce_b5862bc1187e98dda1ef"
+                ],
+                "axis": "presentation_style_resonance",
+                "claim_id": "cac_8949fb95456a34c26e87",
+                "commercial_implication": "Keep collaborations spontaneous but give them a clear product-testing job and enough sensory detail to avoid an empty cameo.",
+                "counterevidence_ids": [
+                  "ttce_bd22a387b69aebfad114",
+                  "ttce_d7c97387213b66420d89",
+                  "ttce_35b017e3c013e6628e20"
+                ],
+                "limitation": "Praise and criticism are both sparse captured comments without engagement weighting.",
+                "modality": "observed_comments",
+                "relation": "audience_emergent",
+                "representative_evidence_ids": [
+                  "ttce_45ff7e3f8a3611067761",
+                  "ttce_48d38db76c378eda13a0",
+                  "ttce_2d252ca5e8a4c648def5",
+                  "ttce_b5862bc1187e98dda1ef"
+                ],
+                "source_item_ids": [
+                  "7658931548883864864",
+                  "7659006132144344352",
+                  "7659421510498635040"
+                ],
+                "statement": "Conversational event and creator-collaboration videos draw explicit praise, while other captured comments call some encounters awkward or forced.",
+                "support_scope": "multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_de236e11bcc7e3975547",
+                  "ttce_8d7b3372b58b5c7d4326",
+                  "ttce_2e50cefecace28d06bd5",
+                  "ttce_e9613308799670d2d9ee"
+                ],
+                "axis": "objections",
+                "claim_id": "cac_12fd29034b3d0f6aacd2",
+                "commercial_implication": "Brand briefs should require first-hand experience, comparison rationale, and disclosed uncertainty rather than an uncontested expert posture.",
+                "counterevidence_ids": [],
+                "limitation": "The objection comes from one captured video's comment set.",
+                "modality": "observed_comments",
+                "relation": "contradiction",
+                "representative_evidence_ids": [
+                  "ttce_de236e11bcc7e3975547",
+                  "ttce_8d7b3372b58b5c7d4326",
+                  "ttce_2e50cefecace28d06bd5",
+                  "ttce_e9613308799670d2d9ee"
+                ],
+                "source_item_ids": [
+                  "7658329072484863264"
+                ],
+                "statement": "A captured objection challenges category authority when recommendations center popular or bestselling choices.",
+                "support_scope": "single_item"
+              },
+              {
+                "all_support_evidence_ids": [],
+                "axis": "language_community_norms",
+                "claim_id": "cac_35c567f9c50f8a027f02",
+                "commercial_implication": "Do not use creator positioning, product availability, event location, or isolated location mentions as geographic targeting evidence.",
+                "counterevidence_ids": [],
+                "limitation": "No audience-location evidence was admitted.",
+                "modality": "fused",
+                "relation": "missing",
+                "representative_evidence_ids": [],
+                "source_item_ids": [],
+                "statement": "Audience geography is not established by this capture.",
+                "support_scope": "content_only"
+              }
+            ],
+            "contradictions": [
+              "A captured objection challenges category authority when recommendations center popular or bestselling choices."
+            ],
+            "missing_evidence": [
+              "Audience geography is not established by this capture."
+            ]
+          },
+          "limitations": [
+            "The capture is limited to eight selected videos and captured top-level comments.",
+            "Two selected videos contribute comments without transcript cues; transcript evidence remains available across the other selected videos.",
+            "Comment engagement salience was unavailable and was not relied on.",
+            "The slice is event- and collaboration-heavy and may not represent AK's full publishing mix.",
+            "Audience demographics and geography were not estimated."
+          ],
+          "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+          "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+          "non_claims": [
+            "not audience prevalence",
+            "not conversion, sales, or ROI evidence",
+            "not proof of a UK audience",
+            "not proof of audience location from creator positioning, accent, event location, or product availability"
+          ],
+          "platform_account_id": "acct_tiktok_fragrance_007",
+          "platform_scope": "tiktok",
+          "profile_subject_id": "acct_tiktok_fragrance_007",
+          "profile_subject_kind": "platform_account",
+          "schema_version": "creator_audience_triangulation_snapshot_v1",
+          "snapshot_id": "cats_429711cc94298b9775b1"
+        },
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": "2026-07-16T18:04:49.6613445Z",
+          "identity_updated_at": "2026-07-15T12:51:59Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "source_pointers": [
+            "F:\\forseti-data-lake\\raw\\c1b\\01KXJXHJPW0FT37CEBRKABG1Q8\\raw\\04_tiktok_suggested_accounts_attempt.json#/creator_handle",
+            "docs/review-inputs/charlie_frags_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/nodes/7/display_name_or_none"
+          ],
+          "summary": "Single-platform tiktok public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is joined from transcript, observed-comment, and persisted comment-attention evidence; demographics remain not_estimated.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXJXHJPW0FT37CEBRKABG1Q8",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-15T12:55:34Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_tiktok_fragrance_007",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "tiktok_creator_discovery_frontier_register.nodes[7].display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/charlie_frags_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/nodes/7/display_name_or_none",
+            "handle_observed_at": "2026-07-15T12:51:59Z",
+            "handle_source_pointer": "F:\\forseti-data-lake\\raw\\c1b\\01KXJXHJPW0FT37CEBRKABG1Q8\\raw\\04_tiktok_suggested_accounts_attempt.json#/creator_handle",
+            "platform": "tiktok",
+            "platform_account_id": "acct_tiktok_fragrance_007",
+            "platform_public_account_id_or_none": null,
+            "public_display_name_or_none": "AKFragrances",
+            "public_handle": "ak.fragrances1",
+            "public_profile_url": "https://www.tiktok.com/@ak.fragrances1"
+          }
+        ],
+        "profile_subject_id": "acct_tiktok_fragrance_007",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
         "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
@@ -6976,10 +7337,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/display_name_or_none"
@@ -7033,7 +7394,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7048,10 +7409,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/display_name_or_none"
@@ -7105,7 +7466,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7120,10 +7481,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/display_name_or_none"
@@ -7177,7 +7538,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7192,10 +7553,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/display_name_or_none"
@@ -7249,7 +7610,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7264,10 +7625,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/display_name_or_none"
@@ -7321,7 +7682,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7336,10 +7697,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/display_name_or_none"
@@ -7393,7 +7754,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7408,10 +7769,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/display_name_or_none"
@@ -7465,7 +7826,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7480,10 +7841,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/display_name_or_none"
@@ -7537,7 +7898,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7552,10 +7913,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/display_name_or_none"
@@ -7609,7 +7970,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7624,10 +7985,10 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-15T00:45:00Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+          "profile_view_computed_at": "2026-07-16T18:42:39.7300278Z"
         },
         "identity_evidence_summary": {
-          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/51",
           "source_pointers": [
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/handles/0",
             "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/display_name_or_none"
@@ -7681,7 +8042,7 @@
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
-          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/51",
           "metric_rollup_pointer": null,
           "metric_snapshot_pointer": null,
           "source_metric_observation_ids": []
@@ -7693,12 +8054,12 @@
     "source_inputs": [
       {
         "role": "source-backed platform accounts and identity state",
-        "sha256": "8f2756b8bdb090165c2535cca477d863ccb06508c5fcaa292f8c080b2f434b2b",
+        "sha256": "3a46fd4f6b4830addf9258359c0953bac1bff524ee6aedf9f0447c2d41763431",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       },
       {
         "role": "account-level onboarding state derived from verified committed Bronze evidence",
-        "sha256": "0a0c0a7949e39622f3052725311038f24ca9f51f024fe9a3f1ad971d634a066d",
+        "sha256": "acb549b4a17bad9957a225fe8b1126fa0a80881f3811d484cb99132bed2a6931",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json"
       },
       {
@@ -7710,6 +8071,11 @@
         "role": "lake-backed selected-grid Instagram metric rollups (live-lake snapshot)",
         "sha256": "8143b0556f09f476d7ce200544d2ddace445d5435e6417921d1e5542162f9d7e",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json"
+      },
+      {
+        "role": "validated transcript/comment audience triangulation snapshots",
+        "sha256": "7236050aebd870783f3305546881f2fe35bff4a00648cf72f9d38bf986c4080f",
+        "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/ak_fragrances1_creator_audience_triangulation_snapshot_v1.json"
       }
     ],
     "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger, Bronze-derived Creator Registry onboarding projection, and platform creator metric seeds. Profiles are account-scoped unless promoted public-handle linkage exists.",
