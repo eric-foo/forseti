@@ -4,8 +4,16 @@ import json
 from pathlib import Path
 
 from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE, build_parfumo_cleaning_packet
+from runners.run_parfumo_mgt_capture import (
+    TARGETED_RENDERED_SLOT,
+    TARGETED_RENDERED_SURFACE,
+    run_parfumo_targeted_rendered_capture,
+)
 from source_capture.models import known_fact
-from source_capture.parfumo_projection import build_parfumo_projection
+from source_capture.parfumo_projection import (
+    build_parfumo_projection,
+    build_parfumo_projection_from_packet_directory,
+)
 from source_capture.writer import write_local_source_capture_packet
 
 
@@ -69,6 +77,78 @@ def test_parfumo_projection_builds_cleaning_packet_with_text_transforms(tmp_path
         if entry.transform.method_or_rule == "parfumo_text_whitespace_normalization"
     }
     assert text_values == {"This perfume died young.", "Airy amber trail."}
+
+
+def test_targeted_content_and_raw_packets_produce_equivalent_cleaning_transforms(
+    tmp_path: Path,
+) -> None:
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    rendered_dom = artifacts / "rendered_dom.html"
+    visible_text = artifacts / "visible_text.txt"
+    route_receipt = artifacts / "route_receipt.json"
+    screenshot = artifacts / "viewport.png"
+    rendered_dom.write_text(_HTML, encoding="utf-8")
+    visible_text.write_text(
+        "Baccarat Rouge 540 Eau de Parfum\nReviews 369\nStatements 1390\n",
+        encoding="utf-8",
+    )
+    route_receipt.write_text(
+        json.dumps(
+            {
+                "route": "chrome_extension_user_visible_rendered_session",
+                "source_surface": TARGETED_RENDERED_SURFACE,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    screenshot.write_bytes(b"png fixture bytes")
+
+    packet_dirs: dict[str, Path] = {}
+    for mode in ("raw", "content"):
+        exit_code, message = run_parfumo_targeted_rendered_capture(
+            url=_LOCATOR,
+            output_root=tmp_path / mode,
+            rendered_dom_path=rendered_dom,
+            visible_text_path=visible_text,
+            route_receipt_path=route_receipt,
+            screenshot_path=screenshot,
+            capture_artifact_mode=mode,
+        )
+        assert exit_code == 0
+        summary = json.loads(Path(message).read_text(encoding="utf-8"))
+        packet_dirs[mode] = Path(
+            summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"]
+        )
+
+    projections = {
+        mode: build_parfumo_projection_from_packet_directory(
+            packet_or_manifest_path=packet_dir
+        )
+        for mode, packet_dir in packet_dirs.items()
+    }
+    semantic_rows = {
+        mode: [
+            row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+            for row in projection.rows
+        ]
+        for mode, projection in projections.items()
+    }
+    assert semantic_rows["content"] == semantic_rows["raw"]
+
+    cleaning_packets = {
+        mode: build_parfumo_cleaning_packet(
+            projection,
+            source_surface=TARGETED_RENDERED_SURFACE,
+        )
+        for mode, projection in projections.items()
+    }
+    assert (
+        cleaning_packets["content"].transform_ledger
+        == cleaning_packets["raw"].transform_ledger
+    )
 
 
 def _projection(tmp_path: Path):
