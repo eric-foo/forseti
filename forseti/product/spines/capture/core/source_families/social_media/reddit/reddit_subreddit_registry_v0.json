@@ -323,7 +323,7 @@
         "subreddit": "colognes",
         "url": "https://www.reddit.com/r/colognes/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2012-10-17",
         "title_or_none": "Great Scents for Everyone",
         "public_description_or_none": "Welcome to /r/colognes: a place for people to showcase their fragrance collections, ask for advice, or talk about whatever they want…",
@@ -337,7 +337,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "thread_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -354,10 +354,21 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\d14\\01KXQ7S6T1TTK1CZKJ0ZS7W8FX\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\d14\\01KXQ7S6T1TTK1CZKJ0ZS7W8FX\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\bce\\01KXQ7YQTT0SW75CKEYNF84QNY\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -409,7 +420,7 @@
         "subreddit": "desifragranceaddicts",
         "url": "https://www.reddit.com/r/desifragranceaddicts/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2021-09-23",
         "title_or_none": "DesiFragranceAddicts",
         "public_description_or_none": "A space for Indians to discuss their thoughts on everything related to fragrances.",
@@ -424,7 +435,7 @@
           "regional"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "grid_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -441,10 +452,20 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\802\\01KXQ7W92S0MF1469TTWD0RT9F\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\802\\01KXQ7W92S0MF1469TTWD0RT9F\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -539,7 +560,7 @@
         "subreddit": "femfraglab",
         "url": "https://www.reddit.com/r/femfraglab/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2021-02-15",
         "title_or_none": "FemFragLab",
         "public_description_or_none": "A light-hearted space to discuss feminine-leaning fragrance, share your thoughts, and explore fragrance in a positive, respectful environment…",
@@ -553,7 +574,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "thread_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -570,10 +591,21 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\a56\\01KXQ7TGPBAQAWA4FJ4QP88X9S\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\a56\\01KXQ7TGPBAQAWA4FJ4QP88X9S\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\192\\01KXQ7Y1YH1GNJN0ZQ2XY7J4XP\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -582,7 +614,7 @@
         "subreddit": "fragrance",
         "url": "https://www.reddit.com/r/fragrance/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2011-03-11",
         "title_or_none": "Fragrance Discussions for all Genders",
         "public_description_or_none": "r/fragrance is an inclusive, adult community for discussing finished retail perfumes and other scented personal and home-care products…",
@@ -596,7 +628,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "thread_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -613,10 +645,21 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\d20\\01KXQ7QPGFDD7AXG54ZA4XSP74\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\d20\\01KXQ7QPGFDD7AXG54ZA4XSP74\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\2f5\\01KXQ7ZXF4QTC9EW75RNK8QKR9\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -625,7 +668,7 @@
         "subreddit": "fragranceclones",
         "url": "https://www.reddit.com/r/fragranceclones/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2019-11-16",
         "title_or_none": "Fragrance Clones / Inspired by",
         "public_description_or_none": "This subreddit is based on Fragrance Clones / Inspired by / Alternatives. You can share your reviews, ask questions…",
@@ -639,7 +682,7 @@
           "dupe_value"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "thread_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -656,10 +699,21 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\739\\01KXQ7V6RRVVXFCXX0NDR3ER9M\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\739\\01KXQ7V6RRVVXFCXX0NDR3ER9M\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\2d5\\01KXQ81AVEVQ44CWYE0KS3JWYK\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -942,7 +996,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "grid_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -959,10 +1013,20 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\9e6\\01KXNXWRAWR790CFEFGDKF24B4\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\9e6\\01KXNXWRAWR790CFEFGDKF24B4\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
@@ -1249,7 +1313,7 @@
         "subreddit": "perfumes",
         "url": "https://www.reddit.com/r/perfumes/",
         "status": "active",
-        "status_observed_at": "2026-07-16",
+        "status_observed_at": "2026-07-17",
         "created_utc_or_none": "2010-12-29",
         "title_or_none": "All about scents and perfumes",
         "public_description_or_none": "Welcome to r/perfumes, we are a small community of fragrance lovers.",
@@ -1263,7 +1327,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "thread_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -1280,10 +1344,21 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-17",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\0ee\\01KXQ7RDA367XX16FZH8RJ39ZW\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\0ee\\01KXQ7RDA367XX16FZH8RJ39ZW\\manifest.json",
+          "F:\\forseti-data-lake\\raw\\4e3\\01KXQ80F2ARTFNJRW3AAGZC9BX\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]
