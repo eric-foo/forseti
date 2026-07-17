@@ -197,9 +197,12 @@ does not accept an implicit current/latest policy.
   the Silver Vault read-model obligations (generation id, source record ids,
   source high-watermark, selection policy versions, generated_at, stale/drift
   detection fields).
-- Built views in v0: `undone` and `by_mention`. `by_creator` stays deferred
-  behind the audience-silver lake wiring (Slice C) per the gate-opening
-  record. No SQL engine: the query-lens stays scan/query-latency-gated.
+- Built views in v0: `by_creator`, `by_mention`, and `undone`. `by_creator`
+  was deferred at gate opening behind the audience-silver lake wiring; that
+  wiring has since landed (registered creator-metric, grid, and
+  comment-attention Silver lanes, census-reconciled), so the view is built
+  (owner-commissioned 2026-07-17). No SQL engine: the query-lens stays
+  scan/query-latency-gated.
 - `undone` view semantics (weaker than lane-side pickup, by design): per
   adopted ack namespace (a namespace with at least one ack record), the
   committed anchors having **zero** ack records. Lane-side obligation growth
@@ -220,7 +223,47 @@ does not accept an implicit current/latest policy.
   (`silver_record_source_backed_status == complete`) enter the evidence
   mapping; all others appear solely under a `residuals` section (ids +
   counts, explicitly non-evidence). Exact strings are preserved — grouping
-  normalization is Cleaning's job, never the lake's.
+  normalization is Cleaning's job, never the lake's. Owner-widened
+  2026-07-17: the view additionally carries a `native_product_pages` section
+  routing a brand/line entity to its own committed product-page capture
+  anchor (identity from the view-only projection product snapshot, labeled
+  routing, never Silver authority) with the anchor's classified Silver
+  record counts, so product entities resolve to native product-page
+  evidence, not only creator-content mentions. Product-identity sources are
+  a closed in-code registry (`NATIVE_PRODUCT_PAGE_SOURCES`; Fragrantica is
+  the sole entry) — a new identity source is a deliberate registry entry
+  with its own extractor, never a loop rewrite. A projection row missing
+  brand or line is residual-only; one native `(anchor, source site, site id
+  or canonical URL)` identity cannot silently bind to conflicting brand/line
+  or URL values.
+- `by_creator` view (schema v2): (platform namespace, asserted identity
+  kind, observed public account native id) from account-bearing Silver
+  subjects (`platform_public_account` subjects and `public_content_object`
+  subjects naming their publishing account) mapped to committed packet +
+  Silver record refs, each carrying the build-time authority status from the
+  shared `classify_silver_vault_record_sources` classifier. The identity
+  kind is the record-asserted kind of the account identifier (e.g.
+  `youtube_channel_id`) or `unspecified` when unasserted; distinct identity
+  kinds never merge into one key, so a handle-keyed and a platform-id-keyed
+  record can never silently collide or conflate. Platform namespaces come
+  from the closed `KNOWN_PLATFORM_NAMESPACES` vocabulary (exact lowercase
+  canonical strings; extending it is a deliberate edit per new platform,
+  matching the Reddit venue registry's lowercase-canonical posture); an
+  unknown namespace or an unfileable account-describing subject shape
+  (missing identifiers, unknown subject kind carrying account-identifier
+  fields) is a named residual (`unrecognized_platform_namespace`,
+  `unrecognized_account_subject_shape`) — a wiring gap is always
+  distinguishable from "not captured". Per-platform object-level only — no
+  cross-platform identity is unified. Exact observed strings preserved;
+  absence of a key/packet/lane means not captured or not indexed, never
+  zero. Conflicting aliases for the same
+  `(platform namespace, identity kind, native id)` are named residuals
+  rather than silently treated as consistent. The scoped read entry point is
+  `runners/run_derived_retrieval_lookup.py` (`--creator` / `--mention`),
+  which reads only the generated views, requires a complete manifest pair
+  whose recorded view hash matches the stored bytes, reports generation
+  provenance, and matches mentions only by normalized exact brand, exact
+  line, or exact combined brand+line identity.
 - `--prove-rebuildability` regenerates every view from committed material
   under the generation stamps recorded in the existing manifest and
   byte-compares against the stored files; any mismatch or unreadable source
@@ -275,8 +318,10 @@ does not accept an implicit current/latest policy.
   trigger: a lane genuinely needs concurrent completers.
 - No queue/scheduler/event system anywhere in the seam; a future queue may
   only optimize notification over this contract (storage contract residual).
-- `by_creator` view deferred (Slice C precondition), per the gate-opening
-  record.
+- The `by_creator` build classifies every active Silver record per rebuild
+  (deterministic but whole-lake); the SQL query-lens stays behind the
+  derived-layout contract's scan/query-latency trigger. Upgrade trigger:
+  rebuild or lookup latency proves insufficient for a governed consumer.
 
 ## Non-Claims
 
@@ -314,6 +359,64 @@ direction_change_propagation:
     - forseti-harness/runners/run_sov_extraction_quality_eval.py
   non_claims:
     - not validation or readiness
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    All three gate-opened object-level views are now built (2026-07-17,
+    owner-commissioned): by_creator is no longer deferred -- its
+    audience-silver wiring precondition landed via the registered
+    creator-metric, grid, and comment-attention Silver lanes -- and routes a
+    per-platform public account to committed packet + Silver record refs with
+    build-time authority statuses from the shared classifier; by_mention is
+    owner-widened to carry a native_product_pages section routing a
+    brand/line entity to its own committed product-page capture anchor
+    (identity from the view-only Fragrantica projection, labeled routing,
+    never Silver authority); and runners/run_derived_retrieval_lookup.py is
+    the scoped read-only lookup entry point over the generated views, with
+    exact normalized identity matching and fail-closed manifest-pair/hash
+    verification. Partial or conflicting native identity rows and conflicting
+    account aliases remain visible residuals rather than fabricated or
+    silently collapsed keys. Owner-ratified identity hardening (2026-07-17,
+    adjudicated with the delegated review): by_creator schema v2 promotes the
+    record-asserted identity kind into the card key (distinct kinds never
+    merge; `unspecified` when unasserted), platform namespaces are a closed
+    vocabulary, unfileable account-describing shapes are named residuals
+    rather than silent drops, and native product-page identity sources are a
+    closed in-code registry with Fragrantica as the sole entry. The views
+    stay rebuildable, non-authoritative, per-platform object-level, and
+    prove-rebuildability-covered; absence in a view is never zero; by-key
+    discovery stays retrieval authority; the SQL query-lens stays behind the
+    scan/query-latency trigger.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/runners/run_derived_retrieval_lookup.py
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - forseti-harness/runners/run_data_lake_indexes_rebuild.py
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Its residual records the 2026-06-25 gate opening and correctly defers
+        the builder to a separate bounded work unit; this receipt records that
+        unit landing. The gate state and view set are unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+      reason: >
+        Its Generated Read Models rules (rebuildable, non-authoritative,
+        manifest-backed, missing-evidence-never-zero) are unchanged and this
+        build satisfies them; the built-view state is owned here.
+  non_claims:
+    - not validation, readiness, or approval
+    - not engine/backend selection; SQL query-lens stays latency-gated
+    - not cross-platform identity resolution or actor retrieval
+    - not a change to by-key retrieval authority
 ```
 
 ```yaml

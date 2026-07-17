@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -53,11 +54,15 @@ def _item(video_id: str, views: int, likes: int) -> dict[str, object]:
 
 def _capture(
     *,
-    ordered_ids: list[str],
-    items: list[dict[str, object]],
+    ordered_ids: Sequence[str] = (),
+    items: Sequence[dict[str, object]] = (),
     suggested: list[dict[str, object]] | None = None,
     dom_view_text_by_id: dict[str, str] | None = None,
 ) -> BrowserPageObservationSuccess:
+    # Immutable-tuple defaults keep the signature safe; convert to fresh lists
+    # per call so downstream behavior matches the previous explicit [] kwargs.
+    ordered_ids = list(ordered_ids)
+    items = list(items)
     dom: dict[str, object]
     if suggested is not None:
         dom = {
@@ -125,7 +130,7 @@ def _suggested_surface_closed_capture(
     blocking_modal_count_after: int = 0,
     action_name: str = "tiktok_relationship_dialog_close_v0",
 ) -> BrowserPageObservationSuccess:
-    capture = _capture(ordered_ids=[], items=[])
+    capture = _capture()
     metadata = dict(capture.metadata)
     metadata["post_load_pointer_actions"] = [
         {
@@ -177,6 +182,40 @@ def _profile() -> SourceCaptureSessionProfile:
     )
 
 
+def _capture_grid(tmp_path: Path, engine: object, **overrides: object):
+    """Call capture_tiktok_creator_grid with the standard kwargs of this file."""
+    kwargs: dict[str, object] = dict(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        window_size=30,
+        timeout_seconds=10.0,
+        settle_seconds=0.25,
+        max_grid_scroll_passes=40,
+        engine=engine,
+    )
+    kwargs.update(overrides)
+    return onboarding.capture_tiktok_creator_grid(**kwargs)
+
+
+def _run_onboarding(tmp_path: Path, engine: object, **overrides: object):
+    """Call run_tiktok_creator_onboarding with the standard kwargs of this file.
+
+    A fresh _profile() is constructed per invocation, matching the previous
+    per-call-site construction.
+    """
+    kwargs: dict[str, object] = dict(
+        creator_handle="creator",
+        session_profile=_profile(),
+        output_dir=tmp_path,
+        auth_state_root=tmp_path,
+        window_size=27,
+        engine=engine,
+    )
+    kwargs.update(overrides)
+    return run_tiktok_creator_onboarding(**kwargs)
+
+
 def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: Path) -> None:
     args = runner.build_parser().parse_args(
         [
@@ -192,12 +231,9 @@ def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: 
 
 def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
     with pytest.raises(TikTokCreatorOnboardingError, match="at least 27"):
-        run_tiktok_creator_onboarding(
-            creator_handle="creator",
-            session_profile=_profile(),
-            output_dir=tmp_path,
-            window_size=26,
-        )
+        # Wrapper-bound auth_state_root (and engine=None, the SUT default) are
+        # inert here: window_size is rejected before either is consumed.
+        _run_onboarding(tmp_path, None, window_size=26)
 
 
 def test_profile_item_list_predicate_is_exact_and_local() -> None:
@@ -262,16 +298,7 @@ def test_grid_acquisition_reveals_one_batch_then_requires_two_stable_dom_polls(
 
     monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
 
-    capture = onboarding.capture_tiktok_creator_grid(
-        profile_url="https://www.tiktok.com/@creator",
-        creator_handle="creator",
-        storage_state_path=tmp_path / "state.json",
-        window_size=30,
-        timeout_seconds=10.0,
-        settle_seconds=0.25,
-        max_grid_scroll_passes=40,
-        engine=object(),  # type: ignore[arg-type]
-    )
+    capture = _capture_grid(tmp_path, object())
 
     assert isinstance(capture, BrowserPageObservationSuccess)
     assert len(calls) == 4
@@ -318,16 +345,7 @@ def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
 
     monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
 
-    capture = onboarding.capture_tiktok_creator_grid(
-        profile_url="https://www.tiktok.com/@creator",
-        creator_handle="creator",
-        storage_state_path=tmp_path / "state.json",
-        window_size=30,
-        timeout_seconds=10.0,
-        settle_seconds=0.25,
-        max_grid_scroll_passes=40,
-        engine=object(),  # type: ignore[arg-type]
-    )
+    capture = _capture_grid(tmp_path, object())
 
     assert isinstance(capture, BrowserPageObservationSuccess)
     assert len(calls) == 3
@@ -368,16 +386,7 @@ def test_grid_acquisition_rejects_a_new_batch_below_the_minimum_window(
         TikTokCreatorOnboardingError,
         match="one grid DOM batch did not produce the minimum usable window",
     ):
-        onboarding.capture_tiktok_creator_grid(
-            profile_url="https://www.tiktok.com/@creator",
-            creator_handle="creator",
-            storage_state_path=tmp_path / "state.json",
-            window_size=30,
-            timeout_seconds=10.0,
-            settle_seconds=0.25,
-            max_grid_scroll_passes=40,
-            engine=object(),  # type: ignore[arg-type]
-        )
+        _capture_grid(tmp_path, object())
 
 
 def test_grid_acquisition_adapts_until_first_new_batch_then_stops_wheeling(
@@ -402,16 +411,7 @@ def test_grid_acquisition_adapts_until_first_new_batch_then_stops_wheeling(
 
     monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
 
-    capture = onboarding.capture_tiktok_creator_grid(
-        profile_url="https://www.tiktok.com/@creator",
-        creator_handle="creator",
-        storage_state_path=tmp_path / "state.json",
-        window_size=30,
-        timeout_seconds=10.0,
-        settle_seconds=0.25,
-        max_grid_scroll_passes=40,
-        engine=object(),  # type: ignore[arg-type]
-    )
+    capture = _capture_grid(tmp_path, object())
 
     assert isinstance(capture, BrowserPageObservationSuccess)
     assert capture.metadata["grid_acquisition_wheel_burst_count"] == 2
@@ -442,16 +442,7 @@ def test_grid_acquisition_fails_when_one_batch_never_stabilizes(
     )
 
     with pytest.raises(TikTokCreatorOnboardingError, match="did not stabilize"):
-        onboarding.capture_tiktok_creator_grid(
-            profile_url="https://www.tiktok.com/@creator",
-            creator_handle="creator",
-            storage_state_path=tmp_path / "state.json",
-            window_size=30,
-            timeout_seconds=10.0,
-            settle_seconds=0.25,
-            max_grid_scroll_passes=40,
-            engine=object(),  # type: ignore[arg-type]
-        )
+        _capture_grid(tmp_path, object())
 
 
 def test_grid_acquisition_fails_instead_of_accepting_no_new_batch(
@@ -471,16 +462,7 @@ def test_grid_acquisition_fails_instead_of_accepting_no_new_batch(
     )
 
     with pytest.raises(TikTokCreatorOnboardingError, match="no new grid DOM batch"):
-        onboarding.capture_tiktok_creator_grid(
-            profile_url="https://www.tiktok.com/@creator",
-            creator_handle="creator",
-            storage_state_path=tmp_path / "state.json",
-            window_size=30,
-            timeout_seconds=10.0,
-            settle_seconds=0.25,
-            max_grid_scroll_passes=40,
-            engine=object(),  # type: ignore[arg-type]
-        )
+        _capture_grid(tmp_path, object())
 
 
 def test_grid_window_uses_dom_compact_views_when_response_metrics_are_absent() -> None:
@@ -655,8 +637,6 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         lambda *_args, **_kwargs: state_path,
     )
     suggested = _capture(
-        ordered_ids=[],
-        items=[],
         suggested=[
             {
                 "handle": "adjacent",
@@ -717,14 +697,10 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
             },
         }
 
-    paths = run_tiktok_creator_onboarding(
-        creator_handle="creator",
-        session_profile=_profile(),
-        output_dir=tmp_path,
-        auth_state_root=tmp_path,
-        window_size=27,
+    paths = _run_onboarding(
+        tmp_path,
+        engine,
         selection_count=2,
-        engine=engine,
         deep_capture_fn=deep_capture,
         progress_fn=lambda event, fields: progress_events.append((event, fields)),
         cadence_min_gap_seconds=0,
@@ -1174,7 +1150,7 @@ def test_grid_below_sufficient_window_fails_before_deep_capture(
     )
     engine = _FakeEngine(
         [
-            _capture(ordered_ids=[], items=[], suggested=[]),
+            _capture(suggested=[]),
             _suggested_surface_closed_capture(),
                 *_stable_grid_capture_sequence(
                     _capture(
@@ -1194,13 +1170,9 @@ def test_grid_below_sufficient_window_fails_before_deep_capture(
         return {}
 
     with pytest.raises(TikTokCreatorOnboardingError, match="minimum usable window"):
-        run_tiktok_creator_onboarding(
-            creator_handle="creator",
-            session_profile=_profile(),
-            output_dir=tmp_path,
-            auth_state_root=tmp_path,
-            window_size=27,
-            engine=engine,
+        _run_onboarding(
+            tmp_path,
+            engine,
             selection_count=2,
             deep_capture_fn=deep_capture,
         )
@@ -1563,7 +1535,7 @@ def test_grid_window_accepts_available_rows_below_cap() -> None:
 
 
 def test_suggested_receipt_preserves_profile_bio_and_clean_external_links() -> None:
-    capture = _capture(ordered_ids=[], items=[], suggested=[])
+    capture = _capture(suggested=[])
     capture.dom_observation["profile_bio_text_or_none"] = (
         "  Honest reviews • hidden gems 🇬🇧\nFragrance for less  "
     )
@@ -1680,7 +1652,7 @@ def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
 def _clicked_capture(
     video_id: str, *, overlay_ready: bool = True
 ) -> BrowserPageObservationSuccess:
-    capture = _capture(ordered_ids=[], items=[])
+    capture = _capture()
     capture.dom_observation.update(
         {
             "hydration_json_text": None,
@@ -1707,7 +1679,7 @@ def _clicked_capture(
 
 
 def _closed_overlay_capture() -> BrowserPageObservationSuccess:
-    capture = _capture(ordered_ids=[], items=[])
+    capture = _capture()
     capture.metadata["post_load_pointer_actions"] = [
         {
             "action_name": "tiktok_video_overlay_close_v0",
@@ -1791,7 +1763,7 @@ def _visible_tiles_capture(
     document_height: int | None = None,
     loaded_ids: tuple[str, ...] | None = None,
 ) -> BrowserPageObservationSuccess:
-    capture = _capture(ordered_ids=[], items=[])
+    capture = _capture()
     capture.dom_observation["visible_selected_tiles"] = [
         {
             "video_id": video_id,
@@ -1824,7 +1796,7 @@ def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
     )
     engine = _FakeEngine(
         [
-            _capture(ordered_ids=[], items=[], suggested=[]),
+            _capture(suggested=[]),
             _suggested_surface_closed_capture(),
                 *_stable_grid_capture_sequence(
                     _capture(
@@ -1846,14 +1818,10 @@ def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
         raise RuntimeError("deep capture interrupted after first overlay")
 
     with pytest.raises(RuntimeError, match="deep capture interrupted"):
-        run_tiktok_creator_onboarding(
-            creator_handle="creator",
-            session_profile=_profile(),
-            output_dir=tmp_path,
-            auth_state_root=tmp_path,
-            window_size=27,
+        _run_onboarding(
+            tmp_path,
+            engine,
             selection_count=2,
-            engine=engine,
             deep_capture_fn=fail_after_first_overlay,
             cadence_min_gap_seconds=0,
             cadence_max_gap_seconds=0,
@@ -1872,7 +1840,7 @@ def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
 
 
 def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> None:
-    visible = _capture(ordered_ids=[], items=[], suggested=[])
+    visible = _capture(suggested=[])
     visible.dom_observation.update(
         {
             "suggested_surface_detected": True,
@@ -1880,7 +1848,7 @@ def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> Non
             "suggested_profile_anchor_count": 0,
         }
     )
-    not_visible = _capture(ordered_ids=[], items=[], suggested=[])
+    not_visible = _capture(suggested=[])
     not_visible.dom_observation.update(
         {
             "suggested_surface_detected": False,
@@ -1903,14 +1871,14 @@ def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> Non
 
 
 def test_suggested_receipt_distinguishes_empty_bio_from_missing_bio() -> None:
-    empty_bio = _capture(ordered_ids=[], items=[], suggested=[])
+    empty_bio = _capture(suggested=[])
     empty_bio.dom_observation.update(
         {
             "profile_bio_text_or_none": None,
             "profile_bio_element_detected": True,
         }
     )
-    missing_bio = _capture(ordered_ids=[], items=[], suggested=[])
+    missing_bio = _capture(suggested=[])
 
     empty_receipt = onboarding._build_suggested_accounts_receipt(
         creator_handle="creator", capture=empty_bio
@@ -1928,7 +1896,7 @@ def test_suggested_receipt_distinguishes_empty_bio_from_missing_bio() -> None:
 def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
     tmp_path: Path,
 ) -> None:
-    primary_not_visible = _capture(ordered_ids=[], items=[])
+    primary_not_visible = _capture()
     primary_not_visible.dom_observation.update(
         {
             "profile_bio_text_or_none": "Profile bio from the primary route",
@@ -1936,8 +1904,6 @@ def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
         }
     )
     fallback_captured = _capture(
-        ordered_ids=[],
-        items=[],
         suggested=[
             {
                 "handle": "fallback_creator",
@@ -1982,7 +1948,7 @@ def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
 def test_primary_bio_absence_does_not_overwrite_observed_fallback_bio(
     tmp_path: Path,
 ) -> None:
-    primary_bio_absent = _capture(ordered_ids=[], items=[])
+    primary_bio_absent = _capture()
     primary_bio_absent.dom_observation.update(
         {
             "profile_bio_text_or_none": None,
@@ -1990,8 +1956,6 @@ def test_primary_bio_absence_does_not_overwrite_observed_fallback_bio(
         }
     )
     fallback_bio_observed = _capture(
-        ordered_ids=[],
-        items=[],
         suggested=[
             {
                 "handle": "fallback_creator",

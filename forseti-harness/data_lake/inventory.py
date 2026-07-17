@@ -475,6 +475,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "lineage classification and reconciliation intentionally enumerate every creator-metric observation and rollup sibling; no latest sibling is selected",
     },
+    "data_lake/derived_retrieval_views.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "rebuildable non-authoritative view builder intentionally enumerates every active silver_envelope record (classified by the shared authority classifier) plus every Fragrantica projection product-snapshot row; no latest sibling is selected and the views are routing caches, never evidence selection",
+    },
     "data_lake/silver_census.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
