@@ -130,7 +130,7 @@ class NordstromCountryPreferencePlugin:
         else:
             # Save can trigger a homepage navigation. Let it start, then place a bounded barrier
             # before the generic adapter navigates to the main PDP; without this, the two
-            # navigations race and Playwright reports net::ERR_ABORTED for the main URL.
+            # navigations race and the browser runtime reports net::ERR_ABORTED for the main URL.
             settle_ms = min(1000, _remaining_ms(deadline))
             if settle_ms > 0:
                 page.wait_for_timeout(settle_ms)  # type: ignore[union-attr]
