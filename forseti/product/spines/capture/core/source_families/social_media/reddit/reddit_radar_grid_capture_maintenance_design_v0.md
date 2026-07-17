@@ -49,14 +49,30 @@ claims are `product_learning`-capped.
    Data API terms, Public Content Policy) is superseded as a currency
    basis; each run records its own fresh robots/source-policy posture
    receipt, and the build gate re-checks the three policy surfaces.
+4. **Grid-pass shape: hot p1 + new p1 (probe-settled, 2026-07-18).** An
+   owner-authorized one-subreddit probe on r/fragrance (busiest tracked
+   sub; six 200 responses via the production anti-blocking HTTP path)
+   settled the per-pass surface set. Evidence: /new/ page 1 (25 posts)
+   covered roughly the last 23 hours of posting on the busiest sub, so one
+   page of /new/ approximates a complete daily post inventory there and a
+   multi-day inventory on smaller tracked subs; hot page 1 was fully
+   contained in new pages 1–3 by URL but carries the community-ranked
+   ordering plus at-capture scores/comment counts the breakout selector
+   needs; rising page 1 was a strict subset of hot page 1 (24/24) and adds
+   nothing a daily hot+new series does not. Per pass per tracked sub:
+   **hot page 1 + new page 1** (two packets, ~44 kB content-mode).
+   Rising is dropped. Heavy-sub escalation (append new p2 when new p1's
+   oldest post is younger than the pass interval) is deferred to cadence
+   automation.
 
 ## The maintenance pipeline
 
 ```text
 registry filter (niche_paths/venue_roles)      e.g. beauty/fragrance, hub+dupe_value
         v
-grid capture: one best/top/rising listing page per subreddit per pass
-  - the one page carries BOTH layers: thread grid (titles, scores,
+grid capture: hot page 1 + new page 1 per subreddit per pass
+  (probe-settled 2026-07-18; see Accepted design parameters item 4)
+  - the pages carry BOTH layers: thread grid (titles, scores,
     comment counts) AND the sub envelope (subscribers, active-now, sidebar
     bio/rules)
   - packets -> data lake BRONZE (immutable, manifest-hashed, TikTok-style)

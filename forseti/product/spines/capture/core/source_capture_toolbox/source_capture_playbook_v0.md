@@ -365,6 +365,20 @@ drift check: `run_reddit_parser_fit_check.py`). Owning doctrine:
 attestation-grade, not third-party re-reproducible; a projector failure in
 flight falls back loudly to a preserved raw packet, never silent loss.
 
+## Browser-route standard — CloakBrowser humanise (owner direction, 2026-07-18)
+
+All browser-based capture uses the CloakBrowser backend with humanise on
+(`cloakbrowser_humanize=True`), the TikTok-lane pattern. Bare Playwright or
+un-humanised CloakBrowser routes require an explicit owner exception for that
+run (the TikTok live-probe runner already hard-rejects the humanise flag on
+non-CloakBrowser backends; that check is the model). This applies to every
+future browser-based lane and to the pending content-capture seam extension
+for `run_source_capture_cloakbrowser_packet.py`. Existing lane runners flip
+their defaults as they are next touched (content-mode precedent); every
+browser capture records its humanise flag in packet metadata, as the
+browser-snapshot adapter already does (`cloakbrowser_humanize` in capture
+metadata).
+
 ## Step 3 — The verdict + receipt
 
 - **GO:** source-native content captured AND independently checkable — raw bytes/hash, magic bytes
