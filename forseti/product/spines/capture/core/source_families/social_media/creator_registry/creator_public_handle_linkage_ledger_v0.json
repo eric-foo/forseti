@@ -664,7 +664,7 @@
     "creator_records": [
       {
         "creator_record_id": "creator_fragranceknowledge_001",
-        "link_state": "candidate_public_account_link",
+        "link_state": "declared_public_account_link",
         "platform_account_ids": [
           "acct_yt_fragrance_007",
           "acct_tiktok_fragrance_004",
@@ -673,11 +673,11 @@
         "evidence_ids": [
           "ev_linkhub_fragranceknowledge_20260707_001"
         ],
-        "review_state": "candidate_needs_review",
-        "link_rationale": "Official public Linktree linked from the TikTok profile lists Fragranceknowledge TikTok, Instagram, and YouTube public accounts in sameAs; preserve as candidate pending non-LLM human review promotion.",
-        "limitations": "Candidate public-handle linkage only pending non-LLM human review; no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee.",
+        "review_state": "auto_promoted_official_link_hub",
+        "link_rationale": "Official public Linktree linked from the TikTok profile lists Fragranceknowledge TikTok, Instagram, and YouTube public accounts in sameAs; promoted to declared under the owner-ratified official-link-hub auto-promotion rule (2026-07-16) on strong bidirectional self-declared link-hub evidence.",
+        "limitations": "Declared public-handle linkage only; no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee; reversible on disconfirming evidence.",
         "created_at": "2026-07-07T15:25:00Z",
-        "updated_at": "2026-07-07T15:25:00Z",
+        "updated_at": "2026-07-16T19:06:26Z",
         "non_claims": [
           "not real-world identity proof",
           "not non-public-handle join",
