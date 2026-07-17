@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.root import DataLakeRoot
 from runners import run_source_capture_tiktok_daily_heartbeat as heartbeat
 from runners import run_source_capture_tiktok_daily_heartbeat_control as control
 from source_capture.adapters.browser_snapshot import (
@@ -77,6 +78,11 @@ def _grid_window() -> dict[str, object]:
         "creator_handle": "creator",
         "window_size": 1,
         "complete": True,
+        "profile_metric_capture_policy_version": "tiktok_profile_metric_capture_v0",
+        "profile_metrics": {
+            "follower_count": {"source_field": "followerCount", "exact_value_or_none": 1234, "posture": "observed", "reason_or_none": None, "source_route": "profile_hydration", "raw_text_or_none": "1234"},
+            "profile_total_like_count": {"source_field": "heartCount", "exact_value_or_none": 50000, "posture": "observed", "reason_or_none": None, "source_route": "profile_hydration", "raw_text_or_none": "50000"},
+        },
         "items": [
             {
                 "video_id": "101",
@@ -190,8 +196,36 @@ def test_grid_only_runner_binds_success_to_attempt_and_preserves_frozen_artifact
     assert receipt["packet_id"] == "01TESTPACKET"
 
 
-def test_resumed_attempt_reuses_bound_frozen_window_without_browser_recapture(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+def test_production_heartbeat_requires_verified_profile_metric_silver(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    roster = tmp_path / "session_roster.json"
+    roster.write_text(json.dumps(_session_roster()), encoding="utf-8")
+    receipt_path = tmp_path / "session" / "receipts.jsonl"
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(heartbeat, "capture_tiktok_creator_grid", lambda **_kwargs: _capture())
+    monkeypatch.setattr(heartbeat, "build_tiktok_grid_window", lambda **_kwargs: _grid_window())
+    result = heartbeat.run_tiktok_daily_heartbeat(roster_path=roster, receipt_jsonl=receipt_path, lane_id="0", lane_count=1, data_root=data_root, storage_state_path=tmp_path / "state", engine=object(), partition_preselected=True)
+    assert result.succeeded_count == 1
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert receipt["profile_metric_silver_status"] == "verified"
+    assert len(receipt["profile_metric_record_ids"]) == 2
+
+
+def test_production_heartbeat_fails_when_profile_projection_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    roster = tmp_path / "session_roster.json"
+    roster.write_text(json.dumps(_session_roster()), encoding="utf-8")
+    receipt_path = tmp_path / "session" / "receipts.jsonl"
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(heartbeat, "capture_tiktok_creator_grid", lambda **_kwargs: _capture())
+    monkeypatch.setattr(heartbeat, "build_tiktok_grid_window", lambda **_kwargs: _grid_window())
+    monkeypatch.setattr(heartbeat, "run_tiktok_grid_observations", lambda **kwargs: [{"packet_id": kwargs["packet_ids"][0], "status": "failed", "error": "boom"}])
+    result = heartbeat.run_tiktok_daily_heartbeat(roster_path=roster, receipt_jsonl=receipt_path, lane_id="0", lane_count=1, data_root=data_root, storage_state_path=tmp_path / "state", engine=object(), partition_preselected=True)
+    assert result.failed_count == 1
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert receipt["status"] == "failed"
+    assert "profile metric Silver projection failed" in receipt["error_message"]
+
+
+def test_resumed_attempt_reuses_bound_frozen_window_without_browser_recapture(    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     roster = tmp_path / "session_roster.json"
     roster.write_text(json.dumps(_session_roster(attempt_resume=True)), encoding="utf-8")

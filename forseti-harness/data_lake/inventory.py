@@ -501,6 +501,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "local:prepare_instagram_subscription_judgment",
         "reason": "the caller supplies explicit admitted comment/transcript record paths; the runner verifies data-root containment, requested lane, canonical record path, raw-anchor identity, and current source validity, while lane_dir is used only for path-shape validation and never to select an arbitrary sibling",
     },
+    "runners/run_source_capture_tiktok_daily_heartbeat.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:_profile_metric_silver_fields",
+        "reason": "the heartbeat computes the two deterministic profile-metric record ids for its exact admitted packet, validates both exact records, and never selects among siblings",
+    },
     "runners/run_tiktok_creator_audience_triangulation.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",

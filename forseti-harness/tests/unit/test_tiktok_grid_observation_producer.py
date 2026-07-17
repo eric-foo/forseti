@@ -11,9 +11,11 @@ from capture_spine.creator_profile_current.social_metric_history_reader import (
     read_social_metric_history,
 )
 from capture_spine.creator_profile_current.tiktok_grid_observation_producer import (
+    METRIC_OBSERVATION_LANE,
     SOCIAL_METRIC_OBSERVATION_SET_LANE,
     TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
     observation_set_record_id,
+    profile_metric_record_id,
 )
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
@@ -37,6 +39,7 @@ def _grid_bytes(
     play_count: int,
     like_count: int,
     comment_count: int | None,
+    profile_metrics: bool = False,
 ) -> bytes:
     stats = {
         "playCount": play_count,
@@ -68,6 +71,13 @@ def _grid_bytes(
         ],
         "collection_receipt": {"capture_timestamp": observed_at},
     }
+    if profile_metrics:
+        payload["profile_metric_capture_policy_version"] = "tiktok_profile_metric_capture_v0"
+        payload["heartbeat_binding"] = {"attempt_id": f"attempt-{observed_at}", "stable_partition_key": "platform_account_id:acct-001", "platform_account_id": "acct-001"}
+        payload["profile_metrics"] = {
+            "follower_count": {"source_field": "followerCount", "exact_value_or_none": play_count, "posture": "observed", "reason_or_none": None, "source_route": "profile_hydration", "raw_text_or_none": str(play_count)},
+            "profile_total_like_count": {"source_field": "heartCount", "exact_value_or_none": like_count, "posture": "observed", "reason_or_none": None, "source_route": "profile_hydration", "raw_text_or_none": str(like_count)},
+        }
     return json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
 
@@ -78,6 +88,7 @@ def _admit_grid(
     play_count: int,
     like_count: int,
     comment_count: int | None,
+    profile_metrics: bool = False,
 ) -> str:
     code, packet_dir = write_tiktok_grid_packet(
         grid_window_json=_grid_bytes(
@@ -85,6 +96,7 @@ def _admit_grid(
             play_count=play_count,
             like_count=like_count,
             comment_count=comment_count,
+            profile_metrics=profile_metrics,
         ),
         data_root=data_root,
     )
@@ -218,6 +230,27 @@ def test_runner_materializes_two_capture_history_with_missing_distinct_from_zero
         assert [path.name for path in lane.iterdir()] == [
             observation_set_record_id(packet_id)
         ]
+
+
+def test_runner_materializes_two_profile_metrics_per_cadence_packet(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_ids = [
+        _admit_grid(data_root, observed_at=observed_at, play_count=followers, like_count=likes, comment_count=2, profile_metrics=True)
+        for observed_at, followers, likes in (("2026-07-12T00:00:00Z", 1_000, 20_000), ("2026-07-13T00:00:00Z", 1_010, 20_500))
+    ]
+    results = runner.run_catchup(data_root=data_root)
+    assert all(row["status"] == "derived" for row in results)
+    assert all(len(row["profile_metric_record_ids"]) == 2 for row in results)
+    expected = {"follower_count": [1_000, 1_010], "profile_total_like_count": [20_000, 20_500]}
+    for metric_name, values in expected.items():
+        records = []
+        for packet_id in packet_ids:
+            path = data_root.record_path(subtree="derived", raw_anchor=packet_id, lane=METRIC_OBSERVATION_LANE, record_id=profile_metric_record_id(packet_id, metric_name))
+            record = json.loads(path.read_text(encoding="utf-8"))
+            assert record["raw_refs"][0]["anchor"]["value"] == f"/profile_metrics/{metric_name}"
+            assert record["payload"]["observation"]["subject"]["ref"]["platform_account_id"] == "acct-001"
+            records.append(record["payload"]["observation"]["metric_value"])
+        assert records == values
 
 
 def test_history_reader_requires_the_exact_policy_fingerprint(tmp_path: Path) -> None:
