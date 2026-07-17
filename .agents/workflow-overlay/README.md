@@ -12,6 +12,23 @@ authority_boundary: retrieval_only
 
 This overlay is the project authority for Forseti. Skills may provide task-local mechanics, but Forseti-specific facts and constraints must come from this folder or another Forseti-owned source named here.
 
+## Behavioral Admission
+
+Every behavioral rule in this overlay is subordinate to the Smallest Complete
+Intervention doctrine in `AGENTS.md`. A standing step, field, receipt, gate,
+review pass, hook, checker, artifact, or synchronization obligation earns a
+place here only when removing it would make the bound outcome false or
+materially fragile and it catches a named defect class at the lowest-cost
+effective boundary.
+
+Importance, novelty, doctrine impact, cross-lane wording, or a desire for more
+evidence does not by itself justify recurring ceremony. Prefer a scoped trigger
+or deterministic boundary check over a universal actor-carried obligation.
+Retire temporary mechanisms when their stop condition fires or their own
+evidence shows that the collection burden does not affect the decision it was
+meant to improve. Preserve historical evidence in its workflow record and Git
+history; do not keep it resident in live authority.
+
 ## Overlay Sections
 
 - `project-authority.md`: project identity, boundary, and unknown facts.
@@ -27,8 +44,7 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 - `communication-style.md`: Forseti response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
 - `validation-gates.md`: checks required before claiming completion.
 - `review-lanes.md`: read-only review lanes, patch/integration execution boundaries, and template retrieval rules.
-- `batch0-process-pilot.md`: retired four-probe process-improvement pilot, preserved evidence boundary, and final keep/stop disposition.
-- `batch1-decision-gate-economics.md`: temporary non-mandatory decision-gate economics pilot for deep-thinking, assumption-gate, and fused ENTRY evidence.
+- `batch0-process-pilot.md`: retired compatibility pointer to the preserved Batch 0 evidence record.
 - `delegated-review-patch.md`: provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts, and the overlay-interface fields a future skill implementation may read. Not a bound review lane.
 - `safety-rules.md`: project-specific safety and forbidden drift.
 - `skill-adoption.md`: skill source, shadow, and adoption status.

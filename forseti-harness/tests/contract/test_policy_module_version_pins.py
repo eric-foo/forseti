@@ -139,7 +139,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
         # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
-        "cd56c89c207ad9716cb6104c576b7cb1951bc75cc1256b499d119980c905cd7d",
+        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
+        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
+        "b00217005875888b2cbeaf3a3599974e5057c9fd6bc43865cca69f32f5b2d917",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
@@ -151,15 +153,31 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/fragrantica_projection.py": (
         ("FRAGRANTICA_PROJECTION_VERSION",),
-        "141df55675bb97ff5e2efabab9789dc2ce4b2a934c15a6feabf4bf3ba9f7f04f",
+        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
+        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
+        "05402e8667b94b873a2e4e3f1b5b887ba03841603c3174c39c3a99c2506e5f66",
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "47c5b75baefc4543363b09513ee55e712368ce5682d10240f8a9c97e66623213",
+        # Pin bumped: byte-identical _append_residual_once dedup onto
+        # harness_utils.append_residual_once; not output-shaping.
+        "cec6047919c73bc954b07ea15f3596929e511b11f851ed70177da6d58645aa11",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
-        "cb2759c216c9f2561778eac0fa2cfeece23870914a4a5d57e3931eb0d4dc422e",
+        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
+        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
+        "4d7262424b7f8d8cf10f2832a69adaab26e2ea25c8aa385b313d8b0de3c89660",
+    ),
+    "source_capture/projection_shared.py": (
+        (
+            "the projection version tokens of its adopting surfaces "
+            "(basenotes, fragrantica, parfumo, ig, reddit, retail grid, "
+            "retail PDP) -- shared helper home",
+        ),
+        # Initial pin: byte-identical helpers consolidated out of the projection
+        # surfaces; not output-shaping.
+        "d8cd3d79b5daaf10d75bea511adca2909bf1ade39d0cdaadc46f75864022f504",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

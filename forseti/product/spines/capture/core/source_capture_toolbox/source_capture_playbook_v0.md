@@ -60,6 +60,16 @@ source-family index owns the route home that ties access route, runner, projecti
 and Cleaning pointers together. Data Lake contracts remain in the Data Lake spine and are not
 restated here.
 
+**Lake-first radar preflight:** Before external capture in a recurring or
+actively radarred source family, inspect the existing Data Lake through the
+highest-trustworthy current read surface available: relevant Silver/current view
+first, then packet or catalog inventory, then raw material when necessary.
+Reuse an appropriate existing packet unless recapture materially improves
+currentness, fidelity, provenance, cutoff compliance, inspectability, or fills a
+named gap. The lake is reuse/freshness/coverage context, not proof of current
+external reality. Absence from Silver is not absence from the lake or external
+world, and a missing read model does not block acquisition.
+
 ## Risk posture (owner-authorized, pre-commercial)
 
 The owner authorizes, for the pre-commercial proving phase, **capturing publicly-viewable content
@@ -101,7 +111,8 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
 
 ## Guardrails (these frame everything; non-negotiable)
 
-1. **Access-control gate — first, always (executable as Step 0).** Before any technical attempt,
+1. **Access-control gate — first for external technical work (executable as Step 0).** After the
+   lake-first preflight when it applies, and before any external technical attempt,
    classify whether the content is **publicly viewable** vs. **behind an access-control / auth
    gate**. Public content is in scope even against ToS, with anti-bot circumvention, under the Risk
    posture (human-rate, bounded). An auth/access-control gate is only passable with your own entitled
@@ -151,7 +162,26 @@ or visible text; they do not stage packets, write manifests, or touch ECR. Walke
 must not call them directly; they record the need and let the orchestrator invoke
 the bounded read.
 
-## Step 0 — The access-control gate (run before any technical probe)
+## Step -1 — Lake reuse and freshness preflight
+
+Run this step before external capture when the source family is recurring or
+actively radarred:
+
+1. inspect the relevant Silver/current view when one exists;
+2. inspect packet or catalog inventory when Silver is absent, stale, incomplete,
+   conflicting, or insufficiently faithful;
+3. inspect raw material only when needed to resolve reuse, freshness, coverage,
+   or source-fidelity questions;
+4. identify the existing packet, the named information job, and whether reuse
+   satisfies the bounded request;
+5. recapture only for a recorded material improvement in currentness, fidelity,
+   provenance, cutoff compliance, inspectability, or a named gap.
+
+Do not infer current external reality from lake state. Absence from Silver is
+not absence from the lake or the world. Lack of a relevant read model does not
+block the external route.
+
+## Step 0 — The access-control gate (run before any external technical probe)
 
 Classify the target as one of: **publicly-viewable · publicly-viewable-but-ToS-restricted ·
 authenticated/access-controlled · operator-supplied/manual-only · unknown.**
@@ -325,9 +355,17 @@ as source facts, not proof.
   route for the substrate/problem (e.g. mobile/app-only). Record the missing-route candidate; do
   **not** call it NO-GO.
 - **Receipt (every run):** access classification · routes tried · routes considered-but-skipped and
-  why · caller-bound detail requirements and sufficiency result · evidence locator for each attempt
-  · fidelity evidence · request rate / volume · why it stopped · current/recent state preserved when
-  relevant · verdict · routes now forbidden without a new fact.
+  why · lake preflight surface and reusable packet decision when applicable ·
+  named decision-material information job · recapture reason when reuse was
+  rejected · caller-bound detail requirements and sufficiency result · evidence
+  locator for each attempt · fidelity evidence · request rate / volume · why it
+  stopped · current/recent state preserved when relevant · verdict · routes now
+  forbidden without a new fact.
+
+GO, PARTIAL, NO-GO, and CATALOG_GAP describe fulfillment of the bounded capture
+request only. They do not decide evidence-world completeness, Scanning closure,
+or final packet inclusion. No capture count or target count establishes
+completion.
 
 ## The output: a recipe card (the growing tail — authored by probes, not here)
 
@@ -347,6 +385,12 @@ under Guardrail 4.
 The catalog is a discovery tool, not a per-fetch cost. Distilled cell: `probe-then-pin-rung` in
 `docs/decisions/distillation_binding_data_capture_v0.md` (held; the automated dispatcher form is
 capture-spine spec slice F, pending build).
+
+Route reuse and evidence reuse are separate. The pin chooses the capture method;
+the lake-first preflight decides whether capture is needed at all. Reuse an
+appropriate existing packet before recapture unless the bounded request records
+a material currentness, fidelity, provenance, cutoff-compliance, inspectability,
+or named-gap reason to reacquire.
 
 ### Launch and session economy
 
@@ -445,61 +489,6 @@ direction_change_propagation:
     - not session durability proof
     - not buyer proof
     - not proxy/geo proof
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    IG live-capture route doctrine now classifies standalone anonymous `yt-dlp` empty-media
-    failures as route-specific residuals, not IG transcript NO-GO; the next matching public
-    live transcript route is browser-rendered deep-capture, while durable media/video
-    preservation, canonical F-lake persistence, logged-in access, proxy use, and scale cadence
-    remain unproven.
-  trigger: workflow_authority
-  related_triggers:
-    - validation_philosophy
-  controlling_sources_updated:
-    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-    - docs/workflows/ig_behavioral_live_validation_receipt_v0.md
-  downstream_surfaces_checked:
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md
-    - docs/workflows/shared_capture_core_ig_youtube_tiktok_planning_v0.md
-    - orca-harness/runners/run_source_capture_ig_reels_deep_capture.py
-    - orca-harness/source_capture/ig_reels_deep_capture.py
-    - orca-harness/source_capture/transcript/ig_reels_audio_packet.py
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        Source-loading already binds all capture-spine activity to this playbook plus the recon
-        index. The IG route detail belongs here and in the recon index, not in the overlay read-pack
-        rule.
-    - path: docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md
-      reason: >
-        The spec already treats deep-capture and standalone audio as IG-owned transcript surfaces
-        and does not promote standalone `yt-dlp` failure to an IG transcript NO-GO. No route
-        preference duplication added.
-    - path: docs/workflows/shared_capture_core_ig_youtube_tiktok_planning_v0.md
-      reason: >
-        The planning note already keeps IG acquisition route, transient media handling, and ASR
-        priority platform-owned. This patch changes IG route diagnosis only, not shared-core
-        boundaries.
-  stale_language_search: >
-    rg -n "TikTok/Instagram|no technical recon yet|No technical recon for TikTok/Instagram|media/video capture recipe|full transcript/deep-capture validation|audio-route live residuals|explicit TikTok/Instagram recon gap"
-    docs/workflows/orca_repo_map_v0.md forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md docs/workflows/ig_behavioral_live_validation_receipt_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-29 after edits and re-run after this receipt insertion. Before the receipt
-    was inserted, `rg` exited 1 with no matches. After insertion, the only retained hit is the
-    receipt's own search-literal line; no checked routing prose keeps the stale route/gap wording.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source-access approval
-    - not canonical F-lake validation
-    - not durable media/video preservation
-    - not shared-core implementation authorization
 ```
 
 ```yaml
