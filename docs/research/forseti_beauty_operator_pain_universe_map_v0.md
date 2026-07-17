@@ -16,7 +16,7 @@ use_when:
   - Scoping a paid-source follow-up pass (see the paywalled-source receipt).
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md
+  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md # nonresolving: on branch claude/gtm-silent-pain-taxonomy (origin), not yet merged to main
   - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
 stale_if:
   - The owner adjudicates these candidates into the taxonomy (map consumed for that purpose; invisible list may outlive it).

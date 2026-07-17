@@ -15,7 +15,7 @@ use_when:
   - Adjudicating its returned candidate classes into the taxonomy.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md
+  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md # nonresolving: on branch claude/gtm-silent-pain-taxonomy (origin), not yet merged to main
   - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
 stale_if:
   - The returned candidates are adjudicated into the taxonomy (packet consumed).
