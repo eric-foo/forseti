@@ -5,15 +5,16 @@ retrieval_header_version: 1
 artifact_role: Point-in-time beauty retailer surface probe results
 scope: >
   Records bounded, subject-bound retailer page-state observations commissioned
-  by the Beauty Retailer Surface Probe handoff. Target x Naturium is complete;
-  Nordstrom x Nécessaire returned a typed locale-drift partial; Luckyscent x
-  Pearfat Parfum remains unexecuted.
+  by the Beauty Retailer Surface Probe handoff. Target x Naturium, Nordstrom x
+  Nécessaire, and Luckyscent x Pearfat Parfum are complete with their pin and
+  projection limitations typed explicitly.
 use_when:
   - Comparing public retailer assortment, offer, review, and claims surfaces for accepted beauty-pool companies.
-  - Retrieving the canonical packet locators and limits for the Target x Naturium probe.
+  - Retrieving canonical packet locators and limits for the three completed probes.
 authority_boundary: evidence_register_only
 open_next:
   - docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
 stale_if:
   - A later capture supersedes a recorded point-in-time page state.
@@ -25,11 +26,11 @@ stale_if:
 | Sequence | Retailer x subject | Status |
 | --- | --- | --- |
 | 1 | Target x Naturium | `COMPLETE_POINT_IN_TIME_PROBE` |
-| 2 | Nordstrom x Nécessaire | `PARTIAL_LOCALE_DRIFT` |
-| 3 | Luckyscent x Pearfat Parfum | `NOT_EXECUTED` |
+| 2 | Nordstrom x Nécessaire | `COMPLETE_US_USD_STOREFRONT_DELIVERY_UNPINNED` |
+| 3 | Luckyscent x Pearfat Parfum | `COMPLETE_POINT_IN_TIME_PROBE_CONTEXT_UNPINNED` |
 
-This artifact stops after Nordstrom. It does not re-run the existing Sephora,
-Ulta, Walmart, or Amazon US coverage.
+This artifact completes the three-retailer sequence. It does not re-run the
+existing Sephora, Ulta, Walmart, or Amazon US coverage.
 
 ## Target x Naturium
 
@@ -413,6 +414,163 @@ observations:
 - The US/USD storefront is confirmed, but the delivery destination remains
   unpinned. No US shipping, pickup, inventory, or fulfillment conclusion is
   supported.
+
+## Luckyscent x Pearfat Parfum
+
+### Method and typed outcome
+
+- Retrieval date: `2026-07-18` Asia/Singapore (`2026-07-17` UTC capture time).
+- The Pearfat Parfum brand grid used the cheapest known route: one Direct HTTP
+  capture. HTTP 200 preserved 150,809 body bytes and bound nine distinct
+  Pearfat product handles plus source-visible `$5` and `$120` price tokens.
+- The bound Bread and Roses PDP used the established anonymous rendered route:
+  five-second settle, 500-pixel progressive scroll steps, and four scroll
+  passes. No proxy, stored profile, storage state, cookies, credentials, login,
+  or geo-IP mode was used.
+- PDP admission required no access block, at least 1,000 visible-text bytes,
+  exact Pearfat Parfum and Bread and Roses bindings, a visible price, and a
+  non-zero rating/review aggregate. The packet passed
+  `source_detail_sufficiency_passed`.
+- Current outcome: `COMPLETE_POINT_IN_TIME_PROBE_CONTEXT_UNPINNED`. The grid
+  embedded a US market context alongside `buyerCountry=SG`; the PDP explicitly
+  encoded USD offers, but locale and currency pins remained null and no
+  delivery destination was established.
+- No Luckyscent adapter, retail-grid projection, public API, schema, crawler,
+  monitoring surface, Judge.me expansion, or extra full-page screenshot was
+  added.
+
+### Capture receipts
+
+#### Brand grid
+
+- URL: `https://www.luckyscent.com/brands/pearfat-parfum`
+- Packet: `F:\forseti-data-lake\raw\416\01KXRDAWN0DC727R66HMDDYJ2D`
+- Packet ID: `01KXRDAWN0DC727R66HMDDYJ2D`
+- Capture time: `2026-07-17T16:07:43Z`
+- Receipt generation time: `2026-07-17T16:07:44Z`
+- Access: HTTP 200, final URL matched the requested URL
+- Warnings: none
+- Preserved-file SHA-256:
+  - HTTP body: `08f2d4e8e9d716c562e18814597149a05ca259bab1841d2a4a8eeef996544b1d`
+  - HTTP metadata: `40087ca204e7846417a559796b02e06f02bf1c5b5fdd7a5a29f05b45067709ad`
+
+#### Bound PDP
+
+- URL: `https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum`
+- Packet: `F:\forseti-data-lake\raw\f31\01KXRDEEQX391STPRWH21RTSMA`
+- Packet ID: `01KXRDEEQX391STPRWH21RTSMA`
+- Capture time: `2026-07-17T16:09:40Z`
+- Receipt generation time: `2026-07-17T16:09:41Z`
+- Admission marker: `source_detail_sufficiency_passed`
+- Access classification: `no_block_marker`
+- Route flags: settle `5.0` seconds, scroll step `500` pixels, four passes
+- Warnings: none
+- Preserved-file SHA-256:
+  - rendered DOM: `abc4ebe05a1983f02e4104e75cf40fc7c18f0512acb5e187b78faf60afe9b802`
+  - visible text: `407ce559917a90a3c372fa5c9e09047f7c5b0cbb4431f50cb4a19a6c0001523e`
+  - viewport screenshot: `9f7c984511c06d6a9bf299286ee8cb4d0ac47ba547ba374ac63c995a53300da0`
+  - snapshot metadata: `c99e60da6b3cd362901f9ddd2eadc131d0a96e340ba917b7fff767751ee66d35`
+
+### SOBS-style observation rows
+
+```yaml
+observations:
+  - observation_id: SOBS-LSC-001
+    retailer: Luckyscent
+    subject: Pearfat Parfum
+    url: https://www.luckyscent.com/brands/pearfat-parfum
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      The preserved Luckyscent brand grid bound nine distinct Pearfat Parfum
+      products: Up North, Knee High, Sister Hildegard, Bread and Roses,
+      Stomped on Bed of Lettuce, Rabbit Rabbit, Multiball, Amicus Cumulus,
+      and 2030 Park Avenue. Each grid offer exposed a $5-to-$120 range.
+    signal_stage: candidate_support
+    claim_it_might_support: current visible Luckyscent assortment breadth and point-in-time offer range for Pearfat Parfum
+    gate_role: none
+    independence_hypothesis: retailer catalog state; independent of brand announcements in form, though assortment is a joint brand-retailer decision
+    packet_locator: F:\forseti-data-lake\raw\416\01KXRDAWN0DC727R66HMDDYJ2D
+    uncertainty_or_limits: >
+      The nine products are the bounded served grid state, not inventory depth,
+      historical assortment, realized price, demand, velocity, sell-through,
+      revenue, productivity, or market performance.
+
+  - observation_id: SOBS-LSC-002
+    retailer: Luckyscent
+    subject: Pearfat Parfum
+    url: https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      Luckyscent displayed Bread and Roses with Add to Cart and Online Only
+      state. Structured product data bound three in-stock variants sold by
+      Luckyscent: 50ml at USD 120, 15ml at USD 45, and 1ml spray at USD 5.
+    signal_stage: candidate_support
+    claim_it_might_support: current Luckyscent offer, variant, seller, and availability state for the bound Pearfat PDP
+    gate_role: none
+    independence_hypothesis: retailer-hosted offer state
+    packet_locator: F:\forseti-data-lake\raw\f31\01KXRDEEQX391STPRWH21RTSMA
+    uncertainty_or_limits: >
+      USD is explicit offer data, but the packet currency pin is null. InStock
+      and Add to Cart do not establish inventory quantity, delivery to a
+      particular location, or realized transaction price.
+
+  - observation_id: SOBS-LSC-003
+    retailer: Luckyscent
+    subject: Pearfat Parfum
+    url: https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      The PDP displayed a rounded 3.8 rating with 8 reviews; the Customer
+      Reviews section and structured data reported 3.75 out of 5 across 8
+      reviews. Progressive scrolling exposed all eight dated review bodies.
+    signal_stage: candidate_support
+    claim_it_might_support: current Luckyscent review substrate and rating state for Bread and Roses
+    gate_role: none
+    independence_hypothesis: customer-contributed rows on one retailer platform; purchaser verification and representativeness were not established
+    packet_locator: F:\forseti-data-lake\raw\f31\01KXRDEEQX391STPRWH21RTSMA
+    uncertainty_or_limits: >
+      The 3.8 versus 3.75 difference is source display rounding. Eight reviews
+      are a small, mutable platform sample and are not demand, repeat purchase,
+      review velocity, representative sentiment, or product-performance proof.
+
+  - observation_id: SOBS-LSC-004
+    retailer: Luckyscent
+    subject: Pearfat Parfum
+    url: https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      Luckyscent presented Bread and Roses as an Eau de Parfum centered on
+      fresh baguette, sweet orange, red rose petals, cocoa, nutmeg, and
+      labdanum, and classified it across floral, spicy-floral, gourmand,
+      resinous/balsamic, and spicy styles.
+    signal_stage: candidate_support
+    claim_it_might_support: current descriptive and claims language presented by Luckyscent for the bound Pearfat PDP
+    gate_role: none
+    independence_hypothesis: retailer-hosted PDP copy; likely supplied by or coordinated with the brand and therefore not independent product-performance evidence
+    packet_locator: F:\forseti-data-lake\raw\f31\01KXRDEEQX391STPRWH21RTSMA
+    uncertainty_or_limits: >
+      This records retailer-presented fragrance description and classification,
+      not ingredient verification, blind-smell validation, claim
+      substantiation, or verified consumer experience.
+```
+
+### Projection and remaining Luckyscent boundaries
+
+- The hash-verified PDP projection was appended at
+  `F:\forseti-data-lake\derived\f31\01KXRDEEQX391STPRWH21RTSMA\projection_retail_pdp\01KXRDHCMGCP1Z812715G33YSB.json`.
+- It retained raw JSON-LD anchoring Pearfat Parfum, Bread and Roses, aggregate
+  rating `3.75` across `8` reviews, and the 50ml variant at USD `120.0` with
+  `InStock` availability.
+- The existing projection enum does not include Luckyscent, so rows type the
+  retailer as `unknown`. It emitted `review_substrate_absent` despite the eight
+  rendered review rows and projected only the first of three source-visible
+  variants. Cart chrome collapse also made `structure_preserved=false`. These
+  are explicit projection gaps, not absence claims about the rendered source.
+- No retail-grid projection was run because the existing grid projector is
+  explicitly scoped to Walmart and Target. The brand-grid observation was
+  validated directly against the preserved HTTP body.
+- USD offer encoding is explicit, but storefront country, packet currency pin,
+  and delivery destination remain unpinned.
 
 ## Non-claims
 

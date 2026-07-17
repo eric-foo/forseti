@@ -125,6 +125,11 @@ doctrine should encode.
 | --- | --- | --- | --- | --- |
 | Ulta product / Apollo cache **(worktree/lane, DP-002)** | demand-projection lane (`orca-demand-projection-wt`, unmerged) | `__APOLLO_STATE__` cache node; needle from field+value `"productId":"<id>"` | Provenance fix (a) applied in-lane; keep-gate pending | HIGH ⭐ (lane) |
 
+### Retail/PDP storefront context
+| Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
+| --- | --- | --- | --- | --- |
+| Nordstrom US storefront without proxy | `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`; implementation at `forseti-harness/source_capture/adapters/nordstrom_country_preference.py` and `run_source_capture_cloakbrowser_packet.py --nordstrom-country US` | Retailer-owned country-preference UI before target navigation; confirmation requires selected US/USD plus one shopper context with `CountryCode=US`, `CurrencyCode=USD`, `IsInternationalShopping=false` | `US_USD_STOREFRONT_CONFIRMED_DELIVERY_LOCATION_UNPINNED`; live PDP and grid packets passed with `pin_confirmed=true`, no proxy/profile/storage-state/geo-IP/credential; PDP still showed `Shipping to 518225` | HIGH ⭐ |
+
 ### Browser-automation runner
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
