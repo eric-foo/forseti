@@ -65,7 +65,7 @@ a definition line at most.
 | 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
 | 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
-| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rule (owner, 2026-07-17): never state a complaint rate without a denominator; classify a theme by WHICH claim it attacks, not by volume; name an expected-background class (idiosyncratic/allergy-type reactions every sensitive-skin brand accrues) — a theme graduates from background to core-positioning threat only when it is ingredient-specific, repeated across independent venues, or attacks the load-bearing claim directly |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rule (owner, 2026-07-17): never state a complaint rate without a denominator; classify a theme by WHICH claim it attacks, not by volume; name an expected-background class (idiosyncratic/allergy-type reactions every sensitive-skin brand accrues) — a theme graduates from background to core-positioning threat only when it is ingredient-specific, repeated across independent venues, or attacks the load-bearing claim directly. **Chain section EXECUTED** (owner-directed, 2026-07-17): landed in the company contract Section 7 per the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` — a partial execution of the contract pass; every other deferred item below still awaits the owner's go |
 | 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
@@ -112,11 +112,12 @@ mechanism is extended, one small change per seam:
   session and compare against this round's findings.
 - Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
   (2026-07-17). Packet `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` (authored on branch `claude/tower28-c1-corrections-c5-validator`) was
-  executed; the design proposal is at
-  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md`,
-  awaiting owner adjudication into the item 4 chain section of the contract
-  pass. Delivery is not acceptance; the contract pass still executes only
-  from owner-adjudicated items recorded here.
+  executed; the design proposal at
+  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` was
+  adversarially reviewed, patched, and then implemented into the company
+  contract Section 7 by owner direction (2026-07-17) — see the item 4
+  execution note above. Packet consumed; the remaining contract-pass items
+  still execute only from owner-adjudicated items recorded here.
 
 ## Rejected (do not resurrect without new owner word)
 

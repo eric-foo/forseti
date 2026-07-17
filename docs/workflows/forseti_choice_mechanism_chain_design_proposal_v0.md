@@ -19,6 +19,7 @@ open_next:
   - docs/decisions/forseti_ci_report_external_review_adjudication_ledger_v0.md
   - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - docs/research/forseti_beauty_tower28_company_intelligence_report_v1.md
+superseded_by: forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
 stale_if:
   - The design is adjudicated into the CSB contract pass (this proposal then
     becomes historical input, superseded by the contract itself).
