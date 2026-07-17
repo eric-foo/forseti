@@ -347,6 +347,10 @@ migrate a stale private copy in the same work unit only when the bound change
 already touches or depends on that helper contract (behavior-preserving only);
 otherwise leave the unrelated migration for a separately scoped work unit. A
 deliberately divergent copy stays, with a one-line comment naming the delta.
+When repairing a duplication class, fix the few copied-from **exemplars** first
+rather than every copy: cold agents adopt the nearest existing file, so repairing
+the 3-5 exemplars redirects future code at a fraction of the cost of an
+exhaustive sweep.
 Deliberate exception:
 the injected `sleep_fn` / `monotonic_fn` / `utc_now_fn` seams in the capture
 modules are what make them testable without real time or network pacing — do
