@@ -24,6 +24,11 @@ from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutco
 
 
 WRAPPER_KEY = "creator_profile_current_view"
+ENGAGEMENT_RATE_DEFINITION = (
+    "engagement_rate = (sum(likes) + sum(comments)) / sum(views) over videos with a "
+    "complete view/like/comment trio; recipe pinned per record by "
+    "calculation_recipe_version; percent twin is value*100"
+)
 ACCOUNT_LEDGER_POINTER = (
     "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
@@ -261,6 +266,7 @@ def build_creator_profile_current_view_document(
             "projection, and platform creator metric seeds. Profiles are account-scoped "
             "unless promoted public-handle linkage exists."
         ),
+        "engagement_rate_definition": ENGAGEMENT_RATE_DEFINITION,
         "authority_pointers": [
             "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
             "forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
@@ -539,8 +545,38 @@ def _profile_rollup(rollup: dict[str, Any], metric_rollup_pointer: str) -> dict[
     for field in _PROFILE_ROLLUP_FIELDS:
         if field == "metric_rollup_id":
             continue
+        if field == "metric_rollups":
+            profile_rollup[field] = _metric_rollups_with_engagement_rate_percent(rollup[field])
+            continue
         profile_rollup[field] = deepcopy(rollup[field])
     return profile_rollup
+
+
+def _metric_rollups_with_engagement_rate_percent(metric_rollups: Mapping[str, Any]) -> dict[str, Any]:
+    """Presentation-layer twin of ``engagement_rate`` for humans: value*100, round 2.
+
+    Posture is mirrored exactly from ``engagement_rate`` -- an absent/unavailable
+    engagement value stays absent here too; this never fabricates a percent for a
+    non-observed value. Stored Silver rollup records are untouched; this field
+    exists only on the materialized profile-current view.
+    """
+    metrics = {key: deepcopy(value) for key, value in metric_rollups.items()}
+    engagement_rate = metrics["engagement_rate"]
+    if engagement_rate["posture"] == "observed":
+        metrics["engagement_rate_percent"] = {
+            "value_or_none": round(engagement_rate["value_or_none"] * 100, 2),
+            "posture": "observed",
+            "posture_reason_or_none": None,
+            "metric_unit": "percent",
+        }
+    else:
+        metrics["engagement_rate_percent"] = {
+            "value_or_none": None,
+            "posture": engagement_rate["posture"],
+            "posture_reason_or_none": engagement_rate.get("posture_reason_or_none"),
+            "metric_unit": "percent",
+        }
+    return metrics
 
 
 def _counts(profiles: list[dict[str, Any]]) -> dict[str, int]:
