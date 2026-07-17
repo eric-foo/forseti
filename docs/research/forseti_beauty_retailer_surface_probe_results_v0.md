@@ -6,7 +6,8 @@ artifact_role: Point-in-time beauty retailer surface probe results
 scope: >
   Records bounded, subject-bound retailer page-state observations commissioned
   by the Beauty Retailer Surface Probe handoff. Target x Naturium is complete;
-  Nordstrom x Nécessaire and Luckyscent x Pearfat Parfum remain unexecuted.
+  Nordstrom x Nécessaire returned a typed locale-drift partial; Luckyscent x
+  Pearfat Parfum remains unexecuted.
 use_when:
   - Comparing public retailer assortment, offer, review, and claims surfaces for accepted beauty-pool companies.
   - Retrieving the canonical packet locators and limits for the Target x Naturium probe.
@@ -24,11 +25,11 @@ stale_if:
 | Sequence | Retailer x subject | Status |
 | --- | --- | --- |
 | 1 | Target x Naturium | `COMPLETE_POINT_IN_TIME_PROBE` |
-| 2 | Nordstrom x Nécessaire | `NOT_EXECUTED` |
+| 2 | Nordstrom x Nécessaire | `PARTIAL_LOCALE_DRIFT` |
 | 3 | Luckyscent x Pearfat Parfum | `NOT_EXECUTED` |
 
-This artifact stops at Target as commissioned. It does not re-run the existing
-Sephora, Ulta, Walmart, or Amazon US coverage.
+This artifact stops after Nordstrom. It does not re-run the existing Sephora,
+Ulta, Walmart, or Amazon US coverage.
 
 ## Target x Naturium
 
@@ -181,6 +182,130 @@ observations:
   the bound variant-availability row; this is recorded in its loss ledger.
 - No top-level grid projection residual was emitted; all 24 rows retained raw
   DOM anchors to the preserved packet.
+
+## Nordstrom x Nécessaire
+
+### Method and typed outcome
+
+- Retrieval date: `2026-07-17`
+- Direct HTTP was attempted first for the brand grid and bound PDP. Both
+  requests returned HTTP 200 and preserved non-empty bodies, but neither body
+  exposed the commissioned brand, product, price, review, or claims fields.
+  They are retained as `HTTP_200_CONTENT_INSUFFICIENT` controls.
+- Each insufficient surface then received its single permitted anonymous
+  CloakBrowser attempt with a five-second settle and one scroll pass.
+- Both rendered packets passed their subject-specific brand/price admission
+  gates, but the visible session was `Singapore` with `SGD` pricing. Locale,
+  currency, and session-location pins remained null.
+- Outcome: `PARTIAL_LOCALE_DRIFT`. The observable assortment, review, and claims
+  state is usable as a dated Nordstrom surface read, but it is not a US/USD
+  comparison and does not complete the commissioned US-first probe.
+- No Nordstrom adapter, retailer schema, second browser attempt, or inferred
+  US price was added.
+
+### Capture receipts
+
+| Surface | Method and outcome | Packet and capture time | Preserved-file SHA-256 |
+| --- | --- | --- | --- |
+| Brand grid | Direct HTTP; `HTTP_200_CONTENT_INSUFFICIENT` | `F:\forseti-data-lake\raw\dce\01KXR970GGKWDYFNFHZPRP0SPJ`; `2026-07-17T14:55:41Z` | body `ed78d2123dc301bb584d536e9448921ded79df152441e32445dbedd720612678`; metadata `b11b347e900f9034912d5d773352a73ddf3a456d0f5b236c56edb62c7159b384` |
+| Bound PDP | Direct HTTP; `HTTP_200_CONTENT_INSUFFICIENT` | `F:\forseti-data-lake\raw\7c3\01KXR97J3F219RHS9BZRVDC9DG`; `2026-07-17T14:56:00Z` | body `42fd589bfd9c306ba70fc2d2c8cef93ea7bb0fc431d4907e14999c24245972ff`; metadata `429d34ca704af5e221d220179f51cc7af7034532e3f7a9353b8973a5676cdf7f` |
+| Brand grid | CloakBrowser; subject gate passed, Singapore/SGD drift | `F:\forseti-data-lake\raw\830\01KXR9ARJSA3HRRA6HEWF9C9VB`; `2026-07-17T14:57:44Z` | DOM `0f5db0bac62939fcf697d2145f4f12349783d9aae21eb9fd15537dd006a55e6c`; text `707d2340b8900e368397c1936839a44d196d088945dca753de918692eacc7bc2`; screenshot `104e109debe14364396d5d603f88501b732b44aebeff5fd7615131b6532d6953`; metadata `7acccafdaf16127b34bb0d4c768d22b09423a79f5f33c656fba8d0d78b2a9d57` |
+| Bound PDP | CloakBrowser; subject gate passed, Singapore/SGD drift | `F:\forseti-data-lake\raw\194\01KXR9BNWBP8R8XKPKFJHZJTPN`; `2026-07-17T14:58:14Z` | DOM `c562e9083cfb44f3d7ead4e3683eeea00e6a96edea5fdb29b6724ff848921218`; text `7b27e3bf82b298dd8e8ae769a2cb76a6e12ee9f1e3bc034e603a46dc7e8e4997`; screenshot `445c1672c2deba00f80904280cacb077b3092da6ff4df75d5d8891adef045f5f`; metadata `a900d36a7c908befc4982a8d6c10684f8d9b13d2d5f64cb4760be1bb8293cfa4` |
+
+All four manifests had zero warnings at fresh read. A warning-free packet does
+not override the manually observed locale drift or establish content
+sufficiency for the two direct-HTTP controls.
+
+### SOBS-style observation rows
+
+```yaml
+observations:
+  - observation_id: SOBS-NDS-001
+    retailer: Nordstrom
+    subject: Nécessaire
+    url: https://www.nordstrom.com/browse/beauty?filterByBrand=necessaire
+    retrieval_date: "2026-07-17"
+    short_quote_or_summary: >
+      Nordstrom's rendered brand grid visibly stated "34 items" and exposed
+      34 Nécessaire product tiles spanning body care, hair care, hand care,
+      lip care, deodorant, fragrance, and sets. Visible SGD prices ranged from
+      SGD 19.92 to SGD 86.33; rated tiles ranged from 3.8 to 5.0.
+    signal_stage: candidate_support
+    claim_it_might_support: current visible Nordstrom assortment breadth and point-in-time price/reception dispersion for Nécessaire
+    gate_role: none
+    independence_hypothesis: retailer catalog state; independent of brand announcements in form, though assortment is a joint brand-retailer decision
+    packet_locator: F:\forseti-data-lake\raw\830\01KXR9ARJSA3HRRA6HEWF9C9VB
+    uncertainty_or_limits: >
+      The page was rendered for Singapore in SGD, not pinned US/USD. The
+      item count is a bounded page-state observation, not demand, velocity,
+      sell-through, productivity, or market performance.
+
+  - observation_id: SOBS-NDS-002
+    retailer: Nordstrom
+    subject: Nécessaire
+    url: https://www.nordstrom.com/s/the-lip-balm/8260802
+    retrieval_date: "2026-07-17"
+    short_quote_or_summary: >
+      Nordstrom displayed Nécessaire The Lip Balm, One Size, at current price
+      SGD 37.19 with an Add to Bag control.
+    signal_stage: candidate_support
+    claim_it_might_support: current Nordstrom Singapore offer state for the bound Nécessaire PDP
+    gate_role: none
+    independence_hypothesis: retailer-hosted offer state
+    packet_locator: F:\forseti-data-lake\raw\194\01KXR9BNWBP8R8XKPKFJHZJTPN
+    uncertainty_or_limits: >
+      This is not a US/USD price. No separate seller-of-record label was
+      visible; Nordstrom hosted the PDP and bag control, but seller identity
+      is not promoted beyond that observation. No historical or realized
+      transaction price is established.
+
+  - observation_id: SOBS-NDS-003
+    retailer: Nordstrom
+    subject: Nécessaire
+    url: https://www.nordstrom.com/s/the-lip-balm/8260802
+    retrieval_date: "2026-07-17"
+    short_quote_or_summary: >
+      The Lip Balm displayed 4.6/5 across 118 reviews. The visible 5-to-1-star
+      distribution was 81%, 7%, 3%, 5%, and 3%, respectively.
+    signal_stage: candidate_support
+    claim_it_might_support: current Nordstrom review substrate and rating dispersion for the bound Nécessaire SKU
+    gate_role: none
+    independence_hypothesis: aggregated customer contributions on one retailer platform; at least one visible critical review was labeled "Reposted from Nécessaire"
+    packet_locator: F:\forseti-data-lake\raw\194\01KXR9BNWBP8R8XKPKFJHZJTPN
+    uncertainty_or_limits: >
+      Percentages sum to 99% because of source rounding. Syndicated/reposted
+      reviews reduce source independence. Ratings and counts are not demand,
+      repeat purchase, sell-through, or representative customer sentiment.
+
+  - observation_id: SOBS-NDS-004
+    retailer: Nordstrom
+    subject: Nécessaire
+    url: https://www.nordstrom.com/s/the-lip-balm/8260802
+    retrieval_date: "2026-07-17"
+    short_quote_or_summary: >
+      Nordstrom described the balm as instant relief for dry, chapped, or
+      compromised lips and carried claims for essential ceramides,
+      niacinamide, hyaluronic acid, omega 6/9, centella asiatica, and shea
+      butter to help repair dryness and soothe chapped lips. It also displayed
+      cruelty-free, hypoallergenic, dermatologist-tested, noncomedogenic,
+      B Corp, and Nordstrom Responsible Brands language.
+    signal_stage: candidate_support
+    claim_it_might_support: current claims language presented by Nordstrom for the bound Nécessaire PDP
+    gate_role: none
+    independence_hypothesis: retailer-hosted PDP copy; likely supplied by or coordinated with the brand and therefore not an independent efficacy source
+    packet_locator: F:\forseti-data-lake\raw\194\01KXR9BNWBP8R8XKPKFJHZJTPN
+    uncertainty_or_limits: >
+      This records claims language, not substantiation, certification audit,
+      ingredient stability, or verified product performance.
+```
+
+### Unclosed Nordstrom requirements
+
+- US locale and USD price were not observed.
+- No operator-set location, locale, currency, or session pin was established.
+- A separate seller-of-record label was not visible.
+- The two permitted rendered attempts are exhausted; this result must not be
+  silently upgraded by another capture or fixture substitution.
 
 ## Non-claims
 
