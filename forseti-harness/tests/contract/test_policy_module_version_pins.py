@@ -159,7 +159,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "47c5b75baefc4543363b09513ee55e712368ce5682d10240f8a9c97e66623213",
+        # Pin bumped: byte-identical _append_residual_once dedup onto
+        # harness_utils.append_residual_once; not output-shaping.
+        "cec6047919c73bc954b07ea15f3596929e511b11f851ed70177da6d58645aa11",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),

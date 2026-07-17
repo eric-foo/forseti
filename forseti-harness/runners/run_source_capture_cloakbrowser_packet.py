@@ -769,6 +769,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
         if old_reddit_only:
             _validate_old_reddit_url(args.url)
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only
+        # early return sits between the target checks and DataLakeRoot.resolve, so a
+        # preflight run must not attempt (or fail on) lake resolution.
         data_root = None
         data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
         if args.output is not None and args.data_root is not None:

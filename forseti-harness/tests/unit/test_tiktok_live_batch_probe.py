@@ -118,6 +118,55 @@ def _summary_payloads(output: str) -> list[dict[str, object]]:
     ]
 
 
+def _write_sessioned_probe(
+    tmp_path: Path,
+    *,
+    video_urls: list[str],
+    auth_state_root: Path | None = None,
+    **overrides: object,
+):
+    """Call the SUT with the standard sessioned-probe kwargs of this file."""
+    if auth_state_root is None:
+        auth_state_root = _auth_state(tmp_path)
+    kwargs: dict[str, object] = dict(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=video_urls,
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_state_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        sleep_fn=lambda _seconds: None,
+    )
+    kwargs.update(overrides)
+    return write_tiktok_live_batch_probe_outputs(**kwargs)
+
+
+def _write_logged_out_probe(
+    tmp_path: Path,
+    *,
+    video_urls: list[str],
+    **overrides: object,
+):
+    """Call the SUT with the standard logged-out-probe kwargs of this file."""
+    kwargs: dict[str, object] = dict(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=video_urls,
+        logged_out=True,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        sleep_fn=lambda _seconds: None,
+    )
+    kwargs.update(overrides)
+    return write_tiktok_live_batch_probe_outputs(**kwargs)
+
+
 def test_live_probe_runner_help_surfaces_sessioned_cold_agent_command(capsys) -> None:
     try:
         runner.main(["--help"])
@@ -179,19 +228,11 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     grid = json.loads(paths.grid_result_json_path.read_text(encoding="utf-8"))
@@ -319,19 +360,11 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
         subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
     )
 
@@ -430,19 +463,11 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
         subtitle_fetcher=lambda url: fetched_urls.append(url) or b"WEBVTT\n",
     )
 
@@ -474,17 +499,10 @@ def test_live_probe_logged_out_mode_uses_no_storage_state_and_admits(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_logged_out_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        logged_out=True,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     assert engine.calls[0]["storage_state_path"] is None
@@ -548,15 +566,10 @@ def test_live_probe_runner_can_chain_batch_admission_to_data_root(
     capsys,
 ) -> None:
     video_id = "7390000000000000001"
-    pre_paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    pre_paths = _write_logged_out_probe(
+        tmp_path,
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
-        logged_out=True,
         output_dir=tmp_path / "pre_staging",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=_FakeObservationEngine(
             outcomes=[
                 _success_observation(
@@ -565,7 +578,6 @@ def test_live_probe_runner_can_chain_batch_admission_to_data_root(
                 )
             ]
         ),
-        sleep_fn=lambda _seconds: None,
     )
     captured_kwargs: dict[str, object] = {}
 
@@ -652,15 +664,10 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
     capsys,
 ) -> None:
     video_id = "7390000000000000001"
-    pre_paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    pre_paths = _write_logged_out_probe(
+        tmp_path,
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
-        logged_out=True,
         output_dir=tmp_path / "pre_staging_admit",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=_FakeObservationEngine(
             outcomes=[
                 _success_observation(
@@ -669,7 +676,6 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
                 )
             ]
         ),
-        sleep_fn=lambda _seconds: None,
     )
 
     def fake_write_tiktok_live_batch_probe_outputs(**_kwargs: object):
@@ -735,15 +741,10 @@ def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     capsys,
 ) -> None:
     video_id = "7390000000000000001"
-    pre_paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    pre_paths = _write_logged_out_probe(
+        tmp_path,
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
-        logged_out=True,
         output_dir=tmp_path / "pre_staging_failed",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=_FakeObservationEngine(
             outcomes=[
                 _success_observation(
@@ -752,7 +753,6 @@ def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
                 )
             ]
         ),
-        sleep_fn=lambda _seconds: None,
     )
     cadence = json.loads(pre_paths.cadence_result_json_path.read_text(encoding="utf-8"))
     cadence["challenge_count"] = 1
@@ -844,6 +844,9 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
         fake_fetch_browser_page_observation_capture,
     )
 
+    # Not converted to _write_logged_out_probe: this success path omits the
+    # cadence/random_seed kwargs the wrapper binds, and those defaults are
+    # recorded in the written cadence result.
     paths = write_tiktok_live_batch_probe_outputs(
         creator_handle="funmi",
         creator_profile_url="https://www.tiktok.com/@funmi",
@@ -919,6 +922,9 @@ def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
+    # Not converted to _write_logged_out_probe: this success path omits the
+    # cadence/random_seed kwargs the wrapper binds, and those defaults are
+    # recorded in the written cadence result.
     pre_paths = write_tiktok_live_batch_probe_outputs(
         creator_handle="funmi",
         creator_profile_url="https://www.tiktok.com/@funmi",
@@ -997,6 +1003,9 @@ def test_live_probe_runner_allows_playwright_with_diagnostic_opt_in(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
+    # Not converted to _write_logged_out_probe: this success path omits the
+    # cadence/random_seed kwargs the wrapper binds, and those defaults are
+    # recorded in the written cadence result.
     pre_paths = write_tiktok_live_batch_probe_outputs(
         creator_handle="funmi",
         creator_profile_url="https://www.tiktok.com/@funmi",
@@ -1149,15 +1158,13 @@ def test_live_probe_rejects_cloakbrowser_humanize_without_cloakbrowser_backend(
     tmp_path: Path,
 ) -> None:
     try:
-        write_tiktok_live_batch_probe_outputs(
-            creator_handle="funmi",
-            creator_profile_url="https://www.tiktok.com/@funmi",
+        # Wrapper-bound cadence gaps and random_seed are inert here: the call
+        # rejects the humanize/backend mix before the cadence plan is built.
+        _write_logged_out_probe(
+            tmp_path,
             video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-            logged_out=True,
-            output_dir=tmp_path / "out",
             browser_backend="playwright",
             cloakbrowser_humanize=True,
-            sleep_fn=lambda _seconds: None,
         )
     except ValueError as exc:
         assert "cloakbrowser_humanize requires browser_backend='cloakbrowser'" in str(exc)
@@ -1173,17 +1180,14 @@ def test_live_probe_required_harness_proxy_posture_rejects_legacy_auth_state_bef
     engine = _FakeObservationEngine(outcomes=[])
 
     try:
-        write_tiktok_live_batch_probe_outputs(
-            creator_handle="funmi",
-            creator_profile_url="https://www.tiktok.com/@funmi",
+        # Wrapper-bound cadence gaps and random_seed are inert here: the call
+        # rejects on auth-state provenance before the cadence plan is built.
+        _write_sessioned_probe(
+            tmp_path,
             video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-            state_label="test-session",
-            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
             auth_state_root=auth_root,
-            output_dir=tmp_path / "out",
             required_harness_proxy_profile_posture="no_proxy_profile_loaded",
             engine=engine,
-            sleep_fn=lambda _seconds: None,
         )
     except ValueError as exc:
         assert "source-access provenance is missing or legacy-only" in str(exc)
@@ -1211,6 +1215,9 @@ def test_live_probe_required_harness_proxy_posture_allows_matching_auth_state_pr
         ]
     )
 
+    # Not converted to _write_sessioned_probe: this success path omits the
+    # cadence/random_seed kwargs the wrapper binds, and those defaults are
+    # recorded in the written cadence result.
     paths = write_tiktok_live_batch_probe_outputs(
         creator_handle="funmi",
         creator_profile_url="https://www.tiktok.com/@funmi",
@@ -1244,17 +1251,14 @@ def test_live_probe_required_harness_proxy_posture_rejects_mismatched_posture_be
     engine = _FakeObservationEngine(outcomes=[])
 
     try:
-        write_tiktok_live_batch_probe_outputs(
-            creator_handle="funmi",
-            creator_profile_url="https://www.tiktok.com/@funmi",
+        # Wrapper-bound cadence gaps and random_seed are inert here: the call
+        # rejects on proxy-posture mismatch before the cadence plan is built.
+        _write_sessioned_probe(
+            tmp_path,
             video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-            state_label="test-session",
-            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
             auth_state_root=auth_root,
-            output_dir=tmp_path / "out",
             required_harness_proxy_profile_posture="no_proxy_profile_loaded",
             engine=engine,
-            sleep_fn=lambda _seconds: None,
         )
     except ValueError as exc:
         assert "harness proxy-profile posture mismatch" in str(exc)
@@ -1317,19 +1321,11 @@ def test_live_probe_filters_non_get_comment_list_responses_when_method_available
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1379,19 +1375,11 @@ def test_live_probe_keeps_only_platform_default_first_comment_response(tmp_path:
         outcomes=[_success_observation(video_id="7390000000000000001", responses=responses)]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1430,20 +1418,12 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_diagnostic=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1549,20 +1529,12 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     pointer_actions = engine.calls[0]["post_load_pointer_actions"]
@@ -1691,20 +1663,12 @@ def test_live_probe_prefers_late_accepted_close_over_earlier_failed_click(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1774,20 +1738,12 @@ def test_live_probe_prefers_late_failed_close_over_earlier_failed_click(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1840,20 +1796,12 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1952,21 +1900,13 @@ def test_live_probe_close_not_accepted_reports_handoff_prompt_route_when_enabled
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         human_challenge_handoff=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2085,20 +2025,12 @@ def test_live_probe_failed_close_receipt_surfaces_center_modal_zone_candidate_co
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2148,20 +2080,12 @@ def test_live_probe_failed_close_without_comment_actions_has_no_comment_action_l
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2218,20 +2142,12 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_followthrough=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2310,20 +2226,12 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_diagnostic=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2400,20 +2308,12 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         allow_challenge_close_diagnostic=True,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2446,22 +2346,14 @@ def test_live_probe_continues_after_zero_comment_list_response(tmp_path: Path) -
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[
             "https://www.tiktok.com/@funmi/video/7390000000000000001",
             "https://www.tiktok.com/@funmi/video/7390000000000000002",
         ],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2508,19 +2400,11 @@ def test_live_probe_zero_comment_response_reports_missing_comment_route_actions(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2549,19 +2433,11 @@ def test_live_probe_completes_with_dom_visible_comment_fallback(tmp_path: Path) 
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2601,19 +2477,11 @@ def test_live_probe_rejects_dom_visible_count_badge_as_comment_fallback(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2648,22 +2516,14 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[
             "https://www.tiktok.com/@funmi/video/7390000000000000001",
             "https://www.tiktok.com/@funmi/video/7390000000000000002",
         ],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2708,22 +2568,14 @@ def test_live_probe_account_risk_is_non_retriable_batch_stop(tmp_path: Path) -> 
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[
             "https://www.tiktok.com/@funmi/video/7390000000000000001",
             "https://www.tiktok.com/@funmi/video/7390000000000000002",
         ],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2756,22 +2608,14 @@ def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> N
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[
             "https://www.tiktok.com/@funmi/video/7390000000000000001",
             "https://www.tiktok.com/@funmi/video/7390000000000000002",
         ],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -2812,22 +2656,14 @@ def test_live_probe_does_not_stop_on_close_text_without_blocker_candidate(
         ]
     )
 
-    paths = write_tiktok_live_batch_probe_outputs(
-        creator_handle="funmi",
-        creator_profile_url="https://www.tiktok.com/@funmi",
+    paths = _write_sessioned_probe(
+        tmp_path,
         video_urls=[
             "https://www.tiktok.com/@funmi/video/7390000000000000001",
             "https://www.tiktok.com/@funmi/video/7390000000000000002",
         ],
-        state_label="test-session",
-        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
-        output_dir=tmp_path / "out",
-        cadence_min_gap_seconds=0,
-        cadence_max_gap_seconds=0,
-        random_seed=1,
         engine=engine,
-        sleep_fn=lambda _seconds: None,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))

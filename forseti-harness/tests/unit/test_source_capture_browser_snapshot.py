@@ -45,6 +45,20 @@ def scratch_dir() -> Path:
         shutil.rmtree(path, ignore_errors=True)
 
 
+# Shared page-observation call kwargs used verbatim by most capture spans in
+# this file; call sites spread it and override individual keys as needed.
+_PAGE_OBSERVATION_BASE_KWARGS = dict(
+    url="https://example.com/source",
+    timeout_seconds=1,
+    wait_until="load",
+    viewport_width=1280,
+    viewport_height=720,
+    dom_extract_script="() => ({items: []})",
+    dom_extract_arg={},
+    response_url_predicate=lambda url: "widget" in url,
+)
+
+
 @dataclass(frozen=True)
 class _FakeEngineResult:
     final_url: str
@@ -841,6 +855,8 @@ def _ok_page_observation_engine() -> _FakePageObservationEngine:
 def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_controls_to_engine() -> None:
     engine = _ok_page_observation_engine()
 
+    # Not converted to _PAGE_OBSERVATION_BASE_KWARGS: this success path omits
+    # timeout_seconds, so the base's timeout would change the engine-received value.
     result = fetch_browser_page_observation_capture(
         url="https://example.com/source",
         dom_extract_script="() => ({items: []})",
@@ -874,6 +890,8 @@ def test_fetch_browser_page_observation_capture_threads_pointer_action_to_engine
         prefer_top_right=True,
     )
 
+    # Not converted to _PAGE_OBSERVATION_BASE_KWARGS: this success path omits
+    # timeout_seconds, so the base's timeout would change the engine-received value.
     result = fetch_browser_page_observation_capture(
         url="https://example.com/source",
         dom_extract_script="() => ({items: []})",
@@ -919,6 +937,8 @@ def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engin
         ),
     )
 
+    # Not converted to _PAGE_OBSERVATION_BASE_KWARGS: this success path omits
+    # timeout_seconds, so the base's timeout would change the engine-received value.
     result = fetch_browser_page_observation_capture(
         url="https://example.com/source",
         dom_extract_script="() => ({items: []})",
@@ -954,10 +974,9 @@ def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engin
 def test_fetch_browser_page_observation_capture_rejects_unknown_browser_backend() -> None:
     with pytest.raises(ValueError, match="browser_backend must be one of"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda url: "widget" in url,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **_PAGE_OBSERVATION_BASE_KWARGS,
             browser_backend="unknown",
             engine=_ok_page_observation_engine(),
         )
@@ -973,10 +992,9 @@ def test_fetch_browser_page_observation_capture_rejects_chrome_cdp_without_engin
     """
     with pytest.raises(ValueError, match="browser_backend='chrome_cdp' requires an explicit session engine"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda url: "widget" in url,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **_PAGE_OBSERVATION_BASE_KWARGS,
             browser_backend="chrome_cdp",
         )
 
@@ -984,10 +1002,9 @@ def test_fetch_browser_page_observation_capture_rejects_chrome_cdp_without_engin
 def test_fetch_browser_page_observation_capture_rejects_cloakbrowser_channel_mix() -> None:
     with pytest.raises(ValueError, match="browser_channel is not supported"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda url: "widget" in url,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **_PAGE_OBSERVATION_BASE_KWARGS,
             browser_backend="cloakbrowser",
             browser_channel="chrome",
             engine=_ok_page_observation_engine(),
@@ -1011,14 +1028,7 @@ def test_cloakbrowser_page_observation_uses_cloak_launch(monkeypatch: pytest.Mon
     result = browser_snapshot_module._CloakBrowserPageObservationEngine(
         cloakbrowser_humanize=True
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
     )
 
     assert fake_cloakbrowser.launch_kwargs is not None
@@ -1092,14 +1102,7 @@ def test_page_observation_human_challenge_handoff_after_named_pointer_action(
         human_challenge_handoff_after_action_names=("challenge_close",),
         human_challenge_handoff_timeout_seconds=1,
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="challenge_close",
@@ -1171,14 +1174,7 @@ def test_post_action_handoff_stops_remaining_actions_when_challenge_persists(
         human_challenge_handoff_after_action_names=("first_action",),
         human_challenge_handoff_timeout_seconds=0,
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="first_action",
@@ -1236,14 +1232,7 @@ def test_page_load_account_safety_stop_suppresses_actions_without_handoff(
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
         pre_action_stop_markers=("account might be at risk",),
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="must_not_run",
@@ -1283,14 +1272,10 @@ def test_page_load_account_safety_stop_suppresses_lazy_load_scrolls(
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
         pre_action_stop_markers=("account might be at risk",),
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda _url: False,
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda _url: False,
+        },
         lazy_load_scroll_passes=2,
         lazy_load_scroll_step_px=500,
     )
@@ -1343,14 +1328,7 @@ def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
         ),
         human_challenge_handoff_timeout_seconds=0,
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="must_not_run",
@@ -1426,14 +1404,7 @@ def test_cloakbrowser_page_load_handoff_suppresses_pointer_actions(
         ),
         human_challenge_handoff_timeout_seconds=0,
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="must_not_run",
@@ -1501,14 +1472,10 @@ def test_cloakbrowser_account_safety_stop_suppresses_actions_without_handoff(
     result = browser_snapshot_module._CloakBrowserPageObservationEngine(
         pre_action_stop_markers=("account might be at risk",),
     ).capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda _url: False,
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda _url: False,
+        },
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="must_not_run",
@@ -1543,37 +1510,45 @@ def test_pointer_action_target_script_matches_data_attributes() -> None:
 def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scroll_controls() -> None:
     with pytest.raises(ValueError, match="lazy_load_scroll_passes must be zero or greater"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda _: False,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
             lazy_load_scroll_passes=-1,
             engine=_ok_page_observation_engine(),
         )
     with pytest.raises(ValueError, match="lazy_load_scroll_step_px must be zero or greater"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda _: False,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
             lazy_load_scroll_step_px=-1,
             engine=_ok_page_observation_engine(),
         )
     with pytest.raises(ValueError, match="post_load_action_script must not be blank"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda _: False,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
             post_load_action_script="   ",
             engine=_ok_page_observation_engine(),
         )
     with pytest.raises(ValueError, match="mutually exclusive"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda _: False,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
             post_load_action_script="() => true",
             post_load_pointer_action=BrowserPagePointerAction(
                 action_name="open",
@@ -1584,10 +1559,12 @@ def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scrol
         )
     with pytest.raises(ValueError, match="text_markers"):
         fetch_browser_page_observation_capture(
-            url="https://example.com/source",
-            dom_extract_script="() => ({items: []})",
-            dom_extract_arg={},
-            response_url_predicate=lambda _: False,
+            # Base kwargs add timeout/wait_until/viewport values that are inert
+            # here: this call fails validation before any engine capture runs.
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
             post_load_pointer_action=BrowserPagePointerAction(
                 action_name="open",
                 candidate_selector="button",
@@ -1605,14 +1582,7 @@ def test_playwright_page_observation_extracts_dom_before_lazy_load_scroll_and_re
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         lazy_load_scroll_passes=1,
         lazy_load_scroll_step_px=500,
     )
@@ -1636,14 +1606,7 @@ def test_playwright_page_observation_runs_post_load_action_before_dom_and_reads_
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_action_script="async (arg) => { window.__postLoadAction = arg; }",
         post_load_action_arg={"target": "comments"},
     )
@@ -1675,14 +1638,7 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="test_pointer_v0",
             candidate_selector="button",
@@ -1734,14 +1690,10 @@ def test_playwright_page_observation_runs_bounded_wheel_burst_before_dom(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda _: False,
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda _: False,
+        },
         post_load_wheel_action=BrowserPageWheelAction(
             action_name="test_grid_wheel_v0",
             direction="down",
@@ -1798,14 +1750,7 @@ def test_playwright_page_observation_runs_pointer_action_sequence_before_dom(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="open_more_like_this",
@@ -1871,14 +1816,7 @@ def test_playwright_page_observation_stops_pointer_sequence_on_observed_response
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="open_comments",
@@ -1943,14 +1881,10 @@ def test_playwright_page_observation_can_wait_early_without_stopping_sequence(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "/api/comment/list" in url,
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda url: "/api/comment/list" in url,
+        },
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="open_comments",
@@ -2019,14 +1953,7 @@ def test_playwright_page_observation_stops_pointer_sequence_on_failed_post_click
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_actions=(
             BrowserPagePointerAction(
                 action_name="challenge_close",
@@ -2080,14 +2007,7 @@ def test_playwright_page_observation_records_pointer_no_target_without_click(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="test_pointer_v0",
             candidate_selector="button",
@@ -2126,14 +2046,7 @@ def test_playwright_page_observation_uses_visual_x_fallback_without_dom_target(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_close_diag",
             candidate_selector="button",
@@ -2212,14 +2125,7 @@ def test_playwright_page_observation_can_prefer_center_modal_visual_x(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2274,14 +2180,7 @@ def test_playwright_page_observation_records_post_click_close_verification(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2348,14 +2247,7 @@ def test_playwright_page_observation_post_click_visual_candidates_are_not_absent
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2415,14 +2307,7 @@ def test_playwright_page_observation_center_modal_reports_zone_candidate_count(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2479,14 +2364,7 @@ def test_playwright_page_observation_center_modal_uses_geometric_fallback(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2532,14 +2410,7 @@ def test_playwright_page_observation_can_disable_center_modal_geometric_fallback
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_modal_close",
             candidate_selector="button",
@@ -2585,14 +2456,7 @@ def test_playwright_page_observation_skips_visual_x_fallback_without_page_gate(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         post_load_pointer_action=BrowserPagePointerAction(
             action_name="challenge_close_diag",
             candidate_selector="button",
@@ -2620,14 +2484,7 @@ def test_playwright_page_observation_reports_lazy_load_cap_warning(
     _install_fake_playwright(monkeypatch, page)
 
     result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
-        url="https://example.com/source",
-        timeout_seconds=1,
-        wait_until="load",
-        viewport_width=1280,
-        viewport_height=720,
-        dom_extract_script="() => ({items: []})",
-        dom_extract_arg={},
-        response_url_predicate=lambda url: "widget" in url,
+        **_PAGE_OBSERVATION_BASE_KWARGS,
         lazy_load_scroll_passes=browser_snapshot_module._MAX_SCROLL_PASSES + 2,
         lazy_load_scroll_step_px=0,
     )
@@ -3184,6 +3041,8 @@ def test_cloakbrowser_page_observation_session_reuses_one_context_and_closes_onc
     engine = CloakBrowserPageObservationSessionEngine()
 
     for index in range(2):
+        # Not converted to _PAGE_OBSERVATION_BASE_KWARGS: url, extract script,
+        # extract arg, and predicate all differ from the base here.
         result = fetch_browser_page_observation_capture(
             url=f"https://example.com/source?capture={index}",
             dom_extract_script="() => ({ok: true})",
