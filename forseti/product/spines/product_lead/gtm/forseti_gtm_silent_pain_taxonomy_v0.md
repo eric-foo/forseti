@@ -100,9 +100,11 @@ and internal owner.
    SKU-specific clearance while the brand site stays full-price means retailer
    and brand disagree about the product's future. Check: ten SKUs at the
    largest retailer, current price/status vs two archived dates, cross-checked
-   against DTC state; exclude sitewide sale events. Limit: cannot see
-   sell-through, who funds the markdown, or why. Owner: VP Sales / Key
-   Accounts / CFO.
+   against DTC state; exclude sitewide sale events. Falsifier: a quick
+   restock or a successor SKU appearing means packaging/formula transition
+   (class 5) or a planogram reset, not exit — persistence across dated
+   observations is required. Limit: cannot see sell-through, who funds the
+   markdown, or why. Owner: VP Sales / Key Accounts / CFO.
 
 4. **Too many overlapping products (assortment sprawl).** Near-duplicate
    formulas under different names, retailer-only packs, and SKUs dead on the
@@ -157,14 +159,11 @@ and internal owner.
 
 - **Orphan web pages** (stale live PDPs, broken redirects): highly
   reproducible but the natural buyer is an SEO/digital lead — weakest fit for
-  CI positioning; garnish, not a lead.
-- **Retailer search/filter leakage** (in-stock product invisible under a
-  filter its own PDP qualifies for): real money, but fiddly to prove past
-  personalization noise; needs repeat clean-session tests.
+  CI positioning; garnish, not a lead. Owner note 2026-07-18: some value if
+  the pain is amplified in the framing (stale claims/prices still live, not
+  just dead links).
 - **Trademark collisions** (live opposition/refusal on a commercially live
   name): extends the entity/mark checks CSB already does; rare per subject.
-- **International variant fragmentation**: mostly moot until subjects are
-  multi-market.
 - **Entity/IP misalignment** (mark owned by a dead or predecessor entity while
   the storefront names another): matters at financing/M&A moments; rare.
 - **Launch slippage** (publicly moved dates, deleted teasers): weakest
@@ -174,6 +173,11 @@ and internal owner.
 
 ## Parked (owner-deferred 2026-07-18; do not run without new owner word)
 
+- **Retailer search/filter leakage** — owner ruling 2026-07-18: not pursuing
+  ("let's not do this"); too fiddly to prove past personalization noise for
+  the value it carries.
+- **International variant fragmentation** — owner-deferred 2026-07-18; moot
+  until subjects are multi-market.
 - **Cart-interaction methods** — applying promo codes in a prospect's live
   checkout (class 2's code test; the strong form of affiliate/coupon
   leakage). Owner ruling: beyond read-only observation, and standalone
