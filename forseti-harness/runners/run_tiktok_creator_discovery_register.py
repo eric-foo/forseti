@@ -63,6 +63,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- no both-supplied
+        # guard here, and DataLakeRoot.resolve is deferred to the lake write path
+        # after the register is built (an --output run never touches the lake).
         data_root_requested = args.data_root is not None or (
             args.output is None
             and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))

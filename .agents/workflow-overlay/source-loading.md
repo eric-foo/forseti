@@ -74,8 +74,10 @@ authority, output authority, or a lifecycle boundary, route through the
 Doctrine Change Propagation Contract in
 `.agents/workflow-overlay/source-of-truth.md`. If more than one doctrine
 dimension applies, use the source-of-truth primary `trigger` plus
-`related_triggers` grammar. Start preflight never substitutes for the required
-`direction_change_propagation` receipt or blocker at closeout.
+`related_triggers` grammar. Start preflight never substitutes for the
+propagation evidence that contract requires at closeout: PR/closeout evidence
+by default, with a durable `direction_change_propagation` receipt or blocker
+only in its exceptional case.
 
 When a durable receipt is required, use:
 
@@ -316,7 +318,7 @@ source_capsule:
   non_claims:
 ```
 
-Budget rules:
+Default budget targets:
 
 - Use at most four full-file reads.
 - Use at most eight targeted section reads.
@@ -324,11 +326,9 @@ Budget rules:
 - Each excerpt should be the shortest quote or paraphrase that can carry the
   decision.
 - Prefer paraphrase plus file path over long quotation.
-- If the capsule needs more than ten excerpts, split the work or start a new
-  thread.
-- If any capsule budget would be exceeded, stop and narrow the question, split
-  the source-loading unit, or create a new-thread handoff. Do not compress a
-  broader archive into the capsule and call it bounded.
+- Exceed a target only when omitting the additional source would make the
+  decision aid incomplete; state the decisive reason and keep the exception
+  local. Do not compress a broad archive into the capsule and call it bounded.
 
 These budgets are also the ratified cold-lane retrievability bar (owner-ratified 2026-06-13): a cold lane navigating from the standard entry points should reach its decisive sources within this same budget. Exceeding it on a routine task is a retrievability defect signal, not a license to read more.
 
@@ -545,10 +545,9 @@ Do not follow every retrieval-header `open_next` automatically. Open it only
 when it can change the current task; otherwise list it as an available source
 not read.
 
-If expansion would exceed the source-capsule budget, require more than one
-`S3` artifact family, or pull `S4` history by default, stop and return the
-specific source gap or new-thread handoff requirement instead of broadening the
-read pack inside the same prompt.
+If expansion materially exceeds the capsule targets or pulls `S4` history,
+narrow the question or use a handoff only when the current lane can no longer
+hold the decisive evidence without losing source identity or claim integrity.
 
 ## Artifact Body Shape
 
@@ -567,24 +566,17 @@ fresh-agent checks, and report-only retrieval findings, but it does not change
 source hierarchy, accepted folders, validation gates, artifact roles,
 implementation authorization, or the rule that `open_next` is conditional.
 
-## New Thread Triggers
+## Context Boundary
 
-Start a new thread or create a compact handoff prompt before continuing when:
+Continue in the current lane while the decisive sources, authority, and target
+state remain reconstructable. Start a new thread or create a compact handoff
+only when the current context can no longer hold those facts safely, a no-repo
+receiver needs a portable capsule, or an independent concurrent actor is
+actually required. Artifact counts, phase labels, or approaching compaction do
+not by themselves force a new lane.
 
-- more than one `S3` family is needed for the first artifact;
-- the prompt would need more than six full artifacts pasted inline;
-- the lane cannot access repo files and the source capsule would become longer
-  than the intended CA task;
-- a repo map refresh and a CA prompt are both needed and would compete for
-  context;
-- the current thread has substantial unrelated history that could bias the CA;
-- the current thread is at a phase boundary and approaching compaction: prefer
-  a handoff packet plus a fresh lane over `/compact`-and-continue — compaction
-  resets file-read state and re-grounding costs more than a cold-lane boot from
-  the packet.
-
-The handoff should name the source pack, the target output, the non-goals, and
-the files explicitly excluded from default loading.
+When a handoff is needed, name the source pack, target output, non-goals, and
+files excluded from default loading.
 
 ## Files Not To Bulk-Load By Default
 
@@ -605,130 +597,3 @@ Use the repo map to select a narrow source pack instead.
 Source loading supplies context, not status or authority. A status claim, as
 defined in `.agents/workflow-overlay/validation-gates.md`, requires its
 controlling source and evidence; otherwise mark it `not proven`.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Source-loading now binds a named-artifact missing fast path: exact paths
-    are checked first and then constrained to the named worktree, review-output
-    misses are treated as likely intended output paths when no source artifact
-    exists there, target branch Git evidence precedes token search expansion,
-    and all-worktree search is last resort only.
-  trigger: workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/source-loading.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/orca_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes source-loading and workflow details to the overlay; a
-        root restatement would make the fast path harder to keep single-sourced.
-    - path: .agents/workflow-overlay/source-of-truth.md
-      reason: >
-        Source hierarchy still says missing required sources fail visibly. This
-        patch adds bounded discovery order in source-loading, not a new source
-        precedence rule.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        The router already handles messy worktree and source-gap regimes. The
-        new fast path is source-loading mechanics under the existing router.
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        Review lane authority and report destinations are unchanged. The new
-        rule only decides how to discover a missing named artifact before the
-        review target is bound.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Prompt output modes and review-report topology are unchanged. The new
-        rule is pre-prompt source discovery and points at source-loading.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        No new check or completion gate is introduced. Existing gates still
-        validate the report, prompt, and source-loading claims once a target is
-        bound.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        The repo map already routes source-loading authority to this file; no
-        new artifact, path family, or map anchor was added.
-  stale_language_search: >
-    rg -in "exact path|all-worktree|worktrees|review-output|review report|missing source|broad search"
-    AGENTS.md .agents/workflow-overlay/ docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-02 after edits. Hits are compatible: source-loading.md now
-    owns the fast path and already warns against broad status/source dumps;
-    source-of-truth.md still requires visible failure for missing required
-    sources; review-lanes.md and prompt-orchestration.md still own review
-    report destinations and failed-write topology; decision-routing.md handles
-    messy worktree routing; repo map lists review-output roots only. No checked
-    surface instructs broad all-worktree search before exact path, named
-    worktree, and branch-diff evidence.
-  non_claims:
-    - not validation
-    - not readiness
-    - not review target authority
-    - not permission to infer adjacent artifacts
-    - not a new validation gate
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Targeted Read Protocol now owns a Routine Read Shapes registry for the
-    overlay's high-traffic files (prompt-orchestration, delegated-review-patch,
-    review-lanes, validation-gates, and this file), with matching head notes
-    on the other high-traffic files and this file owning the registry directly.
-    "Controlling" no longer exempts these files from targeted reads: the
-    bounded read is the compliant act for routine work, with named full-read
-    cases per file and a strict-claim reopen clause.
-  trigger: workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/validation-gates.md
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/README.md
-    - AGENTS.md
-    - docs/workflows/orca_repo_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Its head note (2026-07-02) already carries its routine read shape; the
-        registry entry here names the same shape without changing it.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        Overlay index descriptions and section owners are unchanged.
-    - path: AGENTS.md
-      reason: >
-        Already routes source-loading discipline to this file; no kernel
-        restatement.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Heading additions only; no section renames, so existing anchors into
-        these files remain valid.
-  stale_language_search: >
-    rg -in "routine read shape|full-file read|read shapes"
-    .agents/workflow-overlay/ AGENTS.md
-  stale_language_search_result: >
-    Executed 2026-07-02 after edits. Hits are the four file-top head notes,
-    the new registry section, this receipt family, and pre-existing consistent
-    capsule-budget/expansion lines ("at most four full-file reads", "prefer
-    targeted section reads over full-file reads"). No surface still frames
-    full reads of these files as the default-compliant act.
-  non_claims:
-    - not validation
-    - not readiness
-    - no token-savings efficacy claim
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
