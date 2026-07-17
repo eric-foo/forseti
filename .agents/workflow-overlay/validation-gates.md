@@ -18,6 +18,17 @@ Placement"; a full-file read is for editing validation doctrine.
 
 Validation must be able to fail. Missing evidence is not a pass.
 
+Validation evidence is claim-scoped and remains reusable until relevant
+changed bytes or mutable external state could falsify the supported claim. Run
+focused local checks for affected behavior and use required CI for broad
+integration. Do not duplicate a broad suite locally when required CI exercises
+the same behavior unless a focused failure, cross-cutting uncertainty, or an
+unavailable CI environment makes broader local diagnosis necessary. A focused
+failure blocks broader runs until it is diagnosed. Relevant implementation,
+test, dependency, checker, PR-head, or lake/index/writer changes invalidate only
+the evidence they can affect; mutable external and durable lifecycle claims
+still require fresh readback.
+
 Validation reports must preserve failure visibility by bucket:
 
 - `GATE PASS` / `GATE FAIL` are exit-code-bearing checks required for the claim.
@@ -62,12 +73,12 @@ inherit this floor.
   only at the durable/cross-lane and portable strict-claim boundaries in
   `.agents/workflow-overlay/source-loading.md`; missing receipt evidence blocks
   that portable handoff or claim, not ordinary interactive work.
-- Doctrine-changing source work must include an inline
-  `direction_change_propagation` receipt or explicit
-  `direction_change_propagation_blocker` under
-  `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
-  Missing propagation evidence blocks strict success or status claims that
-  depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
+- Doctrine-changing source work must carry direction-change propagation
+  evidence under `.agents/workflow-overlay/source-of-truth.md` before claiming
+  completion. The PR body or final closeout is the default; an inline receipt or
+  blocker is exceptional under that owner. Missing propagation evidence blocks
+  strict success or status claims that depend on the changed doctrine; it
+  authorizes no adjacent cleanup or tooling.
 - Writable-root acceptance follows the one-time binding owned by
   `.agents/workflow-overlay/decision-routing.md`:
 

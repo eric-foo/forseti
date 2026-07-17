@@ -4,18 +4,16 @@
     Human tool: verify a PR's CI check is green, then land it to main.
 
 .DESCRIPTION
-    Backs the merge-when-green flow under STRUCTURE B in
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (Decision item 7):
-    agents PREPARE green PRs but do not self-merge; a HUMAN (or otherwise authorized
-    action) lands the PR to main, and only when green. THIS SCRIPT IS THAT HUMAN STEP
-    - run it yourself to green-check-and-merge.
+    Human convenience wrapper for Decision item 7. It verifies the configured CI
+    check and mergeability before landing. A conflict-free stale head is eligible;
+    branch freshness is not checked.
 
-    Agents must NOT use this to self-merge. The enforcement lane's protected-action
-    guard blocks an agent's `gh pr merge` -> main; this helper merely wraps that merge,
-    so running it from an agent would bypass the guard - which structure B forbids.
+    Agents must NOT use this helper to self-merge. Its subprocess hides `gh pr merge`
+    from the protected-action PreToolUse guard, bypassing the own-lane, label, policy-hold,
+    exact-state, and fail-closed checks enforced on a direct merge command.
 
     Convenience, not a server-side gate. Active branch protection independently requires
-    the strict CI check and an up-to-date PR. This helper merges only when the check is passing
+    green CI but permits a conflict-free stale head. This helper merges only when the check is passing
     AND no check is failing or pending. Use -DryRun to evaluate read-only.
 
     Requires: GitHub CLI (gh) authenticated with repo access (recent enough to
