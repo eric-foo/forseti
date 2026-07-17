@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pretty", action="store_true", help="Indent JSON output.")
     args = parser.parse_args(argv)
     try:
-        data_root = DataLakeRoot.resolve(explicit=args.data_root)
+        data_root = DataLakeRoot.resolve_readonly(explicit=args.data_root)
         census = build_silver_observation_census(data_root)
     except (DataLakeRootError, OSError, TypeError, ValueError) as exc:
         parser.exit(status=2, message=f"Silver census unavailable: {exc}\n")

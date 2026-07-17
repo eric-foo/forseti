@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -148,6 +149,113 @@ def test_test_root_is_never_a_production_fallback(tmp_path: Path) -> None:
     _init(tmp_path)
     with pytest.raises(DataLakeRootError):
         DataLakeRoot.resolve(env={}, repo_root=None)
+
+
+def test_resolve_returns_non_readonly_root(tmp_path: Path) -> None:
+    # Normal resolve() is unchanged: writable, non-readonly.
+    root = _init(tmp_path)
+    resolved = DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+    assert resolved.readonly is False
+
+
+# -- read-only resolution (resolve_readonly) --------------------------------
+
+def test_resolve_readonly_succeeds_without_write_access(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Simulate a caller/process that lacks write access to the lake root
+    # (e.g. a read-only mount, or a user without write permission): normal
+    # resolve() must still refuse (write-capability probe), but
+    # resolve_readonly() must succeed -- it performs the same identity
+    # verification without the write-capability probe.
+    root = _init(tmp_path)
+
+    real_access = os.access
+
+    def _no_write_access(path, mode):  # noqa: ANN001 - matches os.access signature
+        if mode == os.W_OK:
+            return False
+        return real_access(path, mode)
+
+    monkeypatch.setattr("data_lake.root.os.access", _no_write_access)
+
+    with pytest.raises(DataLakeRootError, match="not writable"):
+        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+
+    resolved = DataLakeRoot.resolve_readonly(explicit=root.path, env={}, repo_root=None)
+    assert resolved.path == root.path
+    assert resolved.root_uuid == root.root_uuid
+    assert resolved.readonly is True
+
+
+def test_resolve_readonly_still_enforces_identity_verification(tmp_path: Path) -> None:
+    # resolve_readonly is not a bypass of fail-closed identity checks -- only
+    # of the write-capability probe. Missing markers / uuid mismatch still raise.
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    with pytest.raises(DataLakeRootError):
+        DataLakeRoot.resolve_readonly(explicit=bare, env={}, repo_root=None)
+
+    root = _init(tmp_path, "with-marker")
+    with pytest.raises(DataLakeRootError):
+        DataLakeRoot.resolve_readonly(
+            explicit=root.path, env={}, expected_uuid="WRONGUUID", repo_root=None
+        )
+
+
+def test_readonly_resolved_root_refuses_writes(tmp_path: Path) -> None:
+    # The write boundary must not weaken: every write-shaped method hard-fails
+    # loudly on a readonly-resolved root, before touching the filesystem.
+    root = _init(tmp_path)
+    readonly_root = DataLakeRoot.resolve_readonly(explicit=root.path, env={}, repo_root=None)
+
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.allocate_raw_packet_dir(generate_ulid())
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.stage_raw_packet(generate_ulid())
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.publish_raw_packet(tmp_path / "nonexistent-staging", generate_ulid())
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.append_record(
+            subtree="derived", raw_anchor=generate_ulid(), lane="l", record_id="r", data=b""
+        )
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.append_record_set(
+            subtree="derived",
+            raw_anchor=generate_ulid(),
+            record_id="r",
+            members={"a": b"1"},
+            completion_lane="done",
+        )
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.record_availability(generate_ulid())
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.rebuild_availability()
+    with pytest.raises(DataLakeRootError, match="readonly"):
+        readonly_root.relocate_to_sharded()
+
+    # No partial state was written by any of the refused calls.
+    assert not any((root.path / "raw").iterdir())
+    assert not any((root.path / "derived").iterdir())
+
+
+def test_readonly_resolved_root_reads_still_work(tmp_path: Path) -> None:
+    # Reads through a readonly-resolved root behave exactly like reads through
+    # a normally-resolved root -- only writes are refused.
+    root = _init(tmp_path)
+    src = tmp_path / "input.txt"
+    src.write_text("hello", encoding="utf-8")
+    result = write_local_source_capture_packet(data_root=root, **_writer_common(src))
+    pid = result.packet.packet_id
+    root.record_availability(pid)
+
+    readonly_root = DataLakeRoot.resolve_readonly(explicit=root.path, env={}, repo_root=None)
+    assert readonly_root.find_packet(pid) is not None
+    assert readonly_root.read_availability(pid) is not None
+    assert pid in readonly_root.list_available()
+    assert readonly_root.is_packet_tombstoned(pid) is False
+    loaded = readonly_root.load_raw_packet(pid)
+    assert loaded.manifest["packet_id"] == pid
 
 
 # -- init / marker / skeleton ----------------------------------------------

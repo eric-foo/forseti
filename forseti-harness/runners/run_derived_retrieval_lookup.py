@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        root = DataLakeRoot.resolve(explicit=args.data_root)
+        root = DataLakeRoot.resolve_readonly(explicit=args.data_root)
         result = (
             lookup_creator(root, args.creator)
             if args.creator is not None
