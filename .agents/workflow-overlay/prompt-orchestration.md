@@ -56,8 +56,9 @@ delegate lifecycle hard stop, de-correlation commission constants — are owned
 by `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`. A prompt
 that relies on one cites that artifact instead of restating it; restating a
 constant owned there in a new or materially touched prompt is a prompt-quality
-defect. Per-prompt deltas — revision pins, named targets, dirty-state
-allowance and byte pins, workspace root, validation route — are always stated
+defect. Per-prompt deltas — revision pins, named targets, repository-state
+allowance, workspace root, validation route, and any content hashes required
+outside the couriered repo-bound receiver rule below — are always stated
 inline and never replaced by a pointer. Routine prompts state only the
 non-default core above; do not add unused field placeholders or a start
 receipt for form completeness. The Prompt Validation Gates below are applied
@@ -310,9 +311,10 @@ conditions hold:
 - the future delegate must have direct `repo` access and a different upstream
   vendor/model lineage from the author;
 - the visible request supplies or safely determines a goal and success signal,
-  one matching target worktree or managed starting ref, branch/revision (a
-  frozen commit pin when the work was uncommitted), named file set, bounded
-  patch authority, and validation route;
+  one matching target worktree or managed starting ref, branch, required commit
+  pin and `revision_mode` (freezing any uncommitted authoring work as the last
+  authoring act before courier), named file set, bounded patch authority, and
+  validation route;
 - the rendered prompt binds an external controller under
   `.agents/workflow-overlay/decision-routing.md`; an already selected controller
   carries the two-root preflight, and an unknown future courier receiver stays
@@ -343,10 +345,11 @@ invalid. If no eligible controller is available, the prompt remains unexecuted.
 Render one compact pointer-first prompt containing:
 
 1. the plain goal and what done looks like;
-2. the exact worktree or managed starting ref, branch/revision, dirty-state
-   allowance, named targets and patch scope, plus the single `receiver_binding`
-   receipt (using `receiver_to_observe` only for facts the not-yet-launched
-   receiver must observe);
+2. the exact worktree or managed starting ref, branch, required commit pin and
+   `revision_mode`; a clean-at-bind requirement with only controller-owned
+   commissioned edits allowed afterward; named targets and patch scope; plus
+   the single `receiver_binding` receipt (using `receiver_to_observe` only for
+   facts the not-yet-launched receiver must observe);
 3. the different-vendor controller constraint plus author/home family and
    delegate family, using `operator_to_fill` only for an inferable but genuinely
    operator-owned value;
@@ -807,7 +810,10 @@ uncommitted work is frozen into a commit as the last authoring act before
 courier, and the commission pins that frozen commit. A target that cannot be
 frozen blocks to the Chief Architect rather than binding a weaker identity.
 Exact pins remain exact, while an advancing lane head may continue only when
-the prompt explicitly uses ancestry semantics.
+the prompt explicitly uses ancestry semantics. Ancestry does not widen the
+frozen review target: the commission still pins the reviewed commit, diff, or
+artifact state, and descendant changes stay outside review scope unless the
+commission expressly includes them.
 
 Receiving preflight establishes one binding, then stops repeating it:
 

@@ -202,7 +202,8 @@ Receiver classes remain available where another actor needs a binding:
 - `codex_managed_worktree`: a new independent Codex task explicitly authorized
   and created in its managed worktree with the commission in its initial prompt;
 - `external_direct_write`: an independent external controller verified once for
-  exact target, direct write capability, and no concurrent writer;
+  its frozen target under exact or expressly permitted ancestor semantics,
+  direct write capability, and no concurrent writer;
 - `collaboration_same_root`: an in-session subagent inside the caller's writable
   root; naming another path cannot expand it; and
 - `receiver_to_bind`: preparation-only until a concrete receiver is authorized.
@@ -235,7 +236,10 @@ receiver_binding:
 `git merge-base --is-ancestor <required_revision> HEAD` succeeds. Uncommitted
 work is not bindable for an independent receiver: freeze it into a commit as
 the last authoring act before courier and pin that frozen commit. Existing
-exact gates remain exact.
+exact gates remain exact. For a couriered review/patch receiver, `ancestor`
+does not widen the frozen review target: the commission still pins the reviewed
+commit, diff, or artifact state, and descendant changes stay outside scope
+unless expressly included.
 
 Creating a user-visible Codex task still requires explicit product/user
 authorization. A visible instruction to create, start, spin up, or hand off to a

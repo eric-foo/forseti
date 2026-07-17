@@ -75,7 +75,7 @@ inherit this floor.
   | --- | --- | --- |
   | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
-  | External controller targeting another worktree | `accepted` once after verification | Unique exact target at its frozen commit pin; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | External controller targeting another worktree | `accepted` once after verification | Unique target at its frozen commit pin under the commission's exact or explicitly permitted ancestor semantics; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
   | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
@@ -428,10 +428,11 @@ classification and the owner gate for building each substrate live in
 Receiver selection is one such judgment rule: whether a commission is read-only,
 a same-actor work unit in selected isolation, or an independent repo-changing
 lane depends on the requested act and live capability. Deterministic enforcement
-remains at protected actions, exact frozen-pin identity, and actual tool or
-sandbox denial; do not add a blanket path-location guard that treats a valid
-selected worktree as an error. An independent external controller still proves
-direct access to the exact target once.
+remains at protected actions, frozen-pin identity under exact or explicitly
+permitted ancestor semantics, and actual tool or sandbox denial; do not add a
+blanket path-location guard that treats a valid selected worktree as an error.
+An independent external controller still proves direct access to the bound
+target once.
 
 The Codex live adoption probe remains available only when hook adoption testing
 is itself commissioned. In that test it is a fail-closed runtime assertion:
