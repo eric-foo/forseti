@@ -313,7 +313,7 @@ def _merge_decision(pr_ref, lookup):
         state = lookup(pr_ref)
     except Exception:
         state = None
-    if not state:
+    if not isinstance(state, dict) or not state:
         return ("EP-03 merge blocked - PR %s mergeability lookup failed "
                 "(fail-closed)" % pr_ref)
     if state.get("isCrossRepository") is not False:
@@ -336,14 +336,19 @@ def _merge_decision(pr_ref, lookup):
     if mss not in {"CLEAN", "BEHIND"}:
         return ("EP-03 merge blocked - PR %s mergeStateStatus=%s, not CLEAN/BEHIND"
                 % (pr_ref, mss or "?"))
-    rollup = state.get("statusCheckRollup") or []
-    if not rollup:
+    rollup = state.get("statusCheckRollup")
+    if not isinstance(rollup, list) or not rollup:
         return ("EP-03 merge blocked - PR %s reports no CI checks yet "
                 "(fail-closed against the empty-checkset race)" % pr_ref)
     if not all(_check_ok(c) for c in rollup):
         return ("EP-03 merge blocked - PR %s has non-green or pending checks"
                 % pr_ref)
-    labels = {(l or {}).get("name") for l in (state.get("labels") or [])}
+    raw_labels = state.get("labels")
+    if not isinstance(raw_labels, list) or any(
+            not isinstance(label, dict) for label in raw_labels):
+        return ("EP-03 merge blocked - PR %s reports malformed labels "
+                "(fail-closed)" % pr_ref)
+    labels = {label.get("name") for label in raw_labels}
     blocking = sorted(labels & set(POLICY_BLOCK_LABELS))
     if blocking:
         return ("EP-03 merge blocked - PR %s carries live merge-policy block '%s'"
@@ -497,6 +502,10 @@ def _selftest():
         "114": {"mergeable": "CONFLICTING", "mergeStateStatus": "CLEAN",
                 "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL}]},              # conflict must block
+        "115": {"mergeStateStatus": "CLEAN", "statusCheckRollup": 7,
+                "labels": [{"name": AUTOMERGE_LABEL}]},              # malformed rollup must block
+        "116": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": 7},                                        # malformed labels must block
     }
     for _state in _FAKE.values():
         _state.setdefault("mergeable", "MERGEABLE")
@@ -530,6 +539,8 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 112"}, True, _fake),                            # detached/unresolved checkout
         ("Bash", {"command": "gh pr merge 113"}, False, _fake),                           # BEHIND+MERGEABLE+green -> ALLOW
         ("Bash", {"command": "gh pr merge 114"}, True, _fake),                            # conflict blocks even if CLEAN
+        ("Bash", {"command": "gh pr merge 115"}, True, _fake),                            # malformed rollup fails closed
+        ("Bash", {"command": "gh pr merge 116"}, True, _fake),                            # malformed labels fail closed
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
