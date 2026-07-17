@@ -8,11 +8,17 @@ from typing import Any
 from harness_utils import hash_file, sha256_text, utc_now_z
 from source_capture.models import SOURCE_CAPTURE_MANIFEST_VERSION, PreservedFile, SourceCapturePacket
 from source_capture.packet_inspection import PacketConformanceReport, read_packet_leniently
-from source_capture.reddit_consolidation.parser import ParsedComment, RedditParseFailure, parse_old_reddit_html
+from source_capture.reddit_consolidation.parser import (
+    OLD_REDDIT_THREAD_PARSER_VERSION,
+    ParsedComment,
+    RedditParseFailure,
+    parse_old_reddit_html,
+)
 from source_capture.source_quality import resolve_manifest_path
 
 
 REDDIT_THREAD_CONSOLIDATION_SCHEMA_VERSION = "reddit_thread_consolidation_v0"
+THREAD_CONTENT_RECORD_KIND = "reddit_thread_content_v0"
 
 NON_CLAIMS = [
     "not validation",
@@ -112,6 +118,61 @@ def consolidate_reddit_packet(
         "receipt_path": str(receipt_path),
         "comment_count": str(len(parsed.comments)),
         "observable_comment_node_count": str(parsed.observable_comment_node_count),
+    }
+
+
+def build_thread_content_record(*, html_text: str, source_url: str) -> dict[str, Any]:
+    """Project one old Reddit thread page into the deterministic content-packet record.
+
+    Parse-in-flight counterpart of ``consolidate_reddit_packet``: same parser,
+    but a pure function of ``(html_text, source_url)`` — no timestamps, no
+    packet references, no environment reads — so a parser-fit check can
+    re-project sampled raw bytes and compare byte-for-byte against the stored
+    record. Provenance lives at the packet level (the record is preserved
+    inside the packet it describes); parse failures raise and are handled by
+    the capture seam's raw-fallback path.
+    """
+    parsed = parse_old_reddit_html(html_text)
+    posture_counts = Counter(comment.comment_posture for comment in parsed.comments)
+    return {
+        "record_kind": THREAD_CONTENT_RECORD_KIND,
+        "parser_version": OLD_REDDIT_THREAD_PARSER_VERSION,
+        "source_url": source_url,
+        "thread": {
+            "thread_id": parsed.thread_id,
+            "subreddit": parsed.subreddit,
+            "title": parsed.title,
+            "permalink": parsed.permalink,
+        },
+        "post": {
+            "author_state": parsed.author_state,
+            "timestamp_state": parsed.timestamp_state,
+            "score_state": parsed.score_state,
+            "body_text": parsed.post_body_text,
+        },
+        "comments": [
+            {
+                "row_id": comment.row_id,
+                "comment_id": comment.comment_id,
+                "parent_id": comment.parent_id,
+                "depth": comment.depth,
+                "author_state": comment.author_state,
+                "timestamp_state": comment.timestamp_state,
+                "score_state": comment.score_state,
+                "body_text": comment.body_text,
+                "comment_posture": comment.comment_posture,
+                "parser_warnings": comment.parser_warnings,
+            }
+            for comment in parsed.comments
+        ],
+        "counts": {
+            "observable_comment_nodes": parsed.observable_comment_node_count,
+            "comments_parsed": len(parsed.comments),
+            "comment_postures": dict(sorted(posture_counts.items())),
+        },
+        "warnings": parsed.warnings,
+        "limitations": parsed.limitations,
+        "non_claims": NON_CLAIMS,
     }
 
 
