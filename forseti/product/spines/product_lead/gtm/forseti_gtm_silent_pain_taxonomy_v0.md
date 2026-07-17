@@ -6,9 +6,12 @@ artifact_role: GTM working taxonomy (adjudicated external input; not doctrine, n
 scope: >
   The adjudicated taxonomy of "silent" company pains — pains that never appear
   as customer complaints — detectable from public surfaces, for use as GTM
-  door-openers and as a per-commission menu of candidate scanning jobs. Source:
-  one external ChatGPT Pro response (decision-residue method, 18 pain classes),
-  adjudicated confirm-don't-trust 2026-07-17/18 with owner tier rulings.
+  door-openers and as a per-commission menu of candidate scanning jobs.
+  Sources: one external ChatGPT Pro decision-residue response (18 classes,
+  round 1) plus the two pain-universe maps (Fable six-domain sweep,
+  docs/research/forseti_beauty_operator_pain_universe_map_v0.md; ChatGPT
+  DTC+retail sweep, chat-only), all adjudicated confirm-don't-trust
+  2026-07-17/18 with owner tier rulings.
 use_when:
   - Choosing a door-opener pain for outreach to a defensive subject or an
     offensive indie buyer.
@@ -32,13 +35,19 @@ plus an admission rule.
 
 ## Provenance and verification state
 
-The source is a single external ChatGPT Pro response. Its method and internal
-consistency were adjudicated against Forseti doctrine and the Tower 28
-artifacts; its external citations (Schema.org GTIN exposure, GPC enforcement,
-FDA directory caveats, certifier directories) were NOT dereferenced.
-Verification rule: a class's citations and detectability are verified the
-first time that class actually runs — no class is pitched to a prospect
-before one real run of it survives.
+Round 1 (classes 1-10): a single external ChatGPT Pro response, adjudicated
+against Forseti doctrine and the Tower 28 artifacts; its external citations
+were NOT dereferenced. Round 2 (classes 11-17, ruled 2026-07-18): the two
+pain-universe maps — Fable's six-domain sweep (the map doc above) and
+ChatGPT's DTC+retail sweep (adjudicated in chat; raw text not persisted, its
+accepted content lives here with attribution). Class 13 is the only
+two-source convergent class (both maps derived it independently); the other
+round-2 classes are single-source, which raises the stakes on first-run
+verification. Citation-confidence note: several ChatGPT operator-voice
+chains cite Beauty Independent pages our own lane hard-403'd the same day.
+Verification rule (binding, both rounds): a class's citations and
+detectability are verified the first time that class actually runs — no
+class is pitched to a prospect before one real run of it survives.
 
 ## The core idea (decision-residue)
 
@@ -175,6 +184,130 @@ and internal owner.
     while Amazon carries product — must be re-observed in-lane before any
     report use; sharpens CSC-004).
 
+Classes 11-17 below are the round-2 additions (owner-ruled 2026-07-18, from
+the pain-universe maps). Ordering note: 12, 13, and (partly) 14 are
+**event-triggered** — they fire only when their trigger exists (a visible
+demand spike, a retailer counterparty event, a docket hit) and are
+conditional checks, never standing monitoring; the standing classes rank by
+subject fit as before.
+
+11. **Same product, different promises (claims-language divergence).**
+    [ChatGPT map; standalone — its owner and forced decision differ from
+    class 1's product-record grain.] For one identifiable SKU, the active ad
+    (Meta's ad library), the DTC PDP, and retailer PDPs state materially
+    different claims: result, magnitude/duration, timeframe, covered
+    user/condition, ingredient-to-result wording, or qualifiers. Check: one
+    active ad + DTC PDP + up to two retailer PDPs; normalize the six claim
+    elements. Falsifier: the normalized elements agree, or differences are
+    demonstrably formatting/space truncation; non-substantive paraphrase is
+    never a positive — the falsifier takes semantic judgment, so the
+    six-element normalization travels with every run. Limit: cannot see
+    substantiation files, internal approval, intent, legality, ad spend, or
+    performance. Owner: Regulatory/Legal + Brand. Pairs with class 14: live
+    divergence plus a demonstrated litigation environment is the regulatory
+    door-opener.
+
+12. **Hero sold out during a visible demand spike (spike-conditioned
+    stockout).** [Fable map A5, with the ChatGPT map's sampling mechanics
+    folded in as the recipe.] Virality multiplies demand in hours while
+    replenishment runs weeks; the brand eats the loss or over-orders into
+    class 16's disposition trap on the way down. Check (only when a public
+    demand signal is visible — view counts, press): same-day hero stock
+    states across DTC + carried retailers — sold-out PDPs, waitlist/"notify
+    me" modules, purchase limits; the five-ZIP retailer availability sample
+    is the measurement recipe. Falsifier: deliberate drop/scarcity model,
+    planned transition (class 5), seasonal phase-out, site error; strong
+    form is simultaneous multi-surface stockout with waitlist capture live.
+    Limit: cannot see inventory position, lost sales, or cause;
+    restock-or-not and time-to-restock are longitudinal (co-movement seed).
+    Ambient DTC-vs-retail stock asymmetry with no spike is a seed, never a
+    current-run finding. Owner: Supply chain / Founder. GTM note: a
+    door-opener with a clock — most valuable during or just after the spike.
+
+13. **A carried retailer goes under while owing you (counterparty-event
+    exposure).** [The two-source class: ChatGPT map O4 + Fable map A3,
+    independently derived — merged.] Preconditions, BOTH required: the brand
+    is verifiably currently distributed by the retailer, AND the retailer
+    has a dated official event — bankruptcy filing, announced
+    liquidation/closure, or formal creditor process; press or analyst
+    opinion never qualifies. Then the public claims register
+    (Kroll/Stretto/PACER creditor matrix and schedules) often lists the
+    brand with a quantified claim amount — a dated public statement of
+    exposure. Falsifier: claims paid under critical-vendor/first-day orders,
+    insured, sold, or disputed — check docket disposition before reading
+    exposure as loss. Limit: exposure at filing date only; never recovery
+    outcome or the brand's overall receivables health. Companion to class 6:
+    concentration is the standing read; this quantifies the downside when it
+    fires. Owner: CFO / VP Sales.
+
+14. **Publicly targeted over its claims (legal-targeting record).** [Fable
+    map A1.] Claims and labeling language ("clean," "non-toxic," covered
+    ingredients into CA) makes brands targets for private Prop 65 plaintiffs
+    and consumer class actions; the pain is defense burden and the recurring
+    warn-vs-risk / substantiate-vs-strip decision, never merit. Check:
+    CA OAG Prop 65 60-day-notice and settlement registry for brand and legal
+    entity; federal dockets (CourtListener/PACER) for consumer class
+    actions; record date, plaintiff, chemical or challenged claim, and
+    disposition. Falsifier: withdrawn/boilerplate/mooted notices — always
+    check disposition; forward TiO2 risk differs from the historical record
+    after the 2025 injunction; one stale notice with no follow-on is weak.
+    Limit: the record proves the brand was TARGETED, never that it violated
+    anything — no legality or fault characterization, ever; settlement
+    amounts, defense costs, and insurance are invisible. Owner: GC /
+    Founder / Regulatory.
+
+15. **Expensive working capital visible in lien filings (UCC-1 financing
+    fingerprint).** [Fable map A2.] The inventory-ahead-of-payment cash gap
+    forces a financing waterfall (ABL, inventory/PO finance, factoring, RBF,
+    MCA) whose cost eats margin — the bracket's defining squeeze, and the
+    one place it leaves a public trace. Check: state Secretary-of-State UCC
+    search on the resolved legal entity (entity resolution first — ties into
+    the Tier B entity checks); read the LENDER TYPE — a factor, MCA funder,
+    RBF platform, or inventory-finance specialist as secured party is the
+    fingerprint; recent stacking without terminations sharpens it.
+    Falsifier: an ordinary bank blanket lien is normal course; terminated or
+    lapsed filings are excluded; a lien can secure an unused facility. The
+    strong form is a non-bank expensive-capital lender, recently filed, no
+    termination. Limit: liens never show amounts drawn, rates, covenants, or
+    health — borrowing is not distress; the finding is "paying for working
+    capital of type X since date Y," nothing more. Some state searches carry
+    small fees. Owner: CFO / Founder.
+
+16. **Product surfacing at off-price and liquidation (overstock
+    disposition).** [Fable map A4; standalone — its owner and forced
+    decision (inventory disposition) differ from class 10's (channel
+    control).] MOQ overbuys, faded virality, and pack refreshes strand
+    perishable inventory; the off-price shelf announces the write-off
+    decision the brand never talks about. Check: off-price surfaces (TJX
+    family online, off-price beauty e-tailers, liquidation marketplaces) for
+    the brand's SKUs; record price vs MSRP, pack version (cross-check class
+    5), seller identity (cross-check class 10's authorized list). Falsifier:
+    a deliberate sanctioned off-price channel; classes 5 and 10 produce the
+    same shelf state — every finding names which reading it asserts. Strong
+    form: current-pack product, below MSRP, at scale, from sellers absent
+    from the authorized list, while DTC holds full price. Limit: cannot show
+    whether disposition was sanctioned, its volume, terms, or write-off
+    size. Owner: Demand planning / CFO / Merchandising.
+
+17. **Commercial dupes targeting the heroes (dupe-pressure fingerprint).**
+    [Fable map A6.] The moment a hero works, commercial dupers (named-dupe
+    brands, retailer private label) and dupe culture capture the demand the
+    brand created, forcing price-defense, innovation-cadence, or IP
+    decisions re-litigated per hero. Check: per hero SKU, search
+    "[product] dupe" across TikTok/Google/dupe-finder sites and retailer
+    sites; enumerate COMMERCIALLY MARKETED dupes (named comparisons, "dupe
+    of X" merchandising), each with price gap and seller; count and
+    price-gap are the finding. Falsifier: organic chatter without a
+    commercial product is noise; claimed dupes with dissimilar INCI are
+    superficial; a dupe of a discontinued SKU is stale. Strong form: a
+    currently-merchandised named dupe at a large price gap on a current
+    hero. Limit: never revenue impact, never whether the brand cares, never
+    the duper's legality (explicitly out of bounds) — pressure evidence, not
+    damage evidence. Cleanly complements the complaint layer: competitor-
+    side pressure the subject's customers never complain about. Tower 28
+    instance already in the Phase 1 v2 evidence (~50 SOS dupes aggregated;
+    NYX merchandised against Swipe). Owner: Founder / CMO / Legal (IP).
+
 ## Tier B — accepted, lower priority for the $10-100M US bracket
 
 - **Orphan web pages** (stale live PDPs, broken redirects): highly
@@ -190,6 +323,14 @@ and internal owner.
   falsification in the set — too many benign explanations.
 - **Supplier import refusals** (brand's named manufacturer in FDA refusal
   lists): accept-marginal; hardest to tie to the brand's own shipments.
+- **Review-corpus fragmentation** (round 2, ChatGPT map, narrowed): reviews
+  visibly attached to the wrong shade/product on an exact identifier, or an
+  established DTC corpus against a zero-review retailer PDP for the same
+  SKU. The crisp sub-signal is real and cheap, but the main benign causes
+  (syndication plan status, retailer moderation, processing queues) are not
+  publicly excludable — a soft gate 4 — and the natural buyer is the
+  digital/ecommerce lead (same weakest-fit reasoning as orphan pages).
+  Downstream review-asset sibling of class 1.
 
 ## Parked (owner-deferred 2026-07-18; do not run without new owner word)
 
@@ -208,6 +349,16 @@ and internal owner.
   browser network-capture instrumentation we have not bound, and the finding
   sits one sentence from a legal characterization we must never make. Owner:
   no monetization route identified. Deferred entirely.
+- **State EPR producer-registry presence** (round 2, Fable map A7) — held at
+  corroborable, not admitted: gate 3 (sub-hour public test) is unverified —
+  whether PRO/state producer lists are publicly searchable at brand grain is
+  not established. Admit only after a first run proves the registry surface
+  resolves brands.
+- **Ambient channel stock asymmetry** (round 2, ChatGPT map O3 standalone
+  form) — not admitted as a point-in-time class: a single-snapshot DTC-vs-
+  retail stock difference has unexcludable benign causes and its
+  decision-relevant form is persistence. The sampling mechanics live inside
+  class 12; the persistence read is a co-movement seed.
 
 ## Rejected (stay rejected; source's own gates)
 
