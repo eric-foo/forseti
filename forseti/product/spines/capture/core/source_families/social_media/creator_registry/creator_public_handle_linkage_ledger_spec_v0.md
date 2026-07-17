@@ -219,7 +219,21 @@ Disconfirming evidence types:
 
 LLMs may assist review, but an LLM-only evidence bundle must not finalize a
 declared or probable link. Final links require human review and at least one
-non-LLM-assisted evidence row.
+non-LLM-assisted evidence row, with one owner-ratified exception below.
+
+### Official-Link-Hub Auto-Promotion (owner-ratified 2026-07-16)
+
+A strong `official_link_hub` evidence row — the creator's own platform profile
+surface links to the public link hub, and that hub links back to the platform
+accounts — may finalize a `declared_public_account_link` without per-link human
+review and without a non-LLM-assisted evidence row. The evidence is the
+creator's own public self-declaration and is mechanically re-verifiable at its
+recorded `source_pointer` and `source_field` at any time, so the LLM-assisted
+capture bar does not gate this class. Such promotions use
+`review_state: auto_promoted_official_link_hub` and remain reversible: a later
+disconfirming evidence row demotes the record through ordinary review. Probable
+links and every weaker evidence class keep the human-review and
+non-LLM-evidence requirements unchanged.
 
 ## Validator Contract
 
@@ -231,10 +245,15 @@ The v0 validator must fail closed on:
   graph, follower graph, raw capture, session, or downstream-stage field;
 - a creator record that links only one platform;
 - a candidate link whose review state is not `candidate_needs_review`;
+- a declared link whose review state is neither `human_reviewed_declared` nor
+  `auto_promoted_official_link_hub`;
+- an `auto_promoted_official_link_hub` declared link without a strong
+  `official_link_hub` evidence row;
 - a declared link with no strong public evidence;
 - a probable link with fewer than three independent weak evidence types;
 - any declared/probable link that includes disconfirming evidence;
-- any final link whose evidence is LLM-only;
+- any final link whose evidence is LLM-only, except an
+  `auto_promoted_official_link_hub` declared link;
 - `confirmed_public_account_link` wording;
 - synthetic fixtures that contain real-looking handles, non-`example.test`
   profile URLs, or non-synthetic source pointers.
@@ -332,5 +351,49 @@ direction_change_propagation:
     - not public person-level product surface
     - not SQLite migration
     - not runtime capture authorization
+    - not validation or readiness
+```
+
+```yaml
+direction_change_propagation:
+  trigger: review_authority
+  related_triggers:
+    - product_doctrine
+    - validation_philosophy
+  doctrine_changed: >
+    Owner-ratified 2026-07-16: a strong official_link_hub evidence row
+    (creator's own platform profile links to the hub and the hub links back to
+    the platform accounts) may finalize a declared_public_account_link without
+    per-link human review and without a non-LLM-assisted evidence row, using
+    the new review_state auto_promoted_official_link_hub. All other final-link
+    paths keep the human-review and non-LLM-evidence requirements. The
+    Fragranceknowledge creator record is promoted under this rule.
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
+    - forseti-harness/capture_spine/creator_public_handle_linkage/models.py
+    - forseti-harness/capture_spine/creator_public_handle_linkage/validation.py
+    - forseti-harness/tests/unit/test_creator_public_handle_linkage.py
+  downstream_surfaces_checked:
+    - forseti-harness/capture_spine/creator_profile_current/materialize.py
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  intentionally_not_updated:
+    - path: forseti-harness/capture_spine/creator_profile_current/
+      reason: >
+        The profile-current materializer does not consume creator_records yet;
+        surfacing declared creator_records in the profile view is a separate
+        work unit triggered when a consumer needs the linked view.
+    - path: forseti-harness/tests/fixtures/creator_public_handle_linkage/valid_synthetic_ledger.json
+      reason: >
+        Synthetic fixture rows are unchanged; new validator branches are
+        covered by test-local mutations of the fixture copy.
+  stale_language_search: >
+    rg -n "pending non-LLM human review|candidate pending|auto_promoted_official_link_hub"
+    forseti forseti-harness docs -g "*.md" -g "*.json" -g "*.py"
+  non_claims:
+    - not real-world identity proof
+    - not cross-platform metric rollup authorization
+    - not outreach authorization
+    - not a promotion of any weak-evidence candidate
     - not validation or readiness
 ```
