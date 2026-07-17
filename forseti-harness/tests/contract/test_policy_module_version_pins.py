@@ -177,7 +177,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Initial pin: byte-identical helpers consolidated out of the projection
         # surfaces; not output-shaping.
-        "d8cd3d79b5daaf10d75bea511adca2909bf1ade39d0cdaadc46f75864022f504",
+        # Pin bumped: added canonical_old_reddit_thread_url, the body adopted
+        # from grid_projection's byte-identical private copy; not output-shaping.
+        "b7418534314365b73b5f3397233aa6e8513cfc5ca0f28042bfa522c42d5c7885",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

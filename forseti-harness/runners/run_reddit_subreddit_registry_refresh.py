@@ -25,6 +25,7 @@ from capture_spine.reddit_subreddit_grid import (
     RegistryRefreshError,
     refresh_registry_from_grid_packets,
 )
+from runners._scaffold import exit_on_failure
 
 DEFAULT_REGISTRY_PATH = (
     Path(__file__).resolve().parents[2]
@@ -68,16 +69,19 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    try:
+    with exit_on_failure(
+        parser,
+        runner_name="registry refresh",
+        expected=(RegistryRefreshError,),
+        expected_status=3,
+        format_expected=lambda exc: f"registry refresh refused [{exc.code}]: {exc.message}",
+        unexpected_status=2,
+    ):
         outcome = refresh_registry_from_grid_packets(
             registry_path=args.registry,
             packet_paths=args.packets,
             dry_run=args.dry_run,
         )
-    except RegistryRefreshError as exc:
-        parser.exit(status=3, message=f"registry refresh refused [{exc.code}]: {exc.message}\n")
-    except Exception as exc:
-        parser.exit(status=2, message=f"registry refresh failed: {exc}\n")
 
     print(json.dumps(outcome.to_dict(), indent=2, sort_keys=True))
     return 0
