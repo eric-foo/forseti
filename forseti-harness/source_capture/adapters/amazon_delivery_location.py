@@ -6,10 +6,11 @@ generic ``cloakbrowser_snapshot`` adapter knows none of it -- it only calls this
 through the ``PreCapturePlugin`` seam (``before`` / ``confirm`` / ``describe`` / ``note``).
 
 The honesty keystone: setting the ZIP via clicks is an ATTEMPT, never proof. The packet
-records the storefront as pinned ONLY when ``confirm`` observes a US signal in the rendered
-DOM (recon proved ``currencyOfPreference="USD"`` appears after a US ZIP is applied). When the
-signal is absent, the note says ATTEMPTED-but-NOT-confirmed and the slot is treated as
-un-pinned -- never a fake "set" claim that could let a non-US capture count as a US one (INV-1).
+records the delivery pin as confirmed ONLY when ``confirm`` observes the requested ZIP in
+Amazon's rendered location anchor together with an amazon.com US-marketplace marker. USD
+alone confirms currency, not the requested delivery ZIP. When the conjunction is absent,
+the note says ATTEMPTED-but-NOT-confirmed and the slot is treated as un-pinned -- never a
+fake "set" claim that could let a non-US capture count as a US one (INV-1).
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ import re
 import time
 
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
@@ -28,6 +30,7 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 # Homepage whose delivery-location widget pins the storefront. The main capture URL is a
 # separate PDP; this navigation happens BEFORE it, inside the plugin's bounded setup window.
 _AMAZON_HOMEPAGE_URL = "https://www.amazon.com/"
+_AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
 
 # Short bounded probes replace fixed sleeps: browser actions already wait for their target,
 # while the post-apply poll returns as soon as Amazon renders the requested ZIP.
@@ -100,6 +103,21 @@ class AmazonDeliveryLocationPlugin:
                 attempted=True,
                 steps_completed=False,
                 reason="homepage_navigation",
+                warning_notes=warning_notes,
+            )
+
+        homepage_hostname = _page_hostname(page)
+        if homepage_hostname not in _AMAZON_US_HOSTS:
+            observed = homepage_hostname or "unknown"
+            warning_notes.append(
+                "delivery_zip_setup: amazon.com homepage navigation landed on non-US "
+                f"marketplace host {observed!r}; main URL capture proceeds without delivery "
+                "location pin"
+            )
+            return PreCaptureOutcome(
+                attempted=True,
+                steps_completed=False,
+                reason="homepage_marketplace_redirect",
                 warning_notes=warning_notes,
             )
 
@@ -263,10 +281,12 @@ def confirm_us_storefront(rendered_dom: str) -> PinConfirmation:
 def confirm_us_storefront_with_zip(
     rendered_dom: str, *, delivery_zip: str
 ) -> PinConfirmation:
-    """Confirm a US target surface using currency or a ZIP-bound marketplace anchor."""
-    currency_confirmation = confirm_us_storefront(rendered_dom)
-    if currency_confirmation.confirmed:
-        return currency_confirmation
+    """Confirm the requested ZIP remains bound to Amazon's US marketplace.
+
+    A USD currency input is useful storefront evidence but cannot prove which delivery ZIP
+    Amazon applied. Delivery-pin confirmation therefore requires the requested ZIP inside a
+    recognized location anchor plus an amazon.com marketplace marker in the same rendered DOM.
+    """
     if _has_us_delivery_zip_dom_signal(rendered_dom or "", delivery_zip):
         return PinConfirmation(
             confirmed=True,
@@ -278,8 +298,8 @@ def confirm_us_storefront_with_zip(
     return PinConfirmation(
         confirmed=False,
         detail=(
-            'no US storefront signal (currencyOfPreference="USD" or delivery ZIP '
-            f"{delivery_zip!r} absent from recognized rendered-DOM anchors)"
+            f"requested delivery ZIP {delivery_zip!r} was not bound to a recognized Amazon "
+            "location anchor together with an amazon.com US-marketplace marker in rendered DOM"
         ),
     )
 
@@ -319,6 +339,20 @@ def _has_us_delivery_zip_dom_signal(dom: str, delivery_zip: str) -> bool:
             "assoc_handle=usflex",
         )
     )
+
+
+def _page_hostname(page: object) -> str | None:
+    """Return only the post-navigation hostname; never retain query or credential material."""
+    try:
+        page_url = page.url  # type: ignore[union-attr]
+    except Exception:
+        return None
+    if not isinstance(page_url, str):
+        return None
+    try:
+        return (urlparse(page_url).hostname or "").lower() or None
+    except ValueError:
+        return None
 
 
 def _remaining_ms(deadline: float) -> float:

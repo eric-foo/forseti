@@ -88,6 +88,9 @@ CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
     "not commercial-readiness logic",
 ]
 
+AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
+_AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
+
 
 def run_source_capture_cloakbrowser_packet(
     *,
@@ -183,6 +186,7 @@ def run_source_capture_cloakbrowser_packet(
             "--delivery-zip, --nordstrom-country, or --luckyscent-market"
         )
     if delivery_zip is not None:
+        _validate_amazon_delivery_zip_url(url)
         pre_capture = AmazonDeliveryLocationPlugin(
             delivery_zip=delivery_zip,
             setup_timeout_seconds=delivery_zip_setup_timeout_seconds,
@@ -233,6 +237,16 @@ def run_source_capture_cloakbrowser_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    amazon_pin_failure = _amazon_delivery_pin_failure(
+        delivery_zip=delivery_zip,
+        final_url=capture_result.final_url,
+        pin_confirmed=capture_result.metadata.get("pin_confirmed"),
+    )
+    if amazon_pin_failure is not None:
+        packet_limitations.append(
+            f"{AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE}: {amazon_pin_failure}; packet "
+            "preserved but MUST NOT be admitted as Amazon US delivery-pinned evidence"
+        )
     if block_heavy_assets:
         packet_limitations.append(
             "CloakBrowser snapshot blocked image, media, and font network resources to bound "
@@ -248,6 +262,8 @@ def run_source_capture_cloakbrowser_packet(
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
     packet_visible_mode_changes = list(visible_mode_changes)
+    if amazon_pin_failure is not None:
+        packet_visible_mode_changes.append(AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE)
     sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
@@ -380,6 +396,12 @@ def run_source_capture_cloakbrowser_packet(
                 pass
         if staging_root is not None:
             shutil.rmtree(staging_root, ignore_errors=True)
+    if amazon_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {amazon_pin_failure}",
+        )
     if sufficiency_result.enabled and not sufficiency_result.passed:
         return SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE, source_detail_sufficiency_failure_message(
             output_directory=result.output_directory,
@@ -390,6 +412,35 @@ def run_source_capture_cloakbrowser_packet(
 
 def _write_text(path: Path, text: str) -> None:
     path.write_text(f"{text}\n", encoding="utf-8", newline="\n")
+
+
+def _validate_amazon_delivery_zip_url(url: str) -> None:
+    hostname = (urlparse(url).hostname or "").lower()
+    if hostname not in _AMAZON_US_HOSTS:
+        raise ValueError(
+            "--delivery-zip is Amazon-specific and requires an amazon.com capture URL"
+        )
+
+
+def _amazon_delivery_pin_failure(
+    *,
+    delivery_zip: str | None,
+    final_url: str,
+    pin_confirmed: object,
+) -> str | None:
+    if delivery_zip is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    reasons: list[str] = []
+    if final_hostname not in _AMAZON_US_HOSTS:
+        reasons.append(
+            f"final marketplace host was {final_hostname or 'unknown'!r}, not amazon.com"
+        )
+    if pin_confirmed is not True:
+        reasons.append(
+            f"requested ZIP {delivery_zip!r} was not confirmed on the captured page"
+        )
+    return "; ".join(reasons) if reasons else None
 
 
 def _failure_report_token(failure_kind: CloakBrowserSnapshotFailureKind) -> str:
@@ -639,10 +690,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "US ZIP code to set as delivery location on amazon.com before capture "
             "(e.g. '10001'). Runs a stateful homepage delivery-location widget flow to "
-            "ATTEMPT pinning the US storefront, then CONFIRMS the flip against the rendered "
-            "DOM (currencyOfPreference=USD). humanize=True is used automatically. If the "
-            "storefront cannot be confirmed, the packet records an honest un-pinned gap, never "
-            "a 'set' claim. Probed 2026-06-16; subject to Amazon DOM changes."
+            "ATTEMPT pinning the US storefront, then requires the requested ZIP in Amazon's "
+            "rendered location anchor plus an amazon.com US-marketplace marker. humanize=True "
+            "is used automatically. If setup redirects or the captured page loses the pin, "
+            "the packet is preserved with a typed failure and the runner exits nonzero. "
+            "Probed 2026-06-16 and hardened 2026-07-18; subject to Amazon DOM changes."
         ),
     )
     parser.add_argument(
@@ -799,6 +851,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             if args.browser_user_data_session_mode is not None
             else None
         )
+        if args.delivery_zip is not None:
+            _validate_amazon_delivery_zip_url(args.url)
         if (args.browser_user_data_label is None) != (browser_user_data_session_mode is None):
             raise ValueError(
                 "--browser-user-data-label and --browser-user-data-session-mode must be supplied together"
