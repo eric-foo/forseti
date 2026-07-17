@@ -26,6 +26,13 @@ stale_if:
   - The CSB company competitive-intelligence contract or validator changes materially.
 ```
 
+Revision note (2026-07-18): wording fix-pass per the CI adjudication ledger's
+round-2 directness guards — Amazon storefront operation restated as labeled
+inference, small-sample review findings restated as existence (not
+concentration), and "observable value" restated as assortment/price
+concentration. Evidence rows, observations, and conclusions are otherwise
+unchanged; this pass altered claim wording only, not claim content.
+
 ## How To Read This Report
 
 This is a decision-neutral company competitive-intelligence report. It records
@@ -63,15 +70,18 @@ that promise institutionally reinforced at the claims layer (three independent
 skin-health certifiers list its hero SOS line) and simultaneously attacked at
 the experience layer (an ingredient-specific "it broke me out" complaint that
 recurs across venues against still-current non-comedogenic copy). Observable
-value concentrates visibly in two franchises — the SOS hypochlorous-acid
-skincare family and the Swipe concealer — carried deepest through the Sephora
-ecosystem, now extended by a brand-operated Amazon US storefront that sits
-outside the brand's own authorized-seller list. Each conclusion below states
+assortment depth and catalog emphasis concentrate visibly in two franchises —
+the SOS hypochlorous-acid skincare family and the Swipe concealer — carried
+deepest through the Sephora ecosystem, now extended by an Amazon US storefront
+whose seller of record displays as the brand — most plausibly brand-operated —
+and which sits outside the brand's own authorized-seller list. Each conclusion
+below states
 which decisions it could inform; none assigns a demand verdict.
 
 **Front-page conclusions (claim / evidence bound / commercial consequence / confidence / next observable):**
 
-1. **Tower 28 sells on Amazon US through its own brand-operated storefront —
+1. **The seller of record on Tower 28's sampled Amazon US hero listings
+   displays as "Tower28 Beauty" — most plausibly the brand's own storefront,
    fulfilled by Amazon, on Subscribe & Save — even though Amazon is absent from
    the brand's authorized-seller list, and a second, non-brand seller also
    appears in Amazon's seller facet.** Evidence bound: US-pinned Amazon captures
@@ -81,8 +91,10 @@ which decisions it could inform; none assigns a demand verdict.
    and "RG Click Picks" across ~115 results (OBS-035); the brand's own stores
    page carries explicit anti-diversion language and omits Amazon (OBS-038,
    reused OBS-005). This resolves v1's open Amazon channel-listing-versus-GMV
-   contradiction toward *the brand itself operates the Amazon channel it does
-   not publicly list*. Commercial consequence: informs any channel-control,
+   contradiction toward *the unlisted Amazon channel being most plausibly
+   brand-operated* — seller display, brand-store link, and badge are strong
+   markers, not confirmed account ownership. Commercial consequence: informs
+   any channel-control,
    authorized-distribution, and gray-market/diversion assessment. Confidence:
    high that Tower 28 is the seller of record on the two sampled PDPs; moderate
    on the scope of the second-seller presence (its specific listings were not
@@ -123,9 +135,10 @@ which decisions it could inform; none assigns a demand verdict.
    observable: a verified-purchase, larger negative-review sample keyed to
    breakout/comedogenicity language on Swipe and SunnyDays.
 
-4. **Reception is dispersed, and among the sampled heroes the sub-4.0 SunnyDays
-   skin tint is where verified substantive complaints and a directly-countered
-   product claim concentrate.** Evidence bound: brand-page rating dispersion runs
+4. **Reception is dispersed, and in the small verified review sample the
+   sub-4.0 SunnyDays skin tint is where substantive complaints and a
+   directly-countered product claim surface — an existence read, not a
+   concentration or rate claim.** Evidence bound: brand-page rating dispersion runs
    4.57 down to 3.56 across the line (reused OBS-009); in the verified,
    substantive first-page review sample, SunnyDays carried three of five verified
    reviews at 1–2 stars, including a verified "greasy… separates" review against
@@ -137,7 +150,8 @@ which decisions it could inform; none assigns a demand verdict.
    a larger verified negative-review pull on SunnyDays to test whether the
    "non-greasy" counter recurs.
 
-5. **Observable value concentrates visibly in two franchises carried deepest
+5. **Observable assortment depth and price architecture concentrate visibly in
+   two franchises carried deepest
    through the Sephora ecosystem, with a $12–$128 price ladder anchored on the
    SOS skincare family and the Swipe concealer.** Evidence bound: the DTC catalog
    spans 33 SKUs from a $12 travel SOS spray to a $128/$118 LipSoftie deluxe set
@@ -1625,7 +1639,7 @@ observation_ledger:
     access_limitation: "Page may lag actual channel reality; preservation capture anchors the 2026-07-17 state"
     independence_syndication_group: tower28_owned_stores_2026_07_17
     independent_corroboration_ids: [OBS-005]
-    ambiguity_limitation: "The anti-diversion language and the brand-operated Amazon storefront (OBS-036, OBS-037) are both current-state facts; the report does not resolve the brand's intent behind the omission"
+    ambiguity_limitation: "The anti-diversion language and the brand-displaying Amazon seller of record (OBS-036, OBS-037) are both current-state observations; storefront operation is inference from seller display, and the report does not resolve the brand's intent behind the omission"
     contradiction_state: amazon_absent_from_authorized_list_vs_brand_operated_amazon_storefront_see_OBS-036
     fact_domain: company_fact
     current_state_use: primary_current
@@ -1799,8 +1813,9 @@ Markets and channels: the brand-listed authorized channel set is DTC, the
 Sephora ecosystem (US/CA/UK/ME plus Sephora at Kohl's), Credo, Mecca
 (Australia/NZ), TikTok Shop, and Revolve, with Amazon and Ulta absent from the
 authorized list and explicit anti-diversion language attached (OBS-005,
-OBS-038). Against that list, the US-vantage supplement establishes that Tower 28
-in fact operates its own Amazon US storefront: both sampled hero PDPs read "Sold
+OBS-038). Against that list, the US-vantage supplement establishes that the
+seller of record on both sampled hero PDPs displays as the brand — most
+plausibly Tower 28 operating its own Amazon US storefront: both PDPs read "Sold
 by Tower28 Beauty," fulfilled by Amazon, on Subscribe & Save, with a "Visit the
 Tower 28 Store" brand-store link (OBS-036, OBS-037), across ~115 search results
 whose Seller facet also lists a second, non-brand seller, "RG Click Picks"
