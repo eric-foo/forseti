@@ -291,8 +291,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 message="exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
             )
         data_root_requested = args.data_root is not None or (
-            output_directory is None
-            and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
+            output_directory is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         )
         if data_root_requested:
             from data_lake.root import DataLakeRoot

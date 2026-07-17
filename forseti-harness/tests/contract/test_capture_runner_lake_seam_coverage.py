@@ -60,6 +60,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_source_capture_antiblock_http_packet.py",
         "run_source_capture_archive_packet.py",
         "run_source_capture_amazon_review_onboarding.py",
+        "run_source_capture_ats_job_posting_packet.py"
         "run_source_capture_authenticated_browser_packet.py",
         "run_source_capture_browser_packet.py",
         "run_source_capture_cloakbrowser_packet.py",
@@ -186,6 +187,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("runners/run_transcript_product_extract.py", "lane_dir"): 2,
         ("runners/run_transcript_product_extract.py", "record_path"): 1,
         ("signal_content/lake.py", "append_record"): 1,
+        ("source_capture/ats_job_posting_projection.py", "append_record"): 1,
         ("source_capture/fragrance_review_lake.py", "append_record"): 1,
         ("source_capture/ig_projection.py", "append_record"): 1,
         ("source_capture/ig_reels_behavioral_lake.py", "is_record_set_complete"): 2,
