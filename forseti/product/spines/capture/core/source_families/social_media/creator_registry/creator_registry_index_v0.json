@@ -112,8 +112,8 @@
     "onboarding_policy": {
       "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
       "derivation_diagnostics": {
-        "attributable_registry_packet_count": 451,
-        "qualifying_packet_count": 475,
+        "attributable_registry_packet_count": 454,
+        "qualifying_packet_count": 481,
         "unattributable_legacy_packet_count": 20,
         "unattributable_legacy_packet_ids": [
           "01KWBPW19TTG7VQM2EKKHMM0N7",
@@ -137,7 +137,7 @@
           "01KWJ11GTKT62R5GPNDM68DKDJ",
           "01KWJ2GGZT42RY5Z8DCKSAEHS2"
         ],
-        "unmatched_registry_packet_count": 4
+        "unmatched_registry_packet_count": 7
       },
       "explicitly_non_qualifying_surfaces": [
         "youtube_channel_rss_feed",
@@ -2413,7 +2413,7 @@
     "source_inputs": [
       {
         "role": "source-backed known public platform accounts and linkage state",
-        "sha256": "809d271314495520d0cff7d5fbc1e32b8aecc6a294ca2b12f5c68981bf0536b4",
+        "sha256": "8f2756b8bdb090165c2535cca477d863ccb06508c5fcaa292f8c080b2f434b2b",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       }
     ],

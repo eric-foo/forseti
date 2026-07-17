@@ -25,6 +25,7 @@ class LinkState(StrEnum):
 
 class ReviewState(StrEnum):
     HUMAN_REVIEWED_DECLARED = "human_reviewed_declared"
+    AUTO_PROMOTED_OFFICIAL_LINK_HUB = "auto_promoted_official_link_hub"
     HUMAN_REVIEWED_PROBABLE = "human_reviewed_probable"
     CANDIDATE_NEEDS_REVIEW = "candidate_needs_review"
     OPERATOR_REJECTED = "operator_rejected"
