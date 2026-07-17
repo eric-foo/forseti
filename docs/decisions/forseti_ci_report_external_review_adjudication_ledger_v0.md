@@ -75,6 +75,25 @@ a definition line at most.
 | 11 | Readability | Owner requires the report be "way more readable": exec brief as h2 preamble, plain-language section leads, the two cheap matrices (SKU reception; known/inferred/unknown) as plain markdown tables; audit ledgers stay but move visually behind the narrative |
 | 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl. Mechanics (owner discussion 2026-07-17): single-file HTML (MHTML/SingleFile-style) preferred — text-searchable, diffable, ~1-5 MB raw and compresses 80-90%; full-page screenshot only when layout itself is the evidence, auto-compressed to WebP; auto-compression is a one-line adapter step, worth doing, no further engineering |
 
+## Chain-card presentation principle (accepted 2026-07-17)
+
+The client-facing form of the choice-mechanism chain is "five sentences with
+receipts", one card per hero product, read top to bottom as one story:
+
+1. **The promise** — the claim, cited to the brand's own surface.
+2. **Why people pay** — the buy motivation, cited to customer-world evidence.
+3. **What actually happens** — reception state, cited to review/rating rows.
+4. **The dangerous complaint** — dangerous not because of volume but because
+   it attacks the promise itself (claim-amplification principle), cited.
+5. **Where they go next** — the substitute waiting when the promise breaks,
+   cited.
+
+Together: "here is why your customers pay extra, here is the exact sentence
+that breaks the spell, and here is who catches them when it does." The report
+front page is three or four such stories at one line each; every aggressive
+sentence sits on five receipts a skeptic can click through. The chain design
+handoff's D4 deliverable implements this form.
+
 ## Preservation seam design (agreed 2026-07-17; lands with the contract pass)
 
 No new spine, no data-lake build — the existing CR-### capture-request
