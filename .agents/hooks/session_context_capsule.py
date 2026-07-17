@@ -153,17 +153,15 @@ def _git(root: Path, *args: str) -> str:
     return res.stdout if res.returncode == 0 else ""
 
 
-def retrieval_health_line(root: Path) -> str | None:
-    """Call header_index.py --health --oneline; return the output line, or None on error.
+def _hook_health_oneline(root: Path, hook_filename: str) -> str | None:
+    """Call a sibling hook's --health --oneline; return the line, or None.
 
-    Uses a 5-second timeout. Fails open (returns None) on any error so a broken
-    index never stalls session start.  Never inlines a second os.walk here —
-    delegates entirely to the hook.
-
-    Pure subprocess call (testable by mocking subprocess.run; not a pure
-    function since it shells out, but it is the single authoritative call site).
+    Returns None when there is nothing to report or on any error (fail-open),
+    so the capsule simply omits the line and a broken child hook never stalls
+    session start. 5-second timeout; never inlines the child's logic here --
+    delegates entirely to the hook (the single authoritative call site).
     """
-    hook = root / ".agents" / "hooks" / "header_index.py"
+    hook = root / ".agents" / "hooks" / hook_filename
     try:
         res = subprocess.run(
             ["python", str(hook), "--health", "--oneline"],
@@ -174,27 +172,17 @@ def retrieval_health_line(root: Path) -> str | None:
         return None
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         return None
+
+
+def retrieval_health_line(root: Path) -> str | None:
+    """header_index.py --health --oneline, or None on error/empty (fail-open)."""
+    return _hook_health_oneline(root, "header_index.py")
 
 
 def ontology_expansion_line(root: Path) -> str | None:
-    """Call check_ontology_expansion.py --health --oneline; return the line, or None.
-
-    Returns None when nothing is due, the backlog is absent, or any error occurs
-    (fail-open) so the capsule simply omits the line. 5-second timeout; never
-    inlines the backlog logic here -- delegates entirely to the hook (the single
-    authoritative call site), same pattern as retrieval_health_line above.
-    """
-    hook = root / ".agents" / "hooks" / "check_ontology_expansion.py"
-    try:
-        res = subprocess.run(
-            ["python", str(hook), "--health", "--oneline"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if res.returncode == 0 and res.stdout.strip():
-            return res.stdout.strip()
-        return None
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return None
+    """check_ontology_expansion.py --health --oneline, or None when nothing is
+    due, the backlog is absent, or any error occurs (fail-open)."""
+    return _hook_health_oneline(root, "check_ontology_expansion.py")
 
 
 def gather(root: Path, source: str) -> str:

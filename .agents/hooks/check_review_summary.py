@@ -109,7 +109,9 @@ from typing import Callable, NamedTuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
     git_out,
+    parse_name_status,
     repo_root,
+    resolve_base_ref,
 )
 
 
@@ -397,37 +399,6 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
     default). git_out returns (1, "") on launch failure/timeout instead of
     (-1, ""); callers here only test rc != 0, so the distinction is inert."""
     return git_out(root, args, timeout=timeout)
-
-
-def resolve_base_ref(cli_base: str | None) -> str:
-    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
-    if ci_base:
-        return ci_base
-    gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
-    if gh_base:
-        return "origin/%s" % gh_base
-    if cli_base:
-        return cli_base
-    return "origin/main"
-
-
-def parse_name_status(lines: list[str]) -> list[str]:
-    """Present-in-tree changed paths from `git diff --name-status` output:
-    added, modified, and rename/copy DESTINATIONS (sources may be gone).
-
-    Pure function (testable)."""
-    present: list[str] = []
-    for ln in lines:
-        parts = [p.strip() for p in ln.split("\t")]
-        if len(parts) < 2:
-            continue
-        status = parts[0]
-        if status.startswith(("R", "C")) and len(parts) >= 3:
-            present.append(parts[2])
-        elif status.startswith(("A", "M")):
-            present.append(parts[1])
-        # D rows: skip -- nothing left in the tree to scan
-    return present
 
 
 def changed_in_scope_files(root: Path, base_ref: str) -> list[str] | None:
