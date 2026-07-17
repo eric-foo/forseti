@@ -22,6 +22,12 @@ unacknowledged, re-surfaces in cycle 2, and fails the exit code. One
 entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
 (counted as cycle work), never a silent abort of the remaining lanes.
 
+After and only after that completion signal passes, the cadence invokes the
+contract-pinned data-lake index runner for one ``derived_retrieval`` rebuild.
+The exact product-mention policy pins are read by that runner from the stored
+``by_mention`` manifest. A rebuild failure fails the cadence exit code loudly;
+no failed cadence attempts a lake-map refresh.
+
 ASR COST GATE: the ASR entrypoint executes local owner-operated compute on an
 unskipped ``--run``. ``--skip-asr`` skips only its execution and prints a
 visible ``skipped_asr_compute`` marker EVERY cycle carrying the compute-free
@@ -57,6 +63,7 @@ from runners import run_ig_reels_grid_projection_catchup as _ig_reels_grid
 from runners import run_parfumo_cleaning_catchup as _parfumo
 from runners import run_tiktok_comment_attention_producer as _tiktok_comment_attention
 from runners import run_tiktok_grid_observation_producer as _tiktok_grid_observation
+from runners import run_data_lake_indexes_rebuild as _indexes_rebuild
 
 
 @dataclass(frozen=True)
@@ -296,6 +303,27 @@ def _post_cycle_pending_failures(ctx: CadenceContext) -> int:
     return failures
 
 
+def _refresh_lake_map(ctx: CadenceContext) -> int:
+    """Invoke the sanctioned sole writer after the all-caught-up proof."""
+    result = _indexes_rebuild.main(
+        [
+            "--root",
+            str(ctx.data_root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+        ]
+    )
+    _print(
+        {
+            "entrypoint": "run_data_lake_indexes_rebuild.py",
+            "status": "lake_map_rebuilt" if result == 0 else "lake_map_rebuild_failed",
+            "exit_code": result,
+        }
+    )
+    return result
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -369,7 +397,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if args.check:
         return run_check(ctx)
-    return run_cadence(ctx, skip_asr=args.skip_asr)
+    cadence_result = run_cadence(ctx, skip_asr=args.skip_asr)
+    if cadence_result:
+        return cadence_result
+    return _refresh_lake_map(ctx)
 
 
 if __name__ == "__main__":

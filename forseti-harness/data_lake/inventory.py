@@ -475,6 +475,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "lineage classification and reconciliation intentionally enumerate every creator-metric observation and rollup sibling; no latest sibling is selected",
     },
+    "data_lake/derived_retrieval_cache.py": {
+        "detection": "declared_free_walk",
+        "posture": "infrastructure",
+        "reason": "disposable index infrastructure fingerprints only the exact derived-ref address supplied by the already-enumerated Silver record; it never selects among siblings or supplies evidence authority",
+    },
     "data_lake/derived_retrieval_views.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",

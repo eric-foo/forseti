@@ -45,12 +45,22 @@ sources are a closed in-code registry (Fragrantica sole entry). Measured at
 ~8.5k Silver records: full rebuild ~5 minutes, prove-rebuildability ~10
 minutes, lookups sub-second.
 
-## Staged Upgrades (each fires on its trigger, not before)
+## Staged Upgrades
+
+Stage 1 is the explicit exception to the original trigger-only sequence: on
+2026-07-17 the owner pulled it forward before its wall-clock trigger fired.
+Stages 2–4 remain trigger-gated.
 
 ### Stage 1 — Incremental classification cache
 
-- **Trigger:** rebuild wall-clock exceeds operational tolerance (analysis:
-  the whole-lake sweep breaks at roughly 100k–250k records, ~10–25x current).
+- **Original trigger (did not fire):** rebuild wall-clock exceeds operational
+  tolerance (analysis: the whole-lake sweep breaks at roughly 100k–250k
+  records, ~10–25x current).
+- **Owner pull-forward (2026-07-17):** near-zero lake-map staleness after every
+  passing monitoring round is wanted at every scale, and the incremental/full
+  byte-equality proof is cheap while a cold comparison still costs minutes
+  rather than hours. This declaration promotes Stage 1 now; it does not
+  fabricate a fired wall-clock trigger.
 - **Ratified design essentials:** cache authority verdicts keyed by
   `(content_hash, classifier_version, referenced-bytes fingerprint)`;
   records are immutable so an unchanged key keeps its verdict verbatim. The
@@ -65,6 +75,16 @@ minutes, lookups sub-second.
   attachment ref, and the double source-verification of the mentions lane.
 - Periodic byte-integrity audit (re-hash everything) becomes a scheduled
   check decoupled from rebuilds.
+- **Promoted implementation shape:** a passing
+  `runners/run_seam_cadence.py --run` invokes the contract-pinned
+  `run_data_lake_indexes_rebuild.py` path at cadence tail; failed cadence
+  performs no rebuild and a rebuild failure fails the cadence. The disposable
+  cache lives under
+  `indexes/derived_retrieval/silver_vault/core/cache/`; deleting it produces a
+  cold rebuild. `--prove-incremental-equality` byte-compares incremental and
+  full-cold generated files, while `--audit-source-integrity` performs the
+  owner-scheduled cold source re-hash independently of rebuilds. View and
+  manifest schemas and canonical output bytes are unchanged.
 
 ### Stage 2 — Per-creator view sharding
 
@@ -134,8 +154,10 @@ minutes, lookups sub-second.
   product-mention producers run over real transcript inputs (0 records
   lake-wide as of this record; the ideal-audience judgment consumes
   comment-attention evidence, not product mentions).
-- Freshness between rebuilds is disclosed via manifest provenance, not
-  guaranteed; hash verification proves integrity, not currency.
+- Freshness is guaranteed only at the end of a passing seam-cadence run (or an
+  owner-operated fallback rebuild), not continuously between runs; manifest
+  provenance discloses the generation, while hash verification proves
+  integrity rather than currency.
 
 ```yaml
 direction_change_propagation:
@@ -143,14 +165,22 @@ direction_change_propagation:
   related_triggers:
     - lifecycle_boundary
   doctrine_changed: >
-    Records the owner-ratified staged upgrade plan and triggers for the lake
-    map (incremental classification cache, per-creator sharding, SQL query
-    lens as disposable projection, governed retention) plus the deferred
-    identity work, and binds the "lake map" alias to the generated Silver
-    entity read layer. No stage is built by this record; each fires on its
-    named trigger.
+    The owner pulled Stage 1 forward before its original wall-clock trigger
+    fired: every passing monitoring cadence now refreshes the lake map through
+    the sanctioned rebuild runner, classification becomes incrementally cached
+    disposable state, and byte-equality plus cold integrity modes preserve the
+    existing proof and output model. Stages 2-4 remain trigger-gated.
   controlling_sources_updated:
     - docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+    - forseti-harness/data_lake/derived_retrieval_cache.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/data_lake/catalog.py
+    - forseti-harness/data_lake/product_mention_selection.py
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/runners/run_data_lake_indexes_rebuild.py
+    - forseti-harness/runners/run_seam_cadence.py
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+    - forseti-harness/tests/unit/test_seam_cadence.py
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
@@ -158,18 +188,26 @@ direction_change_propagation:
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
       reason: >
-        Its recorded gate state, view set, and staged SQL trigger are
-        unchanged; this record sequences upgrades behind that contract's
-        existing triggers and adds no new authority.
-    - path: forseti-harness/data_lake/derived_retrieval_views.py
+        Its view set, sanctioned writer, generated-read-model authority
+        boundary, policy-pin obligation, and exact-byte proof remain unchanged;
+        Stage 1 changes rebuild computation and cadence freshness only.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
       reason: >
-        No code changes; the "lake map" alias enters module docs on the next
-        substantive touch of that file rather than an alias-only commit.
+        All of indexes remains disposable and rebuildable from committed
+        material; the cache and new proof/audit modes instantiate that existing
+        boundary without changing it.
+    - path: docs/decisions/forseti_data_lake_derived_retrieval_activation_proposal_v0.md
+      reason: >
+        The activation proposal's gate-opened view set and non-authoritative
+        posture are unchanged; this later ratified scaling record owns Stage 1.
   stale_language_search: >
-    rg -n "lake map|derived_retrieval|incremental classification|query lens"
-    docs forseti forseti-harness -g "*.md"
+    rg -n "each fires on its trigger|No stage is built|freshness between
+    rebuilds|incremental classification cache|prove-incremental-equality"
+    docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+    forseti/product/spines/data_lake/authority
   non_claims:
     - not validation or readiness
-    - not implementation authorization for any stage
     - not a change to view authority or the proof model
+    - not a claim that Stage 2, Stage 3, or Stage 4 fired
+    - not a claim that monitoring provides continuous freshness between runs
 ```

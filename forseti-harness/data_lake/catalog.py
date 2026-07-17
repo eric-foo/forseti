@@ -353,6 +353,8 @@ def source_surface_catalog_rows(
     *,
     source_family: str,
     source_surface: str,
+    inspection_report: dict[str, Any] | None = None,
+    inspection_cache: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Read generated Bronze packet and AR query rows for one source surface.
 
@@ -364,7 +366,13 @@ def source_surface_catalog_rows(
     surface = string_or_none(source_surface)
     if family is None or surface is None:
         raise DataLakeRootError("source_family and source_surface must be non-blank strings")
-    report = inspect_catalog(root)
+    report = inspection_report
+    if report is None and inspection_cache is not None:
+        report = inspection_cache.get("bronze_catalog_inspection_report")
+    if report is None:
+        report = inspect_catalog(root)
+        if inspection_cache is not None:
+            inspection_cache["bronze_catalog_inspection_report"] = report
     if report["status"] != "ok":
         raise DataLakeRootError(
             "Bronze catalog is not current; run run_data_lake_catalog.py --rebuild "
@@ -1048,7 +1056,12 @@ def _attachment_query_row(record: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def load_attachment_record_body(root: DataLakeRoot, attachment_record: dict[str, Any]) -> bytes:
+def load_attachment_record_body(
+    root: DataLakeRoot,
+    attachment_record: dict[str, Any],
+    *,
+    loaded_packet: Any | None = None,
+) -> bytes:
     """Resolve and verify the raw body referenced by a generated Attachment Record."""
     packet_id = required_string(attachment_record.get("packet_id"), "packet_id")
     file_id = required_string(attachment_record.get("file_id"), "file_id")
@@ -1079,7 +1092,7 @@ def load_attachment_record_body(root: DataLakeRoot, attachment_record: dict[str,
                 raise DataLakeRootError(
                     f"Attachment Record body_ref mismatch for {file_id!r}: {key}"
                 )
-    loaded = root.load_raw_packet(packet_id)
+    loaded = loaded_packet or root.load_raw_packet(packet_id)
     preserved = _preserved_file_by_id(loaded.manifest, file_id)
     if preserved.get("relative_packet_path") != relative_packet_path:
         raise DataLakeRootError(

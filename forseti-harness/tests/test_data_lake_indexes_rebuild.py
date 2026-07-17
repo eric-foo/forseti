@@ -14,10 +14,13 @@ from pathlib import Path
 from data_lake.canonical_json import canonical_record_bytes
 import pytest
 from data_lake.consumption import append_ack
+from data_lake.derived_retrieval_cache import CACHE_PARTS
 from data_lake.derived_retrieval_views import (
     MENTIONS_LANE,
+    audit_derived_retrieval_source_integrity,
     build_by_creator_view,
     build_by_mention_view,
+    prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
 )
@@ -348,6 +351,89 @@ def test_prove_on_empty_store_is_absent_not_failure(tmp_path: Path) -> None:
         "by_mention": "absent_nothing_to_prove",
         "undone": "absent_nothing_to_prove",
     }
+
+
+def test_incremental_cache_is_disposable_and_byte_identical(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+
+    cold = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+        full_rebuild=True,
+    )
+    target_root = root._within(
+        "indexes", "derived_retrieval", "silver_vault", "core"
+    )
+    cold_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert cold["classification_cache"]["hits"] == 0
+    cache_path = root._within(*CACHE_PARTS)
+    assert cache_path.is_file()
+
+    incremental = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+    )
+    incremental_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert incremental["classification_cache"]["hits"] > 0
+    assert incremental_files == cold_files
+
+    cache_path.unlink()
+    rebuilt_without_cache = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+    )
+    rebuilt_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert rebuilt_without_cache["classification_cache"]["hits"] == 0
+    assert rebuilt_files == cold_files
+
+
+def test_incremental_equality_and_integrity_audit_are_read_only_gates(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY, stamp=_STAMP
+    )
+    target_root = root._within(
+        "indexes", "derived_retrieval", "silver_vault", "core"
+    )
+    before = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+    }
+
+    equality = prove_incremental_rebuild_equality(
+        root, product_mention_policy=_POLICY
+    )
+    assert equality["status"] == "proven"
+    assert equality["mismatched_files"] == []
+    assert equality["incremental_classification_cache"]["hits"] > 0
+
+    audit = audit_derived_retrieval_source_integrity(root)
+    assert audit["status"] == "proven"
+    assert audit["mode"] == "source_integrity_audit"
+    after = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+    }
+    assert after == before
 
 
 def _write_creator_metric_record(
@@ -792,6 +878,46 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     assert main(["--root", str(root.path), "--target", "all", "--prove-rebuildability"]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["availability"]["status"] == "proven"
+    assert report["derived_retrieval"]["status"] == "proven"
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "incremental_rebuild"
+    assert report["derived_retrieval"]["classification_cache"]["hits"] > 0
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+            "--prove-incremental-equality",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "prove_incremental_equality"
+    assert report["derived_retrieval"]["status"] == "proven"
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--audit-source-integrity",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "audit_source_integrity"
     assert report["derived_retrieval"]["status"] == "proven"
 
     view_path = (

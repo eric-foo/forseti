@@ -146,6 +146,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "data_lake/derived_retrieval_cache.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
       "module": "data_lake/product_mention_selection.py"

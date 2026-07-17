@@ -9,6 +9,8 @@ from typing import Any, Mapping
 
 from data_lake.sibling_selection import SiblingCandidate, select_current_record_per_subject
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    SilverSourceAuthority,
     SilverRecordError,
     validate_silver_vault_record,
     verify_silver_vault_record_sources,
@@ -106,6 +108,7 @@ def select_product_mention_records(
     root,
     *,
     policy: Mapping[str, Any],
+    preclassified_authority: Mapping[str, SilverSourceAuthority] | None = None,
 ) -> ProductMentionSelectionResult:
     """Select one exact-policy record per transcript evidence subject.
 
@@ -161,8 +164,21 @@ def select_product_mention_records(
                     _residual(raw_anchor, record_file.name, "invalid_silver_envelope")
                 )
                 continue
+            record_ref = f"{raw_anchor}/{MENTIONS_LANE}/{record_file.name}"
+            authority = (
+                preclassified_authority.get(record_ref)
+                if preclassified_authority is not None
+                else None
+            )
             try:
-                verify_silver_vault_record_sources(root, record)
+                if authority is None:
+                    verify_silver_vault_record_sources(root, record)
+                elif authority.status != CURRENT_SOURCE_BACKED_AUTHORITY:
+                    detail = f": {authority.error}" if authority.error else ""
+                    raise SilverRecordError(
+                        "Silver source authority is "
+                        f"{authority.status} ({authority.reason_code}){detail}"
+                    )
             except SilverRecordError as exc:
                 residuals.append(
                     _residual(

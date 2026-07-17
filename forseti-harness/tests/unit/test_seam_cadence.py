@@ -248,13 +248,64 @@ def test_cli_check_run_check_roundtrip(tmp_path, monkeypatch, capsys) -> None:
         return data_root
 
     monkeypatch.setattr(DataLakeRoot, "resolve", classmethod(fake_resolve))
+    rebuild_calls = []
+
+    def fake_rebuild(argv):  # noqa: ANN001
+        rebuild_calls.append(argv)
+        return 0
+
+    monkeypatch.setattr(cadence._indexes_rebuild, "main", fake_rebuild)
 
     assert main(["--check"]) == 1
     capsys.readouterr()
     assert main(["--run", "--skip-asr"]) == 0
+    assert rebuild_calls == [
+        [
+            "--root",
+            str(data_root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+        ]
+    ]
     capsys.readouterr()
     assert main(["--check"]) == 0
     capsys.readouterr()
+
+
+def test_failed_cadence_never_attempts_lake_map_rebuild(
+    tmp_path, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    monkeypatch.setattr(
+        DataLakeRoot,
+        "resolve",
+        classmethod(lambda cls, **_kwargs: data_root),
+    )
+    monkeypatch.setattr(cadence, "run_cadence", lambda *_args, **_kwargs: 1)
+    rebuild_calls = []
+    monkeypatch.setattr(
+        cadence._indexes_rebuild,
+        "main",
+        lambda argv: rebuild_calls.append(argv) or 0,
+    )
+
+    assert main(["--run", "--skip-asr"]) == 1
+    assert rebuild_calls == []
+
+
+def test_lake_map_rebuild_failure_fails_cadence(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(
+        DataLakeRoot,
+        "resolve",
+        classmethod(lambda cls, **_kwargs: data_root),
+    )
+    monkeypatch.setattr(cadence, "run_cadence", lambda *_args, **_kwargs: 0)
+    monkeypatch.setattr(cadence._indexes_rebuild, "main", lambda _argv: 2)
+
+    assert main(["--run", "--skip-asr"]) == 2
 
 
 def test_cli_usage_errors(tmp_path) -> None:

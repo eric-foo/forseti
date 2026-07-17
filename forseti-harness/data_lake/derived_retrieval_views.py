@@ -1,4 +1,4 @@
-"""Gate-opened Silver Vault generated-read-model builder.
+"""Gate-opened Silver Vault generated-read-model (lake-map) builder.
 
 Builds the three object-level views the 2026-06-25 gate opening named
 (``by_creator``, ``by_mention``, ``undone``) as rebuildable JSON query tables
@@ -57,7 +57,12 @@ from typing import Any
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.consumption import iter_all_acks
-from data_lake.creator_metric_lineage import build_creator_metric_lineage_index
+from data_lake.creator_metric_lineage import (
+    OBSERVATION_LANE,
+    ROLLUP_LANE,
+    build_creator_metric_lineage_index,
+)
+from data_lake.derived_retrieval_cache import ClassificationCacheSession
 from data_lake.lane_registry import LANE_ROLES, LaneRole
 from data_lake.product_mention_selection import (
     MENTIONS_LANE,
@@ -151,9 +156,14 @@ _ACTIVE_SILVER_ENVELOPE_LANES = tuple(
         lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE
     )
 )
+_CREATOR_METRIC_LANES = frozenset({OBSERVATION_LANE, ROLLUP_LANE})
 
 
-def _classified_silver_sweep(root) -> dict[str, Any]:
+def _classified_silver_sweep(
+    root,
+    *,
+    cache_session: ClassificationCacheSession | None = None,
+) -> dict[str, Any]:
     """One deterministic classification sweep over every registered active
     ``silver_envelope`` lane: per-anchor/lane/status counts, account-bearing
     subject refs, source refs, and named residuals. Shared by ``by_creator``
@@ -165,8 +175,10 @@ def _classified_silver_sweep(root) -> dict[str, Any]:
     accounts: dict[tuple[str, str], dict[str, Any]] = {}
     source_refs: list[str] = []
     residuals: list[dict[str, Any]] = []
+    authority_by_ref: dict[str, Any] = {}
+    verification_cache: dict[str, Any] = {}
     derived = root.path / "derived"
-    lineage = build_creator_metric_lineage_index(root)
+    lineage = None
     for lane in _ACTIVE_SILVER_ENVELOPE_LANES:
         for path in sorted(derived.glob(f"*/*/{lane}/*")):
             if not path.is_file():
@@ -194,9 +206,26 @@ def _classified_silver_sweep(root) -> dict[str, Any]:
                 )
                 continue
             source_refs.append(ref_key)
-            authority = classify_silver_vault_record_sources(
-                root, record, record_path=path, creator_metric_lineage=lineage
-            )
+            cache_key = None
+            authority = None
+            if cache_session is not None:
+                cache_key, authority = cache_session.lookup(record)
+            if authority is None:
+                if (
+                    record.get("lane_namespace") in _CREATOR_METRIC_LANES
+                    and lineage is None
+                ):
+                    lineage = build_creator_metric_lineage_index(root)
+                authority = classify_silver_vault_record_sources(
+                    root,
+                    record,
+                    record_path=path,
+                    creator_metric_lineage=lineage,
+                    verification_cache=verification_cache,
+                )
+                if cache_session is not None:
+                    cache_session.remember(cache_key, authority)
+            authority_by_ref[ref_key] = authority
             anchor_lane_status[anchor][lane][authority.status] += 1
             ref = {
                 "raw_anchor": anchor,
@@ -248,6 +277,7 @@ def _classified_silver_sweep(root) -> dict[str, Any]:
         "anchor_lane_status": anchor_lane_status,
         "accounts": accounts,
         "source_refs": sorted(source_refs),
+        "authority_by_ref": authority_by_ref,
         "residuals": sorted(residuals, key=lambda row: json.dumps(row, sort_keys=True)),
     }
 
@@ -436,7 +466,7 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
     authority), each joined to its anchor's classified Silver record counts."""
     pages: dict[str, dict[str, dict[tuple[str, str, str], dict]]] = {}
     identity_bindings: dict[tuple[str, str, str], tuple[str, str, dict]] = {}
-    source_refs: list[str] = []
+    source_refs: set[str] = set()
     residuals: list[dict[str, Any]] = []
     derived = root.path / "derived"
     for source_lane, source_row_kind, extract_identity in NATIVE_PRODUCT_PAGE_SOURCES:
@@ -455,7 +485,7 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
                 if not isinstance(row, dict) or row.get("row_kind") != source_row_kind:
                     continue
                 source_ref = f"{anchor}/{source_lane}/{path.name}"
-                source_refs.append(source_ref)
+                source_refs.add(source_ref)
                 identity = extract_identity(row)
                 brand = identity["brand"]
                 line = identity["line"]
@@ -534,7 +564,7 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
     }
     return (
         normalized,
-        sorted(set(source_refs)),
+        sorted(source_refs),
         sorted(residuals, key=lambda row: json.dumps(row, sort_keys=True)),
     )
 
@@ -546,8 +576,14 @@ def build_by_mention_view(
     sweep: dict | None = None,
 ) -> tuple[dict, list[str]]:
     """The exact-policy by_mention view plus every non-evidence residual."""
-    selection = select_product_mention_records(root, policy=product_mention_policy)
+    sweep = sweep or _classified_silver_sweep(root)
+    selection = select_product_mention_records(
+        root,
+        policy=product_mention_policy,
+        preclassified_authority=sweep["authority_by_ref"],
+    )
     mentions: dict[str, dict[str, list[dict]]] = {}
+    mention_ref_keys: dict[tuple[str, str], set[tuple[str, str, str]]] = defaultdict(set)
     for selected in selection.selected:
         ref = {
             "raw_anchor": selected.raw_anchor,
@@ -565,10 +601,12 @@ def build_by_mention_view(
             brand = str(mention.get("brand") or "unknown")
             line = str(mention.get("line") or "")
             refs = mentions.setdefault(brand, {}).setdefault(line, [])
-            if ref not in refs:
+            ref_key = (selected.raw_anchor, MENTIONS_LANE, selected.record_id)
+            if ref_key not in mention_ref_keys[(brand, line)]:
+                mention_ref_keys[(brand, line)].add(ref_key)
                 refs.append(ref)
     native_pages, native_refs, native_residuals = _native_product_pages(
-        root, sweep or _classified_silver_sweep(root)
+        root, sweep
     )
     view = {
         "view": "by_mention",
@@ -650,6 +688,7 @@ def _generate(
     *,
     product_mention_policy: dict[str, str] | None,
     views: tuple[str, ...] = BUILT_VIEWS,
+    cache_session: ClassificationCacheSession | None = None,
 ) -> dict[str, bytes]:
     """All owned view files as relpath -> bytes, regenerated purely from
     committed material under the given stamp."""
@@ -658,7 +697,7 @@ def _generate(
         if "by_mention" in views else None
     )
     sweep = (
-        _classified_silver_sweep(root)
+        _classified_silver_sweep(root, cache_session=cache_session)
         if any(name in views for name in ("by_creator", "by_mention"))
         else None
     )
@@ -698,11 +737,20 @@ def rebuild_derived_retrieval(
     *,
     product_mention_policy: dict[str, str],
     stamp: dict | None = None,
+    full_rebuild: bool = False,
 ) -> dict:
     """Replace the owned views and remove their contradictory legacy home."""
     root._reverify()
     stamp = stamp or generation_stamp()
-    files = _generate(root, stamp, product_mention_policy=product_mention_policy)
+    cache_session = ClassificationCacheSession(
+        root, use_existing=not full_rebuild
+    )
+    files = _generate(
+        root,
+        stamp,
+        product_mention_policy=product_mention_policy,
+        cache_session=cache_session,
+    )
     target_root = _silver_vault_core_root(root)
     legacy_root = root._within("indexes", "derived_retrieval", "object_level")
     if legacy_root.exists():
@@ -718,12 +766,64 @@ def rebuild_derived_retrieval(
         target = target_root / relpath
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
+    cache_session.save()
     return {
         "status": "rebuilt",
         "views": list(BUILT_VIEWS),
         "deferred_views": [],
         "generation_id": stamp["generation_id"],
         "file_count": len(files),
+        "classification_cache": cache_session.report(),
+        "full_rebuild": full_rebuild,
+    }
+
+
+def prove_incremental_rebuild_equality(
+    root,
+    *,
+    product_mention_policy: dict[str, str],
+) -> dict:
+    """Byte-compare incremental generation with a full cold generation."""
+    root._reverify()
+    stamp = generation_stamp()
+    incremental_cache = ClassificationCacheSession(root, use_existing=True)
+    incremental = _generate(
+        root,
+        stamp,
+        product_mention_policy=product_mention_policy,
+        cache_session=incremental_cache,
+    )
+    cold_cache = ClassificationCacheSession(root, use_existing=False)
+    cold = _generate(
+        root,
+        stamp,
+        product_mention_policy=product_mention_policy,
+        cache_session=cold_cache,
+    )
+    mismatches = sorted(
+        relpath
+        for relpath in set(incremental) | set(cold)
+        if incremental.get(relpath) != cold.get(relpath)
+    )
+    return {
+        "status": "proven" if not mismatches else "failed",
+        "mismatched_files": mismatches,
+        "file_count": len(cold),
+        "incremental_classification_cache": incremental_cache.report(),
+        "cold_classification_cache": cold_cache.report(),
+    }
+
+
+def audit_derived_retrieval_source_integrity(root) -> dict:
+    """Cold, read-only re-hash and byte proof against the stored lake map."""
+    report = prove_derived_retrieval_rebuildability(root)
+    return {
+        **report,
+        "mode": "source_integrity_audit",
+        "semantics": (
+            "full cold source verification and byte comparison against stored views; "
+            "no classification-cache verdict is trusted"
+        ),
     }
 
 
@@ -733,6 +833,70 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
     itself; never writes."""
     root._reverify()
     target_root = _silver_vault_core_root(root)
+    view_paths = {
+        view_name: target_root / "query_tables" / f"{view_name}.json"
+        for view_name in BUILT_VIEWS
+    }
+    manifest_paths = {
+        view_name: target_root / "manifests" / f"{view_name}.json"
+        for view_name in BUILT_VIEWS
+    }
+    if all(
+        view_paths[name].is_file() and manifest_paths[name].is_file()
+        for name in BUILT_VIEWS
+    ):
+        try:
+            stored_manifests = {
+                name: json.loads(manifest_paths[name].read_text(encoding="utf-8"))
+                for name in BUILT_VIEWS
+            }
+            stamps = {
+                (
+                    manifest["generation_id"],
+                    manifest["generated_at"],
+                )
+                for manifest in stored_manifests.values()
+            }
+            if len(stamps) != 1:
+                raise ValueError("stored view manifests do not share one generation")
+            generation_id, generated_at = next(iter(stamps))
+            product_mention_policy = normalize_product_mention_policy(
+                stored_manifests["by_mention"]["selection_policy_versions"][
+                    "product_mention_policy"
+                ]
+            )
+        except (ValueError, KeyError, TypeError):
+            pass
+        else:
+            regenerated = _generate(
+                root,
+                {
+                    "generation_id": generation_id,
+                    "generated_at": generated_at,
+                },
+                product_mention_policy=product_mention_policy,
+            )
+            results = {}
+            failures = []
+            for view_name in BUILT_VIEWS:
+                matches = (
+                    regenerated[f"query_tables/{view_name}.json"]
+                    == view_paths[view_name].read_bytes()
+                    and regenerated[f"manifests/{view_name}.json"]
+                    == manifest_paths[view_name].read_bytes()
+                )
+                results[view_name] = (
+                    "rebuildable"
+                    if matches
+                    else "failed_drift_or_non_regenerable"
+                )
+                if not matches:
+                    failures.append(view_name)
+            return {
+                "status": "proven" if not failures else "failed",
+                "results": results,
+                "failures": failures,
+            }
     results: dict[str, str] = {}
     failures: list[str] = []
     for view_name in BUILT_VIEWS:
@@ -793,7 +957,9 @@ __all__ = [
     "build_by_creator_view",
     "build_by_mention_view",
     "build_undone_view",
+    "audit_derived_retrieval_source_integrity",
     "generation_stamp",
+    "prove_incremental_rebuild_equality",
     "prove_derived_retrieval_rebuildability",
     "rebuild_derived_retrieval",
 ]
