@@ -49,28 +49,33 @@ claims are `product_learning`-capped.
    Data API terms, Public Content Policy) is superseded as a currency
    basis; each run records its own fresh robots/source-policy posture
    receipt, and the build gate re-checks the three policy surfaces.
-4. **Grid-pass shape: hot p1 + new p1 (probe-settled, 2026-07-18).** An
-   owner-authorized one-subreddit probe on r/fragrance (busiest tracked
-   sub; six 200 responses via the production anti-blocking HTTP path)
-   settled the per-pass surface set. Evidence: /new/ page 1 (25 posts)
-   covered roughly the last 23 hours of posting on the busiest sub, so one
-   page of /new/ approximates a complete daily post inventory there and a
-   multi-day inventory on smaller tracked subs; hot page 1 was fully
-   contained in new pages 1–3 by URL but carries the community-ranked
-   ordering plus at-capture scores/comment counts the breakout selector
-   needs; rising page 1 was a strict subset of hot page 1 (24/24) and adds
-   nothing a daily hot+new series does not. Per pass per tracked sub:
-   **hot page 1 + new page 1** (two packets, ~44 kB content-mode).
-   Rising is dropped. Heavy-sub escalation (append new p2 when new p1's
-   oldest post is younger than the pass interval) is deferred to cadence
-   automation.
+4. **Grid-pass shape: hot page 1 per pass (probe-settled, 2026-07-18).**
+   Two owner-authorized probes via the production anti-blocking HTTP path
+   settled the per-pass surface set. A one-subreddit pilot on r/fragrance:
+   hot page 1 was fully URL-contained in new pages 1–3 but carries the
+   community-ranked ordering plus at-capture scores/comment counts the
+   breakout selector needs; rising page 1 was a strict subset of hot
+   page 1 (24/24) — rising dropped. A full 35-subreddit posture sweep
+   (all 200s) then measured per-sub posting rates from /new/ timestamps:
+   0.5–96 posts/day across the registry, seven subs above 50/day
+   (fragranceswap, colognes, femfraglab, makeupaddiction,
+   skincareaddiction, skincareaddicts, malegrooming). A complete /new/
+   inventory would need up to 4 pages/day on the busiest subs, and the
+   radar payload is breakout threads, which surface in hot. The standing
+   pass is therefore **hot page 1 only** (~22 kB content-mode per sub per
+   pass). /new/ pages are a diagnostic surface (onboarding, liveness
+   audits, posting-rate re-measurement), not standing capture. The seven
+   >50/day subs are the first candidates for the 2–4x daily trending
+   step-up. Old-Reddit listing pages do not render subscriber counts for
+   these subs (verified registry-wide); the size-observation series stays
+   on the `about` JSON route.
 
 ## The maintenance pipeline
 
 ```text
 registry filter (niche_paths/venue_roles)      e.g. beauty/fragrance, hub+dupe_value
         v
-grid capture: hot page 1 + new page 1 per subreddit per pass
+grid capture: hot page 1 per subreddit per pass
   (probe-settled 2026-07-18; see Accepted design parameters item 4)
   - the pages carry BOTH layers: thread grid (titles, scores,
     comment counts) AND the sub envelope (subscribers, active-now, sidebar
