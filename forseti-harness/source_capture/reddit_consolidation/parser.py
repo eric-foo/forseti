@@ -5,6 +5,11 @@ from dataclasses import dataclass, field
 from source_capture.reddit_consolidation.html_dom import HtmlNode, parse_html_document
 
 
+# Bump on ANY behavior change to this parser so content packets written under
+# the old behavior stay distinguishable from re-projections under the new one
+# (parser-fit drift checks compare records only within one version).
+OLD_REDDIT_THREAD_PARSER_VERSION = "1"
+
 COMMENT_POSTURES = {
     "present",
     "deleted",

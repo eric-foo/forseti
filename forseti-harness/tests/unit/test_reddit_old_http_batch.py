@@ -99,6 +99,7 @@ def test_batch_runner_captures_consolidates_and_sleeps_between_exact_urls(
         max_urls=2,
         timeout_seconds=7,
         max_bytes=1234,
+        capture_artifact_mode="raw",
     )
 
     assert exit_code == 0
