@@ -132,6 +132,26 @@ doctrine should encode.
 | Luckyscent US storefront without proxy | `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`; implementation at `forseti-harness/source_capture/adapters/luckyscent_us_market.py` and `run_source_capture_cloakbrowser_packet.py --luckyscent-market US` | Luckyscent exposes no country selector. Its canonical route is admitted only when one serialized storefront `i18n` object binds `country=US`, `market=market-us`, and `currency=USD`; loose dollar, offer, or `buyerCountry` signals do not count. | `US_USD_DEFAULT_STOREFRONT_CONFIRMED_DELIVERY_LOCATION_UNPINNED`; live Pearfat PDP packet `01KXRG2C722GPTCVF6V8MFR4Y5` passed with `pin_confirmed=true`, no proxy/profile/storage-state/geo-IP/credential. Separate origin-derived `buyerCountry=SG` remained visible. | HIGH ⭐ |
 | Target US delivery ZIP without proxy | Live Naturium grid packets `F:\forseti-data-lake\raw\27d\01KXRK26RMXSBSEGVP8BKRG9GX` and `F:\forseti-data-lake\raw\3d6\01KXRKJNQZCMKM6ATV55B0AYG5` | Generic homepage setup could not open the public ZIP control. A bounded retry on the commissioned grid completed the retailer-UI steps and rendered header `Ship to location: 10001`, but the same page retained top-level and nested `serverLocationVariables` ZIP `52404` with country `US`. | `NO_GO_SPLIT_LOCATION_SIGNAL`; header-only application does not confirm the commissioned conjunction. Both typed packets were preserved, the PDP was not attempted, the unproven adapter was reverted, and the registry remains `OBSERVED_US_CONTEXT_UNPINNED` / `OBSERVED_LOCATION_UNPINNED` / `OBSERVED_USD_UNPINNED`. | HIGH ⭐ |
 
+### Certifier / accreditation "seal" directories (JS-rendered landing → public data endpoint)
+| Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
+| --- | --- | --- | --- | --- |
+| NEA (National Eczema Association) Seal of Acceptance | Tower 28 v2 CI scan `docs/research/forseti_beauty_tower28_company_intelligence_scan_v2.md` (PR #1087, pending-merge); packets `01KXRMFR7P8QSKPQM66XTVXW46` (landing), `01KXRMGB4WEVBF19G464PSHZNJ` (REST) | Landing `https://nationaleczema.org/eczema-products/` is a JS-rendered **zero-yield** page; the product list lives in the **WordPress REST API on the CMS host**: `https://cms.nationaleczema.org/wp-json/wp/v2/eczema-products?search=<term>&per_page=20` | **GO** via direct fetch of the REST endpoint (9 Tower 28 titles; one record binds to tower28beauty.com) | HIGH |
+| NRS (National Rosacea Society) Seal of Acceptance | same scan; packet `01KXRM4HZJVVRVFAGFFX6VY5DD` | The **Drupal Views fulltext-filter URL** returns the list directly: `https://www.rosacea.org/seal-of-acceptance/information?search_api_fulltext=<Term+With+Plus>` | **GO** (7 "by Tower 28" products; reproduced by re-loading the filter URL) | HIGH |
+| NPF (National Psoriasis Foundation) Seal of Recognition | same scan; packets `01KXRMHRKJEZ9TJYXBYFB78514` (landing→redirect), `01KXRMJBBSE3BP9RF0PAEQ3B7H` (feed) | Landing `https://www.psoriasis.org/seal-of-recognition/` redirects to `/seal-of-recognition-program/` and is **zero-yield**; data is a **Gatsby `page-data.json` feed per category**: `https://www.psoriasis.org/page-data/seal-of-recognition/<category>/page-data.json` (e.g. `skin-care`), client-side filter on `product_company` | **GO** via direct fetch of the page-data feed (7 `product_company "Tower 28 Beauty"` products) | HIGH |
+
+**Certifier "seal" directories — working read shape (Tower 28 v2 CI, 2026-07-18).** All three
+health-org product directories (NEA eczema, NRS rosacea, NPF psoriasis) serve a **zero-yield
+landing page** and hold the real product list behind a **public, unauthenticated JSON/data
+endpoint** — textbook **Pattern 2** (locate the substrate first) plus **Pattern 1** (the empty
+landing is not "blocked"). The endpoint shape is stable per CMS engine: **WordPress REST**
+(`/wp-json/wp/v2/<type>?search=`), **Drupal Views fulltext** (`?search_api_fulltext=`), **Gatsby
+page-data** (`/page-data/<route>/page-data.json`). **Prefer `get_page_text` / direct fetch of the
+data endpoint; screenshots time out on the rendered landing pages** and returned only the
+zero-yield view. Directory presence verifies **seal acceptance/recognition only — not efficacy or
+comedogenicity**. Next certifier-directory read (any subject with health-org / clean / cruelty-free
+seals; silent-pain class 9): hit these endpoints directly and skip the landing page and
+screenshots.
+
 ### Browser-automation runner
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
@@ -208,7 +228,7 @@ subtitle availability.
 ## Coverage map
 
 - **Well-covered:** forums/threads (Reddit ×4, WSO), pricing (M&I, Teal, OpenAI-lane), archive/history (Daimler, Unity), docs-PDF body (Daimler — the strongest anti-bot escalation case), browser runner (CloakBrowser), reviews (ClickUp + Sephora-pending).
-- **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only).
+- **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only), certifier/accreditation directories (NEA/NRS/NPF, one run — JS-landing→public-JSON pattern).
 - **ABSENT / PARTIAL — directly relevant to the stated multi-source product direction:**
   **TikTok is no longer absent, but remains partial.** First-slice TikTok recon and a sessioned
   capture spec/warm-probe plan now exist (see Social networks table), proving route existence for
