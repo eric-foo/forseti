@@ -7,8 +7,10 @@ scope: >
   Wave-5 capstone of the 2026-07 code-slop workstream. Runs the handoff
   packet's kill-criterion against the eight hard-won lessons, records the
   per-lesson keep/pointer/cell decision with evidence, and recommends the
-  smallest-complete reusable form. Decision: form (b) — distill the two
-  genuinely novel lessons as cells at their decision nodes; NO new skill.
+  smallest-complete reusable form. Decision: form (c) — a THIN router skill for
+  discovery (owner-steered 2026-07-17 on the brittleness of scattered pointers)
+  PLUS the two genuinely novel lessons as cells at their decision nodes; the
+  skill re-implements nothing and the cells are its targets.
 use_when:
   - Owner adjudication of whether a slop-audit skill (or which cells) earns its keep.
   - A future cold agent facing a slop-audit-shaped task wants the carried lessons.
@@ -37,48 +39,53 @@ doctrine change that stays owner-gated. Cross-vendor delegated review
 (`workflow-delegated-review-patch`), adjudicated as claims, is the acceptance
 path for anything produced here.
 
-## Decision: Form (b) — cells at decision nodes, no new skill
+## Decision: Form (c) — a thin router skill + the two cells
 
-A new `slop-audit` skill fails on four independent gates, any one of which is
-sufficient. Sunk cost ("we ran the playbook five times") is explicitly not a
-keep-reason (Frozen Decision, packet).
+**Decision history (honest).** This lane first chose form (b) — cells only, no
+skill — on a four-gate case against a new standing skill. The owner adjudicated
+(2026-07-17): scattered pointers are brittle because they have no discoverable
+entry point. That is correct, and it is the one axis the four-gate case
+under-weighted. The four gates below still hold — but only against a FAT rigid
+playbook skill. A THIN router (option c) satisfies every one of them and closes
+the discovery gap. The corrected decision is (c): a thin `slop-audit` router that
+holds the sequence and points at the durable homes, plus the two novel cells the
+router points at.
 
-1. **Kill-criterion (no novel glue survives).** The slop-audit orchestration —
-   audit → dedup sweep → cross-vendor review → adjudicate as claims → mechanical
-   gate — is already fully composed from existing workflow-kernel skills
-   (`workflow-code-review`, `workflow-delegated-review-patch`,
-   `workflow-distill`) plus the live shared-helper duplication gate. A skill
-   would ORCHESTRATE these; the packet's drift guard forbids re-implementing
-   them. There is no genuinely novel, non-covered orchestration to hold.
+The four gates, re-read against a thin router:
+
+1. **Kill-criterion — the novel glue is discovery, not orchestration.** The
+   individual steps (cross-vendor review, code review, distillation, the dup
+   gate) are each covered by an existing skill or gate, and the router
+   re-implements none of them. What did NOT exist is a nameable entry point that
+   holds the slop-specific SEQUENCE and its lessons together — diagnose the
+   dominant signature → exemplar (not exhaustive) repair → gate only def-nameable
+   classes → coverage-gated behavior preservation → cross-vendor review as claims
+   → unwired≠unused → SCI-on-itself. That sequence + discovery IS the glue a thin
+   router legitimately holds; it is not re-implementation.
 2. **Skill-adoption doctrine (owner-gated + anti-broad).**
-   `.agents/workflow-overlay/skill-adoption.md` line 119-120: a new named
-   candidate "may be created and iterated only after explicit owner
-   authorization for that named candidate" — not held by this lane. Line 127-133:
-   accept only skills "specific and narrowly scoped to a real Forseti lane…
-   Do not accept broad, generic, or authority-claiming local skills." A
-   cross-cutting slop-audit skill is the broad/generic class the doctrine
-   rejects (contrast the narrow `forseti-product-lead` / `creator-audience-
-   triangulation` lanes).
+   `.agents/workflow-overlay/skill-adoption.md:119-120` requires explicit owner
+   authorization for a named candidate — now given (2026-07-17). The anti-broad
+   rule (`:127-133`) rejects "broad, generic, or authority-claiming" skills; the
+   router stays narrow (one task shape), claims no authority, and defers every
+   fact — the same shape doctrine already accepts for `creator-audience-
+   triangulation`. Recorded as a Forseti-local candidate, not accepted/frozen or
+   deployed.
 3. **Authoring discipline (no local-fact leakage).**
-   `workflow-skill-authoring-discipline` § Smallest Durable Change: "Do not make
-   the skill carry local project facts, local validation commands, local file
-   paths… Those are overlay-owned." A slop-audit skill's entire substance IS
-   local facts (the specific gate, the specific shared homes, the specific
-   READMEs) — so the reusable-skill form is disallowed for exactly the content
-   that would make it useful. Those facts already live in their overlay/README
-   homes.
-4. **SCI kernel (subtraction-equal, ceremony debt).** A fat standing skill every
-   agent may load is precisely the surface the updated kernel says to resist.
-   This workstream's own hooks audit was a subtraction pass that cut ~1,183
-   lines of unwired enforcement (ledger Section 5); applying the same lens to
-   this lane's own output rejects a new standing artifact that no named defect
-   class requires.
+   `workflow-skill-authoring-discipline`: a skill must not CARRY local project
+   facts. The router does not inline them — it POINTS at the homes that own the
+   gate names, shared homes, and validation. That is the compliant shape, not the
+   forbidden one. If a fat skill had inlined those facts it would fail this gate;
+   the thin router passes it precisely by staying a router.
+4. **SCI kernel (subtraction-equal, ceremony debt).** A router loaded only on an
+   explicit `slop-audit` trigger is on-demand, not always-on; its recurring toll
+   is a few KB read when invoked, not a per-turn tax. Named and judged worth
+   paying against the discovery defect it prevents (see toll section below). The
+   FAT-skill version this gate rejects is exactly what was NOT built.
 
-**Consequence.** The two genuinely novel lessons become cells at their decision
-nodes (form b). Six of eight lessons are already covered by existing doctrine or
-skills and get a pointer, not new surface. Producing "two cells, everything else
-already carried" is the subtraction lens applied to our own output — a success,
-not an under-delivery (packet, Do Not Forget).
+**Consequence.** Form (c): one thin router skill (discovery) + two cells at their
+decision nodes (the novel principles). Six of eight lessons remain existing-
+covered and the router POINTS at them rather than re-encoding — so the router
+stays thin and the facts stay single-sourced in their homes.
 
 ## Per-lesson kill-decision catalogue
 
@@ -126,11 +133,18 @@ recurs? Verdict vocabulary: `pointer` (existing-covers) / `cell`
 
 ## What this lane authored vs. recommended vs. pointed at
 
-- **Authored (installed this lane).** Lesson-2 exemplar-repair cell — one
-  sentence appended to the adoption-rule paragraph in `.agents/hooks/README.md`
-  and `forseti-harness/README.md` (the docs that own that rule per
-  `validation-gates.md:195-196`). No mechanical contract changes; the dup gate
-  and its checked delta-comment convention are untouched.
+- **Authored (installed this lane).**
+  - The thin `slop-audit` router skill at `.agents/skills/slop-audit/SKILL.md`,
+    registered as a Forseti-local candidate in
+    `.agents/workflow-overlay/skill-adoption.md` (source path, LF sha256, scope,
+    collision, boundary, rollback). Candidate only — NOT deployed, mirrored to
+    `.claude/skills/`, or accepted/frozen; that is a separate governance action
+    under the Protected Skill Boundary.
+  - Lesson-2 exemplar-repair cell — one sentence appended to the adoption-rule
+    paragraph in `.agents/hooks/README.md` and `forseti-harness/README.md` (the
+    docs that own that rule per `validation-gates.md:195-196`). No mechanical
+    contract changes; the dup gate and its checked delta-comment convention are
+    untouched.
 - **Recommended (owner-gated, NOT installed).** Lesson-5 unwired≠unused cell.
   Proposed target: a new bullet in `validation-gates.md` "Current Gates" (or a
   clause on the AGENTS.md removals-keep-evidence sentence). Proposed wording:
@@ -151,13 +165,24 @@ recurs? Verdict vocabulary: `pointer` (existing-covers) / `cell`
 
 ## Named recurring toll of what was installed
 
-The lesson-2 cell adds one advisory sentence to two README adoption paragraphs.
-Recurring toll: negligible — it is read, not enforced; it adds no gate, field,
-receipt, or sync obligation, and does not change the dup gate's mechanical
-contract. The only maintenance obligation is that if the adoption rule is ever
-rewritten, the prioritization sentence travels with it. Judged worth paying: it
-redirects the expensive "repair every copy" reflex a cold agent would otherwise
-follow, at the same decision node where the gate already sends them.
+- **The router skill.** On-demand only (fires on an explicit `slop-audit`
+  invocation or its narrow description trigger), so it costs nothing per turn —
+  a few KB read when invoked. Maintenance obligation: it is a router, so if a
+  home it points at moves, the pointer must be re-resolved (the skill fails
+  visibly rather than restating the rule). Its sha256 pin in `skill-adoption.md`
+  is reread-required on any source change (freshness-gated by
+  `check_hash_pin_freshness.py`). Judged worth paying: it prevents the discovery
+  defect — a cold agent re-deriving the playbook or skipping a hard-won step
+  because the lessons had no entry point.
+- **The lesson-2 cell.** One advisory sentence in two README adoption
+  paragraphs. Negligible — read, not enforced; no gate, field, receipt, or sync
+  obligation; no change to the dup gate's mechanical contract. Only obligation:
+  the sentence travels with the adoption rule if that is ever rewritten. Judged
+  worth paying: it redirects the expensive "repair every copy" reflex at the same
+  node the gate already routes to.
+
+Both stay candidates pending the cross-vendor delegated review the operator
+routes; neither is a deployment, acceptance, or readiness claim.
 
 ## Not-proven boundary
 
