@@ -70,6 +70,28 @@ commercial-grade product use lands on the sanctioned path. Every pass
 still records its per-run robots/source-policy posture receipt, and the
 lane must be built before anything runs.
 
+## Silver Envelope Subject Shaping (lake-map courier note, 2026-07-17)
+
+No Reddit Silver envelope writer exists yet. When one is built, shape subjects
+so creators file automatically in the lake map (courier note from the
+silver-entity-read-layer lane, merged PR #1031; governing plan:
+`docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md`):
+
+- Authors -> `platform_public_account` subjects: namespace exactly lowercase
+  `reddit`, the stable id in `native_id`, and the id's kind in
+  `native_id_kind` when known (`reddit_fullname` vs username — usernames are
+  less stable).
+- Posts/comments-as-content -> `public_content_object` with
+  `published_by_account_native_id` (+ `published_by_account_native_id_kind`)
+  naming the author.
+- The same work unit adds `"reddit"` to `KNOWN_PLATFORM_NAMESPACES` in
+  `forseti-harness/data_lake/derived_retrieval_views.py` (a deliberate
+  one-line vocabulary extension, deferred until Reddit Silver records exist).
+  Until it lands, Reddit author records surface in the by_creator view's
+  residuals as `unrecognized_platform_namespace` — visible, never silently
+  lost. Product mentions on Reddit have no product-page anchor yet; that is a
+  `NATIVE_PRODUCT_PAGE_SOURCES` registry entry when needed, not a blocker.
+
 ## Hard Stops
 
 - No broad subreddit crawling beyond registry-tracked grid passes and
