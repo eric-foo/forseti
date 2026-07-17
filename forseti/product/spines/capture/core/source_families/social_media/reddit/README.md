@@ -33,7 +33,8 @@ Reddit has separate stage owners. Do not collapse them into one crawler.
 | --- | --- | --- | --- |
 | Discover | Candidate URL Intake contracts and old Reddit search/listing handling docs | `run_reddit_candidate_intake_live.py` | Candidate subreddit/thread/outbound URL rows only; no bodies and no Source Capture Packet. |
 | Select | Reddit Graph Frontier lane | `run_reddit_graph_frontier_register.py` | Frontier/register receipts and fresh bounded run envelopes; no same-run traversal. |
-| Capture | `reddit_capture_operator_playbook_v0.md` | `run_reddit_old_http_batch.py`; `run_reddit_consolidation.py`; `run_reddit_batch_quality_summary.py` | Exact old Reddit thread packets plus derived consolidation outputs. |
+| Radar grid | `reddit_radar_grid_capture_maintenance_design_v0.md` + registry spec | `run_reddit_grid_capture.py`; `run_reddit_subreddit_registry_refresh.py` | One `reddit_subreddit_grid` listing packet per tracked subreddit (local or `--data-root` Bronze); read-only registry refresh from committed packets. |
+| Capture | `reddit_capture_operator_playbook_v0.md` | `run_reddit_old_http_batch.py` (supports `--data-root` Bronze commit); `run_reddit_consolidation.py`; `run_reddit_batch_quality_summary.py` | Exact old Reddit thread packets plus derived consolidation outputs. |
 | Fallback | Source Capture Playbook archive route and Reddit operator playbook | `run_source_capture_archive_packet.py`; one-URL CloakBrowser runner when explicitly needed | Same-thread archive/capture only; no discovery, profile capture, or broad crawl. |
 | ECR / downstream | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` plus ECR authority | `orca-harness/ecr/deriver.py`; Reddit consolidation/projection helpers | ECR consumes packets source-agnostically; no automatic cleared posture without a Decision Frame/cutoff posture. |
 

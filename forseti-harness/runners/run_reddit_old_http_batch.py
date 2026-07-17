@@ -6,11 +6,14 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 from harness_utils import utc_now_z_microseconds
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
@@ -36,6 +39,7 @@ def run_reddit_old_http_batch(
     slots: Sequence[BatchSlot],
     output_root: Path,
     decision_question: str,
+    data_root: "DataLakeRoot | None" = None,
     delay_seconds: float = DEFAULT_DELAY_SECONDS,
     max_urls: int = DEFAULT_MAX_URLS,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
@@ -70,7 +74,7 @@ def run_reddit_old_http_batch(
 
     results: list[dict[str, Any]] = []
     for index, slot in enumerate(slots):
-        packet_dir = output_root / f"{slot.slot_id}_packet"
+        packet_dir = None if data_root is not None else output_root / f"{slot.slot_id}_packet"
         derived_dir = output_root / f"{slot.slot_id}_derived"
         row: dict[str, Any] = {
             "slot_id": slot.slot_id,
@@ -79,7 +83,8 @@ def run_reddit_old_http_batch(
             "capture_message": None,
             "consolidation_exit": None,
             "consolidation_message": None,
-            "packet_dir": str(packet_dir),
+            "packet_dir": str(packet_dir) if packet_dir is not None else None,
+            "lake_committed": data_root is not None,
             "derived_dir": str(derived_dir),
             "retry_count": 0,
             "planned_start_offset_seconds": cadence_plan.planned_offsets_seconds[index],
@@ -100,6 +105,7 @@ def run_reddit_old_http_batch(
                 source_surface="old_reddit_direct_http",
                 decision_question=decision_question,
                 output_directory=packet_dir,
+                data_root=data_root,
                 capture_context=(
                     "bounded old Reddit direct HTTP calibration batch; exact supplied URL only; "
                     "no proxy, browser, crawler, retry, or link following"
@@ -126,13 +132,17 @@ def run_reddit_old_http_batch(
             )
             row["capture_exit"] = capture_exit
             row["capture_message"] = capture_message
+            if capture_exit == 0 and packet_dir is None:
+                # Lake commit: the runner returns the committed packet directory.
+                packet_dir = Path(capture_message)
+                row["packet_dir"] = str(packet_dir)
         except Exception as exc:
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
         finally:
             row["capture_finished_at"] = utc_now_z_microseconds()
 
-        if row["capture_exit"] == 0:
+        if row["capture_exit"] == 0 and packet_dir is not None:
             try:
                 consolidation = consolidate_reddit_packet(
                     packet_or_manifest_path=packet_dir,
@@ -159,6 +169,7 @@ def run_reddit_old_http_batch(
     summary = {
         "runner": "reddit_old_http_batch",
         "method": "old_reddit_direct_http",
+        "lake_committed": data_root is not None,
         "non_claims": [
             "not crawler",
             "not source discovery",
@@ -272,6 +283,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--url-list", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help=(
+            "Commit packets into the Forseti data lake at this root instead of per-slot "
+            "local packet directories; the batch summary and derived consolidation stay "
+            "under --output-root."
+        ),
+    )
     parser.add_argument("--decision-question", required=True)
     parser.add_argument("--delay-seconds", type=float, default=DEFAULT_DELAY_SECONDS)
     parser.add_argument("--max-urls", type=int, default=DEFAULT_MAX_URLS)
@@ -289,10 +309,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        data_root = None
+        if args.data_root is not None:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_reddit_old_http_batch(
             slots=load_slots(args.url_list),
             output_root=args.output_root,
             decision_question=args.decision_question,
+            data_root=data_root,
             delay_seconds=args.delay_seconds,
             max_urls=args.max_urls,
             timeout_seconds=args.timeout_seconds,
