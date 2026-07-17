@@ -179,7 +179,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # surfaces; not output-shaping.
         # Pin bumped: added canonical_old_reddit_thread_url, the body adopted
         # from grid_projection's byte-identical private copy; not output-shaping.
-        "b7418534314365b73b5f3397233aa6e8513cfc5ca0f28042bfa522c42d5c7885",
+        # Pin bumped: corrected the retained-copy docstring to distinguish the
+        # byte-identical candidate-intake copy from the divergent screening copy
+        # (post-merge review W6-1); docstring-only, not output-shaping.
+        "ff04f0767731be27f81ccf1e420fe9d51c7c0b510173e9af73e53d071fd45675",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
