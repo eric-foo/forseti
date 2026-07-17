@@ -334,6 +334,12 @@
       "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
+      "module": "source_capture/ats_job_posting_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
       "module": "source_capture/basenotes_projection.py"
     },
     {
@@ -515,6 +521,15 @@
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_archive_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested public ATS board API URL: it is preserved as source_locator and the served board response is stored verbatim, and each posting slice's locator is the served jobUrl/applyUrl copied from that response; the packet claims fetched-URL provenance only. The operator-supplied company label (from the manual board registry) is an operator declaration, not a served-content identity check against the requested company",
+          "status": "not_applicable"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ats_job_posting_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",

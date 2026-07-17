@@ -189,6 +189,17 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "and surfaces as attempt_failed plus a limitation"
         ),
     },
+    "run_source_capture_ats_job_posting_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested public ATS board API URL: it is preserved as "
+            "source_locator and the served board response is stored verbatim, and each "
+            "posting slice's locator is the served jobUrl/applyUrl copied from that "
+            "response; the packet claims fetched-URL provenance only. The operator-supplied "
+            "company label (from the manual board registry) is an operator declaration, "
+            "not a served-content identity check against the requested company"
+        ),
+    },
     "run_source_capture_authenticated_browser_packet.py": {
         "status": "not_applicable",
         "reason": (
