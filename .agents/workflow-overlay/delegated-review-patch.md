@@ -102,13 +102,15 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step; then, when a visible active goal or accepted next objective exists,
-identify the 1-5 material next moves that best advance it without invoking deep
-thinking. When none exists, record
-`no_visible_active_goal` rather than inventing a roadmap. The land/closure step
-plus this goal-conditioned material-move check are a required same-turn tail;
-do not defer the check to another turn. This is an adjudicator obligation, not
-permission for the delegate to decide what is kept or widen review scope.
+step. Then, when a visible active goal or accepted next objective exists, state
+the best next material move in the same turn so the owner does not need a
+separate "what next?" round. Add further moves only when the immediate sequence
+is genuinely needed to make that first move usable. A material move must
+substantively advance the goal; commit, push, PR, merge, and other admin or
+lifecycle work never qualify. When no goal or objective is visible, close
+normally without inventing a roadmap or emitting an empty-result placeholder.
+This is an adjudicator obligation, not permission for the delegate to decide
+what is kept or widen review scope.
 
 **Delegated review-output finalization gate.** Any delegated review output
 written under `docs/review-outputs/` blocks final chat closeout until, after the
@@ -236,13 +238,7 @@ changes repository access and patch authorship.
 
 1. **The review method is the code review lane, not artifact review.** The
    delegate's review portion is `workflow-code-review` run under the Review
-   Prompt Defaults. Commissioning, adversarial wording, patch authorization, or
-   a bounded multi-file target alone does not add `workflow-deep-thinking` or
-   the Source-Gated Method Contract. Those apply only when their independent
-   triggers in `.agents/workflow-overlay/prompt-orchestration.md` fire — for
-   example owner invocation or Mini God Tier, doctrine/authority change,
-   source-heavy or materially ambiguous work, or substantial seam risk whose
-   framing could change the route. The code review lane stays the
+   Prompt Defaults. The code review lane stays the
    review method for code; this convention only adds commissioned bounded patch
    authorship plus CA adjudication on top of it, and never replaces, weakens, or
    relabels code review, nor merges it with artifact review (those remain
@@ -333,8 +329,8 @@ delegated_review_patch_overlay_interface:
     delegated_code_review_and_patch: >
       Sibling target kind for a bounded multi-file implementation/code diff.
       Review method is the code review lane (workflow-code-review), NOT artifact
-      review and never a merge of the two. Deep-thinking and source-gated
-      sequencing apply only when independently triggered by prompt-orchestration.
+      review and never a merge of the two. Use the code-review method's own
+      failure-mode analysis.
       Target is
       an explicitly named file set (one or more) that CANNOT silently widen;
       everything outside it is read-only / flag-only. Validation/test obligations

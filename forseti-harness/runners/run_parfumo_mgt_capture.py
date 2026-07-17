@@ -576,6 +576,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("choose exactly one capture route: --targeted-rendered or --direct-http")
 
         data_root = None
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- env vars request
+        # lake mode unconditionally (no --output gate) and there is no exclusivity
+        # or missing-target parser.exit here.
         data_root_requested = args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         if data_root_requested:
             from data_lake.root import DataLakeRoot
