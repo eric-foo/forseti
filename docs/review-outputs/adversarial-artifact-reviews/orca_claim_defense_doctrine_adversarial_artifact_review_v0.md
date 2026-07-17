@@ -1,6 +1,17 @@
 # Orca Claim Defense Doctrine Adversarial Artifact Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the claim-defense doctrine.
+use_when:
+  - Inspecting doctrine review findings before adjudication or patching.
+  - Tracing claim-defense changes to this review evidence.
+authority_boundary: retrieval_only
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/orca_claim_defense_doctrine_adversarial_artifact_review_v0.md

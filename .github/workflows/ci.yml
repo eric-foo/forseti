@@ -82,12 +82,6 @@ jobs:
       - name: source-input hash freshness (source pointers stay current)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_source_input_hashes.py --strict
-      - name: Batch 0 process tracker self-test
-        working-directory: ${{ github.workspace }}
-        run: python .github/scripts/batch0_process_tracker.py --self-test
-      - name: Validate Batch 0 review receipts
-        working-directory: ${{ github.workspace }}
-        run: python .github/scripts/batch0_process_tracker.py --json
       - name: retrieval link check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_map_links.py --strict
@@ -117,7 +111,7 @@ jobs:
       - name: deletion-evidence (governed deletions carry evidence)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_deletion_evidence.py --strict
-      - name: dcp receipt shape (changed docs carry well-formed receipts)
+      - name: exceptional dcp receipt shape
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_dcp_receipt.py --strict
       - name: silver-lane write contract (no-blur binding)

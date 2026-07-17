@@ -1,6 +1,18 @@
 # Source Capture Packet Schema Evolution Architecture - Adversarial Artifact Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the Source Capture packet schema-evolution architecture.
+use_when:
+  - Inspecting schema-evolution architecture findings before owner adjudication.
+  - Tracing architecture revisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/source_capture_packet_schema_evolution_architecture_adversarial_artifact_review_v0.md

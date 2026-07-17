@@ -30,6 +30,12 @@ stale_if:
 1. Start from a Commission Signal Board output when one exists. If no CSB
    board exists and the task is not an owner-authorized seed-first probe,
    commission CSB first; scanning should not silently invent the board shape.
+   For a recurring or actively radarred source family, inspect the existing
+   Data Lake before external scanning: relevant Silver/current view first, then
+   packet or catalog inventory, then raw material when necessary. This is a
+   reuse, freshness, and coverage preflight, not proof of current external
+   reality. Absence from Silver is not absence from the lake or the world, and
+   lack of a relevant read model does not block acquisition.
    Every CSB-first scan then runs a bounded broad-scout phase by default before
    or alongside main deepening.
 2. Open the MGT intelligent-walk operating model for shared scanning
@@ -53,7 +59,7 @@ stale_if:
 | Core method front door | `scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md` | Bounded intelligent walk, precursor vocabulary, minimum evidence, capture-request bridge. |
 | Proposed rich schema | `scan_core/forseti_demand_scan_core_spec_v0.md` | Candidate-observation schema and gate-prep detail after signal promotion. |
 | Adjudication / support | `admissibility_checkability/*.md` | Gate-definition and scan-core decision surfaces. |
-| Source-family adapters | `source_families/*/*.md` | Local guardrails mapped into shared scanning vocabulary. |
+| Source-family adapters | `source_families/*/*.md` | Local guardrails mapped into shared scanning vocabulary; a family folder may also hold an advisory venue-routing inventory (e.g. the Reddit beauty/fragrance subreddit inventory), which is planning input, not adapter authority. |
 | Research / probe evidence | `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md` | AEO feasibility evidence; not product-spine authority. |
 
 ## Answer-Engine / Search Current Route
@@ -79,7 +85,8 @@ into product authority or a gate-recordable method.
 Scanning emits screen-light `frontier`, `move`, `exact_query`,
 `broad_scout_return`, `precursor_signal`, `precursor_surface`, `observation`,
 `candidate`, `pointer`, `negative`, `access_note`, `influence_obs`,
-`venue_eval`, `hidden_venue_pointer`, and `capture_request` records.
+`venue_eval`, `hidden_venue_pointer`, `dominance_record`, and
+`capture_request` records.
 
 CSB supplies the starting source-family and signal-route board. Scanning then
 tests which venues are actually valuable for the commissioned decision and
@@ -92,6 +99,15 @@ the board: public buyer-language venues, hidden venues, exact-query risks,
 decisive negatives, access walls, and obvious recency/current-state changes.
 It does not mint candidates, clear gates, bind Capture routes, or authorize
 source expansion. Main scanning owns deepening and final candidate decisions.
+Broad-scout and other collection targets are search hygiene only: no count of
+sources, rows, observations, venues, queries, or capture targets establishes
+completion.
+
+Every included scanning item must perform a named decision-material job and
+must not be substitutable by an equal-or-better included item. Record a
+`dominance_record` when a plausible route is rejected because another included
+route supplies equal-or-better expected decision value at lower or equal cost,
+latency, access risk, and duplication.
 
 After CSB routes and hard stops, scanning treats recency/currentness as an
 attention-priority signal. For same-strength URL-backed signals, a newer or
@@ -133,6 +149,17 @@ binding, graph weight, credibility, amplification, Action Ceiling, or final
 resonance weight. It does not grade signal quality, prove buyer demand,
 validate candidates, or bind Capture routes.
 
+Scanning owns acquisition closure. Continue only while the best remaining move
+has a credible chance of changing the action, action ceiling, rival assessment,
+or hold condition enough to justify its marginal cost, latency, access risk,
+and duplication. Close only when every material requirement is answered,
+contradicted, held as a typed gap, or has no remaining non-dominated acquisition
+path whose expected decision value materially exceeds those marginal costs.
+A typed gap closes a requirement only when no remaining non-dominated path
+whose expected decision value materially exceeds its marginal cost, latency,
+access risk, and duplication could still answer it within the commission's
+lawful, access, and safety bounds.
+
 `precursor_signal` and `precursor_surface` are routing inputs. They may steer a
 walk or explain why a venue deserves inspection. They are not a generic label
 for every weak clue. They do not prove demand, clear a gate, authorize capture,
@@ -144,6 +171,9 @@ The scanning spine is not a crawler, monitor, registry, atlas, capture runner,
 ECR lane, Cleaning lane, Judgment lane, outreach lane, or buyer-contact system.
 The default broad-scout phase is a bounded scan step, not a standing crawl or a
 runtime mandate that every environment must provide subagents.
+Run budgets, read limits, and source-policy caps remain safety boundaries. If a
+cap stops a run before the acquisition-closure test is satisfied, the result is
+an incomplete run with typed gaps or a hold, not completion.
 When a source-family doc repeats that boundary, prefer pointing back here and to
 the MGT hard boundaries while preserving source-specific hard stops.
 

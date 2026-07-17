@@ -39,6 +39,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         normalize_video_id_argv(raw_argv, option_strings=parser._option_string_actions)
     )
 
+    # helper-delta: vs runners/_scaffold.resolve_output_root -- unprefixed messages
+    # and the exactly-one check re-runs after resolution on the derived output_directory.
     data_root = None
     output_directory = args.output
     if output_directory is not None and args.data_root is not None:

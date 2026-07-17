@@ -1,6 +1,19 @@
 # Core Spine v0 Method Validation Case-Frame Locks Adversarial Review v1
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of Core Spine v0 method-validation case-frame locks.
+use_when:
+  - Inspecting post-patch lock findings or residual friction.
+  - Tracing case-frame lock changes to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/method-validation/core_spine_v0_method_validation_case_frame_locks_adversarial_review_v1.md

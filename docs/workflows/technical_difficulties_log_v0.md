@@ -114,6 +114,75 @@ ACLs is outside this repository's ownership.
 - Not proof that every historical rebase caused delay or conflict.
 - Not validation, readiness, or merge approval for the corrective patch.
 
+## TD-2026-07-15-001 — Cold scratch lanes hang on default shell and patch routes
+
+- **Observed:** 2026-07-15, Asia/Singapore.
+- **Affected lanes:** three isolated cold-agent runs of
+  `docs/workflows/efficiency/tool_calling_dogfood_case_v0.md`.
+- **State at recording:** open; repeatable mitigation observed, root cause and
+  durable owner unresolved.
+- **User-visible symptom:** all three runs made no filesystem change for several
+  minutes until operator interruption; completed routes used 20–23 logical
+  rounds versus the case's roughly five-round reference.
+
+### Verified evidence
+
+| Run | Default shell hung | `apply_patch` hung | Logical rounds / invocations | Final integrity |
+| --- | --- | --- | ---: | --- |
+| 1 | yes | yes | 23 / 41 | correct three-file patch; unrelated state preserved |
+| 2 | yes | yes | 22 / 35 | correct three-file patch; unrelated state preserved |
+| 3 | yes | yes | 20 / 31 | correct three-file patch; unrelated state preserved |
+
+Trivial and task-specific default shell calls hung against the assigned
+`C:\tmp` snapshots. Bounded elevated shell calls completed. The nested patch
+helper also hung in every run; elevated launcher or executable attempts failed
+with access denial, and all three runs ultimately used `git apply`. Fresh
+operator verification confirmed the final diffs, tests, and untracked-note hash.
+
+### Diagnosis
+
+The failure is repeatable across three context-free agents and occurs before
+task-specific reasoning can explain the delay. The effective default shell and
+patch routes did not match the intended writable-scratch posture. Evidence does
+not yet isolate whether the fault belongs to sandbox mediation, process startup,
+the shell host, or patch-helper execution.
+
+A secondary agent-efficiency gap compounded the platform failure: runs polled or
+varied a hanging route multiple times and each first Git-patch fallback failed
+atomically. Ledger review found only two to four otherwise batchable rounds per
+run, so read batching was not the dominant cost.
+
+### Corrective ownership and mitigation
+
+- **Observed bounded mitigation:** after one bounded hang, stop the unchanged
+  route; a per-operation elevated shell call restored reads and tests. When the
+  patch helper remained unavailable, a checked, atomic `git apply` fallback
+  completed the edit.
+- **Durable owner:** unresolved external tool/harness substrate; no Forseti
+  runtime or repository code owner is established by this evidence.
+- **Replay source:**
+  `docs/workflows/efficiency/tool_calling_dogfood_run_2026_07_15_v0.md` records
+  the fixture baseline, three-run results, and rerun trigger.
+- **Upgrade trigger:** rerun the unchanged three-trial case after the default
+  shell or edit route changes. Do not change the case and the tool path in the
+  same comparison.
+
+### Accepted residuals
+
+- Elevation adds approval latency and is not normalized as the default route.
+- Hand-authored Git patches are an error-prone fallback; atomic check/failure
+  preserved the trees in these runs but does not make the route preferred.
+- Root cause remains unknown; this entry records recurrence and impact, not a
+  platform fix.
+
+### Non-claims
+
+- Not a Forseti product, capture, data, or runtime defect.
+- Not proof that every `C:\tmp` operation or every agent will reproduce the
+  failure.
+- Not proof that the agents themselves caused the shared initial stalls.
+- Not validation or readiness of the external tool substrate.
+
 ## TD-2026-07-16-002 — Sandboxed tool completion stalls reopened after interruptions
 
 - **Observed:** 2026-07-16, Asia/Singapore.
@@ -337,3 +406,123 @@ direction_change_propagation:
     - not a Codex Desktop sandbox repair
     - not authority to weaken protected-action or worktree guards
 ```
+
+## TD-2026-07-17-003 — Repeated sandbox refresh latency and recoverable exact edits
+
+- **Observed:** 2026-07-17, Asia/Singapore.
+- **Affected surface:** Codex Desktop Windows sandboxed tool calls and the
+  Forseti exact-edit fallback used after a native patch stall.
+- **Native ownership boundary:** the installed runtime is packaged under
+  `C:\Program Files\WindowsApps\OpenAI.Codex_26.707.12708.0_x64__2p2nqsd0c76g0`.
+  This repository contains the hook adapter and fallback editor, but not the
+  editable source for sandbox setup, runner acquisition, end-to-end tool
+  deadlines, or the native `apply_patch` executor.
+
+### Current dogfood evidence
+
+Controlled repository-independent fixtures produced these wall times:
+
+| Operation | Payload | Wall time | Result |
+| --- | ---: | ---: | --- |
+| native patch add | 5 lines | 449.2 s | correct LF-only file |
+| native patch replace | 1 line | 267.3 s | correct replacement |
+| native patch add | 43 lines | 282.2 s | correct LF-only file |
+| native patch replace | 1 line | 289.6 s | correct replacement |
+| sandboxed verification reads | trivial | 75.8–103.0 s | correct read |
+
+A separate timestamped probe measured about 1.1 seconds of work inside a
+100.7-second tool call. Git status, worktree enumeration, a 72 KB read, and the
+helper's `--help` each completed in 108–325 ms. The sandbox log showed repeated,
+overlapping `setup refresh: spawning` events before helper resolution. This
+confirms that payload size, newline style, Git enumeration, and the actual file
+mutation are not the dominant cost.
+
+The prior superseding diagnosis remains relevant: setup processes may still
+join an internal wait. The evidence proves repeated refresh initiation and a
+long pre-execution wait; it does not prove the exact internal locking or cache
+implementation. The native correction must therefore be judged by behavior,
+not by prescribing one unverified internal mechanism.
+
+### Repository-controlled correction
+
+`.agents/tools/atomic_exact_edit.py` now writes a root-local versioned journal
+before the first replacement, stores original and updated bytes plus hashes,
+and exposes `--recover`. A normal apply marks the journal committed before
+cleanup. An interrupted apply rolls back on the next apply or explicit recovery.
+Recovery refuses to overwrite a file whose bytes match neither journaled state.
+A per-root OS lock in a temporary-directory namespace serializes apply and
+recovery, so a concurrent invocation fails loudly instead of silently joining,
+rolling back, or re-journaling a live transaction. The lock key is derived from
+the normalized resolved root and is user-scoped where the OS exposes a UID; the
+lock is released by the operating system when the holder dies, so a crash never
+wedges later recovery. The journal loader fails closed on malformed, tampered,
+root-mismatched, escaping, or symlinked journal data and retains the journal for
+inspection. Each file replacement is atomic; the multi-file sequence is
+recoverable, not transactional, and the journal duplicates the touched files'
+bytes inside the same root until cleanup. The coordination lock file persists
+outside the edited root because deleting it would reintroduce an acquisition
+race. A hard exit can still strand `.<name>.atomic-exact-edit-*` temporaries
+beside their targets; those target temporaries and a retained journal are not
+gitignored, so an interrupted operation remains visible to downstream clean-tree
+checks while normal successful use leaves no root-local lock residue.
+
+Dogfood terminated the helper with exit 86 after the first file in a two-file
+edit. The first file contained updated bytes, the second retained original
+bytes, and the journal survived. `--recover` restored both originals and removed
+the journal. Repeating the crash and then writing a third-party state caused
+recovery to exit 1, preserve the third-party bytes, and retain the journal.
+The permanent harness tests repeat both cases with a real subprocess hard
+exit, prove that a hard exit after the committed journal write finalizes
+instead of rolling back, and prove that a held transaction lock makes a
+concurrent recover or apply fail loudly while the interrupted state survives.
+
+### Native runtime success signals
+
+A native repair is complete only when all of these are demonstrated on a
+reference Windows runner:
+
+1. Eight simultaneous trivial calls with one unchanged permission profile do
+   not pay eight independent setup windows; all complete within approximately
+   one cold preparation period.
+2. A warm trivial call adds less than one second p95 infrastructure overhead,
+   while a cold preparation stays below five seconds p95.
+3. A declared timeout bounds submission, queueing, sandbox preparation, runner
+   acquisition, command execution, and result delivery, returning within two
+   seconds of its deadline with the failed phase named.
+4. Permission-profile or writable-root changes invalidate reuse, while identical
+   normalized profiles never inherit broader access.
+5. Native multi-file patches either commit fully, roll back fully, or leave a
+   durable recovery receipt that identifies every file; interruption never
+   leaves an unclassified mutation outcome.
+6. Per-call timing exposes queue, setup, runner, command, and result-delivery
+   durations without leaking command contents, credentials, or environment
+   secrets.
+
+Each threshold above is decidable only against a stated minimum sample matrix
+on the named reference runner; a single anecdote cannot pass or fail a p95.
+At minimum: 20 warm calls, 5 cold preparations, 3 independent eight-call
+concurrent bursts, 5 timeout injections spread across the named phases, and 2
+distinct normalized profiles plus 1 identical-profile pair. Reported results
+must state the observed sample counts next to each threshold.
+
+### Native implementation sequence
+
+1. Instrument the packaged runtime's owning source so the measured delay is
+   attributed to queue, setup, runner acquisition, command, or delivery.
+2. Reuse or coalesce preparation for identical normalized permission profiles;
+   invalidate it only when a security-relevant input changes.
+3. Propagate one monotonic deadline through every phase.
+4. Make native patch commit recoverable with staged payloads, hashes, a durable
+   journal, and crash recovery.
+5. Run cold, warm, 1/2/4/8-call concurrency, profile-separation, timeout, and
+   per-replacement crash-injection tests before controlled rollout.
+
+### Non-claims
+
+- The Forseti journal does not repair Codex Desktop sandbox latency or native
+  `apply_patch`.
+- The dogfood does not establish the runtime's precise internal lock design.
+- Worktree cleanup and newline normalization remain hygiene, not the primary
+  native correction.
+- These success signals are a product acceptance contract, not evidence that
+  the native runtime currently passes them.

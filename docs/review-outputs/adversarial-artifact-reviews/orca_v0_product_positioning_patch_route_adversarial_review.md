@@ -1,4 +1,17 @@
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial review of the Orca v0 product-positioning patch route.
+use_when:
+  - Inspecting product-positioning patch-route findings and blockers.
+  - Tracing later positioning patches to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   review_target: "Orca v0 product-positioning docs patch route"
   verdict: BLOCKED

@@ -65,17 +65,9 @@ Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
 
 Required method sequence:
-After the required source context is ready, first run this review lane's
-internalized failure-mode-framing pass: frame the boundary problem, failure
-modes, and decision criteria before any finding is listed. This framing pass
-is defined here and carried by the review lane; where the deep-thinking
-trigger rule owned by `.agents/workflow-overlay/prompt-orchestration.md`
-(Review Prompt Defaults) fires for a review commission, this pass satisfies it
-without a separate `workflow-deep-thinking` skill load. A separate
-`workflow-deep-thinking` load remains the route for owner-invoked decision
-work (explicit owner invocation or Mini God Tier), not for review commissions.
-
-Then use `workflow-adversarial-artifact-review`.
+After the required source context is ready, use
+`workflow-adversarial-artifact-review`. Before listing findings, frame the
+boundary problem, identify failure modes, and establish decision criteria.
 
 If `workflow-adversarial-artifact-review` is unavailable, unresolved, or cannot
 be applied after `SOURCE_CONTEXT_READY`, return a blocked or advisory-only

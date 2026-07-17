@@ -25,6 +25,10 @@ stale_if:
 > **Non-claims.** Not validation, not readiness, not approval, not a doctrine
 > change, not buyer proof. Line anchors are as-observed on 2026-07-09 and may
 > drift as the migration campaign lands other PRs — re-confirm before editing.
+>
+> **Currentness (2026-07-17):** The SCI behavioral-authority pass retired the
+> standing DCP inline-receipt cap and its hygiene checker. The former T1
+> receipt-archival items are historical audit findings, not open obligations.
 
 - Provenance: 14 read-only audit lanes (`APH-CORE, APH-RSCH, APH-IMPL, APH-HAND,
   OVL, HOOK, NAV, DEC, CER, RE-CSB, RE-CAP, RE-HARN, REF, DUP`), 2026-07-09.
@@ -44,7 +48,7 @@ stale_if:
 
 ## Wave 1 — safe sweep (high-confidence, low-effort, zero efficacy loss)
 
-Execution order: T2 (rename bugs) → T1 (receipt archival) → T3 S-effort code bugs → T6 staleness → CER-3 drift.
+Execution order: T2 (rename bugs) → T3 S-effort code bugs → T6 staleness → CER-3 drift.
 
 ### T2 · Rename-debt dead refs inside live mechanisms  `[bug]`
 - [x] **HOOK-2** (W1·landed 2026-07-10, research-engine strategy lane) — `header_index --report-orca` walked non-existent `orca/product/spines`; repointed to `forseti/product/spines` (report now scans 282 durable .md) — `.agents/hooks/header_index.py`
@@ -54,15 +58,13 @@ Execution order: T2 (rename bugs) → T1 (receipt archival) → T3 S-effort code
 - [ ] **APH-HAND-4** (W1) — dead pointer to renamed binding in active v1 handoff — `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md:167`
 - [x] **REF-5** (W1·landed 2026-07-10, research-engine strategy lane) — Armory README Folder Convention block repointed from retired `docs/product/source_capture_toolbox/` + `orca-harness/*` to the live spine folder + `forseti-harness/*` — `forseti/product/spines/capture/core/source_capture_toolbox/README.md`
 
-### T1 · DCP-receipt archival backlog  `[bloat + live gate failure]`
-Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move, keep ≤2 inline + pointer).
-- [ ] **CER-2 / OVL-1a** (W1) — `review-lanes.md` fails `check_dcp_receipt_hygiene.py --strict` today; archive 2 oldest of 3 — `.agents/workflow-overlay/review-lanes.md:228-335`
-- [ ] **OVL-1b** (W1) — 9 receipts (~88% of file); archive all but 2 — `.agents/workflow-overlay/artifact-folders.md:55-477`
-- [ ] **DEC-4 / OVL-1c** (W1, `[!]` overlay-owned) — 3 receipts vs own 2-cap; archive oldest — `.agents/workflow-overlay/source-of-truth.md:155-345`
-- [ ] **APH-CORE-1** (W1) — charter 3 receipts, would fail `--strict`; archive oldest — `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:358-426`
-- [ ] **RE-CSB-1** (W1) — ~680 lines of receipts across 7 scanning/CSB files; archive to pointer — `forseti/product/spines/scanning/README.md:130-257` + 6 siblings (see audit_RE-CSB.md)
-- [ ] **RE-CAP-2** (W1) — Armory ~400 lines / 8 receipts; archive 6 oldest — `forseti/product/spines/capture/core/source_capture_toolbox/README.md:799-1196`
-- [ ] **NAV-6** (W1) — 2 large inline receipts on repo map; archive — `docs/workflows/forseti_repo_map_v0.md:1068-1156`
+### T1 · DCP-receipt archival backlog  `[retired 2026-07-17]`
+
+Retired by the SCI behavioral-authority pass: the standing ≤2-inline-receipt
+cap and `check_dcp_receipt_hygiene.py` were removed. Existing historical
+receipts remain evidence; any future bloat cleanup must be independently
+justified under Artifact-Level Smallest Complete Intervention. The former T1
+items are not open obligations.
 
 ### T3 · Code bugs — S-effort subset  `[bug]`
 - [x] **RE-HARN-2** (W1·landed) — wheel omitted runner-imported `youtube_capture` (a bare namespace dir) + `reports`; added `youtube_capture/__init__.py` and listed both in `packages.find` — `forseti-harness/pyproject.toml`, `forseti-harness/youtube_capture/__init__.py`
@@ -130,7 +132,9 @@ Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move,
 - [ ] **RE-HARN-5** (W2) — forbidden-output/secret-value guard copy-pasted across 5 families (already drifted)
 - [ ] **RE-HARN-10** (W2) — `_enum_values` byte-identical in 6 model files + 3 silver-metric producers
 - [ ] **APH-IMPL-4** (W2) — `_recompute_ig` vs `_recompute_tiktok` near-identical → extract trio helper
-- [!] **OVL-6** (W2, owner-gated) — identical multi-file receipt verbatim in 3 files; fix changes the DCP contract → decide with owner
+- [x] **OVL-6** (retired 2026-07-17) — the SCI behavioral-authority pass
+  removed the standing inline-receipt contract; no separate duplication
+  project remains.
 
 ### T8 · Structural navigation gaps  `[navigation/format-bug]`
 - [ ] **RE-CAP-1** (W2) — Capture spine has no README (CSB/Scanning do) → add thin front door

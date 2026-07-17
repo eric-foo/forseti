@@ -7,6 +7,7 @@ from pydantic import Field, field_validator, model_validator
 
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice
+from source_capture.projection_shared import is_forbidden_field_token_match
 
 
 REDDIT_PROJECTION_METHOD = "reddit_api_mechanical_projection"
@@ -456,12 +457,7 @@ def _string_or_none(value: object) -> str | None:
 
 
 def _is_forbidden_field_name(key: str) -> bool:
-    normalized = key.lower().replace("-", "_")
-    parts = normalized.split("_")
-    return any(
-        token == normalized or token in parts or token in normalized
-        for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES
-    )
+    return is_forbidden_field_token_match(key, _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
 
 
 __all__ = [

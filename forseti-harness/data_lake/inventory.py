@@ -69,6 +69,13 @@ EXPLICIT_PAIR_REJECT_TOKENS = (
     "output_directory is not None and args.data_root is not None",
     "add_mutually_exclusive_group",
 )
+# Shared runner scaffold (runners/_scaffold.py): its resolve_output_root owns
+# the env-fallback read gated on --output being omitted, the explicit
+# --output + --data-root rejection, and DataLakeRoot.resolve. A runner that
+# imports and calls it carries those seam parts without the literal per-file
+# tokens above.
+SCAFFOLD_MODULE = "runners._scaffold"
+SCAFFOLD_RESOLVER_NAME = "resolve_output_root"
 
 # Packet-producing runners that intentionally do NOT route into the lake yet.
 # Each MUST carry a reason; entries surface in the inventory record as
@@ -450,6 +457,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "detection": "lane_dir",
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
+    },
+    "data_lake/root.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:tombstoned_packet_ids",
+        "reason": "public-read filtering walks only the exact raw_packet_tombstone_silver lane under each derived anchor, validates every current Silver envelope and both raw packet refs, and excludes only the explicitly targeted packet ids; malformed or unresolved records fail closed",
     },
     "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
@@ -904,6 +917,74 @@ def producer_calls(
     return tuple(calls)
 
 
+def uses_scaffold_resolver(tree: ast.AST) -> bool:
+    """True when the runner imports and calls the shared scaffold resolver.
+
+    Require an unshadowed module-level import binding plus a call on a reachable
+    lexical path inside ``main``. A mention in help text/comment, an unused
+    helper, or a statically dead branch must not falsely certify the seam.
+    """
+    bound_names = {
+        alias.asname or alias.name
+        for node in getattr(tree, "body", ())
+        if isinstance(node, ast.ImportFrom) and node.module == SCAFFOLD_MODULE
+        for alias in node.names
+        if alias.name == SCAFFOLD_RESOLVER_NAME
+    }
+    if not bound_names:
+        return False
+
+    rebound_names = {
+        node.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store)
+    }
+    rebound_names.update(
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+    )
+    bound_names -= rebound_names
+    if not bound_names:
+        return False
+
+    class _MainResolverCallVisitor(ast.NodeVisitor):
+        found = False
+
+        def visit_Call(self, node: ast.Call) -> None:
+            if call_name(node) in bound_names:
+                self.found = True
+                return
+            self.generic_visit(node)
+
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            return
+
+        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+            return
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            return
+
+        def visit_If(self, node: ast.If) -> None:
+            if isinstance(node.test, ast.Constant) and isinstance(node.test.value, bool):
+                branch = node.body if node.test.value else node.orelse
+                for statement in branch:
+                    self.visit(statement)
+                return
+            self.generic_visit(node)
+
+    for node in getattr(tree, "body", ()):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) or node.name != "main":
+            continue
+        visitor = _MainResolverCallVisitor()
+        for statement in node.body:
+            visitor.visit(statement)
+        if visitor.found:
+            return True
+    return False
+
+
 def packet_producers() -> dict[str, RunnerSeam]:
     """Map each packet-producing runner filename to its lake seam shape."""
     producers: dict[str, RunnerSeam] = {}
@@ -914,18 +995,24 @@ def packet_producers() -> dict[str, RunnerSeam]:
         env_names = environment_get_names(tree)
         writer_names, module_aliases = source_capture_imports(tree)
         calls = producer_calls(tree, writer_names, module_aliases)
+        scaffold_seam = uses_scaffold_resolver(tree)
         if calls:
             producers[path.name] = RunnerSeam(
                 exposes_output_arg="--output" in flags,
                 exposes_data_root_arg="--data-root" in flags,
                 exposes_env_fallback=(
                     "FORSETI_DATA_ROOT" in env_names
+                    or scaffold_seam
                     or ("--output" not in flags and "--admit-output" not in flags)
                 ),
                 explicit_data_root_only=path.name in EXPLICIT_DATA_ROOT_RUNNERS,
-                resolves_data_root="DataLakeRoot.resolve" in src,
-                rejects_output_and_data_root=has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS),
-                env_fallback_uses_output_omitted=has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS),
+                resolves_data_root="DataLakeRoot.resolve" in src or scaffold_seam,
+                rejects_output_and_data_root=(
+                    has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS) or scaffold_seam
+                ),
+                env_fallback_uses_output_omitted=(
+                    has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS) or scaffold_seam
+                ),
                 producer_calls=calls,
             )
     return producers

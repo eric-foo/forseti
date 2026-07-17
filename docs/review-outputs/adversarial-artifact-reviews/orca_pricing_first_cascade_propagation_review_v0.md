@@ -43,6 +43,13 @@ non_claims:
   - not validation, not WTP, not readiness, not buyer proof, not ICP proven
   - findings are decision input; not mandatory remediation or executor-ready
     patch authority until separately accepted/authorized
+use_when:
+  - Inspecting propagation and coherence findings for the pricing-first cascade.
+  - Tracing cascade corrections to this advisory review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ```
 
 ## Review-Use Boundary

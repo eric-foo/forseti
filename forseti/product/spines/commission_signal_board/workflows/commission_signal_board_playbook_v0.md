@@ -37,13 +37,16 @@ This playbook keeps four objects distinct:
 | --- | --- | --- |
 | Intake scaffold | A request for missing commission inputs | No |
 | Standard signal board | Existing standard Sections 1-10 with classifier handoff | Yes |
-| Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers and no classifier handoff | Yes |
+| Commission-stage company board | Conditional company Sections 1-10 sealed before scanning: `run_boundary: COMMISSION_SEALED_PRE_SCAN`, `not_checked` coverage rows as the commissioned scan routes, scout statuses may be `commissioned_not_yet_run` | Yes |
+| Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers, earned scout statuses, and no classifier handoff | Yes |
 | Scanning, Capture, or classifier work | Downstream execution under its owning spine | No |
 
 CSB owns the commission profile, source-family requirements, time posture, and
 typed gaps/requests. Scanning owns the intelligent walk. Capture owns venue
 access and preservation adapters. This playbook does not authorize downstream
-runtime.
+runtime. CSB defines decision-material information jobs and candidate routes; it
+does not freeze the participant packet, decide final inclusion, or declare
+acquisition complete.
 
 ## Operating Sequence
 
@@ -57,12 +60,22 @@ runtime.
    declares both a period and rationale.
 4. Check profile-specific required inputs. Return the prompt's intake scaffold
    if any are missing; intake-only output is not a validator target.
-5. Generate exactly the selected profile's Sections 1-10.
-6. Save the exact output to a temporary file or bound durable artifact.
-7. Run the validator. If it fails, repair the output or report its finding
+5. Include an item only when its named job can materially change the action,
+   action ceiling, rival assessment, or hold condition and no equal-or-better
+   included item performs that job. Use exclusion or `not_applicable` records
+   for dominated routes.
+6. For a recurring or actively radarred source family, put a lake-first
+   preflight in the downstream request: relevant Silver/current view, then
+   packet or catalog inventory, then raw material when necessary. Treat the
+   result as reuse/freshness/coverage context, not current-world proof.
+7. Generate exactly the selected profile's Sections 1-10.
+8. Save the exact output to a temporary file or bound durable artifact.
+9. Run the validator. If it fails, repair the output or report its finding
    codes. Do not run downstream work from a failing report.
-8. Route typed source requests to Scanning or Capture under their own authority.
-   Do not execute retrieval from this playbook.
+10. Route typed source requests to Scanning or Capture under their own
+    authority. Do not execute retrieval from this playbook. Scanning decides
+    marginal acquisition, dominance, and closure; Capture fulfills the bounded
+    request or returns typed failure/route exhaustion.
 
 ## Validator Command
 
@@ -94,7 +107,14 @@ Run the validator only against a full output with profile-specific Sections
   `Demand-Classifier Handoff Packet`, and `Board Status And Run Boundary`.
 - `company_competitive_intelligence` requires `Company Commission And Identity
   Receipt` through `Completion Ledger And Run Boundary` and must not contain a
-  classifier handoff.
+  classifier handoff. This includes commission-stage company boards
+  (`run_boundary: COMMISSION_SEALED_PRE_SCAN`): they are full ten-section
+  outputs and are validated; the validator enforces that the commission-stage
+  boundary coexists with `not_checked` coverage rows and that
+  `commissioned_not_yet_run` scout statuses appear only at that stage. It also
+  cross-checks each Reddit/Quora scout status against the corresponding
+  coverage-row status and yield so the completion ledger cannot claim a result
+  the route ledger did not earn.
 
 Do not run it against `NEEDS_COMMISSION_INTAKE` or `NEEDS_CUTOFF_DATE`.
 
@@ -110,8 +130,12 @@ For `company_competitive_intelligence`, the validator checks:
 - `mode` and orthogonal `time_posture`;
 - deterministic recency tiers and age-use rules;
 - declared period and rationale for `longitudinal`;
-- source-family coverage, mandatory Reddit scout, initial-proving Quora scout,
-  category-aware forum discovery, typed gaps, and justified `not_applicable`;
+- source-family coverage, the Reddit `mandatory_bounded_scout` compatibility
+  row, the initial-proving Quora compatibility row, category-aware forum
+  discovery, typed gaps, and justified `not_applicable`. The Reddit/Quora rows
+  are search-hygiene considerations: they may document non-selection and do not
+  authorize acquisition or earn completion credit without a named
+  non-dominated information job;
 - observation-level URL, publisher, publication/event/access dates, evidence
   status, source class, fact domain, and syndication group;
 - shared source-family vocabulary, typed `effective_time_precision` and
@@ -121,20 +145,22 @@ For `company_competitive_intelligence`, the validator checks:
 - decision-neutral company lenses and prohibited GTM keys;
 - Company Surface rows as `candidate_only` and `not_imported`;
 - completion ledger, explicit gaps/requests, no arbitrary caps, typed
-  `run_boundary` and `next_authorized_step`, and no classifier handoff;
+  `run_boundary` and `next_authorized_step`, Reddit/Quora scout-status
+  consistency with their coverage rows, and no classifier handoff;
 - the shared engagement/resonance overclaim ban, which applies to both profiles.
 
 ## What A Pass Means
 
 A standard pass means its classifier-handoff rows are mechanically eligible
 under the board's own row table. A company pass means the report is mechanically
-complete under the conditional company contract. Neither pass means:
+complete under the conditional company planning contract. Neither pass means:
 
 - evidence is true;
 - evidence was retrieved;
 - demand exists;
 - the board is exhaustive;
 - graph construction is complete;
+- acquisition is complete or the participant packet is frozen;
 - classifier mapping is correct;
 - buyer proof, validation, readiness, forecast, or client-facing claims are allowed.
 
