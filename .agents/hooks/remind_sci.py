@@ -45,7 +45,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -54,6 +53,7 @@ from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
     EXCLUDED_DOC_PREFIXES,
     DURABLE_DOC_PREFIXES,
     GIT_PREFIX,
+    git_out,
     porcelain_paths,
     repo_root,
     shell_segments,
@@ -115,6 +115,10 @@ so, pause and surface the tradeoff for a decision before proceeding. This
 narrows the choice among already-complete paths only; it never authorizes
 speculative cleanup, future-proofing, or broader scope.
 
+Among otherwise complete paths, prefer the reversible, contained option that
+fails loud and local and models reality without a special-case fiction. Surface
+an irreversible, high-lock-in, or doctrine-changing tradeoff before taking it.
+
 Whenever the user or instructions say **"smallest complete X"** -- including
 phrases like **smallest complete fix, patch, edit, rewrite, refactor, review,
 or answer** -- interpret it as **X performed under the Smallest complete
@@ -173,16 +177,10 @@ def _changed_durable_artifacts(root: Path) -> list[str]:
     """Durable-artifact paths with changes pending in the worktree, via one
     `git status --porcelain` call. Empty on any git error/timeout -- this hook is
     advisory and must never block or crash a commit on its own failure."""
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(root), "status", "--porcelain"],
-            capture_output=True, text=True, timeout=GIT_TIMEOUT,
-        )
-    except Exception:
+    rc, out = git_out(root, ["status", "--porcelain"], timeout=GIT_TIMEOUT)
+    if rc != 0:
         return []
-    if out.returncode != 0:
-        return []
-    return _durable_from_porcelain(out.stdout or "", root)
+    return _durable_from_porcelain(out or "", root)
 
 
 def run_hook(root: Path) -> int:

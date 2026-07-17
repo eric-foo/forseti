@@ -189,7 +189,12 @@ def test_runner_appends_once_and_ack_skips_unchanged_packet(tmp_path) -> None:
 def test_runner_packet_selector_does_not_drain_unrelated_pending_packet(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     selected = _commit_batch_packet(data_root, videos=[_comment_video()])
-    unrelated = _commit_batch_packet(data_root, videos=[_comment_video()])
+    # Distinct capture_timestamp: an otherwise byte-identical batch packet for
+    # the same creator profile locator would collide with the Bronze
+    # write-gate's duplicate check.
+    unrelated = _commit_batch_packet(
+        data_root, videos=[_comment_video()], capture_timestamp="2026-06-30T18:00:00Z"
+    )
 
     result = run_comment_attention(data_root=data_root, packet_ids=[selected])
 

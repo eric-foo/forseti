@@ -141,7 +141,12 @@ from source_capture.source_quality import (
     build_source_quality_report_skeleton,
     build_source_quality_state_census,
 )
-from source_capture.writer import NON_CLAIMS, render_receipt, write_local_source_capture_packet
+from source_capture.writer import (
+    NON_CLAIMS,
+    DuplicateCapturePacketError,
+    render_receipt,
+    write_local_source_capture_packet,
+)
 
 __all__ = [
     "AuthenticatedSessionMode",
@@ -270,4 +275,5 @@ __all__ = [
     "write_parfumo_projection",
     "write_basenotes_projection",
     "write_local_source_capture_packet",
+    "DuplicateCapturePacketError",
 ]

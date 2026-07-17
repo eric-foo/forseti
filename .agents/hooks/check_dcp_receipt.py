@@ -87,6 +87,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
     git_out,
     repo_root,
+    resolve_base_ref,
 )
 
 # Authority this checker references (it does not restate the rule).
@@ -295,19 +296,6 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
     default). git_out returns (1, "") on launch failure/timeout instead of
     (-1, ""); callers here only test rc != 0, so the distinction is inert."""
     return git_out(root, args, timeout=timeout)
-
-
-def resolve_base_ref(cli_base: str | None) -> str:
-    """Base ref for diff-scoping (mirrors header_index.py / deletion-evidence)."""
-    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
-    if ci_base:
-        return ci_base
-    gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
-    if gh_base:
-        return "origin/%s" % gh_base
-    if cli_base:
-        return cli_base
-    return "origin/main"
 
 
 def changed_md_files(root: Path, base_ref: str) -> list[str] | None:

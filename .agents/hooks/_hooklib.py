@@ -187,6 +187,45 @@ def git_lines(root: Path, args: list[str], timeout: int | None = None) -> list[s
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+def resolve_base_ref(cli_base: str | None) -> str:
+    """Diff-base ref for the forward-only gates, in contract priority order:
+    $FORSETI_DIFF_BASE (exact CI event SHA) -> $GITHUB_BASE_REF as
+    "origin/<ref>" -> explicit CLI base -> "origin/main". No HEAD~1 fallback --
+    that would see only the last commit of a multi-commit lane.
+
+    Shared home for the copies the diff-scoped checkers carried; a checker
+    with a deliberately different precedence (e.g. bare GITHUB_BASE_REF
+    handling) keeps its own copy with a comment naming the delta."""
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
+    gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
+    if gh_base:
+        return "origin/%s" % gh_base
+    if cli_base:
+        return cli_base
+    return "origin/main"
+
+
+def parse_name_status(lines: list[str]) -> list[str]:
+    """Present-in-tree changed paths from `git diff --name-status` output:
+    added, modified, and rename/copy DESTINATIONS (sources may be gone).
+    D rows are skipped -- nothing left in the tree to scan.
+
+    Pure function (testable)."""
+    present: list[str] = []
+    for ln in lines:
+        parts = [p.strip() for p in ln.split("\t")]
+        if len(parts) < 2:
+            continue
+        status = parts[0]
+        if status.startswith(("R", "C")) and len(parts) >= 3:
+            present.append(parts[2])
+        elif status.startswith(("A", "M")):
+            present.append(parts[1])
+    return present
+
+
 def porcelain_paths(porcelain: str) -> list[str]:
     """Paths from `git status --porcelain` v1 output, deduped in order.
 
@@ -291,6 +330,39 @@ def selftest() -> int:
     check("empty tool_input", candidate_paths({"tool_input": {}}), [])
     check("non-dict tool_input", candidate_paths({"tool_input": "bad"}), [])
     check("non-dict event", candidate_paths([]), [])
+
+    # resolve_base_ref
+    saved_ci = os.environ.pop("FORSETI_DIFF_BASE", None)
+    saved_gh = os.environ.pop("GITHUB_BASE_REF", None)
+    try:
+        check("base default", resolve_base_ref(None), "origin/main")
+        check("base cli", resolve_base_ref("some-branch"), "some-branch")
+        os.environ["GITHUB_BASE_REF"] = "develop"
+        check("base GITHUB_BASE_REF wins over cli", resolve_base_ref("ignored"),
+              "origin/develop")
+        os.environ["FORSETI_DIFF_BASE"] = "abc123"
+        check("base FORSETI_DIFF_BASE wins over all", resolve_base_ref("ignored"),
+              "abc123")
+    finally:
+        for key, saved in (("FORSETI_DIFF_BASE", saved_ci),
+                           ("GITHUB_BASE_REF", saved_gh)):
+            if saved is not None:
+                os.environ[key] = saved
+            else:
+                os.environ.pop(key, None)
+
+    # parse_name_status
+    check(
+        "name-status: A/M kept, D dropped, R keeps destination",
+        parse_name_status([
+            "A\tdocs/new.md",
+            "M\tdocs/mod.md",
+            "D\tdocs/gone.md",
+            "R100\tdocs/from.md\tdocs/to.md",
+            "noise",
+        ]),
+        ["docs/new.md", "docs/mod.md", "docs/to.md"],
+    )
 
     # porcelain_paths
     check("porcelain basic", porcelain_paths(" M docs/a.md\n?? docs/b.md\n"),

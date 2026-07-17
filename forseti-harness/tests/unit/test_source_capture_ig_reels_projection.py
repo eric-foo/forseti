@@ -296,7 +296,9 @@ def test_project_reels_grid_from_bronze_catalog_skip_existing_converges_grown_ca
     )
     assert len(first_projected) == 1
 
-    second_packet_id = _commit_reels_packet(root, tmp_path)
+    # Distinct locator: byte-identical content under the same locator as the
+    # first packet would collide with the Bronze write-gate's duplicate check.
+    second_packet_id = _commit_reels_packet(root, tmp_path, locator=f"{FINAL_URL}?second")
     assert second_packet_id != first_packet_id
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -761,7 +763,7 @@ def _json_candidate(
 
 
 
-def _commit_reels_packet(root: DataLakeRoot, tmp_path) -> str:
+def _commit_reels_packet(root: DataLakeRoot, tmp_path, *, locator: str | None = None) -> str:
     packet, _raw = _reels_packet()
     capture_path = tmp_path / "ig_reels_grid_capture.json"
     capture_path.write_bytes(_json_bytes(_capture_payload()))
@@ -770,7 +772,7 @@ def _commit_reels_packet(root: DataLakeRoot, tmp_path) -> str:
         input_files=[capture_path],
         source_family="instagram_creator",
         source_surface="ig_reels_grid_dom_passive_json",
-        source_locator=known_fact(FINAL_URL),
+        source_locator=known_fact(locator or FINAL_URL),
         decision_question="creator monitoring",
         capture_context="logged-out IG public /reels/ grid capture",
         capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
