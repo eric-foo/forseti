@@ -27,8 +27,9 @@ import json
 import os
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 from urllib.parse import urljoin, urlparse
 
 if __package__ in {None, ""}:
@@ -227,6 +228,83 @@ def run_price_payload_capture(
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
 
+    discovery = _discover_page_and_prices_payload(
+        page_url=page_url,
+        output_directory=output_directory,
+        timeout_seconds=timeout_seconds,
+        max_chunks=max_chunks,
+        chunk_byte_budget=chunk_byte_budget,
+        max_page_attempts=max_page_attempts,
+        page_retry_backoff_seconds=page_retry_backoff_seconds,
+    )
+    if isinstance(discovery, tuple):
+        return discovery
+    capture_ts = discovery.page_res.metadata["capture_timestamp"]
+    chunk_text = discovery.chunk_res.body.decode("utf-8", "replace")
+
+    certified = _extract_and_certify(
+        page_html=discovery.page_html,
+        chunk_text=chunk_text,
+        currency=currency,
+        page_res=discovery.page_res,
+        page_cls=discovery.page_cls,
+        chunk_res=discovery.chunk_res,
+        chunk_cls=discovery.chunk_cls,
+    )
+    if isinstance(certified, tuple):
+        return certified
+
+    artifacts_bundle = _build_extraction_artifacts(
+        discovery=discovery,
+        certified=certified,
+        page_url=page_url,
+        announcement_url=announcement_url,
+        currency=currency,
+        capture_ts=capture_ts,
+        timeout_seconds=timeout_seconds,
+    )
+    return _assemble_and_write_packet(
+        discovery=discovery,
+        certified=certified,
+        artifacts_bundle=artifacts_bundle,
+        output_directory=output_directory,
+        data_root=data_root,
+        page_url=page_url,
+        announcement_url=announcement_url,
+        capture_ts=capture_ts,
+        decision_question=decision_question,
+        capture_context=capture_context,
+        operator_category=operator_category,
+        session_id=session_id,
+    )
+
+
+@dataclass(frozen=True)
+class _DiscoveredPricesPayload:
+    """Page + prices-chunk discovery result consumed by the later stages."""
+
+    page_res: Any
+    page_cls: Any
+    page_html: str
+    base_url: str
+    chunk_url: str
+    chunk_res: Any
+    chunk_cls: Any
+    scan_log: list[dict]
+    page_module_preload_count: int
+    attempts: list[dict]
+
+
+def _discover_page_and_prices_payload(
+    *,
+    page_url: str,
+    output_directory: Path | None,
+    timeout_seconds: float,
+    max_chunks: int,
+    chunk_byte_budget: int,
+    max_page_attempts: int,
+    page_retry_backoff_seconds: float,
+) -> "_DiscoveredPricesPayload | tuple[int, str]":
     # --- 1+2. page (structure) + prices-chunk discovery, with degraded-page retry ---
     # An intermittent server variant serves a thin module-preload list (the prices
     # chunk absent) ~17% of the time; it heals on a page re-fetch. Only a discovery
@@ -299,9 +377,40 @@ def run_price_payload_capture(
         return 3, (f"rung-1.5 capture failed: prices payload not found after "
                    f"{max_page_attempts} page attempt(s) (last failure_class={last_class}); "
                    f"{artifact_note}")
-    capture_ts = page_res.metadata["capture_timestamp"]
-    chunk_text = chunk_res.body.decode("utf-8", "replace")
+    return _DiscoveredPricesPayload(
+        page_res=page_res,
+        page_cls=page_cls,
+        page_html=page_html,
+        base_url=base_url,
+        chunk_url=chunk_url,
+        chunk_res=chunk_res,
+        chunk_cls=chunk_cls,
+        scan_log=scan_log,
+        page_module_preload_count=page_module_preload_count,
+        attempts=attempts,
+    )
 
+
+@dataclass(frozen=True)
+class _CertifiedPriceExtraction:
+    """Pure structured-extraction output plus its certification verdict."""
+
+    prices: dict
+    token_list: list
+    resolved: list
+    verdict: Any
+
+
+def _extract_and_certify(
+    *,
+    page_html: str,
+    chunk_text: str,
+    currency: str,
+    page_res: Any,
+    page_cls: Any,
+    chunk_res: Any,
+    chunk_cls: Any,
+) -> "_CertifiedPriceExtraction | tuple[int, str]":
     # --- 3. structured extraction (pure) -----------------------------------
     try:
         root = decode_react_router_stream(page_html)
@@ -319,6 +428,45 @@ def run_price_payload_capture(
         chunk_block_signal=chunk_cls.signal,
         token_list=token_list, prices=prices, resolved_tiers=resolved, currency=currency,
     )
+    return _CertifiedPriceExtraction(
+        prices=prices, token_list=token_list, resolved=resolved, verdict=verdict
+    )
+
+
+@dataclass(frozen=True)
+class _ExtractionArtifacts:
+    """Effective-signal capture plus the two JSON artifact payloads."""
+
+    announcement_body: bytes | None
+    announcement_cls: Any
+    pro_effective_date: str | None
+    extraction: dict
+    extraction_metadata: dict
+
+
+def _build_extraction_artifacts(
+    *,
+    discovery: _DiscoveredPricesPayload,
+    certified: _CertifiedPriceExtraction,
+    page_url: str,
+    announcement_url: str | None,
+    currency: str,
+    capture_ts: Any,
+    timeout_seconds: float,
+) -> _ExtractionArtifacts:
+    page_res = discovery.page_res
+    page_cls = discovery.page_cls
+    base_url = discovery.base_url
+    chunk_url = discovery.chunk_url
+    chunk_res = discovery.chunk_res
+    chunk_cls = discovery.chunk_cls
+    scan_log = discovery.scan_log
+    page_module_preload_count = discovery.page_module_preload_count
+    attempts = discovery.attempts
+    prices = certified.prices
+    token_list = certified.token_list
+    resolved = certified.resolved
+    verdict = certified.verdict
 
     # --- 4. effective/settling signals -------------------------------------
     announcement_body = None
@@ -449,6 +597,42 @@ def run_price_payload_capture(
         "capture_attempts": attempts,
         "capture_timestamp": capture_ts,
     }
+    return _ExtractionArtifacts(
+        announcement_body=announcement_body,
+        announcement_cls=announcement_cls,
+        pro_effective_date=pro_effective_date,
+        extraction=extraction,
+        extraction_metadata=extraction_metadata,
+    )
+
+
+def _assemble_and_write_packet(
+    *,
+    discovery: _DiscoveredPricesPayload,
+    certified: _CertifiedPriceExtraction,
+    artifacts_bundle: _ExtractionArtifacts,
+    output_directory: Path | None,
+    data_root: "DataLakeRoot | None",
+    page_url: str,
+    announcement_url: str | None,
+    capture_ts: Any,
+    decision_question: str,
+    capture_context: str,
+    operator_category: str,
+    session_id: str | None,
+) -> tuple[int, str]:
+    page_res = discovery.page_res
+    page_cls = discovery.page_cls
+    base_url = discovery.base_url
+    chunk_url = discovery.chunk_url
+    chunk_res = discovery.chunk_res
+    chunk_cls = discovery.chunk_cls
+    verdict = certified.verdict
+    announcement_body = artifacts_bundle.announcement_body
+    announcement_cls = artifacts_bundle.announcement_cls
+    pro_effective_date = artifacts_bundle.pro_effective_date
+    extraction = artifacts_bundle.extraction
+    extraction_metadata = artifacts_bundle.extraction_metadata
 
     # --- 5. assemble packet -------------------------------------------------
     artifacts: list[tuple[str, bytes]] = [

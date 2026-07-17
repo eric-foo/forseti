@@ -40,12 +40,13 @@ corrections:
 - use the **smallest complete** evidence world, not a universal minimum report;
 - include a CSB or Scanning item only for a named decision-material job when no
   equal-or-better included item substitutes for it;
-- continue acquisition only while the best remaining move has expected decision
-  value that materially exceeds marginal cost, latency, access risk, and
-  duplication;
+- continue acquisition only while the best remaining move has a credible chance
+  of changing the action, action ceiling, rival assessment, or hold condition
+  enough to justify its marginal cost, latency, access risk, and duplication;
 - close acquisition only when every material requirement is answered,
   contradicted, held as a typed gap, or has no remaining non-dominated path
-  worth its marginal burden;
+  whose expected decision value materially exceeds its marginal cost, latency,
+  access risk, and duplication;
 - inspect the Data Lake before external Scanning or Capture in recurring or
   actively radarred source families, using Silver/current view first, then
   packet/catalog inventory, then raw material when necessary;
@@ -161,10 +162,17 @@ equal-or-better included item.
 
 Scanning owns acquisition closure. It continues only while the best remaining
 move has a credible chance of changing the action, action ceiling, rival
-assessment, or hold condition enough to justify marginal cost, latency, access
-risk, and duplication. It closes only when every material requirement is
-answered, contradicted, held as a typed gap, or has no remaining non-dominated
-acquisition path whose expected decision value materially exceeds those costs.
+assessment, or hold condition enough to justify its marginal cost, latency,
+access risk, and duplication. It closes only when every material requirement
+is answered, contradicted, held as a typed gap, or has no remaining
+non-dominated acquisition path whose expected decision value materially
+exceeds its marginal cost, latency, access risk, and duplication. A typed gap
+closes a requirement only when no remaining non-dominated path whose expected
+decision value materially exceeds its marginal cost, latency, access risk, and
+duplication could still answer it within the commission's lawful, access, and
+safety bounds. A run stopped by a run budget, cap, or policy boundary while such
+a path remains is an incomplete run with typed gaps or a hold, not acquisition
+closure.
 
 ## Architecture Layers
 
@@ -503,64 +511,6 @@ This record is:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    One-company intelligence now uses a decision-first information architecture:
-    atomic facts and their evidence routes are selected by the named decision,
-    lawful paid web access is eligible but separately governed by criticality,
-    directness, cost, latency, and rights, and reusable company facts remain
-    separate from decision modules, GTM, recommendations, and monitoring.
-  trigger: architecture_doctrine
-  related_triggers:
-    - product_doctrine
-  controlling_sources_updated:
-    - docs/decisions/forseti_company_intelligence_information_architecture_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/product-proof.md
-    - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
-    - forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md
-    - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
-    - forseti/product/information/README.md
-    - forseti/product/information/company_surface/README.md
-    - forseti/product/information/company_surface/purpose_contract_v0.md
-    - forseti/product/spines/commission_signal_board/README.md
-    - forseti/product/spines/scanning/README.md
-    - docs/workflows/forseti_research_engine_map_v0.md
-  intentionally_not_updated:
-    - path: forseti/product/information/company_surface/
-      reason: >
-        Its current decision-agnostic facts/history boundary is compatible.
-        Import mechanics, schema changes, and runtime mutation are outside this
-        work unit.
-    - path: forseti/product/spines/commission_signal_board/
-      reason: >
-        The newly landed decision-neutral one-company profile remains a factual
-        substrate. Binding decision-specific information modules belongs to the
-        next proving commission, not a speculative CSB rewrite.
-    - path: forseti/product/spines/scanning/ and Capture/Data Lake/Cleaning/Judgment owners
-      reason: >
-        Their discovery, acquisition, storage, transformation, and judgment
-        boundaries remain unchanged.
-    - path: GTM and buyer-proof surfaces
-      reason: >
-        This architecture explicitly does not select a buyer, wedge, offer, or
-        commercial route.
-  stale_language_search: >
-    rg -n -i "generic company report|minimum company report|paid data.*superior|monitor.*because|source.*is.*fact"
-    docs/decisions/forseti_company_intelligence_information_architecture_v0.md
-    docs/workflows/forseti_repo_map_v0.md
-  non_claims:
-    - not validation or readiness
-    - not source-access or purchase authorization
-    - not Company Surface implementation
-    - not buyer proof or willingness-to-pay proof
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Company-intelligence acquisition now uses job-based inclusion,
     non-dominated expected-decision-value continuation and closure, and a
     lake-first reuse/freshness/coverage preflight for recurring or actively
@@ -657,4 +607,76 @@ direction_change_propagation:
     - not Packing Spine design or implementation
     - not final packet inclusion or freeze
     - not source-access, capture, or implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Company-intelligence acquisition retains the owner-accepted asymmetric
+    continuation and closure thresholds, and a typed gap cannot close a material
+    requirement while an answerable non-dominated path still materially clears
+    its marginal cost, latency, access risk, and duplication within lawful,
+    access, and safety bounds.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_intelligence_information_architecture_v0.md
+    - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti/product/spines/commission_signal_board/README.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - forseti/product/spines/capture/README.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - .agents/hooks/check_csb_scanning_artifact.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The correction is bounded to company-intelligence acquisition doctrine;
+        it does not establish a repeated cross-domain defect in the global
+        Smallest Complete Intervention kernel.
+    - path: CSB and Capture authority files
+      reason: >
+        They already assign marginal acquisition and closure to Scanning without
+        restating the typed-gap closure test, so no additional copy is needed.
+    - path: CSB and Scanning validator code
+      reason: >
+        The corrected thresholds and typed-gap guard require decision judgment
+        and are not mechanically truth-verifiable; existing structural and
+        overclaim checks remain unchanged.
+    - path: information-requirements register field consolidation
+      reason: >
+        Potential overlap among information_job, decision_use, and
+        decision_effect does not alter the corrected acquisition rule and would
+        require a separate schema decision.
+    - path: actively radarred terminology
+      reason: >
+        The phrase is owner-supplied scope language for an actively maintained
+        radar source family; this patch does not broaden or redefine that scope.
+  stale_language_search: >
+    rg -n -i "and an expected decision value|worth its marginal burden|credible
+    chance|typed gap closes|held as a typed gap|expected decision value
+    materially exceeds" across the nine PR-1026 authority files.
+  stale_language_search_result: >
+    Executed 2026-07-17. No live continuation rule uses the rejected conjunctive
+    threshold or the looser "worth its marginal burden" closure wording. The
+    architecture record and both Scanning closure authorities use the
+    owner-accepted continuation and closure tests, and each Scanning-owned
+    closure statement carries the typed-gap guard. CSB and Capture retain their
+    existing authority boundaries without duplicating Scanning's closure rule.
+  non_claims:
+    - not validation or readiness
+    - not proof that a particular acquisition should continue or close
+    - not a schema consolidation
+    - not validator enforcement of semantic judgment
 ```

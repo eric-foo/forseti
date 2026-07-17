@@ -61,29 +61,6 @@ future agents may follow for product doctrine, architecture doctrine, workflow
 authority, validation philosophy, review authority, output authority, or a
 lifecycle boundary.
 
-Use these trigger values:
-
-- `product_doctrine`
-- `architecture_doctrine`
-- `workflow_authority`
-- `validation_philosophy`
-- `review_authority`
-- `output_authority`
-- `lifecycle_boundary`
-
-Each `direction_change_propagation` receipt keeps `trigger` as one primary
-trigger for backward compatibility and route clarity. If a source-changing edit
-materially touches additional doctrine dimensions, add `related_triggers` as a
-list using the same trigger vocabulary. `related_triggers` is discovery and
-routing metadata only: it does not replace the primary trigger, reduce the
-required controlling-source update, or reduce downstream surface checks.
-An additional doctrine dimension is material when it changes which downstream
-surface must be checked, changes which future agent route can rely on the
-receipt, or is explicitly identified by a source, review, or receipt as a
-secondary propagation risk. Do not add `related_triggers` for incidental topic
-overlap, examples, quoted vocabulary, or context that does not affect routing
-or downstream checks.
-
 Before claiming completion for doctrine-changing work, update the controlling
 source and check the downstream source-loaded surfaces that could continue to
 route agents by stale doctrine. At minimum, consider:
@@ -103,28 +80,26 @@ silently fork it. Where the same wording would otherwise be copied across
 surfaces, prefer pointing them at the single controlling source over duplicating
 it, so the copies cannot desynchronize.
 
-Store the propagation evidence inline in the changed artifact, prompt, handoff,
-or final closeout. A controlling file keeps at most the two most recent receipts
-inline. When adding a third, delete the oldest inline receipt; Git and PR history
-preserve it. Do not append new receipts to
-`docs/decisions/dcp_receipts_archive_v0.md`: that file is frozen legacy history.
-Existing archive-pointer lines may remain as historical notes, but new or changed
-DCP sections do not require one. Do not create another standalone receipt file.
+Record propagation evidence in the PR body or final closeout by default: name
+the controlling source, downstream routers checked, any intentionally unchanged
+surface, and the targeted stale-language search. This is lifecycle evidence for
+the current change, not new source authority.
 
-Cold-agent fast path: decide whether a durable rule changed; name its controlling
-source; consider the baseline surfaces above; record what was updated, checked,
-and intentionally unchanged; keep the receipt compact; run the diff-scoped shape
-check; and report semantic evidence separately. Do not read the legacy archive
-for ordinary doctrine work. Whole-repository audit is reserved for changes to
-the DCP contract/checker or explicit legacy-corpus repair.
+Do not add an inline receipt merely because doctrine changed. A durable
+`direction_change_propagation` receipt is exceptional: create one only when a
+distinct future consumer or lifecycle cannot use the PR/closeout evidence
+without reconstructing the authoring work. Keep it compact and colocated with
+that consumer; never create a standalone receipt file or append the frozen
+legacy archive. Existing receipts are historical provenance, not live rules.
 
-Use this receipt shape:
+When an exceptional durable receipt is required, use the seven controlled
+trigger values in this shape:
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: "<one sentence>"
   trigger: product_doctrine | architecture_doctrine | workflow_authority | validation_philosophy | review_authority | output_authority | lifecycle_boundary
-  related_triggers: [] # optional discovery/routing metadata; does not reduce required checks
+  related_triggers: [] # optional
   controlling_sources_updated: ["<path>"]
   downstream_surfaces_checked: ["<path>"]
   intentionally_not_updated:
@@ -133,14 +108,15 @@ direction_change_propagation:
   non_claims: ["not validation", "not readiness"]
 ```
 
-If propagation cannot be completed, return an explicit blocker instead of a
-completion claim:
+If propagation cannot be completed, report the blocking surface and allowed
+next step in the PR/closeout instead of claiming completion. Use a durable
+blocker only when the same distinct-consumer test above requires one:
 
 ```yaml
 direction_change_propagation_blocker:
   doctrine_changed: "<one sentence>"
   trigger: product_doctrine | architecture_doctrine | workflow_authority | validation_philosophy | review_authority | output_authority | lifecycle_boundary
-  related_triggers: [] # optional discovery/routing metadata; does not reduce required checks
+  related_triggers: [] # optional
   blocking_surface: "<missing, conflicting, or unchecked path/source>"
   attempted_check: "<what was attempted>"
   allowed_next_step: "<narrow action that would unblock propagation>"
@@ -152,94 +128,6 @@ direction_change_propagation_blocker:
 The receipt or blocker is propagation evidence only. It is not validation,
 readiness, approval, acceptance, proof, implementation authorization, or source
 promotion.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    DCP keeps its existing receipt schema and baseline-surface accountability
-    while retiring archive rotation: controlling files keep at most two inline
-    receipts, delete the oldest when adding a third, and never append the frozen
-    legacy archive; routine work uses diff-scoped shape/hygiene checks, while
-    whole-corpus audit is maintenance-only and reports receipt-relevant counts.
-  trigger: workflow_authority
-  related_triggers: [validation_philosophy, lifecycle_boundary]
-  controlling_sources_updated: [.agents/workflow-overlay/source-of-truth.md, .agents/workflow-overlay/validation-gates.md, .agents/hooks/check_dcp_receipt.py, .agents/hooks/check_dcp_receipt_hygiene.py, .agents/hooks/README.md, docs/decisions/dcp_receipts_archive_v0.md, docs/workflows/forseti_repo_map_v0.md]
-  downstream_surfaces_checked: [AGENTS.md, CLAUDE.md, .agents/workflow-overlay/README.md, .agents/workflow-overlay/source-loading.md, .agents/workflow-overlay/decision-routing.md, .agents/workflow-overlay/artifact-folders.md, .agents/workflow-overlay/communication-style.md, .agents/workflow-overlay/template-registry.md, .github/workflows/ci.yml]
-  intentionally_not_updated:
-    - {path: AGENTS.md, reason: "The kernel already routes doctrine-changing work to source-of-truth.md; receipt storage mechanics stay overlay-owned."}
-    - {path: .github/workflows/ci.yml, reason: "CI continues to run the same diff-scoped strict shape command; only checker output and audit scope change."}
-    - {path: existing archive-pointer lines, reason: "Forward-only transition: existing pointers remain historical notes and do not authorize new archive writes."}
-    - {path: legacy receipt corpus, reason: "No bulk migration or rewrite; existing receipts remain historical evidence under the unchanged schema."}
-  stale_language_search: 'rg -n -i "older receipts.*archiv|receipts.*cycled out|move.*dcp_receipts_archive|append.*dcp_receipts_archive|archive pointer|missing_dcp_archive_pointer|receipt-archiving rule" AGENTS.md CLAUDE.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/forseti_mini_god_tier_doctrine_v0.md'
-  stale_language_search_result: >
-    Executed 2026-07-11 after the patch. Remaining archive-pointer hits are
-    historical notes in untouched DCP sections or compatibility selftest
-    fixtures; the controlling contract, archive header, repo map, communication
-    owner, validation owner, and checker docs now state the frozen lifecycle.
-  non_claims: [not validation, not readiness, not receipt truth, not implementation authorization]
-```
-
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The subagent return-shape contract (prompt-orchestration.md, the
-    subagent-contract owner) now also covers execution / source-changing
-    subagents — ones that edit, install, commit, push, or open a PR. Their
-    schema-bound return must additionally carry lifecycle-verification fields
-    (branch, base and commit SHA, push/PR state, `merged` state) plus a
-    per-surface change list with one file:line cite each, so the dispatching CA
-    verifies the durable target on a fresh read per AGENTS.md rather than trust a
-    `done`. A raw diff dump is not a substitute (it is a prose dump in another
-    form), and `merged` must reflect observed state, never an assumption.
-    Additive extension of the orientation/research return rule directly above; it
-    binds only the return shape and leaves load-side ownership unchanged.
-  trigger: workflow_authority
-  related_triggers:
-    - output_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/source-of-truth.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/communication-style.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Routes subagent detail to the owning overlay file; the rule lives in
-        prompt-orchestration.md, so no root restatement is added.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        The index already names prompt-orchestration.md as the subagent-contract
-        owner; no new overlay section was added.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Prompt gates already defer to prompt-orchestration.md as the
-        prompt-mechanics owner; single-source preserved.
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        Governs human-facing chat output; the execution-return fields are
-        agent-facing verification data — complementary, no conflict.
-  stale_language_search: run
-  stale_language_search_result: >
-    rg -iE "diff dump|raw diff|merged|prose dump|execution.*subagent" across
-    .agents/workflow-overlay on 2026-06-14: the only return-rule hits are the
-    orientation/research rule directly above (extended here, not contradicted);
-    `merged` appears nowhere else, so no surface sanctioned an unverified
-    `merged` claim or a raw diff dump.
-  non_claims:
-    - not validation
-    - not readiness
-    - not approval or acceptance
-    - not source-of-truth promotion
-    - not implementation authorization
-```
-
-Legacy receipts #1–#13 remain frozen in `docs/decisions/dcp_receipts_archive_v0.md`; do not append or load them for ordinary work.
 
 ## Known Source Documents
 
