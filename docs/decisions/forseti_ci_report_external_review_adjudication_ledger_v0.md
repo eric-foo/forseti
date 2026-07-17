@@ -26,16 +26,16 @@ stale_if:
   - The owner reverses any ruling recorded here.
 ```
 
-Authority: owner rulings in chat, 2026-07-17. Status: OPEN — awaiting
-adjudication of 1-2 remaining external responses before the contract pass.
-Next source after the contract pass lands: the CSB contract files named in
-`open_next`.
+Authority: owner rulings in chat, 2026-07-17. Status: COMPLETE — all external
+input adjudicated (one session total); the contract pass awaits the owner's
+"go" plus the chain design handoff's returned proposal. Next source after the
+contract pass lands: the CSB contract files named in `open_next`.
 
 ## How this ledger works
 
-External evaluators (2-3 independent ChatGPT Pro sessions) assessed the Tower
-28 Phase 1 bundle (report + scan receipt + CSB board; Phase 2 excluded) for
-CI-worthiness. Each batch is adjudicated confirm-don't-trust against the
+One external ChatGPT Pro session assessed the Tower 28 Phase 1 bundle
+(report + scan receipt + CSB board; Phase 2 excluded) for CI-worthiness,
+returning two batches. Each batch is adjudicated confirm-don't-trust against the
 artifacts; every falsifiable claim is verified by direct read before
 acceptance. Batch 1's falsifiable defect claims verified 4-for-4 correct.
 
