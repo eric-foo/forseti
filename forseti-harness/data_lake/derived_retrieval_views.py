@@ -153,7 +153,8 @@ def build_undone_view(root) -> tuple[dict, list[str]]:
 
 _ACTIVE_SILVER_ENVELOPE_LANES = tuple(
     sorted(
-        lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE
+        (lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE),
+        key=lambda lane: (lane != OBSERVATION_LANE, lane),
     )
 )
 _CREATOR_METRIC_LANES = frozenset({OBSERVATION_LANE, ROLLUP_LANE})
@@ -193,6 +194,14 @@ def _classified_silver_sweep(
                 )
                 continue
             if (
+                cache_session is not None
+                and lane == OBSERVATION_LANE
+                and isinstance(record, dict)
+            ):
+                cache_session.register_creator_metric_observation(
+                    record, record_path=path
+                )
+            if (
                 not isinstance(record, dict)
                 or record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION
             ):
@@ -209,7 +218,9 @@ def _classified_silver_sweep(
             cache_key = None
             authority = None
             if cache_session is not None:
-                cache_key, authority = cache_session.lookup(record)
+                cache_key, authority = cache_session.lookup(
+                    record, record_path=path
+                )
             if authority is None:
                 if (
                     record.get("lane_namespace") in _CREATOR_METRIC_LANES

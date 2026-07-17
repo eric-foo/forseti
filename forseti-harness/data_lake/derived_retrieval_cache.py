@@ -19,7 +19,13 @@ from data_lake.root import (
     ROOT_MARKER_FILENAME,
     raw_shard,
 )
-from data_lake.silver_record import SilverSourceAuthority
+from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    HISTORICAL_COMPATIBLE_AUTHORITY,
+    INVALID_SILVER_AUTHORITY,
+    UNRESOLVED_SILVER_AUTHORITY,
+    SilverSourceAuthority,
+)
 from harness_utils import sha256_bytes
 
 CACHE_SCHEMA_VERSION = "derived_retrieval_classification_cache_v1"
@@ -32,11 +38,25 @@ CACHE_PARTS = (
     "classification_cache.json",
 )
 _CLASSIFIER_SOURCE_NAMES = (
+    "derived_retrieval_cache.py",
     "silver_record.py",
     "silver_compatibility.py",
     "creator_metric_lineage.py",
+    "catalog.py",
+    "attachment_record_entry.py",
+    "canonical_json.py",
+    "root.py",
+    "../harness_utils.py",
 )
 _CREATOR_METRIC_LANES = frozenset({OBSERVATION_LANE, ROLLUP_LANE})
+_VALID_AUTHORITY_STATUSES = frozenset(
+    {
+        CURRENT_SOURCE_BACKED_AUTHORITY,
+        HISTORICAL_COMPATIBLE_AUTHORITY,
+        INVALID_SILVER_AUTHORITY,
+        UNRESOLVED_SILVER_AUTHORITY,
+    }
+)
 
 
 def _file_state(path: Path) -> dict[str, Any]:
@@ -200,6 +220,7 @@ def _reference_fingerprint(
     *,
     packet_state_cache: dict[tuple[str, bool], list[dict[str, Any]]],
     catalog_fingerprint: str | None,
+    creator_metric_observation_candidates: Mapping[str, list[dict[str, Any]]],
 ) -> tuple[str, bool]:
     lane = record.get("lane_namespace")
     creator_metric = lane in _CREATOR_METRIC_LANES
@@ -226,11 +247,12 @@ def _reference_fingerprint(
     for ref in record.get("derived_refs", []):
         row: dict[str, Any] = {"kind": "derived", "ref": ref}
         if isinstance(ref, Mapping):
+            ref_lane = ref.get("lane_namespace", ref.get("lane"))
             try:
                 path = root.record_path(
                     subtree="derived",
                     raw_anchor=str(ref["raw_anchor"]),
-                    lane=str(ref.get("lane_namespace", ref.get("lane"))),
+                    lane=str(ref_lane),
                     record_id=str(ref["record_id"]),
                 )
             except (KeyError, TypeError, ValueError):
@@ -243,6 +265,11 @@ def _reference_fingerprint(
                     and ref.get("content_hash") is None
                 ):
                     row["unclaimed_bytes"] = _file_state(path)
+                if ref_lane == OBSERVATION_LANE:
+                    record_id = ref.get("record_id")
+                    row["creator_metric_observation_candidates"] = (
+                        creator_metric_observation_candidates.get(str(record_id), [])
+                    )
         rows.append(row)
     if attachment_backed:
         rows.append({"kind": "bronze_catalog", "fingerprint": catalog_fingerprint})
@@ -264,6 +291,10 @@ class ClassificationCacheSession:
             tuple[str, bool], list[dict[str, Any]]
         ] = {}
         self._catalog_fingerprint: str | None = None
+        self._creator_metric_observation_candidates: dict[
+            str, list[dict[str, Any]]
+        ] = {}
+        self._creator_metric_observation_positions: dict[str, tuple[str, int]] = {}
         if use_existing:
             self._load()
 
@@ -279,12 +310,18 @@ class ClassificationCacheSession:
         if (
             not isinstance(payload, dict)
             or payload.get("cache_schema_version") != CACHE_SCHEMA_VERSION
+            or payload.get("classifier_version") != self.classifier_version
             or not isinstance(payload.get("verdicts"), dict)
         ):
             return
         self.verdicts = dict(payload["verdicts"])
 
-    def _key(self, record: Mapping[str, Any]) -> str | None:
+    def _key(
+        self,
+        record: Mapping[str, Any],
+        *,
+        record_path: Path | None = None,
+    ) -> str | None:
         content_hash = record.get("content_hash")
         if not isinstance(content_hash, str) or not content_hash:
             return None
@@ -300,6 +337,9 @@ class ClassificationCacheSession:
             record,
             packet_state_cache=self._packet_state_cache,
             catalog_fingerprint=self._catalog_fingerprint,
+            creator_metric_observation_candidates=(
+                self._creator_metric_observation_candidates
+            ),
         )
         key_parts = {
             "content_hash": content_hash,
@@ -309,15 +349,77 @@ class ClassificationCacheSession:
                 self.lineage_fingerprint if creator_metric else None
             ),
         }
-        return sha256_bytes(canonical_record_bytes(key_parts))
+        key = sha256_bytes(canonical_record_bytes(key_parts))
+        if record.get("lane_namespace") == OBSERVATION_LANE:
+            self._register_creator_metric_observation(
+                record, key, record_path=record_path
+            )
+        return key
 
-    def lookup(self, record: Mapping[str, Any]) -> tuple[str | None, SilverSourceAuthority | None]:
-        key = self._key(record)
+    def _register_creator_metric_observation(
+        self,
+        record: Mapping[str, Any],
+        key: str | None,
+        *,
+        record_path: Path | None,
+    ) -> None:
+        record_id = record.get("record_id")
+        if not isinstance(record_id, str) or not record_id:
+            return
+        identity = (
+            str(record_path.resolve())
+            if record_path is not None
+            else sha256_bytes(canonical_record_bytes(record))
+        )
+        candidate = {
+            "cache_key": key,
+            "path": str(record_path) if record_path is not None else None,
+            "record_fingerprint": sha256_bytes(canonical_record_bytes(record)),
+        }
+        position = self._creator_metric_observation_positions.get(identity)
+        if position is not None:
+            existing_record_id, index = position
+            self._creator_metric_observation_candidates[existing_record_id][index] = (
+                candidate
+            )
+            return
+        candidates = self._creator_metric_observation_candidates.setdefault(record_id, [])
+        self._creator_metric_observation_positions[identity] = (
+            record_id, len(candidates)
+        )
+        candidates.append(candidate)
+
+    def register_creator_metric_observation(
+        self, record: Mapping[str, Any], *, record_path: Path
+    ) -> None:
+        """Register a physical lineage candidate before envelope filtering."""
+        self._register_creator_metric_observation(
+            record, None, record_path=record_path
+        )
+
+    def lookup(
+        self,
+        record: Mapping[str, Any],
+        *,
+        record_path: Path | None = None,
+    ) -> tuple[str | None, SilverSourceAuthority | None]:
+        key = self._key(record, record_path=record_path)
         if key is None:
             self.uncacheable += 1
             return None, None
         cached = self.verdicts.get(key)
         if not isinstance(cached, dict):
+            self.misses += 1
+            return key, None
+        if (
+            cached.get("status") not in _VALID_AUTHORITY_STATUSES
+            or not isinstance(cached.get("reason_code"), str)
+            or not cached["reason_code"]
+            or (
+                cached.get("error") is not None
+                and not isinstance(cached.get("error"), str)
+            )
+        ):
             self.misses += 1
             return key, None
         try:
