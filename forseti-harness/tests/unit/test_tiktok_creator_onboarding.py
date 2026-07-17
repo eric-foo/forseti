@@ -58,6 +58,8 @@ def _capture(
     items: Sequence[dict[str, object]] = (),
     suggested: list[dict[str, object]] | None = None,
     dom_view_text_by_id: dict[str, str] | None = None,
+    hydration_payload: dict[str, object] | None = None,
+    profile_metric_dom: dict[str, object] | None = None,
 ) -> BrowserPageObservationSuccess:
     # Immutable-tuple defaults keep the signature safe; convert to fresh lists
     # per call so downstream behavior matches the previous explicit [] kwargs.
@@ -88,8 +90,14 @@ def _capture(
                 }
                 for index, video_id in enumerate(ordered_ids, start=1)
             ],
-            "hydration_json_text": None,
+            "hydration_json_text": (
+                json.dumps(hydration_payload)
+                if hydration_payload is not None
+                else None
+            ),
         }
+        if profile_metric_dom is not None:
+            dom["profile_metric_dom"] = profile_metric_dom
     return BrowserPageObservationSuccess(
         requested_url="https://www.tiktok.com/@creator",
         final_url="https://www.tiktok.com/@creator",
@@ -267,6 +275,93 @@ def test_grid_window_preserves_source_visible_order_and_complete_metrics() -> No
 
     assert [item["video_id"] for item in window["items"]] == ["3", "1", "2"]
     assert [item["stats"]["playCount"] for item in window["items"]] == [300, 100, 200]
+
+
+def test_grid_window_captures_exact_profile_metrics_from_matching_hydration() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 100, 10)],
+        hydration_payload={
+            "__DEFAULT_SCOPE__": {
+                "webapp.user-detail": {
+                    "userInfo": {
+                        "user": {"uniqueId": "Creator"},
+                        "stats": {"followerCount": 12_345, "heartCount": 678_901},
+                    }
+                }
+            }
+        },
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=1,
+    )
+
+    assert window["profile_metric_capture_policy_version"] == "tiktok_profile_metric_capture_v0"
+    assert window["profile_metrics"]["follower_count"]["exact_value_or_none"] == 12_345
+    assert window["profile_metrics"]["profile_total_like_count"]["exact_value_or_none"] == 678_901
+    assert all(
+        cell["posture"] == "observed"
+        for cell in window["profile_metrics"].values()
+    )
+
+
+def test_grid_window_uses_exact_dom_profile_counts_but_rejects_compact_text() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 100, 10)],
+        profile_metric_dom={
+            "follower_count": {
+                "element_present": True,
+                "raw_text_or_none": "12,345",
+            },
+            "profile_total_like_count": {
+                "element_present": True,
+                "raw_text_or_none": "1.2M",
+            },
+        },
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=1,
+    )
+
+    follower = window["profile_metrics"]["follower_count"]
+    likes = window["profile_metrics"]["profile_total_like_count"]
+    assert follower["posture"] == "observed"
+    assert follower["exact_value_or_none"] == 12_345
+    assert likes["posture"] == "unavailable_with_reason"
+    assert likes["exact_value_or_none"] is None
+    assert likes["raw_text_or_none"] == "1.2M"
+    assert likes["reason_or_none"] == "profile_header_dom_compact_or_non_integer"
+
+
+def test_grid_window_ignores_mismatched_profile_hydration_identity() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 100, 10)],
+        hydration_payload={
+            "userInfo": {
+                "user": {"uniqueId": "other_creator"},
+                "stats": {"followerCount": 999_999, "heartCount": 888_888},
+            }
+        },
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=1,
+    )
+
+    assert all(
+        cell["posture"] == "unavailable_with_reason"
+        for cell in window["profile_metrics"].values()
+    )
 
 
 def test_grid_acquisition_reveals_one_batch_then_requires_two_stable_dom_polls(

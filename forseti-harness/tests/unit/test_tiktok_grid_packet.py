@@ -12,7 +12,11 @@ from source_capture.tiktok.grid_packet import (
 )
 
 
-def _grid_bytes(*, observed_at: str | None = "2026-07-13T01:02:03Z") -> bytes:
+def _grid_bytes(
+    *,
+    observed_at: str | None = "2026-07-13T01:02:03Z",
+    profile_metrics: bool = False,
+) -> bytes:
     payload = {
         "creator_handle": "creator",
         "window_size": 2,
@@ -35,6 +39,26 @@ def _grid_bytes(*, observed_at: str | None = "2026-07-13T01:02:03Z") -> bytes:
         ],
         "collection_receipt": {"capture_timestamp": observed_at},
     }
+    if profile_metrics:
+        payload["profile_metric_capture_policy_version"] = "tiktok_profile_metric_capture_v0"
+        payload["profile_metrics"] = {
+            "follower_count": {
+                "source_field": "followerCount",
+                "exact_value_or_none": 1_234,
+                "posture": "observed",
+                "reason_or_none": None,
+                "source_route": "profile_hydration:profile_user_info_stats",
+                "raw_text_or_none": "1234",
+            },
+            "profile_total_like_count": {
+                "source_field": "heartCount",
+                "exact_value_or_none": None,
+                "posture": "unavailable_with_reason",
+                "reason_or_none": "profile_header_dom_compact_or_non_integer",
+                "source_route": "profile_header_dom",
+                "raw_text_or_none": "1.2M",
+            },
+        }
     return json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
 
@@ -57,6 +81,39 @@ def test_grid_packet_preserves_supplied_grid_bytes_exactly(tmp_path: Path) -> No
     )
     assert manifest["source_surface"] == TIKTOK_GRID_PACKET_SOURCE_SURFACE
     assert (packet_dir / preserved["relative_packet_path"]).read_bytes() == raw
+
+
+def test_grid_packet_emits_typed_profile_metric_observations(tmp_path: Path) -> None:
+    code, packet_dir_text = write_tiktok_grid_packet(
+        grid_window_json=_grid_bytes(profile_metrics=True),
+        output_directory=tmp_path / "profile-metrics",
+    )
+
+    assert code == 0
+    manifest = json.loads(
+        (Path(packet_dir_text) / "manifest.json").read_text(encoding="utf-8")
+    )
+    observations = {
+        row["metric"]: row
+        for row in manifest["source_slices"][0]["metric_observations"]
+    }
+    assert observations["follower_count"]["posture"] == "observed"
+    assert observations["follower_count"]["value"] == 1_234
+    assert observations["profile_total_like_count"]["posture"] == (
+        "unavailable_with_reason"
+    )
+    assert observations["profile_total_like_count"]["value"] is None
+
+
+def test_grid_packet_rejects_partial_profile_metric_contract(tmp_path: Path) -> None:
+    payload = json.loads(_grid_bytes(profile_metrics=True))
+    del payload["profile_metrics"]["profile_total_like_count"]
+
+    with pytest.raises(ValueError, match="exactly the two profile metrics"):
+        write_tiktok_grid_packet(
+            grid_window_json=json.dumps(payload).encode("utf-8"),
+            output_directory=tmp_path / "partial-profile-metrics",
+        )
 
 
 def test_grid_packet_preserves_supplied_session_identity(tmp_path: Path) -> None:
