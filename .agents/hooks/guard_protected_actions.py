@@ -16,8 +16,9 @@ must never take unattended:
           flow, and allows rebase recovery commands so an existing rebase is never
           trapped.
          Landing a PR to main (`gh pr merge <N>`) is CONDITIONALLY allowed: the
-         guard queries the PR and allows the merge ONLY when it is mergeStateStatus
-         == CLEAN, every CI check has completed green, it carries the opt-in
+         guard queries the PR and allows the merge ONLY when mergeable ==
+         MERGEABLE, mergeStateStatus is CLEAN or BEHIND, every CI check has
+         completed green, and it carries the opt-in
          `agent-automerge` label, the PR head matches the current lane branch,
          and the router did NOT flag it `risk/blocked-for-merge-policy`.
          `risk/manual-review-required` remains an unattended-bot exclusion and
@@ -50,8 +51,9 @@ Authorized exceptions: run the action yourself, or temporarily remove this hook.
 Contract: reads the PreToolUse JSON on stdin; exit 2 + stderr = BLOCK; exit 0 =
 allow. On any internal error the NON-merge paths fail OPEN (exit 0) to avoid
 bricking the agent. The merge-authorization path is the deliberate exception: it
-fails CLOSED (block) on any lookup error, timeout, parse failure, or non-CLEAN
-state, because an erroneous ALLOW there would land unattended code on main. Its
+fails CLOSED (block) on any lookup error, timeout, parse failure, unmergeable
+state, or mergeStateStatus other than CLEAN/BEHIND, because an erroneous ALLOW
+there would land unattended code on main. Its
 `gh` lookup is self-limited to GH_TIMEOUT (< the hook's own timeout) so the guard
 returns its own block before any harness-level timeout-kill could fail open.
 """
@@ -238,7 +240,7 @@ def _history_rewrite_kind(seg):
     return None
 
 
-# --- EP-03: conditional `gh pr merge` (CLEAN self-merge) -------------------
+# --- EP-03: conditional `gh pr merge` (conflict-free green self-merge) -----
 def _parse_pr_ref(rest):
     """`rest` = text after `gh pr merge`. Return an explicit PR number string, or
     None. Accepts a bare integer or a `.../pull/<n>` URL; a branch name or no
@@ -284,7 +286,7 @@ def _query_pr_state(pr):
     wraps this in try/except and treats every failure as a CLOSED block)."""
     out = subprocess.run(
         ["gh", "pr", "view", str(pr), "--repo", REPO_SLUG,
-         "--json", ("number,mergeStateStatus,statusCheckRollup,labels,"
+         "--json", ("number,mergeable,mergeStateStatus,statusCheckRollup,labels,"
                     "headRefName,baseRefName,isCrossRepository")],
         capture_output=True, text=True, timeout=GH_TIMEOUT,
     )
@@ -297,9 +299,10 @@ def _merge_decision(pr_ref, lookup):
     """Decide one `gh pr merge` segment. Return None to ALLOW, else a block reason.
 
     FAIL CLOSED: a missing/ambiguous PR number, any lookup error or timeout, a
-    non-main/fork PR, a PR whose head is not the current lane branch, a non-CLEAN
-    mergeStateStatus, an empty/non-green check set, a router policy-block label,
-    or a missing opt-in label all block. Only an explicit own-lane, CLEAN,
+    non-main/fork PR, a PR whose head is not the current lane branch, a PR that
+    is not explicitly MERGEABLE, a mergeStateStatus outside CLEAN/BEHIND, an
+    empty/non-green check set, a router policy-block label, or a missing opt-in
+    label all block. Only an explicit own-lane, conflict-free CLEAN-or-BEHIND,
     all-checks-green, `agent-automerge`-labeled PR without a live mechanical
     policy block is allowed to self-merge. Static manual-review routing remains
     a resident completion gate, not a merge-actor selector."""
@@ -325,9 +328,13 @@ def _merge_decision(pr_ref, lookup):
         return ("EP-03 merge blocked - PR %s head branch '%s' does not match "
                 "the current lane branch '%s' (own-lane check)"
                 % (pr_ref, head_branch or "?", current_branch or "?"))
+    mergeable = state.get("mergeable")
+    if mergeable != "MERGEABLE":
+        return ("EP-03 merge blocked - PR %s mergeable=%s, not MERGEABLE"
+                % (pr_ref, mergeable or "?"))
     mss = state.get("mergeStateStatus")
-    if mss != "CLEAN":
-        return ("EP-03 merge blocked - PR %s mergeStateStatus=%s, not CLEAN"
+    if mss not in {"CLEAN", "BEHIND"}:
+        return ("EP-03 merge blocked - PR %s mergeStateStatus=%s, not CLEAN/BEHIND"
                 % (pr_ref, mss or "?"))
     rollup = state.get("statusCheckRollup") or []
     if not rollup:
@@ -344,7 +351,7 @@ def _merge_decision(pr_ref, lookup):
     if AUTOMERGE_LABEL not in labels:
         return ("EP-03 merge blocked - PR %s missing opt-in label '%s'"
                 % (pr_ref, AUTOMERGE_LABEL))
-    return None  # own lane + CLEAN + green + opt-in + no policy block → allow
+    return None  # own lane + MERGEABLE + CLEAN/BEHIND + green + opt-in → allow
 
 
 def _shell_block_reason(cmd, lookup=None, publication_lookup=None):
@@ -435,8 +442,8 @@ _BLOCK_MSG = (
     "(push-to-main / force-push / destructive-clean / published-branch rebase are "
     "blocked, and edits to "
     "jb/external/installed skills, unless explicitly authorized; `gh pr merge <N>` "
-    "self-merge is allowed ONLY for a CLEAN + CI-green + '" + AUTOMERGE_LABEL +
-    "'-labeled PR). Fires in all modes incl. auto.\n"
+    "self-merge is allowed ONLY for a MERGEABLE + CLEAN/BEHIND + CI-green + '" +
+    AUTOMERGE_LABEL + "'-labeled PR). Fires in all modes incl. auto.\n"
     "Authorized exception: a human lands the PR with the command above, or remove "
     "this hook. An explicit lane push `git push -u origin <lane>` is allowed; "
     "published lanes update from main with fetch + merge, not rebase."
@@ -485,8 +492,14 @@ def _selftest():
         "112": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL}],
                 "_currentBranch": None},                              # detached/unresolved checkout
+        "113": {"mergeStateStatus": "BEHIND", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}]},              # stale but conflict-free
+        "114": {"mergeable": "CONFLICTING", "mergeStateStatus": "CLEAN",
+                "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}]},              # conflict must block
     }
     for _state in _FAKE.values():
+        _state.setdefault("mergeable", "MERGEABLE")
         _state.setdefault("headRefName", "codex/example-lane")
         _state.setdefault("baseRefName", "main")
         _state.setdefault("isCrossRepository", False)
@@ -515,6 +528,8 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 110"}, True, _fake),                            # non-main base
         ("Bash", {"command": "gh pr merge 111"}, True, _fake),                            # missing PR head
         ("Bash", {"command": "gh pr merge 112"}, True, _fake),                            # detached/unresolved checkout
+        ("Bash", {"command": "gh pr merge 113"}, False, _fake),                           # BEHIND+MERGEABLE+green -> ALLOW
+        ("Bash", {"command": "gh pr merge 114"}, True, _fake),                            # conflict blocks even if CLEAN
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
