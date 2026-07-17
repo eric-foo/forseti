@@ -116,9 +116,13 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         (
             "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py",
             "append_silver_record",
-        ): 1,
+        ): 2,
         (
             "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py",
+            "record_path",
+        ): 2,
+        (
+            "runners/run_source_capture_tiktok_daily_heartbeat.py",
             "record_path",
         ): 1,
         (

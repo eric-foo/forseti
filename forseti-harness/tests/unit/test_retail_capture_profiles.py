@@ -6,6 +6,8 @@ import pytest
 
 from runners import run_source_capture_cloakbrowser_packet as cloakbrowser_runner
 from source_capture.retail_capture_profiles import (
+    extract_amazon_asin_from_url,
+    extract_amazon_search_query_from_url,
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
@@ -57,6 +59,9 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     )
     assert get_retail_capture_profile("amazon_pdp_distribution").settle_seconds == 0.0
     assert get_retail_capture_profile("amazon_grid_aggregate").scroll_passes == 0
+    assert get_retail_capture_profile("amazon_pdp_distribution").derive_target_asin_from_url is True
+    assert get_retail_capture_profile("amazon_pdp_aggregate").derive_target_asin_from_url is True
+    assert get_retail_capture_profile("amazon_grid_aggregate").derive_target_query_from_url is True
 
 
 def test_amazon_distribution_profile_accepts_changing_values_but_requires_full_data() -> None:
@@ -104,6 +109,210 @@ $25.50
         "customers mention" in reason
         for reason in missing_insights.failure_reasons
     )
+
+
+def test_extract_amazon_asin_from_url_reads_dp_and_gp_product_paths() -> None:
+    assert (
+        extract_amazon_asin_from_url("https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK")
+        == "B07XXPHQZK"
+    )
+    assert (
+        extract_amazon_asin_from_url("https://www.amazon.com/gp/product/B07TOWER28?ref=x")
+        == "B07TOWER28"
+    )
+    assert extract_amazon_asin_from_url("https://www.amazon.com/s?k=lip+mask") is None
+
+
+def test_amazon_distribution_profile_no_longer_hardcodes_a_laneige_identity_literal() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_distribution")
+
+    assert "LANEIGE Lip Sleeping Mask" not in profile.requirements.visible_text_contains
+    assert not any(
+        "B07XXPHQZK" in pattern for pattern in profile.requirements.rendered_dom_regexes
+    )
+
+
+def test_amazon_distribution_profile_validates_the_captured_skus_own_asin() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_distribution")
+    tower28_visible_text = """
+Tower 28 Beauty SOS Rescue Spray
+New York 10001
+In Stock
+12K+ bought in past month
+$16.00
+4.6 out of 5 stars
+9,204 global ratings
+5 star 78%
+4 star 13%
+3 star 5%
+2 star 2%
+1 star 2%
+"""
+    tower28_rendered_dom = """
+<html><body>
+<input name="currencyOfPreference" value="USD">
+<input id="ASIN" value="B07TOWER28">
+<a href="/gp/customer-reviews/R1TOWER28REVIEW">Read more</a>
+<div>820 customers mention soothing</div>
+</body></html>
+"""
+
+    requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/Tower-28-Beauty-SOS-Rescue-Spray/dp/B07TOWER28",
+    )
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom=tower28_rendered_dom,
+    )
+    assert result.passed is True
+
+    wrong_sku_requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/Some-Other-Product/dp/B0WRONGASN",
+    )
+    wrong_sku_result = evaluate_source_detail_sufficiency(
+        requirements=wrong_sku_requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom=tower28_rendered_dom,
+    )
+    assert wrong_sku_result.passed is False
+    assert any("B0WRONGASN" in reason for reason in wrong_sku_result.failure_reasons)
+
+
+def test_amazon_distribution_profile_requires_a_derivable_asin_in_the_capture_url() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_distribution")
+
+    with pytest.raises(ValueError, match="requires an Amazon ASIN"):
+        profile.requirements_for_capture(url="https://www.amazon.com/s?k=lip+mask")
+
+
+def test_amazon_pdp_aggregate_profile_no_longer_hardcodes_a_laneige_identity_literal() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_aggregate")
+
+    assert "LANEIGE Lip Sleeping Mask" not in profile.requirements.visible_text_contains
+    assert not any(
+        "B07XXPHQZK" in pattern for pattern in profile.requirements.rendered_dom_regexes
+    )
+
+
+def test_amazon_pdp_aggregate_profile_validates_the_captured_skus_own_asin() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_aggregate")
+    tower28_visible_text = """
+Tower 28 Beauty SOS Rescue Spray
+New York 10001
+In Stock
+12K+ bought in past month
+$16.00
+4.6 out of 5 stars
+9,204 global ratings
+"""
+    tower28_rendered_dom = """
+<html><body>
+<input name="currencyOfPreference" value="USD">
+<input id="ASIN" value="B07TOWER28">
+<a href="/gp/customer-reviews/R1TOWER28REVIEW">Read more</a>
+</body></html>
+"""
+
+    requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/Tower-28-Beauty-SOS-Rescue-Spray/dp/B07TOWER28",
+    )
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom=tower28_rendered_dom,
+    )
+    assert result.passed is True
+
+    wrong_sku_requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/Some-Other-Product/dp/B0WRONGASN",
+    )
+    wrong_sku_result = evaluate_source_detail_sufficiency(
+        requirements=wrong_sku_requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom=tower28_rendered_dom,
+    )
+    assert wrong_sku_result.passed is False
+    assert any("B0WRONGASN" in reason for reason in wrong_sku_result.failure_reasons)
+
+
+def test_amazon_pdp_aggregate_profile_requires_a_derivable_asin_in_the_capture_url() -> None:
+    profile = get_retail_capture_profile("amazon_pdp_aggregate")
+
+    with pytest.raises(ValueError, match="requires an Amazon ASIN"):
+        profile.requirements_for_capture(url="https://www.amazon.com/s?k=lip+mask")
+
+
+def test_extract_amazon_search_query_from_url_reads_the_k_parameter() -> None:
+    assert (
+        extract_amazon_search_query_from_url("https://www.amazon.com/s?k=Tower+28+Beauty")
+        == "Tower 28 Beauty"
+    )
+    assert (
+        extract_amazon_search_query_from_url(
+            "https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK"
+        )
+        is None
+    )
+    assert extract_amazon_search_query_from_url("https://www.amazon.com/s?k=") is None
+
+
+def test_amazon_grid_aggregate_profile_no_longer_hardcodes_a_laneige_identity_literal() -> None:
+    profile = get_retail_capture_profile("amazon_grid_aggregate")
+
+    assert "LANEIGE Lip Sleeping Mask" not in profile.requirements.visible_text_contains
+    assert not any(
+        "B07XXPHQZK" in pattern for pattern in profile.requirements.rendered_dom_regexes
+    )
+
+
+def test_amazon_grid_aggregate_profile_validates_the_captured_search_query() -> None:
+    profile = get_retail_capture_profile("amazon_grid_aggregate")
+    tower28_visible_text = """
+1-48 of 214 results for "Tower 28 Beauty"
+New York 10001
+Tower 28 Beauty SOS Rescue Spray
+4.6 out of 5 stars (9.2K)
+$16.00
+12K+ bought in past month
+"""
+
+    requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/s?k=Tower+28+Beauty",
+    )
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom="<html><body>ordinary grid markup</body></html>",
+    )
+    assert result.passed is True
+
+    wrong_query_requirements = profile.requirements_for_capture(
+        url="https://www.amazon.com/s?k=Some+Other+Brand",
+    )
+    wrong_query_result = evaluate_source_detail_sufficiency(
+        requirements=wrong_query_requirements,
+        access_block_reason=None,
+        visible_text=tower28_visible_text,
+        rendered_dom="<html><body>ordinary grid markup</body></html>",
+    )
+    assert wrong_query_result.passed is False
+    assert any(
+        "Some" in reason and "Other" in reason and "Brand" in reason
+        for reason in wrong_query_result.failure_reasons
+    )
+
+
+def test_amazon_grid_aggregate_profile_requires_a_derivable_search_query_in_the_capture_url() -> None:
+    profile = get_retail_capture_profile("amazon_grid_aggregate")
+
+    with pytest.raises(ValueError, match="requires a non-empty Amazon search query"):
+        profile.requirements_for_capture(url="https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK")
 
 
 def test_sephora_distribution_profile_accepts_current_color_prose_without_colon() -> None:

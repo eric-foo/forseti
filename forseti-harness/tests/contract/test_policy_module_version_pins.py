@@ -49,10 +49,13 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "TIKTOK_GRID_OBSERVATION_POLICY_VERSION",
             "TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION",
             "TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_POLICY_VERSION",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_POLICY_FINGERPRINT",
         ),
-        # Output-shaping v1: admitted onboarding batch grid windows now produce
-        # the same packet-grain metric set and prior not-applicable acks resurface.
-        "77cc704f5c618c6e57140eb2df91e673480f1ff4308e809cfb2a0f3baa7cf1d9",
+        # Output-shaping profile v0 adds two deterministic exact-or-unavailable
+        # account metric records; incumbent per-video set bytes remain unchanged.
+        "30dae4e4fd3f51621ff6442498de89d48f5b0e7c7b064d31179fe49b8d02d905",
     ),
     "cleaning/_shared.py": (
         (
@@ -165,9 +168,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
-        # Pin bumped: targeted content-record parsing is separately schema/versioned;
-        # existing raw/legacy projection row semantics remain unchanged.
-        "d391ab4975e8c16d793124efad47b757b90d96b8fee13d055bea8edbb4737f59",
+        # Pin bumped: corrected a latent in-memory hash-basis literal; the anchor is
+        # discarded before serialization, so projection outputs remain unchanged.
+        "efb6592a166cb7aa8c064a05a68ab4d9213d7b62b8b3450f8262254a66408a1a",
     ),
     "source_capture/projection_shared.py": (
         (

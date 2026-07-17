@@ -168,7 +168,7 @@ def run_source_capture_cloakbrowser_packet(
         source_detail_sufficiency_requirements = (
             merge_source_detail_sufficiency_requirements(
                 source_detail_sufficiency_requirements,
-                retail_capture_profile.requirements,
+                retail_capture_profile.requirements_for_capture(url=url),
             )
         )
 

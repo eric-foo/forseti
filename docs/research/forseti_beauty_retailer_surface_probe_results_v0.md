@@ -7,10 +7,11 @@ scope: >
   Records bounded, subject-bound retailer page-state observations commissioned
   by the Beauty Retailer Surface Probe handoff. Target x Naturium, Nordstrom x
   Nécessaire, and Luckyscent x Pearfat Parfum are complete with their pin and
-  projection limitations typed explicitly.
+  projection limitations typed explicitly. Owner-authorized Tower 28 price,
+  certification-directory, and diversion add-on reads are also recorded.
 use_when:
   - Comparing public retailer assortment, offer, review, and claims surfaces for accepted beauty-pool companies.
-  - Retrieving canonical packet locators and limits for the three completed probes.
+  - Retrieving canonical packet locators and limits for the three completed probes and the Tower 28 add-on reads.
 authority_boundary: evidence_register_only
 open_next:
   - docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md
@@ -28,9 +29,12 @@ stale_if:
 | 1 | Target x Naturium | `COMPLETE_POINT_IN_TIME_PROBE` |
 | 2 | Nordstrom x Nécessaire | `COMPLETE_US_USD_STOREFRONT_DELIVERY_UNPINNED` |
 | 3 | Luckyscent x Pearfat Parfum | `COMPLETE_POINT_IN_TIME_PROBE_CONTEXT_UNPINNED` |
+| Add-on | Tower 28 price / certification / diversion reads | `COMPLETE_WITH_TYPED_AMAZON_MAKEWAVES_GAP` |
 
-This artifact completes the three-retailer sequence. It does not re-run the
-existing Sephora, Ulta, Walmart, or Amazon US coverage.
+This artifact completes the three-retailer sequence and separately records the
+owner-authorized Tower 28 add-on reads. The add-on used the existing Sephora
+and Amazon US routes for its bound subjects; it did not begin the separate
+Sephora storefront-pin reconciliation.
 
 ## Target x Naturium
 
@@ -629,8 +633,289 @@ observations:
   - snapshot metadata:
     `4190247c38916c71e0e5c5383e1145276d87a3cd69a5c9c6ad4921455724ed54`
 
+## Tower 28 subject-bound add-on reads
+
+### Method, preservation, and admission
+
+- Owner authorization date: `2026-07-18` Asia/Singapore. Capture timestamps
+  below are `2026-07-17` UTC.
+- Price-ladder subjects: LipSoftie Lip Treatment, MakeWaves Mascara, and SOS
+  Rescue Spray. Tower 28 DTC pages were preserved by Direct HTTP; their three
+  bound Sephora US PDPs were preserved through anonymous CloakBrowser with a
+  five-second settle, progressive scrolling, and fail-closed subject, price,
+  Auto-Replenish, and access checks.
+- This was an ordinary-operation shelf read. No event code, first-order code,
+  account, login, stored profile, cookie injection, proxy, or cart interaction
+  was used. Displayed shelf, bundle, and recurring-plan allocations are kept
+  distinct.
+- The certification read used Tower 28's captured PDP claims, PETA's own
+  company page and directory PDF, and Leaping Bunny's own directory form and
+  exact `title=Tower28 Beauty` query. Third-party trackers were not cited.
+- The diversion read re-preserved Tower 28's stores page because its
+  conclusion-bearing authorized-channel and anti-diversion wording met the
+  handoff's preservation trigger. Amazon discovery and PDPs used the existing
+  anonymous ZIP `10001` route. Two PDPs confirmed the US pin; MakeWaves
+  redirected to Amazon Singapore and is a typed gap.
+- All 17 manifests and receipts were fresh-read after capture. Every packet ID
+  matched its directory, every receipt carried that ID, and every preserved
+  file matched its manifest SHA-256 and byte length.
+
+### Price-ladder arithmetic
+
+All prices are displayed USD page state. Percent differences use the DTC
+single-purchase unit price as the base unless stated otherwise.
+
+| SKU and compared size | DTC single | DTC recurring allocation | DTC bundle / larger state | Sephora US shelf | Sephora Auto-Replenish |
+| --- | --- | --- | --- | --- | --- |
+| LipSoftie, 11 g / 0.38 oz | `$16 / 11 g = $1.45/g` | `$14.40 / 11 g = $1.31/g`; `(16 - 14.40) / 16 = 10%` | Duo: `$30 / 2 = $15 each`, `$30 / 22 g = $1.36/g`, `6.25%` below single. Four-set: `$56 / 4 = $14 each`, `$56 / 44 g = $1.27/g`, `12.5%` below single. | `$16 / 11 g = $1.45/g`; no package-price divergence from DTC single | `$15.20 / 11 g = $1.38/g`; `5%` below shelf |
+| MakeWaves, nominal 0.29 fl oz | DTC labels `8.5 mL`; `$20 / 8.5 = $2.35/mL` | `$18 / 8.5 = $2.12/mL`; `10%` below DTC single | Two 8.5 mL full sizes plus one 5 mL mini: `$44 / 22 mL = $2.00/mL`, `15%` below the DTC-single per-mL rate | Sephora labels the same nominal `0.29 oz` as `8 mL`; package price `$20`, equal to DTC single. Its displayed-mL rate is `$20 / 8 = $2.50/mL`, but that is not treated as a clean cross-retailer per-mL comparison. | `$19 / 8 mL = $2.38/mL`; `5%` below shelf, with the same mL-label mismatch |
+| SOS standard, 4 fl oz / 120 mL | `$28 / 4 oz = $7.00/oz` | `$25.20 / 4 oz = $6.30/oz`; `10%` below DTC single | Duo, 4 oz + 1 oz: `$30 / 5 oz = $6.00/oz`, `14.29%` below single, but displayed sold out. Jumbo refill: `$68 / 16 oz = $4.25/oz`, `39.29%` below single, also displayed sold out. | `$28 / 4 oz = $7.00/oz`; no shelf divergence from DTC single | `$26.60 / 4 oz = $6.65/oz`; `5%` below shelf |
+
+The repeated finding is price parity between DTC single purchase and Sephora
+US shelf across all three subjects. DTC's captured recurring allocations were
+10% below single purchase, versus Sephora's displayed 5% Auto-Replenish
+reduction. Bundle and larger-size arithmetic sometimes produced lower
+effective unit prices, but the SOS duo and jumbo were unavailable page states.
+No redemption, realized checkout price, margin, agreement, or promotion-
+funding conclusion follows.
+
+### Certification-directory comparison
+
+- Tower 28's LipSoftie and MakeWaves PDPs state that all Tower 28 products are
+  vegan and cruelty-free; MakeWaves also displays a compact `Vegan` badge. The
+  captured product HTML includes generic images titled `Product certification
+  or award`, but does not label them as PETA or Leaping Bunny marks. Their
+  certifier identity is therefore unresolved from the owned PDP bytes.
+- PETA's own company page uses the entity label `Tower28 Beauty`, marks `All
+  products are vegan`, and exposes its licensed-logo indicator. PETA's own
+  directory PDF, last updated `02-11-2025`, defines `V` as strictly vegan and
+  `L` as licensed to use PETA's official cruelty-free bunny logo. Page 180
+  visually aligns both markers, `V L`, with `Tower28 Beauty`.
+- Leaping Bunny's own shopping-guide form accepts the `title` query. Its exact
+  `Tower28 Beauty` response retained that query and returned zero result rows.
+  This is `NO_ENTRY_RETURNED_FOR_EXACT_OFFICIAL_QUERY`, not a misconduct,
+  animal-testing, eligibility, or deceptive-label claim.
+- None of these sources surfaced a legal-incorporation name. The observed
+  directory/brand labels are `Tower28 Beauty` at PETA and `Tower 28 Beauty` on
+  the DTC pages; they must not be upgraded to a legal-entity assertion.
+
+### Authorized-channel and Amazon seller read
+
+- Tower 28's captured stores page says customers should shop only through its
+  listed authorized retail partners; purchases outside those channels are not
+  guaranteed authentic and Tower 28 disclaims responsibility. The page lists
+  Tower28Beauty.com, Sephora by named regions (including Sephora at Kohl's),
+  Credo, Mecca, the Tower 28 and Revolve official TikTok shops, and
+  Revolve.com. Amazon is not in that displayed list.
+- The ZIP-`10001` Amazon US LipSoftie and SOS PDPs nevertheless both displayed
+  `Ships from Amazon` and `Sold by Tower28 Beauty`. LipSoftie was `$16` for
+  `0.38 oz`; SOS was `$28` for `4 oz`. Those prices equal the captured DTC
+  single and Sephora US shelf prices.
+- These are third-party marketplace offers fulfilled by Amazon, not
+  first-party `Sold by Amazon` offers. The seller display label is not proof
+  of corporate identity or authorization, but it is a direct falsifier to a
+  claim that the observed offers necessarily came from independent diversion
+  sellers.
+- The commissioned strong form is not met: authorized-list absence was
+  observed, but multiple independent sellers were not. Both admitted PDPs
+  showed the same brand-named seller, while the third subject was not
+  observable in the pinned US state. Quiet distributor authorization,
+  brand-controlled marketplace operation, and an incomplete/stale authorized
+  list remain named falsifiers. Leak origin and volumes remain outside claim
+  reach.
+
+### Receipt inventory
+
+- DTC price and claim packets:
+  `F:\forseti-data-lake\raw\2bf\01KXRNEC04CRF4QHVSXGDGVHX3`,
+  `F:\forseti-data-lake\raw\423\01KXRNEF82J8P6HG8DGEFGDQ83`,
+  `F:\forseti-data-lake\raw\717\01KXRNEJD79S5G6V0DHSB47FD7`,
+  `F:\forseti-data-lake\raw\152\01KXRNENXSJ4TYDJXCVGH4YBMN`, and
+  `F:\forseti-data-lake\raw\554\01KXRNESH7Y4R9T0JNBDWK604T`.
+- Tower 28 stores packet:
+  `F:\forseti-data-lake\raw\d71\01KXRNEWHV36K2268ASD0G5VEQ`.
+- PETA company-page and PDF packets:
+  `F:\forseti-data-lake\raw\e33\01KXRNEZARQKABVBMJ6SFXF2C3` and
+  `F:\forseti-data-lake\raw\20f\01KXRNF1E2SD2VJQZC33E8MDPS`.
+- Leaping Bunny directory and exact-query packets:
+  `F:\forseti-data-lake\raw\911\01KXRNF4G5HVZ0XWHR9CS0SRDK` and
+  `F:\forseti-data-lake\raw\7cb\01KXRNR9HNKBW2K188NQVY7ET4`.
+- Sephora US LipSoftie, MakeWaves, and SOS packets:
+  `F:\forseti-data-lake\raw\1fb\01KXRP0JEX98W982ENNPWW8Z1G`,
+  `F:\forseti-data-lake\raw\f30\01KXRP25GT38A88M33ACXJB8VS`, and
+  `F:\forseti-data-lake\raw\812\01KXRP3NBRS5P9M6ATH9ANJDCB`.
+- Amazon discovery, LipSoftie, MakeWaves gap, and SOS packets:
+  `F:\forseti-data-lake\raw\2ba\01KXRP77TV6Q2GCG9DM27Z0VTP`,
+  `F:\forseti-data-lake\raw\04c\01KXRPBRXVJJ4THQXW63BTV9R2`,
+  `F:\forseti-data-lake\raw\e99\01KXRPD65YCFHVDTMV3QV0HPA7`, and
+  `F:\forseti-data-lake\raw\55f\01KXRPF84BA1AZNSVWDACNVSVV`.
+
+The Amazon discovery packet confirmed ZIP `10001` but failed an extra literal
+USD-DOM sufficiency check; it was used only to discover subject-bound ASINs.
+The MakeWaves packet failed the US pin and seller checks after redirecting to
+Amazon Singapore. Both failures remain preserved and typed.
+
+### SOBS-style observation rows
+
+```yaml
+observations:
+  - observation_id: SOBS-T28-ADDON-001
+    observation_class: price_ladder
+    subject: Tower 28 LipSoftie Lip Treatment
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      DTC single and Sephora US shelf were both USD 16 for 11 g. DTC recurring
+      allocation was USD 14.40; Sephora Auto-Replenish was USD 15.20. DTC duo
+      was USD 30 for two (USD 15 each), and the four-set was USD 56
+      (USD 14 each).
+    arithmetic: >
+      16/11 = 1.45 USD/g; 14.40/11 = 1.31; 30/22 = 1.36;
+      56/44 = 1.27; 15.20/11 = 1.38. Duo and four-set are 6.25%
+      and 12.5% below DTC single per unit.
+    signal_stage: candidate_support
+    claim_it_might_support: point-in-time same-size DTC, bundle, recurring, and Sephora US price parity/divergence
+    independence_hypothesis: DTC and retailer-hosted public offer states; commercial coordination is unknown
+    packet_locators:
+      - 'F:\forseti-data-lake\raw\2bf\01KXRNEC04CRF4QHVSXGDGVHX3'
+      - 'F:\forseti-data-lake\raw\423\01KXRNEF82J8P6HG8DGEFGDQ83'
+      - 'F:\forseti-data-lake\raw\717\01KXRNEJD79S5G6V0DHSB47FD7'
+      - 'F:\forseti-data-lake\raw\1fb\01KXRP0JEX98W982ENNPWW8Z1G'
+    hard_limit: >
+      Displayed shelf and recurring-plan allocations only; no cart,
+      redemption, realized price, margin, promotion funding, or agreement
+      inference.
+
+  - observation_id: SOBS-T28-ADDON-002
+    observation_class: price_ladder
+    subject: Tower 28 MakeWaves Mascara
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      DTC and Sephora US package prices were both USD 20 at a nominal 0.29 fl
+      oz. DTC recurring allocation was USD 18; Sephora Auto-Replenish was USD
+      19. The DTC set was USD 44 for two 8.5 mL full sizes plus one 5 mL mini.
+    arithmetic: >
+      DTC single 20/8.5 = 2.35 USD/mL; recurring 18/8.5 = 2.12;
+      set 44/(8.5+8.5+5) = 2.00, 15% below DTC single per mL.
+      Sephora labels 0.29 oz as 8 mL, so its 20/8 = 2.50 and 19/8 = 2.38
+      displayed-mL rates are not treated as clean cross-retailer normalization.
+    signal_stage: candidate_support
+    claim_it_might_support: package-price parity plus DTC recurring and set divergence
+    independence_hypothesis: DTC and retailer-hosted public offer states; package-size labeling differs
+    packet_locators:
+      - 'F:\forseti-data-lake\raw\152\01KXRNENXSJ4TYDJXCVGH4YBMN'
+      - 'F:\forseti-data-lake\raw\f30\01KXRP25GT38A88M33ACXJB8VS'
+    hard_limit: >
+      The 8.5 mL versus 8 mL labels prevent a clean cross-retailer per-mL
+      claim. No cart, redemption, margin, or agreement inference.
+
+  - observation_id: SOBS-T28-ADDON-003
+    observation_class: price_ladder
+    subject: Tower 28 SOS Rescue Spray
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      DTC single and Sephora US shelf were both USD 28 for 4 fl oz. DTC
+      recurring allocation was USD 25.20; Sephora Auto-Replenish was USD
+      26.60. The DTC 5 oz duo was USD 30 and the 16 oz jumbo was USD 68, but
+      both were displayed sold out.
+    arithmetic: >
+      Single 28/4 = 7.00 USD/oz; DTC recurring 25.20/4 = 6.30;
+      duo 30/5 = 6.00, 14.29% below single; jumbo 68/16 = 4.25,
+      39.29% below single; Sephora recurring 26.60/4 = 6.65.
+    signal_stage: candidate_support
+    claim_it_might_support: point-in-time same-size parity and volume-ladder divergence
+    independence_hypothesis: DTC and retailer-hosted public offer states; unavailable variants are non-purchasable page state
+    packet_locators:
+      - 'F:\forseti-data-lake\raw\554\01KXRNESH7Y4R9T0JNBDWK604T'
+      - 'F:\forseti-data-lake\raw\812\01KXRP3NBRS5P9M6ATH9ANJDCB'
+    hard_limit: >
+      Sold-out bundle/refill arithmetic is not an attainable transaction.
+      No cart, redemption, margin, promotion-funding, or agreement inference.
+
+  - observation_id: SOBS-T28-ADDON-004
+    observation_class: certification_directory
+    subject: Tower 28 vegan and cruelty-free claims
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      Tower 28's owned PDPs state vegan and cruelty-free claims. PETA's own
+      company page labels Tower28 Beauty vegan and logo-licensed; its own PDF
+      page 180 aligns V and L with Tower28 Beauty, with the legend defining
+      those markers as strictly vegan and licensed for PETA's official
+      cruelty-free bunny logo.
+    signal_stage: candidate_support
+    claim_it_might_support: alignment between owned wording and PETA's own directory state
+    independence_hypothesis: brand claim and certifier-maintained directory are distinct source classes
+    packet_locators:
+      - 'F:\forseti-data-lake\raw\2bf\01KXRNEC04CRF4QHVSXGDGVHX3'
+      - 'F:\forseti-data-lake\raw\152\01KXRNENXSJ4TYDJXCVGH4YBMN'
+      - 'F:\forseti-data-lake\raw\e33\01KXRNEZARQKABVBMJ6SFXF2C3'
+      - 'F:\forseti-data-lake\raw\20f\01KXRNF1E2SD2VJQZC33E8MDPS'
+    hard_limit: >
+      The observed entity label is Tower28 Beauty, not a verified legal name.
+      Directory listing and logo licensing do not independently audit every
+      formula, supplier, current package, or claim substantiation.
+
+  - observation_id: SOBS-T28-ADDON-005
+    observation_class: certification_directory_absence
+    subject: Tower 28 at Leaping Bunny
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      Leaping Bunny's own exact title query for Tower28 Beauty returned HTTP
+      200, retained the supplied query, and exposed zero directory result rows.
+    typed_outcome: NO_ENTRY_RETURNED_FOR_EXACT_OFFICIAL_QUERY
+    signal_stage: candidate_support
+    claim_it_might_support: point-in-time absence from the exact official query response
+    independence_hypothesis: certifier-owned public directory response
+    packet_locator: 'F:\forseti-data-lake\raw\7cb\01KXRNR9HNKBW2K188NQVY7ET4'
+    hard_limit: >
+      Zero query rows are not proof of misconduct, animal testing, failed
+      eligibility, application history, or deceptive labeling. Query and
+      directory drift remain possible.
+
+  - observation_id: SOBS-T28-ADDON-006
+    observation_class: diversion
+    subject: Tower 28 authorized channels versus Amazon US
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      Amazon was absent from Tower 28's displayed authorized-retailer list.
+      The pinned Amazon US LipSoftie and SOS PDPs were both fulfilled by Amazon
+      and sold by the same display seller, Tower28 Beauty, at USD 16 and USD
+      28 respectively, equal to DTC single and Sephora US shelf prices.
+    typed_outcome: STRONG_DIVERSION_FORM_NOT_MET
+    signal_stage: candidate_support
+    claim_it_might_support: authorized-list mismatch with same-seller, price-parity Amazon offers
+    independence_hypothesis: brand-owned channel list versus marketplace-hosted seller and offer state
+    packet_locators:
+      - 'F:\forseti-data-lake\raw\d71\01KXRNEWHV36K2268ASD0G5VEQ'
+      - 'F:\forseti-data-lake\raw\04c\01KXRPBRXVJJ4THQXW63BTV9R2'
+      - 'F:\forseti-data-lake\raw\55f\01KXRPF84BA1AZNSVWDACNVSVV'
+    hard_limit: >
+      A seller display label is not proof of corporate identity or
+      authorization. Multiple independent sellers were not observed. Quiet
+      distributor authorization, brand operation, and list staleness remain
+      falsifiers; leak origin and volumes are outside claim reach.
+
+  - observation_id: SOBS-T28-ADDON-GAP-001
+    observation_class: typed_surface_gap
+    subject: Tower 28 MakeWaves Mascara on Amazon US
+    retrieval_date: "2026-07-18"
+    short_quote_or_summary: >
+      The commissioned amazon.com PDP redirected to amazon.sg, displayed
+      Singapore-dollar state, and did not preserve the ZIP 10001 or Sold by
+      bindings required for the US seller read.
+    typed_outcome: GEO_REDIRECT_US_SELLER_UNOBSERVABLE
+    signal_stage: unresolved
+    claim_it_might_support: none until a subject-bound US PDP is admitted
+    independence_hypothesis: not applicable
+    packet_locator: 'F:\forseti-data-lake\raw\e99\01KXRPD65YCFHVDTMV3QV0HPA7'
+    hard_limit: >
+      The Singapore page cannot answer the Amazon US seller or price question
+      and is not substituted into the diversion comparison.
+```
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
 market share, repeat purchase, retailer productivity, claim substantiation, or
-monitoring readiness. They are bounded public page-state evidence only.
+monitoring readiness. They also do not establish margin, realized transaction
+price, redemption, retailer agreement, seller authorization, leak origin, or
+diverted volume. They are bounded public page-state evidence only.

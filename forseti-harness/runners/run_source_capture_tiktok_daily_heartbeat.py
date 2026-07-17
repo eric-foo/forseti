@@ -45,9 +45,23 @@ from source_capture.social_heartbeat_run_control import (
     assign_lane_id,
     find_committed_packet_by_session_identity,
 )
+from capture_spine.creator_profile_current.silver_envelope_core import (
+    METRIC_OBSERVATION_LANE,
+)
+from capture_spine.creator_profile_current.tiktok_grid_observation_producer import (
+    TIKTOK_PROFILE_METRIC_FIELDS,
+    profile_metric_record_id,
+)
+from data_lake.silver_record import (
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
+)
+from runners.run_tiktok_grid_observation_producer import (
+    run_tiktok_grid_observations,
+)
 
-RECEIPT_SCHEMA_VERSION = "tiktok_daily_heartbeat_receipt_v0"
-CONTROLLER_VERSION = "tiktok_daily_heartbeat_controller_v0"
+RECEIPT_SCHEMA_VERSION = "tiktok_daily_heartbeat_receipt_v1"
+CONTROLLER_VERSION = "tiktok_daily_heartbeat_controller_v1"
 
 
 @dataclass(frozen=True)
@@ -169,6 +183,11 @@ def _run_one(
         if existing is not None:
             packet_id, packet_path = existing
             receipt.update(_success_fields(packet_id, packet_path, reconciled=True))
+            receipt.update(
+                _profile_metric_silver_fields(data_root=data_root, packet_id=packet_id)
+                if data_root is not None
+                else _local_profile_metric_silver_fields()
+            )
             return receipt, False
 
         artifact_path = receipt_jsonl.parent / "attempt_artifacts" / attempt_id / "tiktok_grid_window.json"
@@ -225,6 +244,11 @@ def _run_one(
             raise RuntimeError("committed packet does not bind the heartbeat attempt identity")
         receipt.update(_success_fields(packet_id, packet_path, reconciled=row["attempt_resume"]))
         receipt["grid_window_sha256"] = hashlib.sha256(raw_window).hexdigest()
+        receipt.update(
+            _profile_metric_silver_fields(data_root=data_root, packet_id=packet_id)
+            if data_root is not None
+            else _local_profile_metric_silver_fields()
+        )
         return receipt, False
     except Exception as exc:  # noqa: BLE001 - terminal receipt preserves failure visibility
         receipt.update({
@@ -284,6 +308,64 @@ def _success_fields(packet_id: str, packet_path: Path, *, reconciled: bool) -> d
         "packet_id": packet_id,
         "packet_pointer": str(packet_path),
         "reconciled_existing_packet": reconciled,
+    }
+
+
+def _local_profile_metric_silver_fields() -> dict[str, Any]:
+    return {
+        "profile_metric_silver_status": "not_applicable_without_data_root",
+        "profile_metric_record_ids": [],
+    }
+
+
+def _profile_metric_silver_fields(*, data_root: Any, packet_id: str) -> dict[str, Any]:
+    results = run_tiktok_grid_observations(
+        data_root=data_root,
+        packet_ids=[packet_id],
+    )
+    packet_results = [
+        row for row in results if row.get("packet_id") == packet_id
+    ]
+    failures = [row for row in packet_results if row.get("status") == "failed"]
+    if failures:
+        raise RuntimeError(
+            f"TikTok profile metric Silver projection failed: {failures[0].get('error')}"
+        )
+    if not any(
+        row.get("status") in {"derived", "already_current"}
+        for row in packet_results
+    ):
+        raise RuntimeError(
+            "TikTok profile metric Silver projection did not verify the admitted packet"
+        )
+
+    record_ids = [
+        profile_metric_record_id(packet_id, metric_name)
+        for metric_name, _source_field in TIKTOK_PROFILE_METRIC_FIELDS
+    ]
+    observed_metric_names: list[str] = []
+    for record_id in record_ids:
+        path = data_root.record_path(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=METRIC_OBSERVATION_LANE,
+            record_id=record_id,
+        )
+        if not path.is_file():
+            raise RuntimeError(
+                f"TikTok profile metric Silver record is absent after projection: {record_id}"
+            )
+        record = json.loads(path.read_text(encoding="utf-8"))
+        validate_silver_vault_record(record)
+        verify_silver_vault_record_sources(data_root, record, record_path=path)
+        observation = record["payload"]["observation"]
+        observed_metric_names.append(str(observation["metric_name"]))
+    expected_metric_names = [name for name, _source_field in TIKTOK_PROFILE_METRIC_FIELDS]
+    if observed_metric_names != expected_metric_names:
+        raise RuntimeError("TikTok profile metric Silver records have unexpected identities")
+    return {
+        "profile_metric_silver_status": "verified",
+        "profile_metric_record_ids": record_ids,
     }
 
 

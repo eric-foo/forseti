@@ -173,11 +173,14 @@ behavior was not proven in-thread.
     plugin-cache, or active resolver-visible skill directory was observed before
     creation on 2026-07-18. The distinct name avoids shadowing the recognized
     generic `workflow-repo-hygiene` skill.
-  - Validation: `quick_validate.py`, the reused
+  - Validation: during the authoring session, the external Codex system
+    skill-creator `quick_validate.py` and the repo-local
     `.github/scripts/lane-health-check.ps1 -SelfTest`, hash-pin freshness,
-    retrieval-header, and map-link checks passed. Three read-only forward
-    scenarios covered age/count pressure, named unique-work discard with an
-    unexpected remote, and dirty post-merge payload adjudication; each preserved
+    retrieval-header, and map-link checks passed. The system validator is not
+    vendored in this repository. Three read-only subagent scenarios covered
+    age/count pressure, named unique-work discard with an unexpected remote, and
+    dirty post-merge payload adjudication; these were ephemeral authoring-session
+    checks, and no durable forward-test transcript is retained. Each preserved
     the intended authority boundary. The contradiction/leakage scan found no
     same-name source or machine-local path. These are source-change results only,
     not deployment or resolver proof.
