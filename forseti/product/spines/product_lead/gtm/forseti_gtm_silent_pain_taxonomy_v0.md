@@ -103,8 +103,11 @@ and internal owner.
    against DTC state; exclude sitewide sale events. Falsifier: a quick
    restock or a successor SKU appearing means packaging/formula transition
    (class 5) or a planogram reset, not exit — persistence across dated
-   observations is required. Limit: cannot see sell-through, who funds the
-   markdown, or why. Owner: VP Sales / Key Accounts / CFO.
+   observations is required. Owner note 2026-07-18: when this class fires on a
+   tracked SKU, restock-or-not and time-to-restock is the follow-on question —
+   that is longitudinal (co-movement seed), not a current point-in-time run.
+   Limit: cannot see sell-through, who funds the markdown, or why.
+   Owner: VP Sales / Key Accounts / CFO.
 
 4. **Too many overlapping products (assortment sprawl).** Near-duplicate
    formulas under different names, retailer-only packs, and SKUs dead on the
