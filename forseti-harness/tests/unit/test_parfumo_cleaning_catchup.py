@@ -423,7 +423,10 @@ def test_zero_handles_without_blocked_signal_still_fails_loud(tmp_path) -> None:
 def test_per_packet_failure_is_isolated(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     good = _commit_family_packet(data_root, tmp_path, name="good")
-    bad = _commit_family_packet(data_root, tmp_path, name="bad")
+    # Distinct body_text: "bad" gets tampered post-write below, but it must not
+    # be a byte-identical duplicate of "good" at write time (same locator +
+    # same default body_text would collide with the Bronze write-gate).
+    bad = _commit_family_packet(data_root, tmp_path, name="bad", body_text=_HTML + "<!-- bad -->")
     _tamper_packet(data_root, bad)
 
     results = run_catchup(data_root=data_root)
@@ -436,7 +439,9 @@ def test_per_packet_failure_is_isolated(tmp_path) -> None:
 def test_corrupt_manifest_reconcile_failure_still_processes_healthy_packet(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     bad = _commit_family_packet(data_root, tmp_path, name="bad")
-    good = _commit_family_packet(data_root, tmp_path, name="good")
+    # Distinct body_text: same locator + same default body_text as "bad" would
+    # collide with the Bronze write-gate's byte-identical duplicate check.
+    good = _commit_family_packet(data_root, tmp_path, name="good", body_text=_HTML + "<!-- good -->")
     _corrupt_manifest(data_root, bad)
 
     results = run_catchup(data_root=data_root)
