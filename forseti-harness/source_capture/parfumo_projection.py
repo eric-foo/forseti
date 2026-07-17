@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import html
+import hashlib
 import json
 import re
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping, Protocol
 from urllib.parse import unquote
 
 from pydantic import Field, field_validator, model_validator
@@ -30,6 +31,9 @@ PARFUMO_PROJECTION_METHOD = "parfumo_current_window_mechanical_projection"
 PARFUMO_PROJECTION_VERSION = "v0"
 PARFUMO_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 PROJECTION_PARFUMO_LANE = "projection_parfumo"
+PARFUMO_TARGETED_CONTENT_RECORD_KIND = "parfumo_targeted_content"
+PARFUMO_TARGETED_CONTENT_SCHEMA_VERSION = "parfumo_targeted_content_v1"
+PARFUMO_TARGETED_PARSER_VERSION = "parfumo_targeted_parser_v1"
 
 _PARFUMO_SOURCE_FAMILY = "fragrance_native_database"
 PARFUMO_DIRECT_HTTP_SOURCE_SURFACE = "parfumo_product_page_direct_http"
@@ -45,6 +49,13 @@ _TARGETED_REVIEW_LATEST_RECENT_SLICE = "parfumo_targeted:review_latest_recent"
 _TARGETED_REVIEW_HIGH_RATING_SLICE = "parfumo_targeted:review_source_visible_high_rating"
 _TARGETED_REVIEW_LOW_RATING_SLICE = "parfumo_targeted:review_source_visible_low_rating"
 _TARGETED_STATEMENT_LATEST_RECENT_SLICE = "parfumo_targeted:statement_latest_recent"
+_TARGETED_SLICE_IDS = (
+    _TARGETED_PRODUCT_CONTEXT_SLICE,
+    _TARGETED_REVIEW_LATEST_RECENT_SLICE,
+    _TARGETED_REVIEW_HIGH_RATING_SLICE,
+    _TARGETED_REVIEW_LOW_RATING_SLICE,
+    _TARGETED_STATEMENT_LATEST_RECENT_SLICE,
+)
 _LATEST_REVIEW_TOKENS = ("latest", "recent", "new", "newest")
 _HIGH_RATING_BUCKET_TOKENS = ("high", "top", "positive")
 _LOW_RATING_BUCKET_TOKENS = ("low", "critical", "negative")
@@ -79,11 +90,20 @@ class ParfumoProjectionRawAnchor(StrictModel):
     relative_packet_path: str
     sha256: str
     hash_basis: str
-    anchor_kind: Literal["file", "html_selector", "text_pattern"] = "file"
+    anchor_kind: Literal["file", "html_selector", "json_pointer", "text_pattern"] = "file"
     anchor_value: str | None = None
+    json_pointer: str | None = None
 
     @model_validator(mode="after")
     def validate_anchor_value(self) -> "ParfumoProjectionRawAnchor":
+        if self.anchor_kind == "json_pointer":
+            if not (self.json_pointer and self.json_pointer.strip()):
+                raise ValueError("json_pointer anchors require json_pointer")
+            if self.anchor_value is not None:
+                raise ValueError("json_pointer anchors must not carry anchor_value")
+            return self
+        if self.json_pointer is not None:
+            raise ValueError(f"{self.anchor_kind} anchors must not carry json_pointer")
         if self.anchor_kind != "file" and not (self.anchor_value and self.anchor_value.strip()):
             raise ValueError(f"{self.anchor_kind} anchors require anchor_value")
         if self.anchor_kind == "file" and self.anchor_value is not None:
@@ -191,6 +211,73 @@ class ParfumoProjectionPacket(StrictModel):
         return self
 
 
+class ParfumoTargetedContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "fragrance_product_snapshot",
+        "fragrance_review_tab",
+        "fragrance_aggregate_rating",
+        "fragrance_performance_component",
+        "fragrance_review_archive_gate",
+        "fragrance_review_card_current_window",
+        "fragrance_statement_current_window",
+    ]
+    source_platform: Literal["parfumo"] = "parfumo"
+    source_object_type: Literal["fragrance_product"] = "fragrance_product"
+    source_object_site_id: str | None = None
+    source_object_name: str | None = None
+    brand_or_house: str | None = None
+    tab_id: str | None = None
+    source_order: int | None = Field(default=None, ge=0)
+    comment_id: str | None = None
+    parent_row_id: str | None = None
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: Literal["file", "html_selector", "text_pattern"]
+    source_anchor_value: str | None = None
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "ParfumoTargetedContentRow":
+        if self.source_anchor_kind != "file" and not (
+            self.source_anchor_value and self.source_anchor_value.strip()
+        ):
+            raise ValueError(f"{self.source_anchor_kind} anchors require source_anchor_value")
+        if self.source_anchor_kind == "file" and self.source_anchor_value is not None:
+            raise ValueError("file anchors must not carry source_anchor_value")
+        return self
+
+
+class ParfumoTargetedContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal[
+        "review_metadata_to_review_text",
+        "statement_metadata_to_statement_text",
+    ]
+    row_id: str
+
+
+class ParfumoTargetedContentRecord(StrictModel):
+    record_kind: Literal["parfumo_targeted_content"] = PARFUMO_TARGETED_CONTENT_RECORD_KIND
+    schema_version: Literal["parfumo_targeted_content_v1"] = (
+        PARFUMO_TARGETED_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["parfumo_targeted_parser_v1"] = PARFUMO_TARGETED_PARSER_VERSION
+    source_url: str
+    rows: list[ParfumoTargetedContentRow] = Field(default_factory=list)
+    binding_map: list[ParfumoTargetedContentBinding] = Field(default_factory=list)
+    loss_ledger: ParfumoProjectionLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "ParfumoTargetedContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        return self
+
+
 def build_parfumo_projection(
     *,
     packet: SourceCapturePacket,
@@ -209,6 +296,26 @@ def build_parfumo_projection(
         )
 
     preserved_files = {item.file_id: item for item in packet.preserved_files}
+    content_files = [
+        item
+        for item in packet.preserved_files
+        if item.relative_packet_path.replace("\\", "/").endswith("content_record.json")
+    ]
+    if content_files:
+        if len(content_files) != 1:
+            raise ValueError("Parfumo packet must preserve exactly one content_record.json")
+        content_file = content_files[0]
+        content_bytes = raw_file_bytes_by_file_id.get(content_file.file_id)
+        if content_bytes is None:
+            raise ValueError(
+                f"content record bytes are required for preserved file id: {content_file.file_id}"
+            )
+        return _projection_from_targeted_content_record(
+            packet=packet,
+            content_file=content_file,
+            content_bytes=content_bytes,
+        )
+
     for source_slice in packet.source_slices:
         for file_id in source_slice.preserved_file_ids:
             if file_id not in raw_file_bytes_by_file_id:
@@ -278,6 +385,199 @@ def build_parfumo_projection(
     )
 
 
+def build_parfumo_targeted_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Parse the pinned rendered route without embedding future packet identity."""
+    if not source_url.strip():
+        raise ValueError("source_url must be non-empty")
+
+    rows: list[ParfumoTargetedContentRow] = []
+    bindings: list[ParfumoTargetedContentBinding] = []
+    residuals: list[str] = []
+    inputs = (
+        ("rendered_dom", "rendered_dom.html", rendered_dom),
+        ("visible_text", "visible_text.txt", visible_text),
+    )
+    for slice_id in _TARGETED_SLICE_IDS:
+        source_slice = _ContentSlice(slice_id=slice_id)
+        for role, relative_path, body in inputs:
+            if not _looks_like_parfumo_content_body(
+                relative_path=relative_path,
+                body=body,
+                source_surface=PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
+            ):
+                continue
+            raw_ref = ParfumoProjectionRawRef(
+                packet_id="content_record_unbound",
+                slice_id=slice_id,
+            )
+            raw_anchor = ParfumoProjectionRawAnchor(
+                file_id=f"content_input_{role}",
+                relative_packet_path=relative_path,
+                sha256=hashlib.sha256(body).hexdigest(),
+                hash_basis="raw_stored_bytes",
+            )
+            projected = _project_parfumo_html(
+                body,
+                source_slice=source_slice,
+                raw_ref=raw_ref,
+                raw_anchor=raw_anchor,
+                source_surface=PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
+            )
+            rows.extend(_content_row(row) for row in projected.rows)
+            bindings.extend(_content_binding(binding) for binding in projected.bindings)
+            residuals.extend(projected.residuals)
+
+    text_counts = Counter(
+        row.tab_id or row.row_kind
+        for row in rows
+        if row.row_kind
+        in {"fragrance_review_card_current_window", "fragrance_statement_current_window"}
+    )
+    if not any(row.row_kind == "fragrance_review_card_current_window" for row in rows):
+        residuals.append("parfumo_review_cards_absent")
+    if not any(row.row_kind == "fragrance_statement_current_window" for row in rows):
+        residuals.append("parfumo_statement_rows_absent")
+    if not any(row.row_kind == "fragrance_product_snapshot" for row in rows):
+        residuals.append("parfumo_product_snapshot_absent")
+
+    record = ParfumoTargetedContentRecord(
+        source_url=source_url,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=ParfumoProjectionLossLedger(
+            preserved_evidence_rows=len(rows),
+            preserved_review_cards=sum(
+                1 for row in rows if row.row_kind == "fragrance_review_card_current_window"
+            ),
+            preserved_statements=sum(
+                1 for row in rows if row.row_kind == "fragrance_statement_current_window"
+            ),
+            preserved_review_tabs=sum(
+                1 for row in rows if row.row_kind == "fragrance_review_tab"
+            ),
+            preserved_bindings=len(bindings),
+            text_row_counts_by_tab={str(key): count for key, count in sorted(text_counts.items())},
+            hierarchy_preserved=True,
+            source_order_preserved=True,
+        ),
+        residuals=_dedupe_preserve_order(residuals),
+    )
+    return record.model_dump(mode="json")
+
+
+def _projection_from_targeted_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> ParfumoProjectionPacket:
+    if packet.source_surface != PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE:
+        raise ValueError("Parfumo content records are valid only for the targeted rendered surface")
+    try:
+        loaded = json.loads(content_bytes.decode("utf-8"))
+        record = ParfumoTargetedContentRecord.model_validate(loaded)
+    except Exception as exc:
+        raise ValueError(f"invalid Parfumo content record: {exc}") from exc
+    if packet.source_locator.value != record.source_url:
+        raise ValueError(
+            f"Parfumo content record source_url {record.source_url!r} does not match "
+            f"packet source locator {packet.source_locator.value!r}"
+        )
+
+    slice_by_id = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
+    projection_rows: list[ParfumoProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if source_slice is None:
+            raise ValueError(
+                f"Parfumo content row references unknown source slice: {content_row.slice_id}"
+            )
+        if content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Parfumo content row slice {content_row.slice_id!r} does not reference "
+                "content_record.json"
+            )
+        row_data = content_row.model_dump(
+            mode="json",
+            exclude={"slice_id", "source_anchor_kind", "source_anchor_value"},
+        )
+        projection_rows.append(
+            ParfumoProjectionRow(
+                **row_data,
+                raw_ref=ParfumoProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/rows/{index}"),
+            )
+        )
+
+    projection_bindings: list[ParfumoProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Parfumo content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        projection_bindings.append(
+            ParfumoProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=ParfumoProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/binding_map/{index}"),
+            )
+        )
+
+    return ParfumoProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=projection_rows,
+        binding_map=projection_bindings,
+        loss_ledger=record.loss_ledger,
+        residuals=record.residuals,
+    )
+
+
+def _content_row(row: ParfumoProjectionRow) -> ParfumoTargetedContentRow:
+    row_data = row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+    return ParfumoTargetedContentRow(
+        **row_data,
+        slice_id=row.raw_ref.slice_id,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _content_binding(binding: ParfumoProjectionBinding) -> ParfumoTargetedContentBinding:
+    return ParfumoTargetedContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+    )
+
+
+def _content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> ParfumoProjectionRawAnchor:
+    return ParfumoProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        json_pointer=json_pointer,
+    )
+
+
 def build_parfumo_projection_from_packet_directory(
     *,
     packet_or_manifest_path: Path,
@@ -335,6 +635,15 @@ class _ProjectedParfumoHtml(StrictModel):
     residuals: list[str] = Field(default_factory=list)
 
 
+class _SliceIdentity(Protocol):
+    slice_id: str
+
+
+@dataclass(frozen=True)
+class _ContentSlice:
+    slice_id: str
+
+
 @dataclass(frozen=True)
 class _TextCardStart:
     start: int
@@ -345,7 +654,7 @@ class _TextCardStart:
 def _project_parfumo_html(
     body: bytes,
     *,
-    source_slice: SourceCaptureSlice,
+    source_slice: _SliceIdentity,
     raw_ref: ParfumoProjectionRawRef,
     raw_anchor: ParfumoProjectionRawAnchor,
     source_surface: str,
@@ -473,7 +782,7 @@ def _project_parfumo_html(
 def _filter_targeted_projection(
     projected: _ProjectedParfumoHtml,
     *,
-    source_slice: SourceCaptureSlice,
+    source_slice: _SliceIdentity,
 ) -> _ProjectedParfumoHtml:
     slice_id = source_slice.slice_id
     kept_rows: list[ParfumoProjectionRow]
@@ -1084,6 +1393,20 @@ def _looks_like_parfumo_body(
     source_surface: str,
 ) -> bool:
     path = preserved_file.relative_packet_path.lower()
+    return _looks_like_parfumo_content_body(
+        relative_path=path,
+        body=body,
+        source_surface=source_surface,
+    )
+
+
+def _looks_like_parfumo_content_body(
+    *,
+    relative_path: str,
+    body: bytes,
+    source_surface: str,
+) -> bool:
+    path = relative_path.lower()
     if "http_response_metadata" in path:
         return False
     sample = body[:200_000].decode("utf-8", errors="ignore").lower()
@@ -1369,6 +1692,9 @@ __all__ = [
     "PARFUMO_PROJECTION_CERTIFICATION",
     "PARFUMO_PROJECTION_METHOD",
     "PARFUMO_PROJECTION_VERSION",
+    "PARFUMO_TARGETED_CONTENT_RECORD_KIND",
+    "PARFUMO_TARGETED_CONTENT_SCHEMA_VERSION",
+    "PARFUMO_TARGETED_PARSER_VERSION",
     "PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE",
     "PROJECTION_PARFUMO_LANE",
     "ParfumoProjectionBinding",
@@ -1377,8 +1703,10 @@ __all__ = [
     "ParfumoProjectionRawAnchor",
     "ParfumoProjectionRawRef",
     "ParfumoProjectionRow",
+    "ParfumoTargetedContentRecord",
     "build_parfumo_projection",
     "build_parfumo_projection_from_packet_directory",
+    "build_parfumo_targeted_content_record",
     "project_parfumo_into_lake",
     "write_parfumo_projection",
 ]

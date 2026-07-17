@@ -9,6 +9,9 @@ scope: >
   This ledger is the single accumulation point for the deferred CSB
   company-profile contract synthesis upgrade: the contract pass executes only
   from items recorded here, after all external responses are adjudicated.
+  Round 2 (2026-07-18) adjudicates the blind v1-vs-v2 comparison of the same
+  subject under the upgraded contract: contract ratification, the
+  directness-guard patch, and the Phase 2 dispositions.
 use_when:
   - Executing or planning the CSB company-profile contract synthesis upgrade
     (exec brief, concentration, choice-mechanism chain, readability).
@@ -26,10 +29,10 @@ stale_if:
   - The owner reverses any ruling recorded here.
 ```
 
-Authority: owner rulings in chat, 2026-07-17. Status: COMPLETE — all external
-input adjudicated (one session total); the contract pass awaits the owner's
-"go" plus the chain design handoff's returned proposal. Next source after the
-contract pass lands: the CSB contract files named in `open_next`.
+Authority: owner rulings in chat, 2026-07-17 (round 1) and 2026-07-18
+(round 2). Round 1 status: COMPLETE — its contract pass landed (PR #1058 +
+#1063). Round 2 status: COMPLETE — comparison adjudicated, contract ratified,
+directness-guard patch executed in the same change as this entry.
 
 ## How this ledger works
 
@@ -65,7 +68,7 @@ a definition line at most.
 | 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
 | 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
-| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below. **Chain section EXECUTED** (owner-directed, 2026-07-17): the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` landed in the company contract Section 7, refining the interim chain paragraph the synthesis-layer pass had placed there; the chain-local item 9 five-field compression and item 12 CSB capture-trigger pointer travel with this section |
 | 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
@@ -129,14 +132,14 @@ mechanism is extended, one small change per seam:
   improve the contract from this ledger -> run a fresh company (or rerun)
   under the upgraded contract -> give the new bundle to a fresh external
   session and compare against this round's findings.
-- Choice-mechanism chain design handoff: COMMISSIONED (owner-shaped scope,
-  2026-07-17) —
-  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md`.
-  Scope: acquisition lenses below title-level (sanctioned routes as already
-  used, no extra restraint language), review classification method (five-way
-  classes + substantive-review filter), proportionality mechanics per item 4
-  rulings, chain-card presentation format. Output lands as the chain section
-  of the contract pass, not standalone doctrine.
+- Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
+  (2026-07-17). Packet
+  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` was
+  executed; the design proposal at
+  `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` was
+  adversarially reviewed, patched, delegate-hardened, and implemented into
+  the company contract Section 7 by owner direction — see the item 4
+  execution note above. Packet consumed.
 
 ## Rejected (do not resurrect without new owner word)
 
@@ -153,3 +156,86 @@ mechanism is extended, one small change per seam:
 All external batches adjudicated + owner says "go" on the contract pass →
 one bounded PR to the CSB company-profile contract files applies every
 DEFERRED-accepted item above, then this ledger's stale_if fires.
+
+---
+
+## Round 2 — blind v1-vs-v2 comparison adjudication (2026-07-18)
+
+Design: the v2 rerun executed
+`docs/workflows/forseti_beauty_tower28_rerun_commission_handoff_v0.md` —
+same subject, upgraded contract, B+ evidence base (v1 rows reused + targeted
+supplements), produced blind to v1 synthesis and to this ledger. One fresh
+external session (ChatGPT) then scored both bundles anonymized (vA=v1,
+vB=v2) on the round-1 lens, with instructed craft-vs-evidence attribution.
+
+### Verdict and ratification (owner-ruled 2026-07-18)
+
+- v2 won CI-worthiness (4v3), decision-usefulness (3v2), readability (4v2);
+  credibility tied at 4, v2 narrowly ahead. The evaluator attributed the
+  wins **primarily to report craft** (the contract), with evidence breadth
+  responsible for specific factual upgrades (Amazon US seller state,
+  certifier verification, review text). The comparison-loop hypothesis —
+  the contract change, not evidence variance, drives report quality — held.
+- **RATIFIED: the upgraded contract is the standing contract for subsequent
+  pool-company runs.**
+
+### Confirmed defects → directness-guard patch (EXECUTED, this change)
+
+Three v2 defects verified against the report, all one root — directness
+sliding into claim strength beyond the observation:
+
+1. "Operates its Amazon storefront" stated as fact; observed was a seller
+   *displayed as* "Tower28 Beauty" on two sampled PDPs (inference unlabeled).
+2. Complaints "concentrate" in one SKU from n=3-of-5 first-page reviews, no
+   comparator base (existence stated as concentration).
+3. "Observable value concentrates visibly" from assortment/price/label
+   proxies (proxy stated in value language).
+
+The evaluator noted these overclaims kept v2's credibility lead narrow —
+the direct cost of the unguarded directness instruction. Patch (owner-ruled:
+smallest complete, human-readable prose, not stacked qualifiers): the Exec
+Brief directness authorization in the prompt-structure file and the parallel
+rules-file sentence now carry two guards — inference worded as inference
+even at full directness, and small/uncorroborated samples supporting
+existence rather than concentration, rate, or comparative claims absent a
+cited comparator base.
+
+By-design, not defects (recorded): the report stopping short of decisions
+is the Phase 1 boundary working as designed; internal lake packet locators
+are correct for internal bundles — packaging for a client-facing bundle is
+a future decision, not a contract change.
+
+### 5/5-path dispositions (owner-ruled 2026-07-18)
+
+- **REJECTED as a contract change:** replacing the decision-neutral
+  executive layer with strategic calls/recommendations. That is Phase 2's
+  job; the evaluator independently re-derived Forseti's own phase split.
+  Phase 1 stays the decision-neutral evidence dossier.
+- **ADOPTED as Phase 2 output-shape design input** — the evaluator's
+  per-call skeleton, to be built into the Phase 2 template when authored:
+  **Decision** (reader, choice, horizon) / **Call** / **Recommended
+  action** / **Why** (which evidence combines) / **Limits** (what public
+  evidence cannot establish) / **Reversal condition** (what observation
+  would change the call).
+- **Phase 2 evidence base (routed, not new machinery):** the deeper
+  customer-world read Phase 2 was always intended to run — Reddit thread
+  bodies (unread in v1/v2), Quora, and broader review reading — now with
+  the evaluator's balanced customer-choice coding method (sample across
+  rating levels and recency; code purchase reason, outcome, switching
+  target, claim confirmed/contradicted) as its named method candidate.
+- **Peer benchmark = the pool runs themselves:** running further pool
+  companies under the ratified contract produces the matched-peer evidence
+  base as a byproduct; no separate benchmarking machinery.
+- **Longitudinal observation:** stays in the co-movement seed list;
+  independently re-confirmed by the evaluator; no standing monitoring
+  authorized.
+- **Sequencing (owner-ruled):** the comparative/benchmark layer comes after
+  the Phase 1 and Phase 2 templates are settled.
+
+### Consumed by this adjudication
+
+The rerun handoff (`forseti_beauty_tower28_rerun_commission_handoff_v0.md`)
+and the v2 bundle's comparison purpose are consumed — their stale_if
+conditions ("external comparison adjudicated") are now true. The v2 report
+remains the current Tower 28 Phase 1 artifact (superseding v1 as the live
+read; v1 remains its audit substrate and the comparison record).

@@ -86,12 +86,12 @@ def canonical_old_reddit_thread_url(href: str) -> str | None:
     ``old.reddit.com/r/`` or without ``/comments/`` returns ``None``; the
     query/fragment is dropped and a trailing slash enforced.
 
-    Two byte-identical private copies deliberately do NOT adopt this home:
-    ``capture_spine.reddit_candidate_intake.projection`` is contract-isolated
-    from ``source_capture`` (so it cannot import this module), and
-    ``source_capture.screening_extraction`` diverges behaviorally (it also
-    rewrites ``www.reddit.com`` -> ``old.reddit.com``). Both keep a local
-    copy with a ``# helper-delta:`` comment.
+    Two private copies deliberately do NOT adopt this home:
+    ``capture_spine.reddit_candidate_intake.projection`` keeps a byte-identical
+    body but is contract-isolated from ``source_capture`` (so it cannot import
+    this module), and ``source_capture.screening_extraction`` diverges
+    behaviorally (it also rewrites ``www.reddit.com`` -> ``old.reddit.com``).
+    Both keep a local copy with a ``# helper-delta:`` comment.
     """
     stripped = href.strip()
     if stripped.startswith("/r/"):

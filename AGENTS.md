@@ -21,6 +21,12 @@ need the relevant owner or safety confirmation. Sandbox escalation is
 per-operation approval, never a standing rule.
 After implementation, run the bound validation; do not add an adversarial
 self-review of your own diff unless the owner or a commission requires it.
+Prioritize the current end-to-end critical path: when the bound outcome is
+blocked, clear that blocker before adjacent proof, cleanup, or hardening unless
+the bound outcome requires it.
+For an unfamiliar production runner or CLI, resolve the executable, subcommand,
+and required arguments from repository source or `--help` before the first run.
+Familiar test and Git commands do not pay this preflight.
 
 ## Smallest Complete Intervention
 

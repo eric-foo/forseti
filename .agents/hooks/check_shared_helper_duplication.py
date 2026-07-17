@@ -42,6 +42,14 @@ Placement boundary:
   private copy misbehaves; a green run is never validation, readiness, or
   proof that imports are correct or that a kept divergence is justified.
 
+Coverage boundary (what a green run does NOT rule out):
+  A def-name backstop cannot see (a) duplicated inline logic that is not a
+  def-nameable helper (a copied block, not a copied def), or (b) a copy that
+  renames the helper or was branched before this home existed (the
+  1-char-rename / pre-fork case, e.g. the wave-6 Reddit-radar copies). Green
+  means "no obvious re-definition of a known shared helper", never "no
+  duplication".
+
 MODES
   check_shared_helper_duplication.py --hook               PostToolUse advisory (exit 0)
   check_shared_helper_duplication.py --strict [--base R]  CI gate: exit 1 on findings

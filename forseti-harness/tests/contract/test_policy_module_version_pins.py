@@ -165,9 +165,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
-        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
-        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "4d7262424b7f8d8cf10f2832a69adaab26e2ea25c8aa385b313d8b0de3c89660",
+        # Pin bumped: corrected a latent in-memory hash-basis literal; the anchor is
+        # discarded before serialization, so projection outputs remain unchanged.
+        "efb6592a166cb7aa8c064a05a68ab4d9213d7b62b8b3450f8262254a66408a1a",
     ),
     "source_capture/projection_shared.py": (
         (
@@ -179,7 +179,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # surfaces; not output-shaping.
         # Pin bumped: added canonical_old_reddit_thread_url, the body adopted
         # from grid_projection's byte-identical private copy; not output-shaping.
-        "b7418534314365b73b5f3397233aa6e8513cfc5ca0f28042bfa522c42d5c7885",
+        # Pin bumped: corrected the retained-copy docstring to distinguish the
+        # byte-identical candidate-intake copy from the divergent screening copy
+        # (post-merge review W6-1); docstring-only, not output-shaping.
+        "ff04f0767731be27f81ccf1e420fe9d51c7c0b510173e9af73e53d071fd45675",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

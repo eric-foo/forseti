@@ -154,7 +154,10 @@ guidance-bound narrative (no schema or validator fields): an Executive
 Intelligence Brief preamble of three to seven five-field conclusions (claim /
 evidence bound / commercial consequence / confidence / next observable) at
 maximum decisive directness in consequence and plainly stated,
-evidence-calibrated confidence inside the decision-neutral boundary, chain cards that
+evidence-calibrated confidence inside the decision-neutral boundary — with
+inference worded as inference even at full directness, and small or
+uncorroborated samples supporting existence rather than concentration, rate,
+or comparative claims absent a cited comparator base — chain cards that
 do not imply willingness-to-pay, representative demand, defection, or demand
 capture, and the central-promise voice plus internal adjudication frame (where
 observable value resides, what drives it, whether it is strengthening,

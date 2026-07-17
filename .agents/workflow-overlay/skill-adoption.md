@@ -18,9 +18,11 @@ authority_boundary: retrieval_only
   on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
   project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
   Skills` below.
-- Forseti has one additional owner-authorized local candidate source,
-  `creator-audience-triangulation`. It supplies the narrow onboarding/on-demand
-  firing point only; it is not accepted/frozen or externally deployed.
+- Forseti has two additional owner-authorized local candidate sources:
+  `creator-audience-triangulation`, which supplies the narrow
+  onboarding/on-demand firing point, and `forseti-worktree-retirement`, which
+  supplies the guarded high-concurrency worktree-retirement procedure. Neither
+  is accepted/frozen or externally deployed.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -155,6 +157,38 @@ behavior was not proven in-thread.
     not plugin-installed, and no external deployment claim.
   - Rollback: remove this source and this candidate record. Do not modify
     plugin, installed-cache, user-level, or external skill source.
+
+- `forseti-worktree-retirement`
+  - Source path: `.agents/skills/forseti-worktree-retirement/SKILL.md`.
+  - Normalized LF sha256: `f0d14cdf5f570aca65400c5a7a2bdfbf28b279903c3065db4d7ea69dbc3ab69c`
+    (observed 2026-07-18 after source creation).
+  - Scope: explicit audits or retirement of Forseti Git worktrees, including
+    stale-age or target-count requests. Ordinary branch cleanup, artifact
+    deletion inside a worktree, implementation landing, and general repository
+    hygiene are negative triggers.
+  - Failure prevented: deleting an active, reused, dirty, unpushed, or uniquely
+    valuable lane merely because it is old, merged-related, or above a desired
+    count.
+  - Collision: no same-name repo/project, user Codex/Agents/Claude, installed
+    plugin-cache, or active resolver-visible skill directory was observed before
+    creation on 2026-07-18. The distinct name avoids shadowing the recognized
+    generic `workflow-repo-hygiene` skill.
+  - Validation: during the authoring session, the external Codex system
+    skill-creator `quick_validate.py` and the repo-local
+    `.github/scripts/lane-health-check.ps1 -SelfTest`, hash-pin freshness,
+    retrieval-header, and map-link checks passed. The system validator is not
+    vendored in this repository. Three read-only subagent scenarios covered
+    age/count pressure, named unique-work discard with an unexpected remote, and
+    dirty post-merge payload adjudication; these were ephemeral authoring-session
+    checks, and no durable forward-test transcript is retained. Each preserved
+    the intended authority boundary. The contradiction/leakage scan found no
+    same-name source or machine-local path. These are source-change results only,
+    not deployment or resolver proof.
+  - Boundary: Forseti-local source only; not accepted/frozen, not user-global,
+    not plugin-installed, and no external deployment or resolver-visibility
+    claim.
+  - Rollback: remove this source and this candidate record. Do not modify the
+    generic plugin skill, installed cache, user-level, or external skill source.
 
 ## Accepted Forseti-Local Candidate Skills
 
