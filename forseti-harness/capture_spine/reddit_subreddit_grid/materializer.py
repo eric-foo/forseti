@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -122,7 +123,7 @@ def refresh_registry_from_grid_packets(
 
 
 def read_grid_packet(*, packet_or_manifest_path: Path) -> PacketGridRead:
-    manifest_path = resolve_manifest_path(packet_or_manifest_path)
+    manifest_path = resolve_manifest_path(packet_or_manifest_path).resolve()
     try:
         report = read_packet_leniently(manifest_path)
     except Exception as exc:
@@ -146,14 +147,36 @@ def read_grid_packet(*, packet_or_manifest_path: Path) -> PacketGridRead:
     if subreddit is None:
         raise RegistryRefreshError("locator_unparseable", f"cannot parse subreddit from locator: {locator!r}")
 
-    raw_file = _resolve_raw_body_file(packet)
-    raw_path = manifest_path.parent / raw_file["relative_packet_path"]
-    actual_hash = hash_file(raw_path)
-    if actual_hash != raw_file["sha256"]:
-        raise RegistryRefreshError(
-            "raw_file_hash_mismatch",
-            f"stored bytes hash mismatch for {raw_path.name}: manifest={raw_file['sha256']} actual={actual_hash}",
-        )
+    raw_file = _resolve_preserved_file(packet, file_name="http_response_body.bin")
+    raw_path = _resolve_packet_file_path(
+        packet_dir=manifest_path.parent,
+        relative_packet_path=raw_file["relative_packet_path"],
+        error_code="raw_body_outside_packet",
+        file_label="preserved body",
+    )
+    _verify_preserved_file_hash(
+        path=raw_path,
+        expected_hash=raw_file["sha256"],
+        error_code="raw_file_hash_mismatch",
+    )
+
+    metadata_file = _resolve_preserved_file(packet, file_name="http_response_metadata.json")
+    metadata_path = _resolve_packet_file_path(
+        packet_dir=manifest_path.parent,
+        relative_packet_path=metadata_file["relative_packet_path"],
+        error_code="http_metadata_outside_packet",
+        file_label="HTTP metadata",
+    )
+    _verify_preserved_file_hash(
+        path=metadata_path,
+        expected_hash=metadata_file["sha256"],
+        error_code="http_metadata_hash_mismatch",
+    )
+    _verify_successful_grid_response(
+        packet=packet,
+        metadata_path=metadata_path,
+        expected_subreddit=subreddit,
+    )
 
     html = raw_path.read_text(encoding="utf-8", errors="replace")
     grid_view = project_old_reddit_grid_html(
@@ -194,13 +217,14 @@ def _apply_two_speed_refresh(
         }
     )
 
-    if row.get("status") != "active":
-        row.setdefault("descriptive_changes", []).append(
-            {"field": "status", "changed_at": read.observed_at, "previous_value": row.get("status")}
-        )
-        row["status"] = "active"
-        outcome.status_changes.append(read.subreddit)
-    row["status_observed_at"] = read.observed_at
+    if _should_apply_status_observation(row=row, observed_at=read.observed_at):
+        if row.get("status") != "active":
+            row.setdefault("descriptive_changes", []).append(
+                {"field": "status", "changed_at": read.observed_at, "previous_value": row.get("status")}
+            )
+            row["status"] = "active"
+            outcome.status_changes.append(read.subreddit)
+        row["status_observed_at"] = read.observed_at
 
     if row.get("capture_state") == "no_packet_recorded":
         row["capture_state"] = "grid_packets_recorded"
@@ -212,24 +236,109 @@ def _apply_two_speed_refresh(
     return True
 
 
-def _resolve_raw_body_file(packet) -> dict[str, str]:
-    body_files = [
+def _resolve_preserved_file(packet, *, file_name: str) -> dict[str, str]:
+    matching_files = [
         {"relative_packet_path": item.relative_packet_path, "sha256": item.sha256}
         for item in packet.preserved_files
-        if item.relative_packet_path.endswith("http_response_body.bin")
+        if item.relative_packet_path.replace("\\", "/").endswith(file_name)
     ]
-    if len(body_files) != 1:
+    if len(matching_files) != 1:
         raise RegistryRefreshError(
-            "raw_body_unresolved",
-            f"expected exactly one preserved http_response_body.bin, found {len(body_files)}",
+            "preserved_file_unresolved",
+            f"expected exactly one preserved {file_name}, found {len(matching_files)}",
         )
-    return body_files[0]
+    return matching_files[0]
+
+
+def _resolve_packet_file_path(
+    *,
+    packet_dir: Path,
+    relative_packet_path: str,
+    error_code: str,
+    file_label: str,
+) -> Path:
+    packet_root = packet_dir.resolve()
+    candidate = (packet_root / relative_packet_path).resolve()
+    if not candidate.is_relative_to(packet_root):
+        raise RegistryRefreshError(
+            error_code,
+            f"{file_label} path escapes packet directory: {relative_packet_path!r}",
+        )
+    return candidate
+
+
+def _verify_preserved_file_hash(*, path: Path, expected_hash: str, error_code: str) -> None:
+    actual_hash = hash_file(path)
+    if actual_hash != expected_hash:
+        raise RegistryRefreshError(
+            error_code,
+            f"stored bytes hash mismatch for {path.name}: manifest={expected_hash} actual={actual_hash}",
+        )
+
+
+def _verify_successful_grid_response(
+    *,
+    packet,
+    metadata_path: Path,
+    expected_subreddit: str,
+) -> None:
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RegistryRefreshError(
+            "http_metadata_unreadable",
+            f"preserved HTTP metadata could not be read: {exc}",
+        ) from exc
+    if not isinstance(metadata, dict):
+        raise RegistryRefreshError(
+            "http_metadata_shape",
+            "preserved HTTP metadata is not a JSON object",
+        )
+    status = metadata.get("status")
+    if status is not None and (not isinstance(status, int) or not 200 <= status < 300):
+        raise RegistryRefreshError(
+            "grid_access_unsuccessful",
+            f"grid packet HTTP status is not successful: {status!r}",
+        )
+    final_url = metadata.get("final_url")
+    if (
+        final_url is not None
+        and (
+            not isinstance(final_url, str)
+            or _subreddit_from_listing_url(final_url) != expected_subreddit
+        )
+    ):
+        raise RegistryRefreshError(
+            "grid_final_locator_mismatch",
+            f"grid packet final URL does not match subreddit {expected_subreddit!r}: {final_url!r}",
+        )
+    for source_slice in packet.source_slices:
+        locator = source_slice.locator.value
+        access_posture = source_slice.access_posture.value or ""
+        if (
+            isinstance(locator, str)
+            and _subreddit_from_listing_url(locator) == expected_subreddit
+            and access_posture.startswith("direct_http succeeded with HTTP 2")
+        ):
+            return
+    raise RegistryRefreshError(
+        "grid_access_unsuccessful",
+        "grid packet carries no successful old-Reddit source slice for the declared subreddit",
+    )
 
 
 def _subreddit_from_listing_url(url: str) -> str | None:
     parsed = urlparse(url)
     parts = [part for part in parsed.path.split("/") if part]
-    if len(parts) >= 2 and parts[0] == "r" and parts[1].replace("_", "").isalnum():
+    if (
+        parsed.scheme == "https"
+        and parsed.netloc.lower() == "old.reddit.com"
+        and len(parts) >= 3
+        and parts[0] == "r"
+        and parts[1].isascii()
+        and parts[1].replace("_", "").isalnum()
+        and parts[2] in {"hot", "new", "top", "rising"}
+    ):
         return parts[1].lower()
     return None
 
@@ -238,8 +347,34 @@ def _observed_date(packet) -> str:
     for source_slice in packet.source_slices:
         capture_time = source_slice.timing.capture_time.value
         if capture_time:
-            return str(capture_time)[:10]
+            candidate = str(capture_time)[:10]
+            try:
+                return date.fromisoformat(candidate).isoformat()
+            except ValueError as exc:
+                raise RegistryRefreshError(
+                    "capture_time_invalid",
+                    f"packet slice capture_time is not an ISO date: {capture_time!r}",
+                ) from exc
     raise RegistryRefreshError("capture_time_missing", "packet carries no slice capture_time")
+
+
+def _should_apply_status_observation(*, row: dict[str, object], observed_at: str) -> bool:
+    current_value = row.get("status_observed_at")
+    if not isinstance(current_value, str) or not current_value:
+        return True
+    try:
+        current_date = date.fromisoformat(current_value)
+        incoming_date = date.fromisoformat(observed_at)
+    except ValueError as exc:
+        raise RegistryRefreshError(
+            "registry_status_date_invalid",
+            f"registry row carries a non-ISO status_observed_at: {current_value!r}",
+        ) from exc
+    if incoming_date > current_date:
+        return True
+    if incoming_date < current_date:
+        return False
+    return row.get("status") in {None, "unverified", "active"}
 
 
 def _normalized_count(value: str | None) -> str | None:

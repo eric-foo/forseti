@@ -94,15 +94,21 @@ def _mini_registry(path: Path) -> Path:
     return registry_path
 
 
-def _write_grid_packet(scratch_dir: Path, monkeypatch: pytest.MonkeyPatch, *, subreddit: str = "makeupaddiction") -> Path:
+def _write_grid_packet(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    subreddit: str = "makeupaddiction",
+    status: int = 200,
+) -> Path:
     url = f"https://old.reddit.com/r/{subreddit}/top/?t=day"
 
     def fake_fetch(**kwargs: object) -> DirectHttpCaptureSuccess:
         return DirectHttpCaptureSuccess(
             requested_url=url,
             final_url=url,
-            status=200,
-            reason="OK",
+            status=status,
+            reason="OK" if 200 <= status < 300 else "Not Found",
             metadata={"capture_timestamp": "2026-07-17T05:00:00Z"},
             body=GRID_HTML.encode("utf-8"),
             warning_notes=[],
@@ -175,6 +181,59 @@ def test_grid_projection_reports_absent_volume_signal() -> None:
     assert view.thread_rows == ()
 
 
+def test_grid_projection_preserves_nested_visible_text() -> None:
+    html = """
+    <html><body>
+      <div class="titlebox">
+        <span class="subscribers">
+          <span class="number"><b>7,491</b>,826</span> members
+        </span>
+      </div>
+      <div class="thing link" data-permalink="/r/makeupaddiction/comments/abc123/nested/">
+        <a class="title" href="/r/makeupaddiction/comments/abc123/nested/">
+          First <em>look</em> post
+        </a>
+        <div class="score unvoted"><span>1,</span>204</div>
+        <a class="comments" href="/r/makeupaddiction/comments/abc123/nested/">
+          <span>97</span> comments
+        </a>
+      </div>
+    </body></html>
+    """
+
+    view = project_old_reddit_grid_html(
+        html_text=html,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/top/?t=day",
+    )
+
+    assert view.visible_subscriber_count_or_none == "7,491,826"
+    assert len(view.thread_rows) == 1
+    row = view.thread_rows[0]
+    assert row.visible_title_or_none == "First look post"
+    assert row.visible_score_or_none == "1,204"
+    assert row.visible_comment_count_or_none == "97"
+
+
+def test_grid_projection_first_number_span_wins_per_field() -> None:
+    html = """
+    <html><body>
+      <div class="titlebox">
+        <span class="subscribers"><span class="number">7,491,826</span> members</span>
+        <span class="other-widget"><span class="number">42</span> widgets</span>
+      </div>
+    </body></html>
+    """
+
+    view = project_old_reddit_grid_html(
+        html_text=html,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/top/?t=day",
+    )
+
+    assert view.visible_subscriber_count_or_none == "7,491,826"
+
+
 def test_materializer_applies_two_speed_rule_and_dedupes(
     scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -221,6 +280,140 @@ def test_materializer_applies_two_speed_rule_and_dedupes(
         if item["subreddit"] == "makeupaddiction"
     )
     assert len(row["observations"]) == 1
+
+
+def test_materializer_dedupes_relative_and_absolute_paths(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = _mini_registry(scratch_dir)
+    packet_dir = _write_grid_packet(scratch_dir, monkeypatch)
+    monkeypatch.chdir(scratch_dir)
+
+    first = refresh_registry_from_grid_packets(
+        registry_path=registry_path,
+        packet_paths=[Path(packet_dir.name)],
+    )
+    assert first.refreshed_subreddits == ["makeupaddiction"]
+
+    second = refresh_registry_from_grid_packets(
+        registry_path=registry_path,
+        packet_paths=[packet_dir],
+    )
+    assert second.duplicate_observation_skips == ["makeupaddiction"]
+    assert second.refreshed_subreddits == []
+
+    document = json.loads(registry_path.read_text(encoding="utf-8"))
+    row = next(
+        item
+        for item in document["reddit_subreddit_registry"]["subreddits"]
+        if item["subreddit"] == "makeupaddiction"
+    )
+    assert len(row["observations"]) == 1
+    assert Path(row["observations"][0]["provenance_pointer"]).is_absolute()
+
+
+def test_materializer_rejects_off_domain_grid_locator(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = _mini_registry(scratch_dir)
+    packet_dir = _write_grid_packet(scratch_dir, monkeypatch)
+    manifest_path = packet_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["source_locator"]["value"] = "https://example.com/r/makeupaddiction/top/?t=day"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    with pytest.raises(RegistryRefreshError) as excinfo:
+        refresh_registry_from_grid_packets(
+            registry_path=registry_path,
+            packet_paths=[packet_dir],
+        )
+    assert excinfo.value.code == "locator_unparseable"
+
+
+def test_materializer_rejects_preserved_body_outside_packet(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = _mini_registry(scratch_dir)
+    packet_dir = _write_grid_packet(scratch_dir, monkeypatch)
+    manifest_path = packet_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    body_file = next(
+        item
+        for item in manifest["preserved_files"]
+        if item["relative_packet_path"].endswith("http_response_body.bin")
+    )
+    original_body = packet_dir / body_file["relative_packet_path"]
+    escaped_body = scratch_dir / "escaped_http_response_body.bin"
+    shutil.copyfile(original_body, escaped_body)
+    body_file["relative_packet_path"] = "../escaped_http_response_body.bin"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    with pytest.raises(RegistryRefreshError) as excinfo:
+        refresh_registry_from_grid_packets(
+            registry_path=registry_path,
+            packet_paths=[packet_dir],
+        )
+    assert excinfo.value.code == "raw_body_outside_packet"
+
+
+def test_materializer_rejects_hash_verified_unsuccessful_response(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = _mini_registry(scratch_dir)
+    packet_dir = _write_grid_packet(scratch_dir, monkeypatch, status=404)
+
+    with pytest.raises(RegistryRefreshError) as excinfo:
+        refresh_registry_from_grid_packets(
+            registry_path=registry_path,
+            packet_paths=[packet_dir],
+        )
+    assert excinfo.value.code == "grid_access_unsuccessful"
+
+
+def test_materializer_does_not_regress_newer_status(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = _mini_registry(scratch_dir)
+    document = json.loads(registry_path.read_text(encoding="utf-8"))
+    row = next(
+        item
+        for item in document["reddit_subreddit_registry"]["subreddits"]
+        if item["subreddit"] == "makeupaddiction"
+    )
+    row["status"] = "banned"
+    row["status_observed_at"] = "2026-07-18"
+    registry_path.write_text(
+        json.dumps(document, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    packet_dir = _write_grid_packet(scratch_dir, monkeypatch)
+
+    outcome = refresh_registry_from_grid_packets(
+        registry_path=registry_path,
+        packet_paths=[packet_dir],
+    )
+
+    assert outcome.refreshed_subreddits == ["makeupaddiction"]
+    assert outcome.status_changes == []
+    document = json.loads(registry_path.read_text(encoding="utf-8"))
+    row = next(
+        item
+        for item in document["reddit_subreddit_registry"]["subreddits"]
+        if item["subreddit"] == "makeupaddiction"
+    )
+    assert row["status"] == "banned"
+    assert row["status_observed_at"] == "2026-07-18"
+    assert len(row["observations"]) == 1
+    assert row["capture_state"] == "grid_packets_recorded"
 
 
 def test_materializer_reports_unknown_subreddit_and_never_adds_rows(
@@ -299,6 +492,8 @@ def test_build_grid_listing_url_shapes() -> None:
         build_grid_listing_url(subreddit="fragrance", listing="hot", time_window="day")
     with pytest.raises(ValueError, match="invalid subreddit"):
         build_grid_listing_url(subreddit="bad name!", listing="hot", time_window=None)
+    with pytest.raises(ValueError, match="invalid subreddit"):
+        build_grid_listing_url(subreddit="café", listing="hot", time_window=None)
 
 
 def test_grid_runner_builds_urls_caps_and_summary(
@@ -351,6 +546,18 @@ def test_grid_runner_builds_urls_caps_and_summary(
             output_root=scratch_dir / "grid3",
             decision_question="q",
         )
+
+    invalid_output_root = scratch_dir / "invalid_grid"
+    with pytest.raises(ValueError, match="timeout_seconds"):
+        run_reddit_grid_capture(
+            subreddits=["makeupaddiction"],
+            listing="hot",
+            time_window=None,
+            output_root=invalid_output_root,
+            decision_question="q",
+            timeout_seconds=0,
+        )
+    assert not invalid_output_root.exists()
 
 
 def test_grid_runner_threads_data_root_through(scratch_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:

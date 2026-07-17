@@ -14,6 +14,7 @@ and nothing here ranks, scores quality, or claims demand.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 
@@ -58,7 +59,7 @@ def project_old_reddit_grid_html(
     names another subreddit (cross-posted link entries) keep their true home
     subreddit, which is honest provenance, not traversal.
     """
-    if not subreddit.replace("_", "").isalnum():
+    if not subreddit.isascii() or not subreddit.replace("_", "").isalnum():
         raise RedditGridProjectionError("invalid_subreddit", f"invalid subreddit name: {subreddit!r}")
     if max_thread_rows <= 0:
         raise RedditGridProjectionError("invalid_cap", "max_thread_rows must be greater than zero")
@@ -113,11 +114,12 @@ class _OldRedditGridParser(HTMLParser):
         self._titlebox_depth = 0
         self._users_online_depth = 0
         self._capturing_number_for: str | None = None
+        self._capturing_number_depth: int | None = None
         self._thing_depth = 0
         self._current: dict[str, str | bool | None] | None = None
-        self._capturing_title = False
-        self._capturing_score = False
-        self._capturing_comments = False
+        self._capturing_title_depth: int | None = None
+        self._capturing_score_depth: int | None = None
+        self._capturing_comments_depth: int | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {key: value or "" for key, value in attrs}
@@ -129,7 +131,16 @@ class _OldRedditGridParser(HTMLParser):
         elif self._users_online_depth and tag not in self._VOID_TAGS:
             self._users_online_depth += 1
         if tag == "span" and "number" in class_tokens and self._titlebox_depth:
-            self._capturing_number_for = "active_users" if self._users_online_depth else "subscribers"
+            target = "active_users" if self._users_online_depth else "subscribers"
+            already_captured = (
+                self.visible_active_user_count if target == "active_users" else self.visible_subscriber_count
+            )
+            # First complete span wins per field: a later same-class span must
+            # not append onto an already-captured value; fragments within one
+            # span still accumulate while the capture stays open.
+            if already_captured is None:
+                self._capturing_number_for = target
+                self._capturing_number_depth = self._titlebox_depth
 
         if "thing" in class_tokens and not self._thing_depth:
             self._open_thing(attr_map, class_tokens)
@@ -144,36 +155,66 @@ class _OldRedditGridParser(HTMLParser):
             href = attr_map.get("href", "")
             if self._current.get("thread_url") is None:
                 self._current["thread_url"] = _canonical_thread_url(href)
-            self._capturing_title = self._current.get("title") is None
+            if self._current.get("title") is None:
+                self._capturing_title_depth = self._thing_depth
         elif "score" in class_tokens and "unvoted" in class_tokens:
-            self._capturing_score = self._current.get("score") is None
+            if self._current.get("score") is None:
+                self._capturing_score_depth = self._thing_depth
         elif tag == "a" and "comments" in class_tokens:
-            self._capturing_comments = self._current.get("comments") is None
+            if self._current.get("comments") is None:
+                self._capturing_comments_depth = self._thing_depth
 
     def handle_data(self, data: str) -> None:
         value = " ".join(data.split())
         if self._capturing_number_for is not None and value:
             if self._capturing_number_for == "active_users":
-                self.visible_active_user_count = value
-            elif self.visible_subscriber_count is None:
-                self.visible_subscriber_count = value
+                self.visible_active_user_count = _append_fragment(
+                    self.visible_active_user_count,
+                    value,
+                    separator="",
+                )
+            else:
+                self.visible_subscriber_count = _append_fragment(
+                    self.visible_subscriber_count,
+                    value,
+                    separator="",
+                )
         if self._current is None or not value:
             return
-        if self._capturing_title:
-            self._current["title"] = value
-        elif self._capturing_score:
-            self._current["score"] = value
-        elif self._capturing_comments:
-            self._current["comments"] = value
+        if self._capturing_title_depth is not None:
+            self._current["title"] = _append_fragment(
+                _str_or_none(self._current.get("title")),
+                value,
+                separator=" ",
+            )
+        elif self._capturing_score_depth is not None:
+            self._current["score"] = _append_fragment(
+                _str_or_none(self._current.get("score")),
+                value,
+                separator="",
+            )
+        elif self._capturing_comments_depth is not None:
+            self._current["comments"] = _append_fragment(
+                _str_or_none(self._current.get("comments")),
+                value,
+                separator=" ",
+            )
 
     def handle_endtag(self, tag: str) -> None:
-        if tag == "span":
+        if (
+            tag == "span"
+            and self._capturing_number_depth is not None
+            and self._capturing_number_depth == self._titlebox_depth
+        ):
             self._capturing_number_for = None
-        if tag == "a":
-            self._capturing_title = False
-            self._capturing_comments = False
+            self._capturing_number_depth = None
         if tag not in self._VOID_TAGS:
-            self._capturing_score = False
+            if self._capturing_title_depth == self._thing_depth:
+                self._capturing_title_depth = None
+            if self._capturing_score_depth == self._thing_depth:
+                self._capturing_score_depth = None
+            if self._capturing_comments_depth == self._thing_depth:
+                self._capturing_comments_depth = None
             if self._titlebox_depth:
                 self._titlebox_depth -= 1
             if self._users_online_depth:
@@ -203,9 +244,9 @@ class _OldRedditGridParser(HTMLParser):
     def _close_thing(self) -> None:
         current = self._current
         self._current = None
-        self._capturing_title = False
-        self._capturing_score = False
-        self._capturing_comments = False
+        self._capturing_title_depth = None
+        self._capturing_score_depth = None
+        self._capturing_comments_depth = None
         if current is None:
             return
         thread_url = current.get("thread_url")
@@ -247,12 +288,20 @@ def _str_or_none(value: object) -> str | None:
     return None
 
 
+def _append_fragment(existing: str | None, value: str, *, separator: str) -> str:
+    if existing is None:
+        return value
+    return f"{existing}{separator}{value}"
+
+
 def _extract_leading_count(value: object) -> str | None:
     """``"128 comments"`` -> ``"128"``; ``"comment"`` -> None; passthrough digits."""
     text = _str_or_none(value)
     if text is None:
         return None
-    head = text.split()[0].replace(",", "")
-    if head.isdigit():
-        return head
+    match = re.match(r"^\s*(\d[\d,\s]*)", text)
+    if match is not None:
+        digits = match.group(1).replace(",", "").replace(" ", "")
+        if digits.isdigit():
+            return digits
     return None

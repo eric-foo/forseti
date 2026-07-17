@@ -84,12 +84,13 @@ def run_reddit_grid_capture(
     cadence_max_gap_seconds: float | None = None,
     cadence_random_seed: int | None = None,
 ) -> tuple[int, str]:
-    if not subreddits:
-        raise ValueError("grid capture requires at least one subreddit")
-    if max_subreddits <= 0:
-        raise ValueError("max_subreddits must be greater than zero")
-    if len(subreddits) > max_subreddits:
-        raise ValueError(f"received {len(subreddits)} subreddit(s), above max_subreddits={max_subreddits}")
+    _validate_grid_inputs(
+        subreddits=subreddits,
+        output_root=output_root,
+        max_subreddits=max_subreddits,
+        timeout_seconds=timeout_seconds,
+        max_bytes=max_bytes,
+    )
     names = [_validate_subreddit(name) for name in subreddits]
     duplicates = sorted({name for name in names if names.count(name) > 1})
     if duplicates:
@@ -203,9 +204,35 @@ def run_reddit_grid_capture(
 
 def _validate_subreddit(name: str) -> str:
     stripped = name.strip().lower().removeprefix("r/")
-    if not stripped or not stripped.replace("_", "").isalnum():
+    if (
+        not stripped
+        or not stripped.isascii()
+        or not stripped.replace("_", "").isalnum()
+    ):
         raise ValueError(f"invalid subreddit name: {name!r}")
     return stripped
+
+
+def _validate_grid_inputs(
+    *,
+    subreddits: Sequence[str],
+    output_root: Path,
+    max_subreddits: int,
+    timeout_seconds: float,
+    max_bytes: int,
+) -> None:
+    if not subreddits:
+        raise ValueError("grid capture requires at least one subreddit")
+    if max_subreddits <= 0:
+        raise ValueError("max_subreddits must be greater than zero")
+    if len(subreddits) > max_subreddits:
+        raise ValueError(f"received {len(subreddits)} subreddit(s), above max_subreddits={max_subreddits}")
+    if timeout_seconds <= 0:
+        raise ValueError("timeout_seconds must be greater than zero")
+    if max_bytes <= 0:
+        raise ValueError("max_bytes must be greater than zero")
+    if output_root.exists() and not output_root.is_dir():
+        raise ValueError(f"output_root exists and is not a directory: {output_root}")
 
 
 def _build_parser() -> argparse.ArgumentParser:
