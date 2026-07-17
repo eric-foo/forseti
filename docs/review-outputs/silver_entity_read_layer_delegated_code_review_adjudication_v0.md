@@ -87,6 +87,14 @@ Adjudicated into the same landing batch, per the owner-approved plan:
    (`KNOWN_PLATFORM_NAMESPACES = {instagram, tiktok, youtube}`), exact
    lowercase canonical, matching the Reddit venue registry posture.
 
+## Review Use Boundary
+
+The delegate's findings were decision input only — not approval, not
+validation, not mandatory remediation, and not patch authority. Each finding
+and working-tree hunk was kept only through this Chief Architect adjudication;
+this record likewise grants no readiness, approval, or lifecycle authority
+beyond documenting what was adjudicated and kept.
+
 ## Residual Risk
 
 - Fuzzy/partial mention lookup is deliberately unsupported (DRL-001 residual).
