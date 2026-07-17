@@ -18,9 +18,11 @@ authority_boundary: retrieval_only
   on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
   project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
   Skills` below.
-- Forseti has one additional owner-authorized local candidate source,
-  `creator-audience-triangulation`. It supplies the narrow onboarding/on-demand
-  firing point only; it is not accepted/frozen or externally deployed.
+- Forseti has two additional owner-authorized local candidate sources:
+  `creator-audience-triangulation`, which supplies the narrow
+  onboarding/on-demand firing point, and the experimental generic
+  `success-implement` source. Neither is accepted/frozen or externally
+  deployed; `success-implement` has not been dogfooded or activated.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -140,6 +142,23 @@ behavior was not proven in-thread.
   project facts.
 
 ## Owner-Authorized Candidate Sources
+
+- `success-implement`
+  - Source path: `.agents/skills/success-implement/SKILL.md`.
+  - Normalized LF sha256: `024cee3a279ed6a5f212a84abb5d33bcc2139c24d0a7589597d1c5fedae0a09c`
+    (observed 2026-07-17 after source creation).
+  - Scope: explicit-only mechanics for binding falsifiable success signals,
+    implementing the smallest complete authorized change, validating the
+    owner-visible outcome, and asking the operator to commission delegated
+    review-and-patch only when a named residual warrants it.
+  - Collision: no same-name repo/project, user Codex/Agents/Claude, installed
+    plugin skill directory, or current resolver-visible skill was observed
+    before creation on 2026-07-17.
+  - Boundary: experimental Forseti-local source only; generic mechanics, not
+    Forseti authority; not accepted/frozen, dogfooded, installed, deployed, or
+    activated.
+  - Rollback: remove this source and this candidate record. Do not modify
+    plugin, installed-cache, user-level, or external skill source.
 
 - `creator-audience-triangulation`
   - Source path: `.agents/skills/creator-audience-triangulation/SKILL.md`.
