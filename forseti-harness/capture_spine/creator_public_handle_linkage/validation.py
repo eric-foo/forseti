@@ -446,13 +446,31 @@ def _validate_link_state_evidence(
     evidence_types = [str(row["evidence_type"]) for row in evidence_rows]
     disconfirming = [row for row in evidence_rows if row["evidence_strength"] == EvidenceStrength.DISCONFIRMING.value]
 
+    auto_promoted_link_hub = (
+        link_state == LinkState.DECLARED.value
+        and review_state == ReviewState.AUTO_PROMOTED_OFFICIAL_LINK_HUB.value
+    )
     if link_state in {LinkState.DECLARED.value, LinkState.PROBABLE.value}:
         if disconfirming:
             _fail("disconfirming_evidence_blocks_final_link", "final link states cannot include disconfirming evidence")
-        _validate_not_llm_only_final_link(evidence_rows)
+        _validate_not_llm_only_final_link(evidence_rows, allow_llm_only_bundle=auto_promoted_link_hub)
     if link_state == LinkState.DECLARED.value:
-        if review_state != ReviewState.HUMAN_REVIEWED_DECLARED.value:
-            _fail("declared_link_requires_human_review", "declared links require human_reviewed_declared")
+        if auto_promoted_link_hub:
+            has_strong_link_hub = any(
+                str(row["evidence_type"]) == EvidenceType.OFFICIAL_LINK_HUB.value
+                and str(row["evidence_strength"]) == EvidenceStrength.STRONG.value
+                for row in evidence_rows
+            )
+            if not has_strong_link_hub:
+                _fail(
+                    "auto_promoted_link_missing_official_link_hub",
+                    "auto_promoted_official_link_hub requires a strong official_link_hub evidence row",
+                )
+        elif review_state != ReviewState.HUMAN_REVIEWED_DECLARED.value:
+            _fail(
+                "declared_link_requires_human_review",
+                "declared links require human_reviewed_declared or auto_promoted_official_link_hub",
+            )
         if EvidenceStrength.STRONG.value not in strengths:
             _fail("declared_link_missing_strong_evidence", "declared links require at least one strong evidence row")
     elif link_state == LinkState.PROBABLE.value:
@@ -482,8 +500,12 @@ def _validate_link_state_evidence(
             _fail("rejected_link_missing_disconfirming_evidence", "rejected links require disconfirming evidence")
 
 
-def _validate_not_llm_only_final_link(evidence_rows: Sequence[Mapping[str, Any]]) -> None:
-    if all(row.get("llm_assisted") is True for row in evidence_rows):
+def _validate_not_llm_only_final_link(
+    evidence_rows: Sequence[Mapping[str, Any]],
+    *,
+    allow_llm_only_bundle: bool = False,
+) -> None:
+    if not allow_llm_only_bundle and all(row.get("llm_assisted") is True for row in evidence_rows):
         _fail("llm_only_final_link", "LLM-assisted evidence alone cannot finalize a public-handle link")
     for row in evidence_rows:
         actor = str(row.get("review_actor", "")).strip().lower()
