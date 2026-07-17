@@ -705,7 +705,7 @@ def test_lookup_runner_resolves_creator_and_mention(tmp_path: Path, capsys, monk
     )
     _write_fragrantica_projection(root, pid)
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
-    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(DataLakeRoot, "resolve_readonly", staticmethod(lambda **_kwargs: root))
 
     assert lookup_main(["--creator", "fixture_creator"]) == 0
     found = json.loads(capsys.readouterr().out)
@@ -735,7 +735,7 @@ def test_lookup_runner_fails_closed_on_absent_or_tampered_view_pair(
     from runners.run_derived_retrieval_lookup import main as lookup_main
 
     root = DataLakeRoot.for_test(tmp_path / "lake")
-    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(DataLakeRoot, "resolve_readonly", staticmethod(lambda **_kwargs: root))
 
     assert lookup_main(["--creator", "fixture_creator"]) == 2
     assert json.loads(capsys.readouterr().out)["status"] == "view_not_built"

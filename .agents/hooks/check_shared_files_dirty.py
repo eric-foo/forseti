@@ -41,12 +41,12 @@ REGISTRATION (.claude/settings.json; Stop takes NO matcher)
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_out,
     porcelain_paths,
     repo_root,
 )
@@ -70,13 +70,8 @@ def dirty_shared(porcelain: str) -> list[str]:
 
 def git_porcelain(root: Path) -> str:
     """`git status --porcelain` scoped to the three shared files ('' on failure)."""
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(root), "status", "--porcelain", "--", *SHARED],
-            capture_output=True, text=True)
-    except (FileNotFoundError, OSError):
-        return ""
-    return res.stdout if res.returncode == 0 else ""
+    rc, out = git_out(root, ["status", "--porcelain", "--", *SHARED])
+    return out if rc == 0 else ""
 
 
 def reminder_text(dirty: list[str]) -> str:
