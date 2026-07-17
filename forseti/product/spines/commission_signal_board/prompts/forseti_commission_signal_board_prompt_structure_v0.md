@@ -839,6 +839,14 @@ Chain rules (conclusion-writing guidance; no other durable structure):
   marker-bearing reviews with non-trivial body text are classified; where it
   does not, non-trivial body text alone admits. Contentless star ratings stay
   in aggregate rating observations and are never classified.
+- Classify relative to the brand's stated load-bearing claim set, stated
+  first. `substantiation_risk` names a specific stated claim plus a specific
+  checkable counter; `core_positioning_threat` reports the harm the
+  load-bearing positioning promises to prevent and clears the graduation bar;
+  `price_value` makes worth, price, or a cheaper equivalent the grievance;
+  `education_gap` is an expectation or use mismatch where the product
+  performed as designed and never claimed otherwise; `ordinary_defect` is the
+  residual performance or quality failure unrelated to a load-bearing claim.
 - Reaction complaints default to `held_background` — counted in the stated
   sample and named as category background, never a claim-attack. A held
   complaint graduates only when it is ingredient-specific, repeated across
@@ -852,8 +860,10 @@ Chain rules (conclusion-writing guidance; no other durable structure):
   <negative | all> reviews — <venue>, <date range>, <selection route and
   admission handling>`, stated so a second scanner could reproduce `N`.
   Never a population rate. With no sample, state the named instances and the
-  next observable instead. State once that category background exists and is
-  not tracked or compared.
+  next observable instead. State once, adapting the category wording:
+  *Sensitive-skin cosmetics accrue idiosyncratic-reaction complaints as
+  category background; this card tracks no comparator base rate and makes no
+  cross-brand rate claim.*
 - Amplification is a property of the attacked claim, never of volume: an
   explicit and specific claim (named label word, ingredient-level, or seal)
   amplifies High; explicit but general amplifies Medium; no stated claim
@@ -866,10 +876,11 @@ Chain rules (conclusion-writing guidance; no other durable structure):
   — staying inside that row's excerpt, time anchor, fact domain, and
   ambiguity limitation — and a confidence mark (verified / corroborated /
   proxy / thin / unverified; a cell takes the weakest load-bearing input;
-  the complaint cell may split existence vs prevalence). A link with no
-  substantive evidence states so with its gap or request ID. Cells whose
-  evidence could change a conclusion, be disputed, or disappear emit the
-  existing capture-request trigger.
+  the complaint cell may split existence vs prevalence, using `unsampled` for
+  the prevalence side when no denominator exists). A link with no substantive
+  evidence states so with its gap or request ID. Cells whose evidence could
+  change a conclusion, be disputed, or disappear emit the existing
+  capture-request trigger.
 - Compress each card to one 5-field conclusion row — claim / evidence /
   consequence / confidence / next observable — with maximum aggressiveness
   in consequence and confidence, made safe by the evidence bound and the
@@ -1014,8 +1025,11 @@ direction_change_propagation:
     observation rows — the only durable structure added. Origin: adjudication
     ledger item 4 chain section, owner-directed implementation 2026-07-17,
     design docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md.
-    Partial execution of the deferred contract synthesis pass: every other
-    ledger item remains deferred pending owner go.
+    Partial execution of the deferred contract synthesis pass: only the
+    chain-local item 9 compression and item 12 existing capture-trigger pointer
+    travel with this implementation; broader item 9 placement, item 12
+    non-CSB seams, and every other ledger item remain deferred pending owner
+    go.
   trigger: product_doctrine
   related_triggers:
     - output_authority
@@ -1033,9 +1047,9 @@ direction_change_propagation:
     - path: .agents/hooks/check_commission_signal_board_output.py
       reason: >
         Owner rule for the synthesis upgrade: guidance-only, no new validator
-        fields. Section titles, numbering, and every typed company document
-        are unchanged; the new rows block lives inside narrative Section 7,
-        which the validator does not parse.
+        fields. Section titles, numbering, and every existing typed company
+        document are unchanged; the one commissioned rows block lives inside
+        narrative Section 7, which the validator does not parse.
     - path: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
       reason: >
         That record adjudicates the original external prompt's sections, not
@@ -1057,7 +1071,7 @@ direction_change_propagation:
   non_claims:
     - not validation or readiness
     - not scanning, capture, sampling execution, or monitoring authorization
-    - not the full contract synthesis pass; remaining ledger items stay deferred
+    - not the full contract synthesis pass; broader item 9 placement, item 12 non-CSB seams, and remaining ledger items stay deferred
     - not a change to profile routing, classifier boundaries, recency doctrine, or the observation ledger schema
 ```
 
