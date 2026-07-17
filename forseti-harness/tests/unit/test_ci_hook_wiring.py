@@ -17,8 +17,10 @@ CI_PATH = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 PRE_PUSH_PATH = REPO_ROOT / ".agents" / "hooks" / "pre_push_guard.py"
 HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
 HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
+CLAUDE_SETTINGS_PATH = REPO_ROOT / ".claude" / "settings.json"
 CODEX_HOOKS_PATH = REPO_ROOT / ".codex" / "hooks.json"
 CODEX_ADAPTER_PATH = REPO_ROOT / ".codex" / "hooks" / "forseti_guard_codex_adapter.py"
+PLACEMENT_PATH = HOOKS_DIR / "check_placement.py"
 ATOMIC_EXACT_EDIT_PATH = REPO_ROOT / ".agents" / "tools" / "atomic_exact_edit.py"
 DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-routing.md"
 PROMPT_ORCHESTRATION_PATH = (
@@ -31,6 +33,7 @@ HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
 EVENT_BASE_SHA = "1" * 40
 DIFF_BASE_RESOLVERS = (
     ("check_source_input_hashes.py", "resolve_base_ref", False),
+    ("check_placement.py", "resolve_base_ref", False),
     ("check_harness_coupling.py", "resolve_base_ref", False),
     ("header_index.py", "resolve_base_ref", True),
     ("check_search_surface_google_route.py", "resolve_base", False),
@@ -93,6 +96,14 @@ def _load_codex_adapter():
     return module
 
 
+def _load_placement():
+    spec = importlib.util.spec_from_file_location("check_placement", PLACEMENT_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _ci_python_commands() -> list[str]:
     commands: list[str] = []
     for raw in CI_PATH.read_text(encoding="utf-8").splitlines():
@@ -108,6 +119,121 @@ def test_ci_has_no_duplicate_python_commands() -> None:
     commands = _ci_python_commands()
     duplicates = sorted(command for command, count in Counter(commands).items() if count > 1)
     assert duplicates == []
+
+
+def test_active_interactive_hook_topology_is_protection_only() -> None:
+    claude = json.loads(CLAUDE_SETTINGS_PATH.read_text(encoding="utf-8"))["hooks"]
+    assert set(claude) == {"PreToolUse", "SessionStart"}
+    assert len(claude["PreToolUse"]) == 1
+    claude_guard = claude["PreToolUse"][0]["hooks"]
+    assert len(claude_guard) == 1
+    assert "guard_protected_actions.py" in claude_guard[0]["command"]
+    assert claude_guard[0]["timeout"] == 10
+    session = claude["SessionStart"][0]["hooks"]
+    assert len(session) == 1
+    assert "session_context_capsule.py" in session[0]["command"]
+    assert session[0]["timeout"] == 5
+
+    codex = json.loads(CODEX_HOOKS_PATH.read_text(encoding="utf-8"))["hooks"]
+    assert set(codex) == {"PreToolUse"}
+    assert len(codex["PreToolUse"]) == 1
+    codex_guard = codex["PreToolUse"][0]["hooks"]
+    assert len(codex_guard) == 1
+    assert "forseti_guard_codex_adapter.py" in codex_guard[0]["commandWindows"]
+    assert codex_guard[0]["timeout"] == 10
+
+    registered = CLAUDE_SETTINGS_PATH.read_text(encoding="utf-8") + CODEX_HOOKS_PATH.read_text(encoding="utf-8")
+    for retired in (
+        "remind_sci.py",
+        "check_prompt_provenance.py",
+        "check_shared_files_dirty.py",
+        "check_token_burn.py",
+        "check_placement.py",
+        "check_repo_map_freshness.py",
+        "check_search_surface_google_route.py",
+    ):
+        assert retired not in registered
+
+
+def test_placement_ci_mode_is_registered_without_pre_push_expansion() -> None:
+    command = "python .agents/hooks/check_placement.py --changed --strict"
+    assert command in _ci_python_commands()
+    guard = _load_pre_push_guard()
+    assert all(command[0] != ".agents/hooks/check_placement.py" for _name, command in guard.SELECTED_GATES)
+
+
+def test_placement_diff_parser_checks_rename_destination_and_ignores_deletion() -> None:
+    placement = _load_placement()
+    output = "\0".join(
+        (
+            "A", "docs/decisions/new.md",
+            "M", "AGENTS.md",
+            "C100", "docs/old.md", "docs/workflows/copied.md",
+            "R087", "old-root.md", "mystery/new.md",
+            "D", "docs/decisions/deleted.md",
+            "",
+        )
+    )
+    paths, error = placement.parse_name_status(output)
+    assert error == ""
+    assert paths == [
+        "docs/decisions/new.md",
+        "AGENTS.md",
+        "docs/workflows/copied.md",
+        "mystery/new.md",
+    ]
+
+
+def test_placement_changed_gate_covers_valid_unknown_and_freshness(
+    monkeypatch, capsys
+) -> None:
+    placement = _load_placement()
+    mapdata = {
+        "known_top_level": {"dirs": ["docs"], "files": ["AGENTS.md"]},
+        "docs_roles": [{"home": "docs/decisions"}],
+        "scratch_rules": {},
+        "legacy_tolerated": [],
+        "excluded": [],
+    }
+    monkeypatch.setattr(placement, "load_map", lambda root: (mapdata, ""))
+    monkeypatch.setattr(placement, "freshness_findings", lambda root, data: [])
+
+    monkeypatch.setattr(
+        placement,
+        "changed_paths",
+        lambda root, base: (["docs/decisions/new.md", "AGENTS.md"], ""),
+    )
+    assert placement.run_changed(REPO_ROOT, "base") == 0
+
+    monkeypatch.setattr(
+        placement,
+        "changed_paths",
+        lambda root, base: (["mystery/new.md", "docs/notarole/new.md"], ""),
+    )
+    assert placement.run_changed(REPO_ROOT, "base") == 1
+    assert "unknown top-level area" in capsys.readouterr().out
+
+    monkeypatch.setattr(placement, "changed_paths", lambda root, base: ([], ""))
+    monkeypatch.setattr(
+        placement,
+        "freshness_findings",
+        lambda root, data: ["map-stale: declared top-level dir missing from tree: docs"],
+    )
+    assert placement.run_changed(REPO_ROOT, "base") == 1
+
+
+def test_placement_diff_uses_internal_twenty_second_timeout(monkeypatch) -> None:
+    placement = _load_placement()
+
+    def fake_run(command, **kwargs):
+        assert kwargs["timeout"] == 20
+        assert command[-1] == "abc123...HEAD"
+        assert "--diff-filter=ACMR" in command
+        return subprocess.CompletedProcess(command, 0, "M\0AGENTS.md\0", "")
+
+    monkeypatch.setattr(placement.subprocess, "run", fake_run)
+    paths, error = placement.changed_paths(REPO_ROOT, "abc123")
+    assert (paths, error) == (["AGENTS.md"], "")
 
 
 def test_codex_live_hook_adoption_probe_fails_closed() -> None:

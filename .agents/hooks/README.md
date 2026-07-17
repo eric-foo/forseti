@@ -1,17 +1,11 @@
 # Agent enforcement hooks — and how to wire them in any harness
 
-These scripts enforce a few Forseti rules at the agent's **tool boundary**. They are
-**self-contained as a directory** — plain stdlib Python (plus PyYAML for the
-placement checker) that reads a tool event as JSON on stdin and signals via exit
-code; shared helpers live in the sibling `_hooklib.py`, so port the whole
-`.agents/hooks/` directory, not single files. That makes them **harness-portable**:
-the *logic* runs anywhere; only the *wiring* (how your agent harness invokes them)
-is harness-specific.
-
-> **If you are an agent in a harness other than Claude Code:** these hooks are
-> **inert until you wire them into your harness's own config.** Read "Wiring per
-> harness" below and set up the equivalent. The scripts don't change — only the
-> registration does.
+This directory contains Forseti's interactive protection and portable mechanical
+checkers. Active interactive wiring is deliberately small: Claude and Codex run
+only the protected-action guard before tools; Claude also runs one lean
+SessionStart state read. Durable artifact-shape checks run at commit/CI. Script
+presence and dormant `--hook` compatibility modes do not prove activation;
+tracked configuration is authoritative.
 
 ## The hooks
 
@@ -22,7 +16,7 @@ is harness-specific.
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors ten selected strict CI gates over local `origin/main...HEAD`, including the conditional harness coupling contracts. CI runs the same gate modes against its exact event base SHA. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_harness_coupling.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped adapter over existing inventory and policy-pin contract tests. It runs only when the outgoing change touches `forseti-harness/**/*.py` or `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`; an unresolvable diff or unlaunchable test fails closed. Coupling preflight only: not the full harness suite, validation, readiness, or proof that every CI failure is prevented. `--selftest` present. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
-| `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
+| `check_retrieval_header.py` | manual + dormant `--hook` compatibility | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. The active changed-doc gate is `header_index.py --strict` in CI. |
 | `check_dcp_receipt.py` | **CI** (`--strict`) + manual maintenance | Diff-scoped strict gate validates the shape of exceptional durable DCP receipts/blockers present in changed Markdown files. It never requires a receipt or verifies its truth. |
 | `check_review_output_provenance.py` | manual + **CI** (`--diff "$FORSETI_DIFF_BASE" --strict`) | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, review-use boundary/non-approval wording, balanced/valid fences, proper `diff` fencing, non-collapsed diffs, observed-check wording, or whitespace hygiene. Shape/integrity only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
 | `check_csb_scanning_artifact.py` | manual + **CI** (`--diff "$FORSETI_DIFF_BASE" --strict`) | Diff-scoped, forward-only for CSB-first scan artifacts under `docs/research/`: validates minimum receipt shape including capture-request accounting and the Creator Registry preflight block (`not_applicable` for non-social requests; receipt-backed `can_start_new_capture` for new social creator/account capture). Shape only; never scan quality, buyer proof, registry truth, or Capture route authorization. |
@@ -31,11 +25,10 @@ is harness-specific.
 | `check_prompt_output_mode.py` | **CI** (`--strict`) | Diff-scoped, forward-only: changed prompt artifacts under `docs/prompts/**` (templates and READMEs excluded) must carry an output-mode declaration naming at least one closed-set token (`chat-only` / `file-write` / `review-report` / `paste-ready-chat` / `patch-queue`). Additionally validates two commission shells when their triggers appear: the EP-38 managed-receiver creation-authorization block (implementation-authorized `codex_managed_worktree` commissions) and the EP-19 delegated code-review-and-patch courier shell (`target_kind: delegated_code_review_and_patch`). Presence + token/shell shape only; "exactly one, correctly scoped" and all runtime truth stay resident judgment. Backlog via `--audit` (never gated); `--validate-stdin` gates one rendered prompt. |
 | `check_review_summary.py` | **CI** (`--strict`) | Diff-scoped, forward-only over changed `docs/review-outputs/**` files: real `review_summary` blocks must not carry forbidden process keys, `report_path` must resolve on disk, failed-write blocks keep the bound failed shape, and `recommendation` is non-blank when present. Full `recommendation` enum membership is `--audit` advisory only (known extended vocabulary in delegated-review-patch lanes). Shape only; never review quality or truth. Non-overlap: header/provenance/fencing stays with `check_review_output_provenance.py`. |
 | `check_hash_pin_freshness.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: markdown freshness hash pins (labeled `path:` + `sha256:` bullet pairs; `source_captures/**/receipt.md` preserved-file bullets) must match current CRLF-normalized file bytes when the pin-carrying doc or its target changed. The markdown analog of `check_source_input_hashes.py` (JSON); provenance-style manifest tables and source-read ledgers are deliberately not parsed as pins. Pin freshness only; never semantic validity, source quality, or skill correctness. Backlog via `--audit` (never gated). |
-| `check_shared_helper_duplication.py` | manual + **CI** (`--strict`) + **post-tool** (`--hook` advisory) | Diff-scoped, forward-only: an added line privately re-defining a shared helper (`_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` / `_as_dict` / `_hash_file` / `_string_or_none` / `_non_empty_string_or_none` / `_int_or_none` / `_bool_or_none` anywhere in scope; `_is_forbidden_field_name` / `_first_match` / `_dedupe_preserve_order` / `_read_packet_directory` in `forseti-harness/` only; `repo_root` / `_git` / `_git_lines` / `porcelain_paths` in `.agents/hooks/` only) is flagged toward the owning home (`forseti-harness/harness_utils.py` / `forseti-harness/source_capture/projection_shared.py` / `.agents/hooks/_hooklib.py`) unless the def line, the line immediately above, or the first body line below carries a comment naming the delta (any comment containing `harness_utils`, `_hooklib`, `projection_shared`, or `helper-delta`). Scope excludes `forseti-harness/tests/**`, `harness_utils.py`, `_hooklib.py`, and `guard_protected_actions.py` (its duplication is the documented deliberate exception). Adoption-rule shape only; never helper correctness, divergence justification, validation, or readiness. `--selftest` present. |
-| `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
-| `check_search_surface_google_route.py` | **post-tool** (after a write) + CI | Advisory on live writes and strict in CI for the checkable Google search-surface route shell: Google Search URLs use `hl=en&gl=us&pws=0`, US-parameterized artifacts carry the physical-locality non-claim, and Google sorry/IP pages are not preserved in durable docs. |
-| `remind_sci.py` | **pre-tool** (before a `git commit`) | Advisory (exit 0): when the commit includes durable-artifact changes, re-injects the Smallest Complete Intervention rule (verbatim from AGENTS.md) as a nudge before scope is locked in. Never blocks; silent for code/scratch/config-only commits. |
-| `header_index.py` | manual + **CI** (`--strict`) + session capsule | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
+| `check_shared_helper_duplication.py` | manual + **CI** (`--strict`); dormant `--hook` compatibility | Diff-scoped, forward-only: an added line privately re-defining a shared helper (`_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` / `_as_dict` / `_hash_file` / `_string_or_none` / `_non_empty_string_or_none` / `_int_or_none` / `_bool_or_none` anywhere in scope; `_is_forbidden_field_name` / `_first_match` / `_dedupe_preserve_order` / `_read_packet_directory` in `forseti-harness/` only; `repo_root` / `_git` / `_git_lines` / `porcelain_paths` in `.agents/hooks/` only) is flagged toward the owning home (`forseti-harness/harness_utils.py` / `forseti-harness/source_capture/projection_shared.py` / `.agents/hooks/_hooklib.py`) unless the def line, the line immediately above, or the first body line below carries a comment naming the delta (any comment containing `harness_utils`, `_hooklib`, `projection_shared`, or `helper-delta`). Scope excludes `forseti-harness/tests/**`, `harness_utils.py`, `_hooklib.py`, and `guard_protected_actions.py` (its duplication is the documented deliberate exception). Adoption-rule shape only; never helper correctness, divergence justification, validation, or readiness. `--selftest` present. |
+| `check_repo_map_freshness.py` | manual; dormant `--hook` compatibility | Reports structural drift vs the repo map and retains strict/manual modes. It is not registered on an interactive boundary. |
+| `check_search_surface_google_route.py` | manual + **CI**; dormant `--hook` compatibility | Strict CI enforcement for the checkable Google search-surface route shell: Google Search URLs use `hl=en&gl=us&pws=0`, US-parameterized artifacts carry the physical-locality non-claim, and Google sorry/IP pages are not preserved in durable docs. |
+| `header_index.py` | manual + **CI** (`--strict`) | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
 | `check_map_links.py` | manual + **CI** (`--strict`) | Checks map/submap paths, `open_next` targets, folder reachability, inline path shape, and direct target existence for the Artifact Roles and product-spine Doctrine Index live-router tables. Path existence only; never route truth, currentness, authority, or completeness proof. |
 | `check_deletion_evidence.py` | **CI** (`--strict`) | Diff-scoped: deleting (or renaming out of every governed root) a governed artifact under the product tree requires a complete evidence record (`reverse_ref_check`, `successor`, `semantic_delta`, `rollback`) in the deletion-evidence register. Record shape/coverage only; never whether the deletion was wise. |
 | `check_fragrance_reference.py` | **CI** (`--strict`) | Validates `fragrance_reference_v0.yaml` against the invariants its own header declares: bare-fact provenance, vocabulary conformance, accord-to-note-family derivation consistency, dupe-reference resolution. Data-file integrity only. |
@@ -43,15 +36,12 @@ is harness-specific.
 | `check_ontology_tag_validity.py` | **CI** (`--selftest` + `--strict`) | Flags changed-markdown `Word (Capitalized)` parentheticals whose capitalized token looks type-like but is not in the ontology roster (allowlist-aware). Tag-mode shape only; never prose meaning. |
 | `check_ontology_drift.py` | **CI** (`--strict`) | Verifies scoped alignment between the ontology SSOT `runtime_bindings` and the runtime Pydantic classes for exactly the three bound overlaps (CapturePacket, EvidenceUnit, Case). Never full field conformity. |
 | `check_silver_lane_registry.py` | manual + **CI** (`--strict`) | Enforces the Data Lake silver-lane write contract (the no-blur binding): full-tree AST scan of `forseti-harness/` raw lake-write call sites plus the lane registry's own `validate_registry()` invariant. |
-| `check_placement.py` | **post-tool** (after a write); `--strict` full-tree mode available but currently unwired | Advisory WARN when a written path has no declared home in `repo-structure.yaml` (EP-04); `--strict` is the full-tree gate. Placement shape only; never authority, validation, or readiness. |
-| `check_full_gt_claims.py` | **post-tool** (after a write) + **CI** (`--changed --strict`) | Flags added `.md` lines whose full-GT claim language is not bounded by ballast wording and does not sit in a claim-owning surface. Shape/placement only; never claim truth. |
-| `check_prompt_provenance.py` | **post-tool** (after a write under `docs/prompts/**`) | Advisory (exit 0): injects the Forseti Prompt Preflight checklist. Once-per-session throttle: the full checklist fires on the FIRST in-scope prompt write of a session; later writes get a one-line pointer (fails open to the full checklist). |
-| `check_shared_files_dirty.py` | **Stop** (turn end) | Advisory (exit 0): warns when a commit-once-whole shared file (repo map, `.claude/settings.json`, source-of-truth) is left dirty at end of turn. Never blocks, never auto-commits. |
-| `check_token_burn.py` | **Stop** (turn end) | Advisory (exit 0): warns when one turn's prompt size crosses a rung (200K warn / 500K alarm, env-overridable); escalation-throttled so it never nags every turn. |
-| `session_context_capsule.py` | **SessionStart** | Prints the lane-state capsule (branch, tree dirt, config-surface dirt, doctrine drift, entry points) into session context. Observed git state only; not doctrine or lane authority. |
+| `check_placement.py` | **CI** (`--changed --strict`) + manual compatibility | Checks only A/M/C paths and R destinations against the CI event base, ignores deletions, and runs lightweight map↔top-level freshness. Internal Git timeout 20 seconds; unavailable strict diff fails visibly. Placement shape only; never authority, validation, or readiness. |
+| `check_full_gt_claims.py` | **CI** (`--changed --strict`); dormant `--hook` compatibility | Flags added `.md` lines whose full-GT claim language is not bounded by ballast wording and does not sit in a claim-owning surface. Shape/placement only; never claim truth. |
+| `session_context_capsule.py` | Claude **SessionStart** | One `git --no-optional-locks status --porcelain=v2 --branch` child (2-second internal timeout; 5-second host cap). Emits only repo, branch, and modified/untracked counts; Git failure emits `UNKNOWN`, never false-clean state. |
 
-Each has a `--selftest`. Each script names its own rule authority in its module
-header and references that source instead of restating it.
+Each active guard/checker documents its boundary and validation mode; tracked
+configuration and CI are the activation authorities.
 ## Run the CI hook-gate set locally (before pushing)
 
 CI runs every strict hook command registered in `.github/workflows/ci.yml`.
@@ -105,8 +95,6 @@ delta.
 - **Output / exit code:** for the raw Forseti guard, **`2` = block** the tool call
   (stderr explains why); **`0` = allow**.
   On any internal error the guard **exits 0 (fails open)** so a hook bug never bricks the agent.
-- For the repo-map PostToolUse checker, **`2` = stop and commit the dirty repo
-  map explicitly now**; **`0` = advisory or silent**.
 - Any harness that can run a command with the tool event on stdin and honor a
   blocking exit code can use these as-is (adapt field names with a tiny shim if yours differ).
 - Harnesses with their own denial protocol should use a small adapter rather than
@@ -120,25 +108,10 @@ Register in the repo's tracked `.claude/settings.json`. The live wiring (see
 that file for the authoritative registration) is:
 
 - **PreToolUse** `Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit` →
-  `guard_protected_actions.py`; **PreToolUse** `Bash|PowerShell` →
-  `remind_sci.py --hook`.
-- **PostToolUse** `Write|Edit|MultiEdit` → `check_retrieval_header.py`,
-  `check_full_gt_claims.py`, `check_repo_map_freshness.py`,
-  `check_placement.py`, `check_prompt_provenance.py`,
-  `check_search_surface_google_route.py`,
-  `check_shared_helper_duplication.py` (each `--hook`, timeout 10).
-  NotebookEdit is deliberately pre-tool-guarded but NOT post-tool-checked:
-  the post checkers target `.md`/placement surfaces, not notebooks.
-- **Stop** (no matcher) → `check_shared_files_dirty.py --hook`,
-  `check_token_burn.py`.
-- **SessionStart** (no matcher) → `session_context_capsule.py --hook`.
-
-Entry shape per hook:
-```json
-{ "type": "command",
-  "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/<script>.py\" --hook",
-  "timeout": 10 }
-```
+  `guard_protected_actions.py` with a 10-second host timeout.
+- **SessionStart** (no matcher) → `session_context_capsule.py --hook` with a
+  5-second host timeout.
+- No Claude `PostToolUse` or `Stop` hooks are registered.
 Hooks load at session start — **restart the session** after editing settings.
 Verify:
 ```powershell
@@ -161,12 +134,9 @@ python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
 python .agents/hooks/check_retrieval_header.py --selftest
 python .agents/hooks/check_placement.py --selftest
+python .agents/hooks/check_placement.py --changed --strict --base origin/main
 python .agents/hooks/check_full_gt_claims.py --selftest
-python .agents/hooks/check_prompt_provenance.py --selftest
-python .agents/hooks/check_shared_files_dirty.py --selftest
-python .agents/hooks/check_token_burn.py --selftest
 python .agents/hooks/session_context_capsule.py --selftest
-python .agents/hooks/remind_sci.py --selftest
 ```
 
 ### Codex (tracked project hook)
@@ -176,9 +146,7 @@ tracked project-local `.codex/hooks.json`, which registers:
 - `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;
 - `.codex/hooks/forseti_guard_codex_adapter.py` as the command hook.
 - `.codex/hooks/orca_guard_codex_adapter.py` remains only as a legacy shim for already-loaded Codex hook sessions; active config should use the Forseti path.
-- `PostToolUse` for `apply_patch|Edit|Write`;
-- `.agents/hooks/check_repo_map_freshness.py --hook` as the repo-map commit interrupt / freshness advisory.
-- `.agents/hooks/check_search_surface_google_route.py --hook` as the Google search-surface route policy advisory.
+- no Codex `PostToolUse` hook is registered.
 
 The adapter preserves the shared guard logic but returns Codex's native denial
 shape:
@@ -234,11 +202,6 @@ the command text names repo source/docs file types (`.md`, `.py`, `.yml`,
 failure class, not universal shell-write detection; use `apply_patch` from the
 active worktree for source edits.
 
-The repo-map checker also parses Codex `apply_patch` headers in PostToolUse
-mode. If the edited target is `docs/workflows/forseti_repo_map_v0.md` and Git still
-shows that map dirty, it returns exit code 2 and tells the agent to commit that
-file immediately with `git commit --only -- docs/workflows/forseti_repo_map_v0.md`.
-
 Codex only loads project-local hooks after the project `.codex/` layer is
 trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks
 that need review.
@@ -266,14 +229,10 @@ python .codex/hooks/forseti_guard_codex_adapter.py --selftest
 
 ### Another harness
 `.claude/settings.json` is **not read** by other harnesses, so:
-1. If your harness has a **pre-tool / post-tool command-hook** mechanism, register
-   `guard_protected_actions.py` on the pre-tool event for shell + write tools,
-   honoring **exit 2 = block**. Register the `--hook` checkers on the post-tool
-   event for write tools, including your harness's multi-edit / apply-patch
-   equivalent. Map your harness payload onto `tool_name` / `tool_input` on stdin.
-   The repo-map checker intentionally exits 2 when the repo map itself remains
-   dirty after edit; honor that as a stop-and-commit interrupt if your harness
-   supports blocking post-tool hooks.
+1. If your harness has a **pre-tool command-hook** mechanism, register
+   `guard_protected_actions.py` on shell + write tools and honor **exit 2 =
+   block**. Do not register advisory post-tool fanout by default; run the
+   repository's strict checkers at commit/CI instead.
 2. If your harness has no equivalent hook API, install the tracked local Git
    hook adapters:
    ```powershell
