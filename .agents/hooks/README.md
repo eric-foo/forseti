@@ -89,11 +89,10 @@ checker, migrate a stale private copy in the same work unit only when the bound
 change already touches or depends on that helper contract (behavior-preserving
 only); otherwise leave the unrelated migration for a separately scoped work
 unit. A deliberately divergent copy stays, with a one-line comment naming the
-delta. When repairing a duplication class, fix the few copied-from **exemplars**
-first rather than every copy: cold agents adopt the nearest existing file, so
-repairing the 3-5 exemplars redirects future code at a fraction of the cost of an
-exhaustive sweep (this is why the gate stays def-nameable — inline-block
-duplication is not gateable and is covered by exemplar repair, not a regex row).
+delta. Before considering an exhaustive sweep, start with a small set of
+copied-from **exemplars**; the working hypothesis is that cold agents follow
+nearby examples. Inline-block duplication remains judgment work, not a new
+regex row.
 
 ## The contract (harness-agnostic)
 

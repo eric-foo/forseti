@@ -1,86 +1,44 @@
 ---
 name: slop-audit
-description: "Route a Forseti code-slop hygiene pass (duplication, bloat, ceremony, drift) through its hard-won sequence and durable homes, or steer a cold agent about to write a duplicate helper, an oversized function, or an unwired checker. A thin router: it points at existing gates and workflow-kernel skills and never re-implements them. Do not trigger for a single obvious inline dedup you just do, generic code review (use workflow-code-review), artifact/prose review, or feature/runtime work."
+description: "Route an explicitly commissioned Forseti code-slop hygiene audit to the few sources needed for its bound failure. Do not trigger for a single obvious inline dedup, generic code review (use workflow-code-review), artifact/prose review, or feature/runtime work."
 ---
 
 # slop-audit (Forseti-local candidate source)
 
-## Status and authority
+## Boundary
 
-Forseti-local candidate router for the code-slop hygiene lane. It is not
-project, product, or enforcement authority and validates, gates, or accepts
-nothing on its own. It POINTS at the durable homes that own each rule and at the
-existing workflow-kernel skills; it never re-implements them or restates the
-facts they own. Every project fact (gate names, shared homes, validation
-commands, safety, lifecycle) defers to `AGENTS.md`, `.agents/workflow-overlay/`,
-and the READMEs named below. It fails visibly when a home it points at is
-missing rather than inventing the rule.
+This candidate is a discovery router, not Forseti authority, validation,
+readiness, acceptance, or a mandatory playbook. Current project facts come only
+from `AGENTS.md`, `.agents/workflow-overlay/`, and the owning sources below. If
+a pointer is stale, resolve the current owner; do not reconstruct its rule here.
 
-## Named failure this prevents
+## Failure and trigger
 
-A cold agent facing a slop-shaped task re-derives the playbook from scratch or
-skips a hard-won step — attempts an exhaustive repair instead of exemplar
-repair, tries to gate a non-def-nameable duplication class, or cuts an
-unwired-but-live artifact — because the sequence and its lessons live in
-scattered homes (a dup-gate README, a delegated-review skill, the SCI kernel, a
-hygiene ledger) with no discoverable entry point. This skill is that entry
-point; it holds no facts a home already owns.
+Use this router when an explicit code-slop audit (duplication, bloat, ceremony,
+or drift) would otherwise require a cold agent to rediscover the relevant
+Forseti sources. Do not invoke it for a single obvious inline dedup, generic
+implementation review, non-code artifact review, or feature/runtime work.
 
-## Trigger boundary
+## Route
 
-Use when commissioned to sweep code slop (duplication, bloat, ceremony, drift)
-across a surface, OR when about to write a duplicate helper, an oversized
-function, or an unwired checker and you want the carried lessons before you do.
+Apply only the stops needed by the bound task:
 
-Negative triggers: a single obvious inline dedup you just perform; generic
-implementation/code review (use `workflow-code-review`); non-code artifact or
-prose review (use `workflow-adversarial-artifact-review`); feature, runtime, or
-product work. Sunk cost ("we ran this playbook before") is not a trigger.
+1. Bind the concrete failure and code surface before widening the audit.
+2. For shared-helper duplication, read the adoption-rule paragraph and its
+   mechanical backstop in the relevant package:
+   `.agents/hooks/README.md` plus
+   `.agents/hooks/check_shared_helper_duplication.py`, or
+   `forseti-harness/README.md` plus the same checker.
+3. For removal or completeness claims, read the CSB reversal in
+   `docs/hygiene/hooks_smallest_complete_audit_ledger_v0.md` and the decision
+   record in `docs/hygiene/slop_audit_skill_scoping_v0.md`. They are evidence and
+   adjudication input, not standing authority.
+4. Apply `AGENTS.md` Smallest Complete Intervention to every proposed addition
+   and subtraction.
+5. Route implementation review through `workflow-code-review`. Use
+   `workflow-delegated-review-patch` only when a separate commission grants that
+   lane and its bounded patch authority.
 
-## Smallest complete run (route, do not re-implement)
-
-Apply only the steps the bound task needs; each step points at the home that
-owns the rule and the evidence. Confirm each home still exists before relying on
-it (homes move).
-
-1. **Diagnose the dominant signature first.** The recurring slop shape is
-   "a shared home exists but the copied helpers were never deleted." Check the
-   shared-helper adoption rule and its mechanical backstop before writing a new
-   private helper. Home: the adoption-rule paragraphs in `.agents/hooks/README.md`
-   and `forseti-harness/README.md`; gate: `.agents/hooks/check_shared_helper_duplication.py`.
-2. **Exemplar repair, not exhaustive repair.** Fix the few copied-from exemplars
-   rather than every copy — cold agents adopt the nearest existing file. Home:
-   the same two adoption-rule paragraphs (the exemplar-repair sentence).
-3. **Gate only def-nameable classes.** A one-regex-row-per-named-helper gate with
-   a delta-comment escape hatch is the durable backstop; inline-block duplication
-   is not def-nameable and stays with exemplar repair, never a new regex row.
-   Home: the dup gate above and `.agents/workflow-overlay/validation-gates.md`
-   (Enforcement Placement).
-4. **Behavior-preservation is only as safe as the tests that would catch a
-   change.** Weak coverage gates a refactor; prove byte-identical effective
-   behavior before splitting. Home: the decomposition / test-fixture handoffs
-   under `docs/prompts/handoffs/`.
-5. **Cross-vendor delegated review before merge, adjudicated as claims.** Do not
-   inherit findings; accept/modify/reject each as a hypothesis. Route:
-   `workflow-delegated-review-patch` (do not re-implement it here).
-6. **Unwired is not unused.** Before cutting an artifact as "unused," run a usage
-   census, not only a wiring census: a spine playbook that runs it by hand, a
-   unit test that loads it, or an architecture decision that retains it keeps it
-   live with zero automated wiring. Home:
-   `docs/hygiene/hooks_smallest_complete_audit_ledger_v0.md` (the CSB reversal);
-   the forward rule is an owner-gated overlay recommendation in
-   `docs/hygiene/slop_audit_skill_scoping_v0.md`.
-7. **The audit is itself subject to SCI.** Subtraction weighs equally with
-   addition; any new gate, skill, or artifact this pass produces must name its
-   own recurring toll and the defect class it catches so the owner can weigh it.
-   Home: `AGENTS.md` (Smallest Complete Intervention) and the overlay README
-   Behavioral Admission.
-
-## What this skill is not
-
-Not a rigid step-by-step script — apply only what the task needs. Not authority,
-validation, readiness, or acceptance. Not deployed, mirrored, or frozen (that is
-a separate governance action under the Protected Skill Boundary in
-`.agents/workflow-overlay/skill-adoption.md`). It does not re-implement the gates
-or skills it points at; if a pointed-at home has moved, resolve the new home,
-do not restate its rule here.
+This skill is Forseti-local candidate source only. It is not deployed, mirrored,
+accepted, or frozen; `.agents/workflow-overlay/skill-adoption.md` owns those
+states.

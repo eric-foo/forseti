@@ -18,12 +18,9 @@ authority_boundary: retrieval_only
   on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
   project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
   Skills` below.
-- Forseti has two additional owner-authorized local candidate sources.
-  `creator-audience-triangulation` supplies the narrow onboarding/on-demand
-  firing point only. `slop-audit` is a thin code-slop-hygiene router (owner
-  authorized 2026-07-17) that points at existing gates and workflow-kernel
-  skills and re-implements nothing. Neither is accepted/frozen or externally
-  deployed.
+- Forseti has two additional owner-authorized local candidate sources:
+  `creator-audience-triangulation` and `slop-audit`. Neither is accepted/frozen
+  or externally deployed; their records below own scope and boundaries.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -161,20 +158,14 @@ behavior was not proven in-thread.
 
 - `slop-audit`
   - Source path: `.agents/skills/slop-audit/SKILL.md`.
-  - Normalized LF sha256: `b40c5ea25bbbe241d7437ad5bd50c762148f16acdce734aded6f31c69fef879f`
+  - Normalized LF sha256: `593a6b3ad771016973b341696e526cb25dc1822a17de12d2c91db38f61448216`
     (observed 2026-07-17 after source creation; pin freshness enforced by
     `.agents/hooks/check_hash_pin_freshness.py`, reread-required if the file changes).
-  - Scope: thin router for a code-slop hygiene pass (duplication, bloat,
-    ceremony, drift), or steering a cold agent about to write a duplicate
-    helper, oversized function, or unwired checker. It points at the durable
-    homes (the shared-helper adoption paragraphs and dup gate, the hooks-audit
-    ledger, `AGENTS.md` SCI) and the workflow-kernel skills
-    (`workflow-delegated-review-patch`, `workflow-code-review`) and
-    re-implements none of them. Negative triggers: a single obvious inline
-    dedup, generic code review, non-code artifact/prose review, and
-    feature/runtime work. Rationale for a router over scattered pointers:
-    discovery — the lessons had no nameable entry point
-    (`docs/hygiene/slop_audit_skill_scoping_v0.md`).
+  - Scope: discovery router for an explicitly commissioned code-slop audit. It
+    points helper duplication, removal evidence, implementation review, and SCI
+    decisions to their owners. Negative triggers: a single obvious inline
+    dedup, generic code review, non-code artifact review, and feature/runtime
+    work. The scoping record below owns the keep/kill rationale.
   - Collision: no same-name repo/project, `~/.claude/skills`, or `~/.codex/skills`
     skill directory observed before creation on 2026-07-17; no `slop-audit` in
     the active in-thread resolver-visible skill list. Installed-plugin cache not
@@ -183,6 +174,8 @@ behavior was not proven in-thread.
   - Boundary: Forseti-local source only; not accepted/frozen, not user-global,
     not plugin-installed, not deployed/mirrored to `.claude/skills/`, and no
     external deployment claim.
+  - Validation: structural checks are review evidence only; they do not prove
+    acceptance, deployment, activation, or resolver behavior.
   - Rollback: remove `.agents/skills/slop-audit/` and this candidate record;
     revert the `## Current Status` line above and the `.agents/skills/` entry in
     `artifact-folders.md` if updated. Do not modify plugin, installed-cache,
