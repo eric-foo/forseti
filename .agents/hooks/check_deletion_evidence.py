@@ -75,7 +75,6 @@ Doctrine + register:
 """
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path, PurePosixPath
 
@@ -83,6 +82,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
     git_out,
     repo_root,
+    resolve_base_ref,
 )
 
 # Governed scope -- code-owned SSOT (see "WHY THE GOVERNED SCOPE IS CODE-OWNED").
@@ -191,24 +191,6 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
     default). git_out returns (1, "") on any git failure (an infra gap ->
     fail-open upstream) instead of (-1, ""); callers only test rc != 0."""
     return git_out(root, args, timeout=timeout)
-
-
-def resolve_base_ref(cli_base: str | None) -> str:
-    """Base ref for diff-scoping (mirrors header_index.py):
-    1. $FORSETI_DIFF_BASE -> exact CI event SHA
-    2. $GITHUB_BASE_REF -> "origin/<value>"
-    3. --base <ref> CLI arg
-    4. default "origin/main"
-    No HEAD~1 fallback -- that would see only the last commit of a multi-commit lane."""
-    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
-    if ci_base:
-        return ci_base
-    gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
-    if gh_base:
-        return "origin/%s" % gh_base
-    if cli_base:
-        return cli_base
-    return "origin/main"
 
 
 def parse_governed_deletions(z_output: str, roots: tuple[str, ...]) -> list[str]:

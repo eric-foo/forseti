@@ -131,7 +131,9 @@ from typing import NamedTuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
     git_out,
+    parse_name_status,
     repo_root,
+    resolve_base_ref,
 )
 
 
@@ -224,50 +226,27 @@ _BLOCK_HEADER_RE = re.compile(
     re.IGNORECASE,
 )
 _FIELD_RE = re.compile(r"^\s*(?:[-*]\s+)?([a-z_]+)\s*:\s*(.*?)\s*$", re.IGNORECASE)
-_EDIT_PERMISSION_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?edit[_ ]permission(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_CURRENT_AUTH_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?current_turn_authorization(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_TARGET_KIND_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?target_kind(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_AUTHOR_VENDOR_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?author_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_DELEGATE_VENDOR_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_DELEGATE_ELIGIBILITY_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_eligibility(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_ACCESS_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?access(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_DELIVERY_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delivery(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_EXECUTION_ROUTE_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?execution_route(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_REVIEW_DIFF_ROUTE_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_diff_route(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
-_REVIEW_CLAIM_BOUNDARY_RE = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_claim_boundary(?:\*{0,2})?\s*:\s*(.*?)\s*$",
-    re.IGNORECASE,
-)
+def _field_re(name: str) -> re.Pattern[str]:
+    """One declared-field extraction regex (optionally bulleted/bolded key,
+    captured value). `name` is a regex fragment, so a key with alternate
+    spellings stays expressible (e.g. "edit[_ ]permission")."""
+    return re.compile(
+        r"^\s*(?:[-*]\s*)?(?:\*{0,2})?" + name + r"(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+        re.IGNORECASE,
+    )
+
+
+_EDIT_PERMISSION_RE = _field_re("edit[_ ]permission")
+_CURRENT_AUTH_RE = _field_re("current_turn_authorization")
+_TARGET_KIND_RE = _field_re("target_kind")
+_AUTHOR_VENDOR_RE = _field_re("author_vendor")
+_DELEGATE_VENDOR_RE = _field_re("delegate_vendor")
+_DELEGATE_ELIGIBILITY_RE = _field_re("delegate_eligibility")
+_ACCESS_RE = _field_re("access")
+_DELIVERY_RE = _field_re("delivery")
+_EXECUTION_ROUTE_RE = _field_re("execution_route")
+_REVIEW_DIFF_ROUTE_RE = _field_re("review_diff_route")
+_REVIEW_CLAIM_BOUNDARY_RE = _field_re("review_claim_boundary")
 _SOURCE_FAILURE_RE = re.compile(
     r"^(?=.*(?:cannot|can't|unable|unavailable|fail(?:s|ed)?\s+to|missing))"
     r"(?=.*(?:load|loaded|read|access))"
@@ -782,25 +761,6 @@ def extract_authority_tokens(text: str) -> frozenset[str] | None:
     return frozenset(tokens)
 
 
-def parse_name_status(lines: list[str]) -> list[str]:
-    """Present-in-tree changed paths from `git diff --name-status` output:
-    added, modified, and rename/copy DESTINATIONS (sources may be gone).
-
-    Pure function (testable)."""
-    present: list[str] = []
-    for ln in lines:
-        parts = [p.strip() for p in ln.split("\t")]
-        if len(parts) < 2:
-            continue
-        status = parts[0]
-        if status.startswith(("R", "C")) and len(parts) >= 3:
-            present.append(parts[2])
-        elif status.startswith(("A", "M")):
-            present.append(parts[1])
-        # D rows: skip -- nothing left in the tree to scan
-    return present
-
-
 # ---------------------------------------------------------------------------
 # Git plumbing (infra-gap fail-open)
 # ---------------------------------------------------------------------------
@@ -812,18 +772,6 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
     default). git_out returns (1, "") on launch failure/timeout instead of
     (-1, ""); callers here only test rc != 0, so the distinction is inert."""
     return git_out(root, args, timeout=timeout)
-
-
-def resolve_base_ref(cli_base: str | None) -> str:
-    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
-    if ci_base:
-        return ci_base
-    gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
-    if gh_base:
-        return "origin/%s" % gh_base
-    if cli_base:
-        return cli_base
-    return "origin/main"
 
 
 def changed_scanned_files(root: Path, base_ref: str) -> list[str] | None:
