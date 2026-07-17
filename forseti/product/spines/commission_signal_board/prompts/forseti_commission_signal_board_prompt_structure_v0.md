@@ -313,6 +313,11 @@ inside that period may be primary for the longitudinal question, but its actual
 date and tier remain visible and it is never relabeled current. A named event is
 a route or query inside one of these two postures.
 
+Do not label aligned signals observed across independent venues at one point in
+time as `co-movement`: that is spatial alignment. `Co-movement` is a temporal
+classification reserved for a future longitudinal product and requires at least
+two observation dates; this contract does not emit it.
+
 ## Mini God Tier Target And Visible Limitations
 
 Aim for mini god tier in the limited Forseti sense: most of the value of a heavier
@@ -703,9 +708,12 @@ Admission principle for synthesis: an observation earns narrative placement
 when it strengthens a linked commercial claim — a stated connection between
 evidence and a consequence-bearing statement — not merely because it covers a
 lens. Ledger completeness rules are unchanged; this governs what the narrative
-foregrounds. Readability: Sections 5-8 open with plain-language lead sentences
-before citation density; use compact markdown matrices where they carry the
-point (item reception dispersion; known/inferred/unknown); the typed ledgers
+foregrounds. Route research priorities retail, customer, and claims first,
+subject to the named-job and substitution rules; this is an attention order,
+not a quota or proof hierarchy. Readability: Sections 5-8 open with
+plain-language lead sentences before citation density and include both the
+SKU/item-reception and known/inferred/unknown matrices as plain Markdown tables,
+using explicit gap or unknown cells where evidence is absent. The typed ledgers
 remain the audit floor behind the narrative, never the front door.
 
 ### Executive Intelligence Brief (completed reports only)
@@ -719,17 +727,27 @@ The brief contains:
 
 - Three to seven front-page conclusions, each in the five-field form:
   claim / evidence bound / commercial consequence / confidence / next
-  observable. State consequence and confidence at maximum decisive strength —
-  the evidence bound and next observable are what make that strength safe.
-  Never gain strength by overclaiming evidence, and keep the report
+  observable. State commercial consequence with maximum decisive directness
+  and state confidence plainly at the strongest level the evidence and
+  uncertainty support. This authorizes aggressive clarity, not stronger
+  evidence or higher confidence: the evidence bound and next observable make
+  the statement auditable. Never inflate evidence, certainty, or
+  representativeness, and keep the report
   decision-aware-neutral: consequence names which decisions the conclusion
   could inform, never pain, priority, buyer, or wedge assignment.
 - One chain card per hero product where the evidence supports it: five cited
-  lines — the claim; why customers pay; what they experience; the complaint
-  that attacks the claim; where defectors go. A card compresses to one
-  front-page conclusion row.
-- The central-promise voice: where observable value resides, what drives it,
-  and what threatens it — each statement carrying its invalidation condition.
+  lines — the claim; observed buy motivation within the cited customer-world
+  sample (not willingness-to-pay or representative demand); observed
+  experience; the complaint that attacks the claim; the bounded substitute
+  customers cite or compare when the claim breaks (not a defection or
+  demand-capture claim). A card compresses to one front-page conclusion row;
+  normally present three or four such rows when the hero set and evidence
+  support them, and never pad to reach that range.
+- The central-promise voice and internal adjudication frame: where observable
+  value resides; what drives it; whether the evidence shows it strengthening,
+  weakening, or not proven; and what threatens it — each statement carrying
+  its invalidation condition. This frame organizes conclusions; it does not
+  replace decision adjudication as the product center.
 
 ### 1. Company Commission And Identity Receipt
 
@@ -867,7 +885,9 @@ requires a separately named follow-up commission. Collect defensibility raw
 material where visible — comparator claims language, substitution economics,
 price gaps, claims parity — as bounded observations only; the defensibility
 judgment itself belongs to the downstream adjudication layer, never this
-report.
+report. Phase 1 collects that generic raw material once. A downstream Phase 2
+may request fresh evidence only as a decision-specific supplement for the
+decision it is adjudicating, never as a general re-scan.
 
 ### 9. Company Surface Candidate Ledger
 

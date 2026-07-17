@@ -138,6 +138,10 @@ override only for change, recurrence, or trajectory across a declared period,
 and it requires both the period and rationale. A named event is a route or
 query inside the selected posture. Historical observations may be primary only
 inside the declared longitudinal period and must never be relabeled current.
+Aligned signals across independent venues at one point in time are spatial
+alignment, not `co-movement`; `co-movement` is reserved for a future
+longitudinal product, requires at least two observation dates, and is not
+emitted by this contract.
 
 The one-company report is decision-neutral. Its required lenses are observable
 positioning; offerings and claims; markets and channels; recent strategic and
@@ -149,17 +153,29 @@ A completed company report additionally carries the synthesis layer as
 guidance-bound narrative (no schema or validator fields): an Executive
 Intelligence Brief preamble of three to seven five-field conclusions (claim /
 evidence bound / commercial consequence / confidence / next observable) at
-maximum decisive strength inside the decision-neutral boundary, chain cards,
-and the central-promise voice with invalidation conditions; publicly visible
-concentration in the channels lens; invalidation signals in the chronology
-lens; the customer-choice mechanism chain with the five-way complaint
-classification and stated-sample proportionality rules in the community lens;
-and defensibility raw material (collected, never judged) in the comparator
-lens. The linked-commercial-claim admission principle governs what the
-narrative foregrounds; lens-status `complete` means covered for the
-commissioned purpose with typed gaps, never exhaustive. Conclusions gain
-strength only from evidence bounds and next observables, never from
-overclaiming evidence.
+maximum decisive directness in consequence and plainly stated,
+evidence-calibrated confidence inside the decision-neutral boundary, chain cards that
+do not imply willingness-to-pay, representative demand, defection, or demand
+capture, and the central-promise voice plus internal adjudication frame (where
+observable value resides, what drives it, whether it is strengthening,
+weakening, or not proven, and what threatens it) with invalidation conditions;
+this frame does not replace decision adjudication as the product center.
+Publicly visible concentration appears in the channels lens; invalidation
+signals appear in the chronology lens; the customer-choice mechanism chain with
+the five-way complaint classification and stated-sample proportionality rules
+appears in the community lens; and defensibility raw material (collected,
+never judged) in the
+comparator lens. Phase 1 collects generic defensibility raw material once;
+Phase 2 may request only decision-specific fresh supplements, never a general
+re-scan. Retail, customer, and claims research routes receive first attention,
+subject to the named-job and substitution rules rather than quotas. The
+linked-commercial-claim admission principle governs what the narrative
+foregrounds; plain-language section leads plus SKU/item-reception and
+known/inferred/unknown Markdown matrices keep the ledgers behind the narrative;
+lens-status `complete` means covered for the commissioned purpose with typed
+gaps, never exhaustive. Conclusions gain strength only from evidence bounds,
+next observables, and calibrated confidence, never from overclaiming evidence,
+certainty, or representativeness.
 
 Every included CSB item must perform a named, decision-material information job:
 it must have a credible route to changing the action, action ceiling, rival
