@@ -373,12 +373,14 @@ class LoadedRawPacket:
 
 class DataLakeRoot:
     """A resolved, verified Forseti data-lake root. Construct via ``resolve``,
-    ``initialize``, or ``for_test`` — never trust a bare path."""
+    ``resolve_readonly``, ``initialize``, or ``for_test`` — never trust a bare
+    path."""
 
-    def __init__(self, path: Path, *, _verified: bool) -> None:
+    def __init__(self, path: Path, *, _verified: bool, _readonly: bool = False) -> None:
         if not _verified:
             raise DataLakeRootError("construct DataLakeRoot via resolve()/initialize()/for_test()")
         self._path = path
+        self._readonly = _readonly
         # Identity captured at construction; re-checked before every write (DL-003).
         self._root_uuid = _verify_root_markers(path)["root_uuid"]
 
@@ -390,28 +392,34 @@ class DataLakeRoot:
     def root_uuid(self) -> str:
         return self._root_uuid
 
+    @property
+    def readonly(self) -> bool:
+        """True iff this root was resolved via ``resolve_readonly`` -- its write
+        methods hard-fail (see ``_require_writable``)."""
+        return self._readonly
+
     # -- construction -------------------------------------------------------
 
     @classmethod
-    def resolve(
+    def _resolve_verified_path(
         cls,
         *,
-        explicit: str | os.PathLike[str] | None = None,
-        env: dict[str, str] | None = None,
-        config_path: Path | None = None,
-        expected_uuid: str | None = None,
-        repo_root: Path | None = _FORSETI_REPO_ROOT,
-    ) -> "DataLakeRoot":
-        """Resolve the production data root, fail-closed. A test root is NEVER
-        part of this chain (use ``for_test``). Refuses to write when the root is
-        unset, relative, inside the repo, absent/unmounted, not a directory,
-        missing/mismatched its marker, or not writable."""
+        explicit: str | os.PathLike[str] | None,
+        env: dict[str, str] | None,
+        config_path: Path | None,
+        expected_uuid: str | None,
+        repo_root: Path | None,
+    ) -> Path:
+        """Shared production resolution + identity verification for ``resolve``
+        and ``resolve_readonly``: unset/relative/inside-repo/absent/not-a-dir/
+        missing-or-mismatched-marker all fail closed here. Does NOT probe write
+        capability -- callers that need the write guarantee do that themselves."""
         env = os.environ if env is None else env
         candidate = _production_candidate(explicit=explicit, env=env, config_path=config_path)
         if candidate is None:
             raise DataLakeRootError(
                 "FORSETI_DATA_ROOT/ORCA_DATA_ROOT is unset/unresolvable (no explicit root, env var, or config); "
-                "refusing to write (fail-closed)."
+                "refusing to resolve (fail-closed)."
             )
         path = Path(candidate)
         if not path.is_absolute():
@@ -430,9 +438,66 @@ class DataLakeRoot:
                 "root marker identity mismatch (drive letter may have been reassigned): "
                 f"expected {expected_uuid}, found {marker['root_uuid']}"
             )
+        return path
+
+    @classmethod
+    def resolve(
+        cls,
+        *,
+        explicit: str | os.PathLike[str] | None = None,
+        env: dict[str, str] | None = None,
+        config_path: Path | None = None,
+        expected_uuid: str | None = None,
+        repo_root: Path | None = _FORSETI_REPO_ROOT,
+    ) -> "DataLakeRoot":
+        """Resolve the production data root, fail-closed, for a caller that may
+        WRITE. A test root is NEVER part of this chain (use ``for_test``).
+        Refuses when the root is unset, relative, inside the repo,
+        absent/unmounted, not a directory, missing/mismatched its marker, or
+        not writable. A read-only consumer (e.g. a report/lookup runner that
+        never writes) should use ``resolve_readonly`` instead, which performs
+        the same identity verification without demanding write capability."""
+        path = cls._resolve_verified_path(
+            explicit=explicit,
+            env=env,
+            config_path=config_path,
+            expected_uuid=expected_uuid,
+            repo_root=repo_root,
+        )
         if not os.access(path, os.W_OK):
             raise DataLakeRootError(f"data root is not writable: {path}")
         return cls(path, _verified=True)
+
+    @classmethod
+    def resolve_readonly(
+        cls,
+        *,
+        explicit: str | os.PathLike[str] | None = None,
+        env: dict[str, str] | None = None,
+        config_path: Path | None = None,
+        expected_uuid: str | None = None,
+        repo_root: Path | None = _FORSETI_REPO_ROOT,
+    ) -> "DataLakeRoot":
+        """Resolve the production data root, fail-closed, for a caller that only
+        READS (e.g. the Silver observation census, the derived-retrieval lookup
+        runner). Identical to ``resolve`` -- same production precedence, same
+        outside-repo/marker/epoch/identity verification -- except it does NOT
+        probe write capability (``os.access(path, os.W_OK)``): a read-only
+        consumer must not be blocked from resolving the lake root merely
+        because the invoking process/user lacks write permission on it.
+
+        The write boundary is not weakened by this path: the returned root's
+        write methods (``allocate_raw_packet_dir``, ``append_record``, etc.)
+        still hard-fail immediately, loudly, before touching the filesystem --
+        see ``_require_writable``."""
+        path = cls._resolve_verified_path(
+            explicit=explicit,
+            env=env,
+            config_path=config_path,
+            expected_uuid=expected_uuid,
+            repo_root=repo_root,
+        )
+        return cls(path, _verified=True, _readonly=True)
 
     @classmethod
     def initialize(
@@ -501,11 +566,27 @@ class DataLakeRoot:
         """Re-check root identity immediately before a write session: the path is
         still a directory carrying the same marker root_uuid. Catches a
         swapped/remounted root (e.g. drive-letter reassignment to a different
-        volume). See the module-level accepted residual for active syscall races."""
+        volume). See the module-level accepted residual for active syscall races.
+
+        Called by both write methods and a few read methods that walk
+        lake-owned subtrees (e.g. ``tombstoned_packet_ids``); it asserts
+        identity only, never write capability -- ``_require_writable`` is the
+        write-boundary guard."""
         if not self._path.is_dir():
             raise DataLakeRootError(f"data root is no longer a directory: {self._path}")
         if _verify_root_markers(self._path).get("root_uuid") != self._root_uuid:
             raise DataLakeRootError(f"data root identity changed since resolution: {self._path}")
+
+    def _require_writable(self, action: str) -> None:
+        """Refuse a write-shaped operation on a readonly-resolved root, loudly
+        and before any filesystem access. The write boundary must never
+        silently downgrade to a no-op: a root returned by ``resolve_readonly``
+        always raises here instead of writing."""
+        if self._readonly:
+            raise DataLakeRootError(
+                f"refusing {action}: this DataLakeRoot was resolved read-only "
+                "(DataLakeRoot.resolve_readonly) and must not write"
+            )
 
     def _within(self, *parts: str) -> Path:
         """Resolve a lake-owned path and assert containment, rejecting symlinked
@@ -530,6 +611,7 @@ class DataLakeRoot:
         already exists. For atomic packet
         publication (a partial packet never appears under ``raw/``), prefer
         ``stage_raw_packet`` + ``publish_raw_packet`` instead."""
+        self._require_writable("allocate_raw_packet_dir")
         self._reverify()
         _validate_packet_id(packet_id)
         container = self._within("raw", raw_shard(packet_id), packet_id)
@@ -547,6 +629,7 @@ class DataLakeRoot:
         The completed staging dir is published atomically to
         ``raw/<packet_shard>/<packet_id>`` by ``publish_raw_packet``, so a partial
         packet never appears under ``raw/`` (DL-002)."""
+        self._require_writable("stage_raw_packet")
         self._reverify()
         _validate_packet_id(packet_id)
         final = self._within("raw", raw_shard(packet_id), packet_id)
@@ -561,6 +644,7 @@ class DataLakeRoot:
     def publish_raw_packet(self, staging_dir: Path, packet_id: str) -> Path:
         """Atomically publish a completed staging directory to
         ``raw/<packet_shard>/<packet_id>`` (write-once)."""
+        self._require_writable("publish_raw_packet")
         self._reverify()
         _validate_packet_id(packet_id)
         final = self._within("raw", raw_shard(packet_id), packet_id)
@@ -583,6 +667,7 @@ class DataLakeRoot:
             raise DataLakeRootError(
                 f"append_record subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
             )
+        self._require_writable("append_record")
         self._reverify()
         _validate_segment(raw_anchor, role="raw_anchor")
         _validate_segment(lane, role="lane")
@@ -625,6 +710,7 @@ class DataLakeRoot:
             raise DataLakeRootError(
                 f"completion_lane {completion_lane!r} must not collide with a member lane"
             )
+        self._require_writable("append_record_set")
         self._reverify()
         _validate_segment(raw_anchor, role="raw_anchor")
         _validate_segment(record_id, role="record_id")
@@ -928,6 +1014,7 @@ class DataLakeRoot:
         """Record the content-free committed-by-key availability fact for a
         committed raw packet, derived solely from raw/<packet_id>/manifest.json
         (so the whole index is rebuildable). Index entry: create-or-replace."""
+        self._require_writable("record_availability")
         self._reverify()
         _validate_packet_id(packet_id)
         container = self._within("raw", raw_shard(packet_id), packet_id)
@@ -1063,6 +1150,7 @@ class DataLakeRoot:
         """Rebuild indexes/availability entirely from committed raw packets
         (delete + regenerate), proving the index is non-authoritative and
         rebuildable. Returns the number of packets indexed."""
+        self._require_writable("rebuild_availability")
         self._reverify()
         avail = self._path / "indexes" / "availability"
         if avail.is_dir():
@@ -1101,6 +1189,7 @@ class DataLakeRoot:
         material is never overwritten and a hidden duplicate is never tolerated).
         Returns the total relocated. Run ``rebuild_availability`` afterwards so the
         index points at the new paths."""
+        self._require_writable("relocate_to_sharded")
         self._reverify()
         return sum(
             self._relocate_subtree_to_sharded(subtree)
