@@ -167,6 +167,11 @@ def run_source_capture_http_packet(
         if 200 <= capture_result.status < 300:
             try:
                 record = content_capture.projector(decoded_body, capture_result.final_url)
+                if not isinstance(record, dict):
+                    raise TypeError(
+                        "content projector must return a JSON object, "
+                        f"got {type(record).__name__}"
+                    )
                 content_record_bytes = (
                     json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
                 ).encode("utf-8")
