@@ -1065,6 +1065,22 @@ def _validate_company_candidates(candidates: Any, observations: dict[str, dict[s
     return findings
 
 
+def _validate_company_observation_references(
+    text: str, observations: dict[str, dict[str, Any]]
+) -> list[Finding]:
+    findings: list[Finding] = []
+    for token in sorted(set(re.findall(r"\bOBS-\d{3}\b", text))):
+        if token not in observations:
+            findings.append(
+                Finding(
+                    "dangling_observation_reference",
+                    f"Report references {token}, which has no observation_ledger row.",
+                    token,
+                )
+            )
+    return findings
+
+
 def _scout_status_matches_coverage(
     rows: list[dict[str, Any]],
     scout_status: str,
@@ -1239,6 +1255,7 @@ def validate_company_report(text: str) -> list[Finding]:
         parsed["observation_ledger"], receipt, coverage
     )
     findings.extend(observation_findings)
+    findings.extend(_validate_company_observation_references(text, observations))
     findings.extend(_validate_company_candidates(parsed["company_surface_candidate_ledger"], observations))
     findings.extend(_validate_company_completion(parsed["completion_ledger"], coverage))
 
