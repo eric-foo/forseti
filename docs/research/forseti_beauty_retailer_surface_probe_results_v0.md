@@ -431,10 +431,12 @@ observations:
   exact Pearfat Parfum and Bread and Roses bindings, a visible price, and a
   non-zero rating/review aggregate. The packet passed
   `source_detail_sufficiency_passed`.
-- Current outcome: `COMPLETE_POINT_IN_TIME_PROBE_CONTEXT_UNPINNED`. The grid
+- Initial probe outcome: `COMPLETE_POINT_IN_TIME_PROBE_CONTEXT_UNPINNED`. The grid
   embedded a US market context alongside `buyerCountry=SG`; the PDP explicitly
   encoded USD offers, but locale and currency pins remained null and no
-  delivery destination was established.
+  delivery destination was established. The later US-market verification below
+  supersedes only the storefront-country and currency status; it does not
+  rewrite the initial packet or establish a delivery destination.
 - No Luckyscent adapter, retail-grid projection, public API, schema, crawler,
   monitoring surface, Judge.me expansion, or extra full-page screenshot was
   added.
@@ -569,8 +571,63 @@ observations:
 - No retail-grid projection was run because the existing grid projector is
   explicitly scoped to Walmart and Target. The brand-grid observation was
   validated directly against the preserved HTTP body.
-- USD offer encoding is explicit, but storefront country, packet currency pin,
-  and delivery destination remain unpinned.
+- In this initial packet, USD offer encoding was explicit, while storefront
+  country, packet currency pin, and delivery destination remained unpinned.
+  The later verification below confirms the storefront context independently;
+  the initial packet remains unchanged.
+
+### US storefront pin verification
+
+- Verification date: `2026-07-18` Asia/Singapore (`2026-07-17` UTC capture
+  time).
+- Luckyscent exposes no country selector. Requests to `/en-us`, `/us`, and
+  `?country=US` canonicalized to the same unprefixed product route and did not
+  change the separate `buyerCountry=SG` signal. No undocumented cart mutation
+  was used to manufacture a country result.
+- `run_source_capture_cloakbrowser_packet.py --luckyscent-market US` therefore
+  performs no preference mutation. It confirms the retailer's canonical
+  default storefront only when one serialized `i18n` loader object binds all
+  three values together: `country=US`, `market=market-us`, and `currency=USD`.
+  Loose dollar glyphs, product-offer currency, and `buyerCountry` do not
+  satisfy the check.
+- The fresh Bread and Roses capture reused the anonymous five-second settle,
+  500-pixel scroll steps, and four-pass route. It passed the subject, price,
+  review, and access-block admission checks and recorded
+  `pin_confirmed=true`.
+- Outcome:
+  `US_USD_DEFAULT_STOREFRONT_CONFIRMED_DELIVERY_LOCATION_UNPINNED`.
+  `buyerCountry=SG` remains a distinct origin-derived shopper signal; no US
+  shopper origin, shipping address, inventory location, or delivery
+  destination is claimed.
+
+#### Verification receipt
+
+- URL:
+  `https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum`
+- Packet:
+  `F:\forseti-data-lake\raw\1c3\01KXRG2C722GPTCVF6V8MFR4Y5`
+- Packet ID: `01KXRG2C722GPTCVF6V8MFR4Y5`
+- Capture time: `2026-07-17T16:55:31Z`
+- Receipt generation time: `2026-07-17T16:55:31Z`
+- Admission marker: `source_detail_sufficiency_passed`
+- Access classification: `no_block_marker`
+- Pin metadata:
+  `pre_capture=luckyscent_us_market_assertion`,
+  `market_preference_action=none_default_market_assertion`,
+  `country_code_requested=US`, `currency_code_requested=USD`,
+  `pin_confirmed=true`
+- Access posture: no proxy, geo-IP, stored profile, storage state, credential,
+  login, or cookie injection.
+- Warnings: none
+- Preserved-file SHA-256:
+  - rendered DOM:
+    `c4f6ae538a141ec7351e597ac7e4e304c0e5584494b698036ca733571d8f4b78`
+  - visible text:
+    `407ce559917a90a3c372fa5c9e09047f7c5b0cbb4431f50cb4a19a6c0001523e`
+  - viewport screenshot:
+    `9f7c984511c06d6a9bf299286ee8cb4d0ac47ba547ba374ac63c995a53300da0`
+  - snapshot metadata:
+    `4190247c38916c71e0e5c5383e1145276d87a3cd69a5c9c6ad4921455724ed54`
 
 ## Non-claims
 
