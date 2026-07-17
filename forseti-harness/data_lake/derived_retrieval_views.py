@@ -72,7 +72,7 @@ from data_lake.silver_record import (
 
 UNDONE_VIEW_SCHEMA_VERSION = 1
 BY_MENTION_VIEW_SCHEMA_VERSION = 3
-BY_CREATOR_VIEW_SCHEMA_VERSION = 1
+BY_CREATOR_VIEW_SCHEMA_VERSION = 2
 VIEW_SCHEMA_VERSION = BY_MENTION_VIEW_SCHEMA_VERSION
 MANIFEST_SCHEMA_VERSION = 1
 SILVER_VAULT_CORE_PARTS = ("indexes", "derived_retrieval", "silver_vault", "core")
@@ -80,6 +80,19 @@ BUILT_VIEWS = ("by_creator", "by_mention", "undone")
 
 FRAGRANTICA_PROJECTION_LANE = "projection_fragrantica"
 FRAGRANTICA_PRODUCT_ROW_KIND = "fragrance_product_snapshot"
+
+# Closed per-platform namespace vocabulary for account-card filing. An account
+# subject naming any other namespace is a named residual, never a new platform
+# key (exact lowercase canonical strings; extend deliberately per new platform).
+KNOWN_PLATFORM_NAMESPACES = frozenset({"instagram", "tiktok", "youtube"})
+# Key label when a record does not assert what kind of identifier its account
+# native_id is (e.g. handle vs stable platform id). Distinct identity kinds
+# never merge into one card key.
+UNSPECIFIED_IDENTITY_KIND = "unspecified"
+# Subject kinds known NOT to describe a creator account even though they carry
+# a native_id (comments, retail product pages). Kinds outside this set and the
+# two account-bearing shapes are named residuals, never guesses.
+KNOWN_NON_ACCOUNT_SUBJECT_KINDS = frozenset({"public_comment", "retailer_product"})
 _MISSING_EVIDENCE_NOTE = (
     "a key, packet, lane, or metric absent from this view means not captured or "
     "not indexed at build time; it must never be read as an observed zero"
@@ -195,13 +208,42 @@ def _classified_silver_sweep(root) -> dict[str, Any]:
                 "authority_status": authority.status,
                 "reason_code": authority.reason_code,
             }
-            for namespace, native_id, aliases in _account_subject_keys(record):
+            account_keys, account_problems = _account_subject_keys(record)
+            for problem in account_problems:
+                residuals.append(
+                    {
+                        **problem,
+                        "raw_anchor": anchor,
+                        "lane": lane,
+                        "record_id": path.name,
+                    }
+                )
+            for namespace, identity_kind, native_id, aliases in account_keys:
                 entry = accounts.setdefault(
-                    (namespace, native_id), {"aliases": {}, "refs_by_anchor": defaultdict(list)}
+                    (namespace, identity_kind, native_id),
+                    {
+                        "aliases": {},
+                        "alias_values": defaultdict(set),
+                        "refs_by_anchor": defaultdict(list),
+                    },
                 )
                 for alias_key, alias_value in aliases.items():
                     entry["aliases"].setdefault(alias_key, alias_value)
+                    entry["alias_values"][alias_key].add(str(alias_value))
                 entry["refs_by_anchor"][anchor].append(ref)
+    for (namespace, identity_kind, native_id), entry in sorted(accounts.items()):
+        for alias_key, alias_values in sorted(entry["alias_values"].items()):
+            if len(alias_values) > 1:
+                residuals.append(
+                    {
+                        "status": "account_alias_conflict",
+                        "namespace": namespace,
+                        "identity_kind": identity_kind,
+                        "native_id": native_id,
+                        "alias_key": alias_key,
+                        "alias_values": sorted(alias_values),
+                    }
+                )
     return {
         "anchor_lane_status": anchor_lane_status,
         "accounts": accounts,
@@ -210,44 +252,95 @@ def _classified_silver_sweep(root) -> dict[str, Any]:
     }
 
 
-def _account_subject_keys(record: dict) -> list[tuple[str, str, dict[str, Any]]]:
-    """Per-platform public-account keys a record's subject asserts: a
-    ``platform_public_account`` subject directly, or a ``public_content_object``
-    subject that names its publishing account. Exact strings preserved."""
+def _account_subject_keys(
+    record: dict,
+) -> tuple[list[tuple[str, str, str, dict[str, Any]]], list[dict[str, Any]]]:
+    """Per-platform public-account keys a record's subject asserts, plus the
+    named problems for account-describing shapes the view cannot file.
+
+    Keys are ``(namespace, identity_kind, native_id)``: the identity kind the
+    record asserts for its account identifier (e.g. ``youtube_channel_id``) or
+    ``unspecified`` when unasserted. Distinct identity kinds never merge into
+    one key. A ``platform_public_account`` subject files directly; a
+    ``public_content_object`` subject files via its publishing account. Exact
+    strings preserved. Account-describing shapes that cannot be filed (missing
+    identifiers, unknown platform namespace, unknown subject kind carrying
+    account-identifier fields) return problems so absence stays labeled, never
+    silent."""
     payload = record.get("payload")
     observation = payload.get("observation") if isinstance(payload, dict) else None
     subject = observation.get("subject") if isinstance(observation, dict) else None
     if not isinstance(subject, dict) or subject.get("ref_type") != "entity_key":
-        return []
+        return [], []
     ref = subject.get("ref")
     if not isinstance(ref, dict):
-        return []
+        return [], []
+    kind = str(ref.get("kind") or "").strip()
     namespace = str(ref.get("namespace") or "").strip()
-    if not namespace:
-        return []
-    keys: list[tuple[str, str, dict[str, Any]]] = []
-    if ref.get("kind") == "platform_public_account":
-        native_id = str(ref.get("native_id") or "").strip()
-        if native_id:
+    keys: list[tuple[str, str, str, dict[str, Any]]] = []
+    problems: list[dict[str, Any]] = []
+
+    def _file_account(native_id: str, identity_kind: str, aliases: dict[str, Any]) -> None:
+        missing = [
+            field
+            for field, value in (("namespace", namespace), ("native_id", native_id))
+            if not value
+        ]
+        if missing:
+            problems.append(
+                {
+                    "status": "unrecognized_account_subject_shape",
+                    "subject_ref_kind": kind,
+                    "missing_fields": missing,
+                }
+            )
+        elif namespace not in KNOWN_PLATFORM_NAMESPACES:
+            problems.append(
+                {
+                    "status": "unrecognized_platform_namespace",
+                    "subject_ref_kind": kind,
+                    "namespace": namespace,
+                }
+            )
+        else:
+            keys.append((namespace, identity_kind, native_id, aliases))
+
+    if kind == "platform_public_account":
+        identity_kind = str(ref.get("native_id_kind") or "").strip() or UNSPECIFIED_IDENTITY_KIND
+        aliases = {
+            field: ref[field] for field in ("orca_platform_account_id",) if ref.get(field)
+        }
+        _file_account(str(ref.get("native_id") or "").strip(), identity_kind, aliases)
+    elif kind == "public_content_object":
+        if ref.get("published_by_account_native_id") is not None:
+            identity_kind = (
+                str(ref.get("published_by_account_native_id_kind") or "").strip()
+                or UNSPECIFIED_IDENTITY_KIND
+            )
             aliases = {
-                field: ref[field]
-                for field in ("orca_platform_account_id", "native_id_kind")
-                if ref.get(field)
+                field: ref[field] for field in ("orca_platform_account_id",) if ref.get(field)
             }
-            keys.append((namespace, native_id, aliases))
-    elif ref.get("kind") == "public_content_object":
-        publisher = str(ref.get("published_by_account_native_id") or "").strip()
-        if publisher:
-            aliases = {
-                alias_key: ref[source_field]
-                for source_field, alias_key in (
-                    ("orca_platform_account_id", "orca_platform_account_id"),
-                    ("published_by_account_native_id_kind", "native_id_kind"),
-                )
-                if ref.get(source_field)
+            _file_account(
+                str(ref.get("published_by_account_native_id") or "").strip(),
+                identity_kind,
+                aliases,
+            )
+        # A content object without a publisher assertion is not account-describing.
+    elif any(
+        ref.get(field)
+        for field in ("native_id", "published_by_account_native_id", "orca_platform_account_id")
+    ) and kind not in KNOWN_NON_ACCOUNT_SUBJECT_KINDS:
+        # Unknown subject kind carrying account-identifier fields: the map does
+        # not guess; it names the shape so a wiring gap never reads as
+        # "not captured".
+        problems.append(
+            {
+                "status": "unrecognized_account_subject_shape",
+                "subject_ref_kind": kind or None,
+                "missing_fields": [],
             }
-            keys.append((namespace, publisher, aliases))
-    return keys
+        )
+    return keys, problems
 
 
 def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, list[str]]:
@@ -259,7 +352,7 @@ def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, lis
     """
     sweep = sweep or _classified_silver_sweep(root)
     creators: dict[str, dict[str, Any]] = {}
-    for (namespace, native_id), entry in sorted(sweep["accounts"].items()):
+    for (namespace, identity_kind, native_id), entry in sorted(sweep["accounts"].items()):
         packets = {}
         totals: Counter = Counter()
         for anchor in sorted(entry["refs_by_anchor"]):
@@ -276,7 +369,7 @@ def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, lis
                 ),
                 "anchor_silver_records_by_lane_status": lane_status,
             }
-        creators.setdefault(namespace, {})[native_id] = {
+        creators.setdefault(namespace, {}).setdefault(identity_kind, {})[native_id] = {
             "aliases": dict(sorted(entry["aliases"].items())),
             "packets": packets,
             "anchor_level_totals_by_status": dict(sorted(totals.items())),
@@ -285,74 +378,165 @@ def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, lis
         "view": "by_creator",
         "view_schema_version": BY_CREATOR_VIEW_SCHEMA_VERSION,
         "semantics": (
-            "(platform namespace, observed public account native id) -> committed "
-            "packet + Silver record refs; authority statuses computed at build time "
-            "by data_lake.silver_record.classify_silver_vault_record_sources; "
+            "(platform namespace, asserted identity kind, observed public account "
+            "native id) -> committed packet + Silver record refs; identity kind is "
+            "the record-asserted kind of the account identifier (or 'unspecified'); "
+            "distinct identity kinds never merge into one key; platform namespaces "
+            "come from a closed vocabulary and unknown namespaces or unfileable "
+            "account shapes are named residuals, never silent drops; authority "
+            "statuses computed at build time by "
+            "data_lake.silver_record.classify_silver_vault_record_sources; "
             "per-platform object-level only, no cross-platform identity; exact "
             "observed strings preserved (normalization is the reader's concern)"
         ),
         "zero_rows_meaning": _MISSING_EVIDENCE_NOTE,
         "creators": creators,
-        "creator_count": sum(len(ids) for ids in creators.values()),
+        "creator_count": sum(
+            len(ids) for kinds in creators.values() for ids in kinds.values()
+        ),
         "residuals": sweep["residuals"],
         "residual_count": len(sweep["residuals"]),
     }
     return view, list(sweep["source_refs"])
 
 
-def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str]]:
-    """Native product-page identity rows from committed Fragrantica projections
-    (view-only mechanical records used as identity ROUTING, never authority),
-    each joined to its anchor's classified Silver record counts."""
-    pages: dict[str, dict[str, list[dict]]] = {}
+def _fragrantica_native_product_identity(row: dict) -> dict[str, str]:
+    """Fragrantica projection row -> the source-neutral identity fields the
+    shared native-product-page loop consumes."""
+    visible = row.get("source_visible_fields")
+    return {
+        "brand": str(row.get("brand_or_house") or "").strip(),
+        "line": str(row.get("source_object_name") or "").strip(),
+        "source_site": str(row.get("source_platform") or "fragrantica").strip(),
+        "site_native_id": str(row.get("source_object_site_id") or "").strip(),
+        "canonical_url": (
+            str(visible.get("canonical_url") or "").strip()
+            if isinstance(visible, dict)
+            else ""
+        ),
+    }
+
+
+# Closed registry of the projection sources that may establish native
+# product-page identity. Adding a product-identity source (e.g. a future
+# non-Fragrantica domain) is a deliberate registry entry with its own
+# extractor, never a rewrite of the shared loop.
+NATIVE_PRODUCT_PAGE_SOURCES: tuple[tuple[str, str, Any], ...] = (
+    (
+        FRAGRANTICA_PROJECTION_LANE,
+        FRAGRANTICA_PRODUCT_ROW_KIND,
+        _fragrantica_native_product_identity,
+    ),
+)
+
+
+def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict]]:
+    """Native product-page identity rows from the registered projection
+    sources (view-only mechanical records used as identity ROUTING, never
+    authority), each joined to its anchor's classified Silver record counts."""
+    pages: dict[str, dict[str, dict[tuple[str, str, str], dict]]] = {}
+    identity_bindings: dict[tuple[str, str, str], tuple[str, str, dict]] = {}
     source_refs: list[str] = []
+    residuals: list[dict[str, Any]] = []
     derived = root.path / "derived"
-    for path in sorted(derived.glob(f"*/*/{FRAGRANTICA_PROJECTION_LANE}/*")):
-        if not path.is_file():
-            continue
-        try:
-            projection = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        rows = projection.get("rows") if isinstance(projection, dict) else None
-        if not isinstance(rows, list):
-            continue
-        anchor = path.parents[1].name
-        for row in rows:
-            if not isinstance(row, dict) or row.get("row_kind") != FRAGRANTICA_PRODUCT_ROW_KIND:
+    for source_lane, source_row_kind, extract_identity in NATIVE_PRODUCT_PAGE_SOURCES:
+        for path in sorted(derived.glob(f"*/*/{source_lane}/*")):
+            if not path.is_file():
                 continue
-            brand = str(row.get("brand_or_house") or "unknown")
-            line = str(row.get("source_object_name") or "")
-            if not line:
+            try:
+                projection = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
                 continue
-            visible = row.get("source_visible_fields")
-            entry = {
-                "source_site": str(row.get("source_platform") or "fragrantica"),
-                "site_native_id": row.get("source_object_site_id"),
-                "canonical_url": (
-                    visible.get("canonical_url") if isinstance(visible, dict) else None
-                ),
-                "raw_anchor": anchor,
-                "identity_source": (
-                    f"{FRAGRANTICA_PROJECTION_LANE} {FRAGRANTICA_PRODUCT_ROW_KIND} row "
-                    "(view-only mechanical projection; identity routing, not Silver authority)"
-                ),
-                "anchor_silver_records_by_lane_status": {
-                    lane: dict(sorted(statuses.items()))
-                    for lane, statuses in sorted(sweep["anchor_lane_status"][anchor].items())
-                },
-            }
-            entries = pages.setdefault(brand, {}).setdefault(line, [])
-            # An anchor may hold several projection records carrying the same
-            # snapshot row; one identity entry per (anchor, site id) is enough.
-            if entry not in entries:
-                entries.append(entry)
-            source_refs.append(f"{anchor}/{FRAGRANTICA_PROJECTION_LANE}/{path.name}")
+            rows = projection.get("rows") if isinstance(projection, dict) else None
+            if not isinstance(rows, list):
+                continue
+            anchor = path.parents[1].name
+            for row in rows:
+                if not isinstance(row, dict) or row.get("row_kind") != source_row_kind:
+                    continue
+                source_ref = f"{anchor}/{source_lane}/{path.name}"
+                source_refs.append(source_ref)
+                identity = extract_identity(row)
+                brand = identity["brand"]
+                line = identity["line"]
+                missing_fields = [
+                    field
+                    for field, value in (("brand", brand), ("line", line))
+                    if not value
+                ]
+                if missing_fields:
+                    residuals.append(
+                        {
+                            "status": "native_product_page_identity_incomplete",
+                            "raw_anchor": anchor,
+                            "lane": source_lane,
+                            "record_id": path.name,
+                            "row_id": row.get("row_id"),
+                            "missing_fields": missing_fields,
+                        }
+                    )
+                    continue
+                canonical_url = identity["canonical_url"]
+                site_native_id = identity["site_native_id"]
+                source_site = identity["source_site"]
+                entry = {
+                    "source_site": source_site,
+                    "site_native_id": site_native_id or None,
+                    "canonical_url": canonical_url or None,
+                    "raw_anchor": anchor,
+                    "identity_source": (
+                        f"{source_lane} {source_row_kind} row "
+                        "(view-only mechanical projection; identity routing, not Silver authority)"
+                    ),
+                    "anchor_silver_records_by_lane_status": {
+                        lane: dict(sorted(statuses.items()))
+                        for lane, statuses in sorted(sweep["anchor_lane_status"][anchor].items())
+                    },
+                }
+                identity_key = (anchor, source_site, site_native_id or canonical_url)
+                existing = identity_bindings.get(identity_key)
+                if existing is None:
+                    identity_bindings[identity_key] = (brand, line, entry)
+                    pages.setdefault(brand, {}).setdefault(line, {})[identity_key] = entry
+                elif existing != (brand, line, entry):
+                    kept_brand, kept_line, kept_entry = existing
+                    residuals.append(
+                        {
+                            "status": "native_product_page_identity_conflict",
+                            "raw_anchor": anchor,
+                            "lane": source_lane,
+                            "record_id": path.name,
+                            "row_id": row.get("row_id"),
+                            "brand": brand,
+                            "line": line,
+                            "source_site": source_site,
+                            "site_native_id": site_native_id or None,
+                            "kept_brand": kept_brand,
+                            "kept_line": kept_line,
+                            "kept_canonical_url": kept_entry.get("canonical_url"),
+                            "conflicting_canonical_url": canonical_url or None,
+                        }
+                    )
     normalized = {
-        brand: {line: sorted(entries, key=lambda e: str(e["raw_anchor"])) for line, entries in sorted(lines.items())}
+        brand: {
+            line: sorted(
+                entries.values(),
+                key=lambda entry: (
+                    str(entry["raw_anchor"]),
+                    str(entry["source_site"]),
+                    str(entry["site_native_id"]),
+                    str(entry["canonical_url"]),
+                ),
+            )
+            for line, entries in sorted(lines.items())
+        }
         for brand, lines in sorted(pages.items())
     }
-    return normalized, sorted(set(source_refs))
+    return (
+        normalized,
+        sorted(set(source_refs)),
+        sorted(residuals, key=lambda row: json.dumps(row, sort_keys=True)),
+    )
 
 
 def build_by_mention_view(
@@ -383,7 +567,7 @@ def build_by_mention_view(
             refs = mentions.setdefault(brand, {}).setdefault(line, [])
             if ref not in refs:
                 refs.append(ref)
-    native_pages, native_refs = _native_product_pages(
+    native_pages, native_refs, native_residuals = _native_product_pages(
         root, sweep or _classified_silver_sweep(root)
     )
     view = {
@@ -404,8 +588,8 @@ def build_by_mention_view(
         },
         "native_product_pages": native_pages,
         "selected_record_count": len(selection.selected),
-        "residuals": list(selection.residuals),
-        "residual_count": len(selection.residuals),
+        "residuals": list(selection.residuals) + native_residuals,
+        "residual_count": len(selection.residuals) + len(native_residuals),
     }
     return view, sorted(set(selection.source_refs) | set(native_refs))
 

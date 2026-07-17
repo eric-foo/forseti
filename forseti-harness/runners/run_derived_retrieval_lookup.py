@@ -16,6 +16,7 @@ A key absent from a view means "not captured or not indexed" — never zero.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -37,14 +38,26 @@ def _load_view(root: DataLakeRoot, view_name: str) -> tuple[dict | None, dict | 
     core = root.path.joinpath(*SILVER_VAULT_CORE_PARTS)
     view_path = core / "query_tables" / f"{view_name}.json"
     manifest_path = core / "manifests" / f"{view_name}.json"
-    if not view_path.is_file():
+    view_exists = view_path.is_file()
+    manifest_exists = manifest_path.is_file()
+    if not view_exists and not manifest_exists:
         return None, None
-    view = json.loads(view_path.read_text(encoding="utf-8"))
-    manifest = (
-        json.loads(manifest_path.read_text(encoding="utf-8"))
-        if manifest_path.is_file()
-        else None
-    )
+    if not view_exists or not manifest_exists:
+        raise ValueError(f"{view_name} generated view/manifest pair is incomplete")
+    view_bytes = view_path.read_bytes()
+    view = json.loads(view_bytes.decode("utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(view, dict) or not isinstance(manifest, dict):
+        raise ValueError(f"{view_name} generated view/manifest must both be JSON objects")
+    if view.get("view") != view_name or manifest.get("view") != view_name:
+        raise ValueError(f"{view_name} generated view/manifest identity mismatch")
+    if view.get("view_schema_version") != manifest.get("view_schema_version"):
+        raise ValueError(f"{view_name} generated view/manifest schema mismatch")
+    actual_sha256 = hashlib.sha256(view_bytes).hexdigest()
+    if manifest.get("view_sha256") != actual_sha256:
+        raise ValueError(
+            f"{view_name} view_sha256 mismatch: manifest does not match stored view bytes"
+        )
     return view, manifest
 
 
@@ -71,16 +84,26 @@ def lookup_creator(root: DataLakeRoot, query: str) -> dict[str, Any]:
         prefix, _, rest = query.partition(":")
         namespace_filter = _normalized(prefix)
         wanted = _normalized(rest)
+    if not wanted:
+        raise ValueError("creator query must contain a non-empty account id or alias")
     matches = []
-    for namespace, ids in view.get("creators", {}).items():
+    for namespace, kinds in view.get("creators", {}).items():
         if namespace_filter and _normalized(namespace) != namespace_filter:
             continue
-        for native_id, entry in ids.items():
-            candidates = {_normalized(native_id)} | {
-                _normalized(alias) for alias in entry.get("aliases", {}).values()
-            }
-            if wanted in candidates:
-                matches.append({"namespace": namespace, "native_id": native_id, **entry})
+        for identity_kind, ids in kinds.items():
+            for native_id, entry in ids.items():
+                candidates = {_normalized(native_id)} | {
+                    _normalized(alias) for alias in entry.get("aliases", {}).values()
+                }
+                if wanted in candidates:
+                    matches.append(
+                        {
+                            "namespace": namespace,
+                            "identity_kind": identity_kind,
+                            "native_id": native_id,
+                            **entry,
+                        }
+                    )
     return {
         "status": "found" if matches else "not_found",
         "query": query,
@@ -99,6 +122,8 @@ def lookup_mention(root: DataLakeRoot, query: str) -> dict[str, Any]:
             "hint": "run runners/run_data_lake_indexes_rebuild.py --target derived_retrieval",
         }
     wanted = _normalized(query)
+    if not wanted:
+        raise ValueError("mention query must contain a non-empty brand or line identity")
     matches: list[dict[str, Any]] = []
     for section in ("mentions", "native_product_pages"):
         for brand, lines in view.get(section, {}).items():
@@ -108,7 +133,7 @@ def lookup_mention(root: DataLakeRoot, query: str) -> dict[str, Any]:
                     _normalized(line),
                     _normalized(f"{brand} {line}"),
                 }
-                if wanted in tokens or any(wanted and wanted in token for token in tokens):
+                if wanted in tokens:
                     matches.append(
                         {"source_class": section, "brand": brand, "line": line, "refs": refs}
                     )
@@ -137,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     target.add_argument(
         "--mention",
-        help="Brand/line product entity query (normalized substring match).",
+        help="Brand/line product entity query (normalized exact brand, line, or combined identity).",
     )
     args = parser.parse_args(argv)
     try:
@@ -151,7 +176,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
-    return 0 if result["status"] == "found" else 1
+    if result["status"] == "found":
+        return 0
+    if result["status"] == "not_found":
+        return 1
+    return 2
 
 
 if __name__ == "__main__":

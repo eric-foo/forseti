@@ -226,21 +226,44 @@ does not accept an implicit current/latest policy.
   normalization is Cleaning's job, never the lake's. Owner-widened
   2026-07-17: the view additionally carries a `native_product_pages` section
   routing a brand/line entity to its own committed product-page capture
-  anchor (identity from the view-only Fragrantica projection product
-  snapshot, labeled routing, never Silver authority) with the anchor's
-  classified Silver record counts, so product entities resolve to native
-  product-page evidence, not only creator-content mentions.
-- `by_creator` view: (platform namespace, observed public account native id)
-  from account-bearing Silver subjects (`platform_public_account` subjects
-  and `public_content_object` subjects naming their publishing account)
-  mapped to committed packet + Silver record refs, each carrying the
-  build-time authority status from the shared
-  `classify_silver_vault_record_sources` classifier. Per-platform
-  object-level only — no cross-platform identity is unified. Exact observed
-  strings preserved; absence of a key/packet/lane means not captured or not
-  indexed, never zero. The scoped read entry point is
+  anchor (identity from the view-only projection product snapshot, labeled
+  routing, never Silver authority) with the anchor's classified Silver
+  record counts, so product entities resolve to native product-page
+  evidence, not only creator-content mentions. Product-identity sources are
+  a closed in-code registry (`NATIVE_PRODUCT_PAGE_SOURCES`; Fragrantica is
+  the sole entry) — a new identity source is a deliberate registry entry
+  with its own extractor, never a loop rewrite. A projection row missing
+  brand or line is residual-only; one native `(anchor, source site, site id
+  or canonical URL)` identity cannot silently bind to conflicting brand/line
+  or URL values.
+- `by_creator` view (schema v2): (platform namespace, asserted identity
+  kind, observed public account native id) from account-bearing Silver
+  subjects (`platform_public_account` subjects and `public_content_object`
+  subjects naming their publishing account) mapped to committed packet +
+  Silver record refs, each carrying the build-time authority status from the
+  shared `classify_silver_vault_record_sources` classifier. The identity
+  kind is the record-asserted kind of the account identifier (e.g.
+  `youtube_channel_id`) or `unspecified` when unasserted; distinct identity
+  kinds never merge into one key, so a handle-keyed and a platform-id-keyed
+  record can never silently collide or conflate. Platform namespaces come
+  from the closed `KNOWN_PLATFORM_NAMESPACES` vocabulary (exact lowercase
+  canonical strings; extending it is a deliberate edit per new platform,
+  matching the Reddit venue registry's lowercase-canonical posture); an
+  unknown namespace or an unfileable account-describing subject shape
+  (missing identifiers, unknown subject kind carrying account-identifier
+  fields) is a named residual (`unrecognized_platform_namespace`,
+  `unrecognized_account_subject_shape`) — a wiring gap is always
+  distinguishable from "not captured". Per-platform object-level only — no
+  cross-platform identity is unified. Exact observed strings preserved;
+  absence of a key/packet/lane means not captured or not indexed, never
+  zero. Conflicting aliases for the same
+  `(platform namespace, identity kind, native id)` are named residuals
+  rather than silently treated as consistent. The scoped read entry point is
   `runners/run_derived_retrieval_lookup.py` (`--creator` / `--mention`),
-  which reads only the generated views and reports generation provenance.
+  which reads only the generated views, requires a complete manifest pair
+  whose recorded view hash matches the stored bytes, reports generation
+  provenance, and matches mentions only by normalized exact brand, exact
+  line, or exact combined brand+line identity.
 - `--prove-rebuildability` regenerates every view from committed material
   under the generation stamps recorded in the existing manifest and
   byte-compares against the stored files; any mismatch or unreadable source
@@ -351,8 +374,18 @@ direction_change_propagation:
     brand/line entity to its own committed product-page capture anchor
     (identity from the view-only Fragrantica projection, labeled routing,
     never Silver authority); and runners/run_derived_retrieval_lookup.py is
-    the scoped read-only lookup entry point over the generated views. The
-    views stay rebuildable, non-authoritative, per-platform object-level, and
+    the scoped read-only lookup entry point over the generated views, with
+    exact normalized identity matching and fail-closed manifest-pair/hash
+    verification. Partial or conflicting native identity rows and conflicting
+    account aliases remain visible residuals rather than fabricated or
+    silently collapsed keys. Owner-ratified identity hardening (2026-07-17,
+    adjudicated with the delegated review): by_creator schema v2 promotes the
+    record-asserted identity kind into the card key (distinct kinds never
+    merge; `unspecified` when unasserted), platform namespaces are a closed
+    vocabulary, unfileable account-describing shapes are named residuals
+    rather than silent drops, and native product-page identity sources are a
+    closed in-code registry with Fragrantica as the sole entry. The views
+    stay rebuildable, non-authoritative, per-platform object-level, and
     prove-rebuildability-covered; absence in a view is never zero; by-key
     discovery stays retrieval authority; the SQL query-lens stays behind the
     scan/query-latency trigger.
