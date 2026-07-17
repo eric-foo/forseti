@@ -376,6 +376,21 @@ shared projection runner remain raw/legacy paths. This targeted adapter does
 not establish a generic multi-artifact content seam; another route must prove
 that abstraction before it is added.
 
+Basenotes' pinned persistent-Chrome current-window product-page surface is the
+next family-owned adoption. It retains browser snapshot metadata as provenance,
+hashes and discards rendered DOM/text after successful projection, and binds
+content rows to packet-local JSON pointers for Projection, Cleaning, and
+catch-up. `run_basenotes_parser_fit_check.py` checks sample packets. Screenshot
+acquisition is trigger-controlled: direct CDP does not request one unless the
+capture names `route_baseline`, `visual_content`,
+`access_or_overlay_diagnostic`, or `owner_requested`; a manual screenshot and
+its trigger must appear together. Exact URL plus challenge-free, source-sufficient
+DOM/text remains the access gate—a screenshot is not access proof. This second
+family implementation still does not establish a generic multi-artifact seam;
+shared lifecycle mechanics may be extracted only when their implementations
+are demonstrably identical, while Basenotes parsing and schema remain
+family-owned.
+
 ## Rendered overlays and screenshot economy
 
 For rendered-browser capture, **preserve a screenshot when supplied** is a

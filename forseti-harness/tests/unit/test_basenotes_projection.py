@@ -8,7 +8,11 @@ import pytest
 from runners.run_basenotes_projection import main as projection_main
 from source_capture.models import known_fact
 from source_capture.basenotes_projection import (
+    BASENOTES_CONTENT_RECORD_KIND,
+    BASENOTES_CONTENT_SCHEMA_VERSION,
+    BASENOTES_PARSER_VERSION,
     BASENOTES_PROJECTION_CERTIFICATION,
+    build_basenotes_content_record,
     build_basenotes_projection,
     build_basenotes_projection_from_packet_directory,
 )
@@ -192,6 +196,27 @@ def test_builds_basenotes_projection_from_packet_directory(tmp_path: Path) -> No
 
     assert projection.packet_id == result.packet.packet_id
     assert projection.loss_ledger.preserved_review_cards == 6
+
+
+def test_basenotes_content_record_is_deterministic_and_packet_unbound() -> None:
+    kwargs = {
+        "rendered_dom": _fixture_html().encode("utf-8"),
+        "visible_text": b"Mojave Ghost by Byredo\n",
+        "source_url": _LOCATOR,
+    }
+
+    first = build_basenotes_content_record(**kwargs)
+    second = build_basenotes_content_record(**kwargs)
+
+    assert first == second
+    assert first["record_kind"] == BASENOTES_CONTENT_RECORD_KIND
+    assert first["schema_version"] == BASENOTES_CONTENT_SCHEMA_VERSION
+    assert first["parser_version"] == BASENOTES_PARSER_VERSION
+    serialized = json.dumps(first, sort_keys=True)
+    assert "packet_id" not in serialized
+    assert "file_id" not in serialized
+    assert "relative_packet_path" not in serialized
+    assert "raw_ref" not in serialized
 
 
 def _write_packet(

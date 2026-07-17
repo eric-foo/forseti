@@ -144,7 +144,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
         # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
         # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "b00217005875888b2cbeaf3a3599974e5057c9fd6bc43865cca69f32f5b2d917",
+        # Pin bumped: family-owned content-record schema/parser and JSON-pointer packet binding.
+        # Raw/legacy row semantics remain equivalent, so BASENOTES_PROJECTION_VERSION stays v1;
+        # content and parser behavior carry separate version constants.
+        "b3f276b8ff5c0ba69be08db81e5b624428ce794b4087582d2436ad9fd331407e",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

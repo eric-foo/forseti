@@ -84,8 +84,8 @@ def test_runner_writes_packet_and_proves_projection_cleaning_silver_sources(
     packet_id = role["packet_id"]
     loaded = root.load_raw_packet(packet_id)
     assert loaded.manifest["source_surface"] == runner.PERSISTENT_CHROME_SURFACE
-    assert len(loaded.manifest["preserved_files"]) == 4
-    assert set(loaded.bodies) == {"file_01", "file_02", "file_03", "file_04"}
+    assert len(loaded.manifest["preserved_files"]) == 3
+    assert set(loaded.bodies) == {"file_01", "file_02", "file_03"}
 
     projection, projection_path = project_basenotes_into_lake(
         data_root=root,
@@ -162,6 +162,177 @@ def test_direct_cdp_observes_access_without_manual_readiness_confirmation(tmp_pa
     assert "--human-access-ready" not in runner._build_parser().format_help()
 
 
+def test_direct_cdp_omits_screenshot_without_trigger(tmp_path: Path) -> None:
+    engine = _FakeCdpEngine(screenshot_must_not_run=True)
+    bundle = runner.capture_basenotes_bundle_via_cdp(
+        url=_URL,
+        bundle_directory=tmp_path / "bundle",
+        cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
+        engine=engine,
+    )
+
+    assert not (bundle / runner.SCREENSHOT_FILENAME).exists()
+    assert engine.closed is True
+
+
+def test_manual_screenshot_requires_trigger_and_is_preserved(tmp_path: Path) -> None:
+    bundle = _write_bundle(tmp_path, include_screenshot=True)
+    with pytest.raises(ValueError, match="requires screenshot_trigger"):
+        runner.run_basenotes_mgt_capture(
+            url=_URL,
+            bundle_directory=bundle,
+            output_root=tmp_path / "rejected",
+        )
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    exit_code, summary_path = runner.run_basenotes_mgt_capture(
+        url=_URL,
+        bundle_directory=bundle,
+        output_root=tmp_path / "accepted",
+        data_root=root,
+        screenshot_trigger="owner_requested",
+    )
+
+    assert exit_code == 0
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    assert summary["capture_parameters"]["screenshot_trigger"] == "owner_requested"
+    packet_id = summary["packet_roles"][runner.PERSISTENT_CHROME_SLOT]["packet_id"]
+    loaded = root.load_raw_packet(packet_id)
+    filenames = {
+        Path(row["relative_packet_path"]).name.split("_", 1)[1]
+        for row in loaded.manifest["preserved_files"]
+    }
+    assert runner.SCREENSHOT_FILENAME in filenames
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected_names", "dom_preserved"),
+    [
+        (
+            "raw",
+            {
+                "browser_rendered_dom.html",
+                "browser_visible_text.txt",
+                "browser_snapshot_metadata.json",
+                "content_capture_metadata.json",
+            },
+            True,
+        ),
+        (
+            "sample",
+            {
+                "browser_rendered_dom.html",
+                "browser_visible_text.txt",
+                "browser_snapshot_metadata.json",
+                "content_record.json",
+                "content_capture_metadata.json",
+            },
+            True,
+        ),
+        (
+            "content",
+            {
+                "browser_snapshot_metadata.json",
+                "content_record.json",
+                "content_capture_metadata.json",
+            },
+            False,
+        ),
+    ],
+)
+def test_basenotes_artifact_modes(
+    tmp_path: Path,
+    mode: str,
+    expected_names: set[str],
+    dom_preserved: bool,
+) -> None:
+    bundle = _write_bundle(tmp_path)
+    root = DataLakeRoot.for_test(tmp_path / f"lake-{mode}")
+    exit_code, summary_path = runner.run_basenotes_mgt_capture(
+        url=_URL,
+        bundle_directory=bundle,
+        output_root=tmp_path / f"output-{mode}",
+        data_root=root,
+        capture_artifact_mode=mode,
+    )
+
+    assert exit_code == 0
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    packet_id = summary["packet_roles"][runner.PERSISTENT_CHROME_SLOT]["packet_id"]
+    loaded = root.load_raw_packet(packet_id)
+    names = {
+        Path(row["relative_packet_path"]).name.split("_", 1)[1]
+        for row in loaded.manifest["preserved_files"]
+    }
+    assert names == expected_names
+    metadata_file_id = next(
+        row["file_id"]
+        for row in loaded.manifest["preserved_files"]
+        if Path(row["relative_packet_path"]).name.endswith(
+            "_content_capture_metadata.json"
+        )
+    )
+    metadata = json.loads(loaded.bodies[metadata_file_id])
+    inputs = {row["role"]: row for row in metadata["inputs"]}
+    assert metadata["capture_artifact_mode"] == mode
+    assert inputs["rendered_dom"]["preserved"] is dom_preserved
+    assert inputs["visible_text"]["preserved"] is dom_preserved
+    assert inputs["browser_metadata"]["preserved"] is True
+    assert summary["projection_status"] == (
+        "not_attempted: raw mode" if mode == "raw" else "succeeded"
+    )
+
+
+def test_projection_failure_preserves_inputs_and_returns_four(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    bundle = _write_bundle(tmp_path)
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    def fail_projection(**_kwargs):
+        raise ValueError("fixture projection failure")
+
+    monkeypatch.setattr(runner, "build_basenotes_content_record", fail_projection)
+    exit_code, summary_path = runner.run_basenotes_mgt_capture(
+        url=_URL,
+        bundle_directory=bundle,
+        output_root=tmp_path / "output",
+        data_root=root,
+        capture_artifact_mode="content",
+    )
+
+    assert exit_code == 4
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    assert "fixture projection failure" in summary["projection_status"]
+    packet_id = summary["packet_roles"][runner.PERSISTENT_CHROME_SLOT]["packet_id"]
+    loaded = root.load_raw_packet(packet_id)
+    names = {
+        Path(row["relative_packet_path"]).name.split("_", 1)[1]
+        for row in loaded.manifest["preserved_files"]
+    }
+    assert "browser_rendered_dom.html" in names
+    assert "browser_visible_text.txt" in names
+    assert "content_record.json" not in names
+
+
+def test_runner_rejects_browser_secret_text(tmp_path: Path) -> None:
+    bundle = _write_bundle(
+        tmp_path,
+        visible_text=(
+            "Mojave Ghost public product page source-visible reviews. " * 12
+            + " cf_clearance=forbidden"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="browser-secret material"):
+        runner.run_basenotes_mgt_capture(
+            url=_URL,
+            bundle_directory=bundle,
+            output_root=tmp_path / "output",
+        )
+
+
 def test_direct_preflight_bundle_can_publish_later_without_false_current_run_transport(
     tmp_path: Path,
 ) -> None:
@@ -173,7 +344,7 @@ def test_direct_preflight_bundle_can_publish_later_without_false_current_run_tra
         cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
         cdp_engine=_FakeCdpEngine(),
     )
-    assert "wrote a reusable exact four-file bundle" in preflight_message
+    assert "wrote a reusable validated bundle" in preflight_message
     assert "publish that bundle later without --cdp-endpoint" in preflight_message
 
     root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -226,6 +397,7 @@ def test_direct_cdp_rejects_challenge_or_insufficient_content_before_bytes(
             bundle_directory=tmp_path / "bundle",
             cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
             engine=engine,
+            screenshot_trigger="owner_requested",
         )
     assert engine.closed is True
     assert not (tmp_path / "bundle").exists()
@@ -249,6 +421,7 @@ def test_direct_cdp_rejects_wrong_final_url_or_non_png_before_bytes(
             bundle_directory=tmp_path / "bundle",
             cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
             engine=engine,
+            screenshot_trigger="owner_requested",
         )
     assert not (tmp_path / "bundle").exists()
 
@@ -306,7 +479,7 @@ def test_runner_rejects_missing_or_unexpected_bundle_artifacts(tmp_path: Path) -
     (bundle / "browser_visible_text.txt").unlink()
     (bundle / "cookies.json").write_text("{}", encoding="utf-8")
 
-    with pytest.raises(ValueError, match="exactly the four public-page artifacts"):
+    with pytest.raises(ValueError, match="must contain DOM, visible text, metadata"):
         runner.preflight_basenotes_mgt_capture(
             url=_URL,
             bundle_directory=bundle,
@@ -335,6 +508,7 @@ def _write_bundle(
     html: str | None = None,
     visible_text: str | None = None,
     metadata_override: dict[str, object] | None = None,
+    include_screenshot: bool = False,
 ) -> Path:
     bundle = tmp_path / "persistent-chrome-bundle"
     bundle.mkdir()
@@ -360,7 +534,8 @@ def _write_bundle(
     metadata.update(metadata_override or {})
     (bundle / "browser_rendered_dom.html").write_text(rendered_dom, encoding="utf-8")
     (bundle / "browser_visible_text.txt").write_text(text, encoding="utf-8")
-    (bundle / "browser_viewport_screenshot.png").write_bytes(_PNG)
+    if include_screenshot:
+        (bundle / "browser_viewport_screenshot.png").write_bytes(_PNG)
     (bundle / "browser_snapshot_metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n",
         encoding="utf-8",

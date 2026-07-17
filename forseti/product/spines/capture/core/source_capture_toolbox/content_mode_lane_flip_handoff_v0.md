@@ -48,6 +48,12 @@ for volume pressure.
   browser artifacts. Its contract is
   `docs/workflows/parfumo_targeted_capture_contract_v0.md`; this does not
   establish a generic multi-artifact seam.
+- Basenotes' pinned persistent-Chrome product-page surface is the next
+  family-owned implementation. It confirms the same lifecycle with a browser
+  metadata provenance artifact and trigger-controlled screenshot acquisition.
+  The second implementation is evidence for a later shared-mechanics extraction,
+  not authority to extract one in this work unit; parsers and schemas remain
+  family-owned.
 - "Projection spine" was never an accepted spine. The operating-model v2
   Bloat-Cut Queue explicitly excludes a "Standalone Projection Spine …
   or any projection practice that drops evidence rows before ECR/Cleaning"
@@ -80,7 +86,7 @@ build on the hardened seam.
 | Reddit grid + threads | HTTP packet seam | `source_capture/reddit_projection.py` (legacy), consolidation | DONE (content mode default; PR #1057) |
 | Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
 | Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | HTTP slice flippable now; CloakBrowser slices need the seam extended to `run_source_capture_cloakbrowser_packet.py` |
-| Basenotes MGT | Browser snapshot adapter (`source_capture/adapters/browser_snapshot`) | `basenotes_projection.py`, cleaning catchup | Needs cloakbrowser/browser-snapshot seam |
+| Basenotes MGT | Persistent Chrome current-window bundle or credential-free loopback CDP (`run_basenotes_mgt_capture.py`) | `basenotes_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned content adapter; browser metadata retained; screenshot acquisition requires a named visual trigger; raw/legacy projection runner remains |
 | Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | Flippable once cloakbrowser seam exists; largest raw pages after Reddit |
 | IG reels grid / calls / momentum | Live browser session, passive JSON responses; runner already extracts observations at capture time | `ig_reels_grid_projection.py` (+ catchup with record-id derivation ranks re-reading raw payloads) | DESIGN PASS REQUIRED: catchup semantics depend on raw; do not flip until catchup is re-specified against content records |
 | TikTok batch | Video packets (media + metadata) | `tiktok/batch_projection.py` aggregates coverage ACROSS packets | NOT A FLIP TARGET: cross-packet aggregation, media raw is the evidence |
@@ -92,15 +98,20 @@ build on the hardened seam.
 1. Parfumo pinned targeted-rendered surface: flipped with a family-owned
    multi-input adapter after live parser-fit, Cleaning-equivalence, retention,
    and size-reduction gates. Direct HTTP remains an unflipped raw canary.
-2. Extend content capture to the CloakBrowser packet runner (one bounded
-   seam change; same provenance floor and raw-fallback semantics).
-3. Fragrantica, basenotes, retail PDP/grid on the extended seam, one family
-   per work unit, each with its own parser version constant and drift check.
-4. Re-point each flipped surface's cleaning catchup consumers at content
+2. Basenotes pinned persistent-Chrome surface: flipped with a family-owned
+   multi-input adapter after live parser-fit, Cleaning-equivalence, retention,
+   screenshot-economy, and size-reduction gates.
+3. Fragrantica rendered slices: retain direct HTTP as a raw canary and reuse
+   the proven lifecycle contract. Extract only mode/hash/retention/fallback
+   mechanics that are demonstrably identical across Parfumo and Basenotes;
+   keep family parsers and schemas separate.
+4. Extend content capture to CloakBrowser only when a selected Fragrantica or
+   retail surface actually requires that seam.
+5. Re-point each flipped surface's cleaning catchup consumers at content
    records, then retire that surface's post-hoc lane as its standard path in
    the same work unit (reconcile the family design doc and any playbook
    mention).
-5. IG family: separate design pass for catchup/derivation-rank semantics
+6. IG family: separate design pass for catchup/derivation-rank semantics
    before any flip. TikTok/YouTube aggregation lanes stay as they are — they
    are not raw-to-derived projections.
 
