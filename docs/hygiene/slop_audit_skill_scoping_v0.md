@@ -23,9 +23,8 @@ open_next:
   - docs/hygiene/hooks_smallest_complete_audit_ledger_v0.md
 ```
 
-Commissioned by the Goal Handoff lane of
-`docs/prompts/handoffs/slop_audit_skill_authoring_wave5_handoff_v0.md` (packet
-home on branch `claude/wave5-skill-handoff`). Measured against the updated
+Commissioned by the Goal Handoff lane of the wave5 slop-audit handoff packet
+`docs/prompts/handoffs/slop_audit_skill_authoring_wave5_handoff_v0.md` (branch `claude/wave5-skill-handoff`, authoritative — not yet on main). Measured against the updated
 Smallest Complete Intervention kernel (`AGENTS.md`, commit `cd046d05` — "Center
 AGENTS kernel on Smallest Complete Intervention (#1019)"): subtraction weighs
 equally with addition; a new gate/skill is ceremony debt whose recurring toll
