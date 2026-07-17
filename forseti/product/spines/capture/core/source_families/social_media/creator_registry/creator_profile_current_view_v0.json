@@ -22,6 +22,7 @@
       "profiles_with_audience_triangulation": 0,
       "profiles_with_metric_rollups": 33
     },
+    "engagement_rate_definition": "engagement_rate = (sum(likes) + sum(comments)) / sum(views) over videos with a complete view/like/comment trio; recipe pinned per record by calculation_recipe_version; percent twin is value*100",
     "generated_at_utc": "2026-07-08T15:12:00Z",
     "non_claims": [
       "not SQLite adoption",
@@ -73,6 +74,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.064618
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 6.46
               },
               "median_views": {
                 "metric_unit": "count",
@@ -250,6 +257,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.041652
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.17
               },
               "median_views": {
                 "metric_unit": "count",
@@ -452,6 +465,12 @@
                 "posture": "observed",
                 "value_or_none": 0.061019
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 6.1
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -617,6 +636,12 @@
                 "posture": "observed",
                 "value_or_none": 0.054355
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 5.44
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -769,6 +794,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.027323
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.73
               },
               "median_views": {
                 "metric_unit": "count",
@@ -977,6 +1008,12 @@
                 "posture": "observed",
                 "value_or_none": 0.017125
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 1.71
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -1159,6 +1196,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.022871
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.29
               },
               "median_views": {
                 "metric_unit": "count",
@@ -1349,6 +1392,12 @@
                 "posture": "observed",
                 "value_or_none": 0.03828
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.83
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -1519,6 +1568,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.021767
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.18
               },
               "median_views": {
                 "metric_unit": "count",
@@ -1704,6 +1759,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.032899
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.29
               },
               "median_views": {
                 "metric_unit": "count",
@@ -1925,6 +1986,12 @@
                 "posture": "observed",
                 "value_or_none": 0.012671
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 1.27
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -2095,6 +2162,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.034635
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.46
               },
               "median_views": {
                 "metric_unit": "count",
@@ -2284,6 +2357,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.026276
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.63
               },
               "median_views": {
                 "metric_unit": "count",
@@ -2480,6 +2559,12 @@
                 "posture": "observed",
                 "value_or_none": 0.032153
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.22
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -2657,6 +2742,12 @@
                 "posture": "observed",
                 "value_or_none": 0.099049
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 9.9
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -2833,6 +2924,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.03718
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.72
               },
               "median_views": {
                 "metric_unit": "count",
@@ -3013,6 +3110,12 @@
                 "posture_reason_or_none": "no admitted Short exposed view, like, and total-comment counts together in the live watch packets",
                 "value_or_none": null
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "unavailable_with_reason",
+                "posture_reason_or_none": "no admitted Short exposed view, like, and total-comment counts together in the live watch packets",
+                "value_or_none": null
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -3163,6 +3266,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.046733
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.67
               },
               "median_views": {
                 "metric_unit": "count",
@@ -3383,6 +3492,12 @@
                 "posture": "observed",
                 "value_or_none": 0.030228
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.02
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -3547,6 +3662,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.030263
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.03
               },
               "median_views": {
                 "metric_unit": "count",
@@ -3726,6 +3847,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.025088
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.51
               },
               "median_views": {
                 "metric_unit": "count",
@@ -3946,6 +4073,12 @@
                 "posture": "observed",
                 "value_or_none": 0.047033
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.7
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -4122,6 +4255,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.040061
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.01
               },
               "median_views": {
                 "metric_unit": "count",
@@ -4322,6 +4461,12 @@
                 "posture": "observed",
                 "value_or_none": 0.048136
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.81
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -4519,6 +4664,12 @@
                 "posture_reason_or_none": "no admitted Short exposed view, like, and total-comment counts together in the live watch packets",
                 "value_or_none": null
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "unavailable_with_reason",
+                "posture_reason_or_none": "no admitted Short exposed view, like, and total-comment counts together in the live watch packets",
+                "value_or_none": null
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -4709,6 +4860,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.065788
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 6.58
               },
               "median_views": {
                 "metric_unit": "count",
@@ -4911,6 +5068,12 @@
                 "posture": "observed",
                 "value_or_none": 0.045411
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.54
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -5069,6 +5232,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.079275
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 7.93
               },
               "median_views": {
                 "metric_unit": "count",
@@ -5239,6 +5408,12 @@
                 "posture": "observed",
                 "value_or_none": 0.048862
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.89
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -5403,6 +5578,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.049826
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 4.98
               },
               "median_views": {
                 "metric_unit": "count",
@@ -5577,6 +5758,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.024189
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 2.42
               },
               "median_views": {
                 "metric_unit": "count",
@@ -5797,6 +5984,12 @@
                 "posture": "observed",
                 "value_or_none": 0.01238
               },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 1.24
+              },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
@@ -6015,6 +6208,12 @@
                 "metric_unit": "rate",
                 "posture": "observed",
                 "value_or_none": 0.037677
+              },
+              "engagement_rate_percent": {
+                "metric_unit": "percent",
+                "posture": "observed",
+                "posture_reason_or_none": null,
+                "value_or_none": 3.77
               },
               "median_views": {
                 "metric_unit": "count",

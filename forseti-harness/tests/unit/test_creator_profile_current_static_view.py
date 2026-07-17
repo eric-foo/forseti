@@ -208,6 +208,20 @@ def _audience_snapshot(subject_id: str) -> dict:
     }
 
 
+def _assert_engagement_rate_percent_twin(engagement_rate: dict, percent: dict) -> None:
+    """Independent recompute of the presentation-only percent twin: posture must
+    mirror engagement_rate exactly (never fabricate a percent for a non-observed
+    value), and an observed value must equal value_or_none * 100, rounded 2."""
+    assert percent["posture"] == engagement_rate["posture"]
+    assert percent["metric_unit"] == "percent"
+    if engagement_rate["posture"] == "observed":
+        assert percent["value_or_none"] == round(engagement_rate["value_or_none"] * 100, 2)
+        assert percent["posture_reason_or_none"] is None
+    else:
+        assert percent["value_or_none"] is None
+        assert percent["posture_reason_or_none"] == engagement_rate.get("posture_reason_or_none")
+
+
 def _rollups_by_subject() -> dict[str, dict]:
     # Reconstruct from the view's ACTUAL rollup sources: both YT and IG from their
     # committed lake snapshots (§5/§8). Each snapshot is value-equal to its seed
@@ -344,7 +358,13 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         assert actual_rollup["platform_account_ids"] == expected_rollup["platform_account_ids"]
         assert actual_rollup["rollup_window"] == expected_rollup["rollup_window"]
         assert actual_rollup["rollup_window_description"] == expected_rollup["rollup_window_description"]
-        assert actual_rollup["metric_rollups"] == expected_rollup["metric_rollups"]
+        # The view adds one presentation-only twin on top of the source rollup's
+        # metric_rollups: engagement_rate_percent. Everything else must be a
+        # value-equal pass-through of the source-backed Silver rollup.
+        actual_metrics = dict(actual_rollup["metric_rollups"])
+        actual_percent = actual_metrics.pop("engagement_rate_percent")
+        assert actual_metrics == expected_rollup["metric_rollups"]
+        _assert_engagement_rate_percent_twin(expected_rollup["metric_rollups"]["engagement_rate"], actual_percent)
         assert actual_rollup["source_metric_observation_ids"] == expected_rollup["source_metric_observation_ids"]
         assert actual_rollup["sample_support"] == expected_rollup["sample_support"]
         assert actual_rollup["limitations"] == expected_rollup["limitations"]
