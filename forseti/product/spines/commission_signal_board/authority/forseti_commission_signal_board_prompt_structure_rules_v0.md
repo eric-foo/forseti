@@ -145,6 +145,22 @@ operating moves; customer and community response; bounded competitor or
 substitute context; contradictions; and evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
+A completed company report additionally carries the synthesis layer as
+guidance-bound narrative (no schema or validator fields): an Executive
+Intelligence Brief preamble of three to seven five-field conclusions (claim /
+evidence bound / commercial consequence / confidence / next observable) at
+maximum decisive strength inside the decision-neutral boundary, chain cards,
+and the central-promise voice with invalidation conditions; publicly visible
+concentration in the channels lens; invalidation signals in the chronology
+lens; the customer-choice mechanism chain with the five-way complaint
+classification and stated-sample proportionality rules in the community lens;
+and defensibility raw material (collected, never judged) in the comparator
+lens. The linked-commercial-claim admission principle governs what the
+narrative foregrounds; lens-status `complete` means covered for the
+commissioned purpose with typed gaps, never exhaustive. Conclusions gain
+strength only from evidence bounds and next observables, never from
+overclaiming evidence.
+
 Every included CSB item must perform a named, decision-material information job:
 it must have a credible route to changing the action, action ceiling, rival
 assessment, or hold condition. Do not include a source, row, observation, venue,

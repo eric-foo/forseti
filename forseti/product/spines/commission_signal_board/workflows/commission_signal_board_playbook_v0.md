@@ -147,6 +147,8 @@ For `company_competitive_intelligence`, the validator checks:
 - completion ledger, explicit gaps/requests, no arbitrary caps, typed
   `run_boundary` and `next_authorized_step`, Reddit/Quora scout-status
   consistency with their coverage rows, and no classifier handoff;
+- document-wide `OBS-###` references resolve to observation-ledger rows
+  (`dangling_observation_reference`);
 - the shared engagement/resonance overclaim ban, which applies to both profiles.
 
 ## What A Pass Means
