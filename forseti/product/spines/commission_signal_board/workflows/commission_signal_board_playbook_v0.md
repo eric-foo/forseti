@@ -64,15 +64,20 @@ acquisition complete.
    action ceiling, rival assessment, or hold condition and no equal-or-better
    included item performs that job. Use exclusion or `not_applicable` records
    for dominated routes.
-6. For a recurring or actively radarred source family, put a lake-first
+6. For company commissions, route retail, customer, and claims research first,
+   subject to the same named-job and substitution rules. This orders attention;
+   it is not a quota, proof hierarchy, or Scanning execution instruction.
+7. For a recurring or actively radarred source family, put a lake-first
    preflight in the downstream request: relevant Silver/current view, then
    packet or catalog inventory, then raw material when necessary. Treat the
    result as reuse/freshness/coverage context, not current-world proof.
-7. Generate exactly the selected profile's Sections 1-10.
-8. Save the exact output to a temporary file or bound durable artifact.
-9. Run the validator. If it fails, repair the output or report its finding
+8. Generate exactly the selected profile's Sections 1-10. A completed company
+   report also carries the prompt-defined `## Executive Intelligence Brief`
+   preamble before Section 1.
+9. Save the exact output to a temporary file or bound durable artifact.
+10. Run the validator. If it fails, repair the output or report its finding
    codes. Do not run downstream work from a failing report.
-10. Route typed source requests to Scanning or Capture under their own
+11. Route typed source requests to Scanning or Capture under their own
     authority. Do not execute retrieval from this playbook. Scanning decides
     marginal acquisition, dominance, and closure; Capture fulfills the bounded
     request or returns typed failure/route exhaustion.
@@ -114,7 +119,10 @@ Run the validator only against a full output with profile-specific Sections
   `commissioned_not_yet_run` scout statuses appear only at that stage. It also
   cross-checks each Reddit/Quora scout status against the corresponding
   coverage-row status and yield so the completion ledger cannot claim a result
-  the route ledger did not earn.
+  the route ledger did not earn. For a completed report, the contract-required
+  `## Executive Intelligence Brief` before Section 1 is compatible with the
+  validator: the checker scans only numbered `###` Sections 1-10 and
+  deliberately does not enforce synthesis quality.
 
 Do not run it against `NEEDS_COMMISSION_INTAKE` or `NEEDS_CUTOFF_DATE`.
 
@@ -147,6 +155,8 @@ For `company_competitive_intelligence`, the validator checks:
 - completion ledger, explicit gaps/requests, no arbitrary caps, typed
   `run_boundary` and `next_authorized_step`, Reddit/Quora scout-status
   consistency with their coverage rows, and no classifier handoff;
+- document-wide `OBS-###` references resolve to observation-ledger rows
+  (`dangling_observation_reference`);
 - the shared engagement/resonance overclaim ban, which applies to both profiles.
 
 ## What A Pass Means

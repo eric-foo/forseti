@@ -33,7 +33,8 @@ Reddit has separate stage owners. Do not collapse them into one crawler.
 | --- | --- | --- | --- |
 | Discover | Candidate URL Intake contracts and old Reddit search/listing handling docs | `run_reddit_candidate_intake_live.py` | Candidate subreddit/thread/outbound URL rows only; no bodies and no Source Capture Packet. |
 | Select | Reddit Graph Frontier lane | `run_reddit_graph_frontier_register.py` | Frontier/register receipts and fresh bounded run envelopes; no same-run traversal. |
-| Capture | `reddit_capture_operator_playbook_v0.md` | `run_reddit_old_http_batch.py`; `run_reddit_consolidation.py`; `run_reddit_batch_quality_summary.py` | Exact old Reddit thread packets plus derived consolidation outputs. |
+| Radar grid | `reddit_radar_grid_capture_maintenance_design_v0.md` + registry spec | `run_reddit_grid_capture.py`; `run_reddit_subreddit_registry_refresh.py` | One `reddit_subreddit_grid` listing packet per tracked subreddit (local or `--data-root` Bronze); read-only registry refresh from committed packets. |
+| Capture | `reddit_capture_operator_playbook_v0.md` | `run_reddit_old_http_batch.py` (supports `--data-root` Bronze commit); `run_reddit_consolidation.py`; `run_reddit_batch_quality_summary.py` | Exact old Reddit thread packets plus derived consolidation outputs. |
 | Fallback | Source Capture Playbook archive route and Reddit operator playbook | `run_source_capture_archive_packet.py`; one-URL CloakBrowser runner when explicitly needed | Same-thread archive/capture only; no discovery, profile capture, or broad crawl. |
 | ECR / downstream | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` plus ECR authority | `orca-harness/ecr/deriver.py`; Reddit consolidation/projection helpers | ECR consumes packets source-agnostically; no automatic cleared posture without a Decision Frame/cutoff posture. |
 
@@ -68,6 +69,28 @@ commercial/enterprise API or data-licensing path pursued in parallel;
 commercial-grade product use lands on the sanctioned path. Every pass
 still records its per-run robots/source-policy posture receipt, and the
 lane must be built before anything runs.
+
+## Silver Envelope Subject Shaping (lake-map courier note, 2026-07-17)
+
+No Reddit Silver envelope writer exists yet. When one is built, shape subjects
+so creators file automatically in the lake map (courier note from the
+silver-entity-read-layer lane, merged PR #1031; governing plan:
+`docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md`):
+
+- Authors -> `platform_public_account` subjects: namespace exactly lowercase
+  `reddit`, the stable id in `native_id`, and the id's kind in
+  `native_id_kind` when known (`reddit_fullname` vs username — usernames are
+  less stable).
+- Posts/comments-as-content -> `public_content_object` with
+  `published_by_account_native_id` (+ `published_by_account_native_id_kind`)
+  naming the author.
+- The same work unit adds `"reddit"` to `KNOWN_PLATFORM_NAMESPACES` in
+  `forseti-harness/data_lake/derived_retrieval_views.py` (a deliberate
+  one-line vocabulary extension, deferred until Reddit Silver records exist).
+  Until it lands, Reddit author records surface in the by_creator view's
+  residuals as `unrecognized_platform_namespace` — visible, never silently
+  lost. Product mentions on Reddit have no product-page anchor yet; that is a
+  `NATIVE_PRODUCT_PAGE_SOURCES` registry entry when needed, not a blocker.
 
 ## Hard Stops
 

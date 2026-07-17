@@ -340,6 +340,123 @@ helpful votes, or official-response markers stay source facts. Capture still
 runs Step 0, chooses the cheapest matching route, and records the captured state
 as source facts, not proof.
 
+## Capture artifact mode — content-mode standard (owner direction, 2026-07-17)
+
+For cadenced fleet capture, the standard artifact posture is **content mode**:
+the source family's projector runs in flight and the packet preserves the
+DERIVED content record as its hash-anchored file, while disposable projector
+inputs are sha256-hashed and then discarded (their hashes, parser version, byte
+counts, roles, preservation states, and projection status remain in
+route-appropriate capture metadata — the provenance floor). A small rotating
+daily **sample** preserves BOTH projector inputs and derived content in one
+packet so a parser-fit drift check can re-project the inputs and diff against
+the stored record. **Raw** mode remains for probes, one-off captures, and any
+claim that needs third-party re-verifiable bytes. This is a standard posture,
+not a volume-triggered exception (efficiency first): families flip to
+capture-time derivation as their lanes are next touched, retiring the standard
+post-hoc path only for the surface that flipped; ECR stays source-agnostic and
+reads whatever hash-anchored preserved file the packet carries.
+
+Seam: `forseti-harness/source_capture/content_capture.py`
+(`ContentCaptureSpec` into `run_source_capture_http_packet`); first flipped
+family: Reddit (grid + deep-dive runners, `--capture-mode content|raw|sample`;
+drift check: `run_reddit_parser_fit_check.py`). Owning doctrine:
+`forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md`
+(Storage and retention). Named residual: a content-only packet is
+attestation-grade, not third-party re-reproducible; a projector failure in
+flight falls back loudly to a preserved raw packet, never silent loss.
+
+Parfumo's pinned targeted-rendered product-page surface is the second
+family-owned adoption. Its adapter hashes and discards rendered DOM and visible
+text after successful projection, preserves the route receipt and any supplied
+screenshot as source evidence, and records the content binding in
+`content_record.json` plus `content_capture_metadata.json`. Sample packets are
+checked by `run_parfumo_parser_fit_check.py`. The direct-HTTP canary and the
+shared projection runner remain raw/legacy paths. This targeted adapter does
+not establish a generic multi-artifact content seam; another route must prove
+that abstraction before it is added.
+
+Basenotes' pinned persistent-Chrome current-window product-page surface is the
+next family-owned adoption. It retains browser snapshot metadata as provenance,
+hashes and discards rendered DOM/text after successful projection, and binds
+content rows to packet-local JSON pointers for Projection, Cleaning, and
+catch-up. `run_basenotes_parser_fit_check.py` checks sample packets. Screenshot
+acquisition is trigger-controlled: direct CDP does not request one unless the
+capture names `route_baseline`, `visual_content`,
+`access_or_overlay_diagnostic`, or `owner_requested`; a manual screenshot and
+its trigger must appear together. Exact URL plus challenge-free, source-sufficient
+DOM/text remains the access gate—a screenshot is not access proof. This second
+family implementation still does not establish a generic multi-artifact seam;
+shared lifecycle mechanics may be extracted only when their implementations
+are demonstrably identical, while Basenotes parsing and schema remain
+family-owned.
+
+## Rendered overlays and screenshot economy
+
+For rendered-browser capture, **preserve a screenshot when supplied** is a
+packet-retention rule, not an instruction to create a screenshot on every run.
+A screenshot is optional source-media evidence. Request one only when the
+capture needs to establish or inspect a visual fact that DOM, visible text,
+route provenance, and the projected content record do not independently carry:
+
+- the first active-Capture baseline for a new or materially changed rendered
+  route after that route has been selected for capture;
+- source-visible image, layout, placement, or other visual content is part of
+  the information job;
+- access state, rendered-route drift, projection ambiguity/failure, or a UI
+  overlay needs diagnosis; or
+- the owner explicitly requests current visual evidence.
+
+Screenshot production belongs to **Capture**, not to CSB or Scanning/radaring.
+CSB may name a visual-evidence requirement in the commission, and Scanning may
+return a `capture_request` whose information job requires that evidence, but
+neither lane takes or preserves the screenshot as ordinary output. Capture
+creates it only while executing the selected `capture_request`. A transient
+operator view used to route or diagnose a scan is not a capture artifact and
+must not be packetized or admitted to the lake.
+
+A repeat semantic refresh with the same working route, capture plan, and
+projector does **not** request a screenshot merely because an earlier packet
+contained one. When no visual trigger applies, omit the screenshot at
+acquisition; do not create it and then rely on content-mode retention to remove
+it. When a screenshot is requested, the capture plan or receipt names the
+trigger. Existing packets and any screenshot already supplied to a packet
+writer remain immutable and preserved.
+
+Rendered UI overlays use a shared classification contract with route-owned
+actions:
+
+- A `benign_dismissible_overlay` is a non-content UI layer such as a cookie or
+  teaching prompt with no CAPTCHA, challenge/security, login/auth, payment, or
+  account-risk marker.
+- The shared runner may execute only a **named, route-owned action spec** that
+  binds the overlay markers, exact allowed control or bounded control sequence,
+  forbidden controls, and post-click verification. CloakBrowser, Chrome CDP,
+  or another browser backend is the transport; it does not decide what to
+  click.
+- For cookie consent, prefer an exact `Reject`, `Decline`, `Necessary only`, or
+  `Continue without accepting` path. A settings path is allowed only when the
+  complete route-owned sequence deterministically reaches the same
+  non-consent outcome. Never select `Accept`, `Accept all`, or an equivalent
+  consent-granting control to make capture easier.
+- A free-form model/vision guess, generic X, broad text match, or coordinate
+  click is not an action spec. An unknown or ambiguous overlay is not
+  auto-dismissed; stop, preserve a diagnostic receipt, and request a mapped
+  route or owner intervention.
+- Success requires the expected overlay to be absent after the action and the
+  intended page content to remain reachable. Record the classification, named
+  action, sanitized target identity, outcome, and postcondition without cookie,
+  storage-state, credential, or clearance-token values. Only then capture the
+  normal DOM/text and any independently triggered screenshot. A failed
+  dismissal may preserve one diagnostic screenshot, labeled as overlay
+  evidence rather than unobstructed source-content evidence.
+
+This contract is site-agnostic at the classification, action, receipt, and
+failure boundaries. Detection selectors, control sequences, and postconditions
+stay source/CMP-owned until repeated implementations prove a safe shared
+adapter. It does not authorize CAPTCHA solving, challenge closing, login-wall
+handling, or generic visual clicking.
+
 ## Step 3 — The verdict + receipt
 
 - **GO:** source-native content captured AND independently checkable — raw bytes/hash, magic bytes
@@ -444,51 +561,71 @@ failure visibility.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The Quora PR #825 lesson is installed: source-useful capture requires named
-    caller-bound detail requirements recorded in the receipt, not just a 200,
-    packet directory, rendered artifact, or generic sufficiency flag. The route
-    maturity note now distinguishes one bounded CloakBrowser persistent-profile
-    Quora B2B search success from unproven broad Quora reliability, session
-    durability, buyer proof, and proxy/geo behavior.
-  trigger: workflow_authority
+    Screenshots are now trigger-based source media produced only by active
+    Capture, never ordinary CSB or Scanning/radar output, while the
+    site-agnostic benign-overlay contract keeps actions deterministic and
+    route-owned.
+  trigger: product_doctrine
   related_triggers:
-    - validation_philosophy
+    - architecture_doctrine
+    - output_authority
   controlling_sources_updated:
     - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - docs/workflows/parfumo_targeted_capture_contract_v0.md
   downstream_surfaces_checked:
     - .agents/workflow-overlay/source-loading.md
     - docs/workflows/orca_repo_map_v0.md
-    - docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
-    - docs/review-outputs/adversarial-artifact-reviews/quora_b2b_postmerge_capture_calibration_delegated_adversarial_review_patch_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - forseti/product/spines/scanning/README.md
+    - docs/workflows/forseti_research_engine_map_v0.md
+    - forseti-harness/runners/run_parfumo_mgt_capture.py
+    - forseti-harness/source_capture/adapters/browser_snapshot.py
   intentionally_not_updated:
     - path: .agents/workflow-overlay/source-loading.md
       reason: >
-        Source-loading already binds capture-spine work to this playbook and
-        recon index; the Quora lesson changes method content, not the read-pack
-        rule.
+        It already binds capture-spine work to this playbook; no read-pack owner
+        or route changed.
     - path: docs/workflows/orca_repo_map_v0.md
       reason: >
         The repo map routes to this playbook at file level; no new artifact home
         or anchor is needed.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
+      reason: >
+        Its supplied-screenshot retention rule remains true; this change
+        distinguishes upstream screenshot acquisition from packet retention.
+    - path: docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+      reason: >
+        Its source-owned benign-overlay and challenge actions already satisfy
+        the shared split; no TikTok action or challenge authority changed.
+    - path: CSB and Scanning controlling sources
+      reason: >
+        They already route CSB commission requirements through Scanning
+        `capture_request`s into Capture and grant neither upstream lane
+        preservation-adapter ownership; no duplicate screenshot rule added.
+    - path: runtime browser and Parfumo capture code
+      reason: >
+        This doctrine unit does not add a generic visual actor or pretend the
+        local-artifact Parfumo packet writer owns live page interaction. A
+        route-owned executable action remains separate implementation work.
   stale_language_search: >
-    rg -n "packet success is not content success|source_detail_sufficiency_passed|Quora B2B|CloakBrowser persistent-profile|proxy/geo"
-    forseti/product/spines/capture/core/source_capture_toolbox
-    docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
-    docs/review-outputs/adversarial-artifact-reviews/quora_b2b_postmerge_capture_calibration_delegated_adversarial_review_patch_v0.md
+    rg -n -i "CSB.*screenshot|Scanning.*screenshot|radar.*screenshot|active.Capture|capture_request.*visual"
+    forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    docs/workflows/parfumo_targeted_capture_contract_v0.md
+    forseti/product/spines/commission_signal_board
+    forseti/product/spines/scanning
   stale_language_search_result: >
-    Executed 2026-07-10 after edits. Hits are the Quora calibration record, its
-    delegated review report, the new recon-index row, this updated route-maturity
-    and DCP text, and existing generic proxy/geo route mentions. No checked
-    routing surface keeps the stale packet-alone-success or proxy/geo-proof wording.
+    Executed 2026-07-18. Hits are the corrected active-Capture rules, their DCP
+    search literals, and unrelated existing active-capture risk-posture wording;
+    no CSB or Scanning controlling source claims screenshot production or
+    preservation-adapter ownership.
   non_claims:
     - not validation
     - not readiness
     - not capture authorization
-    - not Quora reliability proof
-    - not session durability proof
-    - not buyer proof
-    - not proxy/geo proof
+    - not overlay-action implementation
+    - not live-route validation
 ```
 
 ```yaml
@@ -542,8 +679,9 @@ direction_change_propagation:
     - no claim that past NO-GO receipts are invalidated
 ```
 
-Older receipts for this file live verbatim in
-`docs/decisions/dcp_receipts_archive_v0.md`.
+Earlier inline receipts remain in Git/PR history. The legacy
+`docs/decisions/dcp_receipts_archive_v0.md` archive is frozen and receives no
+new writes.
 
 ## Non-claims
 

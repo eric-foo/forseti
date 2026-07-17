@@ -131,6 +131,15 @@ def _hook_commands(settings: dict):
                     yield hook["command"]
 
 
+def _registered_script_path(path: str) -> str:
+    """Map Claude's canonical project-root token to a repo-relative path."""
+    normalized = path.replace("\\", "/")
+    for prefix in ("$CLAUDE_PROJECT_DIR/", "${CLAUDE_PROJECT_DIR}/"):
+        if normalized.startswith(prefix):
+            return normalized[len(prefix):]
+    return normalized
+
+
 def hook_findings(settings: dict, is_intree_file) -> list:
     """Pure: list of (category, detail) findings (empty = pass).
 
@@ -142,7 +151,8 @@ def hook_findings(settings: dict, is_intree_file) -> list:
     for command in _hook_commands(settings):
         scripts, unsupported = scan_command(command)
         for path in scripts:
-            if not is_intree_file(path):
+            resolved_path = _registered_script_path(path)
+            if not is_intree_file(resolved_path):
                 findings.append(("dangling", "%s  (in command: %r)" % (path, command)))
         for seg in unsupported:
             findings.append(("unverifiable", "%r  (segment of: %r)" % (seg, command)))
@@ -238,6 +248,12 @@ def selftest() -> int:
            classify_segment("python .agents/hooks/g.py") == ("script", ".agents/hooks/g.py"))
     expect("trailing arg ignored",
            classify_segment("python .agents/hooks/g.py --hook") == ("script", ".agents/hooks/g.py"))
+    expect("Claude project-root token resolves inside checkout",
+           _registered_script_path("$CLAUDE_PROJECT_DIR/.agents/hooks/g.py")
+           == ".agents/hooks/g.py")
+    expect("braced Claude project-root token resolves inside checkout",
+           _registered_script_path("${CLAUDE_PROJECT_DIR}/.agents/hooks/g.py")
+           == ".agents/hooks/g.py")
     expect("option value .py is not the script (F2)",
            classify_segment("python .agents/hooks/g.py --config config.py") == ("script", ".agents/hooks/g.py"))
     expect("flag=value .py is not the script (F2)",

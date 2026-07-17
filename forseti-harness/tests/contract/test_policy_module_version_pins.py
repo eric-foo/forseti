@@ -49,10 +49,13 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "TIKTOK_GRID_OBSERVATION_POLICY_VERSION",
             "TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION",
             "TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_POLICY_VERSION",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION",
+            "TIKTOK_PROFILE_METRIC_OBSERVATION_POLICY_FINGERPRINT",
         ),
-        # Output-shaping v1: admitted onboarding batch grid windows now produce
-        # the same packet-grain metric set and prior not-applicable acks resurface.
-        "77cc704f5c618c6e57140eb2df91e673480f1ff4308e809cfb2a0f3baa7cf1d9",
+        # Output-shaping profile v0 adds two deterministic exact-or-unavailable
+        # account metric records; incumbent per-video set bytes remain unchanged.
+        "30dae4e4fd3f51621ff6442498de89d48f5b0e7c7b064d31179fe49b8d02d905",
     ),
     "cleaning/_shared.py": (
         (
@@ -141,7 +144,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
         # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
         # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "b00217005875888b2cbeaf3a3599974e5057c9fd6bc43865cca69f32f5b2d917",
+        # Pin bumped: family-owned content-record schema/parser and JSON-pointer packet binding.
+        # Raw/legacy row semantics remain equivalent, so BASENOTES_PROJECTION_VERSION stays v1;
+        # content and parser behavior carry separate version constants.
+        "b3f276b8ff5c0ba69be08db81e5b624428ce794b4087582d2436ad9fd331407e",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
@@ -159,13 +165,15 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "47c5b75baefc4543363b09513ee55e712368ce5682d10240f8a9c97e66623213",
+        # Pin bumped: byte-identical _append_residual_once dedup onto
+        # harness_utils.append_residual_once; not output-shaping.
+        "cec6047919c73bc954b07ea15f3596929e511b11f851ed70177da6d58645aa11",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
-        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
-        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "4d7262424b7f8d8cf10f2832a69adaab26e2ea25c8aa385b313d8b0de3c89660",
+        # Pin bumped: corrected a latent in-memory hash-basis literal; the anchor is
+        # discarded before serialization, so projection outputs remain unchanged.
+        "efb6592a166cb7aa8c064a05a68ab4d9213d7b62b8b3450f8262254a66408a1a",
     ),
     "source_capture/projection_shared.py": (
         (
@@ -175,7 +183,12 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Initial pin: byte-identical helpers consolidated out of the projection
         # surfaces; not output-shaping.
-        "d8cd3d79b5daaf10d75bea511adca2909bf1ade39d0cdaadc46f75864022f504",
+        # Pin bumped: added canonical_old_reddit_thread_url, the body adopted
+        # from grid_projection's byte-identical private copy; not output-shaping.
+        # Pin bumped: corrected the retained-copy docstring to distinguish the
+        # byte-identical candidate-intake copy from the divergent screening copy
+        # (post-merge review W6-1); docstring-only, not output-shaping.
+        "ff04f0767731be27f81ccf1e420fe9d51c7c0b510173e9af73e53d071fd45675",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

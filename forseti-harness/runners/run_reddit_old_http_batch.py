@@ -6,23 +6,42 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 from harness_utils import utc_now_z_microseconds
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory
 from source_capture.cadence import CadenceMode, build_cadence_plan
-from source_capture.reddit_consolidation import RedditConsolidationFailure, consolidate_reddit_packet
+from source_capture.content_capture import (
+    CAPTURE_ARTIFACT_MODES,
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
+    ContentCaptureSpec,
+)
+from source_capture.reddit_consolidation import (
+    OLD_REDDIT_THREAD_PARSER_VERSION,
+    RedditConsolidationFailure,
+    build_thread_content_record,
+    consolidate_reddit_packet,
+)
 
 
 DEFAULT_DELAY_SECONDS = 30.0
 DEFAULT_MAX_URLS = 10
 DEFAULT_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_BYTES = 5_000_000
+# Content-mode is the standard fleet posture (storage-and-retention doctrine,
+# 2026-07-17): the thread record is parsed in flight and preserved in the
+# packet; raw is hashed then discarded. Raw and sample modes are the
+# operator-selected exceptions (daily parser-fit rotation).
+DEFAULT_CAPTURE_ARTIFACT_MODE = "content"
 
 
 @dataclass(frozen=True)
@@ -36,6 +55,7 @@ def run_reddit_old_http_batch(
     slots: Sequence[BatchSlot],
     output_root: Path,
     decision_question: str,
+    data_root: "DataLakeRoot | None" = None,
     delay_seconds: float = DEFAULT_DELAY_SECONDS,
     max_urls: int = DEFAULT_MAX_URLS,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
@@ -45,7 +65,12 @@ def run_reddit_old_http_batch(
     cadence_min_gap_seconds: float | None = None,
     cadence_max_gap_seconds: float | None = None,
     cadence_random_seed: int | None = None,
+    capture_artifact_mode: str = DEFAULT_CAPTURE_ARTIFACT_MODE,
 ) -> tuple[int, str]:
+    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+        raise ValueError(
+            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}, got {capture_artifact_mode!r}"
+        )
     _validate_batch_inputs(
         slots=slots,
         output_root=output_root,
@@ -70,7 +95,7 @@ def run_reddit_old_http_batch(
 
     results: list[dict[str, Any]] = []
     for index, slot in enumerate(slots):
-        packet_dir = output_root / f"{slot.slot_id}_packet"
+        packet_dir = None if data_root is not None else output_root / f"{slot.slot_id}_packet"
         derived_dir = output_root / f"{slot.slot_id}_derived"
         row: dict[str, Any] = {
             "slot_id": slot.slot_id,
@@ -79,7 +104,8 @@ def run_reddit_old_http_batch(
             "capture_message": None,
             "consolidation_exit": None,
             "consolidation_message": None,
-            "packet_dir": str(packet_dir),
+            "packet_dir": str(packet_dir) if packet_dir is not None else None,
+            "lake_committed": data_root is not None,
             "derived_dir": str(derived_dir),
             "retry_count": 0,
             "planned_start_offset_seconds": cadence_plan.planned_offsets_seconds[index],
@@ -90,8 +116,20 @@ def run_reddit_old_http_batch(
             ),
             "capture_started_at": None,
             "capture_finished_at": None,
+            "content_projection_failed": False,
+            "content_record_preserved": False,
         }
 
+        content_spec = None
+        if capture_artifact_mode != "raw":
+            content_spec = ContentCaptureSpec(
+                capture_artifact_mode=capture_artifact_mode,
+                parser_version=OLD_REDDIT_THREAD_PARSER_VERSION,
+                projector=lambda html_text, final_url: build_thread_content_record(
+                    html_text=html_text,
+                    source_url=final_url,
+                ),
+            )
         try:
             row["capture_started_at"] = utc_now_z_microseconds()
             capture_exit, capture_message = run_source_capture_http_packet(
@@ -100,6 +138,7 @@ def run_reddit_old_http_batch(
                 source_surface="old_reddit_direct_http",
                 decision_question=decision_question,
                 output_directory=packet_dir,
+                data_root=data_root,
                 capture_context=(
                     "bounded old Reddit direct HTTP calibration batch; exact supplied URL only; "
                     "no proxy, browser, crawler, retry, or link following"
@@ -123,16 +162,41 @@ def run_reddit_old_http_batch(
                 ],
                 timeout_seconds=timeout_seconds,
                 max_bytes=max_bytes,
+                content_capture=content_spec,
             )
             row["capture_exit"] = capture_exit
             row["capture_message"] = capture_message
+            if capture_exit == CONTENT_PROJECTION_FAILED_EXIT_CODE:
+                row["content_projection_failed"] = True
+            if capture_exit in (0, CONTENT_PROJECTION_FAILED_EXIT_CODE) and packet_dir is None:
+                # Lake commit: the runner returns the committed packet directory.
+                packet_dir = Path(capture_message)
+                row["packet_dir"] = str(packet_dir)
+            if content_spec is not None and packet_dir is not None:
+                row["content_record_preserved"] = _packet_preserves_content_record(packet_dir)
         except Exception as exc:
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
         finally:
             row["capture_finished_at"] = utc_now_z_microseconds()
 
-        if row["capture_exit"] == 0:
+        if (
+            row["capture_exit"] == 0
+            and content_spec is not None
+            and row["content_record_preserved"]
+        ):
+            # Parse-in-flight succeeded: the thread record is preserved inside
+            # the packet as content_record.json; there is no post-hoc step.
+            row["consolidation_exit"] = 0
+            row["consolidation_message"] = {
+                "mode": "parse_in_flight",
+                "content_record": "content_record.json preserved in packet",
+                "parser_version": OLD_REDDIT_THREAD_PARSER_VERSION,
+            }
+        elif row["capture_exit"] in (0, CONTENT_PROJECTION_FAILED_EXIT_CODE) and packet_dir is not None:
+            # Raw mode, or the content-mode raw fallback after an in-flight
+            # projection failure: post-hoc consolidation still runs so the
+            # derived record exists either way and the failure stays visible.
             try:
                 consolidation = consolidate_reddit_packet(
                     packet_or_manifest_path=packet_dir,
@@ -159,6 +223,11 @@ def run_reddit_old_http_batch(
     summary = {
         "runner": "reddit_old_http_batch",
         "method": "old_reddit_direct_http",
+        "capture_artifact_mode": capture_artifact_mode,
+        "content_projection_failure_count": sum(
+            1 for row in results if row["content_projection_failed"]
+        ),
+        "lake_committed": data_root is not None,
         "non_claims": [
             "not crawler",
             "not source discovery",
@@ -184,6 +253,17 @@ def run_reddit_old_http_batch(
         newline="\n",
     )
     return 0, str(summary_path)
+
+
+def _packet_preserves_content_record(packet_dir: Path) -> bool:
+    return (
+        sum(
+            1
+            for path in packet_dir.rglob(CONTENT_RECORD_FILENAME)
+            if path.is_file() and path.name == CONTENT_RECORD_FILENAME
+        )
+        == 1
+    )
 
 
 def load_slots(path: Path) -> list[BatchSlot]:
@@ -272,6 +352,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--url-list", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help=(
+            "Commit packets into the Forseti data lake at this root instead of per-slot "
+            "local packet directories; the batch summary and derived consolidation stay "
+            "under --output-root."
+        ),
+    )
     parser.add_argument("--decision-question", required=True)
     parser.add_argument("--delay-seconds", type=float, default=DEFAULT_DELAY_SECONDS)
     parser.add_argument("--max-urls", type=int, default=DEFAULT_MAX_URLS)
@@ -282,6 +371,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cadence-min-gap-seconds", type=float, default=None)
     parser.add_argument("--cadence-max-gap-seconds", type=float, default=None)
     parser.add_argument("--cadence-random-seed", type=int, default=None)
+    parser.add_argument(
+        "--capture-mode",
+        choices=list(CAPTURE_ARTIFACT_MODES),
+        default=DEFAULT_CAPTURE_ARTIFACT_MODE,
+        dest="capture_artifact_mode",
+        help=(
+            "content (default): parse the thread in flight, preserve the derived record, "
+            "hash then discard raw; sample: preserve raw AND derived for parser-fit drift "
+            "checks; raw: preserve raw only with post-hoc consolidation (legacy posture)."
+        ),
+    )
     return parser
 
 
@@ -289,10 +389,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        data_root = None
+        if args.data_root is not None:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_reddit_old_http_batch(
             slots=load_slots(args.url_list),
             output_root=args.output_root,
             decision_question=args.decision_question,
+            data_root=data_root,
             delay_seconds=args.delay_seconds,
             max_urls=args.max_urls,
             timeout_seconds=args.timeout_seconds,
@@ -302,6 +408,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_min_gap_seconds=args.cadence_min_gap_seconds,
             cadence_max_gap_seconds=args.cadence_max_gap_seconds,
             cadence_random_seed=args.cadence_random_seed,
+            capture_artifact_mode=args.capture_artifact_mode,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"reddit old HTTP batch failed: {exc}\n")

@@ -146,7 +146,7 @@ def test_tombstoned_packet_is_excluded_from_onboarding_evidence(tmp_path: Path) 
         family="tiktok",
         surface="tiktok_creator_grid_window",
         filename="old_tiktok_grid_window.json",
-        payload={"creator_handle": "ak.fragrances1"},
+        payload={"creator_handle": "ak.fragrances1", "capture_marker": "old"},
     )
     retained = _write_packet(
         tmp_path,
@@ -154,7 +154,7 @@ def test_tombstoned_packet_is_excluded_from_onboarding_evidence(tmp_path: Path) 
         family="tiktok",
         surface="tiktok_creator_grid_window",
         filename="latest_tiktok_grid_window.json",
-        payload={"creator_handle": "ak.fragrances1"},
+        payload={"creator_handle": "ak.fragrances1", "capture_marker": "retained"},
     )
     append_raw_packet_tombstone(
         lake,

@@ -264,8 +264,13 @@ def test_no_source_backed_leg_refuses_without_packet_or_silver(tmp_path: Path) -
 
 def test_each_capture_mints_a_new_packet_without_rewriting_history(tmp_path: Path) -> None:
     root = _root(tmp_path)
-    first = write_reel_deep_capture_into_lake(data_root=root, result=_result(), generated_at="t")
-    second = write_reel_deep_capture_into_lake(data_root=root, result=_result(), generated_at="t")
+    # Distinct generated_at: a real re-capture always carries the actual
+    # wall-clock capture time (embedded in the packet's capture_metadata.json),
+    # so two genuinely distinct captures never collide with the Bronze
+    # write-gate's byte-identical duplicate check the way a shared literal
+    # timestamp would here.
+    first = write_reel_deep_capture_into_lake(data_root=root, result=_result(), generated_at="t1")
+    second = write_reel_deep_capture_into_lake(data_root=root, result=_result(), generated_at="t2")
     assert first.record_id == second.record_id == deep_capture_record_id(_result())
     assert first.packet_id != second.packet_id
 

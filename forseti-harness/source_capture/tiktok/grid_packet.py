@@ -14,6 +14,9 @@ from urllib.parse import urlparse
 
 from source_capture.models import (
     CaptureModeCategory,
+    CoverageWindow,
+    MetricObservation,
+    MetricPosture,
     PacketTiming,
     SourceCaptureSlice,
     known_fact,
@@ -21,6 +24,9 @@ from source_capture.models import (
     not_attempted,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from source_capture.tiktok.creator_onboarding import (
+    TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION,
+)
 
 TIKTOK_GRID_PACKET_SOURCE_SURFACE = "tiktok_creator_grid_window"
 TIKTOK_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
@@ -90,6 +96,7 @@ def write_tiktok_grid_packet(
             )
     else:
         observed_at = _required_utc(observed_at_utc)
+    metric_observations = _profile_metric_observations(grid, observed_at=observed_at)
     profile_url = f"https://www.tiktok.com/@{creator_handle}"
     staged_artifacts = [(TIKTOK_GRID_WINDOW_JSON_NAME, grid_window_json)]
     file_ids = staged_file_id_map(staged_artifacts)
@@ -126,6 +133,7 @@ def write_tiktok_grid_packet(
                 limitations=list(TIKTOK_GRID_PACKET_NON_CLAIMS),
                 warning_notes=[],
                 preserved_file_ids=[file_ids[TIKTOK_GRID_WINDOW_JSON_NAME]],
+                metric_observations=metric_observations,
             )
         ],
         source_family="tiktok",
@@ -160,6 +168,62 @@ def write_tiktok_grid_packet(
         receipt_non_claims=list(TIKTOK_GRID_PACKET_NON_CLAIMS),
     )
     return 0, result.output_directory
+
+
+def _profile_metric_observations(
+    grid: Mapping[str, Any],
+    *,
+    observed_at: str,
+) -> list[MetricObservation]:
+    policy = grid.get("profile_metric_capture_policy_version")
+    profile_metrics = grid.get("profile_metrics")
+    if policy is None and profile_metrics is None:
+        return []
+    if policy != TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION:
+        raise ValueError("TikTok grid window has an unsupported profile metric capture policy")
+    if not isinstance(profile_metrics, Mapping):
+        raise ValueError("TikTok grid window profile_metrics must be an object")
+    expected = {
+        "follower_count": "followerCount",
+        "profile_total_like_count": "heartCount",
+    }
+    if set(profile_metrics) != set(expected):
+        raise ValueError("TikTok grid window profile_metrics must contain exactly the two profile metrics")
+
+    coverage = CoverageWindow(start=observed_at, end=observed_at)
+    observations: list[MetricObservation] = []
+    for metric_name, source_field in expected.items():
+        cell = profile_metrics[metric_name]
+        if not isinstance(cell, Mapping) or cell.get("source_field") != source_field:
+            raise ValueError(f"TikTok grid window {metric_name} has an invalid source binding")
+        posture = cell.get("posture")
+        value = cell.get("exact_value_or_none")
+        reason = cell.get("reason_or_none")
+        if posture == MetricPosture.OBSERVED:
+            if type(value) is not int or value < 0 or reason is not None:
+                raise ValueError(f"TikTok grid window {metric_name} observed value is not exact")
+            observations.append(
+                MetricObservation(
+                    metric=metric_name,
+                    posture=MetricPosture.OBSERVED,
+                    value=value,
+                    coverage_window=coverage,
+                )
+            )
+        elif posture == MetricPosture.UNAVAILABLE_WITH_REASON:
+            if value is not None or not isinstance(reason, str) or not reason.strip():
+                raise ValueError(f"TikTok grid window {metric_name} unavailable posture is incomplete")
+            observations.append(
+                MetricObservation(
+                    metric=metric_name,
+                    posture=MetricPosture.UNAVAILABLE_WITH_REASON,
+                    reason=reason,
+                    coverage_window=coverage,
+                )
+            )
+        else:
+            raise ValueError(f"TikTok grid window {metric_name} has an invalid posture")
+    return observations
 
 
 def _load_grid(raw: bytes) -> dict[str, Any]:

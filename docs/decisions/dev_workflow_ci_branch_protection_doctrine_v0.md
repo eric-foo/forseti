@@ -19,7 +19,25 @@ open_next:
 
 Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the enforcement outcome.
 
-### Current state — 2026-07-11
+### Approved transition — 2026-07-17
+
+The owner approved a leaner stale-branch policy. After the conflict-aware in-session
+guard in item 7 lands, configure the `main` required-status-check setting with
+`strict: false`. Keep the pull-request requirement, required `forseti-harness-tests`
+context, administrator enforcement, and force-push/deletion blocks unchanged.
+
+- The lane-author route may merge an own-lane PR whose exact head is still green,
+  `mergeable == MERGEABLE`, and `mergeStateStatus` is `CLEAN` or `BEHIND`.
+- The unattended Actions bot remains up-to-date-only because a merge made with its
+  `GITHUB_TOKEN` does not trigger the `push:main` CI run that provides the detective
+  backstop for the accepted stale-head residual.
+- Accepted residual: two independently green, conflict-free PRs can still interact
+  after sequential merge. Required PR CI no longer prevents that combination class;
+  `push:main` CI plus `main-red-alert` detect it after merge.
+- The remote setting is not claimed live until the post-landing GitHub API readback
+  reports `required_status_checks.strict == false`.
+
+### Prior live state — 2026-07-11
 
 - **Live CI:** `.github/workflows/ci.yml` runs on every pull request and push to
   `main`; the required job context is `forseti-harness-tests`.
@@ -97,15 +115,15 @@ At that historical point, this record did not assert that any server-side gate w
    (forseti-harness core dependencies only) plus pinned `pytest` and `pytest-xdist`, then the full
    suite from `forseti-harness/` with slow-test timing and four file-grouped workers. Single target —
    no version matrix, no path-filter, no dependency caching, and no test-selection reduction.
-2. **Branch protection on `main` — LIVE.** The server gate requires:
+2. **Branch protection on `main` — adopted configuration.** The server gate requires:
    - the `forseti-harness-tests` status check to pass;
    - a pull request before merging with `required_approving_review_count: 0`;
-   - `strict: true`, so a head behind `main` cannot merge until updated and retested;
+   - `strict: false`, so a conflict-free PR keeps its own green result when `main` advances;
    - `enforce_admins: true`;
    - force-push and branch deletion disabled.
-   Applied and read back through the GitHub API on 2026-07-11 after the repository
-   became public. This is the harness-agnostic preventive boundary; local and
-   agent guards remain defense in depth.
+   Apply and read back `strict: false` only after the item-7 guard change lands. This
+   remains the harness-agnostic required-CI boundary: it prevents red or unchecked
+   ordinary merges, but intentionally does not require a behind head to update.
 3. **Per-lane PR flow.** Each publication work unit branches off `main`, works in its own
    branch/worktree, and opens one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
    A handoff-only packet is transport rather than a publication work unit until item 15's landing
@@ -117,7 +135,7 @@ At that historical point, this record did not assert that any server-side gate w
    current actor may continue the same commissioned work unit in that selected worktree after one target,
    revision, dirty-state, and writer snapshot. Launch-root mismatch alone is not failure. Use a separate
    receiver only for an independent concurrent actor or an observed required-tool, sandbox, hook, or guard
-   denial. Exact/ancestor revision rules, dirty-byte identity, protected guards, and server protection stay.
+   denial. Exact/ancestor revision rules, frozen-commit target identity, protected guards, and server protection stay.
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
    condition: read the live target lines, then patch from observed current text before continuing. Before
@@ -128,75 +146,43 @@ At that historical point, this record did not assert that any server-side gate w
 
 4. **Auto-merge.** Native repository `allow_auto_merge` remains `false`; Forseti
    keeps the custom guarded Actions workflow in item 9 as the opt-in unattended
-   merge actor. `delete_branch_on_merge` remains enabled. The workflow was read
-   back `active` on 2026-07-11 after the server gate was established. Branch
-   protection independently requires the strict CI check and an up-to-date head,
-   so the custom router/bot policy supplements rather than substitutes for it.
+   merge actor. `delete_branch_on_merge` remains enabled. Server branch protection
+   requires green CI but no longer requires an up-to-date head. The unattended bot
+   independently retains `behind_by == 0` because its `GITHUB_TOKEN` merge does not
+   trigger `push:main` CI; its stricter policy supplements the server gate.
 5. **Merge method.** Lane PRs squash-merge by default — one tidy commit per lane on `main`. Other
    methods remain available; squash is the documented default.
-6. **Lane-update cadence.** Each lane keeps its branch reasonably current with
-   `main`; the server gate also uses `strict: true`, so a behind head must update
-   and rerun CI before merging. Before the lane branch is first pushed, rebase onto
-   `origin/main` remains allowed. Once the branch is published or has a PR, do not
-   rebase it: fetch `main`, merge `origin/main` into the lane branch, resolve any
-   conflicts there, and use an ordinary fast-forwardable lane push. This is the
-   only update route compatible with both a stable published branch identity and
-   the hard no-force-push rule. Prefer the explicit pair `git fetch origin main`
-   then `git merge --no-edit origin/main`; do not rely on a plain `git pull`, whose
-   behavior can be changed by local rebase configuration.
-7. **Defense-in-depth enforcement — verified own-PR self-merge; else human-landed.**
-   With the server gate active, agents still prepare green PRs. An agent may self-merge
-   its own PR with a direct `gh pr merge <N>`, but **only when the protected-action guard
-   (`.agents/hooks/guard_protected_actions.py`) confirms that the PR targets `main`, is same-repo,
-   its head matches the current lane branch, `mergeStateStatus == CLEAN`, every CI check has
-   completed green, it carries the opt-in `agent-automerge` label, and it carries no live
-   `risk/blocked-for-merge-policy` hold.** Every other case — a non-main base, fork, head/current-
-   branch mismatch, live merge-policy hold, non-CLEAN state (`UNSTABLE` / `BLOCKED` / `BEHIND` /
-   `DIRTY` / `DRAFT` / `UNKNOWN` / …), pending or failing checks, an empty check set, a
-   missing/ambiguous PR number, the no-arg form, `gh pr merge --admin`, the lower-level `gh api .../merge` form, a foreign
-   `--repo`, or any lookup error/timeout — **fails
-   closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
-   (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
-   Push to `main`, force-push, destructive `reset --hard` / `clean`, and explicit
-   rebase starts on a mechanically confirmed published lane stay hard-blocked; a
-   benign lane-branch push, the fetch-plus-merge update route, and rebase recovery
-   commands stay allowed. **Why CLEAN + green + label, not bare CLEAN:** the server
-   now requires the CI check, while the guard independently requires a present green rollup
-   plus explicit opt-in before authorizing an agent merge. That preserves clear local failure,
-   closes the empty/early check-set race, and keeps self-merge auditable. The static
-   `risk/manual-review-required` label remains an unattended-bot exclusion and a signal that
-   resident completion/review gates must close; it does not select a human merge actor after those
-   gates close. The **opt-in label
-   is the agent's deliberate marker**; one-time setup `gh label create agent-automerge --repo
-   eric-foo/forseti` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
-   `main`):** the guard and its `.claude/settings.json` PreToolUse registration are **durable on
-   `main`** — they landed via PR #15 (then in block-all-merges form) and are verified tracked +
-   registered on `origin/main`; this amendment relaxes the guard to the CLEAN-gated form, and **a human
-   lands this amendment's own PR**, because the pre-amendment guard blocks all `gh pr merge`. The
-   git-lifecycle protection (EP-03) is portable and durable on every clone; external-path protection
-   (EP-01) stays per-machine. **Harness scope:** the shared protected-action guard is wired
-   through `.claude/settings.json` and the Codex adapter in `.codex/hooks.json`; the tracked
-   Git pre-push guard applies to any clone that installs `.githooks`. Other harnesses may lack
-   those local layers, so the active branch protection in item 2 is the only harness-agnostic,
-   unbypassable merge gate. **This supersedes the earlier
-   structure-B "agents do not self-merge; a human lands every merge" wording** (and the still-earlier
-   target "a solo lane self-merges once CI is green"): self-merge is now allowed but **narrowly,
-   guard-verified, and fail-closed**. The helper `.github/scripts/merge-when-green.ps1` remains the
-   **human's** check-then-merge tool; agents must **not** use it to self-merge — it wraps `gh pr merge`
-   inside a script subprocess the PreToolUse guard does **not** see (hooks fire on the agent's direct
-   tool call, not on grandchild processes), so running it would **bypass the CLEAN/label
-   verification**. In a shell route covered by the protected-action guard, agents self-merge only
-   via a direct `gh pr merge <N>`, which the guard inspects.
+6. **Lane-update cadence.** Update a lane when it conflicts with current `main`, when
+   integration with new base behavior is part of the commissioned outcome, or when the
+   author deliberately wants that integration test. `BEHIND` alone is not a reason to
+   rewrite or merge `main` into an otherwise complete, green, conflict-free lane.
+   Before first publication, rebase remains allowed. After publication, never rebase:
+   fetch `main`, merge `origin/main` into the lane only when one of the conditions above
+   applies, resolve conflicts there, and push normally. Prefer explicit `git fetch origin
+   main` followed by `git merge --no-edit origin/main`; do not rely on configurable `git pull`.
 
-   **Harness-native merge route.** A purpose-built GitHub merge action that does not traverse the
-   local shell hook may be used by the lane author for its own completed PR, including a
-   `risk/manual-review-required` PR whose completion/review gates have closed, only after the agent
-   applies `agent-automerge` and freshly verifies authorship, the exact head SHA, CLEAN/mergeable
-   state, an up-to-date head, green required checks, and every item-11 completion gate. The merge
-   call must bind the expected head SHA so a moved PR fails atomically; GitHub's strict branch
-   protection remains the harness-agnostic enforcement. Missing, ambiguous, stale, or changed state
-   fails closed to a human landing. This does not authorize a lower-level `gh api .../merge`
-   shell bypass or a helper-script subprocess hidden from the protected-action guard.
+7. **Defense-in-depth enforcement — conflict-free green own-PR self-merge.**
+   The protected-action guard permits a direct `gh pr merge <N>` only when the PR
+   targets `main`, is same-repository, its head matches the current lane branch,
+   `mergeable == MERGEABLE`, `mergeStateStatus` is `CLEAN` or `BEHIND`, every reported
+   CI check is completed green, `agent-automerge` is present, and no live
+   `risk/blocked-for-merge-policy` hold exists. `BEHIND` is allowed because it means the
+   base advanced without a content conflict; it is not a claim that the combination was
+   retested against current `main`.
+
+   Missing or ambiguous PR identity, another lane, a fork, non-main base, `CONFLICTING`
+   or unknown mergeability, any state outside `CLEAN`/`BEHIND`, an empty/pending/failing
+   check set, missing opt-in, live policy hold, lookup error, timeout, `--admin`, or the
+   lower-level `gh api .../merge` form fails closed. Direct push to `main`, force-push,
+   destructive clean/reset, and published-branch rebase remain blocked.
+
+   The static `risk/manual-review-required` label remains a completion/review signal and
+   unattended-bot exclusion; after its resident gate closes it does not choose a human
+   merge actor. The helper `.github/scripts/merge-when-green.ps1` remains human-only
+   because invoking its subprocess would hide `gh pr merge` from the PreToolUse guard.
+   A harness-native merge route must freshly verify the same criteria, bind the exact
+   expected head SHA, and fail closed on changed state. It may accept a conflict-free
+   green `BEHIND` head; it does not require an update merely for branch freshness.
 
    **GitHub remote-access and publication routing.** A `gh` / GitHub API failure that names
    `127.0.0.1:9`, or connection-refused to a local proxy/discard port, is sandbox egress refusal,
@@ -235,13 +221,12 @@ At that historical point, this record did not assert that any server-side gate w
    `risk/blocked-for-merge-policy` label, `mergeable == MERGEABLE`, the `forseti-harness-tests` check
    green (and no failing/pending check), **`behind_by == 0` (up-to-date with `main`)**, **one merge
    per run** (safe serialization — there is no native merge queue), and squash + delete-branch. The
-   up-to-date guard is **stricter than** the in-session guard
-   path (which checks CLEAN but not up-to-date); closing that gap in the guard itself is a deferred
-   enforcement-lane follow-on. It uses an immediate `gh pr merge --squash`, which needs no
-   `allow_auto_merge` (item 4), so it is **not** the server-side gate. **Honest limitation:** a bot
-   merge via `GITHUB_TOKEN` does not re-trigger the `push:main` CI run (GitHub's no-recursion rule); the
-   PR's own green check plus the up-to-date guard stand in. The EP-03 guard and `merge-when-green.ps1`
-   are unchanged. **Liveness — proven 2026-06-15:** the bot's **first unattended merge is proven** — it
+   up-to-date guard is **stricter than** the in-session guard path, which accepts
+   conflict-free `CLEAN` or `BEHIND` PRs. The asymmetry is deliberate: this bot uses
+   an immediate `gh pr merge --squash`, which needs no `allow_auto_merge` (item 4),
+   and a merge via `GITHUB_TOKEN` does not re-trigger the `push:main` CI run under
+   GitHub's no-recursion rule. The PR's own green check plus the bot's up-to-date
+   guard therefore stand in for that missing detective run. **Liveness — proven 2026-06-15:** the bot's **first unattended merge is proven** — it
    landed PR #121 with no agent session (merged by `github-actions[bot]`), after PR #118 added the
    `actions: read` scope its `statusCheckRollup` eligibility query needs (without it every prior run
    failed GraphQL `Resource not accessible by integration`, so no earlier run had actually merged). An
@@ -299,12 +284,11 @@ At that historical point, this record did not assert that any server-side gate w
      owner-decision blocker remains. For `/fused`, the delegated review return and home
      adjudication are part of the work unit, so implementation alone is not merge-ready.
    - **Default land action:** for the author's own completed lane, apply `agent-automerge` and use
-     item 7's merge route: direct `gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`
-     when the protected-action guard covers the shell, or the bounded harness-native route with an
-     expected-head-SHA lock. The required server gate still enforces an up-to-date head and green
-     `forseti-harness-tests`; item 7 still requires the same own-PR, CLEAN/mergeable, green, labeled,
-     freshly verified state and fails closed. The static `risk/manual-review-required` label does
-     not block this author route after the required resident completion/review gates close.
+     item 7's direct guard-visible route or the bounded harness-native route with an
+     expected-head-SHA lock. Required CI must be green and the PR explicitly MERGEABLE;
+     `CLEAN` and `BEHIND` are both eligible. Do not update solely for freshness. The
+     static `risk/manual-review-required` label does not block this author route after
+     the required resident completion/review gates close.
    - **Stop or leave for a human when ANY hold:** the owner explicitly requested a hold or
      pre-merge review; PR authorship is not the acting agent's; a required review or adjudication is
      incomplete; a material issue or owner decision remains; completion cannot be verified; or the
@@ -318,38 +302,21 @@ At that historical point, this record did not assert that any server-side gate w
      change is correct, that CI proves review acceptance, or that any specific PR has satisfied
      completion until those facts are freshly observed.
 
-12. **Up-to-date-before-merge — adopted MGT (strict server gate + forward-ref annotation +
-   red-main detector).** The original combination-break risk came from merge paths that could land a
-   PR without retesting it against current `main`. The 2026-07-11 strict branch-protection gate now
-   requires the head to be up to date and `forseti-harness-tests` green for every ordinary GitHub
-   merge path. The completed-work-unit self-merge default in item 11 therefore changes the actor, not
-   the up-to-date safety floor.
-   - **Merge-path default.** The lane author directly self-merges its own completed work-unit PR
-     through item 7. The item-9 bot remains an unattended option for routine PRs that also satisfy
-     its narrower risk-router policy. Both paths remain subject to the strict server gate; direct
-     self-merge is not an urgent-fix exception and does not bypass up-to-date or green CI.
-   - **Forward-ref annotation discipline (closes the class up-to-date cannot).** An `open_next` /
-     `derived_from` link to a file **intentionally not yet on `main`** (a branch-only forward-reference)
-     MUST carry a trailing `# nonresolving: <reason>` comment, which `.agents/hooks/check_map_links.py`
-     exempts from the existence check and counts as annotated debt — so a deliberate forward-ref cannot
-     hard-fail `push:main`. (Up-to-date enforcement, and even the server-side gate, cannot catch this
-     class: the target never lands on `main`.)
-   - **Red-main detector (detective backstop).** `.github/workflows/main-red-alert.yml` opens a single
-     deduplicated tracking issue the moment a `push:main` CI run fails and auto-closes it when `main`
-     goes green — so a break landed via an unenforced path is fixed in minutes, not discovered by the
-     next lane. **Liveness:** code-backed, **not yet proven** on a live red `main` (the first real
-     failure proves it). Detective, **not** preventive.
-   - **No separate in-session up-to-date hook added:** the earlier O2a proposal to duplicate
-     `behind_by == 0` inside EP-03 is no longer necessary for the ordinary merge path because strict
-     branch protection now enforces the same condition harness-agnostically. O2b, adding the check to
-     the human helper, remains unnecessary for the same reason. The protected-action guard continues
-     to provide the independent CLEAN + green + label floor.
-   - **Server-side end-state adopted 2026-07-11:** classic branch protection now requires
-     `forseti-harness-tests` with `strict: true`, requires a PR, includes administrators,
-     and disables force-push/deletion. Zero required approvals preserves the accepted
-     low-risk solo-lane policy while the router/bot retains its narrower opt-in rules.
-   - **Former residual closed:** a human or other harness can no longer merge a behind or
-     red PR through the ordinary GitHub merge path; `main-red-alert` remains detective defense in depth.
+12. **Conflict-free green stale-head policy — adopted 2026-07-17.** Branch freshness is
+    no longer a universal merge precondition. A completed PR may land from `BEHIND` when
+    GitHub explicitly reports `MERGEABLE` and its own required CI is green. This removes
+    recurring update-and-retest churn while retaining the conflict and test boundaries.
+    - **Preventive floor:** PR required, required CI green, exact head identity, explicit
+      mergeability, no policy hold, no force-push/deletion, and no administrator bypass.
+    - **Unattended exception:** item 9 keeps `behind_by == 0` because bot merges do not
+      trigger `push:main` CI under the current token behavior.
+    - **Accepted residual:** conflict-free independently green changes can still combine
+      badly. `push:main` CI and `main-red-alert` are the detective backstop for the
+      in-session/human stale-head route; they detect after merge and do not prevent it.
+    - **Update trigger:** integrate current `main` only for a real conflict, an outcome that
+      depends on new base behavior, or an intentional integration test—not for `BEHIND` alone.
+    - **Forward references:** the existing `open_next` / `derived_from` nonresolving
+      annotation rule remains unchanged; branch freshness never addressed that class.
 13. **PR cadence — major durable point, not every subpoint.** A lane should open a focused PR after
    each **major durable point**: one coherent, owner-reviewable decision or artifact boundary that
    future agents may rely on. Examples include a first customer / ICP target selection, proof-gate

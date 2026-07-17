@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -24,6 +25,11 @@ from source_capture.cli_support import (
     build_intended_cadence,
     build_optional_fact,
     require_series_identity,
+)
+from source_capture.content_capture import (
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
+    ContentCaptureSpec,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
@@ -92,6 +98,7 @@ def run_source_capture_http_packet(
     cold_start_at=None,
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
+    content_capture: ContentCaptureSpec | None = None,
 ) -> tuple[int, str]:
     if retail_capture_profile is not None:
         if retail_capture_profile.source_surface != "direct_http":
@@ -147,13 +154,78 @@ def run_source_capture_http_packet(
             f"direct_http access_failed with HTTP {capture_result.status} {capture_result.reason or 'without reason'}; response body preserved"
         )
 
-    artifacts: list[tuple[str, bytes]] = [
-        ("http_response_body.bin", capture_result.body),
+    # Parse-in-flight content mode (source_capture.content_capture): project
+    # the decoded body now, preserve the derived record, and record the raw
+    # sha256 in the HTTP metadata before the raw bytes are discarded. Raw is
+    # still preserved for sample mode, for non-2xx responses (an error page is
+    # not projectable content), and as the loud fallback when the projector
+    # raises — evidence is never lost to a parser failure.
+    projection_failure: str | None = None
+    content_record_bytes: bytes | None = None
+    if content_capture is not None:
+        raw_sha256 = hashlib.sha256(capture_result.body).hexdigest()
+        if 200 <= capture_result.status < 300:
+            try:
+                record = content_capture.projector(decoded_body, capture_result.final_url)
+                if not isinstance(record, dict):
+                    raise TypeError(
+                        "content projector must return a JSON object, "
+                        f"got {type(record).__name__}"
+                    )
+                content_record_bytes = (
+                    json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+                ).encode("utf-8")
+                projection_status = "succeeded"
+            except Exception as exc:
+                projection_failure = f"{type(exc).__name__}: {exc}"
+                projection_status = f"failed: {projection_failure}"
+        else:
+            projection_status = (
+                f"not_attempted: HTTP {capture_result.status} response; raw preserved"
+            )
+        raw_preserved = content_record_bytes is None or content_capture.capture_artifact_mode == "sample"
+        capture_result.metadata["content_capture"] = {
+            "capture_artifact_mode": content_capture.capture_artifact_mode,
+            "parser_version": content_capture.parser_version,
+            "raw_sha256": raw_sha256,
+            "raw_byte_count": len(capture_result.body),
+            "raw_preserved": raw_preserved,
+            "projection_status": projection_status,
+        }
+        if projection_failure is not None:
+            packet_limitations.append(
+                "content-mode projection failed in flight; raw response preserved as fallback: "
+                + projection_failure
+            )
+        elif content_record_bytes is None:
+            packet_limitations.append(
+                f"content mode requested but response was HTTP {capture_result.status}; "
+                "raw preserved, projection not attempted"
+            )
+        elif content_capture.capture_artifact_mode == "content":
+            packet_limitations.append(
+                "content-mode packet: raw response discarded after hashing (sha256 recorded "
+                f"in HTTP metadata); derived {CONTENT_RECORD_FILENAME} preserved under "
+                f"parser_version={content_capture.parser_version}"
+            )
+        else:
+            packet_limitations.append(
+                "sample packet: raw response body AND derived content record both preserved "
+                f"under parser_version={content_capture.parser_version} for parser-fit drift checks"
+            )
+    include_raw_body = content_capture is None or capture_result.metadata["content_capture"]["raw_preserved"]
+
+    artifacts: list[tuple[str, bytes]] = []
+    if include_raw_body:
+        artifacts.append(("http_response_body.bin", capture_result.body))
+    if content_record_bytes is not None:
+        artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
+    artifacts.append(
         (
             "http_response_metadata.json",
             (json.dumps(capture_result.metadata, indent=2, sort_keys=True) + "\n").encode("utf-8"),
-        ),
-    ]
+        )
+    )
     file_ids = staged_file_id_map(artifacts)
 
     timing = PacketTiming(
@@ -194,10 +266,7 @@ def run_source_capture_http_packet(
                 variant_pin=variant_pin,
                 limitations=packet_limitations,
                 warning_notes=packet_warnings,
-                preserved_file_ids=[
-                    file_ids["http_response_body.bin"],
-                    file_ids["http_response_metadata.json"],
-                ],
+                preserved_file_ids=[file_ids[name] for name, _content in artifacts],
             )
         ],
         source_family=source_family,
@@ -227,7 +296,14 @@ def run_source_capture_http_packet(
         limitations=packet_limitations,
         receipt_summary=(
             f"Direct HTTP packet for {source_family} with HTTP {capture_result.status} "
-            f"and {len(capture_result.body)} preserved body bytes."
+            + (
+                f"and {len(capture_result.body)} preserved body bytes."
+                if include_raw_body
+                else (
+                    f"in content mode: derived {CONTENT_RECORD_FILENAME} preserved; "
+                    f"{len(capture_result.body)} raw bytes hashed then discarded."
+                )
+            )
         ),
         receipt_non_claims=DIRECT_HTTP_NON_CLAIMS,
     )
@@ -236,6 +312,11 @@ def run_source_capture_http_packet(
             output_directory=result.output_directory,
             result=sufficiency_result,
         )
+    if projection_failure is not None:
+        # The raw fallback packet was written; the failure detail lives in the
+        # packet limitations and HTTP metadata. Message stays the packet path
+        # so callers can still locate the preserved evidence.
+        return CONTENT_PROJECTION_FAILED_EXIT_CODE, result.output_directory
     return 0, result.output_directory
 
 
@@ -304,6 +385,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             if args.retail_capture_profile is not None
             else None
         )
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- unprefixed messages
+        # and the exactly-one check re-runs after resolution on the derived output_directory.
         data_root = None
         output_directory = args.output
         if output_directory is not None and args.data_root is not None:

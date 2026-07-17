@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Mapping, Sequence
+from typing import TYPE_CHECKING, Callable, Literal, Mapping, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
@@ -23,7 +24,16 @@ from source_capture import (
     not_attempted,
     unknown_with_reason,
 )
-from source_capture.writer import write_local_source_capture_packet
+from source_capture.content_capture import (
+    CAPTURE_ARTIFACT_MODES,
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
+)
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from source_capture.parfumo_projection import (
+    PARFUMO_TARGETED_PARSER_VERSION,
+    build_parfumo_targeted_content_record,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -39,6 +49,7 @@ DIRECT_HTTP_SURFACE = "parfumo_product_page_direct_http"
 TARGETED_RENDERED_SLOT = "targeted_rendered_packet"
 TARGETED_RENDERED_SURFACE = "parfumo_product_page_chrome_extension_targeted_rendered_session"
 TARGETED_CAPTURE_PLAN_FILENAME = "parfumo_targeted_capture_plan.json"
+CONTENT_CAPTURE_METADATA_FILENAME = "content_capture_metadata.json"
 
 TARGETED_SAMPLE_BUCKETS = (
     ("product_context", "rendered product context and aggregate source-visible counts"),
@@ -82,13 +93,13 @@ NON_CLAIMS = [
 ]
 
 TARGETED_RENDERED_ACCEPTED_RESIDUALS = [
-    "operator-visible Chrome extension rendered artifacts are packaged from local files; this runner does not perform live browser control",
+    "operator-visible Chrome rendered artifacts are packaged from local files; this runner does not perform live browser control",
     "targeted sample only; does not claim full 369-review or 1390-statement corpus coverage",
     "source-visible high/low rating buckets require Parfumo rating fields in the supplied artifacts; otherwise bucket coverage remains residualized",
     "direct HTTP/AJAX is canary/fallback only in the current environment",
     "no cookies, storage state, Cloudflare clearance, proxy endpoint, or exit-IP values may be exported into packet text artifacts",
     "linked media assets are not independently fetched or preserved",
-    "projection, ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
+    "capture-time projection is mechanical only; ECR, cleaning, judgment scoring, and buyer-proof claims remain out of scope",
 ]
 
 TARGETED_RENDERED_NON_CLAIMS = [
@@ -100,7 +111,6 @@ TARGETED_RENDERED_NON_CLAIMS = [
     "not browser storage export",
     "not Cloudflare clearance export",
     "not live network capture by this local packet writer",
-    "not projection",
     "not ECR design",
     "not Cleaning implementation",
     "not Judgment scoring",
@@ -195,6 +205,7 @@ def run_parfumo_targeted_rendered_capture(
     screenshot_path: Path | None = None,
     data_root: "DataLakeRoot | None" = None,
     decision_question: str = DEFAULT_DECISION_QUESTION,
+    capture_artifact_mode: Literal["content", "sample", "raw"] = "content",
 ) -> tuple[int, str]:
     """Package operator-visible rendered Parfumo artifacts into a targeted packet.
 
@@ -204,37 +215,131 @@ def run_parfumo_targeted_rendered_capture(
     """
 
     _validate_parfumo_url(url)
+    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+        raise ValueError(
+            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}, "
+            f"got {capture_artifact_mode!r}"
+        )
     _prepare_output_root(output_root)
-    supplied_files = [
-        rendered_dom_path,
-        visible_text_path,
-        route_receipt_path,
-        *([screenshot_path] if screenshot_path is not None else []),
+    supplied_roles = [
+        ("rendered_dom", rendered_dom_path),
+        ("visible_text", visible_text_path),
+        ("route_receipt", route_receipt_path),
+        *([("screenshot", screenshot_path)] if screenshot_path is not None else []),
     ]
-    resolved_files = [path.resolve() for path in supplied_files]
+    resolved_roles = [(role, path.resolve()) for role, path in supplied_roles]
+    resolved_files = [path for _role, path in resolved_roles]
     _assert_input_files_readable(resolved_files)
     _assert_no_browser_secret_text(resolved_files)
 
-    metadata_dir = output_root / "_targeted_rendered_metadata"
-    metadata_dir.mkdir(parents=True, exist_ok=True)
-    plan_path = metadata_dir / TARGETED_CAPTURE_PLAN_FILENAME
-    plan_path.write_text(
-        json.dumps(_targeted_capture_plan(url), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    input_bytes = {role: path.read_bytes() for role, path in resolved_roles}
+    projection_failure: str | None = None
+    content_record_bytes: bytes | None = None
+    if capture_artifact_mode != "raw":
+        try:
+            content_record = build_parfumo_targeted_content_record(
+                rendered_dom=input_bytes["rendered_dom"],
+                visible_text=input_bytes["visible_text"],
+                source_url=url,
+            )
+            content_record_bytes = _json_bytes(content_record)
+            projection_status = "succeeded"
+        except Exception as exc:
+            projection_failure = f"{type(exc).__name__}: {exc}"
+            projection_status = f"failed: {projection_failure}"
+    else:
+        projection_status = "not_attempted: raw mode"
 
-    input_files = [*resolved_files, plan_path]
-    file_ids = [f"file_{index:02d}" for index, _ in enumerate(input_files, start=1)]
+    raw_projector_inputs_preserved = (
+        capture_artifact_mode in {"raw", "sample"} or projection_failure is not None
+    )
+    preserved_by_role = {
+        "rendered_dom": raw_projector_inputs_preserved,
+        "visible_text": raw_projector_inputs_preserved,
+        "route_receipt": True,
+        "screenshot": screenshot_path is not None,
+    }
+    content_capture_metadata = {
+        "capture_artifact_mode": capture_artifact_mode,
+        "parser_version": PARFUMO_TARGETED_PARSER_VERSION,
+        "projection_status": projection_status,
+        "inputs": [
+            {
+                "role": role,
+                "filename": path.name,
+                "sha256": hashlib.sha256(input_bytes[role]).hexdigest(),
+                "byte_count": len(input_bytes[role]),
+                "preserved": preserved_by_role[role],
+            }
+            for role, path in resolved_roles
+        ],
+    }
+    plan_bytes = _json_bytes(_targeted_capture_plan(url, capture_artifact_mode))
+
+    staged_artifacts: list[tuple[str, bytes]] = []
+    for role, path in resolved_roles:
+        if preserved_by_role[role]:
+            staged_artifacts.append((path.name, input_bytes[role]))
+    if content_record_bytes is not None:
+        staged_artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
+    staged_artifacts.extend(
+        [
+            (CONTENT_CAPTURE_METADATA_FILENAME, _json_bytes(content_capture_metadata)),
+            (TARGETED_CAPTURE_PLAN_FILENAME, plan_bytes),
+        ]
+    )
+    _assert_unique_artifact_names(staged_artifacts)
+
+    file_ids = list(staged_file_id_map(staged_artifacts).values())
     source_slices = _targeted_source_slices(
         url=url,
         file_ids=file_ids,
         limitations=TARGETED_RENDERED_ACCEPTED_RESIDUALS,
     )
 
-    result = write_local_source_capture_packet(
+    mode_changes = [
+        "route receipt preserved without browser-secret export",
+        (
+            "optional screenshot preserved as source media evidence"
+            if screenshot_path is not None
+            else "no screenshot was supplied"
+        ),
+    ]
+    if raw_projector_inputs_preserved:
+        mode_changes.extend(
+            [
+                "rendered DOM preserved from operator-visible browser artifacts",
+                "visible text preserved from operator-visible browser artifacts",
+            ]
+        )
+    else:
+        mode_changes.append(
+            "rendered DOM and visible text hashed then discarded after successful capture-time projection"
+        )
+    if content_record_bytes is not None:
+        mode_changes.append("capture-time Parfumo content record preserved")
+
+    packet_limitations = list(TARGETED_RENDERED_ACCEPTED_RESIDUALS)
+    if projection_failure is not None:
+        packet_limitations.append(
+            "content-mode projection failed in flight; all supplied source artifacts "
+            f"were preserved as fallback: {projection_failure}"
+        )
+    elif capture_artifact_mode == "content":
+        packet_limitations.append(
+            "content-mode packet: rendered DOM and visible text discarded after hashing; "
+            "route receipt and optional screenshot retained"
+        )
+    elif capture_artifact_mode == "sample":
+        packet_limitations.append(
+            "sample packet: rendered DOM, visible text, and derived content record preserved "
+            "for parser-fit drift checks"
+        )
+
+    result = stage_and_write_packet(
         output_directory=None if data_root is not None else output_root / TARGETED_RENDERED_SLOT,
         data_root=data_root,
-        input_files=input_files,
+        staged_artifacts=staged_artifacts,
         source_family=SOURCE_FAMILY,
         source_surface=TARGETED_RENDERED_SURFACE,
         source_locator=known_fact(url),
@@ -249,13 +354,9 @@ def run_parfumo_targeted_rendered_capture(
         ),
         capture_mode=CaptureModeCategory.HUMAN_LED,
         operator_category=DEFAULT_OPERATOR_CATEGORY,
-        visible_mode_changes=[
-            "rendered DOM preserved from operator-visible browser artifacts",
-            "visible text preserved from operator-visible browser artifacts",
-            "route receipt preserved without browser-secret export",
-        ],
+        visible_mode_changes=mode_changes,
         access_posture=known_fact(
-            "operator-visible Chrome extension rendered Parfumo public product page artifacts supplied locally"
+            "operator-visible Chrome rendered Parfumo public product page artifacts supplied locally"
         ),
         archive_history_posture=not_attempted("targeted rendered Parfumo packet does not query archives"),
         media_modality_posture=not_attempted(
@@ -264,11 +365,11 @@ def run_parfumo_targeted_rendered_capture(
         re_capture_relationship=not_applicable("first targeted rendered Parfumo packet"),
         source_slices=source_slices,
         warnings=[],
-        limitations=TARGETED_RENDERED_ACCEPTED_RESIDUALS,
+        limitations=packet_limitations,
         receipt_summary=(
             "Targeted Parfumo rendered packet for current-window/high-value review "
-            "and statement samples. The packet preserves supplied local artifacts only "
-            "and does not claim full corpus coverage."
+            f"and statement samples in {capture_artifact_mode} mode. "
+            "The packet does not claim full corpus coverage."
         ),
         receipt_non_claims=TARGETED_RENDERED_NON_CLAIMS,
     )
@@ -284,15 +385,19 @@ def run_parfumo_targeted_rendered_capture(
             "visible_text_path": str(visible_text_path),
             "route_receipt_path": str(route_receipt_path),
             "screenshot_path": str(screenshot_path) if screenshot_path is not None else None,
+            "capture_artifact_mode": capture_artifact_mode,
         },
         capture_profile=TARGETED_RENDERED_CAPTURE_PROFILE,
         accepted_residuals=TARGETED_RENDERED_ACCEPTED_RESIDUALS,
         non_claims=TARGETED_RENDERED_NON_CLAIMS,
-        projection_status="not_run; projection is Batch 2 over the targeted rendered packet",
+        projection_status=projection_status,
     )
     summary_path = output_root / SUMMARY_FILENAME
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return 0, str(summary_path)
+    return (
+        CONTENT_PROJECTION_FAILED_EXIT_CODE if projection_failure is not None else 0,
+        str(summary_path),
+    )
 
 
 def build_parfumo_mgt_capture_summary(
@@ -357,11 +462,13 @@ def preflight_parfumo_mgt_capture(*, url: str, output_root: Path) -> str:
     )
 
 
-def _targeted_capture_plan(url: str) -> dict[str, object]:
+def _targeted_capture_plan(url: str, capture_artifact_mode: str) -> dict[str, object]:
     return {
         "contract": "docs/workflows/parfumo_targeted_capture_contract_v0.md",
         "source_surface": TARGETED_RENDERED_SURFACE,
         "url": url,
+        "capture_artifact_mode": capture_artifact_mode,
+        "parser_version": PARFUMO_TARGETED_PARSER_VERSION,
         "sample_buckets": [
             {"bucket": bucket, "description": description}
             for bucket, description in TARGETED_SAMPLE_BUCKETS
@@ -369,6 +476,17 @@ def _targeted_capture_plan(url: str) -> dict[str, object]:
         "residuals": list(TARGETED_RENDERED_ACCEPTED_RESIDUALS),
         "non_claims": list(TARGETED_RENDERED_NON_CLAIMS),
     }
+
+
+def _json_bytes(value: Mapping[str, object]) -> bytes:
+    return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+
+
+def _assert_unique_artifact_names(staged_artifacts: Sequence[tuple[str, bytes]]) -> None:
+    names = [name for name, _content in staged_artifacts]
+    duplicates = sorted({name for name in names if names.count(name) > 1})
+    if duplicates:
+        raise ValueError(f"targeted rendered artifact filenames must be unique: {duplicates}")
 
 
 def _targeted_source_slices(
@@ -391,7 +509,7 @@ def _targeted_source_slices(
         ),
     )
     access = known_fact(
-        "operator-visible Chrome extension rendered Parfumo public product page artifacts supplied locally"
+        "operator-visible Chrome rendered Parfumo public product page artifacts supplied locally"
     )
     archive = not_attempted("targeted rendered Parfumo packet does not query archives")
     media = not_attempted("linked media assets were not independently fetched or preserved")
@@ -533,7 +651,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--targeted-rendered",
         action="store_true",
-        help="Package local Chrome-extension rendered artifacts instead of running direct HTTP.",
+        help="Package local operator-visible Chrome rendered artifacts instead of running direct HTTP.",
     )
     parser.add_argument(
         "--direct-http",
@@ -544,6 +662,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--visible-text", type=Path, default=None)
     parser.add_argument("--route-receipt", type=Path, default=None)
     parser.add_argument("--screenshot", type=Path, default=None)
+    parser.add_argument(
+        "--capture-mode",
+        choices=CAPTURE_ARTIFACT_MODES,
+        default=None,
+        help=(
+            "Artifact mode. Targeted-rendered defaults to content; direct HTTP remains raw "
+            "and rejects content/sample in this work unit."
+        ),
+    )
     parser.add_argument(
         "--data-root",
         type=Path,
@@ -576,6 +703,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("choose exactly one capture route: --targeted-rendered or --direct-http")
 
         data_root = None
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- env vars request
+        # lake mode unconditionally (no --output gate) and there is no exclusivity
+        # or missing-target parser.exit here.
         data_root_requested = args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         if data_root_requested:
             from data_lake.root import DataLakeRoot
@@ -603,8 +733,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 screenshot_path=args.screenshot,
                 data_root=data_root,
                 decision_question=args.decision_question,
+                capture_artifact_mode=args.capture_mode or "content",
             )
         else:
+            if args.capture_mode not in {None, "raw"}:
+                raise ValueError(
+                    "direct HTTP supports raw mode only; content/sample are scoped to "
+                    "the pinned targeted-rendered route"
+                )
             exit_code, message = run_parfumo_mgt_capture(
                 url=args.url,
                 output_root=args.output_root,

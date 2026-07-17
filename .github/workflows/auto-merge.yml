@@ -2,8 +2,9 @@ name: auto-merge
 
 # Lands clean + green lane PRs that opt in via `agent-automerge` and pass the
 # deterministic low-risk router. Active `main` branch protection independently
-# requires the strict `forseti-harness-tests` check and an up-to-date head; this
-# workflow adds risk routing, serialization, and head pinning. Native repository
+# requires green `forseti-harness-tests` but permits a conflict-free stale head.
+# This unattended bot deliberately keeps its own up-to-date rule because its
+# `GITHUB_TOKEN` merge does not trigger `push:main` CI. Native repository
 # `allow_auto_merge` remains off. See the dev-workflow doctrine.
 #
 # The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
@@ -23,7 +24,7 @@ name: auto-merge
 #                  failing or still pending.
 #   4. up-to-date — behind_by == 0 vs main, so two independently-green branches
 #                   cannot break main when combined. (This guard is stricter than
-#                   the in-session self-merge path, which checks CLEAN but not
+#                   the in-session self-merge path, which accepts CLEAN/BEHIND but not
 #                   up-to-date.)
 #   5. serialize — merge AT MOST ONE PR per run, then exit. The next CI completion
 #                  or the cron backstop handles the next, so GitHub fully recomputes

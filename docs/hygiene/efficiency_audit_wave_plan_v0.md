@@ -112,7 +112,7 @@ items are not open obligations.
 
 ### T7 · Hook latency + guard coverage gaps  `[ceremony/latency + coverage]`
 - [ ] **HOOK-3** (W2) — 6 Python spawns per Write/Edit → single in-process dispatcher (verify fail-open preserved) — `.claude/settings.json:38-73`
-- [ ] **HOOK-5** (W2) — `check_token_burn` reads whole transcript each Stop → tail-read — `.agents/hooks/check_token_burn.py:64-84`
+- [x] **HOOK-5** (W2) — retired by the 2026-07-17 interactive-hook subtraction; the Stop registration and hook-only script were removed instead of optimizing recurring advisory work.
 - [ ] **HOOK-4** (W2) — byte-identical CI gate step runs twice → delete one — `.github/workflows/ci.yml:71-73,80-82`
 - [ ] **HOOK-6** (W2) — no automated runner for `--selftest` suites (incl. security guard) → add parametrized pytest
 - [ ] **HOOK-9** (W2) — diff-scoping boilerplate duplicated across ~6 gate hooks (verify per-hook isolation first)

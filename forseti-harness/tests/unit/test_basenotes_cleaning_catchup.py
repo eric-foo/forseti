@@ -22,6 +22,10 @@ from cleaning.basenotes_lake import (
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners import run_basenotes_cleaning_catchup as bn_runner
+from runners.run_basenotes_mgt_capture import (
+    PERSISTENT_CHROME_SLOT,
+    run_basenotes_mgt_capture,
+)
 from runners.run_basenotes_cleaning_catchup import main, pending_packets, run_catchup
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
@@ -60,6 +64,50 @@ def _commit_family_packet(
         decision_question="q",
         capture_context="basenotes cleaning catchup test",
     ).packet.packet_id
+
+
+def _commit_content_packet(data_root, tmp_path: Path, *, name: str = "content") -> str:
+    bundle = tmp_path / f"{name}_bundle"
+    bundle.mkdir()
+    (bundle / "browser_rendered_dom.html").write_text(
+        _FIXTURE.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (bundle / "browser_visible_text.txt").write_text(
+        "Mojave Ghost by Byredo public product page with source-visible reviews. " * 12,
+        encoding="utf-8",
+    )
+    source_url = "https://basenotes.com/fragrances/mojave-ghost-by-byredo.26143979"
+    (bundle / "browser_snapshot_metadata.json").write_text(
+        json.dumps(
+            {
+                "capture_timestamp": "2026-07-15T17:50:00Z",
+                "requested_url": source_url,
+                "final_url": source_url,
+                "title": "Mojave Ghost by Byredo– Basenotes",
+                "browser_channel": "user_chrome_extension",
+                "headless": False,
+                "persistent_user_session": True,
+                "human_cleared_access_gate": True,
+                "cookies_exported": False,
+                "credentials_exported": False,
+                "proxy_used": False,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    exit_code, summary_path = run_basenotes_mgt_capture(
+        url=source_url,
+        bundle_directory=bundle,
+        output_root=tmp_path / f"{name}_output",
+        data_root=data_root,
+        capture_artifact_mode="content",
+    )
+    assert exit_code == 0
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    return summary["packet_roles"][PERSISTENT_CHROME_SLOT]["packet_id"]
 
 
 def _lake_tree_state(data_root) -> dict[str, str]:
@@ -120,6 +168,7 @@ def test_output_shaping_policy_tokens_are_in_obligation() -> None:
     assert obligation["projection_method"] == bn_runner.BASENOTES_PROJECTION_METHOD
     assert obligation["projection_version"] == bn_runner.BASENOTES_PROJECTION_VERSION
     assert obligation["projection_certification"] == bn_runner.BASENOTES_PROJECTION_CERTIFICATION
+    assert obligation["content_parser_version"] == bn_runner.BASENOTES_PARSER_VERSION
     assert obligation["cleaning_audit_pack_schema_version"] == bn_runner.CLEANING_AUDIT_PACK_SCHEMA_VERSION
     assert obligation["audit_pack_schema_version"] == bn_runner.BASENOTES_AUDIT_PACK_PRODUCER_SCHEMA_VERSION
     assert obligation["silver_vault_record_schema_version"] == bn_runner.SILVER_VAULT_RECORD_SCHEMA_VERSION
@@ -137,6 +186,47 @@ def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
     before = _lake_tree_state(data_root)
     assert run_catchup(data_root=data_root) == []
     assert _lake_tree_state(data_root) == before
+
+
+def test_content_packet_catchup_derives_without_dom_and_is_idempotent(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_content_packet(data_root, tmp_path)
+    packet = data_root.load_raw_packet(pid)
+    names = {
+        Path(item["relative_packet_path"]).name
+        for item in packet.manifest["preserved_files"]
+    }
+    assert not any(name.endswith("_browser_rendered_dom.html") for name in names)
+    assert not any(name.endswith("_browser_visible_text.txt") for name in names)
+
+    assert [row["status"] for row in run_catchup(data_root=data_root)] == ["derived"]
+    before = _lake_tree_state(data_root)
+    assert run_catchup(data_root=data_root) == []
+    assert _lake_tree_state(data_root) == before
+
+
+def test_damaged_content_record_fails_without_ack(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_content_packet(data_root, tmp_path)
+    packet = data_root.load_raw_packet(pid)
+    content_item = next(
+        item
+        for item in packet.manifest["preserved_files"]
+        if item["relative_packet_path"].replace("\\", "/").endswith(
+            "content_record.json"
+        )
+    )
+    (packet.container / content_item["relative_packet_path"]).write_bytes(
+        b"tampered content record\n"
+    )
+
+    results = run_catchup(data_root=data_root)
+    assert [row["status"] for row in results] == ["derive_failed"]
+    assert find_acks(
+        data_root,
+        raw_anchor=pid,
+        ack_namespace=BASENOTES_CLEANING_AUDIT_LANE,
+    ) == []
 
 
 def test_out_of_scope_policy_change_re_surfaces_previous_ack(tmp_path, monkeypatch) -> None:

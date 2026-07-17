@@ -132,7 +132,6 @@ DEFAULT_EXCLUDE_SUBSTR = ("_dry_run", "/scores/", "/__pycache__/", "pytest_")
 IGNORED_ROOT_AREAS = {".git", ".claude", "node_modules"}
 
 _ACK_RE = re.compile(r"repo-map-ack\s*:\s*(.+)", re.I)
-HEAD_LINES_FOR_HOOK = None  # the map is read in full; it is the spec, not the target
 
 # Event parsing is shared: _hooklib.candidate_paths handles Claude-style
 # tool_input.file_path/.path/.notebook_path AND Codex apply_patch headers in

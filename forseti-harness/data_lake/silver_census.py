@@ -58,6 +58,7 @@ _ADDITIVE_FIELDS = (
     "historical_compatible_silver_records",
     "retired_audit_only_silver_records",
     "identity_entity_records",
+    "relationship_edge_records",
     "content_observations",
     "directly_observed_atomic_metric_values",
     "current_policy_qualified_direct_metric_values",
@@ -493,6 +494,19 @@ def _classify_record(
         accumulator.remember_subject(
             {"ref_type": "entity_key", "ref": entity.get("entity_key")}
         )
+        return
+    if record.get("record_kind") == "relationship":
+        # Relationship records (corrections, supersessions, tombstones) carry a
+        # payload.relationship edge, not an observation; they are counted as
+        # edges, never as unclassified observation units.
+        relationship = payload.get("relationship")
+        context = _context(
+            record,
+            relationship if isinstance(relationship, Mapping) else {},
+            lane=lane,
+            manifest_by_packet=manifest_by_packet,
+        )
+        accumulator.increment("relationship_edge_records", context)
         return
     observation = payload.get("observation") if isinstance(payload, Mapping) else None
     if not isinstance(observation, Mapping):

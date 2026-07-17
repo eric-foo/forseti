@@ -88,6 +88,9 @@ jobs:
       - name: retrieval header index (forward-only gate)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/header_index.py --strict
+      - name: artifact placement (changed paths only)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_placement.py --changed --strict
       - name: Google search-surface route guard
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_search_surface_google_route.py --strict

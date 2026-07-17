@@ -42,22 +42,30 @@ verified-purchase/offer/availability semantics.
 | Source | Access route / source surface | Packet runner | Projection | Cleaning / Silver seam | Residuals to preserve |
 | --- | --- | --- | --- | --- | --- |
 | Fragrantica | Direct HTTP plus optional rendered current-window diagnostics. Primary direct surface: `fragrantica_product_page_direct_http`. | `orca-harness/runners/run_fragrantica_mgt_capture.py` | `orca-harness/source_capture/fragrantica_projection.py`; runner `run_fragrantica_projection.py`; lane `projection_fragrantica`. | `orca-harness/cleaning/fragrantica.py`; lake writer `orca-harness/cleaning/fragrantica_lake.py`. | Current-window review capture only; full archive/login prompt remains residual; no review-attached photo or linked-media proof unless separately captured. |
-| Parfumo | Targeted rendered/session route for high-value sample; direct HTTP/AJAX is historical/canary. Targeted surface: `parfumo_product_page_chrome_extension_targeted_rendered_session`. | `orca-harness/runners/run_parfumo_mgt_capture.py` | `orca-harness/source_capture/parfumo_projection.py`; runner `run_parfumo_projection.py`; lane `projection_parfumo`. | `orca-harness/cleaning/parfumo.py`; lake writer `orca-harness/cleaning/parfumo_lake.py`. | Targeted latest/high/low review and statement samples only; no full 369-review / 1390-statement corpus; no secret/browser-state export. |
-| Basenotes | User-cleared persistent Chrome public-page export. Surface: `basenotes_product_page_user_cleared_persistent_chrome_current_window`. | `forseti-harness/runners/run_basenotes_mgt_capture.py` | `forseti-harness/source_capture/basenotes_projection.py`; runner `run_basenotes_projection.py`; lane `projection_basenotes`. | `forseti-harness/cleaning/basenotes.py`; lake writer `forseti-harness/cleaning/basenotes_lake.py`. | Fresh anonymous direct, no-proxy CloakBrowser, fresh headed-Chrome, and same-cleared-profile headless-Chrome contexts are Cloudflare-challenged. A separate direct headed CloakBrowser attempt remained in the human-verification loop after the user checked the box, so no cleared CloakBrowser state existed for a valid headless-reuse test. The user-visible persistent Chrome session requires a user-completed gate and exports no cookie, credential, or profile data. In-page JSON-LD review subset is not full corpus; `/reviews/` and sentiment sub-URLs remain archive gates. |
+| Parfumo | Targeted rendered/session route for high-value sample; direct HTTP/AJAX is historical/canary. Targeted surface: `parfumo_product_page_chrome_extension_targeted_rendered_session`. | `forseti-harness/runners/run_parfumo_mgt_capture.py`; targeted route defaults to hybrid `content` mode and retains route receipt plus supplied screenshot. | Capture-time content record through `forseti-harness/source_capture/parfumo_projection.py`; parser-fit runner `run_parfumo_parser_fit_check.py`; legacy/raw runner `run_parfumo_projection.py`; lane `projection_parfumo`. | `forseti-harness/cleaning/parfumo.py`; lake writer `forseti-harness/cleaning/parfumo_lake.py`; content packets bind Cleaning inputs to packet-local content-record JSON pointers. | Targeted latest/high/low review and statement samples only; no full 369-review / 1390-statement corpus; no secret/browser-state export; content mode discards DOM/text only after hashing and successful projection. |
+| Basenotes | User-cleared persistent Chrome public-page export. Surface: `basenotes_product_page_user_cleared_persistent_chrome_current_window`. | `forseti-harness/runners/run_basenotes_mgt_capture.py`; the pinned route defaults to family-owned `content` mode after live parser-fit and equivalence dogfood. | Capture-time content record through `forseti-harness/source_capture/basenotes_projection.py`; parser-fit runner `run_basenotes_parser_fit_check.py`; raw/legacy runner `run_basenotes_projection.py`; lane `projection_basenotes`. | `forseti-harness/cleaning/basenotes.py`; lake writer `forseti-harness/cleaning/basenotes_lake.py`; content packets bind Cleaning inputs to packet-local content-record JSON pointers. | Exact-URL, challenge-free DOM/text, and product-detail sufficiency remain fail-closed access proof; a screenshot is never access proof. The route exports no cookie, credential, storage-state, or profile data. In-page JSON-LD review subset is not full corpus; `/reviews/` and sentiment sub-URLs remain archive gates. |
 
 ## Basenotes Persistent-Chrome Bundle Contract
 
 The current route is persistent-Chrome and fails closed. In manual mode, the user
 opens the exact public product URL in a visible tab and personally completes any
-Cloudflare verification before a supported controller exports exactly these
-public-page artifacts. Direct existing-Chrome mode instead creates the same bundle
+Cloudflare verification before a supported controller exports the three required
+public-page artifacts below and, only for a named visual-evidence trigger, the
+optional screenshot. Direct existing-Chrome mode creates the same bundle
 from the local CDP session and admits it only after observing the exact final URL,
 challenge-free source content, and sufficient product/review detail:
 
 - `browser_rendered_dom.html`
 - `browser_visible_text.txt`
-- `browser_viewport_screenshot.png`
 - `browser_snapshot_metadata.json`
+- optional `browser_viewport_screenshot.png`
+
+The optional screenshot requires one explicit trigger:
+`route_baseline`, `visual_content`, `access_or_overlay_diagnostic`, or
+`owner_requested`. A supplied screenshot without its trigger, or a trigger
+without a screenshot, is rejected. Direct CDP does not invoke screenshot capture
+when no trigger is supplied. Screenshots are source-media evidence, not proof that
+Cloudflare was cleared.
 
 Existing-bundle publication accepts either a human-assisted manual bundle or a
 bundle previously generated by direct CDP preflight. Both bundle origins bind the
@@ -70,13 +78,20 @@ channel and ISO-8601 capture timestamp. Manual metadata requires
 `access_readiness_basis: observed_exact_url_challenge_free_sufficient_content`.
 The runner rejects challenge text, fewer than 500 visible-text bytes, a missing
 caller-bound product path, missing Product/review/reviewBody JSON-LD markers,
-symlinks, empty/oversized files, non-PNG screenshots, missing files, or unexpected
-files before packet publication.
+symlinks, empty/oversized files, invalid supplied screenshots, missing required
+files, trigger mismatches, or unexpected files before packet publication.
+
+The route supports `--capture-mode content|sample|raw`. Successful `content`
+captures hash and discard rendered DOM/text, retain browser metadata,
+`content_record.json`, and `content_capture_metadata.json`, and retain a screenshot
+only when intentionally triggered. `sample` retains DOM/text plus the content
+record for `run_basenotes_parser_fit_check.py`; `raw` retains the legacy parser
+inputs. Projection failure preserves all supplied artifacts and exits `4`.
 
 ```text
 python forseti-harness/runners/run_basenotes_mgt_capture.py \
   --url https://basenotes.com/fragrances/<product> \
-  --bundle-directory <four-file-export> \
+  --bundle-directory <three-file-export-with-optional-triggered-screenshot> \
   --output-root <empty-summary-directory> \
   --data-root <forseti-data-root>
 ```
@@ -86,7 +101,7 @@ Direct mode is explicit and loopback-only:
 ```text
 python forseti-harness/runners/run_basenotes_mgt_capture.py \
   --url https://basenotes.com/fragrances/<product> \
-  --bundle-directory <fresh-generated-four-file-bundle> \
+  --bundle-directory <fresh-generated-bundle> \
   --output-root <empty-summary-directory> \
   --data-root <forseti-data-root> \
   --cdp-endpoint http://127.0.0.1:9222
@@ -98,7 +113,7 @@ live capture but does not publish a packet:
 ```text
 python forseti-harness/runners/run_basenotes_mgt_capture.py \
   --url https://basenotes.com/fragrances/<product> \
-  --bundle-directory <fresh-generated-four-file-bundle> \
+  --bundle-directory <fresh-generated-bundle> \
   --output-root <empty-preflight-output-directory> \
   --cdp-endpoint http://127.0.0.1:9222 \
   --preflight-only
@@ -126,6 +141,12 @@ fallback.
   contract for the lake question.
 - Projection is mechanical, raw-anchored, and row/residual oriented. It must not
   create demand, credibility, sentiment, or completeness claims.
+- For the Parfumo targeted and Basenotes persistent-Chrome content routes,
+  "raw-anchored" means the immutable raw
+  packet container: rows bind to JSON pointers in its preserved content record,
+  whose capture metadata retains the hashes and byte counts of discarded
+  rendered DOM and visible text. Raw and legacy packets retain preserved-file
+  anchors.
 - Cleaning may normalize and emit audit/Silver records through its own writers.
   It does not repair missing full-corpus coverage or decide Judgment meaning.
 - ECR consumes source/projection refs and source-visible/residualized facts only.

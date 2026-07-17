@@ -1,60 +1,28 @@
 #!/usr/bin/env python3
-"""Placement boundary check (EP-04) - advisory write-time WARN + strict tree check.
+"""Placement boundary check (EP-04): dormant advisory mode plus CI diff gate.
 
-WHAT THIS ENFORCES
-  The placement shape of the Forseti tree: a new artifact lands in a declared home.
-  The rule source is the machine structure map, read as this checker's ONLY spec:
+The machine classification source is ``repo-structure.yaml``; placement
+policy remains owned by ``.agents/workflow-overlay/artifact-folders.md`` and
+``docs/decisions/forseti_repo_structure_binding_v0.md``. A pass proves only
+that changed path shapes are declared, never authority, readiness, or quality.
 
-      repo-structure.yaml                                  (the router)
+Active enforcement is non-interactive:
 
-  The placement RULES and folder authority are owned by
-      .agents/workflow-overlay/artifact-folders.md          (the authority)
-      docs/decisions/forseti_repo_structure_binding_v0.md      (the binding)
-  This script does not restate them. If the map and the overlay disagree, the
-  overlay wins and the map (and this checker) is the stale party.
+    check_placement.py --changed --strict [--base REF]
 
-WHY (enforcement placement)
-  "Put the file in the right folder" was carried only by instruction, and the
-  observed failure mode is incidental placement: files created as a side effect
-  of real work (root strays, scratch sprawl). Per the Enforcement Placement
-  principle in .agents/workflow-overlay/validation-gates.md, the mechanically
-  checkable shape is enforced at the write boundary (advisory --hook) with a
-  portable --strict commit/CI mode as the incidental-placement backstop.
-  Classification EP-04 (PARTIAL) in
-  docs/decisions/overlay_enforcement_placement_classification_v0.md: the
-  judgment edge (a later decision may allow a new folder) stays resident.
-
-HONEST BOUNDARY - PLACEMENT IS NOT AUTHORITY
-  A passing run means the path shape is declared, nothing more. It is not
-  validation, readiness, approval, promotion, or proof an artifact is correct,
-  current, or authoritative. _inbox age findings and legacy-tolerated debt are
-  WARN-only and never affect exit codes.
-
-MODES
-  check_placement.py --hook          PostToolUse hook (stdin JSON, ALWAYS exit 0;
-                                     advisory additionalContext for the one
-                                     written path)
-  check_placement.py --check         human-readable full-tree report, exit 0
-  check_placement.py --strict        full-tree gate: exit 1 on non-legacy
-                                     placement violations or map<->tree
-                                     inconsistency (both directions), else 0
-  check_placement.py --selftest      pure-decision cases
-
-  Commit/CI use (gate-on-demand; not installed as a blocking gate by default):
-      python .agents/hooks/check_placement.py --strict
-
-REGISTRATION (.claude/settings.json - PostToolUse, Write|Edit, beside the
-retrieval-header and repo-map-freshness hooks). Hooks load at session start;
-wiring goes live only after a restart.
-
-On any internal error the --hook mode fails OPEN (exit 0) so a bug here can
-never block an agent. --strict fails VISIBLY (exit 1) when the map is missing
-or unparseable: a missing spec must not read as a pass.
+The strict changed-path gate checks added, modified, copied, and rename-
+destination paths against the CI event base, ignores deletions, and then runs
+the lightweight map-to-top-level-tree freshness check. Its Git diff has a
+20-second internal timeout and any unavailable diff or invalid map fails
+visibly. ``--hook`` and full-tree ``--check``/``--strict`` remain compatible
+manual modes but are not registered on an interactive tool boundary.
 """
 from __future__ import annotations
 
 import fnmatch
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -65,6 +33,7 @@ from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the imp
 MAP_PATH = "repo-structure.yaml"
 AUTHORITY = ".agents/workflow-overlay/artifact-folders.md"
 BINDING = "docs/decisions/forseti_repo_structure_binding_v0.md"
+DIFF_TIMEOUT_SECONDS = 20
 
 # Frozen map schema (forseti_repo_structure_binding_v0): top-level keys.
 REQUIRED_KEYS = ("version", "known_top_level", "docs_roles", "scratch_rules",
@@ -266,7 +235,7 @@ def inbox_age_warnings(root: Path, mapdata) -> list[str]:
 
 def _authority_line() -> str:
     return (f"Authority: {AUTHORITY} (rules) + {BINDING} (binding) + {MAP_PATH} (router). "
-            "Advisory only - placement is not authority, not validation, not readiness.")
+            "Placement-shape only - not authority, validation, or readiness.")
 
 
 def evaluate_tree(root: Path, mapdata):
@@ -289,6 +258,117 @@ def evaluate_tree(root: Path, mapdata):
             scratch_count += 1
     return violations, legacy, scratch_count, freshness_findings(root, mapdata), \
         inbox_age_warnings(root, mapdata)
+
+
+def resolve_base_ref(requested: str | None = None) -> str:
+    """Resolve the exact CI event base before branch or CLI fallbacks."""
+    event_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if event_base:
+        return event_base
+    github_base = os.environ.get("GITHUB_BASE_REF", "").strip()
+    if github_base:
+        return f"origin/{github_base}"
+    if requested and requested.strip():
+        return requested.strip()
+    return "origin/main"
+
+
+def parse_name_status(output: str) -> tuple[list[str], str]:
+    """Return changed destinations from ``git diff --name-status -z`` output."""
+    tokens = output.split("\0")
+    if tokens and tokens[-1] == "":
+        tokens.pop()
+    paths: list[str] = []
+    index = 0
+    while index < len(tokens):
+        status = tokens[index]
+        index += 1
+        kind = status[:1]
+        if kind in {"A", "M", "D"}:
+            if index >= len(tokens):
+                return [], f"malformed diff: {status} has no path"
+            path = tokens[index]
+            index += 1
+            if kind != "D":
+                paths.append(path)
+        elif kind in {"C", "R"}:
+            if index + 1 >= len(tokens):
+                return [], f"malformed diff: {status} has no source/destination pair"
+            index += 1  # source path is not the placement target
+            paths.append(tokens[index])
+            index += 1
+        else:
+            return [], f"malformed diff: unsupported status {status!r}"
+    return paths, ""
+
+
+def changed_paths(root: Path, base: str) -> tuple[list[str] | None, str]:
+    command = [
+        "git", "--no-optional-locks", "-C", str(root), "diff",
+        "--name-status", "-z", "--diff-filter=ACMR", "--find-renames",
+        f"{base}...HEAD",
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=DIFF_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return None, f"git diff timed out after {DIFF_TIMEOUT_SECONDS}s against {base}"
+    except (FileNotFoundError, OSError) as exc:
+        return None, f"git diff unavailable against {base}: {exc}"
+    if result.returncode != 0:
+        detail = result.stderr.strip() or f"exit {result.returncode}"
+        return None, f"git diff failed against {base}: {detail}"
+    paths, error = parse_name_status(result.stdout)
+    return (None, error) if error else (paths, "")
+
+
+def run_changed(root: Path, base: str) -> int:
+    mapdata, error = load_map(root)
+    if mapdata is None:
+        print(f"MAP ERROR: {error}")
+        print(_authority_line())
+        return 1
+    paths, error = changed_paths(root, base)
+    if paths is None:
+        print(f"DIFF ERROR: {error}")
+        print(_authority_line())
+        return 1
+
+    violations: list[tuple[str, str]] = []
+    legacy: list[str] = []
+    for rel in paths:
+        status, detail = classify(rel, mapdata)
+        if status == VIOLATION:
+            violations.append((rel, detail))
+        elif status == LEGACY:
+            legacy.append(rel)
+    freshness = freshness_findings(root, mapdata)
+    for rel, detail in violations:
+        print(f"VIOLATION  {rel}  ({detail})")
+    for finding in freshness:
+        print(f"FRESHNESS  {finding}")
+    for rel in legacy:
+        print(f"LEGACY     {rel}")
+    print(
+        f"summary: {len(paths)} changed path(s), {len(violations)} violation(s), "
+        f"{len(freshness)} freshness, {len(legacy)} legacy-tolerated (warn-only); "
+        f"base={base}"
+    )
+    print(_authority_line())
+    return 1 if violations or freshness else 0
+
+
+def _base_arg(argv: list[str]) -> str | None:
+    if "--base" not in argv:
+        return None
+    index = argv.index("--base")
+    if index + 1 >= len(argv) or argv[index + 1].startswith("--"):
+        raise ValueError("--base requires a ref")
+    return argv[index + 1]
 
 
 def run_hook(root: Path) -> int:
@@ -421,11 +501,16 @@ def main(argv: list[str]) -> int:
     root = repo_root()
     if "--selftest" in argv:
         return selftest()
+    if "--changed" in argv:
+        if "--strict" not in argv:
+            sys.stderr.write("check_placement: --changed requires --strict\n")
+            return 2
+        return run_changed(root, resolve_base_ref(_base_arg(argv)))
     if "--strict" in argv:
         return run_tree(root, strict=True)
     if "--check" in argv:
         return run_tree(root, strict=False)
-    return run_hook(root)  # default / --hook
+    return run_hook(root)  # default / --hook compatibility mode
 
 
 if __name__ == "__main__":
@@ -436,7 +521,7 @@ if __name__ == "__main__":
     except Exception as exc:  # fail OPEN in the advisory paths; never brick the agent
         # --selftest joins --strict as a gating mode (GATE FAIL bucket,
         # validation-gates.md; EP-35 FIND-02 class sweep).
-        if "--strict" in sys.argv or "--selftest" in sys.argv:
+        if "--strict" in sys.argv or "--changed" in sys.argv or "--selftest" in sys.argv:
             sys.stderr.write(f"check_placement: internal error in gating mode: {exc}\n")
             sys.exit(1)
         sys.stderr.write(f"check_placement: internal error, allowing: {exc}\n")

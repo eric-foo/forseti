@@ -21,6 +21,7 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
     TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
     TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
     derive_tiktok_grid_observation_set,
+    derive_tiktok_profile_metric_observations,
 )
 from data_lake.consumption import append_ack, is_acknowledged, pickup, reconcile_availability_per_packet
 from data_lake.root import DataLakeRoot, DataLakeRootError
@@ -183,6 +184,20 @@ def run_tiktok_grid_observations(
                 observed_at=observed_at,
                 source_packet_surface=source_packet_surface,
             )
+            profile_derived = derive_tiktok_profile_metric_observations(
+                data_root=data_root,
+                raw_anchor=packet_id,
+                grid_payload=payload,
+                raw_file_ref=raw_file_ref,
+                observed_at=observed_at,
+                source_packet_surface=source_packet_surface,
+            )
+            if payload.get("profile_metric_capture_policy_version") is not None and len(
+                profile_derived
+            ) != 2:
+                raise ValueError(
+                    "current TikTok grid profile policy requires exactly two Silver metrics"
+                )
             observation = derived.record["payload"]["observation"]
             evidence = [
                 {
@@ -196,6 +211,16 @@ def run_tiktok_grid_observations(
                     ),
                 }
             ]
+            evidence.extend(
+                {
+                    "kind": "silver_profile_metric_verified",
+                    "lane": result.record["lane_namespace"],
+                    "record_id": result.record["record_id"],
+                    "content_hash": result.record["content_hash"],
+                    "metric_name": result.record["payload"]["observation"]["metric_name"],
+                }
+                for result in profile_derived
+            )
             append_ack(
                 data_root,
                 raw_anchor=packet_id,
@@ -210,6 +235,12 @@ def run_tiktok_grid_observations(
                     "record_id": derived.record["record_id"],
                     "row_count": observation["row_count"],
                     "written": derived.written,
+                    "profile_metric_record_ids": [
+                        result.record["record_id"] for result in profile_derived
+                    ],
+                    "profile_metric_written_count": sum(
+                        1 for result in profile_derived if result.written
+                    ),
                 }
             )
         except Exception as exc:  # noqa: BLE001 - one corrupt packet must not hide peers

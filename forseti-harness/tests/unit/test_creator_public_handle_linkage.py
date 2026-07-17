@@ -101,8 +101,8 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
 
     creator_record = wrapper["creator_records"][0]
     assert creator_record["creator_record_id"] == "creator_fragranceknowledge_001"
-    assert creator_record["link_state"] == "candidate_public_account_link"
-    assert creator_record["review_state"] == "candidate_needs_review"
+    assert creator_record["link_state"] == "declared_public_account_link"
+    assert creator_record["review_state"] == "auto_promoted_official_link_hub"
     assert creator_record["platform_account_ids"] == [
         "acct_yt_fragrance_007",
         "acct_tiktok_fragrance_004",
@@ -177,6 +177,56 @@ def test_llm_only_final_link_raises() -> None:
         if evidence["evidence_id"].startswith("ev_barrier_"):
             evidence["llm_assisted"] = True
             evidence["review_actor"] = "llm_only"
+
+    _raises_code(ledger, "llm_only_final_link")
+
+
+def test_auto_promoted_official_link_hub_allows_llm_only_declared_link() -> None:
+    ledger = _fixture()
+    declared = next(
+        record
+        for record in _wrapper(ledger)["creator_records"]
+        if record["link_state"] == "declared_public_account_link"
+    )
+    declared["review_state"] = "auto_promoted_official_link_hub"
+    evidence = next(
+        row
+        for row in _wrapper(ledger)["account_link_evidence"]
+        if row["evidence_id"] in declared["evidence_ids"]
+    )
+    evidence["evidence_type"] = "official_link_hub"
+    evidence["llm_assisted"] = True
+
+    validate_creator_public_handle_linkage_ledger(ledger)
+
+
+def test_auto_promoted_declared_link_requires_official_link_hub_row() -> None:
+    ledger = _fixture()
+    declared = next(
+        record
+        for record in _wrapper(ledger)["creator_records"]
+        if record["link_state"] == "declared_public_account_link"
+    )
+    declared["review_state"] = "auto_promoted_official_link_hub"
+
+    _raises_code(ledger, "auto_promoted_link_missing_official_link_hub")
+
+
+def test_human_reviewed_declared_link_still_rejects_llm_only_evidence() -> None:
+    ledger = _fixture()
+    declared = next(
+        record
+        for record in _wrapper(ledger)["creator_records"]
+        if record["link_state"] == "declared_public_account_link"
+    )
+    assert declared["review_state"] == "human_reviewed_declared"
+    evidence = next(
+        row
+        for row in _wrapper(ledger)["account_link_evidence"]
+        if row["evidence_id"] in declared["evidence_ids"]
+    )
+    evidence["evidence_type"] = "official_link_hub"
+    evidence["llm_assisted"] = True
 
     _raises_code(ledger, "llm_only_final_link")
 

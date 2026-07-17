@@ -37,6 +37,10 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     DEFAULT_VIEWPORT_WIDTH,
     CloakBrowserSnapshotFailureKind,
 )
+from source_capture.adapters.luckyscent_us_market import LuckyscentUSMarketPlugin
+from source_capture.adapters.nordstrom_country_preference import (
+    NordstromCountryPreferencePlugin,
+)
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.browser_user_data import browser_user_data_path_for_label
 from source_capture.cli_support import (
@@ -126,6 +130,9 @@ def run_source_capture_cloakbrowser_packet(
     scroll_target_selector: str | None = None,
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
+    nordstrom_country: str | None = None,
+    nordstrom_country_setup_timeout_seconds: float = 30.0,
+    luckyscent_market: str | None = None,
     session_visibility_pin=None,
     locale_pin=None,
     currency_pin=None,
@@ -161,21 +168,34 @@ def run_source_capture_cloakbrowser_packet(
         source_detail_sufficiency_requirements = (
             merge_source_detail_sufficiency_requirements(
                 source_detail_sufficiency_requirements,
-                retail_capture_profile.requirements,
+                retail_capture_profile.requirements_for_capture(url=url),
             )
         )
 
-    # The US-storefront pin is an Amazon-specific pre-capture plugin (FIX #6): the generic
-    # adapter knows nothing about Amazon or its delivery-location widget. The plugin carries
-    # its own bounded setup timeout (FIX #1) -- separate from the main capture timeout below.
-    pre_capture = (
-        AmazonDeliveryLocationPlugin(
+    site_specific_preferences = [
+        delivery_zip is not None,
+        nordstrom_country is not None,
+        luckyscent_market is not None,
+    ]
+    if sum(site_specific_preferences) > 1:
+        raise ValueError(
+            "only one site-specific pre-capture preference may be supplied: "
+            "--delivery-zip, --nordstrom-country, or --luckyscent-market"
+        )
+    if delivery_zip is not None:
+        pre_capture = AmazonDeliveryLocationPlugin(
             delivery_zip=delivery_zip,
             setup_timeout_seconds=delivery_zip_setup_timeout_seconds,
         )
-        if delivery_zip is not None
-        else None
-    )
+    elif nordstrom_country is not None:
+        pre_capture = NordstromCountryPreferencePlugin(
+            country_code=nordstrom_country,
+            setup_timeout_seconds=nordstrom_country_setup_timeout_seconds,
+        )
+    elif luckyscent_market is not None:
+        pre_capture = LuckyscentUSMarketPlugin(country_code=luckyscent_market)
+    else:
+        pre_capture = None
     capture_result = fetch_cloakbrowser_snapshot_capture(
         url=url,
         timeout_seconds=timeout_seconds,
@@ -635,6 +655,38 @@ def _build_parser() -> argparse.ArgumentParser:
             "Only used when --delivery-zip is set."
         ),
     )
+    parser.add_argument(
+        "--nordstrom-country",
+        choices=["US"],
+        default=None,
+        help=(
+            "Use Nordstrom's own country-preference UI before capture to ATTEMPT a no-proxy "
+            "US/USD storefront pin. The packet confirms the pin only when the rendered main "
+            "page contains mutually reinforcing Nordstrom US/USD state; dollar-looking prices "
+            "and nordcountrycode alone never count."
+        ),
+    )
+    parser.add_argument(
+        "--nordstrom-country-setup-timeout-seconds",
+        type=float,
+        default=30.0,
+        help=(
+            "Bounds the Nordstrom homepage country-preference interaction separately from "
+            "--timeout-seconds. Default 30.0; only used with --nordstrom-country."
+        ),
+    )
+    parser.add_argument(
+        "--luckyscent-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Fail-closed assertion that Luckyscent's canonical route rendered one "
+            "storefront i18n context binding country=US, market=market-us, and "
+            "currency=USD. Luckyscent exposes no country selector, so this performs no "
+            "preference mutation and does not claim a US shopper origin or delivery "
+            "location."
+        ),
+    )
     parser.add_argument("--proxy-profile-label", default=None)
     parser.add_argument(
         "--proxy-profile-category",
@@ -769,6 +821,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
         if old_reddit_only:
             _validate_old_reddit_url(args.url)
+        # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only
+        # early return sits between the target checks and DataLakeRoot.resolve, so a
+        # preflight run must not attempt (or fail on) lake resolution.
         data_root = None
         data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
         if args.output is not None and args.data_root is not None:
@@ -861,6 +916,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             scroll_target_selector=scroll_target_selector,
             delivery_zip=args.delivery_zip,
             delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
+            nordstrom_country=args.nordstrom_country,
+            nordstrom_country_setup_timeout_seconds=(
+                args.nordstrom_country_setup_timeout_seconds
+            ),
+            luckyscent_market=args.luckyscent_market,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
             # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
             # postures + Element 4 declared cadence ride on the packet. Observed facts only,

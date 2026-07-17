@@ -1,9 +1,9 @@
 name: main-red-alert
 
 # Detective defense-in-depth for a red `main`. Active branch protection requires
-# strict `forseti-harness-tests`, an up-to-date PR head, and includes admins, so
-# ordinary red/behind merges are prevented server-side. This workflow still
-# surfaces a post-merge CI failure caused by an environment change, an emergency
+# green `forseti-harness-tests` and includes admins, but intentionally permits a
+# conflict-free stale PR head. This workflow therefore surfaces the accepted
+# post-merge integration-risk residual as well as an environment change or emergency
 # administrative policy change, or another path not represented by the PR run.
 # It detects and reports; it does not prove the root cause.
 # Channel = a deduplicated GitHub issue (zero external dependency). One open

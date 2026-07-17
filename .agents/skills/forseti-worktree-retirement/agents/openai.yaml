@@ -1,0 +1,4 @@
+interface:
+  display_name: "Forseti Worktree Retirement"
+  short_description: "Safely classify and retire Forseti worktrees"
+  default_prompt: "Use $forseti-worktree-retirement to audit these worktrees and retire only those proven disposable."

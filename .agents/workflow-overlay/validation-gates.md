@@ -18,6 +18,17 @@ Placement"; a full-file read is for editing validation doctrine.
 
 Validation must be able to fail. Missing evidence is not a pass.
 
+Validation evidence is claim-scoped and remains reusable until relevant
+changed bytes or mutable external state could falsify the supported claim. Run
+focused local checks for affected behavior and use required CI for broad
+integration. Do not duplicate a broad suite locally when required CI exercises
+the same behavior unless a focused failure, cross-cutting uncertainty, or an
+unavailable CI environment makes broader local diagnosis necessary. A focused
+failure blocks broader runs until it is diagnosed. Relevant implementation,
+test, dependency, checker, PR-head, or lake/index/writer changes invalidate only
+the evidence they can affect; mutable external and durable lifecycle claims
+still require fresh readback.
+
 Validation reports must preserve failure visibility by bucket:
 
 - `GATE PASS` / `GATE FAIL` are exit-code-bearing checks required for the claim.
@@ -62,12 +73,12 @@ inherit this floor.
   only at the durable/cross-lane and portable strict-claim boundaries in
   `.agents/workflow-overlay/source-loading.md`; missing receipt evidence blocks
   that portable handoff or claim, not ordinary interactive work.
-- Doctrine-changing source work must include an inline
-  `direction_change_propagation` receipt or explicit
-  `direction_change_propagation_blocker` under
-  `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
-  Missing propagation evidence blocks strict success or status claims that
-  depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
+- Doctrine-changing source work must carry direction-change propagation
+  evidence under `.agents/workflow-overlay/source-of-truth.md` before claiming
+  completion. The PR body or final closeout is the default; an inline receipt or
+  blocker is exceptional under that owner. Missing propagation evidence blocks
+  strict success or status claims that depend on the changed doctrine; it
+  authorizes no adjacent cleanup or tooling.
 - Writable-root acceptance follows the one-time binding owned by
   `.agents/workflow-overlay/decision-routing.md`:
 
@@ -75,12 +86,12 @@ inherit this floor.
   | --- | --- | --- |
   | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
-  | External controller targeting another worktree | `accepted` once after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | External controller targeting another worktree | `accepted` once after verification | Unique target at its frozen commit pin under the commission's exact or explicitly permitted ancestor semantics; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
   | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
   | Observed target ambiguity, required-tool denial, or root-bound feature mismatch | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Reroot only when the mismatch is real and no already-authorized capable route exists. |
-  | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
+  | Ambiguous, unexpectedly dirty, or concurrently written target | `blocked` | Freeze uncommitted work into a commit and re-pin, or resolve the ambiguity and eliminate concurrent writing; missing evidence is not a pass. |
 
   The binding is re-resolved only when receiver/task/root or material target
   state changes, capability is genuinely unknown, or an observed mismatch or
@@ -197,8 +208,8 @@ inherit this floor.
   their mechanical backstop and is forward-only: pre-existing private copies
   are never gated. Shape only: never helper correctness, divergence
   justification, validation, or readiness. Enforced diff-scoped by
-  `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`;
-  write-time PostToolUse `--hook` advisory).
+  `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`; dormant
+  `--hook` compatibility is not registered interactively).
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
   the ontology SSOT roster over the CI event base (or local pre-push
   `origin/main...HEAD`); an additive annotation
@@ -414,24 +425,32 @@ inherit this floor.
 
 ## Enforcement Placement
 
-A load-bearing rule that is mechanically checkable at a tool boundary is
-enforced there — a write-time hook plus a portable checker with a `--strict`
-commit/CI mode — rather than carried only as an instruction, which fires only
-when the model attends to it. The checker references the rule's authority and
-never restates it; it is advisory and forward-only by default. Judgment-based
-rules (claim discipline, scope, lifecycle reasoning) stay resident and still
-must actually fire, not merely be present; a substrate enforces shape, never
-truth (cf. the receipt-field provenance gate above). The per-rule
-classification and the owner gate for building each substrate live in
+Use the lowest-cost deterministic boundary that still catches the named defect
+before irreversible harm. Interactive hooks are reserved for prevention where
+a later commit/CI failure would be too late (for example protected actions).
+Durable artifact-shape rules belong at commit/CI when that boundary can reject
+the landing change without losing work; do not install advisory per-tool fanout
+merely because a rule is mechanically checkable. A checker references its rule
+authority rather than restating it, and a green substrate proves shape only,
+never truth, readiness, or approval. Judgment-based rules (claim discipline,
+scope, lifecycle reasoning) stay resident and must actually fire. The per-rule
+classification and build history live in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
+
+Active placement instance: `.agents/hooks/check_placement.py --changed --strict`
+runs in CI against the exact event base. It checks added/modified/copied paths
+and rename destinations, ignores deletions, and runs the lightweight
+map↔top-level-tree freshness check. Unavailable strict diff or invalid map fails
+visibly. It is not registered as a pre-push or interactive hook.
 
 Receiver selection is one such judgment rule: whether a commission is read-only,
 a same-actor work unit in selected isolation, or an independent repo-changing
 lane depends on the requested act and live capability. Deterministic enforcement
-remains at protected actions, exact or dirty-byte identity, and actual tool or
-sandbox denial; do not add a blanket path-location guard that treats a valid
-selected worktree as an error. An independent external controller still proves
-direct access to the exact target once.
+remains at protected actions, frozen-pin identity under exact or explicitly
+permitted ancestor semantics, and actual tool or sandbox denial; do not add a
+blanket path-location guard that treats a valid selected worktree as an error.
+An independent external controller still proves direct access to the bound
+target once.
 
 The Codex live adoption probe remains available only when hook adoption testing
 is itself commissioned. In that test it is a fail-closed runtime assertion:
@@ -450,13 +469,12 @@ authorization shell owned by `prompt-orchestration.md`. Its positive trigger is
 the prompt's own declared fields, not an inference about the requested act; a
 green result never certifies those fields or any future receiver state.
 
-Active instance: the retrieval-header check
-(`.agents/hooks/check_retrieval_header.py`, EP-06) enforces
-`.agents/workflow-overlay/retrieval-metadata.md` at the write boundary and is
-registered in the repo map's "Active Hooks" note; reuse this pattern for the
-next such rule. Placement decides where a rule is enforced, not whether it is
-correct: a passing check is not validation, readiness, approval, or
-source-of-truth promotion.
+Active retrieval-header enforcement is the diff-scoped
+`.agents/hooks/header_index.py --strict` CI gate. The retained
+`check_retrieval_header.py --hook` mode is dormant compatibility, not live
+wiring. Placement decides where a rule is enforced, not whether it is correct:
+a passing check is not validation, readiness, approval, or source-of-truth
+promotion.
 
 **Live-router direct-target check** (`.agents/hooks/check_map_links.py`, C5).
 The existing map/link gate also checks the authoritative-target column of the
@@ -471,9 +489,8 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
 - `--index`: full retrieval view of all header-bearing durable docs (human use).
 - `--health [--verbose]`: whole-repo advisory counts of MISSING-HEADER and ORPHAN
   docs; exit 0 always (backlog surfaced, not gated).
-- `--health --oneline`: single capsule line emitted by `session_context_capsule.py`
-  at session start so every lane sees the advisory health count without walking the
-  tree itself.
+- `--health --oneline`: compact manual advisory health output; it is not emitted
+  by the lean SessionStart capsule.
 - `--strict`: **CI gate — diff-scoped, forward-only.** For changed durable `.md`
   files only (vs the CI event base, PR branch fallback, or local
   `origin/main`): fails (exit 1) if a
@@ -484,8 +501,8 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
 Registered in `.github/workflows/ci.yml` after the existing link-check step.
 
 **Google search-surface route guard**
-(`.agents/hooks/check_search_surface_google_route.py`). Diff-scoped CI plus
-advisory PostToolUse checker for the mechanically checkable shell of
+(`.agents/hooks/check_search_surface_google_route.py`). Diff-scoped CI gate for
+the mechanically checkable shell of
 `docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md`:
 Google Search capture URLs in changed durable docs carry the bound route
 parameters; artifacts using the route carry the physical-locality non-claim; and
@@ -496,8 +513,8 @@ Product Lead evidence.
 
 **Retrieval-header forbidden-field scan** (`.agents/hooks/check_retrieval_header.py`,
 EP-07 forbidden-field subset — the part previously deferred). The shared header
-predicate (`header_problems_for_lines`, used by both the write-time `--hook` and
-the `header_index.py --strict` CI gate) now also rejects status-leak keys in a
+predicate (`header_problems_for_lines`, used by the dormant compatibility mode
+and the active `header_index.py --strict` CI gate) rejects status-leak keys in a
 retrieval header — approval / validation / readiness / lifecycle / deployment /
 install / resolver / publication / source-of-truth status — referencing
 `retrieval-metadata.md` ("Forbidden Header Fields"), never restating it.
@@ -625,9 +642,9 @@ within one prompt, and legitimate compound two-token values exist — so the
 gate checks presence + token-in-set only, multi-declaration and multi-token
 shapes are INFO (never gated), and the EP-11 classification row moved
 SUBSTRATE→PARTIAL. Registered in `.github/workflows/ci.yml`; `--selftest`
-present, including a token-drift assertion that parses the owning section;
-no new write-time hook (`check_prompt_provenance.py` already reminds at that
-boundary).
+present, including a token-drift assertion that parses the owning section.
+Prompt contract shape is enforced at CI; no prompt advisory is registered on a
+write boundary.
 
 **Review-summary shape gate** (`.agents/hooks/check_review_summary.py`,
 EP-10 born-green subset). Diff-scoped, forward-only CI gate for the
@@ -667,8 +684,8 @@ markdown sibling of the EP-37 JSON gate. Registered in
 
 **Shared-helper duplication gate**
 (`.agents/hooks/check_shared_helper_duplication.py`). Diff-scoped,
-forward-only CI gate plus write-time PostToolUse advisory for the
-Shared-helper adoption gate bullet above. The mechanical backstop for the
+forward-only CI gate for the Shared-helper adoption gate bullet above. The
+mechanical backstop for the
 helper-adoption rule adopted by the 2026-07-16 helper-dedup lane (PRs
 #988–#992): the wired checkers and harness modules had accumulated diverged
 private copies of the same helpers, and the adopted rule — check the shared
@@ -681,8 +698,8 @@ the escape hatch is the rule's own delta-comment convention (`harness_utils`
 above). `guard_protected_actions.py` stays excluded — its import-free
 duplication is the documented deliberate exception in the `_hooklib.py`
 docstring — as do `harness_utils.py`, `_hooklib.py`, and
-`forseti-harness/tests/**`. Registered in `.github/workflows/ci.yml` and
-`.claude/settings.json` (PostToolUse `--hook`); `--selftest` present.
+`forseti-harness/tests/**`. Registered in `.github/workflows/ci.yml` only;
+`--selftest` present. Its dormant `--hook` mode is not active wiring.
 Adoption-rule shape only — a green run never proves imports are correct, a
 kept divergence is justified, validation, or readiness.
 

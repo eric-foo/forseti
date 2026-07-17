@@ -42,14 +42,13 @@ authorization, or coverage claim.
   licensing path; posting or outreach in any listed venue is a separately gated
   GTM act (most listed venues ban self-promotion — noted per entry because it
   bounds GTM to listening, not because posting is planned).
-- **Sizes are approximate bands.** Provenance per entry is `web_verified`
-  (verification pass 2026-07-16: member counts visible in web-search snippets,
-  mostly cached third-party stat sites whose data vintage is roughly 2025 —
-  directionally correct, several months stale), `exists_unverified_count`
-  (existence confirmed, no reliable count surfaced), or `model_knowledge`
-  (assistant training knowledge, early-2026 horizon, unverified). Bands are
-  for prioritization only; they are not demand proof, audience-quality proof,
-  or reach estimates.
+- **Sizes are approximate bands; the registry is the authoritative count
+  source.** All counts below carry provenance `live_read` (2026-07-16 direct
+  same-context page reads; exact values and dated observation series live in
+  `reddit_subreddit_registry_v0.json`). Bands are for prioritization only;
+  they are not demand proof, audience-quality proof, or reach estimates, and
+  future refreshes update the registry first — treat any drift between this
+  table and the registry as the registry being right.
 - **Not coverage-complete.** Reddit venue discovery is open-ended; the
   discovery ledger at the end records what was deliberately left out.
 
@@ -81,10 +80,10 @@ Per-entry signal vocabulary: `rec_ask` (recommendation requests),
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/fragrance | ~2.4M | General hub; all genders per its own tagline; enthusiast-to-beginner mix | rec_ask, review, dupe_ask | Highest-volume general fragrance demand pool; SEO topic goldmine (repeat questions) | Strict no-self-promo (rules text not snippet-retrievable; verify on first commission) | web_verified |
-| r/Perfumes | count unverified | Feminine-leaning, recommendation-dense, beginner-friendly | rec_ask, review, haul | Fast-moving rec-ask venue; strong for note-family demand reads. CAUTION: web search conflates it with the unrelated K-pop r/Perfume (singular, ~10K) — verify count directly before load-bearing use | No self-promo (model_knowledge) | exists_unverified_count |
-| r/Colognes | ~210K | Masculine-leaning, collection-showcase culture, value-conscious | rec_ask, review, dupe_ask | Male demand pool; heavy clone-house awareness (Lattafa et al.) | Sidebar rules verified: no swap/sell (routes to r/FragranceSwap); fake-checks route to r/colognecheck | web_verified |
-| r/FemFragLab | count unverified | Women's fragrance lab culture; layering, skin-scent discourse | rec_ask, review, haul | High-signal for feminine niche/indie demand and layering trends; existence confirmed via cross-sub aggregation citations | Community-strict moderation (model_knowledge) | exists_unverified_count |
+| r/fragrance | ~2.42M | General hub; "inclusive, adult community" per its own bio; enthusiast-to-beginner mix | rec_ask, review, dupe_ask | Highest-volume general fragrance demand pool; SEO topic goldmine (repeat questions); bio confirms promo/affiliate-free posture | Bio-confirmed: promotion/transaction/influencer-free; rec asks restricted to daily thread | live_read |
+| r/Perfumes | ~305K | Feminine-leaning, recommendation-dense, beginner-friendly | rec_ask, review, haul | Fast-moving rec-ask venue; strong for note-family demand reads | No self-promo (model_knowledge) | live_read |
+| r/Colognes | ~291K | Masculine-leaning, collection-showcase culture, value-conscious | rec_ask, review, dupe_ask | Male demand pool; heavy clone-house awareness (Lattafa et al.) | Sidebar rules verified: no swap/sell (routes to r/FragranceSwap); fake-checks route to r/colognecheck | live_read |
+| r/FemFragLab | ~189K | Women's fragrance lab culture; layering, skin-scent discourse | rec_ask, review, haul | High-signal for feminine niche/indie demand and layering trends | Community-strict moderation (model_knowledge) | live_read |
 
 ## Tier 2 — Fragrance dupe / clone / value (aphrodite lead-lane audience)
 
@@ -93,63 +92,64 @@ The aphrodite first cohort is dupe/clone/affordable creator-commerce houses;
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/fragranceclones | ~270K | Dupe-seekers; clone-house comparison culture (verified sample discourse: "Lattafa The Kingdom as a clone of Le Male Elixir") | dupe_ask, review | The single most GTM-relevant fragrance venue: live which-clone-wins discourse maps directly to Play A target discovery | No self-promo (model_knowledge) | web_verified |
-| r/DesiFragranceAddicts | ~256K | South Asian/desi fragrance community: perfumes, attars, incense, gourmands | rec_ask, review, dupe_ask | Major discovery-pass find: clone-house/attar demand pool at scale; strong Lattafa-class-relevant audience | — | web_verified |
-| r/DIYfragrance | ~39K | Hobbyist perfumers; materials-literate | — | Low direct GTM value; occasional early note-trend signal | — | web_verified |
-| r/PerfumeOils | ~9K | Oil-based/attar-style (alcohol-free) perfume niche | rec_ask, review | Small; overlaps indie and Middle-Eastern-style interest | — | web_verified |
+| r/fragranceclones | ~295K | Dupe-seekers; clone-house comparison culture (verified sample discourse: "Lattafa The Kingdom as a clone of Le Male Elixir") | dupe_ask, review | The single most GTM-relevant fragrance venue: live which-clone-wins discourse maps directly to Play A target discovery | No self-promo (model_knowledge) | live_read |
+| r/DesiFragranceAddicts | ~298K | South Asian/desi fragrance community: perfumes, attars, incense, gourmands | rec_ask, review, dupe_ask | Clone-house/attar demand pool at scale; strong Lattafa-class-relevant audience | — | live_read |
+| r/DIYfragrance | ~46K | Hobbyist perfumers; materials-literate | — | Low direct GTM value; occasional early note-trend signal | — | live_read |
+| r/PerfumeOils | ~13K | Oil-based/attar-style (alcohol-free) perfume niche | rec_ask, review | Small; overlaps indie and Middle-Eastern-style interest | — | live_read |
 
-An **Arab-specific fragrance sub was not confirmed to exist** (searched under
-several plausible names). r/DesiFragranceAddicts is the closest verified
-regional community; a direct single-page Reddit check for Arab/khaleeji/oud
-subs is an open verification item, not a confirmed absence.
+Arab-specific check resolved (live read 2026-07-16): **r/arabfragrances
+exists but is dead** (1 member, created 2024) — not a venue.
+r/DesiFragranceAddicts is the regional community at scale.
 
 ## Tier 3 — Fragrance exchange / purchase intent
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/FragranceSwap | ~121K | Secondary-market traders; wts/wtb/wtt + decant culture | swap | Liquidity signal: what trades fast = revealed demand | Trade-rule heavy | web_verified |
-| r/Indiemakeupandmore | ~147K | Indie perfume-oil + indie beauty buyers; consumers, creators, AND shop owners | review, haul, rec_ask | Indie-house demand pool; overlaps fragrance and beauty lanes. Posture is the outlier: shop owners are welcome, so indie-brand self-promo is tolerated — the one listed venue where brand presence is native | Disclosure rules; self-promo tolerated for indie shops | web_verified |
+| r/FragranceSwap | ~125K | Secondary-market traders; wts/wtb/wtt + decant culture | swap | Liquidity signal: what trades fast = revealed demand | Trade-rule heavy | live_read |
+| r/Indiemakeupandmore | ~148K | Indie perfume-oil + indie beauty buyers; consumers, creators, AND shop owners | review, haul, rec_ask | Indie-house demand pool; overlaps fragrance and beauty lanes. Posture is the outlier: shop owners are welcome, so indie-brand self-promo is tolerated — the one listed venue where brand presence is native | Disclosure rules; self-promo tolerated for indie shops | live_read |
 
 ## Tier 4 — Beauty core hubs (consumer-demand lane, hub level)
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/SkincareAddiction | multi-M (sources conflict, 1.4M–5M) | Largest skincare hub; routine-driven, ingredient-literate | rec_ask, review | Category-scale demand pool; very high volume (historically 1000+ posts/day) | Verified strict: structured-post/routine-template rules, flair-gating, heavy self-promo restriction | web_verified (band only) |
-| r/MakeupAddiction | ~3–4M | Largest makeup hub; looks + product talk | review, haul, rec_ask | Category-scale; haul culture = purchase display | Some self-promo limits | web_verified (band only) |
-| r/SkincareAddicts | ~1M (unverified precision) | Less-strict spinoff/alternative to the flagship | rec_ask, review | Same demand pool, looser posting rules — often easier signal to read | Looser than flagship | exists_unverified_count |
-| r/AsianBeauty | count unverified (a 3.7M claim looks inflated) | K/J-beauty; ingredient-forward, import-savvy | rec_ask, review, haul | Trend-leading venue: K-beauty waves surface here before mass market | Strict sourcing rules (model_knowledge) | exists_unverified_count |
-| r/30PlusSkinCare | count unverified | Mature-skin demographic; higher spend capacity (community notable enough for 2020 Washington Post feature) | rec_ask, review | Demographic wedge with strong purchase intent | Moderate (model_knowledge) | exists_unverified_count |
-| r/beauty | count unverified | General beauty catch-all; beginner-heavy | rec_ask | Lower signal density than the dedicated hubs | — | model_knowledge (low confidence) |
-| r/HaircareScience | ~1M | Ingredient-literate haircare; active since 2013 | rec_ask, review | Haircare demand pool, evidence-oriented buyer language | Strict | web_verified |
-| r/curlyhair | count unverified | Curly-method community; product-routine-driven | rec_ask, review, haul | Product-dense; routine culture drives repeat purchase talk. Press-noted mixed inclusivity record for Black natural hair — see the Black-haircare gap in the discovery ledger | Moderate (model_knowledge) | exists_unverified_count |
-| r/lacqueristas | ~68K | Indie nail-polish/lacquer community (seed name r/RedditLaqueristas appears stale; live community goes by this name) | review, haul | Nail-category hub; review-heavy, indie-brand purchase intent | — | web_verified |
+| r/SkincareAddiction | ~5.0M | Largest skincare hub; routine-driven, science-based per its own bio | rec_ask, review | Category-scale demand pool; very high volume (historically 1000+ posts/day) | Verified strict: structured-post/routine-template rules, flair-gating, heavy self-promo restriction | live_read |
+| r/MakeupAddiction | ~7.5M | Largest venue in this entire inventory; looks + product talk | review, haul, rec_ask | Category-scale; haul culture = purchase display. Web-cached claims (3–4M) badly undercounted it | Some self-promo limits | live_read |
+| r/SkincareAddicts | ~1.2M | Less-strict spinoff/alternative to the flagship; "positive newbie-friendly" per bio | rec_ask, review | Same demand pool, looser posting rules — often easier signal to read | Looser than flagship | live_read |
+| r/AsianBeauty | ~3.76M | K/J-beauty; ingredient-forward, import-savvy | rec_ask, review, haul | Trend-leading venue: K-beauty waves surface here before mass market | Strict sourcing rules (model_knowledge) | live_read |
+| r/30PlusSkinCare | ~2.42M | Mature-skin demographic; higher spend capacity | rec_ask, review | Demographic wedge with strong purchase intent — far larger than expected | Moderate (model_knowledge) | live_read |
+| r/beauty | ~1.85M | General beauty catch-all; beginner-heavy | rec_ask | Lower signal density than the dedicated hubs | — | live_read |
+| r/HaircareScience | ~1.05M | Ingredient-literate haircare; active since 2013 | rec_ask, review | Haircare demand pool, evidence-oriented buyer language | Strict | live_read |
+| r/curlyhair | ~1.4M | Curly-method community; product-routine-driven | rec_ask, review, haul | Product-dense; routine culture drives repeat purchase talk. Press-noted mixed inclusivity record for Black natural hair — see r/NaturalHair and r/blackhair in Tier 5 | Moderate (model_knowledge) | live_read |
+| r/lacqueristas | ~74K | Indie nail-polish/lacquer community (seed name r/RedditLaqueristas appears stale; live community goes by this name) | review, haul | Nail-category hub; review-heavy, indie-brand purchase intent | — | live_read |
 
 ## Tier 5 — Beauty demographic / regional hubs
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/IndianSkincareAddicts | ~311K | Indian market; science-forward, mixes international + local brands | rec_ask, review, deal | Regional demand pool; dupe/afford discourse strong | Moderate | web_verified |
-| r/EuroSkincare | ~98K | EU availability/regulatory-aware buyers | rec_ask, review | Regional routing for EU demand questions | Moderate | web_verified |
-| r/AusSkincare | count unverified | Australian market | rec_ask, review | Regional routing | — | model_knowledge (low confidence) |
-| r/KoreanBeauty | count unverified (smaller than r/AsianBeauty) | K-beauty-only; industry-cited as higher purchase intent and brand loyalty than the broader hub | rec_ask, review, haul | Higher-intent niche alternative to r/AsianBeauty | — | exists_unverified_count |
-| r/malegrooming | count unverified | Men's grooming/skincare demographic hub | rec_ask, review | Men's-demographic routing; overlaps the fragrance male demand pool | — | exists_unverified_count |
-| r/tretinoin | ~275K | Single-ingredient community; high routine adherence | review, rec_ask | Ingredient-level demand depth; adjacent-product asks common | Moderate | web_verified |
+| r/IndianSkincareAddicts | ~314K | Indian market; science-forward, mixes international + local brands | rec_ask, review, deal | Regional demand pool; dupe/afford discourse strong | Moderate | live_read |
+| r/EuroSkincare | ~119K | EU availability/regulatory-aware buyers | rec_ask, review | Regional routing for EU demand questions | Moderate | live_read |
+| r/AusSkincare | ~220K | Australian + NZ market | rec_ask, review | Regional routing | — | live_read |
+| r/KoreanBeauty | ~369K | K-beauty-only; industry-cited as higher purchase intent and brand loyalty than the broader hub | rec_ask, review, haul | Higher-intent niche alternative to r/AsianBeauty | — | live_read |
+| r/malegrooming | ~1.08M | Men's hair/beard/skincare demographic hub ("number one... community on Reddit for men" per bio) | rec_ask, review | Men's-demographic routing; overlaps the fragrance male demand pool; much larger than expected | — | live_read |
+| r/NaturalHair | ~428K | Black natural-hair community | rec_ask, review, haul | Fills the Black-haircare demographic gap; primary venue | — | live_read |
+| r/blackhair | ~167K | Black hair care and admiration, all types/techniques | rec_ask, review | Companion Black-haircare venue | — | live_read |
+| r/tretinoin | ~287K | Retinoid community (tretinoin, adapalene, tazarotene per bio); high routine adherence | review, rec_ask | Ingredient-level demand depth; adjacent-product asks common | Moderate | live_read |
 
 ## Tier 6 — Retailer / deal / purchase-intent venues
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/Sephora | ~1M | Retailer-anchored; sale-cycle-driven | deal, haul, rec_ask | Purchase-intent-dense; sale threads = live conversion talk | Retailer-specific rules | web_verified |
-| r/Ulta | count unverified | Retailer-anchored | deal, haul | Same pattern as r/Sephora, different assortment | — | model_knowledge (low confidence) |
-| r/MUAontheCheap | ~1.1M | Deal-hunters across beauty; running since 2017 | deal | Price-elasticity radar; what moves on discount | Actively moderated, deal-format rules | web_verified |
-| r/MakeupDupes | count unverified | Dupe-finders (beauty analog of r/fragranceclones) | dupe_ask, review | Comparison-shopping intent; directly relevant if the beauty lane follows the aphrodite dupe-audience wedge | — | exists_unverified_count |
-| r/BeautyBoxes | count unverified | Subscription-box buyers | review, haul | Sampling-economy signal; discovery-driven buyers | — | model_knowledge (low confidence) |
+| r/Sephora | ~1.06M | Retailer-anchored; sale-cycle-driven | deal, haul, rec_ask | Purchase-intent-dense; sale threads = live conversion talk | Retailer-specific rules | live_read |
+| r/Ulta | ~158K | Retailer-anchored (unofficial, fans + employees per bio) | deal, haul | Same pattern as r/Sephora, different assortment | — | live_read |
+| r/MUAontheCheap | ~1.13M | Deal-hunters across beauty incl. fragrance sales (per bio); running since 2017 | deal | Price-elasticity radar; what moves on discount | Actively moderated, deal-format rules | live_read |
+| r/MakeupDupes | ~69K | Dupe-finders (beauty analog of r/fragranceclones) | dupe_ask, review | Comparison-shopping intent; directly relevant if the beauty lane follows the aphrodite dupe-audience wedge | — | live_read |
+| r/BeautyBoxes | ~523K | Subscription-box buyers | review, haul | Sampling-economy signal; discovery-driven buyers — far larger than expected | — | live_read |
 
 ## Tier 7 — Creator-watch (creator_signal radar)
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/BeautyGuruChatter | count unverified (a 3.1M claim looks inflated; likely mid-hundreds-K) | Creator-commentary community | creator_talk | Direct creator_signal radar: rising/falling creator credibility, sponsorship fatigue, scandal risk — inputs the product's creator vetting reads care about | Strict; no brigading (model_knowledge) | exists_unverified_count |
+| r/BeautyGuruChatter | ~3.08M | Creator-commentary community (influencers, MUAs, brand owners per bio) | creator_talk | Direct creator_signal radar: rising/falling creator credibility, sponsorship fatigue, scandal risk — inputs the product's creator vetting reads care about. The 3.1M web claim was real, not inflated — this venue is category-scale | Strict; no brigading (model_knowledge) | live_read |
 
 ## Tier 8 — Counterevidence / anti-consumption venues
 
@@ -158,8 +158,8 @@ counter-wave shows first.
 
 | Subreddit | Size band | Audience shape | Dominant signals | Radar / GTM note | Posture | Provenance |
 | --- | --- | --- | --- | --- | --- | --- |
-| r/MakeupRehab | count unverified | Anti-overconsumption; no-buy/low-buy support culture; regret and de-influencing talk | anti_haul | Counterevidence venue: hype fatigue, manufactured-demand skepticism. Purchase intent is suppressed by design — that inversion is the signal | Supportive-community rules | exists_unverified_count |
-| r/PanPorn | count unverified (a 1M+ claim is unverified precision) | Project-pan (use-it-up) culture | anti_haul, review | Usage-depth signal: what actually gets used vs shelfware | Moderate | exists_unverified_count |
+| r/MakeupRehab | ~189K | Anti-overconsumption; no-buy/low-buy support culture per its own bio; regret and de-influencing talk | anti_haul | Counterevidence venue: hype fatigue, manufactured-demand skepticism. Purchase intent is suppressed by design — that inversion is the signal | Supportive-community rules | live_read |
+| r/PanPorn | ~978K | Project-pan (use-it-up) culture; "well-loved makeup" | anti_haul, review | Usage-depth signal: what actually gets used vs shelfware — near-1M scale makes this a serious counterevidence pool | Moderate | live_read |
 
 ## Relation to the Reddit capture/scanning lanes
 
@@ -182,28 +182,29 @@ absorbing the other:
 
 ## Discovery ledger
 
-Verification method (2026-07-16): two web-search-only passes (no automated
-Reddit fetching). Most verified counts trace to cached third-party stat sites
-with roughly-2025 data vintage; treat every count as directional. Several
-tool-synthesized numbers with no linked source were discarded rather than
-recorded.
+Verification method: two web-search-only passes (2026-07-16), then a live
+seeding pass the same day — direct same-context `about.json` reads via the
+operator's browser session for all 35 tracked subs (exact counts, bios,
+titles, creation dates now in the registry; no Bronze packet exists for
+that pass). Every previously open count item is resolved.
 
-Open verification items (each needs one direct single-page Reddit check
-before load-bearing use; none blocks advisory routing):
+Resolutions from the live pass (2026-07-16):
 
-- r/Perfumes exact count (web search conflates it with the unrelated K-pop
-  r/Perfume); r/FemFragLab count; r/BeautyGuruChatter, r/AsianBeauty,
-  r/PanPorn, r/MakeupRehab counts (inflated or vague claims flagged above);
-  r/beauty, r/Ulta, r/BeautyBoxes, r/AusSkincare, r/curlyhair counts.
-- Whether an Arab/khaleeji/oud-specific fragrance sub exists (not found under
-  several plausible names; r/DesiFragranceAddicts is the closest verified
-  regional community).
-- A dominant Black-haircare hub (search coverage gap, not a confirmed
-  absence; r/curlyhair's press-noted inclusivity record makes this a real
-  demographic hole in the map).
-- r/basenotes likely does not exist as an active sub (the Basenotes brand is
-  a standalone forum, itself a non-Reddit venue worth its own row in any
-  future cross-forum inventory).
+- All counts confirmed at exact values (registry is authoritative). Notable
+  corrections vs the web-cached pass: r/MakeupAddiction is ~7.5M (web
+  claims of 3–4M badly undercounted); r/AsianBeauty ~3.76M and
+  r/BeautyGuruChatter ~3.08M (the "inflated-looking" claims were real);
+  r/PanPorn ~978K; r/30PlusSkinCare ~2.42M; r/malegrooming ~1.08M;
+  r/BeautyBoxes ~523K.
+- r/arabfragrances exists but is dead (1 member, created 2024): no
+  Arab-specific venue; r/DesiFragranceAddicts is the regional community.
+- Black-haircare gap filled: r/NaturalHair (~428K) and r/blackhair (~167K)
+  added to Tier 5 and the registry.
+- r/basenotes returns 403 (private/banned): not a venue. The Basenotes
+  brand is a standalone non-Reddit forum, worth its own row in any future
+  cross-forum inventory.
+- `active_user_count` was not exposed to the session's reads; the field
+  stays opportunistic in the registry.
 
 Deliberately excluded or out of scope for v0:
 

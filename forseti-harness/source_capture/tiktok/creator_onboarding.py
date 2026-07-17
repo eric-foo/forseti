@@ -58,6 +58,7 @@ TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
+TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION = "tiktok_profile_metric_capture_v0"
 DEFAULT_WINDOW_SIZE = 30
 DEFAULT_SELECTION_COUNT = 8
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
@@ -131,9 +132,23 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
     });
   }
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
+  const profileMetric = (selector) => {
+    const node = document.querySelector(selector);
+    const rawText = node
+      ? String(node.innerText || node.textContent || '').trim()
+      : '';
+    return {
+      element_present: Boolean(node),
+      raw_text_or_none: rawText || null
+    };
+  };
   return {
     ordered_videos: videos,
-    hydration_json_text: hydration ? hydration.textContent : null
+    hydration_json_text: hydration ? hydration.textContent : null,
+    profile_metric_dom: {
+      follower_count: profileMetric('strong[data-e2e="followers-count"]'),
+      profile_total_like_count: profileMetric('strong[data-e2e="likes-count"]')
+    }
   };
 }
 """.strip()
@@ -2133,6 +2148,7 @@ def build_tiktok_grid_window(
         raise TikTokCreatorOnboardingError("grid DOM observation lacks ordered_videos")
 
     metric_items = _metric_items_from_capture(capture, creator_handle)
+    profile_metrics = _profile_metrics_from_capture(capture, creator_handle)
     by_id = {str(item["video_id"]): item for item in metric_items}
     frozen: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -2198,6 +2214,10 @@ def build_tiktok_grid_window(
         "observed_ordered_video_count": len(ordered_videos),
         "observed_metric_video_count": len(metric_items),
         "complete": True,
+        "profile_metric_capture_policy_version": (
+            TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION
+        ),
+        "profile_metrics": profile_metrics,
         "items": frozen,
         "collection_receipt": {
             "capture_timestamp": capture.metadata.get("capture_timestamp"),
@@ -2431,6 +2451,15 @@ def _parse_tiktok_compact_count(value: Any) -> int | None:
     return int(count.to_integral_value(rounding=ROUND_HALF_UP))
 
 
+def _parse_tiktok_exact_count_text(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    normalized = re.sub(r"[\s,]", "", value)
+    if not normalized or re.fullmatch(r"\d+", normalized) is None:
+        return None
+    return int(normalized)
+
+
 def is_tiktok_profile_item_list_url(url: str) -> bool:
     parsed = urlparse(url)
     host = parsed.hostname.lower() if parsed.hostname else ""
@@ -2459,6 +2488,180 @@ def _metric_items_from_capture(
                     [*items, *_metric_items_from_payload(payload, creator_handle)]
                 )
     return items
+
+
+def _profile_metrics_from_capture(
+    capture: BrowserPageObservationSuccess,
+    creator_handle: str,
+) -> dict[str, dict[str, Any]]:
+    payloads: list[tuple[str, object]] = []
+    for response in capture.responses:
+        if not response.body_text:
+            continue
+        try:
+            payload = json.loads(response.body_text)
+        except json.JSONDecodeError:
+            continue
+        payloads.append(("profile_item_list_response", payload))
+    dom = capture.dom_observation
+    if isinstance(dom, dict):
+        hydration = dom.get("hydration_json_text")
+        if isinstance(hydration, str) and hydration.strip():
+            try:
+                payloads.insert(0, ("profile_hydration", json.loads(hydration)))
+            except json.JSONDecodeError:
+                pass
+
+    candidates: dict[str, list[tuple[str, dict[str, Any]]]] = {
+        "profile_user_info_stats": [],
+        "profile_author_stats": [],
+    }
+    for source_route, payload in payloads:
+        for candidate_kind, stats in _profile_stats_candidates(
+            payload,
+            creator_handle=creator_handle,
+        ):
+            candidates[candidate_kind].append((source_route, stats))
+
+    metric_fields = {
+        "follower_count": "followerCount",
+        "profile_total_like_count": "heartCount",
+    }
+    cells: dict[str, dict[str, Any]] = {}
+    for metric_name, source_field in metric_fields.items():
+        cell: dict[str, Any] | None = None
+        for candidate_kind in ("profile_user_info_stats", "profile_author_stats"):
+            tier = candidates[candidate_kind]
+            present = [
+                (source_route, stats[source_field])
+                for source_route, stats in tier
+                if source_field in stats
+            ]
+            if not present:
+                continue
+            exact_values = {
+                value
+                for _source_route, value in present
+                if type(value) is int and value >= 0
+            }
+            if len(exact_values) == 1 and all(
+                type(value) is int and value >= 0
+                for _source_route, value in present
+            ):
+                value = next(iter(exact_values))
+                cell = _profile_metric_cell(
+                    source_field=source_field,
+                    exact_value=value,
+                    source_route=f"{present[0][0]}:{candidate_kind}",
+                    raw_text=str(value),
+                )
+            elif len(exact_values) > 1:
+                cell = _profile_metric_cell(
+                    source_field=source_field,
+                    reason="conflicting_exact_structured_values",
+                    source_route=f"{present[0][0]}:{candidate_kind}",
+                )
+            else:
+                cell = _profile_metric_cell(
+                    source_field=source_field,
+                    reason="structured_value_not_exact_non_negative_integer",
+                    source_route=f"{present[0][0]}:{candidate_kind}",
+                    raw_text=str(present[0][1]),
+                )
+            break
+        if cell is None:
+            dom_cell = None
+            if isinstance(dom, dict):
+                dom_metrics = dom.get("profile_metric_dom")
+                if isinstance(dom_metrics, dict):
+                    candidate = dom_metrics.get(metric_name)
+                    if isinstance(candidate, dict):
+                        dom_cell = candidate
+            raw_text = (
+                dom_cell.get("raw_text_or_none")
+                if isinstance(dom_cell, dict)
+                else None
+            )
+            exact_value = _parse_tiktok_exact_count_text(raw_text)
+            if exact_value is not None:
+                cell = _profile_metric_cell(
+                    source_field=source_field,
+                    exact_value=exact_value,
+                    source_route="profile_header_dom_exact_text",
+                    raw_text=raw_text,
+                )
+            else:
+                reason = (
+                    "profile_count_unavailable"
+                    if raw_text in (None, "")
+                    else "profile_header_dom_compact_or_non_integer"
+                )
+                cell = _profile_metric_cell(
+                    source_field=source_field,
+                    reason=reason,
+                    source_route="profile_header_dom",
+                    raw_text=raw_text if isinstance(raw_text, str) else None,
+                )
+        cells[metric_name] = cell
+    return cells
+
+
+def _profile_stats_candidates(
+    payload: object,
+    *,
+    creator_handle: str,
+) -> list[tuple[str, dict[str, Any]]]:
+    normalized_handle = _normalize_handle(creator_handle)
+    found: list[tuple[str, dict[str, Any]]] = []
+
+    def matching_handle(value: object) -> bool:
+        return (
+            isinstance(value, dict)
+            and isinstance(value.get("uniqueId"), str)
+            and _normalize_handle(value["uniqueId"]) == normalized_handle
+        )
+
+    def visit(node: object) -> None:
+        if isinstance(node, list):
+            for value in node:
+                visit(value)
+            return
+        if not isinstance(node, dict):
+            return
+        user_info = node.get("userInfo")
+        if isinstance(user_info, dict):
+            user = user_info.get("user")
+            stats = user_info.get("stats")
+            if matching_handle(user) and isinstance(stats, dict):
+                found.append(("profile_user_info_stats", stats))
+        author = node.get("author")
+        author_stats = node.get("authorStats")
+        if matching_handle(author) and isinstance(author_stats, dict):
+            found.append(("profile_author_stats", author_stats))
+        for value in node.values():
+            visit(value)
+
+    visit(payload)
+    return found
+
+
+def _profile_metric_cell(
+    *,
+    source_field: str,
+    exact_value: int | None = None,
+    reason: str | None = None,
+    source_route: str,
+    raw_text: str | None = None,
+) -> dict[str, Any]:
+    observed = exact_value is not None
+    return {
+        "source_field": source_field,
+        "exact_value_or_none": exact_value,
+        "posture": "observed" if observed else "unavailable_with_reason",
+        "reason_or_none": None if observed else reason,
+        "source_route": source_route,
+        "raw_text_or_none": raw_text,
+    }
 
 
 def _profile_grid_subtitle_sources_from_capture(

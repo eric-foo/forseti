@@ -77,6 +77,35 @@ def dedupe_preserve_order(values: list[str]) -> list[str]:
     return result
 
 
+def canonical_old_reddit_thread_url(href: str) -> str | None:
+    """Canonicalize an old-reddit thread href to a trailing-slash comments URL.
+
+    Adopted body of the private copy in
+    ``capture_spine.reddit_subreddit_grid.grid_projection``. A relative
+    ``/r/`` href is absolutized to ``old.reddit.com``; anything not under
+    ``old.reddit.com/r/`` or without ``/comments/`` returns ``None``; the
+    query/fragment is dropped and a trailing slash enforced.
+
+    Two private copies deliberately do NOT adopt this home:
+    ``capture_spine.reddit_candidate_intake.projection`` keeps a byte-identical
+    body but is contract-isolated from ``source_capture`` (so it cannot import
+    this module), and ``source_capture.screening_extraction`` diverges
+    behaviorally (it also rewrites ``www.reddit.com`` -> ``old.reddit.com``).
+    Both keep a local copy with a ``# helper-delta:`` comment.
+    """
+    stripped = href.strip()
+    if stripped.startswith("/r/"):
+        stripped = f"https://old.reddit.com{stripped}"
+    if not stripped.startswith("https://old.reddit.com/r/"):
+        return None
+    stripped = stripped.split("#", 1)[0].split("?", 1)[0]
+    if "/comments/" not in stripped:
+        return None
+    if not stripped.endswith("/"):
+        stripped += "/"
+    return stripped
+
+
 def resolve_preserved_file_path(packet_dir: Path, file_id: str, relative_packet_path: str) -> Path:
     """Resolve a preserved file strictly INSIDE the packet directory.
 

@@ -112,8 +112,8 @@
     "onboarding_policy": {
       "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
       "derivation_diagnostics": {
-        "attributable_registry_packet_count": 455,
-        "qualifying_packet_count": 479,
+        "attributable_registry_packet_count": 456,
+        "qualifying_packet_count": 480,
         "unattributable_legacy_packet_count": 20,
         "unattributable_legacy_packet_ids": [
           "01KWBPW19TTG7VQM2EKKHMM0N7",
@@ -2456,7 +2456,7 @@
     "source_inputs": [
       {
         "role": "source-backed known public platform accounts and linkage state",
-        "sha256": "66dd3a916d7890d7998f1f08992e58d2543b727a8343529c8324521af64d43c0",
+        "sha256": "3a46fd4f6b4830addf9258359c0953bac1bff524ee6aedf9f0447c2d41763431",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       }
     ],

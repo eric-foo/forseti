@@ -283,6 +283,11 @@ class _OldRedditSubredditParser(HTMLParser):
 
 
 def _canonical_old_reddit_thread_url(href: str) -> str | None:
+    # helper-delta: body is byte-identical to
+    # projection_shared.canonical_old_reddit_thread_url but is kept local
+    # deliberately -- reddit_candidate_intake is contract-isolated from
+    # source_capture (test_reddit_candidate_intake_contract.py forbids that
+    # import root), so it cannot adopt the source_capture-scoped shared home.
     stripped = href.strip()
     if stripped.startswith("/r/"):
         stripped = f"https://old.reddit.com{stripped}"

@@ -51,13 +51,13 @@
     {
       "a2_fork_impact": "none",
       "call": "append_silver_record",
-      "count": 1,
+      "count": 2,
       "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 1,
+      "count": 2,
       "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
     },
     {
@@ -275,6 +275,12 @@
       "call": "record_path",
       "count": 2,
       "module": "runners/run_instagram_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "runners/run_source_capture_tiktok_daily_heartbeat.py"
     },
     {
       "a2_fork_impact": "none",
