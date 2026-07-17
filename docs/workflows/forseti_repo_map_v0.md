@@ -125,6 +125,13 @@ does not prove activation.
 | CI activation | `.github/workflows/ci.yml` |
 | Local Git activation | `.githooks/` and `.github/scripts/install-local-hooks.ps1` |
 
+Current interactive topology is intentionally protection-only: Claude runs the
+10-second protected-action guard plus one 5-second SessionStart capsule; Codex
+runs its 10-second protected-action adapter only. Claude has no `PostToolUse` or
+`Stop` registration and Codex has no `PostToolUse` registration. Durable shape
+checks, including placement, activate through CI; dormant `--hook` modes are not
+live registrations.
+
 A passing hook or checker establishes only its documented shape boundary. It is
 not validation, readiness, approval, source authority, or semantic truth.
 
@@ -149,7 +156,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `AGENTS.md` | Canonical root behavior kernel and Forseti triggers. |
 | `CLAUDE.md` | Thin Claude compatibility shim importing `AGENTS.md`. |
 | `.agents/workflow-overlay/` | Forseti workflow authority: source rules, folders, routing, prompts, validation, review, and safety. |
-| `.agents/hooks/` | Portable enforcement and advisory scripts; use the Active Hooks routes above. |
+| `.agents/hooks/` | Portable guards and mechanical checkers; use the Active Hooks routes above and tracked configuration to distinguish live wiring from dormant compatibility modes. |
 | `.agents/tools/` | Bounded agent-operated utilities; currently the exact-text fallback editor used only after the native patch route stalls. |
 | `.github/` | CI workflows and local operational scripts. |
 | `.githooks/` | Tracked local Git hook adapters; bypassable and not server-side protection. |

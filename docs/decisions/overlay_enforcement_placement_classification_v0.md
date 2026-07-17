@@ -29,6 +29,28 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-17: interactive hook subtraction and EP-04 relocation
+
+Forseti now uses the lowest-cost boundary that still catches each named defect
+before irreversible harm. Interactive hooks are reserved for prevention:
+Claude retains the 10-second protected-action guard and one 5-second
+SessionStart state read; Codex retains only its 10-second protected-action
+adapter. Claude `PostToolUse` and `Stop`, Codex `PostToolUse`, and the SCI commit
+reminder are removed. The SessionStart read now launches one internally
+2-second-capped Git status process and reports `UNKNOWN` on Git failure instead
+of false-clean state.
+
+EP-04 artifact placement moves to CI as
+`.agents/hooks/check_placement.py --changed --strict`. It uses the exact CI event
+base, checks A/M/C paths and rename destinations, ignores deletions, performs
+the lightweight map↔top-level-tree freshness check, and fails visibly when the
+strict diff or map is unavailable. It is not added to pre-push. Retained checker
+`--hook` modes are dormant compatibility only. The four true hook-only scripts
+(`remind_sci.py`, `check_prompt_provenance.py`, `check_shared_files_dirty.py`,
+`check_token_burn.py`) are retired rather than consolidated into a dispatcher.
+This subtraction mitigates hook amplification; it does not claim to repair the
+Codex Desktop sandbox transport defect.
+
 ## Update — 2026-07-16: EP-38 managed-receiver commission shell built
 
 EP-38 classifies the deterministic shell of the already-landed Implementation

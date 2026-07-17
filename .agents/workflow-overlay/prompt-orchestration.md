@@ -459,14 +459,13 @@ When a durable handoff-only packet is needed:
 A packet riding an implementation, doctrine, code, or other publication work
 unit lands in that work unit's normal PR.
 
-The `docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only
-for canonical filed prompt writes and injects the preflight — output mode, edit
-permission, source pack / required reads, the Source-Gated Method Contract, and
-the doctrine-change receipt. Lane-scoped prompts use an accepted PR-carried or
-scratch-carried path, so an eligible delegated review-and-patch prompt carries
-the compact default above rather than the escalated receipt. Other lane-scoped
-prompts carry the applicable routine or full fields; missing applicable
-preflight remains a prompt-quality defect.
+Canonical filed prompts and lane-scoped prompts carry the applicable preflight
+by contract; no write-time advisory hook injects it. Changed durable prompt
+shape is checked at CI by the prompt gates, while selection of routine, compact
+delegated, or full orchestration depth remains resident judgment. An eligible
+delegated review-and-patch prompt carries the compact default above rather than
+the escalated receipt. Missing applicable preflight remains a prompt-quality
+defect.
 
 If `workflow-prompt-orchestrator` is not resolver-available when a case needs it,
 apply this file's full contract or return a visible blocker; this routing default

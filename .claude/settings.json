@@ -23,74 +23,6 @@
             "timeout": 10
           }
         ]
-      },
-      {
-        "matcher": "Bash|PowerShell",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/remind_sci.py\" --hook",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_full_gt_claims.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_repo_map_freshness.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_placement.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_prompt_provenance.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_search_surface_google_route.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_shared_helper_duplication.py\" --hook",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_shared_files_dirty.py\" --hook",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_token_burn.py\"",
-            "timeout": 10
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -99,7 +31,7 @@
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/session_context_capsule.py\" --hook",
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
