@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import uuid
@@ -137,7 +138,12 @@ def _write_grid_packet(
             final_url=url,
             status=status,
             reason="OK" if 200 <= status < 300 else "Not Found",
-            metadata={"capture_timestamp": "2026-07-17T05:00:00Z"},
+            metadata={
+                "capture_timestamp": "2026-07-17T05:00:00Z",
+                "requested_url": url,
+                "final_url": url,
+                "status": status,
+            },
             body=GRID_HTML.encode("utf-8"),
             warning_notes=[],
             limitation_notes=[],
@@ -665,6 +671,7 @@ def test_batch_runner_content_mode_parses_in_flight_and_skips_post_hoc(
     def fake_capture(**kwargs: object) -> tuple[int, str]:
         captured_specs.append(kwargs["content_capture"])
         lake_packet_dir.mkdir(parents=True)
+        (lake_packet_dir / "content_record.json").write_text("{}\n", encoding="utf-8")
         return 0, str(lake_packet_dir)
 
     def fail_consolidate(**kwargs: object) -> dict[str, str]:
@@ -691,6 +698,48 @@ def test_batch_runner_content_mode_parses_in_flight_and_skips_post_hoc(
     assert row["consolidation_exit"] == 0
     assert row["consolidation_message"]["mode"] == "parse_in_flight"
     assert row["content_projection_failed"] is False
+
+
+def test_batch_runner_content_mode_raw_fallback_runs_post_hoc_consolidation(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    packet_dirs: list[Path] = []
+
+    def fake_capture(**kwargs: object) -> tuple[int, str]:
+        calls.append("capture")
+        packet_dir = Path(kwargs["output_directory"])
+        packet_dirs.append(packet_dir)
+        packet_dir.mkdir(parents=True)
+        (packet_dir / "http_response_body.bin").write_bytes(b"non-2xx response")
+        return 0, str(packet_dir)
+
+    def fake_consolidate(**kwargs: object) -> dict[str, str]:
+        calls.append("consolidate")
+        assert kwargs["packet_or_manifest_path"] == packet_dirs[0]
+        return {
+            "json_path": "x",
+            "receipt_path": "y",
+            "comment_count": "0",
+            "observable_comment_node_count": "0",
+        }
+
+    monkeypatch.setattr(batch_runner, "run_source_capture_http_packet", fake_capture)
+    monkeypatch.setattr(batch_runner, "consolidate_reddit_packet", fake_consolidate)
+
+    _, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://old.reddit.com/r/SaaS/comments/abc/example/")],
+        output_root=scratch_dir / "batch_raw_fallback",
+        decision_question="Does raw fallback stay consumable?",
+        delay_seconds=0.0,
+    )
+
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    assert calls == ["capture", "consolidate"]
+    row = summary["results"][0]
+    assert row["content_projection_failed"] is False
+    assert row["consolidation_exit"] == 0
+    assert row["consolidation_message"]["json_path"] == "x"
 
 
 def _single_file(packet_dir: Path, name_suffix: str) -> Path:
@@ -779,6 +828,27 @@ def test_content_projection_failure_falls_back_to_raw(
     assert block["projection_status"].startswith("failed: ValueError: boom")
 
 
+def test_non_object_content_projection_falls_back_to_raw(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def invalid_projector(html_text: str, final_url: str) -> dict:
+        return []  # type: ignore[return-value]
+
+    packet_dir = _write_grid_packet(
+        scratch_dir,
+        monkeypatch,
+        content_capture=_grid_content_spec(mode="content", projector=invalid_projector),
+        expected_exit=4,
+    )
+    _single_file(packet_dir, "http_response_body.bin")
+    _no_file(packet_dir, "content_record.json")
+    metadata = json.loads(
+        _single_file(packet_dir, "http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    assert metadata["content_capture"]["raw_preserved"] is True
+    assert metadata["content_capture"]["projection_status"].startswith("failed: TypeError:")
+
+
 def test_materializer_accepts_content_mode_packet(
     scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -840,3 +910,39 @@ def test_parser_fit_check_match_drift_and_content_only_rejection(
     honest_only_exit, honest_report = run_reddit_parser_fit_check(packet_paths=[honest_dir])
     assert honest_only_exit == 0
     assert honest_report["results"][0]["status"] == "match"
+
+
+def test_parser_fit_check_rejects_record_subreddit_not_bound_to_packet(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = _write_grid_packet(
+        scratch_dir, monkeypatch, content_capture=_grid_content_spec(mode="sample")
+    )
+    content_path = _single_file(packet_dir, "content_record.json")
+    record = json.loads(content_path.read_text(encoding="utf-8"))
+    record["grid_view"]["subreddit"] = "fragrance"
+    content_path.write_text(
+        json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    manifest_path = packet_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    content_entry = next(
+        item
+        for item in manifest["preserved_files"]
+        if item["relative_packet_path"].endswith("content_record.json")
+    )
+    content_entry["sha256"] = hashlib.sha256(content_path.read_bytes()).hexdigest()
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    exit_code, report = run_reddit_parser_fit_check(packet_paths=[packet_dir])
+
+    assert exit_code == 1
+    row = report["results"][0]
+    assert row["status"] == "check_failed"
+    assert row["failure_code"] == "grid_subreddit_mismatch"

@@ -22,6 +22,7 @@ from source_capture.cadence import CadenceMode, build_cadence_plan
 from source_capture.content_capture import (
     CAPTURE_ARTIFACT_MODES,
     CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
     ContentCaptureSpec,
 )
 from source_capture.reddit_consolidation import (
@@ -116,6 +117,7 @@ def run_reddit_old_http_batch(
             "capture_started_at": None,
             "capture_finished_at": None,
             "content_projection_failed": False,
+            "content_record_preserved": False,
         }
 
         content_spec = None
@@ -170,13 +172,19 @@ def run_reddit_old_http_batch(
                 # Lake commit: the runner returns the committed packet directory.
                 packet_dir = Path(capture_message)
                 row["packet_dir"] = str(packet_dir)
+            if content_spec is not None and packet_dir is not None:
+                row["content_record_preserved"] = _packet_preserves_content_record(packet_dir)
         except Exception as exc:
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
         finally:
             row["capture_finished_at"] = utc_now_z_microseconds()
 
-        if row["capture_exit"] == 0 and content_spec is not None:
+        if (
+            row["capture_exit"] == 0
+            and content_spec is not None
+            and row["content_record_preserved"]
+        ):
             # Parse-in-flight succeeded: the thread record is preserved inside
             # the packet as content_record.json; there is no post-hoc step.
             row["consolidation_exit"] = 0
@@ -245,6 +253,17 @@ def run_reddit_old_http_batch(
         newline="\n",
     )
     return 0, str(summary_path)
+
+
+def _packet_preserves_content_record(packet_dir: Path) -> bool:
+    return (
+        sum(
+            1
+            for path in packet_dir.rglob(CONTENT_RECORD_FILENAME)
+            if path.is_file() and path.name == CONTENT_RECORD_FILENAME
+        )
+        == 1
+    )
 
 
 def load_slots(path: Path) -> list[BatchSlot]:

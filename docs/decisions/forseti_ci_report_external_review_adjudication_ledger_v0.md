@@ -26,16 +26,16 @@ stale_if:
   - The owner reverses any ruling recorded here.
 ```
 
-Authority: owner rulings in chat, 2026-07-17. Status: OPEN — awaiting
-adjudication of 1-2 remaining external responses before the contract pass.
-Next source after the contract pass lands: the CSB contract files named in
-`open_next`.
+Authority: owner rulings in chat, 2026-07-17. Status: COMPLETE — all external
+input adjudicated (one session total); the contract pass awaits the owner's
+"go" plus the chain design handoff's returned proposal. Next source after the
+contract pass lands: the CSB contract files named in `open_next`.
 
 ## How this ledger works
 
-External evaluators (2-3 independent ChatGPT Pro sessions) assessed the Tower
-28 Phase 1 bundle (report + scan receipt + CSB board; Phase 2 excluded) for
-CI-worthiness. Each batch is adjudicated confirm-don't-trust against the
+One external ChatGPT Pro session assessed the Tower 28 Phase 1 bundle
+(report + scan receipt + CSB board; Phase 2 excluded) for CI-worthiness,
+returning two batches. Each batch is adjudicated confirm-don't-trust against the
 artifacts; every falsifiable claim is verified by direct read before
 acceptance. Batch 1's falsifiable defect claims verified 4-for-4 correct.
 
@@ -65,7 +65,7 @@ a definition line at most.
 | 1 | Organize synthesis around commercial decisions | Owner accepts the criticism at full strength (external score 3/10 on this axis); the exec layer is mandatory, not optional |
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
 | 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
-| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rule (owner, 2026-07-17): never state a complaint rate without a denominator; classify a theme by WHICH claim it attacks, not by volume; name an expected-background class (idiosyncratic/allergy-type reactions every sensitive-skin brand accrues) — a theme graduates from background to core-positioning threat only when it is ingredient-specific, repeated across independent venues, or attacks the load-bearing claim directly. **Chain section EXECUTED** (owner-directed, 2026-07-17): landed in the company contract Section 7 per the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` — a partial execution of the contract pass. The chain-local item 9 five-field compression and item 12 CSB capture-trigger pointer travel with this section; broader item 9 placement, item 12 non-CSB preservation seams, and every other deferred item below still await the owner's go |
+| 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rules (owner, 2026-07-17, two rounds): never state a complaint rate without a denominator — proportions are of STATED SAMPLES; the strongest denominator is substantive review bodies (verified-purchase, non-trivial text) — contentless drive-by 1-stars are excluded from classification (aggregate star distributions are collected separately and already cover them); classify a theme by WHICH claim it attacks, not by volume; NO background/comparator base-rate tracking (owner rejected: too hard to maintain — assume category background instead), because the claim-amplification principle does that job: an explicit brand claim ("won't break you out") amplifies any complaint that attacks it — the stronger the claim, the more a claim-attacking complaint counts. Design work routed to the chain design handoff below. **Chain section EXECUTED** (owner-directed, 2026-07-17): the reviewed design at `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` landed in the company contract Section 7, refining the interim chain paragraph the synthesis-layer pass had placed there; the chain-local item 9 five-field compression and item 12 CSB capture-trigger pointer travel with this section |
 | 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
@@ -74,6 +74,25 @@ a definition line at most.
 | 10 | Central promise (where value resides, what drives it, is it strengthening, what threatens it) | Accepted as the report's front-page voice AND as the internal decision-adjudication frame; rejected as the product center (product center stays decision adjudication, owner-locked) |
 | 11 | Readability | Owner requires the report be "way more readable": exec brief as h2 preamble, plain-language section leads, the two cheap matrices (SKU reception; known/inferred/unknown) as plain markdown tables; audit ledgers stay but move visually behind the narrative |
 | 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl. Mechanics (owner discussion 2026-07-17): single-file HTML (MHTML/SingleFile-style) preferred — text-searchable, diffable, ~1-5 MB raw and compresses 80-90%; full-page screenshot only when layout itself is the evidence, auto-compressed to WebP; auto-compression is a one-line adapter step, worth doing, no further engineering |
+
+## Chain-card presentation principle (accepted 2026-07-17)
+
+The client-facing form of the choice-mechanism chain is "five sentences with
+receipts", one card per hero product, read top to bottom as one story:
+
+1. **The promise** — the claim, cited to the brand's own surface.
+2. **Why people pay** — the buy motivation, cited to customer-world evidence.
+3. **What actually happens** — reception state, cited to review/rating rows.
+4. **The dangerous complaint** — dangerous not because of volume but because
+   it attacks the promise itself (claim-amplification principle), cited.
+5. **Where they go next** — the substitute waiting when the promise breaks,
+   cited.
+
+Together: "here is why your customers pay extra, here is the exact sentence
+that breaks the spell, and here is who catches them when it does." The report
+front page is three or four such stories at one line each; every aggressive
+sentence sits on five receipts a skeptic can click through. The chain design
+handoff's D4 deliverable implements this form.
 
 ## Preservation seam design (agreed 2026-07-17; lands with the contract pass)
 
@@ -111,13 +130,13 @@ mechanism is extended, one small change per seam:
   under the upgraded contract -> give the new bundle to a fresh external
   session and compare against this round's findings.
 - Choice-mechanism chain design handoff: COMMISSIONED AND DELIVERED
-  (2026-07-17). Packet `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` (authored on branch `claude/tower28-c1-corrections-c5-validator`) was
+  (2026-07-17). Packet
+  `docs/workflows/forseti_choice_mechanism_chain_design_handoff_v0.md` was
   executed; the design proposal at
   `docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md` was
-  adversarially reviewed, patched, and then implemented into the company
-  contract Section 7 by owner direction (2026-07-17) — see the item 4
-  execution note above. Packet consumed; the remaining contract-pass items
-  still execute only from owner-adjudicated items recorded here.
+  adversarially reviewed, patched, delegate-hardened, and implemented into
+  the company contract Section 7 by owner direction — see the item 4
+  execution note above. Packet consumed.
 
 ## Rejected (do not resurrect without new owner word)
 

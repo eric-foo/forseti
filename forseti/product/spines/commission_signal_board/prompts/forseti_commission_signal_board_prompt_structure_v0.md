@@ -313,6 +313,11 @@ inside that period may be primary for the longitudinal question, but its actual
 date and tier remain visible and it is never relabeled current. A named event is
 a route or query inside one of these two postures.
 
+Do not label aligned signals observed across independent venues at one point in
+time as `co-movement`: that is spatial alignment. `Co-movement` is a temporal
+classification reserved for a future longitudinal product and requires at least
+two observation dates; this contract does not emit it.
+
 ## Mini God Tier Target And Visible Limitations
 
 Aim for mini god tier in the limited Forseti sense: most of the value of a heavier
@@ -699,6 +704,51 @@ standard classifier handoff. Sections 1, 3, 4, 9, and 10 require the typed YAML
 documents below. Sections 2 and 5-8 are concise narrative sections that cite
 the applicable `OBS-NNN` rows and preserve their named boundaries.
 
+Admission principle for synthesis: an observation earns narrative placement
+when it strengthens a linked commercial claim — a stated connection between
+evidence and a consequence-bearing statement — not merely because it covers a
+lens. Ledger completeness rules are unchanged; this governs what the narrative
+foregrounds. Route research priorities retail, customer, and claims first,
+subject to the named-job and substitution rules; this is an attention order,
+not a quota or proof hierarchy. Readability: Sections 5-8 open with
+plain-language lead sentences before citation density and include both the
+SKU/item-reception and known/inferred/unknown matrices as plain Markdown tables,
+using explicit gap or unknown cells where evidence is absent. The typed ledgers
+remain the audit floor behind the narrative, never the front door.
+
+### Executive Intelligence Brief (completed reports only)
+
+A completed company report (`run_boundary:
+COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION`) opens with an
+`## Executive Intelligence Brief` preamble before Section 1 — the
+decision-facing layer over the audit spine. Commission-stage boards
+(`COMMISSION_SEALED_PRE_SCAN`) omit it: no earned conclusions exist yet.
+The brief contains:
+
+- Three to seven front-page conclusions, each in the five-field form:
+  claim / evidence bound / commercial consequence / confidence / next
+  observable. State commercial consequence with maximum decisive directness
+  and state confidence plainly at the strongest level the evidence and
+  uncertainty support. This authorizes aggressive clarity, not stronger
+  evidence or higher confidence: the evidence bound and next observable make
+  the statement auditable. Never inflate evidence, certainty, or
+  representativeness, and keep the report
+  decision-aware-neutral: consequence names which decisions the conclusion
+  could inform, never pain, priority, buyer, or wedge assignment.
+- One chain card per hero product where the evidence supports it: five cited
+  lines — the claim; observed buy motivation within the cited customer-world
+  sample (not willingness-to-pay or representative demand); observed
+  experience; the complaint that attacks the claim; the bounded substitute
+  customers cite or compare when the claim breaks (not a defection or
+  demand-capture claim). A card compresses to one front-page conclusion row;
+  normally present three or four such rows when the hero set and evidence
+  support them, and never pad to reach that range.
+- The central-promise voice and internal adjudication frame: where observable
+  value resides; what drives it; whether the evidence shows it strengthening,
+  weakening, or not proven; and what threatens it — each statement carrying
+  its invalidation condition. This frame organizes conclusions; it does not
+  replace decision adjudication as the product center.
+
 ### 1. Company Commission And Identity Receipt
 
 ```yaml
@@ -795,12 +845,18 @@ demand or internal company fact.
 
 Summarize observable positioning, offerings/claims, markets, and channels.
 Cite the supporting observation IDs and name contradictions and evidence gaps.
+Where the substrate supports it, state publicly visible concentration — which
+franchises, retailers, and surfaces observable value concentrates in — always
+as visible concentration, never revenue concentration, share, or dependence
+claims.
 
 ### 6. Strategic And Operating Chronology
 
 Summarize strategic and operating chronology with observation IDs. Under
 `longitudinal`, name the bounded change, recurrence, or trajectory; otherwise
-do not manufacture one. Preserve evidence gaps.
+do not manufacture one. Preserve evidence gaps. For each material
+interpretation this section carries, state what observable evidence would
+invalidate it.
 
 ### 7. Customer And Community Response
 
@@ -884,14 +940,20 @@ Chain rules (conclusion-writing guidance; no other durable structure):
 - Compress each card to one 5-field conclusion row — claim / evidence /
   consequence / confidence / next observable — with maximum aggressiveness
   in consequence and confidence, made safe by the evidence bound and the
-  next observable, never by evidence overclaim. Conclusion rows lead this
-  section until a later-accepted executive layer binds their placement.
+  next observable, never by evidence overclaim. Conclusion rows feed the
+  Executive Intelligence Brief preamble.
 
 ### 8. Competitor Context, Contradictions, And Gaps
 
 Use bounded comparator pointers only where they interpret the subject. Cite
 observation IDs, contradictions, and gaps. State that deep competitor treatment
-requires a separately named follow-up commission.
+requires a separately named follow-up commission. Collect defensibility raw
+material where visible — comparator claims language, substitution economics,
+price gaps, claims parity — as bounded observations only; the defensibility
+judgment itself belongs to the downstream adjudication layer, never this
+report. Phase 1 collects that generic raw material once. A downstream Phase 2
+may request fresh evidence only as a decision-specific supplement for the
+decision it is adjudicating, never as a general re-scan.
 
 ### 9. Company Surface Candidate Ledger
 
@@ -956,7 +1018,15 @@ CSB planning completeness is coverage of every required lens plus explicit
 typed gaps, exclusions, and requests. It is not acquisition closure or final
 packet inclusion, and no length, page, source-count, observation, venue, or
 capture-target number establishes it. Scanning owns marginal acquisition,
-dominance, and acquisition closure.
+dominance, and acquisition closure. In lens coverage, `complete` means covered
+for the commissioned purpose with typed gaps — never exhaustive; when coverage
+is materially partial, the lens rationale names its decisive gap ids.
+
+Preservation trigger for requests: route a Capture request when an observation
+is conclusion-bearing, disputable, or likely to disappear, naming which
+conclusion depends on it; negative/absence observations need route, date, and
+query only, never capture. Fulfillment mechanics (single-file capture,
+compression, receipts) are Capture-owned.
 
 Commission-stage rule: a company board sealed **before** its scan executes uses
 `run_boundary: COMMISSION_SEALED_PRE_SCAN`. That boundary is valid only while
@@ -1025,11 +1095,12 @@ direction_change_propagation:
     observation rows — the only durable structure added. Origin: adjudication
     ledger item 4 chain section, owner-directed implementation 2026-07-17,
     design docs/workflows/forseti_choice_mechanism_chain_design_proposal_v0.md.
-    Partial execution of the deferred contract synthesis pass: only the
-    chain-local item 9 compression and item 12 existing capture-trigger pointer
-    travel with this implementation; broader item 9 placement, item 12
-    non-CSB seams, and every other ledger item remain deferred pending owner
-    go.
+    This is the Section 7 chain refinement anticipated by the synthesis-layer
+    receipt below, and it supersedes that pass's interim Section 7 chain
+    paragraph; the chain-local item 9 compression and item 12 capture-trigger
+    pointer travel with it. The broader synthesis layer (exec brief,
+    concentration, invalidation, defensibility priming, readability,
+    preservation trigger) landed separately under that receipt.
   trigger: product_doctrine
   related_triggers:
     - output_authority
@@ -1071,8 +1142,65 @@ direction_change_propagation:
   non_claims:
     - not validation or readiness
     - not scanning, capture, sampling execution, or monitoring authorization
-    - not the full contract synthesis pass; broader item 9 placement, item 12 non-CSB seams, and remaining ledger items stay deferred
+    - not the full contract synthesis pass; this receipt covers only the Section 7 chain refinement (the synthesis layer landed under the next receipt)
     - not a change to profile routing, classifier boundaries, recency doctrine, or the observation ledger schema
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The company competitive-intelligence contract gains its synthesis layer as
+    guidance-only text (no schema, ledger, or validator-field changes):
+    completed reports open with an Executive Intelligence Brief preamble
+    (three to seven five-field conclusions at maximum decisive strength inside
+    the decision-neutral boundary, chain cards, central-promise voice with
+    invalidation conditions); Section 5 states publicly visible concentration;
+    Section 6 states invalidation signals; Section 7 builds the
+    customer-choice mechanism chain with the five-way complaint classification
+    and stated-sample proportionality rules; Section 8 primes defensibility
+    raw material without judgment; the linked-commercial-claim admission
+    principle and plain-language readability govern narrative foregrounding;
+    lens-status `complete` is defined as covered-for-purpose-with-typed-gaps;
+    a preservation trigger governs when observations route Capture requests.
+    Origin: the externally-assessed Tower 28 round adjudicated in
+    docs/decisions/forseti_ci_report_external_review_adjudication_ledger_v0.md
+    (owner rulings 2026-07-17). The chain design handoff lane may refine the
+    Section 7 mechanics; its return is adjudicated against the same ledger.
+  trigger: output_authority
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/
+    - docs/research/forseti_beauty_tower28_company_intelligence_report_v1.md
+  intentionally_not_updated:
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        Owner-bound as guidance-only: no validator enforcement of synthesis
+        quality; the recurring toll stays writing better conclusions, not
+        filling more forms. Existing fixtures and the Tower 28 v1 report
+        remain mechanically valid without the new preamble.
+    - path: docs/research/forseti_beauty_tower28_company_intelligence_report_v1.md
+      reason: >
+        A landed report is a sealed run artifact; the upgraded contract
+        governs future runs, and the comparison loop reruns under it rather
+        than back-editing history.
+  stale_language_search: >
+    rg -n "Executive Intelligence Brief|chain card|five-field|five-way|
+    stated sample|preservation trigger|linked commercial claim"
+    forseti/product/spines/commission_signal_board docs/decisions -S
+  stale_language_search_result: >
+    Executed 2026-07-17 after edits. Hits are the amended contract text, the
+    adjudication ledger that sourced it, and this receipt. No surface still
+    describes company-report synthesis as citation-only summaries.
+  non_claims:
+    - not validation or readiness
+    - not a schema, ledger, or validator change
+    - not scanning, capture, or monitoring authorization
+    - not a change to the decision-neutral boundary or claim discipline
 ```
 
 ```yaml
