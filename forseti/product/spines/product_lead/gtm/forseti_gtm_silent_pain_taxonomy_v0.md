@@ -158,6 +158,23 @@ and internal owner.
    company coverage, and licensees can explain a gap; cannot prove misuse.
    Owner: Sustainability / Regulatory / Brand Operations.
 
+10. **Unauthorized sellers (gray-market diversion).** Owner-accepted
+    2026-07-18; Forseti-added class (not in the source's 18; passes the five
+    gates). The brand's authorized-retailer page names its channel; marketplace
+    "sold by" seller lists show who actually sells. Every unauthorized unit
+    leaked from somewhere in the chain — distributor dumping, retailer
+    diversion, liquidation lots, arbitrage — and erodes price architecture,
+    retailer parity, claims control, and recall ability. Check: authorized-
+    retailer page vs Amazon/eBay seller lists for hero SKUs; count distinct
+    third-party sellers and price vs MSRP. Falsifier: quiet authorization via
+    a distributor or a first-party brand presence — the strong form is absence
+    from the authorized list plus multiple independent sellers below MSRP.
+    Limit: cannot see the leak's origin, volumes, or in-flight enforcement.
+    Owner: CEO / General Counsel / VP Sales. Tower 28 instance (candidate,
+    from an owner-supplied authorized-retailers screenshot omitting Amazon
+    while Amazon carries product — must be re-observed in-lane before any
+    report use; sharpens CSC-004).
+
 ## Tier B — accepted, lower priority for the $10-100M US bracket
 
 - **Orphan web pages** (stale live PDPs, broken redirects): highly
