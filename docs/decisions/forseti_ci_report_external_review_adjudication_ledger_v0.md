@@ -66,7 +66,7 @@ a definition line at most.
 | 2 | Concentration synthesis (publicly visible concentration, never revenue concentration) | Accepted; retailer-coverage breadth noted as thin — see retailer probe below |
 | 3 | Momentum classification | Vocabulary accepted for the future longitudinal product; renamed **co-movement** (owner, 2026-07-17); not adoptable now — consumes time series we deliberately do not collect. Boundary note: our current aligned-signal discipline is spatial (same theme across independent venues at one point in time); co-movement is temporal (signals moving together across snapshots) and needs at least two observation dates |
 | 4 | Customer-choice mechanism chain + claims-to-complaints five-way classification | Accepted — rated the single best external item; claim discipline stays ours (describe substitution citing, never demand capture). Proportionality rule (owner, 2026-07-17): never state a complaint rate without a denominator; classify a theme by WHICH claim it attacks, not by volume; name an expected-background class (idiosyncratic/allergy-type reactions every sensitive-skin brand accrues) — a theme graduates from background to core-positioning threat only when it is ingredient-specific, repeated across independent venues, or attacks the load-bearing claim directly |
-| 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment |
+| 5 | Defensibility / attack-surface read | Accepted as a Phase 2 adjudication-layer lens, not Phase 1 substrate. Priming rule (owner, 2026-07-17): the CSB Phase 1 contract should prime collection of defensibility RAW MATERIAL — comparator claims language, substitution economics, price-gap observations, claims-parity reads — without making the defensibility judgment. Phase-boundary rule (owner, 2026-07-17): Phase 1 collects the generic raw material once; Phase 2 does gather fresh evidence, but ONLY decision-specific supplements for the decision it is adjudicating — never a general re-scan |
 | 6 | Invalidation signals stated inside Phase 1 chronology synthesis | Accepted |
 | 7 | Research priority order (retail/customer/claims first) | Accepted as-is |
 | 8 | Linked-commercial-claim admission principle | Principle accepted; their typed relationship schema rejected — we use our existing observation/candidate structure |
@@ -74,6 +74,28 @@ a definition line at most.
 | 10 | Central promise (where value resides, what drives it, is it strengthening, what threatens it) | Accepted as the report's front-page voice AND as the internal decision-adjudication frame; rejected as the product center (product center stays decision adjudication, owner-locked) |
 | 11 | Readability | Owner requires the report be "way more readable": exec brief as h2 preamble, plain-language section leads, the two cheap matrices (SKU reception; known/inferred/unknown) as plain markdown tables; audit ledgers stay but move visually behind the narrative |
 | 12 | Evidence-preservation trigger | Same deferral as the contract pass. Governing rule accepted: preserve (screenshot/HTML) what could change a conclusion, be disputed, or disappear; negatives need route+date+query only. Routed to the Capture seam as a capture-request trigger, not a data-lake build. Bloat control: conclusion-bearing observations only — for a Tower 28-scale run that is roughly 10-30 captures, not a crawl. Mechanics (owner discussion 2026-07-17): single-file HTML (MHTML/SingleFile-style) preferred — text-searchable, diffable, ~1-5 MB raw and compresses 80-90%; full-page screenshot only when layout itself is the evidence, auto-compressed to WebP; auto-compression is a one-line adapter step, worth doing, no further engineering |
+
+## Preservation seam design (agreed 2026-07-17; lands with the contract pass)
+
+No new spine, no data-lake build — the existing CR-### capture-request
+mechanism is extended, one small change per seam:
+
+- **CSB (commission layer)**: guidance only — states the trigger rule
+  (preserve what could change a conclusion, be disputed, or disappear;
+  negatives need route+date+query only). No schema change.
+- **Scanning**: at observation time, an observation meeting the trigger emits
+  a typed capture request carrying a `preservation_reason`
+  (`conclusion_bearing` | `disputable` | `volatile`), the exact URL, and which
+  conclusion depends on it. This reuses the existing CR-### rows (Tower 28
+  already emitted 3).
+- **Capture**: fulfills the CR with a single-file HTML capture (full-page
+  screenshot only when layout itself is the evidence), auto-compressed,
+  stored under the commission's folder in the data lake per the lake
+  physicality contract, returning a capture receipt (path, hash, capture
+  date) — or typed route failure.
+- **Report**: an observation row backed by a fulfilled capture cites the
+  capture receipt locator, so the claim chain ends at an artifact we hold,
+  not a live URL.
 
 ## Open questions feeding the same pass
 
@@ -83,8 +105,14 @@ a definition line at most.
   four known candidates; owner binds before any probe. Geographic default:
   US-first comparison spine + one bounded home-market read where the subject's
   home market differs (owner-overridable at binding).
-- Remaining external responses: adjudicate into this ledger before the
-  contract pass (owner to confirm how many are still outstanding).
+- External input COMPLETE (owner, 2026-07-17): one ChatGPT Pro session was
+  run in total; both adjudicated batches came from it. Comparison loop bound:
+  improve the contract from this ledger -> run a fresh company (or rerun)
+  under the upgraded contract -> give the new bundle to a fresh external
+  session and compare against this round's findings.
+- Choice-mechanism chain design handoff: owner is weighing a bounded design
+  handoff for the chain pillar (evidence-acquisition lenses below title-level
+  + client-facing presentation format). Not yet commissioned.
 
 ## Rejected (do not resurrect without new owner word)
 
