@@ -731,7 +731,14 @@ The brief contains:
   and state confidence plainly at the strongest level the evidence and
   uncertainty support. This authorizes aggressive clarity, not stronger
   evidence or higher confidence: the evidence bound and next observable make
-  the statement auditable. Never inflate evidence, certainty, or
+  the statement auditable. Two guards keep that directness honest, written in
+  plain analyst prose rather than stacked qualifiers: an inference stays
+  worded as an inference even at full directness — "the storefront is most
+  plausibly brand-operated" is fully decisive without claiming the
+  observation — and a small or uncorroborated sample supports existence
+  ("substantive complaints exist and attack the claim"), never
+  concentration, rates, or comparatives, unless a comparator base is cited.
+  Never inflate evidence, certainty, or
   representativeness, and keep the report
   decision-aware-neutral: consequence names which decisions the conclusion
   could inform, never pain, priority, buyer, or wedge assignment.
