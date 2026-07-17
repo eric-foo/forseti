@@ -18,6 +18,8 @@ import re
 from dataclasses import asdict, dataclass, field
 from html.parser import HTMLParser
 
+from source_capture.projection_shared import canonical_old_reddit_thread_url
+
 # Bump on ANY behavior change to this projection so content packets written
 # under the old behavior stay distinguishable from re-projections under the
 # new one (parser-fit drift checks compare records only within one version).
@@ -218,7 +220,7 @@ class _OldRedditGridParser(HTMLParser):
         if tag == "a" and _is_title_anchor(class_tokens):
             href = attr_map.get("href", "")
             if self._current.get("thread_url") is None:
-                self._current["thread_url"] = _canonical_thread_url(href)
+                self._current["thread_url"] = canonical_old_reddit_thread_url(href)
             if self._current.get("title") is None:
                 self._capturing_title_depth = self._thing_depth
         elif "score" in class_tokens and "unvoted" in class_tokens:
@@ -297,7 +299,7 @@ class _OldRedditGridParser(HTMLParser):
     def _open_thing(self, attr_map: dict[str, str], class_tokens: set[str]) -> None:
         permalink = attr_map.get("data-permalink", "")
         self._current = {
-            "thread_url": _canonical_thread_url(permalink) if permalink else None,
+            "thread_url": canonical_old_reddit_thread_url(permalink) if permalink else None,
             "subreddit": attr_map.get("data-subreddit", "") or self.declared_subreddit,
             "title": None,
             "score": attr_map.get("data-score") or None,
@@ -332,21 +334,9 @@ def _is_title_anchor(class_tokens: set[str]) -> bool:
     return "title" in class_tokens
 
 
-def _canonical_thread_url(href: str) -> str | None:
-    stripped = href.strip()
-    if stripped.startswith("/r/"):
-        stripped = f"https://old.reddit.com{stripped}"
-    if not stripped.startswith("https://old.reddit.com/r/"):
-        return None
-    stripped = stripped.split("#", 1)[0].split("?", 1)[0]
-    if "/comments/" not in stripped:
-        return None
-    if not stripped.endswith("/"):
-        stripped += "/"
-    return stripped
-
-
 def _str_or_none(value: object) -> str | None:
+    # helper-delta: str-only vs harness_utils.string_or_none, which also
+    # int-coerces; this copy returns None for a non-str (no coercion).
     if isinstance(value, str) and value.strip():
         return value.strip()
     return None

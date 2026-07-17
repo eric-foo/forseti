@@ -323,6 +323,9 @@ _OLD_REDDIT_LISTING_SPEC = StructuredListingExtractionSpec(
 
 
 def _canonical_old_reddit_thread_url(href: str) -> str | None:
+    # helper-delta: extra www.reddit.com -> old.reddit.com rewrite vs
+    # projection_shared.canonical_old_reddit_thread_url, which admits only
+    # old.reddit.com hosts; keep this copy local for the www rewrite.
     stripped = href.strip()
     if stripped.startswith("/r/"):
         stripped = f"https://old.reddit.com{stripped}"
