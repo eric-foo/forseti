@@ -99,7 +99,7 @@ def embedded_json(html, marker):
                 if depth == 0:
                     try:
                         return json.loads(html[start : i + 1])
-                    except Exception:
+                    except json.JSONDecodeError:
                         return None
     return None
 
