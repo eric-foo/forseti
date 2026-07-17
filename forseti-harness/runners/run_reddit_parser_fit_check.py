@@ -21,6 +21,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Sequence
+from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -28,12 +29,15 @@ if __package__ in {None, ""}:
 from harness_utils import hash_file
 from capture_spine.reddit_subreddit_grid.grid_projection import (
     GRID_PROJECTION_PARSER_VERSION,
+    RedditGridProjectionError,
     build_grid_content_record,
+    grid_view_from_record,
 )
 from source_capture.models import SOURCE_CAPTURE_MANIFEST_VERSION
 from source_capture.packet_inspection import read_packet_leniently
 from source_capture.reddit_consolidation import (
     OLD_REDDIT_THREAD_PARSER_VERSION,
+    THREAD_CONTENT_RECORD_KIND,
     build_thread_content_record,
 )
 from source_capture.source_quality import resolve_manifest_path
@@ -78,28 +82,104 @@ def check_packet_parser_fit(*, packet_or_manifest_path: Path) -> dict[str, Any]:
     content_path = _verified_preserved_path(
         packet=packet, packet_dir=packet_dir, file_name="content_record.json"
     )
+    metadata_path = _verified_preserved_path(
+        packet=packet, packet_dir=packet_dir, file_name="http_response_metadata.json"
+    )
 
-    stored_record = json.loads(content_path.read_text(encoding="utf-8"))
-    if not isinstance(stored_record, dict):
-        raise ParserFitCheckError("content_record_shape", "stored content record is not a JSON object")
+    stored_record = _read_json_object(
+        content_path,
+        error_code="content_record_shape",
+        label="stored content record",
+    )
+    metadata = _read_json_object(
+        metadata_path,
+        error_code="http_metadata_shape",
+        label="stored HTTP metadata",
+    )
+    _verify_sample_metadata(
+        metadata=metadata,
+        stored_record=stored_record,
+        raw_path=raw_path,
+    )
+    current_parser_version = (
+        GRID_PROJECTION_PARSER_VERSION
+        if packet.source_family == GRID_SOURCE_FAMILY
+        else OLD_REDDIT_THREAD_PARSER_VERSION
+    )
+    stored_parser_version = stored_record.get("parser_version")
+    if stored_parser_version != current_parser_version:
+        raise ParserFitCheckError(
+            "parser_version_mismatch",
+            f"stored parser_version {stored_parser_version!r} does not match "
+            f"current parser_version {current_parser_version!r}; compare samples only "
+            "within one parser version",
+        )
     html = raw_path.read_text(encoding="utf-8", errors="replace")
 
     if packet.source_family == GRID_SOURCE_FAMILY:
-        current_parser_version = GRID_PROJECTION_PARSER_VERSION
-        grid_view = stored_record.get("grid_view")
-        if not isinstance(grid_view, dict):
-            raise ParserFitCheckError("content_record_shape", "grid record carries no grid_view object")
+        try:
+            grid_view = grid_view_from_record(stored_record)
+        except RedditGridProjectionError as exc:
+            raise ParserFitCheckError(
+                "content_record_shape",
+                f"stored grid content record is invalid: {exc}",
+            ) from exc
+        if not isinstance(grid_view.subreddit, str) or not isinstance(
+            grid_view.listing_url, str
+        ):
+            raise ParserFitCheckError(
+                "content_record_shape",
+                "stored grid content record subreddit and listing_url must be strings",
+            )
+        locator = packet.source_locator.value
+        expected_subreddit = _grid_subreddit_from_url(locator)
+        if expected_subreddit is None:
+            raise ParserFitCheckError(
+                "grid_locator_invalid",
+                f"packet source locator is not an old-Reddit grid URL: {locator!r}",
+            )
+        if grid_view.subreddit.lower() != expected_subreddit:
+            raise ParserFitCheckError(
+                "grid_subreddit_mismatch",
+                f"stored grid record names subreddit {grid_view.subreddit!r}, "
+                f"packet locator names {expected_subreddit!r}",
+            )
+        if grid_view.listing_url != locator:
+            raise ParserFitCheckError(
+                "grid_listing_url_mismatch",
+                f"stored grid record listing_url {grid_view.listing_url!r} "
+                f"does not match packet locator {locator!r}",
+            )
+        final_url = metadata["final_url"]
+        if _grid_subreddit_from_url(final_url) != expected_subreddit:
+            raise ParserFitCheckError(
+                "grid_final_url_mismatch",
+                f"HTTP final URL does not match packet subreddit {expected_subreddit!r}: "
+                f"{final_url!r}",
+            )
         reprojected = build_grid_content_record(
             html_text=html,
-            subreddit=str(grid_view.get("subreddit", "")),
-            listing_url=str(grid_view.get("listing_url", "")),
+            subreddit=expected_subreddit,
+            listing_url=locator,
         )
     else:
-        current_parser_version = OLD_REDDIT_THREAD_PARSER_VERSION
+        if stored_record.get("record_kind") != THREAD_CONTENT_RECORD_KIND:
+            raise ParserFitCheckError(
+                "content_record_shape",
+                f"thread record_kind is {stored_record.get('record_kind')!r}, "
+                f"expected {THREAD_CONTENT_RECORD_KIND!r}",
+            )
         source_url = stored_record.get("source_url")
         if not isinstance(source_url, str) or not source_url:
             raise ParserFitCheckError("content_record_shape", "thread record carries no source_url")
-        reprojected = build_thread_content_record(html_text=html, source_url=source_url)
+        final_url = metadata["final_url"]
+        if source_url != final_url or not _is_old_reddit_thread_url(final_url):
+            raise ParserFitCheckError(
+                "thread_source_url_mismatch",
+                f"thread record source_url {source_url!r} is not the packet's "
+                f"old-Reddit final URL {final_url!r}",
+            )
+        reprojected = build_thread_content_record(html_text=html, source_url=final_url)
 
     drift = reprojected != stored_record
     return {
@@ -132,6 +212,11 @@ def _verified_preserved_path(*, packet, packet_dir: Path, file_name: str) -> Pat
             "preserved_file_escape",
             f"preserved file path escapes packet directory: {preserved.relative_packet_path!r}",
         )
+    if not candidate.is_file():
+        raise ParserFitCheckError(
+            "preserved_file_missing",
+            f"preserved file is missing: {preserved.relative_packet_path!r}",
+        )
     actual_hash = hash_file(candidate)
     if actual_hash != preserved.sha256:
         raise ParserFitCheckError(
@@ -139,6 +224,100 @@ def _verified_preserved_path(*, packet, packet_dir: Path, file_name: str) -> Pat
             f"stored bytes hash mismatch for {file_name}: manifest={preserved.sha256} actual={actual_hash}",
         )
     return candidate
+
+
+def _read_json_object(path: Path, *, error_code: str, label: str) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ParserFitCheckError(error_code, f"{label} could not be read: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ParserFitCheckError(error_code, f"{label} is not a JSON object")
+    return value
+
+
+def _verify_sample_metadata(
+    *,
+    metadata: dict[str, Any],
+    stored_record: dict[str, Any],
+    raw_path: Path,
+) -> None:
+    content_capture = metadata.get("content_capture")
+    if not isinstance(content_capture, dict):
+        raise ParserFitCheckError(
+            "content_capture_metadata_missing",
+            "sample packet HTTP metadata carries no content_capture object",
+        )
+    if content_capture.get("capture_artifact_mode") != "sample":
+        raise ParserFitCheckError(
+            "not_sample_packet",
+            "parser-fit check requires capture_artifact_mode='sample'",
+        )
+    if (
+        content_capture.get("projection_status") != "succeeded"
+        or content_capture.get("raw_preserved") is not True
+    ):
+        raise ParserFitCheckError(
+            "sample_projection_incomplete",
+            "sample packet must preserve raw bytes and a successfully projected record",
+        )
+    if content_capture.get("parser_version") != stored_record.get("parser_version"):
+        raise ParserFitCheckError(
+            "content_capture_parser_version_mismatch",
+            "HTTP metadata parser_version does not match the stored content record",
+        )
+    status = metadata.get("status")
+    if not isinstance(status, int) or not 200 <= status < 300:
+        raise ParserFitCheckError(
+            "sample_http_unsuccessful",
+            f"sample packet HTTP status is not successful: {status!r}",
+        )
+    final_url = metadata.get("final_url")
+    if not isinstance(final_url, str) or not final_url:
+        raise ParserFitCheckError(
+            "sample_final_url_missing",
+            "sample packet HTTP metadata carries no final_url",
+        )
+    raw_hash = hash_file(raw_path)
+    if content_capture.get("raw_sha256") != raw_hash:
+        raise ParserFitCheckError(
+            "raw_provenance_hash_mismatch",
+            "HTTP metadata raw_sha256 does not match the preserved sample raw bytes",
+        )
+    if content_capture.get("raw_byte_count") != raw_path.stat().st_size:
+        raise ParserFitCheckError(
+            "raw_provenance_size_mismatch",
+            "HTTP metadata raw_byte_count does not match the preserved sample raw bytes",
+        )
+
+
+def _grid_subreddit_from_url(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    parsed = urlparse(value)
+    parts = [part for part in parsed.path.split("/") if part]
+    if (
+        parsed.scheme == "https"
+        and parsed.netloc.lower() == "old.reddit.com"
+        and len(parts) >= 3
+        and parts[0] == "r"
+        and parts[1].isascii()
+        and parts[1].replace("_", "").isalnum()
+        and parts[2] in {"hot", "new", "top", "rising"}
+    ):
+        return parts[1].lower()
+    return None
+
+
+def _is_old_reddit_thread_url(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    parsed = urlparse(value)
+    return (
+        parsed.scheme == "https"
+        and parsed.netloc.lower() == "old.reddit.com"
+        and "/comments/" in parsed.path
+    )
 
 
 def _diff_summary(stored: dict[str, Any], reprojected: dict[str, Any]) -> dict[str, Any]:
