@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
+from harness_utils import append_residual_once as _append_residual_once
+
 
 IG_REELS_BEHAVIORAL_PROJECTION_METHOD = "ig_reels_behavioral_projection"
 IG_REELS_BEHAVIORAL_PROJECTION_VERSION = "v0"
@@ -781,11 +783,6 @@ def _int_or_none(value: Any) -> int | None:
 
 def _compact_dict(data: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in data.items() if value not in (None, {}, [], ())}
-
-
-def _append_residual_once(residuals: list[str], residual: str) -> None:
-    if residual not in residuals:
-        residuals.append(residual)
 
 
 __all__ = [

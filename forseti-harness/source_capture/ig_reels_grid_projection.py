@@ -37,7 +37,11 @@ from pydantic import Field, field_validator, model_validator
 
 from data_lake.catalog import load_attachment_record_body, source_surface_catalog_rows
 from data_lake.root import DataLakeRootError
-from harness_utils import generate_ulid, string_or_none as _string_or_none
+from harness_utils import (
+    append_residual_once as _append_residual_once,
+    generate_ulid,
+    string_or_none as _string_or_none,
+)
 from schemas.case_models import StrictModel
 from source_capture.ig_projection import (
     IgProjectionRawAnchor,
@@ -907,11 +911,6 @@ def _shortcode_from_locator(locator) -> str | None:
 def _record_surfaces(surfaces_observed: set[str], row: IgReelsGridProjectionRow) -> None:
     for candidate in row.source_surface_count_candidates:
         surfaces_observed.add(candidate.source_surface)
-
-
-def _append_residual_once(residuals: list[str], residual: str) -> None:
-    if residual not in residuals:
-        residuals.append(residual)
 
 
 def _anchor(preserved_file: PreservedFile, *, json_pointer: str | None) -> IgProjectionRawAnchor:
