@@ -4,6 +4,13 @@
 retrieval_header_version: 1
 artifact_role: Review output
 scope: Adversarial implementation and code review of the Browser Snapshot Adapter v0 for the Source Capture Toolbox.
+use_when:
+  - Inspecting Browser Snapshot Adapter findings before patching or reuse.
+  - Tracing adapter revisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 review_type: adversarial_implementation_code_review
 review_date: 2026-06-03
 reviewer: Claude Sonnet 4.6 (automated adversarial review; read-only)

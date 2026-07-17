@@ -72,26 +72,60 @@ def _rows(bundle: Mapping[str, Any]) -> list[tuple[str, Mapping[str, Any]]]:
     ]
 
 
-def build_capability_manifest(bundle: Mapping[str, Any]) -> dict[str, Any]:
-    evidence: dict[str, dict[str, Any]] = {}
+def _normalized_evidence_text(row: Mapping[str, Any]) -> str:
+    return re.sub(r"\s+", " ", str(row.get("text") or "").casefold()).strip()
+
+
+def _grouped_rows(
+    bundle: Mapping[str, Any],
+) -> list[tuple[str, list[Mapping[str, Any]]]]:
     seen_evidence_ids: set[str] = set()
-    for index, (kind, row) in enumerate(
-        sorted(_rows(bundle), key=lambda pair: str(pair[1].get("evidence_id"))),
-        start=1,
+    groups: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+    for kind, row in sorted(
+        _rows(bundle), key=lambda pair: str(pair[1].get("evidence_id"))
     ):
         evidence_id = str(row.get("evidence_id"))
         if evidence_id in seen_evidence_ids:
             raise ValueError(f"duplicate evidence_id in audience bundle: {evidence_id}")
         seen_evidence_ids.add(evidence_id)
+        groups.setdefault((kind, _normalized_evidence_text(row)), []).append(row)
+    return sorted(
+        (
+            (kind, sorted(rows, key=lambda row: str(row.get("evidence_id"))))
+            for (kind, _normalized_text), rows in groups.items()
+        ),
+        key=lambda pair: str(pair[1][0].get("evidence_id")),
+    )
+
+
+def build_capability_manifest(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    evidence: dict[str, dict[str, Any]] = {}
+    for index, (kind, rows) in enumerate(_grouped_rows(bundle), start=1):
+        row = rows[0]
+        evidence_id = str(row.get("evidence_id"))
+        member_evidence_ids = [str(member.get("evidence_id")) for member in rows]
+        source_item_ids = sorted(
+            {
+                str(member.get("video_id") or member.get("source_item_id") or "")
+                for member in rows
+                if member.get("video_id") or member.get("source_item_id")
+            }
+        )
         alias = f"e{index:04d}"
         evidence[alias] = {
             "evidence_id": evidence_id,
+            "member_evidence_ids": member_evidence_ids,
             "source_item_id": str(row.get("video_id") or row.get("source_item_id") or ""),
+            "source_item_ids": source_item_ids,
             "kind": kind,
+            "multiplicity": len(rows),
             "engagement_salience_eligible": bool(
                 kind == "observed_comment"
-                and row.get("temporal_alignment") == "same_capture_observation"
-                and row.get("comment_attention_record_id")
+                and all(
+                    member.get("temporal_alignment") == "same_capture_observation"
+                    and member.get("comment_attention_record_id")
+                    for member in rows
+                )
             ),
         }
     return {
@@ -107,36 +141,79 @@ def build_capability_manifest(bundle: Mapping[str, Any]) -> dict[str, Any]:
 
 def build_compact_judgment_view(bundle: Mapping[str, Any]) -> dict[str, Any]:
     manifest = build_capability_manifest(bundle)
-    by_id = {
-        str(row.get("evidence_id")): (kind, row) for kind, row in _rows(bundle)
+    grouped_by_id = {
+        str(rows[0].get("evidence_id")): (kind, rows)
+        for kind, rows in _grouped_rows(bundle)
     }
     evidence = []
     for alias, capability in manifest["evidence"].items():
-        kind, row = by_id[capability["evidence_id"]]
+        kind, rows = grouped_by_id[capability["evidence_id"]]
+        row = rows[0]
         compact = {
             "alias": alias,
             "kind": kind,
             "source_item_id": capability["source_item_id"],
+            "source_item_ids": capability["source_item_ids"],
             "text": row.get("text"),
         }
         if kind == "creator_content":
             compact.update({"start_ms": row.get("start_ms"), "end_ms": row.get("end_ms")})
+            if len(rows) > 1:
+                compact["duplicate_multiplicity"] = len(rows)
+                compact["member_locations"] = [
+                    {
+                        "source_item_id": str(
+                            member.get("video_id")
+                            or member.get("source_item_id")
+                            or ""
+                        ),
+                        "start_ms": member.get("start_ms"),
+                        "end_ms": member.get("end_ms"),
+                    }
+                    for member in rows
+                ]
         else:
             compact.update(
                 {
-                    "comment_likes": row.get("comment_likes"),
-                    "comment_like_rank_within_captured": row.get(
-                        "comment_like_rank_within_captured"
-                    ),
                     "engagement_salience_eligible": capability[
                         "engagement_salience_eligible"
                     ],
                 }
             )
+            if len(rows) == 1:
+                compact.update(
+                    {
+                        "comment_likes": row.get("comment_likes"),
+                        "comment_like_rank_within_captured": row.get(
+                            "comment_like_rank_within_captured"
+                        ),
+                    }
+                )
+            else:
+                compact["duplicate_multiplicity"] = len(rows)
+                compact["comment_mechanics"] = [
+                    {
+                        "source_item_id": str(
+                            member.get("video_id")
+                            or member.get("source_item_id")
+                            or ""
+                        ),
+                        "comment_likes": member.get("comment_likes"),
+                        "comment_like_rank_within_captured": member.get(
+                            "comment_like_rank_within_captured"
+                        ),
+                        "engagement_salience_eligible": bool(
+                            member.get("temporal_alignment")
+                            == "same_capture_observation"
+                            and member.get("comment_attention_record_id")
+                        ),
+                    }
+                    for member in rows
+                ]
         evidence.append(compact)
     scope = bundle.get("capture_scope")
     return {
-        "view_version": "creator_audience_compact_judgment_view_v2",
+        "view_version": "creator_audience_compact_judgment_view_v3",
         "identity": {
             "creator_id": bundle.get("creator_id"),
             "profile_subject_id": bundle.get("profile_subject_id"),
@@ -264,6 +341,23 @@ def _compile_semantic_response(
     method_path, method_hash = _method_binding(bundle)
     manifest = build_capability_manifest(bundle)
     aliases: Mapping[str, Mapping[str, Any]] = manifest["evidence"]
+
+    def expanded_member_ids(alias_values: list[str]) -> list[str]:
+        expanded: list[str] = []
+        seen: set[str] = set()
+        for alias in alias_values:
+            capability = aliases.get(alias)
+            if capability is None:
+                continue
+            member_ids = capability.get("member_evidence_ids")
+            if not isinstance(member_ids, list):
+                member_ids = [capability["evidence_id"]]
+            for evidence_id in member_ids:
+                if evidence_id not in seen:
+                    seen.add(evidence_id)
+                    expanded.append(evidence_id)
+        return expanded
+
     errors: list[str] = []
     claim_ids: dict[str, str] = {}
     compiled_claims: list[dict[str, Any]] = []
@@ -304,7 +398,16 @@ def _compile_semantic_response(
             )
         kinds = {row["kind"] for row in support_capabilities}
         source_items = sorted(
-            {str(row["source_item_id"]) for row in support_capabilities if row["source_item_id"]}
+            {
+                str(source_item_id)
+                for row in support_capabilities
+                for source_item_id in (
+                    row.get("source_item_ids")
+                    if isinstance(row.get("source_item_ids"), list)
+                    else [row.get("source_item_id")]
+                )
+                if source_item_id
+            }
         )
         if not support_capabilities:
             modality = "fused"
@@ -318,12 +421,15 @@ def _compile_semantic_response(
                 if claim.engagement_salience_relied_on
                 else "observed_comments"
             )
+            comment_member_count = sum(
+                int(row.get("multiplicity") or 1) for row in support_capabilities
+            )
             support_scope = (
-                "single_comment"
-                if len(support_capabilities) == 1
+                "multi_item"
+                if len(source_items) > 1
+                else "single_comment"
+                if comment_member_count == 1
                 else "single_item"
-                if len(source_items) == 1
-                else "multi_item"
             )
         else:
             modality = "fused"
@@ -360,14 +466,10 @@ def _compile_semantic_response(
                     if alias in aliases
                 ],
                 "all_support_evidence_ids": [
-                    aliases[alias]["evidence_id"]
-                    for alias in claim.all_support_evidence_aliases
-                    if alias in aliases
+                    *expanded_member_ids(claim.all_support_evidence_aliases)
                 ],
                 "counterevidence_ids": [
-                    aliases[alias]["evidence_id"]
-                    for alias in claim.counterevidence_aliases
-                    if alias in aliases
+                    *expanded_member_ids(claim.counterevidence_aliases)
                 ],
                 "source_item_ids": source_items,
                 "limitation": claim.limitation,

@@ -10,7 +10,11 @@ scope: >
   regressions within the touched scope.
 use_when:
   - Owner deciding whether the patched Authenticated Browser Snapshot v0 is safe to commit.
-authority_boundary: review_output_only
+review_authority_boundary: review_output_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ```
 
 ---

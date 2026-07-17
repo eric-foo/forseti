@@ -102,13 +102,15 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step with no deep-thinking; then, when a visible active goal,
-`thread_operating_target`, or accepted next objective exists, deep-think the 1-5
-material next moves that best advance it. When none exists, record
-`no_visible_active_goal` rather than inventing a roadmap. The land/closure step
-plus this goal-conditioned material-move check are a required same-turn tail;
-do not defer the check to another turn. This is an adjudicator obligation, not
-permission for the delegate to decide what is kept or widen review scope.
+step. Then, when a visible active goal or accepted next objective exists, state
+the best next material move in the same turn so the owner does not need a
+separate "what next?" round. Add further moves only when the immediate sequence
+is genuinely needed to make that first move usable. A material move must
+substantively advance the goal; commit, push, PR, merge, and other admin or
+lifecycle work never qualify. When no goal or objective is visible, close
+normally without inventing a roadmap or emitting an empty-result placeholder.
+This is an adjudicator obligation, not permission for the delegate to decide
+what is kept or widen review scope.
 
 **Delegated review-output finalization gate.** Any delegated review output
 written under `docs/review-outputs/` blocks final chat closeout until, after the
@@ -236,13 +238,7 @@ changes repository access and patch authorship.
 
 1. **The review method is the code review lane, not artifact review.** The
    delegate's review portion is `workflow-code-review` run under the Review
-   Prompt Defaults. Commissioning, adversarial wording, patch authorization, or
-   a bounded multi-file target alone does not add `workflow-deep-thinking` or
-   the Source-Gated Method Contract. Those apply only when their independent
-   triggers in `.agents/workflow-overlay/prompt-orchestration.md` fire — for
-   example owner invocation or Mini God Tier, doctrine/authority change,
-   source-heavy or materially ambiguous work, or substantial seam risk whose
-   framing could change the route. The code review lane stays the
+   Prompt Defaults. The code review lane stays the
    review method for code; this convention only adds commissioned bounded patch
    authorship plus CA adjudication on top of it, and never replaces, weakens, or
    relabels code review, nor merges it with artifact review (those remain
@@ -333,8 +329,8 @@ delegated_review_patch_overlay_interface:
     delegated_code_review_and_patch: >
       Sibling target kind for a bounded multi-file implementation/code diff.
       Review method is the code review lane (workflow-code-review), NOT artifact
-      review and never a merge of the two. Deep-thinking and source-gated
-      sequencing apply only when independently triggered by prompt-orchestration.
+      review and never a merge of the two. Use the code-review method's own
+      failure-mode analysis.
       Target is
       an explicitly named file set (one or more) that CANNOT silently widen;
       everything outside it is read-only / flag-only. Validation/test obligations
@@ -445,132 +441,3 @@ readiness, not formal review authority, not a mandatory or machine-routable
 review lane, not patch authorization beyond an explicit bounded CA commission,
 and not runtime model routing. It does not import jb project authority, paths, or
 lifecycle mechanics into Forseti; jb is cited only as cross-project provenance.
-
-## Direction Change Propagation
-
-```yaml
-# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
-direction_change_propagation:
-  doctrine_changed: >
-    Review adjudication closeout is hardened for one-turn completion: a
-    self-closable material issue (closure within the adjudicator's own authority
-    and the commissioned scope, such as applying the adjudicator's own
-    modify/reject adjudications to the target) is closed in the same turn
-    instead of ending the turn on a closure route; the material-move deep-think
-    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
-    required closeout element (1-5 named steps, or an explicit "none" with a
-    one-line reason), so an adjudication that stops at the verdict is malformed.
-  trigger: review_authority
-  related_triggers: [output_authority, workflow_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
-  downstream_surfaces_checked:
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: >
-        Lane authority, findings-first defaults, and the head deep-thinking-first
-        rule are unchanged; this edit tightens the adjudicator's closeout
-        mechanics only and stays deferred here for shape.
-    - path: AGENTS.md
-      note: >
-        Already routes delegated-review-patch and review/prompt doctrine to the
-        owning overlay files; no root restatement added.
-    - path: docs/workflows/orca_repo_map_v0.md
-      note: >
-        Index lines for the overlay files and the template stay accurate; this
-        is an in-file doctrine edit, not a structural or navigation change.
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        Its findings fields and lane rules already defer the closeout tail to
-        communication-style.md; dual-homing the tail would fork the owner.
-  receipt_storage_updated:
-    - docs/decisions/dcp_receipts_archive_v0.md
-  stale_language_search: >
-    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
-    .agents docs/prompts/templates AGENTS.md docs/workflows
-  stale_language_search_result: >
-    Executed 2026-07-02 after edits. In the declared scope the remaining hits
-    are the retained non-self-closable bullet in communication-style.md, the
-    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
-    quoted search literals inside these receipts; no live doctrine or template
-    surface still gates the material-moves tail on a pre-closure clean state,
-    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
-    docs/prompts/reviews and docs/prompts/patches found the old wording only in
-    three already-executed commission dispatch prompts, kept as historical lane
-    records and not rewritten.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bound/mandatory/machine-routable review lane
-    - not runtime model routing
-
-# courier-only cross-vendor delegated patch route 2026-07-16 (owner correction).
-direction_change_propagation:
-  doctrine_changed: >
-    Explicit delegate-patch invocations now author one operator-courier prompt
-    only. The lane requires a different-vendor controller with direct repo
-    access and has no same-vendor, no_repo, self, unknown-lineage, Codex-managed,
-    task-creation, or automatic-dispatch fallback.
-  trigger: review_authority
-  related_triggers: [workflow_authority, validation_philosophy, lifecycle_boundary]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_prompt_output_mode.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .agents/hooks/check_prompt_provenance.py
-    - .agents/hooks/pre_push_guard.py
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        The kernel already gives project-owned prompt and delegated-review
-        overlay authority precedence; duplicating the invocation rule there
-        would create a second owner.
-    - path: installed or plugin workflow-delegated-review-patch skills
-      reason: >
-        Installed skills are protected deployment copies. The Forseti overlay
-        precedence bridge is the writable project authority and now overrides
-        the generic fallback explicitly.
-    - path: .agents/hooks/README.md
-      reason: >
-        Existing active-lane overlap exclusion remains in force; the checker
-        entry already points to the owning validation and placement sources.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        No owner, path, or T1 retrieval route changed.
-  stale_language_search: >
-    rg -n -i "same.vendor|same.family|no_repo|create.*task|managed.worktree|delegate patch|operator_courier_only"
-    .agents/workflow-overlay docs/prompts/templates AGENTS.md
-  stale_language_search_result: >
-    Executed 2026-07-16 after the correction. Live delegated-review-patch and
-    lane-scoped prompt owners now require operator-courier-only, different-vendor,
-    direct-repo execution and explicitly reject same-vendor, no_repo,
-    Codex-managed, and task-creation fallback. Remaining same-vendor hits in
-    review-lanes.md are the ordinary-review two-bar rule plus historical DCP
-    receipts and now state that the tier cannot satisfy delegated patch. The
-    general managed-receiver clause remains live only for non-delegated explicit
-    implementation commissions. No prompt template contains the rejected
-    delegated-patch fallback.
-  non_claims:
-    - not validation
-    - not readiness
-    - not runtime model routing
-    - not proof of vendor identity or direct-write capability
-    - not task-creation or dispatch authority
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

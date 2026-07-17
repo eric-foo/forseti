@@ -20,6 +20,12 @@ governing_overlay:
   - .agents/workflow-overlay/product-proof.md
 skill_applied: workflow-adversarial-artifact-review (invoked); deep-thinking discipline applied in-source (workflow-deep-thinking not separately invoked — single-shot reviewer; noted per skill contract)
 verdict: accept_with_friction   # ADVISORY ONLY — not an accept/reject gate
+use_when:
+  - Inspecting non-claim and overclaim-integrity findings for the pricing-first cascade.
+  - Tracing cascade corrections to this advisory review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
 ```
 
 ## Review-Use Boundary (read first)

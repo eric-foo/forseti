@@ -167,6 +167,8 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    # helper-delta: vs runners/_scaffold.resolve_output_root -- unprefixed messages,
+    # resolution outside any try, and the exactly-one xor check re-runs after resolution.
     data_root = None
     if args.output is not None and args.data_root is not None:
         parser.exit(

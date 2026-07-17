@@ -19,6 +19,7 @@ HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
 HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
 CODEX_HOOKS_PATH = REPO_ROOT / ".codex" / "hooks.json"
 CODEX_ADAPTER_PATH = REPO_ROOT / ".codex" / "hooks" / "forseti_guard_codex_adapter.py"
+ATOMIC_EXACT_EDIT_PATH = REPO_ROOT / ".agents" / "tools" / "atomic_exact_edit.py"
 DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-routing.md"
 PROMPT_ORCHESTRATION_PATH = (
     REPO_ROOT / ".agents" / "workflow-overlay" / "prompt-orchestration.md"
@@ -67,6 +68,17 @@ def _load_prompt_gate():
     spec = importlib.util.spec_from_file_location("check_prompt_output_mode", PROMPT_GATE_PATH)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_atomic_exact_edit():
+    spec = importlib.util.spec_from_file_location("atomic_exact_edit", ATOMIC_EXACT_EDIT_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    # Register before exec: the module resolves its PEP 563 dataclass
+    # annotations through sys.modules[__module__] at class-creation time.
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -415,11 +427,40 @@ def test_delegated_patch_gate_requires_cross_vendor_repo_courier() -> None:
         "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
         "access: repo",
         "delivery: operator_courier_only",
+        "execution_route: five_phase_fast_path_if_eligible",
+        "review_diff_route: review_report_mechanics_if_durable_report_embeds_diff",
         "receiver_binding:",
         "  receiver_class: receiver_to_bind",
         "  binding_state: receiver_to_bind",
     ]
     assert gate.evaluate_delegated_patch_lines("couriered.md", couriered) == []
+
+    missing_execution_route = [
+        line for line in couriered if not line.startswith("execution_route:")
+    ]
+    assert any(
+        finding.kind in {
+            "delegated_patch_field_count",
+            "delegated_patch_execution_route",
+        }
+        for finding in gate.evaluate_delegated_patch_lines(
+            "missing_execution_route.md", missing_execution_route
+        )
+    )
+
+    wrong_review_diff_route = [
+        line.replace(
+            "review_diff_route: review_report_mechanics_if_durable_report_embeds_diff",
+            "review_diff_route: hand_pasted_default_context_diff",
+        )
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_review_diff_route"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "wrong_review_diff_route.md", wrong_review_diff_route
+        )
+    )
 
     same_vendor = [
         line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
@@ -608,6 +649,181 @@ def test_github_pr_base_precedes_cli_when_event_sha_absent(
         resolver = getattr(module, function_name)
         args = (REPO_ROOT, "cli-base") if needs_root else ("cli-base",)
         assert resolver(*args) == "origin/develop", filename
+
+
+def test_atomic_exact_edit_recovers_after_hard_exit(tmp_path: Path, monkeypatch) -> None:
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_bytes(b"alpha\n")
+    second.write_bytes(b"bravo\n")
+    command = [
+        sys.executable,
+        str(ATOMIC_EXACT_EDIT_PATH),
+        "--root",
+        str(tmp_path),
+        "--replace",
+        "first.txt",
+        "alpha",
+        "changed-alpha",
+        "--replace",
+        "second.txt",
+        "bravo",
+        "changed-bravo",
+        "--apply",
+    ]
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS", "1")
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES", "1")
+    crashed = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert crashed.returncode == 86
+    assert first.read_bytes() == b"changed-alpha\n"
+    assert second.read_bytes() == b"bravo\n"
+    journal = tmp_path / ".atomic_exact_edit_journal_v1.json"
+    assert journal.is_file()
+
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS")
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES")
+    recovered = subprocess.run(
+        [sys.executable, str(ATOMIC_EXACT_EDIT_PATH), "--root", str(tmp_path), "--recover"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert recovered.returncode == 0
+    assert "RECOVERY=ROLLED_BACK_INTERRUPTED_APPLY" in recovered.stdout
+    assert first.read_bytes() == b"alpha\n"
+    assert second.read_bytes() == b"bravo\n"
+    assert not journal.exists()
+
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS", "1")
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES", "1")
+    assert subprocess.run(command, capture_output=True, check=False).returncode == 86
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS")
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES")
+    first.write_bytes(b"third-party-state\n")
+    refused = subprocess.run(
+        [sys.executable, str(ATOMIC_EXACT_EDIT_PATH), "--root", str(tmp_path), "--recover"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert refused.returncode == 1
+    assert "match neither" in refused.stderr
+    assert first.read_bytes() == b"third-party-state\n"
+    assert journal.is_file()
+
+
+def test_atomic_exact_edit_finalizes_commit_after_hard_exit(
+    tmp_path: Path, monkeypatch
+) -> None:
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_bytes(b"alpha\n")
+    second.write_bytes(b"bravo\n")
+    command = [
+        sys.executable,
+        str(ATOMIC_EXACT_EDIT_PATH),
+        "--root",
+        str(tmp_path),
+        "--replace",
+        "first.txt",
+        "alpha",
+        "changed-alpha",
+        "--replace",
+        "second.txt",
+        "bravo",
+        "changed-bravo",
+        "--apply",
+    ]
+    # Crash after the committed journal write but before journal cleanup.
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS", "1")
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES", "3")
+    crashed = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert crashed.returncode == 86
+    assert first.read_bytes() == b"changed-alpha\n"
+    assert second.read_bytes() == b"changed-bravo\n"
+    journal = tmp_path / ".atomic_exact_edit_journal_v1.json"
+    assert journal.is_file()
+
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS")
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES")
+    recovered = subprocess.run(
+        [sys.executable, str(ATOMIC_EXACT_EDIT_PATH), "--root", str(tmp_path), "--recover"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert recovered.returncode == 0
+    assert "RECOVERY=FINALIZED_COMMIT" in recovered.stdout
+    assert first.read_bytes() == b"changed-alpha\n"
+    assert second.read_bytes() == b"changed-bravo\n"
+    assert not journal.exists()
+
+
+def test_atomic_exact_edit_lock_excludes_concurrent_invocations(
+    tmp_path: Path, monkeypatch
+) -> None:
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_bytes(b"alpha\n")
+    second.write_bytes(b"bravo\n")
+    command = [
+        sys.executable,
+        str(ATOMIC_EXACT_EDIT_PATH),
+        "--root",
+        str(tmp_path),
+        "--replace",
+        "first.txt",
+        "alpha",
+        "changed-alpha",
+        "--replace",
+        "second.txt",
+        "bravo",
+        "changed-bravo",
+        "--apply",
+    ]
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS", "1")
+    monkeypatch.setenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES", "1")
+    assert subprocess.run(command, capture_output=True, check=False).returncode == 86
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_ENABLE_TEST_FAULTS")
+    monkeypatch.delenv("ATOMIC_EXACT_EDIT_TEST_CRASH_AFTER_REPLACES")
+    journal = tmp_path / ".atomic_exact_edit_journal_v1.json"
+    assert journal.is_file()
+
+    module = _load_atomic_exact_edit()
+    lock_path = module._lock_path(tmp_path)
+    assert lock_path.parent != tmp_path
+    assert module._lock_path(tmp_path) == lock_path
+    assert not (tmp_path / ".atomic_exact_edit_journal_v1.lock").exists()
+    lock = module._acquire_lock(tmp_path)
+    try:
+        # While a live invocation holds the lock, a second recover or apply
+        # must fail loudly instead of rolling back the live transaction.
+        for blocked_command in (
+            [sys.executable, str(ATOMIC_EXACT_EDIT_PATH), "--root", str(tmp_path), "--recover"],
+            command,
+        ):
+            blocked = subprocess.run(
+                blocked_command, capture_output=True, text=True, check=False
+            )
+            assert blocked.returncode == 1
+            assert "holds the transaction lock" in blocked.stderr
+            assert first.read_bytes() == b"changed-alpha\n"
+            assert second.read_bytes() == b"bravo\n"
+            assert journal.is_file()
+    finally:
+        module._release_lock(lock)
+
+    recovered = subprocess.run(
+        [sys.executable, str(ATOMIC_EXACT_EDIT_PATH), "--root", str(tmp_path), "--recover"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert recovered.returncode == 0
+    assert "RECOVERY=ROLLED_BACK_INTERRUPTED_APPLY" in recovered.stdout
+    assert first.read_bytes() == b"alpha\n"
+    assert second.read_bytes() == b"bravo\n"
+    assert not journal.exists()
 
 
 def test_external_actions_are_sha_pinned_and_renovate_managed() -> None:

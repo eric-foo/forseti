@@ -19,6 +19,14 @@ several of which are already written as validation gates whose wording names the
 they prevent (a recorded-outcome source per the doctrine). Reads recorded outcomes; edits no overlay
 or prompt file.
 
+**Currentness note (2026-07-17):** This retrieval-only draft preserves the
+recorded incidents, but the source-heavy unit-seal blocker and
+thread-operating-target continuity node were retired as standing Forseti
+behavior by the SCI behavioral-authority pass. Current source-heavy evidence
+preservation is owned by `.agents/workflow-overlay/prompt-orchestration.md`;
+goal continuity uses the visible active goal or accepted next objective. Do
+not execute those historical cells below as live gates.
+
 ## Harness bound
 
 The agent authoring Orca prompt artifacts (full prompts, thin wrappers, handoffs, review prompts,

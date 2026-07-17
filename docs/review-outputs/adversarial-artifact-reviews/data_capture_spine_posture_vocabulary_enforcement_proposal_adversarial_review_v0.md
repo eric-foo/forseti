@@ -1,4 +1,16 @@
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the Data Capture posture-vocabulary enforcement proposal.
+use_when:
+  - Inspecting proposal findings before owner adjudication or revision.
+  - Tracing the enforcement proposal to its adversarial review evidence.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_proposal_adversarial_review_v0.md

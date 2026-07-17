@@ -12,6 +12,7 @@ from pydantic import Field, field_validator, model_validator
 
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
+from source_capture.projection_shared import is_forbidden_field_token_match
 from source_capture.retail_pdp_projection import RetailProjectionRawAnchor, RetailProjectionRawRef
 
 
@@ -587,12 +588,7 @@ def _dedupe(values: Any) -> list[str]:
 
 
 def _is_forbidden_field_name(key: str) -> bool:
-    normalized = key.lower().replace("-", "_")
-    parts = normalized.split("_")
-    return any(
-        token == normalized or token in parts or token in normalized
-        for token in _FORBIDDEN_FIELD_TOKENS
-    )
+    return is_forbidden_field_token_match(key, _FORBIDDEN_FIELD_TOKENS)
 
 
 __all__ = [
