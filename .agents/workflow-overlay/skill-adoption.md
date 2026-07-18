@@ -146,8 +146,8 @@ behavior was not proven in-thread.
 
 - `success-implement`
   - Source path: `.agents/skills/success-implement/SKILL.md`.
-  - Normalized LF sha256: `e91ff6467416072929510ebad36bdfa615d166a494f6bbe73ae2e4ccf515adca`
-    (observed 2026-07-18 after paired-dogfood hardening).
+  - Normalized LF sha256: `b548e36da3448625cc2e02a1a69742437522e2a0376710f5c32ea917d8162e4f`
+    (observed 2026-07-18 after paired-dogfood hardening and delegated adjudication).
   - Scope: explicit-only mechanics for binding falsifiable success signals,
     implementing the smallest complete authorized change, validating the
     owner-visible outcome, and asking the operator to commission delegated

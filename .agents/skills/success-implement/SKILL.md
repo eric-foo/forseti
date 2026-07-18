@@ -84,9 +84,9 @@ Reject signals that only say "tests pass," "no exception," "file exists," or
 not the owner outcome.
 
 Turn every load-bearing outcome qualifier into a direct observation. In
-particular, assert required cardinality, envelope/type, identity, ordering, and
-persistence boundaries; repeating words such as "one", "exact", or "set" in
-the goal does not make them observed.
+particular, assert required cardinality, envelope/type, identity, ordering,
+precedence/conflict handling, and persistence boundaries; repeating words such
+as "one", "exact", or "set" in the goal does not make them observed.
 
 ## Pressure-test the signals
 
