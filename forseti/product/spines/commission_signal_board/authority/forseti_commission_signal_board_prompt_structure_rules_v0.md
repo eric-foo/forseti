@@ -131,6 +131,15 @@ Each phase normally uses two completed operator/model turns:
    canonical phase, bound question and use, resolved route identities,
    scan/capture receipts, source/provenance identifiers, material gaps and
    failures, and seal state. Live chat memory is not part of the seal.
+   Before sealing, a material load-bearing route/capture failure with a
+   plausible owner-controlled remedy triggers one compact, consolidated
+   owner-unblock escalation naming the affected question or success signal,
+   attempted route, observed blocker, smallest owner action needed, and what
+   remains blocked. This is event-triggered, not a checkpoint for every route
+   issue. A resolved escalation resumes acquisition and records the real
+   receipt. An unresolved one leaves acquisition blocked unless the owner
+   explicitly narrows the commission; it is never carried forward merely as a
+   final-report caveat, silent omission, or inferred absence.
 2. **Deliver.** Start in fresh context from the phase acquisition seal. Verify
    the acquisition gate before synthesis. Then craft, validate, and hand off the
    phase deliverable without making an evidence, route-exhaustion, provenance,

@@ -76,7 +76,26 @@ Each phase normally consumes two completed operator/model turns:
    silently substitute generic browsing or rediscovery.
 4. Run authorized scanning and capture. Record every selected route, route
    result, scan/capture receipt, source/provenance locator, and real failure.
-5. Write the phase acquisition seal below. Context compaction may discard chat,
+5. If a material required-route or capture failure is load-bearing and a
+   plausible owner action can materially unblock it, issue one consolidated
+   owner-unblock escalation during the run, before sealing:
+
+   ```yaml
+   owner_unblock_escalation:
+     affected_question_or_success_signal:
+     route_attempted:
+     observed_blocker:
+     smallest_owner_action_needed:
+     remains_blocked:
+   ```
+
+   This is event-triggered, not a checkpoint for every route issue. If the owner
+   resolves it, resume acquisition and record the real route receipt. If it
+   remains unresolved, keep acquisition blocked or record the owner's explicit
+   narrowing of the commission. Never carry a fixable load-bearing capture
+   failure forward merely as a final-report caveat, silently omit it, infer
+   absence from it, or proceed as complete.
+6. Write the phase acquisition seal below. Context compaction may discard chat,
    but not this artifact.
 
 ```yaml
