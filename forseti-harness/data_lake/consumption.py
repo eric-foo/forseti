@@ -47,7 +47,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Sequence
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.lane_registry import LANE_ROLES
@@ -333,6 +333,7 @@ def pickup(
     obligation_fn: Callable[[str], Any],
     source_family: str | None = None,
     reconcile: bool = True,
+    scope_packet_ids: Sequence[str] | None = None,
 ) -> Iterator[PickupItem]:
     """Yield committed anchors whose current obligation is not yet acknowledged.
 
@@ -343,8 +344,10 @@ def pickup(
     ``reconcile=True`` (default) rebuilds the availability index from committed
     raw before the scan, failing LOUD on error — an empty pickup is a "no
     committed work" claim, and the seam contract makes that claim valid only
-    over a reconciled surface. Pass ``reconcile=False`` only when the caller
-    reconciles itself first or visibly records its staleness tolerance.
+    over a reconciled surface. When ``scope_packet_ids`` is supplied, reconcile
+    and pickup are restricted to that immutable caller-owned set; no global
+    availability entries are purged. Pass ``reconcile=False`` only when the
+    caller reconciles itself first or visibly records its staleness tolerance.
 
     Always by-key: every committed anchor is enumerated and compared; there is
     no incremental shortcut that could silently miss late-arriving work, and no
@@ -352,8 +355,23 @@ def pickup(
     """
     validate_ack_namespace(ack_namespace)
     if reconcile:
-        root.rebuild_availability()
-    for raw_anchor in root.list_available(source_family=source_family):
+        if scope_packet_ids is None:
+            root.rebuild_availability()
+        else:
+            failures = reconcile_availability_per_packet(
+                root, scope_packet_ids=scope_packet_ids
+            )
+            if failures:
+                first = failures[0]
+                raise ConsumptionSeamError(
+                    "scoped availability reconcile failed before pickup: "
+                    f"{first['packet_id']}: {first['error']}"
+                )
+    available = root.list_available(source_family=source_family)
+    if scope_packet_ids is not None:
+        scope = set(scope_packet_ids)
+        available = [packet_id for packet_id in available if packet_id in scope]
+    for raw_anchor in available:
         obligation = obligation_fn(raw_anchor)
         if is_acknowledged(
             root, raw_anchor=raw_anchor, ack_namespace=ack_namespace, obligation=obligation
@@ -366,7 +384,9 @@ def pickup(
         )
 
 
-def reconcile_availability_per_packet(root) -> list[dict]:
+def reconcile_availability_per_packet(
+    root, *, scope_packet_ids: Sequence[str] | None = None
+) -> list[dict]:
     """By-key availability reconcile with per-packet failure visibility — the
     seam's shared reconcile for daemon-shaped consumers.
 
@@ -385,7 +405,13 @@ def reconcile_availability_per_packet(root) -> list[dict]:
     check) must fail loud when any entry is returned — an empty pickup is a
     valid no-work claim only over a fully reconciled surface (seam contract).
 
-    The purge half carries the same per-packet isolation as the rebuild half:
+    With ``scope_packet_ids`` supplied, only those committed anchors are
+    refreshed. This scoped path never purges the global index, so a cadence can
+    hold one start snapshot while capture continues appending later packets.
+    A selected anchor that is missing, corrupt, or no longer publicly available
+    is a visible failure rather than a false no-work result.
+
+    The unscoped purge half carries the same per-packet isolation as the rebuild half:
     an entry a concurrent writer already removed is benign (absent is the
     purged state), while an entry that cannot be deleted (live-writer lock,
     store I/O fault — the 2026-07-04 live cadence-vs-capture race class)
@@ -393,6 +419,24 @@ def reconcile_availability_per_packet(root) -> list[dict]:
     instead of crashing the whole batch.
     """
     failures: list[dict] = []
+    if scope_packet_ids is not None:
+        for packet_id in sorted(set(scope_packet_ids)):
+            try:
+                root.record_availability(packet_id)
+                if root.read_availability(packet_id) is None:
+                    raise ConsumptionSeamError(
+                        "selected packet is not publicly available after reconcile"
+                    )
+            except Exception as exc:  # noqa: BLE001 - isolate selected corrupt anchor
+                failures.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "availability_reconcile_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    }
+                )
+        return failures
+
     avail = root.path / "indexes" / "availability"
     if avail.is_dir():
         for entry_file in avail.glob("*.json"):

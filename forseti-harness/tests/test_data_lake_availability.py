@@ -72,6 +72,19 @@ def test_availability_rebuilds_from_raw(tmp_path: Path) -> None:
     assert pid in root.list_available()
 
 
+def test_committed_packet_snapshot_is_read_only_and_index_independent(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    first = _reddit_capture(root, tmp_path, body="first").packet.packet_id
+    second = _reddit_capture(root, tmp_path, body="second").packet.packet_id
+
+    shutil.rmtree(root.path / "indexes" / "availability")
+
+    assert root.list_committed_packet_ids() == sorted([first, second])
+    assert not (root.path / "indexes" / "availability").exists()
+
+
 def test_raw_packet_tombstone_hides_public_availability_but_retains_raw(
     tmp_path: Path,
 ) -> None:

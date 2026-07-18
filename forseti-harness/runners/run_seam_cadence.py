@@ -1,18 +1,23 @@
 """Seam cadence runner: the executable completion signal for bronze consumption.
 
-Executes every seam CATCH-UP entrypoint twice and exits nonzero if the SECOND
-cycle performs any work or emits any status — "every bronze-deriving lane is
-caught up" becomes an executable claim instead of an agent judgment. Census
+Captures one read-only committed-packet snapshot, executes every seam CATCH-UP
+entrypoint twice against that exact set, and exits nonzero if the SECOND cycle
+performs any work or emits any status — "this starting bronze batch is caught
+up" becomes an executable claim instead of an agent judgment. Packets committed
+after the snapshot are reported as next-run work and do not poison the current
+completion signal. Census
 authority: ``docs/decisions/bronze_consumer_census_closure_record_v0.md``;
 seam contract: ``core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 
 This runner is an ORCHESTRATOR, not a seam consumer: it imports the catch-up
 runner modules and composes their public ``pending_packets``/``run_catchup``
-entrypoints. It never touches ``data_lake.consumption`` itself, writes no acks,
-and adds no lake behavior — all pickup, reconcile, and ack semantics stay
-inside the composed runners (the consumer seam-coverage gate keeps it out of
-the seam-consumer surface; ``tests/contract/test_seam_cadence_coverage.py``
-pins this registry to that surface).
+entrypoints. It reads the root's committed by-key packet ids to establish the
+immutable start boundary without rebuilding the shared availability index,
+writes no acks, and owns no pickup or acknowledgement behavior — those
+semantics stay inside the composed runners (the consumer seam-coverage gate
+keeps it out of the seam-consumer surface;
+``tests/contract/test_seam_cadence_coverage.py`` pins this registry to that
+surface).
 
 Exit semantics (``--run``): cycle 1 is allowed to work (its entries are the
 backlog being drained); cycle 2 must emit ZERO entrypoint status entries, and a
@@ -36,7 +41,7 @@ cadence-level output and does not count as cycle-2 work (the sanctioned
 compute-free cadence); remaining ASR pending work or a failed skip-path pending
 check DOES count in the final pending sweep.
 
-The two LLM extract runners are seam consumers but NOT cadence entrypoints
+The three LLM extract runners are seam consumers but NOT cadence entrypoints
 (``CLASSIFIED_OUT_SEAM_CONSUMERS``): their extraction is owner-gated per-turn
 LLM compute, not a compute-free cadence. Their backlog is owned by their own
 ``--check`` surfaces.
@@ -45,6 +50,7 @@ LLM compute, not a compute-free cadence. Their backlog is owned by their own
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from dataclasses import dataclass
@@ -82,8 +88,8 @@ class CadenceEntrypoint:
     compute-free pending count, and the cadence execution call."""
 
     runner: str
-    pending: Callable[[CadenceContext], int]
-    run: Callable[[CadenceContext], list]
+    pending: Callable[[CadenceContext, Sequence[str] | None], int]
+    run: Callable[[CadenceContext, Sequence[str] | None], list]
     needs_asr_compute: bool = False
 
 
@@ -100,11 +106,14 @@ def _asr_transcribe_fn(ctx: CadenceContext):
     return transcribe_fn
 
 
-def _asr_run(ctx: CadenceContext) -> list:
+def _asr_run(
+    ctx: CadenceContext, scope_packet_ids: Sequence[str] | None
+) -> list:
     return _asr.run_catchup(
         data_root=ctx.data_root,
         transcribe_fn=_asr_transcribe_fn(ctx),
         transcriber_policy=ctx.transcriber_policy,
+        scope_packet_ids=scope_packet_ids,
     )
 
 
@@ -115,53 +124,97 @@ def _asr_run(ctx: CadenceContext) -> list:
 CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
     CadenceEntrypoint(
         runner="run_ecr_catchup.py",
-        pending=lambda ctx: len(_ecr.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _ecr.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _ecr.pending_packets(data_root=ctx.data_root, scope_packet_ids=scope)
+        ),
+        run=lambda ctx, scope: _ecr.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_fragrantica_cleaning_catchup.py",
-        pending=lambda ctx: len(_fragrantica.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _fragrantica.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _fragrantica.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
+        ),
+        run=lambda ctx, scope: _fragrantica.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_basenotes_cleaning_catchup.py",
-        pending=lambda ctx: len(_basenotes.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _basenotes.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _basenotes.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
+        ),
+        run=lambda ctx, scope: _basenotes.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_parfumo_cleaning_catchup.py",
-        pending=lambda ctx: len(_parfumo.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _parfumo.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _parfumo.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
+        ),
+        run=lambda ctx, scope: _parfumo.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_fragrance_review_projection_catchup.py",
-        pending=lambda ctx: len(_fragrance_review.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _fragrance_review.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _fragrance_review.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
+        ),
+        run=lambda ctx, scope: _fragrance_review.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_ig_reels_grid_projection_catchup.py",
-        pending=lambda ctx: len(_ig_reels_grid.pending_packets(data_root=ctx.data_root)),
-        run=lambda ctx: _ig_reels_grid.run_catchup(data_root=ctx.data_root),
+        pending=lambda ctx, scope: len(
+            _ig_reels_grid.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
+        ),
+        run=lambda ctx, scope: _ig_reels_grid.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_tiktok_comment_attention_producer.py",
-        pending=lambda ctx: len(
-            _tiktok_comment_attention.pending_packets(data_root=ctx.data_root)
+        pending=lambda ctx, scope: len(
+            _tiktok_comment_attention.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
         ),
-        run=lambda ctx: _tiktok_comment_attention.run_catchup(data_root=ctx.data_root),
+        run=lambda ctx, scope: _tiktok_comment_attention.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_tiktok_grid_observation_producer.py",
-        pending=lambda ctx: len(
-            _tiktok_grid_observation.pending_packets(data_root=ctx.data_root)
+        pending=lambda ctx, scope: len(
+            _tiktok_grid_observation.pending_packets(
+                data_root=ctx.data_root, scope_packet_ids=scope
+            )
         ),
-        run=lambda ctx: _tiktok_grid_observation.run_catchup(data_root=ctx.data_root),
+        run=lambda ctx, scope: _tiktok_grid_observation.run_catchup(
+            data_root=ctx.data_root, scope_packet_ids=scope
+        ),
     ),
     CadenceEntrypoint(
         runner="run_asr_transcript_catchup.py",
-        pending=lambda ctx: len(
+        pending=lambda ctx, scope: len(
             _asr.pending_packets(
-                data_root=ctx.data_root, transcriber_policy=ctx.transcriber_policy
+                data_root=ctx.data_root,
+                transcriber_policy=ctx.transcriber_policy,
+                scope_packet_ids=scope,
             )
         ),
         run=_asr_run,
@@ -196,10 +249,13 @@ def _print(entry: dict) -> None:
 def run_check(ctx: CadenceContext) -> int:
     """Single compute-free pending pass. Exit 0 iff every entrypoint reports a
     zero backlog and every pending check succeeds."""
+    scope_packet_ids = _capture_start_snapshot(ctx)
+    if scope_packet_ids is None:
+        return 1
     failures = 0
     for entrypoint in CADENCE_ENTRYPOINTS:
         try:
-            count = entrypoint.pending(ctx)
+            count = entrypoint.pending(ctx, scope_packet_ids)
         except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
             _print(
                 {
@@ -213,6 +269,7 @@ def run_check(ctx: CadenceContext) -> int:
         _print({"entrypoint": entrypoint.runner, "pending": count})
         if count:
             failures += 1
+    _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if failures else 0
 
 
@@ -222,12 +279,16 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
     remaining backlog (the executable completion signal). The healthy skip-asr
     marker is cadence-level output excluded from cycle-2 status accounting; a
     skipped ASR backlog still fails the final pending sweep."""
+    scope_packet_ids = _capture_start_snapshot(ctx)
+    if scope_packet_ids is None:
+        return 1
+
     second_cycle_entries = 0
     for cycle in (1, 2):
         for entrypoint in CADENCE_ENTRYPOINTS:
             if skip_asr and entrypoint.needs_asr_compute:
                 try:
-                    pending = entrypoint.pending(ctx)
+                    pending = entrypoint.pending(ctx, scope_packet_ids)
                 except Exception as exc:  # noqa: BLE001 - skipped lane must stay checkable
                     _print(
                         {
@@ -252,7 +313,7 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                 )
                 continue
             try:
-                results = entrypoint.run(ctx)
+                results = entrypoint.run(ctx, scope_packet_ids)
             except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
                 results = [
                     {
@@ -264,11 +325,65 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                 _print({"cycle": cycle, "entrypoint": entrypoint.runner, **result})
             if cycle == 2:
                 second_cycle_entries += len(results)
-    post_cycle_pending = _post_cycle_pending_failures(ctx)
+    post_cycle_pending = _post_cycle_pending_failures(ctx, scope_packet_ids)
+    _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if second_cycle_entries or post_cycle_pending else 0
 
 
-def _post_cycle_pending_failures(ctx: CadenceContext) -> int:
+def _capture_start_snapshot(ctx: CadenceContext) -> tuple[str, ...] | None:
+    try:
+        packet_ids = tuple(ctx.data_root.list_committed_packet_ids())
+    except Exception as exc:  # noqa: BLE001 - boundary failure must stay loud
+        _print(
+            {
+                "cycle": "snapshot",
+                "status": "cadence_snapshot_failed",
+                "error": f"{type(exc).__name__}: {exc}"[:200],
+            }
+        )
+        return None
+    digest = hashlib.sha256("\n".join(packet_ids).encode("utf-8")).hexdigest()
+    _print(
+        {
+            "cycle": "snapshot",
+            "status": "cadence_snapshot_started",
+            "packet_count": len(packet_ids),
+            "packet_ids_sha256": digest,
+        }
+    )
+    return packet_ids
+
+
+def _report_late_arrivals(
+    ctx: CadenceContext, scope_packet_ids: Sequence[str]
+) -> None:
+    try:
+        late = sorted(
+            set(ctx.data_root.list_committed_packet_ids()) - set(scope_packet_ids)
+        )
+    except Exception as exc:  # noqa: BLE001 - informational check cannot poison snapshot
+        _print(
+            {
+                "cycle": "post",
+                "status": "late_arrival_check_failed",
+                "error": f"{type(exc).__name__}: {exc}"[:200],
+            }
+        )
+        return
+    if late:
+        _print(
+            {
+                "cycle": "post",
+                "status": "late_arrivals_observed",
+                "packet_count": len(late),
+                "packet_ids": late,
+            }
+        )
+
+
+def _post_cycle_pending_failures(
+    ctx: CadenceContext, scope_packet_ids: Sequence[str]
+) -> int:
     """Final no-work proof: every pending helper must report zero backlog.
 
     This catches fake-pass paths where an entrypoint returned no status despite
@@ -278,7 +393,7 @@ def _post_cycle_pending_failures(ctx: CadenceContext) -> int:
     failures = 0
     for entrypoint in CADENCE_ENTRYPOINTS:
         try:
-            pending = entrypoint.pending(ctx)
+            pending = entrypoint.pending(ctx, scope_packet_ids)
         except Exception as exc:  # noqa: BLE001 - no-work claim must fail loud
             _print(
                 {
@@ -319,6 +434,7 @@ def _refresh_lake_map(ctx: CadenceContext) -> int:
             "entrypoint": "run_data_lake_indexes_rebuild.py",
             "status": "lake_map_rebuilt" if result == 0 else "lake_map_rebuild_failed",
             "exit_code": result,
+            "map_scope": "live_after_snapshot_completion",
         }
     )
     return result

@@ -248,11 +248,18 @@ def _transcript_evidence(record_path: Path, *, packet_id: str, record_id: str) -
     ]
 
 
-def pending_packets(*, data_root, transcriber_policy: dict) -> list[str]:
+def pending_packets(
+    *,
+    data_root,
+    transcriber_policy: dict,
+    scope_packet_ids: Sequence[str] | None = None,
+) -> list[str]:
     """Committed audio-family packet ids (both families) whose current transcript
     obligation is not acknowledged. Scheduler gate helper: no audio loading, no
     ASR, and no writes beyond the availability reconcile."""
-    failures = reconcile_availability_per_packet(data_root)
+    failures = reconcile_availability_per_packet(
+        data_root, scope_packet_ids=scope_packet_ids
+    )
     if failures:
         first = failures[0]
         raise DataLakeRootError(
@@ -271,6 +278,7 @@ def pending_packets(*, data_root, transcriber_policy: dict) -> list[str]:
                 ),
                 source_family=family_config["source_family"],
                 reconcile=False,
+                scope_packet_ids=scope_packet_ids,
             )
         )
     return pending
@@ -281,6 +289,7 @@ def run_catchup(
     data_root,
     transcribe_fn: Callable[[str], tuple],
     transcriber_policy: dict,
+    scope_packet_ids: Sequence[str] | None = None,
 ) -> list[dict]:
     """The single cadence entrypoint: for every committed audio-family packet whose
     current obligation is unacknowledged, transcribe (or cite the existing
@@ -296,7 +305,11 @@ def run_catchup(
     # ITSELF first, per packet, so one corrupt manifest becomes a visible
     # availability_reconcile_failed status while healthy packets still index
     # and process — instead of pickup's whole-batch fail-loud default reconcile.
-    results.extend(reconcile_availability_per_packet(data_root))
+    results.extend(
+        reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
+        )
+    )
     for family_config in _FAMILY_CONFIGS:
         transcribe_committed = _COMMITTED_TRANSCRIBERS[family_config["transcribe_fn_name"]]
         for item in pickup(
@@ -307,6 +320,7 @@ def run_catchup(
             ),
             source_family=family_config["source_family"],
             reconcile=False,
+            scope_packet_ids=scope_packet_ids,
         ):
             packet_id = item.raw_anchor
             entry = data_root.read_availability(packet_id)

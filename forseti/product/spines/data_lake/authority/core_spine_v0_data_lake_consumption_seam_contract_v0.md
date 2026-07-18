@@ -96,6 +96,24 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
   A lane may reimplement pickup only if it passes the same conformance
   obligations below, unchanged.
 
+### Cadence snapshot boundary
+
+- A cadence run first reads the exact committed packet-id set directly from
+  by-key raw without reading, purging, or rebuilding shared availability.
+- Every driven lane receives that same immutable set for both execution
+  cycles, ASR skip checks, and the final pending proof. Scoped reconcile
+  refreshes only selected anchors and never purges the global availability
+  index.
+- A selected anchor that becomes missing, corrupt, tombstoned, or unreadable
+  fails loudly. A packet committed after the snapshot is next-run work: it may
+  be reported, but cannot invalidate or silently join the current completion
+  claim.
+- Standalone consumer calls remain live and unscoped by default. The boundary
+  is explicit input, not process-global state or an implicit root wrapper.
+- The cadence-tail lake-map rebuild is an ordinary live rebuild after snapshot
+  completion. It may include newer committed or derived material and is never
+  an exact historical-snapshot claim.
+
 ## Acknowledgement Contract
 
 - Physical grammar is owned by the derived-layout contract
@@ -171,6 +189,14 @@ proving:
 7. **Retraction cycle** — retracting an ack (mandatory reason) re-surfaces
    the anchor in pickup; a truthful re-acknowledgement is representable
    without overwrite; all facts remain as append-only history.
+8. **Scoped isolation** — reconciling or picking up a named packet set does
+   not delete, rewrite, or process availability outside that set.
+9. **Late-arrival separation** — a packet committed between cadence cycles
+   remains pending for the next snapshot and does not create current-cycle
+   work.
+10. **Selected-anchor failure visibility** — loss or corruption of a packet
+    in the start set makes the current cadence fail; it cannot become a
+    successful empty pickup.
 
 The shared suite lives at `forseti-harness/tests/test_data_lake_consumption.py`.
 
@@ -359,6 +385,61 @@ direction_change_propagation:
     - forseti-harness/runners/run_sov_extraction_quality_eval.py
   non_claims:
     - not validation or readiness
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Cadence completion is now bound to one read-only committed starting
+    packet-id snapshot. Every cadence cycle and final check uses that same set;
+    scoped reconcile never purges global availability; selected-anchor failures stay
+    loud; later commits are next-run work. The cadence-tail lake-map rebuild
+    remains live and may include newer material, so no frozen-map claim is
+    introduced.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - docs/decisions/bronze_consumer_census_closure_record_v0.md
+    - docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti-harness/data_lake/root.py
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
+    - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: Raw/by-key authority, append-only facts, and generated-view non-authority are unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: Packet, availability, acknowledgement, and index shapes are unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: The Bronze/Silver/Gold boundary and readiness posture are unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+      reason: Silver record authority and generated-read-model rules are unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: The map remains a disposable live rebuild through the existing sanctioned writer.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
+      reason: Capture propagation classes and downstream checks are unchanged; this work coordinates existing consumers.
+    - path: forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+      reason: Layer flow and authority routing are unchanged.
+    - path: forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+      reason: Projection evidence and non-authority semantics are unchanged.
+    - path: forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+      reason: ECR derivation and evidence semantics are unchanged.
+    - path: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+      reason: Cleaning ownership and handoff boundaries are unchanged.
+  non_claims:
+    - not validation, readiness, or a live-lake proof
+    - not a queue, scheduler, capture pause, or global lock
+    - not an exact historical lake-map snapshot
 ```
 
 ```yaml

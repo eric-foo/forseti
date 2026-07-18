@@ -160,12 +160,16 @@ def _catchup_record_id() -> str:
     return f"{_CATCHUP_RECORD_ID_PREFIX}_{generate_ulid()}"
 
 
-def pending_packets(*, data_root) -> list[str]:
+def pending_packets(
+    *, data_root, scope_packet_ids: Sequence[str] | None = None
+) -> list[str]:
     """Committed family packet ids whose current projection obligation is not
     acknowledged (all surfaces; out-of-scope surfaces leave the backlog after
     their first-run out-of-scope ack). Scheduler gate helper: no derivation and
     no writes beyond the availability reconcile."""
-    failures = reconcile_availability_per_packet(data_root)
+    failures = reconcile_availability_per_packet(
+        data_root, scope_packet_ids=scope_packet_ids
+    )
     if failures:
         first = failures[0]
         raise DataLakeRootError(
@@ -180,11 +184,14 @@ def pending_packets(*, data_root) -> list[str]:
             obligation_fn=lambda _pid: _packet_obligation(),
             source_family=_SOURCE_FAMILY,
             reconcile=False,
+            scope_packet_ids=scope_packet_ids,
         )
     ]
 
 
-def run_catchup(*, data_root) -> list[dict]:
+def run_catchup(
+    *, data_root, scope_packet_ids: Sequence[str] | None = None
+) -> list[dict]:
     """The single daemon entrypoint: derive the grid projection for every committed
     family packet whose current obligation is unacknowledged, then acknowledge with
     the derivation as evidence.
@@ -200,13 +207,18 @@ def run_catchup(*, data_root) -> list[dict]:
     # ITSELF first, per packet, so one corrupt manifest becomes a visible
     # availability_reconcile_failed status while healthy packets still index
     # and process — instead of pickup's whole-batch fail-loud default reconcile.
-    results.extend(reconcile_availability_per_packet(data_root))
+    results.extend(
+        reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
+        )
+    )
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,
         obligation_fn=lambda _pid: _packet_obligation(),
         source_family=_SOURCE_FAMILY,
         reconcile=False,
+        scope_packet_ids=scope_packet_ids,
     ):
         packet_id = item.raw_anchor
         entry = data_root.read_availability(packet_id)

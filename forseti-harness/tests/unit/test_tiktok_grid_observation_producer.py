@@ -655,3 +655,13 @@ def test_runner_does_not_ack_when_silver_persistence_fails(
         ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
     ) == []
     assert runner.pending_packets(data_root=data_root) == [packet_id]
+
+
+def test_manual_target_and_cadence_scope_cannot_be_combined(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="cannot be combined"):
+        runner.run_catchup(
+            data_root=data_root,
+            packet_ids=[],
+            scope_packet_ids=[],
+        )
