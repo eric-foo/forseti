@@ -13,7 +13,6 @@ use_when:
   - Adjudicating the delegated return commissioned for PR #1111.
 authority_boundary: retrieval_only
 open_next:
-  - .agents/skills/success-implement/SKILL.md
   - .agents/workflow-overlay/delegated-review-patch.md
   - docs/prompts/reviews/pr1111_kohls_access_diagnosis_delegated_code_review_and_patch_prompt_v0.md
 stale_if:
