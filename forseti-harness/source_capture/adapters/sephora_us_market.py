@@ -1,10 +1,12 @@
-"""Sephora US/USD storefront-market assertion for CloakBrowser capture.
+"""Sephora US/USD storefront preference and assertion for CloakBrowser capture.
 
 The public Sephora route accepts ``country_switch=us`` as request intent and
 serializes the served country in ``Sephora.renderQueryParams``. Product JSON-LD
-then exposes retailer-bound offer currency. This plugin performs no preference
-mutation: it confirms the final rendered page only when those independent,
-retailer-owned signals agree on US/USD.
+then exposes retailer-bound offer currency. Outside the US, Sephora may place a
+country-routing dialog over that otherwise valid US/USD page. This plugin uses
+only the dialog's explicit ``Continue to Sephora.com`` action before the main
+capture navigation, then confirms the final rendered page only when the dialog
+is absent and the independent retailer-owned signals agree on US/USD.
 
 Delivery location is deliberately outside this assertion.
 """
@@ -15,6 +17,7 @@ import json
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from typing import Any, Iterator
+from urllib.parse import parse_qs, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
@@ -23,41 +26,103 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 
 
 _RENDER_QUERY_MARKER = "Sephora.renderQueryParams"
+_SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
+_COUNTRY_DIALOG_SELECTOR = (
+    '[role="dialog"][aria-modal="true"][data-at="modal_dialog"]'
+)
+_COUNTRY_DIALOG_DIAGNOSTIC_TEXT = "This site does not ship to your country."
+_COUNTRY_DIALOG_CONTINUE_TEXT = "Continue to"
+_COUNTRY_DIALOG_WAIT_MS = 5_000
+_COUNTRY_DIALOG_POST_CLICK_WAIT_MS = 2_000
 
 
 @dataclass(frozen=True)
 class SephoraUSMarketPlugin:
-    """Confirm the rendered Sephora page is serving its US/USD storefront."""
+    """Establish and confirm the rendered Sephora US/USD storefront."""
 
+    target_url: str
     country_code: str = "US"
     currency_code: str = "USD"
 
     def __post_init__(self) -> None:
         if self.country_code != "US" or self.currency_code != "USD":
             raise ValueError("Sephora market assertion currently supports only US/USD")
+        parsed = urlparse(self.target_url)
+        country_switch = parse_qs(parsed.query).get("country_switch", [])
+        if (
+            parsed.scheme != "https"
+            or (parsed.hostname or "").lower() not in _SEPHORA_HOSTS
+            or not any(value.lower() == "us" for value in country_switch)
+        ):
+            raise ValueError(
+                "Sephora market preference requires an HTTPS sephora.com target "
+                "with country_switch=us"
+            )
 
     @property
     def humanize(self) -> bool:
         return False
 
     def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
-        del page, setup_timeout_ms
-        return PreCaptureOutcome(
-            attempted=True,
-            steps_completed=True,
-            reason=None,
-            warning_notes=[],
-        )
+        try:
+            page.goto(
+                self.target_url,
+                wait_until="load",
+                timeout=setup_timeout_ms,
+            )
+            page.wait_for_timeout(min(_COUNTRY_DIALOG_WAIT_MS, setup_timeout_ms))
+            dialog = page.locator(_COUNTRY_DIALOG_SELECTOR)
+            if dialog.count() == 0 or not dialog.is_visible():
+                return _preference_outcome()
+            dialog_text = dialog.inner_text(timeout=setup_timeout_ms)
+            if _COUNTRY_DIALOG_DIAGNOSTIC_TEXT not in dialog_text:
+                return _preference_outcome(
+                    reason="Sephora country dialog did not carry the expected diagnostic text"
+                )
+            continue_button = (
+                dialog.locator("p")
+                .filter(has_text=_COUNTRY_DIALOG_CONTINUE_TEXT)
+                .locator("button")
+            )
+            if continue_button.count() != 1:
+                return _preference_outcome(
+                    reason=(
+                        "Sephora country dialog did not expose exactly one scoped "
+                        "Continue-to-Sephora control"
+                    )
+                )
+            continue_button.click(timeout=setup_timeout_ms)
+            page.wait_for_timeout(
+                min(_COUNTRY_DIALOG_POST_CLICK_WAIT_MS, setup_timeout_ms)
+            )
+            if dialog.count() != 0 and dialog.is_visible():
+                return _preference_outcome(
+                    reason="Sephora country dialog remained visible after explicit continuation"
+                )
+            if (urlparse(str(page.url)).hostname or "").lower() not in _SEPHORA_HOSTS:
+                return _preference_outcome(
+                    reason="Sephora country continuation left the sephora.com storefront"
+                )
+            return _preference_outcome()
+        except Exception as exc:
+            return _preference_outcome(
+                reason=(
+                    "Sephora country-continuation preflight failed: "
+                    f"{type(exc).__name__}"
+                )
+            )
 
     def confirm(self, rendered_dom: str) -> PinConfirmation:
         return confirm_sephora_us_market(rendered_dom)
 
     def describe(self) -> dict[str, object]:
         return {
-            "pre_capture": "sephora_us_market_assertion",
+            "pre_capture": "sephora_us_country_continuation_and_market_assertion",
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
-            "market_preference_action": "none_rendered_market_assertion",
+            "market_preference_action": (
+                "exact_country_dialog_continue_then_main_target_navigation"
+            ),
         }
 
     def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
@@ -77,23 +142,27 @@ class SephoraUSMarketPlugin:
 
 
 def confirm_sephora_us_market(rendered_dom: str) -> PinConfirmation:
-    """Require Sephora's served-country state and a Sephora-sold USD offer."""
+    """Require no country dialog, served US state, and a Sephora-sold USD offer."""
     dom = rendered_dom or ""
+    country_dialog_absent = _COUNTRY_DIALOG_DIAGNOSTIC_TEXT not in dom
     country_confirmed = any(
         params.get("country") == "US" for params in _iter_render_query_params(dom)
     )
     usd_offer_confirmed = any(
         _is_sephora_usd_offer(candidate) for candidate in _iter_json_ld_objects(dom)
     )
-    if country_confirmed and usd_offer_confirmed:
+    if country_dialog_absent and country_confirmed and usd_offer_confirmed:
         return PinConfirmation(
             confirmed=True,
             detail=(
-                "Sephora.renderQueryParams bound country=US and product JSON-LD "
-                "contained a Sephora-sold Offer with priceCurrency=USD"
+                "country-routing dialog absent, Sephora.renderQueryParams bound "
+                "country=US, and product JSON-LD contained a Sephora-sold Offer "
+                "with priceCurrency=USD"
             ),
         )
     missing: list[str] = []
+    if not country_dialog_absent:
+        missing.append("country-routing dialog absent")
     if not country_confirmed:
         missing.append("Sephora.renderQueryParams country=US")
     if not usd_offer_confirmed:
@@ -101,6 +170,15 @@ def confirm_sephora_us_market(rendered_dom: str) -> PinConfirmation:
     return PinConfirmation(
         confirmed=False,
         detail="required Sephora US/USD rendered conjunction absent: " + "; ".join(missing),
+    )
+
+
+def _preference_outcome(*, reason: str | None = None) -> PreCaptureOutcome:
+    return PreCaptureOutcome(
+        attempted=True,
+        steps_completed=reason is None,
+        reason=reason,
+        warning_notes=[],
     )
 
 

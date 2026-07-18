@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -64,7 +65,12 @@ from source_capture.retail_capture_profiles import (
     retail_capture_profile_names,
     validate_retail_capture_profile_route,
 )
-from source_capture.retail_pdp_projection import write_retail_pdp_projection
+from source_capture.retail_pdp_projection import (
+    SEPHORA_PDP_CONTENT_PROFILE,
+    SEPHORA_PDP_PARSER_VERSION,
+    build_sephora_pdp_aggregate_content_record,
+    write_retail_pdp_projection,
+)
 from source_capture.source_detail_sufficiency import (
     SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
     SourceDetailSufficiencyRequirements,
@@ -95,12 +101,16 @@ CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
     "not commercial-readiness logic",
 ]
 _BROWSER_SECRET_PATTERNS = (
-    "cf_clearance=",
-    '"name": "cf_clearance"',
-    "Cookie:",
-    "Set-Cookie",
-    '"cookies": [',
-    '"origins": [',
+    re.compile(r"cf_clearance\s*=", re.IGNORECASE),
+    re.compile(r'"name"\s*:\s*"cf_clearance"', re.IGNORECASE),
+)
+_BROWSER_SECRET_HEADER_PATTERN = re.compile(
+    r"\b(?:Cookie|Set-Cookie)\s*:\s*[A-Za-z0-9_.-]+\s*=",
+    re.IGNORECASE,
+)
+_BROWSER_SECRET_METADATA_PATTERNS = (
+    re.compile(r"\b(?:Cookie|Set-Cookie)\s*:", re.IGNORECASE),
+    re.compile(r'"(?:cookies|origins)"\s*:\s*\[', re.IGNORECASE),
 )
 
 SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
@@ -193,6 +203,13 @@ def run_source_capture_cloakbrowser_packet(
                 retail_capture_profile.requirements_for_capture(url=url),
             )
         )
+        if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
+            if sephora_market != "US":
+                raise ValueError(
+                    "sephora_pdp_aggregate content capture requires --sephora-market US"
+                )
+            if content_capture is None:
+                content_capture = _sephora_content_capture_spec("content")
 
     site_specific_preferences = [
         delivery_zip is not None,
@@ -221,7 +238,10 @@ def run_source_capture_cloakbrowser_packet(
         pre_capture = LuckyscentUSMarketPlugin(country_code=luckyscent_market)
     elif sephora_market is not None:
         _validate_sephora_us_market_url(url)
-        pre_capture = SephoraUSMarketPlugin(country_code=sephora_market)
+        pre_capture = SephoraUSMarketPlugin(
+            target_url=url,
+            country_code=sephora_market,
+        )
     else:
         pre_capture = None
     capture_result = fetch_cloakbrowser_snapshot_capture(
@@ -351,10 +371,17 @@ def run_source_capture_cloakbrowser_packet(
     else:
         projection_status = "not_configured"
 
+    retention_admission_failed = (
+        capture_result.access_block_reason is not None
+        or sephora_pin_failure is not None
+        or amazon_pin_failure is not None
+        or (sufficiency_result.enabled and not sufficiency_result.passed)
+    )
     raw_projector_inputs_preserved = (
         content_capture is None
         or content_capture.capture_artifact_mode in {"raw", "sample"}
         or projection_failure is not None
+        or retention_admission_failed
     )
     preserved_by_role = {
         "rendered_dom": raw_projector_inputs_preserved,
@@ -399,10 +426,18 @@ def run_source_capture_cloakbrowser_packet(
                 "content-mode projection failed in flight; rendered DOM, visible text, "
                 f"browser metadata, and screenshot preserved as fallback: {projection_failure}"
             )
-        elif content_capture.capture_artifact_mode == "content":
+        elif (
+            content_capture.capture_artifact_mode == "content"
+            and not raw_projector_inputs_preserved
+        ):
             packet_limitations.append(
                 "content-mode packet: rendered DOM and visible text discarded after hashing; "
                 "content record, browser metadata, and screenshot preserved"
+            )
+        elif content_capture.capture_artifact_mode == "content":
+            packet_limitations.append(
+                "content-mode admission failed; rendered DOM and visible text preserved "
+                "with the derived content record for diagnosis"
             )
         elif content_capture.capture_artifact_mode == "sample":
             packet_limitations.append(
@@ -606,6 +641,20 @@ def _sephora_market_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
+def _sephora_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
+    return RenderedContentCaptureSpec(
+        capture_artifact_mode=mode,
+        parser_version=SEPHORA_PDP_PARSER_VERSION,
+        projector=lambda rendered_dom, visible_text, final_url: (
+            build_sephora_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            )
+        ),
+    )
+
+
 def _validate_amazon_delivery_zip_url(url: str) -> None:
     hostname = (urlparse(url).hostname or "").lower()
     if hostname not in _AMAZON_US_HOSTS:
@@ -639,10 +688,21 @@ def _assert_no_browser_secret_bytes(inputs) -> None:
     for role, body in inputs:
         sample = body.decode("utf-8", errors="ignore")
         for pattern in _BROWSER_SECRET_PATTERNS:
-            if pattern in sample:
+            if pattern.search(sample):
                 raise ValueError(
                     "browser-secret material is forbidden in rendered content input "
-                    f"{role}: {pattern}"
+                    f"{role}: {pattern.pattern}"
+                )
+        role_patterns = (
+            _BROWSER_SECRET_METADATA_PATTERNS
+            if role == "browser_metadata"
+            else (_BROWSER_SECRET_HEADER_PATTERN,)
+        )
+        for pattern in role_patterns:
+            if pattern.search(sample):
+                raise ValueError(
+                    "browser-secret material is forbidden in rendered content input "
+                    f"{role}: {pattern.pattern}"
                 )
 
 
@@ -798,6 +858,15 @@ def _build_parser() -> argparse.ArgumentParser:
         "--capture-mode",
         choices=[item.value for item in CaptureModeCategory],
         default=CaptureModeCategory.MULTIMODAL.value,
+    )
+    parser.add_argument(
+        "--capture-artifact-mode",
+        choices=["content", "sample", "raw"],
+        default=None,
+        help=(
+            "Artifact-retention mode for the pinned sephora_pdp_aggregate route. "
+            "Omitted defaults that route to content; other retail profiles remain raw."
+        ),
     )
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
@@ -1035,6 +1104,26 @@ def main(argv: Sequence[str] | None = None) -> int:
                 source_family=args.source_family,
                 source_surface=args.source_surface,
             )
+        if args.capture_artifact_mode is not None and (
+            retail_capture_profile is None
+            or retail_capture_profile.name != SEPHORA_PDP_CONTENT_PROFILE
+        ):
+            raise ValueError(
+                "--capture-artifact-mode currently requires "
+                "--retail-capture-profile sephora_pdp_aggregate"
+            )
+        content_capture = None
+        if (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE
+        ):
+            if args.sephora_market != "US":
+                raise ValueError(
+                    "sephora_pdp_aggregate content capture requires --sephora-market US"
+                )
+            content_capture = _sephora_content_capture_spec(
+                args.capture_artifact_mode or "content"
+            )
         settle_seconds = (
             args.settle_seconds
             if args.settle_seconds is not None
@@ -1251,6 +1340,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 not_applicable_reason=args.pre_coverage_history_posture_not_applicable_reason,
             ),
             intended_cadence=build_intended_cadence(args),
+            content_capture=content_capture,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")

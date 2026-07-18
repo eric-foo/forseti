@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -55,6 +56,7 @@ def _sephora_dom(
 
 
 _US_DOM = _sephora_dom()
+_COUNTRY_DIALOG_TEXT = "This site does not ship to your country."
 _SEPHORA_URL = (
     "https://www.sephora.com/product/"
     "tower-28-lipsoftie-hydrating-tinted-lip-treatment-balm-P509397"
@@ -65,6 +67,7 @@ _SEPHORA_URL = (
 def _fake_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
     pre_capture = kwargs["pre_capture"]
     assert isinstance(pre_capture, SephoraUSMarketPlugin)
+    assert pre_capture.target_url == kwargs["url"]
     confirmation = pre_capture.confirm(_US_DOM)
     return CloakBrowserSnapshotSuccess(
         requested_url=kwargs["url"],
@@ -128,6 +131,15 @@ def test_confirmation_requires_served_country_and_sephora_usd_offer() -> None:
     assert "priceCurrency=USD" in confirmation.detail
 
 
+def test_confirmation_rejects_country_dialog_over_valid_usd_page() -> None:
+    confirmation = confirm_sephora_us_market(
+        _US_DOM + f"<div>{_COUNTRY_DIALOG_TEXT}</div>"
+    )
+
+    assert confirmation.confirmed is False
+    assert "country-routing dialog absent" in confirmation.detail
+
+
 @pytest.mark.parametrize(
     "dom",
     [
@@ -165,18 +177,84 @@ def test_confirmation_rejects_weak_split_or_malformed_signals(dom: str) -> None:
     assert confirm_sephora_us_market(dom).confirmed is False
 
 
-def test_plugin_is_assertion_only_and_does_not_touch_page() -> None:
-    outcome = SephoraUSMarketPlugin().before(object(), setup_timeout_ms=1)
+def test_plugin_preflight_noops_after_target_navigation_when_dialog_absent() -> None:
+    page = MagicMock()
+    dialog = page.locator.return_value
+    dialog.count.return_value = 0
+
+    outcome = SephoraUSMarketPlugin(target_url=_SEPHORA_URL).before(
+        page, setup_timeout_ms=10_000
+    )
 
     assert outcome.attempted is True
     assert outcome.steps_completed is True
     assert outcome.warning_notes == []
-    assert SephoraUSMarketPlugin().humanize is False
+    page.goto.assert_called_once_with(
+        _SEPHORA_URL,
+        wait_until="load",
+        timeout=10_000,
+    )
+    assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is False
+
+
+def test_plugin_uses_exact_country_dialog_continuation() -> None:
+    page = MagicMock()
+    page.url = "https://www.sephora.com/"
+    dialog = page.locator.return_value
+    dialog.count.side_effect = [1, 0]
+    dialog.is_visible.return_value = True
+    dialog.inner_text.return_value = (
+        "Looks like you are trying to access Sephora.com from another country. "
+        f"{_COUNTRY_DIALOG_TEXT} Continue to Sephora.com."
+    )
+    paragraph = dialog.locator.return_value
+    filtered = paragraph.filter.return_value
+    button = filtered.locator.return_value
+    button.count.return_value = 1
+
+    outcome = SephoraUSMarketPlugin(target_url=_SEPHORA_URL).before(
+        page, setup_timeout_ms=10_000
+    )
+
+    assert outcome.steps_completed is True
+    paragraph.filter.assert_called_once_with(has_text="Continue to")
+    button.locator.assert_not_called()
+    button.click.assert_called_once_with(timeout=10_000)
+
+
+def test_plugin_fails_closed_on_ambiguous_country_dialog() -> None:
+    page = MagicMock()
+    dialog = page.locator.return_value
+    dialog.count.return_value = 1
+    dialog.is_visible.return_value = True
+    dialog.inner_text.return_value = (
+        f"{_COUNTRY_DIALOG_TEXT} Continue to Sephora.com."
+    )
+    dialog.locator.return_value.filter.return_value.locator.return_value.count.return_value = 2
+
+    outcome = SephoraUSMarketPlugin(target_url=_SEPHORA_URL).before(
+        page, setup_timeout_ms=10_000
+    )
+
+    assert outcome.steps_completed is False
+    assert outcome.reason is not None
+    assert "exactly one" in outcome.reason
 
 
 def test_plugin_rejects_non_us_market() -> None:
     with pytest.raises(ValueError, match="only US/USD"):
-        SephoraUSMarketPlugin(country_code="CA", currency_code="CAD")
+        SephoraUSMarketPlugin(
+            target_url=_SEPHORA_URL,
+            country_code="CA",
+            currency_code="CAD",
+        )
+
+
+def test_plugin_rejects_non_us_target_route() -> None:
+    with pytest.raises(ValueError, match="country_switch=us"):
+        SephoraUSMarketPlugin(
+            target_url="https://www.sephora.com/product/example"
+        )
 
 
 def test_writer_builds_sephora_market_plugin(

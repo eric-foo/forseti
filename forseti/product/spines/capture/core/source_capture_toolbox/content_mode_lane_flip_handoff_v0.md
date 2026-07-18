@@ -60,6 +60,13 @@ for volume pressure.
   hashing, retention, metadata, and raw-fallback mechanics. Fragrantica's
   content schema and parser remain family-owned. Its direct-HTTP slice remains
   an unchanged raw canary.
+- Retail's first exact flip is `sephora_pdp_aggregate`. It reuses only the
+  shared CloakBrowser mode/hash/retention/fallback lifecycle and retains a
+  Sephora-owned schema, parser-fit checker, and exact country-continuation
+  preflight. The US/USD market pin, absent country dialog, access, source-detail
+  sufficiency, and projection must all pass before DOM/text are discarded.
+  Screenshots remain active-capture evidence. Every sibling retail PDP/grid
+  profile remains raw.
 - "Projection spine" was never an accepted spine. The operating-model v2
   Bloat-Cut Queue explicitly excludes a "Standalone Projection Spine …
   or any projection practice that drops evidence rows before ECR/Cleaning"
@@ -93,7 +100,7 @@ build on the hardened seam.
 | Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
 | Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | RENDERED SLICES FLIPPED: both CloakBrowser packets default to content mode through the shared rendered retention seam; direct HTTP remains a raw canary; raw/sample/legacy projection remains supported |
 | Basenotes MGT | Persistent Chrome current-window bundle or credential-free loopback CDP (`run_basenotes_mgt_capture.py`) | `basenotes_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned content adapter; browser metadata retained; screenshot acquisition requires a named visual trigger; raw/legacy projection runner remains |
-| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | Flippable once cloakbrowser seam exists; largest raw pages after Reddit |
+| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | FIRST PINNED ROUTE FLIPPED: `sephora_pdp_aggregate` defaults to content with retailer-owned parser-fit, exact country-continuation preflight, and Projection/Silver equivalence; raw/sample/legacy remain supported; Ulta and every sibling PDP/grid profile remain raw |
 | IG reels grid / calls / momentum | Live browser session, passive JSON responses; runner already extracts observations at capture time | `ig_reels_grid_projection.py` (+ catchup with record-id derivation ranks re-reading raw payloads) | DESIGN PASS REQUIRED: catchup semantics depend on raw; do not flip until catchup is re-specified against content records |
 | TikTok batch | Video packets (media + metadata) | `tiktok/batch_projection.py` aggregates coverage ACROSS packets | NOT A FLIP TARGET: cross-packet aggregation, media raw is the evidence |
 | YouTube behavioral | Metadata packets + captions + ASR across lake | `youtube_capture/behavioral_projection.py` aggregates | NOT A FLIP TARGET as a whole; only per-page watch-metadata parse is candidate |
@@ -113,11 +120,16 @@ build on the hardened seam.
 4. CloakBrowser content capture seam: added for the selected Fragrantica
    rendered route. Retail may reuse this lifecycle only with a retailer-owned
    parser-fit and Projection/Silver-equivalence proof.
-5. Re-point each flipped surface's cleaning catchup consumers at content
+5. Sephora aggregate PDP: flipped with a retailer-owned schema/parser and exact
+   country-continuation preflight after parser-fit and Projection/Silver
+   equivalence proof. US/USD market, country-dialog absence, access,
+   sufficiency, and projection failures preserve DOM/text. Other retail
+   profiles remain raw.
+6. Re-point each flipped surface's cleaning catchup consumers at content
    records, then retire that surface's post-hoc lane as its standard path in
    the same work unit (reconcile the family design doc and any playbook
    mention).
-6. IG family: separate design pass for catchup/derivation-rank semantics
+7. IG family: separate design pass for catchup/derivation-rank semantics
    before any flip. TikTok/YouTube aggregation lanes stay as they are — they
    are not raw-to-derived projections.
 

@@ -4,7 +4,9 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Mapping, Sequence
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 
@@ -20,6 +22,10 @@ if TYPE_CHECKING:
 RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
 RETAIL_PDP_PROJECTION_VERSION = "v0"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
+SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
+SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v1"
+SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v1"
+SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
@@ -68,6 +74,18 @@ class RetailProjectionRawAnchor(StrictModel):
     hash_basis: str
     anchor_kind: Literal["file", "html_selector", "script_index", "text_pattern", "json_pointer"]
     anchor_value: str | None = None
+
+    @model_validator(mode="after")
+    def validate_anchor_value(self) -> "RetailProjectionRawAnchor":
+        if self.anchor_kind == "file":
+            if self.anchor_value is not None:
+                raise ValueError("file anchors must not carry anchor_value")
+            return self
+        if not (self.anchor_value and self.anchor_value.strip()):
+            raise ValueError(f"{self.anchor_kind} anchors require anchor_value")
+        if self.anchor_kind == "json_pointer" and not self.anchor_value.startswith("/"):
+            raise ValueError("json_pointer anchors require an absolute JSON pointer")
+        return self
 
 
 class RetailPdpProjectionRow(StrictModel):
@@ -163,6 +181,128 @@ class RetailPdpProjectionPacket(StrictModel):
         return self
 
 
+SephoraContentAnchorKind = Literal["file", "html_selector", "script_index", "text_pattern"]
+
+
+class SephoraPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_embedded_structured_json",
+        "retail_carried_module",
+    ]
+    retailer: Literal["sephora"] = "sephora"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: SephoraContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(cls, value: dict[str, Any | None]) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Sephora PDP content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "SephoraPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(f"{self.source_anchor_kind} anchors require source_anchor_value")
+        return self
+
+
+class SephoraPdpContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal[
+        "sku_variant_price",
+        "variant_availability",
+        "review_substrate_for_product",
+        "series_locale_currency",
+        "structured_json_for_product",
+        "module_carried",
+    ]
+    row_id: str
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(cls, value: dict[str, Any | None]) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Sephora PDP content bindings may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+
+class SephoraPdpContentLossEntry(StrictModel):
+    category: Literal["RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"]
+    count: int = Field(ge=0)
+    reason: str
+    source_anchor_kind: SephoraContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "SephoraPdpContentLossEntry":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(f"{self.source_anchor_kind} anchors require source_anchor_value")
+        return self
+
+
+class SephoraPdpContentLossLedger(StrictModel):
+    collapsed: list[SephoraPdpContentLossEntry] = Field(default_factory=list)
+    preserved_evidence_rows: int = Field(ge=0)
+    preserved_bindings: int = Field(ge=0)
+    timing: Literal["separate_not_collapsed"] = "separate_not_collapsed"
+    hierarchy_preserved: bool
+    structure_preserved: bool
+    certification: Literal[
+        "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+    ] = "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+
+
+class SephoraPdpAggregateContentRecord(StrictModel):
+    record_kind: Literal["retail_pdp_sephora_aggregate_content"] = (
+        SEPHORA_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_sephora_aggregate_content_v1"] = (
+        SEPHORA_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_sephora_aggregate_parser_v1"] = (
+        SEPHORA_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["sephora_pdp_aggregate"] = SEPHORA_PDP_CONTENT_PROFILE
+    source_url: str
+    rows: list[SephoraPdpContentRow] = Field(default_factory=list)
+    binding_map: list[SephoraPdpContentBinding] = Field(default_factory=list)
+    loss_ledger: SephoraPdpContentLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "SephoraPdpAggregateContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        return self
+
+
 def _retail_structure_preserved(bindings: Sequence[RetailPdpProjectionBinding]) -> bool:
     binding_types = {binding.binding_type for binding in bindings}
     return _REQUIRED_RETAIL_STRUCTURE_BINDINGS.issubset(binding_types)
@@ -244,6 +384,30 @@ def build_retail_pdp_projection(
     verbatim when present.
     """
     preserved_files = {item.file_id: item for item in packet.preserved_files}
+    content_files = [
+        item
+        for item in packet.preserved_files
+        if item.relative_packet_path.replace("\\", "/").endswith("content_record.json")
+    ]
+    if content_files:
+        if len(content_files) != 1:
+            raise ValueError("Retail PDP packet must preserve exactly one content_record.json")
+        content_file = content_files[0]
+        content_bytes = raw_file_bytes_by_file_id.get(content_file.file_id)
+        if content_bytes is None:
+            raise ValueError(
+                f"content record bytes are required for preserved file id: {content_file.file_id}"
+            )
+        _validate_sephora_content_packet_metadata(
+            packet=packet,
+            raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+        )
+        return _projection_from_sephora_content_record(
+            packet=packet,
+            content_file=content_file,
+            content_bytes=content_bytes,
+        )
+
     rows: list[RetailPdpProjectionRow] = []
     bindings: list[RetailPdpProjectionBinding] = []
     collapsed: list[RetailPdpProjectionLossEntry] = []
@@ -308,6 +472,296 @@ def build_retail_pdp_projection(
         ),
         residuals=residuals,
     )
+
+
+def build_sephora_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Parse the pinned Sephora aggregate PDP without inventing packet/file identity."""
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    parsed_url = urlparse(source_url)
+    if parsed_url.scheme not in {"http", "https"} or parsed_url.hostname not in {
+        "sephora.com",
+        "www.sephora.com",
+    }:
+        raise ValueError("Sephora aggregate content records require a sephora.com source URL")
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=None,
+        currency_pin=None,
+        variant_pin=None,
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    projected = _project_retail_html(
+        _decode_text(rendered_dom),
+        visible_text_files=[(visible_text_file, _decode_text(visible_text))],
+        visible_text=_decode_text(visible_text),
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="sephora",
+    )
+    record = SephoraPdpAggregateContentRecord(
+        source_url=source_url,
+        rows=[_sephora_content_row(row) for row in projected.rows],
+        binding_map=[
+            _sephora_content_binding(binding) for binding in projected.bindings
+        ],
+        loss_ledger=SephoraPdpContentLossLedger(
+            collapsed=[
+                SephoraPdpContentLossEntry(
+                    category=entry.category,
+                    count=entry.count,
+                    reason=entry.reason,
+                    source_anchor_kind=entry.raw_anchor.anchor_kind,
+                    source_anchor_value=entry.raw_anchor.anchor_value,
+                )
+                for entry in projected.collapsed
+            ],
+            preserved_evidence_rows=len(projected.rows),
+            preserved_bindings=len(projected.bindings),
+            hierarchy_preserved=True,
+            structure_preserved=_retail_structure_preserved(projected.bindings),
+        ),
+        residuals=projected.residuals,
+    )
+    return record.model_dump(mode="json")
+
+
+def _projection_from_sephora_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> RetailPdpProjectionPacket:
+    try:
+        record = SephoraPdpAggregateContentRecord.model_validate_json(content_bytes)
+    except Exception as exc:
+        raise ValueError(f"invalid Sephora PDP content record: {exc}") from exc
+    if packet.source_family != "retail_pdp" or packet.source_surface != "cloakbrowser_snapshot":
+        raise ValueError(
+            "Sephora PDP content records require retail_pdp/cloakbrowser_snapshot packets"
+        )
+    if _detect_retailer(packet) != "sephora":
+        raise ValueError("Sephora PDP content record does not match packet retailer identity")
+
+    slice_by_id = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
+    matching_source_urls = {
+        _fact_value(source_slice.locator)
+        for source_slice in packet.source_slices
+        if _fact_value(source_slice.locator)
+    }
+    if record.source_url not in matching_source_urls:
+        raise ValueError(
+            f"Sephora content record source_url {record.source_url!r} does not match "
+            "a packet source-slice locator"
+        )
+
+    rows: list[RetailPdpProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Sephora content row references invalid source slice: {content_row.slice_id}"
+            )
+        fields = dict(content_row.source_visible_fields)
+        if content_row.row_kind == "retail_pdp_product":
+            fields = _product_context_fields(packet, source_slice, "sephora")
+        rows.append(
+            RetailPdpProjectionRow(
+                row_id=content_row.row_id,
+                row_kind=content_row.row_kind,
+                retailer="sephora",
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_sephora_content_record_anchor(
+                    content_file, f"/rows/{index}"
+                ),
+                source_visible_fields=fields,
+                residuals=content_row.residuals,
+            )
+        )
+
+    bindings: list[RetailPdpProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                "Sephora content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        fields = dict(content_binding.source_visible_fields)
+        if content_binding.binding_type == "series_locale_currency":
+            fields = {
+                "series_id": packet.series_id,
+                "locale_pin": _fact_value(source_slice.locale_pin),
+                "currency_pin": _fact_value(source_slice.currency_pin),
+                "variant_pin": _fact_value(source_slice.variant_pin),
+            }
+        bindings.append(
+            RetailPdpProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_sephora_content_record_anchor(
+                    content_file, f"/binding_map/{index}"
+                ),
+                source_visible_fields=fields,
+            )
+        )
+
+    collapsed = [
+        RetailPdpProjectionLossEntry(
+            category=entry.category,
+            count=entry.count,
+            reason=entry.reason,
+            raw_anchor=_sephora_content_record_anchor(
+                content_file, f"/loss_ledger/collapsed/{index}"
+            ),
+        )
+        for index, entry in enumerate(record.loss_ledger.collapsed)
+    ]
+    return RetailPdpProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=RetailPdpProjectionLossLedger(
+            collapsed=collapsed,
+            preserved_evidence_rows=len(rows),
+            preserved_bindings=len(bindings),
+            hierarchy_preserved=record.loss_ledger.hierarchy_preserved,
+            structure_preserved=record.loss_ledger.structure_preserved,
+        ),
+        residuals=record.residuals,
+    )
+
+
+def _sephora_content_row(row: RetailPdpProjectionRow) -> SephoraPdpContentRow:
+    fields = dict(row.source_visible_fields)
+    if row.row_kind == "retail_pdp_product":
+        fields = {}
+    return SephoraPdpContentRow(
+        slice_id=row.raw_ref.slice_id,
+        row_id=row.row_id,
+        row_kind=row.row_kind,
+        retailer="sephora",
+        source_visible_fields=fields,
+        residuals=row.residuals,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _sephora_content_binding(
+    binding: RetailPdpProjectionBinding,
+) -> SephoraPdpContentBinding:
+    fields = dict(binding.source_visible_fields)
+    if binding.binding_type == "series_locale_currency":
+        fields = {}
+    return SephoraPdpContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+        source_visible_fields=fields,
+    )
+
+
+def _sephora_content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> RetailProjectionRawAnchor:
+    return RetailProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        anchor_value=json_pointer,
+    )
+
+
+def _validate_sephora_content_packet_metadata(
+    *,
+    packet: SourceCapturePacket,
+    raw_file_bytes_by_file_id: Mapping[str, bytes],
+) -> None:
+    def _one_json(filename: str) -> dict[str, Any]:
+        matches = [
+            item
+            for item in packet.preserved_files
+            if item.relative_packet_path.replace("\\", "/").endswith(filename)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Sephora content packet must preserve exactly one {filename}"
+            )
+        body = raw_file_bytes_by_file_id.get(matches[0].file_id)
+        if body is None:
+            raise ValueError(
+                f"preserved bytes are required for {matches[0].file_id}: {filename}"
+            )
+        try:
+            value = json.loads(body)
+        except Exception as exc:
+            raise ValueError(f"invalid {filename}: {exc}") from exc
+        if not isinstance(value, dict):
+            raise ValueError(f"{filename} must contain a JSON object")
+        return value
+
+    capture_metadata = _one_json("content_capture_metadata.json")
+    if capture_metadata.get("parser_version") != SEPHORA_PDP_PARSER_VERSION:
+        raise ValueError("Sephora content packet parser version does not match current")
+    if capture_metadata.get("projection_status") != "succeeded":
+        raise ValueError("Sephora content packet projection did not succeed")
+    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+        raise ValueError("Sephora content packet must use content or sample mode")
+
+    browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
+    profile = browser_metadata.get("retail_capture_profile")
+    if not isinstance(profile, dict) or profile.get("name") != SEPHORA_PDP_CONTENT_PROFILE:
+        raise ValueError("Sephora content packet capture profile does not match")
+    if browser_metadata.get("pin_confirmed") is not True:
+        raise ValueError("Sephora content packet does not carry a confirmed US/USD market pin")
 
 
 class _ProjectedRetailHtml(StrictModel):
@@ -1712,6 +2166,10 @@ __all__ = [
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
+    "SEPHORA_PDP_CONTENT_PROFILE",
+    "SEPHORA_PDP_CONTENT_RECORD_KIND",
+    "SEPHORA_PDP_CONTENT_SCHEMA_VERSION",
+    "SEPHORA_PDP_PARSER_VERSION",
     "PROJECTION_RETAIL_PDP_LANE",
     "Retailer",
     "RetailPdpProjectionInputError",
@@ -1722,8 +2180,10 @@ __all__ = [
     "RetailPdpProjectionRow",
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
+    "SephoraPdpAggregateContentRecord",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
+    "build_sephora_pdp_aggregate_content_record",
     "project_retail_pdp_into_lake",
     "write_retail_pdp_projection",
 ]

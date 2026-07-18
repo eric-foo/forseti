@@ -72,21 +72,26 @@ transform, Judgment read, validation claim, readiness claim, or buyer-proof clai
 - Disallowed next move: auto-ECR, Cleaning, Judgment, or auto-project wiring that
   does not first preserve the projection residuals and binding gaps named here.
 
-## Raw Input Contract
+## Packet Input Contract
 
 Projection starts only from a preserved `SourceCapturePacket`. Raw remains
-canonical; projection is a re-derivable view.
+canonical for unflipped and historical routes. The pinned
+`sephora_pdp_aggregate` route defaults to a parser-versioned content record after
+its exact country-continuation preflight and all admission gates pass;
+projection is re-derivable from that record without rereading discarded
+DOM/text.
 
 Minimum input for Retail/PDP projection:
 
 | Input | Required posture |
 | --- | --- |
 | Packet and slice identity | Carry `packet_id`, `slice_id`, source locator, slice locator, series id, locale pin, currency pin, variant pin, capture time, cutoff posture, and archive-history posture when known. Unknowns stay as visible packet facts or projection residuals. |
-| Preserved bytes | The helper needs the raw bytes for every `preserved_file_id` it projects. Missing preserved bytes are a hard error, not an empty projection. |
-| Rendered DOM | Retail/PDP projection is a rendered/embedded-state slice. If no `.html`/`.htm` DOM file is present for a slice, emit `retail_pdp_rendered_dom_absent` and do not fabricate rows. |
+| Preserved bytes | The helper needs hash-verified bytes for every file it consumes. A valid Sephora content record is preferred when present; otherwise missing raw bytes are a hard error, not an empty projection. |
+| Rendered DOM | Raw, sample, legacy, and unflipped routes preserve the rendered DOM. A successful Sephora content packet may omit it after recording its hash and byte count; failed admission preserves it. |
 | Visible text | Use only as a source-visible companion to DOM. If a value comes only from position-dependent visible text, carry it with an isolation flag and residual. |
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
+| Sephora content record | `retail_pdp_sephora_aggregate_content_v1` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
 
 If a Retail/PDP packet was commissioned because Commission Signal Board or
 Scanning marked a product URL recent/current-state high-attention, that marker is
@@ -189,7 +194,7 @@ Use this selector after the playbook:
 | If the next goal is... | Correct move |
 | --- | --- |
 | Owner-observable contract for the slice | This playbook is the artifact. |
-| Auto-project after capture | First patch or explicitly accept the remaining target-binding gaps, especially per-review body-row scope. Then wire projection as a view over raw packet output. |
+| Capture-time content projection | Standard only for `sephora_pdp_aggregate`; use `sample` for parser-fit and `raw` for explicit fallback. Every sibling retail profile remains on the raw/post-hoc path. |
 | ECR sequencing | Wait until projection output carries residuals through the ECR handoff. ECR consumes source-visible facts and residuals only; it does not repair projection gaps. |
 | Bounded implementation patch | Target one remaining gap: explicit per-review body row support, or runner invocation of the existing helper. Do not combine with ECR or Cleaning work. |
 

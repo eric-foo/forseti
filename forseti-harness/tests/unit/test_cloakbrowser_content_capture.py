@@ -202,3 +202,29 @@ def test_rendered_content_capture_rejects_browser_secret_text(
             mode="content",
             secret="cf_clearance=secret",
         )
+
+
+def test_browser_secret_guard_allows_inert_cookie_script_literals() -> None:
+    runner._assert_no_browser_secret_bytes(
+        [
+            (
+                "rendered_dom",
+                b'<script>const labels = ["Cookie:", "Set-Cookie"];</script>',
+            ),
+            ("visible_text", b"Learn how document.cookie is used."),
+        ]
+    )
+
+
+def test_browser_secret_guard_rejects_cookie_header_values() -> None:
+    with pytest.raises(ValueError, match="browser-secret material"):
+        runner._assert_no_browser_secret_bytes(
+            [("rendered_dom", b"Cookie: session_id=secret")]
+        )
+
+
+def test_browser_secret_guard_rejects_storage_state_metadata() -> None:
+    with pytest.raises(ValueError, match="browser-secret material"):
+        runner._assert_no_browser_secret_bytes(
+            [("browser_metadata", b'{"cookies":[],"origins": []}')]
+        )

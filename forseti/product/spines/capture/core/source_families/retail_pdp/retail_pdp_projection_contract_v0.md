@@ -40,6 +40,17 @@ packet runner can write a separate Retail/PDP projection JSON after a successful
 packet write when `--source-family retail_pdp --retail-pdp-projection-output`
 are supplied.
 
+One exact route is now capture-time by default:
+`--retail-capture-profile sephora_pdp_aggregate --sephora-market US`. It uses
+`--capture-artifact-mode {content,sample,raw}` (default `content`) and the
+family-owned `retail_pdp_sephora_aggregate_content_v1` record. Its retailer-owned
+preflight detects only Sephora's exact country-routing dialog, invokes the
+explicit US continuation, and lets the main capture return to the canonical PDP.
+Rendered DOM and visible text are discarded only after the dialog is absent and
+projection, access, profile sufficiency, and the Sephora US/USD pin all pass.
+Any failed gate preserves those inputs. Other retail profiles and historical
+packets remain raw.
+
 ## Purpose
 
 Retail PDPs are useful to Orca only if the source-visible product, offer, and
@@ -54,7 +65,11 @@ mechanical row view over raw capture bytes so downstream layers can inspect:
   carried frame-sensitive modules; and
 - which gaps remain visible before ECR, Cleaning, or Judgment acts.
 
-Raw remains canonical. Projection is a re-derivable view.
+Raw remains canonical for unflipped routes and historical packets. For the
+flipped Sephora aggregate route, `content_record.json` is the preserved
+projectable substrate and the discarded DOM/text remain hash-accounted capture
+inputs. The unchanged Retail/PDP projection stays a re-derivable view over
+either representation.
 
 ## Source Read Ledger
 
@@ -77,8 +92,10 @@ Raw remains canonical. Projection is a re-derivable view.
 
 ### Capture Input Required
 
-Retail projection consumes an existing `SourceCapturePacket` (CapturePacket) plus preserved raw
-file bytes. It does not fetch, browse, enrich, or choose sources.
+Retail projection consumes an existing `SourceCapturePacket` (CapturePacket)
+plus hash-verified preserved files. It prefers a valid Sephora aggregate
+`content_record.json` when present; otherwise it follows the existing raw parser.
+It does not fetch, browse, enrich, or choose sources.
 
 For a PDP slice to be projectable, the raw packet should preserve:
 
@@ -92,6 +109,14 @@ For a PDP slice to be projectable, the raw packet should preserve:
   review substrate; and
 - raw screenshot/media as packet evidence when captured, even when the current
   projection only ledger-collapses hero imagery or cart/notify chrome.
+
+For a `sephora_pdp_aggregate` content packet, rendered DOM and visible text may
+be absent. The packet instead preserves their hashes and byte counts in
+`content_capture_metadata.json`, the retained browser metadata and active-capture
+screenshot, and a parser-versioned content record. Projection rebinds rows,
+bindings, and loss entries to the real packet identity and JSON pointers inside
+that record; packet-envelope facts such as capture time and series pins are
+restored from the real manifest rather than stored as fabricated placeholders.
 
 Retailer-specific capture details that now matter to projection:
 
@@ -198,7 +223,7 @@ wiring available, the next move is one of:
 1. **Targeted recapture/reprojection checks** for new retailer edge cases, such
    as Sephora review-count precision, Ulta requested-SKU mismatch variants, or
    Amazon storefront/location posture.
-2. **Use or recheck the opt-in sidecar** for already bounded Retail PDP
+2. **Use or recheck the opt-in sidecar** for raw, legacy, or unflipped Retail PDP
    CloakBrowser packet outputs:
    `--source-family retail_pdp --retail-pdp-projection-output <path>`, using
    this contract as the behavior surface and preserving residuals unchanged.
@@ -207,10 +232,12 @@ wiring available, the next move is one of:
 3. **Retailer recon closure** if the immediate bottleneck is source-access
    posture rather than projection behavior.
 
-Auto-project-after-capture behavior is acceptable only as bounded opt-in sidecar
-wiring against this contract. It must not become a generic packet writer
-responsibility, hide residuals, silently trust fallbacks, or feed ECR facts that
-projection could not anchor.
+Capture-time projection is the standard path only for the pinned
+`sephora_pdp_aggregate` surface. The shared runner owns mode, hashing, retention,
+metadata, and fallback; the Sephora parser/schema and exact country-continuation
+preflight remain retailer-owned. The post-hoc runner remains for raw, sample,
+legacy, and every unflipped retail surface. No path may hide residuals, silently
+trust fallbacks, or feed ECR facts that projection could not anchor.
 
 ## Direction Change Propagation
 
