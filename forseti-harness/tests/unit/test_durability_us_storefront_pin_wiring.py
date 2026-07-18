@@ -279,6 +279,7 @@ class _FakePage:
         apply_confirmation_missing: bool = False,
         clock_advance: Callable[[float], None] | None = None,
         action_advance_ms: float = 0,
+        widget_ready_delay_ms: float = 0,
         homepage_url: str = _AMAZON_HOMEPAGE_URL,
     ):
         self.fail_steps = fail_steps or set()
@@ -286,8 +287,10 @@ class _FakePage:
         self.apply_confirmation_missing = apply_confirmation_missing
         self._clock_advance = clock_advance
         self._action_advance_ms = action_advance_ms
+        self._widget_ready_delay_ms = widget_ready_delay_ms
         self.calls: list[str] = []
         self.click_timeouts: list[float] = []
+        self.wait_timeouts: list[float] = []
         self.return_pressed = False
         self.filled_zip: str | None = None
         self.applied = False
@@ -331,7 +334,7 @@ class _FakeLocator:
         self._page.click_timeouts.append(timeout)
         self._page._advance_action()
         # Widget-open selectors
-        if self._selector in ("#nav-global-location-popover-link", "#glow-ingress-block"):
+        if self._selector == amazon_pin._WIDGET_OPEN_SELECTOR:
             if "open_widget" in self._page.fail_steps:
                 raise RuntimeError("widget not clickable")
             self._page.calls.append("open_widget")
@@ -341,6 +344,20 @@ class _FakeLocator:
             raise RuntimeError("apply button not present")
         self._page.calls.append("apply")
         self._page.applied = True
+
+    def wait_for(self, *, state: str, timeout: float) -> None:
+        assert state == "visible"
+        self._page.wait_timeouts.append(timeout)
+        delay_ms = self._page._widget_ready_delay_ms
+        if delay_ms > timeout:
+            if self._page._clock_advance is not None:
+                self._page._clock_advance(timeout)
+            raise RuntimeError("widget not visible")
+        if self._page._clock_advance is not None and delay_ms > 0:
+            self._page._clock_advance(delay_ms)
+        if "open_widget" in self._page.fail_steps:
+            raise RuntimeError("widget not visible")
+        self._page.calls.append("widget_visible")
 
     def fill(self, value: str, *, timeout: float) -> None:
         self._page.click_timeouts.append(timeout)
@@ -411,14 +428,39 @@ def test_plugin_before_warns_when_apply_confirmation_does_not_arrive(
     )
 
 
-def test_plugin_before_uses_short_probe_timeout_not_8000ms() -> None:
-    """FIX #4: widget probes use the SHORT 2.5s probe timeout, never the old 8000ms."""
+def test_plugin_before_waits_for_vpn_delayed_widget_hydration() -> None:
+    """A widget hydrating after 2.5s remains reachable within one bounded readiness wait."""
     plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
-    page = _FakePage()
+    page = _FakePage(widget_ready_delay_ms=3_600)
     plugin.before(page, setup_timeout_ms=30_000)
-    assert page.click_timeouts, "widget steps should have probed with a timeout"
-    assert all(t == 2500 for t in page.click_timeouts), page.click_timeouts
-    assert 8000 not in page.click_timeouts
+    assert page.wait_timeouts == [5_000]
+    assert page.calls.count("widget_visible") == 1
+    assert "open_widget" in page.calls
+
+
+def test_plugin_before_missing_widget_uses_one_bounded_combined_wait() -> None:
+    """Missing selectors pay one readiness cap, not one full timeout per fallback selector."""
+    clock = {"now": 0.0}
+
+    def _now() -> float:
+        return clock["now"]
+
+    def _advance(ms: float) -> None:
+        clock["now"] += ms / 1000
+
+    plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
+    page = _FakePage(
+        clock_advance=_advance,
+        widget_ready_delay_ms=9_000,
+    )
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(amazon_pin.time, "monotonic", _now)
+        outcome = plugin.before(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is False
+    assert outcome.reason == "open_widget"
+    assert page.wait_timeouts == [5_000]
+    assert "open_widget" not in page.calls
 
 
 def test_plugin_before_uses_setup_timeout_as_shared_budget(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -440,6 +482,7 @@ def test_plugin_before_uses_setup_timeout_as_shared_budget(monkeypatch: pytest.M
     assert outcome.steps_completed is False
     assert outcome.reason == "fill_zip"
     assert page.click_timeouts == [500]
+    assert page.wait_timeouts == [500]
 
 
 def test_plugin_rejects_non_positive_setup_timeout() -> None:

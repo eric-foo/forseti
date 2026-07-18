@@ -33,16 +33,20 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 _AMAZON_HOMEPAGE_URL = "https://www.amazon.com/"
 _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
 
-# Short bounded probes replace fixed sleeps: browser actions already wait for their target,
-# while the post-apply poll returns as soon as Amazon renders the requested ZIP.
+# Bounded state waits replace fixed sleeps. Amazon's VPN-routed homepage can finish
+# DOMContentLoaded before its location anchor hydrates, so the anchor gets one longer,
+# combined-selector readiness wait without paying that wait once per fallback selector.
 _POST_APPLY_POLL_MS = 100
 _WIDGET_PROBE_TIMEOUT_MS = 2500
+_WIDGET_READY_TIMEOUT_MS = 5000
+_WIDGET_CLICK_TIMEOUT_MS = 5000
 
 # Widget selectors, probed on amazon.com 2026-06-16; subject to Amazon DOM changes.
 _WIDGET_OPEN_SELECTORS = (
     "#nav-global-location-popover-link",
     "#glow-ingress-block",
 )
+_WIDGET_OPEN_SELECTOR = ", ".join(_WIDGET_OPEN_SELECTORS)
 _ZIP_INPUT_SELECTORS = ("#GLUXZipUpdateInput", "input[id*='zip' i][type='text']")
 _APPLY_SELECTORS = ("#GLUXZipUpdate", "span.a-button-inner > input[type='submit']")
 
@@ -129,21 +133,35 @@ class AmazonDeliveryLocationPlugin:
                 warning_notes=warning_notes,
             )
 
-        # Step 2: open the delivery-location widget. FIX #4: a short probe click, no is_visible.
+        # Step 2: open the delivery-location widget. The VPN-routed homepage can report
+        # DOMContentLoaded before this anchor hydrates. Wait for either known selector in one
+        # locator, then click it; this stays inside the shared setup budget and avoids paying a
+        # full missing-selector timeout twice.
         widget_clicked = False
-        for selector in _WIDGET_OPEN_SELECTORS:
-            probe_ms = _remaining_probe_timeout_ms(setup_deadline)
-            if probe_ms <= 0:
-                break
+        widget_error: Exception | None = None
+        widget = page.locator(_WIDGET_OPEN_SELECTOR).first  # type: ignore[union-attr]
+        ready_ms = _remaining_timeout_ms(
+            setup_deadline, cap_ms=_WIDGET_READY_TIMEOUT_MS
+        )
+        if ready_ms > 0:
             try:
-                page.locator(selector).first.click(timeout=probe_ms)  # type: ignore[union-attr]
+                widget.wait_for(state="visible", timeout=ready_ms)
+                click_ms = _remaining_timeout_ms(
+                    setup_deadline, cap_ms=_WIDGET_CLICK_TIMEOUT_MS
+                )
+                if click_ms <= 0:
+                    raise TimeoutError("shared setup window exhausted before widget click")
+                widget.click(timeout=click_ms)
                 widget_clicked = True
-                break
-            except Exception:
-                continue
+            except Exception as exc:
+                widget_error = exc
         if not widget_clicked:
+            failure_type = (
+                type(widget_error).__name__ if widget_error is not None else "TimeoutError"
+            )
             warning_notes.append(
-                "delivery_zip_setup: could not click delivery location widget; "
+                "delivery_zip_setup: delivery location widget did not become visible and "
+                f"clickable within its bounded readiness step ({failure_type}); "
                 "main URL capture proceeds without delivery location pin"
             )
             return PreCaptureOutcome(
@@ -383,6 +401,10 @@ def _remaining_ms(deadline: float) -> float:
 
 def _remaining_probe_timeout_ms(deadline: float) -> float:
     return min(_WIDGET_PROBE_TIMEOUT_MS, _remaining_ms(deadline))
+
+
+def _remaining_timeout_ms(deadline: float, *, cap_ms: float) -> float:
+    return min(cap_ms, _remaining_ms(deadline))
 
 
 def _wait_for_delivery_zip(page: object, delivery_zip: str, deadline: float) -> bool:
