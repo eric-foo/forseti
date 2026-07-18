@@ -1114,9 +1114,10 @@ observations:
   currency, and later parameterized requests were denied. The app Firebase
   root returned HTTP 401 `Permission denied`; an alternate API host returned
   retailer JSON 404 for the catalog path. No public API description or
-  zero-credential retailer feed was found. These auxiliary diagnostics locate
-  possible substrates but are not Capture Spine evidence and cannot promote a
-  pin.
+  zero-credential retailer feed was found. These unpreserved auxiliary
+  diagnostics locate possible substrates but are not independently auditable
+  Capture Spine evidence. They cannot promote a pin or support an exhaustion
+  claim.
 - Search-indexed Kohl's pages can scout the live subject and dollar-denominated
   price, but do not preserve current retailer bytes or an exact USD binding.
   Archive/cache, `.com`, and dollar-glyph routes were therefore rejected as
@@ -1124,14 +1125,15 @@ observations:
   not a public fallback, and no affiliate or paid-data credential was supplied
   or used.
 - Current outcome:
-  `NO_GO_ANONYMOUS_NON_BROWSER_ROUTES_EXHAUSTED_AKAMAI_DENIAL_US_PROXY_PROFILE_ABSENT`.
-  Ordinary HTTP, header-complete HTTP, hostname/AMP/typeahead variants, and
-  anonymous first-party app/config candidates produced either typed access
-  denial, empty subjectless content, authorization required, or route absence.
-  Cold deep-linking and disabled humanization are also falsified as sufficient
-  causes by the prior browser diagnosis. Country and currency remain
-  `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The shared
-  rendered-access classifier recognizes the exact Akamai EdgeSuite
+  `NO_GO_PACKET_BACKED_ANONYMOUS_HTTP_RUNGS_EXHAUSTED_AKAMAI_DENIAL_US_PROXY_PROFILE_ABSENT`.
+  Ordinary HTTP and header-complete HTTP are the exhausted packet-backed
+  non-browser rungs; both preserved typed access denial on the commissioned PDP
+  and policy surfaces. The wider hostname/AMP/typeahead/app/config exploration
+  remains non-admissible scouting because its request/response bytes were not
+  retained. Cold deep-linking and disabled humanization are also falsified as
+  sufficient causes by the prior browser diagnosis. Country and currency
+  remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The
+  shared rendered-access classifier recognizes the exact Akamai EdgeSuite
   conjunction, and both warmed packets prove the fix with
   `access_blocked=true`. The disproven warm-up adapter and CLI flag were
   removed. No Retail/PDP projection, retailer adapter, CLI flag, API surface,
