@@ -14,6 +14,31 @@ def test_classify_rendered_access_flags_cloudflare_interstitial() -> None:
     assert result.signal == "cloudflare_interstitial"
 
 
+def test_classify_rendered_access_flags_akamai_access_denied() -> None:
+    result = classify_rendered_access(
+        title="Access Denied",
+        visible_text=(
+            "You don't have permission to access this page on this server. "
+            "Reference #18.abc https://errors.edgesuite.net/18.abc"
+        ),
+        rendered_dom="<html><body>Access Denied</body></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.ACCESS_BLOCKED
+    assert result.signal == "akamai_access_denied"
+
+
+def test_classify_rendered_access_does_not_flag_source_article_mentions() -> None:
+    result = classify_rendered_access(
+        title="Troubleshooting Access Denied errors",
+        visible_text="This source article explains why access can be denied.",
+        rendered_dom="<html><body>Article content</body></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.NO_BLOCK_MARKER
+    assert result.signal is None
+
+
 def test_classify_rendered_access_keeps_residual_cloudflare_marker_separate() -> None:
     result = classify_rendered_access(
         title="Mojave Ghost by Byredo",

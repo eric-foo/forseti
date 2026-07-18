@@ -1039,6 +1039,111 @@ observations:
   because it records a pin-admission gap rather than a new assortment, price,
   review, or product-claim finding.
 
+### Kohl's US/USD storefront access diagnosis
+
+- The commissioned subject was Tower 28 LipSoftie Hydrating Tinted Lip
+  Treatment Balm at
+  `https://www.kohls.com/product/prd-6715879/tower-28-beauty-lipsoftie-hydrating-tinted-lip-treatment-balm.jsp`.
+  Admission required the bound Tower 28 product, an exact `USD` currency
+  signal, and explicit retailer-owned US storefront or shipping-policy
+  evidence. A `.com` hostname, dollar glyph, or US proxy exit was explicitly
+  insufficient.
+- Anonymous Direct HTTP preserved PDP packet
+  `01KXT0245PZBHZSYJHM5376BCA` at
+  `F:\forseti-data-lake\raw\fbe\01KXT0245PZBHZSYJHM5376BCA`. The final URL
+  matched the request, but Kohl's returned HTTP 403 with a 500-byte body.
+- Anonymous no-proxy CloakBrowser preserved PDP packet
+  `01KXT04HA0TT33RH7BAWQ38H58` at
+  `F:\forseti-data-lake\raw\64f\01KXT04HA0TT33RH7BAWQ38H58`. The final URL
+  matched the request, but the rendered DOM and visible text bound Akamai
+  `Access Denied`; Tower 28, LipSoftie, and exact `USD` sufficiency checks
+  failed. Metadata recorded `proxy_used=false`, `geoip_used=false`,
+  `persistent_profile_loaded=false`, and `pin_confirmed=null`.
+- Direct HTTP on Kohl's out-of-country FAQ
+  `https://www.kohls.com/faq/article/2552` preserved packet
+  `01KXT09ERZ6584J7M4J07WS706` at
+  `F:\forseti-data-lake\raw\e64\01KXT09ERZ6584J7M4J07WS706`; that route also
+  returned HTTP 403, so no policy statement was admitted from it.
+- A bounded diagnosis then tested whether cold deep-linking or non-humanized
+  launch caused the denial. A temporary site-specific pre-capture route opened
+  `https://www.kohls.com/`, enabled CloakBrowser humanization, waited three
+  seconds, and then navigated to the commissioned surface in the same
+  anonymous ephemeral page. It injected no cookie, profile, storage state,
+  preference, cart, credential, or location.
+- The homepage step completed on both diagnostics, but Akamai denied both
+  targets:
+  - policy packet `01KXT3432PEF0NXEZE0VWEWMMD` at
+    `F:\forseti-data-lake\raw\ace\01KXT3432PEF0NXEZE0VWEWMMD`;
+  - PDP packet `01KXT38WKZMXVMMY18CDX3SC66` at
+    `F:\forseti-data-lake\raw\039\01KXT38WKZMXVMMY18CDX3SC66`.
+  Both metadata files record `pre_capture_steps_completed=true`,
+  `humanize_mode_active=true`, `access_blocked=true`,
+  `access_block_reason="akamai_access_denied"`, `proxy_used=false`,
+  `persistent_profile_loaded=false`, and `pin_confirmed=false`.
+- A separate in-app browser was used only as a scouting control and was not
+  promoted as Capture Spine evidence. In one homepage-first anonymous session
+  it reached the bound PDP and the retailer policy route. The PDP exposed the
+  exact product, `$16.00`, and product-bound `priceCurrency=USD`; the policy
+  stated that Kohl's currently ships only to US/APO/FPO addresses. This proves
+  the routes were live during diagnosis, but it does not isolate whether the
+  CloakBrowser denial arose from exit-IP reputation or browser/TLS
+  fingerprinting because both identity bundles differed.
+- Every packet's capture time, packet ID, requested/final URL, raw SHA-256
+  value, and byte length was fresh-read against its manifest and metadata.
+  No registered US residential proxy profile with the required geo-IP,
+  `en-US`, and US-timezone metadata was present, so the authorized fallback
+  could not run. No proxy credential or profile label was invented.
+- The repository's non-browser `anti_blocking_http` rung was then run on both
+  commissioned routes with its complete desktop-header profile. PDP packet
+  `01KXTZ76J5BGQJTEP2QDCZDYHY` at
+  `F:\forseti-data-lake\raw\f77\01KXTZ76J5BGQJTEP2QDCZDYHY` preserved HTTP
+  403 and a 498-byte `generic_access_denied` block shell. Policy packet
+  `01KXTZ77WYTPH15N1F8XNK87HC` at
+  `F:\forseti-data-lake\raw\037\01KXTZ77WYTPH15N1F8XNK87HC` preserved HTTP
+  403 and a 389-byte `generic_access_denied` block shell. Requested and final
+  URLs matched. On fresh read, both files in each packet matched the manifest
+  SHA-256 and byte length.
+- A bounded non-packet recon matrix also tested the canonical host, bare host,
+  mobile host, Kohl's HTML-exposed `/api/amp` candidate, typeahead host, and
+  current app-backend candidates without a browser, credential, token, proxy,
+  or injected cookie. Page, policy, AMP, typeahead, and subject-parameterized
+  app requests were Akamai-denied. The app catalog root at
+  `https://mapps.kohls.com/api/browse/v1/browse/catalog` returned one
+  anonymous HTTP 200 JSON envelope with `count=0`, `searchTerm=null`, and
+  `products=null`; it did not bind Tower 28, a product, a price, or a
+  currency, and later parameterized requests were denied. The app Firebase
+  root returned HTTP 401 `Permission denied`; an alternate API host returned
+  retailer JSON 404 for the catalog path. No public API description or
+  zero-credential retailer feed was found. These unpreserved auxiliary
+  diagnostics locate possible substrates but are not independently auditable
+  Capture Spine evidence. They cannot promote a pin or support an exhaustion
+  claim.
+- Search-indexed Kohl's pages can scout the live subject and dollar-denominated
+  price, but do not preserve current retailer bytes or an exact USD binding.
+  Archive/cache, `.com`, and dollar-glyph routes were therefore rejected as
+  current pin evidence. Kohl's affiliate feed is an entitlement-bearing route,
+  not a public fallback, and no affiliate or paid-data credential was supplied
+  or used.
+- Current outcome:
+  `NO_GO_PACKET_BACKED_ANONYMOUS_HTTP_RUNGS_EXHAUSTED_AKAMAI_DENIAL_US_PROXY_PROFILE_ABSENT`.
+  Ordinary HTTP and header-complete HTTP are the exhausted packet-backed
+  non-browser rungs; both preserved typed access denial on the commissioned PDP
+  and policy surfaces. The wider hostname/AMP/typeahead/app/config exploration
+  remains non-admissible scouting because its request/response bytes were not
+  retained. Cold deep-linking and disabled humanization are also falsified as
+  sufficient causes by the prior browser diagnosis. Country and currency
+  remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The
+  shared rendered-access classifier recognizes the exact Akamai EdgeSuite
+  conjunction, and both warmed packets prove the fix with
+  `access_blocked=true`. The disproven warm-up adapter and CLI flag were
+  removed. No Retail/PDP projection, retailer adapter, CLI flag, API surface,
+  or pin was promoted. The remaining admissible experiments require new
+  external state: a registered US residential proxy profile, an entitled
+  Kohl's affiliate feed, or an owner-approved paid data provider. None is
+  silently substituted for retailer-owned current evidence.
+  This supplement adds no SOBS row because it records a pin-admission gap, not
+  a new assortment, price, review, or product-claim finding.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,

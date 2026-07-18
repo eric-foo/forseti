@@ -41,6 +41,11 @@ _VISIBLE_TIKTOK_CHALLENGE_MARKERS = (
     "complete the puzzle",
 )
 
+_AKAMAI_ACCESS_DENIED_MARKERS = (
+    "you don't have permission to access",
+    "errors.edgesuite.net",
+)
+
 
 def classify_rendered_access(
     *,
@@ -60,7 +65,15 @@ def classify_rendered_access(
             detail="rendered visible text matches a TikTok slider or captcha challenge",
         )
 
-
+    if (
+        title_text == "access denied"
+        and all(marker in combined_probe for marker in _AKAMAI_ACCESS_DENIED_MARKERS)
+    ):
+        return RenderedAccessClassification(
+            classification=RenderedAccessClass.ACCESS_BLOCKED,
+            signal="akamai_access_denied",
+            detail="rendered title/text/DOM match an Akamai EdgeSuite access-denied page",
+        )
 
     if _looks_like_cloudflare_interstitial(
         title_text=title_text,
