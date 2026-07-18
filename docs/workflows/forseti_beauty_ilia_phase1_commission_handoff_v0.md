@@ -4,25 +4,26 @@
 retrieval_header_version: 1
 artifact_role: Temporary cross-lane handoff packet (single-consumption; non-authoritative)
 scope: >
-  Commissions the Phase 1 company competitive-intelligence run for ILIA
-  Beauty — pool company #2, the first run under the ratified (round-2
-  guarded) CSB company-profile contract on a subject other than Tower 28,
-  and the first parent-owned subject. Fresh scan; the contract files are the
-  only synthesis authority.
+  Preserved point-in-time handoff that commissioned the 2026-07-18 ILIA Beauty
+  Phase 1 run; retained only to reconstruct the withdrawn report's provenance.
 use_when:
-  - Dispatching the ILIA Phase 1 lane.
-  - Adjudicating the returned ILIA bundle (one-by-one cadence gate).
+  - Reconstructing the historical ILIA Phase 1 commission and receiver instructions.
+  - Auditing how the withdrawn report's board, scan receipt, and report were commissioned.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
-  - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-  - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
-  - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - docs/research/forseti_beauty_us_company_eligibility_pool_v0.md
+  - docs/research/forseti_beauty_ilia_phase1_commission_board_v0.md
+  - docs/research/forseti_beauty_ilia_phase1_scan_receipt_v0.md
 stale_if:
-  - The ILIA bundle lands validator-PASS and is adjudicated (packet consumed).
+  - Always for execution, dispatch, current-report routing, or Company Surface consumption; the report was withdrawn from decision-facing use on 2026-07-19.
   - The owner re-sequences the pool or supersedes the CSB contract.
 ```
+
+> **Do not execute or redispatch this packet.** It is a consumed historical
+> commission preserved for provenance. The resulting report,
+> `docs/research/forseti_beauty_ilia_phase1_company_competitive_intelligence_report_v0.md`,
+> was withdrawn from current and decision-facing use by the owner on
+> 2026-07-19. No replacement, rerun, validator result, or readiness state is
+> claimed.
 
 ## Load Contract
 

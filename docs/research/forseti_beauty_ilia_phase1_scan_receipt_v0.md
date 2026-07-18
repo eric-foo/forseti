@@ -4,19 +4,24 @@
 retrieval_header_version: 1
 artifact_role: Evidence-only scan and capture receipt
 scope: >
-  Typed source-access outcomes, packet receipts, route failures, stopping
-  rationale, and parent-dimension friction for the 2026-07-18 ILIA Beauty
-  Phase 1 company competitive-intelligence run.
+  Historical typed source-access outcomes, packet receipts, route failures,
+  stopping rationale, and parent-dimension friction for the 2026-07-18 ILIA
+  Beauty Phase 1 run.
 use_when:
-  - Auditing the evidence base behind the ILIA Phase 1 report.
+  - Auditing the evidence base and capture failures behind the withdrawn ILIA Phase 1 report.
   - Distinguishing captured source content from discovery-only or blocked routes.
-authority_boundary: evidence_only
+authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_ilia_phase1_commission_board_v0.md
-  - docs/research/forseti_beauty_ilia_phase1_company_competitive_intelligence_report_v0.md
 stale_if:
+  - Always for current ILIA evidence or route-exhaustion claims; the associated report was withdrawn from decision-facing use on 2026-07-19.
   - A later ILIA scan supersedes this bounded 2026-07-18 run.
 ```
+
+> **Historical capture receipt only.** This receipt remains the audit trail for
+> `docs/research/forseti_beauty_ilia_phase1_company_competitive_intelligence_report_v0.md`;
+> it does not make that withdrawn report current, and it does not claim a
+> replacement run or exhausted capture routes.
 
 ## Run receipt
 
