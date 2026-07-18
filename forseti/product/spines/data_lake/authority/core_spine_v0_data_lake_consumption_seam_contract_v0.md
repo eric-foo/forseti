@@ -98,8 +98,8 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
 
 ### Cadence snapshot boundary
 
-- A cadence run first performs one fail-loud full availability reconcile, then
-  captures the exact sorted committed packet-id set it will complete.
+- A cadence run first reads the exact committed packet-id set directly from
+  by-key raw without reading, purging, or rebuilding shared availability.
 - Every driven lane receives that same immutable set for both execution
   cycles, ASR skip checks, and the final pending proof. Scoped reconcile
   refreshes only selected anchors and never purges the global availability
@@ -390,9 +390,9 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Cadence completion is now bound to one reconciled starting packet-id
-    snapshot. Every cadence cycle and final check uses that same set; scoped
-    reconcile never purges global availability; selected-anchor failures stay
+    Cadence completion is now bound to one read-only committed starting
+    packet-id snapshot. Every cadence cycle and final check uses that same set;
+    scoped reconcile never purges global availability; selected-anchor failures stay
     loud; later commits are next-run work. The cadence-tail lake-map rebuild
     remains live and may include newer material, so no frozen-map claim is
     introduced.
@@ -409,6 +409,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti-harness/data_lake/root.py
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
     - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md

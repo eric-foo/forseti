@@ -140,17 +140,46 @@ def test_packet_committed_between_cycles_waits_for_next_snapshot(
 
 
 def test_undrainable_work_fails_the_signal(tmp_path, capsys) -> None:
-    # A corrupt manifest prevents a trustworthy start snapshot, so the cadence
-    # fails before executing any consumer.
+    # A corrupt committed anchor enters the read-only snapshot, then scoped
+    # reconciliation fails it loudly before the consumer can derive from it.
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_packet(data_root, tmp_path)
     _corrupt_manifest(data_root, pid)
 
     assert run_cadence(_ctx(data_root), skip_asr=True) == 1
     lines = _output_lines(capsys)
-    assert [line["status"] for line in lines] == ["cadence_snapshot_failed"]
-    assert lines[0]["cycle"] == "snapshot"
-    assert lines[0]["error"]
+    assert any(line.get("status") == "cadence_snapshot_started" for line in lines)
+    failures = [
+        line
+        for line in lines
+        if line.get("packet_id") == pid
+        and line.get("status") == "availability_reconcile_failed"
+    ]
+    assert failures
+    assert all(failure["error"] for failure in failures)
+
+
+def test_snapshot_capture_never_rebuilds_shared_availability(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(data_root, tmp_path)
+
+    def fail_global_rebuild() -> None:
+        raise AssertionError("global rebuild called")
+
+    monkeypatch.setattr(data_root, "rebuild_availability", fail_global_rebuild)
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 0
+    lines = _output_lines(capsys)
+    assert [
+        line["status"] for line in lines if line.get("cycle") == "snapshot"
+    ] == ["cadence_snapshot_started"]
+    assert [
+        (line["entrypoint"], line["packet_id"], line["status"])
+        for line in lines
+        if line.get("cycle") == 1 and line.get("status") != "skipped_asr_compute"
+    ] == [("run_ecr_catchup.py", pid, "derived")]
 
 
 def test_selected_packet_corrupted_after_snapshot_fails_loudly(
@@ -184,7 +213,11 @@ def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:
     _commit_packet(data_root, tmp_path)
 
     assert run_check(_ctx(data_root)) == 1
-    by_entrypoint = {l["entrypoint"]: l["pending"] for l in _output_lines(capsys)}
+    by_entrypoint = {
+        l["entrypoint"]: l["pending"]
+        for l in _output_lines(capsys)
+        if "entrypoint" in l
+    }
     assert len(by_entrypoint) == len(cadence.CADENCE_ENTRYPOINTS)
     assert by_entrypoint["run_ecr_catchup.py"] == 1
     assert all(
@@ -196,7 +229,11 @@ def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:
     assert run_cadence(_ctx(data_root), skip_asr=True) == 0
     capsys.readouterr()
     assert run_check(_ctx(data_root)) == 0
-    assert all(l["pending"] == 0 for l in _output_lines(capsys))
+    assert all(
+        l["pending"] == 0
+        for l in _output_lines(capsys)
+        if "entrypoint" in l
+    )
 
 
 def test_one_broken_entrypoint_is_loud_and_never_aborts_the_rest(

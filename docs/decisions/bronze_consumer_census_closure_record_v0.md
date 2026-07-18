@@ -173,11 +173,12 @@ Historical operational residual, resolved in the cadence contract on
 2026-07-19: a cadence concurrent with live capture could repeatedly purge and
 rebuild `indexes/availability`, letting later packets leak into cycle 2 or
 surface transient WinError 2/5 noise. The owner fired the recorded overlap
-trigger. Cadence now captures one reconciled starting packet-id set; all nine
-adapters use scoped, non-purging reconcile for both cycles and the final check.
-Later commits stay visible as next-run work, while a missing or corrupt
-starting anchor still fails loudly. This is automated-test evidence, not a new
-live-lake closure claim.
+trigger. Cadence now reads one immutable committed packet-id set directly from
+by-key raw without mutating availability; all nine adapters use scoped,
+non-purging reconcile for both cycles and the final check. Later commits stay
+visible as next-run work, while a missing or corrupt starting anchor still
+fails loudly. This is automated-test evidence, not a new live-lake closure
+claim.
 
 ## Residual ledger (accumulated, carried)
 

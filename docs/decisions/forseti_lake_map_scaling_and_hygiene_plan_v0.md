@@ -76,7 +76,7 @@ Stages 2–4 remain trigger-gated.
 - Periodic byte-integrity audit (re-hash everything) becomes a scheduled
   check decoupled from rebuilds.
 - **Promoted implementation shape:** a passing
-  `runners/run_seam_cadence.py --run` completes one reconciled starting
+  `runners/run_seam_cadence.py --run` completes one committed starting
   packet-id snapshot, then invokes the contract-pinned
   `run_data_lake_indexes_rebuild.py` path at cadence tail. Packets committed
   later are next-run cadence work; the subsequent map rebuild is intentionally

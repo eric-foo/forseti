@@ -1,6 +1,6 @@
 """Seam cadence runner: the executable completion signal for bronze consumption.
 
-Captures one reconciled committed-packet snapshot, executes every seam CATCH-UP
+Captures one read-only committed-packet snapshot, executes every seam CATCH-UP
 entrypoint twice against that exact set, and exits nonzero if the SECOND cycle
 performs any work or emits any status — "this starting bronze batch is caught
 up" becomes an executable claim instead of an agent judgment. Packets committed
@@ -11,10 +11,11 @@ seam contract: ``core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 
 This runner is an ORCHESTRATOR, not a seam consumer: it imports the catch-up
 runner modules and composes their public ``pending_packets``/``run_catchup``
-entrypoints. It uses the root's canonical availability rebuild only to
-establish the immutable start boundary, writes no acks, and owns no pickup or
-acknowledgement behavior — those semantics stay inside the composed runners
-(the consumer seam-coverage gate keeps it out of the seam-consumer surface;
+entrypoints. It reads the root's committed by-key packet ids to establish the
+immutable start boundary without rebuilding the shared availability index,
+writes no acks, and owns no pickup or acknowledgement behavior — those
+semantics stay inside the composed runners (the consumer seam-coverage gate
+keeps it out of the seam-consumer surface;
 ``tests/contract/test_seam_cadence_coverage.py`` pins this registry to that
 surface).
 
@@ -40,7 +41,7 @@ cadence-level output and does not count as cycle-2 work (the sanctioned
 compute-free cadence); remaining ASR pending work or a failed skip-path pending
 check DOES count in the final pending sweep.
 
-The two LLM extract runners are seam consumers but NOT cadence entrypoints
+The three LLM extract runners are seam consumers but NOT cadence entrypoints
 (``CLASSIFIED_OUT_SEAM_CONSUMERS``): their extraction is owner-gated per-turn
 LLM compute, not a compute-free cadence. Their backlog is owned by their own
 ``--check`` surfaces.
@@ -248,10 +249,13 @@ def _print(entry: dict) -> None:
 def run_check(ctx: CadenceContext) -> int:
     """Single compute-free pending pass. Exit 0 iff every entrypoint reports a
     zero backlog and every pending check succeeds."""
+    scope_packet_ids = _capture_start_snapshot(ctx)
+    if scope_packet_ids is None:
+        return 1
     failures = 0
     for entrypoint in CADENCE_ENTRYPOINTS:
         try:
-            count = entrypoint.pending(ctx, None)
+            count = entrypoint.pending(ctx, scope_packet_ids)
         except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
             _print(
                 {
@@ -265,6 +269,7 @@ def run_check(ctx: CadenceContext) -> int:
         _print({"entrypoint": entrypoint.runner, "pending": count})
         if count:
             failures += 1
+    _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if failures else 0
 
 
@@ -327,8 +332,7 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
 
 def _capture_start_snapshot(ctx: CadenceContext) -> tuple[str, ...] | None:
     try:
-        ctx.data_root.rebuild_availability()
-        packet_ids = tuple(sorted(ctx.data_root.list_available()))
+        packet_ids = tuple(ctx.data_root.list_committed_packet_ids())
     except Exception as exc:  # noqa: BLE001 - boundary failure must stay loud
         _print(
             {
@@ -354,7 +358,9 @@ def _report_late_arrivals(
     ctx: CadenceContext, scope_packet_ids: Sequence[str]
 ) -> None:
     try:
-        late = sorted(set(ctx.data_root.list_available()) - set(scope_packet_ids))
+        late = sorted(
+            set(ctx.data_root.list_committed_packet_ids()) - set(scope_packet_ids)
+        )
     except Exception as exc:  # noqa: BLE001 - informational check cannot poison snapshot
         _print(
             {

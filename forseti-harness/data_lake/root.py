@@ -1131,6 +1131,35 @@ class DataLakeRoot:
             return None
         return json.loads(target.read_text(encoding="utf-8"))
 
+    def list_committed_packet_ids(self) -> list[str]:
+        """List public committed raw packet ids directly from the by-key store.
+
+        This is a read-only discovery surface: it does not consult, purge, or
+        rebuild ``indexes/availability``. It is therefore suitable for taking
+        an immutable work snapshot while capture continues writing the
+        rebuildable availability index.
+        """
+        self._reverify()
+        raw_dir = self._path / "raw"
+        if not raw_dir.is_dir():
+            return []
+        tombstoned = self.tombstoned_packet_ids()
+        packet_ids: list[str] = []
+        for shard_dir in sorted(raw_dir.iterdir()):
+            if not shard_dir.is_dir():
+                continue
+            for container in sorted(shard_dir.iterdir()):
+                packet_id = container.name
+                if (
+                    container.is_dir()
+                    and _CROCKFORD_26.fullmatch(packet_id)
+                    and shard_dir.name == raw_shard(packet_id)
+                    and (container / "manifest.json").is_file()
+                    and packet_id not in tombstoned
+                ):
+                    packet_ids.append(packet_id)
+        return sorted(packet_ids)
+
     def list_available(self, *, source_family: str | None = None) -> list[str]:
         """List committed packet ids by key, optionally filtered by source family."""
         avail = self._path / "indexes" / "availability"
@@ -1157,26 +1186,10 @@ class DataLakeRoot:
             for entry_file in avail.glob("*.json"):
                 entry_file.unlink()
         avail.mkdir(parents=True, exist_ok=True)
-        raw_dir = self._path / "raw"
-        tombstoned = self.tombstoned_packet_ids()
         count = 0
-        if raw_dir.is_dir():
-            for shard_dir in sorted(raw_dir.iterdir()):
-                if not shard_dir.is_dir():
-                    continue
-                for container in sorted(shard_dir.iterdir()):
-                    if (
-                        container.is_dir()
-                        and _CROCKFORD_26.fullmatch(container.name)
-                        # A packet sitting in the wrong shard dir is corruption/
-                        # misplacement: skip it rather than record a wrong-path
-                        # availability entry (failure stays visible as absence).
-                        and shard_dir.name == raw_shard(container.name)
-                        and (container / "manifest.json").is_file()
-                        and container.name not in tombstoned
-                    ):
-                        self.record_availability(container.name)
-                        count += 1
+        for packet_id in self.list_committed_packet_ids():
+            self.record_availability(packet_id)
+            count += 1
         return count
 
     def relocate_to_sharded(self) -> int:
