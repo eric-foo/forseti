@@ -52,7 +52,7 @@ not Cleaning, not Judgment, and not merge approval.
 | --- | --- | --- | --- |
 | Sephora | `https://www.sephora.com/product/lip-sleeping-mask-P420652` | `--settle-seconds 5 --scroll-step-px 350 --scroll-passes 1` | ProductPage DOM price, Bazaarvoice config, target review widget. A visible `sephora_ld_json_review_count_differs_from_target_dom` residual is acceptable when JSON-LD and target DOM review counts disagree. |
 | Ulta | `https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2645443` | `--settle-seconds 5 --scroll-passes 1` | JSON-LD plus `window.__APOLLO_STATE__`, with requested SKU matching projected SKU. |
-| Amazon | `https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK` | `--retail-capture-profile amazon_pdp_distribution --delivery-zip 10001 --delivery-zip-setup-timeout-seconds 30` | ASIN, DOM target price input, review nodes, histogram, and a packet limitation confirming declared ZIP `10001` when the US storefront pin succeeds. |
+| Amazon | `https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK` | `--retail-capture-profile amazon_pdp_distribution --delivery-zip 10001 --delivery-zip-setup-timeout-seconds 30` | ASIN, DOM target price input, review nodes, histogram, and the requested ZIP in Amazon's rendered location anchor together with an amazon.com US-marketplace marker. A redirect or missing final-page conjunction preserves a typed packet but exits nonzero. |
 
 ## Command Pattern
 
@@ -145,7 +145,15 @@ Observed 2026-06-16/17 sidecar smoke on this lane:
 | --- | --- | --- | --- |
 | Sephora | `true` | `sephora_ld_json_review_count_differs_from_target_dom` | DOM target review count and JSON-LD review count differed; residual preserved. |
 | Ulta | `true` | none | JSON-LD and Apollo fields agreed for the matching SKU target. |
-| Amazon | `true` | none | Packet limitation confirmed declared ZIP `10001` via `currencyOfPreference=USD`; requested URL landed with `?th=1`. |
+| Amazon | `true` | none | Historical 2026-06-17 note reported declared ZIP `10001` from `currencyOfPreference=USD`; that signal proves USD only and is invalid as delivery-ZIP confirmation. Requested URL landed with `?th=1`. |
+
+The Amazon row above is the historical 2026-06-17 smoke observation. Current
+admission is stricter: `currencyOfPreference=USD` establishes currency only.
+`--delivery-zip` succeeds only when the captured page retains both the requested
+ZIP in Amazon's location anchor and an amazon.com US-marketplace marker. The
+runner preserves a failed or redirected page with
+`amazon_delivery_zip_pin_failed` and exits nonzero; operators must not project or
+admit that packet as US delivery-pinned evidence.
 
 ## Failure Taxonomy
 

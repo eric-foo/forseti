@@ -31,7 +31,6 @@ from source_capture.adapters import amazon_delivery_location as amazon_pin
 from source_capture.adapters.amazon_delivery_location import (
     _AMAZON_HOMEPAGE_URL,
     AmazonDeliveryLocationPlugin,
-    confirm_us_storefront,
     confirm_us_storefront_with_zip,
 )
 from source_capture.adapters.cloakbrowser_snapshot import (
@@ -43,7 +42,13 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 
 
 _US_DOM = '<html><body><input name="currencyOfPreference" value="USD"></body></html>'
-_US_DOM_REORDERED = "<html><body><input value='USD' type='hidden' name='currencyOfPreference'></body></html>"
+_US_ZIP_DOM = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">New York 10001</span>
+<input name="currencyOfPreference" value="USD">
+</body></html>
+"""
 _NON_US_DOM = "<html><body><span>S$45.00</span></body></html>"
 
 
@@ -51,7 +56,7 @@ def _fake_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
     """Offline substitute for fetch_cloakbrowser_snapshot_capture; honors the pre_capture seam."""
     url = str(kwargs.get("url", "https://example.com/"))
     pre_capture = kwargs.get("pre_capture")
-    rendered_dom = _US_DOM
+    rendered_dom = _US_ZIP_DOM
     limitation_notes = []
     pin_confirmed = None
     metadata: dict[str, Any] = {
@@ -128,57 +133,6 @@ def test_generic_adapter_has_no_amazon_strings() -> None:
         assert forbidden not in source, f"generic adapter must not contain {forbidden!r}"
 
 
-# ── confirm_us_storefront (the post-capture source of truth) ────────────────────
-
-def test_confirm_us_storefront_confirms_on_usd_currency_signal() -> None:
-    confirmation = confirm_us_storefront(_US_DOM)
-    assert confirmation.confirmed is True
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_confirms_on_usd_currency_signal_attribute_order() -> None:
-    confirmation = confirm_us_storefront(_US_DOM_REORDERED)
-    assert confirmation.confirmed is True
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_on_singapore_price() -> None:
-    confirmation = confirm_us_storefront(_NON_US_DOM)
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_when_no_signal() -> None:
-    confirmation = confirm_us_storefront("<html><body>no prices here</body></html>")
-    assert confirmation.confirmed is False
-    assert "no US storefront signal" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_on_bare_dollar_from_page_js() -> None:
-    """Tightening: a bare '$' from page JS (e.g. jQuery) with no US price PATTERN and no
-    currencyOfPreference signal must NOT confirm. The prior '$' in dom heuristic false-positived."""
-    dom = "<html><body><script>$(function(){var s='$';});</script>no price shown</body></html>"
-    confirmation = confirm_us_storefront(dom)
-    assert confirmation.confirmed is False
-
-
-def test_confirm_us_storefront_not_confirmed_on_us_price_pattern_without_currency_signal() -> None:
-    """A dollar-looking price alone is not proof the storefront flipped to US."""
-    dom = "<html><body><span class='a-offscreen'>$24.99</span></body></html>"
-    confirmation = confirm_us_storefront(dom)
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
-@pytest.mark.parametrize("price", ["C$24.99", "A$24.99", "HK$24.99", "NZ$24.99"])
-def test_confirm_us_storefront_not_confirmed_on_prefixed_currency_without_currency_signal(
-    price: str,
-) -> None:
-    confirmation = confirm_us_storefront(f"<html><body><span>{price}</span></body></html>")
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
 def test_confirm_us_storefront_with_zip_confirms_grid_surface() -> None:
     dom = """
 <html lang="en-us"><body>
@@ -190,6 +144,13 @@ def test_confirm_us_storefront_with_zip_confirms_grid_surface() -> None:
 
     assert confirmation.confirmed is True
     assert "delivery ZIP '10001'" in confirmation.detail
+
+
+def test_confirm_us_storefront_with_zip_rejects_currency_only() -> None:
+    confirmation = confirm_us_storefront_with_zip(_US_DOM, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+    assert "requested delivery ZIP '10001'" in confirmation.detail
 
 
 def test_confirm_us_storefront_with_zip_rejects_zip_outside_location_anchor() -> None:
@@ -212,6 +173,54 @@ def test_confirm_us_storefront_with_zip_rejects_non_us_marketplace() -> None:
 </body></html>
 """
     confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_longer_numeric_substring() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">New York 100010</span>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_ignores_nested_script_zip() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">Singapore<script>var unrelated = '10001'</script></span>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_conflicting_location_zip() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<div id="glow-ingress-block">
+  <span id="glow-ingress-line2">New York 10001</span>
+  <span aria-label="Deliver to San Francisco 94105"></span>
+</div>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_malformed_requested_zip() -> None:
+    confirmation = confirm_us_storefront_with_zip(_US_ZIP_DOM, delivery_zip="1000")
 
     assert confirmation.confirmed is False
 
@@ -270,6 +279,7 @@ class _FakePage:
         apply_confirmation_missing: bool = False,
         clock_advance: Callable[[float], None] | None = None,
         action_advance_ms: float = 0,
+        homepage_url: str = _AMAZON_HOMEPAGE_URL,
     ):
         self.fail_steps = fail_steps or set()
         self.apply_button_missing = apply_button_missing
@@ -282,6 +292,7 @@ class _FakePage:
         self.filled_zip: str | None = None
         self.applied = False
         self.goto_wait_until: str | None = None
+        self.url = homepage_url
 
     def goto(self, url: str, **kwargs: Any) -> None:
         self.calls.append(f"goto:{url}")
@@ -445,6 +456,18 @@ def test_plugin_before_homepage_failure_is_first_failed_step() -> None:
     assert any("homepage navigation failed" in w for w in outcome.warning_notes)
 
 
+def test_plugin_before_rejects_homepage_marketplace_redirect() -> None:
+    plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
+    page = _FakePage(homepage_url="https://www.amazon.sg/?ref_=mr_direct_us_sg_sg")
+
+    outcome = plugin.before(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is False
+    assert outcome.reason == "homepage_marketplace_redirect"
+    assert "open_widget" not in page.calls
+    assert any("'www.amazon.sg'" in warning for warning in outcome.warning_notes)
+
+
 def test_plugin_before_apply_failure_falls_back_to_return_and_warns() -> None:
     """FIX #3: when the Apply click loop fails and we fall back to Return (which doesn't throw),
     a warning records the apply click failed and the submit is unconfirmed; steps_completed False."""
@@ -481,10 +504,10 @@ class _PluginEngine:
 
 
 def test_adapter_confirmed_pin_records_confirmed_note_and_true_flag() -> None:
-    """confirm() True (USD in DOM) -> note says CONFIRMED, pin_confirmed True."""
+    """Requested ZIP plus US marketplace DOM -> CONFIRMED and pin_confirmed True."""
     plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
     engine = _PluginEngine(
-        rendered_dom=_US_DOM,
+        rendered_dom=_US_ZIP_DOM,
         before_outcome=PreCaptureOutcome(attempted=True, steps_completed=True, reason=None),
     )
     result = fetch_cloakbrowser_snapshot_capture(
@@ -634,6 +657,125 @@ def test_writer_cli_delivery_zip_metadata_field(
     all_limitations = manifest.get("limitations", [])
     assert any("declared_delivery_zip" in lim for lim in all_limitations), (
         "packet limitations should record the delivery zip pin"
+    )
+
+
+def test_writer_rejects_delivery_zip_for_non_amazon_url(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="requires an amazon.com capture URL"):
+        cloak_writer.run_source_capture_cloakbrowser_packet(
+            url="https://www.ulta.com/p/example",
+            source_family="retail_pdp",
+            source_surface="cloakbrowser_snapshot",
+            decision_question="invalid Amazon pin route",
+            output_directory=tmp_path / "packet",
+            capture_context="test",
+            operator_category="authorized_subject_probe",
+            capture_mode=cloak_writer.CaptureModeCategory.AGENT_ASSISTED,
+            session_id=None,
+            proxy_profile=None,
+            actor_audience_context=None,
+            visible_mode_changes=[],
+            source_publication_or_event=None,
+            source_edit_or_version=None,
+            cutoff_posture=None,
+            recapture_time=None,
+            re_capture_relationship=None,
+            warnings=[],
+            limitations=[],
+            timeout_seconds=20,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+            max_artifact_bytes=50_000,
+            block_heavy_assets=False,
+            delivery_zip="10001",
+        )
+
+
+def test_amazon_pin_enforcement_rejects_redirect_even_if_confirmation_is_true() -> None:
+    failure = cloak_writer._amazon_delivery_pin_failure(
+        delivery_zip="10001",
+        final_url="https://www.amazon.sg/dp/B07XXPHQZK",
+        pin_confirmed=True,
+    )
+
+    assert failure is not None
+    assert "not amazon.com" in failure
+
+
+def test_amazon_pin_enforcement_accepts_confirmed_amazon_com_page() -> None:
+    assert (
+        cloak_writer._amazon_delivery_pin_failure(
+            delivery_zip="10001",
+            final_url="https://www.amazon.com/dp/B07XXPHQZK?th=1",
+            pin_confirmed=True,
+        )
+        is None
+    )
+
+
+def test_writer_preserves_but_rejects_unconfirmed_amazon_pin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output_dir = tmp_path / "unconfirmed"
+
+    def _unconfirmed_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+        result = _fake_capture(**kwargs)
+        result.metadata["pin_confirmed"] = False
+        return CloakBrowserSnapshotSuccess(
+            requested_url=result.requested_url,
+            final_url="https://www.amazon.sg/dp/B07XXPHQZK",
+            title=result.title,
+            rendered_dom=_NON_US_DOM,
+            visible_text="S$45.00",
+            screenshot_png=result.screenshot_png,
+            metadata=result.metadata,
+            warning_notes=result.warning_notes,
+            limitation_notes=result.limitation_notes,
+        )
+
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _unconfirmed_capture
+    )
+
+    exit_code, message = cloak_writer.run_source_capture_cloakbrowser_packet(
+        url="https://www.amazon.com/dp/B07XXPHQZK",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="US pin must remain applied",
+        output_directory=output_dir,
+        capture_context="test",
+        operator_category="authorized_subject_probe",
+        capture_mode=cloak_writer.CaptureModeCategory.AGENT_ASSISTED,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        delivery_zip="10001",
+    )
+
+    assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert cloak_writer.AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE in message
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert cloak_writer.AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE in manifest[
+        "visible_mode_changes"
+    ]
+    assert any(
+        "MUST NOT be admitted as Amazon US delivery-pinned evidence" in limitation
+        for limitation in manifest["limitations"]
     )
 
 
