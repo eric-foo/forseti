@@ -19,6 +19,7 @@ import re
 import time
 
 from dataclasses import dataclass
+from html.parser import HTMLParser
 from urllib.parse import urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
@@ -46,8 +47,15 @@ _ZIP_INPUT_SELECTORS = ("#GLUXZipUpdateInput", "input[id*='zip' i][type='text']"
 _APPLY_SELECTORS = ("#GLUXZipUpdate", "span.a-button-inner > input[type='submit']")
 
 # The US-storefront signal recon proved appears in the rendered DOM once a US ZIP is applied.
-_INPUT_TAG_PATTERN = re.compile(r"<input\b[^>]*>", re.IGNORECASE)
-_ATTR_PATTERN = re.compile(r"""([^\s=/>]+)\s*=\s*(['"])(.*?)\2""", re.IGNORECASE)
+_LOCATION_ANCHOR_IDS = frozenset({"glow-ingress-line2", "glow-ingress-block"})
+_LOCATION_TEXT_ATTRIBUTES = frozenset({"aria-label", "title"})
+_IGNORED_LOCATION_CONTENT_TAGS = frozenset({"script", "style", "template", "noscript"})
+_FIVE_DIGIT_ZIP_PATTERN = re.compile(r"(?<!\d)(\d{5})(?!\d)")
+_US_MARKETPLACE_MARKERS = (
+    "ue_sn = 'www.amazon.com'",
+    "retail:prod:www.amazon.com",
+    "assoc_handle=usflex",
+)
 
 
 @dataclass(frozen=True)
@@ -253,92 +261,106 @@ class AmazonDeliveryLocationPlugin:
         )
 
 
-def confirm_us_storefront(rendered_dom: str) -> PinConfirmation:
-    """Confirm the rendered DOM shows a US storefront after the delivery-location pin attempt.
-
-    Confirmed iff the recon-proven ``currencyOfPreference="USD"`` signal is present as an input
-    value. Dollar-looking prices are deliberately not a confirmation signal: they can appear in
-    scripts, cached data, alternate-market markup, or non-storefront page fragments. Otherwise
-    NOT confirmed, with a detail naming what was missing. This is the post-capture source of
-    truth for the packet's pin_confirmed flag and the honesty of the note -- clicks alone never
-    confirm.
-    """
-    dom = rendered_dom or ""
-    if _has_us_currency_dom_signal(dom):
-        return PinConfirmation(
-            confirmed=True,
-            detail='currencyOfPreference="USD" observed in rendered DOM',
-        )
-    return PinConfirmation(
-        confirmed=False,
-        detail=(
-            'no US storefront signal (currencyOfPreference="USD" absent as a rendered input '
-            "value) in rendered DOM"
-        ),
-    )
-
-
 def confirm_us_storefront_with_zip(
     rendered_dom: str, *, delivery_zip: str
 ) -> PinConfirmation:
     """Confirm the requested ZIP remains bound to Amazon's US marketplace.
 
     A USD currency input is useful storefront evidence but cannot prove which delivery ZIP
-    Amazon applied. Delivery-pin confirmation therefore requires the requested ZIP inside a
-    recognized location anchor plus an amazon.com marketplace marker in the same rendered DOM.
+    Amazon applied. Delivery-pin confirmation therefore requires the requested five-digit ZIP
+    as an exact token in recognized location-anchor text, no conflicting ZIP in those anchors,
+    and an amazon.com marketplace marker in the same rendered DOM.
     """
     if _has_us_delivery_zip_dom_signal(rendered_dom or "", delivery_zip):
         return PinConfirmation(
             confirmed=True,
             detail=(
-                f"delivery ZIP {delivery_zip!r} and amazon.com US-marketplace markers "
-                "observed in rendered DOM"
+                f"delivery ZIP {delivery_zip!r} was the only ZIP in recognized Amazon "
+                "location-anchor text and amazon.com US-marketplace markers were observed"
             ),
         )
     return PinConfirmation(
         confirmed=False,
         detail=(
-            f"requested delivery ZIP {delivery_zip!r} was not bound to a recognized Amazon "
-            "location anchor together with an amazon.com US-marketplace marker in rendered DOM"
+            f"requested delivery ZIP {delivery_zip!r} was not the sole exact five-digit ZIP "
+            "bound to recognized Amazon location-anchor text together with an amazon.com "
+            "US-marketplace marker in rendered DOM"
         ),
     )
-
-
-def _has_us_currency_dom_signal(dom: str) -> bool:
-    """Return True only for a rendered input carrying currencyOfPreference=USD."""
-    for input_tag in _INPUT_TAG_PATTERN.findall(dom):
-        attrs = {
-            match.group(1).lower(): match.group(3)
-            for match in _ATTR_PATTERN.finditer(input_tag)
-        }
-        if (
-            attrs.get("name") == "currencyOfPreference"
-            and attrs.get("value", "").upper() == "USD"
-        ):
-            return True
-    return False
 
 
 def _has_us_delivery_zip_dom_signal(dom: str, delivery_zip: str) -> bool:
-    location_anchor = re.search(
-        (
-            r'id=["\'](?:glow-ingress-line2|glow-ingress-block)["\'][^>]*>'
-            rf'.{{0,1000}}?{re.escape(delivery_zip)}'
-        ),
-        dom,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if location_anchor is None:
+    if re.fullmatch(r"\d{5}", delivery_zip) is None:
         return False
+    parser = _AmazonLocationAnchorParser()
+    try:
+        parser.feed(dom)
+        parser.close()
+    except Exception:
+        return False
+    location_zips = {
+        match.group(1)
+        for fragment in parser.location_fragments
+        for match in _FIVE_DIGIT_ZIP_PATTERN.finditer(fragment)
+    }
     normalized = dom.lower()
-    return any(
-        marker in normalized
-        for marker in (
-            "ue_sn = 'www.amazon.com'",
-            "retail:prod:www.amazon.com",
-            "assoc_handle=usflex",
-        )
+    marketplace_confirmed = any(
+        marker in normalized for marker in _US_MARKETPLACE_MARKERS
     )
+    return location_zips == {delivery_zip} and marketplace_confirmed
+
+
+class _AmazonLocationAnchorParser(HTMLParser):
+    """Collect text owned by Amazon's rendered delivery-location anchors."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.location_fragments: list[str] = []
+        self._stack: list[tuple[str, bool, bool]] = []
+        self._active_anchor_count = 0
+        self._ignored_content_count = 0
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        normalized_tag = tag.lower()
+        normalized_attrs = {
+            name.lower(): value for name, value in attrs if value is not None
+        }
+        starts_anchor = normalized_attrs.get("id", "").lower() in _LOCATION_ANCHOR_IDS
+        ignores_content = normalized_tag in _IGNORED_LOCATION_CONTENT_TAGS
+        if starts_anchor:
+            self._active_anchor_count += 1
+        if ignores_content:
+            self._ignored_content_count += 1
+        self._stack.append((normalized_tag, starts_anchor, ignores_content))
+        if self._active_anchor_count and not self._ignored_content_count:
+            self.location_fragments.extend(
+                value
+                for name, value in normalized_attrs.items()
+                if name in _LOCATION_TEXT_ATTRIBUTES
+            )
+
+    def handle_startendtag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        self.handle_starttag(tag, attrs)
+        self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        normalized_tag = tag.lower()
+        while self._stack:
+            stack_tag, starts_anchor, ignores_content = self._stack.pop()
+            if starts_anchor:
+                self._active_anchor_count -= 1
+            if ignores_content:
+                self._ignored_content_count -= 1
+            if stack_tag == normalized_tag:
+                break
+
+    def handle_data(self, data: str) -> None:
+        if self._active_anchor_count and not self._ignored_content_count:
+            self.location_fragments.append(data)
 
 
 def _page_hostname(page: object) -> str | None:

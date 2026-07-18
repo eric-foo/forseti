@@ -145,7 +145,7 @@ Observed 2026-06-16/17 sidecar smoke on this lane:
 | --- | --- | --- | --- |
 | Sephora | `true` | `sephora_ld_json_review_count_differs_from_target_dom` | DOM target review count and JSON-LD review count differed; residual preserved. |
 | Ulta | `true` | none | JSON-LD and Apollo fields agreed for the matching SKU target. |
-| Amazon | `true` | none | Packet limitation confirmed declared ZIP `10001` via `currencyOfPreference=USD`; requested URL landed with `?th=1`. |
+| Amazon | `true` | none | Historical 2026-06-17 note reported declared ZIP `10001` from `currencyOfPreference=USD`; that signal proves USD only and is invalid as delivery-ZIP confirmation. Requested URL landed with `?th=1`. |
 
 The Amazon row above is the historical 2026-06-17 smoke observation. Current
 admission is stricter: `currencyOfPreference=USD` establishes currency only.

@@ -31,7 +31,6 @@ from source_capture.adapters import amazon_delivery_location as amazon_pin
 from source_capture.adapters.amazon_delivery_location import (
     _AMAZON_HOMEPAGE_URL,
     AmazonDeliveryLocationPlugin,
-    confirm_us_storefront,
     confirm_us_storefront_with_zip,
 )
 from source_capture.adapters.cloakbrowser_snapshot import (
@@ -43,7 +42,6 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 
 
 _US_DOM = '<html><body><input name="currencyOfPreference" value="USD"></body></html>'
-_US_DOM_REORDERED = "<html><body><input value='USD' type='hidden' name='currencyOfPreference'></body></html>"
 _US_ZIP_DOM = """
 <html><body>
 <script>ue_sn = 'www.amazon.com'</script>
@@ -135,57 +133,6 @@ def test_generic_adapter_has_no_amazon_strings() -> None:
         assert forbidden not in source, f"generic adapter must not contain {forbidden!r}"
 
 
-# ── confirm_us_storefront (the post-capture source of truth) ────────────────────
-
-def test_confirm_us_storefront_confirms_on_usd_currency_signal() -> None:
-    confirmation = confirm_us_storefront(_US_DOM)
-    assert confirmation.confirmed is True
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_confirms_on_usd_currency_signal_attribute_order() -> None:
-    confirmation = confirm_us_storefront(_US_DOM_REORDERED)
-    assert confirmation.confirmed is True
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_on_singapore_price() -> None:
-    confirmation = confirm_us_storefront(_NON_US_DOM)
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_when_no_signal() -> None:
-    confirmation = confirm_us_storefront("<html><body>no prices here</body></html>")
-    assert confirmation.confirmed is False
-    assert "no US storefront signal" in confirmation.detail
-
-
-def test_confirm_us_storefront_not_confirmed_on_bare_dollar_from_page_js() -> None:
-    """Tightening: a bare '$' from page JS (e.g. jQuery) with no US price PATTERN and no
-    currencyOfPreference signal must NOT confirm. The prior '$' in dom heuristic false-positived."""
-    dom = "<html><body><script>$(function(){var s='$';});</script>no price shown</body></html>"
-    confirmation = confirm_us_storefront(dom)
-    assert confirmation.confirmed is False
-
-
-def test_confirm_us_storefront_not_confirmed_on_us_price_pattern_without_currency_signal() -> None:
-    """A dollar-looking price alone is not proof the storefront flipped to US."""
-    dom = "<html><body><span class='a-offscreen'>$24.99</span></body></html>"
-    confirmation = confirm_us_storefront(dom)
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
-@pytest.mark.parametrize("price", ["C$24.99", "A$24.99", "HK$24.99", "NZ$24.99"])
-def test_confirm_us_storefront_not_confirmed_on_prefixed_currency_without_currency_signal(
-    price: str,
-) -> None:
-    confirmation = confirm_us_storefront(f"<html><body><span>{price}</span></body></html>")
-    assert confirmation.confirmed is False
-    assert "currencyOfPreference" in confirmation.detail
-
-
 def test_confirm_us_storefront_with_zip_confirms_grid_surface() -> None:
     dom = """
 <html lang="en-us"><body>
@@ -226,6 +173,54 @@ def test_confirm_us_storefront_with_zip_rejects_non_us_marketplace() -> None:
 </body></html>
 """
     confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_longer_numeric_substring() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">New York 100010</span>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_ignores_nested_script_zip() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">Singapore<script>var unrelated = '10001'</script></span>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_conflicting_location_zip() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<div id="glow-ingress-block">
+  <span id="glow-ingress-line2">New York 10001</span>
+  <span aria-label="Deliver to San Francisco 94105"></span>
+</div>
+</body></html>
+"""
+
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_malformed_requested_zip() -> None:
+    confirmation = confirm_us_storefront_with_zip(_US_ZIP_DOM, delivery_zip="1000")
 
     assert confirmation.confirmed is False
 
