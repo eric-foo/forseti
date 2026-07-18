@@ -293,6 +293,19 @@ coverage_ledger:
     access: excluded_by_substitution_test
     relevance: not_applicable
     gap_id: null
+  - coverage_id: COV-017
+    source_family: owned_channels
+    source_surface: official_policy_page
+    venue: ILIA Beauty
+    relevance_rationale: Current Amazon authorized-reseller rule and warranty terms.
+    route_or_query: https://iliabeauty.com/pages/ilia-warranty
+    requirement: required
+    status: checked
+    yield: evidence_found
+    recency: observed_2026-07-18
+    access: captured_packet_01KXSP35CMGVAN71CSZYMDW0P0
+    relevance: relevant
+    gap_id: null
 ```
 
 ### 4. Observation Ledger
@@ -349,8 +362,8 @@ observation_ledger:
     lawful_access_route: anonymous_cloakbrowser_public_page
     access_limitation: Brand-owned claims and aggregate; no sales, share, or representative satisfaction inference.
     independence_syndication_group: ilia_owned_skin_tint_20260718
-    independent_corroboration_ids: [OBS-007, OBS-013]
-    ambiguity_limitation: Clinical and sensitive-skin statements were not independently adjudicated in this run.
+    independent_corroboration_ids: [OBS-013]
+    ambiguity_limitation: Clinical and sensitive-skin statements were not independently adjudicated in this run; the captured page also contains a HAIM-collaboration cross-sell block labeled SPF 30, so the packet does not establish that every referenced variant uses SPF 40.
     contradiction_state: customer_counterevidence_exists
     fact_domain: company_fact
     current_state_use: primary_current
@@ -387,7 +400,7 @@ observation_ledger:
     subject_name: ILIA Beauty
     subject_kind: brand
     identity_state: resolved
-    coverage_id: COV-002
+    coverage_id: COV-017
     source_url_or_packet_locator: F:/forseti-data-lake/raw/8b3/01KXSP35CMGVAN71CSZYMDW0P0
     source_family: owned_channels
     source_surface: official_warranty
@@ -422,19 +435,19 @@ observation_ledger:
     publisher_or_venue: FashionNetwork
     source_class: independent
     publication_date: "2022-03-24"
-    event_or_effective_date: "2022-03-23"
+    event_or_effective_date: null
     observation_at: "2026-07-18T04:00:02Z"
     effective_time_precision: day
     recency_tier: days_over_180
-    age_anchor_date: "2022-03-23"
-    age_anchor_basis: event_effective
+    age_anchor_date: "2022-03-24"
+    age_anchor_basis: publication
     exact_locator: acquisition summary and ownership paragraphs
     evidence_excerpt: The article reports Famille C finalized the acquisition, Clarins took a minority stake, ILIA would remain independent, and 2021 revenue was USD 100 million.
     lawful_access_route: anonymous_cloakbrowser_public_article
     access_limitation: Historical trade reporting; then-current leadership, stakes, independence, and revenue are not current-state facts.
     independence_syndication_group: famille_c_ilia_acquisition_2022
     independent_corroboration_ids: []
-    ambiguity_limitation: Deal terms and current ownership percentages are not disclosed.
+    ambiguity_limitation: Deal terms and current ownership percentages are not disclosed; the article states no distinct finalization date, only its own publication date, so the acquisition's exact effective date is unknown rather than dated to the day before publication.
     contradiction_state: current_parent_chain_requires_refresh
     fact_domain: company_fact
     current_state_use: chronology_historical_baseline
