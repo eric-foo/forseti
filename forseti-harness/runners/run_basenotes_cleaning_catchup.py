@@ -79,6 +79,7 @@ from source_capture.basenotes_projection import (
     BASENOTES_PROJECTION_METHOD,
     BASENOTES_PROJECTION_VERSION,
 )
+from source_capture.fragrantica_projection import FRAGRANTICA_SOURCE_SURFACES
 
 # Seam ack namespace = the audit-pack lane (contract rule: an ack namespace must be
 # a lane declared in lane_registry.LANE_ROLES; exactly one audit pack exists per
@@ -89,9 +90,8 @@ _SOURCE_FAMILY = "fragrance_native_database"
 _BASENOTES_SURFACE = (
     "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 )
-_KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
+_KNOWN_OUT_OF_SCOPE_SURFACES = FRAGRANTICA_SOURCE_SURFACES | frozenset(
     {
-        "fragrantica_product_page_direct_http",
         "parfumo_product_page_direct_http",
         "parfumo_product_page_chrome_extension_targeted_rendered_session",
     }

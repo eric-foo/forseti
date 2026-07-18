@@ -86,6 +86,7 @@ from data_lake.consumption import (
     reconcile_availability_per_packet,
 )
 from data_lake.root import DataLakeRootError
+from source_capture.fragrantica_projection import FRAGRANTICA_SOURCE_SURFACES
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from source_capture.parfumo_projection import (
     PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
@@ -107,11 +108,8 @@ _PARFUMO_SURFACES = frozenset(
         PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
     }
 )
-_KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
-    {
-        "fragrantica_product_page_direct_http",
-        "basenotes_product_page_user_cleared_persistent_chrome_current_window",
-    }
+_KNOWN_OUT_OF_SCOPE_SURFACES = FRAGRANTICA_SOURCE_SURFACES | frozenset(
+    {"basenotes_product_page_user_cleared_persistent_chrome_current_window"}
 )
 # Producer convention written by runners/run_source_capture_http_packet.py onto
 # access_posture for any non-2xx direct-HTTP response (e.g. a Cloudflare/anti-bot

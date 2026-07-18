@@ -27,6 +27,10 @@ from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners import run_fragrantica_cleaning_catchup as frag_runner
 from runners.run_fragrantica_cleaning_catchup import main, pending_packets, run_catchup
+from source_capture.fragrantica_projection import (
+    FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE,
+    FRAGRANTICA_CLOAKBROWSER_INITIAL_VIEWPORT_SOURCE_SURFACE,
+)
 from source_capture.models import (
     PacketTiming,
     SourceCaptureSlice,
@@ -174,6 +178,31 @@ def test_catchup_finds_backlog_derives_and_acks(tmp_path) -> None:
     assert pending_packets(data_root=data_root) == []
 
 
+@pytest.mark.parametrize(
+    "surface",
+    [
+        FRAGRANTICA_CLOAKBROWSER_INITIAL_VIEWPORT_SOURCE_SURFACE,
+        FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE,
+    ],
+)
+def test_cloakbrowser_fragrantica_surfaces_are_owned_and_derived(
+    tmp_path: Path, surface: str
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name=surface.rsplit("_", 1)[-1],
+        source_surface=surface,
+    )
+
+    results = run_catchup(data_root=data_root)
+    assert [(entry["packet_id"], entry["status"]) for entry in results] == [
+        (pid, "derived")
+    ]
+    assert pending_packets(data_root=data_root) == []
+
+
 def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
     # S2: an immediate second run over the unchanged lake emits ZERO status entries
     # and performs ZERO lake writes (byte-unchanged tree, not merely no failures).
@@ -189,6 +218,7 @@ def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
 def test_output_shaping_policy_tokens_are_in_obligation() -> None:
     obligation = frag_runner._packet_obligation()
 
+    assert obligation["in_scope_surfaces"] == sorted(frag_runner._FRAGRANTICA_SURFACES)
     assert obligation["projection_method"] == frag_runner.FRAGRANTICA_PROJECTION_METHOD
     assert obligation["projection_version"] == frag_runner.FRAGRANTICA_PROJECTION_VERSION
     assert obligation["projection_certification"] == frag_runner.FRAGRANTICA_PROJECTION_CERTIFICATION

@@ -25,14 +25,27 @@ if TYPE_CHECKING:
 
 
 FRAGRANTICA_PROJECTION_METHOD = "fragrantica_current_window_mechanical_projection"
-FRAGRANTICA_PROJECTION_VERSION = "v0"
+FRAGRANTICA_PROJECTION_VERSION = "v1"
 FRAGRANTICA_PROJECTION_CERTIFICATION = (
     "view_only; not_cleaned; not_normalized; not_judgment_ready"
 )
 PROJECTION_FRAGRANTICA_LANE = "projection_fragrantica"
+FRAGRANTICA_DIRECT_HTTP_SOURCE_SURFACE = "fragrantica_product_page_direct_http"
+FRAGRANTICA_CLOAKBROWSER_INITIAL_VIEWPORT_SOURCE_SURFACE = (
+    "fragrantica_product_page_cloakbrowser_initial_viewport"
+)
+FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE = (
+    "fragrantica_product_page_cloakbrowser_deep_scroll_current_window"
+)
+FRAGRANTICA_SOURCE_SURFACES = frozenset(
+    {
+        FRAGRANTICA_DIRECT_HTTP_SOURCE_SURFACE,
+        FRAGRANTICA_CLOAKBROWSER_INITIAL_VIEWPORT_SOURCE_SURFACE,
+        FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE,
+    }
+)
 
 _FRAGRANTICA_SOURCE_FAMILY = "fragrance_native_database"
-_FRAGRANTICA_SOURCE_SURFACE = "fragrantica_product_page_direct_http"
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -138,7 +151,7 @@ class FragranticaProjectionPacket(StrictModel):
     projection_method: Literal["fragrantica_current_window_mechanical_projection"] = (
         FRAGRANTICA_PROJECTION_METHOD
     )
-    projection_version: Literal["v0"] = FRAGRANTICA_PROJECTION_VERSION
+    projection_version: Literal["v1"] = FRAGRANTICA_PROJECTION_VERSION
     certification: Literal["view_only; not_cleaned; not_normalized; not_judgment_ready"] = (
         FRAGRANTICA_PROJECTION_CERTIFICATION
     )
@@ -181,10 +194,11 @@ def build_fragrantica_projection(
             "Fragrantica projection requires "
             f"source_family={_FRAGRANTICA_SOURCE_FAMILY!r}; got {packet.source_family!r}"
         )
-    if packet.source_surface != _FRAGRANTICA_SOURCE_SURFACE:
+    if packet.source_surface not in FRAGRANTICA_SOURCE_SURFACES:
         raise ValueError(
             "Fragrantica projection requires "
-            f"source_surface={_FRAGRANTICA_SOURCE_SURFACE!r}; got {packet.source_surface!r}"
+            f"source_surface in {sorted(FRAGRANTICA_SOURCE_SURFACES)!r}; "
+            f"got {packet.source_surface!r}"
         )
 
     preserved_files = {item.file_id: item for item in packet.preserved_files}
@@ -385,7 +399,7 @@ def _project_fragrantica_html(
     )
     rows.extend(performance_rows)
     if performance_rows:
-        residuals.append("performance_component_values_not_rendered_in_direct_http_body")
+        residuals.append("performance_component_values_not_observed_in_preserved_body")
 
     archive_gate_rows = _archive_gate_rows(
         text,
@@ -401,14 +415,14 @@ def _project_fragrantica_html(
         residuals.append("full_review_archive_not_captured_login_prompt_present")
     residuals.extend(
         [
-            "linked_media_assets_not_preserved_by_direct_http_packet",
+            "linked_media_assets_not_preserved_by_current_window_packet",
             "review_attached_photo_proof_not_present",
         ]
     )
     if any(row.tab_id == "search-reviews" for row in tab_rows) and not any(
         row.tab_id == "search-reviews" for row in review_rows
     ):
-        residuals.append("search_review_rows_not_embedded_in_direct_http_body")
+        residuals.append("search_review_rows_not_embedded_in_preserved_body")
     residuals.extend(_non_review_fragrance_scope_residuals(text))
 
     return _ProjectedFragranticaHtml(
@@ -742,10 +756,10 @@ def _performance_component_rows(
                 source_visible_fields={
                     "component": component,
                     "component_present": True,
-                    "value_posture": "component_placeholder_present_value_not_rendered_in_direct_http_body",
+                    "value_posture": "component_placeholder_present_value_not_observed_in_preserved_body",
                     "perfume_id": _first_match(match.group(0), r':perfume_id="(\d+)"'),
                 },
-                residuals=["component_value_not_rendered_in_direct_http_body"],
+                residuals=["component_value_not_observed_in_preserved_body"],
             )
         )
     return rows
@@ -794,7 +808,7 @@ def _archive_gate_rows(
                         lang_strings.get("loginButtonText") if isinstance(lang_strings, dict) else None
                     ),
                 },
-                residuals=["full_archive_requires_login_in_observed_direct_http_body"],
+                residuals=["full_archive_requires_login_in_observed_preserved_body"],
             )
         )
     return rows
@@ -802,7 +816,13 @@ def _archive_gate_rows(
 
 def _looks_like_fragrantica_body(preserved_file: PreservedFile, body: bytes) -> bool:
     path = preserved_file.relative_packet_path.lower()
-    if "http_response_metadata" in path:
+    non_body_artifacts = (
+        "http_response_metadata",
+        "snapshot_metadata",
+        "visible_text",
+        "screenshot",
+    )
+    if any(marker in path for marker in non_body_artifacts):
         return False
     sample = body[:200_000].decode("utf-8", errors="ignore").lower()
     return "fragrantica.com/perfume/" in sample or "user-perfume-votes-new" in sample

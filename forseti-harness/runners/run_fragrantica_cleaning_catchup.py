@@ -80,6 +80,7 @@ from source_capture.fragrantica_projection import (
     FRAGRANTICA_PROJECTION_CERTIFICATION,
     FRAGRANTICA_PROJECTION_METHOD,
     FRAGRANTICA_PROJECTION_VERSION,
+    FRAGRANTICA_SOURCE_SURFACES,
 )
 
 # Seam ack namespace = the audit-pack lane (contract rule: an ack namespace must be
@@ -88,7 +89,7 @@ from source_capture.fragrantica_projection import (
 _ACK_NAMESPACE = FRAGRANTICA_CLEANING_AUDIT_LANE
 _SEAM_CONSUMER = "fragrantica_cleaning_catchup"
 _SOURCE_FAMILY = "fragrance_native_database"
-_FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
+_FRAGRANTICA_SURFACES = FRAGRANTICA_SOURCE_SURFACES
 _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
     {
         "basenotes_product_page_user_cleared_persistent_chrome_current_window",
@@ -111,7 +112,7 @@ def _packet_obligation() -> dict:
         # out-of-scope ack vs visible-unsupported, so reclassifying a surface must
         # re-fingerprint and re-surface previously acked packets.
         "source_family": _SOURCE_FAMILY,
-        "in_scope_surface": _FRAGRANTICA_SURFACE,
+        "in_scope_surfaces": sorted(_FRAGRANTICA_SURFACES),
         "known_out_of_scope_surfaces": sorted(_KNOWN_OUT_OF_SCOPE_SURFACES),
         "cleaning_core_version": CLEANING_CORE_VERSION,
         "projection_method": FRAGRANTICA_PROJECTION_METHOD,
@@ -214,7 +215,7 @@ def run_catchup(*, data_root) -> list[dict]:
             )
             continue
         surface = entry.get("source_surface")
-        if surface != _FRAGRANTICA_SURFACE:
+        if surface not in _FRAGRANTICA_SURFACES:
             if surface not in _KNOWN_OUT_OF_SCOPE_SURFACES:
                 results.append(
                     {

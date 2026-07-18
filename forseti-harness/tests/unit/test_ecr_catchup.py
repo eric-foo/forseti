@@ -18,7 +18,12 @@ import pytest
 
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot, DataLakeRootError
-from ecr.lake import ECR_COMPLETION_LANE, ECR_LANES
+from ecr.lake import (
+    ECR_COMPLETION_LANE,
+    ECR_LANES,
+    _LEGACY_FIRST_CAPTURE_PACKET_IDS,
+    _source_capture_packet_for_ecr,
+)
 from runners import run_ecr_catchup as ecr_runner
 from runners.run_ecr_catchup import main, pending_packets, run_catchup
 from source_capture.models import known_fact
@@ -58,6 +63,33 @@ def _corrupt_manifest(data_root, packet_id: str) -> None:
     container = data_root.find_packet(packet_id)
     assert container is not None
     (container / "manifest.json").write_text("{not-json\n", encoding="utf-8")
+
+
+def test_ecr_read_compatibility_is_closed_to_pinned_legacy_first_captures(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(data_root, tmp_path)
+    manifest = data_root.load_raw_packet(pid).manifest
+    manifest["packet_id"] = next(iter(sorted(_LEGACY_FIRST_CAPTURE_PACKET_IDS)))
+    legacy_facts = [manifest["re_capture_relationship"]]
+    legacy_facts.extend(
+        source_slice["re_capture_relationship"]
+        for source_slice in manifest["source_slices"]
+    )
+    for fact in legacy_facts:
+        fact.update({"status": "known", "value": "new", "reason": None})
+
+    packet = _source_capture_packet_for_ecr(manifest)
+    assert packet.re_capture_relationship.status.value == "not_applicable"
+    assert all(
+        source_slice.re_capture_relationship.status.value == "not_applicable"
+        for source_slice in packet.source_slices
+    )
+
+    manifest["packet_id"] = "01UNPINNEDLEGACYNEW"
+    with pytest.raises(ValueError, match="re_capture_relationship known value"):
+        _source_capture_packet_for_ecr(manifest)
 
 
 def test_catchup_finds_backlog_derives_and_acks(tmp_path) -> None:

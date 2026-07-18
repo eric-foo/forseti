@@ -42,7 +42,7 @@ def test_fragrantica_projection_preserves_current_window_reviews_and_residuals()
     }
     assert projection.loss_ledger.full_archive_captured is False
     assert "full_review_archive_not_captured_login_prompt_present" in projection.residuals
-    assert "search_review_rows_not_embedded_in_direct_http_body" in projection.residuals
+    assert "search_review_rows_not_embedded_in_preserved_body" in projection.residuals
     assert "fragrance_accords_present_but_not_projected" in projection.residuals
     assert "fragrance_notes_pyramid_present_but_not_projected" in projection.residuals
     assert "fragrance_similarity_surface_present_but_not_projected" in projection.residuals
@@ -75,6 +75,34 @@ def test_fragrantica_projection_preserves_current_window_reviews_and_residuals()
     assert projection.binding_map[0].binding_type == "review_votes_to_review_text"
 
 
+def test_cloakbrowser_projection_uses_rendered_dom_not_duplicate_visible_text() -> None:
+    packet, raw = _packet(
+        source_surface="fragrantica_product_page_cloakbrowser_initial_viewport"
+    )
+    raw["file_02"] = (
+        b"https://www.fragrantica.com/perfume/Test-1.html user-perfume-votes-new"
+    )
+    packet = packet.model_copy(
+        update={
+            "preserved_files": [
+                packet.preserved_files[0],
+                _preserved_file(
+                    "file_02",
+                    "raw/02_cloakbrowser_visible_text.txt",
+                    raw["file_02"],
+                ),
+            ]
+        }
+    )
+
+    projection = build_fragrantica_projection(
+        packet=packet, raw_file_bytes_by_file_id=raw
+    )
+    row_ids = [row.row_id for row in projection.rows]
+    assert row_ids
+    assert len(row_ids) == len(set(row_ids))
+
+
 def test_fragrantica_projection_rejects_wrong_source_family() -> None:
     packet, raw = _packet(source_family="web_page")
 
@@ -85,7 +113,7 @@ def test_fragrantica_projection_rejects_wrong_source_family() -> None:
 def test_fragrantica_projection_rejects_wrong_source_surface() -> None:
     packet, raw = _packet(source_surface="retail_pdp_product_page")
 
-    with pytest.raises(ValueError, match="source_surface='fragrantica_product_page_direct_http'"):
+    with pytest.raises(ValueError, match="source_surface in"):
         build_fragrantica_projection(packet=packet, raw_file_bytes_by_file_id=raw)
 
 

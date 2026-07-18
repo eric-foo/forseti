@@ -88,8 +88,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
-        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
-        "b90d7f269cdd6c159b168f128f3a7e4511e5f930f8fd1d26bf6ec73a8c508371",
+        # Output-shaping: projection-v1 residual names change raw-pull-required output;
+        # the cleaning method token is bumped to v1.
+        "a06d40ecb8c83bee8a8b1dad01c16b29a00c0a16270bd24038e2d45410975af4",
     ),
     "cleaning/fragrantica_lake.py": (
         (
@@ -99,9 +100,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
-        # data_lake/canonical_json.py; not output-shaping.
-        "7eb76831994b33ec2115e7d447128765c15eb8239f47a63860a3bfb96da38f9b",
+        # Output-shaping: FRAGRANTICA_CLEANING_METHOD_ID v1 re-fingerprints
+        # obligations for the projection-v1 residual vocabulary.
+        "673cd8b2cd391345d154518bac6bf50a57f2f412ac80007415ee77ad208d3f16",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
@@ -156,9 +157,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/fragrantica_projection.py": (
         ("FRAGRANTICA_PROJECTION_VERSION",),
-        # Pin bumped: helper dedup onto source_capture/projection_shared.py plus adoption of the
-        # containment-guarded shared packet reader (security hardening: path traversal); not output-shaping.
-        "05402e8667b94b873a2e4e3f1b5b887ba03841603c3174c39c3a99c2506e5f66",
+        # Output-shaping: projection v1 admits the two Fragrantica CloakBrowser
+        # surfaces and tightens body selection plus residual vocabulary.
+        "5c845f333adfce77e25e654ee8af7575d8be1e07c7bb55d2f9d564f0541083c8",
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
