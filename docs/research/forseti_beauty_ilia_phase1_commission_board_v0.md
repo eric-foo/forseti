@@ -4,18 +4,23 @@
 retrieval_header_version: 1
 artifact_role: Sealed company competitive-intelligence commission board
 scope: >
-  Contract-shaped Phase 1 commission for ILIA Beauty, pool row USBEAUTY-021,
-  before the Scanning walk and typed evidence synthesis.
+  Historical sealed Phase 1 commission boundary for ILIA Beauty, pool row
+  USBEAUTY-021, preserved as the pre-scan input to the withdrawn report.
 use_when:
-  - Auditing the ILIA Phase 1 commissioned routes and pre-scan boundary.
-  - Adjudicating the completed ILIA Phase 1 three-component bundle.
-authority_boundary: evidence_only
+  - Auditing the historical ILIA Phase 1 commissioned routes and pre-scan boundary.
+  - Tracing the withdrawn report back to its sealed commission input.
+authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_ilia_phase1_scan_receipt_v0.md
-  - docs/research/forseti_beauty_ilia_phase1_company_competitive_intelligence_report_v0.md
 stale_if:
+  - Always as a reusable commission or current-report router; the associated report was withdrawn from decision-facing use on 2026-07-19.
   - The owner supersedes the ILIA Phase 1 commission or its governing CSB contract.
 ```
+
+> **Historical sealed input only.** Do not reuse this board to dispatch a
+> current ILIA commission or to select a current report. Its associated report,
+> `docs/research/forseti_beauty_ilia_phase1_company_competitive_intelligence_report_v0.md`,
+> remains present only as historical provenance; no replacement exists yet.
 
 Seal timing note: the 2026-07-18 handoff and eligibility-pool row bound the
 subject and routes before Capture reconnaissance began. This board translates

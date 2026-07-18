@@ -4,19 +4,26 @@
 retrieval_header_version: 1
 artifact_role: Evidence-only company competitive-intelligence report
 scope: >
-  Completed, decision-neutral Phase 1 profile of ILIA Beauty under the
-  ratified CSB company-profile contract, based on a bounded fresh scan as of
-  2026-07-18.
+  Point-in-time 2026-07-18 ILIA Beauty Phase 1 profile preserved to reconstruct
+  the historical commission, evidence synthesis, and provenance chain.
 use_when:
-  - Adjudicating ILIA as the second beauty-pool company.
-  - Using ILIA later as an independently produced peer under the same contract.
-authority_boundary: evidence_only
+  - Auditing the historical ILIA Phase 1 report and its observation-level evidence.
+  - Reconstructing why the report was withdrawn from current or decision-facing use.
+authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_ilia_phase1_commission_board_v0.md
   - docs/research/forseti_beauty_ilia_phase1_scan_receipt_v0.md
 stale_if:
+  - Always for current, recommended, peer-comparison, Company Surface, or decision-facing use; the owner withdrew this report on 2026-07-19 and no replacement exists yet.
   - Material ILIA ownership, positioning, assortment, channel, or product evidence changes.
 ```
+
+> **Historical provenance only — do not use this as a current or recommended
+> ILIA intelligence report.** The owner withdrew the complete report from
+> decision-facing use on 2026-07-19. No replacement, rerun, or readiness state
+> is claimed. The body remains substantially as authored so its sealed board,
+> scan receipt, observation IDs, evidence limitations, and provenance-hardening
+> history remain auditable.
 
 ## Executive Intelligence Brief
 
