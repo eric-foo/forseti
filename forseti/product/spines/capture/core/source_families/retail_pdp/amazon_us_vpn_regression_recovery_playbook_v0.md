@@ -280,6 +280,69 @@ annotation to change between the Singapore packet and the US / New York retry.
 profile, ZIP, timing, access, and sufficiency checks; it does not mean copying
 an earlier packet's now-false transport annotation.
 
+## Widget-hydration diagnosis and verified fix
+
+The failed US / New York retry above was re-probed on 2026-07-19
+Asia/Singapore before changing the adapter. Instrumented screenshots and DOM
+snapshots showed:
+
+- `DOMContentLoaded` completed before Amazon's location anchor appeared;
+- the known `#nav-global-location-popover-link` selector became visible after
+  about 3.6 seconds, beyond the adapter's former 2.5-second probe cap;
+- once visible, the same selector opened Amazon's normal “Choose your
+  location” modal;
+- the ZIP input appeared about 0.8 seconds later; applying `10001` produced
+  Amazon-owned `Deliver to 10001` state.
+
+The failure was therefore delayed client hydration under the observed VPN
+route, not selector drift, an access block, or absence of the retailer UI. The
+adapter now waits up to five seconds for one combined locator matching either
+known widget selector, then performs one bounded click. The wait and click
+remain inside the original shared 30-second setup budget. A missing widget
+pays one readiness timeout, not one timeout per fallback selector, and still
+returns the typed `open_widget` failure.
+
+The patched exact-subject verification succeeded:
+
+```yaml
+case_id: AMAZON_US_VPN_WIDGET_HYDRATION_FIX_MAKEWAVES_20260719
+operator_observed_network_posture: surfshark_us_new_york
+subject: Tower 28 MakeWaves Mascara
+asin: B0BGMBRQP7
+packet_id: 01KXVF7398CQY2GA4947KW0AAV
+packet_locator: F:\forseti-data-lake\raw\4f4\01KXVF7398CQY2GA4947KW0AAV
+requested_url: https://www.amazon.com/dp/B0BGMBRQP7
+final_url: https://www.amazon.com/dp/B0BGMBRQP7?th=1
+pin_confirmed: true
+pre_capture_steps_completed: true
+amazon_us_vpn_fallback_required: false
+access_blocked: false
+rendered_access_classification: no_block_marker
+capture_phase_timing:
+  pre_capture_plugin_ms: 15890
+  total_capture_wall_ms: 29672
+screenshot:
+  relative_packet_path: raw/03_cloakbrowser_viewport_screenshot.png
+  sha256: 0b7442cf58c2ef43ec71cb226a288ec73aedcd03566493e76ca81043fda9fa42
+  visible_binding: Amazon header "Deliver to New York 10001" and bound Tower 28 MakeWaves PDP
+network_closeout:
+  surfshark_disconnect_invoked: true
+  surfshark_ui_state_after_disconnect: Connect
+  disconnect_verified: true
+```
+
+All four raw artifact hashes fresh-matched the manifest. The packet passed the
+commissioned Tower 28, MakeWaves, and `Sold by` visible-text checks. This
+successful follow-up does not rewrite the earlier failed retry: that packet
+remains the regression case proving the former timeout was too short and the
+pin gate failed closed.
+
+Re-open widget diagnosis if the combined selector does not become visible
+within five seconds, the click fails after visibility, the ZIP input is absent,
+or final Amazon-owned US / USD / ZIP evidence fails. Do not increase the
+timeout merely because a future packet fails; preserve the typed packet and
+measure the failed phase first.
+
 ## Failure-case recording for future examples
 
 For every later SG regression, record:
