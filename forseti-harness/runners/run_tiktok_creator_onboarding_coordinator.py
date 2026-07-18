@@ -30,6 +30,58 @@ from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutco
 _ALLOWED_SILVER_STATUSES = {"derived", "already_current"}
 
 
+def _audience_joins_by_subject(document: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    wrapper = document.get("creator_profile_current_view")
+    profiles = wrapper.get("profiles") if isinstance(wrapper, dict) else None
+    if not isinstance(profiles, list):
+        raise ValueError("creator profile view has no profiles list")
+
+    joins: dict[str, dict[str, Any]] = {}
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            continue
+        joined = profile.get("audience_triangulation")
+        if joined is None:
+            continue
+        profile_subject_id = profile.get("profile_subject_id")
+        if not isinstance(profile_subject_id, str) or not profile_subject_id:
+            raise ValueError("audience_triangulation join has no profile_subject_id")
+        if not isinstance(joined, dict):
+            raise ValueError(
+                "audience_triangulation join is not an object for "
+                f"profile_subject_id={profile_subject_id}"
+            )
+        if profile_subject_id in joins:
+            raise ValueError(
+                "duplicate audience_triangulation join for "
+                f"profile_subject_id={profile_subject_id}"
+            )
+        joins[profile_subject_id] = joined
+    return joins
+
+
+def _verify_existing_audience_joins_preserved(
+    *, previous_output: bytes | None, candidate_document: dict[str, Any]
+) -> None:
+    if previous_output is None:
+        return
+    previous_document = json.loads(previous_output)
+    previous_joins = _audience_joins_by_subject(previous_document)
+    candidate_joins = _audience_joins_by_subject(candidate_document)
+    for profile_subject_id, previous_join in previous_joins.items():
+        candidate_join = candidate_joins.get(profile_subject_id)
+        if candidate_join is None:
+            raise ValueError(
+                "existing audience_triangulation join was not preserved for "
+                f"profile_subject_id={profile_subject_id}: join is missing"
+            )
+        if candidate_join != previous_join:
+            raise ValueError(
+                "existing audience_triangulation join was not preserved for "
+                f"profile_subject_id={profile_subject_id}: join changed"
+            )
+
+
 def _packet_result(results: Sequence[dict[str, Any]], packet_id: str, lane: str) -> dict[str, Any]:
     matches = [row for row in results if row.get("packet_id") == packet_id]
     if len(matches) != 1:
@@ -111,6 +163,8 @@ def complete_onboarding(
     *,
     snapshot_path: Path,
     outcome_path: Path,
+    retained_snapshot_paths: Sequence[Path] = (),
+    retained_outcome_paths: Sequence[Path] = (),
     output_path: Path,
     account_ledger_path: Path,
     creator_registry_index_path: Path,
@@ -120,6 +174,10 @@ def complete_onboarding(
 ) -> dict[str, Any]:
     """Materialize and verify a candidate before atomically publishing it."""
 
+    if len(retained_snapshot_paths) != len(retained_outcome_paths):
+        raise ValueError(
+            "retained audience snapshot and Judgment outcome counts must match"
+        )
     raw_outcome = load_json(outcome_path)
     outcome_model = (
         CreatorAudienceJudgmentOutcomeV1
@@ -148,12 +206,14 @@ def complete_onboarding(
         str(account_ledger_path),
         "--creator-registry-index",
         str(creator_registry_index_path),
-        "--audience-triangulation-snapshot",
-        str(snapshot_path),
-        "--audience-judgment-outcome",
-        str(outcome_path),
         "--write",
     ]
+    for retained_snapshot in retained_snapshot_paths:
+        argv.extend(("--audience-triangulation-snapshot", str(retained_snapshot)))
+    argv.extend(("--audience-triangulation-snapshot", str(snapshot_path)))
+    for retained_outcome in retained_outcome_paths:
+        argv.extend(("--audience-judgment-outcome", str(retained_outcome)))
+    argv.extend(("--audience-judgment-outcome", str(outcome_path)))
     for metric_seed in metric_seed_paths:
         argv.extend(("--metric-seed", str(metric_seed)))
     if generated_at_utc:
@@ -197,6 +257,10 @@ def complete_onboarding(
             or joined.get("input_bundle_hash") != outcome.bundle_hash
         ):
             raise ValueError("materialized profile did not join the exact validated snapshot")
+        _verify_existing_audience_joins_preserved(
+            previous_output=previous_output,
+            candidate_document=document,
+        )
 
         current_output = output_path.read_bytes() if output_path.exists() else None
         if current_output != previous_output:
@@ -244,6 +308,20 @@ def _parser() -> argparse.ArgumentParser:
     complete = subparsers.add_parser("complete")
     complete.add_argument("--snapshot", type=Path, required=True)
     complete.add_argument("--outcome", type=Path, required=True)
+    complete.add_argument(
+        "--retained-snapshot",
+        type=Path,
+        action="append",
+        default=[],
+        help="Previously validated audience snapshot to preserve; repeat with paired outcomes.",
+    )
+    complete.add_argument(
+        "--retained-outcome",
+        type=Path,
+        action="append",
+        default=[],
+        help="Successful Judgment outcome paired positionally with each retained snapshot.",
+    )
     complete.add_argument("--output", type=Path, required=True)
     complete.add_argument("--account-ledger", type=Path, required=True)
     complete.add_argument("--creator-registry-index", type=Path, required=True)
@@ -282,6 +360,8 @@ def main(argv: list[str] | None = None) -> int:
             result = complete_onboarding(
                 snapshot_path=args.snapshot,
                 outcome_path=args.outcome,
+                retained_snapshot_paths=args.retained_snapshot,
+                retained_outcome_paths=args.retained_outcome,
                 output_path=args.output,
                 account_ledger_path=args.account_ledger,
                 creator_registry_index_path=args.creator_registry_index,

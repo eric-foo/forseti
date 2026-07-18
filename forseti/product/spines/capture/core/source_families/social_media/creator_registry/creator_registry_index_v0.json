@@ -14,17 +14,17 @@
     ],
     "counts": {
       "creator_records_total": 2,
-      "known_account_rows_total": 52,
+      "known_account_rows_total": 53,
       "platform_accounts_by_onboarding_state": {
         "not_onboarded": 13,
-        "onboarded": 39
+        "onboarded": 40
       },
       "platform_accounts_by_platform": {
         "instagram": 5,
-        "tiktok": 7,
+        "tiktok": 8,
         "youtube": 40
       },
-      "platform_accounts_total": 52
+      "platform_accounts_total": 53
     },
     "creator_records": [
       {
@@ -86,7 +86,7 @@
         ]
       }
     ],
-    "generated_at_utc": "2026-07-16T18:42:39.7300278Z",
+    "generated_at_utc": "2026-07-18T05:00:26Z",
     "index_id": "creator_registry_index_v0",
     "index_mode": "materialized_known_public_account_dedupe_and_onboarding_index",
     "lookup_policy": {
@@ -112,8 +112,8 @@
     "onboarding_policy": {
       "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
       "derivation_diagnostics": {
-        "attributable_registry_packet_count": 456,
-        "qualifying_packet_count": 480,
+        "attributable_registry_packet_count": 458,
+        "qualifying_packet_count": 481,
         "unattributable_legacy_packet_count": 20,
         "unattributable_legacy_packet_ids": [
           "01KWBPW19TTG7VQM2EKKHMM0N7",
@@ -137,7 +137,7 @@
           "01KWJ11GTKT62R5GPNDM68DKDJ",
           "01KWJ2GGZT42RY5Z8DCKSAEHS2"
         ],
-        "unmatched_registry_packet_count": 4
+        "unmatched_registry_packet_count": 3
       },
       "explicitly_non_qualifying_surfaces": [
         "youtube_channel_rss_feed",
@@ -2012,6 +2012,49 @@
         ]
       },
       {
+        "capture_state": "identity_observed_content_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-18T04:34:36Z",
+          "last_capture_observed_at_or_none": "2026-07-12T11:12:33Z",
+          "last_discovery_observed_at_or_none": "2026-07-18T04:34:36Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_008",
+          "platform:tiktok:handle:calcologne",
+          "platform:tiktok:url:https://www.tiktok.com/@calcologne"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "calcologne",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXB0ESFGSZW9P77S3XFE8XB4",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-12T11:12:33Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_008",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "calcologne",
+        "public_profile_url": "https://www.tiktok.com/@calcologne",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42"
+        ]
+      },
+      {
         "capture_state": "never_captured",
         "creator_record_id_or_none": null,
         "discovery_state": "known_account",
@@ -2052,7 +2095,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCJ7EzNsSGFBx1w5KQqRzMqA",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43"
         ]
       },
       {
@@ -2096,7 +2139,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UC6IMPkOWzhBHWlIW0ca1z_Q",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44"
         ]
       },
       {
@@ -2140,7 +2183,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCiC5uxWi4WGrR1Suo8I4PqA",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45"
         ]
       },
       {
@@ -2184,7 +2227,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCzi8yTLv2_lF22VqwfteRLA",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46"
         ]
       },
       {
@@ -2228,7 +2271,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UC-SMshzkuetzs4mNHZmJwUg",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47"
         ]
       },
       {
@@ -2272,7 +2315,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCNDQy3YbPtp37i7B91f6kFQ",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48"
         ]
       },
       {
@@ -2316,7 +2359,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCm10tytOAzlO42r9_4Oc8Eg",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49"
         ]
       },
       {
@@ -2360,7 +2403,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCTMtNhRZ8-QRTsyiojH8Zqg",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50"
         ]
       },
       {
@@ -2404,7 +2447,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UCNn5SzNLEe2F9M04sn2aoDA",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/51"
         ]
       },
       {
@@ -2448,7 +2491,7 @@
         "public_profile_url": "https://www.youtube.com/channel/UC-kG1xY0duJPDjvNkAiSODg",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/51"
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/52"
         ]
       }
     ],
@@ -2456,7 +2499,7 @@
     "source_inputs": [
       {
         "role": "source-backed known public platform accounts and linkage state",
-        "sha256": "3a46fd4f6b4830addf9258359c0953bac1bff524ee6aedf9f0447c2d41763431",
+        "sha256": "6f8f7cf374e160c201c3bd1d4083b25243a1c8035d8559523a89cc9d858c7082",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       }
     ],

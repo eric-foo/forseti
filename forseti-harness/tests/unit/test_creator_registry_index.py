@@ -82,11 +82,11 @@ def test_creator_registry_index_counts_and_contract() -> None:
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "materialized_known_public_account_dedupe_and_onboarding_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 52,
+        "platform_accounts_total": 53,
         "creator_records_total": 2,
-        "known_account_rows_total": 52,
-        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 7, "youtube": 40},
-        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 39},
+        "known_account_rows_total": 53,
+        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 8, "youtube": 40},
+        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 40},
     }
     assert [record["creator_record_id"] for record in registry["creator_records"]] == [
         "creator_fragranceknowledge_001",
@@ -154,7 +154,10 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         "acct_ig_fragrance_006",
         "acct_tiktok_fragrance_006",
     }
-    content_packet_account_ids = {"acct_tiktok_fragrance_007"}
+    content_packet_account_ids = {
+        "acct_tiktok_fragrance_007",
+        "acct_tiktok_fragrance_008",
+    }
 
 
     for source_account in ledger["platform_accounts"]:

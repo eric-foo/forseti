@@ -1,0 +1,67 @@
+{
+  "creator_registry_match_preflight_receipt": {
+    "accepted_residuals": [
+      "Exact preflight does not perform fuzzy display-name matching.",
+      "Exact preflight does not prove cross-platform creator identity.",
+      "Exact preflight does not prove discovery search quality.",
+      "Exact preflight does not refresh silver metrics or mutate capture outputs."
+    ],
+    "generated_at_utc": "2026-07-18T04:34:25Z",
+    "non_claims": [
+      "not fuzzy identity resolver",
+      "not cross-platform linkage proof",
+      "not capture authorization without receipt review",
+      "not registry mutation",
+      "not live social search",
+      "not silver metric refresh"
+    ],
+    "registry_source": {
+      "generated_at_utc": "2026-07-16T18:42:39.7300278Z",
+      "profiles_total": 52,
+      "schema_version": "creator_profile_current_view_v0",
+      "sha256": "53f34db40e2a45b5356769f4b22f10864ba2c04cd629f7f4b3b114f83abf9eba",
+      "source_pointer": "C:\\Users\\vmon7\\.codex\\worktrees\\f8bd\\orca\\forseti\\product\\spines\\capture\\core\\source_families\\social_media\\creator_registry\\creator_profile_current_view_v0.json"
+    },
+    "results": [
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": [
+          "new_capture"
+        ],
+        "can_start_new_capture": true,
+        "candidate_id": "tiktok-calcologne",
+        "decision": "new_candidate",
+        "duplicate_candidate_identity_keys": [],
+        "errors": [],
+        "input_index": 0,
+        "intended_action": "new_capture",
+        "matched_registry_profiles": [],
+        "normalized_candidate": {
+          "display_name_or_none": null,
+          "handles": [
+            "calcologne"
+          ],
+          "platform_account_id_or_none": null,
+          "platform_or_none": "tiktok",
+          "platform_public_account_id_or_none": null,
+          "profile_subject_id_or_none": null,
+          "profile_urls": [
+            "https://tiktok.com/@calcologne"
+          ],
+          "source_url_or_none": null
+        }
+      }
+    ],
+    "schema_version": "creator_registry_match_preflight_receipt_v0",
+    "summary": {
+      "ambiguous_matches": 0,
+      "blocked_actions": 0,
+      "existing_matches": 0,
+      "invalid_candidates": 0,
+      "new_candidates": 1,
+      "safe_to_capture_new": 1,
+      "total_candidates": 1
+    }
+  }
+}
