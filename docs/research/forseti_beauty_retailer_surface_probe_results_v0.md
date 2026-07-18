@@ -1064,17 +1064,45 @@ observations:
   `01KXT09ERZ6584J7M4J07WS706` at
   `F:\forseti-data-lake\raw\e64\01KXT09ERZ6584J7M4J07WS706`; that route also
   returned HTTP 403, so no policy statement was admitted from it.
+- A bounded diagnosis then tested whether cold deep-linking or non-humanized
+  launch caused the denial. A temporary site-specific pre-capture route opened
+  `https://www.kohls.com/`, enabled CloakBrowser humanization, waited three
+  seconds, and then navigated to the commissioned surface in the same
+  anonymous ephemeral page. It injected no cookie, profile, storage state,
+  preference, cart, credential, or location.
+- The homepage step completed on both diagnostics, but Akamai denied both
+  targets:
+  - policy packet `01KXT3432PEF0NXEZE0VWEWMMD` at
+    `F:\forseti-data-lake\raw\ace\01KXT3432PEF0NXEZE0VWEWMMD`;
+  - PDP packet `01KXT38WKZMXVMMY18CDX3SC66` at
+    `F:\forseti-data-lake\raw\039\01KXT38WKZMXVMMY18CDX3SC66`.
+  Both metadata files record `pre_capture_steps_completed=true`,
+  `humanize_mode_active=true`, `access_blocked=true`,
+  `access_block_reason="akamai_access_denied"`, `proxy_used=false`,
+  `persistent_profile_loaded=false`, and `pin_confirmed=false`.
+- A separate in-app browser was used only as a scouting control and was not
+  promoted as Capture Spine evidence. In one homepage-first anonymous session
+  it reached the bound PDP and the retailer policy route. The PDP exposed the
+  exact product, `$16.00`, and product-bound `priceCurrency=USD`; the policy
+  stated that Kohl's currently ships only to US/APO/FPO addresses. This proves
+  the routes were live during diagnosis, but it does not isolate whether the
+  CloakBrowser denial arose from exit-IP reputation or browser/TLS
+  fingerprinting because both identity bundles differed.
 - Every packet's capture time, packet ID, requested/final URL, raw SHA-256
   value, and byte length was fresh-read against its manifest and metadata.
   No registered US residential proxy profile with the required geo-IP,
   `en-US`, and US-timezone metadata was present, so the authorized fallback
   could not run. No proxy credential or profile label was invented.
-- Current outcome: `NO_GO_ACCESS_BLOCKED_US_PROXY_PROFILE_ABSENT`. Country and
-  currency remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains
-  `UNPINNED`. No Retail/PDP projection, retailer adapter, CLI flag, or pin was
-  promoted. The generic browser classifier recorded `access_blocked=false`
-  despite the literal Akamai block page; this is preserved as a classifier
-  residual, while the subject/USD sufficiency gate still failed closed.
+- Current outcome:
+  `NO_GO_AKAMAI_DENIAL_AFTER_HUMANIZED_HOMEPAGE_WARMUP_US_PROXY_PROFILE_ABSENT`.
+  Cold deep-linking and disabled humanization are falsified as sufficient
+  causes; exit-IP reputation versus browser/TLS identity remains unresolved.
+  Country and currency remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery
+  remains `UNPINNED`. The shared rendered-access classifier now recognizes the
+  exact Akamai EdgeSuite conjunction, and both warmed packets prove the fix
+  with `access_blocked=true`. The disproven warm-up adapter and CLI flag were
+  removed. No Retail/PDP projection, retailer adapter, CLI flag, or pin was
+  promoted.
   This supplement adds no SOBS row because it records a pin-admission gap, not
   a new assortment, price, review, or product-claim finding.
 
