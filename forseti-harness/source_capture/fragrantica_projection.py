@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import hashlib
 import json
 import re
 from collections import Counter
@@ -44,8 +45,18 @@ FRAGRANTICA_SOURCE_SURFACES = frozenset(
         FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE,
     }
 )
+FRAGRANTICA_CONTENT_RECORD_KIND = "fragrantica_rendered_current_window_content"
+FRAGRANTICA_CONTENT_SCHEMA_VERSION = "fragrantica_rendered_current_window_content_v1"
+FRAGRANTICA_PARSER_VERSION = "fragrantica_rendered_current_window_parser_v1"
 
 _FRAGRANTICA_SOURCE_FAMILY = "fragrance_native_database"
+_FRAGRANTICA_RENDERED_SURFACES = frozenset(
+    {
+        FRAGRANTICA_CLOAKBROWSER_INITIAL_VIEWPORT_SOURCE_SURFACE,
+        FRAGRANTICA_CLOAKBROWSER_DEEP_SCROLL_SOURCE_SURFACE,
+    }
+)
+_FRAGRANTICA_CONTENT_SLICE_ID = "cloakbrowser_snapshot_01"
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -77,11 +88,20 @@ class FragranticaProjectionRawAnchor(StrictModel):
     relative_packet_path: str
     sha256: str
     hash_basis: str
-    anchor_kind: Literal["file", "html_selector", "text_pattern"] = "file"
+    anchor_kind: Literal["file", "html_selector", "text_pattern", "json_pointer"] = "file"
     anchor_value: str | None = None
+    json_pointer: str | None = None
 
     @model_validator(mode="after")
     def validate_anchor_value(self) -> "FragranticaProjectionRawAnchor":
+        if self.anchor_kind == "json_pointer":
+            if not (self.json_pointer and self.json_pointer.startswith("/")):
+                raise ValueError("json_pointer anchors require an absolute json_pointer")
+            if self.anchor_value is not None:
+                raise ValueError("json_pointer anchors must not carry anchor_value")
+            return self
+        if self.json_pointer is not None:
+            raise ValueError("non-json-pointer anchors must not carry json_pointer")
         if self.anchor_kind != "file" and not (self.anchor_value and self.anchor_value.strip()):
             raise ValueError(f"{self.anchor_kind} anchors require anchor_value")
         if self.anchor_kind == "file" and self.anchor_value is not None:
@@ -178,6 +198,88 @@ class FragranticaProjectionPacket(StrictModel):
         return self
 
 
+class FragranticaContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "fragrance_product_snapshot",
+        "fragrance_review_tab",
+        "fragrance_aggregate_rating",
+        "fragrance_performance_component",
+        "fragrance_review_archive_gate",
+        "fragrance_review_card_current_window",
+    ]
+    source_platform: Literal["fragrantica"] = "fragrantica"
+    source_object_type: Literal["fragrance_product"] = "fragrance_product"
+    source_object_site_id: str | None = None
+    source_object_name: str | None = None
+    brand_or_house: str | None = None
+    tab_id: str | None = None
+    source_order: int | None = Field(default=None, ge=0)
+    comment_id: str | None = None
+    parent_row_id: str | None = None
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: Literal["file", "html_selector", "text_pattern"]
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(cls, value: dict[str, Any | None]) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Fragrantica content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "FragranticaContentRow":
+        if self.source_anchor_kind != "file" and not (
+            self.source_anchor_value and self.source_anchor_value.strip()
+        ):
+            raise ValueError(f"{self.source_anchor_kind} anchors require source_anchor_value")
+        if self.source_anchor_kind == "file" and self.source_anchor_value is not None:
+            raise ValueError("file anchors must not carry source_anchor_value")
+        return self
+
+
+class FragranticaContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal["review_votes_to_review_text"] = "review_votes_to_review_text"
+    row_id: str
+
+
+class FragranticaContentRecord(StrictModel):
+    record_kind: Literal["fragrantica_rendered_current_window_content"] = (
+        FRAGRANTICA_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["fragrantica_rendered_current_window_content_v1"] = (
+        FRAGRANTICA_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["fragrantica_rendered_current_window_parser_v1"] = (
+        FRAGRANTICA_PARSER_VERSION
+    )
+    source_surface: Literal[
+        "fragrantica_product_page_cloakbrowser_initial_viewport",
+        "fragrantica_product_page_cloakbrowser_deep_scroll_current_window",
+    ]
+    source_url: str
+    rows: list[FragranticaContentRow] = Field(default_factory=list)
+    binding_map: list[FragranticaContentBinding] = Field(default_factory=list)
+    loss_ledger: FragranticaProjectionLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "FragranticaContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        return self
+
+
 def build_fragrantica_projection(
     *,
     packet: SourceCapturePacket,
@@ -202,6 +304,25 @@ def build_fragrantica_projection(
         )
 
     preserved_files = {item.file_id: item for item in packet.preserved_files}
+    content_files = [
+        item
+        for item in packet.preserved_files
+        if item.relative_packet_path.replace("\\", "/").endswith("content_record.json")
+    ]
+    if content_files:
+        if len(content_files) != 1:
+            raise ValueError("Fragrantica packet must preserve exactly one content_record.json")
+        content_file = content_files[0]
+        content_bytes = raw_file_bytes_by_file_id.get(content_file.file_id)
+        if content_bytes is None:
+            raise ValueError(
+                f"content record bytes are required for preserved file id: {content_file.file_id}"
+            )
+        return _projection_from_content_record(
+            packet=packet,
+            content_file=content_file,
+            content_bytes=content_bytes,
+        )
     for source_slice in packet.source_slices:
         for file_id in source_slice.preserved_file_ids:
             if file_id not in raw_file_bytes_by_file_id:
@@ -222,7 +343,6 @@ def build_fragrantica_projection(
                 continue
             projected = _project_fragrantica_html(
                 raw_file_bytes_by_file_id[file_id],
-                packet=packet,
                 source_slice=source_slice,
                 raw_ref=raw_ref,
                 raw_anchor=_raw_anchor(preserved_file),
@@ -253,6 +373,179 @@ def build_fragrantica_projection(
             source_order_preserved=True,
         ),
         residuals=_dedupe_preserve_order(residuals),
+    )
+
+
+def build_fragrantica_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+    source_surface: str,
+) -> dict[str, Any]:
+    """Parse one rendered Fragrantica slice without fabricating packet identity."""
+    if source_surface not in _FRAGRANTICA_RENDERED_SURFACES:
+        raise ValueError(
+            "Fragrantica content records require a rendered source surface; "
+            f"got {source_surface!r}"
+        )
+    if not source_url.strip():
+        raise ValueError("source_url must be non-empty")
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+
+    source_slice = _ContentSlice(slice_id=_FRAGRANTICA_CONTENT_SLICE_ID)
+    raw_ref = FragranticaProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=_FRAGRANTICA_CONTENT_SLICE_ID,
+    )
+    raw_anchor = FragranticaProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+    )
+    projected = _project_fragrantica_html(
+        rendered_dom,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=raw_anchor,
+    )
+    rows = [_content_row(row) for row in projected.rows]
+    bindings = [_content_binding(binding) for binding in projected.bindings]
+    review_counts = Counter(
+        row.tab_id for row in rows if row.row_kind == "fragrance_review_card_current_window"
+    )
+    residuals = list(projected.residuals)
+    if not review_counts:
+        residuals.append("fragrantica_review_cards_absent")
+    if not any(row.row_kind == "fragrance_product_snapshot" for row in rows):
+        residuals.append("fragrantica_product_snapshot_absent")
+
+    record = FragranticaContentRecord(
+        source_surface=source_surface,
+        source_url=source_url,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=FragranticaProjectionLossLedger(
+            preserved_evidence_rows=len(rows),
+            preserved_review_cards=sum(review_counts.values()),
+            preserved_review_tabs=sum(
+                1 for row in rows if row.row_kind == "fragrance_review_tab"
+            ),
+            preserved_bindings=len(bindings),
+            review_card_counts_by_tab={
+                str(key): count for key, count in sorted(review_counts.items())
+            },
+            hierarchy_preserved=True,
+            source_order_preserved=True,
+        ),
+        residuals=_dedupe_preserve_order(residuals),
+    )
+    return record.model_dump(mode="json")
+
+
+def _projection_from_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> FragranticaProjectionPacket:
+    try:
+        record = FragranticaContentRecord.model_validate_json(content_bytes)
+    except Exception as exc:
+        raise ValueError(f"invalid Fragrantica content record: {exc}") from exc
+    if packet.source_surface != record.source_surface:
+        raise ValueError(
+            f"Fragrantica content record source_surface {record.source_surface!r} does not "
+            f"match packet source surface {packet.source_surface!r}"
+        )
+    if packet.source_locator.value != record.source_url:
+        raise ValueError(
+            f"Fragrantica content record source_url {record.source_url!r} does not match "
+            f"packet source locator {packet.source_locator.value!r}"
+        )
+
+    slice_by_id = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
+    rows: list[FragranticaProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Fragrantica content row references invalid source slice: {content_row.slice_id}"
+            )
+        row_data = content_row.model_dump(
+            mode="json",
+            exclude={"slice_id", "source_anchor_kind", "source_anchor_value"},
+        )
+        rows.append(
+            FragranticaProjectionRow(
+                **row_data,
+                raw_ref=FragranticaProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/rows/{index}"),
+            )
+        )
+
+    bindings: list[FragranticaProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                "Fragrantica content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        bindings.append(
+            FragranticaProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=FragranticaProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/binding_map/{index}"),
+            )
+        )
+    return FragranticaProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=record.loss_ledger,
+        residuals=record.residuals,
+    )
+
+
+def _content_row(row: FragranticaProjectionRow) -> FragranticaContentRow:
+    row_data = row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+    return FragranticaContentRow(
+        **row_data,
+        slice_id=row.raw_ref.slice_id,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _content_binding(binding: FragranticaProjectionBinding) -> FragranticaContentBinding:
+    return FragranticaContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+    )
+
+
+def _content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> FragranticaProjectionRawAnchor:
+    return FragranticaProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        json_pointer=json_pointer,
     )
 
 
@@ -318,11 +611,14 @@ class _ProjectedFragranticaHtml(StrictModel):
     residuals: list[str] = Field(default_factory=list)
 
 
+class _ContentSlice(StrictModel):
+    slice_id: str
+
+
 def _project_fragrantica_html(
     body: bytes,
     *,
-    packet: SourceCapturePacket,
-    source_slice: SourceCaptureSlice,
+    source_slice: SourceCaptureSlice | _ContentSlice,
     raw_ref: FragranticaProjectionRawRef,
     raw_anchor: FragranticaProjectionRawAnchor,
 ) -> _ProjectedFragranticaHtml:
@@ -941,10 +1237,14 @@ def _projection_json_text(projection: FragranticaProjectionPacket) -> str:
 
 
 __all__ = [
+    "FRAGRANTICA_CONTENT_RECORD_KIND",
+    "FRAGRANTICA_CONTENT_SCHEMA_VERSION",
+    "FRAGRANTICA_PARSER_VERSION",
     "FRAGRANTICA_PROJECTION_CERTIFICATION",
     "FRAGRANTICA_PROJECTION_METHOD",
     "FRAGRANTICA_PROJECTION_VERSION",
     "PROJECTION_FRAGRANTICA_LANE",
+    "FragranticaContentRecord",
     "FragranticaProjectionBinding",
     "FragranticaProjectionLossLedger",
     "FragranticaProjectionPacket",
@@ -952,6 +1252,7 @@ __all__ = [
     "FragranticaProjectionRawRef",
     "FragranticaProjectionRow",
     "build_fragrantica_projection",
+    "build_fragrantica_content_record",
     "build_fragrantica_projection_from_packet_directory",
     "project_fragrantica_into_lake",
     "write_fragrantica_projection",

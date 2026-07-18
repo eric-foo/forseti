@@ -8,8 +8,11 @@ import pytest
 
 from runners import run_fragrantica_projection
 from source_capture.fragrantica_projection import (
+    FRAGRANTICA_CONTENT_RECORD_KIND,
+    FRAGRANTICA_PARSER_VERSION,
     FRAGRANTICA_PROJECTION_CERTIFICATION,
     FRAGRANTICA_PROJECTION_METHOD,
+    build_fragrantica_content_record,
     build_fragrantica_projection,
     build_fragrantica_projection_from_packet_directory,
 )
@@ -154,6 +157,68 @@ def test_fragrantica_projection_runner_writes_existing_packet_projection(tmp_pat
     assert payload["loss_ledger"]["preserved_review_cards"] == 3
 
 
+def test_fragrantica_content_record_is_deterministic_and_has_no_fabricated_packet_refs() -> None:
+    kwargs = {
+        "rendered_dom": _html().encode("utf-8"),
+        "visible_text": b"Baccarat Rouge 540 visible text",
+        "source_url": (
+            "https://www.fragrantica.com/perfume/Maison-Francis-Kurkdjian/"
+            "Baccarat-Rouge-540-33519.html"
+        ),
+        "source_surface": "fragrantica_product_page_cloakbrowser_initial_viewport",
+    }
+
+    first = build_fragrantica_content_record(**kwargs)
+    second = build_fragrantica_content_record(**kwargs)
+
+    assert first == second
+    assert first["record_kind"] == FRAGRANTICA_CONTENT_RECORD_KIND
+    assert first["parser_version"] == FRAGRANTICA_PARSER_VERSION
+    serialized = json.dumps(first, sort_keys=True)
+    assert "content_record_unbound" not in serialized
+    assert "content_input_rendered_dom" not in serialized
+    assert '"packet_id"' not in serialized
+    assert '"file_id"' not in serialized
+
+
+def test_fragrantica_content_projection_matches_rendered_raw_and_uses_json_pointers() -> None:
+    raw_packet, raw = _rendered_packet_pair()
+    raw_projection = build_fragrantica_projection(
+        packet=raw_packet, raw_file_bytes_by_file_id=raw
+    )
+    record = build_fragrantica_content_record(
+        rendered_dom=raw["file_01"],
+        visible_text=b"Baccarat Rouge 540 visible text",
+        source_url=str(raw_packet.source_locator.value),
+        source_surface=raw_packet.source_surface,
+    )
+    content_body = (json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    content_packet = raw_packet.model_copy(
+        update={
+            "preserved_files": [
+                _preserved_file("file_01", "raw/01_content_record.json", content_body)
+            ]
+        }
+    )
+    content_projection = build_fragrantica_projection(
+        packet=content_packet,
+        raw_file_bytes_by_file_id={"file_01": content_body},
+    )
+
+    def semantic_rows(projection):
+        return [
+            row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+            for row in projection.rows
+        ]
+
+    assert semantic_rows(content_projection) == semantic_rows(raw_projection)
+    assert content_projection.loss_ledger == raw_projection.loss_ledger
+    assert content_projection.residuals == raw_projection.residuals
+    assert all(row.raw_ref.packet_id == raw_packet.packet_id for row in content_projection.rows)
+    assert all(row.raw_anchor.anchor_kind == "json_pointer" for row in content_projection.rows)
+    assert content_projection.rows[0].raw_anchor.json_pointer == "/rows/0"
+
+
 def _single_row(rows, row_kind: str):
     matches = [row for row in rows if row.row_kind == row_kind]
     assert len(matches) == 1
@@ -224,6 +289,31 @@ def _packet(
         ),
     )
     return packet, raw
+
+
+def _rendered_packet_pair() -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    packet, raw = _packet(
+        source_surface="fragrantica_product_page_cloakbrowser_initial_viewport"
+    )
+    source_slice = packet.source_slices[0].model_copy(
+        update={
+            "slice_id": "cloakbrowser_snapshot_01",
+            "preserved_file_ids": ["file_01"],
+        }
+    )
+    rendered_packet = packet.model_copy(
+        update={
+            "source_slices": [source_slice],
+            "preserved_files": [
+                _preserved_file(
+                    "file_01",
+                    "raw/01_cloakbrowser_rendered_dom.html",
+                    raw["file_01"],
+                )
+            ],
+        }
+    )
+    return rendered_packet, {"file_01": raw["file_01"]}
 
 
 def _preserved_file(file_id: str, relative_path: str, body: bytes) -> PreservedFile:

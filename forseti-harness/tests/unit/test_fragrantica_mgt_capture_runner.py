@@ -118,7 +118,11 @@ def test_fragrantica_mgt_capture_composes_three_packets_and_summary(tmp_path: Pa
     assert summary["source_family"] == runner.SOURCE_FAMILY
     assert summary["fragrantica_product_id"] == "33519"
     assert summary["packet_publication_mode"] == "local_output_bundle"
-    assert summary["projection_status"] == "not_run; projection is a later lane over the raw packet evidence"
+    assert summary["projection_status"] == (
+        "capture_time_for_rendered_packets; direct_http_remains_raw_canary"
+    )
+    assert summary["capture_parameters"]["rendered_capture_artifact_mode"] == "content"
+    assert summary["capture_parameters"]["direct_http_capture_artifact_mode"] == "raw"
     assert summary["packet_roles"][runner.DIRECT_HTTP_SLOT]["packet_id"] == "01KW0000000000000000000001"
     assert summary["packet_roles"][runner.INITIAL_VIEWPORT_SLOT]["packet_id"] == "01KW0000000000000000000002"
     assert summary["packet_roles"][runner.DEEP_SCROLL_SLOT]["packet_id"] == "01KW0000000000000000000003"
@@ -137,11 +141,13 @@ def test_fragrantica_mgt_capture_composes_three_packets_and_summary(tmp_path: Pa
     assert calls[1]["settle_seconds"] == runner.DEFAULT_INITIAL_SETTLE_SECONDS
     assert calls[1]["scroll_passes"] == 0
     assert calls[1]["scroll_step_px"] == 0
+    assert calls[1]["content_capture"].capture_artifact_mode == "content"
     assert calls[2]["source_surface"] == runner.DEEP_SCROLL_SURFACE
     assert calls[2]["settle_seconds"] == runner.DEFAULT_DEEP_SETTLE_SECONDS
     assert calls[2]["scroll_passes"] == runner.DEFAULT_DEEP_SCROLL_PASSES
     assert calls[2]["scroll_step_px"] == runner.DEFAULT_DEEP_SCROLL_STEP_PX
     assert calls[2]["block_heavy_assets"] is False
+    assert calls[2]["content_capture"].capture_artifact_mode == "content"
 
 
 class _FakeDataRoot:

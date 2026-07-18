@@ -53,9 +53,35 @@ class ContentCaptureSpec:
             raise ValueError("parser_version must be a non-empty string")
 
 
+@dataclass(frozen=True)
+class RenderedContentCaptureSpec:
+    """Content-mode contract for one rendered DOM/text capture.
+
+    Unlike the direct-HTTP seam, rendered capture has two disposable parser
+    inputs plus retained browser metadata and source-media evidence. The
+    projector receives UTF-8 bytes for the DOM and visible text plus the final
+    URL. Raw mode still supplies this spec so the packet can record the same
+    per-input provenance without attempting projection.
+    """
+
+    capture_artifact_mode: str
+    parser_version: str
+    projector: Callable[[bytes, bytes, str], dict]
+
+    def __post_init__(self) -> None:
+        if self.capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+            raise ValueError(
+                "RenderedContentCaptureSpec capture_artifact_mode must be one of "
+                f"{CAPTURE_ARTIFACT_MODES}; got {self.capture_artifact_mode!r}"
+            )
+        if not self.parser_version or not self.parser_version.strip():
+            raise ValueError("parser_version must be a non-empty string")
+
+
 __all__ = [
     "CAPTURE_ARTIFACT_MODES",
     "CONTENT_RECORD_FILENAME",
     "CONTENT_PROJECTION_FAILED_EXIT_CODE",
     "ContentCaptureSpec",
+    "RenderedContentCaptureSpec",
 ]
