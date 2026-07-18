@@ -211,6 +211,75 @@ retry_limit: 1
 post_retry: disconnect_and_verify
 ```
 
+## Controlled dogfood case: marketplace recovered, delivery pin failed
+
+This 2026-07-19 Asia/Singapore case exercised the full operator route. It is a
+controlled fault-reproduction case, not evidence that an ordinary direct
+capture regressed:
+
+```yaml
+case_id: AMAZON_VPN_RECOVERY_DOGFOOD_MAKEWAVES_20260719
+subject: Tower 28 MakeWaves Mascara
+asin: B0BGMBRQP7
+capture_profile: amazon_pdp_distribution
+series_id: beauty-retailer-tower28-amazon-vpn-dogfood-20260719
+direct_baseline:
+  network_posture: no_vpn
+  packet_id: 01KXVB1XCRX211T20EJJ2S8PB8
+  packet_locator: F:\forseti-data-lake\raw\3d0\01KXVB1XCRX211T20EJJ2S8PB8
+  final_url: https://www.amazon.com/dp/B0BGMBRQP7?th=1
+  pin_confirmed: true
+  amazon_us_vpn_fallback_required: false
+controlled_reproduction:
+  operator_observed_network_posture: surfshark_singapore
+  packet_id: 01KXVBKECNWG3N43ATMHCVFCGG
+  packet_locator: F:\forseti-data-lake\raw\e53\01KXVBKECNWG3N43ATMHCVFCGG
+  final_url: https://www.amazon.sg/dp/B0BGMBRQP7?ref_=mr_direct_us_sg_sg&showmri=undefined&th=1
+  pin_confirmed: false
+  amazon_us_vpn_fallback_required: true
+  amazon_us_vpn_fallback_trigger: final_marketplace_host_amazon_sg
+  visible_mode_changes:
+    - operator_observed_surfshark_singapore_controlled_reproduction
+    - amazon_delivery_zip_pin_failed
+    - amazon_us_vpn_fallback_required
+    - source_detail_sufficiency_failed
+recovery_retry:
+  operator_observed_network_posture: surfshark_us_new_york
+  packet_id: 01KXVBT44YJ2JGKZ9JZ5HRD1A5
+  packet_locator: F:\forseti-data-lake\raw\450\01KXVBT44YJ2JGKZ9JZ5HRD1A5
+  final_url: https://www.amazon.com/dp/B0BGMBRQP7?th=1
+  pin_confirmed: false
+  amazon_us_vpn_fallback_required: false
+  visible_mode_changes:
+    - operator_observed_surfshark_us_new_york
+    - amazon_delivery_zip_pin_failed
+    - source_detail_sufficiency_failed
+  exact_failed_admission_signal: >
+    Amazon's delivery-location widget could not be opened; New York 10001 was
+    absent from recognized rendered location anchors, so requested ZIP 10001
+    was not confirmed.
+  typed_outcome: AMAZON_US_VPN_RETRY_FAILED_TYPED_STOP
+network_closeout:
+  surfshark_disconnect_invoked: true
+  surfshark_ui_state_after_disconnect: Connect
+  disconnect_verified: true
+```
+
+All twelve preserved files across the three packets fresh-matched their
+manifest hashes and byte lengths. The controlled Singapore packet reproduced
+the exact SG classifier and the US / New York retry restored the Amazon.com
+marketplace, but transport geography did not make the ZIP UI succeed. The
+retry therefore remains inadmissible. This is evidence that the recovery route
+fails closed and that marketplace recovery and delivery-pin recovery are
+independent; it is not a successful VPN recovery or a natural-regression-rate
+datapoint.
+
+The controlled reproduction also required an accurate network-posture
+annotation to change between the Singapore packet and the US / New York retry.
+“Repeat the exact capture” means preserve the commissioned URL, subject,
+profile, ZIP, timing, access, and sufficiency checks; it does not mean copying
+an earlier packet's now-false transport annotation.
+
 ## Failure-case recording for future examples
 
 For every later SG regression, record:
