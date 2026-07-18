@@ -7,7 +7,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Sequence
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -41,6 +41,7 @@ from source_capture.adapters.luckyscent_us_market import LuckyscentUSMarketPlugi
 from source_capture.adapters.nordstrom_country_preference import (
     NordstromCountryPreferencePlugin,
 )
+from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.browser_user_data import browser_user_data_path_for_label
 from source_capture.cli_support import (
@@ -88,6 +89,9 @@ CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
     "not commercial-readiness logic",
 ]
 
+SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
+_SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
+
 
 def run_source_capture_cloakbrowser_packet(
     *,
@@ -133,6 +137,7 @@ def run_source_capture_cloakbrowser_packet(
     nordstrom_country: str | None = None,
     nordstrom_country_setup_timeout_seconds: float = 30.0,
     luckyscent_market: str | None = None,
+    sephora_market: str | None = None,
     session_visibility_pin=None,
     locale_pin=None,
     currency_pin=None,
@@ -176,11 +181,13 @@ def run_source_capture_cloakbrowser_packet(
         delivery_zip is not None,
         nordstrom_country is not None,
         luckyscent_market is not None,
+        sephora_market is not None,
     ]
     if sum(site_specific_preferences) > 1:
         raise ValueError(
             "only one site-specific pre-capture preference may be supplied: "
-            "--delivery-zip, --nordstrom-country, or --luckyscent-market"
+            "--delivery-zip, --nordstrom-country, --luckyscent-market, or "
+            "--sephora-market"
         )
     if delivery_zip is not None:
         pre_capture = AmazonDeliveryLocationPlugin(
@@ -194,6 +201,9 @@ def run_source_capture_cloakbrowser_packet(
         )
     elif luckyscent_market is not None:
         pre_capture = LuckyscentUSMarketPlugin(country_code=luckyscent_market)
+    elif sephora_market is not None:
+        _validate_sephora_us_market_url(url)
+        pre_capture = SephoraUSMarketPlugin(country_code=sephora_market)
     else:
         pre_capture = None
     capture_result = fetch_cloakbrowser_snapshot_capture(
@@ -233,6 +243,16 @@ def run_source_capture_cloakbrowser_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    sephora_pin_failure = _sephora_market_pin_failure(
+        sephora_market=sephora_market,
+        final_url=capture_result.final_url,
+        pin_confirmed=capture_result.metadata.get("pin_confirmed"),
+    )
+    if sephora_pin_failure is not None:
+        packet_limitations.append(
+            f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: {sephora_pin_failure}; packet "
+            "preserved but MUST NOT be admitted as Sephora US/USD storefront evidence"
+        )
     if block_heavy_assets:
         packet_limitations.append(
             "CloakBrowser snapshot blocked image, media, and font network resources to bound "
@@ -248,6 +268,8 @@ def run_source_capture_cloakbrowser_packet(
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
     packet_visible_mode_changes = list(visible_mode_changes)
+    if sephora_pin_failure is not None:
+        packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
     sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
@@ -380,6 +402,12 @@ def run_source_capture_cloakbrowser_packet(
                 pass
         if staging_root is not None:
             shutil.rmtree(staging_root, ignore_errors=True)
+    if sephora_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {sephora_pin_failure}",
+        )
     if sufficiency_result.enabled and not sufficiency_result.passed:
         return SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE, source_detail_sufficiency_failure_message(
             output_directory=result.output_directory,
@@ -390,6 +418,37 @@ def run_source_capture_cloakbrowser_packet(
 
 def _write_text(path: Path, text: str) -> None:
     path.write_text(f"{text}\n", encoding="utf-8", newline="\n")
+
+
+def _validate_sephora_us_market_url(url: str) -> None:
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    country_switch = parse_qs(parsed.query).get("country_switch", [])
+    if hostname not in _SEPHORA_HOSTS or not any(
+        value.lower() == "us" for value in country_switch
+    ):
+        raise ValueError(
+            "--sephora-market US requires a sephora.com URL with country_switch=us"
+        )
+
+
+def _sephora_market_pin_failure(
+    *,
+    sephora_market: str | None,
+    final_url: str,
+    pin_confirmed: object,
+) -> str | None:
+    if sephora_market is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    reasons: list[str] = []
+    if final_hostname not in _SEPHORA_HOSTS:
+        reasons.append(
+            f"final storefront host was {final_hostname or 'unknown'!r}, not sephora.com"
+        )
+    if pin_confirmed is not True:
+        reasons.append("US/USD rendered-market conjunction was not confirmed")
+    return "; ".join(reasons) if reasons else None
 
 
 def _failure_report_token(failure_kind: CloakBrowserSnapshotFailureKind) -> str:
@@ -687,6 +746,18 @@ def _build_parser() -> argparse.ArgumentParser:
             "location."
         ),
     )
+    parser.add_argument(
+        "--sephora-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Fail-closed assertion for a Sephora US/USD rendered storefront. Requires "
+            "country_switch=us in the requested Sephora URL, "
+            "Sephora.renderQueryParams country=US, and a Sephora-sold JSON-LD Offer "
+            "with priceCurrency=USD. Performs no preference mutation and does not "
+            "claim a delivery location."
+        ),
+    )
     parser.add_argument("--proxy-profile-label", default=None)
     parser.add_argument(
         "--proxy-profile-category",
@@ -821,6 +892,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
         if old_reddit_only:
             _validate_old_reddit_url(args.url)
+        if args.sephora_market is not None:
+            _validate_sephora_us_market_url(args.url)
         # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only
         # early return sits between the target checks and DataLakeRoot.resolve, so a
         # preflight run must not attempt (or fail on) lake resolution.
@@ -921,6 +994,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.nordstrom_country_setup_timeout_seconds
             ),
             luckyscent_market=args.luckyscent_market,
+            sephora_market=args.sephora_market,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
             # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
             # postures + Element 4 declared cadence ride on the packet. Observed facts only,

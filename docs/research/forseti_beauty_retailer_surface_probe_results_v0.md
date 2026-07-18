@@ -912,6 +912,32 @@ observations:
       and is not substituted into the diversion comparison.
 ```
 
+### Sephora US/USD storefront pin supplement
+
+- A single follow-up capture reused the commissioned Tower 28 LipSoftie PDP:
+  `https://www.sephora.com/product/tower-28-lipsoftie-hydrating-tinted-lip-treatment-balm-P509397?country_switch=us&lang=en`.
+- The new `--sephora-market US` route performed no preference mutation. Request
+  intent (`country_switch=us`) was admitted only when the final rendered page
+  also contained retailer-owned `Sephora.renderQueryParams.country=US` and a
+  Sephora-sold JSON-LD `Offer` with `priceCurrency=USD`.
+- Packet `01KXRZQJBKNKC91SXH2C7MKF1C` at
+  `F:\forseti-data-lake\raw\827\01KXRZQJBKNKC91SXH2C7MKF1C` recorded
+  `pin_confirmed=true`, `access_blocked=false`, `proxy_used=false`,
+  `persistent_profile_loaded=false`, `storage_state_loaded=false`, and
+  `geoip_used=false`. Receipt capture time was `2026-07-17T21:29:14Z`.
+- Fresh verification matched all four raw file hashes and byte lengths to the
+  manifest. The availability index matched manifest SHA-256
+  `f1cf38e79eb11964668e0dcfcc57fd0c6cb2039771a92db4142344bcdb6f1c93`.
+- The generic Retail/PDP projection produced one anchored product row and one
+  offer row for product `P509397`, SKU `2843068`, price `16.00`, currency
+  `USD`. It retained
+  `sephora_ld_json_review_count_differs_from_target_dom` as an explicit
+  residual.
+- Current outcome:
+  `US_USD_STOREFRONT_CONFIRMED_DELIVERY_LOCATION_UNPINNED`. This supplement
+  changes only storefront-country and currency status; it does not duplicate
+  the earlier price-ladder SOBS observations or establish a delivery address.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
