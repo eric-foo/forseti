@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,10 @@ from runners import run_source_capture_cloakbrowser_packet as runner
 from source_capture import CaptureModeCategory
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.content_capture import RenderedContentCaptureSpec
+
+
+def _logical_name(relative_packet_path: str) -> str:
+    return re.sub(r"^\d+_", "", Path(relative_packet_path).name)
 
 
 def _success(*, secret: str = "") -> CloakBrowserSnapshotSuccess:
@@ -134,13 +139,13 @@ def test_rendered_content_capture_modes(
 
     assert exit_code == 0
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
-    names = {Path(item["relative_packet_path"]).name for item in manifest["preserved_files"]}
+    names = {_logical_name(item["relative_packet_path"]) for item in manifest["preserved_files"]}
     assert names == expected
     assert names.isdisjoint(absent)
     metadata_name = next(
         item["relative_packet_path"]
         for item in manifest["preserved_files"]
-        if Path(item["relative_packet_path"]).name == "content_capture_metadata.json"
+        if _logical_name(item["relative_packet_path"]) == "content_capture_metadata.json"
     )
     metadata = json.loads((output / metadata_name).read_text(encoding="utf-8"))
     assert metadata["capture_artifact_mode"] == mode
@@ -152,6 +157,10 @@ def test_rendered_content_capture_modes(
     assert by_role["browser_metadata"]["preserved"] is True
     assert by_role["rendered_dom"]["preserved"] is (mode != "content")
     assert by_role["visible_text"]["preserved"] is (mode != "content")
+    if mode == "content":
+        receipt = (output / "receipt.md").read_text(encoding="utf-8")
+        assert "hashed then discarded" in receipt
+        assert "with rendered DOM, visible text" not in receipt
 
 
 def test_rendered_projection_failure_preserves_inputs_and_returns_exit_4(
@@ -170,14 +179,14 @@ def test_rendered_projection_failure_preserves_inputs_and_returns_exit_4(
 
     assert exit_code == 4
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
-    names = {Path(item["relative_packet_path"]).name for item in manifest["preserved_files"]}
+    names = {_logical_name(item["relative_packet_path"]) for item in manifest["preserved_files"]}
     assert "cloakbrowser_rendered_dom.html" in names
     assert "cloakbrowser_visible_text.txt" in names
     assert "content_record.json" not in names
     metadata_path = next(
         output / item["relative_packet_path"]
         for item in manifest["preserved_files"]
-        if Path(item["relative_packet_path"]).name == "content_capture_metadata.json"
+        if _logical_name(item["relative_packet_path"]) == "content_capture_metadata.json"
     )
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     assert metadata["projection_status"].startswith("failed: RuntimeError: fixture drift")
@@ -191,5 +200,5 @@ def test_rendered_content_capture_rejects_browser_secret_text(
             output=tmp_path / "secret",
             monkeypatch=monkeypatch,
             mode="content",
-            secret="cf_clearance",
+            secret="cf_clearance=secret",
         )

@@ -55,16 +55,16 @@ ACCEPTED_RESIDUALS = [
     "anonymous Mini God Tier capture only; no login, stored session, profile, proxy, or credential injection",
     "does not attempt Fragrantica's login-gated full review archive or claim complete review coverage",
     "direct HTTP packet preserves server HTML and embedded structured attributes when publicly returned",
-    "rendered packets preserve current-window browser DOM, visible text, screenshot, and method metadata only",
+    "rendered sample/raw packets preserve current-window DOM and visible text; content packets retain their hashes, the family content record, screenshot, and method metadata",
     "linked media assets are not independently fetched or preserved beyond viewport screenshots",
-    "projection, ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
+    "capture-time projection is mechanical only; ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
 ]
 
 NON_CLAIMS = [
     "not full Fragrantica archive capture",
     "not account-authenticated capture",
     "not anti-login-gate bypass",
-    "not projection",
+    "not archive-complete projection",
     "not ECR design",
     "not Cleaning implementation",
     "not Judgment scoring",
@@ -139,10 +139,6 @@ def run_fragrantica_mgt_capture(
         timeout_seconds=timeout_seconds,
         max_bytes=http_max_bytes,
         session_visibility_pin=_anonymous_session_pin(),
-        content_capture=_rendered_content_capture_spec(
-            capture_artifact_mode=capture_artifact_mode,
-            source_surface=INITIAL_VIEWPORT_SURFACE,
-        ),
     )
     if exit_code != 0:
         return exit_code, f"{DIRECT_HTTP_SLOT} failed: {message}"
@@ -190,7 +186,7 @@ def run_fragrantica_mgt_capture(
         session_visibility_pin=_anonymous_session_pin(),
         content_capture=_rendered_content_capture_spec(
             capture_artifact_mode=capture_artifact_mode,
-            source_surface=DEEP_SCROLL_SURFACE,
+            source_surface=INITIAL_VIEWPORT_SURFACE,
         ),
     )
     if exit_code != 0:
@@ -237,6 +233,10 @@ def run_fragrantica_mgt_capture(
         load_more_clicks=0,
         scroll_step_px=deep_scroll_step_px,
         session_visibility_pin=_anonymous_session_pin(),
+        content_capture=_rendered_content_capture_spec(
+            capture_artifact_mode=capture_artifact_mode,
+            source_surface=DEEP_SCROLL_SURFACE,
+        ),
     )
     if exit_code != 0:
         return exit_code, f"{DEEP_SCROLL_SLOT} failed: {message}"
@@ -416,9 +416,24 @@ def _rendered_content_capture_spec(
 
 
 def _packet_content_metadata_value(packet_dir: Path, key: str) -> object:
-    metadata_path = packet_dir / "content_capture_metadata.json"
-    if not metadata_path.exists():
+    manifest = _read_manifest(packet_dir)
+    preserved_files = manifest.get("preserved_files")
+    if not isinstance(preserved_files, list):
         return "raw_canary" if key == "capture_artifact_mode" else "not_attempted"
+    matches = [
+        item.get("relative_packet_path")
+        for item in preserved_files
+        if isinstance(item, dict)
+        and isinstance(item.get("relative_packet_path"), str)
+        and str(item["relative_packet_path"]).endswith("content_capture_metadata.json")
+    ]
+    if not matches:
+        return "raw_canary" if key == "capture_artifact_mode" else "not_attempted"
+    if len(matches) != 1:
+        raise ValueError(
+            f"packet must preserve exactly one content_capture_metadata.json: {packet_dir}"
+        )
+    metadata_path = packet_dir / str(matches[0])
     loaded = json.loads(metadata_path.read_text(encoding="utf-8"))
     if not isinstance(loaded, dict):
         raise ValueError(f"content capture metadata is not a JSON object: {metadata_path}")

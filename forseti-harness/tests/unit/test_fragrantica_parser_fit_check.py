@@ -97,7 +97,7 @@ def _artifact_path(packet: Path, filename: str) -> Path:
     relative = next(
         item["relative_packet_path"]
         for item in manifest["preserved_files"]
-        if Path(item["relative_packet_path"]).name == filename
+        if Path(item["relative_packet_path"]).name.endswith(filename)
     )
     return packet / relative
 
@@ -110,7 +110,7 @@ def _rewrite_artifact_and_manifest(packet: Path, filename: str, body: bytes) -> 
     entry = next(
         item
         for item in manifest["preserved_files"]
-        if Path(item["relative_packet_path"]).name == filename
+        if Path(item["relative_packet_path"]).name.endswith(filename)
     )
     entry["sha256"] = hashlib.sha256(body).hexdigest()
     entry["size_bytes"] = len(body)

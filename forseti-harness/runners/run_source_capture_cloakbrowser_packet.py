@@ -95,13 +95,12 @@ CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
     "not commercial-readiness logic",
 ]
 _BROWSER_SECRET_PATTERNS = (
-    "cf_clearance",
+    "cf_clearance=",
+    '"name": "cf_clearance"',
     "Cookie:",
     "Set-Cookie",
-    "storageState",
-    "localStorage",
-    "sessionStorage",
-    "__cf_chl_",
+    '"cookies": [',
+    '"origins": [',
 )
 
 SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
@@ -529,6 +528,12 @@ def run_source_capture_cloakbrowser_packet(
             receipt_summary=_receipt_summary(
                 source_family=source_family,
                 access_block_reason=capture_result.access_block_reason,
+                capture_artifact_mode=(
+                    content_capture.capture_artifact_mode
+                    if content_capture is not None
+                    else None
+                ),
+                raw_projector_inputs_preserved=raw_projector_inputs_preserved,
             ),
             receipt_non_claims=_cloakbrowser_snapshot_non_claims(
                 proxy_profile=proxy_profile,
@@ -686,16 +691,32 @@ def _access_posture_value(
     )
 
 
-def _receipt_summary(*, source_family: str, access_block_reason: str | None) -> str:
+def _receipt_summary(
+    *,
+    source_family: str,
+    access_block_reason: str | None,
+    capture_artifact_mode: str | None = None,
+    raw_projector_inputs_preserved: bool = True,
+) -> str:
     if access_block_reason is not None:
-        return (
+        summary = (
             f"CloakBrowser snapshot packet for {source_family} with rendered access-block artifacts "
             f"preserved for one supplied URL; source content was not captured: {access_block_reason}."
         )
-    return (
-        f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
-        f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
-    )
+    elif raw_projector_inputs_preserved:
+        summary = (
+            f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
+            f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
+        )
+    else:
+        summary = (
+            f"CloakBrowser snapshot packet for {source_family} with a capture-time content record, "
+            "viewport screenshot, and method-provenance metadata preserved; rendered DOM and "
+            "visible text were hashed then discarded after successful projection."
+        )
+    if capture_artifact_mode is not None:
+        summary += f" Artifact mode: {capture_artifact_mode}."
+    return summary
 
 
 def _cloakbrowser_snapshot_non_claims(

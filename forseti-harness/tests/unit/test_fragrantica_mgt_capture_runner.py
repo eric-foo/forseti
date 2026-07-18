@@ -137,6 +137,7 @@ def test_fragrantica_mgt_capture_composes_three_packets_and_summary(tmp_path: Pa
     assert calls[0]["source_surface"] == runner.DIRECT_HTTP_SURFACE
     assert calls[0]["capture_mode"] == runner.CaptureModeCategory.STRUCTURED_ACCESS
     assert calls[0]["data_root"] is None
+    assert "content_capture" not in calls[0]
     assert calls[1]["source_surface"] == runner.INITIAL_VIEWPORT_SURFACE
     assert calls[1]["settle_seconds"] == runner.DEFAULT_INITIAL_SETTLE_SECONDS
     assert calls[1]["scroll_passes"] == 0

@@ -195,6 +195,11 @@ def test_fragrantica_content_projection_matches_rendered_raw_and_uses_json_point
     content_body = (json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8")
     content_packet = raw_packet.model_copy(
         update={
+            "source_slices": [
+                raw_packet.source_slices[0].model_copy(
+                    update={"preserved_file_ids": ["file_01"]}
+                )
+            ],
             "preserved_files": [
                 _preserved_file("file_01", "raw/01_content_record.json", content_body)
             ]
@@ -295,10 +300,13 @@ def _rendered_packet_pair() -> tuple[SourceCapturePacket, dict[str, bytes]]:
     packet, raw = _packet(
         source_surface="fragrantica_product_page_cloakbrowser_initial_viewport"
     )
+    metadata = json.dumps(
+        {"final_url": str(packet.source_locator.value)}, sort_keys=True
+    ).encode("utf-8")
     source_slice = packet.source_slices[0].model_copy(
         update={
             "slice_id": "cloakbrowser_snapshot_01",
-            "preserved_file_ids": ["file_01"],
+            "preserved_file_ids": ["file_01", "file_02"],
         }
     )
     rendered_packet = packet.model_copy(
@@ -309,11 +317,16 @@ def _rendered_packet_pair() -> tuple[SourceCapturePacket, dict[str, bytes]]:
                     "file_01",
                     "raw/01_cloakbrowser_rendered_dom.html",
                     raw["file_01"],
-                )
+                ),
+                _preserved_file(
+                    "file_02",
+                    "raw/02_cloakbrowser_snapshot_metadata.json",
+                    metadata,
+                ),
             ],
         }
     )
-    return rendered_packet, {"file_01": raw["file_01"]}
+    return rendered_packet, {"file_01": raw["file_01"], "file_02": metadata}
 
 
 def _preserved_file(file_id: str, relative_path: str, body: bytes) -> PreservedFile:

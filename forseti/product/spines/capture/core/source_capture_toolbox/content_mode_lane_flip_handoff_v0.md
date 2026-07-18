@@ -54,6 +54,12 @@ for volume pressure.
   The second implementation is evidence for a later shared-mechanics extraction,
   not authority to extract one in this work unit; parsers and schemas remain
   family-owned.
+- Fragrantica's two rendered CloakBrowser slices are the third implementation
+  and the first caller of the shared rendered retention/fallback seam in
+  `run_source_capture_cloakbrowser_packet.py`. The seam owns only artifact-mode,
+  hashing, retention, metadata, and raw-fallback mechanics. Fragrantica's
+  content schema and parser remain family-owned. Its direct-HTTP slice remains
+  an unchanged raw canary.
 - "Projection spine" was never an accepted spine. The operating-model v2
   Bloat-Cut Queue explicitly excludes a "Standalone Projection Spine …
   or any projection practice that drops evidence rows before ECR/Cleaning"
@@ -85,7 +91,7 @@ build on the hardened seam.
 | --- | --- | --- | --- |
 | Reddit grid + threads | HTTP packet seam | `source_capture/reddit_projection.py` (legacy), consolidation | DONE (content mode default; PR #1057) |
 | Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
-| Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | HTTP slice flippable now; CloakBrowser slices need the seam extended to `run_source_capture_cloakbrowser_packet.py` |
+| Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | RENDERED SLICES FLIPPED: both CloakBrowser packets default to content mode through the shared rendered retention seam; direct HTTP remains a raw canary; raw/sample/legacy projection remains supported |
 | Basenotes MGT | Persistent Chrome current-window bundle or credential-free loopback CDP (`run_basenotes_mgt_capture.py`) | `basenotes_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned content adapter; browser metadata retained; screenshot acquisition requires a named visual trigger; raw/legacy projection runner remains |
 | Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | Flippable once cloakbrowser seam exists; largest raw pages after Reddit |
 | IG reels grid / calls / momentum | Live browser session, passive JSON responses; runner already extracts observations at capture time | `ig_reels_grid_projection.py` (+ catchup with record-id derivation ranks re-reading raw payloads) | DESIGN PASS REQUIRED: catchup semantics depend on raw; do not flip until catchup is re-specified against content records |
@@ -101,12 +107,12 @@ build on the hardened seam.
 2. Basenotes pinned persistent-Chrome surface: flipped with a family-owned
    multi-input adapter after live parser-fit, Cleaning-equivalence, retention,
    screenshot-economy, and size-reduction gates.
-3. Fragrantica rendered slices: retain direct HTTP as a raw canary and reuse
-   the proven lifecycle contract. Extract only mode/hash/retention/fallback
-   mechanics that are demonstrably identical across Parfumo and Basenotes;
-   keep family parsers and schemas separate.
-4. Extend content capture to CloakBrowser only when a selected Fragrantica or
-   retail surface actually requires that seam.
+3. Fragrantica rendered slices: flipped. Direct HTTP remains a raw canary.
+   Shared CloakBrowser mechanics are limited to mode/hash/retention/fallback;
+   the Fragrantica parser and schema remain family-owned.
+4. CloakBrowser content capture seam: added for the selected Fragrantica
+   rendered route. Retail may reuse this lifecycle only with a retailer-owned
+   parser-fit and Projection/Silver-equivalence proof.
 5. Re-point each flipped surface's cleaning catchup consumers at content
    records, then retire that surface's post-hoc lane as its standard path in
    the same work unit (reconcile the family design doc and any playbook

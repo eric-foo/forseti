@@ -60,6 +60,43 @@ cynefin_routing:
   disallowed_next_move: runtime crawler, full archive crawl, ECR/Cleaning implementation, or Judgment/demand claims from this packet
 ```
 
+## Current Route Addendum — Rendered Content Mode (2026-07-18)
+
+The historical direct packet facts below remain evidence, but they no longer
+describe the standard artifact posture for the two rendered slices:
+
+- `run_fragrantica_mgt_capture.py` still creates three packets. Direct HTTP
+  (`fragrantica_product_page_direct_http`) remains raw and unchanged as the
+  canary. The initial-viewport and deep-scroll CloakBrowser surfaces default to
+  `content`; `sample` and `raw` remain explicit modes.
+- Rendered content records use
+  `fragrantica_rendered_current_window_content`,
+  `fragrantica_rendered_current_window_content_v1`, and
+  `fragrantica_rendered_current_window_parser_v1`. The existing projection
+  method/version remain unchanged because raw/content row and Cleaning
+  semantics are equivalent.
+- Successful content projection retains `content_record.json`,
+  `content_capture_metadata.json`, the CloakBrowser snapshot metadata, and the
+  active-capture screenshot. Rendered DOM and visible text are hashed then
+  discarded. Projection failure preserves every captured artifact and returns
+  exit code `4`.
+- `fragrantica_projection.py` prefers a valid content record and binds rows and
+  bindings to the actual packet with JSON-pointer anchors. Raw and historical
+  packets retain the raw parser. Fragrantica Cleaning catch-up admits all three
+  Fragrantica surfaces and consumes content records without rereading discarded
+  DOM/text.
+- Live BR540 acceptance on 2026-07-18 produced parser-fit `match` for both
+  rendered sample packets; raw/content Projection and Cleaning were equivalent.
+  Initial rendered packet bytes fell from 1,081,579 to 538,469, and deep-scroll
+  bytes fell from 5,430,341 to 1,024,476. Content packets retained screenshots,
+  contained no rendered DOM/text, and retained both input hashes. The live
+  screenshots showed the requested product page and footer respectively, with
+  no cookie or access overlay.
+
+This flips only the two rendered Fragrantica surfaces. It does not retire the
+direct-HTTP canary, the shared projection runner for raw/sample/legacy packets,
+or the login boundary on the full review archive.
+
 ## Goal Handoff
 
 - long_term_goal: Build Orca fragrance-native source capture and downstream evidence plumbing that can monitor specialist fragrance precursor demand without blurring raw capture, Data Lake, Projection, ECR, Cleaning, or Judgment responsibilities.

@@ -190,7 +190,7 @@ def _verified_preserved_path(
     matches = [
         item
         for item in packet.preserved_files
-        if Path(item.relative_packet_path).name == filename
+        if Path(item.relative_packet_path).name.endswith(filename)
     ]
     if len(matches) != 1:
         raise ParserFitCheckError(
