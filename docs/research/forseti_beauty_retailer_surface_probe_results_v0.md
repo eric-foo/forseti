@@ -1039,6 +1039,45 @@ observations:
   because it records a pin-admission gap rather than a new assortment, price,
   review, or product-claim finding.
 
+### Kohl's US/USD storefront access diagnosis
+
+- The commissioned subject was Tower 28 LipSoftie Hydrating Tinted Lip
+  Treatment Balm at
+  `https://www.kohls.com/product/prd-6715879/tower-28-beauty-lipsoftie-hydrating-tinted-lip-treatment-balm.jsp`.
+  Admission required the bound Tower 28 product, an exact `USD` currency
+  signal, and explicit retailer-owned US storefront or shipping-policy
+  evidence. A `.com` hostname, dollar glyph, or US proxy exit was explicitly
+  insufficient.
+- Anonymous Direct HTTP preserved PDP packet
+  `01KXT0245PZBHZSYJHM5376BCA` at
+  `F:\forseti-data-lake\raw\fbe\01KXT0245PZBHZSYJHM5376BCA`. The final URL
+  matched the request, but Kohl's returned HTTP 403 with a 500-byte body.
+- Anonymous no-proxy CloakBrowser preserved PDP packet
+  `01KXT04HA0TT33RH7BAWQ38H58` at
+  `F:\forseti-data-lake\raw\64f\01KXT04HA0TT33RH7BAWQ38H58`. The final URL
+  matched the request, but the rendered DOM and visible text bound Akamai
+  `Access Denied`; Tower 28, LipSoftie, and exact `USD` sufficiency checks
+  failed. Metadata recorded `proxy_used=false`, `geoip_used=false`,
+  `persistent_profile_loaded=false`, and `pin_confirmed=null`.
+- Direct HTTP on Kohl's out-of-country FAQ
+  `https://www.kohls.com/faq/article/2552` preserved packet
+  `01KXT09ERZ6584J7M4J07WS706` at
+  `F:\forseti-data-lake\raw\e64\01KXT09ERZ6584J7M4J07WS706`; that route also
+  returned HTTP 403, so no policy statement was admitted from it.
+- Every packet's capture time, packet ID, requested/final URL, raw SHA-256
+  value, and byte length was fresh-read against its manifest and metadata.
+  No registered US residential proxy profile with the required geo-IP,
+  `en-US`, and US-timezone metadata was present, so the authorized fallback
+  could not run. No proxy credential or profile label was invented.
+- Current outcome: `NO_GO_ACCESS_BLOCKED_US_PROXY_PROFILE_ABSENT`. Country and
+  currency remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains
+  `UNPINNED`. No Retail/PDP projection, retailer adapter, CLI flag, or pin was
+  promoted. The generic browser classifier recorded `access_blocked=false`
+  despite the literal Akamai block page; this is preserved as a classifier
+  residual, while the subject/USD sufficiency gate still failed closed.
+  This supplement adds no SOBS row because it records a pin-admission gap, not
+  a new assortment, price, review, or product-claim finding.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
