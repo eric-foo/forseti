@@ -39,6 +39,7 @@ from source_capture.models import (
     not_attempted,
     unknown_with_reason,
 )
+from source_capture.fragrantica_projection import build_fragrantica_content_record
 from source_capture.writer import write_local_source_capture_packet
 
 _CAPTURE_TIME = "2026-06-28T18:57:58Z"
@@ -117,6 +118,54 @@ def _commit_family_packet(
         source_locator=known_fact(f"https://example.test/{name}"),
         decision_question="q",
         capture_context="fragrantica cleaning catchup test",
+        source_slices=[source_slice],
+    ).packet.packet_id
+
+
+def _commit_rendered_content_packet(data_root, tmp_path: Path) -> str:
+    source_url = (
+        "https://www.fragrantica.com/perfume/Maison-Francis-Kurkdjian/"
+        "Baccarat-Rouge-540-33519.html"
+    )
+    source_surface = "fragrantica_product_page_cloakbrowser_initial_viewport"
+    record = build_fragrantica_content_record(
+        rendered_dom=_fragrantica_html().encode("utf-8"),
+        visible_text=b"Baccarat Rouge 540 visible text",
+        source_url=source_url,
+        source_surface=source_surface,
+    )
+    content_path = tmp_path / "content_record.json"
+    content_path.write_text(
+        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    timing = PacketTiming(
+        source_publication_or_event=unknown_with_reason("fixture has no source event timing"),
+        source_edit_or_version=unknown_with_reason("fixture has no edit timing"),
+        capture_time=known_fact(_CAPTURE_TIME),
+        recapture_time=not_applicable("first capture"),
+        cutoff_posture=unknown_with_reason("fixture has no decision cutoff"),
+    )
+    posture = known_fact("rendered content fixture supplied")
+    source_slice = SourceCaptureSlice(
+        slice_id="cloakbrowser_snapshot_01",
+        locator=known_fact(source_url),
+        timing=timing,
+        access_posture=posture,
+        archive_history_posture=not_attempted("archive not queried"),
+        media_modality_posture=not_attempted("linked media not fetched"),
+        re_capture_relationship=not_applicable("first capture"),
+        limitations=[],
+        warning_notes=[],
+        preserved_file_ids=["file_01"],
+    )
+    return write_local_source_capture_packet(
+        data_root=data_root,
+        input_files=[content_path],
+        source_family="fragrance_native_database",
+        source_surface=source_surface,
+        source_locator=known_fact(source_url),
+        decision_question="q",
+        capture_context="Fragrantica content catchup test",
         source_slices=[source_slice],
     ).packet.packet_id
 
@@ -210,6 +259,25 @@ def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
     _commit_family_packet(data_root, tmp_path)
     assert [r["status"] for r in run_catchup(data_root=data_root)] == ["derived"]
 
+    before = _lake_tree_state(data_root)
+    assert run_catchup(data_root=data_root) == []
+    assert _lake_tree_state(data_root) == before
+
+
+def test_catchup_consumes_rendered_content_record_without_dom_and_is_idempotent(
+    tmp_path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_rendered_content_packet(data_root, tmp_path)
+
+    first = run_catchup(data_root=data_root)
+
+    assert [row["status"] for row in first] == ["derived"]
+    packet_dir = data_root.find_packet(pid)
+    assert packet_dir is not None
+    preserved_names = {path.name for path in (packet_dir / "raw").iterdir()}
+    assert any(name.endswith("content_record.json") for name in preserved_names)
+    assert not any("rendered_dom" in name for name in preserved_names)
     before = _lake_tree_state(data_root)
     assert run_catchup(data_root=data_root) == []
     assert _lake_tree_state(data_root) == before

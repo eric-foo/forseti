@@ -161,8 +161,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     "source_capture/fragrantica_projection.py": (
         ("FRAGRANTICA_PROJECTION_VERSION",),
         # Output-shaping: projection v1 admits the two Fragrantica CloakBrowser
-        # surfaces and tightens body selection plus residual vocabulary.
-        "5c845f333adfce77e25e654ee8af7575d8be1e07c7bb55d2f9d564f0541083c8",
+        # surfaces and tightens body selection plus residual vocabulary. The
+        # family-owned content record adds parser-versioned retention and
+        # JSON-pointer rebinding without another projection semantic change.
+        "5568bffd0918e851c46b6983509daa3509d533593e1cd81352d782e92370bbab",
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),

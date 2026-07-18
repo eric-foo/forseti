@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -50,6 +51,11 @@ from source_capture.cli_support import (
     build_optional_fact,
     require_series_identity,
 )
+from source_capture.content_capture import (
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
+    RenderedContentCaptureSpec,
+)
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
 from source_capture.retail_capture_profiles import (
     RetailCaptureProfile,
@@ -88,6 +94,14 @@ CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
     "not buyer proof",
     "not commercial-readiness logic",
 ]
+_BROWSER_SECRET_PATTERNS = (
+    "cf_clearance=",
+    '"name": "cf_clearance"',
+    "Cookie:",
+    "Set-Cookie",
+    '"cookies": [',
+    '"origins": [',
+)
 
 SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
 _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
@@ -148,6 +162,7 @@ def run_source_capture_cloakbrowser_packet(
     cold_start_at=None,
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
+    content_capture: RenderedContentCaptureSpec | None = None,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
@@ -288,6 +303,125 @@ def run_source_capture_cloakbrowser_packet(
     sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
+
+    rendered_dom_bytes = capture_result.rendered_dom.encode("utf-8")
+    visible_text_bytes = capture_result.visible_text.encode("utf-8")
+    snapshot_metadata_bytes = (
+        json.dumps(capture_result.metadata, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    input_artifacts = [
+        ("rendered_dom", "cloakbrowser_rendered_dom.html", rendered_dom_bytes),
+        ("visible_text", "cloakbrowser_visible_text.txt", visible_text_bytes),
+        ("screenshot", "cloakbrowser_viewport_screenshot.png", capture_result.screenshot_png),
+        (
+            "browser_metadata",
+            "cloakbrowser_snapshot_metadata.json",
+            snapshot_metadata_bytes,
+        ),
+    ]
+    if content_capture is not None:
+        _assert_no_browser_secret_bytes(
+            (role, body)
+            for role, _filename, body in input_artifacts
+            if role != "screenshot"
+        )
+    projection_failure: str | None = None
+    content_record_bytes: bytes | None = None
+    if content_capture is not None and content_capture.capture_artifact_mode != "raw":
+        try:
+            record = content_capture.projector(
+                rendered_dom_bytes,
+                visible_text_bytes,
+                capture_result.final_url,
+            )
+            if not isinstance(record, dict):
+                raise TypeError(
+                    "rendered content projector must return a JSON object, "
+                    f"got {type(record).__name__}"
+                )
+            content_record_bytes = (
+                json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+            ).encode("utf-8")
+            projection_status = "succeeded"
+        except Exception as exc:
+            projection_failure = f"{type(exc).__name__}: {exc}"
+            projection_status = f"failed: {projection_failure}"
+    elif content_capture is not None:
+        projection_status = "not_attempted: raw mode"
+    else:
+        projection_status = "not_configured"
+
+    raw_projector_inputs_preserved = (
+        content_capture is None
+        or content_capture.capture_artifact_mode in {"raw", "sample"}
+        or projection_failure is not None
+    )
+    preserved_by_role = {
+        "rendered_dom": raw_projector_inputs_preserved,
+        "visible_text": raw_projector_inputs_preserved,
+        "screenshot": True,
+        "browser_metadata": True,
+    }
+    artifacts = [
+        (filename, body)
+        for role, filename, body in input_artifacts
+        if preserved_by_role[role]
+    ]
+    if content_record_bytes is not None:
+        artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
+    if content_capture is not None:
+        content_capture_metadata = {
+            "capture_artifact_mode": content_capture.capture_artifact_mode,
+            "parser_version": content_capture.parser_version,
+            "projection_status": projection_status,
+            "inputs": [
+                {
+                    "role": role,
+                    "filename": filename,
+                    "sha256": hashlib.sha256(body).hexdigest(),
+                    "byte_count": len(body),
+                    "preserved": preserved_by_role[role],
+                }
+                for role, filename, body in input_artifacts
+            ],
+        }
+        artifacts.append(
+            (
+                "content_capture_metadata.json",
+                (
+                    json.dumps(content_capture_metadata, indent=2, sort_keys=True)
+                    + "\n"
+                ).encode("utf-8"),
+            )
+        )
+        if projection_failure is not None:
+            packet_limitations.append(
+                "content-mode projection failed in flight; rendered DOM, visible text, "
+                f"browser metadata, and screenshot preserved as fallback: {projection_failure}"
+            )
+        elif content_capture.capture_artifact_mode == "content":
+            packet_limitations.append(
+                "content-mode packet: rendered DOM and visible text discarded after hashing; "
+                "content record, browser metadata, and screenshot preserved"
+            )
+        elif content_capture.capture_artifact_mode == "sample":
+            packet_limitations.append(
+                "sample packet: rendered DOM, visible text, content record, browser metadata, "
+                "and screenshot preserved for parser-fit drift checks"
+            )
+        packet_visible_mode_changes.append(
+            f"capture artifact mode: {content_capture.capture_artifact_mode}"
+        )
+        if not raw_projector_inputs_preserved:
+            packet_visible_mode_changes.append(
+                "rendered DOM and visible text hashed then discarded after successful "
+                "capture-time projection"
+            )
+        if content_record_bytes is not None:
+            packet_visible_mode_changes.append(
+                "capture-time rendered content record preserved"
+            )
+
     staging_root: Path | None = None
     if data_root is not None:
         staging_parent = data_root.stage_raw_packet(generate_ulid())
@@ -296,12 +430,7 @@ def run_source_capture_cloakbrowser_packet(
         assert output_directory is not None
         staging_parent = output_directory.parent
         staging_parent.mkdir(parents=True, exist_ok=True)
-    staged_paths = [
-        staging_parent / "cloakbrowser_rendered_dom.html",
-        staging_parent / "cloakbrowser_visible_text.txt",
-        staging_parent / "cloakbrowser_viewport_screenshot.png",
-        staging_parent / "cloakbrowser_snapshot_metadata.json",
-    ]
+    staged_paths = [staging_parent / filename for filename, _body in artifacts]
     if any(path.exists() for path in staged_paths):
         raise ValueError(
             "CloakBrowser snapshot staging files already exist in the output parent; clear them before rerunning"
@@ -309,14 +438,9 @@ def run_source_capture_cloakbrowser_packet(
 
     written_paths: list[Path] = []
     try:
-        _write_text(staged_paths[0], capture_result.rendered_dom)
-        written_paths.append(staged_paths[0])
-        _write_text(staged_paths[1], capture_result.visible_text)
-        written_paths.append(staged_paths[1])
-        staged_paths[2].write_bytes(capture_result.screenshot_png)
-        written_paths.append(staged_paths[2])
-        _write_text(staged_paths[3], json.dumps(capture_result.metadata, indent=2, sort_keys=True))
-        written_paths.append(staged_paths[3])
+        for staged_path, (_filename, body) in zip(staged_paths, artifacts, strict=True):
+            staged_path.write_bytes(body)
+            written_paths.append(staged_path)
 
         timing = PacketTiming(
             source_publication_or_event=source_publication_or_event
@@ -394,7 +518,9 @@ def run_source_capture_cloakbrowser_packet(
                     variant_pin=variant_pin,
                     limitations=packet_limitations,
                     warning_notes=packet_warnings,
-                    preserved_file_ids=["file_01", "file_02", "file_03", "file_04"],
+                    preserved_file_ids=[
+                        f"file_{index:02d}" for index in range(1, len(artifacts) + 1)
+                    ],
                 )
             ],
             warnings=packet_warnings,
@@ -402,6 +528,12 @@ def run_source_capture_cloakbrowser_packet(
             receipt_summary=_receipt_summary(
                 source_family=source_family,
                 access_block_reason=capture_result.access_block_reason,
+                capture_artifact_mode=(
+                    content_capture.capture_artifact_mode
+                    if content_capture is not None
+                    else None
+                ),
+                raw_projector_inputs_preserved=raw_projector_inputs_preserved,
             ),
             receipt_non_claims=_cloakbrowser_snapshot_non_claims(
                 proxy_profile=proxy_profile,
@@ -434,6 +566,8 @@ def run_source_capture_cloakbrowser_packet(
             output_directory=result.output_directory,
             result=sufficiency_result,
         )
+    if projection_failure is not None:
+        return CONTENT_PROJECTION_FAILED_EXIT_CODE, result.output_directory
     return 0, result.output_directory
 
 
@@ -501,6 +635,17 @@ def _amazon_delivery_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
+def _assert_no_browser_secret_bytes(inputs) -> None:
+    for role, body in inputs:
+        sample = body.decode("utf-8", errors="ignore")
+        for pattern in _BROWSER_SECRET_PATTERNS:
+            if pattern in sample:
+                raise ValueError(
+                    "browser-secret material is forbidden in rendered content input "
+                    f"{role}: {pattern}"
+                )
+
+
 def _failure_report_token(failure_kind: CloakBrowserSnapshotFailureKind) -> str:
     if failure_kind == CloakBrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE:
         return "cloakbrowser_dependency_unavailable"
@@ -546,16 +691,32 @@ def _access_posture_value(
     )
 
 
-def _receipt_summary(*, source_family: str, access_block_reason: str | None) -> str:
+def _receipt_summary(
+    *,
+    source_family: str,
+    access_block_reason: str | None,
+    capture_artifact_mode: str | None = None,
+    raw_projector_inputs_preserved: bool = True,
+) -> str:
     if access_block_reason is not None:
-        return (
+        summary = (
             f"CloakBrowser snapshot packet for {source_family} with rendered access-block artifacts "
             f"preserved for one supplied URL; source content was not captured: {access_block_reason}."
         )
-    return (
-        f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
-        f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
-    )
+    elif raw_projector_inputs_preserved:
+        summary = (
+            f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
+            f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
+        )
+    else:
+        summary = (
+            f"CloakBrowser snapshot packet for {source_family} with a capture-time content record, "
+            "viewport screenshot, and method-provenance metadata preserved; rendered DOM and "
+            "visible text were hashed then discarded after successful projection."
+        )
+    if capture_artifact_mode is not None:
+        summary += f" Artifact mode: {capture_artifact_mode}."
+    return summary
 
 
 def _cloakbrowser_snapshot_non_claims(

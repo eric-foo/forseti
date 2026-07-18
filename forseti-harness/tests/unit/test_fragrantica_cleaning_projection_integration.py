@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 
 from cleaning import CleaningPacket, cleaning_input_handles_from_projection_rows
@@ -9,6 +10,7 @@ from cleaning.fragrantica import (
 )
 from source_capture.fragrantica_projection import (
     FRAGRANTICA_PROJECTION_CERTIFICATION,
+    build_fragrantica_content_record,
     build_fragrantica_projection,
 )
 from source_capture.models import (
@@ -155,6 +157,74 @@ def test_fragrantica_cleaning_packet_leaves_non_review_rows_untransformed() -> N
     }
 
     assert transformed_row_ids == review_row_ids
+
+
+def test_fragrantica_rendered_content_and_raw_cleaning_are_equivalent() -> None:
+    html_bytes = _html().encode("utf-8")
+    base = _packet()
+    source_slice = base.source_slices[0].model_copy(
+        update={
+            "slice_id": "cloakbrowser_snapshot_01",
+            "preserved_file_ids": ["file_01"],
+        }
+    )
+    raw_file = PreservedFile(
+        file_id="file_01",
+        original_path="cloakbrowser_rendered_dom.html",
+        relative_packet_path="raw/01_cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(html_bytes).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(html_bytes),
+    )
+    raw_packet = base.model_copy(
+        update={
+            "source_surface": (
+                "fragrantica_product_page_cloakbrowser_initial_viewport"
+            ),
+            "source_slices": [source_slice],
+            "preserved_files": [raw_file],
+        }
+    )
+    raw_projection = build_fragrantica_projection(
+        packet=raw_packet,
+        raw_file_bytes_by_file_id={"file_01": html_bytes},
+    )
+    record = build_fragrantica_content_record(
+        rendered_dom=html_bytes,
+        visible_text=b"Baccarat Rouge 540 visible text",
+        source_url=str(raw_packet.source_locator.value),
+        source_surface=raw_packet.source_surface,
+    )
+    content_bytes = (
+        json.dumps(record, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    content_file = PreservedFile(
+        file_id="file_01",
+        original_path="content_record.json",
+        relative_packet_path="raw/01_content_record.json",
+        sha256=hashlib.sha256(content_bytes).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(content_bytes),
+    )
+    content_packet = raw_packet.model_copy(
+        update={"preserved_files": [content_file]}
+    )
+    content_projection = build_fragrantica_projection(
+        packet=content_packet,
+        raw_file_bytes_by_file_id={"file_01": content_bytes},
+    )
+
+    raw_cleaning = build_fragrantica_cleaning_packet(raw_projection)
+    content_cleaning = build_fragrantica_cleaning_packet(content_projection)
+
+    assert content_cleaning.transform_ledger == raw_cleaning.transform_ledger
+    assert [
+        row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+        for row in content_projection.rows
+    ] == [
+        row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+        for row in raw_projection.rows
+    ]
 
 
 def test_fragrantica_cleaning_normalization_preserves_pre_transform_string_values() -> None:
