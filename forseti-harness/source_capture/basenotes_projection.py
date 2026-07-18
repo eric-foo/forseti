@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import html
+import hashlib
 import json
 import re
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Mapping
 
@@ -27,11 +29,15 @@ BASENOTES_PROJECTION_METHOD = "basenotes_current_window_mechanical_projection"
 BASENOTES_PROJECTION_VERSION = "v1"
 BASENOTES_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 PROJECTION_BASENOTES_LANE = "projection_basenotes"
+BASENOTES_CONTENT_RECORD_KIND = "basenotes_current_window_content"
+BASENOTES_CONTENT_SCHEMA_VERSION = "basenotes_current_window_content_v1"
+BASENOTES_PARSER_VERSION = "basenotes_current_window_parser_v1"
 
 _BASENOTES_SOURCE_FAMILY = "fragrance_native_database"
 _BASENOTES_SOURCE_SURFACE = (
     "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 )
+_BASENOTES_CONTENT_SLICE_ID = "browser_snapshot_01"
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -68,11 +74,20 @@ class BasenotesProjectionRawAnchor(StrictModel):
     relative_packet_path: str
     sha256: str
     hash_basis: str
-    anchor_kind: Literal["file", "html_selector", "text_pattern"] = "file"
+    anchor_kind: Literal["file", "html_selector", "json_pointer", "text_pattern"] = "file"
     anchor_value: str | None = None
+    json_pointer: str | None = None
 
     @model_validator(mode="after")
     def validate_anchor_value(self) -> "BasenotesProjectionRawAnchor":
+        if self.anchor_kind == "json_pointer":
+            if not (self.json_pointer and self.json_pointer.strip()):
+                raise ValueError("json_pointer anchors require json_pointer")
+            if self.anchor_value is not None:
+                raise ValueError("json_pointer anchors must not carry anchor_value")
+            return self
+        if self.json_pointer is not None:
+            raise ValueError(f"{self.anchor_kind} anchors must not carry json_pointer")
         if self.anchor_kind != "file" and not (self.anchor_value and self.anchor_value.strip()):
             raise ValueError(f"{self.anchor_kind} anchors require anchor_value")
         if self.anchor_kind == "file" and self.anchor_value is not None:
@@ -180,6 +195,84 @@ class BasenotesProjectionPacket(StrictModel):
         return self
 
 
+class BasenotesContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "fragrance_product_snapshot",
+        "fragrance_review_tab",
+        "fragrance_aggregate_rating",
+        "fragrance_performance_component",
+        "fragrance_review_archive_gate",
+        "fragrance_review_card_current_window",
+        "fragrance_statement_current_window",
+    ]
+    source_platform: Literal["basenotes"] = "basenotes"
+    source_object_type: Literal["fragrance_product"] = "fragrance_product"
+    source_object_site_id: str | None = None
+    source_object_name: str | None = None
+    brand_or_house: str | None = None
+    tab_id: str | None = None
+    source_order: int | None = Field(default=None, ge=0)
+    comment_id: str | None = None
+    parent_row_id: str | None = None
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: Literal["file", "html_selector", "text_pattern"]
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(cls, value: dict[str, Any | None]) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Basenotes content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "BasenotesContentRow":
+        if self.source_anchor_kind != "file" and not (
+            self.source_anchor_value and self.source_anchor_value.strip()
+        ):
+            raise ValueError(f"{self.source_anchor_kind} anchors require source_anchor_value")
+        if self.source_anchor_kind == "file" and self.source_anchor_value is not None:
+            raise ValueError("file anchors must not carry source_anchor_value")
+        return self
+
+
+class BasenotesContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal[
+        "review_metadata_to_review_text",
+        "statement_metadata_to_statement_text",
+    ]
+    row_id: str
+
+
+class BasenotesContentRecord(StrictModel):
+    record_kind: Literal["basenotes_current_window_content"] = BASENOTES_CONTENT_RECORD_KIND
+    schema_version: Literal["basenotes_current_window_content_v1"] = (
+        BASENOTES_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["basenotes_current_window_parser_v1"] = BASENOTES_PARSER_VERSION
+    source_url: str
+    rows: list[BasenotesContentRow] = Field(default_factory=list)
+    binding_map: list[BasenotesContentBinding] = Field(default_factory=list)
+    loss_ledger: BasenotesProjectionLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "BasenotesContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        return self
+
+
 def build_basenotes_projection(
     *,
     packet: SourceCapturePacket,
@@ -198,6 +291,26 @@ def build_basenotes_projection(
         )
 
     preserved_files = {item.file_id: item for item in packet.preserved_files}
+    content_files = [
+        item
+        for item in packet.preserved_files
+        if item.relative_packet_path.replace("\\", "/").endswith("content_record.json")
+    ]
+    if content_files:
+        if len(content_files) != 1:
+            raise ValueError("Basenotes packet must preserve exactly one content_record.json")
+        content_file = content_files[0]
+        content_bytes = raw_file_bytes_by_file_id.get(content_file.file_id)
+        if content_bytes is None:
+            raise ValueError(
+                f"content record bytes are required for preserved file id: {content_file.file_id}"
+            )
+        return _projection_from_content_record(
+            packet=packet,
+            content_file=content_file,
+            content_bytes=content_bytes,
+        )
+
     for source_slice in packet.source_slices:
         for file_id in source_slice.preserved_file_ids:
             if file_id not in raw_file_bytes_by_file_id:
@@ -262,6 +375,182 @@ def build_basenotes_projection(
     )
 
 
+def build_basenotes_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Parse the pinned Basenotes route without embedding future packet identity."""
+    if not source_url.strip():
+        raise ValueError("source_url must be non-empty")
+    if not isinstance(visible_text, bytes):
+        raise TypeError("visible_text must be bytes")
+
+    source_slice = _ContentSlice(slice_id=_BASENOTES_CONTENT_SLICE_ID)
+    raw_ref = BasenotesProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=source_slice.slice_id,
+    )
+    raw_anchor = BasenotesProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="browser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+    )
+    projected = _project_basenotes_html(
+        rendered_dom,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=raw_anchor,
+    )
+    rows = [_content_row(row) for row in projected.rows]
+    bindings = [_content_binding(binding) for binding in projected.bindings]
+    text_counts = Counter(
+        row.tab_id or row.row_kind
+        for row in rows
+        if row.row_kind
+        in {"fragrance_review_card_current_window", "fragrance_statement_current_window"}
+    )
+    residuals = list(projected.residuals)
+    if not any(row.row_kind == "fragrance_review_card_current_window" for row in rows):
+        residuals.append("basenotes_review_cards_absent")
+    if not any(row.row_kind == "fragrance_statement_current_window" for row in rows):
+        residuals.append("basenotes_statement_rows_absent")
+    if not any(row.row_kind == "fragrance_product_snapshot" for row in rows):
+        residuals.append("basenotes_product_snapshot_absent")
+
+    record = BasenotesContentRecord(
+        source_url=source_url,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=BasenotesProjectionLossLedger(
+            preserved_evidence_rows=len(rows),
+            preserved_review_cards=sum(
+                1 for row in rows if row.row_kind == "fragrance_review_card_current_window"
+            ),
+            preserved_statements=sum(
+                1 for row in rows if row.row_kind == "fragrance_statement_current_window"
+            ),
+            preserved_review_tabs=sum(
+                1 for row in rows if row.row_kind == "fragrance_review_tab"
+            ),
+            preserved_bindings=len(bindings),
+            text_row_counts_by_tab={str(key): count for key, count in sorted(text_counts.items())},
+            hierarchy_preserved=True,
+            source_order_preserved=True,
+        ),
+        residuals=_dedupe_preserve_order(residuals),
+    )
+    return record.model_dump(mode="json")
+
+
+def _projection_from_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> BasenotesProjectionPacket:
+    try:
+        loaded = json.loads(content_bytes.decode("utf-8"))
+        record = BasenotesContentRecord.model_validate(loaded)
+    except Exception as exc:
+        raise ValueError(f"invalid Basenotes content record: {exc}") from exc
+    if packet.source_locator.value != record.source_url:
+        raise ValueError(
+            f"Basenotes content record source_url {record.source_url!r} does not match "
+            f"packet source locator {packet.source_locator.value!r}"
+        )
+
+    slice_by_id = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
+    projection_rows: list[BasenotesProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if source_slice is None:
+            raise ValueError(
+                f"Basenotes content row references unknown source slice: {content_row.slice_id}"
+            )
+        if content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Basenotes content row slice {content_row.slice_id!r} does not reference "
+                "content_record.json"
+            )
+        row_data = content_row.model_dump(
+            mode="json",
+            exclude={"slice_id", "source_anchor_kind", "source_anchor_value"},
+        )
+        projection_rows.append(
+            BasenotesProjectionRow(
+                **row_data,
+                raw_ref=BasenotesProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/rows/{index}"),
+            )
+        )
+
+    projection_bindings: list[BasenotesProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Basenotes content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        projection_bindings.append(
+            BasenotesProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=BasenotesProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_content_record_anchor(content_file, f"/binding_map/{index}"),
+            )
+        )
+
+    return BasenotesProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=projection_rows,
+        binding_map=projection_bindings,
+        loss_ledger=record.loss_ledger,
+        residuals=record.residuals,
+    )
+
+
+def _content_row(row: BasenotesProjectionRow) -> BasenotesContentRow:
+    row_data = row.model_dump(mode="json", exclude={"raw_ref", "raw_anchor"})
+    return BasenotesContentRow(
+        **row_data,
+        slice_id=row.raw_ref.slice_id,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _content_binding(binding: BasenotesProjectionBinding) -> BasenotesContentBinding:
+    return BasenotesContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+    )
+
+
+def _content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> BasenotesProjectionRawAnchor:
+    return BasenotesProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        json_pointer=json_pointer,
+    )
+
+
 def build_basenotes_projection_from_packet_directory(
     *,
     packet_or_manifest_path: Path,
@@ -311,6 +600,11 @@ def project_basenotes_into_lake(
         data=_projection_json_text(projection).encode("utf-8"),
     )
     return projection, derived_path
+
+
+@dataclass(frozen=True)
+class _ContentSlice:
+    slice_id: str
 
 
 class _ProjectedBasenotesHtml(StrictModel):
@@ -878,17 +1172,24 @@ def _projection_json_text(projection: BasenotesProjectionPacket) -> str:
 
 
 __all__ = [
+    "BASENOTES_CONTENT_RECORD_KIND",
+    "BASENOTES_CONTENT_SCHEMA_VERSION",
+    "BASENOTES_PARSER_VERSION",
     "BASENOTES_PROJECTION_CERTIFICATION",
     "BASENOTES_PROJECTION_METHOD",
     "BASENOTES_PROJECTION_VERSION",
     "PROJECTION_BASENOTES_LANE",
     "BasenotesProjectionBinding",
+    "BasenotesContentBinding",
+    "BasenotesContentRecord",
+    "BasenotesContentRow",
     "BasenotesProjectionLossLedger",
     "BasenotesProjectionPacket",
     "BasenotesProjectionRawAnchor",
     "BasenotesProjectionRawRef",
     "BasenotesProjectionRow",
     "build_basenotes_projection",
+    "build_basenotes_content_record",
     "build_basenotes_projection_from_packet_directory",
     "project_basenotes_into_lake",
     "write_basenotes_projection",

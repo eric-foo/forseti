@@ -126,8 +126,9 @@ observed in this probe.
 
 1. **Selector fragility.** The delivery location widget selectors (`#nav-global-location-popover-link`,
    `#GLUXZipUpdateInput`, `#GLUXZipUpdate`) are stable Amazon UI elements but are not guaranteed
-   across A/B tests or regional variants. The adapter falls back gracefully (warning_note added,
-   capture proceeds without pin) if any selector fails.
+   across A/B tests or regional variants. The adapter preserves the attempted capture with a
+   typed warning if a selector fails, and the runner exits nonzero unless the requested ZIP is
+   confirmed on the final amazon.com page.
 
 2. **Humanize requirement.** The widget interaction flow requires `humanize=True` (human-like
    timing and mouse). Without it, widget clicks may be dropped or the submit may not register.
@@ -151,6 +152,19 @@ observed in this probe.
 6. **Recon scope.** This doc records observed facts from a single recon probe. It does not
    assert demand durability, product read validity, or signal quality. Those remain scoped to
    their own lanes.
+
+### Current fail-closed enforcement (2026-07-18)
+
+- Each packet still uses a fresh anonymous context and repeats Amazon's public ZIP
+  interaction; no cookie export, raw injection, stored profile, VPN, or proxy was added.
+- A homepage navigation that lands on a non-`amazon.com` marketplace is typed as
+  `homepage_marketplace_redirect` before widget interaction.
+- USD alone no longer confirms the requested delivery ZIP. Final-page confirmation
+  requires the requested ZIP in Amazon's rendered location anchor together with an
+  amazon.com US-marketplace marker.
+- If the final page redirects or the ZIP conjunction is absent, raw artifacts and the
+  receipt are preserved with `amazon_delivery_zip_pin_failed`, the runner exits nonzero,
+  and the packet must not be admitted as Amazon US delivery-pinned evidence.
 
 ---
 

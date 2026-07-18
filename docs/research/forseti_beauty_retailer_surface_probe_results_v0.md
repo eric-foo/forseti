@@ -912,6 +912,62 @@ observations:
       and is not substituted into the diversion comparison.
 ```
 
+### Sephora US/USD storefront pin supplement
+
+- A single follow-up capture reused the commissioned Tower 28 LipSoftie PDP:
+  `https://www.sephora.com/product/tower-28-lipsoftie-hydrating-tinted-lip-treatment-balm-P509397?country_switch=us&lang=en`.
+- The new `--sephora-market US` route performed no preference mutation. Request
+  intent (`country_switch=us`) was admitted only when the final rendered page
+  also contained retailer-owned `Sephora.renderQueryParams.country=US` and a
+  Sephora-sold JSON-LD `Offer` with `priceCurrency=USD`.
+- Packet `01KXRZQJBKNKC91SXH2C7MKF1C` at
+  `F:\forseti-data-lake\raw\827\01KXRZQJBKNKC91SXH2C7MKF1C` recorded
+  `pin_confirmed=true`, `access_blocked=false`, `proxy_used=false`,
+  `persistent_profile_loaded=false`, `storage_state_loaded=false`, and
+  `geoip_used=false`. Receipt capture time was `2026-07-17T21:29:14Z`.
+- Fresh verification matched all four raw file hashes and byte lengths to the
+  manifest. The availability index matched manifest SHA-256
+  `f1cf38e79eb11964668e0dcfcc57fd0c6cb2039771a92db4142344bcdb6f1c93`.
+- The generic Retail/PDP projection produced one anchored product row and one
+  offer row for product `P509397`, SKU `2843068`, price `16.00`, currency
+  `USD`. It retained
+  `sephora_ld_json_review_count_differs_from_target_dom` as an explicit
+  residual.
+- Current outcome:
+  `US_USD_STOREFRONT_CONFIRMED_DELIVERY_LOCATION_UNPINNED`. This supplement
+  changes only storefront-country and currency status; it does not duplicate
+  the earlier price-ladder SOBS observations or establish a delivery address.
+
+### Ulta US/USD storefront pin attempt
+
+- The commissioned anonymous probe used the canonical Night Shift PDP,
+  `https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2645443`,
+  with the existing `ulta_pdp_aggregate` profile, five-second settle, and one
+  scroll pass. It used no proxy, VPN, stored profile, storage state, cookie
+  injection, credential, login, geo-IP override, or delivery mutation.
+- Admission required one rendered conjunction: exact
+  `window.__LOCALE__='en-US'`; a single source node binding
+  `data-locale="en_US"` with `data-currency="USD"`; and JSON-LD Product SKU
+  `2645443` with a nonempty USD offer.
+- Packet `01KXSSJBMN6T4Z480ZX1RHA3MB` at
+  `F:\forseti-data-lake\raw\d52\01KXSSJBMN6T4Z480ZX1RHA3MB` retained the bound
+  Night Shift product, SKU `2645443`, `$12.00` / USD offer state, and 671
+  reviews. It contained one `data-currency="USD"` node, but zero exact locale
+  assignments and zero `data-locale="en_US"` nodes. The existing capture
+  profile also reported the literal `Offers` absent from visible text.
+- The packet recorded `pin_confirmed=false`, `access_blocked=false`,
+  `proxy_used=false`, `persistent_profile_loaded=false`,
+  `storage_state_loaded=false`, and `geoip_used=false`. Capture time was
+  `2026-07-18T05:00:46Z`; requested and final URLs matched. Fresh verification
+  matched every raw file's SHA-256 and byte length to the manifest.
+- Current outcome: `NO_GO_REQUIRED_RENDERED_MARKET_SIGNALS_ABSENT`. The
+  proposed adapter and `--ulta-market` flag were removed, no Retail/PDP
+  projection was promoted, and the registry does not claim a US country or
+  USD currency pin. Source-visible USD offer state remains
+  `OBSERVED_USD_UNPINNED`. This supplement adds no SOBS observation because it
+  records a pin-admission gap, not a new assortment, price, review, or claim
+  finding.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,

@@ -75,6 +75,7 @@ from data_lake.consumption import (
 )
 from data_lake.root import DataLakeRootError
 from source_capture.basenotes_projection import (
+    BASENOTES_PARSER_VERSION,
     BASENOTES_PROJECTION_CERTIFICATION,
     BASENOTES_PROJECTION_METHOD,
     BASENOTES_PROJECTION_VERSION,
@@ -115,6 +116,7 @@ def _packet_obligation() -> dict:
         "projection_method": BASENOTES_PROJECTION_METHOD,
         "projection_version": BASENOTES_PROJECTION_VERSION,
         "projection_certification": BASENOTES_PROJECTION_CERTIFICATION,
+        "content_parser_version": BASENOTES_PARSER_VERSION,
         "cleaning_audit_pack_schema_version": CLEANING_AUDIT_PACK_SCHEMA_VERSION,
         "audit_pack_schema_version": BASENOTES_AUDIT_PACK_PRODUCER_SCHEMA_VERSION,
         "silver_vault_record_schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -8,7 +9,7 @@ import zlib
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Mapping, Sequence
+from typing import TYPE_CHECKING, Iterable, Literal, Mapping, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
@@ -23,7 +24,6 @@ from source_capture import (
     not_applicable,
     not_attempted,
     unknown_with_reason,
-    write_local_source_capture_packet,
 )
 from source_capture.adapters.browser_snapshot import (
     BROWSER_BACKEND_CHROME_CDP,
@@ -35,6 +35,16 @@ from source_capture.adapters.browser_snapshot import (
 from source_capture.source_detail_sufficiency import (
     SourceDetailSufficiencyRequirements,
     evaluate_source_detail_sufficiency,
+)
+from source_capture.content_capture import (
+    CAPTURE_ARTIFACT_MODES,
+    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+    CONTENT_RECORD_FILENAME,
+)
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from source_capture.basenotes_projection import (
+    BASENOTES_PARSER_VERSION,
+    build_basenotes_content_record,
 )
 
 if TYPE_CHECKING:
@@ -53,9 +63,22 @@ PERSISTENT_CHROME_SURFACE = (
 REQUIRED_BUNDLE_FILENAMES = (
     "browser_rendered_dom.html",
     "browser_visible_text.txt",
-    "browser_viewport_screenshot.png",
     "browser_snapshot_metadata.json",
 )
+SCREENSHOT_FILENAME = "browser_viewport_screenshot.png"
+CONTENT_CAPTURE_METADATA_FILENAME = "content_capture_metadata.json"
+SCREENSHOT_TRIGGERS = (
+    "route_baseline",
+    "visual_content",
+    "access_or_overlay_diagnostic",
+    "owner_requested",
+)
+ScreenshotTrigger = Literal[
+    "route_baseline",
+    "visual_content",
+    "access_or_overlay_diagnostic",
+    "owner_requested",
+]
 
 DEFAULT_DECISION_QUESTION = (
     "What public Basenotes product-page evidence was available for this fragrance at capture time?"
@@ -71,8 +94,9 @@ _CDP_DOM_EXTRACT_SCRIPT = "() => document.documentElement.outerHTML"
 ACCEPTED_RESIDUALS = [
     "capture requires a user-visible persistent Chrome session; direct mode observes accepted "
     "content and fails on challenge markers but does not automate or solve an access gate",
-    "the runner ingests public rendered DOM, visible text, one viewport screenshot, and "
-    "non-secret metadata; it does not inspect or export cookies, credentials, or browser-profile data",
+    "the runner ingests public rendered DOM, visible text, non-secret metadata, and only a "
+    "trigger-requested screenshot; it does not inspect or export cookies, credentials, or "
+    "browser-profile data",
     "rendered current-window product page only; in-page JSON-LD carries a review subset, not the "
     "declared full review corpus reachable through the /reviews/ sub-URL and sentiment tabs",
     "one successful page does not establish unattended reliability, site-wide completeness, scale, "
@@ -86,12 +110,21 @@ NON_CLAIMS = [
     "not CAPTCHA automation or solving by the runner",
     "not proxy or session injection",
     "not review sub-URL pagination invocation",
-    "not projection, Cleaning, Judgment, buyer proof, or production readiness",
+    "not Cleaning, Judgment, buyer proof, or production readiness",
 ]
 
 _CHALLENGE_TEXT_RE = re.compile(
     r"performing security verification|verif(?:y|ies) you are not a bot|just a moment",
     flags=re.IGNORECASE,
+)
+_BROWSER_SECRET_PATTERNS = (
+    "cf_clearance",
+    "Cookie:",
+    "Set-Cookie",
+    "storageState",
+    "localStorage",
+    "sessionStorage",
+    "__cf_chl_",
 )
 
 
@@ -101,6 +134,7 @@ class PersistentChromeBundle:
     rendered_dom: str
     visible_text: str
     metadata: Mapping[str, object]
+    screenshot_path: Path | None
 
 
 def run_basenotes_mgt_capture(
@@ -113,16 +147,15 @@ def run_basenotes_mgt_capture(
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     cdp_endpoint: str | None = None,
     cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
+    capture_artifact_mode: Literal["content", "sample", "raw"] = "content",
+    screenshot_trigger: ScreenshotTrigger | None = None,
 ) -> tuple[int, str]:
-    """Validate a user-cleared persistent-Chrome export and publish one packet.
-
-    Manual mode consumes an exact four-file bundle. Optional direct mode creates that
-    same bundle from an already-running local Chrome CDP session,
-    then passes it through the same fail-closed bundle validator and packet writer.
-    """
+    """Validate a persistent-Chrome export and publish one Basenotes packet."""
 
     _validate_basenotes_url(url)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
+    _validate_capture_mode(capture_artifact_mode)
+    _validate_screenshot_trigger(screenshot_trigger)
     if cdp_endpoint is not None:
         _assert_output_root_available(output_root)
         capture_basenotes_bundle_via_cdp(
@@ -131,6 +164,7 @@ def run_basenotes_mgt_capture(
             cdp_endpoint=cdp_endpoint,
             max_artifact_bytes=max_artifact_bytes,
             engine=cdp_engine,
+            screenshot_trigger=screenshot_trigger,
         )
     elif cdp_engine is not None:
         raise ValueError("cdp_engine requires direct CDP mode")
@@ -138,8 +172,77 @@ def run_basenotes_mgt_capture(
         bundle_directory=bundle_directory,
         url=url,
         max_artifact_bytes=max_artifact_bytes,
+        screenshot_trigger=screenshot_trigger,
+    )
+    _assert_no_browser_secret_text(
+        path
+        for path in bundle.paths
+        if path.name != SCREENSHOT_FILENAME
     )
     _prepare_output_root(output_root)
+
+    input_paths = {
+        "rendered_dom": bundle_directory / "browser_rendered_dom.html",
+        "visible_text": bundle_directory / "browser_visible_text.txt",
+        "browser_metadata": bundle_directory / "browser_snapshot_metadata.json",
+    }
+    if bundle.screenshot_path is not None:
+        input_paths["screenshot"] = bundle.screenshot_path
+    input_bytes = {role: path.read_bytes() for role, path in input_paths.items()}
+
+    projection_failure: str | None = None
+    content_record_bytes: bytes | None = None
+    if capture_artifact_mode != "raw":
+        try:
+            content_record = build_basenotes_content_record(
+                rendered_dom=input_bytes["rendered_dom"],
+                visible_text=input_bytes["visible_text"],
+                source_url=url,
+            )
+            content_record_bytes = _json_bytes(content_record)
+            projection_status = "succeeded"
+        except Exception as exc:
+            projection_failure = f"{type(exc).__name__}: {exc}"
+            projection_status = f"failed: {projection_failure}"
+    else:
+        projection_status = "not_attempted: raw mode"
+
+    raw_projector_inputs_preserved = (
+        capture_artifact_mode in {"raw", "sample"} or projection_failure is not None
+    )
+    preserved_by_role = {
+        "rendered_dom": raw_projector_inputs_preserved,
+        "visible_text": raw_projector_inputs_preserved,
+        "browser_metadata": True,
+        "screenshot": bundle.screenshot_path is not None,
+    }
+    content_capture_metadata = {
+        "capture_artifact_mode": capture_artifact_mode,
+        "parser_version": BASENOTES_PARSER_VERSION,
+        "projection_status": projection_status,
+        "screenshot_trigger": screenshot_trigger,
+        "inputs": [
+            {
+                "role": role,
+                "filename": path.name,
+                "sha256": hashlib.sha256(input_bytes[role]).hexdigest(),
+                "byte_count": len(input_bytes[role]),
+                "preserved": preserved_by_role[role],
+            }
+            for role, path in input_paths.items()
+        ],
+    }
+    staged_artifacts: list[tuple[str, bytes]] = []
+    for role, path in input_paths.items():
+        if preserved_by_role[role]:
+            staged_artifacts.append((path.name, input_bytes[role]))
+    if content_record_bytes is not None:
+        staged_artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
+    staged_artifacts.append(
+        (CONTENT_CAPTURE_METADATA_FILENAME, _json_bytes(content_capture_metadata))
+    )
+    _assert_unique_artifact_names(staged_artifacts)
+    file_ids = list(staged_file_id_map(staged_artifacts).values())
 
     timing = PacketTiming(
         source_publication_or_event=_unknown_source_publication(),
@@ -165,7 +268,7 @@ def run_basenotes_mgt_capture(
         ]
         capture_context = (
             "bundle originating from an existing Chrome CDP public-page observation; rendered DOM, "
-            "visible text, viewport screenshot, and non-secret metadata only"
+            "visible text, optional trigger-bound screenshot, and non-secret metadata only"
         )
         visible_mode_changes = ["persistent_user_session", "accepted_access_observed"]
         receipt_summary = (
@@ -184,7 +287,7 @@ def run_basenotes_mgt_capture(
         ]
         capture_context = (
             "user-cleared persistent Chrome public-page export; rendered DOM, visible text, "
-            "viewport screenshot, and non-secret metadata only"
+            "optional trigger-bound screenshot, and non-secret metadata only"
         )
         visible_mode_changes = ["human_cleared_access_gate", "persistent_user_session"]
         receipt_summary = (
@@ -195,14 +298,55 @@ def run_basenotes_mgt_capture(
         "the persistent Chrome bundle did not query archive or history services"
     )
     media_posture = known_fact(
-        "rendered DOM, visible text, and one viewport screenshot were preserved; linked media "
-        "files were not independently preserved"
+        (
+            f"one viewport screenshot was preserved for trigger {screenshot_trigger!r}; "
+            "linked media files were not independently preserved"
+        )
+        if bundle.screenshot_path is not None
+        else (
+            "no screenshot was requested for this capture; linked media files were not "
+            "independently preserved"
+        )
     )
     recapture_posture = _not_a_recapture_relationship()
-    result = write_local_source_capture_packet(
+    mode_changes = [
+        (
+            f"viewport screenshot preserved for trigger {screenshot_trigger}"
+            if bundle.screenshot_path is not None
+            else "no screenshot requested or preserved"
+        ),
+        "browser snapshot metadata preserved without browser-secret export",
+    ]
+    if raw_projector_inputs_preserved:
+        mode_changes.extend(["rendered DOM preserved", "visible text preserved"])
+    else:
+        mode_changes.append(
+            "rendered DOM and visible text hashed then discarded after successful capture-time projection"
+        )
+    if content_record_bytes is not None:
+        mode_changes.append("capture-time Basenotes content record preserved")
+
+    packet_limitations = list(ACCEPTED_RESIDUALS)
+    if projection_failure is not None:
+        packet_limitations.append(
+            "content-mode projection failed in flight; all supplied source artifacts "
+            f"were preserved as fallback: {projection_failure}"
+        )
+    elif capture_artifact_mode == "content":
+        packet_limitations.append(
+            "content-mode packet: rendered DOM and visible text discarded after hashing; "
+            "browser metadata and any trigger-bound screenshot retained"
+        )
+    elif capture_artifact_mode == "sample":
+        packet_limitations.append(
+            "sample packet: rendered DOM, visible text, and derived content record preserved "
+            "for parser-fit drift checks"
+        )
+
+    result = stage_and_write_packet(
         output_directory=None if data_root is not None else output_root / PERSISTENT_CHROME_SLOT,
         data_root=data_root,
-        input_files=list(bundle.paths),
+        staged_artifacts=staged_artifacts,
         source_family=SOURCE_FAMILY,
         source_surface=PERSISTENT_CHROME_SURFACE,
         source_locator=known_fact(url),
@@ -214,7 +358,7 @@ def run_basenotes_mgt_capture(
         capture_mode=CaptureModeCategory.MULTIMODAL,
         operator_category=DEFAULT_OPERATOR_CATEGORY,
         session_identity=None,
-        visible_mode_changes=visible_mode_changes,
+        visible_mode_changes=visible_mode_changes + mode_changes,
         source_publication_or_event=timing.source_publication_or_event,
         source_edit_or_version=timing.source_edit_or_version,
         cutoff_posture=timing.cutoff_posture,
@@ -232,14 +376,14 @@ def run_basenotes_mgt_capture(
                 archive_history_posture=archive_posture,
                 media_modality_posture=media_posture,
                 re_capture_relationship=recapture_posture,
-                limitations=list(ACCEPTED_RESIDUALS),
+                limitations=packet_limitations,
                 warning_notes=warnings,
-                preserved_file_ids=["file_01", "file_02", "file_03", "file_04"],
+                preserved_file_ids=file_ids,
             )
         ],
         warnings=warnings,
-        limitations=list(ACCEPTED_RESIDUALS),
-        receipt_summary=receipt_summary,
+        limitations=packet_limitations,
+        receipt_summary=f"{receipt_summary} Artifact mode: {capture_artifact_mode}.",
         receipt_non_claims=list(NON_CLAIMS),
     )
     packet_dir = Path(result.output_directory)
@@ -269,11 +413,17 @@ def run_basenotes_mgt_capture(
                 else "manual_bundle"
             ),
             "capture_performed_this_run": capture_performed_this_run,
+            "capture_artifact_mode": capture_artifact_mode,
+            "screenshot_trigger": screenshot_trigger,
         },
+        projection_status=projection_status,
     )
     summary_path = output_root / SUMMARY_FILENAME
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return 0, str(summary_path)
+    return (
+        CONTENT_PROJECTION_FAILED_EXIT_CODE if projection_failure is not None else 0,
+        str(summary_path),
+    )
 
 
 def build_basenotes_mgt_capture_summary(
@@ -283,6 +433,7 @@ def build_basenotes_mgt_capture_summary(
     data_root_path: Path | None,
     packet_directories: Mapping[str, Path],
     capture_parameters: Mapping[str, object],
+    projection_status: str = "not_run; projection is a later lane over the raw packet evidence",
 ) -> dict[str, object]:
     packet_roles: dict[str, dict[str, object]] = {}
     for slot, packet_dir in packet_directories.items():
@@ -314,7 +465,7 @@ def build_basenotes_mgt_capture_summary(
         "accepted_residuals": list(ACCEPTED_RESIDUALS),
         "non_claims": list(NON_CLAIMS),
         "capture_parameters": dict(capture_parameters),
-        "projection_status": "not_run; projection is a later lane over the raw packet evidence",
+        "projection_status": projection_status,
     }
 
 
@@ -332,9 +483,11 @@ def preflight_basenotes_mgt_capture(
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     cdp_endpoint: str | None = None,
     cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
+    screenshot_trigger: ScreenshotTrigger | None = None,
 ) -> str:
     _validate_basenotes_url(url)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
+    _validate_screenshot_trigger(screenshot_trigger)
     _assert_output_root_available(output_root)
     if cdp_endpoint is not None:
         capture_basenotes_bundle_via_cdp(
@@ -343,6 +496,7 @@ def preflight_basenotes_mgt_capture(
             cdp_endpoint=cdp_endpoint,
             max_artifact_bytes=max_artifact_bytes,
             engine=cdp_engine,
+            screenshot_trigger=screenshot_trigger,
         )
     elif cdp_engine is not None:
         raise ValueError("cdp_engine requires direct CDP mode")
@@ -350,11 +504,12 @@ def preflight_basenotes_mgt_capture(
         bundle_directory=bundle_directory,
         url=url,
         max_artifact_bytes=max_artifact_bytes,
+        screenshot_trigger=screenshot_trigger,
     )
     slug = extract_basenotes_product_slug(url) or "unknown"
     capture_clause = (
         "direct loopback CDP capture observed accepted challenge-free source content and wrote "
-        "a reusable exact four-file bundle; publish that bundle later without --cdp-endpoint"
+        "a reusable validated bundle; publish that bundle later without --cdp-endpoint"
         if cdp_endpoint is not None
         else "no network capture attempted"
     )
@@ -379,6 +534,7 @@ def capture_basenotes_bundle_via_cdp(
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     timeout_seconds: float = DEFAULT_CDP_TIMEOUT_SECONDS,
     engine: ChromeCdpPageObservationSessionEngine | None = None,
+    screenshot_trigger: ScreenshotTrigger | None = None,
 ) -> Path:
     """Create the manual-mode bundle after observing accepted content in a CDP session."""
 
@@ -386,6 +542,7 @@ def capture_basenotes_bundle_via_cdp(
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
     _validate_positive("timeout_seconds", timeout_seconds)
     _validate_cdp_endpoint(cdp_endpoint)
+    _validate_screenshot_trigger(screenshot_trigger)
     _assert_bundle_output_available(bundle_directory)
 
     capture_engine = engine or ChromeCdpPageObservationSessionEngine(cdp_endpoint=cdp_endpoint)
@@ -447,18 +604,21 @@ def capture_basenotes_bundle_via_cdp(
             body=observation.visible_text.encode("utf-8"),
             max_artifact_bytes=max_artifact_bytes,
         )
-        screenshot_png = capture_engine.capture_current_viewport_png(
-            timeout_seconds=timeout_seconds
+        screenshot_png = (
+            capture_engine.capture_current_viewport_png(timeout_seconds=timeout_seconds)
+            if screenshot_trigger is not None
+            else None
         )
     finally:
         capture_engine.close()
 
-    _validate_png_bytes(screenshot_png)
-    _validate_artifact_size(
-        name="browser_viewport_screenshot.png",
-        body=screenshot_png,
-        max_artifact_bytes=max_artifact_bytes,
-    )
+    if screenshot_png is not None:
+        _validate_png_bytes(screenshot_png)
+        _validate_artifact_size(
+            name=SCREENSHOT_FILENAME,
+            body=screenshot_png,
+            max_artifact_bytes=max_artifact_bytes,
+        )
     metadata_bytes = (json.dumps(metadata, indent=2, sort_keys=True) + "\n").encode("utf-8")
     _validate_artifact_size(
         name="browser_snapshot_metadata.json",
@@ -467,32 +627,51 @@ def capture_basenotes_bundle_via_cdp(
     )
 
     bundle_directory.mkdir(parents=True, exist_ok=True)
-    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[0]).write_text(
+    (bundle_directory / "browser_rendered_dom.html").write_text(
         observation.dom_observation, encoding="utf-8"
     )
-    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[1]).write_text(
+    (bundle_directory / "browser_visible_text.txt").write_text(
         observation.visible_text, encoding="utf-8"
     )
-    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[2]).write_bytes(screenshot_png)
-    (bundle_directory / REQUIRED_BUNDLE_FILENAMES[3]).write_bytes(metadata_bytes)
+    if screenshot_png is not None:
+        (bundle_directory / SCREENSHOT_FILENAME).write_bytes(screenshot_png)
+    (bundle_directory / "browser_snapshot_metadata.json").write_bytes(metadata_bytes)
     return bundle_directory
 
 
 def _load_and_validate_bundle(
-    *, bundle_directory: Path, url: str, max_artifact_bytes: int
+    *,
+    bundle_directory: Path,
+    url: str,
+    max_artifact_bytes: int,
+    screenshot_trigger: ScreenshotTrigger | None,
 ) -> PersistentChromeBundle:
     if not bundle_directory.is_dir():
         raise ValueError(f"persistent Chrome bundle directory does not exist: {bundle_directory}")
     actual_names = {path.name for path in bundle_directory.iterdir()}
     required_names = set(REQUIRED_BUNDLE_FILENAMES)
-    if actual_names != required_names:
+    allowed_names = required_names | {SCREENSHOT_FILENAME}
+    if not required_names.issubset(actual_names) or not actual_names.issubset(allowed_names):
         missing = sorted(required_names - actual_names)
-        unexpected = sorted(actual_names - required_names)
+        unexpected = sorted(actual_names - allowed_names)
         raise ValueError(
-            "persistent Chrome bundle must contain exactly the four public-page artifacts; "
+            "persistent Chrome bundle must contain DOM, visible text, metadata, and only an "
+            "optional screenshot; "
             f"missing={missing}; unexpected={unexpected}"
         )
-    paths = tuple(bundle_directory / name for name in REQUIRED_BUNDLE_FILENAMES)
+    screenshot_path = (
+        bundle_directory / SCREENSHOT_FILENAME
+        if SCREENSHOT_FILENAME in actual_names
+        else None
+    )
+    if screenshot_path is not None and screenshot_trigger is None:
+        raise ValueError("a supplied screenshot requires screenshot_trigger")
+    if screenshot_path is None and screenshot_trigger is not None:
+        raise ValueError("screenshot_trigger requires a supplied screenshot")
+    paths = tuple(
+        bundle_directory / name
+        for name in (*REQUIRED_BUNDLE_FILENAMES, *([SCREENSHOT_FILENAME] if screenshot_path else []))
+    )
     for path in paths:
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"persistent Chrome bundle artifact must be a regular file: {path}")
@@ -504,11 +683,14 @@ def _load_and_validate_bundle(
                 f"persistent Chrome bundle artifact exceeds max_artifact_bytes: {path} ({size})"
             )
 
-    rendered_dom = paths[0].read_text(encoding="utf-8")
-    visible_text = paths[1].read_text(encoding="utf-8")
-    _validate_png_bytes(paths[2].read_bytes())
+    rendered_dom = (bundle_directory / "browser_rendered_dom.html").read_text(encoding="utf-8")
+    visible_text = (bundle_directory / "browser_visible_text.txt").read_text(encoding="utf-8")
+    if screenshot_path is not None:
+        _validate_png_bytes(screenshot_path.read_bytes())
     try:
-        metadata = json.loads(paths[3].read_text(encoding="utf-8"))
+        metadata = json.loads(
+            (bundle_directory / "browser_snapshot_metadata.json").read_text(encoding="utf-8")
+        )
     except json.JSONDecodeError as exc:
         raise ValueError(f"persistent Chrome metadata is not valid JSON: {exc}") from exc
     if not isinstance(metadata, dict):
@@ -526,6 +708,7 @@ def _load_and_validate_bundle(
         rendered_dom=rendered_dom,
         visible_text=visible_text,
         metadata=metadata,
+        screenshot_path=screenshot_path,
     )
 
 
@@ -695,6 +878,43 @@ def _validate_basenotes_url(url: str) -> None:
         )
 
 
+def _validate_capture_mode(capture_artifact_mode: str) -> None:
+    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+        raise ValueError(
+            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}, "
+            f"got {capture_artifact_mode!r}"
+        )
+
+
+def _validate_screenshot_trigger(screenshot_trigger: str | None) -> None:
+    if screenshot_trigger is not None and screenshot_trigger not in SCREENSHOT_TRIGGERS:
+        raise ValueError(
+            f"screenshot_trigger must be one of {SCREENSHOT_TRIGGERS}, "
+            f"got {screenshot_trigger!r}"
+        )
+
+
+def _assert_no_browser_secret_text(paths: Iterable[Path]) -> None:
+    for path in paths:
+        sample = path.read_bytes().decode("utf-8", errors="ignore")
+        for pattern in _BROWSER_SECRET_PATTERNS:
+            if pattern in sample:
+                raise ValueError(
+                    f"browser-secret material is forbidden in supplied artifact "
+                    f"{path.name}: {pattern}"
+                )
+
+
+def _json_bytes(value: Mapping[str, object]) -> bytes:
+    return (json.dumps(dict(value), indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _assert_unique_artifact_names(staged_artifacts: Sequence[tuple[str, bytes]]) -> None:
+    names = [name for name, _body in staged_artifacts]
+    if len(names) != len(set(names)):
+        raise ValueError("staged Basenotes artifact names must be unique")
+
+
 def _is_basenotes_hostname(hostname: str) -> bool:
     return hostname == "basenotes.com" or hostname.endswith(".basenotes.com")
 
@@ -784,6 +1004,24 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--decision-question", default=DEFAULT_DECISION_QUESTION)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
     parser.add_argument(
+        "--capture-mode",
+        choices=CAPTURE_ARTIFACT_MODES,
+        default="content",
+        help=(
+            "Artifact mode. Content is the pinned-route default; sample retains "
+            "projector inputs for parser-fit checks and raw preserves legacy inputs."
+        ),
+    )
+    parser.add_argument(
+        "--screenshot-trigger",
+        choices=SCREENSHOT_TRIGGERS,
+        default=None,
+        help=(
+            "Capture/preserve a screenshot only for a named visual-evidence trigger. "
+            "Omit for ordinary repeat semantic capture."
+        ),
+    )
+    parser.add_argument(
         "--cdp-endpoint",
         default=None,
         help=(
@@ -795,7 +1033,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--preflight-only",
         action="store_true",
         help=(
-            "Validate URL, exact four-file public-page bundle, route metadata, sufficiency, and "
+            "Validate URL, public-page bundle, route metadata, sufficiency, and "
             "output-root availability, then exit without publishing a packet. With "
             "--cdp-endpoint this performs live capture and writes the reusable fresh bundle; "
             "publish it in a later run without --cdp-endpoint."
@@ -816,6 +1054,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     output_root=args.output_root,
                     max_artifact_bytes=args.max_artifact_bytes,
                     cdp_endpoint=args.cdp_endpoint,
+                    screenshot_trigger=args.screenshot_trigger,
                 )
             )
             return 0
@@ -834,6 +1073,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             decision_question=args.decision_question,
             max_artifact_bytes=args.max_artifact_bytes,
             cdp_endpoint=args.cdp_endpoint,
+            capture_artifact_mode=args.capture_mode,
+            screenshot_trigger=args.screenshot_trigger,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"basenotes native capture failed: {exc}\n")

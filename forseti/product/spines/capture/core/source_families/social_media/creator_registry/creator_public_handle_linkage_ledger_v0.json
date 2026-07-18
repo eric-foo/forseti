@@ -11,7 +11,7 @@
       "forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md",
       "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json"
     ],
-    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger, real Instagram platform_account rows from IG reels-grid projection artifacts, identity-only TikTok platform_account rows from logged-out profile browser packets, and a first source-backed public link-hub account cluster for Fragranceknowledge. Public_handle values are source/capture labels, not guaranteed current platform handles. creator_records require source-backed cross-platform public-handle evidence; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
+    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger, real Instagram platform_account rows from IG reels-grid projection artifacts, identity-only TikTok platform_account rows from logged-out profile browser packets and committed onboarding packets, and a first source-backed public link-hub account cluster for Fragranceknowledge. Public_handle values are source/capture labels, not guaranteed current platform handles. creator_records require source-backed cross-platform public-handle evidence; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
     "platform_accounts": [
       {
         "platform_account_id": "acct_yt_fragrance_001",
@@ -504,6 +504,18 @@
         "public_display_name_or_none": "Top Frag",
         "display_name_source_pointer_or_none": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/nodes/1/display_name_or_none",
         "display_name_source_field_or_none": "tiktok_creator_discovery_frontier_register.nodes[1].display_name_or_none"
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_007",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "ak.fragrances1",
+        "public_profile_url": "https://www.tiktok.com/@ak.fragrances1",
+        "handle_source_pointer": "F:\\forseti-data-lake\\raw\\c1b\\01KXJXHJPW0FT37CEBRKABG1Q8\\raw\\04_tiktok_suggested_accounts_attempt.json#/creator_handle",
+        "handle_observed_at": "2026-07-15T12:51:59Z",
+        "public_display_name_or_none": "AKFragrances",
+        "display_name_source_pointer_or_none": "docs/review-inputs/charlie_frags_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/nodes/7/display_name_or_none",
+        "display_name_source_field_or_none": "tiktok_creator_discovery_frontier_register.nodes[7].display_name_or_none"
       },
       {
         "platform_account_id": "acct_yt_fragrance_032",
