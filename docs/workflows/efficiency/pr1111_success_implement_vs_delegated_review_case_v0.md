@@ -17,7 +17,7 @@ open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
   - docs/prompts/reviews/pr1111_kohls_access_diagnosis_delegated_code_review_and_patch_prompt_v0.md
 stale_if:
-  - The delegated commission is executed but this record is not updated with its adjudicated return.
+  - A later adjudication changes the recorded AKM-1 or AKM-2 disposition.
 ```
 
 ## Case identity and currentness
@@ -33,7 +33,7 @@ merged_change:
   merge_commit: ab276fca3bdaf2735b6240fa67f089c943526888
   reviewed_head_after_success_implement_patch: 7f2b503237fe7c74077aafd5fac802cf0810fc63
   title: "fix: classify Akamai access denials and record Kohl's gap"
-comparison_status: BASELINE_RECORDED_DELEGATED_COMMISSION_NOT_RUN
+comparison_status: COMPLETE_ONE_UNIQUE_ACCEPTED_MATERIAL_FINDING
 ```
 
 The unit of comparison is the five-file squash diff at
@@ -103,15 +103,16 @@ The comparison records these fields. Use `not_captured` rather than estimates:
 
 | Measure | Success Implement baseline | Delegated return | Adjudicated value |
 | --- | ---: | ---: | ---: |
-| Findings raised | 1 | pending | pending |
-| Findings overlapping the baseline | 1 baseline candidate | pending | pending |
-| Unique material findings | not applicable | pending | pending |
-| Accepted findings | 1 | pending | pending |
-| Rejected / false-positive findings | 0 | pending | pending |
-| Accepted patch hunks | 3 evidence-artifact wording edits | pending | pending |
-| Architecture escalations | 0 | pending | pending |
-| Elapsed time | `not_captured` | pending | pending |
-| Token use | `not_captured` | pending | pending |
+| Findings raised | 1 | 2 | 2 |
+| Findings overlapping the baseline | 1 baseline candidate | 0 | 0 |
+| Unique material findings | not applicable | 2 claimed | 1 accepted |
+| Accepted findings | 1 | 1 patched / 1 owner-decision | 1 |
+| Modified findings | 0 | 0 | 1 |
+| Rejected / false-positive findings | 0 | 0 | 0 |
+| Accepted patch hunks | 3 evidence-artifact wording edits | 1 | 1 |
+| Architecture escalations | 0 | 0 | 0 |
+| Elapsed time | `not_captured` | `not_captured` | `not_captured` |
+| Token use | `not_captured` | `not_captured` | `not_captured` |
 
 For this case, a **material** finding is one whose accepted closure changes
 runtime classification correctness, test discrimination, evidence
@@ -136,25 +137,53 @@ Do not change the `success-implement` default or delegated-review convention
 from this single case. Aggregate multiple comparable, adjudicated cases before
 proposing a standing routing change.
 
-## Update slot after delegated return
+## Adjudicated delegated return
+
+The cross-vendor return is preserved at
+`docs/review-outputs/adversarial-artifact-reviews/pr1111_kohls_access_diagnosis_delegated_code_review_v0.md`.
+Its committed Git blob at adjudication was
+`e9387a7a1af0e9d7558e420661974f1653452d3d`.
+
+- **AKM-2 — accepted.** Mutation evidence showed that the pre-delegation suite
+  stayed green when the required `all()` marker conjunction was weakened to
+  `any()`. The two proposed tests separately bind the marker conjunction and
+  exact-title gate, and the accepted hunk changes no runtime classifier logic.
+- **AKM-1 — modified to a residual upgrade trigger.** A non-exact Akamai title
+  could theoretically create a false negative, but no preserved failing title
+  variant was observed. Broadening the match now would exchange known
+  precision for hypothetical recall. Do not count this as a material defect or
+  patch obligation. Re-open only when a retailer-owned capture preserves both
+  Akamai markers with a non-exact title, or another bounded fixture establishes
+  the variant.
+
+The delegated pass therefore contributed **one unique accepted material
+finding** beyond the in-session Success Implement review. For this case, the
+strict pass added value by exposing a wrong-cause-green test gap. This single
+case still does not establish a standing routing rule.
 
 ```yaml
 delegated_return:
-  status: pending
-  controller_vendor: operator_to_fill
-  controller_model: operator_to_fill
-  strict_cross_vendor_de_correlation: pending
+  status: adjudicated
+  controller_vendor: Anthropic
+  controller_model: Claude Sonnet 5
+  strict_cross_vendor_de_correlation: true
   report_path: docs/review-outputs/adversarial-artifact-reviews/pr1111_kohls_access_diagnosis_delegated_code_review_v0.md
-  findings_total: pending
-  overlap_findings: pending
-  unique_material_findings: pending
-  accepted_findings: pending
-  rejected_findings: pending
-  accepted_patch_hunks: pending
-  architecture_escalations: pending
-  elapsed_time: pending
-  token_use: pending
-  adjudication_status: pending
+  report_git_blob_oid: e9387a7a1af0e9d7558e420661974f1653452d3d
+  findings_total: 2
+  overlap_findings: 0
+  baseline_only_findings: 1
+  unique_material_findings: 1
+  accepted_findings: 1
+  modified_findings: 1
+  rejected_findings: 0
+  accepted_patch_hunks: 1
+  architecture_escalations: 0
+  elapsed_time: not_captured
+  token_use: not_captured
+  dispositions:
+    AKM-1: modified_to_residual_upgrade_trigger
+    AKM-2: accepted_and_patch_kept
+  adjudication_status: closed
 ```
 
 ## Non-claims

@@ -39,6 +39,33 @@ def test_classify_rendered_access_does_not_flag_source_article_mentions() -> Non
     assert result.signal is None
 
 
+def test_classify_rendered_access_akamai_requires_both_markers() -> None:
+    """Matching title alone, with only one of the two Akamai markers, must not flag."""
+    result = classify_rendered_access(
+        title="Access Denied",
+        visible_text="You don't have permission to access this resource.",
+        rendered_dom="<html><body>Access Denied</body></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.NO_BLOCK_MARKER
+    assert result.signal is None
+
+
+def test_classify_rendered_access_akamai_requires_exact_title() -> None:
+    """Both Akamai markers present, with a non-matching title, must not flag."""
+    result = classify_rendered_access(
+        title="403 Forbidden",
+        visible_text=(
+            "You don't have permission to access this page on this server. "
+            "Reference #18.abc https://errors.edgesuite.net/18.abc"
+        ),
+        rendered_dom="<html><body>Forbidden</body></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.NO_BLOCK_MARKER
+    assert result.signal is None
+
+
 def test_classify_rendered_access_keeps_residual_cloudflare_marker_separate() -> None:
     result = classify_rendered_access(
         title="Mojave Ghost by Byredo",
