@@ -811,6 +811,175 @@ def test_complete_onboarding_publishes_only_verified_candidate(
     assert not list(tmp_path.glob(f".{output_path.name}.*.candidate"))
 
 
+def test_complete_onboarding_preserves_retained_audience_pairs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot_path, outcome_path = _validated_submission(tmp_path)
+    retained_snapshot = tmp_path / "retained_snapshot.json"
+    retained_outcome = tmp_path / "retained_outcome.json"
+    output_path = tmp_path / "creator_profile_current.json"
+    output_path.write_text(
+        '{"creator_profile_current_view":{"profiles":[]}}\n',
+        encoding="utf-8",
+    )
+    observed_argv: list[str] = []
+    outcome = json.loads(outcome_path.read_text(encoding="utf-8"))
+
+    def fake_materialize(argv: list[str]) -> int:
+        observed_argv.extend(argv)
+        candidate = Path(argv[argv.index("--output") + 1])
+        candidate.write_text(
+            json.dumps(
+                {
+                    "creator_profile_current_view": {
+                        "profiles": [
+                            {
+                                "profile_subject_id": outcome["profile_subject_id"],
+                                "audience_triangulation": {
+                                    "snapshot_id": outcome["snapshot_id_or_none"],
+                                    "input_bundle_hash": outcome["bundle_hash"],
+                                },
+                            }
+                        ]
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        return 0
+
+    monkeypatch.setattr(onboarding_coordinator, "materialize_main", fake_materialize)
+    result = onboarding_coordinator.complete_onboarding(
+        snapshot_path=snapshot_path,
+        outcome_path=outcome_path,
+        retained_snapshot_paths=(retained_snapshot,),
+        retained_outcome_paths=(retained_outcome,),
+        output_path=output_path,
+        account_ledger_path=tmp_path / "ledger.json",
+        creator_registry_index_path=tmp_path / "registry.json",
+        metric_seed_paths=(),
+        generated_at_utc=None,
+        preflight_receipt_path=None,
+    )
+
+    assert result["stage_reached"] == "verified_materialization"
+    snapshot_values = [
+        observed_argv[index + 1]
+        for index, value in enumerate(observed_argv)
+        if value == "--audience-triangulation-snapshot"
+    ]
+    outcome_values = [
+        observed_argv[index + 1]
+        for index, value in enumerate(observed_argv)
+        if value == "--audience-judgment-outcome"
+    ]
+    assert snapshot_values == [str(retained_snapshot), str(snapshot_path)]
+    assert outcome_values == [str(retained_outcome), str(outcome_path)]
+
+
+@pytest.mark.parametrize("perturbation", ["missing", "changed"])
+def test_complete_onboarding_refuses_existing_audience_join_loss_or_change(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    perturbation: str,
+) -> None:
+    snapshot_path, outcome_path = _validated_submission(tmp_path)
+    output_path = tmp_path / "creator_profile_current.json"
+    previous_join = {
+        "snapshot_id": "cats_existing",
+        "input_bundle_hash": "sha256:" + "1" * 64,
+    }
+    previous_document = {
+        "creator_profile_current_view": {
+            "profiles": [
+                {
+                    "profile_subject_id": "acct_existing",
+                    "audience_triangulation": previous_join,
+                }
+            ]
+        }
+    }
+    previous_bytes = (
+        json.dumps(previous_document, ensure_ascii=False, indent=2, sort_keys=True)
+        + "\n"
+    ).encode("utf-8")
+    output_path.write_bytes(previous_bytes)
+    outcome = json.loads(outcome_path.read_text(encoding="utf-8"))
+
+    def fake_materialize(argv: list[str]) -> int:
+        candidate = Path(argv[argv.index("--output") + 1])
+        profiles = [
+            {
+                "profile_subject_id": outcome["profile_subject_id"],
+                "audience_triangulation": {
+                    "snapshot_id": outcome["snapshot_id_or_none"],
+                    "input_bundle_hash": outcome["bundle_hash"],
+                },
+            }
+        ]
+        if perturbation == "changed":
+            profiles.append(
+                {
+                    "profile_subject_id": "acct_existing",
+                    "audience_triangulation": {
+                        **previous_join,
+                        "snapshot_id": "cats_changed",
+                    },
+                }
+            )
+        candidate.write_text(
+            json.dumps(
+                {"creator_profile_current_view": {"profiles": profiles}},
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        return 0
+
+    monkeypatch.setattr(onboarding_coordinator, "materialize_main", fake_materialize)
+    with pytest.raises(
+        ValueError,
+        match=(
+            "existing audience_triangulation join was not preserved.*"
+            f"join is missing" if perturbation == "missing" else
+            "existing audience_triangulation join was not preserved.*join changed"
+        ),
+    ):
+        onboarding_coordinator.complete_onboarding(
+            snapshot_path=snapshot_path,
+            outcome_path=outcome_path,
+            output_path=output_path,
+            account_ledger_path=tmp_path / "ledger.json",
+            creator_registry_index_path=tmp_path / "registry.json",
+            metric_seed_paths=(),
+            generated_at_utc=None,
+            preflight_receipt_path=None,
+        )
+
+    assert output_path.read_bytes() == previous_bytes
+
+
+def test_complete_onboarding_rejects_unpaired_retained_inputs(tmp_path: Path) -> None:
+    snapshot_path, outcome_path = _validated_submission(tmp_path)
+
+    with pytest.raises(
+        ValueError,
+        match="retained audience snapshot and Judgment outcome counts must match",
+    ):
+        onboarding_coordinator.complete_onboarding(
+            snapshot_path=snapshot_path,
+            outcome_path=outcome_path,
+            retained_snapshot_paths=(tmp_path / "retained_snapshot.json",),
+            retained_outcome_paths=(),
+            output_path=tmp_path / "creator_profile_current.json",
+            account_ledger_path=tmp_path / "ledger.json",
+            creator_registry_index_path=tmp_path / "registry.json",
+            metric_seed_paths=(),
+            generated_at_utc=None,
+            preflight_receipt_path=None,
+        )
+
+
 def test_complete_onboarding_preserves_materializer_diagnostic(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

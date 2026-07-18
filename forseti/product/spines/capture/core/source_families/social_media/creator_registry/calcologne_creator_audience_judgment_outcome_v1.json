@@ -1,0 +1,430 @@
+{
+  "bundle_hash": "sha256:e70c76efea9f629e7989c989849989b5c6c3854be10eed008ad35448a0a30b57",
+  "bundle_id": "caeb_d0fa2838423099e84d66",
+  "creator_id": "tiktok:@calcologne",
+  "model_api_calls": 0,
+  "profile_subject_id": "acct_tiktok_fragrance_008",
+  "raw_anchor": "01KXSS2BP396R7W3RJ9SVYG1N9",
+  "record_id": "cajo_85cc21c51fcbdd246549",
+  "response_bytes_b64": "ewogICJzY2hlbWFfdmVyc2lvbiI6ICJjcmVhdG9yX2F1ZGllbmNlX3NlbWFudGljX3Jlc3BvbnNlX3YxIiwKICAiZ2VuZXJhdGVkX2F0IjogIjIwMjYtMDctMThUMDU6MDA6MjZaIiwKICAiY2xhaW1zIjogWwogICAgewogICAgICAiY2xhaW1fa2V5IjogImNvbXBhcmlzb24tbGl0ZXJhY3kiLAogICAgICAiYXhpcyI6ICJjYXRlZ29yeV9rbm93bGVkZ2UiLAogICAgICAic3RhdGVtZW50IjogIkNhbGNvbG9nbmUncyBjb21wYXJpc29uLWxlZCBjb250ZW50IG1lZXRzIGNhcHR1cmVkIHBhcnRpY2lwYW50cyB3aG8gZXZhbHVhdGUgZnJhZ3JhbmNlIHRocm91Z2ggc2ltaWxhcml0eSwgZHJ5ZG93biwgcHJvamVjdGlvbiwgbG9uZ2V2aXR5LCBzY2VudCBETkEsIGFuZCBzdWJzdGl0dXRlcyByYXRoZXIgdGhhbiByZXNwb25kaW5nIG9ubHkgdG8gcHJlc2VudGF0aW9uLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkhlIGNhbiBjYXJyeSB0ZWNobmljYWxseSBzcGVjaWZpYyBjb21wYXJpc29uIGJyaWVmcyB3aGVyZSBjcmVkaWJpbGl0eSBkZXBlbmRzIG9uIGV4cGxhaW5pbmcgbWVhbmluZ2Z1bCBkaWZmZXJlbmNlcywgbm90IG1lcmVseSBwcmFpc2luZyBhIHByb2R1Y3QuIiwKICAgICAgInJlbGF0aW9uIjogImFncmVlbWVudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDE5NCIsCiAgICAgICAgImUwMzIzIiwKICAgICAgICAiZTAzOTMiLAogICAgICAgICJlMDA4OSIsCiAgICAgICAgImUwMTIwIgogICAgICBdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsKICAgICAgICAiZTAxOTQiLAogICAgICAgICJlMDMyMyIsCiAgICAgICAgImUwMzkzIiwKICAgICAgICAiZTAwODkiLAogICAgICAgICJlMDEyMCIKICAgICAgXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDA3MiIKICAgICAgXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhlIGV2aWRlbmNlIGRlbW9uc3RyYXRlcyBrbm93bGVkZ2UgYW1vbmcgY2FwdHVyZWQgcGFydGljaXBhbnRzLCBub3QgdGhlIGtub3dsZWRnZSBsZXZlbCBvZiBDYWxjb2xvZ25lJ3MgZnVsbCBmb2xsb3dlciBiYXNlLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImFjdGl2ZS1jaG9pY2UtcmVzb2x1dGlvbiIsCiAgICAgICJheGlzIjogInB1cmNoYXNlX2RlY2lzaW9uX3N0YWdlIiwKICAgICAgInN0YXRlbWVudCI6ICJDYXB0dXJlZCBwYXJ0aWNpcGFudHMgYnJpbmcgbGl2ZSBjaG9pY2UgcXVlc3Rpb25zIGFib3V0IGVkaXRpb24sIHN1YnN0aXR1dGUsIHNlYXNvbiwgc2Nob29sIHN1aXRhYmlsaXR5LCBwZXJmb3JtYW5jZSwgYW5kIGxvbmdldml0eSwgd2hpbGUgQ2FsY29sb2duZSBzdXBwbGllcyByZWNvbW1lbmRhdGlvbnMgb3JnYW5pemVkIGFyb3VuZCB0aG9zZSBkZWNpc2lvbnMuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiSGlzIHN0cm9uZ2VzdCBjb21tZXJjaWFsIHBvc2l0aW9uIGlzIGxhdGUtY29uc2lkZXJhdGlvbiBjaG9pY2UgcmVzb2x1dGlvbjogaGVscGluZyBhIGJ1eWVyIGRlY2lkZSB3aGljaCB2ZXJzaW9uIGZpdHMgYW5kIHdoeS4iLAogICAgICAicmVsYXRpb24iOiAiYWdyZWVtZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwMDA2IiwKICAgICAgICAiZTAwMTAiLAogICAgICAgICJlMDEyNCIsCiAgICAgICAgImUwMjMzIiwKICAgICAgICAiZTAxOTIiCiAgICAgIF0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAwNiIsCiAgICAgICAgImUwMDEwIiwKICAgICAgICAiZTAxMjQiLAogICAgICAgICJlMDIzMyIsCiAgICAgICAgImUwMTkyIgogICAgICBdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiUXVlc3Rpb25zIGFuZCBzZWxmLXJlcG9ydHMgZG8gbm90IGVzdGFibGlzaCBjb21wbGV0ZWQgcHVyY2hhc2VzIG9yIHRoZSBkaXN0cmlidXRpb24gb2YgZGVjaXNpb24gc3RhZ2VzIGFjcm9zcyB0aGUgYXVkaWVuY2UuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0sCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAiY29udGVzdGVkLXZhbHVlLXByb29mIiwKICAgICAgImF4aXMiOiAicHJpY2VfdmFsdWVfcG9zdHVyZSIsCiAgICAgICJzdGF0ZW1lbnQiOiAiQ2FsY29sb2duZSBtYWtlcyBhZmZvcmRhYmxlIGFsdGVybmF0aXZlcyBlYXNpZXIgdG8gZXZhbHVhdGUgYnkgY29tcGFyaW5nIHRoZW0gd2l0aCBvcmlnaW5hbHMgb24gc2ltaWxhcml0eSBhbmQgd2VhciwgYnV0IGNhcHR1cmVkIG93bmVycyBkaXNwdXRlIHNvbWUgZXF1aXZhbGVuY2UgY2xhaW1zIGFuZCBzb21ldGltZXMgcHJlZmVyIGFub3RoZXIgc3Vic3RpdHV0ZSBvciB0aGUgb3JpZ2luYWwuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiSGUgaXMgdXNlZnVsIGZvciB0cmFuc3BhcmVudCB2YWx1ZSBwcm9vZiB3aGVuIHRoZSBjbGllbnQgY2FuIHRvbGVyYXRlIGFuIGhvbmVzdCBjb21wYXJhdG9yLCBxdWFsaWZpZWQgc2ltaWxhcml0eSwgYW5kIHZpc2libGUgZGlzYWdyZWVtZW50LiIsCiAgICAgICJyZWxhdGlvbiI6ICJjb250cmFkaWN0aW9uIiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwNDM5IiwKICAgICAgICAiZTAzNTkiLAogICAgICAgICJlMDMyMyIKICAgICAgXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwNDM5IiwKICAgICAgICAiZTAzNTkiLAogICAgICAgICJlMDMyMyIKICAgICAgXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAwOSIsCiAgICAgICAgImUwMDc1IiwKICAgICAgICAiZTAxMDkiCiAgICAgIF0sCiAgICAgICJsaW1pdGF0aW9uIjogIlNpbWlsYXJpdHksIHBlcmZvcm1hbmNlLCBhbmQgdmFsdWUgcmVtYWluIHN1YmplY3RpdmUsIGFuZCB0aGUgY2FwdHVyZWQgZXZpZGVuY2UgY29udGFpbnMgZGlyZWN0IGRpc2FncmVlbWVudCBhYm91dCB0aGUgdGVzdGVkIGFsdGVybmF0aXZlcy4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJlZGl0aW9uLWxldmVsLWFmZmluaXR5IiwKICAgICAgImF4aXMiOiAicHJvZHVjdF9icmFuZF9hZmZpbml0eSIsCiAgICAgICJzdGF0ZW1lbnQiOiAiVGhlIE1ZU0xGIGNvbXBhcmlzb24gZHJhd3MgZWRpdGlvbi1sZXZlbCBwcmVmZXJlbmNlcyBncm91bmRlZCBpbiByZXBvcnRlZCBvd25lcnNoaXAgYW5kIHdlYXIsIHdpdGggcGFydGljaXBhbnRzIGFkdm9jYXRpbmcgZm9yIGRpZmZlcmVudCB2YXJpYW50cyByYXRoZXIgdGhhbiBjb252ZXJnaW5nIG9uIG9uZSB1bml2ZXJzYWwgd2lubmVyLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkNhbGNvbG9nbmUgY2FuIG1ha2UgYSBtdWx0aS1wcm9kdWN0IGxpbmUgY29tbWVyY2lhbGx5IGxlZ2libGUgYnkgZ2l2aW5nIGVhY2ggdmFyaWFudCBhIGRpc3RpbmN0IHVzZSBjYXNlIGluc3RlYWQgb2YgZm9yY2luZyBhIHNpbmdsZS1wcm9kdWN0IGVuZG9yc2VtZW50LiIsCiAgICAgICJyZWxhdGlvbiI6ICJhdWRpZW5jZV9lbWVyZ2VudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAwNCIsCiAgICAgICAgImUwMDI4IiwKICAgICAgICAiZTAwMzkiLAogICAgICAgICJlMDA4OCIsCiAgICAgICAgImUwMTM1IgogICAgICBdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsKICAgICAgICAiZTAwMDQiLAogICAgICAgICJlMDAyOCIsCiAgICAgICAgImUwMDM5IiwKICAgICAgICAiZTAwNjciLAogICAgICAgICJlMDA4OCIsCiAgICAgICAgImUwMTE5IiwKICAgICAgICAiZTAxMzUiCiAgICAgIF0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJUaGlzIHBhdHRlcm4gaXMgY29uY2VudHJhdGVkIGluIG9uZSBjYXB0dXJlZCBwcm9kdWN0LWxpbmUgY29tcGFyaXNvbiBhbmQgZG9lcyBub3QgZXN0YWJsaXNoIGFjY291bnQtd2lkZSBicmFuZCBsb3lhbHR5LiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImNhbmRvci1hbmQtY2hhbGxlbmdlIiwKICAgICAgImF4aXMiOiAibGFuZ3VhZ2VfY29tbXVuaXR5X25vcm1zIiwKICAgICAgInN0YXRlbWVudCI6ICJDYXB0dXJlZCBjb21tZW50cyBhcmUgY29sbG9xdWlhbCwgZGlyZWN0LCBhbmQgd2lsbGluZyB0byBjaGFsbGVuZ2UgaHlwZSwgZXF1aXZhbGVuY2UsIGhvbmVzdHksIG9yIGNvbnRlbnQgY2hvaWNlcywgbWFraW5nIHZpc2libGUgY2FuZG9yIHBhcnQgb2YgdGhlIGV4Y2hhbmdlIGFyb3VuZCBDYWxjb2xvZ25lJ3MgcmVjb21tZW5kYXRpb25zLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkJ1eWVyIGNvcHkgc2hvdWxkIGxldCBoaW0gc3BlYWsgcGxhaW5seSwgbmFtZSB0cmFkZS1vZmZzLCBhbmQgd2l0aHN0YW5kIGNvcnJlY3Rpb247IHBvbGlzaGVkIGNvbnNlbnN1cyBsYW5ndWFnZSB3b3VsZCB3ZWFrZW4gdGhlIGZpdC4iLAogICAgICAicmVsYXRpb24iOiAiYXVkaWVuY2VfZW1lcmdlbnQiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsKICAgICAgICAiZTAwMDciLAogICAgICAgICJlMDAwOSIsCiAgICAgICAgImUwMDU4IiwKICAgICAgICAiZTAwNzYiLAogICAgICAgICJlMDA4MiIKICAgICAgXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwMDA3IiwKICAgICAgICAiZTAwMDkiLAogICAgICAgICJlMDA1OCIsCiAgICAgICAgImUwMDc2IiwKICAgICAgICAiZTAwODIiCiAgICAgIF0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJDYXB0dXJlZCB0b3AtbGV2ZWwgY29tbWVudHMgbWF5IG92ZXJyZXByZXNlbnQgcGFydGljaXBhbnRzIG1vdGl2YXRlZCB0byBqb2tlLCByZXF1ZXN0LCBhZ3JlZSwgb3IgY2hhbGxlbmdlLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImJ1eWluZy1yaXNrLW9iamVjdGlvbnMiLAogICAgICAiYXhpcyI6ICJvYmplY3Rpb25zIiwKICAgICAgInN0YXRlbWVudCI6ICJUaGUgY2FwdHVyZWQgb2JqZWN0aW9ucyBjZW50ZXIgb24gcHJvZHVjdC1uYW1lIGNvbmZ1c2lvbiwgYXZhaWxhYmlsaXR5IGFuZCBwcmljZSwgd2VhayBwZXJmb3JtYW5jZSwgY2xvbmUgYWNjdXJhY3ksIGFuZCBkaXNhcHBvaW50bWVudCBhZnRlciBoeXBlLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkEgbWF0Y2hpbmcgYnJpZWYgc2hvdWxkIHJlbW92ZSBidXlpbmcgcmlzayB3aXRoIHVubWlzdGFrYWJsZSBsYWJlbGluZywgcmVhbGlzdGljIHByaWNlIGFuZCBhdmFpbGFiaWxpdHkgY29udGV4dCwgd2Vhci10aHJvdWdoIGV2aWRlbmNlLCBhbmQgZXhwbGljaXQgc2ltaWxhcml0eSBsaW1pdHMuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwMDAzIiwKICAgICAgICAiZTAwMDkiLAogICAgICAgICJlMDA3NSIsCiAgICAgICAgImUwMTM4IiwKICAgICAgICAiZTAxNDQiCiAgICAgIF0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAwMyIsCiAgICAgICAgImUwMDA5IiwKICAgICAgICAiZTAwNzUiLAogICAgICAgICJlMDEzOCIsCiAgICAgICAgImUwMTQ0IgogICAgICBdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhlc2Ugb2JqZWN0aW9ucyBhcmUgc2VsZi1yZXBvcnRlZCBhbmQgd2VyZSBub3QgaW5kZXBlbmRlbnRseSB0ZXN0ZWQuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0sCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAib2NjYXNpb24tZml0LWlkZW50aXR5IiwKICAgICAgImF4aXMiOiAiYXNwaXJhdGlvbnNfaWRlbnRpdHkiLAogICAgICAic3RhdGVtZW50IjogIkNhbGNvbG9nbmUgbWFrZXMgZnJhZ3JhbmNlIHNlbGVjdGlvbiBmZWVsIGxpa2UgY2hvb3NpbmcgdGhlIHJpZ2h0IHZlcnNpb24gb2Ygb25lc2VsZiBmb3IgYSByZWFsIG1vbWVudCwgZnJvbSBzY2hvb2wgYW5kIGV2ZXJ5ZGF5IHdlYXIgdG8gd2VkZGluZ3MsIGRhdGUgbmlnaHRzLCBhbmQgc3BlY2lhbCBvY2Nhc2lvbnMuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiSGUgY2FuIHR1cm4gYWJzdHJhY3Qgc2NlbnQgZGlmZmVyZW5jZXMgaW50byBzb2NpYWxseSBsZWdpYmxlIHJvbGVzIHRoYXQgaGVscCBhIGJ1eWVyIHBpY3R1cmUgd2hlbiBhIHByb2R1Y3QgYmVsb25ncyBpbiB0aGVpciBsaWZlLiIsCiAgICAgICJyZWxhdGlvbiI6ICJhZ3JlZW1lbnQiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsKICAgICAgICAiZTA0NDMiLAogICAgICAgICJlMDE5MiIsCiAgICAgICAgImUwNDI1IiwKICAgICAgICAiZTAwMjciLAogICAgICAgICJlMDEyNCIKICAgICAgXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwNDQzIiwKICAgICAgICAiZTAxOTIiLAogICAgICAgICJlMDQyNSIsCiAgICAgICAgImUwMDI3IiwKICAgICAgICAiZTAxMjQiCiAgICAgIF0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJNb21lbnQtZml0IGV4YW1wbGVzIGRvIG5vdCByZXZlYWwgZGVtb2dyYXBoaWMgc2VnbWVudHMgb3IgaG93IGNvbW1vbiB0aGVzZSBhc3BpcmF0aW9ucyBhcmUuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0sCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAiZGVjaXNpb24tcHJvZHVjaW5nLWZvcm1hdCIsCiAgICAgICJheGlzIjogInByZXNlbnRhdGlvbl9zdHlsZV9yZXNvbmFuY2UiLAogICAgICAic3RhdGVtZW50IjogIkluIHRoZSBjYXB0dXJlZCByZXNwb25zZSB0byBDYWxjb2xvZ25lJ3MgcmFua2VkIGFuZCBjb21wYXJhdGl2ZSBjb250ZW50LCBwYXJ0aWNpcGFudHMgcmVwb3J0IGJ1eWluZyBvciBvcmRlcmluZyBzcGVjaWZpYyBwaWNrcywgd2VhcmluZyBvciBsYXllcmluZyBvcHRpb25zLCBhbmQgcmVxdWVzdGluZyBhbm90aGVyIGxpbmUgY29tcGFyaXNvbi4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJIaXMgY29tcGFyaXNvbiBmb3JtYXRzIGNhbiBzdXBwb3J0IGJyaWVmcyBkZXNpZ25lZCB0byBwcm9kdWNlIGEgY29uY3JldGUgbmV4dCBjaG9pY2UsIG5vdCBtZXJlbHkgcHJvZHVjdCBhd2FyZW5lc3MuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbCiAgICAgICAgImUwMDMyIiwKICAgICAgICAiZTAxMzQiLAogICAgICAgICJlMDA2MiIsCiAgICAgICAgImUwMDE4IiwKICAgICAgICAiZTAwMDYiCiAgICAgIF0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAzMiIsCiAgICAgICAgImUwMTM0IiwKICAgICAgICAiZTAwNjIiLAogICAgICAgICJlMDAxOCIsCiAgICAgICAgImUwMDA2IgogICAgICBdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiUmVwb3J0ZWQgYnV5aW5nLCBvcmRlcmluZywgd2VhcmluZywgYW5kIGxheWVyaW5nIGFyZSB1bnZlcmlmaWVkIGluZGl2aWR1YWwgY29tbWVudHMgYW5kIGRvIG5vdCBlc3RhYmxpc2ggY29udmVyc2lvbi4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJ2YWx1ZXMtbGVkLXBvbGFyaXphdGlvbiIsCiAgICAgICJheGlzIjogImVuZ2FnZW1lbnRfbWVtb3JhYmlsaXR5X2VmZmVjdCIsCiAgICAgICJzdGF0ZW1lbnQiOiAiQ2FsY29sb2duZSdzIHB1YmxpYyB2YWx1ZXMgc3RhbmNlIGJlY29tZXMgcGVyc29uYWxseSBhbmQgY29tbWVyY2lhbGx5IG1lbW9yYWJsZTogc29tZSBjYXB0dXJlZCBwYXJ0aWNpcGFudHMgc2F5IGl0IHByZXNlcnZlZCB0cnVzdCBvciBjaGFuZ2VkIHRoZWlyIHJldGFpbGVyIGludGVudCwgd2hpbGUgb3RoZXJzIGRlbWFuZCBmcmFncmFuY2Utb25seSBjb250ZW50IG9yIHJlcG9ydCB3aXRoZHJhd2luZyBzdXBwb3J0LiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIlZhbHVlcy1hZGphY2VudCB3b3JrIGNhbiBjYXJyeSBjb25zZXF1ZW50aWFsIGF0dGVudGlvbiB3aGVuIHRoZSBjbGllbnQgaXMgZ2VudWluZWx5IGFsaWduZWQsIGJ1dCBpdCBpbnRyb2R1Y2VzIHZpc2libGUgcG9sYXJpemF0aW9uIGFuZCByZWR1Y2VkIG1lc3NhZ2UgY29udHJvbC4iLAogICAgICAicmVsYXRpb24iOiAiY29udHJhZGljdGlvbiIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAzNyIsCiAgICAgICAgImUwMDQ4IiwKICAgICAgICAiZTAwOTMiCiAgICAgIF0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWwogICAgICAgICJlMDAzNyIsCiAgICAgICAgImUwMDQ4IiwKICAgICAgICAiZTAwOTMiCiAgICAgIF0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFsKICAgICAgICAiZTAwNTYiLAogICAgICAgICJlMDA4NCIsCiAgICAgICAgImUwMDg2IgogICAgICBdLAogICAgICAibGltaXRhdGlvbiI6ICJUaGlzIHJlc3BvbnNlIGNvbWVzIGZyb20gb25lIHNlbGVjdGVkIHZhbHVlcyBzdGF0ZW1lbnQgYW5kIGNhbm5vdCBlc3RhYmxpc2ggZHVyYWJsZSBzZW50aW1lbnQsIHZlcmlmaWVkIHJldGFpbGVyIGJlaGF2aW9yLCBvciBhbiBhdWRpZW5jZS13aWRlIHJlYWN0aW9uLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9CiAgXSwKICAiY3JlYXRvcl9zaWduYWxfcHJvamVjdGlvbiI6IHsKICAgICJoaXJlX3ZlcmRpY3QiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiSGlyZSBDYWxjb2xvZ25lIHdoZW4gYSBmcmFncmFuY2UgYnJpZWYgbXVzdCB0dXJuIGEgY3Jvd2RlZCBjaG9pY2Ugc2V0IGludG8gYSBjb25maWRlbnQsIG9jY2FzaW9uLWZpdCBwaWNrIHdpdGhvdXQgaGlkaW5nIHByaWNlLCBwZXJmb3JtYW5jZSwgb3IgY2xvbmUgdHJhZGUtb2Zmcy4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAiYWN0aXZlLWNob2ljZS1yZXNvbHV0aW9uIiwKICAgICAgICAiY29udGVzdGVkLXZhbHVlLXByb29mIiwKICAgICAgICAib2NjYXNpb24tZml0LWlkZW50aXR5IiwKICAgICAgICAiZGVjaXNpb24tcHJvZHVjaW5nLWZvcm1hdCIKICAgICAgXQogICAgfSwKICAgICJwcm9kdWN0X2FkdmFudGFnZSI6IHsKICAgICAgInN0YXRlbWVudCI6ICJDYWxjb2xvZ25lIG1ha2VzIGNyb3dkZWQgZnJhZ3JhbmNlIGNob2ljZXMgZmVlbCBidXlhYmxlIGJ5IHRyYW5zbGF0aW5nIHByaWNlLCBwZXJmb3JtYW5jZSwgc2ltaWxhcml0eSwgYW5kIG9jY2FzaW9uIGludG8gYSBkZWZlbnNpYmxlIHBpY2suIiwKICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgImFjdGl2ZS1jaG9pY2UtcmVzb2x1dGlvbiIsCiAgICAgICAgImNvbnRlc3RlZC12YWx1ZS1wcm9vZiIsCiAgICAgICAgImJ1eWluZy1yaXNrLW9iamVjdGlvbnMiLAogICAgICAgICJvY2Nhc2lvbi1maXQtaWRlbnRpdHkiCiAgICAgIF0KICAgIH0sCiAgICAiY3JlYXRvcl9zcGVjaWZpY19leGVjdXRpb24iOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiSGUgcmFua3MgYWZmb3JkYWJsZSBvcHRpb25zLCB0ZXN0cyBzdWJzdGl0dXRlcyBhZ2FpbnN0IG9yaWdpbmFscyB0aHJvdWdoIG9wZW5pbmcsIGRyeWRvd24sIGxvbmdldml0eSwgYW5kIHByb2plY3Rpb24sIGFuZCBtYXBzIGxpbmUgdmFyaWFudHMgdG8gcmVhbCBvY2Nhc2lvbnMuIiwKICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgImNvbXBhcmlzb24tbGl0ZXJhY3kiLAogICAgICAgICJjb250ZXN0ZWQtdmFsdWUtcHJvb2YiLAogICAgICAgICJlZGl0aW9uLWxldmVsLWFmZmluaXR5IiwKICAgICAgICAib2NjYXNpb24tZml0LWlkZW50aXR5IgogICAgICBdCiAgICB9LAogICAgIm9ic2VydmVkX2F1ZGllbmNlX3Jlc3BvbnNlIjogewogICAgICAic3RhdGVtZW50IjogIkNhcHR1cmVkIHBhcnRpY2lwYW50cyByZXBvcnQgYnV5aW5nIG9yIG9yZGVyaW5nIHJhbmtlZCBwaWNrcywgd2VhcmluZyBvciBsYXllcmluZyBvcHRpb25zLCBhbmQgcmV0dXJuaW5nIHdpdGggcmVxdWVzdHMgZm9yIHRoZSBuZXh0IGNvbXBhcmlzb24uIiwKICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgImRlY2lzaW9uLXByb2R1Y2luZy1mb3JtYXQiLAogICAgICAgICJhY3RpdmUtY2hvaWNlLXJlc29sdXRpb24iCiAgICAgIF0KICAgIH0sCiAgICAic3Ryb25nZXN0X2NhbXBhaWduX2pvYnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkxhdW5jaCBvciByZWZyZXNoIGEgbXVsdGktcHJvZHVjdCBmcmFncmFuY2UgbGluZSBieSBhc3NpZ25pbmcgZWFjaCB2YXJpYW50IGEgY2xlYXIgb2NjYXNpb24gYW5kIGJ1eWVyIGRlY2lzaW9uLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgICAiZWRpdGlvbi1sZXZlbC1hZmZpbml0eSIsCiAgICAgICAgICAiYWN0aXZlLWNob2ljZS1yZXNvbHV0aW9uIiwKICAgICAgICAgICJvY2Nhc2lvbi1maXQtaWRlbnRpdHkiCiAgICAgICAgXQogICAgICB9LAogICAgICB7CiAgICAgICAgInN0YXRlbWVudCI6ICJQcm92ZSB0aGUgdmFsdWUgb2YgYW4gYWZmb3JkYWJsZSBhbHRlcm5hdGl2ZSB3aXRoIGEgdHJhbnNwYXJlbnQgb3JpZ2luYWwtdmVyc3VzLXN1YnN0aXR1dGUgdGVzdCB0aGF0IG5hbWVzIGJvdGggd2lucyBhbmQgZ2Fwcy4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWwogICAgICAgICAgImNvbXBhcmlzb24tbGl0ZXJhY3kiLAogICAgICAgICAgImNvbnRlc3RlZC12YWx1ZS1wcm9vZiIsCiAgICAgICAgICAiYnV5aW5nLXJpc2stb2JqZWN0aW9ucyIKICAgICAgICBdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlR1cm4gYSBzZWFzb25hbCBkaXNjb3ZlcnkgbGlzdCBpbnRvIGEgcmFua2VkIHNob3J0bGlzdCB3aXRoIGV4cGxpY2l0IHBlcmZvcm1hbmNlIGFuZCB1c2UtY2FzZSB0cmFkZS1vZmZzLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgICAiYWN0aXZlLWNob2ljZS1yZXNvbHV0aW9uIiwKICAgICAgICAgICJidXlpbmctcmlzay1vYmplY3Rpb25zIiwKICAgICAgICAgICJkZWNpc2lvbi1wcm9kdWNpbmctZm9ybWF0IgogICAgICAgIF0KICAgICAgfQogICAgXSwKICAgICJicmllZmluZ19pbnN0cnVjdGlvbnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkdpdmUgQ2FsY29sb2duZSB0aGUgY29tcGxldGUgY29tcGFyaXNvbiBzZXQgYW5kIHBlcm1pc3Npb24gdG8gbmFtZSBhIGRlY2lzaXZlIHdpbm5lciBmb3IgZWFjaCB1c2UgY2FzZS4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWwogICAgICAgICAgImVkaXRpb24tbGV2ZWwtYWZmaW5pdHkiLAogICAgICAgICAgImFjdGl2ZS1jaG9pY2UtcmVzb2x1dGlvbiIKICAgICAgICBdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlJlcXVpcmUgb3BlbmluZywgZHJ5ZG93biwgbG9uZ2V2aXR5LCBwcm9qZWN0aW9uLCBwcmljZSwgYW5kIG9jY2FzaW9uIHRvIGFwcGVhciBpbiB0aGUgY29tcGFyaXNvbiB3aGVyZXZlciB0aGV5IGFyZSByZWxldmFudC4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWwogICAgICAgICAgImNvbXBhcmlzb24tbGl0ZXJhY3kiLAogICAgICAgICAgImNvbnRlc3RlZC12YWx1ZS1wcm9vZiIsCiAgICAgICAgICAiYnV5aW5nLXJpc2stb2JqZWN0aW9ucyIKICAgICAgICBdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlByZXNlcnZlIGhpcyBhYmlsaXR5IHRvIHF1YWxpZnkgc2ltaWxhcml0eSwgc3VyZmFjZSB3ZWFrbmVzc2VzLCBhbmQgYWNrbm93bGVkZ2UgZGlzYWdyZWVtZW50IGluc3RlYWQgb2Ygc2NyaXB0aW5nIGFuIHVuYnJva2VuIGVuZG9yc2VtZW50LiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgICAiY29udGVzdGVkLXZhbHVlLXByb29mIiwKICAgICAgICAgICJjYW5kb3ItYW5kLWNoYWxsZW5nZSIKICAgICAgICBdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkNsb3NlIGJ5IGludml0aW5nIHRoZSBuZXh0IGNvbXBhcmlzb24gb3IgdXNlLWNhc2UgcXVlc3Rpb24gc28gdGhlIGF1ZGllbmNlIGhhcyBhIGNvbmNyZXRlIHdheSB0byBjb250aW51ZSB0aGUgZGVjaXNpb24uIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAgICJhY3RpdmUtY2hvaWNlLXJlc29sdXRpb24iLAogICAgICAgICAgImRlY2lzaW9uLXByb2R1Y2luZy1mb3JtYXQiCiAgICAgICAgXQogICAgICB9CiAgICBdLAogICAgIndyb25nX2hpcmVfYm91bmRhcnkiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiRG8gbm90IGhpcmUgQ2FsY29sb2duZSBmb3IgYSB0aWdodGx5IHNjcmlwdGVkLCBjb21wYXJhdG9yLWZyZWUgZW5kb3JzZW1lbnQsIGFuIHVucXVhbGlmaWVkIGNsb25lLWVxdWl2YWxlbmNlIGNsYWltLCBvciBhIGJyYW5kLW5ldXRyYWwgdmFsdWVzIGJyaWVmIHRoYXQgY2Fubm90IHRvbGVyYXRlIHZpc2libGUgZGlzYWdyZWVtZW50LiIsCiAgICAgICJjbGFpbV9rZXlzIjogWwogICAgICAgICJjb250ZXN0ZWQtdmFsdWUtcHJvb2YiLAogICAgICAgICJjYW5kb3ItYW5kLWNoYWxsZW5nZSIsCiAgICAgICAgInZhbHVlcy1sZWQtcG9sYXJpemF0aW9uIgogICAgICBdCiAgICB9LAogICAgInJvYnVzdG5lc3Nfc3RhbXAiOiBudWxsCiAgfSwKICAibGltaXRhdGlvbnMiOiBbCiAgICAiVGhlIGNhcHR1cmUgaXMgbm90IGEgcGxhdGZvcm0td2lkZSBjb21tZW50IGNlbnN1cywgbWF5IHJlZmxlY3QgcmFua2VkIG9yIHRydW5jYXRlZCB2aWRlbyBzZWxlY3Rpb24sIGFuZCBleGNsdWRlcyByZXBseS10aHJlYWQgYW5hbHlzaXMuIiwKICAgICJPbmUgc2VsZWN0ZWQgdmlkZW8gY29udHJpYnV0ZXMgY2FwdHVyZWQgY29tbWVudHMgYnV0IG5vIGFkbWl0dGVkIGNyZWF0b3ItY29udGVudCBjdWUgaW4gdGhlIGNvbXBhY3Qgdmlldy4iLAogICAgIkNhcHR1cmVkIGNvbW1lbnRlcnMgYXJlIHBhcnRpY2lwYXRpbmcgYXVkaWVuY2UgZXZpZGVuY2UsIG5vdCBhIGJhc2lzIGZvciBhdWRpZW5jZSBwcmV2YWxlbmNlLCBkZW1vZ3JhcGhpY3MsIG9yIGdlb2dyYXBoeS4iLAogICAgIlJlcG9ydGVkIHB1cmNoYXNlcywgb3JkZXJzLCB3ZWFyaW5nLCBsYXllcmluZywgYW5kIHJldGFpbGVyIGludGVudGlvbnMgd2VyZSBub3QgaW5kZXBlbmRlbnRseSB2ZXJpZmllZC4iLAogICAgIkNvbW1lbnQgZW5nYWdlbWVudCB3YXMgbm90IHVzZWQgdG8gZXN0YWJsaXNoIHRoZSB0cnV0aCBvZiBhbnkgY2xhaW0uIgogIF0sCiAgIm5vbl9jbGFpbXMiOiBbCiAgICAiTm8gZXN0aW1hdGUgb2YgYXVkaWVuY2UgcHJldmFsZW5jZSwgZGVtb2dyYXBoaWNzLCBvciBnZW9ncmFwaHkuIiwKICAgICJObyBjbGFpbSBvZiBndWFyYW50ZWVkIGNvbnZlcnNpb24sIHNhbGVzLCBST0ksIG9yIGNhbXBhaWduIHBlcmZvcm1hbmNlLiIsCiAgICAiTm8gY2xhaW0gdGhhdCBjYXB0dXJlZCBjb21tZW50cyByZXByZXNlbnQgQ2FsY29sb2duZSdzIGVudGlyZSBhdWRpZW5jZS4iLAogICAgIk5vIGNsYWltIHRoYXQgYW55IGRpc3B1dGVkIHN1YnN0aXR1dGUgaXMgb2JqZWN0aXZlbHkgZXF1aXZhbGVudCB0byBpdHMgb3JpZ2luYWwuIiwKICAgICJObyBjbGFpbSB0aGF0IGEgdmFsdWVzLWxlZCBicmllZiB3aWxsIHByb2R1Y2UgYSBwcmVkaWN0YWJsZSBwb3NpdGl2ZSBvciBuZWdhdGl2ZSByZXNwb25zZS4iCiAgXSwKICAiYWN0dWFsX2F1ZGllbmNlX2RlbW9ncmFwaGljcyI6ICJub3RfZXN0aW1hdGVkIgp9",
+  "response_sha256": "sha256:3ab44f9d33bbe5c33069d004459be72933b831fd5b60b6e2e038fe4d1a95364c",
+  "response_size_bytes": 14403,
+  "schema_version": "creator_audience_judgment_outcome_v1",
+  "snapshot_id_or_none": "cats_777f0538b211d45f24d8",
+  "snapshot_or_none": {
+    "actual_audience_demographics": "not_estimated",
+    "creator_id": "tiktok:@calcologne",
+    "creator_signal_projection": {
+      "briefing_instructions": [
+        {
+          "claim_ids": [
+            "cac_f7e2280c8275fd8f3309",
+            "cac_6ba0e960ff67c5dbf690"
+          ],
+          "statement": "Give Calcologne the complete comparison set and permission to name a decisive winner for each use case."
+        },
+        {
+          "claim_ids": [
+            "cac_be65931549917c5e29ac",
+            "cac_b63e2f0456b738dea081",
+            "cac_64ba0a83dd35c670ea27"
+          ],
+          "statement": "Require opening, drydown, longevity, projection, price, and occasion to appear in the comparison wherever they are relevant."
+        },
+        {
+          "claim_ids": [
+            "cac_b63e2f0456b738dea081",
+            "cac_1669d39b4da463763127"
+          ],
+          "statement": "Preserve his ability to qualify similarity, surface weaknesses, and acknowledge disagreement instead of scripting an unbroken endorsement."
+        },
+        {
+          "claim_ids": [
+            "cac_6ba0e960ff67c5dbf690",
+            "cac_560f7b21531fb9ff2061"
+          ],
+          "statement": "Close by inviting the next comparison or use-case question so the audience has a concrete way to continue the decision."
+        }
+      ],
+      "creator_specific_execution": {
+        "claim_ids": [
+          "cac_be65931549917c5e29ac",
+          "cac_b63e2f0456b738dea081",
+          "cac_f7e2280c8275fd8f3309",
+          "cac_1508dba619aa4d5925bf"
+        ],
+        "statement": "He ranks affordable options, tests substitutes against originals through opening, drydown, longevity, and projection, and maps line variants to real occasions."
+      },
+      "hire_verdict": {
+        "claim_ids": [
+          "cac_6ba0e960ff67c5dbf690",
+          "cac_b63e2f0456b738dea081",
+          "cac_1508dba619aa4d5925bf",
+          "cac_560f7b21531fb9ff2061"
+        ],
+        "statement": "Hire Calcologne when a fragrance brief must turn a crowded choice set into a confident, occasion-fit pick without hiding price, performance, or clone trade-offs."
+      },
+      "observed_audience_response": {
+        "claim_ids": [
+          "cac_560f7b21531fb9ff2061",
+          "cac_6ba0e960ff67c5dbf690"
+        ],
+        "statement": "Captured participants report buying or ordering ranked picks, wearing or layering options, and returning with requests for the next comparison."
+      },
+      "product_advantage": {
+        "claim_ids": [
+          "cac_6ba0e960ff67c5dbf690",
+          "cac_b63e2f0456b738dea081",
+          "cac_64ba0a83dd35c670ea27",
+          "cac_1508dba619aa4d5925bf"
+        ],
+        "statement": "Calcologne makes crowded fragrance choices feel buyable by translating price, performance, similarity, and occasion into a defensible pick."
+      },
+      "robustness_stamp": null,
+      "strongest_campaign_jobs": [
+        {
+          "claim_ids": [
+            "cac_f7e2280c8275fd8f3309",
+            "cac_6ba0e960ff67c5dbf690",
+            "cac_1508dba619aa4d5925bf"
+          ],
+          "statement": "Launch or refresh a multi-product fragrance line by assigning each variant a clear occasion and buyer decision."
+        },
+        {
+          "claim_ids": [
+            "cac_be65931549917c5e29ac",
+            "cac_b63e2f0456b738dea081",
+            "cac_64ba0a83dd35c670ea27"
+          ],
+          "statement": "Prove the value of an affordable alternative with a transparent original-versus-substitute test that names both wins and gaps."
+        },
+        {
+          "claim_ids": [
+            "cac_6ba0e960ff67c5dbf690",
+            "cac_64ba0a83dd35c670ea27",
+            "cac_560f7b21531fb9ff2061"
+          ],
+          "statement": "Turn a seasonal discovery list into a ranked shortlist with explicit performance and use-case trade-offs."
+        }
+      ],
+      "wrong_hire_boundary": {
+        "claim_ids": [
+          "cac_b63e2f0456b738dea081",
+          "cac_1669d39b4da463763127",
+          "cac_092601979349b6cb85c7"
+        ],
+        "statement": "Do not hire Calcologne for a tightly scripted, comparator-free endorsement, an unqualified clone-equivalence claim, or a brand-neutral values brief that cannot tolerate visible disagreement."
+      }
+    },
+    "evidence_cutoff": "2026-07-18T04:38:02Z",
+    "generated_at": "2026-07-18T05:00:26Z",
+    "input_bundle_hash": "sha256:e70c76efea9f629e7989c989849989b5c6c3854be10eed008ad35448a0a30b57",
+    "input_bundle_id": "caeb_d0fa2838423099e84d66",
+    "judgment_claim_set": {
+      "agreements": [
+        "Calcologne's comparison-led content meets captured participants who evaluate fragrance through similarity, drydown, projection, longevity, scent DNA, and substitutes rather than responding only to presentation.",
+        "Captured participants bring live choice questions about edition, substitute, season, school suitability, performance, and longevity, while Calcologne supplies recommendations organized around those decisions.",
+        "Calcologne makes fragrance selection feel like choosing the right version of oneself for a real moment, from school and everyday wear to weddings, date nights, and special occasions."
+      ],
+      "claims": [
+        {
+          "all_support_evidence_ids": [
+            "ttte_21d92611a8e2f16a66e2",
+            "ttte_9304a7dc04407251f7a5",
+            "ttte_cc73960c7e3e9c9227e8",
+            "ttce_9d2194bb637073cd1164",
+            "ttce_ce94531bc3f53dda7924"
+          ],
+          "axis": "category_knowledge",
+          "claim_id": "cac_be65931549917c5e29ac",
+          "commercial_implication": "He can carry technically specific comparison briefs where credibility depends on explaining meaningful differences, not merely praising a product.",
+          "counterevidence_ids": [
+            "ttce_8046ab58970839528a03"
+          ],
+          "limitation": "The evidence demonstrates knowledge among captured participants, not the knowledge level of Calcologne's full follower base.",
+          "modality": "fused",
+          "relation": "agreement",
+          "representative_evidence_ids": [
+            "ttte_21d92611a8e2f16a66e2",
+            "ttte_9304a7dc04407251f7a5",
+            "ttte_cc73960c7e3e9c9227e8",
+            "ttce_9d2194bb637073cd1164",
+            "ttce_ce94531bc3f53dda7924"
+          ],
+          "source_item_ids": [
+            "7636499120164769054",
+            "7655519838428876063"
+          ],
+          "statement": "Calcologne's comparison-led content meets captured participants who evaluate fragrance through similarity, drydown, projection, longevity, scent DNA, and substitutes rather than responding only to presentation.",
+          "support_scope": "mixed_multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_0577c5aef629086cc50a",
+            "ttce_0c9c3747aed07a3bd768",
+            "ttce_d2b20b95f3ea69ebff9d",
+            "ttte_43a19f1427d221502c98",
+            "ttte_1f0ef2c11016048faf89"
+          ],
+          "axis": "purchase_decision_stage",
+          "claim_id": "cac_6ba0e960ff67c5dbf690",
+          "commercial_implication": "His strongest commercial position is late-consideration choice resolution: helping a buyer decide which version fits and why.",
+          "counterevidence_ids": [],
+          "limitation": "Questions and self-reports do not establish completed purchases or the distribution of decision stages across the audience.",
+          "modality": "fused",
+          "relation": "agreement",
+          "representative_evidence_ids": [
+            "ttce_0577c5aef629086cc50a",
+            "ttce_0c9c3747aed07a3bd768",
+            "ttce_d2b20b95f3ea69ebff9d",
+            "ttte_43a19f1427d221502c98",
+            "ttte_1f0ef2c11016048faf89"
+          ],
+          "source_item_ids": [
+            "7655519838428876063",
+            "7655878990992903454",
+            "7657345442304265502"
+          ],
+          "statement": "Captured participants bring live choice questions about edition, substitute, season, school suitability, performance, and longevity, while Calcologne supplies recommendations organized around those decisions.",
+          "support_scope": "mixed_multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_f066d84e3b59cc95fe74",
+            "ttte_afad0021d1ad751f5d6a",
+            "ttte_9304a7dc04407251f7a5"
+          ],
+          "axis": "price_value_posture",
+          "claim_id": "cac_b63e2f0456b738dea081",
+          "commercial_implication": "He is useful for transparent value proof when the client can tolerate an honest comparator, qualified similarity, and visible disagreement.",
+          "counterevidence_ids": [
+            "ttce_0b6355917354d3cb56fc",
+            "ttce_85c1ec8d7f86ea333aaf",
+            "ttce_c06542819f831f3ff940"
+          ],
+          "limitation": "Similarity, performance, and value remain subjective, and the captured evidence contains direct disagreement about the tested alternatives.",
+          "modality": "creator_content",
+          "relation": "contradiction",
+          "representative_evidence_ids": [
+            "ttte_f066d84e3b59cc95fe74",
+            "ttte_afad0021d1ad751f5d6a",
+            "ttte_9304a7dc04407251f7a5"
+          ],
+          "source_item_ids": [
+            "7636499120164769054",
+            "7655519838428876063"
+          ],
+          "statement": "Calcologne makes affordable alternatives easier to evaluate by comparing them with originals on similarity and wear, but captured owners dispute some equivalence claims and sometimes prefer another substitute or the original.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_04dfea3c6d1068a2c32d",
+            "ttce_29ff8a71bcd93b209184",
+            "ttce_3fc07484ecc683889bd8",
+            "ttce_799e3141b0499e0ab41d",
+            "ttce_9c96860d68c48facccb1",
+            "ttce_cd67128c4cc11eecc309",
+            "ttce_e8a230334d9ed90421b5"
+          ],
+          "axis": "product_brand_affinity",
+          "claim_id": "cac_f7e2280c8275fd8f3309",
+          "commercial_implication": "Calcologne can make a multi-product line commercially legible by giving each variant a distinct use case instead of forcing a single-product endorsement.",
+          "counterevidence_ids": [],
+          "limitation": "This pattern is concentrated in one captured product-line comparison and does not establish account-wide brand loyalty.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_04dfea3c6d1068a2c32d",
+            "ttce_29ff8a71bcd93b209184",
+            "ttce_3fc07484ecc683889bd8",
+            "ttce_9c96860d68c48facccb1",
+            "ttce_e8a230334d9ed90421b5"
+          ],
+          "source_item_ids": [
+            "7655878990992903454",
+            "7657345442304265502"
+          ],
+          "statement": "The MYSLF comparison draws edition-level preferences grounded in reported ownership and wear, with participants advocating for different variants rather than converging on one universal winner.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_0794641d4e621d6817b3",
+            "ttce_0b6355917354d3cb56fc",
+            "ttce_67cd193e9c3d2d01801e",
+            "ttce_8785e441afc34f3fc548",
+            "ttce_936cc9f1d5edc0b47d65"
+          ],
+          "axis": "language_community_norms",
+          "claim_id": "cac_1669d39b4da463763127",
+          "commercial_implication": "Buyer copy should let him speak plainly, name trade-offs, and withstand correction; polished consensus language would weaken the fit.",
+          "counterevidence_ids": [],
+          "limitation": "Captured top-level comments may overrepresent participants motivated to joke, request, agree, or challenge.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_0794641d4e621d6817b3",
+            "ttce_0b6355917354d3cb56fc",
+            "ttce_67cd193e9c3d2d01801e",
+            "ttce_8785e441afc34f3fc548",
+            "ttce_936cc9f1d5edc0b47d65"
+          ],
+          "source_item_ids": [
+            "7636499120164769054",
+            "7655519838428876063",
+            "7655878990992903454",
+            "7659159347850710302"
+          ],
+          "statement": "Captured comments are colloquial, direct, and willing to challenge hype, equivalence, honesty, or content choices, making visible candor part of the exchange around Calcologne's recommendations.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_03112952b2f8472b08cc",
+            "ttce_0b6355917354d3cb56fc",
+            "ttce_85c1ec8d7f86ea333aaf",
+            "ttce_ecebe8f46516b138dcad",
+            "ttce_fb74f02e339d4baab4c4"
+          ],
+          "axis": "objections",
+          "claim_id": "cac_64ba0a83dd35c670ea27",
+          "commercial_implication": "A matching brief should remove buying risk with unmistakable labeling, realistic price and availability context, wear-through evidence, and explicit similarity limits.",
+          "counterevidence_ids": [],
+          "limitation": "These objections are self-reported and were not independently tested.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_03112952b2f8472b08cc",
+            "ttce_0b6355917354d3cb56fc",
+            "ttce_85c1ec8d7f86ea333aaf",
+            "ttce_ecebe8f46516b138dcad",
+            "ttce_fb74f02e339d4baab4c4"
+          ],
+          "source_item_ids": [
+            "7636499120164769054",
+            "7655519838428876063"
+          ],
+          "statement": "The captured objections center on product-name confusion, availability and price, weak performance, clone accuracy, and disappointment after hype.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_f53adb3ab45bd5f73608",
+            "ttte_1f0ef2c11016048faf89",
+            "ttte_e86ddca6c418133ceb78",
+            "ttce_29aa8748825d4b726a0e",
+            "ttce_d2b20b95f3ea69ebff9d"
+          ],
+          "axis": "aspirations_identity",
+          "claim_id": "cac_1508dba619aa4d5925bf",
+          "commercial_implication": "He can turn abstract scent differences into socially legible roles that help a buyer picture when a product belongs in their life.",
+          "counterevidence_ids": [],
+          "limitation": "Moment-fit examples do not reveal demographic segments or how common these aspirations are.",
+          "modality": "fused",
+          "relation": "agreement",
+          "representative_evidence_ids": [
+            "ttte_f53adb3ab45bd5f73608",
+            "ttte_1f0ef2c11016048faf89",
+            "ttte_e86ddca6c418133ceb78",
+            "ttce_29aa8748825d4b726a0e",
+            "ttce_d2b20b95f3ea69ebff9d"
+          ],
+          "source_item_ids": [
+            "7655878990992903454",
+            "7657345442304265502"
+          ],
+          "statement": "Calcologne makes fragrance selection feel like choosing the right version of oneself for a real moment, from school and everyday wear to weddings, date nights, and special occasions.",
+          "support_scope": "mixed_multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_3600cfb248cfe8c2d6c3",
+            "ttce_e476daf3db7110028834",
+            "ttce_6c16f41d1e335ea4a010",
+            "ttce_1b26486b98257a7c8d16",
+            "ttce_0577c5aef629086cc50a"
+          ],
+          "axis": "presentation_style_resonance",
+          "claim_id": "cac_560f7b21531fb9ff2061",
+          "commercial_implication": "His comparison formats can support briefs designed to produce a concrete next choice, not merely product awareness.",
+          "counterevidence_ids": [],
+          "limitation": "Reported buying, ordering, wearing, and layering are unverified individual comments and do not establish conversion.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_3600cfb248cfe8c2d6c3",
+            "ttce_e476daf3db7110028834",
+            "ttce_6c16f41d1e335ea4a010",
+            "ttce_1b26486b98257a7c8d16",
+            "ttce_0577c5aef629086cc50a"
+          ],
+          "source_item_ids": [
+            "7636499120164769054",
+            "7657345442304265502"
+          ],
+          "statement": "In the captured response to Calcologne's ranked and comparative content, participants report buying or ordering specific picks, wearing or layering options, and requesting another line comparison.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_3cc37cc33b6bd96fe028",
+            "ttce_512da6c57e3fce53f052",
+            "ttce_a0eb40ac5881e38936da"
+          ],
+          "axis": "engagement_memorability_effect",
+          "claim_id": "cac_092601979349b6cb85c7",
+          "commercial_implication": "Values-adjacent work can carry consequential attention when the client is genuinely aligned, but it introduces visible polarization and reduced message control.",
+          "counterevidence_ids": [
+            "ttce_6445e9b2f781f0bb0437",
+            "ttce_957d9f1b60e9a99f792a",
+            "ttce_98b81c38b5ba480f16a7"
+          ],
+          "limitation": "This response comes from one selected values statement and cannot establish durable sentiment, verified retailer behavior, or an audience-wide reaction.",
+          "modality": "observed_comments",
+          "relation": "contradiction",
+          "representative_evidence_ids": [
+            "ttce_3cc37cc33b6bd96fe028",
+            "ttce_512da6c57e3fce53f052",
+            "ttce_a0eb40ac5881e38936da"
+          ],
+          "source_item_ids": [
+            "7660708682774088991"
+          ],
+          "statement": "Calcologne's public values stance becomes personally and commercially memorable: some captured participants say it preserved trust or changed their retailer intent, while others demand fragrance-only content or report withdrawing support.",
+          "support_scope": "single_item"
+        }
+      ],
+      "contradictions": [
+        "Calcologne makes affordable alternatives easier to evaluate by comparing them with originals on similarity and wear, but captured owners dispute some equivalence claims and sometimes prefer another substitute or the original.",
+        "Calcologne's public values stance becomes personally and commercially memorable: some captured participants say it preserved trust or changed their retailer intent, while others demand fragrance-only content or report withdrawing support."
+      ],
+      "missing_evidence": []
+    },
+    "limitations": [
+      "The capture is not a platform-wide comment census, may reflect ranked or truncated video selection, and excludes reply-thread analysis.",
+      "One selected video contributes captured comments but no admitted creator-content cue in the compact view.",
+      "Captured commenters are participating audience evidence, not a basis for audience prevalence, demographics, or geography.",
+      "Reported purchases, orders, wearing, layering, and retailer intentions were not independently verified.",
+      "Comment engagement was not used to establish the truth of any claim."
+    ],
+    "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+    "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+    "non_claims": [
+      "No estimate of audience prevalence, demographics, or geography.",
+      "No claim of guaranteed conversion, sales, ROI, or campaign performance.",
+      "No claim that captured comments represent Calcologne's entire audience.",
+      "No claim that any disputed substitute is objectively equivalent to its original.",
+      "No claim that a values-led brief will produce a predictable positive or negative response."
+    ],
+    "platform_account_id": "acct_tiktok_fragrance_008",
+    "platform_scope": "tiktok",
+    "profile_subject_id": "acct_tiktok_fragrance_008",
+    "profile_subject_kind": "platform_account",
+    "schema_version": "creator_audience_triangulation_snapshot_v1",
+    "snapshot_id": "cats_777f0538b211d45f24d8"
+  },
+  "snapshot_sha256_or_none": "sha256:bdfddd7bf9882a696451940bef508df8dac4bbfad26aa9e85ac833ba98df0342",
+  "status": "validated",
+  "validation_errors": []
+}

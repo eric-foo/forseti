@@ -518,6 +518,18 @@
         "display_name_source_field_or_none": "tiktok_creator_discovery_frontier_register.nodes[7].display_name_or_none"
       },
       {
+        "platform_account_id": "acct_tiktok_fragrance_008",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "calcologne",
+        "public_profile_url": "https://www.tiktok.com/@calcologne",
+        "handle_source_pointer": "F:\\forseti-data-lake\\raw\\cdb\\01KXSS2BP396R7W3RJ9SVYG1N9\\raw\\04_tiktok_suggested_accounts_attempt.json#/creator_handle",
+        "handle_observed_at": "2026-07-18T04:34:36Z",
+        "public_display_name_or_none": null,
+        "display_name_source_pointer_or_none": null,
+        "display_name_source_field_or_none": null
+      },
+      {
         "platform_account_id": "acct_yt_fragrance_032",
         "platform": "youtube",
         "platform_public_account_id_or_none": "UCJ7EzNsSGFBx1w5KQqRzMqA",
