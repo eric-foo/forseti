@@ -153,13 +153,19 @@ admission is stricter: `currencyOfPreference=USD` establishes currency only.
 ZIP in Amazon's location anchor and an amazon.com US-marketplace marker. The
 runner preserves a failed or redirected page with
 `amazon_delivery_zip_pin_failed` and exits nonzero; operators must not project or
-admit that packet as US delivery-pinned evidence.
+admit that packet as US delivery-pinned evidence. When the final host is
+specifically Amazon Singapore, the same packet also carries
+`amazon_us_vpn_fallback_required`; open
+`amazon_us_vpn_regression_recovery_playbook_v0.md` for the one owner-authorized
+Surfshark US / New York retry. Other delivery-pin failures do not inherit that
+recovery.
 
 ## Failure Taxonomy
 
 | Symptom | Classification | Operator response |
 | --- | --- | --- |
 | `WinError 5` / local subprocess permission before browser launch | Local tool/sandbox permission failure | Rerun the same bounded command with the required local approval; do not change retailer URL or flags. |
+| `amazon_us_vpn_fallback_required` on a preserved Amazon delivery-pin packet | Amazon US attempt regressed to the Amazon Singapore marketplace | Follow `amazon_us_vpn_regression_recovery_playbook_v0.md`: preserve the direct failure, observe and activate Surfshark US / New York, repeat the exact capture once with a fresh output, decide only from Amazon-owned signals, then disconnect and verify. |
 | Capture command exits non-zero before packet path prints | Capture/access failure | Preserve the stderr text and stop for that retailer unless a new fact justifies one bounded re-probe. |
 | Packet writes but projection fails | Sidecar/projection failure | Treat the packet as preserved scratch evidence; inspect projection error against `retail_pdp_projection.py` and tests before changing code. |
 | Auth wall, CAPTCHA, Cloudflare challenge, or private account gate | Access-control stop | Stop and report visible limitation. Do not bypass or solve the gate. |

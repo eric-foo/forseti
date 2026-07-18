@@ -46,6 +46,12 @@ Pin dimensions are independent:
 - A product's country of origin, a dollar glyph, a retailer hostname, or a
   working product capture is not a storefront, currency, or delivery pin.
 
+Amazon conditional recovery router: when an Amazon delivery-pinned capture
+preserves a final `amazon.sg` or `www.amazon.sg` host, the runner emits
+`amazon_us_vpn_fallback_required`. Cold agents must open
+`amazon_us_vpn_regression_recovery_playbook_v0.md`; the token authorizes one
+Surfshark US / New York retry, not a loop or pin promotion.
+
 ## Current operating registry
 
 | Retailer | Current capture route | Session posture | Storefront country | Currency | Delivery location | Last verified evidence | Limits and re-probe trigger |

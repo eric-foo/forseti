@@ -106,7 +106,9 @@ _BROWSER_SECRET_PATTERNS = (
 SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
 _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
 AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
+AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE = "amazon_us_vpn_fallback_required"
 _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
+_AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 
 
 def run_source_capture_cloakbrowser_packet(
@@ -276,10 +278,32 @@ def run_source_capture_cloakbrowser_packet(
         final_url=capture_result.final_url,
         pin_confirmed=capture_result.metadata.get("pin_confirmed"),
     )
+    amazon_vpn_fallback_reason = _amazon_us_vpn_fallback_reason(
+        delivery_zip=delivery_zip,
+        final_url=capture_result.final_url,
+    )
+    if delivery_zip is not None:
+        capture_result.metadata["amazon_us_vpn_fallback_required"] = (
+            amazon_vpn_fallback_reason is not None
+        )
+        capture_result.metadata["amazon_us_vpn_fallback_trigger"] = (
+            "final_marketplace_host_amazon_sg"
+            if amazon_vpn_fallback_reason is not None
+            else None
+        )
     if amazon_pin_failure is not None:
         packet_limitations.append(
             f"{AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE}: {amazon_pin_failure}; packet "
             "preserved but MUST NOT be admitted as Amazon US delivery-pinned evidence"
+        )
+    if amazon_vpn_fallback_reason is not None:
+        packet_limitations.append(
+            f"{AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE}: "
+            f"{amazon_vpn_fallback_reason}; preserve this failed packet, then an "
+            "operator or cold agent may activate the pre-existing Surfshark "
+            "United States / New York route and repeat the exact capture once. "
+            "The capture runner did not activate or verify the VPN; Amazon-owned "
+            "US marketplace, exact USD, and delivery ZIP signals still decide admission"
         )
     if block_heavy_assets:
         packet_limitations.append(
@@ -300,6 +324,8 @@ def run_source_capture_cloakbrowser_packet(
         packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if amazon_pin_failure is not None:
         packet_visible_mode_changes.append(AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE)
+    if amazon_vpn_fallback_reason is not None:
+        packet_visible_mode_changes.append(AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE)
     sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
@@ -556,9 +582,12 @@ def run_source_capture_cloakbrowser_packet(
             f"{result.output_directory}; {sephora_pin_failure}",
         )
     if amazon_pin_failure is not None:
+        failure_tokens = [AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE]
+        if amazon_vpn_fallback_reason is not None:
+            failure_tokens.append(AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE)
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
-            f"{AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{'+'.join(failure_tokens)}: packet preserved at "
             f"{result.output_directory}; {amazon_pin_failure}",
         )
     if sufficiency_result.enabled and not sufficiency_result.passed:
@@ -633,6 +662,29 @@ def _amazon_delivery_pin_failure(
             f"requested ZIP {delivery_zip!r} was not confirmed on the captured page"
         )
     return "; ".join(reasons) if reasons else None
+
+
+def _amazon_us_vpn_fallback_reason(
+    *,
+    delivery_zip: str | None,
+    final_url: str,
+) -> str | None:
+    """Return a typed recovery reason only for an Amazon-US attempt that lands in SG.
+
+    The runner does not activate or verify a VPN. This narrow classifier lets a cold
+    operator distinguish the owner-authorized Surfshark recovery case from selector
+    drift, a missing ZIP anchor, or an unrelated marketplace redirect.
+    """
+
+    if delivery_zip is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    if final_hostname not in _AMAZON_SG_HOSTS:
+        return None
+    return (
+        f"requested Amazon US delivery ZIP {delivery_zip!r} landed on "
+        f"Amazon Singapore host {final_hostname!r}"
+    )
 
 
 def _assert_no_browser_secret_bytes(inputs) -> None:
