@@ -877,6 +877,67 @@ def test_complete_onboarding_preserves_retained_audience_pairs(
     assert outcome_values == [str(retained_outcome), str(outcome_path)]
 
 
+def test_retained_audience_pairs_are_discovered_from_hash_bound_source_inputs(
+    tmp_path: Path,
+) -> None:
+    registry_dir = (
+        Path(__file__).resolve().parents[3]
+        / "forseti/product/spines/capture/core/source_families/social_media"
+        / "creator_registry"
+    )
+    snapshot_path = (
+        registry_dir
+        / "ak_fragrances1_creator_audience_triangulation_snapshot_v1.json"
+    )
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    previous_document = {
+        "creator_profile_current_view": {
+            "profiles": [
+                {
+                    "profile_subject_id": snapshot["profile_subject_id"],
+                    "audience_triangulation": snapshot,
+                }
+            ],
+            "source_inputs": [
+                {
+                    "role": (
+                        "validated transcript/comment audience triangulation snapshots"
+                    ),
+                    "source_pointer": str(snapshot_path),
+                    "sha256": hashlib.sha256(snapshot_path.read_bytes()).hexdigest(),
+                }
+            ],
+        }
+    }
+
+    snapshots, outcomes = (
+        onboarding_coordinator._discover_retained_audience_pairs(
+            previous_document=previous_document,
+            target_profile_subject_id="platform_account:tiktok:new_creator",
+        )
+    )
+
+    assert snapshots == (snapshot_path,)
+    assert len(outcomes) == 1
+    assert outcomes[0].name == (
+        "ak_fragrances1_creator_audience_judgment_outcome_v1.json"
+    )
+
+    isolated_snapshot = tmp_path / snapshot_path.name
+    isolated_snapshot.write_bytes(snapshot_path.read_bytes())
+    previous_document["creator_profile_current_view"]["source_inputs"][0].update(
+        {
+            "source_pointer": str(isolated_snapshot),
+            "sha256": hashlib.sha256(isolated_snapshot.read_bytes()).hexdigest(),
+        }
+    )
+    with pytest.raises(ValueError, match="exactly one successful sibling"):
+        onboarding_coordinator._discover_retained_audience_pairs(
+            previous_document=previous_document,
+            target_profile_subject_id="platform_account:tiktok:new_creator",
+        )
+
+
 @pytest.mark.parametrize("perturbation", ["missing", "changed"])
 def test_complete_onboarding_refuses_existing_audience_join_loss_or_change(
     tmp_path: Path,
@@ -948,6 +1009,8 @@ def test_complete_onboarding_refuses_existing_audience_join_loss_or_change(
         onboarding_coordinator.complete_onboarding(
             snapshot_path=snapshot_path,
             outcome_path=outcome_path,
+            retained_snapshot_paths=(tmp_path / "retained.snapshot.json",),
+            retained_outcome_paths=(tmp_path / "retained.outcome.json",),
             output_path=output_path,
             account_ledger_path=tmp_path / "ledger.json",
             creator_registry_index_path=tmp_path / "registry.json",

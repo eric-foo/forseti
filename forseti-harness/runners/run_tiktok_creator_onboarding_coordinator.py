@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import json
 import os
@@ -14,7 +15,10 @@ from typing import Any, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from capture_spine.creator_profile_current.materialize import load_json
+from capture_spine.creator_profile_current.materialize import (
+    load_json,
+    verify_audience_judgment_outcomes,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_creator_profile_current_materialize import main as materialize_main
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
@@ -28,6 +32,7 @@ from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutco
 
 
 _ALLOWED_SILVER_STATUSES = {"derived", "already_current"}
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def _audience_joins_by_subject(document: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -80,6 +85,95 @@ def _verify_existing_audience_joins_preserved(
                 "existing audience_triangulation join was not preserved for "
                 f"profile_subject_id={profile_subject_id}: join changed"
             )
+
+
+def _discover_retained_audience_pairs(
+    *,
+    previous_document: dict[str, Any],
+    target_profile_subject_id: str,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    """Resolve prior validated joins from the current view's source inputs."""
+
+    wrapper = previous_document.get("creator_profile_current_view")
+    if not isinstance(wrapper, dict):
+        return (), ()
+    joins = _audience_joins_by_subject(previous_document)
+    joins.pop(target_profile_subject_id, None)
+    if not joins:
+        return (), ()
+    source_inputs = wrapper.get("source_inputs")
+    if not isinstance(source_inputs, list):
+        raise ValueError(
+            "existing audience joins require audience snapshot source_inputs"
+        )
+
+    snapshot_candidates: list[tuple[Path, dict[str, Any]]] = []
+    for source_input in source_inputs:
+        if (
+            not isinstance(source_input, dict)
+            or source_input.get("role")
+            != "validated transcript/comment audience triangulation snapshots"
+        ):
+            continue
+        pointer = source_input.get("source_pointer")
+        expected_sha256 = source_input.get("sha256")
+        if not isinstance(pointer, str) or not pointer.strip():
+            raise ValueError("audience snapshot source_input has no source_pointer")
+        snapshot_path = Path(pointer)
+        if not snapshot_path.is_absolute():
+            snapshot_path = ROOT / snapshot_path
+        if not snapshot_path.is_file():
+            raise ValueError(
+                f"audience snapshot source_input is missing: {snapshot_path}"
+            )
+        actual_sha256 = hashlib.sha256(
+            snapshot_path.read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest()
+        if expected_sha256 != actual_sha256:
+            raise ValueError(
+                f"audience snapshot source_input hash mismatch: {snapshot_path}"
+            )
+        snapshots = load_json(snapshot_path)
+        if not isinstance(snapshots, dict):
+            raise ValueError(f"audience snapshot is not an object: {snapshot_path}")
+        snapshot_candidates.append((snapshot_path, snapshots))
+
+    retained_snapshots: list[Path] = []
+    retained_outcomes: list[Path] = []
+    for profile_subject_id, joined in sorted(joins.items()):
+        matching_snapshots = [
+            (path, snapshot)
+            for path, snapshot in snapshot_candidates
+            if snapshot.get("profile_subject_id") == profile_subject_id
+            and snapshot.get("snapshot_id") == joined.get("snapshot_id")
+            and snapshot.get("input_bundle_hash")
+            == joined.get("input_bundle_hash")
+        ]
+        if len(matching_snapshots) != 1:
+            raise ValueError(
+                "existing audience join must resolve to exactly one hash-bound "
+                f"snapshot source_input: profile_subject_id={profile_subject_id}"
+            )
+        snapshot_path, _snapshot = matching_snapshots[0]
+        outcome_candidates: list[Path] = []
+        for outcome_path in snapshot_path.parent.glob(
+            "*creator_audience_judgment_outcome*.json"
+        ):
+            try:
+                verify_audience_judgment_outcomes(
+                    (snapshot_path,), (outcome_path,)
+                )
+            except (OSError, ValueError, json.JSONDecodeError):
+                continue
+            outcome_candidates.append(outcome_path)
+        if len(outcome_candidates) != 1:
+            raise ValueError(
+                "existing audience join must resolve to exactly one successful "
+                f"sibling Judgment outcome: profile_subject_id={profile_subject_id}"
+            )
+        retained_snapshots.append(snapshot_path)
+        retained_outcomes.append(outcome_candidates[0])
+    return tuple(retained_snapshots), tuple(retained_outcomes)
 
 
 def _packet_result(results: Sequence[dict[str, Any]], packet_id: str, lane: str) -> dict[str, Any]:
@@ -187,6 +281,18 @@ def complete_onboarding(
     outcome = outcome_model.model_validate(raw_outcome)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     previous_output = output_path.read_bytes() if output_path.exists() else None
+    if (
+        previous_output is not None
+        and not retained_snapshot_paths
+        and not retained_outcome_paths
+    ):
+        (
+            retained_snapshot_paths,
+            retained_outcome_paths,
+        ) = _discover_retained_audience_pairs(
+            previous_document=json.loads(previous_output),
+            target_profile_subject_id=outcome.profile_subject_id,
+        )
     with tempfile.NamedTemporaryFile(
         dir=output_path.parent,
         prefix=f".{output_path.name}.",

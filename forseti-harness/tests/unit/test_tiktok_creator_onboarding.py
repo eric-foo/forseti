@@ -1466,6 +1466,11 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
     monkeypatch.setattr(
         runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
     )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
 
     def account_safety_stop(**_kwargs: object) -> object:
         raise TikTokCreatorOnboardingError("account_safety_stop")
@@ -1572,6 +1577,11 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         runner, "default_session_profile_auth_state_root", lambda: tmp_path
     )
     monkeypatch.setattr(runner, "resolve_session_profile", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
     monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", lambda **_kwargs: paths)
 
     def fake_writer(**kwargs: object) -> tuple[int, str]:
@@ -1605,6 +1615,325 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         "selection_result_json",
         "suggested_accounts_json",
     ]
+
+
+def test_onboarding_cli_reuses_valid_prior_capture_without_deep_capture(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_dir = tmp_path / "staging"
+    output_dir.mkdir()
+    paths = onboarding.TikTokCreatorProfileRefreshOutputPaths(
+        grid_window_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
+        onboarding_receipt_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+    )
+    paths.grid_window_json_path.write_text('{"grid":"profile"}', encoding="utf-8")
+    paths.onboarding_receipt_json_path.write_text(
+        json.dumps(
+            {
+                "status": "complete",
+                "capture_scope": "profile_refresh",
+                "creator_handle": "creator",
+                "session_profile": "chowdakr_sg_tiktok",
+                "window_size": 1,
+                "selection_count": 0,
+                "window_cap": 30,
+                "selected_count": 0,
+                "completed_deep_capture_count": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            output_dir / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {"action_status": "allowed"},
+        ),
+    )
+    monkeypatch.setattr(
+        runner,
+        "_validate_reusable_prior_capture",
+        lambda **_kwargs: {
+            "packet_id": "01PRIOR",
+            "nonblank_top_level_comment_count": 148,
+            "nonblank_transcript_cue_count": 361,
+        },
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_onboarding",
+        lambda **_kwargs: pytest.fail("deep capture must not run"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_profile_refresh",
+        lambda **_kwargs: paths,
+    )
+    admitted: dict[str, object] = {}
+
+    def fake_grid_writer(**kwargs: object) -> tuple[int, str]:
+        admitted.update(kwargs)
+        return 0, str(tmp_path / "profile-packet")
+
+    monkeypatch.setattr(runner, "write_tiktok_grid_packet", fake_grid_writer)
+
+    assert (
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--creator-intent",
+                "update_existing",
+                "--output-dir",
+                str(output_dir),
+                "--prior-capture-pointer",
+                "01PRIOR",
+                "--admit-output",
+                str(tmp_path / "profile-packet"),
+            ]
+        )
+        == 0
+    )
+    assert admitted["grid_window_json"] == paths.grid_window_json_path.read_bytes()
+    summary_line = next(
+        line
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith(runner.SUMMARY_PREFIX)
+    )
+    summary = json.loads(summary_line.removeprefix(runner.SUMMARY_PREFIX))
+    assert summary["capture_scope"] == "profile_refresh"
+    assert summary["completed_deep_capture_count"] == 0
+    assert summary["prior_capture_pointer_or_none"] == "01PRIOR"
+    assert summary["profile_refresh_packet_or_none"].endswith("profile-packet")
+
+
+def test_onboarding_cli_rejects_invalid_reuse_before_browser_probe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    probed = False
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {"action_status": "allowed"},
+        ),
+    )
+
+    def invalid_prior(**_kwargs: object) -> dict[str, object]:
+        raise ValueError("prior capture is not reusable")
+
+    def probe(*_args: object, **_kwargs: object) -> dict[str, object]:
+        nonlocal probed
+        probed = True
+        return {"browser_available": True}
+
+    monkeypatch.setattr(runner, "_validate_reusable_prior_capture", invalid_prior)
+    monkeypatch.setattr(runner, "probe_local_cdp_endpoints", probe)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                str(tmp_path / "out"),
+                "--prior-capture-pointer",
+                "01INVALID",
+            ]
+        )
+    assert exc_info.value.code == 2
+    assert probed is False
+
+
+def test_onboarding_cli_reports_exact_cdp_recovery_without_capture(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {"action_status": "allowed"},
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": False},
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_onboarding",
+        lambda **_kwargs: pytest.fail("capture must not run"),
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    assert exc_info.value.code == 2
+    assert runner.BLOCKER_PREFIX + json.dumps(
+        {
+            "code": "CDP_SESSION_UNAVAILABLE",
+            "phase": "browser_preflight",
+            "recovery": runner.CDP_RECOVERY,
+        },
+        sort_keys=True,
+    ) in capsys.readouterr().out.splitlines()
+
+
+@pytest.mark.parametrize(
+    ("creator_handle", "captured_comment_count", "subtitle_cue_count", "error"),
+    [
+        ("other", 1, 1, "creator_handle does not match"),
+        ("creator", 0, 1, "at least one captured comment"),
+        ("creator", 1, 0, "at least one captured comment"),
+    ],
+)
+def test_prior_capture_reuse_validation_fails_closed_on_wrong_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    creator_handle: str,
+    captured_comment_count: int,
+    subtitle_cue_count: int,
+    error: str,
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "build_tiktok_batch_coverage_from_packet_directory",
+        lambda _path: {
+            "source_surface": runner.TIKTOK_BATCH_CAPTURE_SURFACE,
+            "packet_id": "01PRIOR",
+            "creator_handle": creator_handle,
+            "coverage_rollup": {
+                "nonblank_top_level_comment_count": captured_comment_count,
+                "nonblank_transcript_cue_count": subtitle_cue_count,
+            },
+        },
+    )
+
+    with pytest.raises(ValueError, match=error):
+        runner._validate_reusable_prior_capture(
+            prior_capture_pointer=str(tmp_path / "prior"),
+            creator_handle="creator",
+            data_root=None,
+        )
+
+
+def test_prior_capture_reuse_validation_rejects_tombstone_before_packet_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class TombstonedRoot:
+        @staticmethod
+        def tombstoned_packet_ids() -> set[str]:
+            return {"01PRIOR"}
+
+    monkeypatch.setattr(
+        runner,
+        "build_tiktok_batch_coverage_from_lake",
+        lambda *_args: pytest.fail("tombstoned packet must not be read"),
+    )
+
+    with pytest.raises(ValueError, match="prior capture packet is tombstoned"):
+        runner._validate_reusable_prior_capture(
+            prior_capture_pointer="01PRIOR",
+            creator_handle="creator",
+            data_root=TombstonedRoot(),
+        )
+
+
+def test_profile_refresh_uses_only_profile_grid_and_writes_zero_deep_receipt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state_path = tmp_path / "state.json"
+    state_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        onboarding,
+        "validate_auth_state_provenance_requirement",
+        lambda *_args, **_kwargs: state_path,
+    )
+    grid = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 300, 30)],
+    )
+    grid.dom_observation["profile_bio_text_or_none"] = "Exact bio"
+    grid.dom_observation["profile_bio_element_detected"] = True
+    engine = _FakeEngine([grid, grid, grid])
+
+    paths = onboarding.run_tiktok_creator_profile_refresh(
+        creator_handle="creator",
+        session_profile=_profile(),
+        output_dir=tmp_path,
+        auth_state_root=tmp_path,
+        window_size=27,
+        engine=engine,
+    )
+
+    assert len(engine.calls) == 3
+    assert {
+        call["url"] for call in engine.calls
+    } == {"https://www.tiktok.com/@creator"}
+    assert all("/video/" not in str(call["url"]) for call in engine.calls)
+    grid_window = json.loads(
+        paths.grid_window_json_path.read_text(encoding="utf-8")
+    )
+    receipt = json.loads(
+        paths.onboarding_receipt_json_path.read_text(encoding="utf-8")
+    )
+    assert grid_window["profile_bio_text_or_none"] == "Exact bio"
+    assert receipt["capture_scope"] == "profile_refresh"
+    assert receipt["selection_count"] == 0
+    assert receipt["completed_deep_capture_count"] == 0
+
+
+def test_grid_window_preserves_exact_profile_bio() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 300, 30)],
+    )
+    capture.dom_observation["profile_bio_text_or_none"] = "  Exact bio 🇬🇧  "
+    capture.dom_observation["profile_bio_element_detected"] = True
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=1,
+    )
+
+    assert window["profile_bio_text_or_none"] == "Exact bio 🇬🇧"
+    assert window["profile_bio_status"] == "observed"
 
 
 def test_grid_window_accepts_available_rows_below_cap() -> None:

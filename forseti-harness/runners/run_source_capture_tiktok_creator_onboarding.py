@@ -32,6 +32,12 @@ from source_capture.session_profiles import (
     default_session_profile_auth_state_root,
     resolve_session_profile,
 )
+from source_capture.adapters.browser_session_probe import probe_local_cdp_endpoints
+from source_capture.tiktok.batch_coverage import (
+    build_tiktok_batch_coverage_from_lake,
+    build_tiktok_batch_coverage_from_packet_directory,
+)
+from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_SURFACE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.creator_onboarding import (
     DEFAULT_MAX_GRID_SCROLL_PASSES,
@@ -40,7 +46,9 @@ from source_capture.tiktok.creator_onboarding import (
     GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
+    run_tiktok_creator_profile_refresh,
 )
+from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
@@ -57,6 +65,18 @@ DEFAULT_CREATOR_REGISTRY = (
     / "creator_registry/creator_profile_current_view_v0.json"
 )
 REGISTRY_PREFLIGHT_JSON_NAME = "creator_registry_match_preflight.json"
+DEFAULT_DECISION_QUESTION = (
+    "Admit the selected TikTok onboarding videos' public comments, "
+    "subtitles, source text, and typed extraction seeds."
+)
+PROFILE_REFRESH_DECISION_QUESTION = (
+    "Admit the current TikTok profile bio, exact profile metrics, and grid identifiers."
+)
+CDP_RECOVERY = "launch Desktop shortcut Forseti TikTok Capture and retry"
+
+
+class CdpSessionUnavailable(TikTokCreatorOnboardingError):
+    """Raised when the dedicated local TikTok CDP endpoint is not reachable."""
 
 
 def _onboarding_window_size(value: str) -> int:
@@ -145,16 +165,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--prior-capture-pointer",
         help=(
-            "Optional prior Bronze packet pointer. When supplied, this run writes a "
-            "separate supplement and never rewrites the prior packet provenance."
+            "Prior TikTok batch packet to reuse. By default this validates its "
+            "transcript/comment coverage and captures only current profile evidence."
+        ),
+    )
+    parser.add_argument(
+        "--force-deep-recapture",
+        action="store_true",
+        help=(
+            "With --prior-capture-pointer, deliberately repeat the full eight-video "
+            "deep capture instead of the reuse-first profile refresh."
         ),
     )
     parser.add_argument(
         "--decision-question",
-        default=(
-            "Admit the selected TikTok onboarding videos' public comments, "
-            "subtitles, source text, and typed extraction seeds."
-        ),
+        default=DEFAULT_DECISION_QUESTION,
     )
     return parser
 
@@ -169,6 +194,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "session_profile": args.session_profile,
         },
     )
+    data_root = None
+    capture_scope = "full_deep_capture"
+    prior_coverage: dict[str, object] | None = None
     try:
         preflight_path, preflight_result = _write_creator_registry_preflight(
             creator_handle=args.creator_handle,
@@ -180,6 +208,33 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise TikTokCreatorOnboardingError(
                 f"Creator Registry preflight blocked: {preflight_result['action_blockers']}"
             )
+        if args.force_deep_recapture and not args.prior_capture_pointer:
+            raise ValueError(
+                "--force-deep-recapture requires --prior-capture-pointer"
+            )
+        if args.data_root is not None:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+        if args.prior_capture_pointer and not args.force_deep_recapture:
+            prior_coverage = _validate_reusable_prior_capture(
+                prior_capture_pointer=args.prior_capture_pointer,
+                creator_handle=args.creator_handle,
+                data_root=data_root,
+            )
+            capture_scope = "profile_refresh"
+            _emit_progress(
+                "prior_capture_reuse_validated",
+                {
+                    "prior_capture_pointer": args.prior_capture_pointer,
+                    "captured_comment_count": prior_coverage[
+                        "nonblank_top_level_comment_count"
+                    ],
+                    "subtitle_cue_count": prior_coverage[
+                        "nonblank_transcript_cue_count"
+                    ],
+                },
+            )
         auth_state_root = args.auth_state_root or default_session_profile_auth_state_root()
         _emit_progress("registry_preflight_complete", {"status": "allowed"})
         session_profile = resolve_session_profile(
@@ -190,24 +245,53 @@ def main(argv: Sequence[str] | None = None) -> int:
             "session_profile_resolved",
             {"session_profile": args.session_profile},
         )
-        paths = run_tiktok_creator_onboarding(
-            creator_handle=args.creator_handle,
-            session_profile=session_profile,
-            output_dir=args.output_dir,
-            auth_state_root=auth_state_root,
-            window_size=args.window_size,
-            selection_count=DEFAULT_SELECTION_COUNT,
-            timeout_seconds=args.timeout_seconds,
-            settle_seconds=args.settle_seconds,
-            max_grid_scroll_passes=args.max_grid_scroll_passes,
-            cadence_min_gap_seconds=args.cadence_min_gap_seconds,
-            cadence_max_gap_seconds=args.cadence_max_gap_seconds,
-            cadence_window_seconds=args.cadence_window_seconds,
-            random_seed=args.random_seed,
-            progress_fn=_emit_progress,
+        cdp_report = probe_local_cdp_endpoints(
+            (9222,),
+            timeout_seconds=min(args.timeout_seconds, 2.0),
         )
+        if cdp_report["browser_available"] is not True:
+            raise CdpSessionUnavailable(CDP_RECOVERY)
+        _emit_progress(
+            "cdp_session_available",
+            {"endpoint": "http://127.0.0.1:9222"},
+        )
+        if capture_scope == "profile_refresh":
+            paths = run_tiktok_creator_profile_refresh(
+                creator_handle=args.creator_handle,
+                session_profile=session_profile,
+                output_dir=args.output_dir,
+                auth_state_root=auth_state_root,
+                window_size=args.window_size,
+                timeout_seconds=args.timeout_seconds,
+                settle_seconds=args.settle_seconds,
+                max_grid_scroll_passes=args.max_grid_scroll_passes,
+                progress_fn=_emit_progress,
+            )
+        else:
+            paths = run_tiktok_creator_onboarding(
+                creator_handle=args.creator_handle,
+                session_profile=session_profile,
+                output_dir=args.output_dir,
+                auth_state_root=auth_state_root,
+                window_size=args.window_size,
+                selection_count=DEFAULT_SELECTION_COUNT,
+                timeout_seconds=args.timeout_seconds,
+                settle_seconds=args.settle_seconds,
+                max_grid_scroll_passes=args.max_grid_scroll_passes,
+                cadence_min_gap_seconds=args.cadence_min_gap_seconds,
+                cadence_max_gap_seconds=args.cadence_max_gap_seconds,
+                cadence_window_seconds=args.cadence_window_seconds,
+                random_seed=args.random_seed,
+                progress_fn=_emit_progress,
+            )
     except (OSError, ValueError, TikTokCreatorOnboardingError) as exc:
-        if str(exc) == "account_safety_stop":
+        if isinstance(exc, CdpSessionUnavailable):
+            _emit_blocker(
+                "CDP_SESSION_UNAVAILABLE",
+                "browser_preflight",
+                recovery=CDP_RECOVERY,
+            )
+        elif str(exc) == "account_safety_stop":
             _emit_blocker("ACCOUNT_SAFETY_STOP", "deep_capture")
         else:
             _emit_blocker(
@@ -230,44 +314,52 @@ def main(argv: Sequence[str] | None = None) -> int:
     frontier_path: str | None = None
     if args.admit_output is not None or args.data_root is not None:
         _emit_progress("admission_started", {})
-        data_root = None
         try:
-            if args.data_root is not None:
-                from data_lake.root import DataLakeRoot
-
-                data_root = DataLakeRoot.resolve(explicit=args.data_root)
-            exit_code, output = write_tiktok_batch_packet(
-                creator_handle=args.creator_handle,
-                creator_profile_url=(
-                    f"https://www.tiktok.com/@{args.creator_handle.strip().lstrip('@')}"
-                ),
-                grid_result_json=paths.live_grid_json_path.read_bytes(),
-                cadence_result_jsons=[paths.live_cadence_json_path.read_bytes()],
-                grid_window_json=paths.grid_window_json_path.read_bytes(),
-                selection_result_json=paths.selection_json_path.read_bytes(),
-                suggested_accounts_json=paths.suggested_accounts_json_path.read_bytes(),
-                output_directory=args.admit_output if data_root is None else None,
-                data_root=data_root,
-                decision_question=args.decision_question,
-                batch_label=args.batch_label,
-                source_file_receipts=[
-                    _source_receipt(paths.live_grid_json_path, "grid_result_json"),
-                    _source_receipt(
-                        paths.live_cadence_json_path, "cadence_result_json_1"
+            if capture_scope == "profile_refresh":
+                exit_code, output = write_tiktok_grid_packet(
+                    grid_window_json=paths.grid_window_json_path.read_bytes(),
+                    output_directory=args.admit_output if data_root is None else None,
+                    data_root=data_root,
+                    session_identity=args.session_profile,
+                    decision_question=(
+                        PROFILE_REFRESH_DECISION_QUESTION
+                        if args.decision_question == DEFAULT_DECISION_QUESTION
+                        else args.decision_question
                     ),
-                    _source_receipt(
-                        paths.grid_window_json_path, "grid_window_json"
+                )
+            else:
+                exit_code, output = write_tiktok_batch_packet(
+                    creator_handle=args.creator_handle,
+                    creator_profile_url=(
+                        f"https://www.tiktok.com/@{args.creator_handle.strip().lstrip('@')}"
                     ),
-                    _source_receipt(
-                        paths.selection_json_path, "selection_result_json"
-                    ),
-                    _source_receipt(
-                        paths.suggested_accounts_json_path,
-                        "suggested_accounts_json",
-                    ),
-                ],
-                prior_capture_pointer=args.prior_capture_pointer,
-            )
+                    grid_result_json=paths.live_grid_json_path.read_bytes(),
+                    cadence_result_jsons=[paths.live_cadence_json_path.read_bytes()],
+                    grid_window_json=paths.grid_window_json_path.read_bytes(),
+                    selection_result_json=paths.selection_json_path.read_bytes(),
+                    suggested_accounts_json=paths.suggested_accounts_json_path.read_bytes(),
+                    output_directory=args.admit_output if data_root is None else None,
+                    data_root=data_root,
+                    decision_question=args.decision_question,
+                    batch_label=args.batch_label,
+                    source_file_receipts=[
+                        _source_receipt(paths.live_grid_json_path, "grid_result_json"),
+                        _source_receipt(
+                            paths.live_cadence_json_path, "cadence_result_json_1"
+                        ),
+                        _source_receipt(
+                            paths.grid_window_json_path, "grid_window_json"
+                        ),
+                        _source_receipt(
+                            paths.selection_json_path, "selection_result_json"
+                        ),
+                        _source_receipt(
+                            paths.suggested_accounts_json_path,
+                            "suggested_accounts_json",
+                        ),
+                    ],
+                    prior_capture_pointer=args.prior_capture_pointer,
+                )
         except Exception as exc:
             _emit_blocker("ADMISSION_FAILED", "admission")
             parser.exit(
@@ -285,7 +377,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 message=f"source capture tiktok creator onboarding admission failed: {output}\n",
             )
         admitted_path = str(output)
-        if data_root is not None:
+        if data_root is not None and capture_scope == "full_deep_capture":
             try:
                 frontier_path = _write_suggested_frontier(
                     creator_handle=args.creator_handle,
@@ -314,6 +406,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         + json.dumps(
             {
                 "status": receipt["status"],
+                "capture_scope": capture_scope,
                 "creator_handle": receipt["creator_handle"],
                 "session_profile": receipt["session_profile"],
                 "window_size": receipt["window_size"],
@@ -325,9 +418,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "completed_deep_capture_count": receipt[
                     "completed_deep_capture_count"
                 ],
-                "suggested_accounts_status": receipt[
+                "suggested_accounts_status": receipt.get(
                     "suggested_accounts_status_or_none"
-                ],
+                ),
                 "suggested_outer_ui_route": receipt.get(
                     "suggested_outer_ui_route_or_none"
                 ),
@@ -361,6 +454,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "grid_deep_entry": receipt.get("grid_deep_entry_or_none"),
                 "output_dir": str(args.output_dir),
                 "admitted_path_or_none": admitted_path,
+                "prior_capture_pointer_or_none": args.prior_capture_pointer,
+                "profile_refresh_packet_or_none": (
+                    admitted_path if capture_scope == "profile_refresh" else None
+                ),
                 "suggested_frontier_path_or_none": frontier_path,
             },
             sort_keys=True,
@@ -378,12 +475,60 @@ def _emit_progress(event: str, fields: dict[str, object]) -> None:
     )
 
 
-def _emit_blocker(code: str, phase: str) -> None:
+def _emit_blocker(code: str, phase: str, *, recovery: str | None = None) -> None:
+    payload = {"code": code, "phase": phase}
+    if recovery is not None:
+        payload["recovery"] = recovery
     print(
         BLOCKER_PREFIX
-        + json.dumps({"code": code, "phase": phase}, sort_keys=True),
+        + json.dumps(payload, sort_keys=True),
         flush=True,
     )
+
+
+def _validate_reusable_prior_capture(
+    *,
+    prior_capture_pointer: str,
+    creator_handle: str,
+    data_root: object | None,
+) -> dict[str, object]:
+    normalized_handle = creator_handle.strip().lstrip("@").lower()
+    if data_root is not None:
+        if prior_capture_pointer in data_root.tombstoned_packet_ids():
+            raise ValueError(
+                f"prior capture packet is tombstoned: {prior_capture_pointer}"
+            )
+        coverage = build_tiktok_batch_coverage_from_lake(
+            data_root, prior_capture_pointer
+        )
+    else:
+        coverage = build_tiktok_batch_coverage_from_packet_directory(
+            Path(prior_capture_pointer)
+        )
+    if coverage.get("source_surface") != TIKTOK_BATCH_CAPTURE_SURFACE:
+        raise ValueError("prior capture is not a TikTok creator batch packet")
+    if str(coverage.get("creator_handle") or "").strip().lstrip("@").lower() != normalized_handle:
+        raise ValueError("prior capture creator_handle does not match requested creator")
+    rollup = coverage.get("coverage_rollup")
+    if not isinstance(rollup, dict):
+        raise ValueError("prior capture has no audience evidence coverage rollup")
+    captured_comment_count = rollup.get("nonblank_top_level_comment_count")
+    subtitle_cue_count = rollup.get("nonblank_transcript_cue_count")
+    if (
+        not isinstance(captured_comment_count, int)
+        or captured_comment_count <= 0
+        or not isinstance(subtitle_cue_count, int)
+        or subtitle_cue_count <= 0
+    ):
+        raise ValueError(
+            "prior capture is not reusable: at least one captured comment and "
+            "one transcript/subtitle cue are required"
+        )
+    return {
+        "packet_id": coverage.get("packet_id"),
+        "nonblank_top_level_comment_count": captured_comment_count,
+        "nonblank_transcript_cue_count": subtitle_cue_count,
+    }
 
 
 def _write_creator_registry_preflight(

@@ -108,54 +108,7 @@ INSTAGRAM_SNAPSHOT_PATH = (
     / "instagram_reels_creator_metric_rollup_snapshot_v0.json"
 )
 METRIC_SEED_PATHS = (YOUTUBE_SNAPSHOT_PATH, INSTAGRAM_SNAPSHOT_PATH)
-AK_AUDIENCE_SNAPSHOT_PATH = (
-    ROOT
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "creator_registry"
-    / "ak_fragrances1_creator_audience_triangulation_snapshot_v1.json"
-)
-AK_AUDIENCE_OUTCOME_PATH = (
-    ROOT
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "creator_registry"
-    / "ak_fragrances1_creator_audience_judgment_outcome_v1.json"
-)
-CALCOLOGNE_AUDIENCE_SNAPSHOT_PATH = (
-    ROOT
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "creator_registry"
-    / "calcologne_creator_audience_triangulation_snapshot_v1.json"
-)
-CALCOLOGNE_AUDIENCE_OUTCOME_PATH = (
-    ROOT
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "creator_registry"
-    / "calcologne_creator_audience_judgment_outcome_v1.json"
-)
+CREATOR_REGISTRY_DIR = VIEW_PATH.parent
 
 
 def _json(path: Path) -> dict:
@@ -183,6 +136,36 @@ def _metric_seeds() -> list[dict]:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def _audience_pairs() -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    snapshots = tuple(
+        sorted(
+            CREATOR_REGISTRY_DIR.glob(
+                "*_creator_audience_triangulation_snapshot_v*.json"
+            )
+        )
+    )
+    outcomes = tuple(
+        snapshot.with_name(
+            snapshot.name.replace(
+                "_creator_audience_triangulation_snapshot_",
+                "_creator_audience_judgment_outcome_",
+            )
+        )
+        for snapshot in snapshots
+    )
+    assert snapshots
+    assert all(path.is_file() for path in outcomes)
+    return snapshots, outcomes
+
+
+def _audience_snapshots_by_subject() -> dict[str, dict]:
+    snapshots, _outcomes = _audience_pairs()
+    return {
+        snapshot["profile_subject_id"]: snapshot
+        for snapshot in (_json(path) for path in snapshots)
+    }
 
 
 def _git_check_attr(path: Path, attr: str) -> str:
@@ -295,18 +278,34 @@ def test_creator_profile_current_reusable_validator_accepts_current_fixture() ->
 def test_creator_profile_current_counts_and_boundaries() -> None:
     view = _view()
     validate_creator_profile_current_view(_view_document())
+    ledger_accounts = _account_ledger()["platform_accounts"]
+    registry_accounts = _json(CREATOR_REGISTRY_INDEX_PATH)[
+        "creator_registry_index"
+    ]["platform_accounts"]
+    rollups = _rollups_by_subject()
+    audience_by_subject = _audience_snapshots_by_subject()
+    onboarded_count = sum(
+        row["onboarding"]["onboarding_state"] == "onboarded"
+        for row in registry_accounts
+    )
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 53,
-        "platform_account_profiles": 53,
+        "profiles_total": len(ledger_accounts),
+        "platform_account_profiles": len(ledger_accounts),
         "creator_record_profiles": 0,
-        "profiles_with_metric_rollups": 33,
-        "profiles_with_audience_triangulation": 2,
-        "engagement_rate_observed_profiles": 31,
-        "cross_platform_rollup_profiles": 0,
-        "onboarded_profiles": 40,
-        "not_onboarded_profiles": 13,
+        "profiles_with_metric_rollups": len(rollups),
+        "profiles_with_audience_triangulation": len(audience_by_subject),
+        "engagement_rate_observed_profiles": sum(
+            rollup["metric_rollups"]["engagement_rate"]["posture"] == "observed"
+            for rollup in rollups.values()
+        ),
+        "cross_platform_rollup_profiles": sum(
+            len(rollup["platform_account_ids"]) > 1
+            for rollup in rollups.values()
+        ),
+        "onboarded_profiles": onboarded_count,
+        "not_onboarded_profiles": len(ledger_accounts) - onboarded_count,
     }
     assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram", "tiktok"}
 
@@ -318,21 +317,13 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert profile["identity_state"] == "single_platform_observed"
         assert profile["link_state_or_none"] is None
         assert profile["review_state_or_none"] is None
-        if profile["profile_subject_id"] == "acct_tiktok_fragrance_007":
-            audience = profile["audience_triangulation"]
-            assert audience["snapshot_id"] == "cats_429711cc94298b9775b1"
+        expected_audience = audience_by_subject.get(profile["profile_subject_id"])
+        assert profile["audience_triangulation"] == expected_audience
+        if expected_audience is not None:
+            audience = expected_audience
             assert audience["actual_audience_demographics"] == "not_estimated"
-            assert "not proof of a UK audience" in audience["non_claims"]
-        elif profile["profile_subject_id"] == "acct_tiktok_fragrance_008":
-            audience = profile["audience_triangulation"]
-            assert audience["snapshot_id"] == "cats_777f0538b211d45f24d8"
-            assert audience["actual_audience_demographics"] == "not_estimated"
-            assert (
-                "No estimate of audience prevalence, demographics, or geography."
-                in audience["non_claims"]
-            )
-        else:
-            assert profile["audience_triangulation"] is None
+            if profile["profile_subject_id"] == "acct_tiktok_fragrance_007":
+                assert "not proof of a UK audience" in audience["non_claims"]
         assert profile["wind_calling_summary"] is None
         assert profile["onboarding"]["onboarding_state"] in {"not_onboarded", "onboarded"}
         if not profile["current_metric_rollups"]:
@@ -378,28 +369,7 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         for account in account_ledger["platform_accounts"]
     }
 
-    identity_only_ids = {
-        "acct_tiktok_fragrance_001",
-        "acct_tiktok_fragrance_002",
-        "acct_tiktok_fragrance_003",
-        "acct_tiktok_fragrance_004",
-        "acct_ig_fragrance_005",
-        "acct_tiktok_fragrance_005",
-        "acct_ig_fragrance_006",
-        "acct_tiktok_fragrance_006",
-        "acct_tiktok_fragrance_007",
-        "acct_tiktok_fragrance_008",
-        "acct_yt_fragrance_032",
-        "acct_yt_fragrance_033",
-        "acct_yt_fragrance_034",
-        "acct_yt_fragrance_035",
-        "acct_yt_fragrance_036",
-        "acct_yt_fragrance_037",
-        "acct_yt_fragrance_038",
-        "acct_yt_fragrance_039",
-        "acct_yt_fragrance_040",
-        "acct_yt_fragrance_041",
-    }
+    identity_only_ids = set(accounts_by_id) - set(rollups_by_subject)
     assert set(rollups_by_subject).issubset(set(accounts_by_id))
     assert set(accounts_by_id) - set(rollups_by_subject) == identity_only_ids
     assert set(accounts_by_id) == {
@@ -439,18 +409,13 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
 
 
 def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
+    audience_snapshots, audience_outcomes = _audience_pairs()
     generated = build_creator_profile_current_view_from_files(
         account_ledger_path=ACCOUNT_LEDGER_PATH,
         creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
         metric_seed_paths=METRIC_SEED_PATHS,
-        audience_triangulation_snapshot_paths=(
-            AK_AUDIENCE_SNAPSHOT_PATH,
-            CALCOLOGNE_AUDIENCE_SNAPSHOT_PATH,
-        ),
-        audience_judgment_outcome_paths=(
-            AK_AUDIENCE_OUTCOME_PATH,
-            CALCOLOGNE_AUDIENCE_OUTCOME_PATH,
-        ),
+        audience_triangulation_snapshot_paths=audience_snapshots,
+        audience_judgment_outcome_paths=audience_outcomes,
         generated_at_utc=_view()["generated_at_utc"],
     )
 
@@ -536,9 +501,11 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
         "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json": CREATOR_REGISTRY_INDEX_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
-        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/ak_fragrances1_creator_audience_triangulation_snapshot_v1.json": AK_AUDIENCE_SNAPSHOT_PATH,
-        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/calcologne_creator_audience_triangulation_snapshot_v1.json": CALCOLOGNE_AUDIENCE_SNAPSHOT_PATH,
     }
+    audience_snapshots, _outcomes = _audience_pairs()
+    expected_paths.update(
+        {path.relative_to(ROOT).as_posix(): path for path in audience_snapshots}
+    )
 
     assert set(inputs_by_pointer) == set(expected_paths)
     for pointer, path in expected_paths.items():

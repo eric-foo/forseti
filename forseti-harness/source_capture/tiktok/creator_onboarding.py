@@ -132,6 +132,10 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
     });
   }
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
+  const profileBioNode = document.querySelector('[data-e2e="user-bio"]');
+  const profileBioText = profileBioNode
+    ? String(profileBioNode.innerText || profileBioNode.textContent || '').trim()
+    : '';
   const profileMetric = (selector) => {
     const node = document.querySelector(selector);
     const rawText = node
@@ -145,6 +149,8 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
   return {
     ordered_videos: videos,
     hydration_json_text: hydration ? hydration.textContent : null,
+    profile_bio_text_or_none: profileBioText || null,
+    profile_bio_element_detected: Boolean(profileBioNode),
     profile_metric_dom: {
       follower_count: profileMetric('strong[data-e2e="followers-count"]'),
       profile_total_like_count: profileMetric('strong[data-e2e="likes-count"]')
@@ -525,6 +531,12 @@ class TikTokCreatorOnboardingOutputPaths:
     onboarding_receipt_json_path: Path
 
 
+@dataclass(frozen=True)
+class TikTokCreatorProfileRefreshOutputPaths:
+    grid_window_json_path: Path
+    onboarding_receipt_json_path: Path
+
+
 DeepCaptureFn = Callable[..., dict[str, Any]]
 ProgressFn = Callable[[str, dict[str, object]], None]
 
@@ -672,6 +684,116 @@ def run_tiktok_creator_onboarding(
         raise TikTokCreatorOnboardingError(
             f"browser session close failed: {state.close_error}"
         )
+    return paths
+
+
+def run_tiktok_creator_profile_refresh(
+    *,
+    creator_handle: str,
+    session_profile: SourceCaptureSessionProfile,
+    output_dir: Path,
+    auth_state_root: Path | None = None,
+    browser_user_data_root: Path | None = None,
+    window_size: int = DEFAULT_WINDOW_SIZE,
+    timeout_seconds: float = 30.0,
+    settle_seconds: float = 2.0,
+    max_grid_scroll_passes: int = DEFAULT_MAX_GRID_SCROLL_PASSES,
+    engine: BrowserPageObservationEngine | None = None,
+    progress_fn: ProgressFn | None = None,
+) -> TikTokCreatorProfileRefreshOutputPaths:
+    """Capture current profile evidence without opening a video or deep-capturing."""
+
+    normalized_handle = _normalize_handle(creator_handle)
+    _validate_onboarding_inputs(
+        session_profile=session_profile,
+        window_size=window_size,
+        selection_count=1,
+        max_grid_scroll_passes=max_grid_scroll_passes,
+    )
+    storage_state_path = validate_auth_state_provenance_requirement(
+        session_profile.state_label,
+        session_mode=session_profile.session_mode,
+        required_harness_proxy_profile_posture=(
+            session_profile.required_harness_proxy_profile_posture
+        ),
+        auth_state_root=auth_state_root,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    paths = TikTokCreatorProfileRefreshOutputPaths(
+        grid_window_json_path=output_dir / TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
+        onboarding_receipt_json_path=output_dir / TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+    )
+    owned_engine = engine is None
+    observation_engine = _acquire_or_reuse_observation_engine(
+        engine=engine,
+        session_profile=session_profile,
+        browser_user_data_root=browser_user_data_root,
+    )
+    try:
+        _notify_progress(progress_fn, "collect_profile_grid")
+        capture = capture_tiktok_creator_grid(
+            profile_url=f"https://www.tiktok.com/@{normalized_handle}",
+            creator_handle=normalized_handle,
+            storage_state_path=storage_state_path,
+            window_size=window_size,
+            minimum_dom_video_count=1,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            max_grid_scroll_passes=max_grid_scroll_passes,
+            engine=observation_engine,
+        )
+        if isinstance(capture, BrowserSnapshotFailure):
+            raise TikTokCreatorOnboardingError(
+                f"profile grid capture failed: {capture.failure_kind.value}"
+            )
+        grid_window = build_tiktok_grid_window(
+            creator_handle=normalized_handle,
+            capture=capture,
+            window_size=window_size,
+            minimum_window_size=1,
+        )
+        _write_json(paths.grid_window_json_path, grid_window)
+        _notify_progress(progress_fn, "profile_refresh_complete", completed_count=0)
+    finally:
+        if owned_engine:
+            close = getattr(observation_engine, "close", None)
+            if callable(close):
+                close()
+
+    raw_lifecycle = getattr(observation_engine, "lifecycle_receipt", None)
+    lifecycle_receipt = (
+        raw_lifecycle
+        if isinstance(raw_lifecycle, dict)
+        else {
+            "engine": type(observation_engine).__name__,
+            "owned_by_onboarding_runner": owned_engine,
+            "closed_or_none": True if owned_engine else None,
+        }
+    )
+    receipt = {
+        "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
+        "status": "complete",
+        "terminal_stage": "profile_refresh_complete",
+        "capture_scope": "profile_refresh",
+        "creator_handle": normalized_handle,
+        "session_profile": session_profile.alias,
+        "window_size": grid_window["window_size"],
+        "window_cap": window_size,
+        "selection_count": 0,
+        "selected_count": 0,
+        "completed_deep_capture_count": 0,
+        "completed_deep_capture_count_source": "profile_refresh_no_deep_capture",
+        "candidate_profiles_opened": 0,
+        "account_mutations_taken": 0,
+        "artifacts_written": [paths.grid_window_json_path.name],
+        "browser_lifecycle": lifecycle_receipt,
+        "error_or_none": None,
+        "non_claims": [
+            "not a video, comment, subtitle, or transcript recapture",
+            "not Creator Registry mutation",
+        ],
+    }
+    _write_json(paths.onboarding_receipt_json_path, receipt)
     return paths
 
 
@@ -1971,6 +2093,7 @@ def capture_tiktok_creator_grid(
     creator_handle: str,
     storage_state_path: Path,
     window_size: int,
+    minimum_dom_video_count: int | None = None,
     timeout_seconds: float,
     settle_seconds: float,
     max_grid_scroll_passes: int,
@@ -2012,10 +2135,18 @@ def capture_tiktok_creator_grid(
     captures = [initial]
     initial_id_set = set(initial_ids)
     prior_ids = initial_ids
-    sufficient_dom_video_count = min(
-        window_size,
-        GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
-    )
+    if minimum_dom_video_count is None:
+        minimum_dom_video_count = GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT
+    if (
+        isinstance(minimum_dom_video_count, bool)
+        or not isinstance(minimum_dom_video_count, int)
+        or minimum_dom_video_count <= 0
+        or minimum_dom_video_count > window_size
+    ):
+        raise TikTokCreatorOnboardingError(
+            "minimum_dom_video_count must be between 1 and window_size"
+        )
+    sufficient_dom_video_count = min(window_size, minimum_dom_video_count)
     initial_window_sufficient = len(initial_ids) >= sufficient_dom_video_count
     wheel_burst_count = 0
     if not initial_window_sufficient:
@@ -2218,6 +2349,17 @@ def build_tiktok_grid_window(
             TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION
         ),
         "profile_metrics": profile_metrics,
+        "profile_bio_text_or_none": (
+            dom.get("profile_bio_text_or_none").strip()
+            if isinstance(dom.get("profile_bio_text_or_none"), str)
+            and dom.get("profile_bio_text_or_none").strip()
+            else None
+        ),
+        "profile_bio_status": (
+            "observed"
+            if dom.get("profile_bio_element_detected") is True
+            else "unavailable"
+        ),
         "items": frozen,
         "collection_receipt": {
             "capture_timestamp": capture.metadata.get("capture_timestamp"),
@@ -2984,8 +3126,10 @@ __all__ = [
     "TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME",
     "TikTokCreatorOnboardingError",
     "TikTokCreatorOnboardingOutputPaths",
+    "TikTokCreatorProfileRefreshOutputPaths",
     "build_tiktok_grid_window",
     "capture_tiktok_creator_grid",
     "is_tiktok_profile_item_list_url",
     "run_tiktok_creator_onboarding",
+    "run_tiktok_creator_profile_refresh",
 ]
