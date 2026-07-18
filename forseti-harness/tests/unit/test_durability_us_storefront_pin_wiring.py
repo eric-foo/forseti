@@ -658,6 +658,13 @@ def test_writer_cli_delivery_zip_metadata_field(
     assert any("declared_delivery_zip" in lim for lim in all_limitations), (
         "packet limitations should record the delivery zip pin"
     )
+    metadata = json.loads(
+        (output_dir / "raw" / "04_cloakbrowser_snapshot_metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert metadata["amazon_us_vpn_fallback_required"] is False
+    assert metadata["amazon_us_vpn_fallback_trigger"] is None
 
 
 def test_writer_rejects_delivery_zip_for_non_amazon_url(tmp_path: Path) -> None:
@@ -712,6 +719,41 @@ def test_amazon_pin_enforcement_accepts_confirmed_amazon_com_page() -> None:
         )
         is None
     )
+
+
+@pytest.mark.parametrize(
+    ("delivery_zip", "final_url", "expected"),
+    [
+        ("10001", "https://www.amazon.sg/dp/B07XXPHQZK", True),
+        ("10001", "https://amazon.sg/dp/B07XXPHQZK", True),
+        ("10001", "https://www.amazon.com/dp/B07XXPHQZK", False),
+        ("10001", "https://www.amazon.ca/dp/B07XXPHQZK", False),
+        (None, "https://www.amazon.sg/dp/B07XXPHQZK", False),
+    ],
+)
+def test_amazon_vpn_fallback_is_specific_to_delivery_pinned_sg_regression(
+    delivery_zip: str | None, final_url: str, expected: bool
+) -> None:
+    reason = cloak_writer._amazon_us_vpn_fallback_reason(
+        delivery_zip=delivery_zip,
+        final_url=final_url,
+    )
+
+    assert (reason is not None) is expected
+
+
+def test_historical_makewaves_sg_packet_maps_to_vpn_recovery() -> None:
+    reason = cloak_writer._amazon_us_vpn_fallback_reason(
+        delivery_zip="10001",
+        final_url=(
+            "https://www.amazon.sg/dp/B0BGMBRQP7"
+            "?ref_=mr_direct_us_sg_sg&showmri=undefined&th=1"
+        ),
+    )
+
+    assert reason is not None
+    assert "Amazon Singapore" in reason
+    assert "'10001'" in reason
 
 
 def test_writer_preserves_but_rejects_unconfirmed_amazon_pin(
@@ -769,14 +811,29 @@ def test_writer_preserves_but_rejects_unconfirmed_amazon_pin(
 
     assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
     assert cloak_writer.AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE in message
+    assert cloak_writer.AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE in message
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert cloak_writer.AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE in manifest[
+        "visible_mode_changes"
+    ]
+    assert cloak_writer.AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE in manifest[
         "visible_mode_changes"
     ]
     assert any(
         "MUST NOT be admitted as Amazon US delivery-pinned evidence" in limitation
         for limitation in manifest["limitations"]
     )
+    assert any(
+        cloak_writer.AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE in limitation
+        for limitation in manifest["limitations"]
+    )
+    metadata = json.loads(
+        (output_dir / "raw" / "04_cloakbrowser_snapshot_metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert metadata["amazon_us_vpn_fallback_required"] is True
+    assert metadata["amazon_us_vpn_fallback_trigger"] == "final_marketplace_host_amazon_sg"
 
 
 # ── Runner end-to-end: --writer-arg=--delivery-zip wires through ──────────────
