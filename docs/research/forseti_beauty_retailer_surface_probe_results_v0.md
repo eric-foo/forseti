@@ -998,6 +998,47 @@ observations:
   because it records a pin-admission gap, not a new assortment, price, review,
   or claim finding.
 
+### Target US delivery ZIP recovery attempt
+
+- The recovery rule treated shipping ZIP and store/pickup ZIP as independently
+  labelled concepts. Admission would have required a completed public Target
+  ZIP-control flow, exact header `aria-label="Ship to location: 10001"`, exact
+  `@web/ZipCodeButton/ZipCodeNumber` text `Ship to 10001`, and
+  `serverLocationVariables.location.country="US"`. Top-level server and primary
+  store ZIP values were preserved as store context and were not required to
+  equal the shipping ZIP.
+- The commissioned anonymous grid capture used
+  `https://www.target.com/b/naturium/-/N-q643le8pm3h`, a 30-second setup window,
+  six-second capture settle, one scroll pass, `humanize=true`, and subject-bound
+  Naturium/result/price sufficiency checks. It used no proxy, VPN, stored
+  profile, storage state, cookie injection, credential, login, or geo-IP
+  override.
+- Initial packet `01KXSX9FXXEVTFSXF9DKYWKW1T` at
+  `F:\forseti-data-lake\raw\66c\01KXSX9FXXEVTFSXF9DKYWKW1T` stopped at
+  `open_zip_control`. A single corrected attempt added a bounded five-second
+  header render settle. Packet `01KXSXGCKNJQCRKNPYDPY944HY` at
+  `F:\forseti-data-lake\raw\bd9\01KXSXGCKNJQCRKNPYDPY944HY` stopped at the same
+  step.
+- The corrected packet returned the commissioned Naturium page, passed all
+  source-detail sufficiency checks, and was not access-blocked. Its final DOM
+  contained `#zip-code-id-btn`, but only after the pre-capture interaction had
+  failed; the preserved header still said shipping `52404`, while Target-owned
+  state bound country `US`, server/nested ZIP `52404`, and Cedar Rapids South
+  primary-store ZIP `52404`.
+- Corrected-packet capture time was `2026-07-18T06:09:35Z`; requested and final
+  URLs matched. All four raw SHA-256 values and byte lengths matched the
+  manifest on fresh read. Metadata recorded `pin_confirmed=false`,
+  `pre_capture_reason="open_zip_control"`, `access_blocked=false`,
+  `proxy_used=false`, `persistent_profile_loaded=false`,
+  `storage_state_loaded=false`, and `geoip_used=false`.
+- Current outcome:
+  `NO_GO_PUBLIC_ZIP_CONTROL_NOT_INTERACTABLE_DURING_BOUNDED_SETUP`. This is not
+  a claim that Target lacks the control. The PDP and both projections were not
+  attempted, the unproven `--target-zip` route was removed, and no country,
+  currency, or delivery pin was promoted. This supplement adds no SOBS row
+  because it records a pin-admission gap rather than a new assortment, price,
+  review, or product-claim finding.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
