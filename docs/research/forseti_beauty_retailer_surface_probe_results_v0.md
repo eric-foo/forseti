@@ -1093,16 +1093,52 @@ observations:
   No registered US residential proxy profile with the required geo-IP,
   `en-US`, and US-timezone metadata was present, so the authorized fallback
   could not run. No proxy credential or profile label was invented.
+- The repository's non-browser `anti_blocking_http` rung was then run on both
+  commissioned routes with its complete desktop-header profile. PDP packet
+  `01KXTZ76J5BGQJTEP2QDCZDYHY` at
+  `F:\forseti-data-lake\raw\f77\01KXTZ76J5BGQJTEP2QDCZDYHY` preserved HTTP
+  403 and a 498-byte `generic_access_denied` block shell. Policy packet
+  `01KXTZ77WYTPH15N1F8XNK87HC` at
+  `F:\forseti-data-lake\raw\037\01KXTZ77WYTPH15N1F8XNK87HC` preserved HTTP
+  403 and a 389-byte `generic_access_denied` block shell. Requested and final
+  URLs matched. On fresh read, both files in each packet matched the manifest
+  SHA-256 and byte length.
+- A bounded non-packet recon matrix also tested the canonical host, bare host,
+  mobile host, Kohl's HTML-exposed `/api/amp` candidate, typeahead host, and
+  current app-backend candidates without a browser, credential, token, proxy,
+  or injected cookie. Page, policy, AMP, typeahead, and subject-parameterized
+  app requests were Akamai-denied. The app catalog root at
+  `https://mapps.kohls.com/api/browse/v1/browse/catalog` returned one
+  anonymous HTTP 200 JSON envelope with `count=0`, `searchTerm=null`, and
+  `products=null`; it did not bind Tower 28, a product, a price, or a
+  currency, and later parameterized requests were denied. The app Firebase
+  root returned HTTP 401 `Permission denied`; an alternate API host returned
+  retailer JSON 404 for the catalog path. No public API description or
+  zero-credential retailer feed was found. These auxiliary diagnostics locate
+  possible substrates but are not Capture Spine evidence and cannot promote a
+  pin.
+- Search-indexed Kohl's pages can scout the live subject and dollar-denominated
+  price, but do not preserve current retailer bytes or an exact USD binding.
+  Archive/cache, `.com`, and dollar-glyph routes were therefore rejected as
+  current pin evidence. Kohl's affiliate feed is an entitlement-bearing route,
+  not a public fallback, and no affiliate or paid-data credential was supplied
+  or used.
 - Current outcome:
-  `NO_GO_AKAMAI_DENIAL_AFTER_HUMANIZED_HOMEPAGE_WARMUP_US_PROXY_PROFILE_ABSENT`.
-  Cold deep-linking and disabled humanization are falsified as sufficient
-  causes; exit-IP reputation versus browser/TLS identity remains unresolved.
-  Country and currency remain `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery
-  remains `UNPINNED`. The shared rendered-access classifier now recognizes the
-  exact Akamai EdgeSuite conjunction, and both warmed packets prove the fix
-  with `access_blocked=true`. The disproven warm-up adapter and CLI flag were
-  removed. No Retail/PDP projection, retailer adapter, CLI flag, or pin was
-  promoted.
+  `NO_GO_ANONYMOUS_NON_BROWSER_ROUTES_EXHAUSTED_AKAMAI_DENIAL_US_PROXY_PROFILE_ABSENT`.
+  Ordinary HTTP, header-complete HTTP, hostname/AMP/typeahead variants, and
+  anonymous first-party app/config candidates produced either typed access
+  denial, empty subjectless content, authorization required, or route absence.
+  Cold deep-linking and disabled humanization are also falsified as sufficient
+  causes by the prior browser diagnosis. Country and currency remain
+  `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The shared
+  rendered-access classifier recognizes the exact Akamai EdgeSuite
+  conjunction, and both warmed packets prove the fix with
+  `access_blocked=true`. The disproven warm-up adapter and CLI flag were
+  removed. No Retail/PDP projection, retailer adapter, CLI flag, API surface,
+  or pin was promoted. The remaining admissible experiments require new
+  external state: a registered US residential proxy profile, an entitled
+  Kohl's affiliate feed, or an owner-approved paid data provider. None is
+  silently substituted for retailer-owned current evidence.
   This supplement adds no SOBS row because it records a pin-admission gap, not
   a new assortment, price, review, or product-claim finding.
 
