@@ -157,7 +157,9 @@ returned `status=proven`.
 - INFO: the first monolithic full-harness invocation exceeded its 60-second
   window without emitting a failure; it was not retried, and the complete
   partitioned corpus passed.
-- PENDING: current commit-level diff-scoped policy gates.
+- PASS: all 24 current commit-level CI policy commands against the lane base,
+  including retrieval, placement, ontology, Silver-lane, review/provenance,
+  hash, deletion-evidence, prompt, handoff, claim, and harness-coupling gates.
 
 ## Non-Claims
 
