@@ -76,10 +76,12 @@ Stages 2–4 remain trigger-gated.
 - Periodic byte-integrity audit (re-hash everything) becomes a scheduled
   check decoupled from rebuilds.
 - **Promoted implementation shape:** a passing
-  `runners/run_seam_cadence.py --run` invokes the contract-pinned
-  `run_data_lake_indexes_rebuild.py` path at cadence tail; failed cadence
-  performs no rebuild and a rebuild failure fails the cadence. The disposable
-  cache lives under
+  `runners/run_seam_cadence.py --run` completes one reconciled starting
+  packet-id snapshot, then invokes the contract-pinned
+  `run_data_lake_indexes_rebuild.py` path at cadence tail. Packets committed
+  later are next-run cadence work; the subsequent map rebuild is intentionally
+  live and may include their newer derived material. Failed cadence performs
+  no rebuild and a rebuild failure fails the cadence. The disposable cache lives under
   `indexes/derived_retrieval/silver_vault/core/cache/`; deleting it produces a
   cold rebuild. `--prove-incremental-equality` byte-compares incremental and
   full-cold generated files, while `--audit-source-integrity` performs the
@@ -154,10 +156,12 @@ Stages 2–4 remain trigger-gated.
   product-mention producers run over real transcript inputs (0 records
   lake-wide as of this record; the ideal-audience judgment consumes
   comment-attention evidence, not product mentions).
-- Freshness is guaranteed only at the end of a passing seam-cadence run (or an
-  owner-operated fallback rebuild), not continuously between runs; manifest
-  provenance discloses the generation, while hash verification proves
-  integrity rather than currency.
+- Freshness is guaranteed only after a passing seam-cadence run (or an
+  owner-operated fallback rebuild), not continuously between runs. Cadence
+  completion covers its exact starting packet set; the map built afterward is
+  a current non-authoritative rebuild and may be a superset if capture or
+  derivation continued. Manifest provenance discloses the generation, while
+  hash verification proves integrity rather than currency.
 
 ```yaml
 direction_change_propagation:

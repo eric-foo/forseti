@@ -251,3 +251,13 @@ def test_main_exit_code_fails_on_availability_reconcile_failure(
 
     assert runner.main(["--data-root", "ignored"]) == 1
     assert "availability_reconcile_failed" in capsys.readouterr().out
+
+
+def test_manual_target_and_cadence_scope_cannot_be_combined(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="cannot be combined"):
+        runner.run_catchup(
+            data_root=data_root,
+            packet_ids=[],
+            scope_packet_ids=[],
+        )

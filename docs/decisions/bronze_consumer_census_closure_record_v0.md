@@ -96,10 +96,11 @@ unchanged.
 
 `runners/run_seam_cadence.py`:
 
-- `--run`: every cadence entrypoint executes twice; exit nonzero if the SECOND
-  cycle performs any work or emits any status, or if the final compute-free
-  pending sweep finds remaining backlog. Failures never satisfy the signal
-  (unacknowledged work re-surfaces in cycle 2 or the final pending sweep).
+- `--run`: reconcile once, capture one exact starting packet-id set, and run
+  every cadence entrypoint twice against that same set. Exit nonzero if the
+  SECOND cycle performs work or the final scoped pending sweep finds backlog.
+  Failures inside the starting set never satisfy the signal; packets committed
+  later are reported as next-run work.
 - `--skip-asr`: skips only ASR execution for compute-free cadences, printing a
   visible `skipped_asr_compute` marker with the live pending count EVERY
   cycle; pending ASR work still fails the final pending sweep, so a skipped lane
@@ -107,8 +108,8 @@ unchanged.
 - `--check`: compute-free per-entrypoint backlog counts.
 
 Coverage is pinned, not assumed: `tests/contract/test_seam_cadence_coverage.py`
-requires `CADENCE_ENTRYPOINTS` plus `CLASSIFIED_OUT_SEAM_CONSUMERS` (the two
-shape-1 LLM extract runners) to exactly cover the discovered seam-consumer
+requires `CADENCE_ENTRYPOINTS` plus `CLASSIFIED_OUT_SEAM_CONSUMERS` (the three
+owner-gated LLM extract runners) to exactly cover the discovered seam-consumer
 surface, so a new seam consumer must be classified in or out here and in the
 runner, loudly. Behavioral contract: `tests/unit/test_seam_cadence.py`.
 
@@ -168,14 +169,15 @@ consumed lake. The claim is as-of the run — the lake keeps growing, and the
 signal is re-runnable at any time; a later nonzero exit means new work or a
 new defect, not a broken closure record.
 
-Operational residual observed (added to the ledger): a cadence run
-CONCURRENT with live capture can race the availability reconcile's
-delete+rebuild (`indexes/availability/*.json`, transient WinError 2/5),
-surfacing as loud `entrypoint_failed`/`post_cycle_pending_check_failed`
-noise. Self-heals on retry in a quiet window (the closing run was clean
-with the capture fleet live). A concurrency-safe reconcile is lake
-write-boundary work, owed only if cadence and capture must overlap
-reliably.
+Historical operational residual, resolved in the cadence contract on
+2026-07-19: a cadence concurrent with live capture could repeatedly purge and
+rebuild `indexes/availability`, letting later packets leak into cycle 2 or
+surface transient WinError 2/5 noise. The owner fired the recorded overlap
+trigger. Cadence now captures one reconciled starting packet-id set; all nine
+adapters use scoped, non-purging reconcile for both cycles and the final check.
+Later commits stay visible as next-run work, while a missing or corrupt
+starting anchor still fails loudly. This is automated-test evidence, not a new
+live-lake closure claim.
 
 ## Residual ledger (accumulated, carried)
 

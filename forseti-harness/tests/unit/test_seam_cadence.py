@@ -99,27 +99,84 @@ def test_backlog_drains_in_cycle_one_and_second_cycle_is_zero(tmp_path, capsys) 
     assert _lake_tree_state(data_root) == before
 
 
+def test_packet_committed_between_cycles_waits_for_next_snapshot(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    starting = _commit_packet(data_root, tmp_path, "starting")
+    late: list[str] = []
+    original_run = cadence._ecr.run_catchup
+
+    def commit_after_first_ecr_run(**kwargs):  # noqa: ANN003
+        results = original_run(**kwargs)
+        if not late:
+            late.append(_commit_packet(data_root, tmp_path, "late"))
+        return results
+
+    monkeypatch.setattr(cadence._ecr, "run_catchup", commit_after_first_ecr_run)
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 0
+    lines = _output_lines(capsys)
+    assert [
+        (line["packet_id"], line["status"])
+        for line in lines
+        if line.get("entrypoint") == "run_ecr_catchup.py"
+        and line.get("status") == "derived"
+    ] == [(starting, "derived")]
+    assert [
+        line["packet_ids"]
+        for line in lines
+        if line.get("status") == "late_arrivals_observed"
+    ] == [late]
+    assert cadence._ecr.pending_packets(data_root=data_root) == late
+
+    monkeypatch.setattr(cadence._ecr, "run_catchup", original_run)
+    capsys.readouterr()
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 0
+    assert any(
+        line.get("packet_id") == late[0] and line.get("status") == "derived"
+        for line in _output_lines(capsys)
+    )
+
+
 def test_undrainable_work_fails_the_signal(tmp_path, capsys) -> None:
-    # A corrupt manifest surfaces as availability_reconcile_failed every cycle;
-    # cycle 2 is nonempty -> the completion signal must fail.
+    # A corrupt manifest prevents a trustworthy start snapshot, so the cadence
+    # fails before executing any consumer.
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_packet(data_root, tmp_path)
     _corrupt_manifest(data_root, pid)
 
     assert run_cadence(_ctx(data_root), skip_asr=True) == 1
-    cycle2 = [
-        l
-        for l in _output_lines(capsys)
-        if l["cycle"] == 2 and l.get("status") != "skipped_asr_compute"
-    ]
-    assert cycle2
-    # The driven lanes surface the corrupt packet per-packet; the skipped ASR
-    # lane's compute-free pending check also fails loud on the same reconcile
-    # fault (a skipped lane never becomes silently uncheckable).
-    assert {l["status"] for l in cycle2} == {
-        "availability_reconcile_failed",
-        "skipped_asr_pending_check_failed",
-    }
+    lines = _output_lines(capsys)
+    assert [line["status"] for line in lines] == ["cadence_snapshot_failed"]
+    assert lines[0]["cycle"] == "snapshot"
+    assert lines[0]["error"]
+
+
+def test_selected_packet_corrupted_after_snapshot_fails_loudly(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(data_root, tmp_path, "selected")
+    original_run = cadence._ecr.run_catchup
+    corrupted = False
+
+    def corrupt_after_first_ecr_run(**kwargs):  # noqa: ANN003
+        nonlocal corrupted
+        results = original_run(**kwargs)
+        if not corrupted:
+            _corrupt_manifest(data_root, selected)
+            corrupted = True
+        return results
+
+    monkeypatch.setattr(cadence._ecr, "run_catchup", corrupt_after_first_ecr_run)
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 1
+    assert any(
+        line.get("packet_id") == selected
+        and line.get("status") == "availability_reconcile_failed"
+        for line in _output_lines(capsys)
+    )
 
 
 def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:
@@ -147,7 +204,7 @@ def test_one_broken_entrypoint_is_loud_and_never_aborts_the_rest(
 ) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
-    def _boom(_ctx) -> list:
+    def _boom(_ctx, _scope) -> list:
         raise RuntimeError("entrypoint exploded")
 
     patched = tuple(
@@ -177,7 +234,9 @@ def test_skip_asr_visible_backlog_fails_completion_signal(
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
     patched = tuple(
-        dataclasses.replace(e, pending=lambda _ctx: 3) if e.needs_asr_compute else e
+        dataclasses.replace(e, pending=lambda _ctx, _scope: 3)
+        if e.needs_asr_compute
+        else e
         for e in cadence.CADENCE_ENTRYPOINTS
     )
     monkeypatch.setattr(cadence, "CADENCE_ENTRYPOINTS", patched)
@@ -201,7 +260,11 @@ def test_post_cycle_pending_sweep_catches_empty_result_fake_pass(
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
     patched = tuple(
-        dataclasses.replace(e, pending=lambda _ctx: 1, run=lambda _ctx: [])
+        dataclasses.replace(
+            e,
+            pending=lambda _ctx, _scope: 1,
+            run=lambda _ctx, _scope: [],
+        )
         if e.runner == "run_ecr_catchup.py"
         else e
         for e in cadence.CADENCE_ENTRYPOINTS
@@ -221,7 +284,7 @@ def test_failed_skip_pending_check_fails_the_signal(tmp_path, capsys, monkeypatc
     # pending check cannot even run, the no-work claim is invalid.
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
-    def _boom(_ctx) -> int:
+    def _boom(_ctx, _scope) -> int:
         raise RuntimeError("pending check exploded")
 
     patched = tuple(
@@ -268,7 +331,11 @@ def test_cli_check_run_check_roundtrip(tmp_path, monkeypatch, capsys) -> None:
             "--use-stored-product-mention-policy",
         ]
     ]
-    capsys.readouterr()
+    assert any(
+        line.get("status") == "lake_map_rebuilt"
+        and line.get("map_scope") == "live_after_snapshot_completion"
+        for line in _output_lines(capsys)
+    )
     assert main(["--check"]) == 0
     capsys.readouterr()
 

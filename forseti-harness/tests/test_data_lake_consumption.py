@@ -22,6 +22,7 @@ from data_lake.consumption import (
     iter_all_acks,
     obligation_fingerprint,
     pickup,
+    reconcile_availability_per_packet,
     retract_ack,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
@@ -326,6 +327,49 @@ def test_iter_all_acks_walks_the_tree(tmp_path: Path) -> None:
 
 
 # --- shared reconcile: purge-phase concurrency isolation ------------------------
+
+
+def test_scoped_reconcile_preserves_unselected_availability(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(root, tmp_path, "selected")
+    unselected = _commit_packet(root, tmp_path, "unselected")
+    unselected_path = root.path / "indexes" / "availability" / f"{unselected}.json"
+    unselected_before = unselected_path.read_bytes()
+
+    assert reconcile_availability_per_packet(
+        root, scope_packet_ids=[selected]
+    ) == []
+    assert unselected_path.read_bytes() == unselected_before
+    assert [
+        item.raw_anchor
+        for item in pickup(
+            root,
+            ack_namespace=_NS,
+            obligation_fn=lambda _packet_id: _obligation(v=1),
+            reconcile=True,
+            scope_packet_ids=[selected],
+        )
+    ] == [selected]
+
+
+def test_scoped_reconcile_surfaces_corrupt_selected_anchor(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(root, tmp_path, "selected-corrupt")
+    container = root.find_packet(selected)
+    assert container is not None
+    (container / "manifest.json").write_text("{not-json\n", encoding="utf-8")
+
+    failures = reconcile_availability_per_packet(
+        root, scope_packet_ids=[selected]
+    )
+    assert [(row["packet_id"], row["status"]) for row in failures] == [
+        (selected, "availability_reconcile_failed")
+    ]
+    assert failures[0]["error"]
 
 
 def test_reconcile_purge_tolerates_concurrently_removed_entry(

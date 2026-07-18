@@ -126,10 +126,19 @@ def _observed_at(payload: Mapping[str, Any], manifest: Mapping[str, Any]) -> str
 
 
 def run_tiktok_grid_observations(
-    *, data_root: DataLakeRoot, packet_ids: Sequence[str] | None = None
+    *,
+    data_root: DataLakeRoot,
+    packet_ids: Sequence[str] | None = None,
+    scope_packet_ids: Sequence[str] | None = None,
 ) -> list[dict[str, Any]]:
+    if packet_ids is not None and scope_packet_ids is not None:
+        raise ValueError("packet_ids and scope_packet_ids cannot be combined")
     results: list[dict[str, Any]] = []
-    results.extend(reconcile_availability_per_packet(data_root))
+    results.extend(
+        reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
+        )
+    )
     requested = set(packet_ids or ())
     items = list(pickup(
         data_root,
@@ -137,6 +146,7 @@ def run_tiktok_grid_observations(
         obligation_fn=lambda packet_id: _obligation(data_root, packet_id),
         source_family=_SOURCE_FAMILY,
         reconcile=False,
+        scope_packet_ids=scope_packet_ids,
     ))
     if requested:
         items = [item for item in items if item.raw_anchor in requested]
@@ -254,8 +264,12 @@ def run_tiktok_grid_observations(
     return results
 
 
-def pending_packets(*, data_root: DataLakeRoot) -> list[str]:
-    failures = reconcile_availability_per_packet(data_root)
+def pending_packets(
+    *, data_root: DataLakeRoot, scope_packet_ids: Sequence[str] | None = None
+) -> list[str]:
+    failures = reconcile_availability_per_packet(
+        data_root, scope_packet_ids=scope_packet_ids
+    )
     if failures:
         first = failures[0]
         raise DataLakeRootError(
@@ -270,14 +284,22 @@ def pending_packets(*, data_root: DataLakeRoot) -> list[str]:
             obligation_fn=lambda packet_id: _obligation(data_root, packet_id),
             source_family=_SOURCE_FAMILY,
             reconcile=False,
+            scope_packet_ids=scope_packet_ids,
         )
     ]
 
 
 def run_catchup(
-    *, data_root: DataLakeRoot, packet_ids: Sequence[str] | None = None
+    *,
+    data_root: DataLakeRoot,
+    packet_ids: Sequence[str] | None = None,
+    scope_packet_ids: Sequence[str] | None = None,
 ) -> list[dict[str, Any]]:
-    return run_tiktok_grid_observations(data_root=data_root, packet_ids=packet_ids)
+    return run_tiktok_grid_observations(
+        data_root=data_root,
+        packet_ids=packet_ids,
+        scope_packet_ids=scope_packet_ids,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
