@@ -968,6 +968,36 @@ observations:
   records a pin-admission gap, not a new assortment, price, review, or claim
   finding.
 
+### Walmart US/USD storefront pin attempt
+
+- The commissioned anonymous probe used the canonical Vitamasques PDP,
+  `https://www.walmart.com/ip/Vitamasques-Cherry-Vegan-Collagen-Lip-Mask-Moisturise-Plump-One-Patch/2150828728`,
+  through the explicit no-proxy Direct HTTP route with the existing
+  `walmart_pdp_aggregate` profile. It used no VPN, browser profile, cookie
+  injection, credential, login, or delivery-location mutation.
+- Admission required one retailer-owned
+  `props.pageProps.initialData.data` object to bind URL item `2150828728` to
+  `product.usItemId`, exact `currencyUnit="USD"`, equal page/product postal
+  codes, and at least one immediate module targeting object with scalar
+  `countryCode="US"`.
+- Packet `01KXSV9HFFEPNEXVA407318KW1` at
+  `F:\forseti-data-lake\raw\1cf\01KXSV9HFFEPNEXVA407318KW1` returned HTTP 200
+  and passed the Walmart PDP aggregate profile. It bound item `2150828728`,
+  USD current-price state, and equal page/product postal `95829`. The immediate
+  module and page-metadata lazy-module targeting objects instead serialized
+  `countryCode=["US"]`.
+- The packet recorded `pin_confirmed=false`; capture time was
+  `2026-07-18T05:30:54Z`, requested and final URLs matched, and both preserved
+  raw files' SHA-256 values and byte lengths matched the manifest on fresh
+  read.
+- Current outcome: `NO_GO_REQUIRED_SIGNAL_SHAPE_MISMATCH`. List membership was
+  not substituted for the commissioned scalar-equality rule. The proposed
+  `--walmart-market` assertion was removed, no Retail/PDP projection was
+  promoted, and the registry retains only source-visible USD and origin-derived
+  postal state as unpinned observations. This supplement adds no SOBS row
+  because it records a pin-admission gap, not a new assortment, price, review,
+  or claim finding.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
