@@ -147,12 +147,13 @@ behavior was not proven in-thread.
 
 - `success-implement`
   - Source path: `.agents/skills/success-implement/SKILL.md`.
-  - Normalized LF sha256: `b548e36da3448625cc2e02a1a69742437522e2a0376710f5c32ea917d8162e4f`
-    (observed 2026-07-18 after paired-dogfood hardening and delegated adjudication).
+  - Normalized LF sha256: `e7032bb5535cf375cbd2c910d5b9a0801b2c3f4931d29f9ece501e16f6468271`
+    (observed 2026-07-18 after the review-default and explicit-phrase trigger update).
   - Scope: explicit-only mechanics for binding falsifiable success signals,
     implementing the smallest complete authorized change, validating the
     owner-visible outcome, and asking the operator to commission delegated
-    review-and-patch only when a named residual warrants it.
+    review-and-patch by default for non-trivial work, with a narrow
+    fully-observed mechanical-change skip.
   - Collision: no same-name repo/project, user Codex/Agents/Claude, installed
     plugin skill directory, or current resolver-visible skill was observed
     before creation on 2026-07-17.
@@ -161,6 +162,10 @@ behavior was not proven in-thread.
     cardinality/envelope signals, detector pressure tests, absent-surface
     baselines, and exception-boundary review routing. This is evidence, not
     acceptance.
+  - Review audit: 25 merged PRs with durable delegated patch reports were
+    inspected on 2026-07-18. Eighteen recorded a delegate-applied change; 16 of
+    those 18 contained at least one major or critical finding. This supports the
+    non-trivial-work default, not a claim that every review should patch.
   - Boundary: experimental Forseti-local source only; generic mechanics, not
     Forseti authority; not accepted/frozen, installed, deployed, or activated.
   - Rollback: remove this source and this candidate record. Do not modify
