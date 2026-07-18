@@ -14,21 +14,32 @@ from pathlib import Path
 from data_lake.canonical_json import canonical_record_bytes
 import pytest
 from data_lake.consumption import append_ack
+from data_lake.derived_retrieval_cache import (
+    CACHE_PARTS,
+    ClassificationCacheSession,
+    _CLASSIFIER_SOURCE_NAMES,
+)
 from data_lake.derived_retrieval_views import (
     MENTIONS_LANE,
+    audit_derived_retrieval_source_integrity,
     build_by_creator_view,
     build_by_mention_view,
+    prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
 )
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
 from data_lake.silver_lineage import (
     SilverAnchor,
     SilverLineage,
     SilverRawRef,
     SilverSourceObject,
 )
-from data_lake.silver_record import silver_content_hash
+from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    SilverSourceAuthority,
+    silver_content_hash,
+)
 from data_lake.sibling_selection import SiblingSelectionError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
@@ -348,6 +359,228 @@ def test_prove_on_empty_store_is_absent_not_failure(tmp_path: Path) -> None:
         "by_mention": "absent_nothing_to_prove",
         "undone": "absent_nothing_to_prove",
     }
+
+
+def test_incremental_cache_is_disposable_and_byte_identical(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+
+    cold = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+        full_rebuild=True,
+    )
+    target_root = root._within(
+        "indexes", "derived_retrieval", "silver_vault", "core"
+    )
+    cold_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert cold["classification_cache"]["hits"] == 0
+    cache_path = root._within(*CACHE_PARTS)
+    assert cache_path.is_file()
+
+    incremental = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+    )
+    incremental_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert incremental["classification_cache"]["hits"] > 0
+    assert incremental_files == cold_files
+
+    cache_path.unlink()
+    rebuilt_without_cache = rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+    )
+    rebuilt_files = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+        if "cache" not in path.parts
+    }
+    assert rebuilt_without_cache["classification_cache"]["hits"] == 0
+    assert rebuilt_files == cold_files
+
+
+def test_classifier_version_covers_local_authority_implementation_modules() -> None:
+    assert {
+        "derived_retrieval_cache.py",
+        "silver_record.py",
+        "silver_compatibility.py",
+        "creator_metric_lineage.py",
+        "catalog.py",
+        "attachment_record_entry.py",
+        "canonical_json.py",
+        "root.py",
+        "../harness_utils.py",
+    } <= set(_CLASSIFIER_SOURCE_NAMES)
+
+
+def test_cache_rejects_unknown_authority_status(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    record = {"content_hash": "sha256:record", "raw_refs": [], "derived_refs": []}
+    cache = ClassificationCacheSession(root, use_existing=False)
+    key, authority = cache.lookup(record)
+    assert key is not None
+    assert authority is None
+    cache.remember(
+        key,
+        SilverSourceAuthority(CURRENT_SOURCE_BACKED_AUTHORITY, "test_current"),
+    )
+    cache.save()
+
+    payload = json.loads(root._within(*CACHE_PARTS).read_text(encoding="utf-8"))
+    payload["classifier_version"] = "sha256:stale"
+    root._within(*CACHE_PARTS).write_bytes(canonical_record_bytes(payload))
+    assert ClassificationCacheSession(root).lookup(record)[1] is None
+
+    payload["classifier_version"] = cache.classifier_version
+    payload["verdicts"][key]["status"] = "corrupted_status"
+    root._within(*CACHE_PARTS).write_bytes(canonical_record_bytes(payload))
+
+    reloaded = ClassificationCacheSession(root)
+    reloaded_key, reloaded_authority = reloaded.lookup(record)
+    assert reloaded_key == key
+    assert reloaded_authority is None
+    assert reloaded.report()["misses"] == 1
+
+    payload["verdicts"][key] = {
+        "status": CURRENT_SOURCE_BACKED_AUTHORITY,
+        "reason_code": 7,
+        "error": None,
+    }
+    root._within(*CACHE_PARTS).write_bytes(canonical_record_bytes(payload))
+    assert ClassificationCacheSession(root).lookup(record)[1] is None
+
+
+def test_rollup_cache_tracks_observation_keys_and_duplicate_candidates(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    first_packet = _commit_packet(root, tmp_path, "rollup-first")
+    observation_id = "shared-observation.json"
+    observation = {
+        "record_id": observation_id,
+        "content_hash": "sha256:observation",
+        "lane_namespace": "creator_metric_silver",
+        "raw_refs": [{"packet_id": first_packet}],
+        "derived_refs": [],
+    }
+    observation_path = root.append_record(
+        subtree="derived",
+        raw_anchor=first_packet,
+        lane="creator_metric_silver",
+        record_id=observation_id,
+        data=canonical_record_bytes(observation),
+    )
+    rollup = {
+        "content_hash": "sha256:rollup",
+        "lane_namespace": "creator_metric_rollup_silver",
+        "raw_refs": [],
+        "derived_refs": [
+            {
+                "raw_anchor": first_packet,
+                "lane_namespace": "creator_metric_silver",
+                "record_id": observation_id,
+                "content_hash": observation["content_hash"],
+            }
+        ],
+    }
+    cache = ClassificationCacheSession(root, use_existing=False)
+    cache.lookup(observation, record_path=observation_path)
+    key, authority = cache.lookup(rollup)
+    assert key is not None
+    assert authority is None
+    cache.remember(
+        key,
+        SilverSourceAuthority(CURRENT_SOURCE_BACKED_AUTHORITY, "test_current"),
+    )
+    cache.save()
+    reloaded = ClassificationCacheSession(root)
+    reloaded.lookup(observation, record_path=observation_path)
+    assert reloaded.lookup(rollup)[1] is not None
+
+    loaded_packet = root.load_raw_packet(first_packet)
+    preserved = loaded_packet.manifest["preserved_files"][0]
+    body_path = root._within("raw", raw_shard(first_packet), first_packet).joinpath(
+        *preserved["relative_packet_path"].replace("\\", "/").split("/")
+    )
+    original_body = body_path.read_bytes()
+    body_path.unlink()
+    changed = ClassificationCacheSession(root)
+    changed.lookup(observation, record_path=observation_path)
+    assert changed.lookup(rollup)[1] is None
+
+    body_path.write_bytes(original_body)
+    restored_cache = ClassificationCacheSession(root)
+    restored_cache.lookup(observation, record_path=observation_path)
+    restored_key, restored_authority = restored_cache.lookup(rollup)
+    assert restored_key is not None
+    assert restored_authority is None
+    restored_cache.remember(
+        restored_key,
+        SilverSourceAuthority(CURRENT_SOURCE_BACKED_AUTHORITY, "test_current"),
+    )
+    restored_cache.save()
+
+    second_packet = _commit_packet(root, tmp_path, "rollup-second")
+    duplicate = {
+        **observation,
+        "raw_refs": [{"packet_id": second_packet}],
+    }
+    duplicate_path = root.append_record(
+        subtree="derived",
+        raw_anchor=second_packet,
+        lane="creator_metric_silver",
+        record_id=observation_id,
+        data=canonical_record_bytes(duplicate),
+    )
+    duplicated = ClassificationCacheSession(root)
+    duplicated.lookup(observation, record_path=observation_path)
+    duplicated.lookup(duplicate, record_path=duplicate_path)
+    assert duplicated.lookup(rollup)[1] is None
+
+
+def test_incremental_equality_and_integrity_audit_are_read_only_gates(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY, stamp=_STAMP
+    )
+    target_root = root._within(
+        "indexes", "derived_retrieval", "silver_vault", "core"
+    )
+    before = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+    }
+
+    equality = prove_incremental_rebuild_equality(
+        root, product_mention_policy=_POLICY
+    )
+    assert equality["status"] == "proven"
+    assert equality["mismatched_files"] == []
+    assert equality["incremental_classification_cache"]["hits"] > 0
+
+    audit = audit_derived_retrieval_source_integrity(root)
+    assert audit["status"] == "proven"
+    assert audit["mode"] == "source_integrity_audit"
+    after = {
+        path.relative_to(target_root).as_posix(): path.read_bytes()
+        for path in sorted(target_root.rglob("*.json"))
+    }
+    assert after == before
 
 
 def _write_creator_metric_record(
@@ -792,6 +1025,46 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     assert main(["--root", str(root.path), "--target", "all", "--prove-rebuildability"]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["availability"]["status"] == "proven"
+    assert report["derived_retrieval"]["status"] == "proven"
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "incremental_rebuild"
+    assert report["derived_retrieval"]["classification_cache"]["hits"] > 0
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+            "--prove-incremental-equality",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "prove_incremental_equality"
+    assert report["derived_retrieval"]["status"] == "proven"
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--audit-source-integrity",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["mode"] == "audit_source_integrity"
     assert report["derived_retrieval"]["status"] == "proven"
 
     view_path = (

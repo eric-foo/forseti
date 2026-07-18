@@ -13,6 +13,7 @@ from cleaning.fragrantica_lake import (
     CLEANING_AUDIT_PACK_SCHEMA_VERSION,
     DISCRIMINATOR_LOCALITY_NON_CLAIM,
     FRAGRANTICA_CLEANING_AUDIT_LANE,
+    FRAGRANTICA_CLEANING_METHOD_ID,
     FRAGRANTICA_CLEANING_SILVER_LANE,
     FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
     FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
@@ -106,7 +107,7 @@ def test_derives_fragrantica_cleaning_into_audit_pack_and_silver(tmp_path: Path)
     assert pointer["edge_type"] == "derived_from_record"
     assert pointer["lane_namespace"] == FRAGRANTICA_CLEANING_AUDIT_LANE
     assert pointer["content_hash"] == audit["content_hash"]
-    assert silver["provenance"]["cleaning_method_id"] == "fragrantica_cleaning_method_v0"
+    assert silver["provenance"]["cleaning_method_id"] == FRAGRANTICA_CLEANING_METHOD_ID
 
 
 def test_fragrantica_cleaning_emits_no_silver_wrapped_full_packet(tmp_path: Path) -> None:

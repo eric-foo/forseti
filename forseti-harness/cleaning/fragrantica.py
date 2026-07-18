@@ -52,10 +52,10 @@ _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL = {
     "full_review_archive_not_captured_login_prompt_present": (
         "inspect_raw_before_archive_completeness_claim"
     ),
-    "search_review_rows_not_embedded_in_direct_http_body": (
+    "search_review_rows_not_embedded_in_preserved_body": (
         "inspect_raw_before_search_review_claim"
     ),
-    "linked_media_assets_not_preserved_by_direct_http_packet": (
+    "linked_media_assets_not_preserved_by_current_window_packet": (
         "inspect_raw_before_media_dependent_claim"
     ),
     "review_attached_photo_proof_not_present": (

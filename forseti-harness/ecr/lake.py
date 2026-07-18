@@ -17,9 +17,10 @@ I/O is isolated here so the derivers in ``ecr.deriver`` stay pure.
 """
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping
 
 from ecr.deriver import (
     derive_identity_postures,
@@ -43,6 +44,58 @@ ECR_LANES: dict[str, str] = {
 }
 # Lane carrying the per-derivation completion marker for the four sibling records.
 ECR_COMPLETION_LANE = "ecr_set"
+
+# Closed read-side compatibility for three immutable packets produced before the
+# Ob.15 vocabulary was enforced. Their legacy known value ``new`` means "first
+# capture"; ECR does not consume this field, but the full packet must still pass
+# every other current validation rule. Never broaden this by value alone.
+_LEGACY_FIRST_CAPTURE_PACKET_IDS = frozenset(
+    {
+        "01KX1H5S16CTK1HRSERDHHAHJ6",
+        "01KX3QM3ATEVNAM2DXJZVM0J0F",
+        "01KX3YWZTDEE59G1HJ4FYNBHF1",
+    }
+)
+_LEGACY_FIRST_CAPTURE_REASON = (
+    "immutable legacy packet used known 'new' to mean first capture before the "
+    "Ob.15 closed vocabulary was enforced"
+)
+
+
+def _source_capture_packet_for_ecr(manifest: Mapping[str, Any]) -> SourceCapturePacket:
+    packet_id = manifest.get("packet_id")
+    if packet_id not in _LEGACY_FIRST_CAPTURE_PACKET_IDS:
+        return SourceCapturePacket.model_validate(manifest)
+
+    normalized = copy.deepcopy(dict(manifest))
+    source_slices = normalized.get("source_slices")
+    if not isinstance(source_slices, list):
+        raise ValueError(f"declared legacy ECR packet {packet_id} has invalid source_slices")
+    facts = [normalized.get("re_capture_relationship")]
+    facts.extend(
+        source_slice.get("re_capture_relationship")
+        if isinstance(source_slice, dict)
+        else None
+        for source_slice in source_slices
+    )
+    for fact in facts:
+        if (
+            not isinstance(fact, dict)
+            or fact.get("status") != "known"
+            or fact.get("value") != "new"
+        ):
+            raise ValueError(
+                f"declared legacy ECR packet {packet_id} no longer matches its "
+                "known:'new' compatibility profile"
+            )
+        fact.update(
+            {
+                "status": "not_applicable",
+                "value": None,
+                "reason": _LEGACY_FIRST_CAPTURE_REASON,
+            }
+        )
+    return SourceCapturePacket.model_validate(normalized)
 
 
 def _record_bytes(postures) -> bytes:
@@ -69,7 +122,7 @@ def derive_ecr_into_lake(
     SP-5 finalizer, Cleaning, or Judgment.
     """
     loaded = data_root.load_raw_packet(packet_id)
-    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    packet = _source_capture_packet_for_ecr(loaded.manifest)
     record = record_id if record_id is not None else generate_ulid()
     postures_by_kind = {
         "timing": derive_timing_postures(packet),

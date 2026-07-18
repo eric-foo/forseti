@@ -847,6 +847,36 @@ def test_source_surface_catalog_rows_absent_surface_returns_consistent_shape(
     assert rows["attachment_record_rows"] == []
 
 
+def test_source_surface_catalog_rows_share_one_inspection_across_surfaces(
+    tmp_path: Path, monkeypatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    calls = 0
+
+    def fake_inspect(_root):  # noqa: ANN001
+        nonlocal calls
+        calls += 1
+        return {"status": "ok", "source_surfaces": []}
+
+    monkeypatch.setattr("data_lake.catalog.inspect_catalog", fake_inspect)
+    inspection_cache: dict = {}
+
+    source_surface_catalog_rows(
+        root,
+        source_family="family-a",
+        source_surface="surface-a",
+        inspection_cache=inspection_cache,
+    )
+    source_surface_catalog_rows(
+        root,
+        source_family="family-b",
+        source_surface="surface-b",
+        inspection_cache=inspection_cache,
+    )
+
+    assert calls == 1
+
+
 def test_catalog_coverage_census_caps_issue_samples(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     for index in range(30):

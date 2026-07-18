@@ -125,7 +125,7 @@ def test_fragrantica_cleaning_packet_carries_projection_residuals_without_judgme
         if handle.projection_ref
         and handle.projection_ref.row_kind == "fragrance_review_card_current_window"
     )
-    assert "linked_media_assets_not_preserved_by_direct_http_packet" in review_handle.residuals
+    assert "linked_media_assets_not_preserved_by_current_window_packet" in review_handle.residuals
     assert "review_attached_photo_proof_not_present" in review_handle.residuals
     assert "inspect_raw_before_media_dependent_claim" in review_handle.raw_pull_triggers
     assert "inspect_raw_before_review_photo_dependent_claim" in review_handle.raw_pull_triggers

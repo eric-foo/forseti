@@ -25,7 +25,7 @@ import runners.run_fragrantica_cleaning_catchup as fragrantica
 import runners.run_parfumo_cleaning_catchup as parfumo
 
 _LANES = {
-    "fragrantica": (frozenset({fragrantica._FRAGRANTICA_SURFACE}), fragrantica._KNOWN_OUT_OF_SCOPE_SURFACES),
+    "fragrantica": (fragrantica._FRAGRANTICA_SURFACES, fragrantica._KNOWN_OUT_OF_SCOPE_SURFACES),
     "basenotes": (frozenset({basenotes._BASENOTES_SURFACE}), basenotes._KNOWN_OUT_OF_SCOPE_SURFACES),
     "parfumo": (parfumo._PARFUMO_SURFACES, parfumo._KNOWN_OUT_OF_SCOPE_SURFACES),
 }
