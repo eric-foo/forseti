@@ -1,6 +1,6 @@
 ---
 name: success-implement
-description: "Bind falsifiable success signals for an already-authorized implementation, make the smallest complete change, validate the owner-visible outcome, and ask the operator to commission delegated review-and-patch only when the remaining defect surface warrants it. Trigger only when the user explicitly invokes /success-implement or explicitly asks to use the success-implement workflow. Do not trigger for planning-only work, review-only work, or requests without implementation authority."
+description: "Bind falsifiable success signals for an already-authorized implementation, make the smallest complete change, validate the owner-visible outcome, and ask the operator to commission delegated review-and-patch by default for non-trivial work. Trigger when the user explicitly invokes /success-implement, gives the standalone instruction 'success implement' or 'success-implement' for an authorized change, or explicitly asks to use the success-implement workflow. Do not trigger when the phrase is merely quoted or discussed, for planning-only or review-only work, or without implementation authority."
 ---
 
 # success-implement (experimental source)
@@ -24,8 +24,9 @@ change merely to improve confidence or make review easier.
 
 Prevent an implementation from being called successful because its code ran,
 its tests passed, or its expected files exist when the owner's outcome was not
-actually demonstrated. Also prevent delegated review from becoming a mandatory
-ritual when the bound signals already give strong, direct evidence.
+actually demonstrated. Also prevent implementation-family blind spots from
+being treated as rare after an explicitly high-assurance invocation, while
+keeping mechanical changes out of the delegated-review lane.
 
 ## Entry gate
 
@@ -153,28 +154,39 @@ Re-run the near-miss or seeded violation after implementation. Record signals
 that were not run and why. Structural validation does not prove deployment,
 resolver activation, production readiness, or owner acceptance.
 
-## Decide whether to request delegated review-and-patch
+## Apply the delegated safety net
 
-Recommend a de-correlated delegated review-and-patch pass when one or more of
-these materially remains:
+For an explicitly invoked `success-implement` turn, recommend a de-correlated
+delegated review-and-patch pass by default when the completed work unit is
+non-trivial. Treat the work as non-trivial when it changes or materially
+depends on one or more of these:
 
 - a parser, detector, matcher, or serializer has a broad input space that the
   authored signals sample rather than exhaust;
+- executable behavior, validation semantics, a schema or public contract,
+  external I/O, stored state, or a cross-module invariant;
 - security, authority, privacy, destructive action, or durable-data behavior
   depends on the change;
 - migration, retry, recovery, concurrency, or idempotency paths can corrupt or
   strand state;
 - generated fixtures, snapshots, baselines, or proof tests are vulnerable to
   wrong-cause success;
-- a material exception, authority, or identity boundary is handled but not
-  directly exercised;
+- a material exception, authority, identity, ordering, precedence, or
+  persistence boundary;
 - cross-module invariants or a high-lock-in public contract changed; or
 - validation exposed a meaningful residual that a different implementation
   family could independently attack and patch.
 
-Do not recommend delegation merely because the change is important, non-trivial,
-or eligible for review. Skip it when direct signals cover the bounded behavior,
-the change is local and reversible, and no material residual above remains.
+Skip delegation only when all are true:
+
+- the change is mechanical, local, and readily reversible;
+- it changes no runtime behavior, validation meaning, authority, schema,
+  identity, ordering, precedence, persistence, external I/O, or cross-module
+  contract;
+- direct signals exercise both the intended result and its relevant failure
+  path; and
+- no alternate-input, exception, integration, or wrong-cause residual remains
+  for another implementation family to attack.
 
 Do not dispatch a reviewer automatically. Ask the operator to commission the
 pass and provide:
@@ -214,11 +226,13 @@ NEXT_OPERATOR_ACTION:
 
 - Source boundary: Forseti-local `.agents` source only; generic mechanics, not
   Forseti authority.
-- Positive triggers: `/success-implement`; "use the success-implement workflow
-  for this authorized fix."
+- Positive triggers: `/success-implement`; `success implement this authorized
+  fix`; `success-implement this authorized fix`; "use the success-implement
+  workflow for this authorized fix."
 - Negative triggers: planning without implementation authority; diagnosis or
-  review without a requested patch; ordinary implementation that does not
-  explicitly invoke this experimental candidate.
+  review without a requested patch; quoting, discussing, or asking about the
+  phrase; ordinary implementation that does not explicitly invoke this
+  experimental candidate.
 - Collision status (checked 2026-07-17): no same-name repo-local, user Codex,
   user Agents, user Claude, installed-plugin directory, or current
   resolver-visible skill was observed.
