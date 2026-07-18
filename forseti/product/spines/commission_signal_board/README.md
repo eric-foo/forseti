@@ -3,9 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Spine README
-scope: Entry point for the live Commission Signal Board spine, including standard and one-company competitive-intelligence profiles.
+scope: Entry point for the live Commission Signal Board spine and the Forseti Intelligence Cycle operating contract.
 use_when:
   - Starting Commission Signal Board prompt, playbook, validator, or migration work.
+  - Commissioning an Understanding or Problem Framing phase of a Forseti Intelligence Cycle.
   - Checking which CSB artifacts are canonical after the spine-first pilot authorization.
   - Distinguishing the live CSB pilot from the staged global docs migration.
 authority_boundary: retrieval_only
@@ -22,7 +23,7 @@ stale_if:
 
 - Status: LIVE_PILOT_SPINE.
 - Owner authorization: current-turn authorization, 2026-06-18.
-- Current scope: Commission Signal Board only.
+- Current scope: Commission Signal Board plus the docs-only Forseti Intelligence Cycle operating contract.
 - Global docs migration: accepted in direction, staged, not executed here.
 
 ## Canonical Artifacts
@@ -32,7 +33,7 @@ stale_if:
 | Spine manifest | `forseti/product/spines/commission_signal_board/spine.yaml` |
 | Prompt Structure Rules | `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md` |
 | Prompt Structure | `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md` |
-| Playbook | `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
+| Playbook / Forseti Intelligence Cycle contract | `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | Validator pointer | `forseti/product/spines/commission_signal_board/harness/validator.md` |
 | Test pointer | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` |
 | Moved-path index | `forseti/product/spines/commission_signal_board/migrations/moved_paths_index.md` |
@@ -58,6 +59,27 @@ A commission for one company subject defaults to
 an unresolved Brand/Org identity. That profile produces the conditional
 ten-section company report and no demand-classifier handoff. Other commissions
 continue to use the existing standard Sections 1-10 and classifier handoff.
+
+## Forseti Intelligence Cycle
+
+Future one-company intelligence work is commissioned as a **Forseti
+Intelligence Cycle**, not by an unqualified `Phase 1` or `Phase 2` label. Its
+canonical phases are **Understanding** and **Problem Framing**, in that order.
+Each phase normally uses two completed operator/model turns:
+
+1. **Acquire & Seal** — bind the phase question and intended use, resolve
+   canonical source routes before capture, run authorized Scanning/Capture, and
+   preserve the resulting route receipts, provenance, failures, and seal state
+   in a durable phase artifact.
+2. **Deliver** — start in fresh context from that artifact, verify its
+   acquisition gate, then synthesize and hand off without claiming evidence,
+   coverage, provenance, or route exhaustion the seal does not support.
+
+Two turns are the normal budget, not permission to convert a blocked acquisition
+into apparent completion. The playbook owns the full contract and the six
+non-numeric outcome signals. Historical artifact names containing `phase1` or
+`Phase 1` remain historically accurate provenance and are not executable names
+for a future cycle.
 
 ## Legacy Non-Controlling Artifacts
 

@@ -6,10 +6,12 @@ artifact_role: Prompt Structure
 scope: >
   Reusable prompt for either a standard Forseti Commission Signal Board or a
   decision-neutral one-company competitive-intelligence report. It owns profile,
-  source-family, time-posture, and typed-request contracts; it does not retrieve,
-  capture, classify demand, decide buyer proof, forecast, judge, or graph-score.
+  source-family, time-posture, Intelligence Cycle commission, and typed-request
+  contracts; it does not retrieve, capture, classify demand, decide buyer proof,
+  forecast, judge, or graph-score.
 use_when:
   - Preparing a first-pass signal board before retrieval, extraction, graph artifact construction, or demand classification.
+  - Preparing the commission-board portion of an Intelligence Cycle Acquire & Seal turn.
   - Turning supplied case context into source-family routes, signal rows, counterevidence paths, and a classifier handoff packet.
   - Running a manual dry backtest of the Commission Signal Board concept.
 authority_boundary: retrieval_only
@@ -53,6 +55,12 @@ generation only after required inputs are supplied, and validator execution only
 against a full board output that contains Section 4 and Section 8. Do not run
 the validator against `NEEDS_COMMISSION_INTAKE` or `NEEDS_CUTOFF_DATE` intake
 scaffolds; those are not board outputs.
+
+For `company_competitive_intelligence`, this prompt prepares the
+commission-board portion of **Acquire & Seal** in a **Forseti Intelligence
+Cycle**. It does not itself claim that scanning/capture ran or that the phase
+acquisition seal passed. The playbook owns the complete two-phase/two-turn
+contract and the fresh-context Deliver gate.
 
 Before claiming a full board is mechanically safe for classifier handoff, save
 the exact board output to a temporary or bound artifact file and run:
@@ -183,6 +191,14 @@ provided_evidence_or_context:
 known_source_constraints:
 known_unknowns:
 dispatcher_non_goals:
+intelligence_cycle:
+  cycle_id:
+  phase: understanding | problem_framing
+  turn: acquire_and_seal
+  bound_question:
+  intended_consumer:
+  intended_use:
+  phase_scope:
 ```
 
 If `candidate_or_subject`, `decision_context`, or `mode` is missing, do not
@@ -198,6 +214,13 @@ identity, to `company_competitive_intelligence`; otherwise default to
 with a declared period and rationale. Do not invent missing inputs. Intake-only
 output is not a validator target.
 
+For `company_competitive_intelligence`, also require `commission_id`,
+`cycle_id`, the canonical `phase`, `bound_question`, `intended_consumer`,
+`intended_use`, and `phase_scope`. The only valid turn at commission-board
+generation is `acquire_and_seal`. Missing required company-cycle fields return
+`NEEDS_COMMISSION_INTAKE`; do not fall back to bare `Phase 1` / `Phase 2`
+language.
+
 ## Missing-Input Intake Output
 
 When required inputs are missing, return only this intake scaffold. Keep any
@@ -205,7 +228,7 @@ fields already supplied and mark the rest `operator_to_fill`.
 
 ```yaml
 commission_inputs_needed:
-  commission_id: optional_operator_label
+  commission_id: required_for_company_profile_else_optional_operator_label
   mode: backtest | forward | operator_to_fill
   candidate_or_subject: operator_to_fill
   decision_context: operator_to_fill
@@ -217,6 +240,14 @@ commission_inputs_needed:
   provided_evidence_or_context: []
   known_source_constraints: []
   known_unknowns: []
+  intelligence_cycle:
+    cycle_id: required_for_company_profile
+    phase: understanding | problem_framing | required_for_company_profile
+    turn: acquire_and_seal
+    bound_question: required_for_company_profile
+    intended_consumer: required_for_company_profile
+    intended_use: required_for_company_profile
+    phase_scope: required_for_company_profile
   dispatcher_non_goals:
     - no retrieval unless separately authorized
     - no demand classification
@@ -226,6 +257,8 @@ minimum_required_now:
   - candidate_or_subject
   - decision_context
   - evidence_cutoff_at if mode is backtest
+  - commission_id if commission_profile is company_competitive_intelligence
+  - intelligence_cycle fields if commission_profile is company_competitive_intelligence
 example_minimum_input:
   mode: backtest
   candidate_or_subject: <product / brand / case>
@@ -233,6 +266,36 @@ example_minimum_input:
   evidence_cutoff_at: YYYY-MM-DD
 next_authorized_step: NEEDS_COMMISSION_INTAKE | NEEDS_CUTOFF_DATE
 ```
+
+## Intelligence Cycle Outcome Signals
+
+For a company profile, optimize the commission and downstream handoff toward
+these six signals:
+
+1. question fit;
+2. evidence foundation;
+3. reasoning quality;
+4. honest uncertainty;
+5. implications and foresight;
+6. communication efficiency.
+
+The playbook defines them. They are non-numeric outcome checks, not six report
+sections, six workflow gates, or a scoring system. This prompt must not invent
+weights, caps, bands, thresholds, or scoring automation.
+
+Use this production priority:
+
+1. secure question fit, trustworthy evidence, and honest uncertainty as
+   non-negotiable foundations;
+2. once those hold, put the largest analytical effort into sound reasoning and
+   useful implications;
+3. then compress and clarify for efficient delivery.
+
+Do not trade the foundations for prose, apparent decisiveness, speed, or
+implications. Do not satisfy a signal cosmetically through headings, labels,
+citation volume, ritual sections, forced forecasts, repeated confidence labels,
+or padding. A separate post-delivery reviewer may apply a numerical rubric; the
+producing actor does not receive or optimize against its numbers.
 
 ## Source Boundary
 
@@ -761,6 +824,21 @@ The brief contains:
 ```yaml
 company_commission_receipt:
   commission_id:
+  intelligence_cycle:
+    cycle_id:
+    phase: understanding | problem_framing
+    turn: acquire_and_seal
+    bound_question:
+    intended_consumer:
+    intended_use:
+    phase_scope:
+    outcome_signals:
+      - question_fit
+      - evidence_foundation
+      - reasoning_quality
+      - honest_uncertainty
+      - implications_and_foresight
+      - communication_efficiency
   mode: backtest | forward
   commission_profile: company_competitive_intelligence
   subject_count: 1
@@ -958,7 +1036,7 @@ requires a separately named follow-up commission. Collect defensibility raw
 material where visible — comparator claims language, substitution economics,
 price gaps, claims parity — as bounded observations only; the defensibility
 judgment itself belongs to the downstream adjudication layer, never this
-report. Phase 1 collects that generic raw material once. A downstream Phase 2
+report. Understanding collects that generic raw material once. Problem Framing
 may request fresh evidence only as a decision-specific supplement for the
 decision it is adjudicating, never as a general re-scan.
 

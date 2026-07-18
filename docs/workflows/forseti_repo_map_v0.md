@@ -82,6 +82,7 @@ not changes to source precedence.
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
 | One-company intelligence information requirements, paid-access choice, decision modules, and Company Surface boundary | `docs/decisions/forseti_company_intelligence_information_architecture_v0.md` |
+| Commission or execute a Forseti Intelligence Cycle | `forseti/product/spines/commission_signal_board/README.md`, then `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, start with `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area. Buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |
@@ -192,7 +193,7 @@ transitional registry/doctrine area, not a durable home for this contract.
 | `forseti/product/spines/judgment/` | Judgment claim ladder, conductor, demand read, and toolkit gaps; use the Judgment consolidation map. |
 | `forseti/product/spines/creator_signal/` | Creator Signal presentation and promotion-bound surface contracts. |
 | `forseti/product/spines/product_lead/` | Product thesis, offer, ICP/wedge, buyer proof, positioning, and GTM front door. |
-| `forseti/product/spines/commission_signal_board/` | Commission Signal Board product-side contracts. |
+| `forseti/product/spines/commission_signal_board/` | Commission Signal Board product-side contracts and the Forseti Intelligence Cycle operating contract. |
 | `forseti/product/satellites/beauty/` | Beauty satellite artifacts and venue-card surfaces. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite and Judgment Level 1 product-learning artifacts. |
 | `forseti/product/case_families/product_learning/` | Product-learning case families across fragrance and other verticals. |

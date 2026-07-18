@@ -9,6 +9,7 @@ scope: >
   classifier, retrieval process, or implementation authorization.
 use_when:
   - Checking the durable rules behind the Commission Signal Board Prompt Structure.
+  - Commissioning or checking a Forseti Intelligence Cycle phase.
   - Checking which prompt sections are adopted, modified, deferred, or rejected under the evidence/signals-only boundary.
   - Preparing owner sign-off on commission signal-board naming, source-routing, and classifier handoff.
 authority_boundary: retrieval_only
@@ -101,6 +102,85 @@ Each completion-ledger scout value must agree with its corresponding coverage
 row's status and yield; the completion ledger cannot claim a checked, blocked,
 pending, or not-required result that the coverage ledger does not show.
 
+## Forseti Intelligence Cycle Operating Contract
+
+The future-facing operating name is **Forseti Intelligence Cycle**. Its
+canonical phases are:
+
+1. **Understanding** — produce a decision-neutral understanding of the subject.
+2. **Problem Framing** — use that understanding to frame the consequential
+   problem or decision; `Problem` is acceptable only as informal shorthand.
+
+Do not commission future work with an unqualified `Phase 1` or `Phase 2` label.
+Historical filenames, reports, handoffs, and receipts retain their original
+phase language because changing it would falsify provenance.
+
+Each phase normally uses two completed operator/model turns:
+
+1. **Acquire & Seal.** Bind the phase-specific question, intended consumer and
+   use, scope, and outcome signals. Complete prerequisite and authority checks
+   and seal the phase-specific CSB before source-heavy work. Before capture,
+   resolve every selected source to the current source-family authority and its
+   banked recipe-card or recon-index route when one exists. An established
+   source-specific route is not replaced by generic fallback browsing: Ulta and
+   Quora must be resolved through their existing source-specific records, with
+   the recorded route scope, maturity, and typed limitations preserved.
+   Scanning and Capture then execute under their own authority and return
+   inspectable receipts or typed failures. The turn finishes only by writing a
+   durable phase acquisition seal that carries the commission identity,
+   canonical phase, bound question and use, resolved route identities,
+   scan/capture receipts, source/provenance identifiers, material gaps and
+   failures, and seal state. Live chat memory is not part of the seal.
+2. **Deliver.** Start in fresh context from the phase acquisition seal. Verify
+   the acquisition gate before synthesis. Then craft, validate, and hand off the
+   phase deliverable without making an evidence, route-exhaustion, provenance,
+   or coverage claim that the seal does not support.
+
+The normal budget is two turns per phase, not a fake-success cap. A blocked,
+skipped, silently substituted, or incompletely captured required route leaves
+Acquire & Seal blocked. It does not manufacture a Deliver turn. Context growth
+or compaction never excuses losing route choices or evidence: those facts live
+in the durable seal.
+
+The cycle optimizes toward six outcome signals:
+
+1. **Question fit:** answer the bound question for the intended reader and use,
+   rather than drifting toward the easiest available data.
+2. **Evidence foundation:** trace every load-bearing judgment to dated evidence;
+   check critical independence/currentness; record required routes and failures
+   honestly.
+3. **Reasoning quality:** make the evidence-to-judgment chain reconstructable;
+   distinguish facts, assumptions, and judgments; address serious alternatives
+   and disconfirming evidence when relevant.
+4. **Honest uncertainty:** place confidence and material gaps beside the
+   judgments they affect and name useful change conditions; do not force
+   probability language onto descriptive facts.
+5. **Implications and foresight:** explain what findings mean for the intended
+   reader and what observable developments would change the view; do not force
+   unsupported forecasts or recommendations.
+6. **Communication efficiency:** make key judgments easy to find, order the
+   body by importance, remove repetition and padding, and keep audit detail
+   available without letting it dominate the narrative.
+
+These are compact outcome checks, not a numerical score, six report sections,
+six additional workflow gates, or six repeated receipts. The working score,
+weights, caps, bands, acceptance thresholds, and scoring automation remain
+outside this contract.
+
+Production priority is explicit: optimize for decision usefulness under an
+integrity floor. First secure question fit, trustworthy evidence, and honest
+uncertainty; these foundations may not be traded for prose, apparent
+decisiveness, speed, or implications. Once they hold, put the largest analytical
+effort into sound reasoning and useful implications. Only then compress for
+clear delivery. Communication efficiency clarifies supported intelligence; it
+cannot manufacture substance.
+
+Satisfy the signals through real task evidence and function, not headings,
+labels, citation volume, ritual sections, forced forecasts, repeated confidence
+labels, or padding. The producing actor receives this priority order but no
+numerical weights, bands, caps, or score-optimization instructions. Independent
+post-delivery evaluation remains a separate playbook-owned handoff.
+
 Public-reaction engagement belongs in the board as resonance context, not
 judgment. CSB may ask rows to preserve source-visible upvotes, helpful votes,
 likes, views, shares, comment counts, reply counts, score state, visible
@@ -168,9 +248,9 @@ signals appear in the chronology lens; the customer-choice mechanism chain with
 the five-way complaint classification and stated-sample proportionality rules
 appears in the community lens; and defensibility raw material (collected,
 never judged) in the
-comparator lens. Phase 1 collects generic defensibility raw material once;
-Phase 2 may request only decision-specific fresh supplements, never a general
-re-scan. Retail, customer, and claims research routes receive first attention,
+comparator lens. Understanding collects generic defensibility raw material once;
+Problem Framing may request only decision-specific fresh supplements, never a
+general re-scan. Retail, customer, and claims research routes receive first attention,
 subject to the named-job and substitution rules rather than quotas. The
 linked-commercial-claim admission principle governs what the narrative
 foregrounds; plain-language section leads plus SKU/item-reception and
