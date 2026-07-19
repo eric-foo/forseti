@@ -62,9 +62,14 @@ the block is NOT exit-IP-keyed or browser-independent: the discriminator is the
 warmed real-browser Akamai session. The armory runners stay Akamai-blocked on
 every egress tested (do not replay the datacenter-VPN or cold-automation rungs);
 a runner-reproducible route still needs a residential (non-datacenter) US
-egress, an entitled affiliate feed, or an owner-approved paid provider. The
-warmed-real-browser content is not runner-reproducible and no pin was promoted.
-Full evidence lives
+egress, an entitled affiliate feed, or an owner-approved paid provider.
+Owner-directed 2026-07-19, a route-specific pin was then promoted via the
+warmed-real-browser CDP path — live GO packets PDP `01KXXHBKF2GPK4M96SAV1VQKM3`
+and policy `01KXXHC3BZ27D3WWDJ8QPV8004` bind schema.org `Offer`
+`price=16`/`priceCurrency=USD` plus Kohl's US-shipping-only policy, so the
+storefront-pin registry now records `CONFIRMED_US` / `CONFIRMED_USD` (delivery
+`UNPINNED`) for that non-runner route only. The armory runner stays NO_GO and
+the pin is not runner-reproducible. Full evidence lives
 in `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
 (Kohl's section), the Kohl's rows of `retail_storefront_pin_registry_v0.md` and
 `capture_recon_index_v0.md`. The fork below is retained as historical
