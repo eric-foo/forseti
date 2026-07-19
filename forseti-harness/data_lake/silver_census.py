@@ -17,7 +17,8 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Mapping
+from time import perf_counter
+from typing import Any, Callable, Mapping
 
 from data_lake.lane_registry import LaneRole, SILVER_LANES, role_of
 from data_lake.root import EPOCH_MARKER_FILENAME, LEGACY_EPOCH_MARKER_FILENAME
@@ -137,6 +138,25 @@ if set(_LANE_APPLICABILITY) != _ACTIVE_SILVER_LANES:
         f"extra={sorted(set(_LANE_APPLICABILITY) - _ACTIVE_SILVER_LANES)!r})"
     )
 
+
+
+ProgressCallback = Callable[[dict[str, Any]], None]
+
+
+def _notify_progress(
+    progress: ProgressCallback | None,
+    *,
+    phase: str,
+    status: str,
+    started_at: float | None = None,
+    **fields: Any,
+) -> None:
+    if progress is None:
+        return
+    event: dict[str, Any] = {"phase": phase, "status": status, **fields}
+    if started_at is not None:
+        event["elapsed_seconds"] = round(max(0.0, perf_counter() - started_at), 3)
+    progress(event)
 
 
 def _empty_counts() -> Counter[str]:
@@ -675,18 +695,46 @@ def _reconciles(total: Counter[str], groups: Mapping[str, Counter[str]]) -> bool
     return all(sum(counts[field] for counts in groups.values()) == total[field] for field in _ADDITIVE_FIELDS)
 
 
-def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
+def build_silver_observation_census(
+    data_root: Any,
+    *,
+    progress: ProgressCallback | None = None,
+) -> dict[str, Any]:
     """Build one census from a verified ``DataLakeRoot`` without writing."""
+    census_started = perf_counter()
+    _notify_progress(
+        progress, phase="silver_observation_census", status="phase_started"
+    )
     root = Path(data_root.path)
     epoch = _epoch(root)
+    phase_started = perf_counter()
+    _notify_progress(progress, phase="scan_raw_manifests", status="phase_started")
     manifests, errors, times, fingerprint_parts = _scan_manifests(root)
+    _notify_progress(
+        progress,
+        phase="scan_raw_manifests",
+        status="phase_completed",
+        started_at=phase_started,
+        manifest_count=len(manifests),
+        error_count=len(errors),
+    )
     manifest_by_packet = {
         str(manifest.get("packet_id")): manifest
         for manifest in manifests
         if isinstance(manifest.get("packet_id"), str)
     }
     accumulator = _Accumulator()
+    phase_started = perf_counter()
+    _notify_progress(
+        progress, phase="build_creator_metric_lineage", status="phase_started"
+    )
     creator_metric_lineage = build_creator_metric_lineage_index(data_root)
+    _notify_progress(
+        progress,
+        phase="build_creator_metric_lineage",
+        status="phase_completed",
+        started_at=phase_started,
+    )
     creator_metric_lanes = {
         CREATOR_METRIC_OBSERVATION_LANE,
         CREATOR_METRIC_ROLLUP_LANE,
@@ -702,6 +750,13 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
     derived = root / "derived"
     if derived.is_dir():
         for lane in sorted(SILVER_LANES):
+            lane_started = perf_counter()
+            _notify_progress(
+                progress,
+                phase="scan_silver_lane",
+                status="phase_started",
+                lane=lane,
+            )
             for path in sorted(derived.glob(f"*/*/{lane}/*")):
                 if not path.is_file():
                     continue
@@ -709,6 +764,15 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                 stat = path.stat()
                 fingerprint_parts.append(f"{relative}\0{stat.st_size}\0{stat.st_mtime_ns}")
                 lane_counts[lane] += 1
+                if lane_counts[lane] % 1000 == 0:
+                    _notify_progress(
+                        progress,
+                        phase="scan_silver_lane",
+                        status="phase_progress",
+                        started_at=lane_started,
+                        lane=lane,
+                        record_count=lane_counts[lane],
+                    )
                 try:
                     record = json.loads(path.read_text(encoding="utf-8"))
                     if not isinstance(record, dict):
@@ -821,6 +885,21 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                     manifest_by_packet=manifest_by_packet,
                 )
 
+            _notify_progress(
+                progress,
+                phase="scan_silver_lane",
+                status="phase_completed",
+                started_at=lane_started,
+                lane=lane,
+                record_count=lane_counts[lane],
+            )
+
+        marker_scan_started = perf_counter()
+        _notify_progress(
+            progress,
+            phase="scan_deep_capture_markers",
+            status="phase_started",
+        )
         for marker_path in sorted(derived.glob(f"*/*/{_DEEP_CAPTURE_SET_LANE}/*")):
             if not marker_path.is_file():
                 continue
@@ -904,7 +983,16 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         "error": "official envelope member or completion proof failed exact source-backed validation",
                     }
                 )
+        _notify_progress(
+            progress,
+            phase="scan_deep_capture_markers",
+            status="phase_completed",
+            started_at=marker_scan_started,
+            marker_count=sum(marker_counts.values()),
+        )
 
+    phase_started = perf_counter()
+    _notify_progress(progress, phase="reconcile_census", status="phase_started")
     accumulator.errors.extend(errors)
     times.extend(_known_time_values(epoch))
     if not times:
@@ -933,7 +1021,7 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
         raise AssertionError(
             f"creator-metric lineage reconciliation failed: {lineage_reconciliation}"
         )
-    return {
+    result = {
         "schema_version": CENSUS_SCHEMA_VERSION,
         "counting_unit": "unique subject + observation type/metric + observed time + policy + lineage anchor",
         "lake": {
@@ -959,6 +1047,22 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
         "errors": sorted(accumulator.errors, key=lambda item: _canonical(item)),
         "audit_only_residuals": sorted(audit_only_residuals, key=lambda item: _canonical(item)),
     }
+    _notify_progress(
+        progress,
+        phase="reconcile_census",
+        status="phase_completed",
+        started_at=phase_started,
+        error_count=len(result["errors"]),
+    )
+    _notify_progress(
+        progress,
+        phase="silver_observation_census",
+        status="phase_completed",
+        started_at=census_started,
+        silver_record_count=result["totals"]["silver_records"],
+        error_count=len(result["errors"]),
+    )
+    return result
 
 
 __all__ = [

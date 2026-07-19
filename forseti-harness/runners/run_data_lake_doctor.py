@@ -6,7 +6,8 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from time import perf_counter
+from typing import Any, Callable, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -40,6 +41,25 @@ class _RawCandidate:
     packet_id: str
     container: Path
     manifest: Path
+
+
+ProgressCallback = Callable[[dict[str, Any]], None]
+
+
+def _notify_progress(
+    progress: ProgressCallback | None,
+    *,
+    phase: str,
+    status: str,
+    started_at: float | None = None,
+    **fields: Any,
+) -> None:
+    if progress is None:
+        return
+    event: dict[str, Any] = {"phase": phase, "status": status, **fields}
+    if started_at is not None:
+        event["elapsed_seconds"] = round(max(0.0, perf_counter() - started_at), 3)
+    progress(event)
 
 
 def _rel(root: DataLakeRoot, path: Path) -> str:
@@ -184,19 +204,71 @@ def inspect_data_lake(
     *,
     rebuild_availability: bool = False,
     packet_id: str | None = None,
+    progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
-    rebuild_count = root.rebuild_availability() if rebuild_availability else None
+    rebuild_count = None
+    if rebuild_availability:
+        phase_started = perf_counter()
+        _notify_progress(
+            progress, phase="rebuild_availability", status="phase_started"
+        )
+        rebuild_count = root.rebuild_availability()
+        _notify_progress(
+            progress,
+            phase="rebuild_availability",
+            status="phase_completed",
+            started_at=phase_started,
+            packet_count=rebuild_count,
+        )
 
+    phase_started = perf_counter()
+    _notify_progress(progress, phase="discover_raw_packets", status="phase_started")
     raw_candidates, wrong_shard, legacy_flat, malformed, missing_manifest = _raw_candidates(root)
+    _notify_progress(
+        progress,
+        phase="discover_raw_packets",
+        status="phase_completed",
+        started_at=phase_started,
+        raw_packet_count=len(raw_candidates),
+    )
+
+    phase_started = perf_counter()
+    _notify_progress(progress, phase="read_availability_index", status="phase_started")
     availability, availability_count, availability_failures = _availability_entries(root)
+    _notify_progress(
+        progress,
+        phase="read_availability_index",
+        status="phase_completed",
+        started_at=phase_started,
+        availability_count=availability_count,
+        read_failure_count=len(availability_failures),
+    )
     valid_packet_ids = {candidate.packet_id for candidate in raw_candidates}
+    phase_started = perf_counter()
+    _notify_progress(progress, phase="resolve_raw_tombstones", status="phase_started")
+    tombstoned_packet_ids = root.tombstoned_packet_ids()
+    _notify_progress(
+        progress,
+        phase="resolve_raw_tombstones",
+        status="phase_completed",
+        started_at=phase_started,
+        tombstoned_packet_count=len(tombstoned_packet_ids),
+    )
+    public_packet_ids = valid_packet_ids - tombstoned_packet_ids
 
     missing_availability: list[str] = []
     stale_availability: list[dict[str, Any]] = []
     read_failures: list[dict[str, str]] = []
     verified_raw_packet_count = 0
 
-    for candidate in raw_candidates:
+    phase_started = perf_counter()
+    _notify_progress(
+        progress,
+        phase="verify_raw_packets",
+        status="phase_started",
+        packet_count=len(raw_candidates),
+    )
+    for candidate_index, candidate in enumerate(raw_candidates, start=1):
         try:
             expected = _expected_availability(root, candidate)
         except (OSError, ValueError, DataLakeRootError) as exc:
@@ -210,18 +282,19 @@ def inspect_data_lake(
             continue
 
         entry = availability.get(candidate.packet_id)
-        if entry is None:
-            missing_availability.append(candidate.packet_id)
-        else:
-            mismatched = [
-                field
-                for field in _AVAILABILITY_FIELDS
-                if entry.get(field) != expected.get(field)
-            ]
-            if mismatched:
-                stale_availability.append(
-                    {"packet_id": candidate.packet_id, "fields": mismatched}
-                )
+        if candidate.packet_id not in tombstoned_packet_ids:
+            if entry is None:
+                missing_availability.append(candidate.packet_id)
+            else:
+                mismatched = [
+                    field
+                    for field in _AVAILABILITY_FIELDS
+                    if entry.get(field) != expected.get(field)
+                ]
+                if mismatched:
+                    stale_availability.append(
+                        {"packet_id": candidate.packet_id, "fields": mismatched}
+                    )
 
         try:
             root.load_raw_packet(candidate.packet_id)
@@ -236,7 +309,29 @@ def inspect_data_lake(
         else:
             verified_raw_packet_count += 1
 
-    orphan_availability = sorted(packet_id for packet_id in availability if packet_id not in valid_packet_ids)
+        if candidate_index % 100 == 0 or candidate_index == len(raw_candidates):
+            _notify_progress(
+                progress,
+                phase="verify_raw_packets",
+                status="phase_progress",
+                started_at=phase_started,
+                processed_packet_count=candidate_index,
+                packet_count=len(raw_candidates),
+                read_failure_count=len(read_failures),
+            )
+
+    _notify_progress(
+        progress,
+        phase="verify_raw_packets",
+        status="phase_completed",
+        started_at=phase_started,
+        processed_packet_count=len(raw_candidates),
+        verified_packet_count=verified_raw_packet_count,
+        read_failure_count=len(read_failures),
+    )
+    orphan_availability = sorted(
+        packet_id for packet_id in availability if packet_id not in public_packet_ids
+    )
     packet = _packet_report(root, packet_id) if packet_id is not None else None
 
     report: dict[str, Any] = {
@@ -251,6 +346,8 @@ def inspect_data_lake(
         "rebuild_availability_count": rebuild_count,
         "raw_packet_count": len(raw_candidates),
         "verified_raw_packet_count": verified_raw_packet_count,
+        "public_raw_packet_count": len(public_packet_ids),
+        "tombstoned_raw_packets": sorted(valid_packet_ids & tombstoned_packet_ids),
         "availability_count": availability_count,
         "missing_availability": sorted(missing_availability),
         "stale_availability": sorted(stale_availability, key=lambda item: item["packet_id"]),
@@ -310,17 +407,42 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    command_started = perf_counter()
+
+    def emit_progress(event: dict[str, Any]) -> None:
+        print(json.dumps(event, sort_keys=True), file=sys.stderr, flush=True)
+
+    emit_progress({"phase": "data_lake_doctor", "status": "phase_started"})
     try:
         root = DataLakeRoot.resolve(explicit=args.data_root)
         report = inspect_data_lake(
             root,
             rebuild_availability=args.rebuild_availability,
             packet_id=args.packet_id,
+            progress=emit_progress,
         )
     except Exception as exc:
+        emit_progress(
+            {
+                "phase": "data_lake_doctor",
+                "status": "phase_failed",
+                "elapsed_seconds": round(
+                    max(0.0, perf_counter() - command_started), 3
+                ),
+                "error_type": type(exc).__name__,
+            }
+        )
         parser.exit(status=2, message=f"data lake doctor failed: {exc}\n")
 
-    print(json.dumps(report, indent=2, sort_keys=True))
+    emit_progress(
+        {
+            "phase": "data_lake_doctor",
+            "status": "phase_completed",
+            "elapsed_seconds": round(max(0.0, perf_counter() - command_started), 3),
+            "result_status": report["status"],
+        }
+    )
+    print(json.dumps(report, indent=2, sort_keys=True), flush=True)
     return 0 if report["status"] == "ok" else 1
 
 

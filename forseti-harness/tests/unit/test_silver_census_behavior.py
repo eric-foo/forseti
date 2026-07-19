@@ -31,6 +31,35 @@ FAILED_IG_GRID_PACKET = "01KW2MJM01Y0936VNECWB3MHSG"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
 
 
+def test_census_progress_names_population_scan_phases(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _manifest(root, PACKET, "reddit", "r/fragrance")
+    (root.path / "derived").mkdir(exist_ok=True)
+    progress: list[dict[str, object]] = []
+
+    census = build_silver_observation_census(root, progress=progress.append)
+
+    assert census["totals"]["capture_packets"] == 1
+    assert progress[0] == {
+        "phase": "silver_observation_census",
+        "status": "phase_started",
+    }
+    assert any(
+        event["phase"] == "scan_raw_manifests"
+        and event["status"] == "phase_completed"
+        and event["manifest_count"] == 1
+        for event in progress
+    )
+    assert any(
+        event["phase"] == "scan_silver_lane"
+        and event["status"] == "phase_started"
+        and event["lane"] == "cleaning_basenotes_silver"
+        for event in progress
+    )
+    assert progress[-1]["phase"] == "silver_observation_census"
+    assert progress[-1]["status"] == "phase_completed"
+
+
 def test_census_does_not_substitute_capture_time_for_unknown_observed_at() -> None:
     observation = {
         "effective_interval": {
