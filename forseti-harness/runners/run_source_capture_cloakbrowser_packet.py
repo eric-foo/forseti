@@ -270,7 +270,7 @@ def run_source_capture_cloakbrowser_packet(
             )
         if load_more_clicks != 0:
             raise ValueError(
-                "Nordstrom recent_window_30d posture owns and records its bounded "
+                "Nordstrom recent_window_30d posture owns and records its adaptive "
                 "six-row continuation actions; generic load-more clicks are forbidden"
             )
 
@@ -965,7 +965,7 @@ def _nordstrom_review_posture_failure(
         reasons.append("site-owned Most Recent selection did not complete")
     if observation.get("admitted") is not True:
         reasons.append(
-            "bounded 30-day review window was not admitted "
+            "bounded onboarding review coverage was not admitted "
             f"(status={observation.get('status')}, "
             f"review_ids={observation.get('review_ids')})"
         )
@@ -1217,8 +1217,9 @@ def _receipt_summary(
     if nordstrom_review_posture == "recent_window_30d":
         summary += (
             " Nordstrom onboarding review posture: most-helpful positive/critical "
-            "pair plus a Most Recent 30-day window with a six-row floor and 30-row "
-            "cap; each continuation activation adds six rows and is recorded."
+            "pair plus all last-30-day reviews, then up to 30 Most Recent rows when "
+            "that cohort has fewer than 12; each continuation activation adds six "
+            "rows and is recorded."
         )
     return summary
 
@@ -1467,8 +1468,9 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Nordstrom onboarding-only posture: preserve the most-helpful "
             "positive/critical pair, select Most Recent, retain every review in the "
-            "last 30 days with a six-row floor and 30-row cap, and record each "
-            "Load 6 more reviews activation."
+            "last 30 days, and when that cohort has fewer than 12 continue to 30 "
+            "Most Recent rows or proven source exhaustion; record each Load 6 more "
+            "reviews activation."
         ),
     )
     parser.add_argument(

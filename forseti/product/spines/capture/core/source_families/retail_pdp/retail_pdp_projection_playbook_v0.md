@@ -171,7 +171,7 @@ permission for ECR or Cleaning to author a value from prose.
 | Retailer | Capture substrate | Projection binding posture | Residual hard line |
 | --- | --- | --- | --- |
 | Amazon | Rendered DOM in a US storefront session when commissioned; US storefront pin has a single-probe GO via public delivery ZIP widget, with bot-wall and selector fragility still visible. | Target-anchored ASIN/price/availability/review fields are carried from DOM/visible text. The DOM price input is the target price source when present. Shipping, loyalty, and recommendation modules are carried as frame-sensitive modules. | If price comes only from a visible `$N` fallback, residualize it. Do not let store-card, shipping, or recommendation dollars become target price. Amazon access posture remains the strictest and does not become commercial-scale authority. |
-| Nordstrom | Anonymous rendered PDP after the retailer-owned country-preference flow confirms selected US/USD plus the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer row, the `Sold by Nordstrom` label, details/claims, displayed 4.6/118 review aggregate, star histogram, and currently rendered review microdata. Ordinary captures preserve the source-selected sort posture and each rendered card's visible helpful count; absence of a count stays null rather than becoming zero. The explicit onboarding posture preserves Nordstrom's source-labelled most-helpful positive/critical pair, selects `Most Recent`, and retains every review in the last 30 days with a six-row low-density context floor and 30-row cap. Each continuation activation adds and records six rows. Unrelated recommendation Product JSON-LD is rejected. | `Shipping to 518225` remains an independent display residual. It is not US delivery, inventory depth, or fulfillment proof; source-rounded histogram totals remain explicit. `Most Helpful` and the highlighted pair are retailer UI postures, not proof of the ranking algorithm, representativeness, or engagement quality. A low-density floor is context, not a false claim that older reviews fall inside the 30-day window; a cap hit is explicitly truncated. |
+| Nordstrom | Anonymous rendered PDP after the retailer-owned country-preference flow confirms selected US/USD plus the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer row, the `Sold by Nordstrom` label, details/claims, displayed 4.6/118 review aggregate, star histogram, and currently rendered review microdata. Ordinary captures preserve the source-selected sort posture and each rendered card's visible helpful count; absence of a count stays null rather than becoming zero. The explicit onboarding posture preserves Nordstrom's source-labelled most-helpful positive/critical pair, selects `Most Recent`, retains the complete last-30-day cohort, and when that cohort has fewer than 12 reviews continues in the same order to 30 rows or proven source exhaustion. Each continuation activation adds and records six rows. Unrelated recommendation Product JSON-LD is rejected. | `Shipping to 518225` remains an independent display residual. It is not US delivery, inventory depth, or fulfillment proof; source-rounded histogram totals remain explicit. `Most Helpful` and the highlighted pair are retailer UI postures, not proof of the ranking algorithm, representativeness, or engagement quality. Older fallback rows are labelled historical context, not recency or representative rating evidence; a cap hit before the 30-day cohort closes is explicitly truncated. |
 | Sephora | Rendered PDP with Bazaarvoice-backed reviews first-party-rendered after progressive/incremental scroll when review bodies are needed. | Product/variant fields are carried from the complete rendered `linkStore.page.product` subtree; target review substrate uses the "Ratings & Reviews (N)" widget where present. The v2 content parser carries currently rendered review and Q&A components, while recommendation-review counts remain examples/noise posture rather than target substrate. | A bare "`N Reviews`" count is unanchored fallback and must be residualized. A recommendation card count must not become target review count. Currently rendered component rows are a bounded window, not the full review or Q&A corpus and not candidate review-row physicalization. |
 | Ulta | Rendered PDP with embedded `application/ld+json` and `window.__APOLLO_STATE__`. | Preserve both LD JSON and Apollo verbatim. Merge source-visible offer/review fields only when substrates are coherent, residualize LD/Apollo mismatches, and residualize requested-SKU versus rendered-SKU mismatch. Carry `apollo_requested_sku` when present. | Requested-SKU versus rendered-SKU mismatch is a target-binding risk. Do not treat the URL/request parameter as target-bound when the rendered SKU differs. |
 
@@ -237,15 +237,45 @@ For the bounded onboarding posture, use
 `--nordstrom-review-posture recent_window_30d`. The retailer-owned action
 preserves the separately highlighted most-helpful positive and critical
 reviews, selects `Most Recent`, and retains every review dated within the last
-30 days. The floor is six main-list rows, so a low-density or empty 30-day
-window still carries the nearest six context reviews. The cap is 30 rows (four
-continuation activations); if all 30 remain inside the window, the receipt says
-`window_truncated` rather than continuing unbounded. The source-state receipt
-records cutoff, newest/oldest date, in-window and captured counts, continuation
-availability, and the exact activation count. A stale sort, missing highlighted
+30 days. If that cohort contains fewer than 12 reviews, continue in the same
+source order until 30 total main-list rows are retained or the source is proven
+exhausted. For Nordstrom, 30 rows are the initial six plus four continuation
+activations. Older rows are `historical_context`; they are not relabelled as
+recent and are not a star-balanced sample. If all 30 remain inside the window,
+the receipt says `recent_window_truncated` rather than continuing unbounded.
+The source-state receipt records cutoff, newest/oldest date, in-window,
+historical-context, and captured counts, continuation availability, the exact
+activation count, and a truthful scope claim. A stale sort, missing highlighted
 card, non-consecutive/six-row batch, unsorted dates, missing required
 continuation, or failed action preserves supplied raw artifacts and exits
 nonzero.
+
+### Shared retailer onboarding review coverage
+
+The coverage decision above applies to retailer PDP onboarding generally:
+
+1. select the retailer's source-visible `Most Recent` posture;
+2. retain every review in the last 30 days;
+3. if fewer than 12 fall in that window, continue in the same source order to
+   30 total reviews or proven source exhaustion;
+4. preserve any source-labelled helpful positive/critical view separately,
+   without allowing it to replace or contaminate the recency cohort; and
+5. on monitoring captures, retain only reviews new since the prior admitted
+   capture—do not replay the onboarding historical fallback.
+
+The decision is shared; browser mechanics are not. A retailer route may claim
+this posture only after its own adapter proves the sort state, row order,
+continuation batch semantics, stop condition, and source exhaustion signal.
+There is no generic text-matching clicker and no equal-per-star sampling:
+aggregate star histograms carry distribution, while the review corpus remains
+chronological. Current runtime status is:
+
+| Retailer route | Shared decision | Interaction capability |
+| --- | --- | --- |
+| Nordstrom aggregate PDP | Implemented | Proven `Most Recent` selection plus exact `Load 6 more reviews` six-row append. |
+| Luckyscent Bread and Roses aggregate PDP | Applicable | Existing capture retained all eight rendered target reviews; treat that evidence as product-specific source exhaustion, not proof of a general continuation adapter. |
+| Sephora aggregate PDP | Applicable | Separate onboarding design exists, but this work unit does not claim its sort/continuation actions implemented. |
+| Amazon, Ulta, Target, Walmart, and other retailer PDPs | Applicable | Capability unconfirmed; keep source-visible rendered rows and fail any requested complete-onboarding claim rather than inventing generic clicks. |
 
 ## What ECR May Consume
 
