@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootUnavailableError
 from runners import run_asr_transcript_catchup as asr_runner
 from runners import run_seam_cadence as cadence
 from runners.run_seam_cadence import CadenceContext, main, run_cadence, run_check
@@ -261,6 +261,47 @@ def test_one_broken_entrypoint_is_loud_and_never_aborts_the_rest(
     # The loop continued past the broken entrypoint: the ASR skip marker (last
     # in the registry) still printed in both cycles.
     assert [l["cycle"] for l in lines if l.get("status") == "skipped_asr_compute"] == [1, 2]
+
+
+def test_systemic_root_loss_aborts_remaining_cadence_work(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    calls: list[str] = []
+
+    def root_loss(_ctx, _scope) -> list:
+        calls.append("root-loss.py")
+        raise DataLakeRootUnavailableError("verified lake root disappeared")
+
+    def later(_ctx, _scope) -> list:
+        calls.append("later.py")
+        return []
+
+    monkeypatch.setattr(
+        cadence,
+        "CADENCE_ENTRYPOINTS",
+        (
+            cadence.CadenceEntrypoint(
+                runner="root-loss.py", pending=lambda _ctx, _scope: 0, run=root_loss
+            ),
+            cadence.CadenceEntrypoint(
+                runner="later.py", pending=lambda _ctx, _scope: 0, run=later
+            ),
+        ),
+    )
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 1
+    assert calls == ["root-loss.py"]
+    aborts = [
+        line
+        for line in _output_lines(capsys)
+        if line.get("status") == "cadence_aborted_root_unavailable"
+    ]
+    assert len(aborts) == 1
+    assert aborts[0]["cycle"] == 1
+    assert aborts[0]["entrypoint"] == "root-loss.py"
+    assert aborts[0]["skipped_entrypoint_runs"] == 3
+    assert aborts[0]["post_cycle_pending_skipped"] is True
 
 
 def test_skip_asr_visible_backlog_fails_completion_signal(

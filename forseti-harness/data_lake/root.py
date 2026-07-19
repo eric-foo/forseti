@@ -114,6 +114,10 @@ class DataLakeRootError(Exception):
     location; the caller must surface it, never silently fall back."""
 
 
+class DataLakeRootUnavailableError(DataLakeRootError):
+    """A packet I/O failure followed by failed whole-root identity verification."""
+
+
 def _detect_repo_root(start: Path) -> Path | None:
     start = start.resolve()
     for candidate in (start, *start.parents):
