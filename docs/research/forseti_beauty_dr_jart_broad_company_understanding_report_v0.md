@@ -713,7 +713,7 @@ Surface.
 
 ```yaml
 completion_ledger:
-  completion_scope: csb_planning_only_not_acquisition
+  completion_scope: completed_understanding_deliver
   coverage_status: complete_with_typed_gap
   observation_status: traceable
   candidate_status: candidate_only_not_imported
