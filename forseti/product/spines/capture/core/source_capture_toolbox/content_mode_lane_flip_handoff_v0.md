@@ -191,7 +191,7 @@ representative sample-mode receipt before the sampled-raw posture is promoted.
    records, then retire that surface's post-hoc lane as its standard path in
    the same work unit (reconcile the family design doc and any playbook
    mention).
-8. IG family: separate design pass for catchup/derivation-rank semantics
+9. IG family: separate design pass for catchup/derivation-rank semantics
    before any flip. TikTok/YouTube aggregation lanes stay as they are — they
    are not raw-to-derived projections.
 
