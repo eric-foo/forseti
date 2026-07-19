@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 import source_capture.tiktok.creator_onboarding as onboarding
+from data_lake.root import DataLakeRoot
 from runners import run_source_capture_tiktok_creator_onboarding as runner
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
@@ -1680,6 +1681,19 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         return 0, str((tmp_path / "admitted").resolve())
 
     monkeypatch.setattr(runner, "write_tiktok_batch_packet", fake_writer)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    refreshed: dict[str, object] = {}
+
+    def fake_refresh(**kwargs: object) -> dict[str, object]:
+        refreshed.update(kwargs)
+        return {"retained_audience_join_count": 4}
+
+    monkeypatch.setattr(runner, "refresh_creator_registry_projections", fake_refresh)
+    monkeypatch.setattr(
+        runner,
+        "_write_suggested_frontier",
+        lambda **_kwargs: str(tmp_path / "frontier.json"),
+    )
 
     code = runner.main(
         [
@@ -1687,8 +1701,8 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
             "creator",
             "--output-dir",
             str(output_dir),
-            "--admit-output",
-            str(tmp_path / "admitted"),
+            "--data-root",
+            str(tmp_path / "lake"),
         ]
     )
 
@@ -1706,6 +1720,7 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         "selection_result_json",
         "suggested_accounts_json",
     ]
+    assert refreshed["data_root"] is lake or refreshed["data_root"].root_uuid == lake.root_uuid
 
 
 def test_onboarding_cli_reuses_valid_prior_capture_without_deep_capture(

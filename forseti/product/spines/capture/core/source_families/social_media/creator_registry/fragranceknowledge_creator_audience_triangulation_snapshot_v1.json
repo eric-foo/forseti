@@ -1,0 +1,459 @@
+{
+  "actual_audience_demographics": "not_estimated",
+  "creator_id": "tiktok:@fragranceknowledge",
+  "creator_signal_projection": {
+    "briefing_instructions": [
+      {
+        "claim_ids": [
+          "cac_b3bf949afa1b29d377a5",
+          "cac_1143ed87da0e000e13a7",
+          "cac_b47b4f5db28a77f2802f",
+          "cac_efda37f282b0ad4e6f17"
+        ],
+        "statement": "Give him one explicit shopper decision to resolve, the relevant reference scents, a price frame, and enough wear time to report projection and dry-down."
+      },
+      {
+        "claim_ids": [
+          "cac_77ac5e1c478adb7b9472",
+          "cac_efda37f282b0ad4e6f17"
+        ],
+        "statement": "Require clear PR, affiliate, discount, and availability context, then let him state mismatches, uncertainty, and who should test before buying."
+      },
+      {
+        "claim_ids": [
+          "cac_843ad62fb35025345ff0",
+          "cac_1143ed87da0e000e13a7"
+        ],
+        "statement": "Translate the scent into a concrete wearing identity such as signature scent, office, date night, season, or a lower-cost route to a known profile, without implying that every viewer wants the same outcome."
+      }
+    ],
+    "creator_specific_execution": {
+      "claim_ids": [
+        "cac_1143ed87da0e000e13a7",
+        "cac_b47b4f5db28a77f2802f",
+        "cac_efda37f282b0ad4e6f17",
+        "cac_fb0badae9ed4a2c22d43"
+      ],
+      "statement": "Build the brief around his hour-by-hour skin testing, scent-DNA comparison, price anchoring, situational fit, and willingness to tell viewers to test in person; use a visually clear product experiment when the hardware itself can carry the story."
+    },
+    "hire_verdict": {
+      "claim_ids": [
+        "cac_b3bf949afa1b29d377a5",
+        "cac_1143ed87da0e000e13a7",
+        "cac_77ac5e1c478adb7b9472",
+        "cac_b47b4f5db28a77f2802f",
+        "cac_efda37f282b0ad4e6f17"
+      ],
+      "statement": "Hire FragranceKnowledge when a campaign must turn an unfamiliar, affordable, or inspired-by fragrance into a choice shoppers can defend through named comparisons, on-skin wear tests, and explicit price tradeoffs."
+    },
+    "observed_audience_response": {
+      "claim_ids": [
+        "cac_b3bf949afa1b29d377a5",
+        "cac_77ac5e1c478adb7b9472",
+        "cac_efda37f282b0ad4e6f17",
+        "cac_db1b72c5c4d69a8da71e"
+      ],
+      "statement": "Captured participants ask him to adjudicate specific purchases and bring back comparison-led, in-depth formats; some express intent to try or buy, while others actively challenge dupe quality, seller legitimacy, note accuracy, and hype."
+    },
+    "product_advantage": {
+      "claim_ids": [
+        "cac_b3bf949afa1b29d377a5",
+        "cac_77ac5e1c478adb7b9472",
+        "cac_b47b4f5db28a77f2802f",
+        "cac_db1b72c5c4d69a8da71e"
+      ],
+      "statement": "He makes fragrance claims feel testable: captured participants bring blind-buy, legitimacy, note, performance, and substitute questions, then some state that they want to try, wait for, or pick up the reviewed scent."
+    },
+    "robustness_stamp": null,
+    "strongest_campaign_jobs": [
+      {
+        "claim_ids": [
+          "cac_b3bf949afa1b29d377a5",
+          "cac_b47b4f5db28a77f2802f",
+          "cac_efda37f282b0ad4e6f17"
+        ],
+        "statement": "Launch or reintroduce a fragrance whose performance, scent profile, or use-case fit needs to be proven over time rather than asserted in a first impression."
+      },
+      {
+        "claim_ids": [
+          "cac_1143ed87da0e000e13a7",
+          "cac_77ac5e1c478adb7b9472",
+          "cac_b47b4f5db28a77f2802f"
+        ],
+        "statement": "Position an affordable or inspired-by fragrance against a known designer or niche reference, with direct comparison and an honest account of what the lower price does and does not preserve."
+      },
+      {
+        "claim_ids": [
+          "cac_b3bf949afa1b29d377a5",
+          "cac_843ad62fb35025345ff0",
+          "cac_efda37f282b0ad4e6f17"
+        ],
+        "statement": "Create a recurring comparison or extended-test episode that answers a named blind-buy, seasonal, signature-scent, office, or night-out decision."
+      }
+    ],
+    "wrong_hire_boundary": {
+      "claim_ids": [
+        "cac_77ac5e1c478adb7b9472",
+        "cac_efda37f282b0ad4e6f17",
+        "cac_fb0badae9ed4a2c22d43",
+        "cac_db1b72c5c4d69a8da71e"
+      ],
+      "statement": "Do not hire him for a generic lifestyle endorsement, an untested superlative, demographic targeting, or a brief that needs guaranteed sales; those jobs discard the comparison-and-proof role and overread captured comments."
+    }
+  },
+  "evidence_cutoff": "2026-07-19T18:30:25Z",
+  "generated_at": "2026-07-20T02:34:38+08:00",
+  "input_bundle_hash": "sha256:4b784abaf8227cfaf8ced839e3f99988fda2f46a3a44b5d1920d542e5dfea200",
+  "input_bundle_id": "caeb_405bd64da1a715127374",
+  "judgment_claim_set": {
+    "agreements": [
+      "Captured participants repeatedly arrive with active choice questions: which fragrance to buy, whether a bottle is worth it or safe to blind buy, and which scent fits a use case.",
+      "The creator repeatedly frames fragrance through price thresholds, discounts, and lower-cost alternatives, while captured participants ask for budget recommendations, prices, coupons, and help affording desired bottles.",
+      "Captured participants use specific flankers, note disputes, scent-DNA comparisons, seasonal needs, and product corrections, indicating that at least part of the participating audience can interrogate detailed fragrance claims.",
+      "Captured participants frame fragrance as a way to smell like a desired prestige reference, find a signature scent, suit a night-out or office context, and recover a distinctive remembered impression.",
+      "The oversized Versace Eros bottle-filling demonstration attracted salient reactions focused on the physical test, spill, and whether the bottle would spray.",
+      "Some captured participants state an intention to try, pick up, or wait for a featured fragrance after review-oriented content."
+    ],
+    "claims": [
+      {
+        "all_support_evidence_ids": [
+          "ttce_0caffbc8835a346471be",
+          "ttce_584be525f9e95e5cea71",
+          "ttce_7fdc886c574d33944506",
+          "ttce_896f4820bfadfe0c7f0e",
+          "ttce_8c41a4f715d037237e82",
+          "ttce_a82cc8e1acfd617808ef",
+          "ttce_b65044ff572ffa641348",
+          "ttce_d5c354c6f9d085e7230f",
+          "ttte_11072393ecd2adac8f67",
+          "ttte_3dc8e07c8cb01e4b8baa"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_b3bf949afa1b29d377a5",
+        "commercial_implication": "The creator is commercially useful near consideration, where a brief can resolve a named fragrance decision instead of merely generating category awareness.",
+        "counterevidence_ids": [],
+        "limitation": "The evidence shows questions and stated interest, not completed purchases or conversion.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_0caffbc8835a346471be",
+          "ttce_584be525f9e95e5cea71",
+          "ttce_7fdc886c574d33944506",
+          "ttce_896f4820bfadfe0c7f0e",
+          "ttce_8c41a4f715d037237e82"
+        ],
+        "source_item_ids": [
+          "7479218340716776750",
+          "7522888721578954014",
+          "7612668820167167262",
+          "7659189338042944798",
+          "7659857093897358622",
+          "7662558455416261919"
+        ],
+        "statement": "Captured participants repeatedly arrive with active choice questions: which fragrance to buy, whether a bottle is worth it or safe to blind buy, and which scent fits a use case.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_20c2f106190a6bafe88a",
+          "ttce_77302ad1f01a45b4b0fe",
+          "ttce_79408910bf1cfa22c422",
+          "ttce_acc6bfe806971e3f5854",
+          "ttce_b107a9f3aa7ac3740ecd",
+          "ttce_b583ea0f7f7d7a6e6994",
+          "ttte_02549732c57125a1069a",
+          "ttte_6af4b870a71583bb4613",
+          "ttte_7300f69b0465f56b3c3d",
+          "ttte_97c35ae24d1c4560a7f5",
+          "ttte_d605223b868addb85735",
+          "ttte_e0b212fd4bd57a60dc21",
+          "ttte_f04c1c5214c199cff238"
+        ],
+        "axis": "price_value_posture",
+        "claim_id": "cac_1143ed87da0e000e13a7",
+        "commercial_implication": "Value-led fragrance clients can use him to make price differences concrete and to position an affordable option against a known reference scent.",
+        "counterevidence_ids": [
+          "ttce_bbb6fbfbf19de46b2731",
+          "ttce_e0ae184dbb9430959b50"
+        ],
+        "limitation": "Price sensitivity is visible, but the captured audience is not uniformly receptive to inspired-by products or the cheapest option.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_77302ad1f01a45b4b0fe",
+          "ttce_79408910bf1cfa22c422",
+          "ttce_b583ea0f7f7d7a6e6994",
+          "ttte_7300f69b0465f56b3c3d",
+          "ttte_97c35ae24d1c4560a7f5"
+        ],
+        "source_item_ids": [
+          "7479218340716776750",
+          "7522888721578954014",
+          "7612668820167167262",
+          "7659189338042944798",
+          "7659857093897358622",
+          "7662558455416261919"
+        ],
+        "statement": "The creator repeatedly frames fragrance through price thresholds, discounts, and lower-cost alternatives, while captured participants ask for budget recommendations, prices, coupons, and help affording desired bottles.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_5d387b0b24735838f252",
+          "ttce_5f88ebfbbc5d7fa5c30f",
+          "ttce_66451d63277e6f88078a",
+          "ttce_66fa84a33a8b50804a19",
+          "ttce_7a0fbc95a00f475eec3b",
+          "ttce_bbb6fbfbf19de46b2731",
+          "ttce_c7b71ddf171ae3889b79",
+          "ttce_c984de31f59eba31f5a3",
+          "ttce_e0ae184dbb9430959b50",
+          "ttce_eed0d8d30f790e51abee",
+          "ttce_f8475193e6b6c75de67b",
+          "ttte_05980a2fd4adcbee06fb",
+          "ttte_72a7667b137e518763cd",
+          "ttte_a13bf044a20da451d591",
+          "ttte_a794ea1b513890513dbe",
+          "ttte_f0f10bec1aaa246bdbaf"
+        ],
+        "axis": "objections",
+        "claim_id": "cac_77ac5e1c478adb7b9472",
+        "commercial_implication": "A matching brief must earn trust with direct comparison, disclosure, and on-skin evidence; unsupported deal language or blanket praise risks activating the audience's existing skepticism.",
+        "counterevidence_ids": [
+          "ttce_b583ea0f7f7d7a6e6994",
+          "ttce_d01156895fac64b040ab"
+        ],
+        "limitation": "The comments do not establish whether any challenged seller, note list, or product is actually illegitimate or poor quality.",
+        "modality": "fused",
+        "relation": "contradiction",
+        "representative_evidence_ids": [
+          "ttce_5d387b0b24735838f252",
+          "ttce_66451d63277e6f88078a",
+          "ttce_7a0fbc95a00f475eec3b",
+          "ttce_bbb6fbfbf19de46b2731",
+          "ttce_c984de31f59eba31f5a3"
+        ],
+        "source_item_ids": [
+          "7479218340716776750",
+          "7522888721578954014",
+          "7612668820167167262",
+          "7662558455416261919",
+          "7662824872250199327",
+          "7663162856531053855"
+        ],
+        "statement": "Captured participants challenge inspired-by quality, suspiciously low prices, seller legitimacy, official note claims, and enthusiastic product framing.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_0585c9c9a4662d28f0d2",
+          "ttce_1c11c7099b7f9c6e575c",
+          "ttce_47dfd55055f9485d934d",
+          "ttce_4c039210a343f20af92f",
+          "ttce_5156647263eafad9c73b",
+          "ttce_5d387b0b24735838f252",
+          "ttce_5f88ebfbbc5d7fa5c30f",
+          "ttce_6aab8b9f09511dbe6204",
+          "ttce_89ec8c3da489c20836d5",
+          "ttce_9f2e617d4f0cebc3d339",
+          "ttce_b65044ff572ffa641348",
+          "ttce_b902efe7b75ddfa16edd",
+          "ttce_c7b71ddf171ae3889b79",
+          "ttce_c8adfbf45e84bbb235dd",
+          "ttce_d5c354c6f9d085e7230f",
+          "ttce_eed0d8d30f790e51abee",
+          "ttte_150317e4ff1abb1b05ab",
+          "ttte_22564a8d01ce9e358c11",
+          "ttte_38b8d14d0d9b8a2b812d",
+          "ttte_501bd2ad916192500af9",
+          "ttte_c10116d5330e6e5ba16b"
+        ],
+        "axis": "category_knowledge",
+        "claim_id": "cac_b47b4f5db28a77f2802f",
+        "commercial_implication": "The creator can support briefs that need precise reference points and tradeoffs rather than generic scent adjectives.",
+        "counterevidence_ids": [],
+        "limitation": "Category fluency is evidenced among captured commenters only and cannot be generalized to the full follower base.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_47dfd55055f9485d934d",
+          "ttce_5156647263eafad9c73b",
+          "ttce_5d387b0b24735838f252",
+          "ttce_6aab8b9f09511dbe6204",
+          "ttce_b902efe7b75ddfa16edd"
+        ],
+        "source_item_ids": [
+          "7479218340716776750",
+          "7522888721578954014",
+          "7659189338042944798",
+          "7659857093897358622",
+          "7662558455416261919",
+          "7662824872250199327",
+          "7663162856531053855"
+        ],
+        "statement": "Captured participants use specific flankers, note disputes, scent-DNA comparisons, seasonal needs, and product corrections, indicating that at least part of the participating audience can interrogate detailed fragrance claims.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_8c41a4f715d037237e82",
+          "ttce_8d20e614de456283d29d",
+          "ttce_a82cc8e1acfd617808ef",
+          "ttce_b902efe7b75ddfa16edd",
+          "ttce_db44102bde6b5631fb69",
+          "ttte_19c0c2b7137354f21d38",
+          "ttte_7b338180065f05d2f7e8",
+          "ttte_8c14fdc36e28683cbd9d",
+          "ttte_cc6edb037c797326dd77",
+          "ttte_d605223b868addb85735",
+          "ttte_f04c1c5214c199cff238",
+          "ttte_f1f4d53c1378d433171e"
+        ],
+        "axis": "aspirations_identity",
+        "claim_id": "cac_843ad62fb35025345ff0",
+        "commercial_implication": "The strongest product story connects a bottle to a concrete social or wearing identity while still resolving performance and price questions.",
+        "counterevidence_ids": [],
+        "limitation": "These comments express desired scent outcomes, not stable identity segments or demographic traits.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_8c41a4f715d037237e82",
+          "ttce_8d20e614de456283d29d",
+          "ttce_a82cc8e1acfd617808ef",
+          "ttce_b902efe7b75ddfa16edd",
+          "ttce_db44102bde6b5631fb69"
+        ],
+        "source_item_ids": [
+          "7522888721578954014",
+          "7612668820167167262"
+        ],
+        "statement": "Captured participants frame fragrance as a way to smell like a desired prestige reference, find a signature scent, suit a night-out or office context, and recover a distinctive remembered impression.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_00f1553304fda03da4e1",
+          "ttce_3100ad4b9c8405680d14",
+          "ttce_459994d35d0e3494f0f4",
+          "ttce_f7fc1f8fe65c203d03cf",
+          "ttte_150317e4ff1abb1b05ab",
+          "ttte_22564a8d01ce9e358c11",
+          "ttte_3dc8e07c8cb01e4b8baa",
+          "ttte_c10116d5330e6e5ba16b",
+          "ttte_d2b355b586bf5288648a",
+          "ttte_e10039bc1d3d3c820cc9"
+        ],
+        "axis": "presentation_style_resonance",
+        "claim_id": "cac_efda37f282b0ad4e6f17",
+        "commercial_implication": "His harder-to-substitute format is evidence-rich comparison and extended testing, which can give a sponsored claim more decision value than a one-spray endorsement.",
+        "counterevidence_ids": [],
+        "limitation": "Requests and praise show format demand among captured participants, not the relative performance of long-form versus short-form content.",
+        "modality": "fused",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_00f1553304fda03da4e1",
+          "ttce_3100ad4b9c8405680d14",
+          "ttce_459994d35d0e3494f0f4",
+          "ttce_f7fc1f8fe65c203d03cf",
+          "ttte_d2b355b586bf5288648a"
+        ],
+        "source_item_ids": [
+          "7659189338042944798",
+          "7659857093897358622",
+          "7662558455416261919",
+          "7663162856531053855"
+        ],
+        "statement": "Captured participants praise detailed reviews and explicitly ask for older long-form YouTube material and the return of the creator's comparison series.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_7e2ad68f4d5070230ecc",
+          "ttce_a00eba4bb8076ca94c47",
+          "ttce_ac99d27817aec71a3526",
+          "ttce_bb407ab5557a6362d99c",
+          "ttce_d7e8212fe5690c88bb85",
+          "ttte_139f0eba94a1067c5df6",
+          "ttte_15746d4159009e87fc15",
+          "ttte_3b64ddf4115a4accb106",
+          "ttte_467bd90ee6b458c1fcf9",
+          "ttte_79ccfa91ebdb68b86b0d"
+        ],
+        "axis": "engagement_memorability_effect",
+        "claim_id": "cac_fb0badae9ed4a2c22d43",
+        "commercial_implication": "A visually legible product experiment can win attention and make product hardware memorable, but the reaction should not be treated as purchase intent.",
+        "counterevidence_ids": [],
+        "limitation": "The salient comments are largely jokes, surprise, or product requests; they do not evidence favorable brand consideration or sales.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_7e2ad68f4d5070230ecc",
+          "ttce_a00eba4bb8076ca94c47",
+          "ttce_ac99d27817aec71a3526",
+          "ttce_bb407ab5557a6362d99c",
+          "ttce_d7e8212fe5690c88bb85"
+        ],
+        "source_item_ids": [
+          "7662824872250199327"
+        ],
+        "statement": "The oversized Versace Eros bottle-filling demonstration attracted salient reactions focused on the physical test, spill, and whether the bottle would spray.",
+        "support_scope": "single_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_478d9d10edd0bcd8d47e",
+          "ttce_b583ea0f7f7d7a6e6994",
+          "ttce_dddd32bad93281e80558",
+          "ttce_fac20824212b81058cd0"
+        ],
+        "axis": "product_brand_affinity",
+        "claim_id": "cac_db1b72c5c4d69a8da71e",
+        "commercial_implication": "The clearest supported audience response is consideration and stated trial intent after concrete product discussion, not guaranteed purchase.",
+        "counterevidence_ids": [
+          "ttce_66fa84a33a8b50804a19",
+          "ttce_eed0d8d30f790e51abee",
+          "ttce_f8475193e6b6c75de67b"
+        ],
+        "limitation": "Stated intent is sparse, product-specific, and not verified against transaction data.",
+        "modality": "observed_comments",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_b583ea0f7f7d7a6e6994",
+          "ttce_dddd32bad93281e80558",
+          "ttce_fac20824212b81058cd0"
+        ],
+        "source_item_ids": [
+          "7612668820167167262",
+          "7659857093897358622",
+          "7663162856531053855"
+        ],
+        "statement": "Some captured participants state an intention to try, pick up, or wait for a featured fragrance after review-oriented content.",
+        "support_scope": "multi_item"
+      }
+    ],
+    "contradictions": [
+      "Captured participants challenge inspired-by quality, suspiciously low prices, seller legitimacy, official note claims, and enthusiastic product framing."
+    ],
+    "missing_evidence": []
+  },
+  "limitations": [
+    "The compact view covers eight selected TikTok videos and captured top-level comments only; it is not a platform-wide comment census.",
+    "Video selection may be reach-ranked or truncated, reply threads were not analyzed, and the evidence cutoff is 2026-07-19T18:30:25Z.",
+    "Captured comments include giveaway requests, jokes, corrections, unrelated copy-paste, and product-specific reactions, so they cannot be treated as a representative audience survey.",
+    "Creator content includes PR, discount-code, TikTok Shop, and retailer promotion references; the evidence does not independently verify product quality, seller legitimacy, stock, price, or transaction outcomes."
+  ],
+  "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+  "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+  "non_claims": [
+    "No estimate of audience prevalence, demographics, follower composition, or platform-wide behavior.",
+    "No claim that attention, comment engagement, stated intent, or detailed-review praise converts to sales or return on spend.",
+    "No claim that any featured product, dupe, seller, discount, note list, or performance statement is independently verified.",
+    "No guarantee that the evidenced campaign jobs will perform outside this captured account evidence."
+  ],
+  "platform_account_id": "acct_tiktok_fragrance_004",
+  "platform_scope": "tiktok",
+  "profile_subject_id": "acct_tiktok_fragrance_004",
+  "profile_subject_kind": "platform_account",
+  "schema_version": "creator_audience_triangulation_snapshot_v1",
+  "snapshot_id": "cats_cf34d1def4ca1245c277"
+}
