@@ -121,6 +121,44 @@ def test_dense_thirty_row_window_is_truthfully_truncated() -> None:
     assert result["window_truncated"] is True
 
 
+def test_oldest_on_cutoff_day_keeps_loading_not_prematurely_complete() -> None:
+    # Cutoff for the reference date is 2026-06-20. The oldest captured rows sit
+    # exactly on that day, so more same-day in-window rows may remain behind the
+    # continuation control: completeness is not proven and loading must continue.
+    result = assess_retail_review_onboarding(
+        [date(2026, 7, 1) for _ in range(13)]
+        + [date(2026, 6, 20) for _ in range(5)],
+        reference_date=_REFERENCE_DATE,
+        continuation_available=True,
+        source_exhausted=False,
+        structure_valid=True,
+    )
+
+    assert result["cutoff_date"] == "2026-06-20"
+    assert result["oldest_review_date"] == "2026-06-20"
+    assert result["in_window_review_count"] == 18
+    assert result["status"] == "needs_more_recent_window"
+    assert result["admitted"] is False
+
+
+def test_oldest_on_cutoff_day_truncates_at_cap_without_false_completion() -> None:
+    # At the 30-row cap with the oldest row still on the cutoff day, the cohort
+    # is unproven-complete, so the receipt is truthfully truncated, never
+    # recent_window_complete.
+    result = assess_retail_review_onboarding(
+        [date(2026, 7, 1) for _ in range(25)]
+        + [date(2026, 6, 20) for _ in range(5)],
+        reference_date=_REFERENCE_DATE,
+        continuation_available=True,
+        source_exhausted=False,
+        structure_valid=True,
+    )
+
+    assert result["status"] == "recent_window_truncated"
+    assert result["window_truncated"] is True
+    assert result["admitted"] is True
+
+
 def test_unsorted_or_uncontinued_partial_window_fails_closed() -> None:
     unsorted = assess_retail_review_onboarding(
         _dates("2026-07-01", "2026-07-19"),

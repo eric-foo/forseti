@@ -49,10 +49,17 @@ def assess_retail_review_onboarding(
     elif (
         captured_count >= RETAIL_REVIEW_CONTEXT_TARGET
         and oldest is not None
-        and oldest > cutoff
+        and oldest >= cutoff
     ):
+        # At the cap with the oldest row still on or inside the window, the
+        # 30-day cohort is not proven complete (more rows may share the oldest
+        # date), so the receipt is truthfully truncated rather than complete.
         status = "recent_window_truncated"
-    elif oldest is not None and oldest <= cutoff:
+    elif oldest is not None and oldest < cutoff:
+        # in_window_count is inclusive of the cutoff day (>= cutoff), so the
+        # cohort is proven complete only after observing a row strictly older
+        # than the cutoff; oldest == cutoff may still hide same-day in-window
+        # rows behind the continuation control.
         if in_window_count >= RETAIL_REVIEW_WINDOW_MINIMUM:
             status = "recent_window_complete"
         elif captured_count >= RETAIL_REVIEW_CONTEXT_TARGET:
