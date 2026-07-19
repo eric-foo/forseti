@@ -1,10 +1,10 @@
 """Gate-opened Silver Vault generated-read-model (lake-map) builder.
 
 Builds the three object-level views the 2026-06-25 gate opening named
-(``by_creator``, ``by_mention``, ``undone``) as rebuildable JSON query tables
-under the Silver Vault contract-owned
-``indexes/derived_retrieval/silver_vault/core/`` home, with paired manifest
-rows carrying the read-model obligations. Contract:
+(``by_creator``, ``by_mention``, ``undone``) plus the per-account Creator Vault
+metric summaries as rebuildable JSON read models under the Silver Vault
+contract-owned ``indexes/derived_retrieval/silver_vault/`` home, with paired
+manifests carrying the read-model obligations. Contract:
 ``core_spine_v0_data_lake_consumption_seam_contract_v0.md`` (Rebuild Command
 Binding section); command shape pinned by the derived-layout contract.
 ``by_creator`` was deferred at gate opening behind the audience-silver lake
@@ -89,12 +89,14 @@ SILVER_VAULT_CREATOR_PARTS = (*SILVER_VAULT_ROOT_PARTS, "creator_vault")
 BUILT_VIEWS = ("by_creator", "by_mention", "undone")
 CREATOR_VAULT_ACCOUNT_ENVELOPE_SCHEMA_VERSION = 1
 CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION = "creator_vault_account_latest_profile_metric_v0"
+CREATOR_VAULT_PLATFORM = "tiktok"
 _TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND = "tiktok_creator_profile_metric"
-_PLATFORM_ACCOUNT_ID_ALIAS_FIELDS = (
+PLATFORM_ACCOUNT_ID_ALIAS_FIELDS = (
     "platform_account_id",
     "forseti_platform_account_id",
     "orca_platform_account_id",
 )
+_PLATFORM_ACCOUNT_ID_ALIAS_FIELDS = PLATFORM_ACCOUNT_ID_ALIAS_FIELDS
 _SAFE_READ_MODEL_KEY = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 FRAGRANTICA_PROJECTION_LANE = "projection_fragrantica"
@@ -178,8 +180,9 @@ def _classified_silver_sweep(
     root,
     *,
     cache_session: ClassificationCacheSession | None = None,
+    lanes: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
-    """Classify each active Silver record once for every generated read model."""
+    """Classify selected Silver lanes once for the requested generated read model."""
     anchor_lane_status: dict[str, dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
     accounts: dict[tuple[str, str, str], dict[str, Any]] = {}
     source_refs: list[str] = []
@@ -190,7 +193,7 @@ def _classified_silver_sweep(
     derived = root.path / "derived"
     lineage = None
     tombstoned_packet_ids = root.tombstoned_packet_ids()
-    for lane in _ACTIVE_SILVER_ENVELOPE_LANES:
+    for lane in lanes or _ACTIVE_SILVER_ENVELOPE_LANES:
         for path in sorted(derived.glob(f"*/*/{lane}/*")):
             if not path.is_file():
                 continue
@@ -209,7 +212,8 @@ def _classified_silver_sweep(
                 residuals.append({"status": "non_envelope_schema_audit_only", "raw_anchor": anchor, "lane": lane, "record_id": path.name})
                 continue
             source_refs.append(ref_key)
-            records_by_ref[ref_key] = record
+            if lane == OBSERVATION_LANE:
+                records_by_ref[ref_key] = record
             cache_key = None
             authority = None
             if cache_session is not None:
@@ -435,13 +439,15 @@ def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, lis
     return view, list(sweep["source_refs"])
 
 
-def _platform_account_id(entry: dict[str, Any]) -> str | None:
-    values = {
-        str(entry["aliases"][field])
-        for field in _PLATFORM_ACCOUNT_ID_ALIAS_FIELDS
-        if entry.get("aliases", {}).get(field)
-    }
-    return next(iter(values)) if len(values) == 1 else None
+def _platform_account_ids(entry: dict[str, Any]) -> set[str]:
+    values: set[str] = set()
+    alias_values = entry.get("alias_values", {})
+    for field in PLATFORM_ACCOUNT_ID_ALIAS_FIELDS:
+        values.update(str(value) for value in alias_values.get(field, set()) if value)
+        value = entry.get("aliases", {}).get(field)
+        if value:
+            values.add(str(value))
+    return values
 
 
 def _observed_time(value: Any) -> datetime:
@@ -468,6 +474,7 @@ def _candidate_from_record(ref_key: str, record: dict[str, Any]) -> tuple[str, d
         "lane": record.get("lane_namespace"),
         "content_hash": record.get("content_hash"),
         "observed_at": observed_at,
+        "source_record_ref": ref_key,
     }
     candidate = {
         **source,
@@ -533,10 +540,12 @@ def _select_metric_state(metric_name: str, candidates: list[dict[str, Any]]) -> 
     else:
         display_state = "unavailable_no_observed_value"
     state = {"display_state": display_state, "last_observed": last_observed, "latest_attempt": latest_attempt}
-    selected_ids = {
-        row["record_id"] for row in (last_observed, latest_attempt) if isinstance(row, dict)
+    selected_ref_keys = {
+        row["source_record_ref"]
+        for row in (last_observed, latest_attempt)
+        if isinstance(row, dict)
     }
-    return state, conflicts, [row for row in ordered if row["record_id"] in selected_ids]
+    return state, conflicts, [row for row in ordered if row["_ref_key"] in selected_ref_keys]
 
 
 def _dedupe_json_rows(rows: list[Any]) -> list[Any]:
@@ -547,27 +556,129 @@ def _dedupe_json_rows(rows: list[Any]) -> list[Any]:
     return [by_key[key] for key in sorted(by_key)]
 
 
-def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, str]) -> dict[str, bytes]:
-    """Generate TikTok account envelopes from the same classified Silver sweep."""
+def _creator_metric_candidates(
+    entry: dict[str, Any],
+    sweep: dict[str, Any],
+) -> list[tuple[str, dict[str, Any]]]:
+    candidates: list[tuple[str, dict[str, Any]]] = []
+    for anchor, refs in entry["refs_by_anchor"].items():
+        for ref in refs:
+            if (
+                ref.get("lane") != OBSERVATION_LANE
+                or ref.get("authority_status") != CURRENT_SOURCE_BACKED_AUTHORITY
+            ):
+                continue
+            ref_key = f"{anchor}/{ref['lane']}/{ref['record_id']}"
+            record = sweep["records_by_ref"].get(ref_key)
+            if (
+                not isinstance(record, dict)
+                or record.get("producer_row_kind")
+                != _TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND
+                or record.get("payload_kind") != "MetricObservation"
+            ):
+                continue
+            candidates.append(_candidate_from_record(ref_key, record))
+    return candidates
+
+
+def _creator_vault_unfiled_files(
+    residuals: list[dict[str, Any]],
+    stamp: dict[str, str],
+) -> dict[str, bytes]:
+    source_record_ids = sorted(
+        {
+            source_ref
+            for residual in residuals
+            for source_ref in residual.get("source_record_ids", [])
+        }
+    )
+    view = {
+        "view": "creator_vault_unfiled_accounts",
+        "view_schema_version": 1,
+        "generation_id": stamp["generation_id"],
+        "generated_at": stamp["generated_at"],
+        "residuals": residuals,
+        "residual_count": len(residuals),
+        "zero_rows_meaning": (
+            "no source-backed TikTok profile metric account was skipped during "
+            "Creator Vault filing; this does not assert that every registered "
+            "account has captured metrics"
+        ),
+    }
+    view_bytes = canonical_record_bytes(view)
+    manifest = {
+        "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
+        "view": view["view"],
+        "view_schema_version": view["view_schema_version"],
+        "generation_id": stamp["generation_id"],
+        "generated_at": stamp["generated_at"],
+        "source_record_ids": source_record_ids,
+        "source_ref_set_fingerprint_sha256": hashlib.sha256(
+            canonical_record_bytes(source_record_ids)
+        ).hexdigest(),
+        "view_sha256": hashlib.sha256(view_bytes).hexdigest(),
+        "stale_if": (
+            "a committed TikTok profile MetricObservation or raw-packet tombstone "
+            "changes Creator Vault filing"
+        ),
+    }
+    return {
+        "unfiled_accounts.json": view_bytes,
+        "manifests/unfiled_accounts.json": canonical_record_bytes(manifest),
+    }
+
+
+def build_creator_vault_account_files(
+    sweep: dict[str, Any],
+    stamp: dict[str, str],
+) -> dict[str, bytes]:
+    """Generate TikTok account envelopes and explicit unfiled residuals."""
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
-    for (namespace, _identity_kind, native_id), entry in sorted(sweep["accounts"].items()):
-        if namespace != "tiktok":
+    unfiled: list[dict[str, Any]] = []
+    for (namespace, identity_kind, native_id), entry in sorted(sweep["accounts"].items()):
+        if namespace != CREATOR_VAULT_PLATFORM:
             continue
-        account_id = _platform_account_id(entry)
-        if account_id is None or _SAFE_READ_MODEL_KEY.fullmatch(account_id) is None:
+        candidates = _creator_metric_candidates(entry, sweep)
+        if not candidates:
             continue
-        account = grouped.setdefault((namespace, account_id), {"native_ids": set(), "candidates": defaultdict(list)})
+        account_ids = _platform_account_ids(entry)
+        source_record_ids = sorted(candidate[1]["_ref_key"] for candidate in candidates)
+        if len(account_ids) != 1:
+            unfiled.append(
+                {
+                    "status": (
+                        "missing_platform_account_id"
+                        if not account_ids
+                        else "conflicting_platform_account_id_aliases"
+                    ),
+                    "platform": namespace,
+                    "identity_kind": identity_kind,
+                    "native_id": native_id,
+                    "platform_account_ids": sorted(account_ids),
+                    "source_record_ids": source_record_ids,
+                }
+            )
+            continue
+        account_id = next(iter(account_ids))
+        if _SAFE_READ_MODEL_KEY.fullmatch(account_id) is None:
+            unfiled.append(
+                {
+                    "status": "unsafe_platform_account_id_path_key",
+                    "platform": namespace,
+                    "identity_kind": identity_kind,
+                    "native_id": native_id,
+                    "platform_account_ids": [account_id],
+                    "source_record_ids": source_record_ids,
+                }
+            )
+            continue
+        account = grouped.setdefault(
+            (namespace, account_id),
+            {"native_ids": set(), "candidates": defaultdict(list)},
+        )
         account["native_ids"].add(native_id)
-        for anchor, refs in entry["refs_by_anchor"].items():
-            for ref in refs:
-                if ref.get("lane") != OBSERVATION_LANE or ref.get("authority_status") != CURRENT_SOURCE_BACKED_AUTHORITY:
-                    continue
-                ref_key = f"{anchor}/{ref['lane']}/{ref['record_id']}"
-                record = sweep["records_by_ref"].get(ref_key)
-                if not isinstance(record, dict) or record.get("producer_row_kind") != _TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND or record.get("payload_kind") != "MetricObservation":
-                    continue
-                metric_name, candidate = _candidate_from_record(ref_key, record)
-                account["candidates"][metric_name].append(candidate)
+        for metric_name, candidate in candidates:
+            account["candidates"][metric_name].append(candidate)
 
     files: dict[str, bytes] = {}
     for (platform, account_id), account in sorted(grouped.items()):
@@ -578,9 +689,15 @@ def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, st
         selected: list[dict[str, Any]] = []
         all_candidates: list[dict[str, Any]] = []
         for metric_name, candidates in sorted(account["candidates"].items()):
-            state, metric_conflicts, metric_selected = _select_metric_state(metric_name, candidates)
+            state, metric_conflicts, metric_selected = _select_metric_state(
+                metric_name, candidates
+            )
             metrics[metric_name] = state
-            postures[metric_name] = "conflicted" if state["display_state"] == "conflicted_latest_attempt" else state["latest_attempt"]["metric_posture"]
+            postures[metric_name] = (
+                "conflicted"
+                if state["display_state"] == "conflicted_latest_attempt"
+                else state["latest_attempt"]["metric_posture"]
+            )
             windows[metric_name] = {
                 "start": min(row["observed_at"] for row in candidates),
                 "end": max(row["observed_at"] for row in candidates),
@@ -592,13 +709,20 @@ def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, st
             continue
         selected_records = [row["_record"] for row in selected]
         source_record_ids = sorted({row["_ref_key"] for row in all_candidates})
-        source_high_watermark = hashlib.sha256(canonical_record_bytes(source_record_ids)).hexdigest()
-        manifest_id = f"creator_vault_account:{platform}:{account_id}:{stamp['generation_id']}"
+        source_ref_set_fingerprint_sha256 = hashlib.sha256(
+            canonical_record_bytes(source_record_ids)
+        ).hexdigest()
+        manifest_id = (
+            f"creator_vault_account:{platform}:{account_id}:{stamp['generation_id']}"
+        )
         envelope = {
             "envelope_type": "creator_vault_account_v0",
             "envelope_schema_version": CREATOR_VAULT_ACCOUNT_ENVELOPE_SCHEMA_VERSION,
             "platform": platform,
-            "account_key": {"platform_account_id": account_id, "observed_native_ids": sorted(account["native_ids"])},
+            "account_key": {
+                "platform_account_id": account_id,
+                "observed_native_ids": sorted(account["native_ids"]),
+            },
             "latest_metric_snapshot": metrics,
             "coverage_summary": {
                 "metric_count": len(metrics),
@@ -609,15 +733,31 @@ def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, st
             "metric_postures": postures,
             "coverage_windows": windows,
             "source_conflicts": conflicts,
-            "raw_refs": _dedupe_json_rows([raw_ref for record in selected_records for raw_ref in record.get("raw_refs", [])]),
-            "derived_refs": _dedupe_json_rows([
-                {"record_id": row["record_id"], "packet_id": row["packet_id"], "lane": row["lane"], "content_hash": row["content_hash"]}
-                for row in selected
-            ]),
-            "query_table_pointers": ["indexes/derived_retrieval/silver_vault/core/query_tables/by_creator.json"],
+            "raw_refs": _dedupe_json_rows(
+                [
+                    raw_ref
+                    for record in selected_records
+                    for raw_ref in record.get("raw_refs", [])
+                ]
+            ),
+            "derived_refs": _dedupe_json_rows(
+                [
+                    {
+                        "source_record_ref": row["source_record_ref"],
+                        "record_id": row["record_id"],
+                        "packet_id": row["packet_id"],
+                        "lane": row["lane"],
+                        "content_hash": row["content_hash"],
+                    }
+                    for row in selected
+                ]
+            ),
             "read_model_manifest_id": manifest_id,
             "selection_policy_version": CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION,
-            "judgment_boundary": "exact public profile metric observations only; no rollup, growth, audience, credibility, or commercial judgment",
+            "judgment_boundary": (
+                "exact public profile metric observations only; no rollup, growth, "
+                "audience, credibility, or commercial judgment"
+            ),
             "per_platform_identity_only": True,
             "cross_platform_identity_assumed": False,
         }
@@ -632,17 +772,29 @@ def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, st
             "generation_id": stamp["generation_id"],
             "generated_at": stamp["generated_at"],
             "source_record_ids": source_record_ids,
-            "source_high_watermark": source_high_watermark,
+            "source_ref_set_fingerprint_sha256": source_ref_set_fingerprint_sha256,
             "selection_policy_versions": {
                 "account_envelope": CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION,
                 "silver_authority_gate": CURRENT_SOURCE_BACKED_AUTHORITY,
                 "source_lane": OBSERVATION_LANE,
             },
             "envelope_sha256": hashlib.sha256(envelope_bytes).hexdigest(),
-            "stale_if": "a committed creator-profile MetricObservation or raw-packet tombstone changes the account selection after this source_high_watermark",
+            "stale_if": (
+                "a committed creator-profile MetricObservation or raw-packet "
+                "tombstone changes the account selection after this source-ref-set "
+                "fingerprint"
+            ),
         }
         files[f"accounts/{platform}/{account_id}/envelope.json"] = envelope_bytes
-        files[f"manifests/accounts/{platform}/{account_id}.json"] = canonical_record_bytes(manifest)
+        files[f"manifests/accounts/{platform}/{account_id}.json"] = (
+            canonical_record_bytes(manifest)
+        )
+    files.update(
+        _creator_vault_unfiled_files(
+            sorted(unfiled, key=lambda row: json.dumps(row, sort_keys=True)),
+            stamp,
+        )
+    )
     return files
 
 def _fragrantica_native_product_identity(row: dict) -> dict[str, str]:
@@ -955,9 +1107,9 @@ def _silver_vault_core_root(root) -> Path:
     return root._within(*SILVER_VAULT_CORE_PARTS)
 
 
-def _owned_generated_paths(root) -> set[Path]:
+def _owned_core_paths(root) -> set[Path]:
     core_root = _silver_vault_core_root(root)
-    owned = {
+    return {
         target
         for view_name in BUILT_VIEWS
         for target in (
@@ -966,20 +1118,57 @@ def _owned_generated_paths(root) -> set[Path]:
         )
         if target.is_file()
     }
+
+
+def _owned_creator_vault_paths(root) -> set[Path]:
     creator_root = root._within(*SILVER_VAULT_CREATOR_PARTS)
-    for pattern in ("accounts/tiktok/*/envelope.json", "manifests/accounts/tiktok/*.json"):
-        owned.update(path for path in creator_root.glob(pattern) if path.is_file())
+    owned: set[Path] = set()
+    for pattern in (
+        f"accounts/{CREATOR_VAULT_PLATFORM}/*/envelope.json",
+        f"manifests/accounts/{CREATOR_VAULT_PLATFORM}/*.json",
+        "unfiled_accounts.json",
+        "manifests/unfiled_accounts.json",
+    ):
+        owned.update(
+            path for path in creator_root.glob(pattern) if path.is_file()
+        )
     return owned
 
 
-def _publish_generated_files(root, files: dict[str, bytes]) -> None:
-    """Atomically replace owned files and roll back the package on failure."""
+def _owned_generated_paths(
+    root,
+    *,
+    include_core: bool = True,
+    include_creator_vault: bool = True,
+) -> set[Path]:
+    owned: set[Path] = set()
+    if include_core:
+        owned.update(_owned_core_paths(root))
+    if include_creator_vault:
+        owned.update(_owned_creator_vault_paths(root))
+    return owned
+
+
+def _publish_generated_files(
+    root,
+    files: dict[str, bytes],
+    *,
+    include_core: bool = True,
+    include_creator_vault: bool = True,
+) -> None:
+    """Atomically replace the requested generated family and roll back on failure."""
     root._reverify()
     target_root = _silver_vault_root(root)
     desired = {target_root / relpath: data for relpath, data in files.items()}
-    existing = _owned_generated_paths(root)
+    existing = _owned_generated_paths(
+        root,
+        include_core=include_core,
+        include_creator_vault=include_creator_vault,
+    )
     affected = set(desired) | existing
-    previous = {path: path.read_bytes() if path.is_file() else None for path in affected}
+    previous = {
+        path: path.read_bytes() if path.is_file() else None for path in affected
+    }
     changed: list[Path] = []
     try:
         for target, data in sorted(desired.items(), key=lambda item: str(item[0])):
@@ -1006,6 +1195,49 @@ def _publish_generated_files(root, files: dict[str, bytes]) -> None:
             ) from publish_error
         raise
 
+
+def rebuild_creator_vault(
+    root,
+    *,
+    stamp: dict | None = None,
+    full_rebuild: bool = False,
+) -> dict:
+    """Replace Creator Vault summaries from the profile-metric Silver lane only."""
+    root._reverify()
+    stamp = stamp or generation_stamp()
+    cache_session = ClassificationCacheSession(root, use_existing=not full_rebuild)
+    sweep = _classified_silver_sweep(
+        root,
+        cache_session=cache_session,
+        lanes=(OBSERVATION_LANE,),
+    )
+    creator_files = build_creator_vault_account_files(sweep, stamp)
+    files = {
+        f"creator_vault/{path}": data for path, data in creator_files.items()
+    }
+    cache_session.save()
+    _publish_generated_files(
+        root,
+        files,
+        include_core=False,
+        include_creator_vault=True,
+    )
+    account_envelope_count = sum(
+        path.startswith("creator_vault/accounts/")
+        and path.endswith("/envelope.json")
+        for path in files
+    )
+    return {
+        "status": "rebuilt",
+        "target": "creator_vault",
+        "creator_vault_account_envelope_count": account_envelope_count,
+        "generation_id": stamp["generation_id"],
+        "file_count": len(files),
+        "silver_lanes_scanned": [OBSERVATION_LANE],
+        "producer_row_kind": _TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND,
+        "classification_cache": cache_session.report(),
+        "full_rebuild": full_rebuild,
+    }
 
 def rebuild_derived_retrieval(
     root,
@@ -1095,7 +1327,12 @@ def audit_derived_retrieval_source_integrity(root) -> dict:
 def _stored_creator_vault_account_files(root) -> dict[str, bytes]:
     creator_root = root._within(*SILVER_VAULT_CREATOR_PARTS)
     files: dict[str, bytes] = {}
-    for pattern in ("accounts/tiktok/*/envelope.json", "manifests/accounts/tiktok/*.json"):
+    for pattern in (
+        f"accounts/{CREATOR_VAULT_PLATFORM}/*/envelope.json",
+        f"manifests/accounts/{CREATOR_VAULT_PLATFORM}/*.json",
+        "unfiled_accounts.json",
+        "manifests/unfiled_accounts.json",
+    ):
         for path in sorted(creator_root.glob(pattern)):
             if path.is_file():
                 files[path.relative_to(creator_root).as_posix()] = path.read_bytes()
@@ -1115,10 +1352,22 @@ def _prove_stored_creator_vault_accounts(root) -> str:
     except (UnicodeDecodeError, ValueError, KeyError, TypeError):
         return "failed_unreadable_manifest"
     regenerated = build_creator_vault_account_files(
-        _classified_silver_sweep(root),
+        _classified_silver_sweep(root, lanes=(OBSERVATION_LANE,)),
         {"generation_id": generation_id, "generated_at": generated_at},
     )
     return "rebuildable" if regenerated == stored else "failed_drift_or_non_regenerable"
+
+
+def prove_creator_vault_rebuildability(root) -> dict:
+    """Regenerate the stored Creator Vault package without writing."""
+    root._reverify()
+    result = _prove_stored_creator_vault_accounts(root)
+    failed = result.startswith("failed_")
+    return {
+        "status": "failed" if failed else "proven",
+        "results": {"creator_vault_accounts": result},
+        "failures": ["creator_vault_accounts"] if failed else [],
+    }
 
 
 def prove_derived_retrieval_rebuildability(root) -> dict:
@@ -1195,6 +1444,7 @@ __all__ = [
     "BY_CREATOR_VIEW_SCHEMA_VERSION",
     "MANIFEST_SCHEMA_VERSION",
     "MENTIONS_LANE",
+    "PLATFORM_ACCOUNT_ID_ALIAS_FIELDS",
     "SILVER_VAULT_CORE_PARTS",
     "SILVER_VAULT_CREATOR_PARTS",
     "VIEW_SCHEMA_VERSION",
@@ -1204,6 +1454,8 @@ __all__ = [
     "audit_derived_retrieval_source_integrity",
     "generation_stamp",
     "prove_incremental_rebuild_equality",
+    "prove_creator_vault_rebuildability",
     "prove_derived_retrieval_rebuildability",
+    "rebuild_creator_vault",
     "rebuild_derived_retrieval",
 ]

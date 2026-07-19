@@ -2,7 +2,7 @@
 
 Shape pinned by the derived-layout contract:
 ``lake indexes rebuild --root <FORSETI_DATA_ROOT> --target
-availability|derived_retrieval|all --prove-rebuildability`` — the semantics
+availability|creator_vault|derived_retrieval|all --prove-rebuildability`` — the semantics
 are the contract; the argparse runner is the incumbent CLI packaging
 (consumption seam contract, Rebuild Command Binding).
 
@@ -10,8 +10,9 @@ Modes:
 
 - **rebuild** (default): regenerate the requested index tier(s) from committed
   material. ``availability`` delegates to ``DataLakeRoot.rebuild_availability``;
-  ``derived_retrieval`` wipes and rewrites the object-level views under a
-  fresh generation stamp.
+  ``creator_vault`` refreshes only the per-account metric package from the
+  creator-metric observation lane; ``derived_retrieval`` rewrites the full
+  generated lake map and Creator Vault package under one generation stamp.
 - **--prove-rebuildability**: verification. ``derived_retrieval`` is proven
   read-only — every stored view is regenerated under the stamps its stored
   manifest recorded and byte-compared (a rebuild is never compared against
@@ -25,8 +26,12 @@ Modes:
 - **--audit-source-integrity**: read-only cold source re-hash and byte proof,
   intended for the owner-operated periodic integrity schedule.
 
-Owner-operated one-shot daily fallback (policy pins are read from the stored
-generated-view manifest, never hardcoded):
+Owner-operated one-shot daily Creator Vault fallback:
+
+``python runners/run_data_lake_indexes_rebuild.py --root F:\\forseti-data-lake --target creator_vault``
+
+The generic lake-map views remain explicitly rebuildable with stored policy
+pins when their freshness is required:
 
 ``python runners/run_data_lake_indexes_rebuild.py --root F:\\forseti-data-lake --target derived_retrieval --use-stored-product-mention-policy``
 
@@ -46,8 +51,10 @@ if __package__ in {None, ""}:
 
 from data_lake.derived_retrieval_views import (
     audit_derived_retrieval_source_integrity,
+    prove_creator_vault_rebuildability,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
+    rebuild_creator_vault,
     rebuild_derived_retrieval,
 )
 from data_lake.product_mention_selection import normalize_product_mention_policy
@@ -117,9 +124,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--target",
-        choices=("availability", "derived_retrieval", "all"),
+        choices=("availability", "creator_vault", "derived_retrieval", "all"),
         default="all",
-        help="Which index tier to rebuild or prove (default: all).",
+        help="Which generated family to rebuild or prove (default: all).",
     )
     parser.add_argument(
         "--prove-rebuildability",
@@ -249,6 +256,16 @@ def main(argv: list[str] | None = None) -> int:
             availability = _rebuild_availability(root, prove=args.prove_rebuildability)
             report["availability"] = availability
             statuses.append(availability["status"])
+        if args.target == "creator_vault":
+            if args.prove_rebuildability:
+                creator_vault = prove_creator_vault_rebuildability(root)
+            else:
+                creator_vault = rebuild_creator_vault(
+                    root,
+                    full_rebuild=args.full_rebuild,
+                )
+            report["creator_vault"] = creator_vault
+            statuses.append(creator_vault["status"])
         if args.target in ("derived_retrieval", "all"):
             if args.prove_rebuildability:
                 derived = prove_derived_retrieval_rebuildability(root)

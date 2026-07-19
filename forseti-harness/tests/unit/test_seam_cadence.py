@@ -364,12 +364,11 @@ def test_cli_check_run_check_roundtrip(tmp_path, monkeypatch, capsys) -> None:
             "--root",
             str(data_root.path),
             "--target",
-            "derived_retrieval",
-            "--use-stored-product-mention-policy",
+            "creator_vault",
         ]
     ]
     assert any(
-        line.get("status") == "lake_map_rebuilt"
+        line.get("status") == "creator_vault_rebuilt"
         and line.get("map_scope") == "live_after_snapshot_completion"
         for line in _output_lines(capsys)
     )

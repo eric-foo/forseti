@@ -5,8 +5,9 @@ retrieval_header_version: 1
 artifact_role: Owner-ratified decision record (staged upgrade plan with triggers)
 scope: >
   The staged scaling and hygiene plan for the lake map — the generated Silver
-  entity read layer (by_creator / by_mention / undone views plus the scoped
-  lookup runner) — recording the owner-ratified upgrade sequence, the trigger
+  entity read layer (by_creator / by_mention / undone views, Creator Vault
+  account summaries, and the scoped lookup runner) — recording the
+  owner-ratified upgrade sequence, the trigger
   that fires each stage, and the deferred identity work, so future work units
   bind to recorded decisions instead of re-deriving them.
 use_when:
@@ -24,10 +25,10 @@ authority_boundary: retrieval_only
 **"Lake map"** is the canonical informal name for the generated Silver entity
 read layer. Formal artifacts keep their existing names; this record binds the
 alias so conversation, commissions, and future records can say "lake map" and
-mean exactly: the gate-opened views built by
-`forseti-harness/data_lake/derived_retrieval_views.py` under
-`indexes/derived_retrieval/silver_vault/core/`, plus the scoped read entry
-point `forseti-harness/runners/run_derived_retrieval_lookup.py`, governed by
+mean exactly: the gate-opened core views and Creator Vault account summaries
+built by `forseti-harness/data_lake/derived_retrieval_views.py` under
+`indexes/derived_retrieval/silver_vault/`, plus the scoped read entry point
+`forseti-harness/runners/run_derived_retrieval_lookup.py`, governed by
 `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md`.
 Like the repo map, the lake map is derived, regenerable, and never authority;
 by-key discovery over `derived/` stays the retrieval authority.
@@ -43,7 +44,11 @@ kind, native id)`; closed platform-namespace vocabulary; unfileable
 account-describing shapes are named residuals; native product-page identity
 sources are a closed in-code registry (Fragrantica sole entry). Measured at
 ~8.5k Silver records: full rebuild ~5 minutes, prove-rebuildability ~10
-minutes, lookups sub-second.
+minutes, lookups sub-second. On 2026-07-19, production diagnosis established
+that the cache avoids classification work but still parses and fingerprints
+the whole Silver corpus. Cadence freshness is therefore narrowed to Creator
+Vault through a full-history scan of only `creator_metric_silver`; generic core
+views remain explicit owner-rebuildable caches.
 
 ## Staged Upgrades
 
@@ -56,11 +61,13 @@ Stages 2–4 remain trigger-gated.
 - **Original trigger (did not fire):** rebuild wall-clock exceeds operational
   tolerance (analysis: the whole-lake sweep breaks at roughly 100k–250k
   records, ~10–25x current).
-- **Owner pull-forward (2026-07-17):** near-zero lake-map staleness after every
-  passing monitoring round is wanted at every scale, and the incremental/full
-  byte-equality proof is cheap while a cold comparison still costs minutes
-  rather than hours. This declaration promotes Stage 1 now; it does not
-  fabricate a fired wall-clock trigger.
+- **Owner pull-forward (2026-07-17), narrowed 2026-07-19:** the cache remains
+  useful for explicit full-map rebuilds, but it does not make a whole-lake
+  cadence scan cheap: cache-key formation still parses records and fingerprints
+  referenced bytes. The recurring freshness requirement is current Creator
+  Vault profile metrics, not every generic reverse-lookup view. Cadence now
+  scans only the full `creator_metric_silver` history; this is an owner scope
+  correction, not a claim that a later-stage trigger fired.
 - **Ratified design essentials:** cache authority verdicts keyed by
   `(content_hash, classifier_version, referenced-bytes fingerprint)`;
   records are immutable so an unchanged key keeps its verdict verbatim. The
@@ -77,16 +84,18 @@ Stages 2–4 remain trigger-gated.
   check decoupled from rebuilds.
 - **Promoted implementation shape:** a passing
   `runners/run_seam_cadence.py --run` completes one committed starting
-  packet-id snapshot, then invokes the contract-pinned
-  `run_data_lake_indexes_rebuild.py` path at cadence tail. Packets committed
-  later are next-run cadence work; the subsequent map rebuild is intentionally
-  live and may include their newer derived material. Failed cadence performs
-  no rebuild and a rebuild failure fails the cadence. The disposable cache lives under
-  `indexes/derived_retrieval/silver_vault/core/cache/`; deleting it produces a
-  cold rebuild. `--prove-incremental-equality` byte-compares incremental and
-  full-cold generated files, while `--audit-source-integrity` performs the
-  owner-scheduled cold source re-hash independently of rebuilds. View and
-  manifest schemas and canonical output bytes are unchanged.
+  packet-id snapshot, then invokes the contract-pinned rebuild runner with
+  `--target creator_vault`. That target scans only the full
+  `creator_metric_silver` observation-lane history, publishes per-account
+  envelopes plus unfileable-account residuals, and leaves the generic core
+  views unchanged. Packets committed later are next-run cadence work; the
+  subsequent Creator Vault rebuild is intentionally live. Failed cadence
+  performs no rebuild and a rebuild failure fails the cadence. The disposable
+  classification cache remains under
+  `indexes/derived_retrieval/silver_vault/core/cache/` for explicit full-map
+  rebuilds. `--prove-incremental-equality` and `--audit-source-integrity`
+  remain owner-operated full-map verification modes. No scheduler, queue,
+  cursor, or per-cadence Git mutation is introduced.
 
 ### Stage 2 — Per-creator view sharding
 
@@ -156,12 +165,22 @@ Stages 2–4 remain trigger-gated.
   product-mention producers run over real transcript inputs (0 records
   lake-wide as of this record; the ideal-audience judgment consumes
   comment-attention evidence, not product mentions).
-- Freshness is guaranteed only after a passing seam-cadence run (or an
-  owner-operated fallback rebuild), not continuously between runs. Cadence
-  completion covers its exact starting packet set; the map built afterward is
-  a current non-authoritative rebuild and may be a superset if capture or
-  derivation continued. Manifest provenance discloses the generation, while
-  hash verification proves integrity rather than currency.
+- Creator Vault freshness is guaranteed only after a passing seam-cadence run
+  (or an owner-operated scoped rebuild), not continuously between runs.
+  Generic `by_creator`, `by_mention`, and `undone` freshness is guaranteed only
+  after an explicit full-map rebuild. Cadence completion covers its exact
+  starting packet set; the subsequent Creator Vault package may be a live
+  superset if capture or derivation continued. Manifest provenance discloses
+  generation time and a source-ref-set fingerprint; hash verification proves
+  integrity rather than currency.
+
+### Historical propagation evidence (2026-07-17)
+
+The receipt below records the original Stage 1 promotion. Its whole-map cadence
+scope is superseded by the 2026-07-19 owner correction above; it remains
+historical provenance, not the current operating rule. Current propagation
+evidence is the owning-source diff plus the PR/closeout, so no new receipt is
+created.
 
 ```yaml
 direction_change_propagation:

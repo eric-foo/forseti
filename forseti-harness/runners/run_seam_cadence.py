@@ -28,10 +28,10 @@ entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
 (counted as cycle work), never a silent abort of the remaining lanes.
 
 After and only after that completion signal passes, the cadence invokes the
-contract-pinned data-lake index runner for one ``derived_retrieval`` rebuild.
-The exact product-mention policy pins are read by that runner from the stored
-``by_mention`` manifest. A rebuild failure fails the cadence exit code loudly;
-no failed cadence attempts a lake-map refresh.
+contract-pinned data-lake index runner for one metric-lane-scoped
+``creator_vault`` rebuild. The generic lake-map views remain owner-rebuildable
+but are not rescanned on every cadence. A Creator Vault rebuild failure fails
+the cadence exit code loudly; no failed cadence attempts the refresh.
 
 ASR COST GATE: the ASR entrypoint executes local owner-operated compute on an
 unskipped ``--run``. ``--skip-asr`` skips only its execution and prints a
@@ -419,20 +419,23 @@ def _post_cycle_pending_failures(
 
 
 def _refresh_lake_map(ctx: CadenceContext) -> int:
-    """Invoke the sanctioned sole writer after the all-caught-up proof."""
+    """Refresh Creator Vault after the all-caught-up proof."""
     result = _indexes_rebuild.main(
         [
             "--root",
             str(ctx.data_root.path),
             "--target",
-            "derived_retrieval",
-            "--use-stored-product-mention-policy",
+            "creator_vault",
         ]
     )
     _print(
         {
             "entrypoint": "run_data_lake_indexes_rebuild.py",
-            "status": "lake_map_rebuilt" if result == 0 else "lake_map_rebuild_failed",
+            "status": (
+                "creator_vault_rebuilt"
+                if result == 0
+                else "creator_vault_rebuild_failed"
+            ),
             "exit_code": result,
             "map_scope": "live_after_snapshot_completion",
         }

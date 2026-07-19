@@ -147,11 +147,14 @@ in place.
 Command shape (non-executable here):
 
 ```text
-lake indexes rebuild --root <FORSETI_DATA_ROOT> --target availability|derived_retrieval|all --prove-rebuildability
+lake indexes rebuild --root <FORSETI_DATA_ROOT> --target availability|creator_vault|derived_retrieval|all --prove-rebuildability
 ```
 
 - `availability` rebuilds only from committed raw packet + attachment key/ref/hash/
   hash_basis material and stays content-free and passive.
+- `creator_vault` rebuilds only the generated per-account creator-metric package
+  from the full `creator_metric_silver` observation-lane history; it does not
+  rewrite generic retrieval views or introduce cursor/event authority.
 - `derived_retrieval` rebuilds only from committed `derived/` + raw refs and remains
   non-authoritative, governance-gated, and build-deferred.
 - The prove-rebuildability check fails if any `indexes/` entry cannot be regenerated

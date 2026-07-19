@@ -26,6 +26,7 @@ from data_lake.derived_retrieval_views import (
     build_by_mention_view,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
+    rebuild_creator_vault,
     rebuild_derived_retrieval,
 )
 from data_lake.root import DataLakeRoot, raw_shard
@@ -750,7 +751,7 @@ def test_creator_vault_retains_last_observed_after_unavailable_and_combines_regi
     assert likes["last_observed"]["metric_value_or_none"] == 6000
     assert manifest["envelope_sha256"] == hashlib.sha256(envelope_path.read_bytes()).hexdigest()
     assert manifest["generated_at"] == _STAMP["generated_at"]
-    assert manifest["source_high_watermark"]
+    assert manifest["source_ref_set_fingerprint_sha256"]
 
     creator_root = envelope_path.parents[3]
     before = {path.relative_to(creator_root): path.read_bytes() for path in creator_root.rglob("*.json")}
@@ -942,8 +943,242 @@ def test_creator_lookup_rejects_tampered_creator_vault_envelope(tmp_path: Path) 
     envelope["coverage_summary"]["metric_count"] = 99
     envelope_path.write_bytes(canonical_record_bytes(envelope))
 
+    stable_profile = {
+        "profile_subject_id": account_id,
+        "platform_accounts": [{
+            "platform": "tiktok",
+            "platform_account_id": account_id,
+            "public_handle": "tamper_creator",
+        }],
+    }
     with pytest.raises(ValueError, match="envelope_sha256"):
-        lookup_creator(root, "tiktok:tamper_creator")
+        lookup_creator(
+            root,
+            "tiktok:tamper_creator",
+            profile_view={"creator_profile_current_view": {"profiles": [stable_profile]}},
+        )
+
+def test_creator_vault_scoped_rebuild_is_byte_equal_and_leaves_core_unchanged(
+    tmp_path: Path,
+) -> None:
+    from runners.run_derived_retrieval_lookup import lookup_creator
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_scoped"
+    packet_id = _commit_packet(root, tmp_path, "scoped")
+    _write_creator_metric_record(
+        root,
+        packet_id,
+        "metric.json",
+        subject_ref=_tiktok_profile_subject(account_id, "scoped_creator"),
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    rebuild_derived_retrieval(
+        root,
+        product_mention_policy=_POLICY,
+        stamp=_STAMP,
+    )
+    silver_root = (
+        root.path / "indexes" / "derived_retrieval" / "silver_vault"
+    )
+    core_before = {
+        path.relative_to(silver_root): path.read_bytes()
+        for path in (silver_root / "core").rglob("*.json")
+    }
+    creator_before = {
+        path.relative_to(silver_root): path.read_bytes()
+        for path in (silver_root / "creator_vault").rglob("*.json")
+    }
+
+    report = rebuild_creator_vault(root, stamp=_STAMP)
+    assert report["silver_lanes_scanned"] == ["creator_metric_silver"]
+    assert report["producer_row_kind"] == "tiktok_creator_profile_metric"
+    core_after = {
+        path.relative_to(silver_root): path.read_bytes()
+        for path in (silver_root / "core").rglob("*.json")
+    }
+    creator_after = {
+        path.relative_to(silver_root): path.read_bytes()
+        for path in (silver_root / "creator_vault").rglob("*.json")
+    }
+    assert core_after == core_before
+    assert creator_after == creator_before
+
+    stable_profile = {
+        "profile_subject_id": "profile_scoped_creator",
+        "platform_accounts": [{
+            "platform": "tiktok",
+            "platform_account_id": account_id,
+            "public_handle": "scoped_creator",
+        }],
+    }
+    lookup = lookup_creator(
+        root,
+        "tiktok:scoped_creator",
+        profile_view={"creator_profile_current_view": {"profiles": [stable_profile]}},
+    )
+    assert lookup["status"] == "found"
+    assert lookup["matches"][0]["current_profile_metrics_status"] == "generated"
+    assert lookup["matches"][0]["registry_profile_or_none"] == stable_profile
+
+
+def test_creator_vault_names_unfileable_captured_accounts_for_lookup(
+    tmp_path: Path,
+) -> None:
+    from runners.run_derived_retrieval_lookup import lookup_creator
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    fixtures = [
+        (
+            "missing-alias",
+            {
+                "namespace": "tiktok",
+                "kind": "platform_public_account",
+                "native_id": "missing_alias_creator",
+            },
+            "acct_tt_missing_alias",
+            "missing_platform_account_id",
+        ),
+        (
+            "conflicting-alias",
+            {
+                "namespace": "tiktok",
+                "kind": "platform_public_account",
+                "native_id": "conflicting_alias_creator",
+                "platform_account_id": "acct_tt_conflict_a",
+                "orca_platform_account_id": "acct_tt_conflict_b",
+            },
+            "acct_tt_conflict_a",
+            "conflicting_platform_account_id_aliases",
+        ),
+        (
+            "unsafe-alias",
+            {
+                "namespace": "tiktok",
+                "kind": "platform_public_account",
+                "native_id": "unsafe_alias_creator",
+                "platform_account_id": "unsafe/account",
+            },
+            "unsafe/account",
+            "unsafe_platform_account_id_path_key",
+        ),
+    ]
+    for label, subject, _registry_id, _status in fixtures:
+        packet_id = _commit_packet(root, tmp_path, label)
+        _write_creator_metric_record(
+            root,
+            packet_id,
+            "metric.json",
+            subject_ref=subject,
+            producer_row_kind="tiktok_creator_profile_metric",
+        )
+
+    rebuild_creator_vault(root, stamp=_STAMP)
+    residual_path = (
+        root.path
+        / "indexes"
+        / "derived_retrieval"
+        / "silver_vault"
+        / "creator_vault"
+        / "unfiled_accounts.json"
+    )
+    residual_view = json.loads(residual_path.read_text(encoding="utf-8"))
+    assert {row["status"] for row in residual_view["residuals"]} == {
+        "missing_platform_account_id",
+        "conflicting_platform_account_id_aliases",
+        "unsafe_platform_account_id_path_key",
+    }
+
+    for _label, subject, registry_id, residual_status in fixtures:
+        handle = subject["native_id"]
+        stable_profile = {
+            "profile_subject_id": f"profile_{handle}",
+            "platform_accounts": [{
+                "platform": "tiktok",
+                "platform_account_id": registry_id,
+                "public_handle": handle,
+            }],
+        }
+        result = lookup_creator(
+            root,
+            f"tiktok:{handle}",
+            profile_view={
+                "creator_profile_current_view": {"profiles": [stable_profile]}
+            },
+        )
+        match = result["matches"][0]
+        assert match["current_profile_metrics_status"] == "captured_but_unfileable"
+        assert [row["status"] for row in match["creator_vault_residuals"]] == [
+            residual_status
+        ]
+
+
+def test_creator_vault_selection_uses_full_ref_key_across_packets(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_ref_collision"
+    subject = _tiktok_profile_subject(account_id, "ref_collision_creator")
+    older = _commit_packet(root, tmp_path, "ref-collision-older")
+    latest = _commit_packet(root, tmp_path, "ref-collision-latest")
+    _write_creator_metric_record(
+        root,
+        older,
+        "metric.json",
+        subject_ref=subject,
+        metric_value=1000,
+        observed_at="2026-07-15T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    _write_creator_metric_record(
+        root,
+        latest,
+        "metric.json",
+        subject_ref=subject,
+        metric_value=2000,
+        observed_at="2026-07-16T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+
+    rebuild_creator_vault(root, stamp=_STAMP)
+    envelope_path, _ = _creator_vault_account_paths(root, account_id)
+    envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+    assert envelope["latest_metric_snapshot"]["follower_count"]["last_observed"][
+        "metric_value_or_none"
+    ] == 2000
+    assert envelope["derived_refs"] == [{
+        "content_hash": envelope["derived_refs"][0]["content_hash"],
+        "lane": "creator_metric_silver",
+        "packet_id": latest,
+        "record_id": "metric.json",
+        "source_record_ref": f"{latest}/creator_metric_silver/metric.json",
+    }]
+
+
+def test_creator_lookup_reports_registry_conflict_without_loading_generic_map(
+    tmp_path: Path,
+) -> None:
+    from runners.run_derived_retrieval_lookup import lookup_creator
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    profiles = [
+        {
+            "profile_subject_id": f"profile_{suffix}",
+            "platform_accounts": [{
+                "platform": "tiktok",
+                "platform_account_id": f"acct_tt_{suffix}",
+                "public_handle": "same_handle",
+            }],
+        }
+        for suffix in ("left", "right")
+    ]
+    result = lookup_creator(
+        root,
+        "tiktok:same_handle",
+        profile_view={"creator_profile_current_view": {"profiles": profiles}},
+    )
+    assert result["status"] == "conflicted"
+    assert len(result["registry_candidates"]) == 2
 
 def test_by_creator_indexes_account_subjects_with_classified_authority(
     tmp_path: Path,
@@ -1203,7 +1438,7 @@ def test_by_mention_rejects_partial_and_conflicting_native_product_identity(
 
 
 def test_lookup_runner_resolves_creator_and_mention(tmp_path: Path, capsys, monkeypatch) -> None:
-    from runners.run_derived_retrieval_lookup import main as lookup_main
+    from runners import run_derived_retrieval_lookup as lookup_runner
 
     root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_packet(root, tmp_path, "creator")
@@ -1220,40 +1455,66 @@ def test_lookup_runner_resolves_creator_and_mention(tmp_path: Path, capsys, monk
     )
     _write_fragrantica_projection(root, pid)
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
-    monkeypatch.setattr(DataLakeRoot, "resolve_readonly", staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(
+        DataLakeRoot,
+        "resolve_readonly",
+        staticmethod(lambda **_kwargs: root),
+    )
+    stable_profile = {
+        "profile_subject_id": "profile_fixture_creator",
+        "platform_accounts": [{
+            "platform": "instagram",
+            "platform_account_id": "acct_ig_fixture_001",
+            "public_handle": "fixture_creator",
+        }],
+    }
+    monkeypatch.setattr(
+        lookup_runner,
+        "load_creator_profile_current_view",
+        lambda _path: {"creator_profile_current_view": {"profiles": [stable_profile]}},
+    )
 
-    assert lookup_main(["--creator", "fixture_creator"]) == 0
+    assert lookup_runner.main(["--creator", "fixture_creator"]) == 0
     found = json.loads(capsys.readouterr().out)
     assert found["status"] == "found"
     assert found["matches"][0]["namespace"] == "instagram"
-    assert found["matches"][0]["identity_kind"] == "unspecified"
-    assert found["view_provenance"]["generation_id"] == _STAMP["generation_id"]
+    assert found["matches"][0]["identity_kind"] == "stable_registry_platform_account"
+    assert found["matches"][0]["registry_profile_or_none"] == stable_profile
+    assert found["matches"][0]["current_profile_metrics_status"] == "not_captured_or_not_processed"
 
-    assert lookup_main(["--creator", "acct_ig_fixture_001"]) == 0
+    assert lookup_runner.main(["--creator", "acct_ig_fixture_001"]) == 0
     assert json.loads(capsys.readouterr().out)["status"] == "found"
 
-    assert lookup_main(["--mention", "cloud"]) == 0
+    assert lookup_runner.main(["--mention", "cloud"]) == 0
     mention = json.loads(capsys.readouterr().out)
     assert mention["matches"][0]["source_class"] == "native_product_pages"
     assert mention["matches"][0]["brand"] == "Ariana Grande"
 
-    assert lookup_main(["--mention", "grand"]) == 1
+    assert lookup_runner.main(["--mention", "grand"]) == 1
     assert json.loads(capsys.readouterr().out)["status"] == "not_found"
 
-    assert lookup_main(["--creator", "nobody_here"]) == 1
-    assert json.loads(capsys.readouterr().out)["status"] == "not_found"
-
+    assert lookup_runner.main(["--creator", "nobody_here"]) == 1
+    assert json.loads(capsys.readouterr().out)["status"] == "unknown_to_registry"
 
 def test_lookup_runner_fails_closed_on_absent_or_tampered_view_pair(
     tmp_path: Path, capsys, monkeypatch
 ) -> None:
-    from runners.run_derived_retrieval_lookup import main as lookup_main
+    from runners import run_derived_retrieval_lookup as lookup_runner
 
     root = DataLakeRoot.for_test(tmp_path / "lake")
-    monkeypatch.setattr(DataLakeRoot, "resolve_readonly", staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(
+        DataLakeRoot,
+        "resolve_readonly",
+        staticmethod(lambda **_kwargs: root),
+    )
+    monkeypatch.setattr(
+        lookup_runner,
+        "load_creator_profile_current_view",
+        lambda _path: {"creator_profile_current_view": {"profiles": []}},
+    )
 
-    assert lookup_main(["--creator", "fixture_creator"]) == 2
-    assert json.loads(capsys.readouterr().out)["status"] == "view_not_built"
+    assert lookup_runner.main(["--creator", "fixture_creator"]) == 1
+    assert json.loads(capsys.readouterr().out)["status"] == "unknown_to_registry"
 
     pid = _commit_packet(root, tmp_path, "tampered-view")
     _write_fragrantica_projection(root, pid)
@@ -1273,11 +1534,10 @@ def test_lookup_runner_fails_closed_on_absent_or_tampered_view_pair(
     ] = "https://example.test/tampered"
     view_path.write_bytes(canonical_record_bytes(tampered))
 
-    assert lookup_main(["--mention", "cloud"]) == 2
+    assert lookup_runner.main(["--mention", "cloud"]) == 2
     error = json.loads(capsys.readouterr().out)
     assert error["status"] == "error"
     assert "view_sha256" in error["error"]
-
 
 def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None:
     # tmp_path lives inside the repo working tree; production resolution must
@@ -1308,6 +1568,26 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     report = json.loads(capsys.readouterr().out)
     assert report["availability"]["status"] == "proven"
     assert report["derived_retrieval"]["status"] == "proven"
+
+    assert main(
+        ["--root", str(root.path), "--target", "creator_vault"]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["creator_vault"]["status"] == "rebuilt"
+    assert report["creator_vault"]["silver_lanes_scanned"] == [
+        "creator_metric_silver"
+    ]
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "creator_vault",
+            "--prove-rebuildability",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["creator_vault"]["status"] == "proven"
 
     assert main(
         [

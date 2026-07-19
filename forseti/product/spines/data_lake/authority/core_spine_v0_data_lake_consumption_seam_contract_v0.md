@@ -110,9 +110,12 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
   claim.
 - Standalone consumer calls remain live and unscoped by default. The boundary
   is explicit input, not process-global state or an implicit root wrapper.
-- The cadence-tail lake-map rebuild is an ordinary live rebuild after snapshot
-  completion. It may include newer committed or derived material and is never
-  an exact historical-snapshot claim.
+- The cadence-tail Creator Vault rebuild is an ordinary live rebuild after
+  snapshot completion. It scans the full creator-profile metric observation
+  lane, may include newer committed material, and is never an exact
+  historical-snapshot claim. Generic `by_creator`, `by_mention`, and `undone`
+  views remain explicit owner-rebuildable caches; cadence no longer rescans
+  them merely to refresh current creator metrics.
 
 ## Acknowledgement Contract
 
@@ -204,7 +207,7 @@ The shared suite lives at `forseti-harness/tests/test_data_lake_consumption.py`.
 
 The command shape is pinned by the derived-layout contract
 (`lake indexes rebuild --root <FORSETI_DATA_ROOT> --target
-availability|derived_retrieval|all --prove-rebuildability`). The v0 entry
+availability|creator_vault|derived_retrieval|all --prove-rebuildability`). The v0 entry
 point is `forseti-harness/runners/run_data_lake_indexes_rebuild.py` (argparse,
 runner convention); the semantics, not the binary packaging, are the
 contract.
@@ -216,6 +219,16 @@ Proof mode regenerates from the exact policy stored in each view manifest and
 does not accept an implicit current/latest policy.
 
 - `--target availability` delegates to `DataLakeRoot.rebuild_availability`.
+- `--target creator_vault` scans only the complete
+  `creator_metric_silver` observation-lane history, filters to current
+  source-backed `tiktok_creator_profile_metric` rows, and replaces the
+  per-account envelopes under
+  `indexes/derived_retrieval/silver_vault/creator_vault/`. It does not require
+  product-mention policy pins and does not rewrite the core lake-map views.
+  Unfileable captured accounts are persisted as named generated residuals;
+  missing envelopes therefore remain distinguishable from captured-but-
+  unfileable evidence. Account manifests expose a source-ref-set fingerprint,
+  generation time, selection policy, and explicit stale condition.
 - `--target derived_retrieval` builds the gate-opened object-level views as
   `indexes/derived_retrieval/silver_vault/core/query_tables/<view>.json`, with
   the paired manifest at
@@ -223,7 +236,12 @@ does not accept an implicit current/latest policy.
   the Silver Vault read-model obligations (generation id, source record ids,
   source high-watermark, selection policy versions, generated_at, stale/drift
   detection fields).
-- Built views in v0: `by_creator`, `by_mention`, and `undone`. `by_creator`
+- Core built views in v0: `by_creator`, `by_mention`, and `undone`. The
+  separately addressed Creator Vault account-envelope family is also a
+  generated, non-authoritative read model and is covered by rebuildability
+  proof. All public generated read models exclude tombstoned raw anchors while
+  retaining the underlying append-only lake bytes.
+  `by_creator`
   was deferred at gate opening behind the audience-silver lake wiring; that
   wiring has since landed (registered creator-metric, grid, and
   comment-attention Silver lanes, census-reconciled), so the view is built
@@ -285,15 +303,18 @@ does not accept an implicit current/latest policy.
   zero. Conflicting aliases for the same
   `(platform namespace, identity kind, native id)` are named residuals
   rather than silently treated as consistent. The scoped read entry point is
-  `runners/run_derived_retrieval_lookup.py` (`--creator` / `--mention`),
-  which reads only the generated views, requires a complete manifest pair
-  whose recorded view hash matches the stored bytes, reports generation
-  provenance, and matches mentions only by normalized exact brand, exact
-  line, or exact combined brand+line identity.
-- `--prove-rebuildability` regenerates every view from committed material
-  under the generation stamps recorded in the existing manifest and
-  byte-compares against the stored files; any mismatch or unreadable source
-  fails. A rebuild is never compared against itself.
+  `runners/run_derived_retrieval_lookup.py` (`--creator` / `--mention`).
+  Creator lookup resolves identity from the stable
+  `creator_profile_current_view_v0` registry first, then joins the account
+  envelope directly; it remains available when `by_creator` is absent or
+  stale and reports unknown/conflicted registry states explicitly. Mention
+  lookup continues to require the generated `by_mention` pair. Every consumed
+  generated pair is hash-checked and reports generation provenance.
+- `--prove-rebuildability` regenerates the requested family from committed
+  material under the generation stamps recorded in existing manifests and
+  byte-compares against stored files; any mismatch or unreadable source fails.
+  Creator Vault proof uses the same metric-lane-only sweep as its daily build.
+  A rebuild is never compared against itself.
 
 ## On-Demand-First Metrics Policy
 
