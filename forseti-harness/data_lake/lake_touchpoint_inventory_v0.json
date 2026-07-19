@@ -504,6 +504,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "mechanism": "the PDP capture requires rendered visible text containing LipSoftie plus product-page Offer microdata with priceCurrency=USD, and the policy capture requires Kohl's exact US/APO/FPO-only shipping statement; either missing or access-blocked surface fails the one-shot job after preserving available evidence",
+          "status": "bound"
+        },
+        "kind": "orchestrator",
+        "runner": "run_kohls_unattended_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "the direct-HTTP slot records requested/served final-URL provenance only; the targeted-rendered path admits operator-supplied local Chrome-extension artifacts attributed to the requested product URL with a browser-secret scan but no served-content identity check",
           "status": "unbound"
         },

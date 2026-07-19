@@ -87,6 +87,30 @@ def test_content_capture_writes_packet_and_passes(tmp_path: Path) -> None:
     assert engine.calls[0]["warm_hop_url"] == "https://www.kohls.com/"
 
 
+def test_unattended_provisioning_is_preserved_truthfully(tmp_path: Path) -> None:
+    engine = _FakeEngine(dom=_CONTENT_DOM, text=_CONTENT_TEXT, status=200, title="Tower 28 LipSoftie")
+    out = tmp_path / "pkt"
+    code, _ = run_source_capture_realchrome_cdp_packet(
+        url=PDP_URL,
+        source_family="retail_pdp",
+        source_surface="realchrome_cdp_snapshot",
+        decision_question="q",
+        output_directory=out,
+        browser_provisioning="unattended_xvfb",
+        persistent_profile_loaded=True,
+        engine=engine,
+    )
+
+    assert code == 0
+    manifest = _read_manifest(out)
+    metadata_file = next(out.glob("raw/*metadata.json"))
+    metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+    assert metadata["browser_provisioning"] == "unattended_xvfb"
+    assert metadata["persistent_profile_loaded"] is True
+    assert "unattended_real_browser_cdp" == manifest["operator_category"]
+    assert "unattended_xvfb_realchrome_cdp" in manifest["visible_mode_changes"]
+
+
 def test_block_is_preserved_and_fails_closed(tmp_path: Path) -> None:
     engine = _FakeEngine(dom=_BLOCK_DOM, text=_BLOCK_TEXT, status=403, title="Access Denied")
     out = tmp_path / "pkt"

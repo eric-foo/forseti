@@ -23,7 +23,7 @@ stale_if:
 ```
 
 - Status: `ACTIVE_RETRIEVAL_MAP`
-- Refreshed: 2026-07-12
+- Refreshed: 2026-07-20
 - Implementation authorized: no
 - Architecture: `docs/decisions/forseti_repo_map_architecture_mgt_v0.md`
 
@@ -210,6 +210,7 @@ authorized.
 | Path | Role |
 | --- | --- |
 | `forseti-harness/capture_spine/` | Capture-spine implementation packages. |
+| `forseti-harness/containers/` | Reusable container definitions for bounded unattended capture; currently the private real-Chrome-under-Xvfb browser host. |
 | `forseti-harness/source_capture/` | Packet, adapter, source-family, transcript, and capture orchestration code. |
 | `forseti-harness/youtube_capture/` | Bounded YouTube public-metadata capture helpers. |
 | `forseti-harness/data_lake/` | Filesystem lake, catalog, availability, and retrieval helpers. |

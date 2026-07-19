@@ -41,7 +41,7 @@ Adapter build authority is the build-authorization decision, not this guide.
 | 4 | Patchright (anti-detect browser) | headless-**detection** walls on HTML pages | capture file bytes (same browser limit) | contemplated fallback; not implemented this lane |
 | 5 | residential proxy | IP-reputation / geo walls | — | deferred / gated |
 | 6 | cloakbrowser | heavy anti-block browser capture | — | **OTHER lane** (third-tranche selected backend); off-limits here; not implemented in README state |
-| 7 | `realchrome_cdp` · `run_source_capture_realchrome_cdp_packet.py` | **walls that fingerprint the automation/stealth browsers of the lower rungs** — e.g. Akamai denying Direct HTTP, anti-block HTTP, and CloakBrowser (headless *and* headed) cold on any egress. A **genuine Chrome** executes the wall's sensor JS legitimately and earns a valid session on first contact (a same-site warm hop seeds it, even when the hop itself is blocked). Proven on Kohl's `prd-6715879`. | run unattended (needs an operator-provided real Chrome); capture raw file bytes; defeat entitled/login gates | **implemented this lane** — attaches to an operator-provided real Chrome via CDP (`--remote-debugging-port`), so it is **operator-gated, not fully unattended** |
+| 7 | `realchrome_cdp` · `run_source_capture_realchrome_cdp_packet.py`; unattended Kohl's wrapper `run_kohls_unattended_capture.py` | **walls that fingerprint the automation/stealth browsers of the lower rungs** — e.g. Akamai denying Direct HTTP, anti-block HTTP, and CloakBrowser (headless *and* headed) cold on any tested egress. A **genuine full Chrome** executes the wall's sensor JS and earns a valid session; a same-site warm hop seeds it even when the hop itself is blocked. Proven on Kohl's `prd-6715879`. | capture raw file bytes; defeat entitled/login gates; prove arbitrary Akamai sites | **implemented** — the generic runner attaches to a real Chrome over CDP; the Kohl's one-shot starts a temporary headful Chrome under Xvfb, captures PDP + policy through the same packet seam, and stops it. Live unattended GO packets: `01KXXV920Z8PQVHP6DN16335DF` / `01KXXVA8B5EHY86N4EJZ7Y6360`. |
 
 Three load-bearing rules about the ladder:
 
@@ -67,8 +67,9 @@ Three load-bearing rules about the ladder:
 2. **Map wall → rung:** header/UA-keyed → **rung-1**; passive TLS/JA3 → **rung-2** (gated);
    JS challenge → **rung-3**; headless-detected on an HTML page → **rung-4**; IP/geo → **rung-5**;
    automation-fingerprinted even by a stealth browser (e.g. Akamai denying CloakBrowser cold on
-   any egress) → **rung-7** (genuine operator-provided Chrome via CDP; a same-site warm hop seeds
-   the wall's session). Rung-7 needs a real Chrome running under CDP, so it is operator-gated.
+   any tested egress) → **rung-7** (genuine Chrome via CDP; a same-site warm hop seeds the wall's
+   session). Use the unattended Kohl's wrapper where its exact two-surface admission applies;
+   other sources still need their own bounded wrapper or an operator-provided Chrome.
 3. **File target?** Never a browser rung for the bytes — stay on **0 / 1 / 2**.
 4. **Same-origin set?** Use **probe-one-then-confirm**: run rung-0 control + the
    ladder on one URL, then confirm only the winning rung on the rest. Don't
