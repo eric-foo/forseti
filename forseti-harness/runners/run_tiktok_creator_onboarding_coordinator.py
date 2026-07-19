@@ -319,12 +319,18 @@ def complete_onboarding(
         str(creator_registry_index_path),
         "--write",
     ]
-    for retained_snapshot in retained_snapshot_paths:
-        argv.extend(("--audience-triangulation-snapshot", str(retained_snapshot)))
-    argv.extend(("--audience-triangulation-snapshot", str(snapshot_path)))
-    for retained_outcome in retained_outcome_paths:
-        argv.extend(("--audience-judgment-outcome", str(retained_outcome)))
-    argv.extend(("--audience-judgment-outcome", str(outcome_path)))
+    audience_pairs = sorted(
+        zip(
+            (*retained_snapshot_paths, snapshot_path),
+            (*retained_outcome_paths, outcome_path),
+            strict=True,
+        ),
+        key=lambda pair: str(pair[0]),
+    )
+    for audience_snapshot, _audience_outcome in audience_pairs:
+        argv.extend(("--audience-triangulation-snapshot", str(audience_snapshot)))
+    for _audience_snapshot, audience_outcome in audience_pairs:
+        argv.extend(("--audience-judgment-outcome", str(audience_outcome)))
     for metric_seed in metric_seed_paths:
         argv.extend(("--metric-seed", str(metric_seed)))
     if generated_at_utc:
