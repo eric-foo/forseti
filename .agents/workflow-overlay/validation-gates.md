@@ -86,7 +86,8 @@ inherit this floor.
   | --- | --- | --- |
   | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
-  | External controller targeting another worktree | `accepted` once after verification | Unique target at its frozen commit pin under the commission's exact or explicitly permitted ancestor semantics; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | External controller targeting another worktree | `accepted` once after verification | Unique commissioned target under exact or explicitly permitted ancestor semantics; demonstrated direct write; target-rooted operation; no concurrent writer. A `.codex`, `.claude`, or other manager-prefixed target path is neutral: the commission supplies authority and observed capability supplies the route. |
+  | Delayed delegated review of an advancing clean lane | `accepted` under `ancestor` | Verify `required_revision` is an ancestor of current `HEAD`, then record current `HEAD` as immutable `reviewed_revision` before source review. Return both revisions. If the author continues, review and patch only in a separate clean worktree/branch at the captured revision; never share a moving worktree. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
   | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
@@ -103,9 +104,12 @@ inherit this floor.
   `exact` requires a clean worktree and `HEAD == required_revision`; `ancestor`
   requires a clean worktree and a zero exit from
   `git merge-base --is-ancestor <required_revision> HEAD`. `ancestor` is valid
-  only where the commission explicitly permits an advancing lane; it never
-  satisfies an existing exact gate. Live hook-adoption probing is reserved for
-  a commission whose purpose is that adoption test, never routine lane proof.
+  only where the commission explicitly permits an advancing lane; delayed
+  delegated reviews of such lanes default to it. Their receiving preflight
+  captures the then-current `HEAD` as `reviewed_revision`, which becomes exact
+  for that review run. It never satisfies an existing exact gate. Live
+  hook-adoption probing is reserved for a commission whose purpose is that
+  adoption test, never routine lane proof.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`

@@ -190,6 +190,17 @@ A separate receiver is required only for an independent concurrent actor or
 after an observed tool, sandbox, hook, or guard denial proves the current task
 cannot perform a required target operation.
 
+For an `external_direct_write` receiver, controller identity and target-path
+namespace are separate facts. The commission authorizes the bounded act; finding
+the named effective target and verifying its revision, target set, write
+capability, and writer isolation establishes the route. A `.codex`, `.claude`,
+or other manager-prefixed worktree path neither grants authority nor disqualifies
+an otherwise eligible controller. A prohibition on a Codex-managed *receiver
+fallback* forbids replacing the commissioned different-vendor controller with a
+Codex task; it does not forbid that controller from using the named target
+worktree. Do not infer inability from the path prefix or launch root: preserve
+and route only an observed access denial.
+
 Reuse this binding through authoring, review, validation, commit, push, and
 landing. Do not repeat root receipts, chat choreography, hook canaries, synthetic
 write/index probes, or capability recitals while material state is unchanged.
@@ -233,13 +244,21 @@ receiver_binding:
 
 `exact` means a clean worktree whose `HEAD` equals `required_revision`.
 `ancestor` means a clean advancing lane where
-`git merge-base --is-ancestor <required_revision> HEAD` succeeds. Uncommitted
-work is not bindable for an independent receiver: freeze it into a commit as
-the last authoring act before courier and pin that frozen commit. Existing
-exact gates remain exact. For a couriered review/patch receiver, `ancestor`
-does not widen the frozen review target: the commission still pins the reviewed
-commit, diff, or artifact state, and descendant changes stay outside scope
-unless expressly included.
+`git merge-base --is-ancestor <required_revision> HEAD` succeeds. For a delayed
+delegated review or review-and-patch commission against an advancing lane,
+`ancestor` is the default unless the commission explicitly requires a frozen
+historical diff or artifact. The receiver verifies ancestry and clean/no-writer
+state, then records the current `HEAD` as `reviewed_revision` before source
+review; that captured commit becomes the immutable review target. The original
+`required_revision` remains the minimum lineage checkpoint, not the reviewed
+byte identity, and the return records both revisions.
+
+Uncommitted work is not bindable for an independent receiver: freeze it into a
+commit before courier. Existing `exact` gates remain exact. After
+`reviewed_revision` is captured, later descendant changes stay outside review
+scope. If the author continues concurrently, the reviewer must use a separate
+clean worktree at `reviewed_revision` and, when patching, its own review branch;
+two writers must not share the advancing target worktree.
 
 Creating a user-visible Codex task still requires explicit product/user
 authorization. A visible instruction to create, start, spin up, or hand off to a
