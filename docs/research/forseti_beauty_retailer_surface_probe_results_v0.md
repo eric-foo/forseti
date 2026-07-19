@@ -110,6 +110,38 @@ retroactive deletion or compaction of any historical raw packet.
 - Fresh verification: all six preserved-file sizes and SHA-256 hashes matched
   the manifest; parser-fit was `match`; raw and content projections were
   semantically equal; Silver payloads and residuals were equal.
+- A follow-up field audit of that same packet found 13 distinct
+  `regularChildSkus`: five were `isOutOfStock=true`, six were
+  `isLimitedEdition=true`, and four were both limited-edition and out of stock.
+  The complete variant state is retained; no exact stock quantity or sold-unit
+  count was exposed.
+- Review-body coverage is six rendered bodies (`1-6 of 22k reviews`): one is
+  explicitly incentivized and five are not marked incentivized. Their displayed
+  relative dates span only one to three days. The source offered `Most Helpful`,
+  but the rendered sample did not preserve evidence that it was selected; it
+  also did not activate continuation or establish 30-day most-recent coverage.
+- Q&A coverage is one rendered question and one nested answer against the
+  displayed aggregate `Questions & Answers (1390)`. The selected UI posture was
+  `Most Recent Questions`; `Most Answers` was only an unselected option.
+- The sample inventories the available review filters, including
+  `Non-Incentivized Reviews Only` and exact age buckets `13-17`, `18-24`,
+  `25-34`, `35-44`, `45-54`, and `Over54`. Both filters were inactive, so the
+  packet contains no reviewer age-bucket counts or filtered demographic
+  breakdown. The separate product/SKU refinement labels `20s`, `30s`, `40s`,
+  and `50s` are merchandising metadata, not review-demographic evidence.
+- The attached owner example is already represented exactly by the captured AI
+  sentiment chips. Green/positive: `Softness (98)`, `Scent (48)`, and
+  `Texture (26)`. Red/negative: `Irritation (51)` and `Scent (11)`. Polarity,
+  label, and count remain separate, including the positive/negative `Scent`
+  collision; the generated prose summary is secondary context.
+- These gaps are requirements for future Sephora review/Q&A onboarding, not
+  defects hidden by this bounded parser-fit sample. The owning continuation
+  posture is
+  `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`;
+  it requires selected `Most Answers`, a `Most Helpful` plus
+  non-incentivized review view, non-incentivized most-recent loading through at
+  least 30 days, and exact reviewer age-bucket counts while retaining an
+  unfiltered baseline.
 - Preserved-file SHA-256:
   - rendered DOM:
     `83b258a407d777ce5956e8ee1acf38178d210fec7832154529612de9eb038158`
