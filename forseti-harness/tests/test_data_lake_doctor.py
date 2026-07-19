@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.silver_record import append_raw_packet_tombstone
 from harness_utils import generate_ulid
 from runners import run_data_lake_doctor as doctor
 from source_capture.models import known_fact
@@ -30,7 +31,8 @@ def test_inspect_data_lake_reports_clean_root(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
 
-    report = doctor.inspect_data_lake(root)
+    progress: list[dict[str, object]] = []
+    report = doctor.inspect_data_lake(root, progress=progress.append)
 
     assert report["status"] == "ok"
     assert report["raw_packet_count"] == 1
@@ -40,6 +42,18 @@ def test_inspect_data_lake_reports_clean_root(tmp_path: Path) -> None:
     assert report["wrong_shard_packets"] == []
     assert report["root"]["lake_epoch"] == "v4.1"
     assert root.find_packet(pid) is not None
+    assert progress[0] == {
+        "phase": "discover_raw_packets",
+        "status": "phase_started",
+    }
+    assert any(
+        event["phase"] == "verify_raw_packets"
+        and event["status"] == "phase_progress"
+        and event["processed_packet_count"] == 1
+        for event in progress
+    )
+    assert progress[-1]["phase"] == "verify_raw_packets"
+    assert progress[-1]["status"] == "phase_completed"
 
 
 def test_inspect_data_lake_dry_run_reports_missing_availability_then_rebuilds(
@@ -62,6 +76,33 @@ def test_inspect_data_lake_dry_run_reports_missing_availability_then_rebuilds(
     assert repaired["rebuild_availability_count"] == 1
     assert repaired["missing_availability"] == []
     assert availability_path.is_file()
+
+
+def test_inspect_data_lake_treats_validated_tombstone_as_retained_not_missing(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    retained_id = _capture_packet(root, tmp_path, "retained")
+    tombstoned_id = _capture_packet(root, tmp_path, "tombstoned")
+    append_raw_packet_tombstone(
+        data_root=root,
+        retained_packet_id=retained_id,
+        tombstoned_packet_id=tombstoned_id,
+        captured_at="2026-07-19T00:00:00Z",
+        reason="duplicate capture",
+    )
+    root.rebuild_availability()
+
+    report = doctor.inspect_data_lake(root)
+
+    assert report["status"] == "ok"
+    assert report["raw_packet_count"] == 2
+    assert report["verified_raw_packet_count"] == 2
+    assert report["public_raw_packet_count"] == 1
+    assert report["tombstoned_raw_packets"] == [tombstoned_id]
+    assert report["availability_count"] == 1
+    assert report["missing_availability"] == []
+    assert report["orphan_availability"] == []
 
 
 def test_inspect_data_lake_reports_stale_availability(tmp_path: Path) -> None:
@@ -105,8 +146,16 @@ def test_main_prints_json_packet_lookup(tmp_path: Path, monkeypatch, capsys) -> 
 
     assert doctor.main(["--data-root", str(root.path), "--packet-id", pid]) == 0
 
-    payload = json.loads(capsys.readouterr().out)
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    progress = [json.loads(line) for line in captured.err.splitlines()]
     assert payload["status"] == "ok"
+    assert progress[0] == {
+        "phase": "data_lake_doctor",
+        "status": "phase_started",
+    }
+    assert progress[-1]["phase"] == "data_lake_doctor"
+    assert progress[-1]["status"] == "phase_completed"
     assert payload["packet"]["packet_id"] == pid
     assert payload["packet"]["source_family"] == "reddit"
 

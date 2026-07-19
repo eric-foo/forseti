@@ -80,6 +80,40 @@ proof therefore re-ran only the affected `undone` view. This is a point-in-time
 freshness receipt, not continuous freshness or hardware-health proof. The
 measured silent whole-lake runtime remains owned by SLG-04.
 
+### Whole-lake assurance verification (2026-07-20, SLG-04)
+
+The existing doctor and Silver census now stream structured, flushed phase
+progress to stderr while retaining their single machine-readable JSON result on
+stdout. The doctor reports discovery, availability, validated tombstone
+resolution, and verified-read progress every 100 packets. The census reports raw
+manifest and creator-lineage phases, every registered Silver lane, 1,000-record
+lane milestones, deep-capture markers, and final reconciliation. No scan,
+source-authority check, or error was removed to make these commands look fast.
+
+Live dogfood established the actual runtime shape:
+
+- doctor closeout: 6.218 seconds; 784 retained raw packets all verified, 3
+  validated tombstones, 781 public packets, 781 availability entries, and zero
+  missing, orphaned, stale, or read-failure entries;
+- full Silver census: 898.361 seconds for 22,515 Silver records; 22,064 current
+  source-backed, 319 historical-compatible, zero unclassified, and zero errors;
+- `cleaning_fragrantica_silver` is the measured bottleneck: 17,695 records in
+  868.06 seconds. The next slowest lane was
+  `tiktok_comment_attention_silver`: 3,087 records in 16.503 seconds;
+- cadence `--check` emitted its snapshot in 0.478 seconds, then visibly named
+  `run_ecr_catchup.py` as the active pending-check entrypoint for 107.1 seconds
+  before the bounded read-only dogfood process was stopped. The production
+  scheduled task remained `Ready`.
+
+The doctor also corrected one dogfood-discovered false positive: validated
+raw-packet tombstones retain raw bytes but intentionally remove public
+availability. The doctor now verifies those retained bytes, excludes their IDs
+from the public availability expectation, and reports them explicitly. Two new
+packets arrived during the long census, explaining its 782-capture snapshot
+versus the final 784-retained/781-public doctor snapshot. These are operational
+progress and point-in-time integrity receipts, not a claim that the population
+census is fast or that the lake is continuously quiescent.
+
 ## Staged Upgrades
 
 Stage 1 is the explicit exception to the original trigger-only sequence: on
