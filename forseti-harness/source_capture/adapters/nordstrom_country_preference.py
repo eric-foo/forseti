@@ -8,10 +8,11 @@ both appeared in an international capture and therefore cannot prove a US storef
 
 from __future__ import annotations
 
+import json
 import re
 import time
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from typing import Literal
 from urllib.parse import urlparse
 
@@ -20,6 +21,12 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     PreCaptureOutcome,
 )
 from source_capture.projection_shared import first_match
+from source_capture.retail_review_onboarding import (
+    RETAIL_REVIEW_CONTEXT_TARGET,
+    RETAIL_REVIEW_WINDOW_DAYS,
+    RETAIL_REVIEW_WINDOW_MINIMUM,
+    assess_retail_review_onboarding,
+)
 
 
 _NORDSTROM_HOMEPAGE_URL = "https://www.nordstrom.com/"
@@ -27,10 +34,10 @@ _CONTROL_PROBE_TIMEOUT_MS = 2500
 _POST_SELECTION_POLL_MS = 100
 _HOMEPAGE_RENDER_SETTLE_MS = 5000
 _REVIEW_POSTURE_POLL_MS = 100
-_REVIEW_POSTURE_TIMEOUT_MS = 20000
-NORDSTROM_REVIEW_WINDOW_DAYS = 30
-NORDSTROM_REVIEW_MINIMUM = 6
-NORDSTROM_REVIEW_MAXIMUM = 30
+_REVIEW_POSTURE_TIMEOUT_MS = 45000
+NORDSTROM_REVIEW_WINDOW_DAYS = RETAIL_REVIEW_WINDOW_DAYS
+NORDSTROM_REVIEW_MINIMUM = RETAIL_REVIEW_WINDOW_MINIMUM
+NORDSTROM_REVIEW_MAXIMUM = RETAIL_REVIEW_CONTEXT_TARGET
 NORDSTROM_REVIEW_POSTURES = ("recent_window_30d",)
 NordstromReviewPosture = Literal["recent_window_30d"]
 
@@ -219,7 +226,7 @@ class NordstromCountryPreferencePlugin:
     def before_snapshot(
         self, page: object, *, setup_timeout_ms: float
     ) -> PreCaptureOutcome:
-        """Select Most Recent and bound a 30-day window with a 6-row floor/30-row cap."""
+        """Select Most Recent and satisfy the shared retailer onboarding coverage."""
         if self.review_posture is None:
             return PreCaptureOutcome(attempted=False, steps_completed=True)
         product_id = _product_id_from_url(self.target_url)
@@ -306,14 +313,14 @@ class NordstromCountryPreferencePlugin:
                         steps_completed=True,
                         warning_notes=warning_notes,
                     )
-                if observation["status"] == "needs_more":
+                if str(observation["status"]).startswith("needs_more_"):
                     continuation = page.locator(  # type: ignore[union-attr]
                         "#product-page-reviews a:has-text('Load 6 more reviews')"
                     )
                     if continuation.count() != 1:
                         return _failed_review_outcome(
                             "review_continuation",
-                            "the 30-day window needs another batch but the target "
+                            "the onboarding review window needs another batch but the target "
                             "continuation did not resolve exactly once",
                         )
                     continuation.click(
@@ -327,8 +334,8 @@ class NordstromCountryPreferencePlugin:
                 page.wait_for_timeout(pause_ms)  # type: ignore[union-attr]
         return _failed_review_outcome(
             "review_postconditions",
-            "Most Recent, the highlighted pair, and the bounded 30-day review "
-            "window were not jointly observed",
+            "Most Recent, the highlighted pair, and the bounded onboarding review "
+            "coverage were not jointly observed",
         )
 
     def describe(self) -> dict[str, object]:
@@ -435,61 +442,94 @@ def observe_nordstrom_review_window(
         )
         is not None
     )
+    source_total_count = (
+        _target_product_review_count_from_json_ld(
+            dom,
+            product_id=product_id_match.group(1),
+        )
+        if product_id_match is not None
+        else None
+    )
     count = len(review_ids)
     consecutive = review_ids == list(range(1, count + 1))
     descending = all(
         review_dates[index][1] >= review_dates[index + 1][1]
         for index in range(max(0, count - 1))
     )
-    cutoff = reference_date - timedelta(days=NORDSTROM_REVIEW_WINDOW_DAYS)
-    in_window_count = sum(
-        review_date >= cutoff for _review_id, review_date in review_dates
-    )
-    oldest = review_dates[-1][1] if review_dates else None
     base_valid = (
         product_id_match is not None
         and highlighted_pair
         and consecutive
         and descending
-        and count >= NORDSTROM_REVIEW_MINIMUM
+        and count >= 6
         and count <= NORDSTROM_REVIEW_MAXIMUM
-        and count % NORDSTROM_REVIEW_MINIMUM == 0
+        and count % 6 == 0
     )
-    if not base_valid:
-        status = "invalid"
-    elif oldest is not None and oldest <= cutoff:
-        status = "low_density_context" if in_window_count == 0 else "window_complete"
-    elif count >= NORDSTROM_REVIEW_MAXIMUM:
-        status = "window_truncated"
-    elif continuation:
-        status = "needs_more"
-    else:
-        status = "invalid"
-    admitted = status in {
-        "window_complete",
-        "low_density_context",
-        "window_truncated",
-    }
-    return {
-        "admitted": admitted,
-        "status": status,
-        "reference_date": reference_date.isoformat(),
-        "window_days": NORDSTROM_REVIEW_WINDOW_DAYS,
-        "cutoff_date": cutoff.isoformat(),
-        "captured_review_count": count,
-        "in_window_review_count": in_window_count,
-        "newest_review_date": (
-            review_dates[0][1].isoformat() if review_dates else None
+    observation = assess_retail_review_onboarding(
+        [review_date for _review_id, review_date in review_dates],
+        reference_date=reference_date,
+        continuation_available=continuation,
+        source_exhausted=(
+            not continuation
+            and source_total_count is not None
+            and source_total_count <= count
         ),
-        "oldest_review_date": oldest.isoformat() if oldest is not None else None,
-        "continuation_available": continuation,
+        structure_valid=base_valid,
+    )
+    return {
+        **observation,
+        "source_total_count": source_total_count,
         "continuation_activations": max(
-            0, (count - NORDSTROM_REVIEW_MINIMUM) // NORDSTROM_REVIEW_MINIMUM
+            0, (count - 6) // 6
         ),
         "highlighted_pair_present": highlighted_pair,
         "sort_most_recent": product_id_match is not None,
         "review_ids": review_ids,
     }
+
+
+def _target_product_review_count_from_json_ld(
+    rendered_dom: str,
+    *,
+    product_id: str,
+) -> int | None:
+    scripts = re.findall(
+        r'<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>'
+        r"([\s\S]*?)</script>",
+        rendered_dom,
+        flags=re.IGNORECASE,
+    )
+    for script in scripts:
+        try:
+            parsed = json.loads(script)
+        except (TypeError, ValueError):
+            continue
+        pending: list[object] = [parsed]
+        while pending:
+            item = pending.pop()
+            if isinstance(item, list):
+                pending.extend(item)
+                continue
+            if not isinstance(item, dict):
+                continue
+            pending.extend(item.values())
+            item_types = item.get("@type")
+            is_product = item_types == "Product" or (
+                isinstance(item_types, list) and "Product" in item_types
+            )
+            if not is_product or f"/{product_id}" not in json.dumps(
+                item, sort_keys=True
+            ):
+                continue
+            aggregate = item.get("aggregateRating")
+            if not isinstance(aggregate, dict):
+                continue
+            value = aggregate.get("reviewCount")
+            if isinstance(value, int) and value >= 0:
+                return value
+            if isinstance(value, str) and value.isdigit():
+                return int(value)
+    return None
 
 
 def confirm_nordstrom_review_posture(

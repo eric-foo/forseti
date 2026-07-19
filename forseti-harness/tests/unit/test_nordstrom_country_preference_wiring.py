@@ -54,10 +54,11 @@ def _review_dom(
         "July 13, 2026",
         "July 12, 2026",
         "July 11, 2026",
+        "July 10, 2026",
+        "July 9, 2026",
+        "July 8, 2026",
+        "July 7, 2026",
         "June 1, 2026",
-        "May 31, 2026",
-        "May 30, 2026",
-        "May 29, 2026",
     ]
     dates = dense_dates if dense else low_density_dates
     reviews = "".join(
@@ -285,11 +286,15 @@ def test_before_falls_back_to_same_control_on_commissioned_target() -> None:
     )
 
 
-def test_before_snapshot_selects_most_recent_without_loading_more() -> None:
+def test_before_snapshot_expands_sparse_window_to_thirty_recent_rows() -> None:
+    continuation_selector = (
+        "#product-page-reviews a:has-text('Load 6 more reviews')"
+    )
     page = _FakePage(
         clickable={
             "#sort-by-filter-8260802-anchor",
             "role=option:Most Recent",
+            continuation_selector,
         },
     )
     plugin = NordstromCountryPreferencePlugin(
@@ -305,17 +310,24 @@ def test_before_snapshot_selects_most_recent_without_loading_more() -> None:
     assert confirm_nordstrom_review_posture(
         page.content(), reference_date=date(2026, 7, 19)
     ).confirmed is True
-    assert not any("Load 6 more reviews" in str(action) for action in page.actions)
-    assert observe_nordstrom_review_window(
+    observation = observe_nordstrom_review_window(
         page.content(), reference_date=date(2026, 7, 19)
-    )["status"] == "low_density_context"
+    )
+    assert page.review_count == 30
+    assert observation["status"] == "historical_context_complete"
+    assert observation["continuation_activations"] == 4
+    assert observation["in_window_review_count"] == 0
 
 
 def test_before_snapshot_retries_one_moving_most_recent_option() -> None:
+    continuation_selector = (
+        "#product-page-reviews a:has-text('Load 6 more reviews')"
+    )
     page = _FakePage(
         clickable={
             "#sort-by-filter-8260802-anchor",
             "role=option:Most Recent",
+            continuation_selector,
         },
         option_click_failures=1,
     )
@@ -347,7 +359,7 @@ def test_review_posture_confirmation_rejects_stale_sort_or_seventh_review() -> N
     ).confirmed is False
 
 
-def test_before_snapshot_loads_one_six_row_batch_to_close_dense_window() -> None:
+def test_before_snapshot_loads_two_six_row_batches_to_close_dense_window() -> None:
     continuation_selector = (
         "#product-page-reviews a:has-text('Load 6 more reviews')"
     )
@@ -371,9 +383,10 @@ def test_before_snapshot_loads_one_six_row_batch_to_close_dense_window() -> None
     )
 
     assert outcome.steps_completed is True
-    assert page.review_count == 12
-    assert observation["status"] == "window_complete"
-    assert observation["continuation_activations"] == 1
+    assert page.review_count == 18
+    assert observation["status"] == "recent_window_complete"
+    assert observation["in_window_review_count"] == 12
+    assert observation["continuation_activations"] == 2
 
 
 def test_review_window_marks_thirty_in_window_rows_truncated() -> None:
@@ -388,9 +401,29 @@ def test_review_window_marks_thirty_in_window_rows_truncated() -> None:
         dom, reference_date=date(2026, 7, 19)
     )
 
-    assert observation["status"] == "window_truncated"
+    assert observation["status"] == "recent_window_truncated"
     assert observation["captured_review_count"] == 30
     assert observation["continuation_activations"] == 4
+
+
+def test_review_window_admits_proven_source_exhaustion_below_thirty() -> None:
+    dom = _review_dom().replace(
+        '  <a href="?page=2">Load 6 more reviews</a>',
+        (
+            '<script type="application/ld+json">'
+            '{"@type":"Product","url":"https://www.nordstrom.com/s/item/8260802",'
+            '"aggregateRating":{"reviewCount":6}}</script>'
+        ),
+    )
+
+    observation = observe_nordstrom_review_window(
+        dom, reference_date=date(2026, 7, 19)
+    )
+
+    assert observation["status"] == "source_exhausted"
+    assert observation["source_total_count"] == 6
+    assert observation["captured_review_count"] == 6
+    assert observation["admitted"] is True
 
 
 def test_plugin_rejects_non_us_and_non_positive_timeout() -> None:

@@ -40,6 +40,16 @@ The focused corpus must include:
 - a skipped-row receipt so omissions are visible; and
 - accepted residuals explaining what the focused set deliberately leaves out.
 
+This focused reader view is not the retailer onboarding acquisition sample.
+Retailer PDP onboarding follows the chronological rule in
+`retail_pdp_projection_playbook_v0.md`: complete last-30-day cohort first, then
+Most Recent historical context to 30 rows or proven source exhaustion when the
+cohort has fewer than 12. The acquired chronological corpus and aggregate rating
+distribution are the basis for general product understanding. This document's
+rating/media/length-biased subset is only an explicitly labelled context-budget
+view over an already acquired corpus; it must never be presented as
+representative sentiment or used to replace that chronological corpus.
+
 ## Luckyscent Pinned Route Probe
 
 Target product:
