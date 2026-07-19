@@ -322,6 +322,10 @@ pre-registration.
 - Slow and interrupted local patch calls affected persistence latency, not the
   evidence stream. The final board and scan receipt passed their focused
   validators before the acquisition commit.
+- After acquisition closed, `origin/main` landed a confirmed Ulta US route in
+  `fc777ad5` / PR #1135. Every unpinned-Ulta statement in this run records the
+  route state at baseline `9e505007`; the later route does not repair the
+  earlier R0 cutoff failure or authorize retroactive retail acquisition.
 - The failed cutoff does not support or reject claim-sensitive stopping. It
   shows only that this case did not produce a valid reference horizon under the
   accepted cutoff rule.
