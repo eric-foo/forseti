@@ -40,17 +40,19 @@ Sephora storefront-pin reconciliation.
 
 ## Capture artifact-mode audit
 
-A `2026-07-19` fresh read of every packet manifest cited by this register found
-48 source packets: 48 `raw`, zero `content`, and zero `sample`. Forty-two are
-Retail/PDP packets; the other six belong to the certification-directory,
-company-official, or fragrance-review source families. The seven other ULIDs
-in this artifact identify derived records rather than source packets.
+A `2026-07-19` fresh read of the original packet manifests cited by this
+register found 48 source packets: 48 `raw`, zero `content`, and zero `sample`.
+The Sephora completeness audit then added three append-only `sample` packets,
+so this register now cites 51 source packets: 48 `raw`, three `sample`, and
+zero `content`. Forty-five are Retail/PDP packets; the other six belong to the
+certification-directory, company-official, or fragrance-review source
+families. The seven other ULIDs identify derived records rather than source
+packets.
 
-Accordingly, these point-in-time results do not prove a sampled-raw with
-full-derived retention posture for any retailer. Later runner work means exact
-successful Sephora and Nordstrom aggregate-PDP captures now default to compact
-retailer-owned content records, but neither route has a sample-mode receipt in
-this corpus. Every other retailer surface named here remains raw: Target grid
+The exact Sephora aggregate-PDP route now proves sampled-raw with full-derived
+retention through the receipt below. Nordstrom aggregate PDP still lacks its
+required sample audit. Every other retailer surface named here remains raw:
+Target grid
 and PDP; Nordstrom grid; Luckyscent grid and PDP; Amazon search/discovery and
 PDP; Ulta PDP; Walmart PDP; Credo PDP and Yotpo review responses; and Kohl's
 access-failure diagnostics. Tower 28 DTC/stores and the certifier-directory
@@ -61,7 +63,66 @@ The exhaustive route-by-route gaps and flip boundary are maintained in
 No existing raw packet is authorized for retroactive deletion. A future route
 may be promoted only after its compact derived record preserves all
 claim-bearing fields, its loss is explicit, and a representative raw-plus-
-derived sample packet is verified.
+derived sample packet is verified. The Sephora completion does not authorize
+retroactive deletion or compaction of any historical raw packet.
+
+### Sephora sampled-raw/full-derived audit receipt
+
+- Pre-repair sample:
+  `F:\forseti-data-lake\raw\d54\01KXXBZ1DK7YERYH5D12GBT22C`. Its v1 content
+  record retained the selected offer and aggregate ratings but omitted the
+  complete 13-SKU product state, product-detail modules, six displayed review
+  rows, and rendered Q&A.
+- Fail-loud control:
+  `F:\forseti-data-lake\raw\74b\01KXXBT4PDGG90AH5B1QEG9NR4`. A Tower 28
+  LipSoftie URL was intentionally incompatible with the exact LANEIGE profile;
+  the runner returned a source-detail-sufficiency failure for missing
+  `Lip Sleeping Mask` and retained DOM, visible text, screenshot, browser
+  metadata, content record, and content metadata.
+- Repaired representative sample:
+  `F:\forseti-data-lake\raw\169\01KXXESQG51QN0V10HP5FQE8C0`, captured
+  `2026-07-19T15:09:27Z` on the exact
+  `sephora_pdp_aggregate` LANEIGE route. Market pin confirmation was true,
+  access was not blocked, artifact mode was `sample`, and projection status
+  was `succeeded`.
+- The v2 parser preserves exact rendered page text plus the complete
+  `linkStore.page.product` subtree. The selected SKU `2961324` binds to its
+  full `currentSku` state and all 13 `regularChildSkus`; this retains
+  SKU-specific price, size, availability/fulfillment flags, ingredients,
+  highlights, product claims, usage, URLs, and product media state.
+- The review substrate preserves the displayed `22.1K`, widget `22,089`, and
+  JSON-LD `22293` counts separately; rating/distribution, recommendation
+  percentage, filters, sentiments, review-image metadata, displayed range, and
+  all six rendered review components remain. Exact review HTML/text carries
+  verification, incentive, recommendation, title/body, selected shade,
+  helpfulness, author/demographic, and media-URL facts without pretending the
+  first rendered page is the complete review corpus. Rendered Question and
+  Answer components are retained under the same bounded rule.
+- Explicit residuals: exact stock quantity and sold units were not observed;
+  delivery location was not capture-pinned; displayed reviews and Q&A are
+  rendered samples only; linked review media was not independently fetched;
+  the JSON-LD and target-DOM review counts differ.
+- Explicit loss ledger: hero image binaries/gallery layout, cart-button
+  chrome, navigation/footer/promotion shell, scripts/styles/telemetry,
+  recommendation carousel presentation, gallery/community-media binaries, and
+  flexible-payment widget chrome are collapsed. Their valuable URLs, state,
+  allocation text, and rendered PDP copy remain in derived rows.
+- Fresh verification: all six preserved-file sizes and SHA-256 hashes matched
+  the manifest; parser-fit was `match`; raw and content projections were
+  semantically equal; Silver payloads and residuals were equal.
+- Preserved-file SHA-256:
+  - rendered DOM:
+    `83b258a407d777ce5956e8ee1acf38178d210fec7832154529612de9eb038158`
+  - visible text:
+    `fa6ef28850de62b1f6432498f34a62ef4e438042a990ab2b36109888e47a3815`
+  - viewport screenshot:
+    `733ea7832b7060b06afca4546f7ef22b0e4850f4d7328f883d60bee4b5f3bd79`
+  - browser metadata:
+    `934b084c7ed83d6fda76ca912128925ae68fc6ead4c6fab5355422bff48c85d4`
+  - content record:
+    `500d207007f0efeec7f30a8e70f8f6d4703db94eea72b6eef709d4f95f645373`
+  - content metadata:
+    `b418681aebc26209d21653d256141891068707f324b74850efe3dde2d702fa06`
 
 ## Target x Naturium
 

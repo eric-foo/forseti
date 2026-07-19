@@ -65,10 +65,60 @@ _HISTOGRAM = "".join(
     f'<div style="width: {percentage}%;"></div></button>'
     for rating, percentage in ((5, 69), (4, 12), (3, 7), (2, 6), (1, 6))
 )
+_LINK_STORE = json.dumps(
+    {
+        "page": {
+            "product": {
+                "productId": "P420652",
+                "displayName": "Lip Sleeping Mask",
+                "brandName": "LANEIGE",
+                "currentSku": {
+                    "skuId": "2961324",
+                    "variationValue": "Acai Mango Smoothie",
+                    "size": "0.70 oz / 20 g",
+                    "listPrice": "$25.00",
+                    "isOutOfStock": False,
+                    "isSameDayEligibleSku": True,
+                    "ingredientDesc": "Vitamin C, Murumuru Seed Butter",
+                    "highlights": ["Hydrating", "Without Parabens"],
+                },
+                "regularChildSkus": [
+                    {
+                        "skuId": "2961324",
+                        "variationValue": "Acai Mango Smoothie",
+                        "size": "0.70 oz / 20 g",
+                        "listPrice": "$25.00",
+                        "isOutOfStock": False,
+                        "ingredientDesc": "Vitamin C, Murumuru Seed Butter",
+                    },
+                    {
+                        "skuId": "2855027",
+                        "variationValue": "Berry",
+                        "size": "0.70 oz / 20 g",
+                        "listPrice": "$25.00",
+                        "isOutOfStock": False,
+                        "ingredientDesc": "Berry Fruit Complex, Shea Butter",
+                    },
+                ],
+                "productDetails": {
+                    "aboutTheProduct": "A leave-on lip mask.",
+                    "suggestedUsage": "Apply before bed.",
+                    "clinicalResults": "100% agreed lips felt smoother.",
+                    "recyclingInstructions": "Separate cap before recycling.",
+                },
+                "reviewFilters": [{"id": "rating", "values": ["5", "4", "3", "2", "1"]}],
+                "sentiments": [{"id": "hydrating", "count": 1200}],
+                "reviewImages": [{"url": "https://images.example/review-1.jpg"}],
+            }
+        }
+    },
+    separators=(",", ":"),
+)
 _DOM = f"""
 <html><head>
   <script>Sephora.renderQueryParams={{"country":"US","language":"en"}};</script>
   <script type="application/ld+json">{_LD_JSON}</script>
+  <script id="linkStore" type="text/json">{_LINK_STORE}</script>
 </head><body>
   <main class="ProductHero">
     <div data-cnstrc-item-id="P420652" data-cnstrc-item-price="$25.00"
@@ -76,7 +126,23 @@ _DOM = f"""
       data-comp="ProductPage ProductPage BaseComponent"></div>
   </main>
   <h2 data-at="ratings_reviews_section">Ratings &amp; Reviews (22.1K)</h2>
-  <div data-comp="ReviewsStats">{_HISTOGRAM}<span>22,069 Reviews*</span></div>
+  <div data-comp="ReviewsStats">{_HISTOGRAM}<span>22,069 Reviews*</span>
+    <span>83% of reviewers recommend</span>
+  </div>
+  <div data-comp="Review Review BaseComponent ">
+    <span aria-label="5 out of 5 stars"></span>
+    <span>Verified Purchaser</span><span>Incentivized</span>
+    <span>Recommended</span><h3>Soft lips</h3>
+    <p>Acai Mango Smoothie</p><p>My lips stay hydrated overnight.</p>
+    <span>Helpful 12</span><span>nickname: SampleReviewer</span>
+    <img src="https://images.example/review-row.jpg">
+  </div>
+  <div data-comp="Question Question BaseComponent ">
+    <h3>Can I use this every night?</h3><span>asked by Curious</span>
+  </div>
+  <div data-comp="Answer Answer BaseComponent ">
+    <p>Yes, apply a thin layer before bed.</p><span>Sephora team</span>
+  </div>
   <p>Beauty Insider members earn points.</p>
 </body></html>
 """
@@ -86,11 +152,32 @@ Lip Sleeping Mask
 Color
 Acai Mango Smoothie
 $25.00
+or 4 payments of $6.25
+Auto-Replenish Save 0%
+Same-Day Delivery to 10001
+About the Product
+A leave-on lip mask.
+Clinical Results
+100% agreed lips felt smoother.
+Ingredients
+Vitamin C, Murumuru Seed Butter
+Suggested Usage
+Apply before bed.
+Questions & Answers (1,390)
+Can I use this every night?
+Yes, apply a thin layer before bed.
 Ratings & Reviews (22.1K)
 Summary
 5 4 3 2 1
 4.3
 22,069 Reviews*
+83% of reviewers recommend
+1–1 of 22k
+Verified Purchaser
+Incentivized
+Recommended
+Soft lips
+My lips stay hydrated overnight.
 Add to Bag
 """
 
@@ -450,6 +537,59 @@ def test_sephora_content_record_is_deterministic_and_has_no_fabricated_refs() ->
     assert "content_input_visible_text" not in serialized
     assert "cloakbrowser_rendered_dom.html" not in serialized
     assert "cloakbrowser_visible_text.txt" not in serialized
+    product = next(
+        row
+        for row in first["rows"]
+        if row["row_kind"] == "retail_pdp_product"
+    )
+    assert "Ingredients" in product["source_visible_fields"]["rendered_visible_text"]
+    product_state = next(
+        row
+        for row in first["rows"]
+        if row["source_visible_fields"].get("structured_json_kind")
+        == "sephora_link_store_product"
+    )
+    assert '"regularChildSkus"' in product_state["source_visible_fields"]["raw_json_text"]
+    variant = next(
+        row
+        for row in first["rows"]
+        if row["row_kind"] == "retail_variant_offer"
+    )
+    assert variant["source_visible_fields"]["variant_count"] == 2
+    assert len(variant["source_visible_fields"]["all_variant_states"]) == 2
+    review = next(
+        row
+        for row in first["rows"]
+        if row["row_kind"] == "retail_review_substrate"
+    )
+    assert review["source_visible_fields"]["recommended_percent"] == "83%"
+    assert review["source_visible_fields"]["displayed_review_body_count"] == 1
+    assert review["source_visible_fields"]["displayed_review_rows"][0][
+        "verified_purchaser"
+    ] is True
+    assert {
+        entry["category"] for entry in first["loss_ledger"]["collapsed"]
+    } >= {
+        "RETAIL_HERO_IMAGERY_COLLAPSED",
+        "RETAIL_CART_NOTIFY_STATE_COLLAPSED",
+        "RETAIL_SCRIPT_STYLE_TELEMETRY_COLLAPSED",
+        "RETAIL_FLEXIBLE_PAYMENT_CHROME_COLLAPSED",
+    }
+
+
+def test_sephora_content_admission_requires_bound_product_state() -> None:
+    without_link_store = re.sub(
+        r'<script id="linkStore"[\s\S]*?</script>',
+        "",
+        _DOM,
+    )
+
+    with pytest.raises(ValueError, match=r"linkStore\.page\.product"):
+        build_sephora_pdp_aggregate_content_record(
+            rendered_dom=without_link_store.encode(),
+            visible_text=_VISIBLE_TEXT.encode(),
+            source_url=_URL,
+        )
 
 
 def test_projection_failure_preserves_all_inputs_and_returns_exit_4(
