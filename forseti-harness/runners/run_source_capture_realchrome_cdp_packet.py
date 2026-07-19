@@ -505,7 +505,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         data_root_requested = args.data_root is not None or (
             args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         )
-        if (args.output is not None) and (args.data_root is not None):
+        if args.output is not None and args.data_root is not None:
             parser.exit(status=2, message="exactly one of --output or --data-root is required\n")
         if args.output is None and not data_root_requested:
             parser.exit(status=2, message="exactly one of --output or --data-root/FORSETI_DATA_ROOT is required\n")
