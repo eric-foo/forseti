@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+from datetime import date
 from typing import Any
 
 import pytest
@@ -8,7 +10,9 @@ from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.adapters.nordstrom_country_preference import (
     NordstromCountryPreferencePlugin,
+    confirm_nordstrom_review_posture,
     confirm_nordstrom_us_storefront,
+    observe_nordstrom_review_window,
 )
 
 
@@ -24,6 +28,55 @@ window.__STATE__ = {
 };
 </script>
 </body></html>
+"""
+
+
+def _review_dom(
+    *,
+    sort: str = "Most Recent",
+    review_count: int = 6,
+    dense: bool = False,
+) -> str:
+    low_density_dates = [
+        "June 13, 2026",
+        "Apr 27, 2026",
+        "Apr 20, 2026",
+        "Mar 31, 2026",
+        "Mar 23, 2026",
+        "Mar 21, 2026",
+    ]
+    dense_dates = [
+        "July 18, 2026",
+        "July 17, 2026",
+        "July 16, 2026",
+        "July 15, 2026",
+        "July 14, 2026",
+        "July 13, 2026",
+        "July 12, 2026",
+        "July 11, 2026",
+        "June 1, 2026",
+        "May 31, 2026",
+        "May 30, 2026",
+        "May 29, 2026",
+    ]
+    dates = dense_dates if dense else low_density_dates
+    reviews = "".join(
+        f'<div id="review-{index}">{dates[min(index - 1, len(dates) - 1)]}'
+        f" review {index}</div>"
+        for index in range(1, review_count + 1)
+    )
+    return f"""
+<div id="product-page-reviews">
+  <div>Most helpful positive review
+    <span id="review-stars-positive" aria-label="Rated 5 out of 5 stars."></span>
+  </div>
+  <div>Most helpful critical review
+    <span id="review-stars-critical" aria-label="Rated 1 out of 5 stars."></span>
+  </div>
+  <div id="sort-by-filter-8260802-anchor">Sort by <strong>{sort}</strong></div>
+  {reviews}
+  <a href="?page=2">Load 6 more reviews</a>
+</div>
 """
 
 
@@ -44,14 +97,34 @@ class _FakeLocator:
         self.page.actions.append(("click", self.selector, timeout))
         if self.selector not in self.page.clickable:
             raise RuntimeError("not clickable")
+        if self.selector == "role=option:Most Recent":
+            if self.page.option_click_failures > 0:
+                self.page.option_click_failures -= 1
+                raise RuntimeError("element position is still changing")
+            self.page.review_sort = "Most Recent"
+        if self.selector == (
+            "#product-page-reviews a:has-text('Load 6 more reviews')"
+        ):
+            self.page.review_count += 6
 
     def select_option(self, *, timeout: float, **option: str) -> None:
         self.page.actions.append(("select_option", self.selector, option, timeout))
         if self.selector not in self.page.selectable:
             raise RuntimeError("not selectable")
 
+    def scroll_into_view_if_needed(self, *, timeout: float) -> None:
+        self.page.actions.append(("scroll_into_view", self.selector, timeout))
+
     def inner_text(self, *, timeout: float) -> str:
+        if self.selector == "#sort-by-filter-8260802-anchor":
+            return f"Sort by {self.page.review_sort}"
         return self.page.body_text
+
+    def count(self) -> int:
+        return int(
+            self.selector in self.page.clickable
+            or self.selector in self.page.selectable
+        )
 
 
 class _FakePage:
@@ -63,6 +136,10 @@ class _FakePage:
         body_text: str = "United States",
         goto_error: Exception | None = None,
         target_control_url: str | None = None,
+        review_sort: str = "Most Helpful",
+        review_count: int = 6,
+        dense_reviews: bool = False,
+        option_click_failures: int = 0,
     ) -> None:
         self.clickable = clickable or set()
         self.selectable = selectable or set()
@@ -70,6 +147,10 @@ class _FakePage:
         self.goto_error = goto_error
         self.target_control_url = target_control_url
         self.actions: list[tuple[Any, ...]] = []
+        self.review_sort = review_sort
+        self.review_count = review_count
+        self.dense_reviews = dense_reviews
+        self.option_click_failures = option_click_failures
 
     def goto(self, url: str, *, wait_until: str, timeout: float) -> None:
         self.actions.append(("goto", url, wait_until, timeout))
@@ -86,6 +167,19 @@ class _FakePage:
 
     def locator(self, selector: str) -> _FakeLocator:
         return _FakeLocator(self, selector)
+
+    def get_by_role(
+        self, role: str, *, name: str, exact: bool
+    ) -> _FakeLocator:
+        assert (role, name, exact) == ("option", "Most Recent", True)
+        return _FakeLocator(self, "role=option:Most Recent")
+
+    def content(self) -> str:
+        return _review_dom(
+            sort=self.review_sort,
+            review_count=self.review_count,
+            dense=self.dense_reviews,
+        )
 
     def wait_for_timeout(self, timeout: float) -> None:
         self.actions.append(("wait", timeout))
@@ -189,6 +283,114 @@ def test_before_falls_back_to_same_control_on_commissioned_target() -> None:
         "commissioned target was used" in warning
         for warning in outcome.warning_notes
     )
+
+
+def test_before_snapshot_selects_most_recent_without_loading_more() -> None:
+    page = _FakePage(
+        clickable={
+            "#sort-by-filter-8260802-anchor",
+            "role=option:Most Recent",
+        },
+    )
+    plugin = NordstromCountryPreferencePlugin(
+        target_url="https://www.nordstrom.com/s/the-lip-balm/8260802",
+        review_posture="recent_window_30d",
+        review_window_reference_date=date(2026, 7, 19),
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=20_000)
+
+    assert outcome.steps_completed is True
+    assert page.review_sort == "Most Recent"
+    assert confirm_nordstrom_review_posture(
+        page.content(), reference_date=date(2026, 7, 19)
+    ).confirmed is True
+    assert not any("Load 6 more reviews" in str(action) for action in page.actions)
+    assert observe_nordstrom_review_window(
+        page.content(), reference_date=date(2026, 7, 19)
+    )["status"] == "low_density_context"
+
+
+def test_before_snapshot_retries_one_moving_most_recent_option() -> None:
+    page = _FakePage(
+        clickable={
+            "#sort-by-filter-8260802-anchor",
+            "role=option:Most Recent",
+        },
+        option_click_failures=1,
+    )
+    plugin = NordstromCountryPreferencePlugin(
+        target_url="https://www.nordstrom.com/s/the-lip-balm/8260802",
+        review_posture="recent_window_30d",
+        review_window_reference_date=date(2026, 7, 19),
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=20_000)
+
+    assert outcome.steps_completed is True
+    assert page.review_sort == "Most Recent"
+    assert any("bounded stability retry" in note for note in outcome.warning_notes)
+    assert sum(
+        action[:2] == ("click", "role=option:Most Recent")
+        for action in page.actions
+    ) == 2
+
+
+def test_review_posture_confirmation_rejects_stale_sort_or_seventh_review() -> None:
+    assert confirm_nordstrom_review_posture(
+        _review_dom(sort="Most Helpful"),
+        reference_date=date(2026, 7, 19),
+    ).confirmed is False
+    assert confirm_nordstrom_review_posture(
+        _review_dom(review_count=7),
+        reference_date=date(2026, 7, 19),
+    ).confirmed is False
+
+
+def test_before_snapshot_loads_one_six_row_batch_to_close_dense_window() -> None:
+    continuation_selector = (
+        "#product-page-reviews a:has-text('Load 6 more reviews')"
+    )
+    page = _FakePage(
+        clickable={
+            "#sort-by-filter-8260802-anchor",
+            "role=option:Most Recent",
+            continuation_selector,
+        },
+        dense_reviews=True,
+    )
+    plugin = NordstromCountryPreferencePlugin(
+        target_url="https://www.nordstrom.com/s/the-lip-balm/8260802",
+        review_posture="recent_window_30d",
+        review_window_reference_date=date(2026, 7, 19),
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=20_000)
+    observation = observe_nordstrom_review_window(
+        page.content(), reference_date=date(2026, 7, 19)
+    )
+
+    assert outcome.steps_completed is True
+    assert page.review_count == 12
+    assert observation["status"] == "window_complete"
+    assert observation["continuation_activations"] == 1
+
+
+def test_review_window_marks_thirty_in_window_rows_truncated() -> None:
+    dom = _review_dom(review_count=30, dense=True)
+    dom = re.sub(
+        r"(?:June|May)\s+\d{1,2},\s+2026",
+        "July 1, 2026",
+        dom,
+    )
+
+    observation = observe_nordstrom_review_window(
+        dom, reference_date=date(2026, 7, 19)
+    )
+
+    assert observation["status"] == "window_truncated"
+    assert observation["captured_review_count"] == 30
+    assert observation["continuation_activations"] == 4
 
 
 def test_plugin_rejects_non_us_and_non_positive_timeout() -> None:

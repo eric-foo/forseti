@@ -94,7 +94,7 @@ Minimum input for Retail/PDP projection:
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
 | Sephora content record | `retail_pdp_sephora_aggregate_content_v2` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. It preserves the complete rendered `linkStore.page.product` subtree plus the currently rendered review and Q&A components; v1 remains readable as a legacy input. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
 | Luckyscent content record | `retail_pdp_luckyscent_aggregate_content_v1` carries only target-bound Bread and Roses parser output: two small structured-JSON rows, all three variants in one offer row, and all eight rendered Judge.me reviews in one review-substrate row. Consumers bind real packet identity and JSON pointers; the confirmed default US/USD storefront does not claim US delivery, and the separate origin-derived `buyerCountry=SG` remains non-pin context. |
-| Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
+| Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, the separate source-labelled most-helpful positive/critical review pair, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
 
 If a Retail/PDP packet was commissioned because Commission Signal Board or
 Scanning marked a product URL recent/current-state high-attention, that marker is
@@ -171,7 +171,7 @@ permission for ECR or Cleaning to author a value from prose.
 | Retailer | Capture substrate | Projection binding posture | Residual hard line |
 | --- | --- | --- | --- |
 | Amazon | Rendered DOM in a US storefront session when commissioned; US storefront pin has a single-probe GO via public delivery ZIP widget, with bot-wall and selector fragility still visible. | Target-anchored ASIN/price/availability/review fields are carried from DOM/visible text. The DOM price input is the target price source when present. Shipping, loyalty, and recommendation modules are carried as frame-sensitive modules. | If price comes only from a visible `$N` fallback, residualize it. Do not let store-card, shipping, or recommendation dollars become target price. Amazon access posture remains the strictest and does not become commercial-scale authority. |
-| Nordstrom | Anonymous rendered PDP after the retailer-owned country-preference flow confirms selected US/USD plus the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer row, the `Sold by Nordstrom` label, details/claims, displayed 4.6/118 review aggregate, star histogram, and currently rendered review microdata. Preserve the source-selected `Most Helpful` posture and each rendered card's visible helpful count; absence of a count stays null rather than becoming zero. Unrelated recommendation Product JSON-LD is rejected. | `Shipping to 518225` remains an independent display residual. It is not US delivery, inventory depth, or fulfillment proof; source-rounded histogram totals remain explicit. `Most Helpful` is retailer UI posture, not proof of the ranking algorithm, representativeness, or engagement quality. |
+| Nordstrom | Anonymous rendered PDP after the retailer-owned country-preference flow confirms selected US/USD plus the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer row, the `Sold by Nordstrom` label, details/claims, displayed 4.6/118 review aggregate, star histogram, and currently rendered review microdata. Ordinary captures preserve the source-selected sort posture and each rendered card's visible helpful count; absence of a count stays null rather than becoming zero. The explicit onboarding posture preserves Nordstrom's source-labelled most-helpful positive/critical pair, selects `Most Recent`, and retains every review in the last 30 days with a six-row low-density context floor and 30-row cap. Each continuation activation adds and records six rows. Unrelated recommendation Product JSON-LD is rejected. | `Shipping to 518225` remains an independent display residual. It is not US delivery, inventory depth, or fulfillment proof; source-rounded histogram totals remain explicit. `Most Helpful` and the highlighted pair are retailer UI postures, not proof of the ranking algorithm, representativeness, or engagement quality. A low-density floor is context, not a false claim that older reviews fall inside the 30-day window; a cap hit is explicitly truncated. |
 | Sephora | Rendered PDP with Bazaarvoice-backed reviews first-party-rendered after progressive/incremental scroll when review bodies are needed. | Product/variant fields are carried from the complete rendered `linkStore.page.product` subtree; target review substrate uses the "Ratings & Reviews (N)" widget where present. The v2 content parser carries currently rendered review and Q&A components, while recommendation-review counts remain examples/noise posture rather than target substrate. | A bare "`N Reviews`" count is unanchored fallback and must be residualized. A recommendation card count must not become target review count. Currently rendered component rows are a bounded window, not the full review or Q&A corpus and not candidate review-row physicalization. |
 | Ulta | Rendered PDP with embedded `application/ld+json` and `window.__APOLLO_STATE__`. | Preserve both LD JSON and Apollo verbatim. Merge source-visible offer/review fields only when substrates are coherent, residualize LD/Apollo mismatches, and residualize requested-SKU versus rendered-SKU mismatch. Carry `apollo_requested_sku` when present. | Requested-SKU versus rendered-SKU mismatch is a target-binding risk. Do not treat the URL/request parameter as target-bound when the rendered SKU differs. |
 
@@ -226,14 +226,26 @@ labels, and question/answer count conflation.
 
 ### Nordstrom review continuation
 
-The bound Nordstrom PDP initially rendered six review cards. The continuation
-control read `Load 6 more reviews`: one deliberate activation appends the next
-six-review batch. Capture receipts must count activations and the resulting
-rendered rows separately. Do not describe the initial six as a pagination
-action, and do not describe “every six reviews” as a click. Unless a deeper
-review capture is commissioned, preserve the initial rendered six, their
-source display order, the selected sort posture, visible helpful counts, and
-the still-available continuation control without activating it.
+The bound Nordstrom PDP initially renders six main-list review cards. The
+continuation control reads `Load 6 more reviews`: one deliberate activation
+appends one additional six-review batch. Capture receipts must count
+activations and resulting rendered rows separately. Do not describe the
+initial six as a pagination action, and do not describe “every six reviews” as
+a click.
+
+For the bounded onboarding posture, use
+`--nordstrom-review-posture recent_window_30d`. The retailer-owned action
+preserves the separately highlighted most-helpful positive and critical
+reviews, selects `Most Recent`, and retains every review dated within the last
+30 days. The floor is six main-list rows, so a low-density or empty 30-day
+window still carries the nearest six context reviews. The cap is 30 rows (four
+continuation activations); if all 30 remain inside the window, the receipt says
+`window_truncated` rather than continuing unbounded. The source-state receipt
+records cutoff, newest/oldest date, in-window and captured counts, continuation
+availability, and the exact activation count. A stale sort, missing highlighted
+card, non-consecutive/six-row batch, unsorted dates, missing required
+continuation, or failed action preserves supplied raw artifacts and exits
+nonzero.
 
 ## What ECR May Consume
 

@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import sys
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Sequence
 from urllib.parse import parse_qs, urlparse
@@ -41,7 +42,9 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 )
 from source_capture.adapters.luckyscent_us_market import LuckyscentUSMarketPlugin
 from source_capture.adapters.nordstrom_country_preference import (
+    NORDSTROM_REVIEW_POSTURES,
     NordstromCountryPreferencePlugin,
+    observe_nordstrom_review_window,
 )
 from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
 from source_capture.adapters.target_delivery_location import TargetDeliveryLocationPlugin
@@ -126,6 +129,7 @@ _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
 LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE = "luckyscent_market_pin_failed"
 _LUCKYSCENT_HOSTS = frozenset({"luckyscent.com", "www.luckyscent.com"})
 NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE = "nordstrom_country_pin_failed"
+NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE = "nordstrom_review_posture_failed"
 _NORDSTROM_HOSTS = frozenset({"nordstrom.com", "www.nordstrom.com"})
 AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
 AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE = "amazon_us_vpn_fallback_required"
@@ -180,6 +184,7 @@ def run_source_capture_cloakbrowser_packet(
     delivery_zip_setup_timeout_seconds: float = 30.0,
     nordstrom_country: str | None = None,
     nordstrom_country_setup_timeout_seconds: float = 45.0,
+    nordstrom_review_posture: str | None = None,
     luckyscent_market: str | None = None,
     sephora_market: str | None = None,
     ulta_market: str | None = None,
@@ -246,6 +251,28 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_capture is None:
                 content_capture = _nordstrom_content_capture_spec("content")
+    if nordstrom_review_posture is not None:
+        if (
+            retail_capture_profile is None
+            or retail_capture_profile.name != NORDSTROM_PDP_CONTENT_PROFILE
+        ):
+            raise ValueError(
+                "Nordstrom review posture requires nordstrom_pdp_aggregate"
+            )
+        if nordstrom_country != "US":
+            raise ValueError(
+                "Nordstrom review posture requires --nordstrom-country US"
+            )
+        if nordstrom_review_posture not in NORDSTROM_REVIEW_POSTURES:
+            raise ValueError(
+                "unsupported Nordstrom review posture "
+                f"{nordstrom_review_posture!r}"
+            )
+        if load_more_clicks != 0:
+            raise ValueError(
+                "Nordstrom recent_window_30d posture owns and records its bounded "
+                "six-row continuation actions; generic load-more clicks are forbidden"
+            )
 
     site_specific_preferences = [
         delivery_zip is not None,
@@ -272,6 +299,7 @@ def run_source_capture_cloakbrowser_packet(
             country_code=nordstrom_country,
             setup_timeout_seconds=nordstrom_country_setup_timeout_seconds,
             target_url=url,
+            review_posture=nordstrom_review_posture,
         )
     elif luckyscent_market is not None:
         pre_capture = LuckyscentUSMarketPlugin(country_code=luckyscent_market)
@@ -354,6 +382,30 @@ def run_source_capture_cloakbrowser_packet(
             f"{NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE}: "
             f"{nordstrom_pin_failure}; packet preserved but MUST NOT be admitted "
             "as Nordstrom US/USD storefront evidence"
+        )
+    nordstrom_review_observation = _nordstrom_review_posture_observation(
+        requested_posture=nordstrom_review_posture,
+        rendered_dom=capture_result.rendered_dom,
+        capture_timestamp=capture_result.metadata.get("capture_timestamp"),
+    )
+    nordstrom_review_posture_failure = _nordstrom_review_posture_failure(
+        observation=nordstrom_review_observation,
+        before_snapshot_steps_completed=capture_result.metadata.get(
+            "before_snapshot_steps_completed"
+        ),
+    )
+    capture_result.metadata["nordstrom_review_window"] = (
+        nordstrom_review_observation
+    )
+    capture_result.metadata["nordstrom_review_posture_confirmed"] = (
+        nordstrom_review_posture is not None
+        and nordstrom_review_posture_failure is None
+    )
+    if nordstrom_review_posture_failure is not None:
+        packet_limitations.append(
+            f"{NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE}: "
+            f"{nordstrom_review_posture_failure}; packet preserved but MUST NOT be "
+            "admitted as the Nordstrom onboarding review posture"
         )
     ulta_pin_failure = _ulta_market_pin_failure(
         ulta_market=ulta_market,
@@ -439,6 +491,20 @@ def run_source_capture_cloakbrowser_packet(
         packet_visible_mode_changes.append(
             NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE
         )
+    if nordstrom_review_posture_failure is not None:
+        packet_visible_mode_changes.append(
+            NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE
+        )
+    elif nordstrom_review_posture is not None:
+        assert nordstrom_review_observation is not None
+        packet_visible_mode_changes.append(
+            "Nordstrom review sort selected: Most Recent; "
+            f"{nordstrom_review_observation['captured_review_count']} main-list "
+            "rows retained across "
+            f"{nordstrom_review_observation['continuation_activations']} "
+            "Load 6 more reviews activations; 30-day status "
+            f"{nordstrom_review_observation['status']}"
+        )
     if ulta_pin_failure is not None:
         packet_visible_mode_changes.append(ULTA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if luckyscent_pin_failure is not None:
@@ -506,6 +572,7 @@ def run_source_capture_cloakbrowser_packet(
         capture_result.access_block_reason is not None
         or sephora_pin_failure is not None
         or nordstrom_pin_failure is not None
+        or nordstrom_review_posture_failure is not None
         or ulta_pin_failure is not None
         or luckyscent_pin_failure is not None
         or amazon_pin_failure is not None
@@ -704,6 +771,7 @@ def run_source_capture_cloakbrowser_packet(
                     else None
                 ),
                 raw_projector_inputs_preserved=raw_projector_inputs_preserved,
+                nordstrom_review_posture=nordstrom_review_posture,
             ),
             receipt_non_claims=_cloakbrowser_snapshot_non_claims(
                 proxy_profile=proxy_profile,
@@ -730,6 +798,12 @@ def run_source_capture_cloakbrowser_packet(
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{result.output_directory}; {nordstrom_pin_failure}",
+        )
+    if nordstrom_review_posture_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {nordstrom_review_posture_failure}",
         )
     if ulta_pin_failure is not None:
         return (
@@ -849,6 +923,53 @@ def _nordstrom_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
             )
         ),
     )
+
+
+def _nordstrom_review_posture_observation(
+    *,
+    requested_posture: str | None,
+    rendered_dom: str,
+    capture_timestamp: object,
+) -> dict[str, object] | None:
+    if requested_posture is None:
+        return None
+    if not isinstance(capture_timestamp, str):
+        return {
+            "admitted": False,
+            "status": "invalid",
+            "reason": "capture timestamp unavailable",
+        }
+    try:
+        reference_date = date.fromisoformat(capture_timestamp[:10])
+    except ValueError:
+        return {
+            "admitted": False,
+            "status": "invalid",
+            "reason": "capture timestamp malformed",
+        }
+    return observe_nordstrom_review_window(
+        rendered_dom,
+        reference_date=reference_date,
+    )
+
+
+def _nordstrom_review_posture_failure(
+    *,
+    observation: dict[str, object] | None,
+    before_snapshot_steps_completed: object,
+) -> str | None:
+    if observation is None:
+        return None
+    reasons: list[str] = []
+    if before_snapshot_steps_completed is not True:
+        reasons.append("site-owned Most Recent selection did not complete")
+    if observation.get("admitted") is not True:
+        reasons.append(
+            "bounded 30-day review window was not admitted "
+            f"(status={observation.get('status')}, "
+            f"review_ids={observation.get('review_ids')})"
+        )
+    return "; ".join(reasons) if reasons else None
 
 
 def _validate_ulta_us_market_url(url: str) -> str:
@@ -1073,6 +1194,7 @@ def _receipt_summary(
     access_block_reason: str | None,
     capture_artifact_mode: str | None = None,
     raw_projector_inputs_preserved: bool = True,
+    nordstrom_review_posture: str | None = None,
 ) -> str:
     if access_block_reason is not None:
         summary = (
@@ -1092,6 +1214,12 @@ def _receipt_summary(
         )
     if capture_artifact_mode is not None:
         summary += f" Artifact mode: {capture_artifact_mode}."
+    if nordstrom_review_posture == "recent_window_30d":
+        summary += (
+            " Nordstrom onboarding review posture: most-helpful positive/critical "
+            "pair plus a Most Recent 30-day window with a six-row floor and 30-row "
+            "cap; each continuation activation adds six rows and is recorded."
+        )
     return summary
 
 
@@ -1333,6 +1461,17 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--nordstrom-review-posture",
+        choices=list(NORDSTROM_REVIEW_POSTURES),
+        default=None,
+        help=(
+            "Nordstrom onboarding-only posture: preserve the most-helpful "
+            "positive/critical pair, select Most Recent, retain every review in the "
+            "last 30 days with a six-row floor and 30-row cap, and record each "
+            "Load 6 more reviews activation."
+        ),
+    )
+    parser.add_argument(
         "--luckyscent-market",
         choices=["US"],
         default=None,
@@ -1464,6 +1603,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 "--capture-artifact-mode currently requires an enabled aggregate "
                 "content profile"
+            )
+        if args.nordstrom_review_posture is not None and (
+            retail_capture_profile is None
+            or retail_capture_profile.name != NORDSTROM_PDP_CONTENT_PROFILE
+        ):
+            raise ValueError(
+                "--nordstrom-review-posture requires nordstrom_pdp_aggregate"
             )
         content_capture = None
         if (
@@ -1677,6 +1823,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             nordstrom_country_setup_timeout_seconds=(
                 args.nordstrom_country_setup_timeout_seconds
             ),
+            nordstrom_review_posture=args.nordstrom_review_posture,
             luckyscent_market=args.luckyscent_market,
             sephora_market=args.sephora_market,
             ulta_market=args.ulta_market,

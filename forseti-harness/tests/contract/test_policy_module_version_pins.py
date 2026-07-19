@@ -147,11 +147,15 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
         ),
-        # Output-shaping: Nordstrom v2 preserves review sort/continuation posture;
-        # Sephora v2 adds the full product subtree, rendered UI substrate, and
-        # explicit loss/residual fields. The shared projection token moves to v1
-        # so committed raw packets can re-surface; v1 content stays readable.
-        "032a817281c5faa8fa8efec1b3d938152f9220766b4406dbfff367f0068ff6e7",
+        # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
+        # substrate, and explicit loss/residual fields; the shared projection
+        # token moves to v1 so committed raw packets can re-surface. Nordstrom
+        # parser v3 additionally preserves the source-labelled most-helpful
+        # positive/critical pair. Its capture lifecycle can select Most Recent
+        # and retain a bounded 30-day window; window status stays in browser
+        # metadata while raw/content projection semantics remain equivalent.
+        # Known v1/v2 Nordstrom content-only packets remain readable.
+        "0eb09d62a4941dd854fd7dfaed445441d543f66e813b4f1cffc3312b204aa8fc",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
