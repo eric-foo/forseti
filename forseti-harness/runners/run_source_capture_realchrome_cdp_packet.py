@@ -26,7 +26,7 @@ import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Literal, Protocol, Sequence
 from urllib.parse import urlparse
 
 if __package__ in {None, ""}:
@@ -63,6 +63,7 @@ DEFAULT_VIEWPORT_WIDTH = 1280
 DEFAULT_VIEWPORT_HEIGHT = 800
 _PROGRESSIVE_SCROLL_PAUSE_MS = 900
 _MAX_PROGRESSIVE_SCROLL_STEPS = 40
+BrowserProvisioning = Literal["operator_provided", "unattended_xvfb"]
 
 REALCHROME_CDP_NON_CLAIMS = [
     "not source-content sufficiency proof",
@@ -245,10 +246,21 @@ def run_source_capture_realchrome_cdp_packet(
     visible_mode_changes: Sequence[str] = (),
     source_detail_sufficiency_requirements: SourceDetailSufficiencyRequirements | None = None,
     session_id: str | None = None,
+    browser_provisioning: BrowserProvisioning = "operator_provided",
+    persistent_profile_loaded: bool = False,
     engine: RealChromeCDPEngine | None = None,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
+    if browser_provisioning not in {"operator_provided", "unattended_xvfb"}:
+        raise ValueError("browser_provisioning must be operator_provided or unattended_xvfb")
+
+    unattended = browser_provisioning == "unattended_xvfb"
+    browser_description = (
+        "an unattended headful Google Chrome running under Xvfb"
+        if unattended
+        else "an operator-provided real Chrome"
+    )
 
     capture_engine = engine or _LiveRealChromeCDPEngine()
     result = capture_engine.capture(
@@ -276,12 +288,13 @@ def run_source_capture_realchrome_cdp_packet(
         "capture_timestamp": utc_now_z(),
         "method_category": "real_browser_cdp",
         "browser_engine": "chrome_real_via_cdp",
+        "browser_provisioning": browser_provisioning,
         "cdp_endpoint": cdp_endpoint,
         "http_response_status": result.http_status,
         "warm_hop_url": result.warm_hop_url,
         "warm_hop_blocked": result.warm_hop_blocked,
         "proxy_used": False,
-        "persistent_profile_loaded": False,
+        "persistent_profile_loaded": persistent_profile_loaded,
         "storage_state_loaded": False,
         "credential_injected": False,
         "logged_in": False,
@@ -306,10 +319,11 @@ def run_source_capture_realchrome_cdp_packet(
 
     packet_limitations = list(limitations) + list(result.warning_notes)
     packet_limitations.append(
-        "real_browser_cdp: captured by attaching to an operator-provided real Chrome over CDP "
+        f"real_browser_cdp: captured by attaching to {browser_description} over CDP "
         f"({cdp_endpoint}); genuine-browser fingerprint, not a stealth/headless automation browser. "
-        "Requires an externally-running Chrome and is NOT reproducible by the headless armory runners. "
-        "Only public page content preserved (no cookies, storage state, or account data)."
+        "The browser lifecycle is external to this packet writer and the route is NOT reproducible "
+        "by the headless armory runners. Only public page content was preserved (no cookies, storage "
+        "state, or account data)."
     )
     if blocked:
         packet_limitations.append(
@@ -329,6 +343,8 @@ def run_source_capture_realchrome_cdp_packet(
 
     packet_mode_changes = list(visible_mode_changes)
     packet_mode_changes.append("real_browser_cdp_snapshot")
+    if unattended:
+        packet_mode_changes.append("unattended_xvfb_realchrome_cdp")
     sufficiency_mode = source_detail_sufficiency_mode_change(sufficiency)
     if sufficiency_mode is not None:
         packet_mode_changes.append(sufficiency_mode)
@@ -346,10 +362,10 @@ def run_source_capture_realchrome_cdp_packet(
 
     access_posture_value = (
         f"real_browser_cdp access_failed with access block {access_block_reason}; block artifacts "
-        "preserved via an operator-provided real Chrome over CDP; content sufficiency is not asserted"
+        f"preserved via {browser_description} over CDP; content sufficiency is not asserted"
         if blocked
-        else "real_browser_cdp preserved rendered public page artifacts via an operator-provided real "
-        "Chrome over CDP; genuine-browser fingerprint; content is retailer/source-owned public page state"
+        else f"real_browser_cdp preserved rendered public page artifacts via {browser_description} "
+        "over CDP; genuine-browser fingerprint; content is retailer/source-owned public page state"
     )
 
     timing = PacketTiming(
@@ -385,13 +401,17 @@ def run_source_capture_realchrome_cdp_packet(
             decision_question=decision_question,
             capture_context=capture_context
             or (
-                "Attached to an operator-provided real Chrome over CDP "
+                f"Attached to {browser_description} over CDP "
                 f"({cdp_endpoint}); logged out; no proxy, cookie injection, credential, or login. "
-                "Requires an externally-running real Chrome; not headless-armory-reproducible."
+                "The packet writer did not launch the browser; not headless-armory-reproducible."
             ),
             actor_audience_context=unknown_with_reason("actor/audience context not supplied"),
             capture_mode=CaptureModeCategory.MULTIMODAL,
-            operator_category="real_browser_cdp_operator",
+            operator_category=(
+                "unattended_real_browser_cdp"
+                if unattended
+                else "real_browser_cdp_operator"
+            ),
             session_identity=session_id,
             visible_mode_changes=packet_mode_changes,
             access_posture=known_fact(access_posture_value),

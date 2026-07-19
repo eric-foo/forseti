@@ -1,88 +1,87 @@
-# Unattended Akamai Capture Route — Headful Chrome under Xvfb — Handoff v0
+# Unattended Akamai Capture Route — Headful Chrome under Xvfb — Runbook v1
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Future-work handoff for running the rung-7 real-Chrome capture route unattended past Akamai bot walls
+artifact_role: Implemented route record and operator runbook for unattended rung-7 real-Chrome capture
 scope: >
-  How to make the rung-7 real-Chrome CDP capture route (proven on Kohl's x Tower
-  28) run UNATTENDED — no human, no monitor — using a headful real Chrome under a
-  virtual display (Xvfb), why every headless flavor is ruled out, the paid
-  Web-Unlocker fallback, and the empirical evidence behind each claim.
+  The implemented unattended Kohl's x Tower 28 capture route: a temporary
+  headful real Chrome under Xvfb, the one-shot runner that captures the bound
+  PDP and policy, the observed proof, failure behavior, and the paid fallback.
 use_when:
-  - Making the rung-7 route (or any Akamai-sensor-walled source) run unattended on a server.
-  - Deciding between self-hosted Xvfb-headful and a paid Web Unlocker.
-  - Judging whether a proposed "headless" idea for an Akamai wall is worth trying.
+  - Running or maintaining the unattended Kohl's route.
+  - Reusing the Xvfb real-Chrome container for another sensor-walled source.
+  - Deciding whether the paid Web Unlocker fallback is needed.
 authority_boundary: retrieval_only
 open_next:
+  - forseti-harness/runners/run_kohls_unattended_capture.py
+  - forseti-harness/containers/realchrome_xvfb/Dockerfile
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
   - docs/research/forseti_beauty_retailer_surface_probe_results_v0.md
 stale_if:
-  - The rung-7 runner (`run_source_capture_realchrome_cdp_packet.py`) CDP interface changes.
-  - Akamai begins fingerprinting headful real Chrome under CDP (retest before trusting).
-  - An unattended route is built and verified (this handoff becomes historical).
+  - Either unattended runner or the Xvfb container changes.
+  - The bound Kohl's PDP or policy wording changes.
+  - Akamai blocks the unattended route.
 ```
 
 ## TL;DR (the decision)
 
-The Kohl's capture works today only because the rung-7 runner attaches to an
-**operator-provided real Chrome** running on a desktop — i.e. it needs a human's
-machine with Chrome up. To make it **unattended** (a server job, no human), the
-two viable options are:
+The self-hosted unattended route is implemented and passed live on 2026-07-20.
+Run:
 
-1. **Self-hosted, free: headful real Chrome under Xvfb** (a virtual framebuffer
-   display) on a small Linux box/container. Chrome runs in *full headful mode*
-   with a *real* GPU/display/rendering path — just no monitor and no human. The
-   existing rung-7 runner drives it **unchanged** via `--cdp-endpoint`.
-   **Recommended.** First task: *verify it clears Akamai before building around
-   it* (see "First task").
-2. **Turnkey, paid: a commercial Web Unlocker** (Bright Data / Zyte / Oxylabs /
-   ScraperAPI). They run real browsers + residential IPs and solve the Akamai
-   sensor, returning rendered HTML. Fully unattended, but costs money and is an
-   external dependency (the "owner-approved paid provider" route already named in
-   the storefront-pin registry).
+```powershell
+python forseti-harness/runners/run_kohls_unattended_capture.py `
+  --data-root "$env:FORSETI_DATA_ROOT"
+```
 
-**Headless is genuinely out** (proven below), so do not spend time on it.
+The command builds its Chrome image only when missing, starts one temporary
+headful Chrome under Xvfb, captures the bound product and policy pages through
+the existing packet writer, and stops the container. A private Docker volume
+keeps the browser profile between runs. The browser-control port is published
+only to host loopback.
 
-## Why headless is out and headful works (the mechanism)
+This is an unattended **one-shot**, not a forever-running service. No recurrence
+is registered because the owner has not selected a capture frequency, and every
+run creates two durable packets. An external scheduler may call this exact
+command after that cadence is chosen.
+
+The paid Web Unlocker remains the fallback if this route begins failing.
+
+## What the proof does and does not establish
 
 Akamai's Bot Manager serves a JavaScript **sensor** that must execute in the page
 to earn a valid `_abck` session cookie. It fingerprints the browser on dozens of
 signals. The User-Agent string is the *most visible* tell but **not** the
 detector — changing the UA does not help.
 
-Measured on the **working** real Chrome (the one that reaches Kohl's), via CDP:
+Earlier desktop measurements suggested a real GPU might be load-bearing. The
+unattended proof disproved that stronger claim. The passing Docker Desktop run
+had no usable WebGL context at all:
 
-| Signal | Working headful real Chrome | Headless Chrome (any flavor) |
+| Signal | Passing unattended Xvfb Chrome | Earlier denied headless Chrome |
 | --- | --- | --- |
 | `navigator.webdriver` | `False` | `False` if launched plainly, but... |
-| GPU (WebGL renderer) | real hardware — `ANGLE (AMD Radeon ... Direct3D11)` | **software** — SwiftShader/`Google Inc.` |
-| `navigator.plugins.length` | `5` | `0` |
-| real display | yes | **no** |
-| UA `HeadlessChrome` token | absent | present (even `--headless=new`) |
+| WebGL | unavailable / blocklisted | software SwiftShader in the measured arm |
+| `navigator.plugins.length` | `5` | `0` in the measured arm |
+| display surface | Xvfb `1280x800x24` | no display |
+| UA `HeadlessChrome` token | absent | present in the measured `--headless=new` arm |
 
-The load-bearing tells are the **software GPU, empty plugins, absent display, and
-headless rendering quirks** — all of which persist regardless of UA. Stealth
-frameworks (puppeteer-stealth, undetected-chromedriver, Patchright, CloakBrowser)
-exist to patch every one of these; the CloakBrowser attempt (a serious anti-detect
-browser) was still Akamai-denied. Spoofing signals is an arms race Akamai is
-currently winning on this wall.
+The current evidence supports a narrower statement: the passing route is full
+Google Chrome, headful under a display surface, launched normally and then
+attached over CDP. It does **not** isolate which one of those signals Akamai
+requires, and it does not support “real GPU required.”
 
-Two things the winning route gets for free, which a naive automation launch does
-NOT:
+Two observed differences from the denied automation routes remain useful:
 
 - **`navigator.webdriver = False`** — because the runner **attaches** (Playwright
   `connect_over_cdp`) to a Chrome launched *normally*, rather than launching it
   through automation (`.launch()` adds `--enable-automation`, which sets
   `webdriver = true` and is an instant tell).
-- **A real GPU/display/rendering path** — headful Chrome (even under Xvfb) uses
-  the genuine graphics stack, so there is nothing to spoof.
+- **A real display surface and normal browser plugins** — Xvfb supplies the
+  display even though the proof host exposed no usable WebGL renderer.
 
-**Answer to "can we do headless without the `HeadlessChrome/150` UA token?":** you
-can override the UA (`--user-agent` or CDP `setUserAgentOverride`), but it changes
-nothing — Akamai reads the software-GPU / empty-plugins / no-display signals via
-the sensor, not the UA. Headful-under-Xvfb wins precisely because it does not
-spoof anything; it *is* a real browser.
+Changing only the User-Agent remains unsupported: it does not turn a headless
+browser into the observed passing environment.
 
 ## Proven starting evidence (fresh-read the sources before trusting)
 
@@ -92,87 +91,56 @@ spoof anything; it *is* a real browser.
 | CloakBrowser (headless & headed, stealth+humanize), on SG residential **and** US datacenter VPN | Akamai `Access Denied` | probe-results; block packets `01KXXBP2…`, `01KXXBVY…` |
 | Real Chrome `--headless=new` (cold) | Akamai `Access Denied` (UA sent `HeadlessChrome/150`) | scouting (2026-07-20) |
 | **Headful real Chrome via CDP** (rung 7), even over plain SG | **reaches content** — Tower 28 LipSoftie, schema.org Offer `price=16`/`priceCurrency=USD`, US-shipping policy | runner-backed GO packets `01KXXK9PJTA2KBRS2CM1MZDV1H` (PDP), `01KXXKA9RJBP6SVT455DTR0K08` (policy) |
+| **Unattended headful Chrome under Xvfb** | **reaches both bound surfaces** with no usable WebGL context; HTTP 200 and no access block | packets `01KXXV920Z8PQVHP6DN16335DF` (PDP) and `01KXXVA8B5EHY86N4EJZ7Y6360` (policy), captured 2026-07-20 |
 
 Full detail: `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
 (Kohl's sections), and the Kohl's rows of `retail_storefront_pin_registry_v0.md`
 and `capture_recon_index_v0.md`. The runner is
 `forseti-harness/runners/run_source_capture_realchrome_cdp_packet.py`.
 
-## First task for the receiving lane (do NOT skip)
+## Completed first proof
 
-The Xvfb route is recommended **by mechanism** — it preserves exactly the factors
-that made the desktop route work (real GPU/display, `webdriver=false`, headful) —
-but it has **not been run end-to-end here** (this authoring box is Windows; no
-Xvfb). So the first move is a **probe, not a build**:
+The required two-page gate passed on Windows Docker Desktop:
 
-1. Stand up the container below.
-2. From the runner host, point the rung-7 runner at it and capture the bound Kohl's
-   PDP + policy. If both come back non-blocked with the schema.org Offer and the
-   US-shipping policy (same admission as the desktop packets), the route is proven
-   — then build the schedule/automation around it.
-3. If Akamai denies the Xvfb Chrome, capture the block packet and stop; fall back
-   to the paid Web Unlocker. (Likely-but-not-certain failure modes to check:
-   Xvfb Chrome still exposing a software GPU — force/confirm hardware or a
-   convincing GL renderer; a datacenter server IP being reputation-blocked where
-   the desktop's residential IP was not — try a residential/mobile egress.)
+- Google Chrome `150.0.7871.128`, full/headful under Xvfb;
+- normal Linux Chrome UA, `navigator.webdriver=false`, five plugins;
+- WebGL unavailable and blocklisted;
+- Chrome's inner sandbox disabled because Docker Desktop denied its namespace
+  setup; Docker remained the outer isolation boundary;
+- PDP packet `01KXXV920Z8PQVHP6DN16335DF`: HTTP 200, no access block,
+  `LipSoftie`, and `priceCurrency=USD`;
+- policy packet `01KXXVA8B5EHY86N4EJZ7Y6360`: HTTP 200, no access block, and
+  Kohl's US/APO/FPO-only shipping statement.
 
-## Recipe: headful Chrome under Xvfb (container)
+Both packets record `browser_provisioning=unattended_xvfb`,
+`persistent_profile_loaded=true`, and
+`operator_category=unattended_real_browser_cdp`.
 
-`Dockerfile`:
+## Implemented container and one-shot
 
-```dockerfile
-FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      wget gnupg ca-certificates xvfb fonts-liberation dumb-init \
-  && wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-  && apt-get install -y /tmp/chrome.deb \
-  && rm -rf /var/lib/apt/lists/* /tmp/chrome.deb
-# NOTE: real google-chrome-stable, NOT chromium, NOT a stealth build.
-ENTRYPOINT ["dumb-init","--"]
-```
+The owning files are:
 
-Launch (inside the container; nothing human, nothing monitored):
+- `forseti-harness/containers/realchrome_xvfb/Dockerfile`;
+- `forseti-harness/containers/realchrome_xvfb/start-chrome.sh`;
+- `forseti-harness/containers/realchrome_xvfb/run-xvfb-chrome.sh`;
+- `forseti-harness/runners/run_kohls_unattended_capture.py`.
 
-```bash
-xvfb-run -a --server-args="-screen 0 1280x800x24" \
-  google-chrome \
-    --remote-debugging-port=9222 \
-    --user-data-dir=/data/chrome-profile \
-    --no-first-run --no-default-browser-check \
-    --window-size=1280,800 \
-    about:blank
-```
+The implementation includes details the original recipe omitted:
 
-Load-bearing rules (violating any one re-introduces a headless/automation tell):
+- installs `xauth`, which `xvfb-run` requires;
+- runs Chrome as a non-root user;
+- uses a private relay because Chrome 150 binds its debugging socket to
+  container loopback even when asked to listen on all interfaces;
+- asks Docker for a random host port bound to `127.0.0.1`, preventing a public
+  browser-control port;
+- persists the Chrome profile in a named Docker volume;
+- captures both surfaces independently so one failure does not erase evidence
+  from the other;
+- stops and removes only the container created by that invocation.
 
-- **Do NOT pass `--headless`.** The whole point is headful.
-- **Do NOT launch Chrome via Playwright/Selenium `.launch()`** — that adds
-  `--enable-automation` (`navigator.webdriver = true`). Launch Chrome the plain
-  way above, then have the runner **attach** over CDP.
-- **Keep the CDP port private.** `--remote-debugging-port` is full control of that
-  browser and its cookies. Bind it to localhost / the private network only; never
-  expose it publicly. Only add `--remote-debugging-address=0.0.0.0` if the runner
-  is in a separate container, and firewall it.
-- **Persist `/data/chrome-profile`** on a volume so the Akamai session cookies
-  (`_abck`, `bm_sz`, `AKA_*`) survive restarts. A cold profile also worked in
-  testing, so this is an optimization (fewer challenges), not a requirement.
-- Verify inside the container that the WebGL renderer is **not** SwiftShader
-  (`google-chrome` under Xvfb usually uses a real software-GL that differs from
-  headless SwiftShader; confirm during the First-task probe, and if it looks like
-  a headless GPU, add a GL/ANGLE flag or a virtual GPU).
-
-Wire the existing runner to it (no code change):
-
-```bash
-python forseti-harness/runners/run_source_capture_realchrome_cdp_packet.py \
-  --cdp-endpoint http://<xvfb-host>:9222 \
-  --url "https://www.kohls.com/product/prd-6715879/tower-28-beauty-lipsoftie-hydrating-tinted-lip-treatment-balm.jsp" \
-  --warm-hop-url "https://www.kohls.com/" \
-  --source-family retail_pdp --decision-question "…" \
-  --data-root "$FORSETI_DATA_ROOT" \
-  --require-not-access-blocked --require-visible-text "LipSoftie" \
-  --require-rendered-dom-regex 'priceCurrency"\s+content="USD"'
-```
+On Windows Docker Desktop, `--chrome-no-sandbox` defaults on because the observed
+Chrome namespace setup was denied. On Linux it defaults off. The packet records
+the Windows limitation when used.
 
 ## Zero-maintenance fallback: paid Web Unlocker
 
@@ -196,23 +164,25 @@ the packet seam.
   fragile and high-maintenance.
 - **A residential IP by itself** — not the lever. The real headful Chrome cleared
   Kohl's over a plain SG residential IP; a US datacenter VPN did **not** help the
-  automation browsers. The browser fingerprint is decisive, not the IP. (A
+  automation browsers. The passing browser environment mattered more than the
+  tested IP change. (A
   residential egress may still matter if a *server/datacenter* IP is reputation-
   blocked — check during the First-task probe.)
 
 ## Open questions / residuals (carry forward)
 
-- **Verification pending:** Xvfb-headful clearing Akamai is expected by mechanism
-  but not yet empirically run — the First task settles it.
+- **Cause not isolated:** the route passes, but the proof does not identify the
+  exact Akamai signal that separates it from denied browsers.
 - **Session/cookie lifecycle:** how often `_abck`/`AKA_*` need re-warming; whether
   a persistent profile materially cuts challenge frequency.
 - **Server IP reputation:** whether a datacenter host IP is blocked where the
   desktop's residential IP was not (may force a residential egress for the server).
-- **Concurrency:** one Chrome instance can serve many tabs; separate profiles only
-  for separate warmed identities or logins (see the browser-concurrency notes from
-  the authoring session).
-- **Non-claim:** this handoff is a design/ops route, not a validated capability.
-  Nothing here promotes a pin, projection, or readiness claim; the current admitted
-  Kohl's route remains the operator-gated rung-7 runner until an unattended route
-  is built and verified.
+- **Linux sandbox path:** the Windows Docker Desktop proof required Chrome's
+  inner sandbox to be disabled; the default Linux path has not been run live.
+- **Cadence:** no recurrence is registered. Choosing one creates two durable
+  packets and two public page loads per run, so frequency remains an owner
+  decision rather than a hidden default.
+- **Non-claim:** this proves the bound Kohl's unattended capture route on the
+  observed host. It does not prove arbitrary Akamai sites, datacenter egress,
+  delivery location, projection coverage, or commercial readiness.
 ```

@@ -107,6 +107,7 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
 BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
     "run_fragrantica_mgt_capture.py": ("http_runner", "cloakbrowser_runner"),
     "run_ig_reels_lane_orchestrator.py": ("grid_runner",),
+    "run_kohls_unattended_capture.py": ("run_source_capture_realchrome_cdp_packet",),
 }
 
 # Identity-binding declaration for every runner_seams entry (direct packet
@@ -226,6 +227,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "on the slice; access-block classification refuses to certify a block shell; no "
             "subject identity beyond the URL is asserted (any subject/currency admission is a "
             "caller-supplied source-detail-sufficiency check, not a runner-enforced binding)"
+        ),
+    },
+    "run_kohls_unattended_capture.py": {
+        "status": "bound",
+        "mechanism": (
+            "the PDP capture requires rendered visible text containing LipSoftie plus "
+            "product-page Offer microdata with priceCurrency=USD, and the policy capture "
+            "requires Kohl's exact US/APO/FPO-only shipping statement; either missing or "
+            "access-blocked surface fails the one-shot job after preserving available evidence"
         ),
     },
     "run_source_capture_historical_packet.py": {
