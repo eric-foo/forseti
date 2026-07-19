@@ -43,6 +43,24 @@ stale_if:
 - `anchor_goal`: Obtain one current, durable Kohl's x Tower 28 LipSoftie capture that binds the commissioned product, exact USD offer state, and retailer-owned US context, or preserve one honest typed failure from a genuinely new route.
 - `success_signal`: Fresh-read packet and receipt evidence supports the subject, USD, and US conjunction without `.com`, dollar-glyph, proxy-geography, search-index, or third-party substitution.
 
+## Execution Record (2026-07-19)
+
+This lane was executed. The owner connected the pre-existing Surfshark app to
+its US / New York route; independent egress checks confirmed a US / New York
+exit (`138.199.40.170`, `AS60068 Datacamp`, a consumer-VPN datacenter ASN). The
+bounded on-VPN experiment then preserved CloakBrowser Akamai block packets on
+both bound URLs — PDP `01KXXBP2HTK718ZS9CZ11CQJX0` and policy
+`01KXXBVY7RTBSHN651P124X0E8` — and a matched in-app visible-browser control on
+the same exit was also Akamai-denied at the homepage. Outcome:
+`NO_GO_OWNER_OPERATED_US_CONSUMER_VPN_DATACENTER_EGRESS_AKAMAI_DENIED_EXIT_IP_REPUTATION_BROWSER_INDEPENDENT`.
+The datacenter-VPN route is now an exhausted, browser-independent rung — do not
+replay it; a future probe needs a residential (non-datacenter) US egress, an
+entitled affiliate feed, or an owner-approved paid provider. Full evidence lives
+in `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
+(Kohl's section), the Kohl's rows of `retail_storefront_pin_registry_v0.md` and
+`capture_recon_index_v0.md`. The fork below is retained as historical
+commission context.
+
 ## Open Decision
 
 The remaining access fork is external-state dependent:
