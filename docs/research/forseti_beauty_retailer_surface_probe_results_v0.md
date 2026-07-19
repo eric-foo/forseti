@@ -1039,6 +1039,60 @@ observations:
   because it records a pin-admission gap rather than a new assortment, price,
   review, or product-claim finding.
 
+### Target US delivery ZIP confirmed
+
+- The recovered route uses the existing Capture Spine with
+  `--target-zip 10001`, a 30-second setup bound, six-second capture settle, one
+  scroll pass, `humanize=true`, and the original commissioned Naturium grid
+  and PDP. It uses no proxy, VPN, stored profile, storage state, cookie
+  injection, credential, login, cart action, or geo-IP override.
+- The earlier failure was interaction timing, not absence of Target's public
+  control. The new route waits once for `#zip-code-id-btn` to become visible.
+  The first preserved diagnostic packet then stopped at `find_zip_input`; a
+  scoped visible-dialog selector correction advanced to `find_apply_control`.
+  The admitted route fills only an input scoped to Target's dialog/ZipCode
+  component and, when no recognized visible Save/Apply control exists, submits
+  that already-scoped input with Enter. It cannot claim success from the
+  interaction: final Target-owned page state remains authoritative.
+- Admission requires the completed public UI flow, exact header
+  `aria-label="Ship to location: 10001"`, exact
+  `@web/ZipCodeButton/ZipCodeNumber` text `Ship to 10001`, and
+  `serverLocationVariables.location.country="US"`. Store/pickup ZIP remains a
+  separately labelled context and need not equal the shipping ZIP.
+- Confirmed grid packet `01KXWMQWHRABBSA5HN3CMR9TNS` is at
+  `F:\forseti-data-lake\raw\a37\01KXWMQWHRABBSA5HN3CMR9TNS`; confirmed PDP
+  packet `01KXWMXEYB58SMVSJT80XJAP9D` is at
+  `F:\forseti-data-lake\raw\981\01KXWMXEYB58SMVSJT80XJAP9D`. Both requested
+  and final URLs remained exactly on `www.target.com`; neither preserved a
+  `.sg` route or other storefront-domain drift.
+- Both packets record `pin_confirmed=true`,
+  `pre_capture_steps_completed=true`, `access_blocked=false`,
+  `target_nested_location_country="US"`, shipping/server ZIP `10001`, and the
+  independently labelled Chelsea 23rd and 8th store ZIP `10011`. All eight raw
+  files fresh-matched their manifest SHA-256 values and byte lengths.
+- The existing grid projection produced 24 raw-anchored Naturium rows. It
+  anchored item `80184023`, the commissioned Naturium Vitamin C Complex Serum,
+  at `$14.69`. The existing PDP projection produced six rows, including the
+  bound product, a Target seller offer at `$14.69`, and the review substrate.
+  Its explicit residuals remain exact inventory quantity, sold units, and a
+  distinct written-review count.
+- The first PDP command required a historical title spelling without Target's
+  current hyphen before `1 fl oz`. Its typed packet was preserved. A corrected
+  exact-title capture—not a weakened or substituted subject check—produced the
+  admitted PDP packet above.
+- The owner-commissioned off-VPN versus US-VPN homepage comparison was not
+  triggered: Surfshark's own UI showed the disconnected `Connect` state, and
+  both commissioned subject surfaces confirmed the Target-owned US/ZIP
+  conjunction directly. `.com`, absence of `.sg`, dollar-denominated price, or
+  VPN geography remain contextual checks only and cannot substitute for that
+  conjunction.
+- Current outcome: `GO_TARGET_US_ZIP_10001_CONFIRMED_OFF_VPN`. The registry is
+  promoted to `CONFIRMED_US` and `CONFIRMED_ZIP_10001`; currency remains
+  `OBSERVED_USD_UNPINNED` because this route exposes no admitted explicit
+  currency-code conjunction. This pin-only supplement adds no duplicate SOBS
+  row and makes no demand, velocity, revenue, sell-through, fulfillment,
+  market-performance, inventory-depth, or realized-price inference.
+
 ### Kohl's US/USD storefront access diagnosis
 
 - The commissioned subject was Tower 28 LipSoftie Hydrating Tinted Lip
