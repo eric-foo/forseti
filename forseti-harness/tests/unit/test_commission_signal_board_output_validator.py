@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import importlib.util
 from pathlib import Path
 import re
@@ -85,6 +86,45 @@ DR_JART_RETAILER_REVIEW_SIGNAL = """\
 """
 
 
+def _valid_retailer_review_signal() -> dict:
+    return {
+        "corpus_basis": "complete_visible_corpus",
+        "source_visible_total": 622,
+        "captured_total": 622,
+        "sample_selection": "all source-visible rows at capture",
+        "incentive_disclosure_basis": "source-visible retailer incentive labels",
+        "excluded_explicit_incentivized": 545,
+        "excluded_unknown_or_conflicting": 0,
+        "excluded_other": 0,
+        "excluded_other_reason": "none",
+        "eligible_explicit_non_incentivized": 46,
+        "eligible_not_marked_incentivized": 31,
+        "eligible_total": 77,
+        "eligible_positive_4_5": 44,
+        "eligible_below_positive_1_3": 33,
+        "approval_rate_pct": 57.1,
+        "below_positive_rate_pct": 42.9,
+        "explicit_non_incentivized_sensitivity": {
+            "eligible_total": 46,
+            "positive_4_5": 26,
+            "below_positive_1_3": 20,
+            "approval_rate_pct": 56.5,
+            "below_positive_rate_pct": 43.5,
+        },
+    }
+
+
+def _retailer_signal_codes(signal, source_family: str = "retail_pdp") -> set[str]:
+    return {
+        finding.code
+        for finding in validator._validate_retailer_review_approval_signal(
+            signal,
+            "OBS-TEST",
+            source_family,
+        )
+    }
+
+
 def test_retailer_review_approval_signal_accepts_reconciled_reference_counts() -> None:
     text = _with_retailer_review_signal(_valid_company_text(), DR_JART_RETAILER_REVIEW_SIGNAL)
     assert _company_codes(text) == set()
@@ -133,6 +173,100 @@ def test_retailer_review_approval_signal_allows_unknown_source_total_for_bounded
         "      source_visible_total: unknown",
     )
     assert _company_codes(_with_retailer_review_signal(_valid_company_text(), block)) == set()
+
+
+def test_retailer_review_approval_signal_uses_one_decimal_round_half_up() -> None:
+    signal = _valid_retailer_review_signal()
+    signal.update(
+        {
+            "source_visible_total": 16,
+            "captured_total": 16,
+            "excluded_explicit_incentivized": 0,
+            "eligible_explicit_non_incentivized": 0,
+            "eligible_not_marked_incentivized": 16,
+            "eligible_total": 16,
+            "eligible_positive_4_5": 1,
+            "eligible_below_positive_1_3": 15,
+            "approval_rate_pct": 6.3,
+            "below_positive_rate_pct": 93.8,
+        }
+    )
+    signal.pop("explicit_non_incentivized_sensitivity")
+    assert _retailer_signal_codes(signal) == set()
+
+    signal["approval_rate_pct"] = 6.2
+    assert "invalid_retailer_review_approval_rates" in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_non_mapping() -> None:
+    assert "invalid_retailer_review_approval_signal" in _retailer_signal_codes([])
+
+
+def test_retailer_review_approval_signal_rejects_missing_fields() -> None:
+    signal = _valid_retailer_review_signal()
+    signal.pop("sample_selection")
+    assert "missing_retailer_review_approval_fields" in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_wrong_source_family() -> None:
+    assert "invalid_retailer_review_approval_source" in _retailer_signal_codes(
+        _valid_retailer_review_signal(),
+        source_family="owned_channels",
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_code"),
+    [
+        ({"corpus_basis": "unknown"}, "invalid_retailer_review_corpus_basis"),
+        ({"sample_selection": ""}, "missing_retailer_review_reproducibility"),
+        ({"captured_total": True}, "invalid_retailer_review_approval_counts"),
+        ({"captured_total": 0}, "empty_retailer_review_approval_denominator"),
+        ({"source_visible_total": 76}, "invalid_retailer_review_corpus_size"),
+        ({"eligible_not_marked_incentivized": 30}, "retailer_review_eligible_mismatch"),
+        (
+            {"excluded_other": 1, "excluded_other_reason": "none"},
+            "missing_retailer_review_other_exclusion_reason",
+        ),
+    ],
+)
+def test_retailer_review_approval_signal_rejects_invalid_primary_fields(
+    mutation: dict,
+    expected_code: str,
+) -> None:
+    signal = _valid_retailer_review_signal()
+    signal.update(mutation)
+    assert expected_code in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_non_mapping_sensitivity() -> None:
+    signal = _valid_retailer_review_signal()
+    signal["explicit_non_incentivized_sensitivity"] = []
+    assert "invalid_explicit_non_incentivized_sensitivity" in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_incomplete_sensitivity() -> None:
+    signal = _valid_retailer_review_signal()
+    sensitivity = deepcopy(signal["explicit_non_incentivized_sensitivity"])
+    sensitivity.pop("approval_rate_pct")
+    signal["explicit_non_incentivized_sensitivity"] = sensitivity
+    assert "missing_explicit_non_incentivized_sensitivity_fields" in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_invalid_sensitivity_counts() -> None:
+    signal = _valid_retailer_review_signal()
+    sensitivity = deepcopy(signal["explicit_non_incentivized_sensitivity"])
+    sensitivity["eligible_total"] = True
+    signal["explicit_non_incentivized_sensitivity"] = sensitivity
+    assert "invalid_explicit_non_incentivized_sensitivity_counts" in _retailer_signal_codes(signal)
+
+
+def test_retailer_review_approval_signal_rejects_unreconciled_sensitivity() -> None:
+    signal = _valid_retailer_review_signal()
+    sensitivity = deepcopy(signal["explicit_non_incentivized_sensitivity"])
+    sensitivity["positive_4_5"] = 25
+    signal["explicit_non_incentivized_sensitivity"] = sensitivity
+    assert "invalid_explicit_non_incentivized_sensitivity" in _retailer_signal_codes(signal)
 
 
 def test_company_subject_defaults_to_company_competitive_intelligence() -> None:

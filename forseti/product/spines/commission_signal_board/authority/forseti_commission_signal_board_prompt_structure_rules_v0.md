@@ -246,7 +246,8 @@ from the derived primary view, including labels such as sponsored, gifted,
 complimentary, free sample, sweepstakes, or paid partnership; group four/five
 stars as positive and one/two/three stars as below-positive; and disclose the
 eligible denominator, excluded count, selection basis, and whether the corpus
-is complete or bounded. Rows lacking an incentive marker are `not marked
+is complete or bounded. Express both percentage fields to one decimal using
+round-half-up. Rows lacking an incentive marker are `not marked
 incentivized`, never confirmed organic.
 Neither this view nor an explicit-non-incentivized sensitivity establishes
 representative demand, market consensus, prevalence beyond the defined corpus,
