@@ -147,11 +147,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
         ),
-        # Shared-output-shaping decision: no. Existing typed retailer row
-        # semantics and RETAIL_PDP_PROJECTION_VERSION remain v0. Luckyscent
-        # and Nordstrom keep family-owned parser versions, while the admitted
-        # Credo Yotpo packet was explicitly rederived append-only.
-        "8ce5c14806bd25f83cb8c0c0f9e637e7e1c2eb2246cd4d939c88a9ac70d6e086",
+        # Output-shaping: Nordstrom parser v2 preserves source-selected review
+        # sort posture, visible per-card helpful counts, display position, and
+        # the exact six-row continuation control. Known v1 content-only packets
+        # remain readable; shared Retail/PDP v0 semantics stay unchanged.
+        "5f1f1764a633cfccc5432a67b4d4f54a5a9cc0f91ef0579c9894ee846e8d2719",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

@@ -34,7 +34,7 @@ LUCKYSCENT_PDP_PARSER_VERSION = "retail_pdp_luckyscent_aggregate_parser_v1"
 LUCKYSCENT_PDP_CONTENT_PROFILE = "luckyscent_pdp_aggregate"
 NORDSTROM_PDP_CONTENT_RECORD_KIND = "retail_pdp_nordstrom_aggregate_content"
 NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v1"
-NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v1"
+NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v2"
 NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
@@ -573,9 +573,10 @@ class NordstromPdpAggregateContentRecord(StrictModel):
     schema_version: Literal["retail_pdp_nordstrom_aggregate_content_v1"] = (
         NORDSTROM_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_nordstrom_aggregate_parser_v1"] = (
-        NORDSTROM_PDP_PARSER_VERSION
-    )
+    parser_version: Literal[
+        "retail_pdp_nordstrom_aggregate_parser_v1",
+        "retail_pdp_nordstrom_aggregate_parser_v2",
+    ] = NORDSTROM_PDP_PARSER_VERSION
     capture_profile: Literal["nordstrom_pdp_aggregate"] = (
         NORDSTROM_PDP_CONTENT_PROFILE
     )
@@ -1723,8 +1724,13 @@ def _validate_nordstrom_content_packet_metadata(
         return value
 
     capture_metadata = _one_json("content_capture_metadata.json")
-    if capture_metadata.get("parser_version") != NORDSTROM_PDP_PARSER_VERSION:
-        raise ValueError("Nordstrom content packet parser version does not match current")
+    if capture_metadata.get("parser_version") not in {
+        "retail_pdp_nordstrom_aggregate_parser_v1",
+        NORDSTROM_PDP_PARSER_VERSION,
+    }:
+        raise ValueError(
+            "Nordstrom content packet parser version is not a supported durable version"
+        )
     if capture_metadata.get("projection_status") != "succeeded":
         raise ValueError("Nordstrom content packet projection did not succeed")
     if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
@@ -2858,7 +2864,7 @@ def _nordstrom_review_fields(
 
     review_section_start = html.find('id="product-page-reviews"')
     review_html = html[review_section_start:] if review_section_start >= 0 else ""
-    rendered_reviews: list[dict[str, str]] = []
+    rendered_reviews: list[dict[str, str | int | None]] = []
     review_pattern = re.compile(
         r'itemprop="review"[\s\S]*?'
         r'itemprop="name"\s+content="(?P<title>[^"]*)"[\s\S]*?'
@@ -2868,16 +2874,46 @@ def _nordstrom_review_fields(
         r'itemprop="reviewBody"\s+content="(?P<body>[^"]*)"',
         flags=re.IGNORECASE,
     )
-    for match in review_pattern.finditer(review_html):
+    helpful_counts = _nordstrom_review_card_helpful_counts(review_html)
+    for display_position, match in enumerate(
+        review_pattern.finditer(review_html), start=1
+    ):
         rendered_reviews.append(
             {
-                key: html_lib.unescape(value).strip()
-                for key, value in match.groupdict().items()
+                **{
+                    key: html_lib.unescape(value).strip()
+                    for key, value in match.groupdict().items()
+                },
+                "source_display_position": display_position,
+                "helpful_count": helpful_counts.get(display_position),
             }
         )
 
     review_text = _bounded_text_section(
         visible_text, start="Reviews", end="Recommended for You"
+    )
+    review_sort_posture = _first_regex(
+        review_html,
+        (
+            r'id=["\']sort-by-filter-[^"\']+-anchor["\'][\s\S]{0,500}?'
+            r"Sort by\s*<strong>\s*([^<]+?)\s*</strong>",
+        ),
+    )
+    review_load_more_control_text = _first_regex(
+        review_html,
+        (
+            r'<a\b[^>]*href=["\']\?page=\d+["\'][^>]*>\s*'
+            r"(Load\s+[\d,]+\s+more reviews)\s*</a>",
+        ),
+    )
+    review_load_more_batch_size_text = _first_regex(
+        review_load_more_control_text or "",
+        (r"Load\s+([\d,]+)\s+more reviews",),
+    )
+    review_load_more_batch_size = (
+        int(review_load_more_batch_size_text.replace(",", ""))
+        if review_load_more_batch_size_text
+        else None
     )
     buckets = {
         star: _first_regex(
@@ -2934,11 +2970,47 @@ def _nordstrom_review_fields(
             "filtered_review_count": None,
             "rating_distribution_basis": "source_displayed_percent_rounded",
             "rating_distribution_buckets": buckets,
+            "review_sort_posture": review_sort_posture,
             "rendered_review_count": len(rendered_reviews),
             "rendered_reviews": rendered_reviews,
+            "review_load_more_control_text": review_load_more_control_text,
+            "review_load_more_batch_size": review_load_more_batch_size,
+            "review_continuation_available": (
+                review_load_more_control_text is not None
+            ),
         },
         residuals,
     )
+
+
+def _nordstrom_review_card_helpful_counts(
+    review_html: str,
+) -> dict[int, str]:
+    card_starts = list(
+        re.finditer(
+            r'<div\b[^>]*\bid=["\']review-(\d+)["\'][^>]*>',
+            review_html,
+            flags=re.IGNORECASE,
+        )
+    )
+    counts: dict[int, str] = {}
+    for index, card_start in enumerate(card_starts):
+        card_end = (
+            card_starts[index + 1].start()
+            if index + 1 < len(card_starts)
+            else len(review_html)
+        )
+        card_html = review_html[card_start.start() : card_end]
+        helpful_count = _first_regex(
+            card_html,
+            (
+                r"<strong>\s*([\d,]+)\s*</strong>"
+                r"[\s\S]{0,300}?found this helpful",
+            ),
+        )
+        if helpful_count is not None:
+            counts[int(card_start.group(1))] = helpful_count
+    return counts
 
 
 def _bounded_text_section(text: str, *, start: str, end: str) -> str:

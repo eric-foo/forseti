@@ -85,12 +85,48 @@ _DOM = f"""<!doctype html>
     <span itemprop="reviewBody" content="It is average but source-visible."></span>
   </span>
   <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Sticky and nothing special"></span>
+    <span itemprop="author" content="DogMom72"></span>
+    <meta itemprop="datePublished" content="2025-03-09T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="2"></span></span>
+    <span itemprop="reviewBody" content="It is sticky and gets on my mug."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
     <span itemprop="name" content="Amazing lip balm"></span>
     <span itemprop="author" content="Cendully"></span>
     <meta itemprop="datePublished" content="2026-03-16T17:22:14.000+00:00">
     <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
     <span itemprop="reviewBody" content="The metal applicator feels cooling."></span>
   </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="BEST LIP BALM EVER"></span>
+    <span itemprop="author" content="Amazinggggggg"></span>
+    <meta itemprop="datePublished" content="2025-07-10T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="Hydrating with a lip gloss appearance."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Best ever used"></span>
+    <span itemprop="author" content="spotintheshade"></span>
+    <meta itemprop="datePublished" content="2025-04-19T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="It relieves chapped lips."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Excellent"></span>
+    <span itemprop="author" content="Vicki C."></span>
+    <meta itemprop="datePublished" content="2026-06-13T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="This balm is soft and lasts."></span>
+  </span>
+  <div id="sort-by-filter-8260802-anchor"><span>Sort by <strong>Most Helpful</strong></span></div>
+  <div id="review-1"><span><strong>9</strong></span><span>found this helpful</span></div>
+  <div id="review-2"><span><strong>4</strong></span><span>found this helpful</span></div>
+  <div id="review-3"><span><strong>2</strong></span><span>found this helpful</span></div>
+  <div id="review-4"><span><strong>2</strong></span><span>found this helpful</span></div>
+  <div id="review-5"><span><strong>1</strong></span><span>found this helpful</span></div>
+  <div id="review-6"><span>Be the first to find this helpful</span></div>
+  <a href="?page=2">Load 6 more reviews</a>
 </div>
 <button>Add to Bag</button>
 <footer>Nordstrom Card &amp; Rewards</footer>
@@ -146,6 +182,8 @@ Write a Review
 5%
 1 star
 3%
+Sort by Most Helpful
+Load 6 more reviews
 Recommended for You
 """
 
@@ -423,8 +461,20 @@ def test_nordstrom_record_is_deterministic_target_scoped_and_complete() -> None:
         "2": "5%",
         "1": "3%",
     }
-    assert review["rendered_review_count"] == 2
+    assert review["review_sort_posture"] == "Most Helpful"
+    assert review["rendered_review_count"] == 6
     assert review["rendered_reviews"][0]["body"] == "It is average but source-visible."
+    assert [
+        item["helpful_count"] for item in review["rendered_reviews"]
+    ] == ["9", "4", "2", "2", "1", None]
+    assert [
+        item["source_display_position"] for item in review["rendered_reviews"]
+    ] == [1, 2, 3, 4, 5, 6]
+    assert review["rendered_reviews"][1]["author"] == "DogMom72"
+    assert review["rendered_reviews"][1]["helpful_count"] == "4"
+    assert review["review_load_more_control_text"] == "Load 6 more reviews"
+    assert review["review_load_more_batch_size"] == 6
+    assert review["review_continuation_available"] is True
     assert "nordstrom_shipping_destination_display_is_not_delivery_pin" in first[
         "residuals"
     ]
@@ -562,6 +612,54 @@ def test_raw_and_content_projection_and_silver_are_equal(
     assert [record.get("residuals") for record in raw_silver] == [
         record.get("residuals") for record in content_silver
     ]
+
+
+def test_v1_content_packet_remains_projectable_after_v2_parser_bump(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = tmp_path / "content-v1"
+    assert _run(output=packet_dir, monkeypatch=monkeypatch, mode="content")[0] == 0
+    legacy_version = "retail_pdp_nordstrom_aggregate_parser_v1"
+
+    def downgrade_content_record(payload: dict[str, Any]) -> None:
+        payload["parser_version"] = legacy_version
+        fields = next(
+            row["source_visible_fields"]
+            for row in payload["rows"]
+            if row["row_kind"] == "retail_review_substrate"
+        )
+        for key in (
+            "review_sort_posture",
+            "review_load_more_control_text",
+            "review_load_more_batch_size",
+            "review_continuation_available",
+        ):
+            fields.pop(key)
+        for review in fields["rendered_reviews"]:
+            review.pop("source_display_position")
+            review.pop("helpful_count")
+
+    _mutate_json(
+        packet_dir,
+        "content_record.json",
+        downgrade_content_record,
+    )
+    _mutate_json(
+        packet_dir,
+        "content_capture_metadata.json",
+        lambda payload: payload.update({"parser_version": legacy_version}),
+    )
+
+    projection = build_retail_pdp_projection_from_packet_directory(
+        packet_directory=packet_dir
+    )
+    review = next(
+        row.source_visible_fields
+        for row in projection.rows
+        if row.row_kind == "retail_review_substrate"
+    )
+    assert review["rendered_review_count"] == 6
+    assert all(row.raw_anchor.anchor_kind == "json_pointer" for row in projection.rows)
 
 
 def test_parser_fit_match_and_fact_drift(
