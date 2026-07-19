@@ -77,41 +77,29 @@ _DOM = f"""<!doctype html>
 <script type="application/ld+json">{json.dumps(_PRODUCT_DUPLICATE, ensure_ascii=False)}</script>
 <script type="application/ld+json">{json.dumps(_UNRELATED, ensure_ascii=False)}</script>
 <div id="product-page-reviews">
-  <span itemprop="review" itemtype="https://schema.org/Review">
-    <span itemprop="name" content="Just okay"></span>
-    <span itemprop="author" content="Cfmcl"></span>
-    <meta itemprop="datePublished" content="2025-09-16T10:54:39.000+00:00">
-    <span itemprop="reviewRating"><span itemprop="ratingValue" content="3"></span></span>
-    <span itemprop="reviewBody" content="It is average but source-visible."></span>
-  </span>
-  <span itemprop="review" itemtype="https://schema.org/Review">
-    <span itemprop="name" content="Sticky and nothing special"></span>
-    <span itemprop="author" content="DogMom72"></span>
-    <meta itemprop="datePublished" content="2025-03-09T10:54:39.000+00:00">
-    <span itemprop="reviewRating"><span itemprop="ratingValue" content="2"></span></span>
-    <span itemprop="reviewBody" content="It is sticky and gets on my mug."></span>
-  </span>
-  <span itemprop="review" itemtype="https://schema.org/Review">
-    <span itemprop="name" content="Amazing lip balm"></span>
-    <span itemprop="author" content="Cendully"></span>
-    <meta itemprop="datePublished" content="2026-03-16T17:22:14.000+00:00">
-    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
-    <span itemprop="reviewBody" content="The metal applicator feels cooling."></span>
-  </span>
-  <span itemprop="review" itemtype="https://schema.org/Review">
-    <span itemprop="name" content="BEST LIP BALM EVER"></span>
-    <span itemprop="author" content="Amazinggggggg"></span>
-    <meta itemprop="datePublished" content="2025-07-10T10:54:39.000+00:00">
-    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
-    <span itemprop="reviewBody" content="Hydrating with a lip gloss appearance."></span>
-  </span>
-  <span itemprop="review" itemtype="https://schema.org/Review">
-    <span itemprop="name" content="Best ever used"></span>
-    <span itemprop="author" content="spotintheshade"></span>
-    <meta itemprop="datePublished" content="2025-04-19T10:54:39.000+00:00">
-    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
-    <span itemprop="reviewBody" content="It relieves chapped lips."></span>
-  </span>
+  <div class="uJB02">
+    <div class="NgN2G">
+      <h3><strong>Most helpful positive review</strong></h3>
+      <div class="HGmOk">
+        <div><span id="review-stars-positive" aria-label="Rated 5 out of 5 stars."></span><span>Mar 17, 2026</span></div>
+        <div class="OF9oA"><strong>Amazing lip balm</strong></div>
+        <div class="rqqDZ">The metal applicator feels cooling and the balm lasts.</div>
+        <div class="qd8jM">Cendully</div>
+        <div><strong>Verified purchase</strong></div>
+        <div><strong>2</strong> found this helpful</div>
+      </div>
+    </div>
+    <div class="NgN2G">
+      <h3><strong>Most helpful critical review</strong></h3>
+      <div class="HGmOk">
+        <div><span id="review-stars-critical" aria-label="Rated 1 out of 5 stars."></span><span>Apr 27, 2026</span></div>
+        <div class="OF9oA"><strong>Please Remove the Mint Oil</strong></div>
+        <div class="rqqDZ">Please make a separate unscented lip balm with no mint oil.</div>
+        <div class="qd8jM">Faith</div>
+        <div class="tbOrt">Reposted from Nécessaire</div>
+      </div>
+    </div>
+  </div>
   <span itemprop="review" itemtype="https://schema.org/Review">
     <span itemprop="name" content="Excellent"></span>
     <span itemprop="author" content="Vicki C."></span>
@@ -119,13 +107,48 @@ _DOM = f"""<!doctype html>
     <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
     <span itemprop="reviewBody" content="This balm is soft and lasts."></span>
   </span>
-  <div id="sort-by-filter-8260802-anchor"><span>Sort by <strong>Most Helpful</strong></span></div>
-  <div id="review-1"><span><strong>9</strong></span><span>found this helpful</span></div>
-  <div id="review-2"><span><strong>4</strong></span><span>found this helpful</span></div>
-  <div id="review-3"><span><strong>2</strong></span><span>found this helpful</span></div>
-  <div id="review-4"><span><strong>2</strong></span><span>found this helpful</span></div>
-  <div id="review-5"><span><strong>1</strong></span><span>found this helpful</span></div>
-  <div id="review-6"><span>Be the first to find this helpful</span></div>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Please Remove the Mint Oil"></span>
+    <span itemprop="author" content="Faith"></span>
+    <meta itemprop="datePublished" content="2026-04-27T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="1"></span></span>
+    <span itemprop="reviewBody" content="Please make an unscented version."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Amazing"></span>
+    <span itemprop="author" content="Natalie M."></span>
+    <meta itemprop="datePublished" content="2026-04-20T17:22:14.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="The best gloss for my lips."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Perfect summer lip balm"></span>
+    <span itemprop="author" content="MarKo"></span>
+    <meta itemprop="datePublished" content="2026-03-31T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="Lightweight and non-sticky."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="My favorite lip product!"></span>
+    <span itemprop="author" content="Samantha C."></span>
+    <meta itemprop="datePublished" content="2026-03-23T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="Shiny and nourishing."></span>
+  </span>
+  <span itemprop="review" itemtype="https://schema.org/Review">
+    <span itemprop="name" content="Best ever"></span>
+    <span itemprop="author" content="Doris D."></span>
+    <meta itemprop="datePublished" content="2026-03-21T10:54:39.000+00:00">
+    <span itemprop="reviewRating"><span itemprop="ratingValue" content="5"></span></span>
+    <span itemprop="reviewBody" content="Good moisturizer for supple lips."></span>
+  </span>
+  <div tabindex="0" aria-label="dropdown" id="sort-by-filter-8260802-anchor"><span>Sort by <strong>Most Recent</strong></span></div>
+  <div id="review-1"><span>June 13, 2026</span><span>Be the first to find this helpful</span></div>
+  <div id="review-2"><span>Apr 27, 2026</span><span>Be the first to find this helpful</span></div>
+  <div id="review-3"><span>Apr 20, 2026</span><span>Be the first to find this helpful</span></div>
+  <div id="review-4"><span>Mar 31, 2026</span><span>Be the first to find this helpful</span></div>
+  <div id="review-5"><span>Mar 23, 2026</span><span>Be the first to find this helpful</span></div>
+  <div id="review-6"><span>Mar 21, 2026</span><span>Be the first to find this helpful</span></div>
   <a href="?page=2">Load 6 more reviews</a>
 </div>
 <button>Add to Bag</button>
@@ -182,7 +205,7 @@ Write a Review
 5%
 1 star
 3%
-Sort by Most Helpful
+Sort by Most Recent
 Load 6 more reviews
 Recommended for You
 """
@@ -206,6 +229,7 @@ def _success(
             "requested_url": _URL,
             "final_url": _URL,
             "pin_confirmed": pin_confirmed,
+            "before_snapshot_steps_completed": True,
             "proxy_used": False,
             "persistent_profile_loaded": False,
             "storage_state_loaded": False,
@@ -222,6 +246,7 @@ def _run(
     mode: str | None,
     capture_factory: Callable[[], CloakBrowserSnapshotSuccess] = _success,
     projector=None,
+    nordstrom_review_posture: str | None = "recent_window_30d",
 ) -> tuple[int, str]:
     monkeypatch.setattr(
         runner, "fetch_cloakbrowser_snapshot_capture", lambda **_kwargs: capture_factory()
@@ -277,6 +302,7 @@ def _run(
         scroll_passes=1,
         scroll_step_px=500,
         nordstrom_country="US",
+        nordstrom_review_posture=nordstrom_review_posture,
         series_id="nordstrom_necessaire_lip_balm_us_v0",
         locale_pin=runner.known_fact("en-US"),
         currency_pin=runner.known_fact("USD"),
@@ -335,6 +361,32 @@ def _mutate_json(
         (json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode(
             "utf-8"
         ),
+    )
+
+
+def _rewrite_sample_input(
+    packet_dir: Path,
+    filename: str,
+    body: bytes,
+) -> None:
+    _rewrite_artifact_and_manifest(packet_dir, filename, body)
+    metadata = json.loads(
+        _artifact_path(
+            packet_dir, "content_capture_metadata.json"
+        ).read_text(encoding="utf-8")
+    )
+    input_entry = next(
+        item for item in metadata["inputs"] if item["filename"] == filename
+    )
+    input_entry["sha256"] = hashlib.sha256(body).hexdigest()
+    input_entry["byte_count"] = len(body)
+    _rewrite_artifact_and_manifest(
+        packet_dir,
+        "content_capture_metadata.json",
+        (
+            json.dumps(metadata, indent=2, sort_keys=True, ensure_ascii=False)
+            + "\n"
+        ).encode("utf-8"),
     )
 
 
@@ -403,6 +455,8 @@ def test_cli_defaults_nordstrom_profile_to_content(
                 "nordstrom_pdp_aggregate",
                 "--nordstrom-country",
                 "US",
+                "--nordstrom-review-posture",
+                "recent_window_30d",
             ]
         )
         == 0
@@ -414,6 +468,24 @@ def test_cli_defaults_nordstrom_profile_to_content(
         == "cloakbrowser_rendered_dom.html"
         for item in _manifest(packet_dir)["preserved_files"]
     )
+    assert (
+        "Most Recent 30-day window with a six-row floor and 30-row cap"
+        in _manifest(packet_dir)["receipt_metadata"]["summary"]
+    )
+    browser_metadata = json.loads(
+        _artifact_path(
+            packet_dir, "cloakbrowser_snapshot_metadata.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert browser_metadata["nordstrom_review_window"]["status"] == (
+        "low_density_context"
+    )
+    assert browser_metadata["nordstrom_review_window"][
+        "captured_review_count"
+    ] == 6
+    assert browser_metadata["nordstrom_review_window"][
+        "continuation_activations"
+    ] == 0
 
 
 def test_nordstrom_record_is_deterministic_target_scoped_and_complete() -> None:
@@ -461,17 +533,34 @@ def test_nordstrom_record_is_deterministic_target_scoped_and_complete() -> None:
         "2": "5%",
         "1": "3%",
     }
-    assert review["review_sort_posture"] == "Most Helpful"
+    assert review["review_sort_posture"] == "Most Recent"
     assert review["rendered_review_count"] == 6
-    assert review["rendered_reviews"][0]["body"] == "It is average but source-visible."
+    assert review["rendered_reviews"][0]["body"] == "This balm is soft and lasts."
     assert [
         item["helpful_count"] for item in review["rendered_reviews"]
-    ] == ["9", "4", "2", "2", "1", None]
+    ] == [None, None, None, None, None, None]
     assert [
         item["source_display_position"] for item in review["rendered_reviews"]
     ] == [1, 2, 3, 4, 5, 6]
-    assert review["rendered_reviews"][1]["author"] == "DogMom72"
-    assert review["rendered_reviews"][1]["helpful_count"] == "4"
+    assert review["rendered_reviews"][1]["author"] == "Faith"
+    assert review["rendered_reviews"][1]["helpful_count"] is None
+    assert review["most_helpful_positive_review"] == {
+        "highlight_kind": "positive",
+        "rating": "5",
+        "date": "Mar 17, 2026",
+        "title": "Amazing lip balm",
+        "body": "The metal applicator feels cooling and the balm lasts.",
+        "author": "Cendully",
+        "helpful_count": "2",
+        "verified_purchase": True,
+        "reposted_from": None,
+    }
+    assert review["most_helpful_critical_review"]["title"] == (
+        "Please Remove the Mint Oil"
+    )
+    assert review["most_helpful_critical_review"]["rating"] == "1"
+    assert review["most_helpful_critical_review"]["author"] == "Faith"
+    assert review["most_helpful_review_pair_count"] == 2
     assert review["review_load_more_control_text"] == "Load 6 more reviews"
     assert review["review_load_more_batch_size"] == 6
     assert review["review_continuation_available"] is True
@@ -521,7 +610,19 @@ def test_projection_failure_and_pin_failure_preserve_raw_inputs(
         )[0]
         == runner.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
     )
-    for packet_dir in (projection_dir, pin_dir):
+    posture_dir = tmp_path / "posture"
+    assert (
+        _run(
+            output=posture_dir,
+            monkeypatch=monkeypatch,
+            mode="content",
+            capture_factory=lambda: _success(
+                rendered_dom=_DOM.replace("Most Recent", "Most Helpful")
+            ),
+        )[0]
+        == runner.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    )
+    for packet_dir in (projection_dir, pin_dir, posture_dir):
         names = {
             _logical_name(item["relative_packet_path"])
             for item in _manifest(packet_dir)["preserved_files"]
@@ -529,6 +630,10 @@ def test_projection_failure_and_pin_failure_preserve_raw_inputs(
         assert "cloakbrowser_rendered_dom.html" in names
         assert "cloakbrowser_visible_text.txt" in names
         assert "cloakbrowser_viewport_screenshot.png" in names
+    posture_manifest = _manifest(posture_dir)
+    assert runner.NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE in json.dumps(
+        posture_manifest
+    )
 
 
 def test_browser_secret_rejected_before_persistence(
@@ -614,12 +719,20 @@ def test_raw_and_content_projection_and_silver_are_equal(
     ]
 
 
-def test_v1_content_packet_remains_projectable_after_v2_parser_bump(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    "legacy_version",
+    [
+        "retail_pdp_nordstrom_aggregate_parser_v1",
+        "retail_pdp_nordstrom_aggregate_parser_v2",
+    ],
+)
+def test_v1_and_v2_content_packets_remain_projectable_after_v3_parser_bump(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    legacy_version: str,
 ) -> None:
-    packet_dir = tmp_path / "content-v1"
+    packet_dir = tmp_path / legacy_version.rsplit("_", 1)[-1]
     assert _run(output=packet_dir, monkeypatch=monkeypatch, mode="content")[0] == 0
-    legacy_version = "retail_pdp_nordstrom_aggregate_parser_v1"
 
     def downgrade_content_record(payload: dict[str, Any]) -> None:
         payload["parser_version"] = legacy_version
@@ -628,6 +741,17 @@ def test_v1_content_packet_remains_projectable_after_v2_parser_bump(
             for row in payload["rows"]
             if row["row_kind"] == "retail_review_substrate"
         )
+        for key in (
+            "most_helpful_positive_review",
+            "most_helpful_critical_review",
+            "most_helpful_review_pair_count",
+        ):
+            fields.pop(key)
+        if legacy_version.endswith("_v2"):
+            fields["review_substrate_source"] = (
+                "nordstrom_target_product_json_ld_and_rendered_review_microdata"
+            )
+            return
         for key in (
             "review_sort_posture",
             "review_load_more_control_text",
@@ -683,6 +807,33 @@ def test_parser_fit_match_and_fact_drift(
     drift = check_nordstrom_pdp_parser_fit(packet_or_manifest_path=packet_dir)
     assert drift["status"] == "drift"
     assert drift["difference"]["path"].endswith("/price")
+
+
+def test_parser_fit_reports_drift_for_mutated_recent_review_input(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = tmp_path / "sample-review-drift"
+    assert _run(output=packet_dir, monkeypatch=monkeypatch, mode="sample")[0] == 0
+    dom_path = _artifact_path(packet_dir, "cloakbrowser_rendered_dom.html")
+    changed = dom_path.read_bytes().replace(
+        b"This balm is soft and lasts.",
+        b"This retained recent-review fact changed.",
+        1,
+    )
+    _rewrite_sample_input(
+        packet_dir,
+        "cloakbrowser_rendered_dom.html",
+        changed,
+    )
+
+    drift = check_nordstrom_pdp_parser_fit(
+        packet_or_manifest_path=packet_dir
+    )
+
+    assert drift["status"] == "drift"
+    assert drift["difference"]["path"].endswith(
+        "/rendered_reviews/0/body"
+    )
 
 
 @pytest.mark.parametrize(

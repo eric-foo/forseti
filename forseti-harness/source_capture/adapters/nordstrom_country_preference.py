@@ -11,18 +11,28 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
+from typing import Literal
 from urllib.parse import urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
     PreCaptureOutcome,
 )
+from source_capture.projection_shared import first_match
 
 
 _NORDSTROM_HOMEPAGE_URL = "https://www.nordstrom.com/"
 _CONTROL_PROBE_TIMEOUT_MS = 2500
 _POST_SELECTION_POLL_MS = 100
 _HOMEPAGE_RENDER_SETTLE_MS = 5000
+_REVIEW_POSTURE_POLL_MS = 100
+_REVIEW_POSTURE_TIMEOUT_MS = 20000
+NORDSTROM_REVIEW_WINDOW_DAYS = 30
+NORDSTROM_REVIEW_MINIMUM = 6
+NORDSTROM_REVIEW_MAXIMUM = 30
+NORDSTROM_REVIEW_POSTURES = ("recent_window_30d",)
+NordstromReviewPosture = Literal["recent_window_30d"]
 
 # The first two selectors cover the semantic control observed in earlier recon. The flag
 # selectors cover the current rendered control, whose markup has no stable name/aria-label.
@@ -64,6 +74,8 @@ class NordstromCountryPreferencePlugin:
     currency_code: str = "USD"
     setup_timeout_seconds: float = 45.0
     target_url: str | None = None
+    review_posture: NordstromReviewPosture | None = None
+    review_window_reference_date: date | None = None
 
     def __post_init__(self) -> None:
         if self.country_code != "US" or self.currency_code != "USD":
@@ -78,6 +90,13 @@ class NordstromCountryPreferencePlugin:
                 raise ValueError(
                     "Nordstrom country preference target_url must use nordstrom.com"
                 )
+        if (
+            self.review_posture is not None
+            and self.review_posture not in NORDSTROM_REVIEW_POSTURES
+        ):
+            raise ValueError(
+                "Nordstrom review posture currently supports only recent_window_30d"
+            )
 
     @property
     def humanize(self) -> bool:
@@ -197,11 +216,142 @@ class NordstromCountryPreferencePlugin:
     def confirm(self, rendered_dom: str) -> PinConfirmation:
         return confirm_nordstrom_us_storefront(rendered_dom)
 
+    def before_snapshot(
+        self, page: object, *, setup_timeout_ms: float
+    ) -> PreCaptureOutcome:
+        """Select Most Recent and bound a 30-day window with a 6-row floor/30-row cap."""
+        if self.review_posture is None:
+            return PreCaptureOutcome(attempted=False, steps_completed=True)
+        product_id = _product_id_from_url(self.target_url)
+        if product_id is None:
+            return _failed_review_outcome(
+                "target_product_id",
+                "commissioned target URL did not expose a numeric product id",
+            )
+        deadline = time.monotonic() + (
+            min(setup_timeout_ms, _REVIEW_POSTURE_TIMEOUT_MS) / 1000
+        )
+        warning_notes: list[str] = []
+        selector = f"#sort-by-filter-{product_id}-anchor"
+        try:
+            sort_control = page.locator(selector)  # type: ignore[union-attr]
+            if sort_control.count() != 1:
+                return _failed_review_outcome(
+                    "sort_control",
+                    f"{selector} did not resolve to exactly one element",
+                )
+            if sort_control.inner_text(timeout=_remaining_probe_timeout_ms(deadline)).strip() != (
+                "Sort by Most Recent"
+            ):
+                sort_control.scroll_into_view_if_needed(
+                    timeout=_remaining_probe_timeout_ms(deadline)
+                )
+                page.wait_for_timeout(500)  # type: ignore[union-attr]
+                try:
+                    sort_control.click(
+                        timeout=_remaining_probe_timeout_ms(deadline)
+                    )
+                except Exception as first_click_error:
+                    page.wait_for_timeout(1000)  # type: ignore[union-attr]
+                    sort_control.click(
+                        timeout=_remaining_probe_timeout_ms(deadline)
+                    )
+                    warning_notes.append(
+                        "nordstrom_review_posture: sort control required one "
+                        f"bounded stability retry ({first_click_error})"
+                    )
+                option = page.get_by_role(  # type: ignore[union-attr]
+                    "option", name="Most Recent", exact=True
+                )
+                if option.count() != 1:
+                    return _failed_review_outcome(
+                        "most_recent_option",
+                        "Most Recent did not resolve to exactly one open-menu option",
+                    )
+                try:
+                    option.click(timeout=_remaining_probe_timeout_ms(deadline))
+                except Exception as first_option_click_error:
+                    page.wait_for_timeout(1000)  # type: ignore[union-attr]
+                    option = page.get_by_role(  # type: ignore[union-attr]
+                        "option", name="Most Recent", exact=True
+                    )
+                    if option.count() != 1:
+                        return _failed_review_outcome(
+                            "most_recent_option",
+                            "Most Recent disappeared during its bounded stability retry",
+                        )
+                    option.click(timeout=_remaining_probe_timeout_ms(deadline))
+                    warning_notes.append(
+                        "nordstrom_review_posture: Most Recent option required one "
+                        f"bounded stability retry ({first_option_click_error})"
+                    )
+        except Exception as exc:
+            return _failed_review_outcome(
+                "select_most_recent",
+                f"Most Recent selection failed ({exc})",
+            )
+
+        reference_date = self.review_window_reference_date or datetime.now(
+            timezone.utc
+        ).date()
+        while time.monotonic() < deadline:
+            try:
+                observation = observe_nordstrom_review_window(
+                    page.content(),  # type: ignore[union-attr]
+                    reference_date=reference_date,
+                )
+                if observation["admitted"]:
+                    return PreCaptureOutcome(
+                        attempted=True,
+                        steps_completed=True,
+                        warning_notes=warning_notes,
+                    )
+                if observation["status"] == "needs_more":
+                    continuation = page.locator(  # type: ignore[union-attr]
+                        "#product-page-reviews a:has-text('Load 6 more reviews')"
+                    )
+                    if continuation.count() != 1:
+                        return _failed_review_outcome(
+                            "review_continuation",
+                            "the 30-day window needs another batch but the target "
+                            "continuation did not resolve exactly once",
+                        )
+                    continuation.click(
+                        timeout=_remaining_probe_timeout_ms(deadline)
+                    )
+                    page.wait_for_timeout(1500)  # type: ignore[union-attr]
+            except Exception:
+                pass
+            pause_ms = min(_REVIEW_POSTURE_POLL_MS, _remaining_ms(deadline))
+            if pause_ms > 0:
+                page.wait_for_timeout(pause_ms)  # type: ignore[union-attr]
+        return _failed_review_outcome(
+            "review_postconditions",
+            "Most Recent, the highlighted pair, and the bounded 30-day review "
+            "window were not jointly observed",
+        )
+
     def describe(self) -> dict[str, object]:
         return {
             "pre_capture": "nordstrom_country_preference",
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
+            "nordstrom_review_posture_requested": self.review_posture,
+            "nordstrom_review_window_days": (
+                NORDSTROM_REVIEW_WINDOW_DAYS
+                if self.review_posture is not None
+                else None
+            ),
+            "nordstrom_review_minimum": (
+                NORDSTROM_REVIEW_MINIMUM
+                if self.review_posture is not None
+                else None
+            ),
+            "nordstrom_review_maximum": (
+                NORDSTROM_REVIEW_MAXIMUM
+                if self.review_posture is not None
+                else None
+            ),
         }
 
     def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
@@ -250,6 +400,178 @@ def confirm_nordstrom_us_storefront(rendered_dom: str) -> PinConfirmation:
     )
 
 
+def observe_nordstrom_review_window(
+    rendered_dom: str,
+    *,
+    reference_date: date,
+) -> dict[str, object]:
+    """Observe the bounded recent-review window without trusting click intent."""
+    dom = rendered_dom or ""
+    product_id_match = re.search(
+        r'id=["\']sort-by-filter-(\d+)-anchor["\'][^>]*>'
+        r"[\s\S]{0,500}?Sort by\s*<strong>\s*Most Recent\s*</strong>",
+        dom,
+        flags=re.IGNORECASE,
+    )
+    review_start = dom.find('id="product-page-reviews"')
+    review_html = dom[review_start:] if review_start >= 0 else ""
+    review_dates = _main_review_dates(review_html)
+    review_ids = [review_id for review_id, _review_date in review_dates]
+    highlighted_pair = all(
+        marker in review_html
+        for marker in (
+            "Most helpful positive review",
+            "Most helpful critical review",
+            'id="review-stars-positive"',
+            'id="review-stars-critical"',
+        )
+    )
+    continuation = (
+        re.search(
+            r'<a\b[^>]*href=["\']\?page=\d+["\'][^>]*>\s*'
+            r"Load\s+6\s+more reviews\s*</a>",
+            review_html,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    )
+    count = len(review_ids)
+    consecutive = review_ids == list(range(1, count + 1))
+    descending = all(
+        review_dates[index][1] >= review_dates[index + 1][1]
+        for index in range(max(0, count - 1))
+    )
+    cutoff = reference_date - timedelta(days=NORDSTROM_REVIEW_WINDOW_DAYS)
+    in_window_count = sum(
+        review_date >= cutoff for _review_id, review_date in review_dates
+    )
+    oldest = review_dates[-1][1] if review_dates else None
+    base_valid = (
+        product_id_match is not None
+        and highlighted_pair
+        and consecutive
+        and descending
+        and count >= NORDSTROM_REVIEW_MINIMUM
+        and count <= NORDSTROM_REVIEW_MAXIMUM
+        and count % NORDSTROM_REVIEW_MINIMUM == 0
+    )
+    if not base_valid:
+        status = "invalid"
+    elif oldest is not None and oldest <= cutoff:
+        status = "low_density_context" if in_window_count == 0 else "window_complete"
+    elif count >= NORDSTROM_REVIEW_MAXIMUM:
+        status = "window_truncated"
+    elif continuation:
+        status = "needs_more"
+    else:
+        status = "invalid"
+    admitted = status in {
+        "window_complete",
+        "low_density_context",
+        "window_truncated",
+    }
+    return {
+        "admitted": admitted,
+        "status": status,
+        "reference_date": reference_date.isoformat(),
+        "window_days": NORDSTROM_REVIEW_WINDOW_DAYS,
+        "cutoff_date": cutoff.isoformat(),
+        "captured_review_count": count,
+        "in_window_review_count": in_window_count,
+        "newest_review_date": (
+            review_dates[0][1].isoformat() if review_dates else None
+        ),
+        "oldest_review_date": oldest.isoformat() if oldest is not None else None,
+        "continuation_available": continuation,
+        "continuation_activations": max(
+            0, (count - NORDSTROM_REVIEW_MINIMUM) // NORDSTROM_REVIEW_MINIMUM
+        ),
+        "highlighted_pair_present": highlighted_pair,
+        "sort_most_recent": product_id_match is not None,
+        "review_ids": review_ids,
+    }
+
+
+def confirm_nordstrom_review_posture(
+    rendered_dom: str,
+    *,
+    reference_date: date | None = None,
+) -> PinConfirmation:
+    """Confirm the bounded review-window posture from captured source state."""
+    observation = observe_nordstrom_review_window(
+        rendered_dom,
+        reference_date=reference_date or datetime.now(timezone.utc).date(),
+    )
+    if observation["admitted"]:
+        return PinConfirmation(
+            confirmed=True,
+            detail=(
+                "target review section shows Sort by Most Recent, the most-helpful "
+                "positive/critical pair, and bounded recent-review status "
+                f"{observation['status']} with "
+                f"{observation['captured_review_count']} main-list rows"
+            ),
+        )
+    return PinConfirmation(
+        confirmed=False,
+        detail=(
+            "required Nordstrom onboarding review conjunction absent "
+            f"(status={observation['status']}, "
+            f"most_recent={observation['sort_most_recent']}, "
+            f"review_ids={observation['review_ids']}, "
+            f"highlighted_pair={observation['highlighted_pair_present']}, "
+            f"continuation={observation['continuation_available']})"
+        ),
+    )
+
+
+def _main_review_dates(review_html: str) -> list[tuple[int, date]]:
+    starts = list(
+        re.finditer(
+            r'<div\b[^>]*\bid=["\']review-(\d+)["\'][^>]*>',
+            review_html,
+            flags=re.IGNORECASE,
+        )
+    )
+    result: list[tuple[int, date]] = []
+    for index, start in enumerate(starts):
+        end = starts[index + 1].start() if index + 1 < len(starts) else len(review_html)
+        card = review_html[start.start() : end]
+        raw_date = None
+        for pattern in (
+            r'itemprop=["\']datePublished["\'][^>]*content=["\']'
+            r"(\d{4}-\d{2}-\d{2})",
+            r"\b("
+            r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
+            r"May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|"
+            r"Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+            r"\s+\d{1,2},\s+\d{4})\b",
+        ):
+            raw_date = first_match(
+                card,
+                pattern,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            if raw_date is not None:
+                break
+        parsed = _parse_review_date(raw_date)
+        if parsed is not None:
+            result.append((int(start.group(1)), parsed))
+    return result
+
+
+def _parse_review_date(value: str | None) -> date | None:
+    if value is None:
+        return None
+    value = re.sub(r"^Sept\s+", "Sep ", value, flags=re.IGNORECASE)
+    for format_string in ("%Y-%m-%d", "%b %d, %Y", "%B %d, %Y"):
+        try:
+            return datetime.strptime(value, format_string).date()
+        except ValueError:
+            continue
+    return None
+
+
 def _failed_outcome(reason: str, detail: str) -> PreCaptureOutcome:
     return PreCaptureOutcome(
         attempted=True,
@@ -260,6 +582,25 @@ def _failed_outcome(reason: str, detail: str) -> PreCaptureOutcome:
             "confirmed country preference"
         ],
     )
+
+
+def _failed_review_outcome(reason: str, detail: str) -> PreCaptureOutcome:
+    return PreCaptureOutcome(
+        attempted=True,
+        steps_completed=False,
+        reason=reason,
+        warning_notes=[
+            "nordstrom_review_posture: "
+            f"{detail}; artifacts will be captured and fail closed at admission"
+        ],
+    )
+
+
+def _product_id_from_url(url: str | None) -> str | None:
+    if url is None:
+        return None
+    match = re.search(r"/s/[^/?#]+/(\d+)(?:[/?#]|$)", urlparse(url).path)
+    return match.group(1) if match else None
 
 
 def _click_first(page: object, selectors: tuple[str, ...], deadline: float) -> bool:

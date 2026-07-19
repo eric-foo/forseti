@@ -16,6 +16,8 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     CloakBrowserSnapshotFailure,
     CloakBrowserSnapshotFailureKind,
     CloakBrowserSnapshotSuccess,
+    PinConfirmation,
+    PreCaptureOutcome,
     _CloakBrowserSnapshotEngine,
     _looks_like_cloakbrowser_dependency_failure,
     fetch_cloakbrowser_snapshot_capture,
@@ -1109,6 +1111,101 @@ def test_cloakbrowser_runner_threads_load_more_to_capture(monkeypatch: pytest.Mo
     assert exit_code == 3
     assert seen["load_more_selector"] == "text=Show more"
     assert seen["load_more_clicks"] == 3
+
+
+def test_live_engine_runs_optional_before_snapshot_action_before_serialization(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "rendered source"
+
+    class FakePage:
+        url = "https://example.com/rendered"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            calls.append("goto")
+
+        def content(self) -> str:
+            calls.append("content")
+            return "<html><body>rendered source</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Rendered source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    class FakePlugin:
+        humanize = False
+
+        def before(
+            self, page: object, *, setup_timeout_ms: float
+        ) -> PreCaptureOutcome:
+            calls.append("before")
+            return PreCaptureOutcome(attempted=True, steps_completed=True)
+
+        def before_snapshot(
+            self, page: object, *, setup_timeout_ms: float
+        ) -> PreCaptureOutcome:
+            calls.append("before_snapshot")
+            return PreCaptureOutcome(attempted=True, steps_completed=True)
+
+        def confirm(self, rendered_dom: str) -> PinConfirmation:
+            return PinConfirmation(confirmed=True, detail="fixture")
+
+        def describe(self) -> dict[str, object]:
+            return {}
+
+        def note(
+            self,
+            outcome: PreCaptureOutcome,
+            confirmation: PinConfirmation,
+        ) -> str:
+            return "fixture"
+
+    monkeypatch.setattr(
+        cloakbrowser_snapshot_module,
+        "import_module",
+        lambda name: FakeCloakBrowserModule(),
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/rendered",
+        timeout_seconds=5,
+        pre_capture=FakePlugin(),
+        engine=_CloakBrowserSnapshotEngine(),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert calls.index("goto") < calls.index("before_snapshot") < calls.index(
+        "content"
+    )
+    assert result.metadata["before_snapshot_attempted"] is True
+    assert result.metadata["before_snapshot_steps_completed"] is True
 
 
 def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_step_px_to_engine_and_metadata() -> None:

@@ -160,13 +160,15 @@ class ScrollStopCondition:
 
 
 class PreCapturePlugin(Protocol):
-    """A site-specific pre-capture step the generic adapter runs without knowing the site.
+    """Site-specific capture lifecycle steps the generic adapter runs without site knowledge.
 
     The generic adapter knows nothing about any storefront, widget, or signal: it calls
     ``before`` after page creation (before the main goto), ``confirm`` on the rendered DOM
     after capture, ``describe`` for non-secret metadata, and ``note`` for the operator-facing
-    limitation note. All site-specific wording (storefront name, currency signals, widget steps)
-    lives in the plugin, never here. ``humanize`` selects the humanized browser launch profile.
+    limitation note. A plugin may also expose ``before_snapshot`` for a bounded site-owned
+    interaction after navigation and configured scrolling but before artifact serialization.
+    All site-specific wording (storefront name, currency signals, widget steps) lives in the
+    plugin, never here. ``humanize`` selects the humanized browser launch profile.
     """
 
     @property
@@ -198,6 +200,8 @@ class CloakBrowserSnapshotEngineResult(Protocol):
     # when no plugin was supplied. ``fetch_...`` reads it via getattr so engines that predate
     # the seam (or fakes) without the attribute degrade to "no plugin ran".
     pre_capture_outcome: PreCaptureOutcome | None
+    # Optional bounded site-owned action after navigation/scrolling and before snapshot.
+    before_snapshot_outcome: PreCaptureOutcome | None
 
 
 class CloakBrowserSnapshotEngine(Protocol):
@@ -391,6 +395,9 @@ def fetch_cloakbrowser_snapshot_capture(
     pre_capture_outcome: PreCaptureOutcome | None = getattr(
         engine_result, "pre_capture_outcome", None
     )
+    before_snapshot_outcome: PreCaptureOutcome | None = getattr(
+        engine_result, "before_snapshot_outcome", None
+    )
     pin_confirmed: bool | None = None
     pre_capture_metadata: dict[str, object] = {}
     if pre_capture is not None:
@@ -486,6 +493,21 @@ def fetch_cloakbrowser_snapshot_capture(
         ),
         "pre_capture_reason": (
             pre_capture_outcome.reason if pre_capture_outcome is not None else None
+        ),
+        "before_snapshot_attempted": (
+            before_snapshot_outcome.attempted
+            if before_snapshot_outcome is not None
+            else False
+        ),
+        "before_snapshot_steps_completed": (
+            before_snapshot_outcome.steps_completed
+            if before_snapshot_outcome is not None
+            else False
+        ),
+        "before_snapshot_reason": (
+            before_snapshot_outcome.reason
+            if before_snapshot_outcome is not None
+            else None
         ),
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
@@ -776,6 +798,17 @@ class _CloakBrowserSnapshotEngine:
                         )
                         if check_scroll_stop(stage="load_more", index=index + 1):
                             break
+                before_snapshot_outcome: PreCaptureOutcome | None = None
+                before_snapshot_started_ns = clock_ns()
+                before_snapshot = getattr(pre_capture, "before_snapshot", None)
+                if callable(before_snapshot):
+                    before_snapshot_outcome = before_snapshot(
+                        page, setup_timeout_ms=setup_timeout_ms
+                    )
+                    warning_notes.extend(before_snapshot_outcome.warning_notes)
+                phase_ms["before_snapshot_plugin"] = elapsed_ms(
+                    before_snapshot_started_ns
+                )
                 dom_started_ns = clock_ns()
                 rendered_dom = page.content()
                 phase_ms["dom_serialization"] = elapsed_ms(dom_started_ns)
@@ -818,6 +851,7 @@ class _CloakBrowserSnapshotEngine:
                     screenshot_png=screenshot_png,
                     warning_notes=warning_notes,
                     pre_capture_outcome=pre_capture_outcome,
+                    before_snapshot_outcome=before_snapshot_outcome,
                     capture_phase_timing=capture_phase_timing,
                 )
             finally:
@@ -846,6 +880,7 @@ class _LiveEngineResult:
     screenshot_png: bytes
     warning_notes: list[str] = field(default_factory=list)
     pre_capture_outcome: PreCaptureOutcome | None = None
+    before_snapshot_outcome: PreCaptureOutcome | None = None
     capture_phase_timing: dict[str, object] = field(default_factory=dict)
 
 
