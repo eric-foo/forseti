@@ -11,6 +11,7 @@ from __future__ import annotations
 from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
+    DataLakeRootUnavailableError,
     EPOCH_MARKER_FILENAME,
     FORSETI_DATA_ROOT_ENV,
     LAKE_EPOCH,
@@ -29,6 +30,7 @@ from data_lake.root import (
 __all__ = [
     "DataLakeRoot",
     "DataLakeRootError",
+    "DataLakeRootUnavailableError",
     "EPOCH_MARKER_FILENAME",
     "FORSETI_DATA_ROOT_ENV",
     "LAKE_EPOCH",

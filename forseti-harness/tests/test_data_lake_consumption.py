@@ -25,7 +25,7 @@ from data_lake.consumption import (
     reconcile_availability_per_packet,
     retract_ack,
 )
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, DataLakeRootUnavailableError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -370,6 +370,37 @@ def test_scoped_reconcile_surfaces_corrupt_selected_anchor(
         (selected, "availability_reconcile_failed")
     ]
     assert failures[0]["error"]
+
+
+def test_scoped_reconcile_aborts_when_root_disappears(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_ids = sorted(
+        [
+            _commit_packet(root, tmp_path, "root-loss-a"),
+            _commit_packet(root, tmp_path, "root-loss-b"),
+            _commit_packet(root, tmp_path, "root-loss-c"),
+        ]
+    )
+    original_record = root.record_availability
+    calls: list[str] = []
+
+    def disconnect_on_second_packet(packet_id: str) -> None:
+        calls.append(packet_id)
+        if len(calls) == 2:
+            root.path.rename(tmp_path / "disconnected-lake")
+            raise OSError(433, "A device which does not exist was specified")
+        original_record(packet_id)
+
+    monkeypatch.setattr(root, "record_availability", disconnect_on_second_packet)
+
+    with pytest.raises(DataLakeRootUnavailableError) as excinfo:
+        reconcile_availability_per_packet(root, scope_packet_ids=packet_ids)
+
+    assert calls == packet_ids[:2]
+    assert packet_ids[1] in str(excinfo.value)
+    assert "data root is no longer a directory" in str(excinfo.value)
 
 
 def test_reconcile_purge_tolerates_concurrently_removed_entry(

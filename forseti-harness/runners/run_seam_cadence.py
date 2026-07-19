@@ -23,9 +23,11 @@ Exit semantics (``--run``): cycle 1 is allowed to work (its entries are the
 backlog being drained); cycle 2 must emit ZERO entrypoint status entries, and a
 final compute-free pending sweep must find ZERO remaining backlog. Failures
 never satisfy the signal: a packet that failed in cycle 1 stays
-unacknowledged, re-surfaces in cycle 2, and fails the exit code. One
-entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
-(counted as cycle work), never a silent abort of the remaining lanes.
+unacknowledged, re-surfaces in cycle 2, and fails the exit code. An ordinary
+entrypoint exception is a visible ``entrypoint_failed`` entry for that lane and
+never silently aborts the remaining lanes. Verified loss of the whole data-root
+identity is different: it emits one bounded cadence-abort event and stops all
+remaining entrypoint runs immediately.
 
 After and only after that completion signal passes, the cadence invokes the
 contract-pinned data-lake index runner for one ``derived_retrieval`` rebuild.
@@ -63,6 +65,7 @@ from typing import Callable, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from data_lake.root import DataLakeRootUnavailableError
 from runners import run_asr_transcript_catchup as _asr
 from runners import run_basenotes_cleaning_catchup as _basenotes
 from runners import run_ecr_catchup as _ecr
@@ -276,6 +279,24 @@ def run_check(ctx: CadenceContext) -> int:
     return 1 if failures else 0
 
 
+def _abort_root_unavailable(
+    *, cycle: int | str, entrypoint: str, entrypoint_index: int, exc: Exception
+) -> int:
+    remaining_in_cycle = max(0, len(CADENCE_ENTRYPOINTS) - entrypoint_index - 1)
+    remaining_later_cycles = len(CADENCE_ENTRYPOINTS) if cycle == 1 else 0
+    _print(
+        {
+            "cycle": cycle,
+            "entrypoint": entrypoint,
+            "status": "cadence_aborted_root_unavailable",
+            "error": f"{type(exc).__name__}: {exc}"[:200],
+            "skipped_entrypoint_runs": remaining_in_cycle + remaining_later_cycles,
+            "post_cycle_pending_skipped": True,
+        }
+    )
+    return 1
+
+
 def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
     """Two full cycles over every entrypoint. Exit 0 iff cycle 2 emits ZERO
     entrypoint status entries and a final compute-free pending sweep finds ZERO
@@ -288,10 +309,17 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
 
     second_cycle_entries = 0
     for cycle in (1, 2):
-        for entrypoint in CADENCE_ENTRYPOINTS:
+        for entrypoint_index, entrypoint in enumerate(CADENCE_ENTRYPOINTS):
             if skip_asr and entrypoint.needs_asr_compute:
                 try:
                     pending = entrypoint.pending(ctx, scope_packet_ids)
+                except DataLakeRootUnavailableError as exc:
+                    return _abort_root_unavailable(
+                        cycle=cycle,
+                        entrypoint=entrypoint.runner,
+                        entrypoint_index=entrypoint_index,
+                        exc=exc,
+                    )
                 except Exception as exc:  # noqa: BLE001 - skipped lane must stay checkable
                     _print(
                         {
@@ -317,6 +345,13 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                 continue
             try:
                 results = entrypoint.run(ctx, scope_packet_ids)
+            except DataLakeRootUnavailableError as exc:
+                return _abort_root_unavailable(
+                    cycle=cycle,
+                    entrypoint=entrypoint.runner,
+                    entrypoint_index=entrypoint_index,
+                    exc=exc,
+                )
             except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
                 results = [
                     {
@@ -328,7 +363,15 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                 _print({"cycle": cycle, "entrypoint": entrypoint.runner, **result})
             if cycle == 2:
                 second_cycle_entries += len(results)
-    post_cycle_pending = _post_cycle_pending_failures(ctx, scope_packet_ids)
+    try:
+        post_cycle_pending = _post_cycle_pending_failures(ctx, scope_packet_ids)
+    except DataLakeRootUnavailableError as exc:
+        return _abort_root_unavailable(
+            cycle="post",
+            entrypoint="post_cycle_pending_sweep",
+            entrypoint_index=len(CADENCE_ENTRYPOINTS) - 1,
+            exc=exc,
+        )
     _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if second_cycle_entries or post_cycle_pending else 0
 
@@ -397,6 +440,8 @@ def _post_cycle_pending_failures(
     for entrypoint in CADENCE_ENTRYPOINTS:
         try:
             pending = entrypoint.pending(ctx, scope_packet_ids)
+        except DataLakeRootUnavailableError:
+            raise
         except Exception as exc:  # noqa: BLE001 - no-work claim must fail loud
             _print(
                 {

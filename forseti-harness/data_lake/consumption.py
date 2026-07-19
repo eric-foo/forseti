@@ -51,7 +51,7 @@ from typing import Any, Callable, Iterator, Sequence
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.lane_registry import LANE_ROLES
-from data_lake.root import raw_shard
+from data_lake.root import DataLakeRootUnavailableError, raw_shard
 
 ACK_SCHEMA_VERSION = 1
 _ACK_SUBTREE = "acknowledgements"
@@ -61,6 +61,18 @@ _ACK_ID_HEX_LEN = 24
 
 class ConsumptionSeamError(ValueError):
     """A seam-contract violation (bad namespace, malformed obligation, missing evidence)."""
+
+
+
+def _raise_if_root_unavailable(root, *, packet_id: str, cause: Exception) -> None:
+    """Promote a packet I/O failure only when the owning root also fails verification."""
+    try:
+        root._reverify()  # noqa: SLF001 - same-package systemic-failure classification
+    except Exception as root_exc:  # noqa: BLE001 - any failed identity proof is systemic
+        raise DataLakeRootUnavailableError(
+            "data root unavailable while reconciling availability for "
+            f"{packet_id}: {type(root_exc).__name__}: {root_exc}"
+        ) from cause
 
 
 def validate_ack_namespace(ack_namespace: str) -> str:
@@ -416,7 +428,10 @@ def reconcile_availability_per_packet(
     purged state), while an entry that cannot be deleted (live-writer lock,
     store I/O fault — the 2026-07-04 live cadence-vs-capture race class)
     becomes a visible ``availability_reconcile_failed`` entry for that packet
-    instead of crashing the whole batch.
+    instead of crashing the whole batch. After any packet I/O failure, root
+    identity is re-verified: a healthy root preserves per-packet isolation,
+    while failed root verification raises ``DataLakeRootUnavailableError``
+    immediately so callers do not amplify one device outage across the snapshot.
     """
     failures: list[dict] = []
     if scope_packet_ids is not None:
@@ -428,6 +443,7 @@ def reconcile_availability_per_packet(
                         "selected packet is not publicly available after reconcile"
                     )
             except Exception as exc:  # noqa: BLE001 - isolate selected corrupt anchor
+                _raise_if_root_unavailable(root, packet_id=packet_id, cause=exc)
                 failures.append(
                     {
                         "packet_id": packet_id,
@@ -448,6 +464,7 @@ def reconcile_availability_per_packet(
                 # state the purge wants — benign, continue.
                 continue
             except OSError as exc:
+                _raise_if_root_unavailable(root, packet_id=entry_file.stem, cause=exc)
                 # A live capture writer holds the entry open (Windows lock)
                 # or the store hiccuped mid-purge: the clean-slate claim
                 # fails for THIS packet only — a visible per-packet failure,
@@ -476,6 +493,7 @@ def reconcile_availability_per_packet(
             try:
                 root.record_availability(packet_id)
             except Exception as exc:  # noqa: BLE001 - surface corrupt packet, continue batch
+                _raise_if_root_unavailable(root, packet_id=packet_id, cause=exc)
                 failures.append(
                     {
                         "packet_id": packet_id,

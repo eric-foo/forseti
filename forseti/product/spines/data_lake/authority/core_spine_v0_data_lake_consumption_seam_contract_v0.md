@@ -105,9 +105,13 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
   refreshes only selected anchors and never purges the global availability
   index.
 - A selected anchor that becomes missing, corrupt, tombstoned, or unreadable
-  fails loudly. A packet committed after the snapshot is next-run work: it may
-  be reported, but cannot invalidate or silently join the current completion
-  claim.
+  fails loudly. Packet-local failure remains isolated so healthy selected
+  anchors continue. If the owning root also fails identity verification after
+  an I/O error, the failure is systemic: cadence emits one bounded root-loss
+  abort, skips every remaining entrypoint and final pending sweep, exits
+  nonzero, and never attempts the cadence-tail lake-map rebuild. A packet
+  committed after the snapshot is next-run work: it may be reported, but cannot
+  invalidate or silently join the current completion claim.
 - Standalone consumer calls remain live and unscoped by default. The boundary
   is explicit input, not process-global state or an implicit root wrapper.
 - The cadence-tail lake-map rebuild is an ordinary live rebuild after snapshot
