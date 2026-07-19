@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import shutil
-from contextlib import nullcontext
+from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Iterator, Sequence
 
 from harness_utils import generate_ulid, hash_file, staged_directory_publish, utc_now_z
 from source_capture.models import (
@@ -54,6 +54,16 @@ NON_CLAIMS = [
     "not buyer proof",
     "not commercial-readiness logic",
 ]
+
+
+@contextmanager
+def _staged_raw_packet(data_root: "DataLakeRoot", packet_id: str) -> Iterator[Path]:
+    staging_directory = data_root.stage_raw_packet(packet_id)
+    try:
+        yield staging_directory
+    finally:
+        if staging_directory.exists():
+            shutil.rmtree(staging_directory)
 
 
 def write_local_source_capture_packet(
@@ -142,7 +152,7 @@ def write_local_source_capture_packet(
         # the sharded write-once container <root>/raw/<packet_shard>/<packet_id>/ so
         # a partial packet never appears under raw/
         # (write-once + atomic publish per the write-boundary enforcement contract).
-        materialization = nullcontext(data_root.stage_raw_packet(packet_id))
+        materialization = _staged_raw_packet(data_root, packet_id)
     else:
         assert output_directory is not None
         final_output_directory = output_directory.resolve()

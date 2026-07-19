@@ -11,6 +11,8 @@ import json
 import hashlib
 from pathlib import Path
 
+from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION
+from cleaning.transcript_product_lake import product_mentions_policy_fingerprint
 from data_lake.canonical_json import canonical_record_bytes
 import pytest
 from data_lake.consumption import append_ack
@@ -1005,6 +1007,75 @@ def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None
     assert main(["--root", str(tmp_path / "lake"), "--target", "all", *_POLICY_ARGS]) == 2
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "error"
+
+
+def test_runner_cli_bootstraps_active_policy_once(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    from runners.run_data_lake_indexes_rebuild import main
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
+    expected_policy = {
+        "policy_version": EXTRACTOR_RUBRIC_VERSION,
+        "policy_fingerprint_sha256": product_mentions_policy_fingerprint(
+            EXTRACTOR_RUBRIC_VERSION
+        ),
+    }
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--bootstrap-active-product-mention-policy",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["status"] == "ok"
+    assert report["product_mention_policy_source"] == "active_checkout_bootstrap"
+    assert report["product_mention_policy"] == expected_policy
+    manifest = json.loads(
+        (
+            root.path
+            / "indexes"
+            / "derived_retrieval"
+            / "silver_vault"
+            / "core"
+            / "manifests"
+            / "by_mention.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert (
+        manifest["selection_policy_versions"]["product_mention_policy"]
+        == expected_policy
+    )
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--bootstrap-active-product-mention-policy",
+        ]
+    ) == 2
+    report = json.loads(capsys.readouterr().out)
+    assert "fresh-root only" in report["error"]
+
+    assert main(
+        [
+            "--root",
+            str(root.path),
+            "--target",
+            "derived_retrieval",
+            "--use-stored-product-mention-policy",
+        ]
+    ) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["product_mention_policy_source"] == "stored_manifest"
+    assert report["product_mention_policy"] == expected_policy
 
 
 def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> None:
