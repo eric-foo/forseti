@@ -339,17 +339,22 @@ controllers, create or dispatch a task, fork or spawn another agent, or execute
 the review. The commission includes `delivery: operator_courier_only`,
 `access: repo`, and
 `delegate_eligibility: different_vendor_lineage_with_direct_repo_access`.
-Same-vendor, unknown-lineage, no-repo, self, and Codex-managed substitutes are
-invalid. If no eligible controller is available, the prompt remains unexecuted.
+Same-vendor, unknown-lineage, no-repo, self, and Codex-managed controller
+substitutes are invalid. A manager-prefixed target-worktree path is not a
+controller substitute and does not make an otherwise eligible external
+controller invalid. If no eligible controller is available, the prompt remains
+unexecuted.
 
 Render one compact pointer-first prompt containing:
 
 1. the plain goal and what done looks like;
 2. the exact worktree or managed starting ref, branch, required commit pin and
-   `revision_mode`; a clean-at-bind requirement with only controller-owned
-   commissioned edits allowed afterward; named targets and patch scope; plus
-   the single `receiver_binding` receipt (using `receiver_to_observe` only for
-   facts the not-yet-launched receiver must observe);
+   `revision_mode`; delayed review of an advancing lane defaults to `ancestor`,
+   while an intentionally frozen historical diff or artifact uses `exact`; a
+   clean-at-bind requirement with only controller-owned commissioned edits
+   allowed afterward; named targets and patch scope; plus the single
+   `receiver_binding` receipt (using `receiver_to_observe` only for facts the
+   not-yet-launched receiver must observe);
 3. the different-vendor controller constraint plus author/home family and
    delegate family, using `operator_to_fill` only for an inferable but genuinely
    operator-owned value;
@@ -371,10 +376,14 @@ but it must label itself preparation-only, must not claim dispatch readiness,
 and must block receiver source loading until rebound to a verified concrete
 class. A delegated review-and-patch courier prompt must not carry
 `receiver_creation_authorization` and must not select `codex_managed_worktree`;
-the general receiver-creation clause above remains available for other explicit
-implementation commissions but is not a fallback for this lane. Generic
-`proceed`, implementation authority, unavailable external tooling, or a
-same-vendor sanity label never authorizes dispatch.
+that restriction selects the receiver class, not the target path namespace. An
+eligible `external_direct_write` controller may use the commissioned effective
+target even when its path is manager-prefixed, after the normal target,
+revision, capability, and writer-isolation checks. The general receiver-creation
+clause above remains available for other explicit implementation commissions
+but is not a fallback for this lane. Generic `proceed`, implementation
+authority, unavailable external tooling, or a same-vendor sanity label never
+authorizes dispatch.
 
 The default receiving output is chat or the lane PR/comment. Do not require a
 durable review report, `review_summary` courier, provenance checker, full source
@@ -789,11 +798,17 @@ Working-tree bytes are never a binding surface for a couriered receiver:
 uncommitted work is frozen into a commit as the last authoring act before
 courier, and the commission pins that frozen commit. A target that cannot be
 frozen blocks to the Chief Architect rather than binding a weaker identity.
-Exact pins remain exact, while an advancing lane head may continue only when
-the prompt explicitly uses ancestry semantics. Ancestry does not widen the
-frozen review target: the commission still pins the reviewed commit, diff, or
-artifact state, and descendant changes stay outside review scope unless the
-commission expressly includes them.
+Exact pins remain exact. A delayed delegated review or review-and-patch of an
+advancing lane defaults to explicit ancestry semantics: `required_revision`
+binds the minimum checkpoint, and receiving preflight verifies it is an ancestor
+of the clean current `HEAD`, then records that `HEAD` as `reviewed_revision`
+before source review. `reviewed_revision` is the exact immutable byte identity
+for that run and both revisions travel in the return. Later descendants remain
+outside scope. If the author continues after capture, the receiver reviews a
+separate clean worktree at `reviewed_revision` and applies any patch on its own
+review branch; the receiver must not review or patch a concurrently changing
+worktree. Use `exact` instead when the commissioned subject is intentionally one
+frozen historical diff, commit, or artifact.
 
 Receiving preflight establishes one binding, then stops repeating it:
 
@@ -892,7 +907,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, ignores an observed capability denial, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
+4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed receiver fallback; that receiver-class prohibition does not reject an explicitly commissioned manager-prefixed target worktree. A delayed advancing-lane review uses `ancestor`, captures `reviewed_revision` before source review, and keeps that snapshot immutable; an intentionally frozen review remains `exact`. A prompt fails this gate when it invents task-creation authority, infers denial from launch root or target namespace, ignores an observed capability denial, permits concurrent mutation of the reviewed snapshot, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source capsule remains decision-bounded under
