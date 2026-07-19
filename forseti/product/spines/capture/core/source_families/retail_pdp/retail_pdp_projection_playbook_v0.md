@@ -20,7 +20,7 @@ open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca-harness/source_capture/retail_pdp_projection.py
   - orca-harness/tests/unit/test_retail_pdp_projection.py
-branch_or_commit: origin/main @ d78e94ed
+branch_or_commit: origin/main @ 17fdc585
 stale_if:
   - The core projection doctrine changes carry-or-residualize, loss-ledger, source-envelope, or Retail/PDP family rules.
   - The Retail/PDP projection helper changes row kinds, required bindings, residual vocabulary, or retailer extraction behavior.
@@ -93,6 +93,7 @@ Minimum input for Retail/PDP projection:
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
 | Sephora content record | `retail_pdp_sephora_aggregate_content_v2` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. It preserves the complete rendered `linkStore.page.product` subtree plus the currently rendered review and Q&A components; v1 remains readable as a legacy input. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
+| Sephora review/Q&A companion | `sephora_bazaarvoice_onboarding_summary_v1` is projected only from exact API response bytes preserved by `sephora_bazaarvoice_onboarding`. Its hash-verified parent rendered packet supplies the page-declared read configuration and product/SKU identity set; tokens and secret-bearing request URLs are never persisted. This companion supplements rather than replaces the rendered PDP packet. |
 | Luckyscent content record | `retail_pdp_luckyscent_aggregate_content_v1` carries only target-bound Bread and Roses parser output: two small structured-JSON rows, all three variants in one offer row, and all eight rendered Judge.me reviews in one review-substrate row. Consumers bind real packet identity and JSON pointers; the confirmed default US/USD storefront does not claim US delivery, and the separate origin-derived `buyerCountry=SG` remains non-pin context. |
 | Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, the separate source-labelled most-helpful positive/critical review pair, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
 
@@ -203,26 +204,35 @@ authority or a claim that the `2026-07-19` LANEIGE sample already satisfies it.
   until the source exhausts or blocks continuation. Record the sort/filter
   state, activation count, row count, oldest source date, and any exhaustion or
   access residual. A fixed click count is not evidence of 30-day coverage.
-- Inventory the exact source age buckets without collapsing them into decade
-  labels. With `Non-Incentivized Reviews Only` active, preserve the displayed
-  count for every nonempty bucket and the exact filter state used. If the page
-  exposes only `13-17`, `18-24`, `25-34`, `35-44`, `45-54`, and `Over54`,
-  those are the authoritative source labels; product-level
-  `skuRefinements.ageRange` values are merchandising metadata, not reviewer
-  demographic counts. Filtered review bodies by age are a separate,
-  commissioned depth step; the minimum onboarding requirement is the complete
-  bucket-count breakdown.
+- Inventory the rendered contextual age filter, not a generic embedded filter
+  definition. On the verified Sephora PDP, the live reviewer buckets are
+  exactly `20s`, `30s`, `40s`, and `50s +`; their Bazaarvoice filter values are
+  `20s`, `30s`, `40s`, and `50s`, respectively. The generic embedded
+  `13-17` through `Over54` configuration conflicts with the rendered control
+  and is retained only as a source inconsistency, never promoted as the live
+  demographic vocabulary. With `Non-Incentivized Reviews Only` active,
+  preserve the exact count for all four buckets, the exact non-incentivized
+  denominator, each bucket's share of the declared-age subset, and the
+  declared-age coverage of all non-incentivized reviews. If rendered and
+  structured counts differ, carry both plus the exact difference; do not
+  silently choose one. Filtered review bodies by age are a separate,
+  commissioned depth step.
 - For Q&A, explicitly select `Most Answers`, preserve selected-state evidence,
-  the aggregate question count, and every question plus nested answer in the
-  initially rendered sorted window. Record the rendered question and answer
-  counts separately and preserve any remaining continuation control as a
-  bounded-window residual unless deeper Q&A loading was commissioned.
+  and attempt the rendered continuation control. If that control toggles
+  between one and four questions instead of advancing, preserve the UI failure
+  and use the page-declared read API companion for a bounded 100-question
+  `TotalAnswerCount:desc` window. Preserve the exact question response and
+  nested answer include bytes; record aggregate questions, projected question
+  rows, declared answer sum, included answer bodies, every difference, and the
+  uncaptured lower-ranked question count. Never call the nested include a
+  complete answer corpus when those counts differ.
 
 This posture adds one baseline review read, two explicitly sorted/filtered
-review views, up to six age-bucket count reads, and one Q&A sort selection to a
-future Sephora onboarding. The recurring cost catches silent default-sort
-drift, incentive-filter erasure, false 30-day claims, collapsed demographic
-labels, and question/answer count conflation.
+review views, four age-bucket count reads plus an exact denominator, and one
+bounded Q&A request after the rendered sort/continuation probe to a future
+Sephora onboarding. The recurring cost catches silent default-sort drift,
+incentive-filter erasure, false 30-day claims, collapsed demographic labels,
+misleading demographic denominators, and question/answer count conflation.
 
 ### Nordstrom review continuation
 

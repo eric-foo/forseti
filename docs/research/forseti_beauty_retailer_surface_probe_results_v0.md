@@ -123,12 +123,12 @@ retroactive deletion or compaction of any historical raw packet.
 - Q&A coverage is one rendered question and one nested answer against the
   displayed aggregate `Questions & Answers (1390)`. The selected UI posture was
   `Most Recent Questions`; `Most Answers` was only an unselected option.
-- The sample inventories the available review filters, including
-  `Non-Incentivized Reviews Only` and exact age buckets `13-17`, `18-24`,
-  `25-34`, `35-44`, `45-54`, and `Over54`. Both filters were inactive, so the
-  packet contains no reviewer age-bucket counts or filtered demographic
-  breakdown. The separate product/SKU refinement labels `20s`, `30s`, `40s`,
-  and `50s` are merchandising metadata, not review-demographic evidence.
+- The original sample retained both a generic embedded age configuration and
+  the rendered page. A live control audit corrected the earlier interpretation:
+  the actual contextual reviewer filter exposes exactly `20s`, `30s`, `40s`,
+  and `50s +`. Bazaarvoice uses `50s` as the API value behind the displayed
+  `50s +` label. The embedded generic values `13-17` through `Over54` conflict
+  with the rendered control and are not the live age-bucket authority.
 - The attached owner example is already represented exactly by the captured AI
   sentiment chips. Green/positive: `Softness (98)`, `Scent (48)`, and
   `Texture (26)`. Red/negative: `Irritation (51)` and `Scent (11)`. Polarity,
@@ -142,6 +142,30 @@ retroactive deletion or compaction of any historical raw packet.
   non-incentivized review view, non-incentivized most-recent loading through at
   least 30 days, and exact reviewer age-bucket counts while retaining an
   unfiltered baseline.
+- Follow-up dogfood on `2026-07-20` selected `Most Answers` and confirmed the
+  rendered continuation defect: the widget toggled between one and four
+  questions instead of progressing. The raw-preserving structured companion
+  therefore captured 100 questions sorted by
+  `TotalAnswerCount:desc` against an aggregate of `1391`. Those rows declare
+  `816` answers; the exact nested include preserves `770` answer bodies, so
+  `46` remain an explicit loss rather than a false completeness claim.
+- The same companion applied
+  `ContextDataValue_IncentivizedReview:eq:False`: exact denominator `14327`.
+  Live bucket counts were `20s=244`, `30s=338`, `40s=130`, and
+  `50s +=563` (`50s` API value). Among the `1275` reviews declaring one of
+  those buckets, the composition is `19.14%`, `26.51%`, `10.20%`, and
+  `44.16%`. That declared-age subset is only `8.90%` of all non-incentivized
+  reviews; `91.10%` do not contribute to the four-bucket breakdown.
+- The rendered filtered UI displayed `40s=129` during the audit while the
+  exact structured response returned `40s=130`; the one-review mismatch is
+  retained as a UI/API residual, not silently reconciled. The other live
+  bucket counts matched.
+- The first live companion attempt, packet `01KXXR6JV217PED113FHPADJRB`,
+  exercised the fail-loud path and preserved all six raw responses after a
+  parser mismatch. It remains append-only. Corrected packet
+  `01KXXSTQDJ8HGK45CXHPGE38SE` passed parser-fit, preserved six exact response
+  documents plus a token-free request manifest and summary, projected all 100
+  raw question rows, and retained the explicit answer and coverage losses.
 - Preserved-file SHA-256:
   - rendered DOM:
     `83b258a407d777ce5956e8ee1acf38178d210fec7832154529612de9eb038158`

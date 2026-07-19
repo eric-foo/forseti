@@ -648,6 +648,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "mechanism": "before acquisition, a hash-verified parent packet must be retail_pdp and its Sephora linkStore productId must match the requested product URL; every returned question row must carry that productId and every review row must carry that productId or a SKU enumerated by the same parent product before projection succeeds",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_sephora_onboarding.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "creator_handle and creator_profile_url are checked for request self-consistency and grid-enrichment items with a mismatched authorUniqueId are dropped, but the admitted cadence rows are attributed to the requested creator without a served-content author check",
           "status": "unbound"
         },
@@ -737,6 +746,20 @@
       }
     ],
     "writer_functions": [
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/sephora_onboarding_capture.py"
+        ],
+        "function": "_write_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/sephora_onboarding_capture.py"
+        ],
+        "function": "capture_sephora_onboarding_packet"
+      },
       {
         "a2_fork_impact": "manifest_shape",
         "defined_in": [
