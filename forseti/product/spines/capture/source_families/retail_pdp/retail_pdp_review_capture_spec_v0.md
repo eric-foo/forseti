@@ -76,7 +76,7 @@ source-visible fields below where the retailer exposes them; residualize when ab
 | `review_timestamp` (posted date/time) | **velocity + persistence** | **burst alignment** (timing) | preserve native precision (date vs datetime) |
 | `review_text_verbatim` (+ `title`) | pain-point / content shift | **templated/duplicate language** | preserve bytes, not paraphrase |
 | `verified_purchase_flag` | — | **verified-purchase share** — strong **low-side flag**, but **not** a high-side clearance (reimbursement makes fakes *verified*) | Amazon explicit; Bazaarvoice/PowerReviews "verified buyer" common; **coverage varies per retailer — residualize where absent** |
-| `incentive_disclosure_flag` (e.g. "received free sample", sweepstakes) | — | **incentive distortion** | capture only if source-exposed |
+| `incentive_disclosure_flag` + `incentive_disclosure_text` (e.g. incentivized, sponsored, gifted, complimentary, received free sample, sweepstakes, or paid partnership) | — | **incentive distortion** | preserve the source's exact flag and label when exposed; a false flag or absent label means only **not marked incentivized**, never confirmed organic or explicitly non-incentivized |
 | `syndication_source_flag` (native vs syndicated review) | — | **de-correlation** (a syndicated review echoed across retailers is **one** review, not independent corroboration) | **Bazaarvoice exposes syndication source** — high value |
 | `helpful_votes` / `total_votes` | engagement quality | vote-manipulation context | — |
 | `reviewer_profile_metadata` (badges, reviewer rank, #reviews, tenure/age) | — | **account-youth / history depth** | capture only what is source-exposed; **no person-level dossier** (product boundary) |
@@ -94,6 +94,12 @@ Extend the **aggregate** substrate (in addition to the current count + rating):
   breakdown.
 - `review_cadence` is **derivable** from the per-review timestamps (do not store a separate
   computed series in raw — it is a re-derivable view).
+
+For any downstream incentive-filtered approval read, Capture must also preserve the
+source-visible total, captured-row count, sort/filter/window, and truncation posture.
+Capture does not calculate approval, exclude rows from the raw packet, or translate
+an absent incentive marker into an organic-review claim. Those are downstream
+derivation and claim-boundary decisions.
 
 **Capture mechanics — substrate-first, per retailer** (consume existing recon; do not re-invent):
 
