@@ -337,6 +337,10 @@ class _FakeLocator:
         if self._selector == amazon_pin._WIDGET_OPEN_SELECTOR:
             if "open_widget" in self._page.fail_steps:
                 raise RuntimeError("widget not clickable")
+            # "widget_click" fails ONLY the post-visibility click, not the
+            # readiness wait, so the visible-but-click-fails branch is reachable.
+            if "widget_click" in self._page.fail_steps:
+                raise RuntimeError("widget click intercepted after it became visible")
             self._page.calls.append("open_widget")
             return
         # Apply selectors
@@ -461,6 +465,27 @@ def test_plugin_before_missing_widget_uses_one_bounded_combined_wait() -> None:
     assert outcome.reason == "open_widget"
     assert page.wait_timeouts == [5_000]
     assert "open_widget" not in page.calls
+
+
+def test_plugin_before_widget_visible_then_click_fails_is_open_widget() -> None:
+    """A widget that becomes visible but whose click then fails must fail closed:
+    steps_completed False, reason open_widget, and the failure type surfaced in the
+    warning (not the raw exception text). Distinct from the never-visible case."""
+    plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
+    page = _FakePage(fail_steps={"widget_click"})
+    outcome = plugin.before(page, setup_timeout_ms=30_000)
+    assert outcome.steps_completed is False
+    assert outcome.reason == "open_widget"
+    # Readiness gate ran once and the widget did become visible before the click.
+    assert page.wait_timeouts == [5_000]
+    assert "widget_visible" in page.calls
+    assert "open_widget" not in page.calls
+    # Failure visibility is preserved as the exception TYPE, without leaking str(exc).
+    assert any("RuntimeError" in warning for warning in outcome.warning_notes)
+    assert all(
+        "intercepted after it became visible" not in warning
+        for warning in outcome.warning_notes
+    )
 
 
 def test_plugin_before_uses_setup_timeout_as_shared_budget(monkeypatch: pytest.MonkeyPatch) -> None:
