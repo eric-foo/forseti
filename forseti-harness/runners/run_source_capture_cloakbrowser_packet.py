@@ -45,6 +45,7 @@ from source_capture.adapters.nordstrom_country_preference import (
 )
 from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
 from source_capture.adapters.target_delivery_location import TargetDeliveryLocationPlugin
+from source_capture.adapters.ulta_us_market import UltaUSMarketPlugin
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.browser_user_data import browser_user_data_path_for_label
 from source_capture.cli_support import (
@@ -122,6 +123,8 @@ _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
 _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
+ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
+_ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
 
 
 def run_source_capture_cloakbrowser_packet(
@@ -169,6 +172,7 @@ def run_source_capture_cloakbrowser_packet(
     nordstrom_country_setup_timeout_seconds: float = 30.0,
     luckyscent_market: str | None = None,
     sephora_market: str | None = None,
+    ulta_market: str | None = None,
     target_zip: str | None = None,
     target_zip_setup_timeout_seconds: float = 30.0,
     session_visibility_pin=None,
@@ -223,13 +227,14 @@ def run_source_capture_cloakbrowser_packet(
         nordstrom_country is not None,
         luckyscent_market is not None,
         sephora_market is not None,
+        ulta_market is not None,
         target_zip is not None,
     ]
     if sum(site_specific_preferences) > 1:
         raise ValueError(
             "only one site-specific pre-capture preference may be supplied: "
             "--delivery-zip, --nordstrom-country, --luckyscent-market, or "
-            "--sephora-market, or --target-zip"
+            "--sephora-market, --ulta-market, or --target-zip"
         )
     if delivery_zip is not None:
         _validate_amazon_delivery_zip_url(url)
@@ -249,6 +254,13 @@ def run_source_capture_cloakbrowser_packet(
         pre_capture = SephoraUSMarketPlugin(
             target_url=url,
             country_code=sephora_market,
+        )
+    elif ulta_market is not None:
+        ulta_sku = _validate_ulta_us_market_url(url)
+        pre_capture = UltaUSMarketPlugin(
+            target_url=url,
+            sku=ulta_sku,
+            country_code=ulta_market,
         )
     elif target_zip is not None:
         _validate_target_delivery_zip_url(url)
@@ -305,6 +317,16 @@ def run_source_capture_cloakbrowser_packet(
         packet_limitations.append(
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: {sephora_pin_failure}; packet "
             "preserved but MUST NOT be admitted as Sephora US/USD storefront evidence"
+        )
+    ulta_pin_failure = _ulta_market_pin_failure(
+        ulta_market=ulta_market,
+        final_url=capture_result.final_url,
+        pin_confirmed=capture_result.metadata.get("pin_confirmed"),
+    )
+    if ulta_pin_failure is not None:
+        packet_limitations.append(
+            f"{ULTA_MARKET_PIN_FAILURE_MODE_CHANGE}: {ulta_pin_failure}; packet "
+            "preserved but MUST NOT be admitted as Ulta US/USD storefront evidence"
         )
     amazon_pin_failure = _amazon_delivery_pin_failure(
         delivery_zip=delivery_zip,
@@ -365,6 +387,8 @@ def run_source_capture_cloakbrowser_packet(
     packet_visible_mode_changes = list(visible_mode_changes)
     if sephora_pin_failure is not None:
         packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
+    if ulta_pin_failure is not None:
+        packet_visible_mode_changes.append(ULTA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if amazon_pin_failure is not None:
         packet_visible_mode_changes.append(AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE)
     if amazon_vpn_fallback_reason is not None:
@@ -425,6 +449,7 @@ def run_source_capture_cloakbrowser_packet(
     retention_admission_failed = (
         capture_result.access_block_reason is not None
         or sephora_pin_failure is not None
+        or ulta_pin_failure is not None
         or amazon_pin_failure is not None
         or target_pin_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
@@ -642,6 +667,12 @@ def run_source_capture_cloakbrowser_packet(
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{result.output_directory}; {sephora_pin_failure}",
         )
+    if ulta_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{ULTA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {ulta_pin_failure}",
+        )
     if amazon_pin_failure is not None:
         failure_tokens = [AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE]
         if amazon_vpn_fallback_reason is not None:
@@ -714,6 +745,40 @@ def _sephora_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
             )
         ),
     )
+
+
+def _validate_ulta_us_market_url(url: str) -> str:
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    sku_values = parse_qs(parsed.query).get("sku", [])
+    if (
+        hostname not in _ULTA_HOSTS
+        or len(sku_values) != 1
+        or not sku_values[0].isdigit()
+    ):
+        raise ValueError(
+            "--ulta-market US requires an ulta.com PDP URL with exactly one numeric sku"
+        )
+    return sku_values[0]
+
+
+def _ulta_market_pin_failure(
+    *,
+    ulta_market: str | None,
+    final_url: str,
+    pin_confirmed: object,
+) -> str | None:
+    if ulta_market is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    reasons: list[str] = []
+    if final_hostname not in _ULTA_HOSTS:
+        reasons.append(
+            f"final storefront host was {final_hostname or 'unknown'!r}, not ulta.com"
+        )
+    if pin_confirmed is not True:
+        reasons.append("US/USD rendered-market conjunction was not confirmed")
+    return "; ".join(reasons) if reasons else None
 
 
 def _validate_amazon_delivery_zip_url(url: str) -> None:
@@ -1153,6 +1218,18 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--ulta-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Fail-closed assertion for an exact Ulta PDP US/USD storefront. Requires "
+            "consistent html/app/GraphQL en-US site state, one product price node "
+            "binding consumer locale en_US and currency USD, and the requested SKU's "
+            "Product JSON-LD nonempty USD offer. Performs no preference mutation and "
+            "does not claim a delivery location."
+        ),
+    )
+    parser.add_argument(
         "--target-zip",
         default=None,
         help=(
@@ -1329,6 +1406,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             _validate_old_reddit_url(args.url)
         if args.sephora_market is not None:
             _validate_sephora_us_market_url(args.url)
+        if args.ulta_market is not None:
+            _validate_ulta_us_market_url(args.url)
         if args.target_zip is not None:
             _validate_target_delivery_zip_url(args.url)
         # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only
@@ -1432,6 +1511,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             luckyscent_market=args.luckyscent_market,
             sephora_market=args.sephora_market,
+            ulta_market=args.ulta_market,
             target_zip=args.target_zip,
             target_zip_setup_timeout_seconds=args.target_zip_setup_timeout_seconds,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
