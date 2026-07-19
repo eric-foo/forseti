@@ -227,7 +227,9 @@ The reviewer evaluates actual function and evidence, not the presence of
 headings, labels, citation volume, or ritual content, and explicitly tests for
 rubric gaming. The evaluation includes the Forseti-specific rule that a report
 presenting required capture routes as exhausted when the canonical route was
-skipped or silently substituted cannot score above `59`.
+skipped or silently substituted is flagged as rubric gaming rather than scored
+as a clean report. Any resulting numeric cap is applied only by the separately
+adopted post-delivery rubric; no cap value belongs in this production contract.
 
 Return the total number, the six-dimension profile, and all triggered flags or
 caps; never return a lone number. Weights, bands, and caps remain provisional
