@@ -36,6 +36,31 @@ owner-authorized Tower 28 add-on reads. The add-on used the existing Sephora
 and Amazon US routes for its bound subjects; it did not begin the separate
 Sephora storefront-pin reconciliation.
 
+## Capture artifact-mode audit
+
+A `2026-07-19` fresh read of every packet manifest cited by this register found
+48 source packets: 48 `raw`, zero `content`, and zero `sample`. Forty-two are
+Retail/PDP packets; the other six belong to the certification-directory,
+company-official, or fragrance-review source families. The seven other ULIDs
+in this artifact identify derived records rather than source packets.
+
+Accordingly, these point-in-time results do not prove a sampled-raw with
+full-derived retention posture for any retailer. Later runner work means exact
+successful Sephora and Nordstrom aggregate-PDP captures now default to compact
+retailer-owned content records, but neither route has a sample-mode receipt in
+this corpus. Every other retailer surface named here remains raw: Target grid
+and PDP; Nordstrom grid; Luckyscent grid and PDP; Amazon search/discovery and
+PDP; Ulta PDP; Walmart PDP; Credo PDP and Yotpo review responses; and Kohl's
+access-failure diagnostics. Tower 28 DTC/stores and the certifier-directory
+reads are also raw in their separate source families.
+
+The exhaustive route-by-route gaps and flip boundary are maintained in
+`forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md`.
+No existing raw packet is authorized for retroactive deletion. A future route
+may be promoted only after its compact derived record preserves all
+claim-bearing fields, its loss is explicit, and a representative raw-plus-
+derived sample packet is verified.
+
 ## Target x Naturium
 
 ### Method and preservation
