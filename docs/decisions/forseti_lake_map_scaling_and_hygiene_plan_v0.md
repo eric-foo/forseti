@@ -143,6 +143,63 @@ availability, and zero missing, orphaned, stale, or read failures. This admits
 useful observed PDP evidence; it does not upgrade the packet to confirmed Ulta
 US/USD storefront evidence.
 
+### Scheduled cadence dogfood closeout (2026-07-20)
+
+The first full scheduled dogfood used the deliberately pinned runtime at
+`ff2891a` and started from 784 public packets. Its two cycles took 2,792.929
+and 2,776.070 seconds, the final pending sweep took 3,120.327 seconds, and five
+late arrivals were reported. After 8,690.892 seconds it exited 1 and correctly
+did not rebuild the lake map. The final sweep had observed one transient
+availability-index gap for packet `01KXRFG9J60WWK6QT1QFZTXFZV`; a targeted
+follow-up proved that packet remained committed, public, and not tombstoned.
+
+PR #1172 moved cadence to one timed scoped reconcile. PR #1175 made scoped
+pickup validate the whole scope and apply source-family filtering from the same
+immutable public-availability snapshot, failing loudly when a scoped packet is
+missing. On the first optimized scheduled attempt, reconcile still took 287.86
+seconds, but the two cycles fell to 34.692 and 29.17 seconds and the final sweep
+to 26.161 seconds, with zero cadence failures. An external `0xC000013A`
+termination then interrupted the cold map rebuild. A direct sanctioned rebuild
+subsequently published every view and cache at
+`2026-07-20 03:39:41+08:00`.
+
+The doctor then exposed three availability orphans belonging to validated
+raw-packet tombstones. The sanctioned `--rebuild-availability` completed in
+4.041 seconds; doctor closed `status=ok` in 22.146 seconds at 792 retained raw
+packets, 789 public packets, 789 availability entries, and three tombstones. A
+fully successful pre-final scheduled run over 789 packets then completed:
+reconcile 390.074 seconds; cycles 25.015 and 23.128 seconds; final sweep 25.164
+seconds; map rebuild 53.322 seconds; total 517.899 seconds; exit 0.
+
+PR #1182 removed the remaining per-packet public-read/tombstone rescans:
+selected availability writes stay isolated per packet and all successful writes
+are validated by one public snapshot. Its delegated validation passed 28
+focused and 195 broader tests, the receiver's affected tests also passed, and a
+live 789-packet reconcile benchmark closed with zero failures in 10.626 seconds.
+
+Final scheduled dogfood ran the merged, manually deployed runtime at exact
+revision `d2728eb14ce63987c93352134a2f08ce1f404835`. From 790 starting packets it
+derived one new ECR record, then completed reconcile in 13.550 seconds, cycle 1
+in 26.916 seconds, cycle 2 in 27.798 seconds, the final sweep in 27.125 seconds,
+the late-arrival check in 0.712 seconds with zero late arrivals, and the map
+rebuild in 59.151 seconds. Total runtime was 155.730 seconds with exit 0. The
+final log SHA-256 was
+`ab27881e92681e50f2dbd61526736911a6d988eb83deb9ae35cf82a48ade9945`.
+Final doctor closed `status=ok` in 6.341 seconds: all 793 retained raw packets
+verified, 790 public packets, 790 availability entries, three tombstones, and
+zero defects.
+
+The enabled Windows task is exactly `Forseti Daily Lake Cadence`: daily
+`09:00 +08:00`, `StartWhenAvailable`, `IgnoreNew`, six-hour execution cap,
+last result 0, and next run `2026-07-20 09:00 +08:00`. A successful daily run
+automatically maintains the lake and rebuilds the map; runtime code deployment
+remains a deliberate manual pin. A fresh root still requires one explicit
+`--bootstrap-active-product-mention-policy` run and later runs reuse its stored
+pins. Stages 2–4 remain trigger-gated, and SLG-06/product-mention population
+remains deferred until a named consumer and real transcript inputs exist.
+These receipts establish bounded operational behavior, not readiness or
+continuous freshness between passing runs.
+
 ## Staged Upgrades
 
 Stage 1 is the explicit exception to the original trigger-only sequence: on
@@ -260,9 +317,11 @@ Stages 2–4 remain trigger-gated.
   a current non-authoritative rebuild and may be a superset if capture or
   derivation continued. Manifest provenance discloses the generation, while
   hash verification proves integrity rather than currency.
-- Automation boundary: a successful `run_seam_cadence.py --run` rebuilds the
-  map automatically; `--check` does not rebuild, and no background scheduler
-  is selected. A fresh root uses one explicit
+- Automation boundary: the enabled `Forseti Daily Lake Cadence` task runs
+  daily at `09:00 +08:00`; a successful `run_seam_cadence.py --run`
+  maintains the lake and rebuilds the map automatically, while `--check` does
+  not rebuild. Runtime code is deliberately pinned and deployed manually rather
+  than self-updating. A fresh root uses one explicit
   `--bootstrap-active-product-mention-policy` cadence run, which pins the
   checkout's exact active policy and refuses an existing manifest. Later runs
   reuse those stored pins.
