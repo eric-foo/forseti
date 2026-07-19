@@ -48,6 +48,10 @@ def test_only_browser_snapshot_surfaces_name_playwright_dependency() -> None:
         project_root / "source_capture" / "adapters" / "cloakbrowser_snapshot.py",
         project_root / "runners" / "run_source_capture_authenticated_browser_packet.py",
         project_root / "runners" / "run_source_capture_browser_session_bootstrap.py",
+        # rung-7 real-Chrome CDP runner: attaches to an operator-provided real
+        # Chrome via Playwright connect_over_cdp (a declared direct browser-control
+        # user, like the two runners above).
+        project_root / "runners" / "run_source_capture_realchrome_cdp_packet.py",
     }
     offenders: list[Path] = []
     for path in source_capture_paths + runner_paths:

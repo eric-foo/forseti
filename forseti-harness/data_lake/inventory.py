@@ -214,6 +214,16 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "asserted"
         ),
     },
+    "run_source_capture_realchrome_cdp_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself (real-Chrome-over-CDP browser_snapshot "
+            "shape): requested_url is preserved as source_locator and the served final_url "
+            "on the slice; access-block classification refuses to certify a block shell; no "
+            "subject identity beyond the URL is asserted (any subject/currency admission is a "
+            "caller-supplied source-detail-sufficiency check, not a runner-enforced binding)"
+        ),
+    },
     "run_source_capture_historical_packet.py": {
         "status": "bound",
         "mechanism": (
