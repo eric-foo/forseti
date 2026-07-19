@@ -405,6 +405,41 @@ def test_snapshot_capture_never_rebuilds_shared_availability(
     ] == [("run_ecr_catchup.py", pid, "derived")]
 
 
+def test_availability_disappearance_after_shared_reconcile_fails_cadence(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(data_root, tmp_path, "transient-availability")
+    original_reconcile = cadence._reconcile_start_snapshot
+
+    def reconcile_then_remove(ctx, scope_packet_ids):  # noqa: ANN001
+        reconciled = original_reconcile(ctx, scope_packet_ids)
+        assert reconciled
+        (
+            data_root.path / "indexes" / "availability" / f"{selected}.json"
+        ).unlink()
+        return True
+
+    monkeypatch.setattr(cadence, "_reconcile_start_snapshot", reconcile_then_remove)
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 1
+    failures = [
+        line
+        for line in _output_lines(capsys)
+        if line.get("status")
+        in {
+            "entrypoint_failed",
+            "skipped_asr_pending_check_failed",
+            "post_cycle_pending_check_failed",
+        }
+    ]
+    assert failures
+    assert all(
+        "scoped packet is missing from public availability" in line["error"]
+        for line in failures
+    )
+
+
 def test_next_cadence_reconcile_catches_corruption_after_prior_run(
     tmp_path, capsys, monkeypatch
 ) -> None:

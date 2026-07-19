@@ -259,6 +259,91 @@ def test_missed_event_recovery_by_key(tmp_path: Path) -> None:
     assert undone == [pid]
 
 
+def test_scoped_pickup_uses_one_ordered_snapshot_before_family_filter(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    first = _commit_packet(root, tmp_path, "scoped-order-first")
+    second = _commit_packet(root, tmp_path, "scoped-order-second")
+    snapshot_calls = 0
+    original_snapshot = root.snapshot_public_availability
+
+    def counted_snapshot() -> list[dict]:
+        nonlocal snapshot_calls
+        snapshot_calls += 1
+        return original_snapshot()
+
+    monkeypatch.setattr(root, "snapshot_public_availability", counted_snapshot)
+
+    available = [
+        item.raw_anchor
+        for item in pickup(
+            root,
+            ack_namespace=_NS,
+            obligation_fn=_static_obligation,
+            source_family="reddit",
+            reconcile=False,
+            scope_packet_ids=[second, first],
+        )
+    ]
+
+    assert available == sorted([first, second])
+    assert snapshot_calls == 1
+
+
+def test_scoped_pickup_fails_loud_when_public_availability_disappears(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(root, tmp_path, "scoped-missing")
+    assert list(
+        pickup(
+            root,
+            ack_namespace=_NS,
+            obligation_fn=_static_obligation,
+            source_family="instagram_creator",
+            reconcile=False,
+            scope_packet_ids=[selected],
+        )
+    ) == []
+
+    (root.path / "indexes" / "availability" / f"{selected}.json").unlink()
+
+    with pytest.raises(
+        ConsumptionSeamError,
+        match=f"scoped packet is missing from public availability.*{selected}",
+    ):
+        list(
+            pickup(
+                root,
+                ack_namespace=_NS,
+                obligation_fn=_static_obligation,
+                source_family="instagram_creator",
+                reconcile=False,
+                scope_packet_ids=[selected],
+            )
+        )
+
+
+def test_scoped_pickup_promotes_missing_root_to_systemic_failure(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_packet(root, tmp_path, "scoped-root-loss")
+    root.path.rename(tmp_path / "disconnected-lake")
+
+    with pytest.raises(DataLakeRootUnavailableError):
+        list(
+            pickup(
+                root,
+                ack_namespace=_NS,
+                obligation_fn=_static_obligation,
+                reconcile=False,
+                scope_packet_ids=[selected],
+            )
+        )
+
+
 # --- view-independence --------------------------------------------------------------
 
 
