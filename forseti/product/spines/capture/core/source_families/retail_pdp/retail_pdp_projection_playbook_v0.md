@@ -20,7 +20,7 @@ open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca-harness/source_capture/retail_pdp_projection.py
   - orca-harness/tests/unit/test_retail_pdp_projection.py
-branch_or_commit: origin/main @ 9e505007
+branch_or_commit: origin/main @ d78e94ed
 stale_if:
   - The core projection doctrine changes carry-or-residualize, loss-ledger, source-envelope, or Retail/PDP family rules.
   - The Retail/PDP projection helper changes row kinds, required bindings, residual vocabulary, or retailer extraction behavior.
@@ -92,7 +92,7 @@ Minimum input for Retail/PDP projection:
 | Visible text | Use only as a source-visible companion to DOM. If a value comes only from position-dependent visible text, carry it with an isolation flag and residual. |
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
-| Sephora content record | `retail_pdp_sephora_aggregate_content_v1` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
+| Sephora content record | `retail_pdp_sephora_aggregate_content_v2` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. It preserves the complete rendered `linkStore.page.product` subtree plus the currently rendered review and Q&A components; v1 remains readable as a legacy input. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
 | Luckyscent content record | `retail_pdp_luckyscent_aggregate_content_v1` carries only target-bound Bread and Roses parser output: two small structured-JSON rows, all three variants in one offer row, and all eight rendered Judge.me reviews in one review-substrate row. Consumers bind real packet identity and JSON pointers; the confirmed default US/USD storefront does not claim US delivery, and the separate origin-derived `buyerCountry=SG` remains non-pin context. |
 | Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
 
@@ -172,8 +172,57 @@ permission for ECR or Cleaning to author a value from prose.
 | --- | --- | --- | --- |
 | Amazon | Rendered DOM in a US storefront session when commissioned; US storefront pin has a single-probe GO via public delivery ZIP widget, with bot-wall and selector fragility still visible. | Target-anchored ASIN/price/availability/review fields are carried from DOM/visible text. The DOM price input is the target price source when present. Shipping, loyalty, and recommendation modules are carried as frame-sensitive modules. | If price comes only from a visible `$N` fallback, residualize it. Do not let store-card, shipping, or recommendation dollars become target price. Amazon access posture remains the strictest and does not become commercial-scale authority. |
 | Nordstrom | Anonymous rendered PDP after the retailer-owned country-preference flow confirms selected US/USD plus the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer row, the `Sold by Nordstrom` label, details/claims, displayed 4.6/118 review aggregate, star histogram, and currently rendered review microdata. Preserve the source-selected `Most Helpful` posture and each rendered card's visible helpful count; absence of a count stays null rather than becoming zero. Unrelated recommendation Product JSON-LD is rejected. | `Shipping to 518225` remains an independent display residual. It is not US delivery, inventory depth, or fulfillment proof; source-rounded histogram totals remain explicit. `Most Helpful` is retailer UI posture, not proof of the ranking algorithm, representativeness, or engagement quality. |
-| Sephora | Rendered PDP with Bazaarvoice-backed reviews first-party-rendered after progressive/incremental scroll when review bodies are needed. | Product/variant fields are carried from LD JSON; target review substrate uses the "Ratings & Reviews (N)" widget where present. Recommendation-review counts are carried as examples/noise posture, not target substrate. | A bare "`N Reviews`" count is unanchored fallback and must be residualized. A recommendation card count must not become target review count. Full per-review body rows are not emitted by v0 helper. |
+| Sephora | Rendered PDP with Bazaarvoice-backed reviews first-party-rendered after progressive/incremental scroll when review bodies are needed. | Product/variant fields are carried from the complete rendered `linkStore.page.product` subtree; target review substrate uses the "Ratings & Reviews (N)" widget where present. The v2 content parser carries currently rendered review and Q&A components, while recommendation-review counts remain examples/noise posture rather than target substrate. | A bare "`N Reviews`" count is unanchored fallback and must be residualized. A recommendation card count must not become target review count. Currently rendered component rows are a bounded window, not the full review or Q&A corpus and not candidate review-row physicalization. |
 | Ulta | Rendered PDP with embedded `application/ld+json` and `window.__APOLLO_STATE__`. | Preserve both LD JSON and Apollo verbatim. Merge source-visible offer/review fields only when substrates are coherent, residualize LD/Apollo mismatches, and residualize requested-SKU versus rendered-SKU mismatch. Carry `apollo_requested_sku` when present. | Requested-SKU versus rendered-SKU mismatch is a target-binding risk. Do not treat the URL/request parameter as target-bound when the rendered SKU differs. |
+
+### Sephora review and Q&A onboarding continuation
+
+When a future Sephora commission includes review or Q&A onboarding, the
+capture receipt must preserve the following source-visible state. This is an
+operator contract for a commissioned capture, not standing live-capture
+authority or a claim that the `2026-07-19` LANEIGE sample already satisfies it.
+
+- Preserve every `regularChildSkus` entry and its exact source flags, including
+  `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and
+  back-in-stock treatment where present. Do not infer limited-edition state
+  from review or Q&A prose.
+- Treat Sephora's green and red AI review-sentiment chips as the primary
+  summary fields: preserve polarity, exact label, and displayed count for every
+  chip. Preserve same-label polarity collisions as separate facts (for
+  example, positive `Scent` and negative `Scent`). The AI summary prose and its
+  disclosure may be carried as secondary context; neither is a substitute for
+  review bodies.
+- Capture one unfiltered first-page review baseline so the source's incentive
+  mix remains observable. Then explicitly select `Most Helpful` together with
+  `Non-Incentivized Reviews Only`, preserve the selected-state evidence, the
+  displayed range/count, every rendered review body, helpful votes, disclosure,
+  date, rating, author metadata, variant, and media references.
+- Explicitly select the source's newest/most-recent review order together with
+  `Non-Incentivized Reviews Only`. Activate the review continuation control
+  until the oldest retained review reaches at least 30 days before capture, or
+  until the source exhausts or blocks continuation. Record the sort/filter
+  state, activation count, row count, oldest source date, and any exhaustion or
+  access residual. A fixed click count is not evidence of 30-day coverage.
+- Inventory the exact source age buckets without collapsing them into decade
+  labels. With `Non-Incentivized Reviews Only` active, preserve the displayed
+  count for every nonempty bucket and the exact filter state used. If the page
+  exposes only `13-17`, `18-24`, `25-34`, `35-44`, `45-54`, and `Over54`,
+  those are the authoritative source labels; product-level
+  `skuRefinements.ageRange` values are merchandising metadata, not reviewer
+  demographic counts. Filtered review bodies by age are a separate,
+  commissioned depth step; the minimum onboarding requirement is the complete
+  bucket-count breakdown.
+- For Q&A, explicitly select `Most Answers`, preserve selected-state evidence,
+  the aggregate question count, and every question plus nested answer in the
+  initially rendered sorted window. Record the rendered question and answer
+  counts separately and preserve any remaining continuation control as a
+  bounded-window residual unless deeper Q&A loading was commissioned.
+
+This posture adds one baseline review read, two explicitly sorted/filtered
+review views, up to six age-bucket count reads, and one Q&A sort selection to a
+future Sephora onboarding. The recurring cost catches silent default-sort
+drift, incentive-filter erasure, false 30-day claims, collapsed demographic
+labels, and question/answer count conflation.
 
 ### Nordstrom review continuation
 
