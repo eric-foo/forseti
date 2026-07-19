@@ -155,6 +155,16 @@ next phase or step. Every evidence, coverage, provenance, and route-exhaustion
 claim must resolve to the seal. Preserve the final deliverable as the sealed
 phase output before commissioning post-delivery review.
 
+For Understanding, derive the prompt's optional retailer-review approval signal
+only when the commissioned question gives it a named decision-material job and
+the seal resolves to row-level ratings, source-visible incentive posture, and a
+reproducible corpus boundary. Preserve disclosed incentivized rows in raw
+capture but exclude them from the primary derived view. Report the eligible
+denominator and excluded count; call unlabelled rows `not marked
+incentivized`, never organic. If the route yields only a headline aggregate or
+an unreproducible slice, omit the signal and preserve the gap. This is
+conditional synthesis, not a mandatory acquisition step or completion gate.
+
 Understanding Deliver produces the decision-neutral company-intelligence
 artifact. Problem Framing may acquire only decision-specific supplements to the
 Understanding substrate, never a general re-scan; its eventual human output

@@ -416,7 +416,7 @@ requires them.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit and Quora as explicit search-hygiene considerations. Commission external scouting only when the venue performs a named decision-material job and is not dominated by an equal-or-better included route; otherwise record the exclusion or `not_applicable` rationale. Zero yield is a route result, not completion. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
-| Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
+| Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
 | Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with the answer-engine/search-interest source-family spec, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
@@ -948,6 +948,52 @@ invalidate it.
 Summarize customer and community response with observation IDs. State that the
 evidence is not representative demand and not internal company fact. Preserve
 contradictions and evidence gaps.
+
+When a retailer-review corpus is decision-material, row-level ratings and
+source-visible incentive posture are captured, and the corpus boundary is
+reproducible, the parent observation may carry this optional derived block.
+Omit it rather than reconstructing counts from a headline rating or an
+unreproducible sample:
+
+```yaml
+retailer_review_approval_signal:
+  corpus_basis: complete_visible_corpus | reproducible_bounded_sample
+  source_visible_total: <integer> | unknown
+  captured_total:
+  sample_selection: <sort, window/filter, and row-admission basis>
+  incentive_disclosure_basis: <source-visible flags or exact labels used>
+  excluded_explicit_incentivized:
+  excluded_unknown_or_conflicting:
+  excluded_other:
+  excluded_other_reason: <required when excluded_other > 0> | none
+  eligible_explicit_non_incentivized:
+  eligible_not_marked_incentivized:
+  eligible_total:
+  eligible_positive_4_5:
+  eligible_below_positive_1_3:
+  approval_rate_pct:
+  below_positive_rate_pct:
+  explicit_non_incentivized_sensitivity:  # optional; only when the source explicitly labels this state
+    eligible_total:
+    positive_4_5:
+    below_positive_1_3:
+    approval_rate_pct:
+    below_positive_rate_pct:
+```
+
+Preserve all captured rows in the source packet; exclusion applies only to the
+derived primary view. The primary label is `approval among reviews not marked
+incentivized`, never `organic approval`. Four- and five-star rows are positive;
+one-, two-, and three-star rows are below-positive. Always state the eligible
+denominator, excluded-incentivized count, source, capture date, and corpus
+basis. A bounded sample must be labeled as that sample, not the retailer-wide
+corpus. The explicit-non-incentivized sensitivity is a separate view, never
+silently substituted for the primary denominator.
+
+This signal describes only the captured retailer-review corpus. It establishes
+neither representative demand, market consensus, prevalence beyond its defined
+corpus, causal incentive distortion, nor a comparison without a comparable
+method and denominator.
 
 For each hero product (the small set the evidence itself marks as central:
 assortment prominence, review volume, brand-labeled bestsellers), add one

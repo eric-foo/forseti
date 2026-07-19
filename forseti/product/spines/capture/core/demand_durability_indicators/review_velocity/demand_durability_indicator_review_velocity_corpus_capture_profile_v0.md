@@ -183,8 +183,10 @@ This profile extends §12 for velocity/corpus use by adding:
   (see INV-1 / flag-don't-conclude below).
 - **Incentive and moderation visibility:** per §12, capture whether the
   review is visibly marked as incentivized, compensated, solicited, or
-  moderated. Capture the platform's own label; do not infer incentive from the
-  review text.
+  moderated. Capture the platform's own flag and exact label; do not infer
+  incentive from the review text. A false source flag or absent label means only
+  `not_marked_incentivized`, never confirmed organic or explicitly
+  non-incentivized.
 - **Sort order and surface positioning:** when reviews are scraped in a
   particular platform-determined sort order (most recent, highest rated,
   featured), record that sort order as a visible capture condition — it affects
@@ -252,6 +254,12 @@ full corpus. Capture must record:
   sample (e.g., only the most-recent 50 reviews), the arrival-cadence history
   derived from that subset is biased toward that stratum; record this as a
   visible series-level limitation.
+
+These same fields are the minimum handoff for any downstream
+incentive-filtered approval read. The raw packet retains every captured row,
+including disclosed incentivized rows. Capture does not calculate approval,
+discard disclosed rows, or issue a customer-consensus, demand, prevalence, or
+comparison claim.
 
 Silent truncation — capturing only the first page without recording that more
 exists — is a silent failure. Per obligation contract §14, failure must be made

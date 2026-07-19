@@ -362,6 +362,39 @@ COMPANY_PROHIBITED_CAP_KEYS = {
     "observation_limit",
     "report_length_limit",
 }
+RETAILER_REVIEW_APPROVAL_CORPUS_BASES = {
+    "complete_visible_corpus",
+    "reproducible_bounded_sample",
+}
+RETAILER_REVIEW_APPROVAL_REQUIRED_FIELDS = {
+    "corpus_basis",
+    "source_visible_total",
+    "captured_total",
+    "sample_selection",
+    "incentive_disclosure_basis",
+    "excluded_explicit_incentivized",
+    "excluded_unknown_or_conflicting",
+    "excluded_other",
+    "excluded_other_reason",
+    "eligible_explicit_non_incentivized",
+    "eligible_not_marked_incentivized",
+    "eligible_total",
+    "eligible_positive_4_5",
+    "eligible_below_positive_1_3",
+    "approval_rate_pct",
+    "below_positive_rate_pct",
+}
+RETAILER_REVIEW_APPROVAL_COUNT_FIELDS = {
+    "captured_total",
+    "excluded_explicit_incentivized",
+    "excluded_unknown_or_conflicting",
+    "excluded_other",
+    "eligible_explicit_non_incentivized",
+    "eligible_not_marked_incentivized",
+    "eligible_total",
+    "eligible_positive_4_5",
+    "eligible_below_positive_1_3",
+}
 
 
 @dataclass(frozen=True)
@@ -922,6 +955,225 @@ def _validate_company_coverage(
     return rows, findings
 
 
+def _is_nonnegative_integer(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _rate_matches(value: Any, numerator: int, denominator: int) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or denominator <= 0:
+        return False
+    return abs(float(value) - round(100 * numerator / denominator, 1)) < 0.051
+
+
+def _validate_retailer_review_approval_signal(
+    signal: Any,
+    observation_id: str,
+    source_family: str,
+) -> list[Finding]:
+    if not isinstance(signal, dict):
+        return [
+            Finding(
+                "invalid_retailer_review_approval_signal",
+                "retailer_review_approval_signal must be a mapping.",
+                observation_id,
+            )
+        ]
+
+    findings: list[Finding] = []
+    missing = sorted(RETAILER_REVIEW_APPROVAL_REQUIRED_FIELDS - set(signal))
+    if missing:
+        findings.append(
+            Finding(
+                "missing_retailer_review_approval_fields",
+                "retailer_review_approval_signal is missing: " + ", ".join(missing),
+                observation_id,
+            )
+        )
+        return findings
+
+    if source_family not in {"reviews", "retail_pdp"}:
+        findings.append(
+            Finding(
+                "invalid_retailer_review_approval_source",
+                "retailer_review_approval_signal requires a reviews or retail_pdp observation.",
+                observation_id,
+            )
+        )
+
+    corpus_basis = _normalize_vocab(signal.get("corpus_basis"))
+    if corpus_basis not in RETAILER_REVIEW_APPROVAL_CORPUS_BASES:
+        findings.append(
+            Finding(
+                "invalid_retailer_review_corpus_basis",
+                "corpus_basis must be complete_visible_corpus or reproducible_bounded_sample.",
+                observation_id,
+            )
+        )
+    for field in ("sample_selection", "incentive_disclosure_basis"):
+        if not str(signal.get(field, "")).strip():
+            findings.append(
+                Finding(
+                    "missing_retailer_review_reproducibility",
+                    f"{field} must state the source-visible derivation basis.",
+                    observation_id,
+                )
+            )
+
+    invalid_counts = sorted(
+        field
+        for field in RETAILER_REVIEW_APPROVAL_COUNT_FIELDS
+        if not _is_nonnegative_integer(signal.get(field))
+    )
+    if invalid_counts:
+        findings.append(
+            Finding(
+                "invalid_retailer_review_approval_counts",
+                "These retailer-review counts must be non-negative integers: " + ", ".join(invalid_counts),
+                observation_id,
+            )
+        )
+        return findings
+
+    source_total_raw = signal["source_visible_total"]
+    source_total = source_total_raw if _is_nonnegative_integer(source_total_raw) else None
+    captured_total = signal["captured_total"]
+    excluded_incentivized = signal["excluded_explicit_incentivized"]
+    excluded_unknown = signal["excluded_unknown_or_conflicting"]
+    excluded_other = signal["excluded_other"]
+    explicit_non_incentivized = signal["eligible_explicit_non_incentivized"]
+    not_marked = signal["eligible_not_marked_incentivized"]
+    eligible_total = signal["eligible_total"]
+    positive = signal["eligible_positive_4_5"]
+    below_positive = signal["eligible_below_positive_1_3"]
+
+    if captured_total <= 0 or eligible_total <= 0:
+        findings.append(
+            Finding(
+                "empty_retailer_review_approval_denominator",
+                "The derived approval signal requires captured rows and a non-zero eligible denominator; otherwise omit it and record the gap.",
+                observation_id,
+            )
+        )
+    if (
+        (source_total is not None and source_total < captured_total)
+        or (source_total is None and _normalize_vocab(source_total_raw) != "unknown")
+        or (corpus_basis == "complete_visible_corpus" and source_total != captured_total)
+    ):
+        findings.append(
+            Finding(
+                "invalid_retailer_review_corpus_size",
+                "source_visible_total must be an integer covering captured_total or unknown for a bounded sample; a complete corpus requires equality.",
+                observation_id,
+            )
+        )
+    if captured_total != (
+        excluded_incentivized
+        + excluded_unknown
+        + excluded_other
+        + explicit_non_incentivized
+        + not_marked
+    ):
+        findings.append(
+            Finding(
+                "retailer_review_partition_mismatch",
+                "Captured rows must reconcile to excluded and eligible incentive-posture partitions.",
+                observation_id,
+            )
+        )
+    if eligible_total != explicit_non_incentivized + not_marked or eligible_total != positive + below_positive:
+        findings.append(
+            Finding(
+                "retailer_review_eligible_mismatch",
+                "eligible_total must reconcile both incentive posture and 4-5 versus 1-3 star partitions.",
+                observation_id,
+            )
+        )
+    if excluded_other > 0 and _normalize_vocab(signal.get("excluded_other_reason")) in {"", "none"}:
+        findings.append(
+            Finding(
+                "missing_retailer_review_other_exclusion_reason",
+                "excluded_other > 0 requires a non-none reason.",
+                observation_id,
+            )
+        )
+    if eligible_total > 0 and (
+        not _rate_matches(signal.get("approval_rate_pct"), positive, eligible_total)
+        or not _rate_matches(signal.get("below_positive_rate_pct"), below_positive, eligible_total)
+    ):
+        findings.append(
+            Finding(
+                "invalid_retailer_review_approval_rates",
+                "Approval rates must equal the one-decimal 4-5 and 1-3 star shares of eligible_total.",
+                observation_id,
+            )
+        )
+
+    sensitivity = signal.get("explicit_non_incentivized_sensitivity")
+    if sensitivity is not None:
+        if not isinstance(sensitivity, dict):
+            findings.append(
+                Finding(
+                    "invalid_explicit_non_incentivized_sensitivity",
+                    "explicit_non_incentivized_sensitivity must be a mapping.",
+                    observation_id,
+                )
+            )
+        else:
+            required = {
+                "eligible_total",
+                "positive_4_5",
+                "below_positive_1_3",
+                "approval_rate_pct",
+                "below_positive_rate_pct",
+            }
+            if required - set(sensitivity):
+                findings.append(
+                    Finding(
+                        "missing_explicit_non_incentivized_sensitivity_fields",
+                        "explicit_non_incentivized_sensitivity is incomplete.",
+                        observation_id,
+                    )
+                )
+            elif not all(
+                _is_nonnegative_integer(sensitivity.get(field))
+                for field in ("eligible_total", "positive_4_5", "below_positive_1_3")
+            ):
+                findings.append(
+                    Finding(
+                        "invalid_explicit_non_incentivized_sensitivity_counts",
+                        "Sensitivity counts must be non-negative integers.",
+                        observation_id,
+                    )
+                )
+            else:
+                sensitivity_total = sensitivity["eligible_total"]
+                sensitivity_positive = sensitivity["positive_4_5"]
+                sensitivity_below = sensitivity["below_positive_1_3"]
+                if (
+                    sensitivity_total <= 0
+                    or sensitivity_total != explicit_non_incentivized
+                    or sensitivity_total != sensitivity_positive + sensitivity_below
+                    or not _rate_matches(
+                        sensitivity.get("approval_rate_pct"),
+                        sensitivity_positive,
+                        sensitivity_total,
+                    )
+                    or not _rate_matches(
+                        sensitivity.get("below_positive_rate_pct"),
+                        sensitivity_below,
+                        sensitivity_total,
+                    )
+                ):
+                    findings.append(
+                        Finding(
+                            "invalid_explicit_non_incentivized_sensitivity",
+                            "Sensitivity counts and rates must reconcile to eligible_explicit_non_incentivized.",
+                            observation_id,
+                        )
+                    )
+    return findings
+
+
 def _validate_company_observations(
     observations: Any,
     receipt: dict[str, Any],
@@ -963,6 +1215,14 @@ def _validate_company_observations(
                     "invalid_company_source_family",
                     f"Invalid source_family {source_family or '<blank>'}.",
                     observation_id,
+                )
+            )
+        if "retailer_review_approval_signal" in row:
+            findings.extend(
+                _validate_retailer_review_approval_signal(
+                    row.get("retailer_review_approval_signal"),
+                    observation_id,
+                    source_family,
                 )
             )
         if source_class not in COMPANY_SOURCE_CLASSES:

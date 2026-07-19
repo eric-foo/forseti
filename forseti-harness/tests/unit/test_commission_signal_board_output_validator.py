@@ -50,6 +50,91 @@ def _company_codes(text: str) -> set[str]:
     return {finding.code for finding in validator.validate_text(text)}
 
 
+def _with_retailer_review_signal(text: str, block: str) -> str:
+    anchor = "    consumed_by_sections: [5, 6, 8]\n"
+    assert anchor in text
+    head, separator, tail = text.rpartition(anchor)
+    assert separator
+    return head + separator + block + tail
+
+
+DR_JART_RETAILER_REVIEW_SIGNAL = """\
+    retailer_review_approval_signal:
+      corpus_basis: complete_visible_corpus
+      source_visible_total: 622
+      captured_total: 622
+      sample_selection: all source-visible rows at capture
+      incentive_disclosure_basis: source-visible retailer incentive labels
+      excluded_explicit_incentivized: 545
+      excluded_unknown_or_conflicting: 0
+      excluded_other: 0
+      excluded_other_reason: none
+      eligible_explicit_non_incentivized: 46
+      eligible_not_marked_incentivized: 31
+      eligible_total: 77
+      eligible_positive_4_5: 44
+      eligible_below_positive_1_3: 33
+      approval_rate_pct: 57.1
+      below_positive_rate_pct: 42.9
+      explicit_non_incentivized_sensitivity:
+        eligible_total: 46
+        positive_4_5: 26
+        below_positive_1_3: 20
+        approval_rate_pct: 56.5
+        below_positive_rate_pct: 43.5
+"""
+
+
+def test_retailer_review_approval_signal_accepts_reconciled_reference_counts() -> None:
+    text = _with_retailer_review_signal(_valid_company_text(), DR_JART_RETAILER_REVIEW_SIGNAL)
+    assert _company_codes(text) == set()
+
+
+def test_retailer_review_approval_signal_rejects_partition_mismatch() -> None:
+    block = DR_JART_RETAILER_REVIEW_SIGNAL.replace(
+        "      excluded_explicit_incentivized: 545",
+        "      excluded_explicit_incentivized: 544",
+    )
+    assert "retailer_review_partition_mismatch" in _company_codes(
+        _with_retailer_review_signal(_valid_company_text(), block)
+    )
+
+
+def test_retailer_review_approval_signal_rejects_wrong_rate() -> None:
+    block = DR_JART_RETAILER_REVIEW_SIGNAL.replace(
+        "      approval_rate_pct: 57.1",
+        "      approval_rate_pct: 88.7",
+        1,
+    )
+    assert "invalid_retailer_review_approval_rates" in _company_codes(
+        _with_retailer_review_signal(_valid_company_text(), block)
+    )
+
+
+def test_retailer_review_approval_signal_rejects_sample_claimed_as_complete() -> None:
+    block = DR_JART_RETAILER_REVIEW_SIGNAL.replace(
+        "      captured_total: 622",
+        "      captured_total: 77",
+    ).replace(
+        "      excluded_explicit_incentivized: 545",
+        "      excluded_explicit_incentivized: 0",
+    )
+    assert "invalid_retailer_review_corpus_size" in _company_codes(
+        _with_retailer_review_signal(_valid_company_text(), block)
+    )
+
+
+def test_retailer_review_approval_signal_allows_unknown_source_total_for_bounded_sample() -> None:
+    block = DR_JART_RETAILER_REVIEW_SIGNAL.replace(
+        "      corpus_basis: complete_visible_corpus",
+        "      corpus_basis: reproducible_bounded_sample",
+    ).replace(
+        "      source_visible_total: 622",
+        "      source_visible_total: unknown",
+    )
+    assert _company_codes(_with_retailer_review_signal(_valid_company_text(), block)) == set()
+
+
 def test_company_subject_defaults_to_company_competitive_intelligence() -> None:
     text = _valid_company_text().replace(
         "commission_profile: company_competitive_intelligence",

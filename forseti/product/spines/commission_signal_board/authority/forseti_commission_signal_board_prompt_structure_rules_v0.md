@@ -238,6 +238,22 @@ operating moves; customer and community response; bounded competitor or
 substitute context; contradictions; and evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
+When a decision-material retailer-review corpus has row-level ratings,
+source-visible incentive posture, and a reproducible boundary, the company
+report may derive the prompt-defined retailer-review approval signal. Preserve
+all rows in raw capture; exclude explicitly disclosed incentivized rows only
+from the derived primary view, including labels such as sponsored, gifted,
+complimentary, free sample, sweepstakes, or paid partnership; group four/five
+stars as positive and one/two/three stars as below-positive; and disclose the
+eligible denominator, excluded count, selection basis, and whether the corpus
+is complete or bounded. Rows lacking an incentive marker are `not marked
+incentivized`, never confirmed organic.
+Neither this view nor an explicit-non-incentivized sensitivity establishes
+representative demand, market consensus, prevalence beyond the defined corpus,
+causal incentive distortion, or a comparison without a comparable method and
+denominator. Omit the signal when its row-level or corpus-boundary inputs are
+not reproducible.
+
 A completed company report additionally carries the synthesis layer as
 guidance-bound narrative (no schema or validator fields): an Executive
 Intelligence Brief preamble of three to seven five-field conclusions (claim /
@@ -428,7 +444,7 @@ noise, provenance, independence, and graph behavior.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit/Quora as explicit search-hygiene considerations, but commission external scouting only for a named decision-material job with no equal-or-better included substitute. Record dominated, non-material, blocked, and zero-yield routes without treating them as completion. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
-| Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
+| Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
 | Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with the answer-engine/search-interest source-family spec, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
