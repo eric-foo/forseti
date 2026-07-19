@@ -325,7 +325,7 @@ def complete_onboarding(
             (*retained_outcome_paths, outcome_path),
             strict=True,
         ),
-        key=lambda pair: str(pair[0]),
+        key=lambda pair: str(pair[0].resolve()),
     )
     for audience_snapshot, _audience_outcome in audience_pairs:
         argv.extend(("--audience-triangulation-snapshot", str(audience_snapshot)))

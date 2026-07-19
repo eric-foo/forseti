@@ -16,8 +16,8 @@
       "creator_records_total": 2,
       "known_account_rows_total": 53,
       "platform_accounts_by_onboarding_state": {
-        "not_onboarded": 13,
-        "onboarded": 40
+        "not_onboarded": 12,
+        "onboarded": 41
       },
       "platform_accounts_by_platform": {
         "instagram": 5,
@@ -112,8 +112,8 @@
     "onboarding_policy": {
       "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
       "derivation_diagnostics": {
-        "attributable_registry_packet_count": 458,
-        "qualifying_packet_count": 481,
+        "attributable_registry_packet_count": 462,
+        "qualifying_packet_count": 485,
         "unattributable_legacy_packet_count": 20,
         "unattributable_legacy_packet_ids": [
           "01KWBPW19TTG7VQM2EKKHMM0N7",
@@ -1755,7 +1755,7 @@
         "discovery_state": "known_account",
         "freshness": {
           "identity_observed_at": "2026-07-07T15:01:16Z",
-          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
+          "last_capture_observed_at_or_none": "2026-07-19T18:30:20Z",
           "last_discovery_observed_at_or_none": null,
           "metrics_freshness_state_or_none": null
         },
@@ -1775,11 +1775,11 @@
         ],
         "normalized_public_handle": "fragranceknowledge",
         "onboarding": {
-          "evidence_packet_id_or_none": null,
-          "evidence_source_family_or_none": null,
-          "evidence_source_surface_or_none": null,
-          "onboarded_at_or_none": null,
-          "onboarding_state": "not_onboarded",
+          "evidence_packet_id_or_none": "01KXXT9ECMT23T9ZZ8BG1NBVPP",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-19T18:30:20Z",
+          "onboarding_state": "onboarded",
           "policy_version": "creator_registry_onboarding_v0"
         },
         "platform": "tiktok",

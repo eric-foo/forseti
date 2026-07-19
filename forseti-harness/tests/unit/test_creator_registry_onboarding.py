@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ from data_lake.root import DataLakeRoot
 from data_lake.silver_record import append_raw_packet_tombstone
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from runners import run_creator_registry_onboarding_refresh as refresh_runner
 
 
 def _account(
@@ -266,3 +268,48 @@ def test_registry_refresh_appends_new_account_and_keeps_onboarding_separate_from
         "not_onboarded": 1,
         "onboarded": 0,
     }
+
+
+def test_projection_refresh_updates_registry_and_profile_without_erasing_audience(
+    tmp_path: Path,
+) -> None:
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    index_path = tmp_path / "creator_registry_index_v0.json"
+    ledger_path = tmp_path / "creator_public_handle_linkage_ledger_v0.json"
+    profile_path = tmp_path / "creator_profile_current_view_v0.json"
+    shutil.copy2(refresh_runner.DEFAULT_INDEX, index_path)
+    shutil.copy2(refresh_runner.DEFAULT_LEDGER, ledger_path)
+    shutil.copy2(refresh_runner.DEFAULT_PROFILE_VIEW, profile_path)
+
+    before = json.loads(profile_path.read_text(encoding="utf-8"))[
+        "creator_profile_current_view"
+    ]
+    before_audience_joins = sum(
+        1 for profile in before["profiles"] if profile["audience_triangulation"]
+    )
+
+    result = refresh_runner.refresh_creator_registry_projections(
+        data_root=lake,
+        index_path=index_path,
+        account_ledger_path=ledger_path,
+        profile_view_path=profile_path,
+    )
+
+    refreshed_index = json.loads(index_path.read_text(encoding="utf-8"))[
+        "creator_registry_index"
+    ]
+    refreshed_profile = json.loads(profile_path.read_text(encoding="utf-8"))[
+        "creator_profile_current_view"
+    ]
+    assert refreshed_index["counts"]["platform_accounts_by_onboarding_state"] == {
+        "not_onboarded": len(refreshed_index["platform_accounts"]),
+        "onboarded": 0,
+    }
+    assert refreshed_profile["counts"]["not_onboarded_profiles"] == len(
+        refreshed_profile["profiles"]
+    )
+    assert refreshed_profile["counts"]["onboarded_profiles"] == 0
+    assert refreshed_profile["counts"]["profiles_with_audience_triangulation"] == (
+        before_audience_joins
+    )
+    assert result["retained_audience_join_count"] == before_audience_joins

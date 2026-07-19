@@ -54,6 +54,9 @@ from source_capture.tiktok.creator_onboarding import (
     run_tiktok_creator_profile_refresh,
 )
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
+from runners.run_creator_registry_onboarding_refresh import (
+    refresh_creator_registry_projections,
+)
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
 PROGRESS_PREFIX = "tiktok_creator_onboarding_progress_json="
 BLOCKER_PREFIX = "tiktok_creator_onboarding_blocker_json="
@@ -337,6 +340,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     admitted_path: str | None = None
     frontier_path: str | None = None
+    registry_projection_refresh: dict[str, object] | None = None
     if args.admit_output is not None or args.data_root is not None:
         _emit_progress("admission_started", {})
         try:
@@ -403,6 +407,25 @@ def main(argv: Sequence[str] | None = None) -> int:
                 message=f"source capture tiktok creator onboarding admission failed: {output}\n",
             )
         admitted_path = str(output)
+        if data_root is not None:
+            _emit_progress(
+                "registry_projection_refresh_started",
+                {"admitted_path": admitted_path},
+            )
+            try:
+                registry_projection_refresh = refresh_creator_registry_projections(
+                    data_root=data_root,
+                )
+            except Exception as exc:
+                _emit_blocker("REGISTRY_PROJECTION_REFRESH_FAILED", "admission")
+                parser.exit(
+                    status=3,
+                    message=(
+                        "TikTok admission committed, but Creator Registry projection "
+                        f"refresh failed: {type(exc).__name__}: {exc}\n"
+                    ),
+                )
+                return 3
         if data_root is not None and capture_scope == "full_deep_capture":
             try:
                 frontier_path = _write_suggested_frontier(
@@ -485,6 +508,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     admitted_path if capture_scope == "profile_refresh" else None
                 ),
                 "suggested_frontier_path_or_none": frontier_path,
+                "registry_projection_refresh_or_none": registry_projection_refresh,
             },
             sort_keys=True,
         )
