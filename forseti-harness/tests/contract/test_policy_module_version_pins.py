@@ -143,13 +143,15 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     "source_capture/retail_pdp_projection.py": (
         (
             "RETAIL_PDP_PROJECTION_VERSION",
-            "retailer-owned content/parser version tokens",
+            "SEPHORA_PDP_PARSER_VERSION",
+            "LUCKYSCENT_PDP_PARSER_VERSION",
+            "NORDSTROM_PDP_PARSER_VERSION",
         ),
-        # New-surface output-shaping decision: Nordstrom and Credo Yotpo are
-        # newly admitted typed Retail/PDP surfaces; existing retailer row
-        # semantics and the shared v0 schema stay unchanged. The commissioned
-        # Credo packet was explicitly rederived append-only after admission.
-        "e558b023222cc9918ac41f8848cdff5edbd33d97fca5e875dd5c11ac37261f9d",
+        # Shared-output-shaping decision: no. Existing typed retailer row
+        # semantics and RETAIL_PDP_PROJECTION_VERSION remain v0. Luckyscent
+        # and Nordstrom keep family-owned parser versions, while the admitted
+        # Credo Yotpo packet was explicitly rederived append-only.
+        "8ce5c14806bd25f83cb8c0c0f9e637e7e1c2eb2246cd4d939c88a9ac70d6e086",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
