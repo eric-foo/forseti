@@ -151,15 +151,13 @@ registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
 until resolved. A manual visual scan of the registry or projection is useful
 orientation, but it is not a substitute for the preflight receipt.
 
-Routine TikTok onboarding dogfood must choose a candidate from a prior
-Suggested/frontier receipt that is not an exact Creator Registry match and run
-with the default `creator_intent=new_capture`. If preflight returns
-`existing_match`, choose another eligible Suggested candidate rather than
-silently switching to `update_existing`. Use `update_existing` only when the
-test's stated subject is recapture, supplement provenance, or an existing
-creator regression. The Creator Registry remains identity/current-profile
-authority, not a dogfood-run history; use the preflight receipt and capture
-receipts together rather than adding a false onboarding-complete identity flag.
+Routine TikTok onboarding must use the default
+`creator_intent=new_onboarding` for an exact Creator Registry match whose
+`onboarding.onboarding_state` is `not_onboarded`. A missing or ambiguous match,
+an invalid onboarding marker, or `onboarding_state=onboarded` blocks before the
+browser phase. Use `new_capture` only for explicit discovery/capture work on an
+identity absent from the registry, and use `update_existing` only for recapture,
+supplement provenance, or an existing-creator regression.
 
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 

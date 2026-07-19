@@ -1457,7 +1457,11 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
         "_write_creator_registry_preflight",
         lambda **_kwargs: (
             tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
-            {"action_status": "allowed"},
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
         ),
     )
     monkeypatch.setattr(
@@ -1504,7 +1508,7 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -
     )
 
     assert args.window_size == 30
-    assert args.creator_intent == "new_capture"
+    assert args.creator_intent == "new_onboarding"
     assert not hasattr(args, "selection_fraction")
     assert args.cadence_min_gap_seconds == 8.0
     assert args.cadence_max_gap_seconds == 13.0
@@ -1571,7 +1575,14 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
     monkeypatch.setattr(
         runner,
         "_write_creator_registry_preflight",
-        lambda **_kwargs: (preflight_path, {"action_status": "allowed"}),
+        lambda **_kwargs: (
+            preflight_path,
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
+        ),
     )
     monkeypatch.setattr(
         runner, "default_session_profile_auth_state_root", lambda: tmp_path
@@ -1734,7 +1745,11 @@ def test_onboarding_cli_rejects_invalid_reuse_before_browser_probe(
         "_write_creator_registry_preflight",
         lambda **_kwargs: (
             tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
-            {"action_status": "allowed"},
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
         ),
     )
 
@@ -1774,7 +1789,11 @@ def test_onboarding_cli_reports_exact_cdp_recovery_without_capture(
         "_write_creator_registry_preflight",
         lambda **_kwargs: (
             tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
-            {"action_status": "allowed"},
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
         ),
     )
     monkeypatch.setattr(
@@ -2515,6 +2534,7 @@ def test_suggested_frontier_write_anchors_to_admitted_bronze_packet(
     [
         ("new_capture", "blocked", "new_capture_existing_match"),
         ("update_existing", "allowed", None),
+        ("new_onboarding", "allowed", None),
     ],
 )
 def test_runner_registry_preflight_enforces_new_vs_existing_intent(
@@ -2535,6 +2555,9 @@ def test_runner_registry_preflight_enforces_new_vs_existing_intent(
                 {
                     "profile_subject_id": "creator_known_001",
                     "profile_subject_kind": "creator_record",
+                    "onboarding": {
+                        "onboarding_state": "not_onboarded",
+                    },
                     "platform_accounts": [
                         {
                             "platform": "tiktok",
@@ -2567,6 +2590,83 @@ def test_runner_registry_preflight_enforces_new_vs_existing_intent(
         assert result["action_blockers"] == []
     else:
         assert expected_blocker in result["action_blockers"]
+    assert result["registry_onboarding_state"] == "not_onboarded"
+
+
+@pytest.mark.parametrize(
+    ("creator_handle", "onboarding_state", "expected_message"),
+    [
+        (
+            "known_creator",
+            "onboarded",
+            "new_onboarding requires onboarding_state=not_onboarded",
+        ),
+        (
+            "missing_creator",
+            "not_onboarded",
+            "new_onboarding requires an exact Creator Registry match",
+        ),
+    ],
+)
+def test_new_onboarding_blocks_ineligible_creator_before_browser_probe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    creator_handle: str,
+    onboarding_state: str,
+    expected_message: str,
+) -> None:
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text("{}", encoding="utf-8")
+    registry_document = {
+        "creator_profile_current_view": {
+            "schema_version": "creator_profile_current_view_v0",
+            "generated_at_utc": "2026-07-12T00:00:00Z",
+            "counts": {"profiles_total": 1},
+            "profiles": [
+                {
+                    "profile_subject_id": "creator_known_001",
+                    "profile_subject_kind": "creator_record",
+                    "onboarding": {
+                        "onboarding_state": onboarding_state,
+                    },
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": "acct_tt_known_001",
+                            "public_handle": "known_creator",
+                            "public_profile_url": "https://www.tiktok.com/@known_creator",
+                            "platform_public_account_id_or_none": None,
+                            "public_display_name_or_none": "Known Creator",
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    monkeypatch.setattr(
+        runner, "load_creator_profile_current_view", lambda _path: registry_document
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: pytest.fail("browser probe must not run"),
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                creator_handle,
+                "--creator-registry",
+                str(registry_path),
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert expected_message in capsys.readouterr().err
 
 
 def test_suggested_failure_receipt_carries_profile_evidence_failure_status() -> None:
