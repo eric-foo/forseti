@@ -1093,6 +1093,59 @@ observations:
   row and makes no demand, velocity, revenue, sell-through, fulfillment,
   market-performance, inventory-depth, or realized-price inference.
 
+### Ulta US/USD storefront pin recovery
+
+- The earlier Ulta attempt checked the wrong rendered field names:
+  `window.__LOCALE__` and `data-locale`. A fresh read of its preserved raw DOM
+  showed the retailer actually emitted root `lang="en-US"`,
+  `window.__APP_LOCALE__ = 'en-US'`, GraphQL `ultasite=en-us`, and one product
+  `square-placement` binding `data-consumer-locale="en_US"`,
+  `data-currency="USD"`, and a nonempty amount. This is a correction to the
+  admission rule, not a weakening to `.com`, a dollar glyph, or language alone.
+- The admitted assertion-only route is
+  `run_source_capture_cloakbrowser_packet.py --ulta-market US`. It performs no
+  preference mutation and requires all first-party US site signals above plus
+  the exact requested SKU's Product JSON-LD nonempty USD offer. Final host or
+  SKU drift, split/conflicting locale/currency state, malformed structured
+  data, or a missing conjunction preserves `ulta_market_pin_failed` and exits
+  nonzero.
+- The commissioned anonymous PDP remained
+  `https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2645443`.
+  The live posture used a five-second settle and one scroll pass with explicit
+  product, price, review, source-SKU, and access-block sufficiency checks. It
+  used no proxy, VPN, profile, storage state, geo-IP override, cookie
+  injection, credential, login, cart, or delivery mutation.
+- Diagnostic packet `01KXWQT2NBQ6QSHFCXW96M9KP7` at
+  `F:\forseti-data-lake\raw\3e6\01KXWQT2NBQ6QSHFCXW96M9KP7` confirmed the
+  US/USD conjunction but retained a typed sufficiency failure because the
+  command incorrectly required SKU `2645443` in visible text. The SKU was
+  source-visible in DOM/JSON-LD. All four raw hashes and byte lengths matched
+  its manifest on fresh read.
+- Corrected admitted packet `01KXWQW45J2C17RX4397Z27KYJ` at
+  `F:\forseti-data-lake\raw\b6e\01KXWQW45J2C17RX4397Z27KYJ` bound the SKU where
+  it actually lives in rendered source state. Requested and final URLs matched
+  the exact `www.ulta.com` PDP; metadata recorded `pin_confirmed=true`,
+  `access_blocked=false`, `proxy_used=false`,
+  `persistent_profile_loaded=false`, `storage_state_loaded=false`, and
+  `geoip_used=false`. Every raw file matched its manifest SHA-256 and byte
+  length.
+- The existing Retail/PDP projection produced nine anchored rows and zero
+  residuals. Its `retail_variant_offer` row bound SKU `2645443`, product
+  `pimprod2046225`, price `12.00`, and currency `USD` to `ld_json[1]`; its
+  `retail_review_substrate` row bound 671 reviews and rating 4.3 to the
+  agreeing Ulta JSON-LD/Apollo state.
+- The screenshot preserved the rendered Ulta questions/review region after the
+  commissioned scroll. No extra homepage screenshot was required. The
+  owner-commissioned off-VPN versus US-VPN comparison was not triggered because
+  the anonymous off-VPN PDP directly confirmed the retailer-owned conjunction.
+  `.com`, absence of `.sg`, dollar-denominated price, or VPN geography remain
+  contextual only.
+- Current outcome: `GO_US_USD_STOREFRONT_CONFIRMED_OFF_VPN`. The registry is
+  promoted to `CONFIRMED_US` and `CONFIRMED_USD`; delivery remains `UNPINNED`.
+  This pin-only supplement adds no duplicate SOBS row and makes no demand,
+  velocity, revenue, sell-through, fulfillment, market-performance,
+  inventory-depth, or realized-price inference.
+
 ### Kohl's US/USD storefront access diagnosis
 
 - The commissioned subject was Tower 28 LipSoftie Hydrating Tinted Lip
