@@ -1291,8 +1291,9 @@ observations:
 - The commissioned subject was Tower 28 SOS (Save. Our. Skin) Daily Rescue
   Facial Spray with Hypochlorous Acid at
   `https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray`.
-  This keeps the storefront test bound to the owner’s broader Tower 28 work
-  while adding no new price, certification, diversion, or performance claim.
+  The storefront pin and the additive content observations below remain
+  separately typed; neither adds a certification, diversion, or performance
+  claim.
 - Anonymous Direct HTTP through the Capture Spine used the explicit no-proxy
   opener and `--credo-market US`. It performed no browser launch, stored-profile
   load, cookie injection, credential use, login, cart action, preference
@@ -1321,21 +1322,175 @@ observations:
   `6b6dfdafff561aead47301ba19584803940948cad89c2a69a4a3930c7f83c8fa`
   at 1,447 bytes. The receipt was fresh-read and carried no warning or visible
   mode change.
-- Append-only Retail/PDP projection
+- Initial append-only Retail/PDP projection
   `F:\forseti-data-lake\derived\7dd\01KXX1S3VYWQM3NNM23VYK3EPW\projection_retail_pdp\01KXX1WMT8TVYGPV07ZCK70J1K.json`
   produced five rows and anchored the selected Product offer at
   `ld_json[1]`: SKU `210000007835`, price `12.0`, currency `USD`, and
-  `InStock`. Credo remains typed as `unknown` because this lane did not expand
-  the projection retailer enum; the absent review substrate is the only packet
-  residual. Supporting a valid Product `offers` array required a bounded
-  generic projector fix, not a new schema.
+  `InStock`. It incorrectly residualized the review substrate as absent because
+  the generic projector did not yet recognize Credo's exact server-rendered
+  Yotpo section. The immutable raw packet already contained that review state;
+  this projection remains historical evidence of the extractor gap.
+- Corrected append-only projection
+  `F:\forseti-data-lake\derived\7dd\01KXX1S3VYWQM3NNM23VYK3EPW\projection_retail_pdp\01KXX3P3PPQV3625JKFDGA3JY7.json`
+  is 20,149 bytes with SHA-256
+  `1cfe12ec70f75ff620588a309c39e8ce37a713b70c83ef0c564b789a3f4d4e2c`.
+  It preserves the same offer and adds one
+  `retail_review_substrate` row anchored to
+  `#yotpo-reviews-section-data`: rating `4.705247/5`, 648 aggregate
+  reviews, exactly 10 displayed reviews, and exactly 10 nonempty review
+  bodies. The row separately labels Credo/Yotpo's summary as
+  `retailer_labeled_ai_generated`. Its sole residual is
+  `yotpo_displayed_review_subset_10_of_648`; those ten bodies are not the
+  complete corpus.
+- The raw PDP bound all three current source variants even though the generic
+  Retail/PDP projection intentionally promoted only the selected 1 oz offer:
+  4 oz / 120 ml at `$28.00` and source-marked unavailable; 1 oz / 30 ml at
+  `$12.00` and source-marked available; and Jumbo Refill 16 oz / 454 g at
+  `$68.00` and source-marked available. Embedded selling-plan allocations
+  stated first/subsequent delivery prices of `$25.20` / `$26.60`, `$10.80` /
+  `$11.40`, and `$61.20` / `$64.60`, respectively, across the displayed
+  monthly, two-month, three-month, and four-month frequencies. These are
+  source-declared page-state offers, not cart-tested or realized prices.
+- The same raw PDP carried the retailer-presented full ingredient list
+  `electrolyzed water (h2o), sodium chloride (nacl), hypochlorous acid (hocl)`.
+  It also carried the `Sustainable Packaging`, `Shop by Packaging_PCR`, and
+  `refill` tags plus Credo's umbrella tooltip wording that the product uses
+  “refillable components, or glass, paper, post-consumer recycled plastic, or
+  bio-based plastic.” The wording does not identify which listed material
+  applies to each variant and is not independent certification or physical
+  packaging verification.
+- A separate existing rendered-widget companion preserved two Yotpo response
+  byte streams without adding a runner. The passive response requested five
+  rows with `sort=rating,date,images,badge`; one operator-bounded exact fallback
+  requested ten rows with `sort=date`. No review-sort UI control was clicked,
+  so the latter is typed as the widget's date-sorted route rather than a claim
+  about the control label. Packet `01KXX5M6BGQ6CM9XJ1752F7N2Y` is at
+  `F:\forseti-data-lake\raw\db5\01KXX5M6BGQ6CM9XJ1752F7N2Y`. Its two fresh-read
+  response files matched the manifest: 6,612 bytes / SHA-256
+  `bf65aac53e2ecc2d3cb1213995f3ef9848455a32329ce5ae74653dfff508bf5d`
+  and 8,457 bytes / SHA-256
+  `d0f808241ac982de70416c4337b0a8e15c69c805b15f541f949350a60d6b786c`.
+- Append-only review projection
+  `F:\forseti-data-lake\derived\db5\01KXX5M6BGQ6CM9XJ1752F7N2Y\projection_fragrance_review\01KXX6RCN8C2XTH3JZF055RMSJ.json`
+  is 20,129 bytes with SHA-256
+  `778266c9af8b9dd526a83083768fe78d632756049f3258632b4afe3cded4c0fd`.
+  It retains the established review-widget family's legacy
+  `fragrance_review` naming but is subject-bound to this beauty PDP. Coverage
+  policy `v1` retains the new source-visible metadata in the existing
+  `fragrance_review_coverage_record_v0` envelope. After native-ID
+  deduplication it contains ten date-sorted review bodies: nine
+  5-star and one 4-star; nine verified-purchase flags; five
+  `isIncentivized=true` rows, each with
+  `incentive_type=yotpo_loyalty_points`; and reviewer-declared Age Range on
+  nine rows (four `25 to 34`, three `35 to 44`, two `45 to 54`, one absent).
+  The residual `widget_total_count_deduped_row_count_mismatch` makes the
+  ten-of-648 boundary explicit.
+- Credo remains typed as `unknown` because this lane did not expand the
+  projection retailer enum. Supporting valid Product `offers` arrays and the
+  exact Yotpo block required bounded generic projector fixes, not a new schema.
+
+#### SOBS-style observations
+
+```yaml
+observations:
+  - observation_id: SOBS-CRD-001
+    retailer: Credo
+    subject: Tower 28 SOS Daily Rescue Facial Spray
+    url: https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray
+    retrieval_date: "2026-07-19"
+    short_quote_or_summary: >
+      Credo's server-rendered Yotpo section reported an overall rating of
+      4.705247/5 from 648 reviews and exposed ten individual review rows with
+      ten nonempty bodies. The displayed rows comprised eight 5-star reviews,
+      one 4-star review, and one 3-star review. Credo also carried a separately
+      labelled AI-generated review summary.
+    signal_stage: candidate_support
+    claim_it_might_support: current Credo review substrate and displayed review-row themes for the bound Tower 28 product
+    gate_role: none
+    independence_hypothesis: >
+      Customer-contributed rows aggregated by Yotpo on Credo; retailer/widget
+      selection and possible syndication may couple the displayed subset.
+    packet_locator: F:\forseti-data-lake\raw\7dd\01KXX1S3VYWQM3NNM23VYK3EPW
+    uncertainty_or_limits: >
+      Ten is the server-rendered displayed subset, not the 648-review corpus.
+      The rating aggregate and individual bodies were observed at one capture
+      time. The AI-generated summary is retailer/widget synthesis, not an
+      independent customer statement. Reviews do not establish representative
+      sentiment, demand, repeat purchase, velocity, or product efficacy.
+  - observation_id: SOBS-CRD-002
+    retailer: Credo
+    subject: Tower 28 SOS Daily Rescue Facial Spray
+    url: https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray
+    retrieval_date: "2026-07-19"
+    short_quote_or_summary: >
+      A passive Yotpo request exposed a five-row rating-first slice. A separate
+      bounded `sort=date` response exposed ten native-ID-bound review bodies in
+      descending timestamp order: nine 5-star and one 4-star. Nine carried a
+      verified-purchase flag, five carried `isIncentivized=true` with incentive
+      type `yotpo_loyalty_points`, and nine carried reviewer-declared Age Range.
+    signal_stage: candidate_support
+    claim_it_might_support: current bounded Credo/Yotpo review metadata and date-sorted review-row themes for the bound product
+    gate_role: none
+    independence_hypothesis: >
+      Customer-contributed rows aggregated by Yotpo on Credo; widget ordering,
+      incentive mechanics, moderation, and possible syndication may couple the
+      observed subset.
+    packet_locator: F:\forseti-data-lake\raw\db5\01KXX5M6BGQ6CM9XJ1752F7N2Y
+    uncertainty_or_limits: >
+      Ten is a date-sorted current slice, not the 648-review corpus. `sort=date`
+      was requested through the widget's exact public response route without
+      clicking the visible sort control. Age Range is reviewer-declared.
+      Incentivized flags and incentive type do not establish compensation
+      value, review independence, representativeness, demand, or efficacy.
+  - observation_id: SOBS-CRD-003
+    retailer: Credo
+    subject: Tower 28 SOS Daily Rescue Facial Spray
+    url: https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray
+    retrieval_date: "2026-07-19"
+    short_quote_or_summary: >
+      Raw source state bound 4 oz / 120 ml at $28.00, 1 oz / 30 ml at $12.00,
+      and Jumbo Refill 16 oz / 454 g at $68.00. It source-marked the 4 oz
+      unavailable and the other two available. Embedded subscription
+      allocations stated first/subsequent prices of $25.20/$26.60,
+      $10.80/$11.40, and $61.20/$64.60, respectively.
+    signal_stage: candidate_support
+    claim_it_might_support: current Credo variant and displayed one-time/subscription offer state for the bound product
+    gate_role: none
+    independence_hypothesis: retailer-owned Shopify page state
+    packet_locator: F:\forseti-data-lake\raw\7dd\01KXX1S3VYWQM3NNM23VYK3EPW
+    uncertainty_or_limits: >
+      Point-in-time source state only. No cart interaction tested realized
+      price, subscription eligibility, frequency execution, inventory depth,
+      fulfillment, redemption, demand, margin, or retailer agreement.
+  - observation_id: SOBS-CRD-004
+    retailer: Credo
+    subject: Tower 28 SOS Daily Rescue Facial Spray
+    url: https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray
+    retrieval_date: "2026-07-19"
+    short_quote_or_summary: >
+      Credo presented the full ingredient list as electrolyzed water (h2o),
+      sodium chloride (nacl), and hypochlorous acid (hocl). It also presented
+      Sustainable Packaging/PCR/refill tags and an umbrella tooltip referring
+      to refillable components, glass, paper, post-consumer recycled plastic,
+      or bio-based plastic.
+    signal_stage: candidate_support
+    claim_it_might_support: current retailer-presented ingredient and packaging-language state for the bound product
+    gate_role: none
+    independence_hypothesis: retailer-presented product content that may originate with the brand
+    packet_locator: F:\forseti-data-lake\raw\7dd\01KXX1S3VYWQM3NNM23VYK3EPW
+    uncertainty_or_limits: >
+      This is retailer-presented wording, not laboratory verification,
+      certification, legal substantiation, or proof that every listed packaging
+      material applies to every size. The umbrella “or” wording prevents a
+      variant-specific material conclusion.
+```
 - Current outcome:
   `GO_US_USD_DEFAULT_STOREFRONT_CONFIRMED_WITHOUT_VPN_DELIVERY_UNPINNED`.
   This is a storefront-country/currency pin only. It does not establish a US
   delivery destination, inventory depth, fulfillment availability, realized
   transaction price, demand, velocity, revenue, sell-through, market share, or
-  performance. No SOBS row was added because this supplement commissions pin
-  admission, not a new claim-level retailer-surface observation.
+  performance. The content supplement adds three bounded SOBS rows without
+  changing the storefront-pin verdict.
 
 ## Non-claims
 

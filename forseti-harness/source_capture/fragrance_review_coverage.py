@@ -18,7 +18,7 @@ from schemas.case_models import StrictModel
 
 
 FRAGRANCE_REVIEW_COVERAGE_METHOD = "fragrance_review_focused_coverage"
-FRAGRANCE_REVIEW_COVERAGE_VERSION = "v0"
+FRAGRANCE_REVIEW_COVERAGE_VERSION = "v1"
 FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION = (
     "source_visible_focused_coverage; not_cleaned; not_judgment_ready"
 )
@@ -183,7 +183,7 @@ class FragranceReviewCoverageReceipt(StrictModel):
         FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION
     )
     coverage_method: Literal["fragrance_review_focused_coverage"] = FRAGRANCE_REVIEW_COVERAGE_METHOD
-    coverage_version: Literal["v0"] = FRAGRANCE_REVIEW_COVERAGE_VERSION
+    coverage_version: Literal["v1"] = FRAGRANCE_REVIEW_COVERAGE_VERSION
     certification: Literal["source_visible_focused_coverage; not_cleaned; not_judgment_ready"] = (
         FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION
     )
@@ -224,6 +224,7 @@ class _MutableReview:
     helpful_positive_count: int | None = None
     helpful_negative_count: int | None = None
     transparency_badge_type: str | None = None
+    source_visible_fields: dict[str, Any | None] = field(default_factory=dict)
 
 
 @dataclass
@@ -626,6 +627,27 @@ def _parse_json_reviews(
             helpful_positive_count=_int_or_none(item.get("thumb_up") or item.get("votesUp")),
             helpful_negative_count=_int_or_none(item.get("thumb_down") or item.get("votesDown")),
         )
+        incentivized_value = (
+            item.get("isIncentivized")
+            if "isIncentivized" in item
+            else item.get("is_incentivized")
+        )
+        review.source_visible_fields.update(
+            {
+                key: value
+                for key, value in {
+                    "is_incentivized": _bool_or_none(incentivized_value),
+                    "incentive_type": _string_or_none(
+                        item.get("incentiveType") or item.get("incentive_type")
+                    ),
+                    "reviewer_declared_age_range": _yotpo_custom_field_value(
+                        item.get("customFields") or item.get("custom_fields"),
+                        title="Age Range",
+                    ),
+                }.items()
+                if value is not None
+            }
+        )
         review.text["title"].append(_string_or_empty(item.get("title")))
         review.text["body"].append(_string_or_empty(body))
         review.text["author"].append(
@@ -682,6 +704,7 @@ def _normalize_reviews(
             }.items()
             if value is not None
         }
+        source_visible_fields.update(review.source_visible_fields)
         residuals = [] if body else ["review_body_absent"]
         if not native_id:
             source_visible_fields["candidate_key_basis"] = {
@@ -936,6 +959,20 @@ def _json_review_has_media(item: Mapping[str, object]) -> bool:
         if isinstance(value, list) and value:
             return True
     return False
+
+
+def _yotpo_custom_field_value(value: object, *, title: str) -> str | None:
+    if not isinstance(value, Mapping):
+        return None
+    expected = title.casefold()
+    for field_value in value.values():
+        if not isinstance(field_value, Mapping):
+            continue
+        field_title = _string_or_none(field_value.get("title"))
+        if field_title is None or field_title.casefold() != expected:
+            continue
+        return _string_or_none(field_value.get("value"))
+    return None
 
 def _html_to_text(html: str) -> str:
     parser = _TextOnlyHtmlParser()

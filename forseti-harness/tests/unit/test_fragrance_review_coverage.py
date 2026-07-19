@@ -383,6 +383,15 @@ def test_yotpo_v3_reviews_parse_rows_and_widget_bottomline() -> None:
                     "title": None,
                     "createdAt": "2026-04-24T03:03:33",
                     "verifiedBuyer": True,
+                    "isIncentivized": True,
+                    "incentiveType": "yotpo_loyalty_points",
+                    "customFields": {
+                        "22681": {
+                            "title": "Age Range",
+                            "fieldType": "SingleChoice",
+                            "value": "25 to 34",
+                        }
+                    },
                     "imagesData": [],
                     "user": {"displayName": "Helen"},
                 }
@@ -417,6 +426,45 @@ def test_yotpo_v3_reviews_parse_rows_and_widget_bottomline() -> None:
     assert row.helpful_positive_count == 0
     assert row.helpful_negative_count == 0
     assert row.source_visible_fields["source_widget"] == "yotpo"
+    assert row.source_visible_fields["is_incentivized"] is True
+    assert row.source_visible_fields["incentive_type"] == "yotpo_loyalty_points"
+    assert row.source_visible_fields["reviewer_declared_age_range"] == "25 to 34"
+
+
+def test_yotpo_v3_preserves_explicit_non_incentivized_state_and_missing_age() -> None:
+    widget = json.dumps(
+        {
+            "pagination": {"page": 1, "perPage": 1, "total": 1},
+            "bottomline": {"totalReview": 1, "averageScore": 4.0},
+            "reviews": [
+                {
+                    "id": 833318481,
+                    "score": 4,
+                    "content": "A source-visible review body.",
+                    "createdAt": "2026-04-25T03:03:33",
+                    "verifiedBuyer": False,
+                    "isIncentivized": False,
+                    "incentiveType": None,
+                    "customFields": {},
+                    "user": {"displayName": "Reader"},
+                }
+            ],
+        }
+    )
+
+    receipt = build_fragrance_review_coverage(
+        widget_responses=[widget],
+        pdp_html=None,
+        source_id="fragrance_retail_zgo",
+        source_site="ZGO Perfumery",
+        product_url=PRODUCT_URL,
+        as_of_date=date(2026, 6, 29),
+    )
+
+    row = receipt.rows[0]
+    assert row.source_visible_fields["is_incentivized"] is False
+    assert "incentive_type" not in row.source_visible_fields
+    assert "reviewer_declared_age_range" not in row.source_visible_fields
 
 
 def test_residuals_cover_media_and_aggregate_disagreements() -> None:
