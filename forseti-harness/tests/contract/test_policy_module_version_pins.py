@@ -140,6 +140,17 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("ECR_DERIVER_VERSION",),
         "b94920e25627537b1cca0503cad52130982de3f5d9a53122e14978912b27b273",
     ),
+    "source_capture/retail_pdp_projection.py": (
+        (
+            "RETAIL_PDP_PROJECTION_VERSION",
+            "retailer-owned content/parser version tokens",
+        ),
+        # New-surface output-shaping decision: Nordstrom is newly admitted as a
+        # typed Retail/PDP route; existing retailer row semantics and the shared
+        # v0 schema stay unchanged. Nordstrom parser behavior is versioned by
+        # NORDSTROM_PDP_PARSER_VERSION.
+        "dcc9b0963c2d4d8fa345b55f0bd97e2cca095aea828a35414dd0945aef616b9b",
+    ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
         # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.

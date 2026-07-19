@@ -8,6 +8,7 @@ from runners import run_source_capture_cloakbrowser_packet as cloakbrowser_runne
 from source_capture.retail_capture_profiles import (
     extract_amazon_asin_from_url,
     extract_amazon_search_query_from_url,
+    extract_nordstrom_product_id_from_url,
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
@@ -24,6 +25,7 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
 
     assert {profile.retailer for profile in profiles} == {
         "amazon",
+        "nordstrom",
         "sephora",
         "ulta",
         "walmart",
@@ -62,6 +64,58 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert get_retail_capture_profile("amazon_pdp_distribution").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_pdp_aggregate").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_grid_aggregate").derive_target_query_from_url is True
+    nordstrom = get_retail_capture_profile("nordstrom_pdp_aggregate")
+    assert nordstrom.wait_until == "domcontentloaded"
+    assert nordstrom.scroll_passes == 1
+    assert nordstrom.scroll_step_px == 500
+    assert nordstrom.derive_target_nordstrom_product_id_from_url is True
+
+
+def test_nordstrom_profile_binds_the_requested_product_id() -> None:
+    profile = get_retail_capture_profile("nordstrom_pdp_aggregate")
+    assert (
+        extract_nordstrom_product_id_from_url(
+            "https://www.nordstrom.com/s/the-lip-balm/8260802"
+        )
+        == "8260802"
+    )
+    requirements = profile.requirements_for_capture(
+        url="https://www.nordstrom.com/s/the-lip-balm/8260802"
+    )
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=(
+            "The Lip Balm\nNécessaire\n$28.00\nSold by Nordstrom\nReviews\n"
+            "4.6 out of 5\n5 stars 81%\n4 stars 7%\n3 stars 3%\n"
+            "2 stars 5%\n1 star 3%\n"
+        ),
+        rendered_dom=(
+            '<a href="/s/the-lip-balm/8260802">The Lip Balm</a>'
+            '<script type="application/ld+json">{"@type":"Product",'
+            '"reviewCount":118}</script>'
+        ),
+    )
+    assert result.passed is True
+
+    wrong = profile.requirements_for_capture(
+        url="https://www.nordstrom.com/s/another-product/9999999"
+    )
+    wrong_result = evaluate_source_detail_sufficiency(
+        requirements=wrong,
+        access_block_reason=None,
+        visible_text=(
+            "The Lip Balm\nNécessaire\n$28.00\nSold by Nordstrom\nReviews\n"
+            "4.6 out of 5\n5 stars 81%\n4 stars 7%\n3 stars 3%\n"
+            "2 stars 5%\n1 star 3%\n"
+        ),
+        rendered_dom=(
+            '<a href="/s/the-lip-balm/8260802">The Lip Balm</a>'
+            '<script type="application/ld+json">{"@type":"Product",'
+            '"reviewCount":118}</script>'
+        ),
+    )
+    assert wrong_result.passed is False
 
 
 def test_amazon_distribution_profile_accepts_changing_values_but_requires_full_data() -> None:
