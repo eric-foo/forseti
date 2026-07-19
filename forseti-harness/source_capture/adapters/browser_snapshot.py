@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import random
+import time
 from contextlib import nullcontext
 from hashlib import sha256
 from dataclasses import dataclass, field
@@ -1373,6 +1374,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
         human_challenge_handoff_prompt: str | None = None,
         humanize_context_fn: Callable[[object], None] | None = None,
+        monotonic_fn: Callable[[], float] = time.monotonic,
     ) -> None:
         super().__init__(
             cloakbrowser_humanize=False,
@@ -1413,6 +1415,10 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._same_url_navigation_suppression_count = 0
         self._capture_attempt_count = 0
         self._capture_success_count = 0
+        self._monotonic_fn = monotonic_fn
+        self._capture_elapsed_seconds_total = 0.0
+        self._capture_elapsed_seconds_max = 0.0
+        self._capture_timings: list[dict[str, object]] = []
 
     def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
         if self._closed:
@@ -1421,10 +1427,38 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         if self._real_page is None and isinstance(requested_url, str):
             self._pending_requested_page_url = requested_url
         self._capture_attempt_count += 1
-        result = super().capture_page_observation(**kwargs)
+        capture_index = self._capture_attempt_count
+        capture_started = self._monotonic_fn()
+        try:
+            result = super().capture_page_observation(**kwargs)
+        except Exception:
+            self._record_capture_timing(
+                capture_index=capture_index,
+                requested_url=requested_url,
+                final_url=None,
+                kwargs=kwargs,
+                elapsed_seconds=max(0.0, self._monotonic_fn() - capture_started),
+                outcome="failed",
+            )
+            raise
         self._capture_success_count += 1
+        capture_elapsed_seconds = max(
+            0.0, self._monotonic_fn() - capture_started
+        )
+        self._record_capture_timing(
+            capture_index=capture_index,
+            requested_url=requested_url,
+            final_url=result.final_url,
+            kwargs=kwargs,
+            elapsed_seconds=capture_elapsed_seconds,
+            outcome="success",
+        )
         result.metadata.update(
             {
+                "session_capture_index": capture_index,
+                "session_capture_elapsed_seconds": round(
+                    capture_elapsed_seconds, 6
+                ),
                 "page_acquisition_policy": "adopt_same_platform_else_create",
                 "initial_platform_match_count": self._initial_platform_match_count,
                 "initial_exact_match_count": self._initial_exact_match_count,
@@ -1444,6 +1478,50 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             }
         )
         return result
+
+    def _record_capture_timing(
+        self,
+        *,
+        capture_index: int,
+        requested_url: object,
+        final_url: str | None,
+        kwargs: dict[str, object],
+        elapsed_seconds: float,
+        outcome: str,
+    ) -> None:
+        self._capture_elapsed_seconds_total += elapsed_seconds
+        self._capture_elapsed_seconds_max = max(
+            self._capture_elapsed_seconds_max, elapsed_seconds
+        )
+        action_names: list[str] = []
+        wheel_action = kwargs.get("post_load_wheel_action")
+        if isinstance(wheel_action, BrowserPageWheelAction):
+            action_names.append(wheel_action.action_name)
+        pointer_action = kwargs.get("post_load_pointer_action")
+        if isinstance(pointer_action, BrowserPagePointerAction):
+            action_names.append(pointer_action.action_name)
+        pointer_actions = kwargs.get("post_load_pointer_actions")
+        if isinstance(pointer_actions, Sequence):
+            action_names.extend(
+                action.action_name
+                for action in pointer_actions
+                if isinstance(action, BrowserPagePointerAction)
+            )
+        if kwargs.get("post_load_action_script") is not None:
+            action_names.append("post_load_action_script")
+        self._capture_timings.append(
+            {
+                "capture_index": capture_index,
+                "requested_url_or_none": (
+                    requested_url if isinstance(requested_url, str) else None
+                ),
+                "final_url_or_none": final_url,
+                "action_names": action_names,
+                "settle_seconds": kwargs.get("settle_seconds", 0.0),
+                "elapsed_seconds": round(elapsed_seconds, 6),
+                "outcome": outcome,
+            }
+        )
 
     def capture_current_viewport_png(self, *, timeout_seconds: float) -> bytes:
         """Capture a real PNG from the page retained by this CDP session."""
@@ -1600,6 +1678,13 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             "page_reuse_policy": "reuse_one_runner_page_until_detached",
             "capture_attempt_count": self._capture_attempt_count,
             "capture_success_count": self._capture_success_count,
+            "capture_elapsed_seconds_total": round(
+                self._capture_elapsed_seconds_total, 6
+            ),
+            "capture_elapsed_seconds_max": round(
+                self._capture_elapsed_seconds_max, 6
+            ),
+            "capture_timings": list(self._capture_timings),
             "browser_ownership": "operator_owned",
             "close_policy": "detach_only_leave_browser_and_page_open",
             "humanized_input_preset": "careful",

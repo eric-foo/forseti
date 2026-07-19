@@ -1524,7 +1524,7 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
     ) in capsys.readouterr().out.splitlines()
 
 
-def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -> None:
+def test_onboarding_cli_defaults_to_fixed_top_eight_and_seven_fourteen_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -1537,9 +1537,62 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -
     assert args.window_size == 30
     assert args.creator_intent == "new_onboarding"
     assert not hasattr(args, "selection_fraction")
-    assert args.cadence_min_gap_seconds == 8.0
-    assert args.cadence_max_gap_seconds == 13.0
+    assert args.cadence_min_gap_seconds == 7.0
+    assert args.cadence_max_gap_seconds == 14.0
     assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+
+
+def test_new_onboarding_without_handle_selects_next_registry_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    registry_document = {
+        "creator_profile_current_view": {
+            "profiles": [
+                {
+                    "profile_subject_id": "acct_tt_done",
+                    "profile_subject_kind": "platform_account",
+                    "onboarding": {"onboarding_state": "onboarded"},
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": "acct_tt_done",
+                            "public_handle": "done_creator",
+                            "public_profile_url": "https://www.tiktok.com/@done_creator",
+                        }
+                    ],
+                },
+                {
+                    "profile_subject_id": "acct_tt_next",
+                    "profile_subject_kind": "platform_account",
+                    "onboarding": {"onboarding_state": "not_onboarded"},
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": "acct_tt_next",
+                            "public_handle": "next_creator",
+                            "public_profile_url": "https://www.tiktok.com/@next_creator",
+                        }
+                    ],
+                },
+            ]
+        }
+    }
+    monkeypatch.setattr(
+        runner,
+        "load_creator_profile_current_view",
+        lambda _path: registry_document,
+    )
+
+    handle, candidate = runner._resolve_creator_handle(
+        creator_handle=None,
+        creator_intent="new_onboarding",
+        registry_path=tmp_path / "registry.json",
+    )
+
+    assert handle == "next_creator"
+    assert candidate is not None
+    assert candidate["platform_account_id"] == "acct_tt_next"
 
 
 def test_onboarding_cli_rejects_window_below_sufficient_dom_minimum() -> None:
