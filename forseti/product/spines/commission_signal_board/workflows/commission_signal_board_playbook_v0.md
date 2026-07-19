@@ -1,14 +1,16 @@
-# Commission Signal Board Playbook v0
+# Commission Signal Board And Forseti Intelligence Cycle Playbook v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow playbook
 scope: >
   Operating sequence for standard signal-board and one-company competitive-
-  intelligence commissions, including conditional local validation without
-  confusing CSB profiling with retrieval, capture, classification, or proof.
+  intelligence commissions, plus the two-phase/two-turn Forseti Intelligence
+  Cycle contract, without confusing CSB profiling with retrieval, capture,
+  classification, or proof.
 use_when:
   - Dispatching or rerunning the Commission Signal Board prompt.
+  - Commissioning or executing an Understanding or Problem Framing phase.
   - Deciding whether a standard board is ready for classifier-handoff routing or a company report is mechanically complete.
   - Diagnosing validator failures on Commission Signal Board outputs.
 authority_boundary: retrieval_only
@@ -31,7 +33,7 @@ stale_if:
 
 ## Purpose
 
-This playbook keeps four objects distinct:
+This playbook keeps these objects distinct:
 
 | Object | What it is | Validator applies? |
 | --- | --- | --- |
@@ -39,6 +41,8 @@ This playbook keeps four objects distinct:
 | Standard signal board | Existing standard Sections 1-10 with classifier handoff | Yes |
 | Commission-stage company board | Conditional company Sections 1-10 sealed before scanning: `run_boundary: COMMISSION_SEALED_PRE_SCAN`, `not_checked` coverage rows as the commissioned scan routes, scout statuses may be `commissioned_not_yet_run` | Yes |
 | Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers, earned scout statuses, and no classifier handoff | Yes |
+| Phase acquisition seal | Durable fresh-context handoff for one Intelligence Cycle phase; binds routes, receipts, provenance, failures, and acquisition-gate state | No |
+| Phase deliverable | Understanding or Problem Framing synthesis produced only from a passing phase acquisition seal | Profile-dependent |
 | Scanning, Capture, or classifier work | Downstream execution under its owning spine | No |
 
 CSB owns the commission profile, source-family requirements, time posture, and
@@ -48,7 +52,196 @@ runtime. CSB defines decision-material information jobs and candidate routes; it
 does not freeze the participant packet, decide final inclusion, or declare
 acquisition complete.
 
+## Forseti Intelligence Cycle
+
+Commission future one-company intelligence work as a **Forseti Intelligence
+Cycle**. The phases are **Understanding** followed by **Problem Framing**;
+`Problem` is informal shorthand only. Do not use bare `Phase 1` / `Phase 2`
+language for a future commission. Historical artifacts keep their original
+names and phase labels.
+
+Each phase normally consumes two completed operator/model turns:
+
+### Turn A — Acquire & Seal
+
+1. Bind `cycle_id`, `commission_id`, canonical phase, phase-specific question,
+   intended consumer/use, scope, and the six outcome signals below.
+2. Complete prerequisite and authority checks. Generate and validate the
+   phase-specific commission-stage CSB before source-heavy work.
+3. Resolve the selected sources through the repo map into Scanning/Capture
+   authority. Before capture starts, pin each route to the current source-family
+   contract and the banked recipe card or recon-index record when one exists.
+   Resolve Ulta and Quora through their existing source-specific records,
+   preserving each route's scope, maturity, and typed limitations; do not
+   silently substitute generic browsing or rediscovery.
+4. Run authorized scanning and capture. Record every selected route, route
+   result, scan/capture receipt, source/provenance locator, and real failure.
+5. If a material required-route or capture failure is load-bearing and a
+   plausible owner action can materially unblock it, issue one consolidated
+   owner-unblock escalation during the run, before sealing:
+
+   ```yaml
+   owner_unblock_escalation:
+     affected_question_or_success_signal:
+     route_attempted:
+     observed_blocker:
+     smallest_owner_action_needed:
+     remains_blocked:
+   ```
+
+   This is event-triggered, not a checkpoint for every route issue. If the owner
+   resolves it, resume acquisition and record the real route receipt. If it
+   remains unresolved, keep acquisition blocked or record the owner's explicit
+   narrowing of the commission. Never carry a fixable load-bearing capture
+   failure forward merely as a final-report caveat, silently omit it, infer
+   absence from it, or proceed as complete.
+6. Write the phase acquisition seal below. Context compaction may discard chat,
+   but not this artifact.
+
+```yaml
+phase_acquisition_seal:
+  cycle_id:
+  commission_id:
+  phase: understanding | problem_framing
+  turn: acquire_and_seal
+  bound_question:
+  intended_consumer:
+  intended_use:
+  phase_scope:
+  commission_board_locator:
+  outcome_signals:
+    - question_fit
+    - evidence_foundation
+    - reasoning_quality
+    - honest_uncertainty
+    - implications_and_foresight
+    - communication_efficiency
+  resolved_routes:
+    - source_or_venue:
+      information_job:
+      required: true | false
+      route_identity:
+      route_authority:
+      recipe_or_recon_pointer:
+      disposition: used | reused_evidence | skipped_with_rationale | blocked
+  scan_receipts: []
+  capture_receipts: []
+  provenance_index: []
+  material_gaps_and_failures: []
+  seal_state: SEALED_READY_FOR_DELIVER | BLOCKED_ACQUISITION_INCOMPLETE
+  acquisition_gate: pass | blocked
+  deliver_allowed: true | false
+  sealed_at:
+```
+
+The seal is valid for Deliver only when `seal_state:
+SEALED_READY_FOR_DELIVER`, `acquisition_gate: pass`, and `deliver_allowed:
+true`, and when every required route has a supported disposition and receipt or
+an honestly typed blocking result. A required route that was skipped, silently
+substituted, incompletely captured, or described as exhausted without the
+matching route evidence forces the blocked state.
+
+### Turn B — Deliver
+
+Start in fresh context and load the phase acquisition seal, not the accumulated
+capture chat. Verify its identity, canonical phase, bound question/use, seal
+state, route receipts, provenance, and material gaps before synthesis. If the
+gate is blocked or the artifact is incomplete, stop and return to Acquire &
+Seal; do not issue a nominal deliverable.
+
+When the gate passes, synthesize the phase deliverable, craft the human report
+or framing artifact, validate it under the owning contract, and hand off the
+next phase or step. Every evidence, coverage, provenance, and route-exhaustion
+claim must resolve to the seal. Preserve the final deliverable as the sealed
+phase output before commissioning post-delivery review.
+
+Understanding Deliver produces the decision-neutral company-intelligence
+artifact. Problem Framing may acquire only decision-specific supplements to the
+Understanding substrate, never a general re-scan; its eventual human output
+shape remains separately review-bound and is not defined here.
+
+Two turns are the normal operating budget, not a hard completion cap. A blocked
+Acquire & Seal remains blocked and may require another acquisition attempt; it
+does not count as a successful Deliver.
+
+### Six Outcome Signals
+
+The cycle optimizes toward these signals without turning them into a score,
+required report sections, six extra gates, or repeated receipt fields:
+
+1. **Question fit** — answer the bound question for the intended reader/use; do
+   not drift toward whatever was easiest to collect.
+2. **Evidence foundation** — trace load-bearing judgments to dated evidence,
+   check critical independence/currentness, and record required routes and
+   failures honestly.
+3. **Reasoning quality** — make the evidence-to-judgment chain reconstructable;
+   separate facts, assumptions, and judgments; address serious alternatives and
+   disconfirming evidence when relevant.
+4. **Honest uncertainty** — put confidence and material gaps where they affect
+   judgments and name useful change conditions; do not force probability
+   language onto descriptive facts.
+5. **Implications and foresight** — explain what findings mean and which
+   observable developments would change the view; do not force unsupported
+   forecasts or recommendations.
+6. **Communication efficiency** — make key judgments easy to find, order the
+   body by importance, remove repetition/padding, and keep audit detail
+   available without dominating the narrative.
+
+Production priority:
+
+1. **Non-negotiable foundations:** question fit, trustworthy evidence, and
+   honest uncertainty. Do not trade them for prose, apparent decisiveness,
+   speed, or implications. A real acquisition or evidence failure stays
+   visible and may block Deliver.
+2. **Primary value focus:** once the foundations hold, spend the largest
+   analytical effort on sound reasoning and useful meaning/implications.
+3. **Delivery discipline:** only then compress and clarify. Communication
+   efficiency must not manufacture substance or dominate effort.
+
+In one line: **optimize for decision usefulness under an integrity floor:
+secure the question/evidence/uncertainty foundations; then maximize reasoning
+and useful implications; then compress for clear delivery.**
+
+Satisfy the signals through real task evidence and function, not headings,
+labels, citation volume, ritual sections, forced forecasts, repeated confidence
+labels, or padding. Production receives these targets and this priority order,
+never numerical weights, bands, caps, or score-optimization instructions.
+
+## Post-Delivery Adversarial Review Handoff
+
+After a phase deliverable is sealed, commission an independent adversarial
+review against the accepted post-delivery six-dimension rubric and its
+applicable hard caps. The rubric authority is deferred until separately
+adopted; do not reconstruct it from this production contract or create a
+duplicate rubric here.
+
+The review package must include:
+
+- the final phase deliverable;
+- the phase acquisition seal and provenance index;
+- the bound question, intended consumer, and intended use;
+- material gaps and failures; and
+- the route receipts needed to verify evidence and exhaustion claims.
+
+The reviewer evaluates actual function and evidence, not the presence of
+headings, labels, citation volume, or ritual content, and explicitly tests for
+rubric gaming. The evaluation includes the Forseti-specific rule that a report
+presenting required capture routes as exhausted when the canonical route was
+skipped or silently substituted is flagged as rubric gaming rather than scored
+as a clean report. Any resulting numeric cap is applied only by the separately
+adopted post-delivery rubric; no cap value belongs in this production contract.
+
+Return the total number, the six-dimension profile, and all triggered flags or
+caps; never return a lone number. Weights, bands, and caps remain provisional
+working evaluation authority, not production instructions or a permanent
+readiness gate unless separately adopted. This handoff defines only the seam
+and required inputs; it does not create the numerical rubric, authorize the
+reviewer to patch, or change the report layout.
+
 ## Operating Sequence
+
+Use this sequence to create the CSB inside Acquire & Seal. The broader cycle
+gate above controls whether Deliver may begin.
 
 1. Read the prompt and this playbook.
 2. Preserve `mode: backtest | forward`. Determine `commission_profile`:
@@ -74,13 +267,18 @@ acquisition complete.
 8. Generate exactly the selected profile's Sections 1-10. A completed company
    report also carries the prompt-defined `## Executive Intelligence Brief`
    preamble before Section 1.
-9. Save the exact output to a temporary file or bound durable artifact.
+9. Save the exact output to a temporary file or bound durable artifact. For an
+   Intelligence Cycle, this is the commission-board input to the phase
+   acquisition seal, not the completed seal itself.
 10. Run the validator. If it fails, repair the output or report its finding
    codes. Do not run downstream work from a failing report.
 11. Route typed source requests to Scanning or Capture under their own
     authority. Do not execute retrieval from this playbook. Scanning decides
     marginal acquisition, dominance, and closure; Capture fulfills the bounded
     request or returns typed failure/route exhaustion.
+12. For an Intelligence Cycle, assemble the phase acquisition seal only after
+    the owning Scanning/Capture work returns. A typed acquisition failure
+    remains visible and blocks Deliver; it is not converted into completion.
 
 ## Validator Command
 
@@ -187,6 +385,10 @@ If an agent sees "Commission Signal Board", "commissioning board", or
 "commission board output", it should open this playbook before running or
 validating the board.
 
+If an agent sees "Forseti Intelligence Cycle", "Understanding phase", "Problem
+Framing phase", "Acquire & Seal", or "Deliver", it should open this playbook
+before commissioning or executing the phase.
+
 ## Current Non-Goals
 
 - Do not add CI or pre-commit enforcement until board artifact paths are
@@ -195,6 +397,10 @@ validating the board.
 - Do not turn the validator into demand classification, graph scoring, evidence
   weighting, retrieval, or proof review.
 - Do not treat validator pass as approval or readiness.
+- Do not implement or infer a numerical report score from the six outcome
+  signals.
+- Do not redesign the company-report section order while its external structure
+  review remains open.
 
 ## Direction Change Propagation
 

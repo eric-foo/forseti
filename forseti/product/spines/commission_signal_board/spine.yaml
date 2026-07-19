@@ -19,6 +19,22 @@ commission_contract:
     company_surface_disposition: candidate_only_not_imported
     subject_scope: one_company
 
+intelligence_cycle_contract:
+  canonical_name: Forseti Intelligence Cycle
+  phases: [understanding, problem_framing]
+  informal_phase_shorthand: {problem: problem_framing}
+  normal_turns_per_phase: [acquire_and_seal, deliver]
+  normal_turn_budget_not_completion_cap: true
+  acquisition_gate: sealed_phase_artifact_required_before_deliver
+  outcome_signals:
+    - question_fit
+    - evidence_foundation
+    - reasoning_quality
+    - honest_uncertainty
+    - implications_and_foresight
+    - communication_efficiency
+  numeric_score: not_part_of_this_contract
+
 canonical_artifacts:
   readme: forseti/product/spines/commission_signal_board/README.md
   prompt_structure_rules: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
@@ -63,3 +79,5 @@ non_goals:
   - no_gtm_interpretation
   - no_scanning_or_capture_runtime
   - no_company_surface_import
+  - no_numeric_working_score
+  - no_company_report_layout_redesign
