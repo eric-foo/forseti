@@ -156,6 +156,19 @@ _DOM = f"""<!doctype html>
 </body></html>
 """
 
+
+def _historical_context_dom() -> str:
+    additional_rows = "".join(
+        f'<div id="review-{index}"><span>Mar 20, 2026</span>'
+        "<span>Be the first to find this helpful</span></div>"
+        for index in range(7, 31)
+    )
+    return _DOM.replace(
+        '  <a href="?page=2">Load 6 more reviews</a>',
+        f'{additional_rows}\n  <a href="?page=2">Load 6 more reviews</a>',
+    )
+
+
 _VISIBLE_TEXT = """Main content
 Home
 Beauty
@@ -246,7 +259,7 @@ def _run(
     mode: str | None,
     capture_factory: Callable[[], CloakBrowserSnapshotSuccess] = _success,
     projector=None,
-    nordstrom_review_posture: str | None = "recent_window_30d",
+    nordstrom_review_posture: str | None = None,
 ) -> tuple[int, str]:
     monkeypatch.setattr(
         runner, "fetch_cloakbrowser_snapshot_capture", lambda **_kwargs: capture_factory()
@@ -435,7 +448,9 @@ def test_cli_defaults_nordstrom_profile_to_content(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setattr(
-        runner, "fetch_cloakbrowser_snapshot_capture", lambda **_kwargs: _success()
+        runner,
+        "fetch_cloakbrowser_snapshot_capture",
+        lambda **_kwargs: _success(rendered_dom=_historical_context_dom()),
     )
     packet_dir = tmp_path / "cli"
     assert (
@@ -469,7 +484,8 @@ def test_cli_defaults_nordstrom_profile_to_content(
         for item in _manifest(packet_dir)["preserved_files"]
     )
     assert (
-        "Most Recent 30-day window with a six-row floor and 30-row cap"
+        "all last-30-day reviews, then up to 30 Most Recent rows when that "
+        "cohort has fewer than 12"
         in _manifest(packet_dir)["receipt_metadata"]["summary"]
     )
     browser_metadata = json.loads(
@@ -478,14 +494,14 @@ def test_cli_defaults_nordstrom_profile_to_content(
         ).read_text(encoding="utf-8")
     )
     assert browser_metadata["nordstrom_review_window"]["status"] == (
-        "low_density_context"
+        "historical_context_complete"
     )
     assert browser_metadata["nordstrom_review_window"][
         "captured_review_count"
-    ] == 6
+    ] == 30
     assert browser_metadata["nordstrom_review_window"][
         "continuation_activations"
-    ] == 0
+    ] == 4
 
 
 def test_nordstrom_record_is_deterministic_target_scoped_and_complete() -> None:
@@ -619,6 +635,7 @@ def test_projection_failure_and_pin_failure_preserve_raw_inputs(
             capture_factory=lambda: _success(
                 rendered_dom=_DOM.replace("Most Recent", "Most Helpful")
             ),
+            nordstrom_review_posture="recent_window_30d",
         )[0]
         == runner.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
     )

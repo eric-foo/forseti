@@ -55,6 +55,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_fragrance_review_lake_packet.py",
         "run_fragrantica_mgt_capture.py",
         "run_ig_reels_lane_orchestrator.py",
+        "run_kohls_unattended_capture.py",
         "run_parfumo_mgt_capture.py",
         "run_source_capture_antiblock_http_packet.py",
         "run_source_capture_archive_packet.py",

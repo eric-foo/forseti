@@ -1642,9 +1642,35 @@ HTTP 200, no block): PDP `01KXXK9PJTA2KBRS2CM1MZDV1H` at
 the same Tower 28 LipSoftie schema.org `Offer` `price=16`/`priceCurrency=USD`
 and the policy packet the same US-shipping-only statement adjudicated above. The
 storefront-pin registry now records this runner as the admitted Kohl's route
-(`CONFIRMED_US` / `CONFIRMED_USD`, delivery `UNPINNED`). A fully-unattended route
-(headless-new real Chrome, or a US residential / entitled / paid egress) remains
-an open follow-up.
+(`CONFIRMED_US` / `CONFIRMED_USD`, delivery `UNPINNED`). At this point in the
+sequence, a fully unattended route remained an open follow-up; the next
+subsection records its completion.
+
+### Kohl's unattended Xvfb real-Chrome route (2026-07-20)
+
+The follow-up passed and was implemented as a one-shot:
+
+- `forseti-harness/runners/run_kohls_unattended_capture.py` builds or reuses the
+  real-Chrome Xvfb image, starts a private temporary container, captures the
+  bound PDP and policy through the rung-7 packet writer, then stops the
+  container. A named Docker volume preserves the Chrome profile between runs.
+- Live durable GO packets: PDP `01KXXV920Z8PQVHP6DN16335DF` at
+  `F:\forseti-data-lake\raw\897\01KXXV920Z8PQVHP6DN16335DF`; policy
+  `01KXXVA8B5EHY86N4EJZ7Y6360` at
+  `F:\forseti-data-lake\raw\950\01KXXVA8B5EHY86N4EJZ7Y6360`.
+- Both packets are HTTP 200, non-blocked, and passed their exact source-detail
+  gates. They record `browser_provisioning=unattended_xvfb`,
+  `persistent_profile_loaded=true`, and
+  `operator_category=unattended_real_browser_cdp`.
+- The PDP preserves `LipSoftie` plus `priceCurrency=USD`; the policy preserves
+  Kohl's US/APO/FPO-only shipping statement.
+- The passing browser had `navigator.webdriver=false`, five plugins, a normal
+  Linux Chrome UA, and **no usable WebGL context**. That falsifies the earlier
+  stronger “real GPU required” explanation. The route is proven; the exact
+  Akamai discriminator is not isolated.
+- No recurring schedule was registered because each run writes two durable
+  packets and no owner-approved frequency exists. The runner is the stable
+  one-shot entrypoint for an external scheduler.
 
 ### Credo US/USD default storefront pin
 
