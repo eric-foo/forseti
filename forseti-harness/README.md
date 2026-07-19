@@ -352,6 +352,19 @@ the injected `sleep_fn` / `monotonic_fn` / `utc_now_fn` seams in the capture
 modules are what make them testable without real time or network pacing — do
 not remove them as bloat.
 
+## Writing tests
+
+Test-authoring discipline for this suite is bound in
+`docs/decisions/harness_test_authoring_discipline_v0.md` (from the 2026-07-20
+test-stock audit). In short: extend an existing parametrized table instead of
+adding a near-duplicate sibling file; probe a hook/checker's exit-code contract
+in-process via `runpy.run_path(..., run_name="__main__")` rather than a
+subprocess spawn (real spawns only when the entrypoint itself is under test);
+scope or share heavyweight fixtures so a caller that asserts on one record does
+not materialize the whole seed; and give a validator's test file a roster check
+that fails when a declared finding-code has no covering test. It is resident
+discipline, not a CI gate, and sets no test-count target.
+
 ## Commands
 
 Run the full suite (parallel; `--dist=loadfile` matches CI's scheduling so a
