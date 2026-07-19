@@ -29,9 +29,12 @@ entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
 
 After and only after that completion signal passes, the cadence invokes the
 contract-pinned data-lake index runner for one ``derived_retrieval`` rebuild.
-The exact product-mention policy pins are read by that runner from the stored
-``by_mention`` manifest. A rebuild failure fails the cadence exit code loudly;
-no failed cadence attempts a lake-map refresh.
+Normal maintenance reads exact product-mention policy pins from the stored
+``by_mention`` manifest. A fresh root uses one explicit
+``--bootstrap-active-product-mention-policy`` run to bind and report this
+checkout's exact active pins; bootstrap refuses an existing manifest. A rebuild
+failure fails the cadence exit code loudly; no failed cadence attempts a
+lake-map refresh.
 
 ASR COST GATE: the ASR entrypoint executes local owner-operated compute on an
 unskipped ``--run``. ``--skip-asr`` skips only its execution and prints a
@@ -418,15 +421,24 @@ def _post_cycle_pending_failures(
     return failures
 
 
-def _refresh_lake_map(ctx: CadenceContext) -> int:
+def _refresh_lake_map(
+    ctx: CadenceContext,
+    *,
+    bootstrap_active_product_mention_policy: bool = False,
+) -> int:
     """Invoke the sanctioned sole writer after the all-caught-up proof."""
+    policy_argument = (
+        "--bootstrap-active-product-mention-policy"
+        if bootstrap_active_product_mention_policy
+        else "--use-stored-product-mention-policy"
+    )
     result = _indexes_rebuild.main(
         [
             "--root",
             str(ctx.data_root.path),
             "--target",
             "derived_retrieval",
-            "--use-stored-product-mention-policy",
+            policy_argument,
         ]
     )
     _print(
@@ -435,6 +447,11 @@ def _refresh_lake_map(ctx: CadenceContext) -> int:
             "status": "lake_map_rebuilt" if result == 0 else "lake_map_rebuild_failed",
             "exit_code": result,
             "map_scope": "live_after_snapshot_completion",
+            "policy_source": (
+                "active_checkout_bootstrap"
+                if bootstrap_active_product_mention_policy
+                else "stored_manifest"
+            ),
         }
     )
     return result
@@ -469,6 +486,15 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--bootstrap-active-product-mention-policy",
+        action="store_true",
+        help=(
+            "With --run only: one-time fresh-root map bootstrap using the exact "
+            "active product-mention policy from this checkout; refuses an "
+            "existing by_mention manifest."
+        ),
+    )
+    parser.add_argument(
         "--model",
         default="small",
         help="faster-whisper model name (part of the ASR obligation fingerprint).",
@@ -497,6 +523,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             message="--skip-asr applies to --run only (--check is already compute-free)\n",
         )
 
+    if args.bootstrap_active_product_mention_policy and args.check:
+        parser.exit(
+            status=2,
+            message="--bootstrap-active-product-mention-policy applies to --run only",
+        )
+
     from data_lake.root import DataLakeRoot
 
     try:
@@ -516,7 +548,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     cadence_result = run_cadence(ctx, skip_asr=args.skip_asr)
     if cadence_result:
         return cadence_result
-    return _refresh_lake_map(ctx)
+    return _refresh_lake_map(
+        ctx,
+        bootstrap_active_product_mention_policy=(
+            args.bootstrap_active_product_mention_policy
+        ),
+    )
 
 
 if __name__ == "__main__":

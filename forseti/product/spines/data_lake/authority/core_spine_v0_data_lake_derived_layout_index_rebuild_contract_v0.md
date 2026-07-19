@@ -55,6 +55,13 @@ authorizes no implementation here (the builder is a separate bounded work unit),
 other view, and unifies no cross-platform identity (per the medallion contract's given-up
 limitation). Actor/commenter retrieval stays out of scope (separately governed).
 
+The first `by_mention` population on a fresh root has no stored policy manifest.
+It may bind the checked-out product-extraction policy only through an explicit
+one-time bootstrap command that records the exact version and fingerprint and
+refuses any existing `by_mention` manifest. Every later rebuild consumes those
+stored pins. Bootstrap is neither an implicit current/latest selector nor
+permission to replace an established policy identity.
+
 ## Decision In One Screen
 
 ```text
