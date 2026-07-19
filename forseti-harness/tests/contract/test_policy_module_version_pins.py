@@ -145,11 +145,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "RETAIL_PDP_PROJECTION_VERSION",
             "retailer-owned content/parser version tokens",
         ),
-        # New-surface output-shaping decision: Nordstrom is newly admitted as a
-        # typed Retail/PDP route; existing retailer row semantics and the shared
-        # v0 schema stay unchanged. Nordstrom parser behavior is versioned by
-        # NORDSTROM_PDP_PARSER_VERSION.
-        "dcc9b0963c2d4d8fa345b55f0bd97e2cca095aea828a35414dd0945aef616b9b",
+        # New-surface output-shaping decision: Nordstrom and Credo Yotpo are
+        # newly admitted typed Retail/PDP surfaces; existing retailer row
+        # semantics and the shared v0 schema stay unchanged. The commissioned
+        # Credo packet was explicitly rederived append-only after admission.
+        "e558b023222cc9918ac41f8848cdff5edbd33d97fca5e875dd5c11ac37261f9d",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
@@ -163,7 +163,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        "df33ab6c6de41986fcc796fbb9b4e162884ef650796a25398cdd1597cc1b29fc",
+        # Output-shaping: v1 retains Yotpo's exact incentivized state, incentive
+        # type, and reviewer-declared age range in the existing extensible
+        # source_visible_fields envelope. The record schema remains v0 because
+        # no model field or required shape changed.
+        "874121d92a71dd7924586affcff31d11334fd9e8d61c90294fec1473024b549e",
     ),
     "source_capture/fragrance_review_lake.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION (source_capture/fragrance_review_coverage.py; weak-envelope residual)",),
