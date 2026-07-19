@@ -88,7 +88,10 @@ Stages 2–4 remain trigger-gated.
   `--target creator_vault`. That target scans only the full
   `creator_metric_silver` observation-lane history, publishes per-account
   envelopes plus unfileable-account residuals, and leaves the generic core
-  views unchanged. Packets committed later are next-run cadence work; the
+  views unchanged. A Silver account id is used when present; handle-only
+  monitoring observations bind through the existing stable creator-profile
+  registry by exact platform plus public handle, while disagreements remain
+  explicit unfiled residuals. Packets committed later are next-run cadence work; the
   subsequent Creator Vault rebuild is intentionally live. Failed cadence
   performs no rebuild and a rebuild failure fails the cadence. The disposable
   classification cache remains under

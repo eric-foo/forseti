@@ -234,9 +234,12 @@ accept an implicit current/latest policy.
   `creator_metric_silver` observation-lane history, filters to current
   source-backed `tiktok_creator_profile_metric` rows, and replaces the
   per-account envelopes under
-  `indexes/derived_retrieval/silver_vault/creator_vault/`. It does not require
-  product-mention policy pins and does not rewrite the core lake-map views.
-  Unfileable captured accounts are persisted as named generated residuals;
+  `indexes/derived_retrieval/silver_vault/creator_vault/`. A Silver account id
+  is used when present. Handle-only monitoring observations bind to the stable
+  creator-profile registry by exact platform plus public handle; any direct-
+  Silver/registry disagreement fails closed into an unfiled residual. It does
+  not require product-mention policy pins and does not rewrite the core lake-map
+  views. Unfileable captured accounts are persisted as named generated residuals;
   missing envelopes therefore remain distinguishable from captured-but-
   unfileable evidence. Account manifests expose a source-ref-set fingerprint,
   generation time, selection policy, and explicit stale condition.

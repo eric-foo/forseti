@@ -450,6 +450,58 @@ def _platform_account_ids(entry: dict[str, Any]) -> set[str]:
     return values
 
 
+def _creator_identity_lookup_key(platform: Any, native_id: Any) -> tuple[str, str]:
+    return (
+        str(platform or "").strip().casefold(),
+        str(native_id or "").strip().casefold().lstrip("@"),
+    )
+
+
+def _stable_registry_platform_account_ids() -> dict[tuple[str, str], str]:
+    """Exact public-handle bindings from the stable creator-profile view."""
+    from capture_spine.creator_profile_current.validation import (
+        load_creator_profile_current_view,
+    )
+
+    registry_path = (
+        Path(__file__).resolve().parents[2]
+        / "forseti"
+        / "product"
+        / "spines"
+        / "capture"
+        / "core"
+        / "source_families"
+        / "social_media"
+        / "creator_registry"
+        / "creator_profile_current_view_v0.json"
+    )
+    if not registry_path.is_file():
+        return {}
+    document = load_creator_profile_current_view(registry_path)
+    wrapper = document.get("creator_profile_current_view", {})
+    profiles = wrapper.get("profiles", []) if isinstance(wrapper, dict) else []
+    bindings: dict[tuple[str, str], str] = {}
+    for profile in profiles:
+        accounts = profile.get("platform_accounts", []) if isinstance(profile, dict) else []
+        for account in accounts:
+            if not isinstance(account, dict):
+                continue
+            account_id = str(account.get("platform_account_id") or "").strip()
+            key = _creator_identity_lookup_key(
+                account.get("platform"), account.get("public_handle")
+            )
+            if not account_id or not all(key):
+                continue
+            existing = bindings.get(key)
+            if existing is not None and existing != account_id:
+                raise ValueError(
+                    "stable creator registry maps one platform handle to multiple "
+                    f"platform account ids: {key[0]}:{key[1]}"
+                )
+            bindings[key] = account_id
+    return bindings
+
+
 def _observed_time(value: Any) -> datetime:
     text = str(value or "").strip()
     if text.endswith("Z"):
@@ -618,8 +670,8 @@ def _creator_vault_unfiled_files(
         ).hexdigest(),
         "view_sha256": hashlib.sha256(view_bytes).hexdigest(),
         "stale_if": (
-            "a committed TikTok profile MetricObservation or raw-packet tombstone "
-            "changes Creator Vault filing"
+            "a committed TikTok profile MetricObservation, raw-packet tombstone, "
+            "or stable-registry handle binding changes Creator Vault filing"
         ),
     }
     return {
@@ -631,8 +683,12 @@ def _creator_vault_unfiled_files(
 def build_creator_vault_account_files(
     sweep: dict[str, Any],
     stamp: dict[str, str],
+    *,
+    stable_platform_account_ids: dict[tuple[str, str], str] | None = None,
 ) -> dict[str, bytes]:
     """Generate TikTok account envelopes and explicit unfiled residuals."""
+    if stable_platform_account_ids is None:
+        stable_platform_account_ids = _stable_registry_platform_account_ids()
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     unfiled: list[dict[str, Any]] = []
     for (namespace, identity_kind, native_id), entry in sorted(sweep["accounts"].items()):
@@ -641,25 +697,58 @@ def build_creator_vault_account_files(
         candidates = _creator_metric_candidates(entry, sweep)
         if not candidates:
             continue
-        account_ids = _platform_account_ids(entry)
+        silver_account_ids = _platform_account_ids(entry)
         source_record_ids = sorted(candidate[1]["_ref_key"] for candidate in candidates)
-        if len(account_ids) != 1:
+        registry_account_id = stable_platform_account_ids.get(
+            _creator_identity_lookup_key(namespace, native_id)
+        )
+        if len(silver_account_ids) > 1:
             unfiled.append(
                 {
-                    "status": (
-                        "missing_platform_account_id"
-                        if not account_ids
-                        else "conflicting_platform_account_id_aliases"
-                    ),
+                    "status": "conflicting_platform_account_id_aliases",
                     "platform": namespace,
                     "identity_kind": identity_kind,
                     "native_id": native_id,
-                    "platform_account_ids": sorted(account_ids),
+                    "platform_account_ids": sorted(silver_account_ids),
                     "source_record_ids": source_record_ids,
                 }
             )
             continue
-        account_id = next(iter(account_ids))
+        if silver_account_ids:
+            account_id = next(iter(silver_account_ids))
+            if registry_account_id and registry_account_id != account_id:
+                unfiled.append(
+                    {
+                        "status": "stable_registry_platform_account_id_conflict",
+                        "platform": namespace,
+                        "identity_kind": identity_kind,
+                        "native_id": native_id,
+                        "platform_account_ids": [account_id],
+                        "stable_registry_platform_account_id": registry_account_id,
+                        "source_record_ids": source_record_ids,
+                    }
+                )
+                continue
+            account_id_source = (
+                "silver_record_and_stable_registry"
+                if registry_account_id
+                else "silver_record"
+            )
+        elif registry_account_id:
+            account_id = registry_account_id
+            account_id_source = "stable_registry_exact_public_handle"
+        else:
+            unfiled.append(
+                {
+                    "status": "missing_platform_account_id",
+                    "platform": namespace,
+                    "identity_kind": identity_kind,
+                    "native_id": native_id,
+                    "platform_account_ids": [],
+                    "source_record_ids": source_record_ids,
+                }
+            )
+            continue
         if _SAFE_READ_MODEL_KEY.fullmatch(account_id) is None:
             unfiled.append(
                 {
@@ -674,9 +763,14 @@ def build_creator_vault_account_files(
             continue
         account = grouped.setdefault(
             (namespace, account_id),
-            {"native_ids": set(), "candidates": defaultdict(list)},
+            {
+                "native_ids": set(),
+                "platform_account_id_sources": set(),
+                "candidates": defaultdict(list),
+            },
         )
         account["native_ids"].add(native_id)
+        account["platform_account_id_sources"].add(account_id_source)
         for metric_name, candidate in candidates:
             account["candidates"][metric_name].append(candidate)
 
@@ -722,6 +816,9 @@ def build_creator_vault_account_files(
             "account_key": {
                 "platform_account_id": account_id,
                 "observed_native_ids": sorted(account["native_ids"]),
+                "platform_account_id_sources": sorted(
+                    account["platform_account_id_sources"]
+                ),
             },
             "latest_metric_snapshot": metrics,
             "coverage_summary": {
@@ -775,14 +872,15 @@ def build_creator_vault_account_files(
             "source_ref_set_fingerprint_sha256": source_ref_set_fingerprint_sha256,
             "selection_policy_versions": {
                 "account_envelope": CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION,
+                "identity_binding": "silver_alias_else_stable_registry_exact_public_handle_v0",
                 "silver_authority_gate": CURRENT_SOURCE_BACKED_AUTHORITY,
                 "source_lane": OBSERVATION_LANE,
             },
             "envelope_sha256": hashlib.sha256(envelope_bytes).hexdigest(),
             "stale_if": (
-                "a committed creator-profile MetricObservation or raw-packet "
-                "tombstone changes the account selection after this source-ref-set "
-                "fingerprint"
+                "a committed creator-profile MetricObservation, raw-packet "
+                "tombstone, or stable-registry handle binding changes the account "
+                "selection after this source-ref-set fingerprint"
             ),
         }
         files[f"accounts/{platform}/{account_id}/envelope.json"] = envelope_bytes

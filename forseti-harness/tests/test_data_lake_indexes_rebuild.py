@@ -1024,6 +1024,70 @@ def test_creator_vault_scoped_rebuild_is_byte_equal_and_leaves_core_unchanged(
     assert lookup["matches"][0]["registry_profile_or_none"] == stable_profile
 
 
+def test_creator_vault_binds_handle_only_metrics_from_stable_registry_and_fails_on_disagreement(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import data_lake.derived_retrieval_views as views
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    mapped_id = "acct_tt_registry_mapped"
+    conflict_silver_id = "acct_tt_silver_conflict"
+    conflict_registry_id = "acct_tt_registry_conflict"
+    monkeypatch.setattr(
+        views,
+        "_stable_registry_platform_account_ids",
+        lambda: {
+            ("tiktok", "mapped_creator"): mapped_id,
+            ("tiktok", "conflict_creator"): conflict_registry_id,
+        },
+    )
+    mapped_packet = _commit_packet(root, tmp_path, "registry-mapped")
+    _write_creator_metric_record(
+        root,
+        mapped_packet,
+        "mapped.json",
+        subject_ref={
+            "namespace": "tiktok",
+            "kind": "platform_public_account",
+            "native_id": "mapped_creator",
+        },
+        metric_value=1234,
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    conflict_packet = _commit_packet(root, tmp_path, "registry-conflict")
+    _write_creator_metric_record(
+        root,
+        conflict_packet,
+        "conflict.json",
+        subject_ref=_tiktok_profile_subject(
+            conflict_silver_id, "conflict_creator"
+        ),
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+
+    rebuild_creator_vault(root, stamp=_STAMP)
+    envelope_path, _ = _creator_vault_account_paths(root, mapped_id)
+    envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+    assert envelope["account_key"] == {
+        "observed_native_ids": ["mapped_creator"],
+        "platform_account_id": mapped_id,
+        "platform_account_id_sources": ["stable_registry_exact_public_handle"],
+    }
+    assert envelope["latest_metric_snapshot"]["follower_count"]["last_observed"][
+        "metric_value_or_none"
+    ] == 1234
+    conflict_path, _ = _creator_vault_account_paths(root, conflict_silver_id)
+    assert not conflict_path.exists()
+    residual_path = envelope_path.parents[3] / "unfiled_accounts.json"
+    residuals = json.loads(residual_path.read_text(encoding="utf-8"))["residuals"]
+    assert [row["status"] for row in residuals] == [
+        "stable_registry_platform_account_id_conflict"
+    ]
+    assert residuals[0]["stable_registry_platform_account_id"] == conflict_registry_id
+    assert views.prove_creator_vault_rebuildability(root)["status"] == "proven"
+
+
 def test_creator_vault_names_unfileable_captured_accounts_for_lookup(
     tmp_path: Path,
 ) -> None:
