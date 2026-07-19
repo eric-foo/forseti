@@ -60,6 +60,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 from typing import Callable, Sequence
 
 if __package__ in {None, ""}:
@@ -249,7 +250,49 @@ CLASSIFIED_OUT_SEAM_CONSUMERS: dict[str, str] = {
 
 
 def _print(entry: dict) -> None:
-    print(json.dumps(entry, ensure_ascii=False, sort_keys=True))
+    print(json.dumps(entry, ensure_ascii=False, sort_keys=True), flush=True)
+
+
+def _start_phase(phase: str, **context: object) -> float:
+    started_at = perf_counter()
+    _print({"cycle": None, "phase": phase, "status": "phase_started", **context})
+    return started_at
+
+
+def _finish_phase(
+    phase: str, started_at: float, *, succeeded: bool, **context: object
+) -> None:
+    _print(
+        {
+            "cycle": None,
+            "phase": phase,
+            "status": "phase_completed" if succeeded else "phase_failed",
+            "elapsed_seconds": round(max(0.0, perf_counter() - started_at), 3),
+            **context,
+        }
+    )
+
+
+def _entrypoint_progress(
+    *,
+    phase: str,
+    entrypoint: str,
+    status: str,
+    started_at: float | None = None,
+    **context: object,
+) -> float:
+    now = perf_counter()
+    event: dict[str, object] = {
+        "cycle": None,
+        "phase": phase,
+        "entrypoint": entrypoint,
+        "status": status,
+        **context,
+    }
+    if started_at is not None:
+        event["elapsed_seconds"] = round(max(0.0, now - started_at), 3)
+    _print(event)
+    return now
 
 
 def run_check(ctx: CadenceContext) -> int:
@@ -258,29 +301,55 @@ def run_check(ctx: CadenceContext) -> int:
     scope_packet_ids = _capture_start_snapshot(ctx)
     if scope_packet_ids is None:
         return 1
+    phase = "pending_check"
+    phase_started_at = _start_phase(phase)
     failures = 0
     for entrypoint in CADENCE_ENTRYPOINTS:
+        entrypoint_started_at = _entrypoint_progress(
+            phase=phase,
+            entrypoint=entrypoint.runner,
+            status="entrypoint_started",
+            operation="pending_check",
+        )
         try:
             count = entrypoint.pending(ctx, scope_packet_ids)
         except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
-            _print(
-                {
-                    "entrypoint": entrypoint.runner,
-                    "status": "pending_check_failed",
-                    "error": f"{type(exc).__name__}: {exc}"[:200],
-                }
+            _entrypoint_progress(
+                phase=phase,
+                entrypoint=entrypoint.runner,
+                status="pending_check_failed",
+                started_at=entrypoint_started_at,
+                operation="pending_check",
+                error=f"{type(exc).__name__}: {exc}"[:200],
             )
             failures += 1
             continue
         _print({"entrypoint": entrypoint.runner, "pending": count})
+        _entrypoint_progress(
+            phase=phase,
+            entrypoint=entrypoint.runner,
+            status="entrypoint_completed",
+            started_at=entrypoint_started_at,
+            operation="pending_check",
+            pending=count,
+        )
         if count:
             failures += 1
+    _finish_phase(
+        phase, phase_started_at, succeeded=failures == 0, failure_count=failures
+    )
     _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if failures else 0
 
 
 def _abort_root_unavailable(
-    *, cycle: int | str, entrypoint: str, entrypoint_index: int, exc: Exception
+    *,
+    cycle: int | str,
+    entrypoint: str,
+    entrypoint_index: int,
+    exc: Exception,
+    phase: str,
+    started_at: float,
 ) -> int:
     remaining_in_cycle = max(0, len(CADENCE_ENTRYPOINTS) - entrypoint_index - 1)
     remaining_later_cycles = len(CADENCE_ENTRYPOINTS) if cycle == 1 else 0
@@ -292,6 +361,8 @@ def _abort_root_unavailable(
             "error": f"{type(exc).__name__}: {exc}"[:200],
             "skipped_entrypoint_runs": remaining_in_cycle + remaining_later_cycles,
             "post_cycle_pending_skipped": True,
+            "phase": phase,
+            "elapsed_seconds": round(max(0.0, perf_counter() - started_at), 3),
         }
     )
     return 1
@@ -309,7 +380,21 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
 
     second_cycle_entries = 0
     for cycle in (1, 2):
+        phase = f"cycle_{cycle}"
+        phase_started_at = _start_phase(phase)
+        entrypoint_failures = 0
         for entrypoint_index, entrypoint in enumerate(CADENCE_ENTRYPOINTS):
+            operation = (
+                "pending_check"
+                if skip_asr and entrypoint.needs_asr_compute
+                else "run"
+            )
+            entrypoint_started_at = _entrypoint_progress(
+                phase=phase,
+                entrypoint=entrypoint.runner,
+                status="entrypoint_started",
+                operation=operation,
+            )
             if skip_asr and entrypoint.needs_asr_compute:
                 try:
                     pending = entrypoint.pending(ctx, scope_packet_ids)
@@ -319,16 +404,20 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                         entrypoint=entrypoint.runner,
                         entrypoint_index=entrypoint_index,
                         exc=exc,
+                        phase=phase,
+                        started_at=entrypoint_started_at,
                     )
                 except Exception as exc:  # noqa: BLE001 - skipped lane must stay checkable
-                    _print(
-                        {
-                            "cycle": cycle,
-                            "entrypoint": entrypoint.runner,
-                            "status": "skipped_asr_pending_check_failed",
-                            "error": f"{type(exc).__name__}: {exc}"[:200],
-                        }
+                    _entrypoint_progress(
+                        phase=phase,
+                        entrypoint=entrypoint.runner,
+                        status="skipped_asr_pending_check_failed",
+                        started_at=entrypoint_started_at,
+                        operation=operation,
+                        cycle=cycle,
+                        error=f"{type(exc).__name__}: {exc}"[:200],
                     )
+                    entrypoint_failures += 1
                     if cycle == 2:
                         second_cycle_entries += 1
                     continue
@@ -342,7 +431,16 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                         "pending": pending,
                     }
                 )
+                _entrypoint_progress(
+                    phase=phase,
+                    entrypoint=entrypoint.runner,
+                    status="entrypoint_completed",
+                    started_at=entrypoint_started_at,
+                    operation=operation,
+                    pending=pending,
+                )
                 continue
+            entrypoint_failed = False
             try:
                 results = entrypoint.run(ctx, scope_packet_ids)
             except DataLakeRootUnavailableError as exc:
@@ -351,42 +449,79 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                     entrypoint=entrypoint.runner,
                     entrypoint_index=entrypoint_index,
                     exc=exc,
+                    phase=phase,
+                    started_at=entrypoint_started_at,
                 )
             except Exception as exc:  # noqa: BLE001 - per-entrypoint failure isolation
+                entrypoint_failed = True
+                entrypoint_failures += 1
                 results = [
                     {
                         "status": "entrypoint_failed",
                         "error": f"{type(exc).__name__}: {exc}"[:200],
+                        "elapsed_seconds": round(
+                            max(0.0, perf_counter() - entrypoint_started_at), 3
+                        ),
                     }
                 ]
             for result in results:
                 _print({"cycle": cycle, "entrypoint": entrypoint.runner, **result})
+            if not entrypoint_failed:
+                _entrypoint_progress(
+                    phase=phase,
+                    entrypoint=entrypoint.runner,
+                    status="entrypoint_completed",
+                    started_at=entrypoint_started_at,
+                    operation=operation,
+                    result_count=len(results),
+                )
             if cycle == 2:
                 second_cycle_entries += len(results)
+        _finish_phase(
+            phase,
+            phase_started_at,
+            succeeded=entrypoint_failures == 0,
+            entrypoint_failure_count=entrypoint_failures,
+        )
+    post_phase = "post_cycle_pending_sweep"
+    post_started_at = _start_phase(post_phase)
     try:
         post_cycle_pending = _post_cycle_pending_failures(ctx, scope_packet_ids)
     except DataLakeRootUnavailableError as exc:
         return _abort_root_unavailable(
             cycle="post",
-            entrypoint="post_cycle_pending_sweep",
+            entrypoint=post_phase,
             entrypoint_index=len(CADENCE_ENTRYPOINTS) - 1,
             exc=exc,
+            phase=post_phase,
+            started_at=post_started_at,
         )
+    _finish_phase(
+        post_phase,
+        post_started_at,
+        succeeded=post_cycle_pending == 0,
+        failure_count=post_cycle_pending,
+    )
     _report_late_arrivals(ctx, scope_packet_ids)
     return 1 if second_cycle_entries or post_cycle_pending else 0
 
 
 def _capture_start_snapshot(ctx: CadenceContext) -> tuple[str, ...] | None:
+    phase = "snapshot"
+    started_at = _start_phase(phase)
     try:
         packet_ids = tuple(ctx.data_root.list_committed_packet_ids())
     except Exception as exc:  # noqa: BLE001 - boundary failure must stay loud
+        error = f"{type(exc).__name__}: {exc}"[:200]
         _print(
             {
                 "cycle": "snapshot",
                 "status": "cadence_snapshot_failed",
-                "error": f"{type(exc).__name__}: {exc}"[:200],
+                "error": error,
+                "elapsed_seconds": round(max(0.0, perf_counter() - started_at), 3),
             }
         )
+        _finish_phase(phase, started_at, succeeded=False, error=error)
         return None
     digest = hashlib.sha256("\n".join(packet_ids).encode("utf-8")).hexdigest()
     _print(
@@ -397,24 +532,36 @@ def _capture_start_snapshot(ctx: CadenceContext) -> tuple[str, ...] | None:
             "packet_ids_sha256": digest,
         }
     )
+    _finish_phase(
+        phase,
+        started_at,
+        succeeded=True,
+        packet_count=len(packet_ids),
+        packet_ids_sha256=digest,
+    )
     return packet_ids
 
 
 def _report_late_arrivals(
     ctx: CadenceContext, scope_packet_ids: Sequence[str]
 ) -> None:
+    phase = "late_arrival_check"
+    started_at = _start_phase(phase)
     try:
         late = sorted(
             set(ctx.data_root.list_committed_packet_ids()) - set(scope_packet_ids)
         )
     except Exception as exc:  # noqa: BLE001 - informational check cannot poison snapshot
+        error = f"{type(exc).__name__}: {exc}"[:200]
         _print(
             {
                 "cycle": "post",
                 "status": "late_arrival_check_failed",
-                "error": f"{type(exc).__name__}: {exc}"[:200],
+                "error": error,
+                "elapsed_seconds": round(max(0.0, perf_counter() - started_at), 3),
             }
         )
+        _finish_phase(phase, started_at, succeeded=False, error=error)
         return
     if late:
         _print(
@@ -425,6 +572,7 @@ def _report_late_arrivals(
                 "packet_ids": late,
             }
         )
+    _finish_phase(phase, started_at, succeeded=True, packet_count=len(late))
 
 
 def _post_cycle_pending_failures(
@@ -436,20 +584,27 @@ def _post_cycle_pending_failures(
     leaving work behind, or a later entrypoint made earlier entrypoint work after
     that earlier entrypoint's cycle-2 turn.
     """
+    phase = "post_cycle_pending_sweep"
     failures = 0
     for entrypoint in CADENCE_ENTRYPOINTS:
+        entrypoint_started_at = _entrypoint_progress(
+            phase=phase,
+            entrypoint=entrypoint.runner,
+            status="entrypoint_started",
+            operation="pending_check",
+        )
         try:
             pending = entrypoint.pending(ctx, scope_packet_ids)
         except DataLakeRootUnavailableError:
             raise
         except Exception as exc:  # noqa: BLE001 - no-work claim must fail loud
-            _print(
-                {
-                    "cycle": "post",
-                    "entrypoint": entrypoint.runner,
-                    "status": "post_cycle_pending_check_failed",
-                    "error": f"{type(exc).__name__}: {exc}"[:200],
-                }
+            _entrypoint_progress(
+                phase=phase,
+                entrypoint=entrypoint.runner,
+                status="post_cycle_pending_check_failed",
+                started_at=entrypoint_started_at,
+                operation="pending_check",
+                error=f"{type(exc).__name__}: {exc}"[:200],
             )
             failures += 1
             continue
@@ -463,6 +618,14 @@ def _post_cycle_pending_failures(
                 }
             )
             failures += 1
+        _entrypoint_progress(
+            phase=phase,
+            entrypoint=entrypoint.runner,
+            status="entrypoint_completed",
+            started_at=entrypoint_started_at,
+            operation="pending_check",
+            pending=pending,
+        )
     return failures
 
 
@@ -477,6 +640,8 @@ def _refresh_lake_map(
         if bootstrap_active_product_mention_policy
         else "--use-stored-product-mention-policy"
     )
+    phase = "lake_map_rebuild"
+    started_at = _start_phase(phase)
     result = _indexes_rebuild.main(
         [
             "--root",
@@ -497,7 +662,14 @@ def _refresh_lake_map(
                 if bootstrap_active_product_mention_policy
                 else "stored_manifest"
             ),
+            "elapsed_seconds": round(max(0.0, perf_counter() - started_at), 3),
         }
+    )
+    _finish_phase(
+        phase,
+        started_at,
+        succeeded=result == 0,
+        exit_code=result,
     )
     return result
 
@@ -576,10 +748,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     from data_lake.root import DataLakeRoot
 
+    mode = "check" if args.check else "run"
+    cadence_started_at = _start_phase("cadence", mode=mode)
     try:
         data_root = DataLakeRoot.resolve(explicit=args.data_root)
     except Exception as exc:  # noqa: BLE001 - CLI must surface root resolution failures
-        parser.exit(status=2, message=f"data root required: {type(exc).__name__}: {exc}\n")
+        error = f"{type(exc).__name__}: {exc}"
+        _finish_phase(
+            "cadence", cadence_started_at, succeeded=False, mode=mode, error=error[:200]
+        )
+        parser.exit(status=2, message=f"data root required: {error}\n")
     ctx = CadenceContext(
         data_root=data_root,
         transcriber_policy=_asr.default_transcriber_policy(
@@ -589,16 +767,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         asr_compute_type=args.compute_type,
     )
     if args.check:
-        return run_check(ctx)
-    cadence_result = run_cadence(ctx, skip_asr=args.skip_asr)
-    if cadence_result:
-        return cadence_result
-    return _refresh_lake_map(
-        ctx,
-        bootstrap_active_product_mention_policy=(
-            args.bootstrap_active_product_mention_policy
-        ),
+        result = run_check(ctx)
+    else:
+        result = run_cadence(ctx, skip_asr=args.skip_asr)
+        if result == 0:
+            result = _refresh_lake_map(
+                ctx,
+                bootstrap_active_product_mention_policy=(
+                    args.bootstrap_active_product_mention_policy
+                ),
+            )
+    _finish_phase(
+        "cadence",
+        cadence_started_at,
+        succeeded=result == 0,
+        mode=mode,
+        exit_code=result,
     )
+    return result
 
 
 if __name__ == "__main__":

@@ -67,6 +67,60 @@ def _output_lines(capsys) -> list[dict]:
     return [json.loads(line) for line in capsys.readouterr().out.strip().splitlines()]
 
 
+def test_structured_output_forces_an_immediate_flush(monkeypatch) -> None:
+    observed: list[tuple[tuple, dict]] = []
+    monkeypatch.setattr(
+        "builtins.print", lambda *args, **kwargs: observed.append((args, kwargs))
+    )
+
+    cadence._print({"status": "probe"})
+
+    assert observed[0][1]["flush"] is True
+
+
+def test_progress_precedes_work_and_terminal_events_are_timed(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    observed: list[dict] = []
+
+    def run(_ctx, _scope) -> list:
+        visible = _output_lines(capsys)
+        observed.extend(visible)
+        assert visible[-1]["status"] == "entrypoint_started"
+        return []
+
+    monkeypatch.setattr(
+        cadence,
+        "CADENCE_ENTRYPOINTS",
+        (
+            cadence.CadenceEntrypoint(
+                runner="probe.py", pending=lambda _ctx, _scope: 0, run=run
+            ),
+        ),
+    )
+
+    assert run_cadence(_ctx(data_root), skip_asr=False) == 0
+    observed.extend(_output_lines(capsys))
+
+    assert observed[0]["phase"] == "snapshot"
+    assert observed[0]["status"] == "phase_started"
+    terminals = [
+        line
+        for line in observed
+        if line.get("status") in {"phase_completed", "entrypoint_completed"}
+    ]
+    assert terminals
+    assert all(line["elapsed_seconds"] >= 0 for line in terminals)
+    assert {
+        "snapshot",
+        "cycle_1",
+        "cycle_2",
+        "post_cycle_pending_sweep",
+        "late_arrival_check",
+    }.issubset({line.get("phase") for line in observed})
+
+
 def test_backlog_drains_in_cycle_one_and_second_cycle_is_zero(tmp_path, capsys) -> None:
     # The completion signal: cycle 1 may work; cycle 2 must emit nothing beyond
     # the sanctioned skip markers -> exit 0.
@@ -216,7 +270,7 @@ def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:
     by_entrypoint = {
         l["entrypoint"]: l["pending"]
         for l in _output_lines(capsys)
-        if "entrypoint" in l
+        if "entrypoint" in l and "status" not in l
     }
     assert len(by_entrypoint) == len(cadence.CADENCE_ENTRYPOINTS)
     assert by_entrypoint["run_ecr_catchup.py"] == 1
@@ -232,7 +286,7 @@ def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:
     assert all(
         l["pending"] == 0
         for l in _output_lines(capsys)
-        if "entrypoint" in l
+        if "entrypoint" in l and "status" not in l
     )
 
 
@@ -258,6 +312,7 @@ def test_one_broken_entrypoint_is_loud_and_never_aborts_the_rest(
         (2, "run_ecr_catchup.py"),
     ]
     assert "RuntimeError" in failures[0]["error"]
+    assert all(failure["elapsed_seconds"] >= 0 for failure in failures)
     # The loop continued past the broken entrypoint: the ASR skip marker (last
     # in the registry) still printed in both cycles.
     assert [l["cycle"] for l in lines if l.get("status") == "skipped_asr_compute"] == [1, 2]
@@ -302,6 +357,7 @@ def test_systemic_root_loss_aborts_remaining_cadence_work(
     assert aborts[0]["entrypoint"] == "root-loss.py"
     assert aborts[0]["skipped_entrypoint_runs"] == 3
     assert aborts[0]["post_cycle_pending_skipped"] is True
+    assert aborts[0]["elapsed_seconds"] >= 0
 
 
 def test_skip_asr_visible_backlog_fails_completion_signal(
@@ -476,7 +532,9 @@ def test_failed_cadence_never_attempts_lake_map_rebuild(
     assert rebuild_calls == []
 
 
-def test_lake_map_rebuild_failure_fails_cadence(tmp_path, monkeypatch) -> None:
+def test_lake_map_rebuild_failure_fails_cadence(
+    tmp_path, monkeypatch, capsys
+) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     monkeypatch.setattr(
         DataLakeRoot,
@@ -487,6 +545,16 @@ def test_lake_map_rebuild_failure_fails_cadence(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(cadence._indexes_rebuild, "main", lambda _argv: 2)
 
     assert main(["--run", "--skip-asr"]) == 2
+    events = _output_lines(capsys)
+    map_terminal = [
+        event
+        for event in events
+        if event.get("phase") == "lake_map_rebuild"
+        and event.get("status") == "phase_failed"
+    ]
+    assert len(map_terminal) == 1
+    assert map_terminal[0]["exit_code"] == 2
+    assert map_terminal[0]["elapsed_seconds"] >= 0
 
 
 def test_cli_usage_errors(tmp_path) -> None:
