@@ -217,7 +217,8 @@ schema, registry, or mandatory-workflow change.
 ```yaml
 closeout_date: "2026-07-19"
 closeout_state: COMPLETE
-collector_result: SEALED_COMPLETE_WITH_ACCEPTED_RESIDUALS
+collector_result_as_returned: SEALED_COMPLETE_WITH_ACCEPTED_RESIDUALS
+canonical_seal_after_deliver_preflight: SEALED_READY_FOR_DELIVER
 collector_base_commit: ead7e5f398667e0bf1ee033e8494bd0a19bc8113
 collector_blindness: OPERATIONAL_PASS
 current_policy_closure:
@@ -275,8 +276,8 @@ capture_root_closeout:
 dogfood_disposition: REVISE_AND_RETEST
 phase_acquisition_seal:
   path: docs/workflows/forseti_beauty_marc_jacobs_beauty_relaunch_understanding_acquisition_seal_v0.md
-  seal_state: ACQUISITION_COMPLETE_WITH_ACCEPTED_RESIDUALS
-  acquisition_gate: passed
+  seal_state: SEALED_READY_FOR_DELIVER
+  acquisition_gate: pass
   deliver_allowed: true
 next_cycle_state: READY_FOR_DELIVER_IN_SEPARATE_FRESH_CONTEXT
 ```
