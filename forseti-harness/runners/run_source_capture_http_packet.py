@@ -33,6 +33,10 @@ from source_capture.content_capture import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
+from source_capture.adapters.credo_us_market import (
+    confirm_credo_us_market,
+    validate_credo_us_market_url,
+)
 from source_capture.adapters.walmart_us_market import (
     confirm_walmart_us_market,
     validate_walmart_us_market_url,
@@ -69,6 +73,7 @@ DIRECT_HTTP_NON_CLAIMS = [
     "not commercial-readiness logic",
 ]
 WALMART_MARKET_PIN_FAILURE_MODE_CHANGE = "walmart_market_pin_failed"
+CREDO_MARKET_PIN_FAILURE_MODE_CHANGE = "credo_market_pin_failed"
 
 
 def run_source_capture_http_packet(
@@ -105,7 +110,10 @@ def run_source_capture_http_packet(
     intended_cadence: dict[str, object] | None = None,
     content_capture: ContentCaptureSpec | None = None,
     walmart_market: str | None = None,
+    credo_market: str | None = None,
 ) -> tuple[int, str]:
+    if walmart_market is not None and credo_market is not None:
+        raise ValueError("--credo-market and --walmart-market are mutually exclusive")
     if retail_capture_profile is not None:
         if retail_capture_profile.source_surface != "direct_http":
             raise ValueError(
@@ -135,6 +143,19 @@ def run_source_capture_http_packet(
                 "be combined with manual --locale-pin or --currency-pin declarations"
             )
         validate_walmart_us_market_url(url)
+    if credo_market is not None:
+        if credo_market != "US":
+            raise ValueError("Credo market assertion currently supports only US/USD")
+        if source_family != "retail_pdp" or source_surface != "direct_http":
+            raise ValueError(
+                "--credo-market US requires retail_pdp/direct_http capture"
+            )
+        if locale_pin is not None or currency_pin is not None:
+            raise ValueError(
+                "--credo-market derives confirmed country/currency pins and must not "
+                "be combined with manual --locale-pin or --currency-pin declarations"
+            )
+        validate_credo_us_market_url(url)
 
     capture_result = fetch_direct_http_capture(
         url=url,
@@ -148,6 +169,7 @@ def run_source_capture_http_packet(
         capture_result.metadata["retail_capture_profile"] = retail_capture_profile.metadata()
     decoded_body = capture_result.body.decode("utf-8", errors="replace")
     walmart_pin_failure: str | None = None
+    credo_pin_failure: str | None = None
     if walmart_market == "US":
         confirmation = confirm_walmart_us_market(
             decoded_body,
@@ -160,6 +182,18 @@ def run_source_capture_http_packet(
             currency_pin = known_fact("USD")
         else:
             walmart_pin_failure = confirmation.detail
+    if credo_market == "US":
+        confirmation = confirm_credo_us_market(
+            decoded_body,
+            requested_url=url,
+            final_url=capture_result.final_url,
+        )
+        capture_result.metadata.update(confirmation.metadata())
+        if confirmation.confirmed:
+            locale_pin = known_fact("US")
+            currency_pin = known_fact("USD")
+        else:
+            credo_pin_failure = confirmation.detail
     sufficiency_result = evaluate_source_detail_sufficiency(
         requirements=(
             retail_capture_profile.requirements if retail_capture_profile is not None else None
@@ -185,6 +219,11 @@ def run_source_capture_http_packet(
             f"{WALMART_MARKET_PIN_FAILURE_MODE_CHANGE}: {walmart_pin_failure}; packet "
             "preserved but MUST NOT be admitted as Walmart US/USD storefront evidence"
         )
+    if credo_pin_failure is not None:
+        packet_limitations.append(
+            f"{CREDO_MARKET_PIN_FAILURE_MODE_CHANGE}: {credo_pin_failure}; packet "
+            "preserved but MUST NOT be admitted as Credo US/USD storefront evidence"
+        )
     sufficiency_limitation = source_detail_sufficiency_limitation(sufficiency_result)
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
@@ -194,6 +233,8 @@ def run_source_capture_http_packet(
         packet_visible_mode_changes.append(sufficiency_mode_change)
     if walmart_pin_failure is not None:
         packet_visible_mode_changes.append(WALMART_MARKET_PIN_FAILURE_MODE_CHANGE)
+    if credo_pin_failure is not None:
+        packet_visible_mode_changes.append(CREDO_MARKET_PIN_FAILURE_MODE_CHANGE)
 
     if 200 <= capture_result.status < 300:
         access_posture = known_fact(
@@ -368,6 +409,12 @@ def run_source_capture_http_packet(
             f"{WALMART_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{result.output_directory}: {walmart_pin_failure}",
         )
+    if credo_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{CREDO_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}: {credo_pin_failure}",
+        )
     if projection_failure is not None:
         # The raw fallback packet was written; the failure detail lives in the
         # packet limitations and HTTP metadata. Message stays the packet path
@@ -423,6 +470,18 @@ def _build_parser() -> argparse.ArgumentParser:
             "context, and immediate module targeting countryCode US. Accepts "
             "Walmart's scalar US or exact single-item [US] serialization. Performs "
             "no preference or delivery-location mutation."
+        ),
+    )
+    parser.add_argument(
+        "--credo-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Fail-closed assertion for a Credo US/USD Direct HTTP PDP. Requires "
+            "the exact Credo product route and canonical URL, Shopify.country=US, "
+            "Shopify.currency.active=USD, and one bound Product JSON-LD object "
+            "with a named brand and nonempty USD offer. Performs no preference, "
+            "cookie, cart, or delivery-location mutation."
         ),
     )
     parser.add_argument("--actor-audience-context", default=None)
@@ -562,6 +621,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             intended_cadence=build_intended_cadence(args),
             walmart_market=args.walmart_market,
+            credo_market=args.credo_market,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture direct HTTP failed: {exc}\n")
