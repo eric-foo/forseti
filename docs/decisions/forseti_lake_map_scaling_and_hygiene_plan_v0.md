@@ -114,6 +114,35 @@ versus the final 784-retained/781-public doctor snapshot. These are operational
 progress and point-in-time integrity receipts, not a claim that the population
 census is fast or that the lake is continuously quiescent.
 
+### Staging residual adjudication (2026-07-20, SLG-05)
+
+The sole live staging residual
+`.staging/01KXSP6FN5PD37NDB15VDXH5B9` was a complete anonymous
+CloakBrowser capture of the Ulta ILIA Super Serum Skin Tint PDP, not disposable
+scratch: rendered DOM, visible text, viewport screenshot, and metadata captured
+at `2026-07-18T04:01:51Z`. No committed manifest contained its URL or any of its
+four artifact hashes.
+
+The four files were admitted through the sanctioned already-local packet runner
+as `retail_pdp / cloakbrowser_snapshot` packet
+`01KXXJXMRN7RCGJHCJ2ZNB2BMS`. The recovery packet preserves the original capture
+time separately from its receipt-generation time and explicitly records that
+the original invocation was unavailable, market pin was unconfirmed, heavy
+assets were blocked despite the named profile expectation, and the configured
+scroll-stop condition was not reached. Every source hash matched both the
+committed manifest and the independently hashed committed body; the owning root
+API loaded all four bodies and public availability was present.
+
+A post-admission mechanical projection from committed raw produced Ulta/ILIA,
+`$48.00 USD`, in-stock status, aggregate rating `4.4` over `6,587` reviews, and
+five embedded review bodies. Only after those checks passed was the exact
+staging directory removed. Post-delete load and projection succeeded again,
+`.staging` was empty, and the final doctor closed `status=ok` in 5.55 seconds:
+785 retained raw packets all verified, 3 tombstoned, 782 public, 782
+availability, and zero missing, orphaned, stale, or read failures. This admits
+useful observed PDP evidence; it does not upgrade the packet to confirmed Ulta
+US/USD storefront evidence.
+
 ## Staged Upgrades
 
 Stage 1 is the explicit exception to the original trigger-only sequence: on
