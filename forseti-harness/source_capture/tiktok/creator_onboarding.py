@@ -1517,10 +1517,15 @@ class _GridOverlayCaptureSequence:
             raise TikTokCreatorOnboardingError(
                 "overlay capture sequence received an invalid pending selection"
             )
+        visible_rows: list[dict[str, Any]] = []
         if self.current_overlay_url is not None:
-            self._close_current_overlay(tuple(pending_by_id))
-
-        visible_rows = self._visible_rows(tuple(pending_by_id))
+            visible_rows = self._close_current_overlay(tuple(pending_by_id))
+        if (
+            not visible_rows
+            and self.receipt.get("grid_pagination_stop_reason")
+            != "frozen_window_identity_drift"
+        ):
+            visible_rows = self._visible_rows(tuple(pending_by_id))
         if (
             not visible_rows
             and self.receipt.get("grid_pagination_stop_reason")
@@ -1616,8 +1621,15 @@ class _GridOverlayCaptureSequence:
                     )
                 ):
                     self.current_overlay_url = click_capture.final_url
-                    self._close_current_overlay(tuple(pending_by_id))
-                visible_rows = self._visible_rows(tuple(pending_by_id))
+                    visible_rows = self._close_current_overlay(tuple(pending_by_id))
+                else:
+                    visible_rows = []
+                if (
+                    not visible_rows
+                    and self.receipt.get("grid_pagination_stop_reason")
+                    != "frozen_window_identity_drift"
+                ):
+                    visible_rows = self._visible_rows(tuple(pending_by_id))
                 if not visible_rows:
                     visible_rows = self._paginate_until_visible(
                         tuple(pending_by_id)
@@ -1830,7 +1842,9 @@ class _GridOverlayCaptureSequence:
                 return "down"
         return "up" if float(self.last_grid_view.get("scroll_y") or 0) > 0 else "down"
 
-    def _close_current_overlay(self, pending_video_ids: Sequence[str]) -> None:
+    def _close_current_overlay(
+        self, pending_video_ids: Sequence[str]
+    ) -> list[dict[str, Any]]:
         assert self.current_overlay_url is not None
         capture = fetch_browser_page_observation_capture(
             url=self.current_overlay_url,
@@ -1864,6 +1878,11 @@ class _GridOverlayCaptureSequence:
                 "video overlay close did not return to the creator grid"
             )
         self.current_overlay_url = None
+        self._remember_grid_view(capture)
+        if self._frozen_window_identity_drifted():
+            self._record_frozen_window_identity_drift()
+            return []
+        return _visible_grid_rows_from_capture(capture)
 
     def _click_attempt_receipt(
         self,

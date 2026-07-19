@@ -960,6 +960,33 @@ def test_grid_overlay_sequence_accepts_visible_overlay_without_item_struct(
     assert receipt["status"] == "complete"
 
 
+def test_grid_overlay_sequence_reuses_grid_observation_returned_by_overlay_close(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine([_closed_overlay_capture("1"), _clicked_capture("1")])
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+    )
+    sequence.current_overlay_url = "https://www.tiktok.com/@creator/video/2"
+
+    chosen_url, capture = sequence(
+        1, ["https://www.tiktok.com/@creator/video/1"]
+    )
+
+    assert chosen_url.endswith("/video/1")
+    assert capture.dom_observation["video_overlay_detected"] is True
+    assert len(engine.calls) == 2
+    assert engine.calls[0]["post_load_pointer_actions"] == (
+        onboarding.TIKTOK_VIDEO_OVERLAY_CLOSE_ACTION,
+    )
+    assert engine.calls[1]["post_load_pointer_actions"][0].action_name == (
+        "tiktok_visible_selected_grid_video_v0"
+    )
+
+
 def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination(
     tmp_path: Path,
 ) -> None:
@@ -2122,8 +2149,8 @@ def _clicked_capture(
     return capture
 
 
-def _closed_overlay_capture() -> BrowserPageObservationSuccess:
-    capture = _capture()
+def _closed_overlay_capture(*video_ids: str) -> BrowserPageObservationSuccess:
+    capture = _visible_tiles_capture(*video_ids)
     capture.metadata["post_load_pointer_actions"] = [
         {
             "action_name": "tiktok_video_overlay_close_v0",
