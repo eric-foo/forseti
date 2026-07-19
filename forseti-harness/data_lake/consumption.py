@@ -454,10 +454,12 @@ def reconcile_availability_per_packet(
     valid no-work claim only over a fully reconciled surface (seam contract).
 
     With ``scope_packet_ids`` supplied, only those committed anchors are
-    refreshed. This scoped path never purges the global index, so a cadence can
-    hold one start snapshot while capture continues appending later packets.
-    A selected anchor that is missing, corrupt, or no longer publicly available
-    is a visible failure rather than a false no-work result.
+    refreshed. Writes remain isolated per packet, then all successful writes are
+    validated through one public availability snapshot. This scoped path never
+    purges the global index, so a cadence can hold one start snapshot while
+    capture continues appending later packets. A selected anchor that is
+    missing, corrupt, or no longer publicly available is a visible failure
+    rather than a false no-work result.
 
     The unscoped purge half carries the same per-packet isolation as the rebuild half:
     an entry a concurrent writer already removed is benign (absent is the
@@ -471,13 +473,13 @@ def reconcile_availability_per_packet(
     """
     failures: list[dict] = []
     if scope_packet_ids is not None:
-        for packet_id in sorted(set(scope_packet_ids)):
+        selected_packet_ids = sorted(set(scope_packet_ids))
+        if not selected_packet_ids:
+            return failures
+        written_packet_ids: list[str] = []
+        for packet_id in selected_packet_ids:
             try:
                 root.record_availability(packet_id)
-                if root.read_availability(packet_id) is None:
-                    raise ConsumptionSeamError(
-                        "selected packet is not publicly available after reconcile"
-                    )
             except Exception as exc:  # noqa: BLE001 - isolate selected corrupt anchor
                 _raise_if_root_unavailable(root, packet_id=packet_id, cause=exc)
                 failures.append(
@@ -485,6 +487,43 @@ def reconcile_availability_per_packet(
                         "packet_id": packet_id,
                         "status": "availability_reconcile_failed",
                         "error": f"{type(exc).__name__}: {exc}"[:200],
+                    }
+                )
+                continue
+            written_packet_ids.append(packet_id)
+
+        if not written_packet_ids:
+            return failures
+        try:
+            public_entries = root.snapshot_public_availability()
+        except Exception as exc:  # noqa: BLE001 - validation must stay fail-visible
+            _raise_if_root_unavailable(
+                root, packet_id=written_packet_ids[0], cause=exc
+            )
+            error = f"{type(exc).__name__}: {exc}"[:200]
+            failures.extend(
+                {
+                    "packet_id": packet_id,
+                    "status": "availability_reconcile_failed",
+                    "error": error,
+                }
+                for packet_id in written_packet_ids
+            )
+            return failures
+
+        public_packet_ids = {
+            entry["packet_id"] for entry in public_entries
+        }
+        for packet_id in written_packet_ids:
+            if packet_id not in public_packet_ids:
+                failures.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "availability_reconcile_failed",
+                        "error": (
+                            "ConsumptionSeamError: selected packet is not publicly "
+                            "available after reconcile"
+                        ),
                     }
                 )
         return failures
