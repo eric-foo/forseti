@@ -291,6 +291,79 @@ Sold and shipped by Walmart.com
     assert projection.loss_ledger.structure_preserved is True
 
 
+def test_walmart_direct_http_body_is_projected_as_preserved_html() -> None:
+    packet = _packet(
+        retailer="walmart",
+        locator="https://www.walmart.com/ip/Vitamasques-Lip-Mask/2150828728",
+        series_id="walmart_vitamasques_direct_http_us_v0",
+    )
+    next_data = json.dumps(
+        {
+            "props": {
+                "pageProps": {
+                    "initialData": {
+                        "data": {
+                            "product": {
+                                "usItemId": "2150828728",
+                                "name": "Vitamasques Cherry Vegan Collagen Lip Mask",
+                                "priceInfo": {
+                                    "currentPrice": {
+                                        "price": 2.97,
+                                        "currencyUnit": "USD",
+                                    }
+                                },
+                                "averageRating": 4.4,
+                                "numberOfReviews": 41,
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = (
+        '<html><head><script id="__NEXT_DATA__" type="application/json">'
+        f"{next_data}</script></head></html>"
+    ).encode("utf-8")
+    direct_file = packet.preserved_files[0].model_copy(
+        update={
+            "original_path": "http_response_body.bin",
+            "relative_packet_path": "raw/01_http_response_body.bin",
+            "sha256": hashlib.sha256(html).hexdigest(),
+            "size_bytes": len(html),
+        }
+    )
+    direct_slice = packet.source_slices[0].model_copy(
+        update={"preserved_file_ids": ["file_01"]}
+    )
+    direct_packet = packet.model_copy(
+        update={
+            "source_family": "retail_pdp",
+            "source_surface": "direct_http",
+            "capture_mode": CaptureModeCategory.STRUCTURED_ACCESS,
+            "source_slices": [direct_slice],
+            "preserved_files": [direct_file],
+        }
+    )
+
+    projection = build_retail_pdp_projection(
+        packet=direct_packet,
+        raw_file_bytes_by_file_id={"file_01": html},
+    )
+
+    product = _single_row(projection, "retail_pdp_product")
+    offer = _single_row(projection, "retail_variant_offer")
+    assert product.source_visible_fields["retailer"] == "walmart"
+    assert product.raw_anchor.relative_packet_path == "raw/01_http_response_body.bin"
+    assert offer.source_visible_fields["product_id"] == "2150828728"
+    assert offer.source_visible_fields["price"] == "2.97"
+    assert offer.source_visible_fields["price_currency"] == "USD"
+    assert "cloakbrowser_snapshot_01:retail_pdp_rendered_dom_absent" not in (
+        projection.residuals
+    )
+
+
 def test_walmart_projection_does_not_bind_arbitrary_product_when_locator_has_no_id() -> None:
     packet = _packet(
         retailer="walmart",

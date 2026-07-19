@@ -428,6 +428,12 @@ def build_retail_pdp_projection(
             (preserved_file, body)
             for preserved_file, body in slice_files
             if preserved_file.relative_packet_path.lower().endswith((".html", ".htm"))
+            or (
+                packet.source_surface == "direct_http"
+                and preserved_file.relative_packet_path.replace("\\", "/")
+                .lower()
+                .endswith("http_response_body.bin")
+            )
         ]
         visible_text_files = [
             (preserved_file, _decode_text(body))
