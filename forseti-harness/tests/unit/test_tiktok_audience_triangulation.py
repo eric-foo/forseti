@@ -953,8 +953,8 @@ def test_complete_onboarding_preserves_retained_audience_pairs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     snapshot_path, outcome_path = _validated_submission(tmp_path)
-    retained_snapshot = tmp_path / "retained_snapshot.json"
-    retained_outcome = tmp_path / "retained_outcome.json"
+    retained_snapshot = tmp_path / "z_retained_snapshot.json"
+    retained_outcome = tmp_path / "z_retained_outcome.json"
     output_path = tmp_path / "creator_profile_current.json"
     output_path.write_text(
         '{"creator_profile_current_view":{"profiles":[]}}\n',
@@ -1011,8 +1011,8 @@ def test_complete_onboarding_preserves_retained_audience_pairs(
         for index, value in enumerate(observed_argv)
         if value == "--audience-judgment-outcome"
     ]
-    assert snapshot_values == [str(retained_snapshot), str(snapshot_path)]
-    assert outcome_values == [str(retained_outcome), str(outcome_path)]
+    assert snapshot_values == [str(snapshot_path), str(retained_snapshot)]
+    assert outcome_values == [str(outcome_path), str(retained_outcome)]
 
 
 def test_retained_audience_pairs_are_discovered_from_hash_bound_source_inputs(

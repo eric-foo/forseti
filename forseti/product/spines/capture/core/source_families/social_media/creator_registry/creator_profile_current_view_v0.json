@@ -19,7 +19,7 @@
       "onboarded_profiles": 40,
       "platform_account_profiles": 53,
       "profiles_total": 53,
-      "profiles_with_audience_triangulation": 3,
+      "profiles_with_audience_triangulation": 4,
       "profiles_with_metric_rollups": 33
     },
     "engagement_rate_definition": "engagement_rate = (sum(likes) + sum(comments)) / sum(views) over videos with a complete view/like/comment trio; recipe pinned per record by calculation_recipe_version; percent twin is value*100",
@@ -7076,11 +7076,441 @@
         "wind_calling_summary": null
       },
       {
-        "audience_triangulation": null,
+        "audience_triangulation": {
+          "actual_audience_demographics": "not_estimated",
+          "creator_id": "tiktok:@noeldeyzel_fragrance",
+          "creator_signal_projection": {
+            "briefing_instructions": [
+              {
+                "claim_ids": [
+                  "cac_4549827121a9aae193f8",
+                  "cac_0bef513f8b4efd71d004"
+                ],
+                "statement": "Give Noel a real decision to settle, including the comparison set, prices, intended use case, and the trade-off the buyer cannot resolve."
+              },
+              {
+                "claim_ids": [
+                  "cac_60a4cd60be2fb99f3d64",
+                  "cac_4549827121a9aae193f8"
+                ],
+                "statement": "Provide authentic products for physical and on-skin comparison, and disclose sourcing clearly enough for him to examine trust signals rather than repeat assurances."
+              },
+              {
+                "claim_ids": [
+                  "cac_5e2ad5e93182df15ab23",
+                  "cac_60a4cd60be2fb99f3d64",
+                  "cac_cf870afa0aa936620f51"
+                ],
+                "statement": "Protect his ability to reject, qualify, or redirect the recommendation; a scripted universal superlative would erase the candid arbitration participants seek."
+              },
+              {
+                "claim_ids": [
+                  "cac_99b475ac16c2eae0e19e"
+                ],
+                "statement": "When using multiple installments, make each one deliver new comparison evidence and close the promised result."
+              }
+            ],
+            "creator_specific_execution": {
+              "claim_ids": [
+                "cac_60a4cd60be2fb99f3d64",
+                "cac_0bef513f8b4efd71d004",
+                "cac_40b4a83418da4a2ee0c6",
+                "cac_4417f759e0746cb74f43"
+              ],
+              "statement": "He combines suspicious-listing purchases, physical authenticity checks, side-by-side bottle and skin tests, premium-to-affordable mappings, and daily/date-night/special-occasion selection games with blunt verdicts."
+            },
+            "hire_verdict": {
+              "claim_ids": [
+                "cac_4549827121a9aae193f8",
+                "cac_0bef513f8b4efd71d004",
+                "cac_60a4cd60be2fb99f3d64",
+                "cac_40b4a83418da4a2ee0c6"
+              ],
+              "statement": "Hire @noeldeyzel_fragrance when the campaign job is to turn fragrance uncertainty into a concrete buy, skip, or wear-for-this decision through candid comparison."
+            },
+            "observed_audience_response": {
+              "claim_ids": [
+                "cac_4549827121a9aae193f8",
+                "cac_99b475ac16c2eae0e19e",
+                "cac_5e2ad5e93182df15ab23"
+              ],
+              "statement": "Captured participants ask Noel to judge exact products, settle trade-offs, disclose where to buy, and return with the next installment or final result; this is demand for his continued evaluation, not evidence of an audience-wide buying habit."
+            },
+            "product_advantage": {
+              "claim_ids": [
+                "cac_4549827121a9aae193f8",
+                "cac_0bef513f8b4efd71d004",
+                "cac_60a4cd60be2fb99f3d64"
+              ],
+              "statement": "Noel makes fragrance spend feel defensible: he turns confusing bottles, copycats, price gaps, and use cases into choices a buyer can understand."
+            },
+            "robustness_stamp": null,
+            "strongest_campaign_jobs": [
+              {
+                "claim_ids": [
+                  "cac_0bef513f8b4efd71d004",
+                  "cac_4549827121a9aae193f8"
+                ],
+                "statement": "Launch an affordable challenger against a known premium benchmark by showing where similarity, wear experience, and savings hold up or fail."
+              },
+              {
+                "claim_ids": [
+                  "cac_60a4cd60be2fb99f3d64"
+                ],
+                "statement": "Build trust for a legitimate retailer or marketplace by exposing scam signals, comparing questionable listings with originals, and showing what due diligence looks like."
+              },
+              {
+                "claim_ids": [
+                  "cac_40b4a83418da4a2ee0c6",
+                  "cac_4549827121a9aae193f8"
+                ],
+                "statement": "Help buyers navigate a multi-SKU collection by assigning products to concrete occasions, preferences, and social situations."
+              },
+              {
+                "claim_ids": [
+                  "cac_99b475ac16c2eae0e19e",
+                  "cac_5e2ad5e93182df15ab23",
+                  "cac_4417f759e0746cb74f43"
+                ],
+                "statement": "Run an episodic purchase-test-reveal brief whose next installment resolves a product question participants have explicitly asked Noel to answer."
+              }
+            ],
+            "wrong_hire_boundary": {
+              "claim_ids": [
+                "cac_60a4cd60be2fb99f3d64",
+                "cac_4549827121a9aae193f8",
+                "cac_4417f759e0746cb74f43"
+              ],
+              "statement": "Do not hire Noel for a brief that requires unconditional praise, polished luxury mystique without visible trade-offs, or demographic, geographic, conversion, or sales proof; his evidenced advantage depends on candid product judgment and concrete buyer decisions."
+            }
+          },
+          "evidence_cutoff": "2026-07-19T14:25:18Z",
+          "generated_at": "2026-07-19T14:35:35Z",
+          "input_bundle_hash": "sha256:59d6190adb57544dab3762594282dac54029fd1ddcbfa15a16ba72164d206b59",
+          "input_bundle_id": "caeb_ed1d3fa8a921669d645f",
+          "judgment_claim_set": {
+            "agreements": [
+              "Captured participants approach Noel with concrete between-product, use-case, sourcing, and performance decisions, while his content organizes choices into comparisons and wear situations.",
+              "Affordable alternatives are evaluated as substitutes that must earn their savings through resemblance, wear experience, or performance, rather than as cheap products by default.",
+              "Suspicious prices and uncertain authenticity produce visible purchase anxiety, and Noel answers it by buying questionable listings, comparing details, exposing red flags, and directing viewers toward reputable sources.",
+              "Fragrance is framed as a tool for social impression and situational identity, from school and office choices to date-night, formal-event, daily, and special-occasion selections.",
+              "Open-loop purchases, side-by-side tests, and delayed reveals earn explicit requests for the next installment and the final result.",
+              "Participants discuss Noel's physical scale, wardrobe, packaging features, and blunt reveal beats alongside the fragrance judgment itself."
+            ],
+            "claims": [
+              {
+                "all_support_evidence_ids": [
+                  "ttce_17add87e07bc42cc4c2b",
+                  "ttce_3e5dfa94a7a5db3c876b",
+                  "ttce_691c4bfabea5968f2a0e",
+                  "ttce_bca9dcf49c8e579c2e37",
+                  "ttce_d339e2fc94c521f33035",
+                  "ttce_de219a4486d2739f7ff9",
+                  "ttte_7bd490b44e1b10d9c886",
+                  "ttte_8c433873775838ab59ef",
+                  "ttte_f3625b8c30c9c5ee8028"
+                ],
+                "axis": "purchase_decision_stage",
+                "claim_id": "cac_4549827121a9aae193f8",
+                "commercial_implication": "He can make a multi-option fragrance brief useful at the moment a buyer needs to choose, not merely discover that products exist.",
+                "counterevidence_ids": [],
+                "limitation": "The evidence shows questions from captured participants, not how common this decision-stage need is across the account's audience.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_3e5dfa94a7a5db3c876b",
+                  "ttce_bca9dcf49c8e579c2e37",
+                  "ttce_d339e2fc94c521f33035",
+                  "ttte_7bd490b44e1b10d9c886",
+                  "ttte_8c433873775838ab59ef"
+                ],
+                "source_item_ids": [
+                  "7650165976826203406",
+                  "7650593137101901070",
+                  "7651336712924253454",
+                  "7651716009035894030",
+                  "7652852815844363534",
+                  "7653903843364719885",
+                  "7660159794820467981"
+                ],
+                "statement": "Captured participants approach Noel with concrete between-product, use-case, sourcing, and performance decisions, while his content organizes choices into comparisons and wear situations.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_67f80555af56524c997d",
+                  "ttce_b042566ccc4f060065fa",
+                  "ttte_48f66b2da2ca3e98aab6",
+                  "ttte_6ab1190ade87ba1522eb",
+                  "ttte_7be2c83873fefd063cce",
+                  "ttte_9e0b0d606b8dd663f17b",
+                  "ttte_f3625b8c30c9c5ee8028"
+                ],
+                "axis": "price_value_posture",
+                "claim_id": "cac_0bef513f8b4efd71d004",
+                "commercial_implication": "Noel is suited to briefs where a lower-priced product must make its value legible against a familiar premium reference.",
+                "counterevidence_ids": [
+                  "ttce_58f1560db7a3290e6577"
+                ],
+                "limitation": "One captured participant still preferred the expensive option, so lower price is not a universal preference.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_67f80555af56524c997d",
+                  "ttce_b042566ccc4f060065fa",
+                  "ttte_48f66b2da2ca3e98aab6",
+                  "ttte_7be2c83873fefd063cce",
+                  "ttte_f3625b8c30c9c5ee8028"
+                ],
+                "source_item_ids": [
+                  "7650165976826203406",
+                  "7650593137101901070",
+                  "7660159794820467981"
+                ],
+                "statement": "Affordable alternatives are evaluated as substitutes that must earn their savings through resemblance, wear experience, or performance, rather than as cheap products by default.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_9a1fd04bed4922597f8a",
+                  "ttce_aa208802a23978c92445",
+                  "ttte_40a579b9d538260160d0",
+                  "ttte_88a2907fa54ce8bf8fa4",
+                  "ttte_a9e1c1dec4562e57616c",
+                  "ttte_b9b7ac03f7878bbafc8b",
+                  "ttte_c683ff750ec6dbf7edcd",
+                  "ttte_ca75b18a27788065c52c",
+                  "ttte_ce04bc1cda0ad97378c8",
+                  "ttte_e5e5916acd28d21b3876"
+                ],
+                "axis": "objections",
+                "claim_id": "cac_60a4cd60be2fb99f3d64",
+                "commercial_implication": "He can remove trust friction for legitimate retailers or educate buyers about authenticity without asking them to accept a generic reassurance.",
+                "counterevidence_ids": [],
+                "limitation": "The captured evidence supports authenticity education and purchase-risk framing, not certification of any unsampled seller or product.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_9a1fd04bed4922597f8a",
+                  "ttce_aa208802a23978c92445",
+                  "ttte_40a579b9d538260160d0",
+                  "ttte_88a2907fa54ce8bf8fa4",
+                  "ttte_e5e5916acd28d21b3876"
+                ],
+                "source_item_ids": [
+                  "7651336712924253454",
+                  "7653903843364719885"
+                ],
+                "statement": "Suspicious prices and uncertain authenticity produce visible purchase anxiety, and Noel answers it by buying questionable listings, comparing details, exposing red flags, and directing viewers toward reputable sources.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_12c59380cefd37fb077d",
+                  "ttce_691c4bfabea5968f2a0e",
+                  "ttce_e2bfc7ccb6eac90d7f78",
+                  "ttte_1984ba2bb2d9b07f1b30",
+                  "ttte_7bd490b44e1b10d9c886",
+                  "ttte_98b447bc227a30b50abd",
+                  "ttte_e14774182d8851d50c12",
+                  "ttte_e5d0bc3c5c9903ee2c81"
+                ],
+                "axis": "aspirations_identity",
+                "claim_id": "cac_40b4a83418da4a2ee0c6",
+                "commercial_implication": "Noel can translate scent attributes into an immediately usable role in a person's life, giving a product more meaning than a notes list alone.",
+                "counterevidence_ids": [],
+                "limitation": "These are participant-stated use cases and creator framings, not evidence that the wider audience shares one identity aspiration.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_12c59380cefd37fb077d",
+                  "ttce_691c4bfabea5968f2a0e",
+                  "ttce_e2bfc7ccb6eac90d7f78",
+                  "ttte_1984ba2bb2d9b07f1b30",
+                  "ttte_7bd490b44e1b10d9c886"
+                ],
+                "source_item_ids": [
+                  "7650165976826203406",
+                  "7650593137101901070",
+                  "7651716009035894030",
+                  "7652852815844363534",
+                  "7653903843364719885"
+                ],
+                "statement": "Fragrance is framed as a tool for social impression and situational identity, from school and office choices to date-night, formal-event, daily, and special-occasion selections.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_1d70f1ba9582893bc7a7",
+                  "ttce_231714bb7bfbd2be10b3",
+                  "ttce_305d89ee6483ea932aa1",
+                  "ttce_5a2c94c3c01daba35860",
+                  "ttce_85f3addfd26bb5a2e1f8",
+                  "ttce_c881818f2711d3e7fac7",
+                  "ttce_e0fb6d2363f1180126e7",
+                  "ttte_5f1ceffad1fd3084aaec",
+                  "ttte_8c433873775838ab59ef"
+                ],
+                "axis": "presentation_style_resonance",
+                "claim_id": "cac_99b475ac16c2eae0e19e",
+                "commercial_implication": "A matching campaign can sustain interest across a test-and-reveal sequence when each installment advances a real product question.",
+                "counterevidence_ids": [],
+                "limitation": "The evidence demonstrates requests for continuation among captured participants, not completion rates or campaign lift.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_1d70f1ba9582893bc7a7",
+                  "ttce_231714bb7bfbd2be10b3",
+                  "ttce_5a2c94c3c01daba35860",
+                  "ttce_e0fb6d2363f1180126e7",
+                  "ttte_8c433873775838ab59ef"
+                ],
+                "source_item_ids": [
+                  "7651336712924253454",
+                  "7651716009035894030",
+                  "7653903843364719885"
+                ],
+                "statement": "Open-loop purchases, side-by-side tests, and delayed reveals earn explicit requests for the next installment and the final result.",
+                "support_scope": "mixed_multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_00097cb7afb38b127aeb",
+                  "ttce_1592f03c1c1812960d22",
+                  "ttce_27c9236999fff26c6cff",
+                  "ttce_2b4a28fc806575605a2a",
+                  "ttce_3cca4e5dca54455ef0e6",
+                  "ttce_704c70638ba7e59c121f",
+                  "ttce_70562863c59709be022e",
+                  "ttce_da6a37f144dd03475de9",
+                  "ttce_8a467c4c8b39b73eb414",
+                  "ttce_90233375de521e2d801a",
+                  "ttce_c20cb3d3414dc5ae7863"
+                ],
+                "axis": "product_brand_affinity",
+                "claim_id": "cac_5e2ad5e93182df15ab23",
+                "commercial_implication": "His distinctive value is product arbitration: an exact-match client can enter an already specific category conversation rather than commissioning a generic fragrance mention.",
+                "counterevidence_ids": [],
+                "limitation": "Requests establish demand among captured participants for Noel to perform reviews; they do not establish brand preference or purchase intent at audience scale.",
+                "modality": "observed_comments",
+                "relation": "audience_emergent",
+                "representative_evidence_ids": [
+                  "ttce_00097cb7afb38b127aeb",
+                  "ttce_1592f03c1c1812960d22",
+                  "ttce_27c9236999fff26c6cff",
+                  "ttce_3cca4e5dca54455ef0e6",
+                  "ttce_8a467c4c8b39b73eb414"
+                ],
+                "source_item_ids": [
+                  "7650165976826203406",
+                  "7650593137101901070",
+                  "7651336712924253454",
+                  "7651716009035894030",
+                  "7652852815844363534",
+                  "7653903843364719885",
+                  "7655709939674991886"
+                ],
+                "statement": "Captured participants repeatedly nominate exact fragrances and brands for Noel to review, compare, or judge.",
+                "support_scope": "multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_13148be2d0dca4269db7",
+                  "ttce_3ee7fa8901b656d1baa7",
+                  "ttce_560d8a99022c89540185",
+                  "ttce_af674a2c666cdda7f189",
+                  "ttce_b042566ccc4f060065fa",
+                  "ttce_b118b8479c4d77e05adc",
+                  "ttce_bfa959eac6d758cccab3"
+                ],
+                "axis": "category_knowledge",
+                "claim_id": "cac_cf870afa0aa936620f51",
+                "commercial_implication": "Noel can host a technical product decision in accessible language while leaving room for knowledgeable participants to contest or refine the comparison.",
+                "counterevidence_ids": [],
+                "limitation": "The capture supports variation in demonstrated knowledge among participants, not a distribution of expertise across the audience.",
+                "modality": "observed_comments",
+                "relation": "audience_emergent",
+                "representative_evidence_ids": [
+                  "ttce_13148be2d0dca4269db7",
+                  "ttce_3ee7fa8901b656d1baa7",
+                  "ttce_af674a2c666cdda7f189",
+                  "ttce_b118b8479c4d77e05adc",
+                  "ttce_bfa959eac6d758cccab3"
+                ],
+                "source_item_ids": [
+                  "7650165976826203406",
+                  "7650593137101901070",
+                  "7652852815844363534",
+                  "7660159794820467981"
+                ],
+                "statement": "Captured participants mix beginner questions with category-literate corrections, scent comparisons, performance distinctions, and value challenges.",
+                "support_scope": "multi_item"
+              },
+              {
+                "all_support_evidence_ids": [
+                  "ttce_5270f32722986fe1c07f",
+                  "ttce_906e5318debaf216b2ae",
+                  "ttce_d75770837587a1056d57",
+                  "ttce_e998bcd8441d12bebc09",
+                  "ttte_1ab056bb86f3598c2d23",
+                  "ttte_a00807b35e329b763f10"
+                ],
+                "axis": "engagement_memorability_effect",
+                "claim_id": "cac_4417f759e0746cb74f43",
+                "commercial_implication": "Distinctive bottles, visible comparison props, and genuine surprise moments can make a technical evaluation more discussable without replacing the product verdict.",
+                "counterevidence_ids": [],
+                "limitation": "Captured comments show that these presentation cues were discussed, not that they caused recall or higher engagement.",
+                "modality": "fused",
+                "relation": "agreement",
+                "representative_evidence_ids": [
+                  "ttce_5270f32722986fe1c07f",
+                  "ttce_906e5318debaf216b2ae",
+                  "ttce_d75770837587a1056d57",
+                  "ttce_e998bcd8441d12bebc09",
+                  "ttte_1ab056bb86f3598c2d23"
+                ],
+                "source_item_ids": [
+                  "7651336712924253454",
+                  "7651716009035894030",
+                  "7652852815844363534",
+                  "7653903843364719885",
+                  "7655709939674991886"
+                ],
+                "statement": "Participants discuss Noel's physical scale, wardrobe, packaging features, and blunt reveal beats alongside the fragrance judgment itself.",
+                "support_scope": "mixed_multi_item"
+              }
+            ],
+            "contradictions": [],
+            "missing_evidence": []
+          },
+          "limitations": [
+            "The evidence covers eight selected TikTok videos and captured top-level comments, not a platform-wide comment census.",
+            "Video selection may be reach-ranked or truncated, and reply threads were not analyzed.",
+            "All captured comments were ineligible for engagement-salience reliance, so no claim uses like counts as evidence of importance.",
+            "Geography is unknown except for isolated participant self-references, which cannot establish audience geography.",
+            "Transcript fragments may contain recognition errors, so claims rely on repeated, coherent patterns rather than uncertain product-name spellings.",
+            "Participant comments show observed questions and responses, not audience prevalence or representativeness."
+          ],
+          "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+          "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+          "non_claims": [
+            "No audience demographic or geographic distribution is estimated.",
+            "No conversion, sales, revenue, ROI, or guaranteed campaign performance is claimed.",
+            "No reported purchase is attributed causally to Noel.",
+            "No sampled comment pattern is generalized to the full follower base.",
+            "No authenticity judgment is extended beyond the products or listings shown in the admitted content."
+          ],
+          "platform_account_id": "acct_tiktok_fragrance_005",
+          "platform_scope": "tiktok",
+          "profile_subject_id": "acct_tiktok_fragrance_005",
+          "profile_subject_kind": "platform_account",
+          "schema_version": "creator_audience_triangulation_snapshot_v1",
+          "snapshot_id": "cats_915341b20a4df8cb8bcf"
+        },
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
-          "audience_computed_at_or_none": null,
+          "audience_computed_at_or_none": "2026-07-19T14:35:35Z",
           "identity_updated_at": "2026-07-08T15:01:18Z",
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-19T12:13:12Z"
@@ -7098,7 +7528,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Audience triangulation is not joined in this static view.",
+          "Audience triangulation is joined from transcript, observed-comment, and persisted comment-attention evidence; demographics remain not_estimated.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -8892,6 +9322,11 @@
         "role": "validated transcript/comment audience triangulation snapshots",
         "sha256": "d20c3db1a9edb55ca4ddd90ab84fc36e4b50071484d1815634eb2fdf599007e5",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/funmimonet_creator_audience_triangulation_snapshot_v1.json"
+      },
+      {
+        "role": "validated transcript/comment audience triangulation snapshots",
+        "sha256": "c1802665b9c0f42172a467f87bef542875c60b77887e07f43f9fcbe9516d98b0",
+        "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/noeldeyzel_fragrance_creator_audience_triangulation_snapshot_v1.json"
       }
     ],
     "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger, Bronze-derived Creator Registry onboarding projection, and platform creator metric seeds. Profiles are account-scoped unless promoted public-handle linkage exists.",
