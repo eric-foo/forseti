@@ -15,6 +15,8 @@ use_when:
 authority_boundary: evidence_register_only
 open_next:
   - docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md
+  - docs/workflows/forseti_kohls_beauty_retailer_capture_recovery_handoff_v0.md
+  - docs/workflows/forseti_beauty_retailer_sampled_raw_full_derived_flip_handoff_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
 stale_if:

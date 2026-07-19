@@ -14,6 +14,7 @@ use_when:
   - Checking which capture runner a family uses before wiring ContentCaptureSpec.
 authority_boundary: retrieval_only
 open_next:
+  - docs/workflows/forseti_beauty_retailer_sampled_raw_full_derived_flip_handoff_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - docs/workflows/parfumo_targeted_capture_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md
