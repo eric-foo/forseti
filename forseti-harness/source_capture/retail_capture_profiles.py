@@ -273,6 +273,37 @@ _PROFILES = {
             ),
         ),
         RetailCaptureProfile(
+            name="luckyscent_pdp_aggregate",
+            retailer="luckyscent",
+            page_kind="pdp_aggregate",
+            hostname="www.luckyscent.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=5.0,
+            scroll_passes=4,
+            scroll_step_px=500,
+            requirements=_requirements(
+                visible_text_contains=(
+                    "Bread and Roses",
+                    "Fragrance Notes",
+                    "Customer Reviews",
+                ),
+                visible_text_regexes=(
+                    r"(?s)Bread and Roses\s+Pearfat Parfum\s+\d(?:\.\d+)?\s+\(\d+\)\s+\$\d+",
+                    r"(?s)Customer Reviews\s+\d(?:\.\d+)? out of 5",
+                ),
+                rendered_dom_contains=(
+                    '"@type":"ProductGroup"',
+                    'data-product-title="Bread and Roses"',
+                ),
+                rendered_dom_regexes=(
+                    r'"hasVariant"\s*:\s*\[',
+                    r'data-review-id="[^"]+"',
+                ),
+            ),
+        ),
+        RetailCaptureProfile(
             name="ulta_grid_aggregate",
             retailer="ulta",
             page_kind="grid_aggregate",

@@ -193,6 +193,19 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # (post-merge review W6-1); docstring-only, not output-shaping.
         "ff04f0767731be27f81ccf1e420fe9d51c7c0b510173e9af73e53d071fd45675",
     ),
+    "source_capture/retail_pdp_projection.py": (
+        (
+            "RETAIL_PDP_PROJECTION_VERSION",
+            "SEPHORA_PDP_PARSER_VERSION",
+            "LUCKYSCENT_PDP_PARSER_VERSION",
+        ),
+        # Shared-output-shaping decision: no. Existing typed retailer row
+        # semantics and RETAIL_PDP_PROJECTION_VERSION remain v0. This adds the
+        # first family-owned Luckyscent route, whose new parser behavior is
+        # identified by LUCKYSCENT_PDP_PARSER_VERSION v1; raw/content
+        # equivalence is required before default retention flips.
+        "72b432647067707eeebb796d290f1f0ed8bfaf2a479e8175d218d069a8796c06",
+    ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
         "4d99991d5b27c82b8c22981dcddaa2ebd516249cab706e1016ea9379c44bb21e",

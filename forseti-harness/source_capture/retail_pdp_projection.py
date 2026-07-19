@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from html import unescape
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Mapping, Sequence
@@ -26,11 +27,23 @@ SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
 SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v1"
 SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v1"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
+LUCKYSCENT_PDP_CONTENT_RECORD_KIND = "retail_pdp_luckyscent_aggregate_content"
+LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content_v1"
+LUCKYSCENT_PDP_PARSER_VERSION = "retail_pdp_luckyscent_aggregate_parser_v1"
+LUCKYSCENT_PDP_CONTENT_PROFILE = "luckyscent_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
 
-Retailer = Literal["amazon", "sephora", "ulta", "walmart", "target", "unknown"]
+Retailer = Literal[
+    "amazon",
+    "sephora",
+    "luckyscent",
+    "ulta",
+    "walmart",
+    "target",
+    "unknown",
+]
 
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
@@ -303,6 +316,142 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         return self
 
 
+LuckyscentContentAnchorKind = Literal[
+    "file", "html_selector", "script_index", "text_pattern"
+]
+
+
+class LuckyscentPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_embedded_structured_json",
+        "retail_carried_module",
+    ]
+    retailer: Literal["luckyscent"] = "luckyscent"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: LuckyscentContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Luckyscent PDP content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "LuckyscentPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class LuckyscentPdpContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal[
+        "sku_variant_price",
+        "variant_availability",
+        "review_substrate_for_product",
+        "series_locale_currency",
+        "structured_json_for_product",
+        "module_carried",
+    ]
+    row_id: str
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Luckyscent PDP content bindings may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+
+class LuckyscentPdpContentLossEntry(StrictModel):
+    category: Literal[
+        "RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"
+    ]
+    count: int = Field(ge=0)
+    reason: str
+    source_anchor_kind: LuckyscentContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "LuckyscentPdpContentLossEntry":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class LuckyscentPdpContentLossLedger(StrictModel):
+    collapsed: list[LuckyscentPdpContentLossEntry] = Field(default_factory=list)
+    preserved_evidence_rows: int = Field(ge=0)
+    preserved_bindings: int = Field(ge=0)
+    timing: Literal["separate_not_collapsed"] = "separate_not_collapsed"
+    hierarchy_preserved: bool
+    structure_preserved: bool
+    certification: Literal[
+        "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+    ] = "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+
+
+class LuckyscentPdpAggregateContentRecord(StrictModel):
+    record_kind: Literal["retail_pdp_luckyscent_aggregate_content"] = (
+        LUCKYSCENT_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_luckyscent_aggregate_content_v1"] = (
+        LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_luckyscent_aggregate_parser_v1"] = (
+        LUCKYSCENT_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["luckyscent_pdp_aggregate"] = (
+        LUCKYSCENT_PDP_CONTENT_PROFILE
+    )
+    source_url: str
+    rows: list[LuckyscentPdpContentRow] = Field(default_factory=list)
+    binding_map: list[LuckyscentPdpContentBinding] = Field(default_factory=list)
+    loss_ledger: LuckyscentPdpContentLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "LuckyscentPdpAggregateContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        return self
+
+
 def _retail_structure_preserved(bindings: Sequence[RetailPdpProjectionBinding]) -> bool:
     binding_types = {binding.binding_type for binding in bindings}
     return _REQUIRED_RETAIL_STRUCTURE_BINDINGS.issubset(binding_types)
@@ -398,15 +547,28 @@ def build_retail_pdp_projection(
             raise ValueError(
                 f"content record bytes are required for preserved file id: {content_file.file_id}"
             )
-        _validate_sephora_content_packet_metadata(
-            packet=packet,
-            raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
-        )
-        return _projection_from_sephora_content_record(
-            packet=packet,
-            content_file=content_file,
-            content_bytes=content_bytes,
-        )
+        record_kind = _content_record_kind(content_bytes)
+        if record_kind == SEPHORA_PDP_CONTENT_RECORD_KIND:
+            _validate_sephora_content_packet_metadata(
+                packet=packet,
+                raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+            )
+            return _projection_from_sephora_content_record(
+                packet=packet,
+                content_file=content_file,
+                content_bytes=content_bytes,
+            )
+        if record_kind == LUCKYSCENT_PDP_CONTENT_RECORD_KIND:
+            _validate_luckyscent_content_packet_metadata(
+                packet=packet,
+                raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+            )
+            return _projection_from_luckyscent_content_record(
+                packet=packet,
+                content_file=content_file,
+                content_bytes=content_bytes,
+            )
+        raise ValueError(f"unsupported Retail PDP content record kind: {record_kind!r}")
 
     rows: list[RetailPdpProjectionRow] = []
     bindings: list[RetailPdpProjectionBinding] = []
@@ -563,6 +725,98 @@ def build_sephora_pdp_aggregate_content_record(
     return record.model_dump(mode="json")
 
 
+def build_luckyscent_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Parse the pinned Luckyscent aggregate PDP without packet/file placeholders."""
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    parsed_url = urlparse(source_url)
+    if parsed_url.scheme not in {"http", "https"} or parsed_url.hostname not in {
+        "luckyscent.com",
+        "www.luckyscent.com",
+    }:
+        raise ValueError(
+            "Luckyscent aggregate content records require a luckyscent.com source URL"
+        )
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=None,
+        currency_pin=None,
+        variant_pin=None,
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    projected = _project_retail_html(
+        _decode_text(rendered_dom),
+        visible_text_files=[(visible_text_file, _decode_text(visible_text))],
+        visible_text=_decode_text(visible_text),
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="luckyscent",
+    )
+    _validate_luckyscent_projected_content(projected, source_url=source_url)
+    record = LuckyscentPdpAggregateContentRecord(
+        source_url=source_url,
+        rows=[_luckyscent_content_row(row) for row in projected.rows],
+        binding_map=[
+            _luckyscent_content_binding(binding) for binding in projected.bindings
+        ],
+        loss_ledger=LuckyscentPdpContentLossLedger(
+            collapsed=[
+                LuckyscentPdpContentLossEntry(
+                    category=entry.category,
+                    count=entry.count,
+                    reason=entry.reason,
+                    source_anchor_kind=entry.raw_anchor.anchor_kind,
+                    source_anchor_value=entry.raw_anchor.anchor_value,
+                )
+                for entry in projected.collapsed
+            ],
+            preserved_evidence_rows=len(projected.rows),
+            preserved_bindings=len(projected.bindings),
+            hierarchy_preserved=True,
+            structure_preserved=_retail_structure_preserved(projected.bindings),
+        ),
+        residuals=projected.residuals,
+    )
+    return record.model_dump(mode="json")
+
+
 def _projection_from_sephora_content_record(
     *,
     packet: SourceCapturePacket,
@@ -676,6 +930,121 @@ def _projection_from_sephora_content_record(
     )
 
 
+def _projection_from_luckyscent_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> RetailPdpProjectionPacket:
+    try:
+        record = LuckyscentPdpAggregateContentRecord.model_validate_json(content_bytes)
+    except Exception as exc:
+        raise ValueError(f"invalid Luckyscent PDP content record: {exc}") from exc
+    if packet.source_family != "retail_pdp" or packet.source_surface != "cloakbrowser_snapshot":
+        raise ValueError(
+            "Luckyscent PDP content records require retail_pdp/cloakbrowser_snapshot packets"
+        )
+    if _detect_retailer(packet) != "luckyscent":
+        raise ValueError(
+            "Luckyscent PDP content record does not match packet retailer identity"
+        )
+
+    slice_by_id = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
+    matching_source_urls = {
+        _fact_value(source_slice.locator)
+        for source_slice in packet.source_slices
+        if _fact_value(source_slice.locator)
+    }
+    if record.source_url not in matching_source_urls:
+        raise ValueError(
+            f"Luckyscent content record source_url {record.source_url!r} does not match "
+            "a packet source-slice locator"
+        )
+
+    rows: list[RetailPdpProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                f"Luckyscent content row references invalid source slice: {content_row.slice_id}"
+            )
+        fields = dict(content_row.source_visible_fields)
+        if content_row.row_kind == "retail_pdp_product":
+            fields = _product_context_fields(packet, source_slice, "luckyscent")
+        rows.append(
+            RetailPdpProjectionRow(
+                row_id=content_row.row_id,
+                row_kind=content_row.row_kind,
+                retailer="luckyscent",
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_luckyscent_content_record_anchor(
+                    content_file, f"/rows/{index}"
+                ),
+                source_visible_fields=fields,
+                residuals=content_row.residuals,
+            )
+        )
+
+    bindings: list[RetailPdpProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if source_slice is None or content_file.file_id not in source_slice.preserved_file_ids:
+            raise ValueError(
+                "Luckyscent content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        fields = dict(content_binding.source_visible_fields)
+        if content_binding.binding_type == "series_locale_currency":
+            fields = {
+                "series_id": packet.series_id,
+                "locale_pin": _fact_value(source_slice.locale_pin),
+                "currency_pin": _fact_value(source_slice.currency_pin),
+                "variant_pin": _fact_value(source_slice.variant_pin),
+            }
+        bindings.append(
+            RetailPdpProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_luckyscent_content_record_anchor(
+                    content_file, f"/binding_map/{index}"
+                ),
+                source_visible_fields=fields,
+            )
+        )
+
+    collapsed = [
+        RetailPdpProjectionLossEntry(
+            category=entry.category,
+            count=entry.count,
+            reason=entry.reason,
+            raw_anchor=_luckyscent_content_record_anchor(
+                content_file, f"/loss_ledger/collapsed/{index}"
+            ),
+        )
+        for index, entry in enumerate(record.loss_ledger.collapsed)
+    ]
+    return RetailPdpProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=RetailPdpProjectionLossLedger(
+            collapsed=collapsed,
+            preserved_evidence_rows=len(rows),
+            preserved_bindings=len(bindings),
+            hierarchy_preserved=record.loss_ledger.hierarchy_preserved,
+            structure_preserved=record.loss_ledger.structure_preserved,
+        ),
+        residuals=record.residuals,
+    )
+
+
 def _sephora_content_row(row: RetailPdpProjectionRow) -> SephoraPdpContentRow:
     fields = dict(row.source_visible_fields)
     if row.row_kind == "retail_pdp_product":
@@ -706,7 +1075,53 @@ def _sephora_content_binding(
     )
 
 
+def _luckyscent_content_row(
+    row: RetailPdpProjectionRow,
+) -> LuckyscentPdpContentRow:
+    fields = dict(row.source_visible_fields)
+    if row.row_kind == "retail_pdp_product":
+        fields = {}
+    return LuckyscentPdpContentRow(
+        slice_id=row.raw_ref.slice_id,
+        row_id=row.row_id,
+        row_kind=row.row_kind,
+        retailer="luckyscent",
+        source_visible_fields=fields,
+        residuals=row.residuals,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _luckyscent_content_binding(
+    binding: RetailPdpProjectionBinding,
+) -> LuckyscentPdpContentBinding:
+    fields = dict(binding.source_visible_fields)
+    if binding.binding_type == "series_locale_currency":
+        fields = {}
+    return LuckyscentPdpContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+        source_visible_fields=fields,
+    )
+
+
 def _sephora_content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> RetailProjectionRawAnchor:
+    return RetailProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        anchor_value=json_pointer,
+    )
+
+
+def _luckyscent_content_record_anchor(
     content_file: PreservedFile,
     json_pointer: str,
 ) -> RetailProjectionRawAnchor:
@@ -764,6 +1179,65 @@ def _validate_sephora_content_packet_metadata(
         raise ValueError("Sephora content packet does not carry a confirmed US/USD market pin")
 
 
+def _validate_luckyscent_content_packet_metadata(
+    *,
+    packet: SourceCapturePacket,
+    raw_file_bytes_by_file_id: Mapping[str, bytes],
+) -> None:
+    def _one_json(filename: str) -> dict[str, Any]:
+        matches = [
+            item
+            for item in packet.preserved_files
+            if item.relative_packet_path.replace("\\", "/").endswith(filename)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Luckyscent content packet must preserve exactly one {filename}"
+            )
+        body = raw_file_bytes_by_file_id.get(matches[0].file_id)
+        if body is None:
+            raise ValueError(
+                f"preserved bytes are required for {matches[0].file_id}: {filename}"
+            )
+        try:
+            value = json.loads(body)
+        except Exception as exc:
+            raise ValueError(f"invalid {filename}: {exc}") from exc
+        if not isinstance(value, dict):
+            raise ValueError(f"{filename} must contain a JSON object")
+        return value
+
+    capture_metadata = _one_json("content_capture_metadata.json")
+    if capture_metadata.get("parser_version") != LUCKYSCENT_PDP_PARSER_VERSION:
+        raise ValueError("Luckyscent content packet parser version does not match current")
+    if capture_metadata.get("projection_status") != "succeeded":
+        raise ValueError("Luckyscent content packet projection did not succeed")
+    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+        raise ValueError("Luckyscent content packet must use content or sample mode")
+
+    browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
+    profile = browser_metadata.get("retail_capture_profile")
+    if (
+        not isinstance(profile, dict)
+        or profile.get("name") != LUCKYSCENT_PDP_CONTENT_PROFILE
+    ):
+        raise ValueError("Luckyscent content packet capture profile does not match")
+    if browser_metadata.get("pin_confirmed") is not True:
+        raise ValueError(
+            "Luckyscent content packet does not carry a confirmed US/USD market pin"
+        )
+
+
+def _content_record_kind(content_bytes: bytes) -> object:
+    try:
+        payload = json.loads(content_bytes)
+    except Exception as exc:
+        raise ValueError(f"invalid Retail PDP content record JSON: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Retail PDP content record must contain a JSON object")
+    return payload.get("record_kind")
+
+
 class _ProjectedRetailHtml(StrictModel):
     rows: list[RetailPdpProjectionRow] = Field(default_factory=list)
     bindings: list[RetailPdpProjectionBinding] = Field(default_factory=list)
@@ -796,6 +1270,12 @@ def _project_retail_html(
     collapsed: list[RetailPdpProjectionLossEntry] = []
 
     structured_entries = _extract_structured_json_entries(html, raw_anchor=raw_anchor)
+    source_url = _fact_value(source_slice.locator) or _fact_value(packet.source_locator)
+    if retailer == "luckyscent":
+        structured_entries = _luckyscent_target_structured_entries(
+            structured_entries,
+            source_url=source_url,
+        )
     product_row_id = f"{source_slice.slice_id}:{retailer}:pdp"
     product_fields = _product_context_fields(packet, source_slice, retailer)
     rows.append(
@@ -914,6 +1394,7 @@ def _project_retail_html(
         visible_text=visible_text,
         structured_entries=structured_entries,
         fallback_anchor=raw_anchor,
+        source_url=source_url,
     )
     residuals.extend(review_residuals)
     if review_fields:
@@ -1055,6 +1536,16 @@ def _variant_offer_fields(
         residuals.extend(_retail_commerce_absence_residuals(retailer, fields))
         return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
 
+    if retailer == "luckyscent":
+        fields, anchor, luckyscent_residuals = _luckyscent_variant_offer_fields(
+            visible_text=visible_text,
+            packet=packet,
+            source_slice=source_slice,
+            structured_entries=structured_entries,
+        )
+        residuals.extend(luckyscent_residuals)
+        return fields, anchor or fallback_anchor, residuals
+
     sephora_dom_fields = _sephora_dom_offer_fields(html) if retailer == "sephora" else {}
     selected_sku = _string_or_none(sephora_dom_fields.get("dom_sku"))
     structured_fields, structured_anchor = _structured_variant_offer_fields(
@@ -1109,6 +1600,190 @@ def _variant_offer_fields(
     return {}, fallback_anchor, residuals
 
 
+def _luckyscent_target_structured_entries(
+    entries: Sequence[_StructuredJsonEntry],
+    *,
+    source_url: str | None,
+) -> list[_StructuredJsonEntry]:
+    if not source_url:
+        return []
+    return [
+        entry
+        for entry in entries
+        if any(
+            _luckyscent_product_matches_source(item, source_url)
+            for item in _walk_dicts(entry.parsed)
+        )
+    ]
+
+
+def _luckyscent_product_matches_source(
+    item: Mapping[str, object],
+    source_url: str,
+) -> bool:
+    item_type = item.get("@type")
+    if item_type not in {"Product", "ProductGroup"}:
+        return False
+    for candidate in (item.get("url"), item.get("@id")):
+        value = _string_or_none(candidate)
+        if value and _normalized_url_identity(value) == _normalized_url_identity(
+            source_url
+        ):
+            return True
+    return False
+
+
+def _luckyscent_target_product_group(
+    structured_entries: Sequence[_StructuredJsonEntry],
+    *,
+    source_url: str | None,
+) -> tuple[dict[str, object], RetailProjectionRawAnchor] | None:
+    if not source_url:
+        return None
+    for entry in structured_entries:
+        for item in _walk_dicts(entry.parsed):
+            if (
+                item.get("@type") == "ProductGroup"
+                and _luckyscent_product_matches_source(item, source_url)
+            ):
+                return item, entry.raw_anchor
+    return None
+
+
+def _luckyscent_variant_offer_fields(
+    *,
+    visible_text: str,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+    structured_entries: Sequence[_StructuredJsonEntry],
+) -> tuple[
+    dict[str, Any | None],
+    RetailProjectionRawAnchor | None,
+    list[str],
+]:
+    source_url = _fact_value(source_slice.locator) or _fact_value(
+        packet.source_locator
+    )
+    target = _luckyscent_target_product_group(
+        structured_entries,
+        source_url=source_url,
+    )
+    if target is None:
+        return {}, None, ["luckyscent_target_product_group_absent"]
+    product, anchor = target
+    raw_variants = product.get("hasVariant")
+    if not isinstance(raw_variants, list):
+        return {}, anchor, ["luckyscent_target_variants_absent"]
+
+    variants: list[dict[str, Any | None]] = []
+    residuals: list[str] = []
+    for index, candidate in enumerate(raw_variants):
+        if not isinstance(candidate, dict):
+            residuals.append(f"luckyscent_variant_{index}_malformed")
+            continue
+        offer = candidate.get("offers")
+        if not isinstance(offer, dict):
+            residuals.append(f"luckyscent_variant_{index}_offer_absent")
+            offer = {}
+        seller_value = offer.get("seller")
+        seller = (
+            _string_or_none(seller_value.get("name"))
+            if isinstance(seller_value, dict)
+            else _string_or_none(seller_value)
+        )
+        variants.append(
+            {
+                "sku": _string_or_none(candidate.get("sku")),
+                "name": _string_or_none(candidate.get("name")),
+                "size": _string_or_none(candidate.get("size")),
+                "url": _string_or_none(candidate.get("url")),
+                "price": _string_or_none(offer.get("price")),
+                "price_currency": _string_or_none(offer.get("priceCurrency")),
+                "availability": _string_or_none(offer.get("availability")),
+                "seller": seller,
+            }
+        )
+    if not variants:
+        return {}, anchor, [*residuals, "luckyscent_target_variants_absent"]
+
+    brand_value = product.get("brand")
+    brand = (
+        _string_or_none(brand_value.get("name"))
+        if isinstance(brand_value, dict)
+        else _string_or_none(brand_value)
+    )
+    first_variant = variants[0]
+    sellers = {
+        value
+        for value in (_string_or_none(item.get("seller")) for item in variants)
+        if value
+    }
+    currencies = {
+        value
+        for value in (
+            _string_or_none(item.get("price_currency")) for item in variants
+        )
+        if value
+    }
+    if len(sellers) > 1:
+        residuals.append("luckyscent_variant_seller_mismatch")
+    if len(currencies) > 1:
+        residuals.append("luckyscent_variant_currency_mismatch")
+    fields: dict[str, Any | None] = {
+        "product_id": _string_or_none(product.get("productGroupID")),
+        "sku": first_variant.get("sku"),
+        "product_name": _string_or_none(product.get("name")),
+        "brand": brand,
+        "description": _string_or_none(product.get("description")),
+        "source_product_url": _string_or_none(product.get("url")),
+        "variant_name": first_variant.get("size") or first_variant.get("name"),
+        "price": first_variant.get("price"),
+        "price_currency": first_variant.get("price_currency"),
+        "availability": first_variant.get("availability"),
+        "seller": first_variant.get("seller"),
+        "variants": variants,
+        "variant_count": len(variants),
+        "displayed_price": _luckyscent_displayed_price(
+            visible_text,
+            product_name=_string_or_none(product.get("name")),
+            brand=brand,
+        ),
+        "gender": _line_after_heading(visible_text, "Gender"),
+        "concentration": _line_after_heading(visible_text, "Concentration"),
+        "main_note": _line_after_heading(visible_text, "Main Note"),
+        "country": _line_after_heading(visible_text, "Country"),
+        "released": _line_after_heading(visible_text, "Released"),
+        "fragrance_notes": _line_after_heading(visible_text, "Fragrance Notes"),
+        "fragrance_style": _line_after_heading(visible_text, "Fragrance Style"),
+        "scoop": _text_section(
+            visible_text,
+            start_heading="The Scoop",
+            end_heading="You May Also Like",
+        ),
+        "delivery_location": None,
+        "delivery_location_posture": "not_observed",
+        "variant_binding_source": "luckyscent_target_product_group_and_visible_text",
+    }
+    return fields, anchor, residuals
+
+
+def _luckyscent_displayed_price(
+    visible_text: str,
+    *,
+    product_name: str | None,
+    brand: str | None,
+) -> str | None:
+    if not product_name or not brand:
+        return None
+    return _first_regex(
+        visible_text,
+        (
+            rf"{re.escape(product_name)}\s+{re.escape(brand)}\s+"
+            rf"\d(?:\.\d+)?\s+\([\d,]+\)\s+\$([\d,.]+)",
+        ),
+    )
+
+
 def _review_substrate_fields(
     *,
     retailer: Retailer,
@@ -1116,6 +1791,7 @@ def _review_substrate_fields(
     visible_text: str,
     structured_entries: list[_StructuredJsonEntry],
     fallback_anchor: RetailProjectionRawAnchor,
+    source_url: str | None = None,
 ) -> tuple[dict[str, Any | None], RetailProjectionRawAnchor, list[str]]:
     if retailer == "amazon":
         return _amazon_review_fields(html=html, visible_text=visible_text), _with_anchor(
@@ -1156,7 +1832,289 @@ def _review_substrate_fields(
         fields = _target_review_fields(visible_text)
         residuals = [] if fields.get("written_review_count") is not None else ["target_written_review_count_not_observed"]
         return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
+    if retailer == "luckyscent":
+        fields, residuals = _luckyscent_review_fields(
+            html=html,
+            visible_text=visible_text,
+            structured_entries=structured_entries,
+            source_url=source_url,
+        )
+        return (
+            fields,
+            _with_anchor(
+                fallback_anchor,
+                "html_selector",
+                ".jdgm-review-widget .jdgm-rev[data-product-url]",
+            ),
+            residuals,
+        )
     return {}, fallback_anchor, []
+
+
+def _luckyscent_review_fields(
+    *,
+    html: str,
+    visible_text: str,
+    structured_entries: Sequence[_StructuredJsonEntry],
+    source_url: str | None,
+) -> tuple[dict[str, Any | None], list[str]]:
+    target = _luckyscent_target_product_group(
+        structured_entries,
+        source_url=source_url,
+    )
+    if target is None:
+        return {}, ["luckyscent_target_product_group_absent"]
+    product, _anchor = target
+    product_name = _string_or_none(product.get("name"))
+    brand_value = product.get("brand")
+    brand = (
+        _string_or_none(brand_value.get("name"))
+        if isinstance(brand_value, dict)
+        else _string_or_none(brand_value)
+    )
+    aggregate = product.get("aggregateRating")
+    aggregate = aggregate if isinstance(aggregate, dict) else {}
+    structured_rating = _string_or_none(aggregate.get("ratingValue"))
+    structured_count = _string_or_none(aggregate.get("reviewCount"))
+    displayed_rating, displayed_count = _luckyscent_displayed_rating_and_count(
+        visible_text,
+        product_name=product_name,
+        brand=brand,
+    )
+    reviews = _luckyscent_target_reviews(
+        html,
+        product_name=product_name,
+        source_url=source_url,
+    )
+    histogram = _luckyscent_review_histogram(html)
+    residuals: list[str] = []
+    if displayed_rating and structured_rating and displayed_rating != structured_rating:
+        residuals.append("luckyscent_displayed_structured_rating_mismatch")
+    if (
+        displayed_count
+        and structured_count
+        and not _equivalent_review_count(displayed_count, structured_count)
+    ):
+        residuals.append("luckyscent_displayed_structured_review_count_mismatch")
+    if structured_count and len(reviews) != int(structured_count.replace(",", "")):
+        residuals.append("luckyscent_rendered_structured_review_count_mismatch")
+    if not reviews:
+        residuals.append("luckyscent_rendered_reviews_absent")
+    return {
+        "review_substrate_source": "luckyscent_target_judgeme_widget_and_ld_json",
+        "product_name": product_name,
+        "source_product_url": _string_or_none(product.get("url")),
+        "rating": displayed_rating or structured_rating,
+        "displayed_rating": displayed_rating,
+        "structured_rating": structured_rating,
+        "review_count": structured_count or displayed_count,
+        "displayed_review_count": displayed_count,
+        "structured_review_count": structured_count,
+        "written_review_count": str(len(reviews)),
+        "rating_count": structured_count or displayed_count,
+        "rating_distribution_basis": "count_and_percent" if histogram else None,
+        "rating_distribution_buckets": histogram,
+        "reviews": reviews,
+    }, residuals
+
+
+def _luckyscent_displayed_rating_and_count(
+    visible_text: str,
+    *,
+    product_name: str | None,
+    brand: str | None,
+) -> tuple[str | None, str | None]:
+    if not product_name or not brand:
+        return None, None
+    match = re.search(
+        rf"{re.escape(product_name)}\s+{re.escape(brand)}\s+"
+        rf"(\d(?:\.\d+)?)\s+\(([\d,]+)\)\s+\$[\d,.]+",
+        visible_text,
+        flags=re.IGNORECASE,
+    )
+    return (match.group(1), match.group(2)) if match else (None, None)
+
+
+def _luckyscent_target_reviews(
+    html: str,
+    *,
+    product_name: str | None,
+    source_url: str | None,
+) -> list[dict[str, Any | None]]:
+    if not product_name or not source_url:
+        return []
+    target_path = urlparse(source_url).path.rstrip("/")
+    blocks = re.findall(
+        r'(?is)(<div class="jdgm-rev jdgm-divider-top[^"]*"'
+        r".*?)(?=<div class=\"jdgm-rev jdgm-divider-top|"
+        r"<div class=\"jdgm-paginate|</body>)",
+        html,
+    )
+    reviews: list[dict[str, Any | None]] = []
+    for block in blocks:
+        start_tag = block[: block.find(">") + 1]
+        if _html_attr_value(start_tag, "data-product-title") != product_name:
+            continue
+        product_path = (_html_attr_value(start_tag, "data-product-url") or "").rstrip(
+            "/"
+        )
+        if product_path != target_path:
+            continue
+        body_html = _first_regex(
+            block,
+            (r'<div class="jdgm-rev__body">\s*<p>(.*?)</p>',),
+        )
+        variant = _first_regex(
+            block,
+            (
+                r'<div class="jdgm-rev__prod-variant-wrapper">.*?'
+                r"<span[^>]*>([^<]+)</span>\s*</div>",
+            ),
+        )
+        collection_type = _first_regex(
+            block,
+            (r'data-badge-type="([^"]+)"',),
+        )
+        collection_text = _first_regex(
+            block,
+            (
+                r'<div class="jdgm-rev__transparency-badge"[^>]*>(.*?)</div>',
+            ),
+        )
+        reviews.append(
+            {
+                "review_id": _html_attr_value(start_tag, "data-review-id"),
+                "product_name": product_name,
+                "product_url": product_path,
+                "verified_buyer": (
+                    _html_attr_value(start_tag, "data-verified-buyer") == "true"
+                ),
+                "rating": _first_regex(block, (r'data-score="([^"]+)"',)),
+                "timestamp": _first_regex(
+                    block,
+                    (r'jdgm-rev__timestamp"[^>]*data-content="([^"]+)"',),
+                ),
+                "displayed_date": _first_regex(
+                    block,
+                    (r'jdgm-rev__timestamp"[^>]*>([^<]+)</span>',),
+                ),
+                "author": _html_text(
+                    _first_regex(
+                        block,
+                        (r'jdgm-rev__author">([^<]+)</span>',),
+                    )
+                ),
+                "location": _html_text(
+                    _first_regex(
+                        block,
+                        (r'jdgm-rev__location">([^<]+)</span>',),
+                    )
+                ),
+                "body": _html_text(body_html),
+                "variant": _html_text(variant),
+                "collection_type": collection_type,
+                "collection_text": _html_text(collection_text),
+            }
+        )
+    return reviews
+
+
+def _luckyscent_review_histogram(html: str) -> list[dict[str, int]]:
+    buckets: list[dict[str, int]] = []
+    for rating, frequency, percentage in re.findall(
+        r'class="jdgm-histogram__row"[^>]*data-rating="(\d)"'
+        r'[^>]*data-frequency="(\d+)"[^>]*data-percentage="(\d+)"',
+        html,
+        flags=re.IGNORECASE,
+    ):
+        buckets.append(
+            {
+                "stars": int(rating),
+                "value": int(frequency),
+                "source_percent": int(percentage),
+            }
+        )
+    return buckets
+
+
+def _validate_luckyscent_projected_content(
+    projected: _ProjectedRetailHtml,
+    *,
+    source_url: str,
+) -> None:
+    variant_rows = [
+        row for row in projected.rows if row.row_kind == "retail_variant_offer"
+    ]
+    review_rows = [
+        row for row in projected.rows if row.row_kind == "retail_review_substrate"
+    ]
+    structured_rows = [
+        row
+        for row in projected.rows
+        if row.row_kind == "retail_embedded_structured_json"
+    ]
+    if len(variant_rows) != 1:
+        raise ValueError(
+            "Luckyscent content projection requires exactly one aggregate offer row"
+        )
+    if len(review_rows) != 1:
+        raise ValueError(
+            "Luckyscent content projection requires exactly one review-substrate row"
+        )
+    if len(structured_rows) != 2:
+        raise ValueError(
+            "Luckyscent content projection requires the two target structured-JSON rows"
+        )
+
+    variant_fields = variant_rows[0].source_visible_fields
+    variants = variant_fields.get("variants")
+    if not isinstance(variants, list) or not variants:
+        raise ValueError("Luckyscent content projection has no target variants")
+    required_variant_fields = {
+        "sku",
+        "name",
+        "size",
+        "url",
+        "price",
+        "price_currency",
+        "availability",
+        "seller",
+    }
+    incomplete = [
+        index
+        for index, variant in enumerate(variants)
+        if not isinstance(variant, dict)
+        or any(not _string_or_none(variant.get(key)) for key in required_variant_fields)
+    ]
+    if incomplete:
+        raise ValueError(
+            f"Luckyscent content projection has incomplete target variant(s): {incomplete}"
+        )
+    if _normalized_url_identity(
+        _string_or_none(variant_fields.get("source_product_url")) or ""
+    ) != _normalized_url_identity(source_url):
+        raise ValueError("Luckyscent content projection bound a different product URL")
+
+    review_fields = review_rows[0].source_visible_fields
+    reviews = review_fields.get("reviews")
+    review_count = _string_or_none(review_fields.get("review_count"))
+    if not isinstance(reviews, list) or not reviews or review_count is None:
+        raise ValueError("Luckyscent content projection has no complete review substrate")
+    if len(reviews) != int(review_count.replace(",", "")):
+        raise ValueError(
+            "Luckyscent rendered review rows do not match the target structured review count"
+        )
+    target_path = urlparse(source_url).path.rstrip("/")
+    if any(
+        not isinstance(review, dict)
+        or review.get("product_url") != target_path
+        or not _string_or_none(review.get("review_id"))
+        or not _string_or_none(review.get("body"))
+        for review in reviews
+    ):
+        raise ValueError(
+            "Luckyscent content projection contains an incomplete or off-target review"
+        )
 
 
 def _amazon_variant_offer_fields(
@@ -1885,6 +2843,12 @@ def _detect_retailer(packet: SourceCapturePacket) -> Retailer:
         return "amazon"
     if "sephora." in haystack or "sephora_" in haystack or "sephora " in haystack:
         return "sephora"
+    if (
+        "luckyscent." in haystack
+        or "luckyscent_" in haystack
+        or "luckyscent " in haystack
+    ):
+        return "luckyscent"
     if "ulta." in haystack or "ulta_" in haystack or "ulta " in haystack:
         return "ulta"
     if "walmart." in haystack or "walmart_" in haystack or "walmart " in haystack:
@@ -2095,6 +3059,49 @@ def _string_or_none(value: object) -> str | None:
     return None
 
 
+def _normalized_url_identity(value: str) -> str:
+    parsed = urlparse(value)
+    return (
+        f"{parsed.scheme.lower()}://{(parsed.hostname or '').lower()}"
+        f"{parsed.path.rstrip('/')}"
+    )
+
+
+def _text_section(
+    text: str,
+    *,
+    start_heading: str,
+    end_heading: str,
+) -> str | None:
+    lines = [line.strip() for line in text.splitlines()]
+    try:
+        start = next(
+            index
+            for index, line in enumerate(lines)
+            if line.lower() == start_heading.lower()
+        )
+    except StopIteration:
+        return None
+    end = next(
+        (
+            index
+            for index in range(start + 1, len(lines))
+            if lines[index].lower() == end_heading.lower()
+        ),
+        len(lines),
+    )
+    value = " ".join(line for line in lines[start + 1 : end] if line)
+    return value or None
+
+
+def _html_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    text = unescape(re.sub(r"<[^>]+>", " ", value))
+    compact = " ".join(text.split())
+    return compact or None
+
+
 def _equivalent_offer_value(key: str, left: str, right: str) -> bool:
     if left == right:
         return True
@@ -2163,6 +3170,10 @@ def _is_forbidden_field_name(key: str) -> bool:
 
 
 __all__ = [
+    "LUCKYSCENT_PDP_CONTENT_PROFILE",
+    "LUCKYSCENT_PDP_CONTENT_RECORD_KIND",
+    "LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION",
+    "LUCKYSCENT_PDP_PARSER_VERSION",
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
@@ -2180,7 +3191,9 @@ __all__ = [
     "RetailPdpProjectionRow",
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
+    "LuckyscentPdpAggregateContentRecord",
     "SephoraPdpAggregateContentRecord",
+    "build_luckyscent_pdp_aggregate_content_record",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
     "build_sephora_pdp_aggregate_content_record",
