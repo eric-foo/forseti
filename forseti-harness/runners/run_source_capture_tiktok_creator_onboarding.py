@@ -17,6 +17,9 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
     build_creator_registry_match_preflight_receipt,
     dump_creator_registry_match_preflight_receipt,
 )
+from capture_spine.creator_profile_current.creator_onboarding_selection import (
+    select_creator_onboarding_candidate,
+)
 from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
 )
@@ -44,17 +47,13 @@ from source_capture.tiktok.creator_onboarding import (
     DEFAULT_SELECTION_COUNT,
     DEFAULT_WINDOW_SIZE,
     GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
+    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
     run_tiktok_creator_profile_refresh,
 )
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
-from source_capture.tiktok.live_batch_probe import (
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
-)
-
-
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
 PROGRESS_PREFIX = "tiktok_creator_onboarding_progress_json="
 BLOCKER_PREFIX = "tiktok_creator_onboarding_blocker_json="
@@ -104,7 +103,13 @@ def build_parser() -> argparse.ArgumentParser:
             "A missing or invalid alias blocks; this runner never downgrades to logged-out mode."
         ),
     )
-    parser.add_argument("--creator-handle", required=True)
+    parser.add_argument(
+        "--creator-handle",
+        help=(
+            "TikTok handle. When omitted for new_onboarding, auto-select the sole "
+            "not_onboarded TikTok platform account in the Creator Registry."
+        ),
+    )
     parser.add_argument(
         "--creator-intent",
         choices=("new_onboarding", "new_capture", "update_existing"),
@@ -150,12 +155,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cadence-min-gap-seconds",
         type=float,
-        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+        default=TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     )
     parser.add_argument(
         "--cadence-max-gap-seconds",
         type=float,
-        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+        default=TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     )
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
@@ -188,17 +193,24 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    _emit_progress(
-        "preflight_started",
-        {
-            "creator_handle": args.creator_handle.strip().lstrip("@").lower(),
-            "session_profile": args.session_profile,
-        },
-    )
     data_root = None
     capture_scope = "full_deep_capture"
     prior_coverage: dict[str, object] | None = None
     try:
+        args.creator_handle, selected_candidate = _resolve_creator_handle(
+            creator_handle=args.creator_handle,
+            creator_intent=args.creator_intent,
+            registry_path=args.creator_registry,
+        )
+        if selected_candidate is not None:
+            _emit_progress("creator_selected_from_registry", selected_candidate)
+        _emit_progress(
+            "preflight_started",
+            {
+                "creator_handle": args.creator_handle.strip().lstrip("@").lower(),
+                "session_profile": args.session_profile,
+            },
+        )
         preflight_path, preflight_result = _write_creator_registry_preflight(
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
@@ -478,6 +490,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     )
     return 0
+
+
+def _resolve_creator_handle(
+    *,
+    creator_handle: str | None,
+    creator_intent: str,
+    registry_path: Path,
+) -> tuple[str, dict[str, str] | None]:
+    if creator_handle is not None and creator_handle.strip():
+        return creator_handle, None
+    if creator_intent != "new_onboarding":
+        raise ValueError(
+            "--creator-handle is required unless --creator-intent=new_onboarding"
+        )
+    registry_document = load_creator_profile_current_view(registry_path)
+    candidate = select_creator_onboarding_candidate(
+        registry_document,
+        platform="tiktok",
+    )
+    return candidate["public_handle"], candidate
 
 
 

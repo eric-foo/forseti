@@ -3197,6 +3197,51 @@ def test_chrome_cdp_session_adopts_latest_tiktok_page_and_discloses_exact_matche
     )
 
 
+def test_chrome_cdp_session_records_per_observation_timings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result = _ok_page_observation_engine().result
+    assert isinstance(result, BrowserPageObservationSuccess)
+    monkeypatch.setattr(
+        browser_snapshot_module._CloakBrowserPageObservationEngine,
+        "capture_page_observation",
+        lambda _self, **_kwargs: result,
+    )
+    ticks = iter((10.0, 12.75))
+    pointer_action = BrowserPagePointerAction(
+        action_name="open_video",
+        candidate_selector="a",
+        text_markers=(),
+    )
+    engine = ChromeCdpPageObservationSessionEngine(
+        humanize_context_fn=lambda _: None,
+        monotonic_fn=lambda: next(ticks),
+    )
+
+    capture = engine.capture_page_observation(
+        url="https://www.tiktok.com/@creator/video/1",
+        settle_seconds=2.0,
+        post_load_pointer_actions=(pointer_action,),
+    )
+
+    assert capture.metadata["session_capture_index"] == 1
+    assert capture.metadata["session_capture_elapsed_seconds"] == 2.75
+    receipt = engine.lifecycle_receipt
+    assert receipt["capture_elapsed_seconds_total"] == 2.75
+    assert receipt["capture_elapsed_seconds_max"] == 2.75
+    assert receipt["capture_timings"] == [
+        {
+            "capture_index": 1,
+            "requested_url_or_none": "https://www.tiktok.com/@creator/video/1",
+            "final_url_or_none": "https://example.com/source",
+            "action_names": ["open_video"],
+            "settle_seconds": 2.0,
+            "elapsed_seconds": 2.75,
+            "outcome": "success",
+        }
+    ]
+
+
 def test_chrome_cdp_session_adopts_latest_unrelated_tiktok_page() -> None:
     class FakePage:
         def __init__(self, url: str) -> None:
