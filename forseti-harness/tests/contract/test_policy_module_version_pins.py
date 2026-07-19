@@ -149,7 +149,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # typed Retail/PDP route; existing retailer row semantics and the shared
         # v0 schema stay unchanged. Nordstrom parser behavior is versioned by
         # NORDSTROM_PDP_PARSER_VERSION.
-        "bdaa28f7e19e3e0970264bcb80a2aec647b2b43da945c21fb495fb061d1f038b",
+        "dcc9b0963c2d4d8fa345b55f0bd97e2cca095aea828a35414dd0945aef616b9b",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
