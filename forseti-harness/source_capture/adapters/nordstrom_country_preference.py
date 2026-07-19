@@ -19,6 +19,7 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
     PreCaptureOutcome,
 )
+from source_capture.projection_shared import first_match
 
 
 _NORDSTROM_HOMEPAGE_URL = "https://www.nordstrom.com/"
@@ -536,30 +537,27 @@ def _main_review_dates(review_html: str) -> list[tuple[int, date]]:
     for index, start in enumerate(starts):
         end = starts[index + 1].start() if index + 1 < len(starts) else len(review_html)
         card = review_html[start.start() : end]
-        raw_date = _first_match(
-            card,
-            (
-                r'itemprop=["\']datePublished["\'][^>]*content=["\']'
-                r"(\d{4}-\d{2}-\d{2})",
-                r"\b("
-                r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
-                r"May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|"
-                r"Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-                r"\s+\d{1,2},\s+\d{4})\b",
-            ),
-        )
+        raw_date = None
+        for pattern in (
+            r'itemprop=["\']datePublished["\'][^>]*content=["\']'
+            r"(\d{4}-\d{2}-\d{2})",
+            r"\b("
+            r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
+            r"May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|"
+            r"Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+            r"\s+\d{1,2},\s+\d{4})\b",
+        ):
+            raw_date = first_match(
+                card,
+                pattern,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            if raw_date is not None:
+                break
         parsed = _parse_review_date(raw_date)
         if parsed is not None:
             result.append((int(start.group(1)), parsed))
     return result
-
-
-def _first_match(text: str, patterns: tuple[str, ...]) -> str | None:
-    for pattern in patterns:
-        match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
-        if match is not None:
-            return match.group(1)
-    return None
 
 
 def _parse_review_date(value: str | None) -> date | None:
