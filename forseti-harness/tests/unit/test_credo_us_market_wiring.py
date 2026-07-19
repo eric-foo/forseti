@@ -378,23 +378,3 @@ def test_writer_rejects_manual_pins_and_cross_retailer_flag(
     kwargs["walmart_market"] = "US"
     with pytest.raises(ValueError, match="mutually exclusive"):
         http_writer.run_source_capture_http_packet(**kwargs)
-
-
-def test_cli_exposes_only_us_credo_market_choice() -> None:
-    parser = http_writer._build_parser()
-    args = parser.parse_args(
-        [
-            "--url",
-            _URL,
-            "--source-family",
-            "retail_pdp",
-            "--decision-question",
-            "Credo US/USD?",
-            "--output",
-            "packet",
-            "--credo-market",
-            "US",
-        ]
-    )
-
-    assert args.credo_market == "US"

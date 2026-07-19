@@ -29,6 +29,7 @@ from capture_spine.linkedin_live_adapter import (
     validate_live_access_envelope,
     validate_live_observation,
 )
+from capture_spine.linkedin_live_adapter.validation import _MINIMIZATION_BOUNDARY_FLAGS
 
 
 def _envelope(**overrides) -> LiveAccessEnvelope:
@@ -233,15 +234,11 @@ def test_observation_unknown_field_raises() -> None:
         validate_live_observation(bad)
 
 
-def test_observation_profile_body_captured_flag_raises() -> None:
-    # minimization boundary: a captured-content flag set True must raise
+@pytest.mark.parametrize("flag", _MINIMIZATION_BOUNDARY_FLAGS)
+def test_observation_minimization_boundary_flag_raises(flag: str) -> None:
+    # minimization boundary: any retained/captured flag set True must raise
     with pytest.raises(LinkedInLaneError):
-        validate_live_observation(_observation(profile_body_captured=True).to_dict())
-
-
-def test_observation_network_list_retained_flag_raises() -> None:
-    with pytest.raises(LinkedInLaneError):
-        validate_live_observation(_observation(network_or_follower_list_retained=True).to_dict())
+        validate_live_observation(_observation(**{flag: True}).to_dict())
 
 
 def test_person_observation_missing_basis_raises() -> None:

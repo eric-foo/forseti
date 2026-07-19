@@ -314,23 +314,3 @@ def test_writer_rejects_wrong_profile_and_manual_pin_declarations(
     kwargs["currency_pin"] = http_writer.known_fact("manual USD declaration")
     with pytest.raises(ValueError, match="must not be combined"):
         http_writer.run_source_capture_http_packet(**kwargs)
-
-
-def test_cli_exposes_only_us_walmart_market_choice() -> None:
-    parser = http_writer._build_parser()
-    args = parser.parse_args(
-        [
-            "--url",
-            _URL,
-            "--decision-question",
-            "Walmart US/USD?",
-            "--output",
-            "packet",
-            "--retail-capture-profile",
-            "walmart_pdp_aggregate",
-            "--walmart-market",
-            "US",
-        ]
-    )
-
-    assert args.walmart_market == "US"

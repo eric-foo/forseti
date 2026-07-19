@@ -32,6 +32,10 @@ from source_capture.writer import write_local_source_capture_packet
 
 _BASENOTES_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
+_FRAGRANTICA_INITIAL_VIEWPORT_SURFACE = "fragrantica_product_page_cloakbrowser_initial_viewport"
+_FRAGRANTICA_DEEP_SCROLL_SURFACE = "fragrantica_product_page_cloakbrowser_deep_scroll_current_window"
+_PARFUMO_DIRECT_SURFACE = "parfumo_product_page_direct_http"
+_PARFUMO_RENDERED_SURFACE = "parfumo_product_page_chrome_extension_targeted_rendered_session"
 _FIXTURE = (
     Path(__file__).resolve().parents[1]
     / "fixtures"
@@ -279,14 +283,26 @@ def test_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
     assert run_catchup(data_root=data_root) == []
 
 
-def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(tmp_path) -> None:
+@pytest.mark.parametrize(
+    ("surface", "name"),
+    [
+        (_FRAGRANTICA_SURFACE, "fragrantica_direct"),
+        (_FRAGRANTICA_INITIAL_VIEWPORT_SURFACE, "fragrantica_initial_viewport"),
+        (_FRAGRANTICA_DEEP_SCROLL_SURFACE, "fragrantica_deep_scroll"),
+        (_PARFUMO_DIRECT_SURFACE, "parfumo_direct"),
+        (_PARFUMO_RENDERED_SURFACE, "parfumo_rendered"),
+    ],
+)
+def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(
+    tmp_path, surface: str, name: str
+) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     other = _commit_family_packet(
         data_root,
         tmp_path,
-        name="frag",
-        source_surface=_FRAGRANTICA_SURFACE,
-        body_text="<html><body>a fragrantica page</body></html>",
+        name=name,
+        source_surface=surface,
+        body_text=f"<html><body>a {name} page</body></html>",
     )
     bn = _commit_family_packet(data_root, tmp_path)
 
@@ -294,6 +310,7 @@ def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(tmp_
     by_packet = {r["packet_id"]: r for r in results}
     assert by_packet[bn]["status"] == "derived"
     assert by_packet[other]["status"] == "acked_no_cleanable_content"
+    assert by_packet[other]["source_surface"] == surface
 
     assert list((data_root.path / "derived").glob(f"*/{other}/*")) == []
     acks = find_acks(data_root, raw_anchor=other, ack_namespace=BASENOTES_CLEANING_AUDIT_LANE)
@@ -302,7 +319,7 @@ def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(tmp_
         {
             "kind": "no_cleanable_content_for_surface",
             "raw_anchor": other,
-            "source_surface": _FRAGRANTICA_SURFACE,
+            "source_surface": surface,
             "basis": "known_non_basenotes_source_surface",
         }
     ]

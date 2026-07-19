@@ -269,6 +269,15 @@ def test_parfumo_projection_rejects_wrong_surface(tmp_path: Path) -> None:
         )
 
 
+def test_parfumo_projection_rejects_wrong_source_family(tmp_path: Path) -> None:
+    result = _write_packet(tmp_path, source_family="web_page")
+    with pytest.raises(ValueError, match="source_family='fragrance_native_database'"):
+        build_parfumo_projection(
+            packet=result.packet,
+            raw_file_bytes_by_file_id=_raw_file_bytes(result.output_directory),
+        )
+
+
 def test_parfumo_projection_requires_preserved_file_bytes(tmp_path: Path) -> None:
     result = _write_packet(tmp_path)
     with pytest.raises(ValueError, match="raw bytes are required"):
@@ -342,6 +351,7 @@ def _write_targeted_packet(tmp_path: Path, *, html: str) -> Path:
 def _write_packet(
     tmp_path: Path,
     *,
+    source_family: str = "fragrance_native_database",
     source_surface: str = "parfumo_product_page_direct_http",
     html: str | None = None,
 ):
@@ -352,7 +362,7 @@ def _write_packet(
     return write_local_source_capture_packet(
         output_directory=tmp_path / "packet",
         input_files=[body_path, metadata_path],
-        source_family="fragrance_native_database",
+        source_family=source_family,
         source_surface=source_surface,
         source_locator=known_fact(_LOCATOR),
         decision_question="test Parfumo projection",

@@ -5,8 +5,9 @@ unexpected internal exception to exit 1 in gating modes (--strict / --selftest,
 the GATE FAIL bucket in validation-gates.md) and to exit 0 in advisory/hook
 modes so a checker bug never bricks the agent. Each hook exposes a
 --force-internal-error probe flag that raises at main() entry; these tests
-prove the handler's mapping in both directions, in-process-independent (real
-subprocess, real exit codes). Documented infra-gap fail-opens (git/PyYAML
+prove the handler's mapping in both directions in-process, running the hook's
+__main__ block via runpy.run_path under a fresh module namespace per call
+(real SystemExit codes). Documented infra-gap fail-opens (git/PyYAML
 unavailable, base ref unresolvable) are a different contract and are not
 probed here.
 
@@ -18,7 +19,7 @@ need no probe.
 """
 from __future__ import annotations
 
-import subprocess
+import runpy
 import sys
 from pathlib import Path
 
@@ -67,31 +68,51 @@ def _ids(params: list[tuple[str, list[str]]]) -> list[str]:
     return ["%s %s" % (hook, " ".join(mode)) for hook, mode in params]
 
 
-def _run_probe(hook: str, mode: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, str(HOOKS_DIR / hook), *mode, "--force-internal-error"],
-        capture_output=True,
-        text=True,
-        cwd=REPO_ROOT,
+def _run_probe(
+    hook: str,
+    mode: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> tuple[int, str, str]:
+    """In-process replacement for the prior subprocess probe.
+
+    Mirrors the subprocess call's argv and cwd (REPO_ROOT). runpy.run_path
+    executes the hook's module fresh under run_name="__main__" each call, so
+    the __main__ handler under test actually runs and nothing leaks into
+    sys.modules between parametrized cases.
+    """
+    monkeypatch.chdir(REPO_ROOT)
+    monkeypatch.setattr(
+        sys, "argv", [str(HOOKS_DIR / hook), *mode, "--force-internal-error"]
     )
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_path(str(HOOKS_DIR / hook), run_name="__main__")
+    captured = capsys.readouterr()
+    return excinfo.value.code, captured.out, captured.err
 
 
 @pytest.mark.parametrize(("hook", "mode"), GATING, ids=_ids(GATING))
 def test_forced_internal_error_is_gate_fail_in_gating_mode(
-    hook: str, mode: list[str]
+    hook: str,
+    mode: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    result = _run_probe(hook, mode)
-    assert result.returncode == 1, result.stdout + result.stderr
+    code, out, err = _run_probe(hook, mode, monkeypatch, capsys)
+    assert code == 1, out + err
     # The nonzero exit must come from the internal-error handler, not from
     # ordinary findings.
-    assert "internal error" in result.stderr, result.stdout + result.stderr
+    assert "internal error" in err, out + err
 
 
 @pytest.mark.parametrize(("hook", "mode"), ADVISORY, ids=_ids(ADVISORY))
 def test_forced_internal_error_fails_open_in_advisory_mode(
-    hook: str, mode: list[str]
+    hook: str,
+    mode: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    result = _run_probe(hook, mode)
-    assert result.returncode == 0, result.stdout + result.stderr
+    code, out, err = _run_probe(hook, mode, monkeypatch, capsys)
+    assert code == 0, out + err
     # The green exit must be the loud fail-open path, not a silent success.
-    assert "internal error" in result.stderr, result.stdout + result.stderr
+    assert "internal error" in err, out + err
