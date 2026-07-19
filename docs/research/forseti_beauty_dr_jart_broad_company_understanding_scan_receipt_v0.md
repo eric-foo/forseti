@@ -3,10 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Research artifact
-scope: CSB-first scan receipt for the blocked Dr.Jart+ broad Understanding Acquire & Seal dogfood.
+scope: CSB-first scan receipt plus bounded preservation recovery for the Dr.Jart+ broad Understanding Acquire & Seal dogfood.
 use_when:
-  - Auditing the bounded live evidence walk and its preservation failure.
-  - Checking why Deliver was not authorized.
+  - Auditing the bounded live evidence walk, its original preservation failure, and the exact-URL recovery.
+  - Checking the evidence and residuals admitted by the acquisition seal.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_dr_jart_broad_company_understanding_commission_board_v0.md
@@ -242,12 +242,46 @@ uncertainty_or_limits: One product pointer cannot establish advantage, equivalen
 - `GAP-003`: incentive-filtered approval cannot be calculated.
 - `GAP-004`: current independent Dr.Jart+-specific trade evidence was sparse.
 
+## Bounded Preservation Recovery
+
+The recovery on 2026-07-20 reused only the URLs already recorded above. It
+performed no discovery, search, link following, venue expansion, or evidence
+deepening. Direct HTTP was tried first where appropriate; access-failed or
+client-shell results were replaced by the documented one-URL rendered
+fallback. The two Reddit observations used the same-thread old-Reddit route.
+
+All manifest-declared preserved-file hashes were recomputed and matched. The
+packet root is placement-excluded local acquisition scratch at
+`C:\tmp\forseti-dr-jart-preservation-deliver\_acquisition\dr_jart_preservation_recovery\`.
+
+| Evidence row | Admitted packet | Packet ID | Manifest SHA-256 | Admission boundary |
+| --- | --- | --- | --- | --- |
+| OBS-002 | `obs_002_drjart_pdp_rendered/manifest.json` | `01KXXXYT2WQ8RJJWRTDH0YBGKE` | `12477DC113218499C41BCD54C0E96C000F32AFD4D005C703BF4C6DF3979B88E7` | Exact owned PDP rendered; supports only the previously recorded current proposition. |
+| OBS-003 | `obs_003_drjart_redness_collection_rendered/manifest.json` | `01KXXXZWV62A9GFPBX2G6C4XVG` | `E6FEEFC6ECB125537328265A45FA3518E6C63123C7C7C33644C9EF1EC47EA024` | Exact owned collection rendered; supports only the previously recorded offering architecture. |
+| OBS-005 | `obs_005_elc_fy2025/manifest.json` | `01KXXXR6J79NTV967X2JRV47TX` | `D9A9086B38F3A224850F994AAA458FC7748A1B0BA279879AB833664AB618934E` | HTTP 200 first-party disclosure; no causal or current-global-performance inference. |
+| OBS-006 | `obs_006_sephora_pdp_rendered/manifest.json` | `01KXXY33E8ZKJD2F9KTP2JXJ05` | `48B20818A0BEA2C218651BE82E37B80C14ABD9E93D3E98361C298DABA67BF034` | US/USD storefront conjunction confirmed and exact page preserved; delivery remains unpinned. The aggregate profile's product-specific `Lip Sleeping Mask` literal failed, so no aggregate-content or review admission is taken from this packet. |
+| OBS-007 | `obs_007_sephora_policy_rendered/manifest.json` | `01KXXY0FX2YPNB0MVARFW49X8Z` | `EFD2D3536F8243F5A14A0ADA8EED3888032739EC8E0FA4C18460C2250535D484` | Exact policy page rendered; product-level review rows remain unavailable. |
+| OBS-008 | `obs_008_asianbeauty_rendered/manifest.json` | `01KXXY5FR0CXV5VHEWA8CT1TBX` | `A9D23BCA7D40EB6CA948DCF08FBAA0E15B1D5BD639AD01655F16FCD435DB427C` | Same exact thread identity rendered through old Reddit; attributable examples only. |
+| OBS-009 | `obs_009_30plusskincare_rendered/manifest.json` | `01KXXY5W1V0J0DN2BE68YBB3HX` | `05E6472DC0D00D13FC63433C3C2C7F3C371206D251CCD625E23150EE2962E1CC` | Same exact thread identity rendered through old Reddit; existence only. |
+| OBS-010 | `obs_010_cosmeme_notice/manifest.json` | `01KXXXQZR7YXB0YTVB9KNHHDXZ` | `B4D6262339ECB39173A065CABDDE9482610B120482B5BBA146A66ECF233D7095` | HTTP 200 exact retailer notice; local channel fact only. |
+| OBS-012 | `obs_012_peach_lily_comparator/manifest.json` | `01KXXXR23T4KNX2MJWNWS9H2P0` | `C576578852AE6A11F63FA731EEA1D67DE8F4F742DD67FC83199239049A31FB5A` | HTTP 200 exact comparator PDP; one category-expression pointer only. |
+| HVP-002 | `hvp_002_fashionography_rendered/manifest.json` | `01KXXY8CNRZNSNAXFEZ5J4J50V` | `FC79ECC3513ECE4CEB2AD920118661B5B5528988C23856D8280AFB1713E76BF8` | Exact editorial article rendered after its direct-HTTP shell omitted article content; one independent launch origin only. |
+
+Two route defects remain visible but do not erase the admitted fallback
+packets:
+
+- direct HTTP preserved 403 bodies for OBS-002, OBS-003, and OBS-007 before
+  their rendered fallbacks passed;
+- Reddit content-mode HTTP captured both threads but preserved no derived
+  record and then could not consolidate after raw discard; the two exact-thread
+  rendered fallbacks are the admitted records.
+
 ## Capture Triage
 
-No downstream capture request is left open by Scanning. The preservation
-attempt itself failed, so the acquisition gate remains blocked. This receipt
-preserves the collector's screen-light return and failure accounting; it is not
-a substitute for route-owned raw or projected packets.
+No downstream capture request is left open by Scanning. The bounded recovery
+closed the preservation requirement without changing the evidence set. The
+screen-light retailer and review limitations remain typed gaps rather than
+being converted into evidence.
 
 ## Candidate Decision
 
@@ -264,13 +298,14 @@ candidate_decision:
   reason: >
     The broad scan surfaced interpretable company-model evidence and material
     tensions, but no Company Surface or downstream-lane candidate was
-    commissioned. Acquisition remains blocked at preservation.
+    commissioned. The later exact-URL recovery closed acquisition preservation
+    without reopening discovery.
 ```
 
 ## Closeout
 
 `no_candidate_after_discovery`.
 
-The current-policy evidence walk reached a closure-shaped state, but the
-Acquire & Seal gate did not pass because no durable Capture packet was
-preserved. Deliver is not authorized.
+The current-policy evidence walk reached closure, and the later bounded
+exact-URL recovery preserved every observation admitted by the acquisition
+seal. Deliver is authorized only under that seal and its typed gaps.

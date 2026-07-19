@@ -83,10 +83,10 @@ closeout_observed_at: "2026-07-20T01:42:31+08:00"
 pre_registration_commit: f56e2aa722fb146c62968d7befde583983d6ac49
 collector_isolation: cold_fork_no_conversation_context
 acquisition_walk: closure_shaped
-capture_preservation: blocked
-acquisition_gate: blocked
-deliver_allowed: false
-dogfood_disposition: INCONCLUSIVE
+capture_preservation: recovered_exact_observed_urls_only
+acquisition_gate: pass
+deliver_allowed: true
+dogfood_disposition: PENDING_DELIVER_COMPARISON
 ```
 
 The broad commission caused the collector to cover all eight existing company
@@ -99,21 +99,73 @@ lenses and surfaced three bounded tension/check pairs:
 3. retailer review prominence versus unavailable product-level incentive data.
 
 This is useful directional evidence that commission breadth changes acquisition
-behavior. It is not a successful dogfood result: several lenses remained
-partial, raw Capture packets were not preserved, the acquisition seal did not
-pass, and no Deliver artifact exists for decision-use comparison.
+behavior. The original attempt remained inconclusive because preservation
+failed. A bounded recovery on 2026-07-20 then preserved only the already
+observed URLs, with no rescan, discovery, or evidence expansion. The acquisition
+seal now passes with the retailer, review-data, and independent-trade gaps still
+open. The dogfood itself remains pending until a fresh Deliver artifact exists
+for decision-use comparison.
 
 The six qualitative outcome signals were visible but unscored:
 
 - question fit improved because the collector built a company model rather than
   only auditing one proposition;
-- evidence foundation failed its integrity floor at preservation;
-- reasoning quality is not adjudicable before Deliver;
+- evidence foundation recovered its integrity floor while retaining the
+  route-specific failures and evidence limits;
+- reasoning quality remains unadjudicated before Deliver;
 - uncertainty was preserved through typed gaps and bounded claims;
 - implications were limited to candidate later questions, not assigned
   problems; and
 - communication efficiency cannot be compared without a report.
 
-No doctrine change is supported by this run. The smallest next step, if the
-owner chooses to continue, is a bounded preservation recovery against the
-already observed URLs; no re-scan is authorized by this artifact.
+No doctrine change is supported by this run. The next authorized step is a
+fresh-context Deliver using only the sealed evidence set, followed by the
+pre-registered qualitative comparison with Marc Jacobs Beauty. Acquisition may
+not reopen by default.
+
+## Deliver Comparison Closeout
+
+```yaml
+comparison_observed_at: "2026-07-20"
+deliver_actor_context: fresh_from_acquisition_seal
+deliver_report: docs/research/forseti_beauty_dr_jart_broad_company_understanding_report_v0.md
+deliver_report_commit: f5e0ef733d1a9244cab8e9890faba704eb0baf0b
+deliver_report_sha256: A47B814E40C2093BEF0B365BB0DBF31C46CB0B745C7B6AEEE5BD58A2A3FEB0AD
+dogfood_disposition: SUCCESS
+doctrine_effect: none_product_learning_only
+```
+
+The test succeeded at its bound job: the existing company-intelligence
+contract produced a broad, decision-neutral company model in which every
+existing lens is answered or honestly gapped, and five observable tensions are
+paired with the later question they could inform. It is more useful than the
+Marc Jacobs report for preparing a broad Problem Framing commission, without
+crossing into pain, priority, cause, prevalence, or recommendation.
+
+It is not universally better, and it did not produce more evidence than Tower
+28. The comparison below uses descriptive inventory only, never a score:
+
+| Outcome signal | Dr.Jart result | Comparative judgment |
+| --- | --- | --- |
+| Question fit | One governing redness-system frame connects proposition, assortment, US retail, dated operating/channel observations, community concerns, and bounded comparator context. | Better fit than the narrow Marc Jacobs proposition audit for broad company understanding; more tightly commissioned than the dual-purpose Tower 28 rerun. |
+| Evidence foundation | Twelve canonical observation rows include owned pages, a parent disclosure, a retailer page and policy, two attributable Reddit threads, a local channel notice, one independent launch origin, and one comparator pointer. | The integrity floor holds, but depth does not exceed Marc Jacobs and is far below Tower 28's 43-row mature evidence world. Customer response and current independent trade remain materially weaker. |
+| Reasoning quality | A known/inferred/unknown matrix and five tension rows separate formula continuity, item choice, geography/channel, visible price expression, and review measurement. | Better mechanism separation than Marc Jacobs' broad performance-variance grouping; no unsupported causal resolution is claimed. |
+| Honest uncertainty | GAP-002 through GAP-004 sit beside the claims they limit; existence never becomes recurrence, prevalence, comparison, or a negative conclusion. | Stronger than a breadth-for-breadth's-sake dossier and sufficient for this test. |
+| Implications and foresight | Every executive conclusion and tension names the later question it could inform plus an observable that would change the view. | Problem-Framing-ready without silently performing Problem Framing. |
+| Communication efficiency | The report is about 4,481 words with a roughly 698-word executive layer, versus about 4,895/766 for Marc Jacobs and 12,245/1,418 for Tower 28. | Better reader economics despite broader scope. The executive layer is still longer than a true two-minute brief and remains an accepted residual. |
+
+The decisive result is therefore narrower than “all our changes yield more
+evidence.” They did not: this no-rescan recovery could only preserve the
+observed evidence world. What improved was the commission's use of that evidence:
+the report turns comparable evidence volume into a broader company model and a
+more explicit set of safe next questions. Tower 28 remains the stronger evidence
+foundation; Dr.Jart is the more efficient Problem-Framing handoff.
+
+Accepted residuals:
+
+- the response base is two self-selected threads and no reproducible
+  product-review corpus;
+- current independent brand reporting is sparse;
+- the executive layer still carries five conclusions plus a governing frame;
+- success supports this broad-Understanding commission pattern only and installs
+  no recurring step, schema, validator, or doctrine change.
