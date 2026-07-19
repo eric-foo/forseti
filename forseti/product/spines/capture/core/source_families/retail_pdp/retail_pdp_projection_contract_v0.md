@@ -131,9 +131,11 @@ Retailer-specific capture details that now matter to projection:
   product price.
 - Nordstrom: the numeric PDP id must bind the target Product JSON-LD, one offer,
   `Sold by Nordstrom`, the displayed rating/count and star histogram, rendered
-  review microdata, and source-visible claims. Recommendation products are not
-  target substrate. A visible shipping destination remains an unpinned residual
-  and never becomes US-delivery proof.
+  review microdata, each rendered card's visible helpful count when present,
+  the source-selected review sort posture, and source-visible claims.
+  Recommendation products are not target substrate. A missing helpful count
+  remains absent rather than becoming zero. A visible shipping destination
+  remains an unpinned residual and never becomes US-delivery proof.
 - Ulta: rendered DOM should preserve JSON-LD plus `window.__APOLLO_STATE__`,
   including the requested SKU context that can differ from the projected SKU.
 
@@ -206,9 +208,16 @@ have thread parent/reply hierarchy; their structure is the product/variant/price
 | Retailer | Capture substrate to preserve | Projection posture | Binding limits |
 | --- | --- | --- | --- |
 | Amazon | Rendered DOM plus visible text; US storefront/locale/currency pins when the capture series requires comparability. | Current projection reads ASIN, DOM target price input, availability text, average customer review nodes, and best-sellers-rank text; it carries shipping, loyalty, and recommendation modules. | If the DOM price input is absent, the visible-text price fallback is residualized because it can pick up store-card or promo amounts. Amazon capture recon remains the open source-access question in the multi-retailer rendered-capture spec. |
-| Nordstrom | Rendered DOM plus visible text after the retailer-owned country preference confirms selected US/USD and the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer with seller/availability, claims, displayed review aggregate/histogram, and currently rendered review microdata. | Recommendation products cannot bind to the requested id. `Shipping to 518225` remains an unpinned display residual, not US-delivery or fulfillment proof. |
+| Nordstrom | Rendered DOM plus visible text after the retailer-owned country preference confirms selected US/USD and the US shopper context. | The numeric PDP id binds target Product JSON-LD, one offer with seller/availability, claims, displayed review aggregate/histogram, currently rendered review microdata, source display order, visible per-card helpful counts, and the selected review-sort label. | Recommendation products cannot bind to the requested id. `Shipping to 518225` remains an unpinned display residual, not US-delivery or fulfillment proof. `Most Helpful` records Nordstrom's selected UI posture only; it does not establish the ranking algorithm or representative sentiment. |
 | Sephora | Rendered DOM after the review area has actually loaded; Bazaarvoice configuration and target review widget should be preserved when present. | Current projection preserves JSON-LD verbatim, uses the target `ProductPage` DOM root price when present, uses structured product/offer fields otherwise, treats `Ratings & Reviews (N)` as the target review count, and carries recommendation review-count examples separately. | Recommendation prices and counts are not the target substrate. Bare `<token> Reviews` fallback is residualized. JSON-LD disagreement with the target DOM review widget is residualized. Structured JSON price is carried but residualized when the target DOM price binding is absent. |
 | Ulta | Rendered DOM carrying JSON-LD and `window.__APOLLO_STATE__`; requested SKU context should remain visible. | Current projection preserves JSON-LD and Apollo state verbatim, prefers/merges Apollo offer fields, carries `apollo_requested_sku`, compares JSON-LD against Apollo for mismatches, and compares requested SKU context against the projected variant SKU. | JSON-LD/Apollo disagreements are residualized. Requested/projected SKU disagreement is residualized even when embedded substrates agree with each other. Apollo state is a source-visible embedded-state substrate, not an authority to normalize away SKU or review mismatches. |
+
+For Nordstrom review continuation, the initial PDP state contains six rendered
+review cards. The `Load 6 more reviews` control means that each deliberate
+activation appends one further six-review batch. Capture must record activation
+count separately from rendered-review count: the initial six are not a
+pagination action. Without a deeper-review commission, do not activate the
+control; preserve its label and batch size with the initial six instead.
 
 ### What Must Stay Out
 

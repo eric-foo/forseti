@@ -145,11 +145,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "RETAIL_PDP_PROJECTION_VERSION",
             "retailer-owned content/parser version tokens",
         ),
-        # New-surface output-shaping decision: Nordstrom and Credo Yotpo are
-        # newly admitted typed Retail/PDP surfaces; existing retailer row
-        # semantics and the shared v0 schema stay unchanged. The commissioned
-        # Credo packet was explicitly rederived append-only after admission.
-        "e558b023222cc9918ac41f8848cdff5edbd33d97fca5e875dd5c11ac37261f9d",
+        # Output-shaping: Nordstrom parser v2 preserves source-selected review
+        # sort posture, visible per-card helpful counts, display position, and
+        # the exact six-row continuation control. Shared Retail/PDP v0 stays
+        # unchanged because these remain retailer-owned source-visible fields.
+        "cc34dad0b6d6e50743d67a7a84d4f7d4bfca722ed0481e4573ffed7348cf7970",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
