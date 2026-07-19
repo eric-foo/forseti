@@ -80,7 +80,7 @@ class TargetDeliveryLocationPlugin:
             page.goto(  # type: ignore[union-attr]
                 self.target_url,
                 wait_until="domcontentloaded",
-                timeout=_remaining_ms(deadline),
+                timeout=_required_remaining_ms(deadline),
             )
         except Exception as exc:
             return _failed_outcome(
@@ -89,10 +89,11 @@ class TargetDeliveryLocationPlugin:
             )
 
         control = page.locator(_ZIP_CONTROL_SELECTOR)  # type: ignore[union-attr]
-        readiness_timeout_ms = min(
-            _CONTROL_READINESS_TIMEOUT_MS, _remaining_ms(deadline)
-        )
         try:
+            readiness_timeout_ms = min(
+                _CONTROL_READINESS_TIMEOUT_MS,
+                _required_remaining_ms(deadline),
+            )
             control.wait_for(state="visible", timeout=readiness_timeout_ms)
         except Exception:
             return _failed_outcome(
@@ -100,7 +101,7 @@ class TargetDeliveryLocationPlugin:
                 "Target public ZIP control did not become visible within the bounded readiness wait",
             )
         try:
-            control.click(timeout=_remaining_ms(deadline))
+            control.click(timeout=_required_remaining_ms(deadline))
         except Exception:
             return _failed_outcome(
                 "open_zip_control",
@@ -114,7 +115,10 @@ class TargetDeliveryLocationPlugin:
                 "Target ZIP dialog did not expose a recognized visible ZIP input",
             )
         try:
-            zip_input.fill(self.delivery_zip, timeout=_remaining_ms(deadline))
+            zip_input.fill(
+                self.delivery_zip,
+                timeout=_required_remaining_ms(deadline),
+            )
         except Exception:
             return _failed_outcome(
                 "fill_zip_input",
@@ -125,7 +129,10 @@ class TargetDeliveryLocationPlugin:
         warning_notes: list[str] = []
         if apply_button is None:
             try:
-                zip_input.press("Enter", timeout=_remaining_ms(deadline))
+                zip_input.press(
+                    "Enter",
+                    timeout=_required_remaining_ms(deadline),
+                )
                 warning_notes.append(
                     "target_zip_setup: no recognized visible Save or Apply control was "
                     "present; submitted the already-scoped public ZIP input with Enter, "
@@ -139,7 +146,7 @@ class TargetDeliveryLocationPlugin:
                 )
         else:
             try:
-                apply_button.click(timeout=_remaining_ms(deadline))
+                apply_button.click(timeout=_required_remaining_ms(deadline))
             except Exception:
                 return _failed_outcome(
                     "apply_zip",
@@ -154,11 +161,14 @@ class TargetDeliveryLocationPlugin:
         while time.monotonic() < poll_deadline:
             try:
                 label = control.get_attribute(
-                    "aria-label", timeout=min(500, _remaining_ms(poll_deadline))
+                    "aria-label",
+                    timeout=min(500, _required_remaining_ms(poll_deadline)),
                 )
                 child_text = control.locator(
                     '[data-test="@web/ZipCodeButton/ZipCodeNumber"]'
-                ).inner_text(timeout=min(500, _remaining_ms(poll_deadline)))
+                ).inner_text(
+                    timeout=min(500, _required_remaining_ms(poll_deadline))
+                )
                 if label == expected_label and child_text.strip() == expected_text:
                     self._setup_completed = True
                     return PreCaptureOutcome(
@@ -415,3 +425,10 @@ def _failed_outcome(reason: str, detail: str) -> PreCaptureOutcome:
 
 def _remaining_ms(deadline: float) -> float:
     return max(0.0, (deadline - time.monotonic()) * 1000)
+
+
+def _required_remaining_ms(deadline: float) -> float:
+    remaining_ms = _remaining_ms(deadline)
+    if remaining_ms <= 0:
+        raise TimeoutError("Target ZIP setup budget exhausted")
+    return remaining_ms
