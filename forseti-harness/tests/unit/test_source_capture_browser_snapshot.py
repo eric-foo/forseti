@@ -3319,3 +3319,35 @@ def test_chrome_cdp_session_suppresses_same_target_navigation_only() -> None:
     receipt = engine.lifecycle_receipt
     assert receipt["same_url_navigation_suppression_count"] == 1
     assert receipt["page_navigation_count"] == 1
+
+
+def test_chrome_cdp_session_can_force_same_target_reload() -> None:
+    class FakePage:
+        def __init__(self) -> None:
+            self.url = "https://www.tiktok.com/@creator?lang=en#grid"
+            self.reload_calls: list[dict[str, object]] = []
+
+        def reload(self, **kwargs: object) -> str:
+            self.reload_calls.append(dict(kwargs))
+            return "reloaded"
+
+        def goto(self, _url: str, **_kwargs: object) -> None:
+            raise AssertionError("same-target force reload must not navigate")
+
+    page = FakePage()
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._force_same_url_reload = True
+
+    assert (
+        engine._navigate_page(
+            page,
+            "http://tiktok.com/@CREATOR/",
+            wait_until="domcontentloaded",
+        )
+        == "reloaded"
+    )
+    assert page.reload_calls == [{"wait_until": "domcontentloaded"}]
+    receipt = engine.lifecycle_receipt
+    assert receipt["page_reload_count"] == 1
+    assert receipt["same_url_navigation_suppression_count"] == 0
+    assert receipt["page_navigation_count"] == 0

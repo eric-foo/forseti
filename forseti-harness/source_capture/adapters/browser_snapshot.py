@@ -262,6 +262,7 @@ class BrowserPageObservationEngine(Protocol):
         storage_state_path: Path | None = None,
         headless: bool = True,
         browser_channel: str | None = None,
+        force_same_url_reload: bool = False,
     ) -> BrowserPageObservationSuccess:
         ...
 
@@ -465,6 +466,7 @@ def fetch_browser_page_observation_capture(
     headless: bool = True,
     browser_channel: str | None = None,
     browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
+    force_same_url_reload: bool = False,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff_markers: Sequence[str] = (),
     human_challenge_handoff_after_action_names: Sequence[str] = (),
@@ -503,6 +505,10 @@ def fetch_browser_page_observation_capture(
         and normalized_browser_channel is not None
     ):
         raise ValueError("browser_channel is not supported with browser_backend='cloakbrowser'")
+    if force_same_url_reload and normalized_browser_backend != BROWSER_BACKEND_CHROME_CDP:
+        raise ValueError(
+            "force_same_url_reload is supported only with browser_backend='chrome_cdp'"
+        )
     if post_load_action_script is not None and not post_load_action_script.strip():
         raise ValueError("post_load_action_script must not be blank")
     normalized_pointer_action = _normalize_pointer_action(post_load_pointer_action)
@@ -578,6 +584,11 @@ def fetch_browser_page_observation_capture(
             storage_state_path=storage_state_path,
             headless=headless,
             browser_channel=normalized_browser_channel,
+            **(
+                {"force_same_url_reload": True}
+                if force_same_url_reload
+                else {}
+            ),
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
         return BrowserSnapshotFailure(
@@ -876,7 +887,9 @@ class _PlaywrightBrowserSnapshotEngine:
         storage_state_path: Path | None = None,
         headless: bool = True,
         browser_channel: str | None = None,
+        force_same_url_reload: bool = False,
     ) -> BrowserPageObservationSuccess:
+        del force_same_url_reload
         page_observation_runtime = self._open_page_observation_runtime()
 
         timeout_ms = timeout_seconds * 1000
@@ -1412,7 +1425,9 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._page_adoption_count = 0
         self._page_creation_count = 0
         self._page_navigation_count = 0
+        self._page_reload_count = 0
         self._same_url_navigation_suppression_count = 0
+        self._force_same_url_reload = False
         self._capture_attempt_count = 0
         self._capture_success_count = 0
         self._monotonic_fn = monotonic_fn
@@ -1424,6 +1439,10 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         if self._closed:
             raise RuntimeError("Chrome CDP page-observation session is already closed")
         requested_url = kwargs.get("url")
+        force_same_url_reload = kwargs.pop("force_same_url_reload", False)
+        if not isinstance(force_same_url_reload, bool):
+            raise ValueError("force_same_url_reload must be a boolean")
+        self._force_same_url_reload = force_same_url_reload
         if self._real_page is None and isinstance(requested_url, str):
             self._pending_requested_page_url = requested_url
         self._capture_attempt_count += 1
@@ -1441,6 +1460,8 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
                 outcome="failed",
             )
             raise
+        finally:
+            self._force_same_url_reload = False
         self._capture_success_count += 1
         capture_elapsed_seconds = max(
             0.0, self._monotonic_fn() - capture_started
@@ -1465,6 +1486,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
                 "page_adoption_count": self._page_adoption_count,
                 "page_creation_count": self._page_creation_count,
                 "page_navigation_count": self._page_navigation_count,
+                "page_reload_count": self._page_reload_count,
                 "same_url_navigation_suppression_count": (
                     self._same_url_navigation_suppression_count
                 ),
@@ -1648,6 +1670,9 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         )
         requested_identity = _normalized_tiktok_target_identity(url)
         if current_identity is not None and current_identity == requested_identity:
+            if self._force_same_url_reload:
+                self._page_reload_count += 1
+                return page.reload(**kwargs)  # type: ignore[attr-defined]
             self._same_url_navigation_suppression_count += 1
             return None
         self._page_navigation_count += 1
@@ -1672,6 +1697,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             "page_adoption_count": self._page_adoption_count,
             "page_creation_count": self._page_creation_count,
             "page_navigation_count": self._page_navigation_count,
+            "page_reload_count": self._page_reload_count,
             "same_url_navigation_suppression_count": (
                 self._same_url_navigation_suppression_count
             ),

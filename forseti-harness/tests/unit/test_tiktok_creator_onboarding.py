@@ -24,6 +24,7 @@ from source_capture.session_profiles import (
 )
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.tiktok.creator_onboarding import (
+    TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
     TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
     TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
     TIKTOK_ONBOARDING_SELECTION_JSON_NAME,
@@ -49,7 +50,11 @@ def _item(video_id: str, views: int, likes: int) -> dict[str, object]:
     return {
         "id": video_id,
         "author": {"uniqueId": "creator"},
-        "stats": {"playCount": views, "diggCount": likes},
+        "stats": {
+            "playCount": views,
+            "diggCount": likes,
+            "commentCount": 0,
+        },
     }
 
 
@@ -278,6 +283,35 @@ def test_grid_window_preserves_source_visible_order_and_complete_metrics() -> No
     assert [item["stats"]["playCount"] for item in window["items"]] == [300, 100, 200]
 
 
+def test_grid_window_required_engagement_fails_loudly_when_incomplete() -> None:
+    capture = _capture(
+        ordered_ids=["1", "2"],
+        items=[
+            {
+                "id": "1",
+                "author": {"uniqueId": "creator"},
+                "stats": {"playCount": 100, "diggCount": 10},
+            },
+            {
+                "id": "2",
+                "author": {"uniqueId": "creator"},
+                "stats": {"playCount": 200, "commentCount": 2},
+            },
+        ],
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="2 of 2 rows missing required fields",
+    ):
+        build_tiktok_grid_window(
+            creator_handle="creator",
+            capture=capture,
+            window_size=2,
+            required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
+        )
+
+
 def test_grid_window_captures_exact_profile_metrics_from_matching_hydration() -> None:
     capture = _capture(
         ordered_ids=["1"],
@@ -455,6 +489,107 @@ def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
     assert capture.metadata["grid_acquisition_stop_reason"] == (
         "initial_sufficient_window_stabilized"
     )
+
+
+def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ids = [str(index) for index in range(1, 31)]
+    initial = _capture(
+        ordered_ids=ids,
+        items=[],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids},
+    )
+    initial.metadata["same_url_navigation_suppression_count"] = 1
+    exact_items = [
+        {
+            "id": video_id,
+            "author": {"uniqueId": "creator"},
+            "stats": {
+                "playCount": index * 100,
+                "diggCount": index * 10,
+                "commentCount": index,
+            },
+        }
+        for index, video_id in enumerate(ids, start=1)
+    ]
+    refreshed = _capture(
+        ordered_ids=ids,
+        items=exact_items[:19],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids},
+    )
+    paginated = _capture(
+        ordered_ids=ids,
+        items=exact_items[19:],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids},
+    )
+    truncated_wheel = _capture(
+        ordered_ids=ids[:19],
+        items=[],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids[:19]},
+    )
+    shifted_ids = [*ids[11:], *[str(index) for index in range(31, 42)]]
+    passive = _capture(
+        ordered_ids=shifted_ids,
+        items=[],
+        dom_view_text_by_id={
+            video_id: "1K" for video_id in shifted_ids
+        },
+    )
+    captures = [
+        initial,
+        refreshed,
+        truncated_wheel,
+        paginated,
+        passive,
+        passive,
+        passive,
+    ]
+    calls: list[dict[str, object]] = []
+
+    def fake_fetch(**kwargs: object) -> BrowserPageObservationSuccess:
+        calls.append(kwargs)
+        return captures.pop(0)
+
+    monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
+
+    capture = _capture_grid(
+        tmp_path,
+        object(),
+        required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
+    )
+
+    assert isinstance(capture, BrowserPageObservationSuccess)
+    assert [call["force_same_url_reload"] for call in calls] == [
+        False,
+        True,
+        False,
+        False,
+        False,
+        False,
+        False,
+    ]
+    assert calls[2]["post_load_wheel_action"] is not None
+    assert calls[3]["post_load_wheel_action"] is not None
+    assert capture.metadata["grid_metric_reload_attempted"] is True
+    assert capture.metadata["grid_metric_reload_recovered"] is True
+    assert capture.metadata["grid_acquisition_wheel_burst_count"] == 2
+    assert capture.metadata["grid_acquisition_initial_metrics_sufficient"] is False
+    assert capture.metadata["grid_acquisition_final_metrics_sufficient"] is True
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=30,
+        required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
+    )
+    assert len(window["items"]) == 30
+    assert all(
+        set(TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS) <= set(item["stats"])
+        for item in window["items"]
+    )
+    assert window["collection_receipt"]["metric_reload_attempted"] is True
+    assert window["collection_receipt"]["metric_reload_recovered"] is True
 
 
 def test_grid_acquisition_rejects_a_new_batch_below_the_minimum_window(
