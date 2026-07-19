@@ -90,6 +90,7 @@ def run_source_capture_packet(
     source_publication_or_event: VisibleFact | None,
     source_edit_or_version: VisibleFact | None,
     cutoff_posture: VisibleFact | None,
+    capture_time: VisibleFact | None = None,
     recapture_time: VisibleFact | None,
     access_posture: VisibleFact | None,
     archive_history_posture: VisibleFact | None,
@@ -115,6 +116,7 @@ def run_source_capture_packet(
         source_publication_or_event=source_publication_or_event,
         source_edit_or_version=source_edit_or_version,
         cutoff_posture=cutoff_posture,
+        capture_time=capture_time,
         recapture_time=recapture_time,
         access_posture=access_posture,
         archive_history_posture=archive_history_posture,
@@ -167,6 +169,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help=f"Known cutoff posture; one of: {', '.join(sorted(CUTOFF_POSTURE_VALUES))}",
     )
     parser.add_argument("--cutoff-posture-unknown-reason", default=None)
+    parser.add_argument(
+        "--capture-time",
+        default=None,
+        help=(
+            "Original capture/access time for packaging an earlier already-local "
+            "artifact set. Omit to use packet-generation time."
+        ),
+    )
     parser.add_argument("--recapture-time", default=None)
     parser.add_argument("--recapture-time-not-applicable-reason", default=None)
     parser.add_argument("--access-posture", default=None)
@@ -247,6 +257,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 unknown_reason=args.source_edit_or_version_unknown_reason,
             ),
             cutoff_posture=cutoff_posture,
+            capture_time=build_optional_fact(
+                label="capture timing",
+                value=args.capture_time,
+            ),
             recapture_time=build_optional_fact(
                 label="re-capture timing",
                 value=args.recapture_time,

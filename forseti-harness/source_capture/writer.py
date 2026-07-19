@@ -84,6 +84,7 @@ def write_local_source_capture_packet(
     source_publication_or_event: VisibleFact | None = None,
     source_edit_or_version: VisibleFact | None = None,
     cutoff_posture: VisibleFact | None = None,
+    capture_time: VisibleFact | None = None,
     recapture_time: VisibleFact | None = None,
     archive_snapshot_time: VisibleFact | None = None,
     access_posture: VisibleFact | None = None,
@@ -165,7 +166,7 @@ def write_local_source_capture_packet(
         raw_directory.mkdir(parents=True, exist_ok=True)
 
         session_id = session_identity or generate_ulid()
-        captured_at = utc_now_z()
+        generated_at = utc_now_z()
         preserved_files = _copy_preserved_files(raw_directory, resolved_inputs)
         packet_warnings = list(warnings or [])
         packet_limitations = list(limitations or [])
@@ -177,7 +178,7 @@ def write_local_source_capture_packet(
             ),
             source_edit_or_version=source_edit_or_version
             or unknown_with_reason("local-file CLI did not receive source edit or version timing"),
-            capture_time=known_fact(captured_at),
+            capture_time=capture_time or known_fact(generated_at),
             archive_snapshot_time=archive_snapshot_time,
             recapture_time=recapture_time
             or not_applicable(
@@ -249,7 +250,7 @@ def write_local_source_capture_packet(
             limitations=packet_limitations,
             receipt_metadata=ReceiptMetadata(
                 title="Source Capture Packet Receipt",
-                generated_at=captured_at,
+                generated_at=generated_at,
                 summary=receipt_summary
                 or f"Local-file-only packet for {source_family} with {len(preserved_files)} preserved file(s).",
                 non_claims=list(

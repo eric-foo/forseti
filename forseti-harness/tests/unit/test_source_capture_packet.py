@@ -611,6 +611,8 @@ def test_cli_writes_packet_from_local_input_file(scratch_dir: Path) -> None:
             "local markdown does not expose complete edit/version state",
             "--cutoff-posture-unknown-reason",
             "local JSON file state supplied for the pressure-test capture; cutoff posture not independently established by the local CLI",
+            "--capture-time",
+            "2026-06-01T12:34:56Z",
             "--recapture-time-not-applicable-reason",
             "dry-run packet is the first local packetization of this artifact",
             "--access-posture",
@@ -650,6 +652,9 @@ def test_cli_writes_packet_from_local_input_file(scratch_dir: Path) -> None:
     )
     assert manifest["timing"]["source_edit_or_version"]["status"] == "unknown_with_reason"
     assert manifest["timing"]["cutoff_posture"]["status"] == "unknown_with_reason"
+    assert manifest["timing"]["capture_time"]["status"] == "known"
+    assert manifest["timing"]["capture_time"]["value"] == "2026-06-01T12:34:56Z"
+    assert manifest["receipt_metadata"]["generated_at"] != "2026-06-01T12:34:56Z"
     assert manifest["access_posture"]["value"] == "local_file_only"
     assert manifest["archive_history_posture"]["status"] == "not_attempted"
     assert (
