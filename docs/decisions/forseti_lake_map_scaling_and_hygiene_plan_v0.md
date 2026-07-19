@@ -45,6 +45,41 @@ sources are a closed in-code registry (Fragrantica sole entry). Measured at
 ~8.5k Silver records: full rebuild ~5 minutes, prove-rebuildability ~10
 minutes, lookups sub-second.
 
+### Operational freshness verification (2026-07-19, SLG-03)
+
+The live lake was reconciled through the sanctioned runners after stable-storage
+confirmation. The pre-state was 644 Bronze catalog packets versus 781
+availability entries. Rebuilding Bronze found 778 committed public packets; the
+three remaining availability entries were valid raw containers excluded by
+validated raw-packet tombstones. The sanctioned availability rebuild removed
+those stale generated entries, yielding 778/778 with no manual deletion.
+
+A legitimate `retail_pdp / cloakbrowser_snapshot` packet then arrived while the
+first read-only Silver rebuildability proof was running. That proof reported
+`by_creator` and `by_mention` rebuildable and `undone` drifted; the arrival
+explains the exact split because `undone` includes every available anchor. A
+final Bronze then Silver convergence included the arrival and closed at:
+
+- Bronze strict inspect: `status=ok`, expected/indexed packets `779/779`, 2,485
+  indexed Attachment Records, and zero missing, orphaned, stale, or read-failure
+  entries;
+- availability entries: 779;
+- Silver generation `88a2516067a54077ac4660eb664b7a90`, generated at
+  `2026-07-19T23:25:49.069077+08:00`, with all three manifest `view_sha256`
+  values matching their query-table bytes;
+- `by_creator`: 22,383 source refs, high-watermark
+  `c43d24a408ce9fa7eb573973d6e005c128dc533119a95ee1eb47df9cb8c847fe`;
+- `by_mention`: 12 source refs, high-watermark
+  `ab506805dce7c135bc28f48939dd2e8915b49df24ec6d174807561a5d5f44b4b`;
+- `undone`: 2,787 source refs; targeted regeneration under the stored final
+  generation stamp matched both the query table and manifest byte-for-byte.
+
+The first two views retained the exact source high-watermarks and view hashes
+that passed the full proof before the raw-only late arrival; the targeted final
+proof therefore re-ran only the affected `undone` view. This is a point-in-time
+freshness receipt, not continuous freshness or hardware-health proof. The
+measured silent whole-lake runtime remains owned by SLG-04.
+
 ## Staged Upgrades
 
 Stage 1 is the explicit exception to the original trigger-only sequence: on
