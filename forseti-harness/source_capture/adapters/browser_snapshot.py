@@ -584,7 +584,11 @@ def fetch_browser_page_observation_capture(
             storage_state_path=storage_state_path,
             headless=headless,
             browser_channel=normalized_browser_channel,
-            force_same_url_reload=force_same_url_reload,
+            **(
+                {"force_same_url_reload": True}
+                if force_same_url_reload
+                else {}
+            ),
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
         return BrowserSnapshotFailure(
