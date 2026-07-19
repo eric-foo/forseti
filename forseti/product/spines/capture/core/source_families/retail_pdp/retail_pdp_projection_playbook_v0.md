@@ -107,7 +107,7 @@ current-state capture as buyer proof or Judgment readiness.
 The current helper emits `RetailPdpProjectionPacket` with:
 
 - `projection_method: retail_pdp_mechanical_projection`;
-- `projection_version: v0`;
+- `projection_version: v1`;
 - `certification: view_only; not_cleaned; not_normalized; not_judgment_ready`;
 - `rows[]`;
 - `binding_map[]`;

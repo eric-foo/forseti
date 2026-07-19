@@ -22,11 +22,11 @@ if TYPE_CHECKING:
 
 
 RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
-RETAIL_PDP_PROJECTION_VERSION = "v0"
+RETAIL_PDP_PROJECTION_VERSION = "v1"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
-SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v1"
-SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v1"
+SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v2"
+SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v2"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
 LUCKYSCENT_PDP_CONTENT_RECORD_KIND = "retail_pdp_luckyscent_aggregate_content"
 LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content_v1"
@@ -161,7 +161,15 @@ class RetailPdpProjectionBinding(StrictModel):
 
 
 class RetailPdpProjectionLossEntry(StrictModel):
-    category: Literal["RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"]
+    category: Literal[
+        "RETAIL_HERO_IMAGERY_COLLAPSED",
+        "RETAIL_CART_NOTIFY_STATE_COLLAPSED",
+        "RETAIL_NAVIGATION_FOOTER_PROMOTION_COLLAPSED",
+        "RETAIL_SCRIPT_STYLE_TELEMETRY_COLLAPSED",
+        "RETAIL_RECOMMENDATION_CAROUSEL_COLLAPSED",
+        "RETAIL_GALLERY_COMMUNITY_MEDIA_COLLAPSED",
+        "RETAIL_FLEXIBLE_PAYMENT_CHROME_COLLAPSED",
+    ]
     count: int = Field(ge=0)
     raw_anchor: RetailProjectionRawAnchor
     reason: str
@@ -181,7 +189,7 @@ class RetailPdpProjectionLossLedger(StrictModel):
 
 class RetailPdpProjectionPacket(StrictModel):
     projection_method: Literal["retail_pdp_mechanical_projection"] = RETAIL_PDP_PROJECTION_METHOD
-    projection_version: Literal["v0"] = RETAIL_PDP_PROJECTION_VERSION
+    projection_version: Literal["v1"] = RETAIL_PDP_PROJECTION_VERSION
     certification: Literal["view_only; not_cleaned; not_normalized; not_judgment_ready"] = (
         RETAIL_PDP_PROJECTION_CERTIFICATION
     )
@@ -267,7 +275,15 @@ class SephoraPdpContentBinding(StrictModel):
 
 
 class SephoraPdpContentLossEntry(StrictModel):
-    category: Literal["RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"]
+    category: Literal[
+        "RETAIL_HERO_IMAGERY_COLLAPSED",
+        "RETAIL_CART_NOTIFY_STATE_COLLAPSED",
+        "RETAIL_NAVIGATION_FOOTER_PROMOTION_COLLAPSED",
+        "RETAIL_SCRIPT_STYLE_TELEMETRY_COLLAPSED",
+        "RETAIL_RECOMMENDATION_CAROUSEL_COLLAPSED",
+        "RETAIL_GALLERY_COMMUNITY_MEDIA_COLLAPSED",
+        "RETAIL_FLEXIBLE_PAYMENT_CHROME_COLLAPSED",
+    ]
     count: int = Field(ge=0)
     reason: str
     source_anchor_kind: SephoraContentAnchorKind
@@ -300,10 +316,16 @@ class SephoraPdpAggregateContentRecord(StrictModel):
     record_kind: Literal["retail_pdp_sephora_aggregate_content"] = (
         SEPHORA_PDP_CONTENT_RECORD_KIND
     )
-    schema_version: Literal["retail_pdp_sephora_aggregate_content_v1"] = (
+    schema_version: Literal[
+        "retail_pdp_sephora_aggregate_content_v1",
+        "retail_pdp_sephora_aggregate_content_v2",
+    ] = (
         SEPHORA_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_sephora_aggregate_parser_v1"] = (
+    parser_version: Literal[
+        "retail_pdp_sephora_aggregate_parser_v1",
+        "retail_pdp_sephora_aggregate_parser_v2",
+    ] = (
         SEPHORA_PDP_PARSER_VERSION
     )
     capture_profile: Literal["sephora_pdp_aggregate"] = SEPHORA_PDP_CONTENT_PROFILE
@@ -315,6 +337,12 @@ class SephoraPdpAggregateContentRecord(StrictModel):
 
     @model_validator(mode="after")
     def validate_counts(self) -> "SephoraPdpAggregateContentRecord":
+        expected_pair = {
+            "retail_pdp_sephora_aggregate_content_v1": "retail_pdp_sephora_aggregate_parser_v1",
+            "retail_pdp_sephora_aggregate_content_v2": "retail_pdp_sephora_aggregate_parser_v2",
+        }
+        if expected_pair[self.schema_version] != self.parser_version:
+            raise ValueError("Sephora content schema and parser versions must match")
         if self.loss_ledger.preserved_evidence_rows != len(self.rows):
             raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
         if self.loss_ledger.preserved_bindings != len(self.binding_map):
@@ -700,11 +728,13 @@ def build_retail_pdp_projection(
             raise ValueError(
                 f"content record bytes are required for preserved file id: {content_file.file_id}"
             )
-        record_kind = _content_record_kind(content_bytes)
+        content_payload = _content_record_payload(content_bytes)
+        record_kind = content_payload.get("record_kind")
         if record_kind == SEPHORA_PDP_CONTENT_RECORD_KIND:
             _validate_sephora_content_packet_metadata(
                 packet=packet,
                 raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+                expected_parser_version=content_payload.get("parser_version"),
             )
             return _projection_from_sephora_content_record(
                 packet=packet,
@@ -820,6 +850,30 @@ def build_sephora_pdp_aggregate_content_record(
         "www.sephora.com",
     }:
         raise ValueError("Sephora aggregate content records require a sephora.com source URL")
+    html = _decode_text(rendered_dom)
+    product_state = _extract_sephora_link_store_product(html)
+    if product_state is None:
+        raise ValueError(
+            "Sephora aggregate content admission requires linkStore.page.product"
+        )
+    expected_product_id = _sephora_product_id_from_url(source_url)
+    product_id = _string_or_none(product_state.get("productId"))
+    if expected_product_id and product_id != expected_product_id:
+        raise ValueError(
+            "Sephora linkStore productId does not match the source URL product"
+        )
+    dom_fields = _sephora_dom_offer_fields(html)
+    dom_sku = _string_or_none(dom_fields.get("dom_sku"))
+    current_sku = product_state.get("currentSku")
+    current_sku_id = (
+        _string_or_none(current_sku.get("skuId"))
+        if isinstance(current_sku, dict)
+        else None
+    )
+    if not dom_sku or current_sku_id != dom_sku:
+        raise ValueError(
+            "Sephora selected DOM SKU does not match linkStore.page.product.currentSku"
+        )
 
     slice_id = "cloakbrowser_snapshot_01"
     source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
@@ -858,7 +912,7 @@ def build_sephora_pdp_aggregate_content_record(
         size_bytes=len(visible_text),
     )
     projected = _project_retail_html(
-        _decode_text(rendered_dom),
+        html,
         visible_text_files=[(visible_text_file, _decode_text(visible_text))],
         visible_text=_decode_text(visible_text),
         packet=packet,
@@ -1024,7 +1078,10 @@ def _projection_from_sephora_content_record(
             )
         fields = dict(content_row.source_visible_fields)
         if content_row.row_kind == "retail_pdp_product":
-            fields = _product_context_fields(packet, source_slice, "sephora")
+            fields = {
+                **_product_context_fields(packet, source_slice, "sephora"),
+                **fields,
+            }
         rows.append(
             RetailPdpProjectionRow(
                 row_id=content_row.row_id,
@@ -1217,7 +1274,26 @@ def _projection_from_luckyscent_content_record(
 def _sephora_content_row(row: RetailPdpProjectionRow) -> SephoraPdpContentRow:
     fields = dict(row.source_visible_fields)
     if row.row_kind == "retail_pdp_product":
-        fields = {}
+        fields = {
+            key: value
+            for key, value in fields.items()
+            if key
+            not in {
+                "retailer",
+                "source_family",
+                "source_surface",
+                "source_locator",
+                "slice_locator",
+                "series_id",
+                "locale_pin",
+                "currency_pin",
+                "variant_pin",
+                "location_pin",
+                "capture_time",
+                "cutoff_posture",
+                "archive_history_posture",
+            }
+        }
     return SephoraPdpContentRow(
         slice_id=row.raw_ref.slice_id,
         row_id=row.row_id,
@@ -1308,6 +1384,7 @@ def _validate_sephora_content_packet_metadata(
     *,
     packet: SourceCapturePacket,
     raw_file_bytes_by_file_id: Mapping[str, bytes],
+    expected_parser_version: object,
 ) -> None:
     def _one_json(filename: str) -> dict[str, Any]:
         matches = [
@@ -1333,8 +1410,13 @@ def _validate_sephora_content_packet_metadata(
         return value
 
     capture_metadata = _one_json("content_capture_metadata.json")
-    if capture_metadata.get("parser_version") != SEPHORA_PDP_PARSER_VERSION:
-        raise ValueError("Sephora content packet parser version does not match current")
+    if expected_parser_version not in {
+        "retail_pdp_sephora_aggregate_parser_v1",
+        SEPHORA_PDP_PARSER_VERSION,
+    }:
+        raise ValueError("Sephora content packet parser version is unknown")
+    if capture_metadata.get("parser_version") != expected_parser_version:
+        raise ValueError("Sephora content packet parser version does not match its record")
     if capture_metadata.get("projection_status") != "succeeded":
         raise ValueError("Sephora content packet projection did not succeed")
     if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
@@ -1749,14 +1831,14 @@ def _validate_nordstrom_content_packet_metadata(
         )
 
 
-def _content_record_kind(content_bytes: bytes) -> object:
+def _content_record_payload(content_bytes: bytes) -> dict[str, Any]:
     try:
         payload = json.loads(content_bytes)
     except Exception as exc:
         raise ValueError(f"invalid Retail PDP content record JSON: {exc}") from exc
     if not isinstance(payload, dict):
         raise ValueError("Retail PDP content record must contain a JSON object")
-    return payload.get("record_kind")
+    return payload
 
 
 class _ProjectedRetailHtml(StrictModel):
@@ -1767,7 +1849,13 @@ class _ProjectedRetailHtml(StrictModel):
 
 
 class _StructuredJsonEntry(StrictModel):
-    kind: Literal["ld_json", "apollo_state", "next_data"]
+    kind: Literal[
+        "ld_json",
+        "apollo_state",
+        "next_data",
+        "sephora_link_store_product",
+        "sephora_rendered_interactions",
+    ]
     index: int
     raw_text: str
     parsed: object | None
@@ -1797,6 +1885,20 @@ def _project_retail_html(
             structured_entries,
             source_url=source_url,
         )
+    if retailer == "sephora":
+        structured_entries.extend(
+            _sephora_full_derived_entries(html=html, raw_anchor=raw_anchor)
+        )
+        residuals.extend(
+            [
+                "sephora_exact_stock_quantity_not_observed",
+                "sephora_sold_units_not_observed",
+                "sephora_delivery_location_not_capture_pinned",
+                "sephora_displayed_reviews_first_page_only",
+                "sephora_displayed_qa_rendered_sample_only",
+                "sephora_linked_review_media_not_independently_preserved",
+            ]
+        )
     if retailer == "nordstrom":
         structured_entries = _nordstrom_target_structured_entries(
             structured_entries,
@@ -1805,6 +1907,8 @@ def _project_retail_html(
         )
     product_row_id = f"{source_slice.slice_id}:{retailer}:pdp"
     product_fields = _product_context_fields(packet, source_slice, retailer)
+    if retailer == "sephora":
+        product_fields["rendered_visible_text"] = visible_text
     rows.append(
         RetailPdpProjectionRow(
             row_id=product_row_id,
@@ -1991,7 +2095,14 @@ def _project_retail_html(
             )
         )
 
-    collapsed.extend(_collapse_entries(html=html, visible_text=visible_text, raw_anchor=raw_anchor))
+    collapsed.extend(
+        _collapse_entries(
+            html=html,
+            visible_text=visible_text,
+            raw_anchor=raw_anchor,
+            retailer=retailer,
+        )
+    )
     return _ProjectedRetailHtml(rows=rows, bindings=bindings, collapsed=collapsed, residuals=residuals)
 
 
@@ -2032,6 +2143,154 @@ def _extract_structured_json_entries(html: str, *, raw_anchor: RetailProjectionR
             )
         )
     return entries
+
+
+def _extract_sephora_link_store_product(html: str) -> dict[str, Any] | None:
+    match = re.search(
+        r"<script\b[^>]*\bid=[\"']linkStore[\"'][^>]*>([\s\S]*?)</script\s*>",
+        html,
+        flags=re.IGNORECASE,
+    )
+    if match is None:
+        return None
+    payload = _safe_json_loads(match.group(1).strip())
+    if not isinstance(payload, dict):
+        return None
+    page = payload.get("page")
+    if not isinstance(page, dict):
+        return None
+    product = page.get("product")
+    return product if isinstance(product, dict) else None
+
+
+def _sephora_full_derived_entries(
+    *,
+    html: str,
+    raw_anchor: RetailProjectionRawAnchor,
+) -> list[_StructuredJsonEntry]:
+    entries: list[_StructuredJsonEntry] = []
+    product = _extract_sephora_link_store_product(html)
+    if product is not None:
+        entries.append(
+            _StructuredJsonEntry(
+                kind="sephora_link_store_product",
+                index=0,
+                raw_text=json.dumps(
+                    product,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+                parsed=product,
+                raw_anchor=_with_anchor(
+                    raw_anchor,
+                    "script_index",
+                    "linkStore#/page/product",
+                ),
+            )
+        )
+
+    interactions = {
+        "displayed_reviews": _sephora_component_records(html, "Review"),
+        "displayed_questions": _sephora_component_records(html, "Question"),
+        "displayed_answers": _sephora_component_records(html, "Answer"),
+    }
+    if any(interactions.values()):
+        entries.append(
+            _StructuredJsonEntry(
+                kind="sephora_rendered_interactions",
+                index=0,
+                raw_text=json.dumps(
+                    interactions,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+                parsed=interactions,
+                raw_anchor=_with_anchor(
+                    raw_anchor,
+                    "html_selector",
+                    '[data-comp^="Review "], [data-comp^="Question "], [data-comp^="Answer "]',
+                ),
+            )
+        )
+    return entries
+
+
+def _sephora_component_records(html: str, component: str) -> list[dict[str, Any]]:
+    fragments = _extract_balanced_div_fragments(
+        html,
+        rf'data-comp=["\']{re.escape(component)}(?:\s|["\'])',
+    )
+    records: list[dict[str, Any]] = []
+    for index, fragment in enumerate(fragments):
+        records.append(
+            {
+                "display_index": index,
+                "raw_html": fragment,
+                "visible_text": _clean_html_text(fragment),
+                "rating": _first_regex(
+                    fragment,
+                    (r'aria-label=["\'](\d+(?:\.\d+)?) out of 5 stars',),
+                ),
+                "verified_purchaser": bool(
+                    re.search(r"Verified Purchaser", fragment, flags=re.IGNORECASE)
+                ),
+                "incentivized": bool(
+                    re.search(r"Incentivized", fragment, flags=re.IGNORECASE)
+                ),
+                "recommended": bool(
+                    re.search(r"\bRecommended\b", fragment, flags=re.IGNORECASE)
+                ),
+                "media_urls": sorted(
+                    set(
+                        re.findall(
+                            r'https?://[^"\'\s<>]+',
+                            html_lib.unescape(fragment),
+                            flags=re.IGNORECASE,
+                        )
+                    )
+                ),
+            }
+        )
+    return records
+
+
+def _extract_balanced_div_fragments(html: str, attribute_pattern: str) -> list[str]:
+    fragments: list[str] = []
+    starts = list(
+        re.finditer(
+            rf"<div\b[^>]*{attribute_pattern}[^>]*>",
+            html,
+            flags=re.IGNORECASE,
+        )
+    )
+    tag_pattern = re.compile(r"<div\b[^>]*>|</div\s*>", flags=re.IGNORECASE)
+    for start in starts:
+        depth = 1
+        for tag in tag_pattern.finditer(html, start.end()):
+            depth += -1 if tag.group(0).lower().startswith("</div") else 1
+            if depth == 0:
+                fragments.append(html[start.start() : tag.end()])
+                break
+    return fragments
+
+
+def _sephora_product_state(
+    structured_entries: Sequence[_StructuredJsonEntry],
+) -> dict[str, Any] | None:
+    for entry in structured_entries:
+        if (
+            entry.kind == "sephora_link_store_product"
+            and isinstance(entry.parsed, dict)
+        ):
+            return entry.parsed
+    return None
+
+
+def _sephora_product_id_from_url(source_url: str) -> str | None:
+    match = re.search(r"(?:^|-)P(\d+)(?:$|[/?#])", source_url, flags=re.IGNORECASE)
+    return f"P{match.group(1)}" if match else None
 
 
 def _variant_offer_fields(
@@ -2109,6 +2368,17 @@ def _variant_offer_fields(
         if substrate_skus and selected_sku not in substrate_skus:
             residuals.append("sephora_selected_sku_absent_from_structured_variants")
     if sephora_dom_fields:
+        product_state = _sephora_product_state(structured_entries)
+        current_sku = (
+            product_state.get("currentSku")
+            if isinstance(product_state, dict)
+            else None
+        )
+        child_skus = (
+            product_state.get("regularChildSkus")
+            if isinstance(product_state, dict)
+            else None
+        )
         structured_fields = {
             **structured_fields,
             "product_id": _string_or_none(sephora_dom_fields.get("dom_product_id"))
@@ -2117,6 +2387,14 @@ def _variant_offer_fields(
             **sephora_dom_fields,
             "selected_sku": selected_sku,
             "selection_binding_source": "sephora_dom_product_page",
+            "selected_variant_state": current_sku,
+            "all_variant_states": child_skus if isinstance(child_skus, list) else [],
+            "variant_count": len(child_skus) if isinstance(child_skus, list) else None,
+            "product_details_state": (
+                product_state.get("productDetails")
+                if isinstance(product_state, dict)
+                else None
+            ),
         }
     if retailer == "sephora" and structured_fields:
         structured_fields = {
@@ -3690,6 +3968,19 @@ def _sephora_review_fields(
         html,
         flags=re.IGNORECASE,
     )
+    product_state = _sephora_product_state(structured_entries)
+    interactions = next(
+        (
+            entry.parsed
+            for entry in structured_entries
+            if entry.kind == "sephora_rendered_interactions"
+            and isinstance(entry.parsed, dict)
+        ),
+        {},
+    )
+    displayed_reviews = interactions.get("displayed_reviews", [])
+    if not isinstance(displayed_reviews, list):
+        displayed_reviews = []
     return {
         "review_substrate_source": "sephora_target_dom",
         "bazaarvoice_api_config_present": "api.bazaarvoice.com" in html.lower(),
@@ -3702,6 +3993,32 @@ def _sephora_review_fields(
         "ld_json_review_count": ld_count,
         "ld_json_rating": ld_rating,
         "rating_distribution_histogram": _sephora_rating_distribution(review_section_html),
+        "recommended_percent": _first_regex(
+            review_section_html or visible_text,
+            (r"(\d+%)\s+of reviewers recommend",),
+        ),
+        "review_filters": (
+            product_state.get("reviewFilters")
+            if isinstance(product_state, dict)
+            else None
+        ),
+        "review_sentiments": (
+            product_state.get("sentiments")
+            if isinstance(product_state, dict)
+            else None
+        ),
+        "review_images": (
+            product_state.get("reviewImages")
+            if isinstance(product_state, dict)
+            else None
+        ),
+        "displayed_review_range": _first_regex(
+            visible_text,
+            (r"(\d+\s*[–-]\s*\d+\s+of\s+[^\n]+)",),
+        ),
+        "displayed_review_rows": displayed_reviews,
+        "displayed_review_body_count": len(displayed_reviews),
+        "review_body_coverage": "rendered_first_page_only",
         "recommendation_review_count_examples": recommendation_counts[:5],
         "recommendation_counts_are_not_target_substrate": bool(recommendation_counts),
     }
@@ -3829,6 +4146,7 @@ def _collapse_entries(
     html: str,
     visible_text: str,
     raw_anchor: RetailProjectionRawAnchor,
+    retailer: Retailer,
 ) -> list[RetailPdpProjectionLossEntry]:
     entries: list[RetailPdpProjectionLossEntry] = []
     hero_count = len(re.findall(r"hero|ProductHero|imageBlock|main-hero", html, flags=re.IGNORECASE))
@@ -3838,19 +4156,79 @@ def _collapse_entries(
                 category="RETAIL_HERO_IMAGERY_COLLAPSED",
                 count=hero_count,
                 raw_anchor=_with_anchor(raw_anchor, "text_pattern", "hero|ProductHero|imageBlock|main-hero"),
-                reason="hero imagery presence collapsed to raw-anchored ledger entry; raw bytes remain canonical",
+                reason=(
+                    "hero image binary bytes and gallery layout are not retained in the semantic "
+                    "projection; source URLs/state and rendered copy remain in derived rows"
+                ),
             )
         )
-    cart_count = len(re.findall(r"add to cart|add to bag|add for ship|out of stock|notify me", visible_text, flags=re.IGNORECASE))
+    cart_count = len(
+        re.findall(
+            r"add to cart|add to bag|add to basket|add for ship|out of stock|notify me",
+            visible_text,
+            flags=re.IGNORECASE,
+        )
+    )
     if cart_count:
         entries.append(
             RetailPdpProjectionLossEntry(
                 category="RETAIL_CART_NOTIFY_STATE_COLLAPSED",
                 count=cart_count,
-                raw_anchor=_with_anchor(raw_anchor, "text_pattern", "add to cart|add to bag|add for ship|out of stock|notify me"),
+                raw_anchor=_with_anchor(
+                    raw_anchor,
+                    "text_pattern",
+                    "add to cart|add to bag|add to basket|add for ship|out of stock|notify me",
+                ),
                 reason="cart/notify button chrome collapsed while variant availability binding is carried",
             )
         )
+    if retailer == "sephora":
+        extra_specs = (
+            (
+                "RETAIL_NAVIGATION_FOOTER_PROMOTION_COLLAPSED",
+                r"GlobalNavigation|footer|TopNav|promotion",
+                "navigation, footer, and promotional shell omitted; rendered PDP text is retained",
+            ),
+            (
+                "RETAIL_SCRIPT_STYLE_TELEMETRY_COLLAPSED",
+                r"<script\b|<style\b|analytics|telemetry",
+                "executable scripts, styles, and telemetry shell omitted; linkStore.page.product is retained",
+            ),
+            (
+                "RETAIL_RECOMMENDATION_CAROUSEL_COLLAPSED",
+                r"recommendation|Make it a routine|You May Also Like",
+                "recommendation carousel presentation omitted; its presence remains logged",
+            ),
+            (
+                "RETAIL_GALLERY_COMMUNITY_MEDIA_COLLAPSED",
+                r"gallery|community|UGC|ProductImage",
+                "gallery and community-media binaries/layout omitted; media URLs in retained state and review rows remain",
+            ),
+            (
+                "RETAIL_FLEXIBLE_PAYMENT_CHROME_COLLAPSED",
+                r"Klarna|Afterpay|4 x \$|4 payments|pay in 4",
+                "flexible-payment widget chrome omitted; rendered allocation text remains in the product row",
+            ),
+        )
+        for category, pattern, reason in extra_specs:
+            count = len(re.findall(pattern, html, flags=re.IGNORECASE))
+            if not count:
+                count = len(
+                    re.findall(pattern, visible_text, flags=re.IGNORECASE)
+                )
+            if count:
+                entries.append(
+                    RetailPdpProjectionLossEntry(
+                        category=category,
+                        count=count,
+                        raw_anchor=_with_anchor(
+                            raw_anchor,
+                            "text_pattern",
+                            pattern,
+                        ),
+                        reason=reason,
+                    )
+                )
     return entries
 
 
