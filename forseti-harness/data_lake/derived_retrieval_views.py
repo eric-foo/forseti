@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import uuid
 from collections import Counter, defaultdict
@@ -64,12 +65,14 @@ from data_lake.creator_metric_lineage import (
 )
 from data_lake.derived_retrieval_cache import ClassificationCacheSession
 from data_lake.lane_registry import LANE_ROLES, LaneRole
+from data_lake.root import _atomic_replace
 from data_lake.product_mention_selection import (
     MENTIONS_LANE,
     normalize_product_mention_policy,
     select_product_mention_records,
 )
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
     PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     classify_silver_vault_record_sources,
@@ -80,8 +83,19 @@ BY_MENTION_VIEW_SCHEMA_VERSION = 3
 BY_CREATOR_VIEW_SCHEMA_VERSION = 2
 VIEW_SCHEMA_VERSION = BY_MENTION_VIEW_SCHEMA_VERSION
 MANIFEST_SCHEMA_VERSION = 1
-SILVER_VAULT_CORE_PARTS = ("indexes", "derived_retrieval", "silver_vault", "core")
+SILVER_VAULT_ROOT_PARTS = ("indexes", "derived_retrieval", "silver_vault")
+SILVER_VAULT_CORE_PARTS = (*SILVER_VAULT_ROOT_PARTS, "core")
+SILVER_VAULT_CREATOR_PARTS = (*SILVER_VAULT_ROOT_PARTS, "creator_vault")
 BUILT_VIEWS = ("by_creator", "by_mention", "undone")
+CREATOR_VAULT_ACCOUNT_ENVELOPE_SCHEMA_VERSION = 1
+CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION = "creator_vault_account_latest_profile_metric_v0"
+_TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND = "tiktok_creator_profile_metric"
+_PLATFORM_ACCOUNT_ID_ALIAS_FIELDS = (
+    "platform_account_id",
+    "forseti_platform_account_id",
+    "orca_platform_account_id",
+)
+_SAFE_READ_MODEL_KEY = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 FRAGRANTICA_PROJECTION_LANE = "projection_fragrantica"
 FRAGRANTICA_PRODUCT_ROW_KIND = "fragrance_product_snapshot"
@@ -165,67 +179,43 @@ def _classified_silver_sweep(
     *,
     cache_session: ClassificationCacheSession | None = None,
 ) -> dict[str, Any]:
-    """One deterministic classification sweep over every registered active
-    ``silver_envelope`` lane: per-anchor/lane/status counts, account-bearing
-    subject refs, source refs, and named residuals. Shared by ``by_creator``
-    and the ``by_mention`` native-product-page section so one build classifies
-    each record exactly once."""
-    anchor_lane_status: dict[str, dict[str, Counter]] = defaultdict(
-        lambda: defaultdict(Counter)
-    )
-    accounts: dict[tuple[str, str], dict[str, Any]] = {}
+    """Classify each active Silver record once for every generated read model."""
+    anchor_lane_status: dict[str, dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
+    accounts: dict[tuple[str, str, str], dict[str, Any]] = {}
     source_refs: list[str] = []
     residuals: list[dict[str, Any]] = []
     authority_by_ref: dict[str, Any] = {}
+    records_by_ref: dict[str, dict[str, Any]] = {}
     verification_cache: dict[str, Any] = {}
     derived = root.path / "derived"
     lineage = None
+    tombstoned_packet_ids = root.tombstoned_packet_ids()
     for lane in _ACTIVE_SILVER_ENVELOPE_LANES:
         for path in sorted(derived.glob(f"*/*/{lane}/*")):
             if not path.is_file():
                 continue
             anchor = path.parents[1].name
+            if anchor in tombstoned_packet_ids:
+                continue
             ref_key = f"{anchor}/{lane}/{path.name}"
             try:
                 record = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, ValueError):
-                residuals.append(
-                    {"status": "unreadable", "raw_anchor": anchor, "lane": lane, "record_id": path.name}
-                )
+                residuals.append({"status": "unreadable", "raw_anchor": anchor, "lane": lane, "record_id": path.name})
                 continue
-            if (
-                cache_session is not None
-                and lane == OBSERVATION_LANE
-                and isinstance(record, dict)
-            ):
-                cache_session.register_creator_metric_observation(
-                    record, record_path=path
-                )
-            if (
-                not isinstance(record, dict)
-                or record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION
-            ):
-                residuals.append(
-                    {
-                        "status": "non_envelope_schema_audit_only",
-                        "raw_anchor": anchor,
-                        "lane": lane,
-                        "record_id": path.name,
-                    }
-                )
+            if cache_session is not None and lane == OBSERVATION_LANE and isinstance(record, dict):
+                cache_session.register_creator_metric_observation(record, record_path=path)
+            if not isinstance(record, dict) or record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION:
+                residuals.append({"status": "non_envelope_schema_audit_only", "raw_anchor": anchor, "lane": lane, "record_id": path.name})
                 continue
             source_refs.append(ref_key)
+            records_by_ref[ref_key] = record
             cache_key = None
             authority = None
             if cache_session is not None:
-                cache_key, authority = cache_session.lookup(
-                    record, record_path=path
-                )
+                cache_key, authority = cache_session.lookup(record, record_path=path)
             if authority is None:
-                if (
-                    record.get("lane_namespace") in _CREATOR_METRIC_LANES
-                    and lineage is None
-                ):
+                if record.get("lane_namespace") in _CREATOR_METRIC_LANES and lineage is None:
                     lineage = build_creator_metric_lineage_index(root)
                 authority = classify_silver_vault_record_sources(
                     root,
@@ -250,22 +240,11 @@ def _classified_silver_sweep(
             }
             account_keys, account_problems = _account_subject_keys(record)
             for problem in account_problems:
-                residuals.append(
-                    {
-                        **problem,
-                        "raw_anchor": anchor,
-                        "lane": lane,
-                        "record_id": path.name,
-                    }
-                )
+                residuals.append({**problem, "raw_anchor": anchor, "lane": lane, "record_id": path.name})
             for namespace, identity_kind, native_id, aliases in account_keys:
                 entry = accounts.setdefault(
                     (namespace, identity_kind, native_id),
-                    {
-                        "aliases": {},
-                        "alias_values": defaultdict(set),
-                        "refs_by_anchor": defaultdict(list),
-                    },
+                    {"aliases": {}, "alias_values": defaultdict(set), "refs_by_anchor": defaultdict(list)},
                 )
                 for alias_key, alias_value in aliases.items():
                     entry["aliases"].setdefault(alias_key, alias_value)
@@ -274,24 +253,35 @@ def _classified_silver_sweep(
     for (namespace, identity_kind, native_id), entry in sorted(accounts.items()):
         for alias_key, alias_values in sorted(entry["alias_values"].items()):
             if len(alias_values) > 1:
-                residuals.append(
-                    {
-                        "status": "account_alias_conflict",
-                        "namespace": namespace,
-                        "identity_kind": identity_kind,
-                        "native_id": native_id,
-                        "alias_key": alias_key,
-                        "alias_values": sorted(alias_values),
-                    }
-                )
+                residuals.append({
+                    "status": "account_alias_conflict",
+                    "namespace": namespace,
+                    "identity_kind": identity_kind,
+                    "native_id": native_id,
+                    "alias_key": alias_key,
+                    "alias_values": sorted(alias_values),
+                })
+        account_ids = {
+            str(entry["aliases"][field])
+            for field in _PLATFORM_ACCOUNT_ID_ALIAS_FIELDS
+            if entry["aliases"].get(field)
+        }
+        if len(account_ids) > 1:
+            residuals.append({
+                "status": "platform_account_id_alias_conflict",
+                "namespace": namespace,
+                "identity_kind": identity_kind,
+                "native_id": native_id,
+                "account_ids": sorted(account_ids),
+            })
     return {
         "anchor_lane_status": anchor_lane_status,
         "accounts": accounts,
         "source_refs": sorted(source_refs),
         "authority_by_ref": authority_by_ref,
+        "records_by_ref": records_by_ref,
         "residuals": sorted(residuals, key=lambda row: json.dumps(row, sort_keys=True)),
     }
-
 
 def _account_subject_keys(
     record: dict,
@@ -349,7 +339,7 @@ def _account_subject_keys(
     if kind == "platform_public_account":
         identity_kind = str(ref.get("native_id_kind") or "").strip() or UNSPECIFIED_IDENTITY_KIND
         aliases = {
-            field: ref[field] for field in ("orca_platform_account_id",) if ref.get(field)
+            field: ref[field] for field in _PLATFORM_ACCOUNT_ID_ALIAS_FIELDS if ref.get(field)
         }
         _file_account(str(ref.get("native_id") or "").strip(), identity_kind, aliases)
     elif kind == "public_content_object":
@@ -359,7 +349,7 @@ def _account_subject_keys(
                 or UNSPECIFIED_IDENTITY_KIND
             )
             aliases = {
-                field: ref[field] for field in ("orca_platform_account_id",) if ref.get(field)
+                field: ref[field] for field in _PLATFORM_ACCOUNT_ID_ALIAS_FIELDS if ref.get(field)
             }
             _file_account(
                 str(ref.get("published_by_account_native_id") or "").strip(),
@@ -369,7 +359,11 @@ def _account_subject_keys(
         # A content object without a publisher assertion is not account-describing.
     elif any(
         ref.get(field)
-        for field in ("native_id", "published_by_account_native_id", "orca_platform_account_id")
+        for field in (
+            "native_id",
+            "published_by_account_native_id",
+            *_PLATFORM_ACCOUNT_ID_ALIAS_FIELDS,
+        )
     ) and kind not in KNOWN_NON_ACCOUNT_SUBJECT_KINDS:
         # Unknown subject kind carrying account-identifier fields: the map does
         # not guess; it names the shape so a wiring gap never reads as
@@ -440,6 +434,216 @@ def build_by_creator_view(root, *, sweep: dict | None = None) -> tuple[dict, lis
     }
     return view, list(sweep["source_refs"])
 
+
+def _platform_account_id(entry: dict[str, Any]) -> str | None:
+    values = {
+        str(entry["aliases"][field])
+        for field in _PLATFORM_ACCOUNT_ID_ALIAS_FIELDS
+        if entry.get("aliases", {}).get(field)
+    }
+    return next(iter(values)) if len(values) == 1 else None
+
+
+def _observed_time(value: Any) -> datetime:
+    text = str(value or "").strip()
+    if text.endswith("Z"):
+        text = f"{text[:-1]}+00:00"
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        raise ValueError("Creator Vault metric observed_at must be timezone-aware")
+    return parsed.astimezone(timezone.utc)
+
+
+def _candidate_from_record(ref_key: str, record: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    payload = record.get("payload")
+    observation = payload.get("observation") if isinstance(payload, dict) else None
+    posture = observation.get("metric_posture") if isinstance(observation, dict) else None
+    metric_name = str(observation.get("metric_name") or "").strip() if isinstance(observation, dict) else ""
+    if not metric_name or not isinstance(posture, dict):
+        raise ValueError(f"Creator Vault metric record {ref_key} has invalid observation shape")
+    observed_at = str(record.get("observed_at") or "").strip()
+    source = {
+        "record_id": record.get("record_id"),
+        "packet_id": record.get("raw_anchor"),
+        "lane": record.get("lane_namespace"),
+        "content_hash": record.get("content_hash"),
+        "observed_at": observed_at,
+    }
+    candidate = {
+        **source,
+        "metric_value_or_none": observation.get("metric_value"),
+        "metric_posture": str(posture.get("kind") or "").strip(),
+        "reason_code_or_none": posture.get("reason_code"),
+        "reason_detail_or_none": posture.get("reason_detail"),
+        "_ref_key": ref_key,
+        "_timestamp": _observed_time(observed_at),
+        "_record": record,
+    }
+    candidate["_signature"] = json.dumps(
+        {
+            "metric_value_or_none": candidate["metric_value_or_none"],
+            "metric_posture": candidate["metric_posture"],
+            "reason_code_or_none": candidate["reason_code_or_none"],
+            "reason_detail_or_none": candidate["reason_detail_or_none"],
+        }, sort_keys=True, separators=(",", ":")
+    )
+    return metric_name, candidate
+
+
+def _public_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in candidate.items() if not key.startswith("_")}
+
+
+def _select_metric_state(metric_name: str, candidates: list[dict[str, Any]]) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+    ordered = sorted(candidates, key=lambda row: (row["_timestamp"], str(row["record_id"])))
+    groups: dict[datetime, list[dict[str, Any]]] = defaultdict(list)
+    for candidate in ordered:
+        groups[candidate["_timestamp"]].append(candidate)
+    latest_time = max(groups)
+    latest_group = groups[latest_time]
+    latest_conflicted = len({row["_signature"] for row in latest_group}) > 1
+    conflicts = [
+        {
+            "metric_name": metric_name,
+            "observed_at": max(row["observed_at"] for row in group),
+            "candidates": [_public_candidate(row) for row in group],
+        }
+        for _time, group in sorted(groups.items())
+        if len({row["_signature"] for row in group}) > 1
+    ]
+    latest_attempt = None if latest_conflicted else _public_candidate(
+        max(latest_group, key=lambda row: str(row["record_id"]))
+    )
+    last_observed = None
+    for observed_at in sorted(groups, reverse=True):
+        if latest_conflicted and observed_at == latest_time:
+            continue
+        observed = [row for row in groups[observed_at] if row["metric_posture"] == "observed"]
+        values = {json.dumps(row["metric_value_or_none"], sort_keys=True) for row in observed}
+        if observed and len(values) == 1:
+            last_observed = _public_candidate(max(observed, key=lambda row: str(row["record_id"])))
+            break
+    if latest_conflicted:
+        display_state = "conflicted_latest_attempt"
+    elif latest_attempt["metric_posture"] == "observed":
+        display_state = "current_observed"
+        last_observed = latest_attempt
+    elif last_observed is not None:
+        display_state = "last_observed_retained_after_unavailable_attempt"
+    else:
+        display_state = "unavailable_no_observed_value"
+    state = {"display_state": display_state, "last_observed": last_observed, "latest_attempt": latest_attempt}
+    selected_ids = {
+        row["record_id"] for row in (last_observed, latest_attempt) if isinstance(row, dict)
+    }
+    return state, conflicts, [row for row in ordered if row["record_id"] in selected_ids]
+
+
+def _dedupe_json_rows(rows: list[Any]) -> list[Any]:
+    by_key = {
+        json.dumps(row, sort_keys=True, separators=(",", ":"), ensure_ascii=False): row
+        for row in rows
+    }
+    return [by_key[key] for key in sorted(by_key)]
+
+
+def build_creator_vault_account_files(sweep: dict[str, Any], stamp: dict[str, str]) -> dict[str, bytes]:
+    """Generate TikTok account envelopes from the same classified Silver sweep."""
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for (namespace, _identity_kind, native_id), entry in sorted(sweep["accounts"].items()):
+        if namespace != "tiktok":
+            continue
+        account_id = _platform_account_id(entry)
+        if account_id is None or _SAFE_READ_MODEL_KEY.fullmatch(account_id) is None:
+            continue
+        account = grouped.setdefault((namespace, account_id), {"native_ids": set(), "candidates": defaultdict(list)})
+        account["native_ids"].add(native_id)
+        for anchor, refs in entry["refs_by_anchor"].items():
+            for ref in refs:
+                if ref.get("lane") != OBSERVATION_LANE or ref.get("authority_status") != CURRENT_SOURCE_BACKED_AUTHORITY:
+                    continue
+                ref_key = f"{anchor}/{ref['lane']}/{ref['record_id']}"
+                record = sweep["records_by_ref"].get(ref_key)
+                if not isinstance(record, dict) or record.get("producer_row_kind") != _TIKTOK_PROFILE_METRIC_PRODUCER_ROW_KIND or record.get("payload_kind") != "MetricObservation":
+                    continue
+                metric_name, candidate = _candidate_from_record(ref_key, record)
+                account["candidates"][metric_name].append(candidate)
+
+    files: dict[str, bytes] = {}
+    for (platform, account_id), account in sorted(grouped.items()):
+        metrics: dict[str, Any] = {}
+        postures: dict[str, str] = {}
+        windows: dict[str, dict[str, str]] = {}
+        conflicts: list[dict[str, Any]] = []
+        selected: list[dict[str, Any]] = []
+        all_candidates: list[dict[str, Any]] = []
+        for metric_name, candidates in sorted(account["candidates"].items()):
+            state, metric_conflicts, metric_selected = _select_metric_state(metric_name, candidates)
+            metrics[metric_name] = state
+            postures[metric_name] = "conflicted" if state["display_state"] == "conflicted_latest_attempt" else state["latest_attempt"]["metric_posture"]
+            windows[metric_name] = {
+                "start": min(row["observed_at"] for row in candidates),
+                "end": max(row["observed_at"] for row in candidates),
+            }
+            conflicts.extend(metric_conflicts)
+            selected.extend(metric_selected)
+            all_candidates.extend(candidates)
+        if not metrics:
+            continue
+        selected_records = [row["_record"] for row in selected]
+        source_record_ids = sorted({row["_ref_key"] for row in all_candidates})
+        source_high_watermark = hashlib.sha256(canonical_record_bytes(source_record_ids)).hexdigest()
+        manifest_id = f"creator_vault_account:{platform}:{account_id}:{stamp['generation_id']}"
+        envelope = {
+            "envelope_type": "creator_vault_account_v0",
+            "envelope_schema_version": CREATOR_VAULT_ACCOUNT_ENVELOPE_SCHEMA_VERSION,
+            "platform": platform,
+            "account_key": {"platform_account_id": account_id, "observed_native_ids": sorted(account["native_ids"])},
+            "latest_metric_snapshot": metrics,
+            "coverage_summary": {
+                "metric_count": len(metrics),
+                "source_record_count": len(source_record_ids),
+                "first_attempt_at": min(row["observed_at"] for row in all_candidates),
+                "latest_attempt_at": max(row["observed_at"] for row in all_candidates),
+            },
+            "metric_postures": postures,
+            "coverage_windows": windows,
+            "source_conflicts": conflicts,
+            "raw_refs": _dedupe_json_rows([raw_ref for record in selected_records for raw_ref in record.get("raw_refs", [])]),
+            "derived_refs": _dedupe_json_rows([
+                {"record_id": row["record_id"], "packet_id": row["packet_id"], "lane": row["lane"], "content_hash": row["content_hash"]}
+                for row in selected
+            ]),
+            "query_table_pointers": ["indexes/derived_retrieval/silver_vault/core/query_tables/by_creator.json"],
+            "read_model_manifest_id": manifest_id,
+            "selection_policy_version": CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION,
+            "judgment_boundary": "exact public profile metric observations only; no rollup, growth, audience, credibility, or commercial judgment",
+            "per_platform_identity_only": True,
+            "cross_platform_identity_assumed": False,
+        }
+        envelope_bytes = canonical_record_bytes(envelope)
+        manifest = {
+            "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
+            "read_model_manifest_id": manifest_id,
+            "envelope_type": envelope["envelope_type"],
+            "envelope_schema_version": envelope["envelope_schema_version"],
+            "platform": platform,
+            "platform_account_id": account_id,
+            "generation_id": stamp["generation_id"],
+            "generated_at": stamp["generated_at"],
+            "source_record_ids": source_record_ids,
+            "source_high_watermark": source_high_watermark,
+            "selection_policy_versions": {
+                "account_envelope": CREATOR_VAULT_ACCOUNT_SELECTION_POLICY_VERSION,
+                "silver_authority_gate": CURRENT_SOURCE_BACKED_AUTHORITY,
+                "source_lane": OBSERVATION_LANE,
+            },
+            "envelope_sha256": hashlib.sha256(envelope_bytes).hexdigest(),
+            "stale_if": "a committed creator-profile MetricObservation or raw-packet tombstone changes the account selection after this source_high_watermark",
+        }
+        files[f"accounts/{platform}/{account_id}/envelope.json"] = envelope_bytes
+        files[f"manifests/accounts/{platform}/{account_id}.json"] = canonical_record_bytes(manifest)
+    return files
 
 def _fragrantica_native_product_identity(row: dict) -> dict[str, str]:
     """Fragrantica projection row -> the source-neutral identity fields the
@@ -700,47 +904,107 @@ def _generate(
     product_mention_policy: dict[str, str] | None,
     views: tuple[str, ...] = BUILT_VIEWS,
     cache_session: ClassificationCacheSession | None = None,
+    sweep: dict[str, Any] | None = None,
 ) -> dict[str, bytes]:
-    """All owned view files as relpath -> bytes, regenerated purely from
-    committed material under the given stamp."""
-    normalized_policy = (
-        normalize_product_mention_policy(product_mention_policy)
-        if "by_mention" in views else None
-    )
-    sweep = (
-        _classified_silver_sweep(root, cache_session=cache_session)
-        if any(name in views for name in ("by_creator", "by_mention"))
-        else None
-    )
+    """Generate the core view files from one optional shared Silver sweep."""
+    normalized_policy = normalize_product_mention_policy(product_mention_policy) if "by_mention" in views else None
+    if sweep is None and any(name in views for name in ("by_creator", "by_mention")):
+        sweep = _classified_silver_sweep(root, cache_session=cache_session)
     files: dict[str, bytes] = {}
     for view_name in views:
         if view_name == "by_creator":
             view, source_refs = build_by_creator_view(root, sweep=sweep)
         elif view_name == "by_mention":
-            view, source_refs = build_by_mention_view(
-                root,
-                product_mention_policy=normalized_policy,
-                sweep=sweep,
-            )
+            view, source_refs = build_by_mention_view(root, product_mention_policy=normalized_policy, sweep=sweep)
         else:
             view, source_refs = build_undone_view(root)
         view_bytes = canonical_record_bytes(view)
-        manifest_bytes = canonical_record_bytes(
-            _manifest(
-                view_name,
-                view_bytes,
-                source_refs,
-                stamp,
-                normalized_policy,
-            )
-        )
+        manifest_bytes = canonical_record_bytes(_manifest(view_name, view_bytes, source_refs, stamp, normalized_policy))
         files[f"query_tables/{view_name}.json"] = view_bytes
         files[f"manifests/{view_name}.json"] = manifest_bytes
     return files
 
 
+def _generate_all(
+    root,
+    stamp: dict[str, str],
+    *,
+    product_mention_policy: dict[str, str],
+    cache_session: ClassificationCacheSession | None = None,
+) -> dict[str, bytes]:
+    sweep = _classified_silver_sweep(root, cache_session=cache_session)
+    core = _generate(
+        root,
+        stamp,
+        product_mention_policy=product_mention_policy,
+        cache_session=cache_session,
+        sweep=sweep,
+    )
+    creator_vault = build_creator_vault_account_files(sweep, stamp)
+    return {
+        **{f"core/{path}": data for path, data in core.items()},
+        **{f"creator_vault/{path}": data for path, data in creator_vault.items()},
+    }
+
+
+def _silver_vault_root(root) -> Path:
+    return root._within(*SILVER_VAULT_ROOT_PARTS)
+
+
 def _silver_vault_core_root(root) -> Path:
     return root._within(*SILVER_VAULT_CORE_PARTS)
+
+
+def _owned_generated_paths(root) -> set[Path]:
+    core_root = _silver_vault_core_root(root)
+    owned = {
+        target
+        for view_name in BUILT_VIEWS
+        for target in (
+            core_root / "query_tables" / f"{view_name}.json",
+            core_root / "manifests" / f"{view_name}.json",
+        )
+        if target.is_file()
+    }
+    creator_root = root._within(*SILVER_VAULT_CREATOR_PARTS)
+    for pattern in ("accounts/tiktok/*/envelope.json", "manifests/accounts/tiktok/*.json"):
+        owned.update(path for path in creator_root.glob(pattern) if path.is_file())
+    return owned
+
+
+def _publish_generated_files(root, files: dict[str, bytes]) -> None:
+    """Atomically replace owned files and roll back the package on failure."""
+    root._reverify()
+    target_root = _silver_vault_root(root)
+    desired = {target_root / relpath: data for relpath, data in files.items()}
+    existing = _owned_generated_paths(root)
+    affected = set(desired) | existing
+    previous = {path: path.read_bytes() if path.is_file() else None for path in affected}
+    changed: list[Path] = []
+    try:
+        for target, data in sorted(desired.items(), key=lambda item: str(item[0])):
+            _atomic_replace(target, data)
+            changed.append(target)
+        for target in sorted(existing - set(desired), key=str):
+            target.unlink()
+            changed.append(target)
+    except Exception as publish_error:
+        rollback_errors: list[str] = []
+        for target in reversed(changed):
+            try:
+                old_bytes = previous[target]
+                if old_bytes is None:
+                    target.unlink(missing_ok=True)
+                else:
+                    _atomic_replace(target, old_bytes)
+            except Exception as rollback_error:  # pragma: no cover - storage-loss boundary
+                rollback_errors.append(f"{target}: {rollback_error}")
+        if rollback_errors:
+            raise RuntimeError(
+                "derived-retrieval publication failed and rollback was incomplete: "
+                + "; ".join(rollback_errors)
+            ) from publish_error
+        raise
 
 
 def rebuild_derived_retrieval(
@@ -750,37 +1014,29 @@ def rebuild_derived_retrieval(
     stamp: dict | None = None,
     full_rebuild: bool = False,
 ) -> dict:
-    """Replace the owned views and remove their contradictory legacy home."""
+    """Replace core views and daily Creator Vault account summaries."""
     root._reverify()
     stamp = stamp or generation_stamp()
-    cache_session = ClassificationCacheSession(
-        root, use_existing=not full_rebuild
-    )
-    files = _generate(
+    cache_session = ClassificationCacheSession(root, use_existing=not full_rebuild)
+    files = _generate_all(
         root,
         stamp,
         product_mention_policy=product_mention_policy,
         cache_session=cache_session,
     )
-    target_root = _silver_vault_core_root(root)
+    cache_session.save()
     legacy_root = root._within("indexes", "derived_retrieval", "object_level")
     if legacy_root.exists():
         shutil.rmtree(legacy_root)
-    for view_name in BUILT_VIEWS:
-        for target in (
-            target_root / "query_tables" / f"{view_name}.json",
-            target_root / "manifests" / f"{view_name}.json",
-        ):
-            if target.exists():
-                target.unlink()
-    for relpath, data in files.items():
-        target = target_root / relpath
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
-    cache_session.save()
+    _publish_generated_files(root, files)
+    account_envelope_count = sum(
+        path.startswith("creator_vault/accounts/") and path.endswith("/envelope.json")
+        for path in files
+    )
     return {
         "status": "rebuilt",
         "views": list(BUILT_VIEWS),
+        "creator_vault_account_envelope_count": account_envelope_count,
         "deferred_views": [],
         "generation_id": stamp["generation_id"],
         "file_count": len(files),
@@ -798,22 +1054,21 @@ def prove_incremental_rebuild_equality(
     root._reverify()
     stamp = generation_stamp()
     incremental_cache = ClassificationCacheSession(root, use_existing=True)
-    incremental = _generate(
+    incremental = _generate_all(
         root,
         stamp,
         product_mention_policy=product_mention_policy,
         cache_session=incremental_cache,
     )
     cold_cache = ClassificationCacheSession(root, use_existing=False)
-    cold = _generate(
+    cold = _generate_all(
         root,
         stamp,
         product_mention_policy=product_mention_policy,
         cache_session=cold_cache,
     )
     mismatches = sorted(
-        relpath
-        for relpath in set(incremental) | set(cold)
+        relpath for relpath in set(incremental) | set(cold)
         if incremental.get(relpath) != cold.get(relpath)
     )
     return {
@@ -823,7 +1078,6 @@ def prove_incremental_rebuild_equality(
         "incremental_classification_cache": incremental_cache.report(),
         "cold_classification_cache": cold_cache.report(),
     }
-
 
 def audit_derived_retrieval_source_integrity(root) -> dict:
     """Cold, read-only re-hash and byte proof against the stored lake map."""
@@ -838,76 +1092,72 @@ def audit_derived_retrieval_source_integrity(root) -> dict:
     }
 
 
+def _stored_creator_vault_account_files(root) -> dict[str, bytes]:
+    creator_root = root._within(*SILVER_VAULT_CREATOR_PARTS)
+    files: dict[str, bytes] = {}
+    for pattern in ("accounts/tiktok/*/envelope.json", "manifests/accounts/tiktok/*.json"):
+        for path in sorted(creator_root.glob(pattern)):
+            if path.is_file():
+                files[path.relative_to(creator_root).as_posix()] = path.read_bytes()
+    return files
+
+
+def _prove_stored_creator_vault_accounts(root) -> str:
+    stored = _stored_creator_vault_account_files(root)
+    if not stored:
+        return "absent_nothing_to_prove"
+    try:
+        manifests = [json.loads(data.decode("utf-8")) for path, data in stored.items() if path.startswith("manifests/")]
+        stamps = {(row["generation_id"], row["generated_at"]) for row in manifests}
+        if not manifests or len(stamps) != 1:
+            raise ValueError("Creator Vault manifests do not share one generation")
+        generation_id, generated_at = next(iter(stamps))
+    except (UnicodeDecodeError, ValueError, KeyError, TypeError):
+        return "failed_unreadable_manifest"
+    regenerated = build_creator_vault_account_files(
+        _classified_silver_sweep(root),
+        {"generation_id": generation_id, "generated_at": generated_at},
+    )
+    return "rebuildable" if regenerated == stored else "failed_drift_or_non_regenerable"
+
+
 def prove_derived_retrieval_rebuildability(root) -> dict:
-    """Read-only verification: regenerate every stored view under the stamps its
-    stored manifest recorded and byte-compare. Never compares a rebuild against
-    itself; never writes."""
+    """Regenerate stored core views and Creator Vault envelopes without writing."""
     root._reverify()
     target_root = _silver_vault_core_root(root)
-    view_paths = {
-        view_name: target_root / "query_tables" / f"{view_name}.json"
-        for view_name in BUILT_VIEWS
-    }
-    manifest_paths = {
-        view_name: target_root / "manifests" / f"{view_name}.json"
-        for view_name in BUILT_VIEWS
-    }
-    if all(
-        view_paths[name].is_file() and manifest_paths[name].is_file()
-        for name in BUILT_VIEWS
-    ):
+    view_paths = {name: target_root / "query_tables" / f"{name}.json" for name in BUILT_VIEWS}
+    manifest_paths = {name: target_root / "manifests" / f"{name}.json" for name in BUILT_VIEWS}
+    if all(view_paths[name].is_file() and manifest_paths[name].is_file() for name in BUILT_VIEWS):
         try:
-            stored_manifests = {
-                name: json.loads(manifest_paths[name].read_text(encoding="utf-8"))
-                for name in BUILT_VIEWS
-            }
-            stamps = {
-                (
-                    manifest["generation_id"],
-                    manifest["generated_at"],
-                )
-                for manifest in stored_manifests.values()
-            }
+            stored_manifests = {name: json.loads(manifest_paths[name].read_text(encoding="utf-8")) for name in BUILT_VIEWS}
+            stamps = {(manifest["generation_id"], manifest["generated_at"]) for manifest in stored_manifests.values()}
             if len(stamps) != 1:
                 raise ValueError("stored view manifests do not share one generation")
             generation_id, generated_at = next(iter(stamps))
             product_mention_policy = normalize_product_mention_policy(
-                stored_manifests["by_mention"]["selection_policy_versions"][
-                    "product_mention_policy"
-                ]
+                stored_manifests["by_mention"]["selection_policy_versions"]["product_mention_policy"]
             )
         except (ValueError, KeyError, TypeError):
             pass
         else:
-            regenerated = _generate(
-                root,
-                {
-                    "generation_id": generation_id,
-                    "generated_at": generated_at,
-                },
-                product_mention_policy=product_mention_policy,
-            )
+            stamp = {"generation_id": generation_id, "generated_at": generated_at}
+            sweep = _classified_silver_sweep(root)
+            regenerated = _generate(root, stamp, product_mention_policy=product_mention_policy, sweep=sweep)
             results = {}
             failures = []
             for view_name in BUILT_VIEWS:
                 matches = (
-                    regenerated[f"query_tables/{view_name}.json"]
-                    == view_paths[view_name].read_bytes()
-                    and regenerated[f"manifests/{view_name}.json"]
-                    == manifest_paths[view_name].read_bytes()
+                    regenerated[f"query_tables/{view_name}.json"] == view_paths[view_name].read_bytes()
+                    and regenerated[f"manifests/{view_name}.json"] == manifest_paths[view_name].read_bytes()
                 )
-                results[view_name] = (
-                    "rebuildable"
-                    if matches
-                    else "failed_drift_or_non_regenerable"
-                )
+                results[view_name] = "rebuildable" if matches else "failed_drift_or_non_regenerable"
                 if not matches:
                     failures.append(view_name)
-            return {
-                "status": "proven" if not failures else "failed",
-                "results": results,
-                "failures": failures,
-            }
+            creator_vault_matches = build_creator_vault_account_files(sweep, stamp) == _stored_creator_vault_account_files(root)
+            results["creator_vault_accounts"] = "rebuildable" if creator_vault_matches else "failed_drift_or_non_regenerable"
+            if not creator_vault_matches:
+                failures.append("creator_vault_accounts")
+            return {"status": "proven" if not failures else "failed", "results": results, "failures": failures}
     results: dict[str, str] = {}
     failures: list[str] = []
     for view_name in BUILT_VIEWS:
@@ -922,41 +1172,23 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
             continue
         try:
             stored_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            stamp = {
-                "generation_id": stored_manifest["generation_id"],
-                "generated_at": stored_manifest["generated_at"],
-            }
-            product_mention_policy = (
-                normalize_product_mention_policy(
-                    stored_manifest["selection_policy_versions"]["product_mention_policy"]
-                )
-                if view_name == "by_mention"
-                else None
-            )
+            stamp = {"generation_id": stored_manifest["generation_id"], "generated_at": stored_manifest["generated_at"]}
+            product_mention_policy = normalize_product_mention_policy(stored_manifest["selection_policy_versions"]["product_mention_policy"]) if view_name == "by_mention" else None
         except (ValueError, KeyError):
             results[view_name] = "failed_unreadable_manifest"
             failures.append(view_name)
             continue
-        regenerated = _generate(
-            root,
-            stamp,
-            product_mention_policy=product_mention_policy,
-            views=(view_name,),
-        )
-        if (
-            regenerated[f"query_tables/{view_name}.json"] == view_path.read_bytes()
-            and regenerated[f"manifests/{view_name}.json"] == manifest_path.read_bytes()
-        ):
+        regenerated = _generate(root, stamp, product_mention_policy=product_mention_policy, views=(view_name,))
+        if regenerated[f"query_tables/{view_name}.json"] == view_path.read_bytes() and regenerated[f"manifests/{view_name}.json"] == manifest_path.read_bytes():
             results[view_name] = "rebuildable"
         else:
             results[view_name] = "failed_drift_or_non_regenerable"
             failures.append(view_name)
-    return {
-        "status": "proven" if not failures else "failed",
-        "results": results,
-        "failures": failures,
-    }
-
+    creator_vault_result = _prove_stored_creator_vault_accounts(root)
+    results["creator_vault_accounts"] = creator_vault_result
+    if creator_vault_result.startswith("failed_"):
+        failures.append("creator_vault_accounts")
+    return {"status": "proven" if not failures else "failed", "results": results, "failures": failures}
 
 __all__ = [
     "BUILT_VIEWS",
@@ -964,6 +1196,7 @@ __all__ = [
     "MANIFEST_SCHEMA_VERSION",
     "MENTIONS_LANE",
     "SILVER_VAULT_CORE_PARTS",
+    "SILVER_VAULT_CREATOR_PARTS",
     "VIEW_SCHEMA_VERSION",
     "build_by_creator_view",
     "build_by_mention_view",

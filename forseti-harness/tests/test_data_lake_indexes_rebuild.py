@@ -38,6 +38,7 @@ from data_lake.silver_lineage import (
 from data_lake.silver_record import (
     CURRENT_SOURCE_BACKED_AUTHORITY,
     SilverSourceAuthority,
+    append_raw_packet_tombstone,
     silver_content_hash,
 )
 from data_lake.sibling_selection import SiblingSelectionError
@@ -323,6 +324,7 @@ def test_prove_rebuildability_green_then_tamper_fails(tmp_path: Path) -> None:
         "by_creator": "rebuildable",
         "by_mention": "rebuildable",
         "undone": "rebuildable",
+        "creator_vault_accounts": "rebuildable",
     }
 
     view_path = (
@@ -358,6 +360,7 @@ def test_prove_on_empty_store_is_absent_not_failure(tmp_path: Path) -> None:
         "by_creator": "absent_nothing_to_prove",
         "by_mention": "absent_nothing_to_prove",
         "undone": "absent_nothing_to_prove",
+        "creator_vault_accounts": "absent_nothing_to_prove",
     }
 
 
@@ -589,8 +592,16 @@ def _write_creator_metric_record(
     record_id: str,
     *,
     subject_ref: dict,
+    metric_name: str = "follower_count",
+    metric_value: int | None = 1000,
+    posture_kind: str = "observed",
+    reason_code: str | None = None,
+    observed_at: str = "2026-07-15T00:00:00Z",
+    producer_row_kind: str = "test_creator_metric",
 ) -> None:
     """One strict-current MetricObservation with an account-bearing subject."""
+    if posture_kind != "observed" and reason_code is None:
+        reason_code = "source_unavailable"
     record = {
         "record_id": record_id,
         "raw_anchor": raw_anchor,
@@ -602,10 +613,10 @@ def _write_creator_metric_record(
         "content_hash_basis": "canonical_json_excluding_content_hash",
         "record_kind": "observation",
         "payload_kind": "MetricObservation",
-        "producer_row_kind": "test_creator_metric",
+        "producer_row_kind": producer_row_kind,
         "source_surface": "test_surface",
-        "observed_at": "2026-07-15T00:00:00Z",
-        "captured_at": "2026-07-15T00:00:00Z",
+        "observed_at": observed_at,
+        "captured_at": observed_at,
         **{
             key: value
             for key, value in _complete_lineage_fields(root, raw_anchor).items()
@@ -614,9 +625,13 @@ def _write_creator_metric_record(
         "payload": {
             "observation": {
                 "subject": {"ref_type": "entity_key", "ref": subject_ref},
-                "metric_name": "follower_count",
-                "metric_value": 1000,
-                "metric_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+                "metric_name": metric_name,
+                "metric_value": metric_value,
+                "metric_posture": {
+                    "kind": posture_kind,
+                    "reason_code": reason_code,
+                    "reason_detail": None if posture_kind == "observed" else "fixture source unavailable",
+                },
             }
         },
     }
@@ -628,7 +643,6 @@ def _write_creator_metric_record(
         record_id=record_id,
         data=canonical_record_bytes(record),
     )
-
 
 def _write_fragrantica_projection(
     root: DataLakeRoot,
@@ -662,6 +676,274 @@ def _write_fragrantica_projection(
         data=canonical_record_bytes(projection),
     )
 
+
+def _tiktok_profile_subject(account_id: str, handle: str = "fixture_creator") -> dict:
+    return {
+        "namespace": "tiktok",
+        "kind": "platform_public_account",
+        "native_id": handle,
+        "platform_account_id": account_id,
+    }
+
+
+def _creator_vault_account_paths(root: DataLakeRoot, account_id: str) -> tuple[Path, Path]:
+    creator_root = root.path / "indexes" / "derived_retrieval" / "silver_vault" / "creator_vault"
+    return (
+        creator_root / "accounts" / "tiktok" / account_id / "envelope.json",
+        creator_root / "manifests" / "accounts" / "tiktok" / f"{account_id}.json",
+    )
+
+
+def test_creator_vault_retains_last_observed_after_unavailable_and_combines_registry(
+    tmp_path: Path,
+) -> None:
+    from runners.run_derived_retrieval_lookup import lookup_creator
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_fixture_001"
+    subject = _tiktok_profile_subject(account_id)
+    first = _commit_packet(root, tmp_path, "profile-first")
+    second = _commit_packet(root, tmp_path, "profile-second")
+    _write_creator_metric_record(
+        root, first, "followers-first.json",
+        subject_ref=subject,
+        metric_value=1000,
+        observed_at="2026-07-15T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    _write_creator_metric_record(
+        root, first, "likes-first.json",
+        subject_ref=subject,
+        metric_name="profile_total_like_count",
+        metric_value=5000,
+        observed_at="2026-07-15T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    _write_creator_metric_record(
+        root, second, "followers-gap.json",
+        subject_ref=subject,
+        metric_value=None,
+        posture_kind="unavailable_with_reason",
+        observed_at="2026-07-16T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    _write_creator_metric_record(
+        root, second, "likes-second.json",
+        subject_ref=subject,
+        metric_name="profile_total_like_count",
+        metric_value=6000,
+        observed_at="2026-07-16T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+
+    report = rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    assert report["creator_vault_account_envelope_count"] == 1
+    envelope_path, manifest_path = _creator_vault_account_paths(root, account_id)
+    envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    follower = envelope["latest_metric_snapshot"]["follower_count"]
+    assert follower["display_state"] == "last_observed_retained_after_unavailable_attempt"
+    assert follower["last_observed"]["metric_value_or_none"] == 1000
+    assert follower["latest_attempt"]["metric_posture"] == "unavailable_with_reason"
+    likes = envelope["latest_metric_snapshot"]["profile_total_like_count"]
+    assert likes["display_state"] == "current_observed"
+    assert likes["last_observed"]["metric_value_or_none"] == 6000
+    assert manifest["envelope_sha256"] == hashlib.sha256(envelope_path.read_bytes()).hexdigest()
+    assert manifest["generated_at"] == _STAMP["generated_at"]
+    assert manifest["source_high_watermark"]
+
+    creator_root = envelope_path.parents[3]
+    before = {path.relative_to(creator_root): path.read_bytes() for path in creator_root.rglob("*.json")}
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    after = {path.relative_to(creator_root): path.read_bytes() for path in creator_root.rglob("*.json")}
+    assert after == before
+
+    stable_profile = {
+        "profile_subject_id": account_id,
+        "platform_accounts": [{
+            "platform": "tiktok",
+            "platform_account_id": account_id,
+            "public_handle": "fixture_creator",
+        }],
+        "identity_state": "single_platform_observed",
+    }
+    result = lookup_creator(
+        root,
+        "tiktok:fixture_creator",
+        profile_view={"creator_profile_current_view": {"profiles": [stable_profile]}},
+    )
+    match = result["matches"][0]
+    assert match["registry_profile_or_none"] == stable_profile
+    assert match["creator_vault_account_or_none"] == envelope
+    assert match["current_profile_metrics_status"] == "generated"
+    assert match["creator_vault_provenance"]["generated_at"] == _STAMP["generated_at"]
+    assert prove_derived_retrieval_rebuildability(root)["status"] == "proven"
+
+    third = _commit_packet(root, tmp_path, "profile-third")
+    _write_creator_metric_record(
+        root, third, "followers-third.json",
+        subject_ref=subject,
+        metric_value=2000,
+        observed_at="2026-07-17T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    stale = prove_derived_retrieval_rebuildability(root)
+    assert stale["status"] == "failed"
+    assert stale["results"]["creator_vault_accounts"] == "failed_drift_or_non_regenerable"
+
+
+def test_creator_vault_publication_failure_restores_previous_generated_package(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import data_lake.derived_retrieval_views as views
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_publish_failure"
+    subject = _tiktok_profile_subject(account_id, "publish_failure_creator")
+    first = _commit_packet(root, tmp_path, "publish-first")
+    _write_creator_metric_record(
+        root, first, "followers-first.json",
+        subject_ref=subject,
+        metric_value=1000,
+        observed_at="2026-07-15T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    views.rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    package_root = root.path / "indexes" / "derived_retrieval" / "silver_vault"
+
+    def package_bytes() -> dict[Path, bytes]:
+        return {
+            path.relative_to(package_root): path.read_bytes()
+            for subtree in (package_root / "core", package_root / "creator_vault")
+            for path in subtree.rglob("*.json")
+            if "cache" not in path.parts
+        }
+
+    previous = package_bytes()
+    second = _commit_packet(root, tmp_path, "publish-second")
+    _write_creator_metric_record(
+        root, second, "followers-second.json",
+        subject_ref=subject,
+        metric_value=2000,
+        observed_at="2026-07-16T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    real_atomic_replace = views._atomic_replace
+    calls = 0
+
+    def fail_once(target: Path, data: bytes) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 3:
+            raise OSError("simulated generated-package publication failure")
+        real_atomic_replace(target, data)
+
+    monkeypatch.setattr(views, "_atomic_replace", fail_once)
+    with pytest.raises(OSError, match="simulated generated-package publication failure"):
+        views.rebuild_derived_retrieval(
+            root,
+            product_mention_policy=_POLICY,
+            stamp={"generation_id": "1" * 32, "generated_at": "2026-07-16T00:00:00+00:00"},
+        )
+    assert calls > 3  # publication began, then rollback used the same atomic primitive
+    assert package_bytes() == previous
+
+
+def test_creator_vault_surfaces_missing_history_and_latest_conflict(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    conflict_id = "acct_tt_conflict"
+    conflict_subject = _tiktok_profile_subject(conflict_id, "conflicted_creator")
+    old = _commit_packet(root, tmp_path, "conflict-old")
+    left = _commit_packet(root, tmp_path, "conflict-left")
+    right = _commit_packet(root, tmp_path, "conflict-right")
+    _write_creator_metric_record(
+        root, old, "old.json", subject_ref=conflict_subject, metric_value=1000,
+        observed_at="2026-07-15T00:00:00Z", producer_row_kind="tiktok_creator_profile_metric",
+    )
+    for packet_id, record_id, value in ((left, "left.json", 2000), (right, "right.json", 3000)):
+        _write_creator_metric_record(
+            root, packet_id, record_id, subject_ref=conflict_subject, metric_value=value,
+            observed_at="2026-07-16T00:00:00Z", producer_row_kind="tiktok_creator_profile_metric",
+        )
+    missing_id = "acct_tt_missing"
+    missing_packet = _commit_packet(root, tmp_path, "missing")
+    _write_creator_metric_record(
+        root, missing_packet, "missing.json",
+        subject_ref=_tiktok_profile_subject(missing_id, "missing_creator"),
+        metric_value=None,
+        posture_kind="unavailable_with_reason",
+        observed_at="2026-07-16T00:00:00Z",
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    conflict_path, _ = _creator_vault_account_paths(root, conflict_id)
+    conflict = json.loads(conflict_path.read_text(encoding="utf-8"))
+    metric = conflict["latest_metric_snapshot"]["follower_count"]
+    assert metric["display_state"] == "conflicted_latest_attempt"
+    assert metric["latest_attempt"] is None
+    assert metric["last_observed"]["metric_value_or_none"] == 1000
+    assert conflict["metric_postures"]["follower_count"] == "conflicted"
+    assert len(conflict["source_conflicts"]) == 1
+
+    missing_path, _ = _creator_vault_account_paths(root, missing_id)
+    missing = json.loads(missing_path.read_text(encoding="utf-8"))
+    metric = missing["latest_metric_snapshot"]["follower_count"]
+    assert metric["display_state"] == "unavailable_no_observed_value"
+    assert metric["last_observed"] is None
+    assert metric["latest_attempt"]["metric_posture"] == "unavailable_with_reason"
+
+
+def test_creator_vault_excludes_tombstoned_latest_packet(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_tombstone"
+    subject = _tiktok_profile_subject(account_id, "tombstone_creator")
+    retained = _commit_packet(root, tmp_path, "retained")
+    retired = _commit_packet(root, tmp_path, "retired")
+    _write_creator_metric_record(
+        root, retained, "retained.json", subject_ref=subject, metric_value=1000,
+        observed_at="2026-07-15T00:00:00Z", producer_row_kind="tiktok_creator_profile_metric",
+    )
+    _write_creator_metric_record(
+        root, retired, "retired.json", subject_ref=subject, metric_value=2000,
+        observed_at="2026-07-16T00:00:00Z", producer_row_kind="tiktok_creator_profile_metric",
+    )
+    append_raw_packet_tombstone(
+        root,
+        retained_packet_id=retained,
+        tombstoned_packet_id=retired,
+        captured_at="2026-07-17T00:00:00Z",
+        reason="Creator Vault tombstone fixture",
+    )
+
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    envelope_path, manifest_path = _creator_vault_account_paths(root, account_id)
+    envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+    assert envelope["latest_metric_snapshot"]["follower_count"]["last_observed"]["metric_value_or_none"] == 1000
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert all(retired not in source_ref for source_ref in manifest["source_record_ids"])
+
+
+def test_creator_lookup_rejects_tampered_creator_vault_envelope(tmp_path: Path) -> None:
+    from runners.run_derived_retrieval_lookup import lookup_creator
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_id = "acct_tt_tamper"
+    packet_id = _commit_packet(root, tmp_path, "tamper")
+    _write_creator_metric_record(
+        root, packet_id, "metric.json",
+        subject_ref=_tiktok_profile_subject(account_id, "tamper_creator"),
+        producer_row_kind="tiktok_creator_profile_metric",
+    )
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+    envelope_path, _ = _creator_vault_account_paths(root, account_id)
+    envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+    envelope["coverage_summary"]["metric_count"] = 99
+    envelope_path.write_bytes(canonical_record_bytes(envelope))
+
+    with pytest.raises(ValueError, match="envelope_sha256"):
+        lookup_creator(root, "tiktok:tamper_creator")
 
 def test_by_creator_indexes_account_subjects_with_classified_authority(
     tmp_path: Path,
