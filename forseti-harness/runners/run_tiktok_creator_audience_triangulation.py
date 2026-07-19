@@ -32,6 +32,7 @@ from evidence_binding.tiktok_audience_triangulation import (
     _canonical_bytes,
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
+    normalized_creator,
 )
 from judgment.creator_audience import (
     METHOD_DECK_RELATIVE_PATH,
@@ -230,6 +231,32 @@ def _grid_refs(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def _grid_record_creator_ids(records: Sequence[Mapping[str, Any]]) -> set[str]:
+    """Normalized account identities the selected grid observations belong to.
+
+    Each grid observation set carries its account-level subject
+    (``payload.observation.subject.ref.native_id``); a split-evidence run must
+    prove that account is the same creator the batch evidence anchors, so a
+    grid packet from a different TikTok account cannot be bound in.
+    """
+
+    creator_ids: set[str] = set()
+    for record in records:
+        payload = record.get("payload") if isinstance(record.get("payload"), Mapping) else {}
+        observation = (
+            payload.get("observation") if isinstance(payload.get("observation"), Mapping) else {}
+        )
+        subject = (
+            observation.get("subject") if isinstance(observation.get("subject"), Mapping) else {}
+        )
+        ref = subject.get("ref") if isinstance(subject.get("ref"), Mapping) else {}
+        native_id = str(ref.get("native_id") or "").strip()
+        if not native_id:
+            raise ValueError("grid-observation record lacks a subject account native_id")
+        creator_ids.add(normalized_creator(native_id))
+    return creator_ids
+
+
 def prepare_subscription_judgment(
     *,
     data_root: DataLakeRoot,
@@ -264,6 +291,14 @@ def prepare_subscription_judgment(
     if not grid_records:
         raise ValueError(
             "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok grid-observation producer"
+        )
+    requested_creator = normalized_creator(creator_id)
+    grid_creator_ids = _grid_record_creator_ids(grid_records)
+    if grid_creator_ids != {requested_creator}:
+        raise ValueError(
+            "GRID_EVIDENCE_ACCOUNT_MISMATCH: grid packet "
+            f"{grid_anchor} resolves to account(s) {sorted(grid_creator_ids)}, "
+            f"not requested creator {requested_creator}"
         )
     method_text, method_hash = load_method_deck()
     bundle = build_creator_audience_evidence_bundle(

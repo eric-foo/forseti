@@ -582,6 +582,82 @@ def test_coordinator_reuses_batch_evidence_with_separate_current_grid_packet(
     } == {grid_packet_id}
 
 
+def _foreign_account_grid_window() -> bytes:
+    """A valid grid window for a *different* TikTok account than @funmimonet."""
+
+    grid = {
+        "schema_version": "tiktok_creator_onboarding_v0",
+        "creator_handle": "rivalcreator",
+        "window_size": 2,
+        "window_cap": 30,
+        "minimum_window_size": 2,
+        "complete": True,
+        "items": [
+            {
+                "video_id": "8000000000000000001",
+                "video_url": "https://www.tiktok.com/@rivalcreator/video/8000000000000000001",
+                "playCount": 10,
+                "diggCount": 1,
+            },
+            {
+                "video_id": "8000000000000000002",
+                "video_url": "https://www.tiktok.com/@rivalcreator/video/8000000000000000002",
+                "playCount": 20,
+                "diggCount": 2,
+            },
+        ],
+    }
+    return (json.dumps(grid, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def test_coordinator_fails_closed_when_grid_packet_is_a_different_account(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    code, admitted = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        data_root=data_root,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+    assert code == 0
+    batch_packet_id = Path(admitted).name
+    code, grid_admitted = write_tiktok_grid_packet(
+        grid_window_json=_foreign_account_grid_window(),
+        data_root=data_root,
+        observed_at_utc="2026-07-19T11:42:13Z",
+    )
+    assert code == 0
+    foreign_grid_packet_id = Path(grid_admitted).name
+    assert run_comment_attention(
+        data_root=data_root,
+        packet_ids=[batch_packet_id],
+    )[0]["status"] == "derived"
+    # The foreign grid packet produces perfectly valid, source-backed Silver;
+    # its only defect is belonging to a different account.
+    assert run_tiktok_grid_observations(
+        data_root=data_root,
+        packet_ids=[foreign_grid_packet_id],
+    )[0]["status"] == "derived"
+
+    with pytest.raises(ValueError, match="GRID_EVIDENCE_ACCOUNT_MISMATCH"):
+        prepare_onboarding(
+            data_root=data_root,
+            packet_id=batch_packet_id,
+            grid_packet_id=foreign_grid_packet_id,
+            creator_id="tiktok:@funmimonet",
+            profile_subject_id="platform_account:tiktok:funmimonet",
+            question="What should a matching brand hire this creator to accomplish?",
+            evidence_cutoff="2026-06-30T17:02:46Z",
+            work_dir=tmp_path / "coordinated-mismatch",
+        )
+
+    # Fail-closed means no audience bundle was ever written for the split run.
+    assert not list((tmp_path / "coordinated-mismatch").glob("*.audience_bundle.json"))
+
+
 def test_bundle_incomplete_when_comments_absent_but_transcript_present() -> None:
     payload = _payload()
     for video in payload["videos"]:
