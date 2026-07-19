@@ -41,6 +41,8 @@ def test_tiktok_batch_coverage_from_packet_directory_excludes_raw_text(tmp_path:
     assert coverage["batch_summary"]["video_count"] == 2
     assert coverage["coverage_rollup"]["video_count"] == 2
     assert coverage["coverage_rollup"]["captured_comment_count"] == 2
+    assert coverage["coverage_rollup"]["nonblank_top_level_comment_count"] == 2
+    assert coverage["coverage_rollup"]["nonblank_transcript_cue_count"] == 2
     assert coverage["coverage_rollup"]["comment_envelope_total"] == 13
     assert coverage["coverage_rollup"]["videos_with_transcript_text"] == 1
     assert coverage["coverage_rollup"]["videos_with_disclosure_signal"] == 2
@@ -156,6 +158,34 @@ def test_tiktok_batch_coverage_never_zero_fills_missing_video_stats() -> None:
 
     assert coverage["video_rows"][0]["stats"] == {"playCount": 31_800}
     assert coverage["batch_summary"]["stats_sums"] == {}
+
+
+def test_tiktok_batch_coverage_nonblank_counts_do_not_accept_blank_rows() -> None:
+    coverage = build_tiktok_batch_coverage_from_payload(
+        {
+            "platform": "tiktok",
+            "source_surface": TIKTOK_BATCH_CAPTURE_SURFACE,
+            "creator_handle": "creator",
+            "videos": [
+                {
+                    "video_id": "1",
+                    "comments": {
+                        "captured_comment_count": 1,
+                        "comments": [{"text": "   "}],
+                    },
+                    "subtitles": {
+                        "cue_count": 1,
+                        "cues": [{"text": "\n"}],
+                    },
+                }
+            ],
+        }
+    )
+
+    assert coverage["coverage_rollup"]["captured_comment_count"] == 1
+    assert coverage["coverage_rollup"]["subtitle_cue_count"] == 1
+    assert coverage["coverage_rollup"]["nonblank_top_level_comment_count"] == 0
+    assert coverage["coverage_rollup"]["nonblank_transcript_cue_count"] == 0
 
 
 def test_tiktok_batch_coverage_has_no_hidden_network_browser_or_proxy_imports() -> None:

@@ -51,6 +51,7 @@ def build_tiktok_batch_coverage_from_payload(
     ]
     batch_summary = _batch_summary(payload.get("batch_summary"), rows)
     rollup = _coverage_rollup(rows, batch_summary)
+    rollup.update(_nonblank_audience_evidence_counts(videos))
     coverage: dict[str, Any] = {
         "coverage_schema_version": TIKTOK_BATCH_COVERAGE_SCHEMA_VERSION,
         "coverage_method": TIKTOK_BATCH_COVERAGE_METHOD,
@@ -307,6 +308,26 @@ def _coverage_rollup(rows: list[dict[str, Any]], batch_summary: Mapping[str, Any
         "videos_by_status": dict(sorted(statuses.items())),
         "comment_postures": dict(sorted(comment_postures.items())),
         "subtitle_postures": dict(sorted(subtitle_postures.items())),
+    }
+
+
+def _nonblank_audience_evidence_counts(
+    videos: list[Mapping[str, Any]],
+) -> dict[str, int]:
+    nonblank_comments = 0
+    nonblank_cues = 0
+    for video in videos:
+        comments = _as_mapping(video.get("comments"))
+        for comment in _as_list(comments.get("comments")):
+            if isinstance(comment, Mapping) and str(comment.get("text") or "").strip():
+                nonblank_comments += 1
+        subtitles = _as_mapping(video.get("subtitles"))
+        for cue in _as_list(subtitles.get("cues")):
+            if isinstance(cue, Mapping) and str(cue.get("text") or "").strip():
+                nonblank_cues += 1
+    return {
+        "nonblank_top_level_comment_count": nonblank_comments,
+        "nonblank_transcript_cue_count": nonblank_cues,
     }
 
 

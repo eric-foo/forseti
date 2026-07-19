@@ -68,6 +68,12 @@ capture troubleshooting, or browsing creators.
   `audience_triangulation`.
 - YouTube is outside the supported adapter set for this version.
 
+## Operating fast path
+
+- When a complete admitted TikTok batch is supplied through `--prior-capture-pointer`, use the default profile-refresh route. It reuses transcript/comment evidence, captures current bio and profile metrics only, and must report `completed_deep_capture_count: 0`. Repeat the eight-video route only with `--force-deep-recapture`.
+- Before a production command that source or prior runs show can exceed 60 seconds, resolve its executable and arguments from runner source or `--help`, then launch it through background-and-poll. Run independent focused checks while the one cold Judgment context is pending; never duplicate capture or validation merely to create overlap.
+- Healthy timing targets are at most 60 seconds for profile refresh, at most 10 minutes for deterministic downstream work excluding the cold Judgment wait, and at most 15 minutes end to end (25 minutes acceptable when live source or cold-context latency is observed). Report the measured blocker rather than filling the budget with more proof.
+
 ## Completion receipt
 
 Report creator ID, platform-account ID, platform, evidence anchor(s), bundle

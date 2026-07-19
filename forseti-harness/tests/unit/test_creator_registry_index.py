@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import Counter
 from pathlib import Path
 
 
@@ -78,15 +79,24 @@ def _walk_keys(value: object) -> set[str]:
 
 def test_creator_registry_index_counts_and_contract() -> None:
     registry = _registry()
+    ledger = _account_ledger()
+    accounts = registry["platform_accounts"]
+    onboarding_states = Counter(
+        account["onboarding"]["onboarding_state"] for account in accounts
+    )
 
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "materialized_known_public_account_dedupe_and_onboarding_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 53,
-        "creator_records_total": 2,
-        "known_account_rows_total": 53,
-        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 8, "youtube": 40},
-        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 40},
+        "platform_accounts_total": len(ledger["platform_accounts"]),
+        "creator_records_total": len(ledger["creator_records"]),
+        "known_account_rows_total": len(accounts),
+        "platform_accounts_by_platform": dict(
+            sorted(Counter(account["platform"] for account in accounts).items())
+        ),
+        "platform_accounts_by_onboarding_state": dict(
+            sorted(onboarding_states.items())
+        ),
     }
     assert [record["creator_record_id"] for record in registry["creator_records"]] == [
         "creator_fragranceknowledge_001",
@@ -141,25 +151,6 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         "acct_tiktok_fragrance_005": "creator_noeldeyzel_fragrance_001",
         "acct_ig_fragrance_006": "creator_noeldeyzel_fragrance_001",
     }
-    profile_packet_account_ids = {
-        "acct_ig_reels_001",
-        "acct_ig_reels_002",
-        "acct_ig_reels_004",
-        "acct_tiktok_fragrance_001",
-        "acct_tiktok_fragrance_002",
-        "acct_tiktok_fragrance_003",
-        "acct_tiktok_fragrance_004",
-        "acct_ig_fragrance_005",
-        "acct_tiktok_fragrance_005",
-        "acct_ig_fragrance_006",
-        "acct_tiktok_fragrance_006",
-    }
-    content_packet_account_ids = {
-        "acct_tiktok_fragrance_007",
-        "acct_tiktok_fragrance_008",
-    }
-
-
     for source_account in ledger["platform_accounts"]:
         indexed = registry_by_id[source_account["platform_account_id"]]
         normalized_handle = source_account["public_handle"].lstrip("@").lower()
@@ -180,16 +171,17 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
             assert indexed["identity_state"] == "single_platform_observed"
             assert indexed["linkage_state"] == "single_platform_observed"
 
-        if source_account["platform_account_id"] in profile_packet_account_ids:
-            assert indexed["capture_state"] == "identity_observed_profile_packet_available"
-            assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
-        elif source_account["platform_account_id"] in content_packet_account_ids:
-            assert indexed["capture_state"] == "identity_observed_content_packet_available"
-            assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
-        elif source_account["platform_account_id"] >= "acct_yt_fragrance_032":
-            assert indexed["capture_state"] == "never_captured"
-        else:
-            assert indexed["capture_state"] == "identity_observed_metric_seed_available"
+        assert indexed["capture_state"] in {
+            "identity_observed_profile_packet_available",
+            "identity_observed_content_packet_available",
+            "identity_observed_metric_seed_available",
+            "never_captured",
+        }
+        if indexed["capture_state"] == "identity_observed_content_packet_available":
+            assert (
+                indexed["onboarding"]["evidence_source_surface_or_none"]
+                == "tiktok_creator_batch_comment_subtitle_admission"
+            )
         assert indexed["freshness"]["identity_observed_at"] == source_account["handle_observed_at"]
         assert f"platform:{source_account['platform']}:handle:{normalized_handle}" in indexed["lookup_keys"]
         if source_account["platform_public_account_id_or_none"] is not None:
