@@ -100,7 +100,7 @@ retailers in one PR merely because they share the packet seam.
 | Surface | Starting posture | Required action before promotion |
 | --- | --- | --- |
 | Sephora aggregate PDP | Current exact route defaults to content; historical beauty packets are raw | Reconstruct the valuable-field inventory from raw/sample data, compare it to the content record, repair any omission, and preserve a representative sample packet |
-| Nordstrom aggregate PDP | Current exact route defaults to content; historical beauty packets are raw | Perform the same completeness audit; retain US/USD pin evidence and the explicitly unpinned delivery residual |
+| Nordstrom aggregate PDP | AUDIT COMPLETE (2026-07-19): verified sample `01KXY400VV93RSGFSE9ZSXJ50Y` preserves raw plus derived with parser-fit `match`, raw/content Projection and Silver equality, retained US/USD pin evidence, and the explicitly unpinned delivery residual; typed-failure control `01KXY3VH1M543DPW5984HSJH6Q` proves the fail-loud path. See the Nordstrom audit receipt in `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md` | None; historical beauty packets remain raw |
 | Nordstrom brand grid | Raw | Add a retailer-owned grid content record, equivalence proof, loss ledger, and sample receipt |
 | Target brand grid and PDP | Raw | Add grid/PDP content records that retain assortment, offers, review state, claims, and separate shipping/store pin context |
 | Luckyscent brand grid and PDP | Raw | Add family-owned grid/PDP records; do not misuse the Walmart/Target-only grid projector |

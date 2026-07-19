@@ -109,7 +109,7 @@ build on the hardened seam.
 | Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
 | Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | RENDERED SLICES FLIPPED: both CloakBrowser packets default to content mode through the shared rendered retention seam; direct HTTP remains a raw canary; raw/sample/legacy projection remains supported |
 | Basenotes MGT | Persistent Chrome current-window bundle or credential-free loopback CDP (`run_basenotes_mgt_capture.py`) | `basenotes_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned content adapter; browser metadata retained; screenshot acquisition requires a named visual trigger; raw/legacy projection runner remains |
-| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | THREE PINNED ROUTES FLIPPED: `sephora_pdp_aggregate`, `luckyscent_pdp_aggregate`, and `nordstrom_pdp_aggregate` default to retailer-owned content records after their distinct US/USD, access, sufficiency, parser-fit, and Projection/Silver gates pass; raw/sample/legacy remain supported; Direct HTTP grids and every sibling PDP/grid profile remain raw. Sephora v2 is sampled-raw/full-derived verified. Luckyscent and Nordstrom delivery remain explicitly unpinned; Nordstrom's sample audit is still pending. |
+| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | THREE PINNED ROUTES FLIPPED: `sephora_pdp_aggregate`, `luckyscent_pdp_aggregate`, and `nordstrom_pdp_aggregate` default to retailer-owned content records after their distinct US/USD, access, sufficiency, parser-fit, and Projection/Silver gates pass; raw/sample/legacy remain supported; Direct HTTP grids and every sibling PDP/grid profile remain raw. Sephora v2 and Nordstrom are sampled-raw/full-derived verified (Nordstrom sample `01KXY400VV93RSGFSE9ZSXJ50Y`, 2026-07-19). Luckyscent and Nordstrom delivery remain explicitly unpinned; Luckyscent's sample audit is still pending. |
 | IG reels grid / calls / momentum | Live browser session, passive JSON responses; runner already extracts observations at capture time | `ig_reels_grid_projection.py` (+ catchup with record-id derivation ranks re-reading raw payloads) | DESIGN PASS REQUIRED: catchup semantics depend on raw; do not flip until catchup is re-specified against content records |
 | TikTok batch | Video packets (media + metadata) | `tiktok/batch_projection.py` aggregates coverage ACROSS packets | NOT A FLIP TARGET: cross-packet aggregation, media raw is the evidence |
 | YouTube behavioral | Metadata packets + captions + ASR across lake | `youtube_capture/behavioral_projection.py` aggregates | NOT A FLIP TARGET as a whole; only per-page watch-metadata parse is candidate |
@@ -125,22 +125,29 @@ to 48 source packet manifests and seven derived-record identifiers. All 48
 historical source packets had `artifact_mode=raw`. The Sephora audit added
 three append-only `sample` packets: a v1 omission-discovery sample, an
 off-profile fail-loud control whose DOM/text remained preserved, and the
-verified v2 sample. The register therefore now cites 51 source packets:
-48 `raw`, three `sample`, and zero `content`; 45 are `retail_pdp`. The
+verified v2 sample. The 2026-07-19 Nordstrom route-0 closure then added two
+more append-only `sample`-mode packets: a typed-failure control
+(`01KXY3VH1M543DPW5984HSJH6Q`, country-pin/sufficiency/projection all failed
+loudly with every raw input preserved) and the verified representative sample
+(`01KXY400VV93RSGFSE9ZSXJ50Y`). The register therefore now cites 53 source
+packets: 48 `raw`, five `sample`, and zero `content`; 47 are `retail_pdp`. The
 remaining six belong to certification-directory, company-official, or
 fragrance-review source families.
 
 This is a historical-corpus finding, not a reversal of the two later route
 flips. The current exact `sephora_pdp_aggregate` and
 `nordstrom_pdp_aggregate` routes default successful captures to retailer-owned
-content records. Sephora now has a field-complete v2 sample receipt and
-raw/content Projection plus Silver equivalence proof. Nordstrom still has no
-sample receipt in this corpus.
+content records. Sephora has a field-complete v2 sample receipt and
+raw/content Projection plus Silver equivalence proof. Nordstrom now has its
+own verified sample receipt: parser-fit `match`, anchor-normalized raw/content
+Projection equality, lineage-normalized Silver equality, and the confirmed
+`recent_window_30d` review posture (see the Nordstrom audit receipt in the
+beauty results register).
 
 | Surface named by the beauty program | Corpus posture | Current gap before sampled-raw with full-derived can be claimed |
 | --- | --- | --- |
 | Sephora aggregate PDP | Historical packets remain raw; current exact route defaults to v2 content; sample `01KXXESQG51QN0V10HP5FQE8C0` preserves raw plus derived | COMPLETE: parser-fit, field inventory, explicit loss ledger, raw/content Projection equivalence, and Silver equivalence verified |
-| Nordstrom aggregate PDP | Historical packets are raw; current exact route defaults to content | Preserve and verify a representative sample-mode packet alongside the content route |
+| Nordstrom aggregate PDP | Historical packets are raw; current exact route defaults to content; sample `01KXY400VV93RSGFSE9ZSXJ50Y` preserves raw plus derived | COMPLETE: parser-fit, field inventory, explicit loss ledger, raw/content Projection equality, Silver equality, and the `recent_window_30d` posture verified 2026-07-19 |
 | Nordstrom brand grid | Raw | Add a family-owned grid content record, equivalence proof, and sample receipt |
 | Target brand grid and PDP | Raw | Add family-owned grid/PDP content records, equivalence proof, and sample receipts |
 | Luckyscent brand grid and PDP | Raw | Add family-owned grid/PDP content records; the grid currently has no applicable retail-grid projection |

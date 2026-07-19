@@ -43,16 +43,16 @@ Sephora storefront-pin reconciliation.
 A `2026-07-19` fresh read of the original packet manifests cited by this
 register found 48 source packets: 48 `raw`, zero `content`, and zero `sample`.
 The Sephora completeness audit then added three append-only `sample` packets,
-so this register now cites 51 source packets: 48 `raw`, three `sample`, and
-zero `content`. Forty-five are Retail/PDP packets; the other six belong to the
-certification-directory, company-official, or fragrance-review source
-families. The seven other ULIDs identify derived records rather than source
-packets.
+and the same-day Nordstrom route-0 closure added two more (one typed-failure
+control and the verified representative sample), so this register now cites
+53 source packets: 48 `raw`, five `sample`, and zero `content`. Forty-seven
+are Retail/PDP packets; the other six belong to the certification-directory,
+company-official, or fragrance-review source families. The seven other ULIDs
+identify derived records rather than source packets.
 
-The exact Sephora aggregate-PDP route now proves sampled-raw with full-derived
-retention through the receipt below. Nordstrom aggregate PDP still lacks its
-required sample audit. Every other retailer surface named here remains raw:
-Target grid
+The exact Sephora and Nordstrom aggregate-PDP routes now prove sampled-raw
+with full-derived retention through the receipts below. Every other retailer
+surface named here remains raw: Target grid
 and PDP; Nordstrom grid; Luckyscent grid and PDP; Amazon search/discovery and
 PDP; Ulta PDP; Walmart PDP; Credo PDP and Yotpo review responses; and Kohl's
 access-failure diagnostics. Tower 28 DTC/stores and the certifier-directory
@@ -63,8 +63,8 @@ The exhaustive route-by-route gaps and flip boundary are maintained in
 No existing raw packet is authorized for retroactive deletion. A future route
 may be promoted only after its compact derived record preserves all
 claim-bearing fields, its loss is explicit, and a representative raw-plus-
-derived sample packet is verified. The Sephora completion does not authorize
-retroactive deletion or compaction of any historical raw packet.
+derived sample packet is verified. The Sephora and Nordstrom completions do
+not authorize retroactive deletion or compaction of any historical raw packet.
 
 ### Sephora sampled-raw/full-derived audit receipt
 
@@ -179,6 +179,90 @@ retroactive deletion or compaction of any historical raw packet.
     `500d207007f0efeec7f30a8e70f8f6d4703db94eea72b6eef709d4f95f645373`
   - content metadata:
     `b418681aebc26209d21653d256141891068707f324b74850efe3dde2d702fa06`
+
+### Nordstrom sampled-raw/full-derived audit receipt
+
+- Route-0 closure of the content-mode lane flip queue, executed `2026-07-19`
+  UTC on the exact `nordstrom_pdp_aggregate` route for
+  `https://www.nordstrom.com/s/the-lip-balm/8260802` (Nécessaire The Lip Balm)
+  with `--nordstrom-country US`, `--nordstrom-review-posture recent_window_30d`,
+  and `--capture-artifact-mode sample`.
+- Typed-failure control:
+  `F:\forseti-data-lake\raw\c05\01KXY3VH1M543DPW5984HSJH6Q`. Under the default
+  45-second country-setup budget the retailer dialog timed out at
+  `select_country`, leaving the Singapore storefront. The packet preserved all
+  raw inputs and exited nonzero with three independent typed failures:
+  `nordstrom_country_pin_failed`, source-detail-sufficiency failure, and an
+  in-flight projection failure (`Nordstrom projected offer lacks target-bound
+  seller evidence` — the SG page shows no `Sold by Nordstrom`). This is live
+  proof of the fail-loud path; the packet must never be admitted as US/USD
+  evidence.
+- Verified representative sample:
+  `F:\forseti-data-lake\raw\9e7\01KXY400VV93RSGFSE9ZSXJ50Y`, captured
+  `2026-07-19T21:19:57Z` after one bounded re-probe with
+  `--nordstrom-country-setup-timeout-seconds 90` (different hypothesis:
+  dialog timing, not markup drift). `pin_confirmed=true` on the rendered
+  conjunction (`selectedCountryCode=US`, `selectedCurrencyCode=USD`, shopper
+  `Context` `CountryCode=US`/`CurrencyCode=USD`/`IsInternationalShopping=false`),
+  no access block, artifact mode `sample`, projection `succeeded`, parser
+  `retail_pdp_nordstrom_aggregate_parser_v3`, and all six preserved-file
+  hashes fresh-verified.
+- Review posture: `Most Recent` selected and confirmed; zero reviews fell in
+  the 30-day window (newest `2026-06-13`), so the posture honestly recorded
+  `historical_context_complete` and retained 30 main-list rows (oldest
+  `2025-12-06`) over exactly 4 recorded `Load 6 more reviews` activations
+  against the displayed `4.6`/`118` aggregate. The source-labelled
+  most-helpful positive/critical pair is separately preserved with
+  verified-purchase state; per-card helpful counts stay null when the card
+  shows none.
+- Parser-fit: `match`
+  (content sha256
+  `f6cbd983429e5f55061db11962db96beeedf3eae1adbd32b54b0d07f7745da17`).
+  Perturbing one retained target fact (JSON-LD offer price `28.00`→`29.00`)
+  on a scratch copy was reported as `drift` at
+  `/binding_map/2/source_visible_fields/price`; injecting an unrelated
+  recommendation/footer Product JSON-LD left the content record byte-identical
+  (no binding).
+- Equality proof: projecting the preserved raw DOM/text (content record
+  removed from the packet view) and projecting the content record produced
+  equal Projection outputs after normalizing only raw-file-versus-JSON-pointer
+  anchors; rows (6), bindings, residuals, and loss categories are identical.
+  In-memory Retail/PDP Silver derivation from both projections produced three
+  records each whose only differences are packet/file identity, fresh record
+  ULIDs, projection-record lineage, and the whole-record `content_hash` those
+  fields feed — all payload values equal.
+- Field inventory: the content record retains the target-bound offer (price
+  `28.00` `USD`, `InStock`, `Sold by Nordstrom`, SKU/product/core-product ids,
+  `One Size`), full ingredients text, highlights, details/care and description
+  copy, and the Nordstrom Responsible Brands / B Corp certification wording.
+  The `Nordstrom For Good` badge label itself is collapsed chrome whose
+  substantive criteria text is retained; the visible `Free Pickup`/`Delivery`
+  strings near gift options are gift-option chrome, while real fulfillment
+  state is carried (`pickup_availability`, and `Shipping to 518225` preserved
+  only as the `nordstrom_shipping_destination_display_is_not_delivery_pin`
+  residual). Explicit residuals also record absent exact inventory quantity,
+  sold units, delivery pin, and the source-rounded 99% histogram total.
+- Payload test: content record `31,778` bytes < discarded projectable inputs
+  `585,937` bytes; the equivalent content-mode packet (`83,423` bytes) is
+  strictly smaller than this raw-plus-derived sample's raw posture
+  (`636,492` bytes).
+- Registry correction: the storefront-pin registry previously cited Nordstrom
+  sample `01KXWZ1KWA11K122WYJD7ZNJ5R`; that locator resolved to no manifest,
+  raw path, or index entry anywhere in the lake and is superseded by the
+  verified receipt above.
+- Preserved-file SHA-256 (verified sample):
+  - rendered DOM:
+    `dd01541f065f4347ff8ae8305062db6d0639de99328bc3a8b11ce4967c17f75a`
+  - visible text:
+    `b2137b768c6cb356528e1fcec7f2b40b90f8c6fbb3c8d8b4e05ec1f7a19ad34d`
+  - viewport screenshot:
+    `2d943cb164122359a378dcae8b0dafda87052f0cdc0b2b710c26ab269db542c2`
+  - browser metadata:
+    `3e63618ab988630a11d2747b71231757155dc4870bd1249d22199c3d0ed1d8fb`
+  - content record:
+    `c6ea266e698b1e5dcb7020c8967916e9b09d52b1dd516fa9e22a414ff96547fa`
+  - content metadata:
+    `6039a701aefc9b3ca7200cba7a57fa79677982e86dd4c501d604a02bd830dcc4`
 
 ## Target x Naturium
 
