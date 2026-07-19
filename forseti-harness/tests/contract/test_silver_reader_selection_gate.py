@@ -14,6 +14,7 @@ and record-path readers remain classified by the explicit path-based census belo
 from __future__ import annotations
 
 import ast
+from functools import cache
 
 from data_lake.inventory import (
     HARNESS_ROOT,
@@ -24,6 +25,11 @@ from data_lake.inventory import (
     silver_reader_posture_problems,
     tracked_harness_python_files,
 )
+
+# Session-scoped memo: the full-repo AST census is deterministic for the tests in
+# this file (none mutate tracked source mid-run), so repeated calls may share one
+# scan. A future test that edits tracked files must call .cache_clear() first.
+_derived_root_traversal_files = cache(derived_root_traversal_files)
 
 _PATH_BASED_TOUCHPOINT_CALLS = {"is_record_set_complete", "record_path"}
 _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
@@ -106,7 +112,7 @@ def test_declared_free_walk_readers_exist_as_tracked_files() -> None:
 
 
 def test_direct_derived_root_walks_are_mechanically_censused() -> None:
-    detected = derived_root_traversal_files()
+    detected = _derived_root_traversal_files()
     assert "capture_spine/creator_profile_current/rollup_formula_revalidation.py" in detected
     assert detected <= _declared("declared_free_walk")
 
@@ -132,7 +138,7 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     }
     expected_declared = (
         path_based - set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS)
-    ) | derived_root_traversal_files()
+    ) | _derived_root_traversal_files()
 
     undeclared = sorted(expected_declared - _declared("declared_free_walk"))
     assert not undeclared, (

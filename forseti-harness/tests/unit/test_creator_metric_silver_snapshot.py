@@ -96,13 +96,18 @@ def _account_of(record: dict) -> str:
     )
 
 
-def _seed_preexisting_youtube_records(data_root: DataLakeRoot):
+def _seed_preexisting_youtube_records(
+    data_root: DataLakeRoot,
+    *,
+    limit_to_platform_account_ids: frozenset[str] | set[str] | None = None,
+):
     """Seed synthetic pre-contract bytes for read-side classification only."""
     seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
     return seed_preexisting_youtube_creator_metric_records(
         data_root,
         seed_document,
         wrapper_key=YOUTUBE_SEED_WRAPPER_KEY,
+        limit_to_platform_account_ids=limit_to_platform_account_ids,
     )
 
 
@@ -280,7 +285,11 @@ def test_seed_rollup_payloads_carry_no_lake_provenance_keys(tmp_path: Path) -> N
 def test_platform_filter_excludes_other_platform(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_ig_rollup(data_root, tmp_path, slot="a", generated_at=LATE)
-    yt = _seed_preexisting_youtube_records(data_root)
+    # Only one YouTube account is needed to prove platform-filter exclusion,
+    # so materialize a single committed-seed account rather than all 30.
+    yt = _seed_preexisting_youtube_records(
+        data_root, limit_to_platform_account_ids={"acct_yt_fragrance_001"}
+    )
     yt_account = sorted({_account_of(r) for r in yt.rollup_records})[0]
     # ask for an instagram snapshot but pass a ledger holding BOTH platforms;
     # only the IG account is covered.

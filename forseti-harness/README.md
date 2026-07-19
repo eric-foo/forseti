@@ -354,11 +354,17 @@ not remove them as bloat.
 
 ## Commands
 
-Run tests:
+Run the full suite (parallel; `--dist=loadfile` matches CI's scheduling so a
+file's tests stay on one worker):
 
 ```powershell
-python -m pytest -p no:cacheprovider
+python -m pytest -n auto --dist=loadfile
 ```
+
+Default validation for a change is the affected test files plus required CI for
+the broad suite, per `.agents/workflow-overlay/validation-gates.md`; a full
+local run is for cross-cutting changes or diagnosing a red CI, not routine
+closeout.
 
 Run the TR/Casetext plumbing fixture from this directory:
 

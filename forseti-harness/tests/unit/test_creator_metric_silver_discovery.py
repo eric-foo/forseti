@@ -195,12 +195,18 @@ def _write_ig_rollup(
 # -- YouTube (account-anchored) fixture -------------------------------------
 
 def _write_yt_rollups(data_root: DataLakeRoot, tmp_path: Path) -> set[str]:
-    """Seed pre-contract YT bytes for read-side audit classification only."""
+    """Seed pre-contract YT bytes for read-side audit classification only.
+
+    Both call sites only ever consume a single account from the returned set
+    (``sorted(...)[0]``), so materialize one committed-seed account instead of
+    all 30.
+    """
     seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
     result = seed_preexisting_youtube_creator_metric_records(
         data_root,
         seed_document,
         wrapper_key=YOUTUBE_SEED_WRAPPER_KEY,
+        limit_to_platform_account_ids={"acct_yt_fragrance_001"},
     )
     archive = tmp_path / "youtube_seed_archive"
     archive.mkdir()

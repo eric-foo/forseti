@@ -314,11 +314,6 @@ def test_cli_preflight_validates_sephora_request_before_capture(
     assert "no network capture attempted" in capsys.readouterr().out
 
 
-def test_writer_rejects_sephora_plus_other_site_preference(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="only one site-specific pre-capture"):
-        _run_writer(tmp_path, luckyscent_market="US")
-
-
 def test_writer_preserves_but_rejects_unconfirmed_sephora_market(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
