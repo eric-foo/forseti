@@ -58,17 +58,18 @@ source-read-only review lane applies. This is never a mandatory front door.
 
 **Direct invocation is courier-prompt authoring only.** An explicit user request
 such as `delegate patch`, `write the delegate patch prompt`, or an invocation of
-the delegated-review-patch skill requests one paste-ready commission for the
-operator to courier. It does **not** authorize the authoring agent to discover a
-controller, create or dispatch a task, fork a thread, spawn a subagent, send the
-prompt, or execute the review. The rendered prompt binds an unknown future
-receiver as `receiver_to_bind` until the operator-selected controller proves
+the delegated-review-patch skill requires the authoring agent to immediately
+render exactly one paste-ready commission for the operator to courier from
+target and commission fields safely inferable from the current context;
+genuinely operator-owned values remain `operator_to_fill`. It must not first
+search for or probe installed models, CLIs, plugins, controllers, or fallback
+routes. The request does **not** authorize the authoring agent to create or
+dispatch a task, fork a thread, spawn a subagent, or send the prompt.
+The rendered prompt binds an unknown future receiver as
+`receiver_to_bind` until the operator-selected controller proves
 different-vendor lineage and direct repository access. If no eligible controller
 is available, the prompt remains unexecuted; never substitute a same-vendor
-model, self-review, no-repo reviewer, or Codex managed task. A separate explicit
-execution request may start only a receiver that already satisfies the same
-different-vendor plus direct-repo eligibility; it does not relax this authoring
-default or create fallback authority.
+model, self-review, no-repo reviewer, or Codex managed task.
 
 **The loop.** The Chief Architect authors or specifies the artifact, then
 commissions a single combined review-and-patch pass from a de-correlated model
@@ -424,6 +425,26 @@ delegated_review_patch_overlay_interface:
       dispatch from the authoring invocation
     durable_review_report: optional only when separately commissioned or required by the owner-invoked Mini God Tier target; otherwise chat or lane PR/comment is the return
     patch_application: the CA-named target in-repo — single authored file, or the named multi-file set in delegated_code_review_and_patch — under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: Direct delegate-patch invocations immediately render one operator-courier prompt without discovery or dispatch preflight.
+  trigger: workflow_authority
+  related_triggers: [review_authority]
+  controlling_sources_updated: [.agents/workflow-overlay/delegated-review-patch.md]
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+  intentionally_not_updated:
+    - {path: .agents/workflow-overlay/prompt-orchestration.md, reason: "Already requires exactly one courier prompt and forbids controller inspection, task creation or dispatch, and fork or spawn."}
+    - {path: installed and plugin skills, reason: "Deployment copies do not control this Forseti direct-invocation rule."}
+    - {path: hooks, tests, and registries, reason: "No mechanical gate or registry behavior changes."}
+  stale_language_search: rg -n -i "separate explicit execution request|discover a controller|inspect installed controllers|delegate patch" AGENTS.md .agents/workflow-overlay
+  non_claims: [not validation, not readiness]
 ```
 
 ## Evidence And Non-Claims
