@@ -190,6 +190,7 @@ def prepare_onboarding(
     *,
     data_root: DataLakeRoot,
     packet_id: str,
+    grid_packet_id: str | None = None,
     creator_id: str,
     profile_subject_id: str,
     question: str,
@@ -198,9 +199,10 @@ def prepare_onboarding(
 ) -> dict[str, Any]:
     """Produce packet-scoped Silver and a deterministic cold-Judgment handoff."""
 
+    grid_anchor = grid_packet_id or packet_id
     grid = _packet_result(
-        run_tiktok_grid_observations(data_root=data_root, packet_ids=[packet_id]),
-        packet_id,
+        run_tiktok_grid_observations(data_root=data_root, packet_ids=[grid_anchor]),
+        grid_anchor,
         "TikTok grid observation",
     )
     comments = _packet_result(
@@ -214,6 +216,7 @@ def prepare_onboarding(
     prepared = prepare_subscription_judgment(
         data_root=data_root,
         packet_id=packet_id,
+        grid_packet_id=grid_anchor,
         creator_id=creator_id,
         profile_subject_id=profile_subject_id,
         question=question,
@@ -227,7 +230,9 @@ def prepare_onboarding(
         "stage_reached": "judgment_prepared",
         "silver_prerequisites": {
             "grid_observation": grid["status"],
+            "grid_packet_id": grid_anchor,
             "comment_attention": comments["status"],
+            "comment_packet_id": packet_id,
         },
         "capture_reusable": True,
         "recapture_required": False,
@@ -397,6 +402,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare = subparsers.add_parser("prepare")
     prepare.add_argument("--data-root", required=True)
     prepare.add_argument("--packet-id", required=True)
+    prepare.add_argument("--grid-packet-id")
     prepare.add_argument("--creator-id", required=True)
     prepare.add_argument("--profile-subject-id", required=True)
     prepare.add_argument("--question", required=True)
@@ -444,6 +450,7 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare_onboarding(
                 data_root=DataLakeRoot.resolve(explicit=args.data_root),
                 packet_id=args.packet_id,
+                grid_packet_id=args.grid_packet_id,
                 creator_id=args.creator_id,
                 profile_subject_id=args.profile_subject_id,
                 question=args.question,

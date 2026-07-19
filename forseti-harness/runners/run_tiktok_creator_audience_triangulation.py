@@ -218,6 +218,7 @@ def _grid_refs(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
             "record_id": row.get("record_id"),
+            "raw_anchor": row.get("raw_anchor"),
             "content_hash": row.get("content_hash"),
             "policy_fingerprint_sha256": (
                 row.get("payload", {}).get("observation", {}).get("policy_fingerprint_sha256")
@@ -233,6 +234,7 @@ def prepare_subscription_judgment(
     *,
     data_root: DataLakeRoot,
     packet_id: str,
+    grid_packet_id: str | None = None,
     creator_id: str,
     profile_subject_id: str,
     question: str,
@@ -246,8 +248,9 @@ def prepare_subscription_judgment(
     attention_records = _read_lane(
         data_root, raw_anchor=packet_id, lane=COMMENT_ATTENTION_LANE
     )
+    grid_anchor = grid_packet_id or packet_id
     grid_records = _read_lane(
-        data_root, raw_anchor=packet_id, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+        data_root, raw_anchor=grid_anchor, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
     )
     attention, grid_records, silver_residuals = select_current_audience_silver_records(
         comment_attention_records=attention_records,
@@ -306,6 +309,7 @@ def prepare_subscription_judgment(
         "creator_id": bundle["creator_id"],
         "profile_subject_id": bundle["profile_subject_id"],
         "packet_id": packet_id,
+        "grid_packet_id": grid_anchor,
         "bundle_id": bundle["bundle_id"],
         "bundle_hash": bundle["bundle_hash"],
         "bundle_out": str(bundle_out),
@@ -508,6 +512,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare = subparsers.add_parser("prepare")
     prepare.add_argument("--data-root", required=True)
     prepare.add_argument("--packet-id", required=True)
+    prepare.add_argument("--grid-packet-id")
     prepare.add_argument("--creator-id", required=True)
     prepare.add_argument("--profile-subject-id", required=True)
     prepare.add_argument("--question", required=True)
@@ -535,6 +540,7 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare_subscription_judgment(
                 data_root=DataLakeRoot.resolve(explicit=args.data_root),
                 packet_id=args.packet_id,
+                grid_packet_id=args.grid_packet_id,
                 creator_id=args.creator_id,
                 profile_subject_id=args.profile_subject_id,
                 question=args.question,
