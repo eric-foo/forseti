@@ -1425,6 +1425,75 @@ retracted.
   warm-cache serve was not independently confirmed and would need verification
   before any future packet formalization.
 
+### Kohl's warmed-real-browser pin (2026-07-19, GO via non-runner route)
+
+Owner-directed: pin the Kohl's path via the only route that reaches content —
+the owner's warmed real Chrome over CDP. The **armory-runner route stays NO_GO**
+(all cold/automation runners remain Akamai-blocked on every egress); this pin is
+route-specific and NOT armory-runner-reproducible.
+
+- Capture: the bound PDP and `faq/article/2552` policy were captured LIVE through
+  the owner's warmed real Chrome, attached over the Chrome DevTools Protocol
+  (`localhost:9222`, new tab in the warmed default profile), with the browser
+  cache disabled. Both main documents returned HTTP `200` with no access block,
+  over the normal SG residential egress (`AS9506 Singtel`). Only public
+  logged-out page content was preserved (rendered DOM, visible text, page-only
+  viewport screenshot, method metadata); no cookies, credentials, storage state,
+  browser chrome, or account data.
+- Packets (fresh-read; packet IDs, receipts, preserved-file SHA-256, and byte
+  lengths verified):
+  - PDP `01KXXHBKF2GPK4M96SAV1VQKM3` at
+    `F:\forseti-data-lake\raw\b99\01KXXHBKF2GPK4M96SAV1VQKM3`
+    (`source_surface: warmed_real_browser_cdp_snapshot`).
+  - Policy `01KXXHC3BZ27D3WWDJ8QPV8004` at
+    `F:\forseti-data-lake\raw\661\01KXXHC3BZ27D3WWDJ8QPV8004`.
+- Admission (all four met, adjudicated directly from the preserved raw bytes):
+  retailer-owned US policy — the policy packet binds Kohl's own "currently only
+  ships to U.S. addresses and APO/FPO addresses" statement; subject — "Tower 28
+  Beauty LipSoftie Hydrating Tinted Lip Treatment Balm"; product-bound exact USD
+  — the PDP raw DOM carries standard schema.org `Offer` microdata
+  (`<meta itemprop="price" content="16">` + `<meta itemprop="priceCurrency"
+  content="USD">`) per shade variant, plus selected `skuId 37490185`
+  `regularPrice 16.00`, `mainPriceStr "$16.00"`, and visible `$16.00`; and no
+  access block.
+- Projection residual: the generic mechanical Retail/PDP projector types the
+  retailer `unknown` and emits `variant_offer_absent` / `review_substrate_absent`
+  because it parses JSON-LD, not Kohl's `Offer` microdata. This is a
+  projector-coverage residual (the offer is present in raw microdata and was
+  adjudicated directly), not an absence claim; no projection was promoted to the
+  lake.
+- Pin: storefront country `CONFIRMED_US` and currency `CONFIRMED_USD` (both from
+  retailer-owned evidence), delivery `UNPINNED`. The pin is route-specific and
+  does not make Kohl's armory-runner-capturable; a runner-reproducible route
+  (dedicated warmed profile + committed runner + live-vs-cache checks, or a US
+  residential / entitled / paid egress) remains an un-started design task.
+
+```yaml
+observations:
+  - observation_id: SOBS-KHL-001
+    retailer: Kohl's
+    subject: Tower 28 LipSoftie
+    url: https://www.kohls.com/product/prd-6715879/tower-28-beauty-lipsoftie-hydrating-tinted-lip-treatment-balm.jsp
+    retrieval_date: "2026-07-19"
+    short_quote_or_summary: >
+      In a warmed real-browser CDP capture, Kohl's displayed Tower 28 Beauty
+      LipSoftie Hydrating Tinted Lip Treatment Balm at a visible $16.00, with
+      selected skuId 37490185 (regularPrice 16.00) and standard schema.org
+      Offer microdata price 16 / priceCurrency USD across shade variants, on a
+      US-shipping-only storefront (Sephora at Kohl's assortment).
+    signal_stage: candidate_support
+    claim_it_might_support: current Kohl's US/USD offer state for the bound Tower 28 LipSoftie PDP
+    gate_role: none
+    independence_hypothesis: retailer-hosted offer state
+    packet_locator: F:\forseti-data-lake\raw\b99\01KXXHBKF2GPK4M96SAV1VQKM3
+    uncertainty_or_limits: >
+      Point-in-time page state reached only via the owner's warmed real Chrome
+      (not armory-runner-reproducible; cold runners remain Akamai-blocked).
+      Egress was SG; US context is retailer-owned, not viewer geography, and no
+      US delivery destination, inventory, demand, velocity, sell-through, or
+      realized price is established.
+```
+
 ### Credo US/USD default storefront pin
 
 - The commissioned subject was Tower 28 SOS (Save. Our. Skin) Daily Rescue
