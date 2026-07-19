@@ -1711,6 +1711,7 @@ def test_onboarding_cli_reuses_valid_prior_capture_without_deep_capture(
         == 0
     )
     assert admitted["grid_window_json"] == paths.grid_window_json_path.read_bytes()
+    assert admitted["prior_capture_pointer"] == "01PRIOR"
     summary_line = next(
         line
         for line in capsys.readouterr().out.splitlines()

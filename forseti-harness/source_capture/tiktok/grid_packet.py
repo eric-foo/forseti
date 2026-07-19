@@ -48,9 +48,14 @@ def write_tiktok_grid_packet(
     data_root: Any = None,
     observed_at_utc: str | None = None,
     session_identity: str | None = None,
+    prior_capture_pointer: str | None = None,
     decision_question: str = "What source-visible metrics are present on this TikTok creator grid?",
 ) -> tuple[int, str]:
     """Validate and preserve one grid-window artifact as a SourceCapturePacket."""
+    if prior_capture_pointer is not None:
+        prior_capture_pointer = prior_capture_pointer.strip()
+        if not prior_capture_pointer:
+            raise ValueError("prior_capture_pointer must be non-empty when supplied")
     grid = _load_grid(grid_window_json)
     creator_handle = _required_text(grid.get("creator_handle"), "creator_handle").lstrip("@")
     items = grid.get("items")
@@ -100,6 +105,12 @@ def write_tiktok_grid_packet(
     profile_url = f"https://www.tiktok.com/@{creator_handle}"
     staged_artifacts = [(TIKTOK_GRID_WINDOW_JSON_NAME, grid_window_json)]
     file_ids = staged_file_id_map(staged_artifacts)
+    no_prior_capture_reason = "no prior TikTok capture packet was supplied to this admission"
+    recapture = (
+        known_fact("supplement")
+        if prior_capture_pointer is not None
+        else not_applicable(no_prior_capture_reason)
+    )
     timing = PacketTiming(
         source_publication_or_event=not_applicable(
             "a creator grid is a capture-time state, not one publication event"
@@ -108,7 +119,11 @@ def write_tiktok_grid_packet(
             "TikTok grid state exposes no source edit/version identifier"
         ),
         capture_time=known_fact(observed_at),
-        recapture_time=not_applicable("no prior grid packet was supplied to this admission"),
+        recapture_time=(
+            known_fact(observed_at)
+            if prior_capture_pointer is not None
+            else not_applicable(no_prior_capture_reason)
+        ),
         cutoff_posture=not_applicable("cutoff posture does not apply to current grid monitoring"),
     )
     access = known_fact(
@@ -116,7 +131,6 @@ def write_tiktok_grid_packet(
     )
     archive = not_attempted("grid monitoring does not query archive/history services")
     media = not_attempted("grid monitoring preserves metrics and content identifiers only")
-    recapture = not_applicable("no prior grid packet was supplied to this admission")
     result = stage_and_write_packet(
         output_directory=output_directory,
         data_root=data_root,
@@ -141,8 +155,13 @@ def write_tiktok_grid_packet(
         source_locator=known_fact(profile_url),
         decision_question=decision_question,
         capture_context=(
-            "TikTok grid-only admission from a validated sanitized grid artifact; "
-            "no browser launch or deep capture in this writer"
+            f"TikTok profile-refresh grid admission reusing prior packet "
+            f"{prior_capture_pointer}; no browser launch or deep capture in this writer"
+            if prior_capture_pointer is not None
+            else (
+                "TikTok grid-only admission from a validated sanitized grid artifact; "
+                "no browser launch or deep capture in this writer"
+            )
         ),
         actor_audience_context=not_applicable(
             "public creator/content object metrics only; no audience or person modeling"

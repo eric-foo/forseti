@@ -321,6 +321,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     output_directory=args.admit_output if data_root is None else None,
                     data_root=data_root,
                     session_identity=args.session_profile,
+                    prior_capture_pointer=args.prior_capture_pointer,
                     decision_question=(
                         PROFILE_REFRESH_DECISION_QUESTION
                         if args.decision_question == DEFAULT_DECISION_QUESTION

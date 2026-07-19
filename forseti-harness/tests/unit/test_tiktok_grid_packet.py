@@ -83,6 +83,36 @@ def test_grid_packet_preserves_supplied_grid_bytes_exactly(tmp_path: Path) -> No
     assert (packet_dir / preserved["relative_packet_path"]).read_bytes() == raw
 
 
+def test_grid_packet_preserves_prior_capture_relationship(tmp_path: Path) -> None:
+    _, packet_dir_text = write_tiktok_grid_packet(
+        grid_window_json=_grid_bytes(),
+        output_directory=tmp_path / "packet-with-prior",
+        prior_capture_pointer="01PRIOR",
+    )
+
+    manifest = json.loads(
+        (Path(packet_dir_text) / "manifest.json").read_text(encoding="utf-8")
+    )
+    expected = {"status": "known", "value": "supplement", "reason": None}
+    assert manifest["re_capture_relationship"] == expected
+    assert manifest["source_slices"][0]["re_capture_relationship"] == expected
+    assert "reusing prior packet 01PRIOR" in manifest["capture_context"]["value"]
+    assert manifest["timing"]["recapture_time"] == {
+        "status": "known",
+        "value": "2026-07-13T01:02:03Z",
+        "reason": None,
+    }
+
+
+def test_grid_packet_rejects_blank_prior_capture_pointer(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="prior_capture_pointer must be non-empty"):
+        write_tiktok_grid_packet(
+            grid_window_json=_grid_bytes(),
+            output_directory=tmp_path / "blank-prior",
+            prior_capture_pointer="  ",
+        )
+
+
 def test_grid_packet_emits_typed_profile_metric_observations(tmp_path: Path) -> None:
     code, packet_dir_text = write_tiktok_grid_packet(
         grid_window_json=_grid_bytes(profile_metrics=True),
