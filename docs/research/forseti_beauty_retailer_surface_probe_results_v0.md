@@ -1365,6 +1365,27 @@ observations:
   This supplement adds no SOBS row because it records a pin-admission access
   gap, not a new assortment, price, review, or product-claim finding.
 
+- Owner-directed follow-up scouting (`2026-07-19`, uncaptured diagnostic, not a
+  Capture Spine packet): a **headed** CloakBrowser (`headless=False`,
+  `stealth_args=True`, `humanize=True`) — the one fingerprint neither prior
+  attempt used — was run against the homepage, policy, and PDP on two egresses:
+  the owner-operated US datacenter VPN (Surfshark, `AS60068 Datacamp`, New York)
+  and the normal no-VPN SG residential connection (`AS9506 Singtel`). All six
+  page loads returned Akamai `Access Denied` (`errors.edgesuite.net`), under 300
+  visible bytes each. (Caveat: the block page echoes the requested URL, so a
+  naive `lipsoftie` substring match on the PDP denial is a false positive; no
+  product, `USD`, or price rendered.)
+- Conclusion the follow-up supports, not overturns: the denial is an **Akamai
+  edge WAF decision** that is robust across browser fingerprint (HTTP,
+  headless/headed, stealth, humanize) AND across egress geography reachable from
+  this environment (US datacenter and SG residential). Neither a browser change
+  nor a Surfshark-location change available from this machine defeats it; Akamai
+  is the gatekeeper. The remaining admissible routes still require a
+  fundamentally different, Akamai-trusted egress — a US **residential** IP — or
+  an entitled affiliate feed / owner-approved paid provider, not a browser or
+  VPN-location change. This scouting note promotes no packet, pin, projection,
+  adapter, or SOBS row.
+
 ### Credo US/USD default storefront pin
 
 - The commissioned subject was Tower 28 SOS (Save. Our. Skin) Daily Rescue
