@@ -7,7 +7,7 @@ scope: Pre-registered test of broad, Problem-Framing-ready Understanding on Dr.J
 use_when:
   - Auditing what the dogfood was intended to test before external acquisition.
   - Comparing the completed run with the narrow Marc Jacobs Beauty Understanding run.
-authority_boundary: evidence_only_not_doctrine
+authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_dr_jart_broad_company_understanding_commission_board_v0.md
 ```
@@ -78,4 +78,42 @@ and owner adjudication, never automatic doctrine installation.
 
 ## Acquisition Closeout
 
-Pending. Append only after chronological acquisition closes.
+```yaml
+closeout_observed_at: "2026-07-20T01:42:31+08:00"
+pre_registration_commit: f56e2aa722fb146c62968d7befde583983d6ac49
+collector_isolation: cold_fork_no_conversation_context
+acquisition_walk: closure_shaped
+capture_preservation: blocked
+acquisition_gate: blocked
+deliver_allowed: false
+dogfood_disposition: INCONCLUSIVE
+```
+
+The broad commission caused the collector to cover all eight existing company
+lenses and surfaced three bounded tension/check pairs:
+
+1. upgraded-formula framing versus attributable reformulation and finish
+   concerns;
+2. parent-reported regional weakness versus a specific current Japanese
+   retailer exit; and
+3. retailer review prominence versus unavailable product-level incentive data.
+
+This is useful directional evidence that commission breadth changes acquisition
+behavior. It is not a successful dogfood result: several lenses remained
+partial, raw Capture packets were not preserved, the acquisition seal did not
+pass, and no Deliver artifact exists for decision-use comparison.
+
+The six qualitative outcome signals were visible but unscored:
+
+- question fit improved because the collector built a company model rather than
+  only auditing one proposition;
+- evidence foundation failed its integrity floor at preservation;
+- reasoning quality is not adjudicable before Deliver;
+- uncertainty was preserved through typed gaps and bounded claims;
+- implications were limited to candidate later questions, not assigned
+  problems; and
+- communication efficiency cannot be compared without a report.
+
+No doctrine change is supported by this run. The smallest next step, if the
+owner chooses to continue, is a bounded preservation recovery against the
+already observed URLs; no re-scan is authorized by this artifact.
