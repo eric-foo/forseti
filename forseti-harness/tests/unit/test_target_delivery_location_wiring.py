@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
+from source_capture.adapters import target_delivery_location as target_location
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.adapters.target_delivery_location import (
     TargetDeliveryLocationPlugin,
@@ -160,6 +161,48 @@ def test_plugin_types_readiness_and_click_failures_separately() -> None:
     assert readiness.reason == "wait_for_zip_control"
     assert click.reason == "open_zip_control"
     assert all(outcome.steps_completed is False for outcome in (readiness, click))
+
+
+def test_plugin_fails_before_readiness_when_setup_budget_is_exhausted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monotonic_values = iter([100.0, 100.0, 100.001])
+    monkeypatch.setattr(
+        target_location.time,
+        "monotonic",
+        lambda: next(monotonic_values),
+    )
+    page = _Page()
+
+    outcome = TargetDeliveryLocationPlugin(_TARGET_URL, "10001").before(
+        page,
+        setup_timeout_ms=1,
+    )
+
+    assert outcome.reason == "wait_for_zip_control"
+    assert page.control.clicked is False
+    assert float(page.goto_calls[0]["timeout"]) > 0
+
+
+def test_plugin_never_turns_expired_budget_into_unbounded_click(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(target_location.time, "monotonic", lambda: clock[0])
+    page = _Page()
+
+    def exhaust_budget_after_readiness(**_kwargs: Any) -> None:
+        clock[0] = 100.001
+
+    page.control.wait_for = exhaust_budget_after_readiness  # type: ignore[method-assign]
+
+    outcome = TargetDeliveryLocationPlugin(_TARGET_URL, "10001").before(
+        page,
+        setup_timeout_ms=1,
+    )
+
+    assert outcome.reason == "open_zip_control"
+    assert page.control.clicked is False
 
 
 def test_plugin_submits_scoped_zip_input_with_enter_when_action_label_drifts() -> None:
