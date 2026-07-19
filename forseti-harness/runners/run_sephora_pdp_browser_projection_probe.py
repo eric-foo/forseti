@@ -115,7 +115,9 @@ def run_sephora_pdp_browser_projection_probe(
             }
         raise
     projected_bytes = canonical_content_bytes(projected)
-    exact_match = projected == stored_content
+    parsed_match = projected == stored_content
+    byte_match = projected_bytes == stored_content_bytes
+    exact_match = parsed_match and byte_match
 
     report: dict[str, Any] = {
         "status": "match" if exact_match else "mismatch",
@@ -125,6 +127,8 @@ def run_sephora_pdp_browser_projection_probe(
         "browser_compact_dom_bytes": substrate.compact_dom_byte_count,
         "stored_content_record_bytes": len(stored_content_bytes),
         "projected_content_record_bytes": len(projected_bytes),
+        "parsed_content_match": parsed_match,
+        "byte_content_match": byte_match,
         "compact_vs_raw_reduction_percent": round(
             (1 - substrate.compact_dom_byte_count / len(rendered_dom)) * 100, 2
         ),
@@ -139,6 +143,11 @@ def run_sephora_pdp_browser_projection_probe(
     }
     if not exact_match:
         report["first_difference"] = _first_difference(stored_content, projected)
+        if parsed_match and not byte_match:
+            report["byte_identity_gap"] = {
+                "stored_content_sha256": report["stored_content_sha256"],
+                "projected_content_sha256": report["projected_content_sha256"],
+            }
         return 1, report
     return 0, report
 
