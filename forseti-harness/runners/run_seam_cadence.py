@@ -30,9 +30,10 @@ entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
 After and only after that completion signal passes, the cadence invokes the
 contract-pinned data-lake index runner for one metric-lane-scoped
 ``creator_vault`` rebuild. The generic lake-map views remain owner-rebuildable
-but are not rescanned on every cadence. A Creator Vault rebuild failure fails
-the cadence exit code loudly; no failed cadence attempts the refresh.
-
+but are not rescanned on normal cadence. One explicit fresh-root bootstrap run
+may build the generic map with the checkout's active product-mention policy.
+Any requested rebuild failure fails the cadence exit code loudly; no failed
+cadence attempts a refresh.
 ASR COST GATE: the ASR entrypoint executes local owner-operated compute on an
 unskipped ``--run``. ``--skip-asr`` skips only its execution and prints a
 visible ``skipped_asr_compute`` marker EVERY cycle carrying the compute-free
@@ -418,30 +419,34 @@ def _post_cycle_pending_failures(
     return failures
 
 
-def _refresh_lake_map(ctx: CadenceContext) -> int:
-    """Refresh Creator Vault after the all-caught-up proof."""
-    result = _indexes_rebuild.main(
-        [
-            "--root",
-            str(ctx.data_root.path),
-            "--target",
-            "creator_vault",
-        ]
-    )
-    _print(
-        {
-            "entrypoint": "run_data_lake_indexes_rebuild.py",
-            "status": (
-                "creator_vault_rebuilt"
-                if result == 0
-                else "creator_vault_rebuild_failed"
-            ),
-            "exit_code": result,
-            "map_scope": "live_after_snapshot_completion",
-        }
-    )
+def _refresh_lake_map(
+    ctx: CadenceContext,
+    *,
+    bootstrap_active_product_mention_policy: bool = False,
+) -> int:
+    """Refresh Creator Vault normally; retain explicit generic-map bootstrap."""
+    rebuild_args = ["--root", str(ctx.data_root.path), "--target"]
+    if bootstrap_active_product_mention_policy:
+        rebuild_args.extend(
+            ["derived_retrieval", "--bootstrap-active-product-mention-policy"]
+        )
+        success_status = "lake_map_rebuilt"
+        failure_status = "lake_map_rebuild_failed"
+    else:
+        rebuild_args.append("creator_vault")
+        success_status = "creator_vault_rebuilt"
+        failure_status = "creator_vault_rebuild_failed"
+    result = _indexes_rebuild.main(rebuild_args)
+    event = {
+        "entrypoint": "run_data_lake_indexes_rebuild.py",
+        "status": success_status if result == 0 else failure_status,
+        "exit_code": result,
+        "map_scope": "live_after_snapshot_completion",
+    }
+    if bootstrap_active_product_mention_policy:
+        event["policy_source"] = "active_checkout_bootstrap"
+    _print(event)
     return result
-
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -469,6 +474,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "With --run: skip ASR execution (local compute), printing a visible "
             "skipped marker with the pending count every cycle."
+        ),
+    )
+    parser.add_argument(
+        "--bootstrap-active-product-mention-policy",
+        action="store_true",
+        help=(
+            "With --run only: one-time fresh-root map bootstrap using the exact "
+            "active product-mention policy from this checkout; refuses an "
+            "existing by_mention manifest."
         ),
     )
     parser.add_argument(
@@ -500,6 +514,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             message="--skip-asr applies to --run only (--check is already compute-free)\n",
         )
 
+    if args.bootstrap_active_product_mention_policy and args.check:
+        parser.exit(
+            status=2,
+            message="--bootstrap-active-product-mention-policy applies to --run only",
+        )
+
     from data_lake.root import DataLakeRoot
 
     try:
@@ -519,7 +539,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     cadence_result = run_cadence(ctx, skip_asr=args.skip_asr)
     if cadence_result:
         return cadence_result
-    return _refresh_lake_map(ctx)
+    return _refresh_lake_map(
+        ctx,
+        bootstrap_active_product_mention_policy=(
+            args.bootstrap_active_product_mention_policy
+        ),
+    )
 
 
 if __name__ == "__main__":

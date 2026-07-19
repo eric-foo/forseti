@@ -173,6 +173,12 @@ Stages 2–4 remain trigger-gated.
   superset if capture or derivation continued. Manifest provenance discloses
   generation time and a source-ref-set fingerprint; hash verification proves
   integrity rather than currency.
+- Automation boundary: a normal successful `run_seam_cadence.py --run`
+  refreshes only Creator Vault; `--check` does not rebuild, and no background
+  scheduler is selected. A fresh root may use one explicit
+  `--bootstrap-active-product-mention-policy` cadence run to build the generic
+  map with the checkout's exact active policy; bootstrap refuses an existing
+  manifest. Later generic-map rebuilds reuse stored pins and remain explicit.
 
 ### Historical propagation evidence (2026-07-17)
 
@@ -181,7 +187,6 @@ scope is superseded by the 2026-07-19 owner correction above; it remains
 historical provenance, not the current operating rule. Current propagation
 evidence is the owning-source diff plus the PR/closeout, so no new receipt is
 created.
-
 ```yaml
 direction_change_propagation:
   trigger: architecture_doctrine

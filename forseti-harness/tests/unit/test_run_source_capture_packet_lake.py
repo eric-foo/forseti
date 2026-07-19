@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from data_lake.root import DataLakeRoot, FORSETI_DATA_ROOT_ENV, raw_shard
-from runners.run_source_capture_packet import main, run_source_capture_packet
+from runners.run_source_capture_packet import _build_parser, main, run_source_capture_packet
 from source_capture.models import CaptureModeCategory, known_fact
 
 
@@ -17,7 +17,12 @@ def _isolate_from_operator_lake(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("ORCA_DATA_ROOT", raising=False)
 
 
-def _run(root: DataLakeRoot, tmp_path: Path, source_family: str = "reddit"):
+def _run(
+    root: DataLakeRoot,
+    tmp_path: Path,
+    source_family: str = "reddit",
+    cutoff_posture=None,
+):
     src = tmp_path / "artifact.json"
     src.write_text('{"x": 1}', encoding="utf-8")
     return run_source_capture_packet(
@@ -35,7 +40,7 @@ def _run(root: DataLakeRoot, tmp_path: Path, source_family: str = "reddit"):
         visible_mode_changes=[],
         source_publication_or_event=None,
         source_edit_or_version=None,
-        cutoff_posture=None,
+        cutoff_posture=cutoff_posture,
         recapture_time=None,
         access_posture=None,
         archive_history_posture=None,
@@ -57,6 +62,58 @@ def test_generic_runner_routes_to_lake(tmp_path: Path) -> None:
     assert root.find_packet(pid) is not None
     assert root.read_availability(pid) is not None
     assert root.load_raw_packet(pid).manifest["packet_id"] == pid
+
+
+def test_generic_runner_cleans_its_staging_directory_when_validation_fails(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+
+    with pytest.raises(ValueError, match="cutoff_posture"):
+        _run(root, tmp_path, cutoff_posture=known_fact("before_decision"))
+
+    staging = root.path / ".staging"
+    assert not staging.exists() or not any(staging.iterdir())
+    assert list((root.path / "raw").rglob("manifest.json")) == []
+
+
+def test_cli_rejects_invalid_cutoff_before_resolving_lake(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = tmp_path / "artifact.json"
+    source.write_text("{}", encoding="utf-8")
+    lake = tmp_path / "uninitialized-lake"
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--source-family",
+                "reddit",
+                "--source-locator",
+                "https://www.reddit.com/r/test/comments/x/",
+                "--decision-question",
+                "q",
+                "--input-file",
+                str(source),
+                "--data-root",
+                str(lake),
+                "--cutoff-posture",
+                "before_decision",
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert (
+        "cutoff posture must be one of: mixed, post_cutoff, pre_cutoff, unknown"
+        in capsys.readouterr().err
+    )
+    assert not lake.exists()
+
+
+def test_cli_help_lists_allowed_cutoff_postures() -> None:
+    help_text = " ".join(_build_parser().format_help().split())
+
+    assert "Known cutoff posture; one of: mixed, post_cutoff, pre_cutoff, unknown" in help_text
 
 
 def test_cli_uses_forseti_env_when_output_omitted(

@@ -376,6 +376,42 @@ def test_cli_check_run_check_roundtrip(tmp_path, monkeypatch, capsys) -> None:
     capsys.readouterr()
 
 
+def test_cli_fresh_root_bootstrap_routes_active_policy(
+    tmp_path, monkeypatch, capsys
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_packet(data_root, tmp_path)
+    monkeypatch.setattr(
+        DataLakeRoot,
+        "resolve",
+        classmethod(lambda cls, **_kwargs: data_root),
+    )
+    rebuild_calls = []
+    monkeypatch.setattr(
+        cadence._indexes_rebuild,
+        "main",
+        lambda argv: rebuild_calls.append(argv) or 0,
+    )
+
+    assert main(
+        ["--run", "--skip-asr", "--bootstrap-active-product-mention-policy"]
+    ) == 0
+    assert rebuild_calls == [
+        [
+            "--root",
+            str(data_root.path),
+            "--target",
+            "derived_retrieval",
+            "--bootstrap-active-product-mention-policy",
+        ]
+    ]
+    assert any(
+        line.get("status") == "lake_map_rebuilt"
+        and line.get("policy_source") == "active_checkout_bootstrap"
+        for line in _output_lines(capsys)
+    )
+
+
 def test_failed_cadence_never_attempts_lake_map_rebuild(
     tmp_path, monkeypatch
 ) -> None:
@@ -422,4 +458,8 @@ def test_cli_usage_errors(tmp_path) -> None:
 
     with pytest.raises(SystemExit) as excinfo:
         main(["--check", "--skip-asr"])
+    assert excinfo.value.code == 2
+
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--check", "--bootstrap-active-product-mention-policy"])
     assert excinfo.value.code == 2

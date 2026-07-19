@@ -10,6 +10,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from source_capture.models import (
+    CUTOFF_POSTURE_VALUES,
     CaptureModeCategory,
     VisibleFact,
     known_fact,
@@ -55,6 +56,20 @@ def build_optional_fact(
     if not_applicable_reason is not None:
         return not_applicable(not_applicable_reason)
     return None
+
+
+def build_cutoff_posture(
+    *, value: str | None, unknown_reason: str | None
+) -> VisibleFact | None:
+    fact = build_optional_fact(
+        label="cutoff posture",
+        value=value,
+        unknown_reason=unknown_reason,
+    )
+    if value is not None and value not in CUTOFF_POSTURE_VALUES:
+        allowed = ", ".join(sorted(CUTOFF_POSTURE_VALUES))
+        raise ValueError(f"cutoff posture must be one of: {allowed}")
+    return fact
 
 
 def run_source_capture_packet(
@@ -146,7 +161,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-publication-or-event-unknown-reason", default=None)
     parser.add_argument("--source-edit-or-version", default=None)
     parser.add_argument("--source-edit-or-version-unknown-reason", default=None)
-    parser.add_argument("--cutoff-posture", default=None)
+    parser.add_argument(
+        "--cutoff-posture",
+        default=None,
+        help=f"Known cutoff posture; one of: {', '.join(sorted(CUTOFF_POSTURE_VALUES))}",
+    )
     parser.add_argument("--cutoff-posture-unknown-reason", default=None)
     parser.add_argument("--recapture-time", default=None)
     parser.add_argument("--recapture-time-not-applicable-reason", default=None)
@@ -167,6 +186,14 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    try:
+        cutoff_posture = build_cutoff_posture(
+            value=args.cutoff_posture,
+            unknown_reason=args.cutoff_posture_unknown_reason,
+        )
+    except Exception as exc:
+        parser.exit(status=2, message=f"source capture packet failed: {exc}\n")
+
     # helper-delta: vs runners/_scaffold.resolve_output_root -- unprefixed messages,
     # resolution outside any try, and the exactly-one xor check re-runs after resolution.
     data_root = None
@@ -219,11 +246,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 value=args.source_edit_or_version,
                 unknown_reason=args.source_edit_or_version_unknown_reason,
             ),
-            cutoff_posture=build_optional_fact(
-                label="cutoff posture",
-                value=args.cutoff_posture,
-                unknown_reason=args.cutoff_posture_unknown_reason,
-            ),
+            cutoff_posture=cutoff_posture,
             recapture_time=build_optional_fact(
                 label="re-capture timing",
                 value=args.recapture_time,

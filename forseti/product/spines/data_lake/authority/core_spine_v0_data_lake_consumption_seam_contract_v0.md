@@ -114,9 +114,14 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
   snapshot completion. It scans the full creator-profile metric observation
   lane, may include newer committed material, and is never an exact
   historical-snapshot claim. Generic `by_creator`, `by_mention`, and `undone`
-  views remain explicit owner-rebuildable caches; cadence no longer rescans
-  them merely to refresh current creator metrics.
-
+  views remain explicit owner-rebuildable caches; normal cadence no longer
+  rescans them merely to refresh current creator metrics.
+- A fresh root may still use one explicit cadence
+  `--bootstrap-active-product-mention-policy` run to build the generic map with
+  the checkout's exact active policy; bootstrap reports and stores the version
+  plus fingerprint and refuses an existing `by_mention` manifest. Later
+  generic-map rebuilds use stored pins. Normal Creator Vault cadence does not
+  read or require product-mention policy pins, and `--check` never mutates.
 ## Acknowledgement Contract
 
 - Physical grammar is owned by the derived-layout contract
@@ -214,9 +219,15 @@ contract.
 
 For a rebuild containing derived_retrieval, the caller must additionally
 provide --product-mention-policy-version <VERSION> and
---product-mention-policy-fingerprint-sha256 <LOWERCASE_64_HEX>.
-Proof mode regenerates from the exact policy stored in each view manifest and
-does not accept an implicit current/latest policy.
+--product-mention-policy-fingerprint-sha256 <LOWERCASE_64_HEX>. A fresh root
+may instead use `--bootstrap-active-product-mention-policy` exactly once. That
+flag binds the exact active product-extraction policy from the checked-out
+code, reports and persists the version plus fingerprint in generated-view
+manifests, and refuses to run when a `by_mention` manifest already exists.
+Later cadence and owner-operated rebuilds use
+`--use-stored-product-mention-policy` from that manifest. Proof mode
+regenerates from the exact policy stored in each view manifest and does not
+accept an implicit current/latest policy.
 
 - `--target availability` delegates to `DataLakeRoot.rebuild_availability`.
 - `--target creator_vault` scans only the complete
@@ -558,4 +569,36 @@ direction_change_propagation:
     - not validation or readiness
     - not by_creator activation
     - not a new retrieval backend or authority source
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Fresh-root lake-map maintenance now has one explicit bootstrap boundary:
+    one --bootstrap-active-product-mention-policy rebuild binds the checkout's
+    exact active product-extraction policy, records its version and fingerprint,
+    and refuses an existing by_mention manifest. Normal cadence then reuses
+    stored pins automatically. Check mode remains read-only and no scheduler is
+    introduced.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/runners/run_data_lake_indexes_rebuild.py
+    - forseti-harness/runners/run_seam_cadence.py
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+    - forseti-harness/tests/unit/test_seam_cadence.py
+    - forseti-harness/cleaning/transcript_product_extractor.py
+    - forseti-harness/cleaning/transcript_product_lake.py
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: Policy bootstrap changes no raw, Silver, acknowledgement, or index storage shape.
+  non_claims:
+    - not validation, readiness, or live-drive proof
+    - not a scheduler or continuous-maintenance service
+    - not implicit latest-policy selection or policy-authority transfer
 ```
