@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 import re
 import sys
@@ -962,7 +963,10 @@ def _is_nonnegative_integer(value: Any) -> bool:
 def _rate_matches(value: Any, numerator: int, denominator: int) -> bool:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or denominator <= 0:
         return False
-    return abs(float(value) - round(100 * numerator / denominator, 1)) < 0.051
+    expected = (
+        (Decimal(numerator) * Decimal(100)) / Decimal(denominator)
+    ).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    return Decimal(str(value)) == expected
 
 
 def _validate_retailer_review_approval_signal(
@@ -1103,7 +1107,7 @@ def _validate_retailer_review_approval_signal(
         findings.append(
             Finding(
                 "invalid_retailer_review_approval_rates",
-                "Approval rates must equal the one-decimal 4-5 and 1-3 star shares of eligible_total.",
+                "Approval rates must equal the round-half-up, one-decimal 4-5 and 1-3 star shares of eligible_total.",
                 observation_id,
             )
         )

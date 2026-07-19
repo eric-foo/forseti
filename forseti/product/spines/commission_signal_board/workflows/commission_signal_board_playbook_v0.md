@@ -161,8 +161,9 @@ the seal resolves to row-level ratings, source-visible incentive posture, and a
 reproducible corpus boundary. Preserve disclosed incentivized rows in raw
 capture but exclude them from the primary derived view. Report the eligible
 denominator and excluded count; call unlabelled rows `not marked
-incentivized`, never organic. If the route yields only a headline aggregate or
-an unreproducible slice, omit the signal and preserve the gap. This is
+incentivized`, never organic. Express both percentage fields to one decimal
+using round-half-up. If the route yields only a headline aggregate or an
+unreproducible slice, omit the signal and preserve the gap. This is
 conditional synthesis, not a mandatory acquisition step or completion gate.
 
 Understanding Deliver produces the decision-neutral company-intelligence

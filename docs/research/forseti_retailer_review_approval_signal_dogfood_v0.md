@@ -24,10 +24,12 @@ claim.
 - Projection SHA-256:
   `778266c9af8b9dd526a83083768fe78d632756049f3258632b4afe3cded4c0fd`
 - Corpus basis: `reproducible_bounded_sample`
-- Sample selection: first ten rows from the preserved date-sorted widget
-  response
-- Limitation: this is a recent, non-random slice of ten rows, not the
-  648-review corpus
+- Sample selection: ten rows admitted by the preserved
+  `fragrance_review_focused_coverage` projection; the rating-aware admission
+  produced row ordinals `1-5` and `7-11`, with nine five-star rows and one
+  four-star row
+- Limitation: this is a recent, non-random, rating-aware slice of ten rows, not
+  the first ten date-sorted rows and not the 648-review corpus
 
 The source projection preserves ten ratings and the source-visible Yotpo
 `is_incentivized` field per row. A false flag is treated only as `not marked
@@ -41,7 +43,7 @@ retailer_review_approval_signal:
   corpus_basis: reproducible_bounded_sample
   source_visible_total: 648
   captured_total: 10
-  sample_selection: first ten rows from the preserved date-sorted widget response
+  sample_selection: ten rows admitted by fragrance_review_focused_coverage; row ordinals 1-5 and 7-11; rating counts 4-star=1 and 5-star=9
   incentive_disclosure_basis: source-visible Yotpo is_incentivized boolean
   excluded_explicit_incentivized: 5
   excluded_unknown_or_conflicting: 0
@@ -58,7 +60,7 @@ retailer_review_approval_signal:
 
 Permitted reading:
 
-> In the preserved latest-ten review slice, all five reviews not marked
+> In the preserved rating-aware ten-review slice, all five reviews not marked
 > incentivized were four or five stars; five source-flagged incentivized
 > reviews were excluded from this derived view.
 
@@ -78,7 +80,7 @@ The real slice exercises the intended behavior:
 - the five source-flagged incentivized rows are excluded only from the derived
   primary view;
 - the eligible denominator and excluded count are visible;
-- the output stays bounded to the latest-ten sample; and
+- the output stays bounded to the rating-aware ten-row sample; and
 - no strict explicit-non-incentivized sensitivity is emitted because this
   surface does not explicitly certify those five rows as non-incentivized.
 

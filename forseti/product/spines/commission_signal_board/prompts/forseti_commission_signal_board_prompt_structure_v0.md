@@ -986,9 +986,10 @@ derived primary view. The primary label is `approval among reviews not marked
 incentivized`, never `organic approval`. Four- and five-star rows are positive;
 one-, two-, and three-star rows are below-positive. Always state the eligible
 denominator, excluded-incentivized count, source, capture date, and corpus
-basis. A bounded sample must be labeled as that sample, not the retailer-wide
-corpus. The explicit-non-incentivized sensitivity is a separate view, never
-silently substituted for the primary denominator.
+basis. Express `approval_rate_pct` and `below_positive_rate_pct` to one decimal
+using round-half-up. A bounded sample must be labeled as that sample, not the
+retailer-wide corpus. The explicit-non-incentivized sensitivity is a separate
+view, never silently substituted for the primary denominator.
 
 This signal describes only the captured retailer-review corpus. It establishes
 neither representative demand, market consensus, prevalence beyond its defined
