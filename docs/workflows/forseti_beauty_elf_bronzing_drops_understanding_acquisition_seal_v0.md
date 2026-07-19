@@ -3,15 +3,25 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Blocked Acquire & Seal handoff for the e.l.f. Bronzing Drops Understanding Intelligence Cycle.
+scope: Closed blocked Acquire & Seal record for the e.l.f. Bronzing Drops Understanding Intelligence Cycle.
 use_when:
-  - Checking whether the Understanding Deliver turn is allowed.
-  - Resuming acquisition after a supported R0 timestamp becomes available.
+  - Auditing why Understanding Deliver was prohibited and the cycle closed.
+  - Verifying the preserved blocked R0 acquisition state.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_elf_bronzing_drops_understanding_commission_board_v0.md
   - docs/research/forseti_beauty_elf_bronzing_drops_understanding_scan_receipt_v0.md
   - docs/review-inputs/elf_bronzing_drops_claim_sensitive_stop_20260719/cp0.md
+```
+
+## Lifecycle Closeout
+
+```yaml
+current_lifecycle_status: CLOSED_ABORTED_AT_INTAKE
+intelligence_cycle_phase_status: NOT_COMPLETED
+resume_allowed: false
+correct_intake_result: NEEDS_CUTOFF_DATE
+historical_seal_below: preserved_as_observed
 ```
 
 ```yaml
