@@ -28,6 +28,7 @@ from source_capture.session_profiles import (
 from source_capture.tiktok.creator_onboarding import (
     DEFAULT_MAX_GRID_SCROLL_PASSES,
     DEFAULT_WINDOW_SIZE,
+    TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
     build_tiktok_grid_window,
     capture_tiktok_creator_grid,
 )
@@ -208,6 +209,7 @@ def _run_one(
                 settle_seconds=settle_seconds,
                 max_grid_scroll_passes=max_grid_scroll_passes,
                 engine=engine,
+                required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
             )
             if isinstance(capture, BrowserSnapshotFailure):
                 raise RuntimeError(f"grid capture failed: {capture.failure_kind.value}: {capture.message}")
@@ -220,6 +222,7 @@ def _run_one(
                 capture=capture,
                 window_size=window_size,
                 minimum_window_size=minimum_window_size,
+                required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
             )
             window["heartbeat_binding"] = {
                 "attempt_id": attempt_id,

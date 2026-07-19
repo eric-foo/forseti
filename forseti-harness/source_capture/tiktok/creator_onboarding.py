@@ -59,6 +59,11 @@ TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
 TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION = "tiktok_profile_metric_capture_v0"
+TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS = (
+    "playCount",
+    "diggCount",
+    "commentCount",
+)
 DEFAULT_WINDOW_SIZE = 30
 DEFAULT_SELECTION_COUNT = 8
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
@@ -747,6 +752,7 @@ def run_tiktok_creator_profile_refresh(
             settle_seconds=settle_seconds,
             max_grid_scroll_passes=max_grid_scroll_passes,
             engine=observation_engine,
+            required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
         )
         if isinstance(capture, BrowserSnapshotFailure):
             raise TikTokCreatorOnboardingError(
@@ -757,6 +763,7 @@ def run_tiktok_creator_profile_refresh(
             capture=capture,
             window_size=window_size,
             minimum_window_size=1,
+            required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
         )
         _write_json(paths.grid_window_json_path, grid_window)
         _notify_progress(progress_fn, "profile_refresh_complete", completed_count=0)
@@ -963,6 +970,7 @@ def _run_suggested_grid_and_selection_phase(
         settle_seconds=settle_seconds,
         max_grid_scroll_passes=max_grid_scroll_passes,
         engine=engine,
+        required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
     )
     if isinstance(grid_capture, BrowserSnapshotFailure):
         raise TikTokCreatorOnboardingError(
@@ -977,6 +985,7 @@ def _run_suggested_grid_and_selection_phase(
         capture=grid_capture,
         window_size=window_size,
         minimum_window_size=selection_count,
+        required_metric_names=TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS,
     )
     state.grid_window = grid_window
     _write_json(paths.grid_window_json_path, grid_window)
@@ -2123,6 +2132,7 @@ def capture_tiktok_creator_grid(
     settle_seconds: float,
     max_grid_scroll_passes: int,
     engine: BrowserPageObservationEngine,
+    required_metric_names: Sequence[str] = (),
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
     """Capture one sufficient grid batch without loading a second batch."""
 
@@ -2132,6 +2142,7 @@ def capture_tiktok_creator_grid(
         *,
         pointer_actions: Sequence[BrowserPagePointerAction] = (),
         wheel_action: BrowserPageWheelAction | None = None,
+        force_same_url_reload: bool = False,
     ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
         return fetch_browser_page_observation_capture(
             url=profile_url,
@@ -2150,11 +2161,29 @@ def capture_tiktok_creator_grid(
             human_challenge_handoff_timeout_seconds=180.0,
             human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
             engine=engine,
+            force_same_url_reload=force_same_url_reload,
         )
 
     initial = observe(pointer_actions=(TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,))
     if isinstance(initial, BrowserSnapshotFailure):
         return initial
+    metric_reload_attempted = False
+    metric_reload_recovered = False
+    if (
+        not _metric_items_from_capture(initial, creator_handle)
+        and _non_negative_int_or_zero(
+            initial.metadata.get("same_url_navigation_suppression_count")
+        )
+        > 0
+    ):
+        metric_reload_attempted = True
+        refreshed = observe(force_same_url_reload=True)
+        if isinstance(refreshed, BrowserSnapshotFailure):
+            return refreshed
+        initial = refreshed
+        metric_reload_recovered = bool(
+            _metric_items_from_capture(initial, creator_handle)
+        )
     initial_ids = _ordered_grid_video_ids(initial, creator_handle=creator_handle)
 
     captures = [initial]
@@ -2173,8 +2202,17 @@ def capture_tiktok_creator_grid(
         )
     sufficient_dom_video_count = min(window_size, minimum_dom_video_count)
     initial_window_sufficient = len(initial_ids) >= sufficient_dom_video_count
+    required_metrics = _validated_required_grid_metric_names(required_metric_names)
+    initial_metrics_sufficient = _grid_metrics_sufficient(
+        captures=captures,
+        creator_handle=creator_handle,
+        ordered_ids=initial_ids,
+        window_size=window_size,
+        required_metric_names=required_metrics,
+    )
+    metrics_sufficient = initial_metrics_sufficient
     wheel_burst_count = 0
-    if not initial_window_sufficient:
+    if not initial_window_sufficient or not initial_metrics_sufficient:
         for _ in range(GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP):
             wheel_capture = observe(
                 wheel_action=BrowserPageWheelAction(
@@ -2192,9 +2230,30 @@ def capture_tiktok_creator_grid(
                 wheel_capture,
                 creator_handle=creator_handle,
             )
-            if set(prior_ids) - initial_id_set:
+            metrics_sufficient = _grid_metrics_sufficient(
+                captures=captures,
+                creator_handle=creator_handle,
+                ordered_ids=(
+                    initial_ids if initial_window_sufficient else prior_ids
+                ),
+                window_size=window_size,
+                required_metric_names=required_metrics,
+            )
+            if (
+                initial_window_sufficient
+                and metrics_sufficient
+            ) or (
+                not initial_window_sufficient
+                and bool(set(prior_ids) - initial_id_set)
+                and metrics_sufficient
+            ):
                 break
         else:
+            if initial_window_sufficient:
+                raise TikTokCreatorOnboardingError(
+                    "grid engagement metrics remained incomplete after bounded "
+                    "item-list pagination"
+                )
             raise TikTokCreatorOnboardingError(
                 "no new grid DOM batch appeared within bounded adaptive wheel bursts"
             )
@@ -2221,6 +2280,7 @@ def capture_tiktok_creator_grid(
         )
 
     final = captures[-1]
+    frozen_dom_capture = initial if initial_window_sufficient else final
     final_id_set = set(prior_ids)
     if len(prior_ids) < sufficient_dom_video_count:
         raise TikTokCreatorOnboardingError(
@@ -2241,6 +2301,10 @@ def capture_tiktok_creator_grid(
             "grid_acquisition_policy": "sufficient_initial_or_adaptive_first_dom_batch_then_stabilize",
             "grid_acquisition_sufficient_dom_video_count": sufficient_dom_video_count,
             "grid_acquisition_initial_window_sufficient": initial_window_sufficient,
+            "grid_acquisition_initial_metrics_sufficient": (
+                initial_metrics_sufficient
+            ),
+            "grid_acquisition_final_metrics_sufficient": metrics_sufficient,
             "grid_acquisition_wheel_burst_cap": GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP,
             "grid_acquisition_wheel_burst_count": wheel_burst_count,
             "grid_acquisition_wheel_action_receipts": wheel_action_receipts,
@@ -2251,13 +2315,19 @@ def capture_tiktok_creator_grid(
             "grid_acquisition_passive_polls_executed": passive_polls_executed,
             "grid_acquisition_consecutive_stable_polls": stable_poll_count,
             "grid_acquisition_stop_reason": (
-                "initial_sufficient_window_stabilized"
+                (
+                    "initial_sufficient_window_stabilized"
+                    if initial_metrics_sufficient
+                    else "initial_sufficient_window_metrics_completed"
+                )
                 if initial_window_sufficient
                 else "first_new_dom_batch_stabilized"
             ),
             "lazy_load_scroll_passes_executed": 0,
             "lazy_load_scroll_stop_reason": "not_used_dom_batch_policy",
             "lazy_load_response_stop_condition_configured": False,
+            "grid_metric_reload_attempted": metric_reload_attempted,
+            "grid_metric_reload_recovered": metric_reload_recovered,
         }
     )
     return BrowserPageObservationSuccess(
@@ -2265,7 +2335,7 @@ def capture_tiktok_creator_grid(
         final_url=final.final_url,
         title=final.title,
         visible_text=final.visible_text,
-        dom_observation=final.dom_observation,
+        dom_observation=frozen_dom_capture.dom_observation,
         responses=combined_responses,
         metadata=metadata,
         warning_notes=list(dict.fromkeys(note for capture in captures for note in capture.warning_notes)),
@@ -2285,6 +2355,7 @@ def build_tiktok_grid_window(
     capture: BrowserPageObservationSuccess,
     window_size: int,
     minimum_window_size: int | None = None,
+    required_metric_names: Sequence[str] = (),
 ) -> dict[str, Any]:
     """Freeze up to the cap while requiring enough rows for selection."""
 
@@ -2361,6 +2432,26 @@ def build_tiktok_grid_window(
             "usable grid window unavailable: "
             f"required at least {required_minimum}, found {len(frozen)} ordered rows with metrics"
         )
+    required_metrics = _validated_required_grid_metric_names(required_metric_names)
+    incomplete_rows = [
+        {
+            "video_id": item["video_id"],
+            "missing": [
+                metric
+                for metric in required_metrics
+                if type((item.get("stats") or {}).get(metric)) is not int
+            ],
+        }
+        for item in frozen
+    ]
+    incomplete_rows = [row for row in incomplete_rows if row["missing"]]
+    if incomplete_rows:
+        first = incomplete_rows[0]
+        raise TikTokCreatorOnboardingError(
+            "grid engagement metrics incomplete after bounded response reload: "
+            f"{len(incomplete_rows)} of {len(frozen)} rows missing required fields; "
+            f"first video_id={first['video_id']} missing={','.join(first['missing'])}"
+        )
     receipt = {
         "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
         "creator_handle": creator_handle,
@@ -2389,6 +2480,12 @@ def build_tiktok_grid_window(
         "collection_receipt": {
             "capture_timestamp": capture.metadata.get("capture_timestamp"),
             "response_count": len(capture.responses),
+            "metric_reload_attempted": capture.metadata.get(
+                "grid_metric_reload_attempted"
+            ),
+            "metric_reload_recovered": capture.metadata.get(
+                "grid_metric_reload_recovered"
+            ),
             "grid_acquisition_policy": capture.metadata.get("grid_acquisition_policy"),
             "sufficient_dom_video_count": capture.metadata.get(
                 "grid_acquisition_sufficient_dom_video_count"
@@ -2560,6 +2657,52 @@ def _build_suggested_accounts_receipt(
     }
     assert_no_sensitive_tiktok_material(receipt)
     return receipt
+
+
+def _validated_required_grid_metric_names(
+    required_metric_names: Sequence[str],
+) -> tuple[str, ...]:
+    required_metrics = tuple(dict.fromkeys(required_metric_names))
+    unsupported_required_metrics = set(required_metrics) - set(
+        TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS
+    )
+    if unsupported_required_metrics:
+        raise TikTokCreatorOnboardingError(
+            "unsupported required TikTok grid metrics: "
+            + ", ".join(sorted(unsupported_required_metrics))
+        )
+    return required_metrics
+
+
+def _grid_metrics_sufficient(
+    *,
+    captures: Sequence[BrowserPageObservationSuccess],
+    creator_handle: str,
+    ordered_ids: Sequence[str],
+    window_size: int,
+    required_metric_names: Sequence[str],
+) -> bool:
+    if not required_metric_names:
+        return True
+    metric_items = _dedupe_metric_items(
+        [
+            item
+            for capture in captures
+            for item in _metric_items_from_capture(capture, creator_handle)
+        ]
+    )
+    by_id = {str(item["video_id"]): item for item in metric_items}
+    target_ids = tuple(ordered_ids[:window_size])
+    if not target_ids:
+        return False
+    return all(
+        all(
+            type((by_id.get(video_id, {}).get("stats") or {}).get(metric_name))
+            is int
+            for metric_name in required_metric_names
+        )
+        for video_id in target_ids
+    )
 
 
 def _non_negative_int_or_zero(value: Any) -> int:
@@ -3149,6 +3292,7 @@ __all__ = [
     "TIKTOK_ONBOARDING_RECEIPT_JSON_NAME",
     "TIKTOK_ONBOARDING_SELECTION_JSON_NAME",
     "TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME",
+    "TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS",
     "TikTokCreatorOnboardingError",
     "TikTokCreatorOnboardingOutputPaths",
     "TikTokCreatorProfileRefreshOutputPaths",
