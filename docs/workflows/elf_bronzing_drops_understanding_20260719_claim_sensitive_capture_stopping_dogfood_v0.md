@@ -271,15 +271,67 @@ Promotion authorizes only a de-correlated adversarial review of this artifact
 and its full receipts. It does not authorize a Scanning, Intelligence Cycle,
 validator, schema, registry, or mandatory-workflow change.
 
-## Closeout — intentionally empty before acquisition
+## Closeout
 
 ```yaml
-collector_result: NOT_RUN
-current_policy_closure: NOT_RUN
-checkpoint_packets: []
+closeout_date: 2026-07-19
+collector_result: INCONCLUSIVE_CAPTURE_BLOCKED
+acquisition_commit: 6e10a696d2e26b1118ec08ce084d8a9f36b32ea3
+cutoff:
+  state: unbound
+  reason: >
+    The first-party page stated an April 11 shopping-access time but exposed no
+    publication timestamp; the current URL returned HTTP 404 and the bounded
+    exact-URL Wayback query returned no served-time record.
+current_policy_closure: NOT_REACHED
+phase_acquisition_seal:
+  path: docs/workflows/forseti_beauty_elf_bronzing_drops_understanding_acquisition_seal_v0.md
+  seal_state: BLOCKED_ACQUISITION_INCOMPLETE
+  acquisition_gate: blocked
+  deliver_allowed: false
+checkpoint_packets:
+  - checkpoint_id: CP0
+    path: docs/review-inputs/elf_bronzing_drops_claim_sensitive_stop_20260719/cp0.md
+    sha256: 40b9e51aa9fec3ad15c6868748ada6db8bf3a051c4c2497e0fccd71de41f9321
+    state: INCONCLUSIVE_CAPTURE_BLOCKED
+    included_observation_ids: [OBS-001, OBS-002]
+    included_receipt_ids: [ACCESS-001, ACCESS-002, EQ-001, M01, NEG-001]
 policy_a_returns: []
 policy_b_returns: []
+evaluator_dispatch: NOT_RUN_INVALID_REFERENCE_HORIZON
 later_evidence_comparison: NOT_RUN
-effort_comparison: NOT_RUN
-dogfood_disposition: NOT_RUN
+effort_comparison: NOT_SUPPORTED
+dogfood_disposition: REVISE_AND_RETEST
 ```
+
+No evaluator was spawned. CP0 did not establish the required cutoff, the
+collector did not reach current-policy closure, and there was no later captured
+set against which an earlier stop could be tested. Treating the blocked packet
+as a valid replay would create the fake success path prohibited by this
+pre-registration.
+
+## Integrity and failure record
+
+- The first collector self-stopped before external acquisition or repository
+  mutation after accidentally reading Policy B because its targeted heading
+  match was too literal. A fresh collector with no inherited context replaced
+  it and verified the pre-registration only by Git object existence.
+- The replacement collector remained blind to the candidate policy. It ran the
+  bounded R0 discovery unit, made no R1-R6 acquisition, and did not receive an
+  evaluator decision.
+- Slow and interrupted local patch calls affected persistence latency, not the
+  evidence stream. The final board and scan receipt passed their focused
+  validators before the acquisition commit.
+- The failed cutoff does not support or reject claim-sensitive stopping. It
+  shows only that this case did not produce a valid reference horizon under the
+  accepted cutoff rule.
+
+## Disposition
+
+`REVISE_AND_RETEST`.
+
+The next dogfood must use another owner-accepted live Understanding cycle whose
+decision cutoff is already supportable from a source-native or served-time
+record. This is a commission-local retry condition, not a standing Intelligence
+Cycle preflight, production-contract change, validator change, or claim that
+the candidate stopping rule is ready for adversarial review.
