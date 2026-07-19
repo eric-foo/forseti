@@ -62,17 +62,27 @@ class _FakePage:
         selectable: set[str] | None = None,
         body_text: str = "United States",
         goto_error: Exception | None = None,
+        target_control_url: str | None = None,
     ) -> None:
         self.clickable = clickable or set()
         self.selectable = selectable or set()
         self.body_text = body_text
         self.goto_error = goto_error
+        self.target_control_url = target_control_url
         self.actions: list[tuple[Any, ...]] = []
 
     def goto(self, url: str, *, wait_until: str, timeout: float) -> None:
         self.actions.append(("goto", url, wait_until, timeout))
         if self.goto_error is not None:
             raise self.goto_error
+        if url == self.target_control_url:
+            self.clickable.update(
+                {
+                    "button[name='changeCountry']",
+                    "[role='dialog'] button:has-text('United States')",
+                    "[role='dialog'] button:has-text('Save')",
+                }
+            )
 
     def locator(self, selector: str) -> _FakeLocator:
         return _FakeLocator(self, selector)
@@ -164,11 +174,30 @@ def test_before_reports_missing_country_control() -> None:
     assert "without a confirmed country preference" in outcome.warning_notes[0]
 
 
+def test_before_falls_back_to_same_control_on_commissioned_target() -> None:
+    target_url = "https://www.nordstrom.com/s/the-lip-balm/8260802"
+    page = _FakePage(target_control_url=target_url)
+
+    outcome = NordstromCountryPreferencePlugin(target_url=target_url).before(
+        page, setup_timeout_ms=45_000
+    )
+
+    assert outcome.steps_completed is True
+    assert outcome.reason is None
+    assert any(action[:2] == ("goto", target_url) for action in page.actions)
+    assert any(
+        "commissioned target was used" in warning
+        for warning in outcome.warning_notes
+    )
+
+
 def test_plugin_rejects_non_us_and_non_positive_timeout() -> None:
     with pytest.raises(ValueError, match="only US/USD"):
         NordstromCountryPreferencePlugin(country_code="SG", currency_code="SGD")
     with pytest.raises(ValueError, match="greater than zero"):
         NordstromCountryPreferencePlugin(setup_timeout_seconds=0)
+    with pytest.raises(ValueError, match="must use nordstrom.com"):
+        NordstromCountryPreferencePlugin(target_url="https://example.com/product")
 
 
 def test_writer_builds_nordstrom_plugin(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:

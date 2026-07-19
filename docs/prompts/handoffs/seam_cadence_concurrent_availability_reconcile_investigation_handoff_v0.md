@@ -1,5 +1,14 @@
 # Seam Cadence Concurrent Availability-Reconcile Failure — Investigation Handoff (v0)
 
+> Superseded on 2026-07-19 by docs/prompts/handoffs/silver_lake_operational_gap_sequential_implementation_handoff_v0.md. An idle scheduled run reproduced a systemic Errno 22 to WinError 433 device-loss failure, resolving the concurrency-only fork. Historical evidence only; do not dispatch.
+
+```yaml
+prompt_preflight:
+  output_mode: chat-only
+  template_kind: handoff
+  edit_permission: none; superseded historical retrieval only
+```
+
 ```yaml
 retrieval_header_version: 1
 artifact_role: Lane handoff prompt (docs/prompts/handoffs/; cold-start packet for a new investigation lane)

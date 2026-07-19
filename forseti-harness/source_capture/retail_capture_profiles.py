@@ -15,6 +15,7 @@ RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2
 
 
 _AMAZON_ASIN_IN_PATH = re.compile(r"/(?:dp|gp/product|gp/aw/d)/([A-Za-z0-9]{10})(?:[/?]|$)")
+_NORDSTROM_PRODUCT_ID_IN_PATH = re.compile(r"/s/[^/?]+/(\d+)(?:[/?]|$)")
 
 
 def extract_amazon_asin_from_url(url: str) -> str | None:
@@ -27,6 +28,11 @@ def extract_amazon_search_query_from_url(url: str) -> str | None:
     if not values or not values[0].strip():
         return None
     return values[0].strip()
+
+
+def extract_nordstrom_product_id_from_url(url: str) -> str | None:
+    match = _NORDSTROM_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
+    return match.group(1) if match else None
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,7 @@ class RetailCaptureProfile:
     block_heavy_assets: bool = False
     derive_target_asin_from_url: bool = False
     derive_target_query_from_url: bool = False
+    derive_target_nordstrom_product_id_from_url: bool = False
 
     def requirements_for_capture(self, *, url: str) -> SourceDetailSufficiencyRequirements:
         """Sufficiency requirements for one capture, with any per-target identity resolved.
@@ -84,6 +91,19 @@ class RetailCaptureProfile:
                 visible_text_regexes=(f"(?i){re.escape(query)}",),
             )
             return merge_source_detail_sufficiency_requirements(self.requirements, target_identity)
+        if self.derive_target_nordstrom_product_id_from_url:
+            product_id = extract_nordstrom_product_id_from_url(url)
+            if product_id is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a Nordstrom product id in "
+                    f"--url (expected .../s/<slug>/<numeric-id>); got {url!r}"
+                )
+            target_identity = SourceDetailSufficiencyRequirements(
+                rendered_dom_regexes=(rf"/s/[^\"']+/{re.escape(product_id)}(?:[?\"'/]|$)",),
+            )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements, target_identity
+            )
         return self.requirements
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
@@ -269,6 +289,36 @@ _PROFILES = {
                 visible_text_regexes=(
                     r"Ratings & Reviews \([^)]+\)",
                     r"(?s)Summary\s+5\s+4\s+3\s+2\s+1\s+\d",
+                ),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="nordstrom_pdp_aggregate",
+            retailer="nordstrom",
+            page_kind="pdp_aggregate",
+            hostname="www.nordstrom.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=5.0,
+            scroll_passes=1,
+            scroll_step_px=500,
+            derive_target_nordstrom_product_id_from_url=True,
+            requirements=_requirements(
+                visible_text_contains=(
+                    "The Lip Balm",
+                    "Sold by Nordstrom",
+                    "Reviews",
+                ),
+                visible_text_regexes=(
+                    r"(?s)The Lip Balm\s+Nécessaire\s+\$28\.00",
+                    r"4\.6 out of 5",
+                    r"(?s)5 stars\s+81%.*4 stars\s+7%.*3 stars\s+3%"
+                    r".*2 stars\s+5%.*1 star\s+3%",
+                ),
+                rendered_dom_regexes=(
+                    r'"@type"\s*:\s*"Product"',
+                    r'"reviewCount"\s*:\s*118',
                 ),
             ),
         ),

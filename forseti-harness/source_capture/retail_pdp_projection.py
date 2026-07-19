@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import html as html_lib
 import json
 import re
 from pathlib import Path
@@ -26,11 +27,17 @@ SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
 SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v1"
 SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v1"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
+NORDSTROM_PDP_CONTENT_RECORD_KIND = "retail_pdp_nordstrom_aggregate_content"
+NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v1"
+NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v1"
+NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
 
-Retailer = Literal["amazon", "sephora", "ulta", "walmart", "target", "unknown"]
+Retailer = Literal[
+    "amazon", "nordstrom", "sephora", "ulta", "walmart", "target", "unknown"
+]
 
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
@@ -303,6 +310,152 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         return self
 
 
+NordstromContentAnchorKind = Literal[
+    "file", "html_selector", "script_index", "text_pattern"
+]
+
+
+class NordstromPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_embedded_structured_json",
+        "retail_carried_module",
+    ]
+    retailer: Literal["nordstrom"] = "nordstrom"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: NordstromContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Nordstrom PDP content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "NordstromPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class NordstromPdpContentBinding(StrictModel):
+    slice_id: str
+    binding_type: Literal[
+        "sku_variant_price",
+        "variant_availability",
+        "review_substrate_for_product",
+        "series_locale_currency",
+        "structured_json_for_product",
+        "module_carried",
+    ]
+    row_id: str
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Nordstrom PDP content bindings may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+
+class NordstromPdpContentLossEntry(StrictModel):
+    category: Literal[
+        "RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"
+    ]
+    count: int = Field(ge=0)
+    reason: str
+    source_anchor_kind: NordstromContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "NordstromPdpContentLossEntry":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class NordstromPdpContentLossLedger(StrictModel):
+    collapsed: list[NordstromPdpContentLossEntry] = Field(default_factory=list)
+    preserved_evidence_rows: int = Field(ge=0)
+    preserved_bindings: int = Field(ge=0)
+    timing: Literal["separate_not_collapsed"] = "separate_not_collapsed"
+    hierarchy_preserved: bool
+    structure_preserved: bool
+    certification: Literal[
+        "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+    ] = "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+
+
+class NordstromPdpAggregateContentRecord(StrictModel):
+    record_kind: Literal["retail_pdp_nordstrom_aggregate_content"] = (
+        NORDSTROM_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_nordstrom_aggregate_content_v1"] = (
+        NORDSTROM_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_nordstrom_aggregate_parser_v1"] = (
+        NORDSTROM_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["nordstrom_pdp_aggregate"] = (
+        NORDSTROM_PDP_CONTENT_PROFILE
+    )
+    source_url: str
+    rows: list[NordstromPdpContentRow] = Field(default_factory=list)
+    binding_map: list[NordstromPdpContentBinding] = Field(default_factory=list)
+    loss_ledger: NordstromPdpContentLossLedger
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "NordstromPdpAggregateContentRecord":
+        if self.loss_ledger.preserved_evidence_rows != len(self.rows):
+            raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
+        if self.loss_ledger.preserved_bindings != len(self.binding_map):
+            raise ValueError("loss_ledger.preserved_bindings must match binding_map length")
+        row_kinds = {row.row_kind for row in self.rows}
+        required = {
+            "retail_pdp_product",
+            "retail_variant_offer",
+            "retail_review_substrate",
+        }
+        if not required.issubset(row_kinds):
+            raise ValueError(
+                "Nordstrom content record requires product, offer, and review rows"
+            )
+        return self
+
+
 def _retail_structure_preserved(bindings: Sequence[RetailPdpProjectionBinding]) -> bool:
     binding_types = {binding.binding_type for binding in bindings}
     return _REQUIRED_RETAIL_STRUCTURE_BINDINGS.issubset(binding_types)
@@ -398,15 +551,34 @@ def build_retail_pdp_projection(
             raise ValueError(
                 f"content record bytes are required for preserved file id: {content_file.file_id}"
             )
-        _validate_sephora_content_packet_metadata(
-            packet=packet,
-            raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
-        )
-        return _projection_from_sephora_content_record(
-            packet=packet,
-            content_file=content_file,
-            content_bytes=content_bytes,
-        )
+        try:
+            content_payload = json.loads(content_bytes)
+        except Exception as exc:
+            raise ValueError(f"invalid Retail PDP content record JSON: {exc}") from exc
+        if not isinstance(content_payload, dict):
+            raise ValueError("Retail PDP content record must contain a JSON object")
+        record_kind = content_payload.get("record_kind")
+        if record_kind == SEPHORA_PDP_CONTENT_RECORD_KIND:
+            _validate_sephora_content_packet_metadata(
+                packet=packet,
+                raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+            )
+            return _projection_from_sephora_content_record(
+                packet=packet,
+                content_file=content_file,
+                content_bytes=content_bytes,
+            )
+        if record_kind == NORDSTROM_PDP_CONTENT_RECORD_KIND:
+            _validate_nordstrom_content_packet_metadata(
+                packet=packet,
+                raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+            )
+            return _projection_from_nordstrom_content_record(
+                packet=packet,
+                content_file=content_file,
+                content_bytes=content_bytes,
+            )
+        raise ValueError(f"unsupported Retail PDP content record kind: {record_kind!r}")
 
     rows: list[RetailPdpProjectionRow] = []
     bindings: list[RetailPdpProjectionBinding] = []
@@ -770,6 +942,353 @@ def _validate_sephora_content_packet_metadata(
         raise ValueError("Sephora content packet does not carry a confirmed US/USD market pin")
 
 
+def build_nordstrom_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Parse the pinned Nordstrom aggregate PDP without inventing packet identity."""
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    parsed_url = urlparse(source_url)
+    product_id = _nordstrom_product_id_from_url(source_url)
+    if (
+        parsed_url.scheme not in {"http", "https"}
+        or parsed_url.hostname not in {"nordstrom.com", "www.nordstrom.com"}
+        or product_id is None
+    ):
+        raise ValueError(
+            "Nordstrom aggregate content records require a nordstrom.com "
+            "/s/<slug>/<numeric-id> source URL"
+        )
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=None,
+        currency_pin=None,
+        variant_pin=None,
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    projected = _project_retail_html(
+        _decode_text(rendered_dom),
+        visible_text_files=[(visible_text_file, _decode_text(visible_text))],
+        visible_text=_decode_text(visible_text),
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="nordstrom",
+    )
+    offer_rows = [
+        row for row in projected.rows if row.row_kind == "retail_variant_offer"
+    ]
+    review_rows = [
+        row for row in projected.rows if row.row_kind == "retail_review_substrate"
+    ]
+    if len(offer_rows) != 1 or len(review_rows) != 1:
+        raise ValueError(
+            "Nordstrom aggregate projection requires exactly one offer and one review row"
+        )
+    offer = offer_rows[0].source_visible_fields
+    review = review_rows[0].source_visible_fields
+    if _string_or_none(offer.get("product_id")) != product_id:
+        raise ValueError("Nordstrom projected product id does not match the requested URL")
+    if _string_or_none(offer.get("price_currency")) != "USD":
+        raise ValueError("Nordstrom projected offer does not carry USD")
+    if _string_or_none(offer.get("seller")) != "Nordstrom":
+        raise ValueError("Nordstrom projected offer lacks target-bound seller evidence")
+    if not _string_or_none(offer.get("availability")):
+        raise ValueError("Nordstrom projected offer lacks target-bound availability")
+    if (
+        not _string_or_none(review.get("rating"))
+        or not _string_or_none(review.get("review_count"))
+        or not isinstance(review.get("rating_distribution_buckets"), dict)
+        or not review.get("rendered_reviews")
+    ):
+        raise ValueError(
+            "Nordstrom projected review substrate lacks rating, count, histogram, "
+            "or rendered review bodies"
+        )
+
+    record = NordstromPdpAggregateContentRecord(
+        source_url=source_url,
+        rows=[_nordstrom_content_row(row) for row in projected.rows],
+        binding_map=[
+            _nordstrom_content_binding(binding) for binding in projected.bindings
+        ],
+        loss_ledger=NordstromPdpContentLossLedger(
+            collapsed=[
+                NordstromPdpContentLossEntry(
+                    category=entry.category,
+                    count=entry.count,
+                    reason=entry.reason,
+                    source_anchor_kind=entry.raw_anchor.anchor_kind,
+                    source_anchor_value=entry.raw_anchor.anchor_value,
+                )
+                for entry in projected.collapsed
+            ],
+            preserved_evidence_rows=len(projected.rows),
+            preserved_bindings=len(projected.bindings),
+            hierarchy_preserved=True,
+            structure_preserved=_retail_structure_preserved(projected.bindings),
+        ),
+        residuals=projected.residuals,
+    )
+    return record.model_dump(mode="json")
+
+
+def _projection_from_nordstrom_content_record(
+    *,
+    packet: SourceCapturePacket,
+    content_file: PreservedFile,
+    content_bytes: bytes,
+) -> RetailPdpProjectionPacket:
+    try:
+        record = NordstromPdpAggregateContentRecord.model_validate_json(content_bytes)
+    except Exception as exc:
+        raise ValueError(f"invalid Nordstrom PDP content record: {exc}") from exc
+    if (
+        packet.source_family != "retail_pdp"
+        or packet.source_surface != "cloakbrowser_snapshot"
+    ):
+        raise ValueError(
+            "Nordstrom PDP content records require retail_pdp/cloakbrowser_snapshot packets"
+        )
+    if _detect_retailer(packet) != "nordstrom":
+        raise ValueError(
+            "Nordstrom PDP content record does not match packet retailer identity"
+        )
+
+    slice_by_id = {
+        source_slice.slice_id: source_slice for source_slice in packet.source_slices
+    }
+    matching_source_urls = {
+        _fact_value(source_slice.locator)
+        for source_slice in packet.source_slices
+        if _fact_value(source_slice.locator)
+    }
+    if record.source_url not in matching_source_urls:
+        raise ValueError(
+            f"Nordstrom content record source_url {record.source_url!r} does not "
+            "match a packet source-slice locator"
+        )
+
+    rows: list[RetailPdpProjectionRow] = []
+    for index, content_row in enumerate(record.rows):
+        source_slice = slice_by_id.get(content_row.slice_id)
+        if (
+            source_slice is None
+            or content_file.file_id not in source_slice.preserved_file_ids
+        ):
+            raise ValueError(
+                "Nordstrom content row references invalid source slice: "
+                f"{content_row.slice_id}"
+            )
+        fields = dict(content_row.source_visible_fields)
+        if content_row.row_kind == "retail_pdp_product":
+            fields = _product_context_fields(packet, source_slice, "nordstrom")
+        rows.append(
+            RetailPdpProjectionRow(
+                row_id=content_row.row_id,
+                row_kind=content_row.row_kind,
+                retailer="nordstrom",
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_row.slice_id,
+                ),
+                raw_anchor=_nordstrom_content_record_anchor(
+                    content_file, f"/rows/{index}"
+                ),
+                source_visible_fields=fields,
+                residuals=content_row.residuals,
+            )
+        )
+
+    bindings: list[RetailPdpProjectionBinding] = []
+    for index, content_binding in enumerate(record.binding_map):
+        source_slice = slice_by_id.get(content_binding.slice_id)
+        if (
+            source_slice is None
+            or content_file.file_id not in source_slice.preserved_file_ids
+        ):
+            raise ValueError(
+                "Nordstrom content binding references invalid source slice: "
+                f"{content_binding.slice_id}"
+            )
+        fields = dict(content_binding.source_visible_fields)
+        if content_binding.binding_type == "series_locale_currency":
+            fields = {
+                "series_id": packet.series_id,
+                "locale_pin": _fact_value(source_slice.locale_pin),
+                "currency_pin": _fact_value(source_slice.currency_pin),
+                "variant_pin": _fact_value(source_slice.variant_pin),
+            }
+        bindings.append(
+            RetailPdpProjectionBinding(
+                binding_type=content_binding.binding_type,
+                row_id=content_binding.row_id,
+                raw_ref=RetailProjectionRawRef(
+                    packet_id=packet.packet_id,
+                    slice_id=content_binding.slice_id,
+                ),
+                raw_anchor=_nordstrom_content_record_anchor(
+                    content_file, f"/binding_map/{index}"
+                ),
+                source_visible_fields=fields,
+            )
+        )
+
+    collapsed = [
+        RetailPdpProjectionLossEntry(
+            category=entry.category,
+            count=entry.count,
+            reason=entry.reason,
+            raw_anchor=_nordstrom_content_record_anchor(
+                content_file, f"/loss_ledger/collapsed/{index}"
+            ),
+        )
+        for index, entry in enumerate(record.loss_ledger.collapsed)
+    ]
+    return RetailPdpProjectionPacket(
+        packet_id=packet.packet_id,
+        rows=rows,
+        binding_map=bindings,
+        loss_ledger=RetailPdpProjectionLossLedger(
+            collapsed=collapsed,
+            preserved_evidence_rows=len(rows),
+            preserved_bindings=len(bindings),
+            hierarchy_preserved=record.loss_ledger.hierarchy_preserved,
+            structure_preserved=record.loss_ledger.structure_preserved,
+        ),
+        residuals=record.residuals,
+    )
+
+
+def _nordstrom_content_row(
+    row: RetailPdpProjectionRow,
+) -> NordstromPdpContentRow:
+    fields = dict(row.source_visible_fields)
+    if row.row_kind == "retail_pdp_product":
+        fields = {}
+    return NordstromPdpContentRow(
+        slice_id=row.raw_ref.slice_id,
+        row_id=row.row_id,
+        row_kind=row.row_kind,
+        retailer="nordstrom",
+        source_visible_fields=fields,
+        residuals=row.residuals,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _nordstrom_content_binding(
+    binding: RetailPdpProjectionBinding,
+) -> NordstromPdpContentBinding:
+    fields = dict(binding.source_visible_fields)
+    if binding.binding_type == "series_locale_currency":
+        fields = {}
+    return NordstromPdpContentBinding(
+        slice_id=binding.raw_ref.slice_id,
+        binding_type=binding.binding_type,
+        row_id=binding.row_id,
+        source_visible_fields=fields,
+    )
+
+
+def _nordstrom_content_record_anchor(
+    content_file: PreservedFile,
+    json_pointer: str,
+) -> RetailProjectionRawAnchor:
+    return RetailProjectionRawAnchor(
+        file_id=content_file.file_id,
+        relative_packet_path=content_file.relative_packet_path,
+        sha256=content_file.sha256,
+        hash_basis=content_file.hash_basis,
+        anchor_kind="json_pointer",
+        anchor_value=json_pointer,
+    )
+
+
+def _validate_nordstrom_content_packet_metadata(
+    *,
+    packet: SourceCapturePacket,
+    raw_file_bytes_by_file_id: Mapping[str, bytes],
+) -> None:
+    def _one_json(filename: str) -> dict[str, Any]:
+        matches = [
+            item
+            for item in packet.preserved_files
+            if item.relative_packet_path.replace("\\", "/").endswith(filename)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Nordstrom content packet must preserve exactly one {filename}"
+            )
+        body = raw_file_bytes_by_file_id.get(matches[0].file_id)
+        if body is None:
+            raise ValueError(
+                f"preserved bytes are required for {matches[0].file_id}: {filename}"
+            )
+        try:
+            value = json.loads(body)
+        except Exception as exc:
+            raise ValueError(f"invalid {filename}: {exc}") from exc
+        if not isinstance(value, dict):
+            raise ValueError(f"{filename} must contain a JSON object")
+        return value
+
+    capture_metadata = _one_json("content_capture_metadata.json")
+    if capture_metadata.get("parser_version") != NORDSTROM_PDP_PARSER_VERSION:
+        raise ValueError("Nordstrom content packet parser version does not match current")
+    if capture_metadata.get("projection_status") != "succeeded":
+        raise ValueError("Nordstrom content packet projection did not succeed")
+    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+        raise ValueError("Nordstrom content packet must use content or sample mode")
+
+    browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
+    profile = browser_metadata.get("retail_capture_profile")
+    if (
+        not isinstance(profile, dict)
+        or profile.get("name") != NORDSTROM_PDP_CONTENT_PROFILE
+    ):
+        raise ValueError("Nordstrom content packet capture profile does not match")
+    if browser_metadata.get("pin_confirmed") is not True:
+        raise ValueError(
+            "Nordstrom content packet does not carry a confirmed US/USD storefront pin"
+        )
+
+
 class _ProjectedRetailHtml(StrictModel):
     rows: list[RetailPdpProjectionRow] = Field(default_factory=list)
     bindings: list[RetailPdpProjectionBinding] = Field(default_factory=list)
@@ -802,6 +1321,12 @@ def _project_retail_html(
     collapsed: list[RetailPdpProjectionLossEntry] = []
 
     structured_entries = _extract_structured_json_entries(html, raw_anchor=raw_anchor)
+    if retailer == "nordstrom":
+        structured_entries = _nordstrom_target_structured_entries(
+            structured_entries,
+            source_url=_fact_value(source_slice.locator)
+            or _fact_value(packet.source_locator),
+        )
     product_row_id = f"{source_slice.slice_id}:{retailer}:pdp"
     product_fields = _product_context_fields(packet, source_slice, retailer)
     rows.append(
@@ -1061,6 +1586,23 @@ def _variant_offer_fields(
         residuals.extend(_retail_commerce_absence_residuals(retailer, fields))
         return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
 
+    if retailer == "nordstrom":
+        fields, nordstrom_residuals = _nordstrom_variant_offer_fields(
+            visible_text=visible_text,
+            packet=packet,
+            source_slice=source_slice,
+            structured_entries=structured_entries,
+        )
+        return (
+            fields,
+            _with_anchor(
+                fallback_anchor,
+                "html_selector",
+                "main product / target Product JSON-LD",
+            ),
+            nordstrom_residuals,
+        )
+
     sephora_dom_fields = _sephora_dom_offer_fields(html) if retailer == "sephora" else {}
     selected_sku = _string_or_none(sephora_dom_fields.get("dom_sku"))
     structured_fields, structured_anchor = _structured_variant_offer_fields(
@@ -1162,7 +1704,293 @@ def _review_substrate_fields(
         fields = _target_review_fields(visible_text)
         residuals = [] if fields.get("written_review_count") is not None else ["target_written_review_count_not_observed"]
         return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
+    if retailer == "nordstrom":
+        fields, residuals = _nordstrom_review_fields(
+            html=html,
+            visible_text=visible_text,
+            structured_entries=structured_entries,
+        )
+        return (
+            fields,
+            _with_anchor(fallback_anchor, "html_selector", "#product-page-reviews"),
+            residuals,
+        )
     return {}, fallback_anchor, []
+
+
+def _nordstrom_product_id_from_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    match = re.search(r"/s/[^/?]+/(\d+)(?:[/?]|$)", urlparse(url).path)
+    return match.group(1) if match else None
+
+
+def _nordstrom_target_structured_entries(
+    entries: list[_StructuredJsonEntry],
+    *,
+    source_url: str | None,
+) -> list[_StructuredJsonEntry]:
+    """Keep only Product JSON-LD bound to the requested Nordstrom PDP.
+
+    Nordstrom currently repeats the target Product JSON-LD and also emits
+    breadcrumbs. An entry carrying the requested product URL establishes the
+    target name/brand pair; only matching Product entries survive. Recommendation
+    products and unrelated structured state cannot establish that pair.
+    """
+    product_id = _nordstrom_product_id_from_url(source_url)
+    if product_id is None:
+        return []
+    target: tuple[str, str] | None = None
+    for entry in entries:
+        parsed = entry.parsed
+        if not isinstance(parsed, dict) or parsed.get("@type") != "Product":
+            continue
+        offers = parsed.get("offers")
+        if not isinstance(offers, dict):
+            continue
+        offer_url = _string_or_none(offers.get("url"))
+        if _nordstrom_product_id_from_url(offer_url) != product_id:
+            continue
+        brand = parsed.get("brand")
+        brand_name = (
+            _string_or_none(brand.get("name")) if isinstance(brand, dict) else None
+        )
+        name = _string_or_none(parsed.get("name"))
+        if name and brand_name:
+            target = (name, brand_name)
+            break
+    if target is None:
+        return []
+    selected: list[_StructuredJsonEntry] = []
+    for entry in entries:
+        parsed = entry.parsed
+        if not isinstance(parsed, dict) or parsed.get("@type") != "Product":
+            continue
+        brand = parsed.get("brand")
+        brand_name = (
+            _string_or_none(brand.get("name")) if isinstance(brand, dict) else None
+        )
+        if (_string_or_none(parsed.get("name")), brand_name) == target:
+            selected.append(entry)
+    return selected
+
+
+def _nordstrom_target_product(
+    entries: list[_StructuredJsonEntry],
+) -> tuple[dict[str, object], RetailProjectionRawAnchor] | None:
+    for entry in entries:
+        if isinstance(entry.parsed, dict) and entry.parsed.get("@type") == "Product":
+            return entry.parsed, entry.raw_anchor
+    return None
+
+
+def _nordstrom_variant_offer_fields(
+    *,
+    visible_text: str,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+    structured_entries: list[_StructuredJsonEntry],
+) -> tuple[dict[str, Any | None], list[str]]:
+    target = _nordstrom_target_product(structured_entries)
+    source_url = _fact_value(source_slice.locator) or _fact_value(
+        packet.source_locator
+    )
+    product_id = _nordstrom_product_id_from_url(source_url)
+    if target is None or product_id is None:
+        return {}, ["nordstrom_target_product_json_ld_absent"]
+    product, _anchor = target
+    offers = product.get("offers")
+    if not isinstance(offers, dict):
+        return {}, ["nordstrom_target_offer_json_ld_absent"]
+    brand = product.get("brand")
+    brand_name = (
+        _string_or_none(brand.get("name")) if isinstance(brand, dict) else None
+    )
+    main_text = _bounded_text_section(
+        visible_text, start="Main content", end="You Might Also Like"
+    )
+    details_text = _bounded_text_section(
+        visible_text, start="Highlights", end="Reviews"
+    )
+    highlights_text = _bounded_text_section(
+        details_text, start="Highlights", end="Details & care"
+    )
+    details_and_care = _bounded_text_section(
+        details_text, start="Details & care", end="Ingredients"
+    )
+    ingredients = _bounded_text_section(
+        details_text, start="Ingredients", end="Shipping & returns"
+    )
+    shipping_returns = _bounded_text_section(
+        details_text, start="Shipping & returns", end="Gift options"
+    )
+    shipping_destination = _first_regex(
+        main_text, (r"Shipping to\s+([^\r\n]+)",)
+    )
+    seller = _first_regex(main_text, (r"Sold by\s+([^\r\n]+)",))
+    variant_name = _first_regex(main_text, (r"(One Size)",))
+    item_number = _first_regex(details_text, (r"Item #([A-Za-z0-9-]+)",))
+    core_product_id = _first_regex(
+        details_text, (r"Core Product ID\s+([A-Za-z0-9-]+)",)
+    )
+    residuals: list[str] = []
+    if shipping_destination:
+        residuals.append(
+            "nordstrom_shipping_destination_display_is_not_delivery_pin"
+        )
+    else:
+        residuals.append("nordstrom_shipping_destination_display_absent")
+    fields: dict[str, Any | None] = {
+        "product_id": product_id,
+        "sku": item_number,
+        "core_product_id": core_product_id,
+        "product_name": _string_or_none(product.get("name")),
+        "brand": brand_name,
+        "variant_name": variant_name,
+        "price": _string_or_none(offers.get("price")),
+        "price_display": _first_regex(
+            main_text, (r"Current Price\s+(\$\d+(?:\.\d{2})?)",)
+        ),
+        "price_isolation": "nordstrom_target_product_json_ld",
+        "price_currency": _string_or_none(offers.get("priceCurrency")),
+        "availability": _string_or_none(offers.get("availability")),
+        "seller": seller,
+        "shipping_destination_display": (
+            f"Shipping to {shipping_destination}" if shipping_destination else None
+        ),
+        "shipping_availability": None,
+        "pickup_availability": _first_literal(
+            main_text, ("No stores found near your location", "Pickup at choose store")
+        ),
+        "delivery_availability": None,
+        "add_to_bag_present": "Add to Bag" in main_text,
+        "description_html": _string_or_none(product.get("description")),
+        "highlights": [
+            line
+            for line in _nonempty_lines(highlights_text)
+            if line != "Highlights"
+        ],
+        "details_and_care_text": _compact_excerpt(details_and_care),
+        "ingredients_text": _compact_excerpt(ingredients),
+        "shipping_returns_text": _compact_excerpt(shipping_returns),
+        "exact_inventory_quantity": "not_observed",
+        "sold_units": "not_observed",
+    }
+    residuals.extend(_retail_commerce_absence_residuals("nordstrom", fields))
+    return fields, list(dict.fromkeys(residuals))
+
+
+def _nordstrom_review_fields(
+    *,
+    html: str,
+    visible_text: str,
+    structured_entries: list[_StructuredJsonEntry],
+) -> tuple[dict[str, Any | None], list[str]]:
+    target = _nordstrom_target_product(structured_entries)
+    if target is None:
+        return {}, ["nordstrom_target_product_json_ld_absent"]
+    product, _anchor = target
+    aggregate = product.get("aggregateRating")
+    if not isinstance(aggregate, dict):
+        return {}, ["nordstrom_target_aggregate_rating_absent"]
+
+    review_section_start = html.find('id="product-page-reviews"')
+    review_html = html[review_section_start:] if review_section_start >= 0 else ""
+    rendered_reviews: list[dict[str, str]] = []
+    review_pattern = re.compile(
+        r'itemprop="review"[\s\S]*?'
+        r'itemprop="name"\s+content="(?P<title>[^"]*)"[\s\S]*?'
+        r'itemprop="author"\s+content="(?P<author>[^"]*)"[\s\S]*?'
+        r'itemprop="datePublished"\s+content="(?P<date>[^"]*)"[\s\S]*?'
+        r'itemprop="ratingValue"\s+content="(?P<rating>[^"]*)"[\s\S]*?'
+        r'itemprop="reviewBody"\s+content="(?P<body>[^"]*)"',
+        flags=re.IGNORECASE,
+    )
+    for match in review_pattern.finditer(review_html):
+        rendered_reviews.append(
+            {
+                key: html_lib.unescape(value).strip()
+                for key, value in match.groupdict().items()
+            }
+        )
+
+    review_text = _bounded_text_section(
+        visible_text, start="Reviews", end="Recommended for You"
+    )
+    buckets = {
+        star: _first_regex(
+            review_text, (rf"{star}\s+stars?\s+(\d+%)",)
+        )
+        for star in ("5", "4", "3", "2", "1")
+    }
+    residuals: list[str] = []
+    percentages = [
+        int(value[:-1])
+        for value in buckets.values()
+        if isinstance(value, str) and value.endswith("%")
+    ]
+    if len(percentages) != 5:
+        residuals.append("nordstrom_rating_distribution_incomplete")
+    elif sum(percentages) != 100:
+        residuals.append(
+            f"nordstrom_rating_distribution_source_rounding_total_{sum(percentages)}"
+        )
+    if not rendered_reviews:
+        residuals.append("nordstrom_rendered_reviews_absent")
+
+    structured_rating = _string_or_none(aggregate.get("ratingValue"))
+    structured_count = _string_or_none(aggregate.get("reviewCount"))
+    displayed_rating = _first_regex(
+        review_text, (r"(\d+(?:\.\d+)?) out of 5",)
+    )
+    displayed_count = _first_regex(review_text, (r"Reviews\s+\(([\d,]+)\)",))
+    if (
+        structured_rating
+        and displayed_rating
+        and structured_rating != displayed_rating
+    ):
+        residuals.append("nordstrom_structured_displayed_rating_mismatch")
+    if (
+        structured_count
+        and displayed_count
+        and not _equivalent_review_count(structured_count, displayed_count)
+    ):
+        residuals.append("nordstrom_structured_displayed_review_count_mismatch")
+    return (
+        {
+            "review_substrate_source": (
+                "nordstrom_target_product_json_ld_and_rendered_review_microdata"
+            ),
+            "rating": displayed_rating or structured_rating,
+            "structured_rating": structured_rating,
+            "displayed_rating": displayed_rating,
+            "review_count": displayed_count or structured_count,
+            "structured_review_count": structured_count,
+            "displayed_review_count": displayed_count,
+            "rating_count": displayed_count or structured_count,
+            "written_review_count": displayed_count or structured_count,
+            "filtered_review_count": None,
+            "rating_distribution_basis": "source_displayed_percent_rounded",
+            "rating_distribution_buckets": buckets,
+            "rendered_review_count": len(rendered_reviews),
+            "rendered_reviews": rendered_reviews,
+        },
+        residuals,
+    )
+
+
+def _bounded_text_section(text: str, *, start: str, end: str) -> str:
+    start_index = text.find(start)
+    if start_index < 0:
+        return ""
+    end_index = text.find(end, start_index + len(start))
+    if end_index < 0:
+        return text[start_index:]
+    return text[start_index:end_index]
+
+
+def _nonempty_lines(text: str) -> list[str]:
+    return [line.strip() for line in text.splitlines() if line.strip()]
 
 
 def _amazon_variant_offer_fields(
@@ -1481,7 +2309,34 @@ def _structured_variant_offer_fields(
             if "Product" in product_type_values:
                 if preferred_sku and _string_or_none(product.get("sku")) != preferred_sku:
                     continue
-                offer = product.get("offers") if isinstance(product.get("offers"), dict) else {}
+                raw_offers = product.get("offers")
+                if isinstance(raw_offers, dict):
+                    offer = raw_offers
+                elif isinstance(raw_offers, list):
+                    candidates = [item for item in raw_offers if isinstance(item, dict)]
+                    offer = (
+                        next(
+                            (
+                                item
+                                for item in candidates
+                                if _string_or_none(item.get("sku"))
+                                == _string_or_none(product.get("sku"))
+                            ),
+                            None,
+                        )
+                        or next(
+                            (
+                                item
+                                for item in candidates
+                                if _string_or_none(item.get("price")) is not None
+                                and _string_or_none(item.get("priceCurrency")) is not None
+                            ),
+                            None,
+                        )
+                        or {}
+                    )
+                else:
+                    offer = {}
                 return _offer_fields_from_product(product, product, offer, entry.kind), entry.raw_anchor
     return {}, None
 
@@ -1889,6 +2744,8 @@ def _detect_retailer(packet: SourceCapturePacket) -> Retailer:
     ).lower()
     if "amazon." in haystack or "amazon_" in haystack or "amazon " in haystack:
         return "amazon"
+    if "nordstrom." in haystack or "nordstrom_" in haystack or "nordstrom " in haystack:
+        return "nordstrom"
     if "sephora." in haystack or "sephora_" in haystack or "sephora " in haystack:
         return "sephora"
     if "ulta." in haystack or "ulta_" in haystack or "ulta " in haystack:
@@ -2169,6 +3026,10 @@ def _is_forbidden_field_name(key: str) -> bool:
 
 
 __all__ = [
+    "NORDSTROM_PDP_CONTENT_PROFILE",
+    "NORDSTROM_PDP_CONTENT_RECORD_KIND",
+    "NORDSTROM_PDP_CONTENT_SCHEMA_VERSION",
+    "NORDSTROM_PDP_PARSER_VERSION",
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
@@ -2186,7 +3047,9 @@ __all__ = [
     "RetailPdpProjectionRow",
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
+    "NordstromPdpAggregateContentRecord",
     "SephoraPdpAggregateContentRecord",
+    "build_nordstrom_pdp_aggregate_content_record",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
     "build_sephora_pdp_aggregate_content_record",
