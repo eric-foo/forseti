@@ -107,11 +107,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--creator-handle", required=True)
     parser.add_argument(
         "--creator-intent",
-        choices=("new_capture", "update_existing"),
-        default="new_capture",
+        choices=("new_onboarding", "new_capture", "update_existing"),
+        default="new_onboarding",
         help=(
-            "New capture blocks exact Creator Registry matches; update existing "
-            "requires an exact match."
+            "New onboarding requires an exact Creator Registry match with "
+            "onboarding_state=not_onboarded; new capture blocks exact matches; "
+            "update existing requires an exact match."
         ),
     )
     parser.add_argument(
@@ -204,6 +205,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             registry_path=args.creator_registry,
             output_dir=args.output_dir,
         )
+        if args.creator_intent == "new_onboarding":
+            if preflight_result.get("decision") != "existing_match":
+                raise TikTokCreatorOnboardingError(
+                    "new_onboarding requires an exact Creator Registry match; "
+                    f"found decision={preflight_result.get('decision')!r}"
+                )
+            onboarding_state = preflight_result.get("registry_onboarding_state")
+            if onboarding_state != "not_onboarded":
+                raise TikTokCreatorOnboardingError(
+                    "new_onboarding requires onboarding_state=not_onboarded; "
+                    f"found onboarding_state={onboarding_state!r}"
+                )
         if preflight_result["action_status"] != "allowed":
             raise TikTokCreatorOnboardingError(
                 f"Creator Registry preflight blocked: {preflight_result['action_blockers']}"
@@ -541,6 +554,9 @@ def _write_creator_registry_preflight(
 ) -> tuple[Path, dict[str, object]]:
     normalized_handle = creator_handle.strip().lstrip("@").lower()
     registry_document = load_creator_profile_current_view(registry_path)
+    registry_intent = (
+        "update_existing" if creator_intent == "new_onboarding" else creator_intent
+    )
     receipt = build_creator_registry_match_preflight_receipt(
         candidates=[
             {
@@ -550,7 +566,7 @@ def _write_creator_registry_preflight(
                 "public_profile_url_or_none": (
                     f"https://www.tiktok.com/@{normalized_handle}"
                 ),
-                "intended_action": creator_intent,
+                "intended_action": registry_intent,
             }
         ],
         registry_document=registry_document,
@@ -570,7 +586,54 @@ def _write_creator_registry_preflight(
     result = receipt[RECEIPT_WRAPPER_KEY]["results"][0]
     if not isinstance(result, dict):
         raise ValueError("Creator Registry preflight result must be an object")
+    result["registry_onboarding_state"] = _matched_registry_onboarding_state(
+        registry_document=registry_document,
+        preflight_result=result,
+    )
     return receipt_path, result
+
+
+def _matched_registry_onboarding_state(
+    *,
+    registry_document: dict[str, object],
+    preflight_result: dict[str, object],
+) -> str | None:
+    if preflight_result.get("decision") != "existing_match":
+        return None
+    matches = preflight_result.get("matched_registry_profiles")
+    if not isinstance(matches, list) or len(matches) != 1:
+        raise ValueError(
+            "exact Creator Registry match must identify exactly one registry profile"
+        )
+    match = matches[0]
+    if not isinstance(match, dict):
+        raise ValueError("matched Creator Registry profile must be an object")
+    profile_subject_id = match.get("profile_subject_id")
+    wrapper = registry_document.get("creator_profile_current_view")
+    if not isinstance(wrapper, dict):
+        raise ValueError("Creator Registry current-view wrapper must be an object")
+    profiles = wrapper.get("profiles")
+    if not isinstance(profiles, list):
+        raise ValueError("Creator Registry profiles must be a list")
+    matched_profiles = [
+        profile
+        for profile in profiles
+        if isinstance(profile, dict)
+        and profile.get("profile_subject_id") == profile_subject_id
+    ]
+    if len(matched_profiles) != 1:
+        raise ValueError(
+            "exact Creator Registry match must resolve to exactly one current profile"
+        )
+    onboarding = matched_profiles[0].get("onboarding")
+    if not isinstance(onboarding, dict):
+        raise ValueError("matched Creator Registry profile has no onboarding object")
+    onboarding_state = onboarding.get("onboarding_state")
+    if onboarding_state not in {"not_onboarded", "onboarded"}:
+        raise ValueError(
+            "matched Creator Registry profile has invalid onboarding_state"
+        )
+    return onboarding_state
 
 
 def _source_receipt(path: Path, role: str) -> dict[str, object]:
