@@ -3,14 +3,24 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Research artifact
-scope: Commission-stage company-intelligence board for the e.l.f. Bronzing Drops Understanding Acquire & Seal turn.
+scope: Closed historical commission-stage board for the e.l.f. Bronzing Drops Understanding Acquire & Seal turn.
 use_when:
-  - Resuming the blocked e.l.f. Bronzing Drops Understanding acquisition.
-  - Auditing the commissioned routes and typed R0 cutoff gap.
+  - Auditing the commissioned routes, typed R0 cutoff gap, and intake-gate miss.
+  - Verifying why this board cannot authorize acquisition or Deliver.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_elf_bronzing_drops_understanding_scan_receipt_v0.md
   - docs/workflows/forseti_beauty_elf_bronzing_drops_understanding_acquisition_seal_v0.md
+```
+
+## Lifecycle Closeout
+
+```yaml
+current_lifecycle_status: CLOSED_ABORTED_AT_INTAKE
+intelligence_cycle_phase_status: NOT_COMPLETED
+resume_allowed: false
+correct_intake_result: NEEDS_CUTOFF_DATE
+historical_board_below: preserved_as_observed
 ```
 
 ### 1. Company Commission And Identity Receipt
@@ -352,8 +362,8 @@ completion_ledger:
       request_type: first_party_timestamp_preservation
       owner: capture
       status: blocked
-      description: Establish a source-native or served-time-verified publication timestamp for the exact first-party launch page before resuming ordered acquisition.
+      description: "Historical request, canceled by cycle closeout: establish a source-native or served-time-verified publication timestamp for the exact first-party launch page."
       source_surface: first_party_launch_page
   run_boundary: COMMISSION_SEALED_PRE_SCAN
-  next_authorized_step: Acquisition remains blocked at R0; resume only from a newly supported first-party publication timestamp under a separately authorized Acquire & Seal continuation.
+  next_authorized_step: None for this closed cycle; any future work requires a separately commissioned cycle and a new validated CSB.
 ```

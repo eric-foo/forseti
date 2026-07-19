@@ -8,9 +8,8 @@ scope: >
   claim-sensitive capture-stopping candidate during the e.l.f. Bronzing Drops
   Understanding cycle.
 use_when:
-  - Executing or auditing this cycle's Acquire & Seal turn.
-  - Constructing the two blinded stopping-policy replays after acquisition.
-  - Deciding whether the candidate rule deserves adversarial review.
+  - Auditing why this attempt closed as aborted at intake.
+  - Verifying the preserved collector, checkpoint, and evaluator dispositions.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
@@ -18,13 +17,10 @@ open_next:
   - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
 branch_or_commit: 9e5050071607492ce2b50e59a00c74d7273d3a24
 downstream_consumers:
-  - Acquire & Seal collector
-  - Policy A and Policy B cold evaluators
-  - owner adjudication and, only if promoted, adversarial review
+  - owner closeout audit
+  - designers of a separately commissioned future dogfood
 stale_if:
-  - The owner changes the company, decision, cutoff rule, intended use, or claim ceiling.
-  - Scanning acquisition-closure authority changes before collection begins.
-  - Any evidence is acquired before this pre-registration is committed.
+  - A referenced commit, locator, or hash stops resolving.
 ```
 
 ## Pre-registration state
@@ -275,6 +271,10 @@ validator, schema, registry, or mandatory-workflow change.
 
 ```yaml
 closeout_date: 2026-07-19
+lifecycle_status: CLOSED_ABORTED_AT_INTAKE
+intelligence_cycle_phase_status: NOT_COMPLETED
+resume_allowed: false
+correct_intake_result: NEEDS_CUTOFF_DATE
 collector_result: INCONCLUSIVE_CAPTURE_BLOCKED
 acquisition_commit: 6e10a696d2e26b1118ec08ce084d8a9f36b32ea3
 cutoff:
@@ -304,6 +304,12 @@ effort_comparison: NOT_SUPPORTED
 dogfood_disposition: REVISE_AND_RETEST
 ```
 
+The commission declared `mode: backtest` without a concrete
+`evidence_cutoff_at: YYYY-MM-DD`. Under the existing CSB intake contract, the
+correct response was `NEEDS_CUTOFF_DATE`, before external acquisition. The
+bounded R0 activity is preserved as observed history beyond that missed gate;
+it does not make the phase complete or authorize resumption.
+
 No evaluator was spawned. CP0 did not establish the required cutoff, the
 collector did not reach current-policy closure, and there was no later captured
 set against which an earlier stop could be tested. Treating the blocked packet
@@ -332,10 +338,9 @@ pre-registration.
 
 ## Disposition
 
-`REVISE_AND_RETEST`.
+Lifecycle: `CLOSED_ABORTED_AT_INTAKE`.
 
-The next dogfood must use another owner-accepted live Understanding cycle whose
-decision cutoff is already supportable from a source-native or served-time
-record. This is a commission-local retry condition, not a standing Intelligence
-Cycle preflight, production-contract change, validator change, or claim that
-the candidate stopping rule is ready for adversarial review.
+Experiment: `REVISE_AND_RETEST` on a separately commissioned cycle. The e.l.f.
+cycle is closed and must not be resumed. This closeout does not change the
+Intelligence Cycle, production contract, validator, schema, registry, or
+claim-sensitive stopping rule.
