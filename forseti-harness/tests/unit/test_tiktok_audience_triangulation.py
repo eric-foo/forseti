@@ -57,6 +57,7 @@ from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
 from schemas.creator_audience_models import (
     CreatorAudienceJudgmentOutcomeV1 as CreatorAudienceJudgmentOutcome,
 )
@@ -500,7 +501,9 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
     assert coordinated["stage_reached"] == "judgment_prepared"
     assert coordinated["silver_prerequisites"] == {
         "grid_observation": "already_current",
+        "grid_packet_id": packet_id,
         "comment_attention": "already_current",
+        "comment_packet_id": packet_id,
     }
     assert coordinated["recapture_required"] is False
 
@@ -518,6 +521,65 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
             bundle_out=tmp_path / "tampered-bundle.json",
             prompt_out=tmp_path / "tampered-prompt.txt",
         )
+
+
+def test_coordinator_reuses_batch_evidence_with_separate_current_grid_packet(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    grid_window, _selection = _onboarding_evidence_payloads()
+    code, admitted = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        data_root=data_root,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+    assert code == 0
+    batch_packet_id = Path(admitted).name
+    code, grid_admitted = write_tiktok_grid_packet(
+        grid_window_json=grid_window,
+        data_root=data_root,
+        observed_at_utc="2026-07-19T11:42:13Z",
+    )
+    assert code == 0
+    grid_packet_id = Path(grid_admitted).name
+    assert run_comment_attention(
+        data_root=data_root,
+        packet_ids=[batch_packet_id],
+    )[0]["status"] == "derived"
+    assert run_tiktok_grid_observations(
+        data_root=data_root,
+        packet_ids=[grid_packet_id],
+    )[0]["status"] == "derived"
+
+    coordinated = prepare_onboarding(
+        data_root=data_root,
+        packet_id=batch_packet_id,
+        grid_packet_id=grid_packet_id,
+        creator_id="tiktok:@funmimonet",
+        profile_subject_id="platform_account:tiktok:funmimonet",
+        question="What should a matching brand hire this creator to accomplish?",
+        evidence_cutoff="2026-06-30T17:02:46Z",
+        work_dir=tmp_path / "coordinated-reuse",
+    )
+
+    assert coordinated["status"] == "awaiting_judgment"
+    assert coordinated["recapture_required"] is False
+    assert coordinated["grid_packet_id"] == grid_packet_id
+    assert coordinated["silver_prerequisites"] == {
+        "grid_observation": "already_current",
+        "grid_packet_id": grid_packet_id,
+        "comment_attention": "already_current",
+        "comment_packet_id": batch_packet_id,
+    }
+    bundle = json.loads(Path(coordinated["bundle_out"]).read_text(encoding="utf-8"))
+    assert bundle["raw_anchor"] == batch_packet_id
+    assert bundle["source_refs"]["raw_packet_id"] == batch_packet_id
+    assert {
+        row["raw_anchor"] for row in bundle["source_refs"]["grid_observation_refs"]
+    } == {grid_packet_id}
 
 
 def test_bundle_incomplete_when_comments_absent_but_transcript_present() -> None:
