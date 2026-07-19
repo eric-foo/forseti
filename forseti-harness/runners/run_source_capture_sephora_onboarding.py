@@ -1,4 +1,4 @@
-"""Capture Sephora Most-Answers Q&A and non-incentivized age counts."""
+"""Capture Sephora onboarding Q&A, review windows, and age counts."""
 
 from __future__ import annotations
 
@@ -13,6 +13,8 @@ if __package__ in {None, ""}:
 from data_lake.root import DataLakeRoot
 from source_capture.sephora_onboarding_capture import (
     DEFAULT_QUESTION_LIMIT,
+    DEFAULT_RECENT_WINDOW_DAYS,
+    DEFAULT_REVIEW_PAGE_LIMIT,
     capture_sephora_onboarding_packet,
 )
 
@@ -33,6 +35,18 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_QUESTION_LIMIT,
         help="Bounded Most Answers question window (1-100; default 100).",
     )
+    parser.add_argument(
+        "--review-page-limit",
+        type=int,
+        default=DEFAULT_REVIEW_PAGE_LIMIT,
+        help="Bazaarvoice page size for review snapshots (1-100; default 100).",
+    )
+    parser.add_argument(
+        "--recent-window-days",
+        type=int,
+        default=DEFAULT_RECENT_WINDOW_DAYS,
+        help="Most Recent source-date window in days (minimum/default 30).",
+    )
     parser.add_argument("--timeout-seconds", type=float, default=20.0)
     parser.add_argument("--max-bytes", type=int, default=8_000_000)
     return parser
@@ -45,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
         data_root=root,
         parent_packet_id=args.parent_packet_id,
         question_limit=args.question_limit,
+        review_page_limit=args.review_page_limit,
+        recent_window_days=args.recent_window_days,
         timeout_seconds=args.timeout_seconds,
         max_bytes=args.max_bytes,
     )
@@ -66,6 +82,21 @@ def main(argv: list[str] | None = None) -> int:
             for key, value in compact["questions"].items()
             if key != "question_inventory"
         }
+    if isinstance(compact["reviews"], dict):
+        compact["reviews"] = dict(compact["reviews"])
+        for view_name in ("most_helpful", "most_recent_30d"):
+            view = compact["reviews"].get(view_name)
+            if isinstance(view, dict):
+                compact["reviews"][view_name] = {
+                    key: value
+                    for key, value in view.items()
+                    if key
+                    not in {
+                        "review_inventory",
+                        "captured_page_review_inventory",
+                        "within_window_review_inventory",
+                    }
+                }
     print(json.dumps(compact, indent=2, sort_keys=True, ensure_ascii=False))
     return exit_code
 

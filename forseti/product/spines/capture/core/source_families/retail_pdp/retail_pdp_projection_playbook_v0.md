@@ -93,7 +93,7 @@ Minimum input for Retail/PDP projection:
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
 | Sephora content record | `retail_pdp_sephora_aggregate_content_v2` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. It preserves the complete rendered `linkStore.page.product` subtree plus the currently rendered review and Q&A components; v1 remains readable as a legacy input. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
-| Sephora review/Q&A companion | `sephora_bazaarvoice_onboarding_summary_v1` is projected only from exact API response bytes preserved by `sephora_bazaarvoice_onboarding`. Its hash-verified parent rendered packet supplies the page-declared read configuration and product/SKU identity set; tokens and secret-bearing request URLs are never persisted. This companion supplements rather than replaces the rendered PDP packet. |
+| Sephora review/Q&A companion | `sephora_bazaarvoice_onboarding_summary_v3` is projected only from exact API response bytes preserved by `sephora_bazaarvoice_onboarding`. Its hash-verified parent rendered packet supplies the page-declared read configuration and product/SKU identity set; tokens and secret-bearing request URLs are never persisted. It adds a non-incentivized Most Helpful snapshot and source-date-bounded 30-day Most Recent window to the v1 Q&A/age posture, preserves historical/unlisted review SKU identities, and accounts for every raw review field. This companion supplements rather than replaces the rendered PDP packet; legacy v1/v2 packets remain append-only evidence. |
 | Luckyscent content record | `retail_pdp_luckyscent_aggregate_content_v1` carries only target-bound Bread and Roses parser output: two small structured-JSON rows, all three variants in one offer row, and all eight rendered Judge.me reviews in one review-substrate row. Consumers bind real packet identity and JSON pointers; the confirmed default US/USD storefront does not claim US delivery, and the separate origin-derived `buyerCountry=SG` remains non-pin context. |
 | Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, the separate source-labelled most-helpful positive/critical review pair, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
 
@@ -233,6 +233,10 @@ bounded Q&A request after the rendered sort/continuation probe to a future
 Sephora onboarding. The recurring cost catches silent default-sort drift,
 incentive-filter erasure, false 30-day claims, collapsed demographic labels,
 misleading demographic denominators, and question/answer count conflation.
+
+The reusable evidence categories and behavioral discovery procedure are owned
+by `retailer_information_extraction_standard_v0.md`; this section remains the
+Sephora-specific control and field vocabulary.
 
 ### Nordstrom review continuation
 

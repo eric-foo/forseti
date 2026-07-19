@@ -166,6 +166,34 @@ retroactive deletion or compaction of any historical raw packet.
   `01KXXSTQDJ8HGK45CXHPGE38SE` passed parser-fit, preserved six exact response
   documents plus a token-free request manifest and summary, projected all 100
   raw question rows, and retained the explicit answer and coverage losses.
+- The completed review-depth dogfood is append-only packet
+  `01KXY24GS6FA8782BEFKZYBXW4`. The page's preserved source configuration maps
+  `Most Helpful` to `TotalPositiveFeedbackCount:desc`; with
+  `Non-Incentivized Reviews Only`, the companion preserved and projected 100
+  source-ordered review bodies with exact row-order equivalence.
+- The same packet requested non-incentivized `SubmissionTime:desc` reviews and
+  stopped from source dates, not a fixed click count. Its first 100-row page
+  already spanned `2026-07-19T18:00:56Z` through
+  `2026-04-16T01:27:43Z`, crossing the inclusive 30-day cutoff
+  `2026-06-19T20:47:27Z`; 38 review bodies fall inside that 30-day cohort.
+  One page was sufficient because the evidence condition was met, not because
+  pagination was skipped.
+- Live non-incentivized totals advanced during the follow-up to `14328`;
+  age counts were `20s=245`, `30s=338`, `40s=130`, and `50s +=563`.
+  The `1276` declared-age subset is `8.91%` of the denominator, with
+  composition `19.20%`, `26.49%`, `10.19%`, and `44.12%`; `91.09%` of
+  filtered reviews still have no live bucket.
+- Field-first review projection found 50 raw review fields. Nineteen have
+  named summary columns and the remaining 31 are carried per row under
+  `additional_source_fields`; the final loss ledger records zero raw-only
+  review fields. Seventeen rows across the helpful/recent snapshots reference
+  nine historical or unlisted SKU identifiers, which are retained as review
+  identity evidence and are not promoted into the current 13-variant set.
+- Earlier v2 dogfood packets remain append-only: failed packet
+  `01KXY0EZ0873YJKY3CT8H2BFKP` exposed the historical-SKU mismatch and
+  preserved all eight acquired responses; intermediate packet
+  `01KXY19CYXK3J6WMA34CYM0PXY` proved the review windows before the final
+  all-field projection closed the 31-field compact-summary gap.
 - Preserved-file SHA-256:
   - rendered DOM:
     `83b258a407d777ce5956e8ee1acf38178d210fec7832154529612de9eb038158`
