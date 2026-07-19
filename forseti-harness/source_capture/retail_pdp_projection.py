@@ -1947,6 +1947,11 @@ def _project_retail_html(
                     "rating": review_fields.get("rating"),
                     "rating_distribution_basis": review_fields.get("rating_distribution_basis"),
                     "rating_distribution_buckets": review_fields.get("rating_distribution_buckets"),
+                    "displayed_review_count": review_fields.get("displayed_review_count"),
+                    "displayed_review_body_count": review_fields.get(
+                        "displayed_review_body_count"
+                    ),
+                    "review_body_coverage": review_fields.get("review_body_coverage"),
                 },
             )
         )
@@ -2396,6 +2401,17 @@ def _review_substrate_fields(
             fields,
             _with_anchor(fallback_anchor, "html_selector", "#product-page-reviews"),
             residuals,
+        )
+    yotpo_fields, yotpo_residuals = _yotpo_review_fields(html)
+    if yotpo_fields:
+        return (
+            yotpo_fields,
+            _with_anchor(
+                fallback_anchor,
+                "html_selector",
+                "#yotpo-reviews-section-data",
+            ),
+            yotpo_residuals,
         )
     return {}, fallback_anchor, []
 
@@ -3157,6 +3173,116 @@ def _walmart_review_fields(visible_text: str) -> dict[str, Any | None]:
     }
 
 
+def _yotpo_review_fields(
+    html: str,
+) -> tuple[dict[str, Any | None], list[str]]:
+    section_match = re.search(
+        r"<div\b(?=[^>]*\bid=[\"']yotpo-reviews-section-data[\"'])[^>]*>"
+        r"(?P<body>.*?)</div>",
+        html,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if section_match is None:
+        return {}, []
+    section = section_match.group("body")
+    aggregate = re.search(
+        r"Overall\s+rating:\s*</strong>\s*"
+        r"(?P<rating>\d+(?:\.\d+)?)\s*/\s*5\s+from\s+"
+        r"(?P<count>[\d,]+)\s+reviews?\b",
+        section,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    rating = aggregate.group("rating") if aggregate is not None else None
+    review_count = aggregate.group("count") if aggregate is not None else None
+
+    displayed_reviews: list[dict[str, str | None]] = []
+    for article_match in re.finditer(
+        r"<article\b(?P<attrs>[^>]*)>(?P<body>.*?)</article>",
+        section,
+        flags=re.IGNORECASE | re.DOTALL,
+    ):
+        attrs = article_match.group("attrs")
+        class_value = _html_attr_value(attrs, "class") or ""
+        if "yotpo-review" not in class_value.split():
+            continue
+        article = article_match.group("body")
+        displayed_reviews.append(
+            {
+                "reviewer": _html_attr_value(attrs, "data-reviewer"),
+                "rating": _html_attr_value(attrs, "data-rating"),
+                "title": _html_element_text_by_class(
+                    article,
+                    tag="h4",
+                    class_name="yotpo-review-title",
+                ),
+                "body": _html_element_text_by_class(
+                    article,
+                    tag="p",
+                    class_name="yotpo-review-body",
+                ),
+            }
+        )
+
+    ai_summary_section = _first_regex(
+        section,
+        (
+            r"<section\b[^>]*\bid=[\"']yotpo-reviews-ai-summary[\"'][^>]*>"
+            r"(.*?)</section>",
+        ),
+    )
+    ai_summary = (
+        _html_element_text_by_classless_tag(ai_summary_section, tag="p")
+        if ai_summary_section is not None
+        else None
+    )
+    body_count = sum(
+        1
+        for review in displayed_reviews
+        if isinstance(review.get("body"), str) and review["body"]
+    )
+    if rating is None and review_count is None and not displayed_reviews:
+        return {}, []
+
+    residuals: list[str] = []
+    numeric_review_count = (
+        int(review_count.replace(",", "")) if review_count is not None else None
+    )
+    if (
+        numeric_review_count is not None
+        and len(displayed_reviews) < numeric_review_count
+    ):
+        residuals.append(
+            "yotpo_displayed_review_subset_"
+            f"{len(displayed_reviews)}_of_{numeric_review_count}"
+        )
+    if body_count < len(displayed_reviews):
+        residuals.append(
+            f"yotpo_review_bodies_present_{body_count}_of_{len(displayed_reviews)}"
+        )
+
+    return {
+        "review_substrate_source": "yotpo_server_rendered_review_section",
+        "rating": rating,
+        "rating_count": review_count,
+        "review_count": review_count,
+        "written_review_count": review_count,
+        "filtered_review_count": None,
+        "rating_distribution_basis": None,
+        "rating_distribution_buckets": [],
+        "displayed_review_count": len(displayed_reviews),
+        "displayed_review_body_count": body_count,
+        "displayed_reviews": displayed_reviews,
+        "review_body_coverage": (
+            "displayed_subset_not_complete_corpus"
+            if numeric_review_count is not None
+            and len(displayed_reviews) < numeric_review_count
+            else "displayed_rows_only"
+        ),
+        "ai_summary_type": "retailer_labeled_ai_generated",
+        "ai_generated_review_summary": ai_summary,
+    }, residuals
+
+
 def _rating_distribution_buckets(visible_text: str, *, basis: Literal["count", "percent"]) -> list[dict[str, int]]:
     buckets: list[dict[str, int]] = []
     for stars in range(5, 0, -1):
@@ -3898,6 +4024,41 @@ def _first_literal(text: str, literals: tuple[str, ...]) -> str | None:
 
 def _html_attr_value(tag: str, attr_name: str) -> str | None:
     return _first_regex(tag, (rf"\b{re.escape(attr_name)}=[\"']([^\"']+)[\"']",))
+
+
+def _html_element_text_by_class(
+    fragment: str,
+    *,
+    tag: str,
+    class_name: str,
+) -> str | None:
+    raw = _first_regex(
+        fragment,
+        (
+            rf"<{re.escape(tag)}\b"
+            rf"(?=[^>]*\bclass=[\"'][^\"']*\b{re.escape(class_name)}\b[^\"']*[\"'])"
+            rf"[^>]*>(.*?)</{re.escape(tag)}>",
+        ),
+    )
+    return _clean_html_text(raw) if raw is not None else None
+
+
+def _html_element_text_by_classless_tag(
+    fragment: str,
+    *,
+    tag: str,
+) -> str | None:
+    raw = _first_regex(
+        fragment,
+        (rf"<{re.escape(tag)}\b[^>]*>(.*?)</{re.escape(tag)}>",),
+    )
+    return _clean_html_text(raw) if raw is not None else None
+
+
+def _clean_html_text(value: str) -> str | None:
+    text = html_lib.unescape(re.sub(r"<[^>]+>", " ", value))
+    compact = " ".join(text.split())
+    return compact or None
 
 
 def _string_or_none(value: object) -> str | None:

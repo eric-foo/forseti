@@ -114,6 +114,48 @@ build on the hardened seam.
 | YouTube behavioral | Metadata packets + captions + ASR across lake | `youtube_capture/behavioral_projection.py` aggregates | NOT A FLIP TARGET as a whole; only per-page watch-metadata parse is candidate |
 | LinkedIn live adapter | Live-session runtime extraction | `linkedin_live_adapter/projection.py` per-observation | Already effectively capture-time; audit raw retention posture only |
 
+### Beauty retailer packet audit (fresh-read 2026-07-19)
+
+The beauty-retailer results register was audited against every packet manifest
+it cites, rather than treating the register's prose as packet-state authority.
+Of 55 ULID locators in
+`docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`, 48 resolve
+to source packet manifests and seven are derived-record identifiers. All 48
+source packets have `artifact_mode=raw`; none has `artifact_mode=content` or
+`artifact_mode=sample`. Forty-two of the 48 are `retail_pdp` packets. The
+remaining six belong to certification-directory, company-official, or
+fragrance-review source families.
+
+This is a historical-corpus finding, not a reversal of the two later route
+flips. The current exact `sephora_pdp_aggregate` and
+`nordstrom_pdp_aggregate` routes default successful captures to retailer-owned
+content records. Both still support an explicit sample mode, but this beauty
+corpus contains no sample receipt proving the raw-plus-derived side of the
+posture. Therefore no beauty retailer route is yet evidenced end-to-end as a
+maintained **sampled-raw with full-derived** route.
+
+| Surface named by the beauty program | Corpus posture | Current gap before sampled-raw with full-derived can be claimed |
+| --- | --- | --- |
+| Sephora aggregate PDP | Historical packets are raw; current exact route defaults to content | Preserve and verify a representative sample-mode packet alongside the content route |
+| Nordstrom aggregate PDP | Historical packets are raw; current exact route defaults to content | Preserve and verify a representative sample-mode packet alongside the content route |
+| Nordstrom brand grid | Raw | Add a family-owned grid content record, equivalence proof, and sample receipt |
+| Target brand grid and PDP | Raw | Add family-owned grid/PDP content records, equivalence proof, and sample receipts |
+| Luckyscent brand grid and PDP | Raw | Add family-owned grid/PDP content records; the grid currently has no applicable retail-grid projection |
+| Amazon search/discovery and PDP | Raw | Add seller/offer-preserving content records, equivalence proof, and sample receipts |
+| Ulta PDP | Raw | Add a family-owned content record, equivalence proof, and sample receipt |
+| Walmart PDP | Raw | Add a family-owned content record, equivalence proof, and sample receipt |
+| Credo PDP and Yotpo review responses | Raw | First retain all variants, subscription allocations, ingredients, packaging claims, and review fields in derived form; the current generic PDP projection is not full-derived |
+| Kohl's access diagnostics | Raw failure packets | Not a flip candidate until a successful subject-bound capture exists; block evidence must remain raw |
+
+The broader subject add-on also leaves Tower 28 DTC PDP, bundle, and stores
+pages plus the PETA and Leaping Bunny directory reads in raw mode under their
+own source families. They are not silently counted as Retail/PDP flips.
+
+This audit authorizes no retroactive compaction or deletion. Existing raw
+packets remain canonical evidence. Each future flip still requires its
+family-owned content model, loss ledger, equivalence/parser-fit proof, and a
+representative sample-mode receipt before the sampled-raw posture is promoted.
+
 ## Flip Order (recommended)
 
 1. Parfumo pinned targeted-rendered surface: flipped with a family-owned

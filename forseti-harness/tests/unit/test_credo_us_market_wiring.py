@@ -19,6 +19,45 @@ from source_capture.retail_pdp_projection import (
 
 _HANDLE = "sos-save-our-skin-daily-rescue-facial-spray"
 _URL = f"https://credobeauty.com/products/{_HANDLE}"
+_DISPLAYED_REVIEWS = [
+    ("Aleksandra M.", "5", "Best facial spray", "I continue to buy this again and again."),
+    ("L H.", "3", "Works but wildly overpriced", "Wildly overpriced, terrible value."),
+    ("Hannah J.", "5", "Saving my skin!", "Great after the gym or a hike."),
+    ("Fiona C.", "5", "The best spray", "One of the few products I rebuy."),
+    ("Echo", "4", "Actually helpful", "It might help clear breakouts faster."),
+    ("KS", "5", "I like it!", "This seems to work for my redness."),
+    ("Maura", "5", "A staple", "It takes redness away like a charm."),
+    ("Sylvie S.", "5", "Works great", "This and rosewater in the summer."),
+    ("Juliana L.", "5", "Works great as always", "This spray is calming."),
+    ("Jackie", "5", "Must try", "My most repurchased product."),
+]
+
+
+def _yotpo_review_section() -> str:
+    articles = "".join(
+        (
+            f'<article class="yotpo-review" data-reviewer="{reviewer}" '
+            f'data-rating="{rating}">'
+            f'<h4 class="yotpo-review-title">{title}</h4>'
+            f'<p class="yotpo-review-body">&quot;{body}&quot;</p>'
+            "</article>"
+        )
+        for reviewer, rating, title, body in _DISPLAYED_REVIEWS
+    )
+    return (
+        '<div id="yotpo-reviews-section-data">'
+        '<section id="yotpo-reviews-overall-rating">'
+        "<p><strong>Overall rating:</strong> 4.705247 / 5 from 648 reviews.</p>"
+        "</section>"
+        '<section id="yotpo-reviews-ai-summary">'
+        "<h3>AI Generated Review Summary</h3>"
+        "<p>Credo labels this summary as AI generated.</p>"
+        "</section>"
+        '<section id="yotpo-reviews-individual-reviews">'
+        f"{articles}"
+        "</section>"
+        "</div>"
+    )
 
 
 def _body(
@@ -61,7 +100,8 @@ def _body(
         f"Shopify.country = {json.dumps(country)};</script>"
         '<script type="application/ld+json">'
         f"{json.dumps(product)}"
-        "</script></head><body>Tower 28 SOS Daily Rescue Facial Spray $12</body></html>"
+        "</script></head><body>Tower 28 SOS Daily Rescue Facial Spray $12"
+        f"{_yotpo_review_section()}</body></html>"
     )
 
 
@@ -225,11 +265,72 @@ def test_writer_accepts_packet_derives_pins_and_projects_bound_usd_offer(
     offers = [
         row for row in projection.rows if row.row_kind == "retail_variant_offer"
     ]
+    reviews = [
+        row
+        for row in projection.rows
+        if row.row_kind == "retail_review_substrate"
+    ]
     assert len(products) == 1
     assert len(offers) == 1
+    assert len(reviews) == 1
     assert offers[0].source_visible_fields["sku"] == "210000007835"
     assert offers[0].source_visible_fields["price"] == "12.0"
     assert offers[0].source_visible_fields["price_currency"] == "USD"
+    review_fields = reviews[0].source_visible_fields
+    assert review_fields["review_substrate_source"] == (
+        "yotpo_server_rendered_review_section"
+    )
+    assert review_fields["rating"] == "4.705247"
+    assert review_fields["review_count"] == "648"
+    assert review_fields["displayed_review_count"] == 10
+    assert review_fields["displayed_review_body_count"] == 10
+    assert len(review_fields["displayed_reviews"]) == 10
+    assert review_fields["displayed_reviews"][1] == {
+        "reviewer": "L H.",
+        "rating": "3",
+        "title": "Works but wildly overpriced",
+        "body": '"Wildly overpriced, terrible value."',
+    }
+    assert review_fields["ai_summary_type"] == "retailer_labeled_ai_generated"
+    assert review_fields["ai_generated_review_summary"] == (
+        "Credo labels this summary as AI generated."
+    )
+    assert reviews[0].residuals == [
+        "yotpo_displayed_review_subset_10_of_648"
+    ]
+    assert projection.residuals == [
+        "yotpo_displayed_review_subset_10_of_648"
+    ]
+    assert projection.loss_ledger.structure_preserved is True
+
+
+def test_projection_rejects_yotpo_asset_names_without_review_state(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    body = _body().replace(
+        _yotpo_review_section(),
+        '<script src="/assets/yotpo-reviews.js"></script>',
+    )
+    monkeypatch.setattr(
+        http_writer,
+        "fetch_direct_http_capture",
+        _fake_capture(body=body),
+    )
+    exit_code, _output = http_writer.run_source_capture_http_packet(
+        **_run_kwargs(tmp_path / "packet")
+    )
+    assert exit_code == 0
+
+    projection = build_retail_pdp_projection_from_packet_directory(
+        packet_directory=tmp_path / "packet"
+    )
+    assert [
+        row
+        for row in projection.rows
+        if row.row_kind == "retail_review_substrate"
+    ] == []
+    assert "slice_01:unknown:review_substrate_absent" in projection.residuals
 
 
 def test_writer_preserves_typed_packet_and_exits_nonzero_when_pin_fails(
