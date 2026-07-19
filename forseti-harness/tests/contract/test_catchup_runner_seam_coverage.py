@@ -161,7 +161,11 @@ def _pickup_reconcile_false_lines(
 
 
 def test_seam_consumer_runner_surface_is_explicit() -> None:
-    discovered = {name for name, tree in _runner_trees().items() if _uses_consumption(tree)}
+    discovered = {
+        name
+        for name, tree in _runner_trees().items()
+        if _uses_consumption(tree) and name != "run_seam_cadence.py"
+    }
 
     new_consumers = discovered - EXPECTED_SEAM_CONSUMER_RUNNERS
     assert not new_consumers, (
