@@ -1481,7 +1481,34 @@ def _structured_variant_offer_fields(
             if "Product" in product_type_values:
                 if preferred_sku and _string_or_none(product.get("sku")) != preferred_sku:
                     continue
-                offer = product.get("offers") if isinstance(product.get("offers"), dict) else {}
+                raw_offers = product.get("offers")
+                if isinstance(raw_offers, dict):
+                    offer = raw_offers
+                elif isinstance(raw_offers, list):
+                    candidates = [item for item in raw_offers if isinstance(item, dict)]
+                    offer = (
+                        next(
+                            (
+                                item
+                                for item in candidates
+                                if _string_or_none(item.get("sku"))
+                                == _string_or_none(product.get("sku"))
+                            ),
+                            None,
+                        )
+                        or next(
+                            (
+                                item
+                                for item in candidates
+                                if _string_or_none(item.get("price")) is not None
+                                and _string_or_none(item.get("priceCurrency")) is not None
+                            ),
+                            None,
+                        )
+                        or {}
+                    )
+                else:
+                    offer = {}
                 return _offer_fields_from_product(product, product, offer, entry.kind), entry.raw_anchor
     return {}, None
 

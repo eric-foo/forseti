@@ -1286,6 +1286,57 @@ observations:
   This supplement adds no SOBS row because it records a pin-admission gap, not
   a new assortment, price, review, or product-claim finding.
 
+### Credo US/USD default storefront pin
+
+- The commissioned subject was Tower 28 SOS (Save. Our. Skin) Daily Rescue
+  Facial Spray with Hypochlorous Acid at
+  `https://credobeauty.com/products/sos-save-our-skin-daily-rescue-facial-spray`.
+  This keeps the storefront test bound to the owner’s broader Tower 28 work
+  while adding no new price, certification, diversion, or performance claim.
+- Anonymous Direct HTTP through the Capture Spine used the explicit no-proxy
+  opener and `--credo-market US`. It performed no browser launch, stored-profile
+  load, cookie injection, credential use, login, cart action, preference
+  mutation, or delivery-location mutation. A post-capture network check found
+  both Surfshark adapters disconnected and the default route on Ethernet, so
+  the authorized VPN differential was not triggered.
+- The assertion did not admit `.com`, absence of `.sg`, a dollar glyph, response
+  cookies, or network geography by themselves. It required one conjunction:
+  exact requested/final/canonical Credo PDP; only `Shopify.country=US`; only
+  active `Shopify.currency=USD`; and exactly one route-bound Product JSON-LD
+  object with a named brand and at least one nonempty priced USD offer. Route
+  drift, split/conflicting Shopify globals, mixed offer currencies, missing
+  product identity, or malformed state preserves `credo_market_pin_failed` and
+  exits nonzero.
+- Admitted packet `01KXX1S3VYWQM3NNM23VYK3EPW` is at
+  `F:\forseti-data-lake\raw\7dd\01KXX1S3VYWQM3NNM23VYK3EPW`. It preserved HTTP
+  200 and 1,434,868 response bytes. Metadata recorded
+  `pin_confirmed=true`, `country_code_confirmed=US`,
+  `currency_code_confirmed=USD`, exact requested/final/canonical URLs, product
+  handle `sos-save-our-skin-daily-rescue-facial-spray`, brand `Tower 28`,
+  product SKU `210000007835`, and only `USD` offer currencies.
+- Fresh verification matched both preserved files to the manifest:
+  response body SHA-256
+  `2bf803981dc8d89e0a91805cdb62267a631dadc5243731f9aed8e46e22b5c39c`
+  at 1,434,868 bytes, and metadata SHA-256
+  `6b6dfdafff561aead47301ba19584803940948cad89c2a69a4a3930c7f83c8fa`
+  at 1,447 bytes. The receipt was fresh-read and carried no warning or visible
+  mode change.
+- Append-only Retail/PDP projection
+  `F:\forseti-data-lake\derived\7dd\01KXX1S3VYWQM3NNM23VYK3EPW\projection_retail_pdp\01KXX1WMT8TVYGPV07ZCK70J1K.json`
+  produced five rows and anchored the selected Product offer at
+  `ld_json[1]`: SKU `210000007835`, price `12.0`, currency `USD`, and
+  `InStock`. Credo remains typed as `unknown` because this lane did not expand
+  the projection retailer enum; the absent review substrate is the only packet
+  residual. Supporting a valid Product `offers` array required a bounded
+  generic projector fix, not a new schema.
+- Current outcome:
+  `GO_US_USD_DEFAULT_STOREFRONT_CONFIRMED_WITHOUT_VPN_DELIVERY_UNPINNED`.
+  This is a storefront-country/currency pin only. It does not establish a US
+  delivery destination, inventory depth, fulfillment availability, realized
+  transaction price, demand, velocity, revenue, sell-through, market share, or
+  performance. No SOBS row was added because this supplement commissions pin
+  admission, not a new claim-level retailer-surface observation.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,
