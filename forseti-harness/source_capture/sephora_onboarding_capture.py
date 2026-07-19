@@ -13,13 +13,19 @@ import html as html_lib
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence
-from urllib.error import HTTPError, URLError
-from urllib.parse import unquote, urlencode
-from urllib.request import ProxyHandler, Request, build_opener
+from typing import Any, Mapping, Sequence
+from urllib.parse import unquote
 
 from data_lake.root import DataLakeRoot, LoadedRawPacket
 from harness_utils import utc_now_z
+from source_capture.adapters.sephora_bazaarvoice import (
+    BAZAARVOICE_API_HOST,
+    ApiFetcher,
+    ApiRequestSpec,
+    ApiResponse,
+    BazaarvoiceReadConfig,
+    fetch_bazaarvoice_api_response,
+)
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -35,20 +41,10 @@ SEPHORA_ONBOARDING_SOURCE_SURFACE = "sephora_bazaarvoice_onboarding"
 SEPHORA_ONBOARDING_PARSER_VERSION = "sephora_bazaarvoice_onboarding_v1"
 SEPHORA_AGE_BUCKETS: tuple[str, ...] = ("20s", "30s", "40s", "50s +")
 DEFAULT_QUESTION_LIMIT = 100
-_API_HOST = "api.bazaarvoice.com"
-_API_USER_AGENT = "ForsetiSephoraOnboarding/1.0 (raw-preserving structured read)"
-_NO_PROXY_OPENER = build_opener(ProxyHandler({}))
 
 
 class SephoraOnboardingCaptureError(RuntimeError):
     """Fail-closed capture or parser-fit error."""
-
-
-@dataclass(frozen=True)
-class BazaarvoiceReadConfig:
-    host: str
-    version: str
-    token: str
 
 
 @dataclass(frozen=True)
@@ -63,29 +59,6 @@ _AGE_BUCKET_SPECS: tuple[AgeBucketSpec, ...] = (
     AgeBucketSpec("40s", "40s"),
     AgeBucketSpec("50s +", "50s"),
 )
-
-
-@dataclass(frozen=True)
-class ApiRequestSpec:
-    artifact_name: str
-    endpoint: str
-    config_kind: str
-    parameters: tuple[tuple[str, str], ...]
-
-
-@dataclass(frozen=True)
-class ApiResponse:
-    status: int
-    reason: str
-    body: bytes
-    content_type: str | None
-    captured_at: str
-
-
-ApiFetcher = Callable[
-    [ApiRequestSpec, BazaarvoiceReadConfig, float, int],
-    ApiResponse,
-]
 
 
 @dataclass(frozen=True)
@@ -127,7 +100,7 @@ def capture_sephora_onboarding_packet(
 
     parent = _parent_context(data_root.load_raw_packet(parent_packet_id), parent_packet_id)
     request_specs = _request_specs(parent.product_id, question_limit)
-    api_fetcher = fetcher or _fetch_api_response
+    api_fetcher = fetcher or fetch_bazaarvoice_api_response
     captured: list[tuple[ApiRequestSpec, ApiResponse]] = []
     acquisition_failure: dict[str, Any] | None = None
 
@@ -535,9 +508,9 @@ def _read_config(html: str, key: str) -> BazaarvoiceReadConfig:
     host = _required_string(raw.get("host"), f"{key}.host")
     version = _required_string(raw.get("version"), f"{key}.version")
     token = _required_string(raw.get("token"), f"{key}.token")
-    if host != _API_HOST:
+    if host != BAZAARVOICE_API_HOST:
         raise SephoraOnboardingCaptureError(
-            f"{key}.host must be the allowlisted {_API_HOST}"
+            f"{key}.host must be the allowlisted {BAZAARVOICE_API_HOST}"
         )
     if not re.fullmatch(r"\d+(?:\.\d+)+", version):
         raise SephoraOnboardingCaptureError(f"{key}.version is invalid")
@@ -607,54 +580,6 @@ def _request_specs(product_id: str, question_limit: int) -> tuple[ApiRequestSpec
     return tuple(specs)
 
 
-def _fetch_api_response(
-    spec: ApiRequestSpec,
-    config: BazaarvoiceReadConfig,
-    timeout_seconds: float,
-    max_bytes: int,
-) -> ApiResponse:
-    query = urlencode(
-        (("apiversion", config.version), ("passkey", config.token), *spec.parameters),
-        doseq=True,
-    )
-    url = f"https://{config.host}/data/{spec.endpoint}?{query}"
-    request = Request(
-        url,
-        headers={"Accept": "application/json", "User-Agent": _API_USER_AGENT},
-        method="GET",
-    )
-    try:
-        response = _NO_PROXY_OPENER.open(request, timeout=timeout_seconds)
-    except HTTPError as exc:
-        response = exc
-    except (URLError, TimeoutError, OSError) as exc:
-        raise SephoraOnboardingCaptureError(
-            f"{spec.artifact_name} network read failed"
-        ) from exc
-    with response:
-        content_length = _optional_header_int(response.headers.get("Content-Length"))
-        if content_length is not None and content_length > max_bytes:
-            raise SephoraOnboardingCaptureError(
-                f"{spec.artifact_name} exceeds max_bytes before read"
-            )
-        body = response.read(max_bytes + 1)
-        if len(body) > max_bytes:
-            raise SephoraOnboardingCaptureError(
-                f"{spec.artifact_name} exceeds max_bytes during read"
-            )
-        if not body:
-            raise SephoraOnboardingCaptureError(
-                f"{spec.artifact_name} returned an empty body"
-            )
-        return ApiResponse(
-            status=int(response.getcode()),
-            reason=str(getattr(response, "reason", "") or ""),
-            body=body,
-            content_type=response.headers.get("Content-Type"),
-            captured_at=utc_now_z(),
-        )
-
-
 def _request_manifest(
     parent: ParentContext,
     specs: Sequence[ApiRequestSpec],
@@ -675,7 +600,7 @@ def _request_manifest(
         "requests": [
             {
                 "artifact_name": spec.artifact_name,
-                "endpoint": f"https://{_API_HOST}/data/{spec.endpoint}",
+                "endpoint": f"https://{BAZAARVOICE_API_HOST}/data/{spec.endpoint}",
                 "api_version": (
                     parent.question_config.version
                     if spec.config_kind == "questions"
@@ -897,15 +822,6 @@ def _percentage(numerator: int, denominator: int) -> float | None:
 
 def _display_text(value: str) -> str:
     return " ".join(html_lib.unescape(unquote(value)).split())
-
-
-def _optional_header_int(value: str | None) -> int | None:
-    if value is None:
-        return None
-    try:
-        return int(value)
-    except ValueError:
-        return None
 
 
 def _safe_error_text(exc: Exception) -> str:
