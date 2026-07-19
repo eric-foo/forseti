@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
@@ -61,7 +62,8 @@ class NordstromCountryPreferencePlugin:
 
     country_code: str = "US"
     currency_code: str = "USD"
-    setup_timeout_seconds: float = 30.0
+    setup_timeout_seconds: float = 45.0
+    target_url: str | None = None
 
     def __post_init__(self) -> None:
         if self.country_code != "US" or self.currency_code != "USD":
@@ -70,6 +72,12 @@ class NordstromCountryPreferencePlugin:
             raise ValueError(
                 "nordstrom_country_setup_timeout_seconds must be greater than zero"
             )
+        if self.target_url is not None:
+            hostname = (urlparse(self.target_url).hostname or "").lower()
+            if hostname not in {"nordstrom.com", "www.nordstrom.com"}:
+                raise ValueError(
+                    "Nordstrom country preference target_url must use nordstrom.com"
+                )
 
     @property
     def humanize(self) -> bool:
@@ -103,9 +111,35 @@ class NordstromCountryPreferencePlugin:
             page.wait_for_timeout(render_settle_ms)  # type: ignore[union-attr]
 
         if not _click_first(page, _COUNTRY_CONTROL_SELECTORS, deadline):
-            return _failed_outcome(
-                "open_country_control",
-                "could not open Nordstrom country preference control",
+            if self.target_url is None:
+                return _failed_outcome(
+                    "open_country_control",
+                    "could not open Nordstrom country preference control",
+                )
+            try:
+                page.goto(  # type: ignore[union-attr]
+                    self.target_url,
+                    wait_until="domcontentloaded",
+                    timeout=_remaining_ms(deadline),
+                )
+            except Exception as exc:
+                return _failed_outcome(
+                    "target_navigation",
+                    f"target-page country-control fallback navigation failed ({exc})",
+                )
+            render_settle_ms = min(
+                _HOMEPAGE_RENDER_SETTLE_MS, _remaining_ms(deadline)
+            )
+            if render_settle_ms > 0:
+                page.wait_for_timeout(render_settle_ms)  # type: ignore[union-attr]
+            if not _click_first(page, _COUNTRY_CONTROL_SELECTORS, deadline):
+                return _failed_outcome(
+                    "open_country_control",
+                    "country control was absent on both homepage and commissioned target",
+                )
+            warning_notes.append(
+                "nordstrom_country_setup: homepage country control was unavailable; "
+                "the same retailer-owned control on the commissioned target was used"
             )
 
         if not (
