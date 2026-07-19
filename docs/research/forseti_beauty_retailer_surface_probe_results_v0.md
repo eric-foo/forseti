@@ -1548,12 +1548,47 @@ observations:
     independence_hypothesis: retailer-hosted offer state
     packet_locator: F:\forseti-data-lake\raw\b99\01KXXHBKF2GPK4M96SAV1VQKM3
     uncertainty_or_limits: >
-      Point-in-time page state reached only via the owner's warmed real Chrome
-      (not armory-runner-reproducible; cold runners remain Akamai-blocked).
+      Point-in-time page state reached via a real Chrome (the headless armory
+      runners remain Akamai-blocked; now captured by the committed rung-7
+      real-Chrome CDP runner, operator-gated — see the runner subsection below).
       Egress was SG; US context is retailer-owned, not viewer geography, and no
       US delivery destination, inventory, demand, velocity, sell-through, or
       realized price is established.
 ```
+
+### Kohl's rung-7 real-Chrome CDP runner (2026-07-20)
+
+The Kohl's route is now a committed capture runner, not a one-off bridge. Two
+findings drove this:
+
+- A **cold** incognito context inside the same real Chrome (verified 0 Kohl's
+  cookies before navigating) reached the PDP with full content and was issued
+  the Akamai session on the spot. So the discriminator is the **real Chrome
+  fingerprint**, not pre-warmed personal cookies: the earlier "depends on a
+  warmed personal profile" caveat is corrected. A same-site homepage warm hop
+  still helps seed the session (it does so even when the hop itself is blocked).
+- Rung 7 of the anti-block ladder is now
+  `forseti-harness/runners/run_source_capture_realchrome_cdp_packet.py`: it
+  attaches to an operator-provided real Chrome over CDP (`--cdp-endpoint`,
+  default `localhost:9222`), warm-hops the homepage, and writes through the
+  standard packet seam. Honest boundary: it needs an externally-running real
+  Chrome, so it is **operator-gated, not fully unattended**, and the headless
+  armory runners stay Akamai-blocked. Not stealth, not proxy; only public page
+  content preserved (no cookies/credentials/account state). Covered by
+  `tests/unit/test_realchrome_cdp_packet.py` (content, block-preserved-and-fails-closed,
+  and output-target-validation cases).
+
+Runner-backed GO packets (fresh-verified; `source_surface=realchrome_cdp_snapshot`,
+HTTP 200, no block): PDP `01KXXK9PJTA2KBRS2CM1MZDV1H` at
+`F:\forseti-data-lake\raw\051\01KXXK9PJTA2KBRS2CM1MZDV1H` and policy
+`01KXXKA9RJBP6SVT455DTR0K08` at
+`F:\forseti-data-lake\raw\07d\01KXXKA9RJBP6SVT455DTR0K08`. The PDP packet binds
+the same Tower 28 LipSoftie schema.org `Offer` `price=16`/`priceCurrency=USD`
+and the policy packet the same US-shipping-only statement adjudicated above. The
+storefront-pin registry now records this runner as the admitted Kohl's route
+(`CONFIRMED_US` / `CONFIRMED_USD`, delivery `UNPINNED`). A fully-unattended route
+(headless-new real Chrome, or a US residential / entitled / paid egress) remains
+an open follow-up.
 
 ### Credo US/USD default storefront pin
 

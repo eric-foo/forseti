@@ -639,6 +639,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "reason": "subject is the requested URL itself (real-Chrome-over-CDP browser_snapshot shape): requested_url is preserved as source_locator and the served final_url on the slice; access-block classification refuses to certify a block shell; no subject identity beyond the URL is asserted (any subject/currency admission is a caller-supplied source-detail-sufficiency check, not a runner-enforced binding)",
+          "status": "not_applicable"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_realchrome_cdp_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "creator_handle and creator_profile_url are checked for request self-consistency and grid-enrichment items with a mismatched authorUniqueId are dropped, but the admitted cadence rows are attributed to the requested creator without a served-content author check",
           "status": "unbound"
         },
