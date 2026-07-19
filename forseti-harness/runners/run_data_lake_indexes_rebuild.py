@@ -25,6 +25,11 @@ Modes:
 - **--audit-source-integrity**: read-only cold source re-hash and byte proof,
   intended for the owner-operated periodic integrity schedule.
 
+Fresh-root one-time bootstrap (binds and reports this checkout's exact active
+policy, and refuses an existing ``by_mention`` manifest):
+
+``python runners/run_data_lake_indexes_rebuild.py --root F:\\forseti-data-lake --target derived_retrieval --bootstrap-active-product-mention-policy``
+
 Owner-operated one-shot daily fallback (policy pins are read from the stored
 generated-view manifest, never hardcoded):
 
@@ -44,6 +49,8 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION
+from cleaning.transcript_product_lake import product_mentions_policy_fingerprint
 from data_lake.derived_retrieval_views import (
     audit_derived_retrieval_source_integrity,
     prove_incremental_rebuild_equality,
@@ -83,8 +90,8 @@ def _rebuild_availability(root: DataLakeRoot, *, prove: bool) -> dict:
     }
 
 
-def _stored_product_mention_policy(root: DataLakeRoot) -> dict[str, str]:
-    manifest_path = root._within(
+def _by_mention_manifest_path(root: DataLakeRoot) -> Path:
+    return root._within(
         "indexes",
         "derived_retrieval",
         "silver_vault",
@@ -92,14 +99,38 @@ def _stored_product_mention_policy(root: DataLakeRoot) -> dict[str, str]:
         "manifests",
         "by_mention.json",
     )
+
+
+def _stored_product_mention_policy(root: DataLakeRoot) -> dict[str, str]:
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(
+            _by_mention_manifest_path(root).read_text(encoding="utf-8")
+        )
         policy = manifest["selection_policy_versions"]["product_mention_policy"]
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise ValueError(
             f"stored by_mention manifest does not provide product-mention policy pins: {exc}"
         ) from exc
     return normalize_product_mention_policy(policy)
+
+
+def _active_product_mention_policy_for_bootstrap(
+    root: DataLakeRoot,
+) -> dict[str, str]:
+    manifest_path = _by_mention_manifest_path(root)
+    if manifest_path.exists():
+        raise ValueError(
+            "active product-mention policy bootstrap is fresh-root only; "
+            "by_mention manifest already exists, so use stored policy pins"
+        )
+    return normalize_product_mention_policy(
+        {
+            "policy_version": EXTRACTOR_RUBRIC_VERSION,
+            "policy_fingerprint_sha256": product_mentions_policy_fingerprint(
+                EXTRACTOR_RUBRIC_VERSION
+            ),
+        }
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -166,6 +197,14 @@ def main(argv: list[str] | None = None) -> int:
             "manifest (for cadence-tail and owner-scheduled rebuilds)."
         ),
     )
+    parser.add_argument(
+        "--bootstrap-active-product-mention-policy",
+        action="store_true",
+        help=(
+            "One-time fresh-root rebuild: bind the exact active product-mention "
+            "policy from this checkout and refuse an existing by_mention manifest."
+        ),
+    )
     args = parser.parse_args(argv)
     verification_modes = sum(
         bool(value)
@@ -189,13 +228,28 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.full_rebuild and verification_modes:
         parser.error("--full-rebuild applies only to rebuild mode")
-    if args.use_stored_product_mention_policy and (
+    explicit_product_policy_requested = bool(
         args.product_mention_policy_version
         or args.product_mention_policy_fingerprint_sha256
+    )
+    product_policy_sources = sum(
+        (
+            bool(args.use_stored_product_mention_policy),
+            bool(args.bootstrap_active_product_mention_policy),
+            explicit_product_policy_requested,
+        )
+    )
+    if product_policy_sources > 1:
+        parser.error(
+            "choose exactly one product-mention policy source: stored manifest, "
+            "fresh-root active-policy bootstrap, or explicit pins"
+        )
+    if args.bootstrap_active_product_mention_policy and (
+        verification_modes or args.target not in ("derived_retrieval", "all")
     ):
         parser.error(
-            "--use-stored-product-mention-policy cannot be combined with explicit "
-            "product-mention policy pins"
+            "--bootstrap-active-product-mention-policy applies only to a "
+            "derived_retrieval or all rebuild"
         )
     needs_product_policy = (
         args.target in ("derived_retrieval", "all")
@@ -204,6 +258,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     if needs_product_policy and (
         not args.use_stored_product_mention_policy
+        and not args.bootstrap_active_product_mention_policy
         and (
             not args.product_mention_policy_version
             or not args.product_mention_policy_fingerprint_sha256
@@ -218,7 +273,16 @@ def main(argv: list[str] | None = None) -> int:
             "policy_version": args.product_mention_policy_version,
             "policy_fingerprint_sha256": args.product_mention_policy_fingerprint_sha256,
         }
-        if needs_product_policy
+        if needs_product_policy and explicit_product_policy_requested
+        else None
+    )
+    product_mention_policy_source = (
+        "stored_manifest"
+        if args.use_stored_product_mention_policy
+        else "active_checkout_bootstrap"
+        if args.bootstrap_active_product_mention_policy
+        else "explicit_pins"
+        if explicit_product_policy_requested
         else None
     )
 
@@ -242,8 +306,13 @@ def main(argv: list[str] | None = None) -> int:
         product_mention_policy = (
             _stored_product_mention_policy(root)
             if needs_product_policy and args.use_stored_product_mention_policy
+            else _active_product_mention_policy_for_bootstrap(root)
+            if needs_product_policy and args.bootstrap_active_product_mention_policy
             else explicit_product_mention_policy
         )
+        if needs_product_policy:
+            report["product_mention_policy_source"] = product_mention_policy_source
+            report["product_mention_policy"] = product_mention_policy
         statuses: list[str] = []
         if args.target in ("availability", "all"):
             availability = _rebuild_availability(root, prove=args.prove_rebuildability)

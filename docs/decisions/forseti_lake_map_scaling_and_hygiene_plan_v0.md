@@ -162,6 +162,12 @@ Stages 2–4 remain trigger-gated.
   a current non-authoritative rebuild and may be a superset if capture or
   derivation continued. Manifest provenance discloses the generation, while
   hash verification proves integrity rather than currency.
+- Automation boundary: a successful `run_seam_cadence.py --run` rebuilds the
+  map automatically; `--check` does not rebuild, and no background scheduler
+  is selected. A fresh root uses one explicit
+  `--bootstrap-active-product-mention-policy` cadence run, which pins the
+  checkout's exact active policy and refuses an existing manifest. Later runs
+  reuse those stored pins.
 
 ```yaml
 direction_change_propagation:
