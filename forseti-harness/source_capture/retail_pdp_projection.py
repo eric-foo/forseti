@@ -573,9 +573,10 @@ class NordstromPdpAggregateContentRecord(StrictModel):
     schema_version: Literal["retail_pdp_nordstrom_aggregate_content_v1"] = (
         NORDSTROM_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_nordstrom_aggregate_parser_v2"] = (
-        NORDSTROM_PDP_PARSER_VERSION
-    )
+    parser_version: Literal[
+        "retail_pdp_nordstrom_aggregate_parser_v1",
+        "retail_pdp_nordstrom_aggregate_parser_v2",
+    ] = NORDSTROM_PDP_PARSER_VERSION
     capture_profile: Literal["nordstrom_pdp_aggregate"] = (
         NORDSTROM_PDP_CONTENT_PROFILE
     )
@@ -1723,8 +1724,13 @@ def _validate_nordstrom_content_packet_metadata(
         return value
 
     capture_metadata = _one_json("content_capture_metadata.json")
-    if capture_metadata.get("parser_version") != NORDSTROM_PDP_PARSER_VERSION:
-        raise ValueError("Nordstrom content packet parser version does not match current")
+    if capture_metadata.get("parser_version") not in {
+        "retail_pdp_nordstrom_aggregate_parser_v1",
+        NORDSTROM_PDP_PARSER_VERSION,
+    }:
+        raise ValueError(
+            "Nordstrom content packet parser version is not a supported durable version"
+        )
     if capture_metadata.get("projection_status") != "succeeded":
         raise ValueError("Nordstrom content packet projection did not succeed")
     if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:

@@ -149,9 +149,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Output-shaping: Nordstrom parser v2 preserves source-selected review
         # sort posture, visible per-card helpful counts, display position, and
-        # the exact six-row continuation control. Luckyscent remains on its
-        # family-owned parser v1; shared Retail/PDP v0 semantics stay unchanged.
-        "31b3b5e90cd10258b9a60cf259e7e72c36fb4785ac2a8a3c61e7f4833302b9f4",
+        # the exact six-row continuation control. Known v1 content-only packets
+        # remain readable; shared Retail/PDP v0 semantics stay unchanged.
+        "5f1f1764a633cfccc5432a67b4d4f54a5a9cc0f91ef0579c9894ee846e8d2719",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

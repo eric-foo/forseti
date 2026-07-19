@@ -614,6 +614,54 @@ def test_raw_and_content_projection_and_silver_are_equal(
     ]
 
 
+def test_v1_content_packet_remains_projectable_after_v2_parser_bump(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet_dir = tmp_path / "content-v1"
+    assert _run(output=packet_dir, monkeypatch=monkeypatch, mode="content")[0] == 0
+    legacy_version = "retail_pdp_nordstrom_aggregate_parser_v1"
+
+    def downgrade_content_record(payload: dict[str, Any]) -> None:
+        payload["parser_version"] = legacy_version
+        fields = next(
+            row["source_visible_fields"]
+            for row in payload["rows"]
+            if row["row_kind"] == "retail_review_substrate"
+        )
+        for key in (
+            "review_sort_posture",
+            "review_load_more_control_text",
+            "review_load_more_batch_size",
+            "review_continuation_available",
+        ):
+            fields.pop(key)
+        for review in fields["rendered_reviews"]:
+            review.pop("source_display_position")
+            review.pop("helpful_count")
+
+    _mutate_json(
+        packet_dir,
+        "content_record.json",
+        downgrade_content_record,
+    )
+    _mutate_json(
+        packet_dir,
+        "content_capture_metadata.json",
+        lambda payload: payload.update({"parser_version": legacy_version}),
+    )
+
+    projection = build_retail_pdp_projection_from_packet_directory(
+        packet_directory=packet_dir
+    )
+    review = next(
+        row.source_visible_fields
+        for row in projection.rows
+        if row.row_kind == "retail_review_substrate"
+    )
+    assert review["rendered_review_count"] == 6
+    assert all(row.raw_anchor.anchor_kind == "json_pointer" for row in projection.rows)
+
+
 def test_parser_fit_match_and_fact_drift(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
