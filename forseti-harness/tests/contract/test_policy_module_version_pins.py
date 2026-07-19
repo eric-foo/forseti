@@ -143,13 +143,15 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     "source_capture/retail_pdp_projection.py": (
         (
             "RETAIL_PDP_PROJECTION_VERSION",
-            "retailer-owned content/parser version tokens",
+            "SEPHORA_PDP_PARSER_VERSION",
+            "LUCKYSCENT_PDP_PARSER_VERSION",
+            "NORDSTROM_PDP_PARSER_VERSION",
         ),
         # Output-shaping: Nordstrom parser v2 preserves source-selected review
         # sort posture, visible per-card helpful counts, display position, and
-        # the exact six-row continuation control. Shared Retail/PDP v0 stays
-        # unchanged because these remain retailer-owned source-visible fields.
-        "cc34dad0b6d6e50743d67a7a84d4f7d4bfca722ed0481e4573ffed7348cf7970",
+        # the exact six-row continuation control. Luckyscent remains on its
+        # family-owned parser v1; shared Retail/PDP v0 semantics stay unchanged.
+        "31b3b5e90cd10258b9a60cf259e7e72c36fb4785ac2a8a3c61e7f4833302b9f4",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

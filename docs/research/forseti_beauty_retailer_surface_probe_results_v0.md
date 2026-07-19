@@ -1313,6 +1313,79 @@ observations:
   This supplement adds no SOBS row because it records a pin-admission gap, not
   a new assortment, price, review, or product-claim finding.
 
+### Kohl's owner-operated US consumer-VPN browser experiment (2026-07-19)
+
+- The prior handoff's one remaining admissible experiment — a bounded
+  owner-operated US consumer-VPN browser session — was executed on
+  `2026-07-19` UTC after the owner connected the pre-existing Surfshark app to
+  its United States / New York route. Independent egress checks at capture time
+  (two providers) agreed the public exit was `138.199.40.170`, US / New York,
+  `AS60068 Datacamp` — a Surfshark WireGuard consumer-VPN datacenter exit, not a
+  residential IP. The agent did not connect, configure, or authenticate the VPN
+  and injected no credential, cookie, profile, proxy, or location.
+- The VPN operates at OS transport level and is invisible to the runner, so both
+  packets honestly record `proxy_used=false`; the Surfshark egress posture and
+  observed exit IP are preserved in each packet's limitations, never as a pin.
+- CloakBrowser PDP packet `01KXXBP2HTK718ZS9CZ11CQJX0` at
+  `F:\forseti-data-lake\raw\2d3\01KXXBP2HTK718ZS9CZ11CQJX0`: the requested and
+  final URL matched the bound PDP, but the rendered DOM/visible text bound Akamai
+  `Access Denied`; `access_blocked=true`, `access_block_reason=akamai_access_denied`.
+- CloakBrowser policy packet `01KXXBVY7RTBSHN651P124X0E8` at
+  `F:\forseti-data-lake\raw\ba1\01KXXBVY7RTBSHN651P124X0E8`: the requested and
+  final URL matched `faq/article/2552`, but the rendered page bound Akamai
+  `Access Denied` the same way.
+- A matched-route control isolated the previously-conflated variables. On the
+  SAME US / New York VPN exit, an in-app visible Chromium browser was
+  independently Akamai-denied at the Kohl's homepage
+  (`Access Denied`, `errors.edgesuite.net` reference). Both the CloakBrowser
+  stealth fingerprint and a real visible-browser fingerprint failed on the same
+  datacenter exit IP. This resolves the earlier open question: on this route the
+  block is keyed on exit-IP reputation (a datacenter/VPN ASN), not browser or
+  TLS identity. The visible-browser observation is scouting only and was not
+  promoted to a packet.
+- Both new packets were fresh-read after capture: packet IDs matched their
+  directories and receipts, every preserved file matched its manifest SHA-256
+  and byte length, and each preserved a rendered-DOM, visible-text, viewport
+  screenshot, and metadata artifact. Viewport screenshots of both block shells
+  are preserved because access-state comparison against the off-VPN packets is
+  material.
+- Current outcome:
+  `NO_GO_OWNER_OPERATED_US_CONSUMER_VPN_DATACENTER_EGRESS_AKAMAI_DENIED_EXIT_IP_REPUTATION_BROWSER_INDEPENDENT`.
+  The owner-operated Surfshark US consumer-VPN datacenter route is now an
+  exhausted, packet-backed rung: it does not defeat Kohl's Akamai for either
+  browser identity. No projection, retailer adapter, CLI flag, API surface, or
+  pin was promoted, and no runner code was added. Country and currency remain
+  `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The remaining
+  admissible experiments now require materially different external state: a US
+  residential (non-datacenter) egress with internally consistent US geo-IP,
+  `en-US`, and US timezone; an entitled Kohl's affiliate feed; or an
+  owner-approved paid data provider. A US datacenter VPN exit, `.com`, dollar
+  glyphs, or search snippets remain insufficient; admission still requires
+  retailer-owned US policy text plus a product-bound exact `USD` offer.
+  This supplement adds no SOBS row because it records a pin-admission access
+  gap, not a new assortment, price, review, or product-claim finding.
+
+- Owner-directed follow-up scouting (`2026-07-19`, uncaptured diagnostic, not a
+  Capture Spine packet): a **headed** CloakBrowser (`headless=False`,
+  `stealth_args=True`, `humanize=True`) — the one fingerprint neither prior
+  attempt used — was run against the homepage, policy, and PDP on two egresses:
+  the owner-operated US datacenter VPN (Surfshark, `AS60068 Datacamp`, New York)
+  and the normal no-VPN SG residential connection (`AS9506 Singtel`). All six
+  page loads returned Akamai `Access Denied` (`errors.edgesuite.net`), under 300
+  visible bytes each. (Caveat: the block page echoes the requested URL, so a
+  naive `lipsoftie` substring match on the PDP denial is a false positive; no
+  product, `USD`, or price rendered.)
+- Conclusion the follow-up supports, not overturns: the denial is an **Akamai
+  edge WAF decision** that is robust across browser fingerprint (HTTP,
+  headless/headed, stealth, humanize) AND across egress geography reachable from
+  this environment (US datacenter and SG residential). Neither a browser change
+  nor a Surfshark-location change available from this machine defeats it; Akamai
+  is the gatekeeper. The remaining admissible routes still require a
+  fundamentally different, Akamai-trusted egress — a US **residential** IP — or
+  an entitled affiliate feed / owner-approved paid provider, not a browser or
+  VPN-location change. This scouting note promotes no packet, pin, projection,
+  adapter, or SOBS row.
+
 ### Credo US/USD default storefront pin
 
 - The commissioned subject was Tower 28 SOS (Save. Our. Skin) Daily Rescue

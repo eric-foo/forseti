@@ -4,14 +4,14 @@
 retrieval_header_version: 1
 artifact_role: Product playbook (Retail/PDP raw-packet-to-projection contract; non-authorizing)
 scope: >
-  Stabilizes the Amazon, Nordstrom, Sephora, and Ulta Retail/PDP projection slice as a
+  Stabilizes the Amazon, Luckyscent, Nordstrom, Sephora, and Ulta Retail/PDP projection slice as a
   repeatable view over Source Capture Packets (CapturePacket): what raw capture must provide,
   what projection may emit, what residuals mean, and which retailer-specific
   target-binding limits must stay visible before ECR, Cleaning, or Judgment consume
   the view.
 use_when:
   - Deciding whether Retail/PDP work should proceed through projection playbook, projection wiring, ECR sequencing, or a bounded implementation patch.
-  - Checking what Amazon, Nordstrom, Sephora, and Ulta PDP projection may carry from raw packets and what it must residualize.
+  - Checking what Amazon, Luckyscent, Nordstrom, Sephora, and Ulta PDP projection may carry from raw packets and what it must residualize.
   - Reviewing the current `retail_pdp_mechanical_projection` helper against product/source-capture doctrine.
 open_next:
   - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
@@ -20,11 +20,11 @@ open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca-harness/source_capture/retail_pdp_projection.py
   - orca-harness/tests/unit/test_retail_pdp_projection.py
-branch_or_commit: origin/main @ 45c6fac9
+branch_or_commit: origin/main @ 9e505007
 stale_if:
   - The core projection doctrine changes carry-or-residualize, loss-ledger, source-envelope, or Retail/PDP family rules.
   - The Retail/PDP projection helper changes row kinds, required bindings, residual vocabulary, or retailer extraction behavior.
-  - A new Amazon, Nordstrom, Sephora, or Ulta capture recon verdict changes the target substrate or access posture.
+  - A new Amazon, Luckyscent, Nordstrom, Sephora, or Ulta capture recon verdict changes the target substrate or access posture.
   - Auto-project-after-capture wiring lands and changes where projection is invoked or persisted.
 authority_boundary: retrieval_only
 ```
@@ -62,7 +62,7 @@ transform, Judgment read, validation claim, readiness claim, or buyer-proof clai
 
 - Regime: **Complicated with a Complex edge**.
 - Smallest complete outcome: one retrievable playbook that says what gets captured,
-  what projection emits, what residuals mean, and how Amazon/Sephora/Ulta differ.
+  what projection emits, what residuals mean, and how Amazon/Sephora/Luckyscent/Ulta differ.
 - Bottleneck: target binding, not raw capture alone. The risky cases are unanchored
   Amazon price fallback, Sephora recommendation-review noise, Ulta LD JSON versus
   Apollo mismatch, and requested SKU versus rendered SKU drift.
@@ -76,9 +76,9 @@ transform, Judgment read, validation claim, readiness claim, or buyer-proof clai
 
 Projection starts only from a preserved `SourceCapturePacket`. Raw remains
 canonical for unflipped and historical routes. The pinned
-`sephora_pdp_aggregate` and `nordstrom_pdp_aggregate` default to
-parser-versioned content records after their retailer-owned US/USD and all other
-admission gates pass;
+`sephora_pdp_aggregate`, `luckyscent_pdp_aggregate`, and
+`nordstrom_pdp_aggregate` routes default to retailer-owned parser-versioned
+content records after their retailer-owned US/USD and all other admission gates pass;
 projection is re-derivable from that record without rereading discarded
 DOM/text.
 
@@ -87,12 +87,13 @@ Minimum input for Retail/PDP projection:
 | Input | Required posture |
 | --- | --- |
 | Packet and slice identity | Carry `packet_id`, `slice_id`, source locator, slice locator, series id, locale pin, currency pin, variant pin, capture time, cutoff posture, and archive-history posture when known. Unknowns stay as visible packet facts or projection residuals. |
-| Preserved bytes | The helper needs hash-verified bytes for every file it consumes. A valid Sephora or Nordstrom content record is preferred when present; otherwise missing raw bytes are a hard error, not an empty projection. |
-| Rendered DOM | Raw, sample, legacy, and unflipped routes preserve the rendered DOM. A successful Sephora or Nordstrom content packet may omit it after recording its hash and byte count; failed admission preserves it. |
+| Preserved bytes | The helper needs hash-verified bytes for every file it consumes. A valid Sephora, Luckyscent, or Nordstrom content record is preferred when present; otherwise missing raw bytes are a hard error, not an empty projection. |
+| Rendered DOM | Raw, sample, legacy, and unflipped routes preserve the rendered DOM. A successful Sephora, Luckyscent, or Nordstrom content packet may omit it after recording its hash and byte count; failed admission preserves it. |
 | Visible text | Use only as a source-visible companion to DOM. If a value comes only from position-dependent visible text, carry it with an isolation flag and residual. |
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
 | Sephora content record | `retail_pdp_sephora_aggregate_content_v1` carries Sephora parser output, residuals, source-anchor descriptions, and loss entries without packet/file placeholders. Consumers bind real packet identity and JSON pointers; manifest envelope facts remain authoritative. |
+| Luckyscent content record | `retail_pdp_luckyscent_aggregate_content_v1` carries only target-bound Bread and Roses parser output: two small structured-JSON rows, all three variants in one offer row, and all eight rendered Judge.me reviews in one review-substrate row. Consumers bind real packet identity and JSON pointers; the confirmed default US/USD storefront does not claim US delivery, and the separate origin-derived `buyerCountry=SG` remains non-pin context. |
 | Nordstrom content record | `retail_pdp_nordstrom_aggregate_content_v1` carries target-bound Product JSON-LD, the one Nordstrom offer, displayed review aggregate/histogram, rendered review microdata, each rendered card's visible helpful count when present, the source-selected review sort posture, claims, and the unpinned shipping-destination residual. Consumers bind real packet identity and JSON pointers; the US/USD browser pin remains authoritative and does not establish US delivery. |
 
 If a Retail/PDP packet was commissioned because Commission Signal Board or
@@ -155,6 +156,8 @@ Everything else is carry-or-residualize:
 | `amazon_price_from_unanchored_visible_text_fallback` | A dollar amount was found only by visible-text fallback. It is carried as unsafe, not trusted as target price. |
 | `sephora_review_count_from_unanchored_fallback` | Review count came from a bare visible-text pattern rather than the target "Ratings & Reviews (N)" widget. |
 | `sephora_ld_json_review_count_differs_from_target_dom` | LD JSON and target DOM review count disagree. Keep both facts visible. |
+| `luckyscent_displayed_structured_rating_mismatch` | Luckyscent's product header rating and structured aggregate rating differ. Keep both source-visible values. |
+| `luckyscent_rendered_structured_review_count_mismatch` | The target-bound rendered Judge.me rows do not match the target ProductGroup review count. Content-mode projection fails closed rather than discarding the incomplete DOM/text substrate. |
 | `ulta_ld_json_apollo_*_mismatch` | LD JSON and Apollo state disagree for SKU, product id, price, availability, review count, or rating. Keep both substrates visible. |
 | `ulta_requested_sku_rendered_sku_mismatch` | Ulta Apollo requested SKU differs from the rendered SKU. Keep both values visible and do not treat the URL/request parameter as the target-bound SKU. |
 | `nordstrom_shipping_destination_display_is_not_delivery_pin` | Nordstrom displayed a shipping destination string, but no delivery-location pin was commissioned or confirmed. Preserve the exact display without promoting it to US delivery evidence. |
@@ -210,7 +213,7 @@ Use this selector after the playbook:
 | If the next goal is... | Correct move |
 | --- | --- |
 | Owner-observable contract for the slice | This playbook is the artifact. |
-| Capture-time content projection | Standard only for `sephora_pdp_aggregate` and `nordstrom_pdp_aggregate`; use `sample` for parser-fit and `raw` for explicit fallback. Every sibling retail profile remains on the raw/post-hoc path. |
+| Capture-time content projection | Standard only for `sephora_pdp_aggregate`, `luckyscent_pdp_aggregate`, and `nordstrom_pdp_aggregate`; use `sample` for parser-fit and `raw` for explicit fallback. Every sibling retail profile remains on the raw/post-hoc path. |
 | ECR sequencing | Wait until projection output carries residuals through the ECR handoff. ECR consumes source-visible facts and residuals only; it does not repair projection gaps. |
 | Bounded implementation patch | Target one remaining gap: explicit per-review body row support, or runner invocation of the existing helper. Do not combine with ECR or Cleaning work. |
 

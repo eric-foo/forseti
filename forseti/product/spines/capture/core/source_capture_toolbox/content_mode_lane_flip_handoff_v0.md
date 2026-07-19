@@ -68,6 +68,14 @@ for volume pressure.
   sufficiency, and projection must all pass before DOM/text are discarded.
   Screenshots remain active-capture evidence. Every sibling retail PDP/grid
   profile remains raw.
+- Retail's second exact flip is `luckyscent_pdp_aggregate`. It reuses the same
+  shared CloakBrowser lifecycle with a Luckyscent-owned schema and parser-fit
+  checker. The assertion-only default-storefront pin must bind one serialized
+  `country=US` + `market=market-us` + `currency=USD` context; failed pin,
+  access, sufficiency, or projection preserves DOM/text and exits nonzero.
+  The content record carries all three target variants and all eight rendered
+  target reviews without normalizing the shared Retail/PDP schema. The Direct
+  HTTP brand grid and every other sibling retail profile remain raw.
 - "Projection spine" was never an accepted spine. The operating-model v2
   Bloat-Cut Queue explicitly excludes a "Standalone Projection Spine …
   or any projection practice that drops evidence rows before ECR/Cleaning"
@@ -101,7 +109,7 @@ build on the hardened seam.
 | Parfumo targeted-rendered product page | Local operator-visible Chrome artifact bundle (`run_parfumo_mgt_capture.py --targeted-rendered`) | `parfumo_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned hybrid content adapter; direct HTTP remains a raw canary; shared projection runner remains for raw/legacy/canary packets |
 | Fragrantica MGT | 3 slices: direct HTTP + 2 CloakBrowser (initial viewport, deep scroll) (`run_fragrantica_mgt_capture.py`) | `fragrantica_projection.py`, cleaning catchup | RENDERED SLICES FLIPPED: both CloakBrowser packets default to content mode through the shared rendered retention seam; direct HTTP remains a raw canary; raw/sample/legacy projection remains supported |
 | Basenotes MGT | Persistent Chrome current-window bundle or credential-free loopback CDP (`run_basenotes_mgt_capture.py`) | `basenotes_projection.py`, cleaning catchup | PINNED ROUTE FLIPPED: family-owned content adapter; browser metadata retained; screenshot acquisition requires a named visual trigger; raw/legacy projection runner remains |
-| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | PINNED ROUTES FLIPPED: `sephora_pdp_aggregate` and `nordstrom_pdp_aggregate` default to retailer-owned content records after their exact US/USD, access, sufficiency, parser-fit, and Projection/Silver gates pass; raw/sample/legacy remain supported; every sibling PDP/grid profile remains raw. Nordstrom delivery location remains explicitly unpinned. |
+| Retail PDP / retail grid | CloakBrowser packets over retailer PDPs | `retail_pdp_projection.py`, `retail_grid_projection.py` (deterministic per-packet, excerpt-carrying anchors) | THREE PINNED ROUTES FLIPPED: `sephora_pdp_aggregate`, `luckyscent_pdp_aggregate`, and `nordstrom_pdp_aggregate` default to retailer-owned content records after their distinct US/USD, access, sufficiency, parser-fit, and Projection/Silver gates pass; raw/sample/legacy remain supported; Direct HTTP grids and every sibling PDP/grid profile remain raw. Luckyscent and Nordstrom delivery remain explicitly unpinned. |
 | IG reels grid / calls / momentum | Live browser session, passive JSON responses; runner already extracts observations at capture time | `ig_reels_grid_projection.py` (+ catchup with record-id derivation ranks re-reading raw payloads) | DESIGN PASS REQUIRED: catchup semantics depend on raw; do not flip until catchup is re-specified against content records |
 | TikTok batch | Video packets (media + metadata) | `tiktok/batch_projection.py` aggregates coverage ACROSS packets | NOT A FLIP TARGET: cross-packet aggregation, media raw is the evidence |
 | YouTube behavioral | Metadata packets + captions + ASR across lake | `youtube_capture/behavioral_projection.py` aggregates | NOT A FLIP TARGET as a whole; only per-page watch-metadata parse is candidate |
@@ -168,18 +176,22 @@ representative sample-mode receipt before the sampled-raw posture is promoted.
    equivalence proof. US/USD market, country-dialog absence, access,
    sufficiency, and projection failures preserve DOM/text. Other retail
    profiles remain raw.
-6. Nordstrom aggregate PDP: flipped with a retailer-owned schema/parser after
+6. Luckyscent aggregate PDP: flipped with a retailer-owned schema/parser and
+   assertion-only default US/USD storefront pin. All three target variants and
+   all eight rendered target reviews remain carried; delivery is unpinned and
+   the Direct HTTP brand grid remains raw.
+7. Nordstrom aggregate PDP: flipped with a retailer-owned schema/parser after
    the country-preference flow confirms selected US/USD plus the US shopper
    context. The setup tries Nordstrom's homepage control first and may use the
    same semantic country control on the exact commissioned PDP when the
    homepage control is absent; final rendered state remains the admission
    authority. The requested numeric PDP id binds the offer/review substrate;
    `Shipping to 518225` stays a residual and never becomes US-delivery proof.
-7. Re-point each flipped surface's cleaning catchup consumers at content
+8. Re-point each flipped surface's cleaning catchup consumers at content
    records, then retire that surface's post-hoc lane as its standard path in
    the same work unit (reconcile the family design doc and any playbook
    mention).
-8. IG family: separate design pass for catchup/derivation-rank semantics
+9. IG family: separate design pass for catchup/derivation-rank semantics
    before any flip. TikTok/YouTube aggregation lanes stay as they are — they
    are not raw-to-derived projections.
 
