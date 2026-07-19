@@ -147,11 +147,13 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
         ),
-        # Output-shaping: Nordstrom parser v2 preserves source-selected review
-        # sort posture, visible per-card helpful counts, display position, and
-        # the exact six-row continuation control. Known v1 content-only packets
-        # remain readable; shared Retail/PDP v0 semantics stay unchanged.
-        "5f1f1764a633cfccc5432a67b4d4f54a5a9cc0f91ef0579c9894ee846e8d2719",
+        # Output-shaping: Nordstrom parser v3 additionally preserves the
+        # source-labelled most-helpful positive/critical pair. The capture
+        # lifecycle can select Most Recent and retain a bounded 30-day window;
+        # window status stays in browser metadata while raw/content projection
+        # semantics remain equivalent. Known v1/v2 content-only packets remain
+        # readable; shared Retail/PDP v0 semantics stay unchanged.
+        "7820b60fd1290d687c7ea190f12b7c8af2f3cf57a4be21238998ac24417d821e",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

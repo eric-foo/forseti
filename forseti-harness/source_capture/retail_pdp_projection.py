@@ -34,7 +34,7 @@ LUCKYSCENT_PDP_PARSER_VERSION = "retail_pdp_luckyscent_aggregate_parser_v1"
 LUCKYSCENT_PDP_CONTENT_PROFILE = "luckyscent_pdp_aggregate"
 NORDSTROM_PDP_CONTENT_RECORD_KIND = "retail_pdp_nordstrom_aggregate_content"
 NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v1"
-NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v2"
+NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v3"
 NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
@@ -576,6 +576,7 @@ class NordstromPdpAggregateContentRecord(StrictModel):
     parser_version: Literal[
         "retail_pdp_nordstrom_aggregate_parser_v1",
         "retail_pdp_nordstrom_aggregate_parser_v2",
+        "retail_pdp_nordstrom_aggregate_parser_v3",
     ] = NORDSTROM_PDP_PARSER_VERSION
     capture_profile: Literal["nordstrom_pdp_aggregate"] = (
         NORDSTROM_PDP_CONTENT_PROFILE
@@ -1726,6 +1727,7 @@ def _validate_nordstrom_content_packet_metadata(
     capture_metadata = _one_json("content_capture_metadata.json")
     if capture_metadata.get("parser_version") not in {
         "retail_pdp_nordstrom_aggregate_parser_v1",
+        "retail_pdp_nordstrom_aggregate_parser_v2",
         NORDSTROM_PDP_PARSER_VERSION,
     }:
         raise ValueError(
@@ -2889,6 +2891,10 @@ def _nordstrom_review_fields(
             }
         )
 
+    highlighted_reviews = {
+        kind: _nordstrom_highlighted_review(review_html, kind=kind)
+        for kind in ("positive", "critical")
+    }
     review_text = _bounded_text_section(
         visible_text, start="Reviews", end="Recommended for You"
     )
@@ -2935,6 +2941,8 @@ def _nordstrom_review_fields(
         )
     if not rendered_reviews:
         residuals.append("nordstrom_rendered_reviews_absent")
+    if any(value is None for value in highlighted_reviews.values()):
+        residuals.append("nordstrom_most_helpful_review_pair_incomplete")
 
     structured_rating = _string_or_none(aggregate.get("ratingValue"))
     structured_count = _string_or_none(aggregate.get("reviewCount"))
@@ -2957,7 +2965,8 @@ def _nordstrom_review_fields(
     return (
         {
             "review_substrate_source": (
-                "nordstrom_target_product_json_ld_and_rendered_review_microdata"
+                "nordstrom_target_product_json_ld_rendered_review_microdata_and_"
+                "highlighted_review_cards"
             ),
             "rating": displayed_rating or structured_rating,
             "structured_rating": structured_rating,
@@ -2973,6 +2982,11 @@ def _nordstrom_review_fields(
             "review_sort_posture": review_sort_posture,
             "rendered_review_count": len(rendered_reviews),
             "rendered_reviews": rendered_reviews,
+            "most_helpful_positive_review": highlighted_reviews["positive"],
+            "most_helpful_critical_review": highlighted_reviews["critical"],
+            "most_helpful_review_pair_count": sum(
+                value is not None for value in highlighted_reviews.values()
+            ),
             "review_load_more_control_text": review_load_more_control_text,
             "review_load_more_batch_size": review_load_more_batch_size,
             "review_continuation_available": (
@@ -2981,6 +2995,120 @@ def _nordstrom_review_fields(
         },
         residuals,
     )
+
+
+def _nordstrom_highlighted_review(
+    review_html: str,
+    *,
+    kind: str,
+) -> dict[str, str | int | bool | None] | None:
+    marker = f'id="review-stars-{kind}"'
+    marker_index = review_html.find(marker)
+    if marker_index < 0:
+        return None
+    starts = [
+        match.start()
+        for match in re.finditer(
+            r'<div\b[^>]*\bclass=["\'][^"\']*\bNgN2G\b[^"\']*["\'][^>]*>',
+            review_html,
+            flags=re.IGNORECASE,
+        )
+        if match.start() < marker_index
+    ]
+    if not starts:
+        return None
+    card_start = starts[-1]
+    card_html = _balanced_div_fragment(review_html, start=card_start)
+    if card_html is None:
+        return None
+    expected_heading = f"Most helpful {kind} review"
+    if expected_heading.lower() not in _clean_html_text(card_html).lower():
+        return None
+
+    star_tail = card_html[card_html.find(marker) :]
+    rating = _first_regex(
+        star_tail,
+        (
+            rf'id=["\']review-stars-{re.escape(kind)}["\'][^>]*'
+            r'aria-label=["\']Rated\s+(\d+(?:\.\d+)?)\s+out of 5 stars?\.',
+        ),
+    )
+    date = _first_regex(
+        star_tail,
+        (
+            r'id=["\']review-stars-[^"\']+["\'][\s\S]{0,500}?'
+            r"</span>\s*<span\b[^>]*>([^<]+)</span>",
+        ),
+    )
+    title = _first_regex(
+        card_html,
+        (
+            r'<div\b[^>]*\bclass=["\'][^"\']*\b(?:OF9oA|gBRHe)\b'
+            r'[^"\']*["\'][^>]*>\s*<strong>(.*?)</strong>',
+        ),
+    )
+    body = _first_regex(
+        card_html,
+        (
+            r'<div\b[^>]*\bclass=["\'][^"\']*\b(?:OF9oA|gBRHe)\b'
+            r'[^"\']*["\'][^>]*>\s*<strong>.*?</strong>\s*</div>'
+            r"\s*<div\b[^>]*>\s*<div\b[^>]*>(.*?)</div>\s*</div>",
+        ),
+    )
+    if body is None:
+        body = _first_regex(
+            card_html,
+            (
+                r'<div\b[^>]*\bclass=["\'][^"\']*\b(?:rqqDZ|cbVo0|MA5lT)\b'
+                r'[^"\']*["\'][^>]*>(.*?)</div>',
+            ),
+        )
+    author = _first_regex(
+        card_html,
+        (
+            r'<div\b[^>]*\bclass=["\'][^"\']*\bqd8jM\b'
+            r'[^"\']*["\'][^>]*>(.*?)</div>',
+        ),
+    )
+    helpful_count = _first_regex(
+        card_html,
+        (
+            r"<strong>\s*([\d,]+)\s*</strong>"
+            r"[\s\S]{0,300}?found this helpful",
+        ),
+    )
+    card_text = _clean_html_text(card_html)
+    reposted_from = _first_regex(
+        card_html,
+        (
+            r'<div\b[^>]*\bclass=["\'][^"\']*\bqd8jM\b[^"\']*["\'][^>]*>'
+            r".*?</div>\s*<div\b[^>]*>\s*(Reposted from [^<]+)\s*</div>",
+        ),
+    )
+    return {
+        "highlight_kind": kind,
+        "rating": rating,
+        "date": html_lib.unescape(date).strip() if date else None,
+        "title": _clean_html_text(title) if title else None,
+        "body": _clean_html_text(body) if body else None,
+        "author": _clean_html_text(author) if author else None,
+        "helpful_count": helpful_count,
+        "verified_purchase": "Verified purchase" in card_text,
+        "reposted_from": reposted_from,
+    }
+
+
+def _balanced_div_fragment(html: str, *, start: int) -> str | None:
+    """Return the exact div element beginning at start, including nested divs."""
+    depth = 0
+    for token in re.finditer(r"<div\b[^>]*>|</div\s*>", html[start:], flags=re.I):
+        if token.group(0).lower().startswith("<div"):
+            depth += 1
+            continue
+        depth -= 1
+        if depth == 0:
+            return html[start : start + token.end()]
+    return None
 
 
 def _nordstrom_review_card_helpful_counts(
