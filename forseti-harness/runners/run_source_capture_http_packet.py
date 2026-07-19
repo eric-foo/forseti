@@ -33,6 +33,10 @@ from source_capture.content_capture import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
+from source_capture.adapters.walmart_us_market import (
+    confirm_walmart_us_market,
+    validate_walmart_us_market_url,
+)
 from source_capture.retail_capture_profiles import (
     RetailCaptureProfile,
     get_retail_capture_profile,
@@ -64,6 +68,7 @@ DIRECT_HTTP_NON_CLAIMS = [
     "not buyer proof",
     "not commercial-readiness logic",
 ]
+WALMART_MARKET_PIN_FAILURE_MODE_CHANGE = "walmart_market_pin_failed"
 
 
 def run_source_capture_http_packet(
@@ -99,6 +104,7 @@ def run_source_capture_http_packet(
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
     content_capture: ContentCaptureSpec | None = None,
+    walmart_market: str | None = None,
 ) -> tuple[int, str]:
     if retail_capture_profile is not None:
         if retail_capture_profile.source_surface != "direct_http":
@@ -112,6 +118,23 @@ def run_source_capture_http_packet(
             source_family=source_family,
             source_surface=source_surface,
         )
+    if walmart_market is not None:
+        if walmart_market != "US":
+            raise ValueError("Walmart market assertion currently supports only US/USD")
+        if (
+            retail_capture_profile is None
+            or retail_capture_profile.name != "walmart_pdp_aggregate"
+        ):
+            raise ValueError(
+                "--walmart-market US requires --retail-capture-profile "
+                "walmart_pdp_aggregate"
+            )
+        if locale_pin is not None or currency_pin is not None:
+            raise ValueError(
+                "--walmart-market derives confirmed country/currency pins and must not "
+                "be combined with manual --locale-pin or --currency-pin declarations"
+            )
+        validate_walmart_us_market_url(url)
 
     capture_result = fetch_direct_http_capture(
         url=url,
@@ -124,6 +147,19 @@ def run_source_capture_http_packet(
     if retail_capture_profile is not None:
         capture_result.metadata["retail_capture_profile"] = retail_capture_profile.metadata()
     decoded_body = capture_result.body.decode("utf-8", errors="replace")
+    walmart_pin_failure: str | None = None
+    if walmart_market == "US":
+        confirmation = confirm_walmart_us_market(
+            decoded_body,
+            requested_url=url,
+            final_url=capture_result.final_url,
+        )
+        capture_result.metadata.update(confirmation.metadata())
+        if confirmation.confirmed:
+            locale_pin = known_fact("US")
+            currency_pin = known_fact("USD")
+        else:
+            walmart_pin_failure = confirmation.detail
     sufficiency_result = evaluate_source_detail_sufficiency(
         requirements=(
             retail_capture_profile.requirements if retail_capture_profile is not None else None
@@ -137,6 +173,18 @@ def run_source_capture_http_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    if walmart_market == "US":
+        observed_postal = capture_result.metadata.get("observed_location_postal_code")
+        if observed_postal is not None:
+            packet_limitations.append(
+                f"Walmart postal {observed_postal} is origin-derived page context, not "
+                "an operator-set delivery-location pin"
+            )
+    if walmart_pin_failure is not None:
+        packet_limitations.append(
+            f"{WALMART_MARKET_PIN_FAILURE_MODE_CHANGE}: {walmart_pin_failure}; packet "
+            "preserved but MUST NOT be admitted as Walmart US/USD storefront evidence"
+        )
     sufficiency_limitation = source_detail_sufficiency_limitation(sufficiency_result)
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
@@ -144,6 +192,8 @@ def run_source_capture_http_packet(
     sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
+    if walmart_pin_failure is not None:
+        packet_visible_mode_changes.append(WALMART_MARKET_PIN_FAILURE_MODE_CHANGE)
 
     if 200 <= capture_result.status < 300:
         access_posture = known_fact(
@@ -312,6 +362,12 @@ def run_source_capture_http_packet(
             output_directory=result.output_directory,
             result=sufficiency_result,
         )
+    if walmart_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{WALMART_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}: {walmart_pin_failure}",
+        )
     if projection_failure is not None:
         # The raw fallback packet was written; the failure detail lives in the
         # packet limitations and HTTP metadata. Message stays the packet path
@@ -354,6 +410,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Apply a named direct-HTTP retailer/page-kind profile through the existing "
             "post-capture source-detail sufficiency gate."
+        ),
+    )
+    parser.add_argument(
+        "--walmart-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Fail-closed assertion for a Walmart US/USD Direct HTTP PDP. Requires "
+            "one __NEXT_DATA__ object to bind the URL item to product.usItemId, "
+            "current-price currencyUnit=USD, equal page/product origin postal "
+            "context, and immediate module targeting countryCode US. Accepts "
+            "Walmart's scalar US or exact single-item [US] serialization. Performs "
+            "no preference or delivery-location mutation."
         ),
     )
     parser.add_argument("--actor-audience-context", default=None)
@@ -492,6 +561,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 not_applicable_reason=args.pre_coverage_history_posture_not_applicable_reason,
             ),
             intended_cadence=build_intended_cadence(args),
+            walmart_market=args.walmart_market,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture direct HTTP failed: {exc}\n")

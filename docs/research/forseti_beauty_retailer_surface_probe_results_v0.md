@@ -998,6 +998,41 @@ observations:
   because it records a pin-admission gap, not a new assortment, price, review,
   or claim finding.
 
+### Walmart US/USD storefront assertion recovery
+
+- Fresh inspection confirmed the historical packet's retailer-owned country
+  signal is an exact single-item JSON array, `countryCode=["US"]`, in an
+  immediate `contentLayout.modules[*].targeting` object. The recovery admits
+  only scalar `"US"` or exact `["US"]`; it does not treat arbitrary list
+  membership, `.com`, a dollar glyph, or network geography as country proof.
+- The assertion-only Direct HTTP route requires one
+  `props.pageProps.initialData.data` object to bind the requested/final item
+  `2150828728` to `product.usItemId`, exact current-price
+  `currencyUnit="USD"`, equal nonempty page/product postal context, and the
+  admitted immediate country shape. It performs no preference or delivery
+  mutation and rejects manual locale/currency declarations.
+- Admitted packet `01KXWY75J4419N85NAXPXGZG8Q` at
+  `F:\forseti-data-lake\raw\920\01KXWY75J4419N85NAXPXGZG8Q` returned HTTP 200
+  on the exact requested/final `www.walmart.com` PDP. Metadata recorded
+  `pin_confirmed=true`, country `US`, currency `USD`, item `2150828728`, exact
+  `single_item_list` country shape, and matching origin-derived postal `95829`.
+  Both raw files fresh-matched their manifest SHA-256 values and byte lengths;
+  the packet recorded zero warnings.
+- The generic Retail/PDP projection now treats Direct HTTP's preserved
+  `http_response_body.bin` as the packet's HTML input. Derived record
+  `F:\forseti-data-lake\derived\920\01KXWY75J4419N85NAXPXGZG8Q\projection_retail_pdp\01KXWY7K99EPG92XW2GZ6BTTH0.json`
+  produced one raw-anchored product row and one offer row for item
+  `2150828728`, price `2.97`, currency `USD`. It explicitly retained absent
+  exact inventory quantity, sold units, delivery-location pin, and review
+  substrate as residuals.
+- Current outcome:
+  `US_USD_STOREFRONT_CONFIRMED_ORIGIN_LOCATION_UNPINNED`. Postal `95829`
+  remains origin-derived page context, not an operator-set delivery pin. The
+  historical scalar-only failure remains valid evidence of the earlier rule;
+  this supplement changes only the admitted rule and current country/currency
+  status. It adds no SOBS row because it does not introduce a new assortment,
+  price, review, or product-claim observation.
+
 ### Target US delivery ZIP recovery attempt
 
 - The recovery rule treated shipping ZIP and store/pickup ZIP as independently
