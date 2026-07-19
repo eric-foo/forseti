@@ -83,10 +83,10 @@ closeout_observed_at: "2026-07-20T01:42:31+08:00"
 pre_registration_commit: f56e2aa722fb146c62968d7befde583983d6ac49
 collector_isolation: cold_fork_no_conversation_context
 acquisition_walk: closure_shaped
-capture_preservation: blocked
-acquisition_gate: blocked
-deliver_allowed: false
-dogfood_disposition: INCONCLUSIVE
+capture_preservation: recovered_exact_observed_urls_only
+acquisition_gate: pass
+deliver_allowed: true
+dogfood_disposition: PENDING_DELIVER_COMPARISON
 ```
 
 The broad commission caused the collector to cover all eight existing company
@@ -99,21 +99,26 @@ lenses and surfaced three bounded tension/check pairs:
 3. retailer review prominence versus unavailable product-level incentive data.
 
 This is useful directional evidence that commission breadth changes acquisition
-behavior. It is not a successful dogfood result: several lenses remained
-partial, raw Capture packets were not preserved, the acquisition seal did not
-pass, and no Deliver artifact exists for decision-use comparison.
+behavior. The original attempt remained inconclusive because preservation
+failed. A bounded recovery on 2026-07-20 then preserved only the already
+observed URLs, with no rescan, discovery, or evidence expansion. The acquisition
+seal now passes with the retailer, review-data, and independent-trade gaps still
+open. The dogfood itself remains pending until a fresh Deliver artifact exists
+for decision-use comparison.
 
 The six qualitative outcome signals were visible but unscored:
 
 - question fit improved because the collector built a company model rather than
   only auditing one proposition;
-- evidence foundation failed its integrity floor at preservation;
-- reasoning quality is not adjudicable before Deliver;
+- evidence foundation recovered its integrity floor while retaining the
+  route-specific failures and evidence limits;
+- reasoning quality remains unadjudicated before Deliver;
 - uncertainty was preserved through typed gaps and bounded claims;
 - implications were limited to candidate later questions, not assigned
   problems; and
 - communication efficiency cannot be compared without a report.
 
-No doctrine change is supported by this run. The smallest next step, if the
-owner chooses to continue, is a bounded preservation recovery against the
-already observed URLs; no re-scan is authorized by this artifact.
+No doctrine change is supported by this run. The next authorized step is a
+fresh-context Deliver using only the sealed evidence set, followed by the
+pre-registered qualitative comparison with Marc Jacobs Beauty. Acquisition may
+not reopen by default.
