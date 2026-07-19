@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import inspect
 import json
 from pathlib import Path
 
@@ -119,6 +120,174 @@ def test_progress_precedes_work_and_terminal_events_are_timed(
         "post_cycle_pending_sweep",
         "late_arrival_check",
     }.issubset({line.get("phase") for line in observed})
+
+
+def test_cadence_reconciles_once_and_all_composed_calls_reuse_snapshot(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    reconcile_calls: list[tuple[object, tuple[str, ...]]] = []
+    monkeypatch.setattr(
+        cadence,
+        "reconcile_availability_per_packet",
+        lambda root, *, scope_packet_ids: reconcile_calls.append(
+            (root, tuple(scope_packet_ids))
+        )
+        or [],
+    )
+    monkeypatch.setattr(cadence, "_asr_transcribe_fn", lambda _ctx: object())
+
+    modules = (
+        cadence._ecr,
+        cadence._fragrantica,
+        cadence._basenotes,
+        cadence._parfumo,
+        cadence._fragrance_review,
+        cadence._ig_reels_grid,
+        cadence._tiktok_comment_attention,
+        cadence._tiktok_grid_observation,
+        cadence._asr,
+    )
+    calls: dict[object, dict[str, list[dict]]] = {
+        module: {"run": [], "pending": []} for module in modules
+    }
+    for module in modules:
+        monkeypatch.setattr(
+            module,
+            "run_catchup",
+            lambda _module=module, **kwargs: calls[_module]["run"].append(kwargs) or [],
+        )
+        monkeypatch.setattr(
+            module,
+            "pending_packets",
+            lambda _module=module, **kwargs: calls[_module]["pending"].append(kwargs)
+            or [],
+        )
+
+    assert run_cadence(_ctx(data_root), skip_asr=False) == 0
+
+    assert reconcile_calls == [(data_root, ())]
+    for module in modules:
+        assert len(calls[module]["run"]) == 2
+        assert len(calls[module]["pending"]) == 1
+        assert all(
+            call["reconcile_availability"] is False
+            for call in calls[module]["run"] + calls[module]["pending"]
+        )
+    events = _output_lines(capsys)
+    terminals = [
+        event
+        for event in events
+        if event.get("phase") == "availability_reconcile"
+        and event.get("status") == "phase_completed"
+    ]
+    assert len(terminals) == 1
+    assert terminals[0]["failure_count"] == 0
+    assert terminals[0]["elapsed_seconds"] >= 0
+
+
+def test_check_reconciles_once_and_all_pending_calls_reuse_snapshot(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    reconcile_calls = []
+    monkeypatch.setattr(
+        cadence,
+        "reconcile_availability_per_packet",
+        lambda root, *, scope_packet_ids: reconcile_calls.append(
+            (root, tuple(scope_packet_ids))
+        )
+        or [],
+    )
+    calls = []
+    monkeypatch.setattr(
+        cadence,
+        "CADENCE_ENTRYPOINTS",
+        tuple(
+            dataclasses.replace(
+                entrypoint,
+                pending=lambda _ctx, _scope, _runner=entrypoint.runner: calls.append(
+                    _runner
+                )
+                or 0,
+            )
+            for entrypoint in cadence.CADENCE_ENTRYPOINTS
+        ),
+    )
+
+    assert run_check(_ctx(data_root)) == 0
+
+    assert reconcile_calls == [(data_root, ())]
+    assert calls == [entrypoint.runner for entrypoint in cadence.CADENCE_ENTRYPOINTS]
+    assert any(
+        event.get("phase") == "availability_reconcile"
+        and event.get("status") == "phase_completed"
+        for event in _output_lines(capsys)
+    )
+
+
+def test_all_standalone_cadence_runners_default_to_reconcile_first() -> None:
+    modules = (
+        cadence._ecr,
+        cadence._fragrantica,
+        cadence._basenotes,
+        cadence._parfumo,
+        cadence._fragrance_review,
+        cadence._ig_reels_grid,
+        cadence._tiktok_comment_attention,
+        cadence._tiktok_grid_observation,
+        cadence._asr,
+    )
+    for module in modules:
+        assert (
+            inspect.signature(module.run_catchup)
+            .parameters["reconcile_availability"]
+            .default
+            is True
+        )
+        assert (
+            inspect.signature(module.pending_packets)
+            .parameters["reconcile_availability"]
+            .default
+            is True
+        )
+
+
+def test_root_loss_during_shared_reconcile_aborts_before_all_lanes(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    calls = []
+    monkeypatch.setattr(
+        cadence,
+        "reconcile_availability_per_packet",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            DataLakeRootUnavailableError("verified lake root disappeared")
+        ),
+    )
+    monkeypatch.setattr(
+        cadence,
+        "CADENCE_ENTRYPOINTS",
+        (
+            cadence.CadenceEntrypoint(
+                runner="never.py",
+                pending=lambda _ctx, _scope: calls.append("pending") or 0,
+                run=lambda _ctx, _scope: calls.append("run") or [],
+            ),
+        ),
+    )
+
+    assert run_cadence(_ctx(data_root), skip_asr=False) == 1
+    assert calls == []
+    aborts = [
+        event
+        for event in _output_lines(capsys)
+        if event.get("status") == "cadence_aborted_root_unavailable"
+    ]
+    assert len(aborts) == 1
+    assert aborts[0]["entrypoint"] == "availability_reconcile"
+    assert aborts[0]["skipped_entrypoint_runs"] == 2
+    assert aborts[0]["post_cycle_pending_skipped"] is True
 
 
 def test_backlog_drains_in_cycle_one_and_second_cycle_is_zero(tmp_path, capsys) -> None:
@@ -236,7 +405,7 @@ def test_snapshot_capture_never_rebuilds_shared_availability(
     ] == [("run_ecr_catchup.py", pid, "derived")]
 
 
-def test_selected_packet_corrupted_after_snapshot_fails_loudly(
+def test_next_cadence_reconcile_catches_corruption_after_prior_run(
     tmp_path, capsys, monkeypatch
 ) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -254,12 +423,20 @@ def test_selected_packet_corrupted_after_snapshot_fails_loudly(
 
     monkeypatch.setattr(cadence._ecr, "run_catchup", corrupt_after_first_ecr_run)
 
+    # The shared view is intentionally fixed after its one pre-cycle reconcile.
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 0
+
+    monkeypatch.setattr(cadence._ecr, "run_catchup", original_run)
+    capsys.readouterr()
     assert run_cadence(_ctx(data_root), skip_asr=True) == 1
-    assert any(
-        line.get("packet_id") == selected
-        and line.get("status") == "availability_reconcile_failed"
+    failures = [
+        line
         for line in _output_lines(capsys)
-    )
+        if line.get("packet_id") == selected
+        and line.get("status") == "availability_reconcile_failed"
+    ]
+    assert len(failures) == 1
+    assert failures[0]["entrypoint"] == "availability_reconcile"
 
 
 def test_check_reports_per_entrypoint_backlog(tmp_path, capsys) -> None:

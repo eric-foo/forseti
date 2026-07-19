@@ -152,20 +152,24 @@ def _ack_packet(data_root, item: PickupItem, evidence: list[dict]) -> str:
 
 
 def pending_packets(
-    *, data_root, scope_packet_ids: Sequence[str] | None = None
+    *,
+    data_root,
+    scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[str]:
     """Committed family packet ids whose current Cleaning obligation is not
     acknowledged. Scheduler gate helper: no derivation and no writes beyond the
     availability reconcile."""
-    failures = reconcile_availability_per_packet(
-        data_root, scope_packet_ids=scope_packet_ids
-    )
-    if failures:
-        first = failures[0]
-        raise DataLakeRootError(
-            "availability reconcile failed before pending check: "
-            f"{first['packet_id']}: {first['error']}"
+    if reconcile_availability:
+        failures = reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
         )
+        if failures:
+            first = failures[0]
+            raise DataLakeRootError(
+                "availability reconcile failed before pending check: "
+                f"{first['packet_id']}: {first['error']}"
+            )
     return [
         item.raw_anchor
         for item in pickup(
@@ -180,7 +184,10 @@ def pending_packets(
 
 
 def run_catchup(
-    *, data_root, scope_packet_ids: Sequence[str] | None = None
+    *,
+    data_root,
+    scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[dict]:
     """The single daemon entrypoint: derive the Basenotes Cleaning audit pack +
     post-cleaned Silver for every committed family packet whose current obligation
@@ -197,11 +204,12 @@ def run_catchup(
     # ITSELF first, per packet, so one corrupt manifest becomes a visible
     # availability_reconcile_failed status while healthy packets still index
     # and process — instead of pickup's whole-batch fail-loud default reconcile.
-    results.extend(
-        reconcile_availability_per_packet(
-            data_root, scope_packet_ids=scope_packet_ids
+    if reconcile_availability:
+        results.extend(
+            reconcile_availability_per_packet(
+                data_root, scope_packet_ids=scope_packet_ids
+            )
         )
-    )
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,

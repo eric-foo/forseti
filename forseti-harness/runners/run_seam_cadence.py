@@ -12,10 +12,11 @@ seam contract: ``core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 This runner is an ORCHESTRATOR, not a seam consumer: it imports the catch-up
 runner modules and composes their public ``pending_packets``/``run_catchup``
 entrypoints. It reads the root's committed by-key packet ids to establish the
-immutable start boundary without rebuilding the shared availability index,
-writes no acks, and owns no pickup or acknowledgement behavior — those
+immutable start boundary, performs one fail-loud availability reconcile for
+that scope, then tells every composed runner to reuse that reconciled view.
+It writes no acks and owns no pickup or acknowledgement behavior — those
 semantics stay inside the composed runners (the consumer seam-coverage gate
-keeps it out of the seam-consumer surface;
+classifies this direct reconcile-only orchestration separately;
 ``tests/contract/test_seam_cadence_coverage.py`` pins this registry to that
 surface).
 
@@ -66,6 +67,7 @@ from typing import Callable, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from data_lake.consumption import reconcile_availability_per_packet
 from data_lake.root import DataLakeRootUnavailableError
 from runners import run_asr_transcript_catchup as _asr
 from runners import run_basenotes_cleaning_catchup as _basenotes
@@ -121,6 +123,7 @@ def _asr_run(
         transcribe_fn=_asr_transcribe_fn(ctx),
         transcriber_policy=ctx.transcriber_policy,
         scope_packet_ids=scope_packet_ids,
+        reconcile_availability=False,
     )
 
 
@@ -132,87 +135,121 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
     CadenceEntrypoint(
         runner="run_ecr_catchup.py",
         pending=lambda ctx, scope: len(
-            _ecr.pending_packets(data_root=ctx.data_root, scope_packet_ids=scope)
+            _ecr.pending_packets(
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
+            )
         ),
         run=lambda ctx, scope: _ecr.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_fragrantica_cleaning_catchup.py",
         pending=lambda ctx, scope: len(
             _fragrantica.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _fragrantica.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_basenotes_cleaning_catchup.py",
         pending=lambda ctx, scope: len(
             _basenotes.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _basenotes.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_parfumo_cleaning_catchup.py",
         pending=lambda ctx, scope: len(
             _parfumo.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _parfumo.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_fragrance_review_projection_catchup.py",
         pending=lambda ctx, scope: len(
             _fragrance_review.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _fragrance_review.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_ig_reels_grid_projection_catchup.py",
         pending=lambda ctx, scope: len(
             _ig_reels_grid.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _ig_reels_grid.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_tiktok_comment_attention_producer.py",
         pending=lambda ctx, scope: len(
             _tiktok_comment_attention.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _tiktok_comment_attention.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
         runner="run_tiktok_grid_observation_producer.py",
         pending=lambda ctx, scope: len(
             _tiktok_grid_observation.pending_packets(
-                data_root=ctx.data_root, scope_packet_ids=scope
+                data_root=ctx.data_root,
+                scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=lambda ctx, scope: _tiktok_grid_observation.run_catchup(
-            data_root=ctx.data_root, scope_packet_ids=scope
+            data_root=ctx.data_root,
+            scope_packet_ids=scope,
+            reconcile_availability=False,
         ),
     ),
     CadenceEntrypoint(
@@ -222,6 +259,7 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
                 data_root=ctx.data_root,
                 transcriber_policy=ctx.transcriber_policy,
                 scope_packet_ids=scope,
+                reconcile_availability=False,
             )
         ),
         run=_asr_run,
@@ -301,6 +339,8 @@ def run_check(ctx: CadenceContext) -> int:
     scope_packet_ids = _capture_start_snapshot(ctx)
     if scope_packet_ids is None:
         return 1
+    if not _reconcile_start_snapshot(ctx, scope_packet_ids):
+        return 1
     phase = "pending_check"
     phase_started_at = _start_phase(phase)
     failures = 0
@@ -376,6 +416,8 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
     skipped ASR backlog still fails the final pending sweep."""
     scope_packet_ids = _capture_start_snapshot(ctx)
     if scope_packet_ids is None:
+        return 1
+    if not _reconcile_start_snapshot(ctx, scope_packet_ids):
         return 1
 
     second_cycle_entries = 0
@@ -540,6 +582,37 @@ def _capture_start_snapshot(ctx: CadenceContext) -> tuple[str, ...] | None:
         packet_ids_sha256=digest,
     )
     return packet_ids
+
+
+def _reconcile_start_snapshot(
+    ctx: CadenceContext, scope_packet_ids: Sequence[str]
+) -> bool:
+    """Reconcile the immutable cadence scope once before any composed lane."""
+    phase = "availability_reconcile"
+    started_at = _start_phase(phase, packet_count=len(scope_packet_ids))
+    try:
+        failures = reconcile_availability_per_packet(
+            ctx.data_root, scope_packet_ids=scope_packet_ids
+        )
+    except DataLakeRootUnavailableError as exc:
+        _abort_root_unavailable(
+            cycle=1,
+            entrypoint=phase,
+            entrypoint_index=-1,
+            exc=exc,
+            phase=phase,
+            started_at=started_at,
+        )
+        return False
+    for failure in failures:
+        _print({"cycle": "snapshot", "entrypoint": phase, **failure})
+    _finish_phase(
+        phase,
+        started_at,
+        succeeded=not failures,
+        failure_count=len(failures),
+    )
+    return not failures
 
 
 def _report_late_arrivals(

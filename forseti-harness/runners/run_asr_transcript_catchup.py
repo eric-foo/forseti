@@ -253,19 +253,21 @@ def pending_packets(
     data_root,
     transcriber_policy: dict,
     scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[str]:
     """Committed audio-family packet ids (both families) whose current transcript
     obligation is not acknowledged. Scheduler gate helper: no audio loading, no
     ASR, and no writes beyond the availability reconcile."""
-    failures = reconcile_availability_per_packet(
-        data_root, scope_packet_ids=scope_packet_ids
-    )
-    if failures:
-        first = failures[0]
-        raise DataLakeRootError(
-            "availability reconcile failed before pending check: "
-            f"{first['packet_id']}: {first['error']}"
+    if reconcile_availability:
+        failures = reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
         )
+        if failures:
+            first = failures[0]
+            raise DataLakeRootError(
+                "availability reconcile failed before pending check: "
+                f"{first['packet_id']}: {first['error']}"
+            )
     pending: list[str] = []
     for family_config in _FAMILY_CONFIGS:
         pending.extend(
@@ -290,6 +292,7 @@ def run_catchup(
     transcribe_fn: Callable[[str], tuple],
     transcriber_policy: dict,
     scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[dict]:
     """The single cadence entrypoint: for every committed audio-family packet whose
     current obligation is unacknowledged, transcribe (or cite the existing
@@ -305,11 +308,12 @@ def run_catchup(
     # ITSELF first, per packet, so one corrupt manifest becomes a visible
     # availability_reconcile_failed status while healthy packets still index
     # and process — instead of pickup's whole-batch fail-loud default reconcile.
-    results.extend(
-        reconcile_availability_per_packet(
-            data_root, scope_packet_ids=scope_packet_ids
+    if reconcile_availability:
+        results.extend(
+            reconcile_availability_per_packet(
+                data_root, scope_packet_ids=scope_packet_ids
+            )
         )
-    )
     for family_config in _FAMILY_CONFIGS:
         transcribe_committed = _COMMITTED_TRANSCRIBERS[family_config["transcribe_fn_name"]]
         for item in pickup(

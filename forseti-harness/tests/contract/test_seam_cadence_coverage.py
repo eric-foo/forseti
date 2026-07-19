@@ -41,6 +41,7 @@ def _discovered_seam_consumers() -> set[str]:
                 if any(alias.name == "consumption" for alias in node.names):
                     discovered.add(path.name)
                     break
+    discovered.discard("run_seam_cadence.py")
     return discovered
 
 
@@ -83,7 +84,22 @@ def test_classify_out_reasons_are_recorded() -> None:
     )
 
 
-def test_cadence_runner_is_not_itself_a_seam_consumer() -> None:
-    # The orchestrator composes runner entrypoints; consuming the seam directly
-    # would put it inside the surface it is supposed to audit.
-    assert "run_seam_cadence.py" not in _discovered_seam_consumers()
+def test_cadence_runner_only_uses_the_shared_reconcile_surface() -> None:
+    # The orchestrator may reconcile its immutable scope once, but it must not
+    # become a pickup/ack consumer inside the surface it audits.
+    path = _RUNNERS_DIR / "run_seam_cadence.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    imports = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+        and node.module == "data_lake.consumption"
+        for alias in node.names
+    }
+    assert imports == {"reconcile_availability_per_packet"}
+    calls = {
+        node.func.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
+    assert not calls & {"pickup", "append_ack"}

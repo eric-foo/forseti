@@ -130,15 +130,17 @@ def run_tiktok_grid_observations(
     data_root: DataLakeRoot,
     packet_ids: Sequence[str] | None = None,
     scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[dict[str, Any]]:
     if packet_ids is not None and scope_packet_ids is not None:
         raise ValueError("packet_ids and scope_packet_ids cannot be combined")
     results: list[dict[str, Any]] = []
-    results.extend(
-        reconcile_availability_per_packet(
-            data_root, scope_packet_ids=scope_packet_ids
+    if reconcile_availability:
+        results.extend(
+            reconcile_availability_per_packet(
+                data_root, scope_packet_ids=scope_packet_ids
+            )
         )
-    )
     requested = set(packet_ids or ())
     items = list(pickup(
         data_root,
@@ -265,17 +267,21 @@ def run_tiktok_grid_observations(
 
 
 def pending_packets(
-    *, data_root: DataLakeRoot, scope_packet_ids: Sequence[str] | None = None
+    *,
+    data_root: DataLakeRoot,
+    scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[str]:
-    failures = reconcile_availability_per_packet(
-        data_root, scope_packet_ids=scope_packet_ids
-    )
-    if failures:
-        first = failures[0]
-        raise DataLakeRootError(
-            "availability reconcile failed before pending check: "
-            f"{first['packet_id']}: {first['error']}"
+    if reconcile_availability:
+        failures = reconcile_availability_per_packet(
+            data_root, scope_packet_ids=scope_packet_ids
         )
+        if failures:
+            first = failures[0]
+            raise DataLakeRootError(
+                "availability reconcile failed before pending check: "
+                f"{first['packet_id']}: {first['error']}"
+            )
     return [
         item.raw_anchor
         for item in pickup(
@@ -294,11 +300,13 @@ def run_catchup(
     data_root: DataLakeRoot,
     packet_ids: Sequence[str] | None = None,
     scope_packet_ids: Sequence[str] | None = None,
+    reconcile_availability: bool = True,
 ) -> list[dict[str, Any]]:
     return run_tiktok_grid_observations(
         data_root=data_root,
         packet_ids=packet_ids,
         scope_packet_ids=scope_packet_ids,
+        reconcile_availability=reconcile_availability,
     )
 
 
