@@ -1339,21 +1339,23 @@ observations:
   independently Akamai-denied at the Kohl's homepage
   (`Access Denied`, `errors.edgesuite.net` reference). Both the CloakBrowser
   stealth fingerprint and a real visible-browser fingerprint failed on the same
-  datacenter exit IP. This resolves the earlier open question: on this route the
-  block is keyed on exit-IP reputation (a datacenter/VPN ASN), not browser or
-  TLS identity. The visible-browser observation is scouting only and was not
-  promoted to a packet.
+  datacenter exit IP. **[SUPERSEDED 2026-07-19 — see "Correction" below: this
+  was read as exit-IP-keyed, but a warmed real-browser session subsequently
+  reached full content over the SG residential IP, so the discriminator is the
+  warmed browser session, not the exit IP.]** The visible-browser observation is
+  scouting only and was not promoted to a packet.
 - Both new packets were fresh-read after capture: packet IDs matched their
   directories and receipts, every preserved file matched its manifest SHA-256
   and byte length, and each preserved a rendered-DOM, visible-text, viewport
   screenshot, and metadata artifact. Viewport screenshots of both block shells
   are preserved because access-state comparison against the off-VPN packets is
   material.
-- Current outcome:
-  `NO_GO_OWNER_OPERATED_US_CONSUMER_VPN_DATACENTER_EGRESS_AKAMAI_DENIED_EXIT_IP_REPUTATION_BROWSER_INDEPENDENT`.
-  The owner-operated Surfshark US consumer-VPN datacenter route is now an
-  exhausted, packet-backed rung: it does not defeat Kohl's Akamai for either
-  browser identity. No projection, retailer adapter, CLI flag, API surface, or
+- Current outcome **[verdict CORRECTED 2026-07-19 — see "Correction" below]**:
+  the owner-operated Surfshark US consumer-VPN datacenter route remains an
+  exhausted, packet-backed rung — the automation runner is Akamai-denied on it.
+  The prior `...EXIT_IP_REPUTATION_BROWSER_INDEPENDENT` token OVERSTATED the
+  cause (a warmed real browser later reached content) and is retracted. No
+  projection, retailer adapter, CLI flag, API surface, or
   pin was promoted, and no runner code was added. Country and currency remain
   `UNKNOWN_REQUIRED_ACCESS_BLOCKED`; delivery remains `UNPINNED`. The remaining
   admissible experiments now require materially different external state: a US
@@ -1375,16 +1377,53 @@ observations:
   visible bytes each. (Caveat: the block page echoes the requested URL, so a
   naive `lipsoftie` substring match on the PDP denial is a false positive; no
   product, `USD`, or price rendered.)
-- Conclusion the follow-up supports, not overturns: the denial is an **Akamai
-  edge WAF decision** that is robust across browser fingerprint (HTTP,
-  headless/headed, stealth, humanize) AND across egress geography reachable from
-  this environment (US datacenter and SG residential). Neither a browser change
-  nor a Surfshark-location change available from this machine defeats it; Akamai
-  is the gatekeeper. The remaining admissible routes still require a
-  fundamentally different, Akamai-trusted egress — a US **residential** IP — or
-  an entitled affiliate feed / owner-approved paid provider, not a browser or
-  VPN-location change. This scouting note promotes no packet, pin, projection,
-  adapter, or SOBS row.
+- Conclusion **[CORRECTED 2026-07-19 — see "Correction" below]**: at the time
+  this was read as an Akamai edge decision robust across browser fingerprint and
+  egress. A subsequent warmed real-browser session FALSIFIED that: cold/automation
+  browsers (HTTP, headless/headed CloakBrowser, Playwright Chromium) are
+  Akamai-denied on every egress tested, but a warmed real Chrome reaches full
+  content — so the discriminator is the warmed real-browser Akamai session, not a
+  browser-agnostic edge rule and not egress. This scouting note promotes no
+  packet, pin, projection, adapter, or SOBS row.
+
+### Correction: warmed real-browser session defeats the block (2026-07-19)
+
+This correction supersedes the two "exit-IP reputation / browser-independent /
+robust across browser and egress" conclusions in the two subsections above.
+Those subsections' *observations* stand (the automation packets and controls
+were genuinely Akamai-denied); their *causal interpretation* was wrong and is
+retracted.
+
+- Owner-directed follow-up (uncaptured scouting, not a Capture Spine packet):
+  the owner's real Chrome (version 150, genuine personal profile) was driven via
+  the Chrome DevTools Protocol (`localhost:9222`, a new tab) against the bound
+  surfaces over the **normal no-VPN SG residential** connection (`AS9506
+  Singtel`, exit `115.66.10.169`).
+- Result: the Kohl's homepage still returned Akamai `Access Denied`, but the
+  **policy page and the bound PDP rendered full content**. The PDP bound the
+  exact subject ("Tower 28 Beauty LipSoftie Hydrating Tinted Lip Treatment
+  Balm"), `selectedSku 37490185` at `regularPrice "16.00"` / `mainPriceStr
+  "$16.00"`, and `priceCurrency "USD"`; the policy page stated Kohl's "currently
+  only ships to U.S. addresses and APO/FPO addresses" (and itself advises
+  international shoppers to use a US VPN/proxy).
+- Consequence for the causal claim: the **same SG residential IP** that denied
+  every cold/automation browser served full content to a warmed real browser, so
+  the block is **not** exit-IP-keyed and **not** browser-independent. The
+  discriminator is the **warmed real-browser Akamai session** (genuine sensor
+  cookies / non-cold fingerprint from prior human browsing); cold automation
+  sessions are denied regardless of exit IP or geography.
+- Consequence for the route verdict: the reproducible **Capture Spine route
+  remains NO_GO** — the armory runners are Akamai bot-blocked on every egress
+  tested. The subject content is reachable **only via a hand-warmed real browser
+  session that the runner cannot reproduce**, so no pin, projection, adapter,
+  SOBS row, or GO route is promoted. Corrected verdict:
+  `NO_GO_CAPTURE_SPINE_RUNNER_AKAMAI_BOT_BLOCKED_ANY_EGRESS; SUBJECT_CONTENT_REACHED_ONLY_VIA_WARMED_REAL_BROWSER_NOT_RUNNER_REPRODUCIBLE`.
+- Provenance and limits: the real-browser bytes came from the owner's personal
+  Chrome profile and were preserved only as ephemeral session-scratch scouting,
+  not admitted to the lake; the owner chose the correction-only path (no packet
+  promotion). Whether the rendered PDP was a fresh network fetch versus a
+  warm-cache serve was not independently confirmed and would need verification
+  before any future packet formalization.
 
 ### Credo US/USD default storefront pin
 

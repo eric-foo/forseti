@@ -51,11 +51,20 @@ exit (`138.199.40.170`, `AS60068 Datacamp`, a consumer-VPN datacenter ASN). The
 bounded on-VPN experiment then preserved CloakBrowser Akamai block packets on
 both bound URLs — PDP `01KXXBP2HTK718ZS9CZ11CQJX0` and policy
 `01KXXBVY7RTBSHN651P124X0E8` — and a matched in-app visible-browser control on
-the same exit was also Akamai-denied at the homepage. Outcome:
-`NO_GO_OWNER_OPERATED_US_CONSUMER_VPN_DATACENTER_EGRESS_AKAMAI_DENIED_EXIT_IP_REPUTATION_BROWSER_INDEPENDENT`.
-The datacenter-VPN route is now an exhausted, browser-independent rung — do not
-replay it; a future probe needs a residential (non-datacenter) US egress, an
-entitled affiliate feed, or an owner-approved paid provider. Full evidence lives
+the same exit was also Akamai-denied at the homepage. Corrected outcome
+(2026-07-19; the earlier `...EXIT_IP_REPUTATION_BROWSER_INDEPENDENT` token is
+retracted):
+`NO_GO_CAPTURE_SPINE_RUNNER_AKAMAI_BOT_BLOCKED_ANY_EGRESS; SUBJECT_CONTENT_REACHED_ONLY_VIA_WARMED_REAL_BROWSER_NOT_RUNNER_REPRODUCIBLE`.
+A later owner-directed probe with the owner's warmed real Chrome (personal
+profile via CDP) reached the full LipSoftie PDP (`$16.00` / `priceCurrency USD`)
+and the US-shipping-only policy over the normal SG residential connection, so
+the block is NOT exit-IP-keyed or browser-independent: the discriminator is the
+warmed real-browser Akamai session. The armory runners stay Akamai-blocked on
+every egress tested (do not replay the datacenter-VPN or cold-automation rungs);
+a runner-reproducible route still needs a residential (non-datacenter) US
+egress, an entitled affiliate feed, or an owner-approved paid provider. The
+warmed-real-browser content is not runner-reproducible and no pin was promoted.
+Full evidence lives
 in `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
 (Kohl's section), the Kohl's rows of `retail_storefront_pin_registry_v0.md` and
 `capture_recon_index_v0.md`. The fork below is retained as historical
