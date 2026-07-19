@@ -13,6 +13,8 @@ import re
 import unicodedata
 from collections import defaultdict
 from datetime import datetime
+from difflib import SequenceMatcher
+from statistics import median
 from typing import Any, Iterable, Mapping
 
 from capture_spine.creator_profile_current.tiktok_comment_attention_producer import mechanical_comment_attention
@@ -29,6 +31,7 @@ from cleaning.raw_model_transport import (
 
 
 ANALYTICS_POLICY_VERSION = "tiktok_silver_analytics_v0"
+COMMENT_COORDINATION_POLICY_VERSION = "tiktok_comment_coordination_signals_v0"
 COMMENT_SEMANTIC_LABELS = {
     "product_relevant",
     "product_request",
@@ -272,6 +275,385 @@ def classify_comments(
     return parse_comment_classification(extract_model_text(provider, raw), videos)
 
 
+def _strict_int(value: object) -> int | None:
+    return value if type(value) is int else None
+
+
+def _normalized_public_handle(value: object) -> str:
+    text = unicodedata.normalize("NFKD", str(value or "")).lower()
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", "", text)
+
+
+def _normalized_comment_text(value: object) -> str:
+    return normalized_entity_token(value)
+
+
+def _coordination_comment_rows(
+    videos: Iterable[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    skipped = 0
+    recapture_duplicates = 0
+    continuation_video_ids: set[str] = set()
+    reported_total_by_video: dict[str, int] = {}
+    captured_reply_count = 0
+    video_ids: set[str] = set()
+    for video in videos:
+        video_id = str(video.get("video_id") or video.get("id") or "").strip()
+        if not video_id:
+            raise ValueError("TikTok batch video row lacks video_id")
+        video_ids.add(video_id)
+        post_created_at = _strict_int(video.get("create_time"))
+        comments_block = (
+            video.get("comments") if isinstance(video.get("comments"), Mapping) else {}
+        )
+        comments = (
+            comments_block.get("comments")
+            if isinstance(comments_block.get("comments"), list)
+            else []
+        )
+        envelope = (
+            comments_block.get("envelope")
+            if isinstance(comments_block.get("envelope"), Mapping)
+            else {}
+        )
+        if envelope.get("has_more") is True or envelope.get("has_more") == 1:
+            continuation_video_ids.add(video_id)
+        reported_total = _strict_int(envelope.get("total"))
+        if reported_total is not None and reported_total >= 0:
+            reported_total_by_video[video_id] = reported_total
+        source_packet_id = str(video.get("_source_packet_id") or "").strip() or None
+        for source_index, comment in enumerate(comments):
+            if not isinstance(comment, Mapping):
+                skipped += 1
+                continue
+            user = comment.get("user") if isinstance(comment.get("user"), Mapping) else {}
+            comment_id = str(
+                comment.get("cid") or f"source_order:{comment.get('source_order', source_index)}"
+            ).strip()
+            account_id = str(user.get("uid") or "").strip()
+            public_handle = str(user.get("unique_id") or "").strip()
+            comment_created_at = _strict_int(comment.get("create_time"))
+            if (
+                not comment_id
+                or not account_id
+                or not public_handle
+                or comment_created_at is None
+            ):
+                skipped += 1
+                continue
+            identity = (video_id, comment_id)
+            if identity in seen:
+                recapture_duplicates += 1
+                continue
+            seen.add(identity)
+            delay_seconds = (
+                comment_created_at - post_created_at
+                if post_created_at is not None
+                else None
+            )
+            reply_count = _strict_int(comment.get("reply_comment_total"))
+            if reply_count is not None and reply_count > 0:
+                captured_reply_count += reply_count
+            rows.append(
+                {
+                    "video_id": video_id,
+                    "comment_id": comment_id,
+                    "account_id": account_id,
+                    "public_handle": public_handle,
+                    "nickname": str(user.get("nickname") or "").strip() or None,
+                    "text": str(comment.get("text") or ""),
+                    "normalized_text": _normalized_comment_text(comment.get("text")),
+                    "comment_created_at_unix": comment_created_at,
+                    "post_created_at_unix": post_created_at,
+                    "post_relative_delay_seconds": delay_seconds,
+                    "source_packet_id": source_packet_id,
+                }
+            )
+    return rows, {
+        "video_count": len(video_ids),
+        "captured_comment_count": len(rows),
+        "skipped_incomplete_comment_count": skipped,
+        "deduplicated_recapture_comment_count": recapture_duplicates,
+        "continuation_video_count": len(continuation_video_ids),
+        "reported_platform_comment_total_sum": sum(reported_total_by_video.values()),
+        "uncaptured_reply_count_reported_by_comments": captured_reply_count,
+        "comment_census_posture": (
+            "captured_sample_with_continuations"
+            if continuation_video_ids
+            else "captured_sample_not_proven_complete"
+        ),
+    }
+
+
+def _repeated_commenters(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[row["account_id"]].append(row)
+    result = []
+    for account_id, account_rows in grouped.items():
+        video_ids = sorted({row["video_id"] for row in account_rows})
+        if len(video_ids) < 2:
+            continue
+        result.append(
+            {
+                "account_id": account_id,
+                "public_handles": sorted({row["public_handle"] for row in account_rows}),
+                "distinct_video_count": len(video_ids),
+                "comment_count": len(account_rows),
+                "evidence": [
+                    {
+                        "video_id": row["video_id"],
+                        "comment_id": row["comment_id"],
+                        "comment_created_at_unix": row["comment_created_at_unix"],
+                        "post_relative_delay_seconds": row["post_relative_delay_seconds"],
+                        "source_packet_id": row["source_packet_id"],
+                    }
+                    for row in sorted(
+                        account_rows,
+                        key=lambda item: (item["comment_created_at_unix"], item["comment_id"]),
+                    )
+                ],
+                "signal_strength": "context_only",
+            }
+        )
+    return sorted(result, key=lambda item: (-item["distinct_video_count"], item["account_id"]))
+
+
+def _reused_text_groups(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        normalized = row["normalized_text"]
+        if len(normalized) >= 12 and len(normalized.split()) >= 3:
+            grouped[normalized].append(row)
+    result = []
+    for normalized, text_rows in grouped.items():
+        account_ids = sorted({row["account_id"] for row in text_rows})
+        if len(account_ids) < 2:
+            continue
+        result.append(
+            {
+                "normalized_text": normalized,
+                "observed_text": text_rows[0]["text"],
+                "distinct_account_count": len(account_ids),
+                "distinct_video_count": len({row["video_id"] for row in text_rows}),
+                "public_handles": sorted({row["public_handle"] for row in text_rows}),
+                "evidence": [
+                    {
+                        "video_id": row["video_id"],
+                        "comment_id": row["comment_id"],
+                        "account_id": row["account_id"],
+                        "public_handle": row["public_handle"],
+                        "comment_created_at_unix": row["comment_created_at_unix"],
+                        "source_packet_id": row["source_packet_id"],
+                    }
+                    for row in text_rows
+                ],
+                "signal_strength": "supporting_only",
+            }
+        )
+    return sorted(
+        result,
+        key=lambda item: (-item["distinct_account_count"], item["normalized_text"]),
+    )
+
+
+def _similar_handle_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    accounts: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        normalized = _normalized_public_handle(row["public_handle"])
+        if len(normalized) < 6:
+            continue
+        key = (row["account_id"], normalized)
+        entry = accounts.setdefault(
+            key,
+            {
+                "account_id": row["account_id"],
+                "public_handle": row["public_handle"],
+                "normalized_handle": normalized,
+                "comment_count": 0,
+            },
+        )
+        entry["comment_count"] += 1
+    candidates = sorted(
+        accounts.values(),
+        key=lambda item: (item["normalized_handle"], item["account_id"]),
+    )
+    result = []
+    for index, left in enumerate(candidates):
+        for right in candidates[index + 1 :]:
+            if left["account_id"] == right["account_id"]:
+                continue
+            left_token = left["normalized_handle"]
+            right_token = right["normalized_handle"]
+            if left_token[:3] != right_token[:3] or abs(len(left_token) - len(right_token)) > 2:
+                continue
+            similarity = SequenceMatcher(None, left_token, right_token).ratio()
+            if similarity < 0.88:
+                continue
+            result.append(
+                {
+                    "left": left,
+                    "right": right,
+                    "similarity": similarity,
+                    "signal_strength": "weak_lead_only",
+                }
+            )
+    return sorted(
+        result,
+        key=lambda item: (-item["similarity"], item["left"]["public_handle"]),
+    )
+
+
+def _post_relative_timing(
+    rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if row["post_relative_delay_seconds"] is not None:
+            grouped[row["video_id"]].append(row)
+    summaries = []
+    burst_candidates: list[dict[str, Any]] = []
+    for video_id, video_rows in grouped.items():
+        ordered = sorted(
+            video_rows,
+            key=lambda item: (item["comment_created_at_unix"], item["comment_id"]),
+        )
+        non_negative = [
+            row for row in ordered if row["post_relative_delay_seconds"] >= 0
+        ]
+        delays = [row["post_relative_delay_seconds"] for row in non_negative]
+        summaries.append(
+            {
+                "video_id": video_id,
+                "comment_count_with_post_relative_time": len(ordered),
+                "negative_delay_count": len(ordered) - len(non_negative),
+                "minimum_delay_seconds": min(delays) if delays else None,
+                "median_delay_seconds": median(delays) if delays else None,
+                "within_10_minutes_count": sum(delay <= 600 for delay in delays),
+                "within_1_hour_count": sum(delay <= 3600 for delay in delays),
+                "within_24_hours_count": sum(delay <= 86400 for delay in delays),
+            }
+        )
+        for start_index, start in enumerate(non_negative):
+            window = [
+                row
+                for row in non_negative[start_index:]
+                if row["comment_created_at_unix"]
+                - start["comment_created_at_unix"]
+                <= 120
+            ]
+            account_ids = {row["account_id"] for row in window}
+            if len(account_ids) < 3:
+                continue
+            burst_candidates.append(
+                {
+                    "video_id": video_id,
+                    "window_start_unix": start["comment_created_at_unix"],
+                    "window_end_unix": window[-1]["comment_created_at_unix"],
+                    "window_seconds": window[-1]["comment_created_at_unix"]
+                    - start["comment_created_at_unix"],
+                    "distinct_account_count": len(account_ids),
+                    "comment_count": len(window),
+                    "post_relative_window_start_seconds": start[
+                        "post_relative_delay_seconds"
+                    ],
+                    "post_relative_window_end_seconds": window[-1][
+                        "post_relative_delay_seconds"
+                    ],
+                    "evidence": [
+                        {
+                            "comment_id": row["comment_id"],
+                            "account_id": row["account_id"],
+                            "public_handle": row["public_handle"],
+                            "comment_created_at_unix": row[
+                                "comment_created_at_unix"
+                            ],
+                            "source_packet_id": row["source_packet_id"],
+                        }
+                        for row in window
+                    ],
+                    "signal_strength": "supporting_only",
+                }
+            )
+    selected_bursts: list[dict[str, Any]] = []
+    for candidate in sorted(
+        burst_candidates,
+        key=lambda item: (
+            -item["distinct_account_count"],
+            -item["comment_count"],
+            item["window_start_unix"],
+        ),
+    ):
+        overlaps = any(
+            existing["video_id"] == candidate["video_id"]
+            and candidate["window_start_unix"] <= existing["window_end_unix"]
+            and existing["window_start_unix"] <= candidate["window_end_unix"]
+            for existing in selected_bursts
+        )
+        if not overlaps:
+            selected_bursts.append(candidate)
+    return (
+        sorted(summaries, key=lambda item: item["video_id"]),
+        sorted(
+            selected_bursts,
+            key=lambda item: (item["video_id"], item["window_start_unix"]),
+        ),
+    )
+
+
+def comment_coordination_signals(
+    videos: Iterable[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Describe inspectable coordination patterns without inferring payment or intent."""
+    rows, coverage = _coordination_comment_rows(videos)
+    repeated = _repeated_commenters(rows)
+    reused_text = _reused_text_groups(rows)
+    similar_handles = _similar_handle_pairs(rows)
+    timing, bursts = _post_relative_timing(rows)
+    family_counts = {
+        "cross_video_repeated_commenters": len(repeated),
+        "exact_text_reuse_across_accounts": len(reused_text),
+        "similar_public_handle_pairs": len(similar_handles),
+        "post_relative_time_bursts": len(bursts),
+    }
+    if coverage["video_count"] < 2 or coverage["captured_comment_count"] < 10:
+        posture = "insufficient_coverage"
+    elif any(family_counts.values()):
+        posture = "selected_patterns_observed"
+    else:
+        posture = "no_selected_patterns_observed"
+    return {
+        "policy_version": COMMENT_COORDINATION_POLICY_VERSION,
+        "pattern_posture": posture,
+        "coverage": {
+            **coverage,
+            "post_relative_timestamp_comment_count": sum(
+                row["post_relative_delay_seconds"] is not None for row in rows
+            ),
+        },
+        "signal_family_counts": family_counts,
+        "signals": {
+            "cross_video_repeated_commenters": repeated,
+            "exact_text_reuse_across_accounts": reused_text,
+            "similar_public_handle_pairs": similar_handles,
+            "post_relative_timing_by_video": timing,
+            "post_relative_time_bursts": bursts,
+        },
+        "paid_or_astroturfed_conclusion": "not_established_by_comment_telemetry",
+        "non_claims": [
+            "not a full comment census",
+            "not proof of payment, astroturfing, common control, or deceptive intent",
+            "similar public names alone are a weak lead",
+            "bursts can arise from organic audience attention or platform distribution",
+            "public account identifiers do not establish a real-world person",
+            "manual review of source-backed evidence is required",
+        ],
+    }
+
+
 def product_readout(resolved_mentions: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
     rows = list(resolved_mentions)
     counts = {"resolved": 0, "ambiguous": 0, "unresolved": 0}
@@ -356,9 +738,11 @@ def temporal_signal(observations: Iterable[Mapping[str, Any]]) -> dict[str, Any]
 
 __all__ = [
     "ANALYTICS_POLICY_VERSION",
+    "COMMENT_COORDINATION_POLICY_VERSION",
     "COMMENT_SEMANTIC_LABELS",
     "COMMENT_CLASSIFIER_VERSION",
     "build_entity_alias_index",
+    "comment_coordination_signals",
     "comment_engagement_context",
     "build_comment_classification_prompt",
     "classify_comments",

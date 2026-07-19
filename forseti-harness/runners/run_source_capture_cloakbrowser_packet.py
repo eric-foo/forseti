@@ -70,9 +70,12 @@ from source_capture.retail_capture_profiles import (
 from source_capture.retail_pdp_projection import (
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_PARSER_VERSION,
+    NORDSTROM_PDP_CONTENT_PROFILE,
+    NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_CONTENT_PROFILE,
     SEPHORA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
+    build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
     write_retail_pdp_projection,
 )
@@ -122,6 +125,8 @@ SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
 _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
 LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE = "luckyscent_market_pin_failed"
 _LUCKYSCENT_HOSTS = frozenset({"luckyscent.com", "www.luckyscent.com"})
+NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE = "nordstrom_country_pin_failed"
+_NORDSTROM_HOSTS = frozenset({"nordstrom.com", "www.nordstrom.com"})
 AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
 AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE = "amazon_us_vpn_fallback_required"
 _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
@@ -174,7 +179,7 @@ def run_source_capture_cloakbrowser_packet(
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
     nordstrom_country: str | None = None,
-    nordstrom_country_setup_timeout_seconds: float = 30.0,
+    nordstrom_country_setup_timeout_seconds: float = 45.0,
     luckyscent_market: str | None = None,
     sephora_market: str | None = None,
     ulta_market: str | None = None,
@@ -233,6 +238,14 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_capture is None:
                 content_capture = _luckyscent_content_capture_spec("content")
+        if retail_capture_profile.name == NORDSTROM_PDP_CONTENT_PROFILE:
+            if nordstrom_country != "US":
+                raise ValueError(
+                    "nordstrom_pdp_aggregate content capture requires "
+                    "--nordstrom-country US"
+                )
+            if content_capture is None:
+                content_capture = _nordstrom_content_capture_spec("content")
 
     site_specific_preferences = [
         delivery_zip is not None,
@@ -258,6 +271,7 @@ def run_source_capture_cloakbrowser_packet(
         pre_capture = NordstromCountryPreferencePlugin(
             country_code=nordstrom_country,
             setup_timeout_seconds=nordstrom_country_setup_timeout_seconds,
+            target_url=url,
         )
     elif luckyscent_market is not None:
         pre_capture = LuckyscentUSMarketPlugin(country_code=luckyscent_market)
@@ -329,6 +343,17 @@ def run_source_capture_cloakbrowser_packet(
         packet_limitations.append(
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: {sephora_pin_failure}; packet "
             "preserved but MUST NOT be admitted as Sephora US/USD storefront evidence"
+        )
+    nordstrom_pin_failure = _nordstrom_country_pin_failure(
+        nordstrom_country=nordstrom_country,
+        final_url=capture_result.final_url,
+        pin_confirmed=capture_result.metadata.get("pin_confirmed"),
+    )
+    if nordstrom_pin_failure is not None:
+        packet_limitations.append(
+            f"{NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE}: "
+            f"{nordstrom_pin_failure}; packet preserved but MUST NOT be admitted "
+            "as Nordstrom US/USD storefront evidence"
         )
     ulta_pin_failure = _ulta_market_pin_failure(
         ulta_market=ulta_market,
@@ -410,6 +435,10 @@ def run_source_capture_cloakbrowser_packet(
     packet_visible_mode_changes = list(visible_mode_changes)
     if sephora_pin_failure is not None:
         packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
+    if nordstrom_pin_failure is not None:
+        packet_visible_mode_changes.append(
+            NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE
+        )
     if ulta_pin_failure is not None:
         packet_visible_mode_changes.append(ULTA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if luckyscent_pin_failure is not None:
@@ -476,6 +505,7 @@ def run_source_capture_cloakbrowser_packet(
     retention_admission_failed = (
         capture_result.access_block_reason is not None
         or sephora_pin_failure is not None
+        or nordstrom_pin_failure is not None
         or ulta_pin_failure is not None
         or luckyscent_pin_failure is not None
         or amazon_pin_failure is not None
@@ -695,6 +725,12 @@ def run_source_capture_cloakbrowser_packet(
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{result.output_directory}; {sephora_pin_failure}",
         )
+    if nordstrom_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {nordstrom_pin_failure}",
+        )
     if ulta_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -773,6 +809,40 @@ def _sephora_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
         parser_version=SEPHORA_PDP_PARSER_VERSION,
         projector=lambda rendered_dom, visible_text, final_url: (
             build_sephora_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            )
+        ),
+    )
+
+
+def _nordstrom_country_pin_failure(
+    *,
+    nordstrom_country: str | None,
+    final_url: str,
+    pin_confirmed: object,
+) -> str | None:
+    if nordstrom_country is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    reasons: list[str] = []
+    if final_hostname not in _NORDSTROM_HOSTS:
+        reasons.append(
+            f"final storefront host was {final_hostname or 'unknown'!r}, "
+            "not nordstrom.com"
+        )
+    if pin_confirmed is not True:
+        reasons.append("US/USD rendered-storefront conjunction was not confirmed")
+    return "; ".join(reasons) if reasons else None
+
+
+def _nordstrom_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
+    return RenderedContentCaptureSpec(
+        capture_artifact_mode=mode,
+        parser_version=NORDSTROM_PDP_PARSER_VERSION,
+        projector=lambda rendered_dom, visible_text, final_url: (
+            build_nordstrom_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
                 source_url=final_url,
@@ -1110,9 +1180,9 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["content", "sample", "raw"],
         default=None,
         help=(
-            "Artifact-retention mode for the pinned sephora_pdp_aggregate and "
-            "luckyscent_pdp_aggregate routes. Omitted defaults those routes to "
-            "content; other retail profiles remain raw."
+            "Artifact-retention mode for the enabled Sephora, Luckyscent, and "
+            "Nordstrom aggregate routes. Omitted defaults those routes to content; "
+            "other profiles remain raw."
         ),
     )
     parser.add_argument("--session-id", default=None)
@@ -1256,10 +1326,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--nordstrom-country-setup-timeout-seconds",
         type=float,
-        default=30.0,
+        default=45.0,
         help=(
-            "Bounds the Nordstrom homepage country-preference interaction separately from "
-            "--timeout-seconds. Default 30.0; only used with --nordstrom-country."
+            "Bounds the Nordstrom homepage/target country-preference interaction separately "
+            "from --timeout-seconds. Default 45.0; only used with --nordstrom-country."
         ),
     )
     parser.add_argument(
@@ -1385,15 +1455,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         content_profiles = {
             SEPHORA_PDP_CONTENT_PROFILE,
             LUCKYSCENT_PDP_CONTENT_PROFILE,
+            NORDSTROM_PDP_CONTENT_PROFILE,
         }
         if args.capture_artifact_mode is not None and (
             retail_capture_profile is None
             or retail_capture_profile.name not in content_profiles
         ):
             raise ValueError(
-                "--capture-artifact-mode currently requires "
-                "--retail-capture-profile sephora_pdp_aggregate or "
-                "luckyscent_pdp_aggregate"
+                "--capture-artifact-mode currently requires an enabled aggregate "
+                "content profile"
             )
         content_capture = None
         if (
@@ -1417,6 +1487,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "--luckyscent-market US"
                 )
             content_capture = _luckyscent_content_capture_spec(
+                args.capture_artifact_mode or "content"
+            )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == NORDSTROM_PDP_CONTENT_PROFILE
+        ):
+            if args.nordstrom_country != "US":
+                raise ValueError(
+                    "nordstrom_pdp_aggregate content capture requires "
+                    "--nordstrom-country US"
+                )
+            content_capture = _nordstrom_content_capture_spec(
                 args.capture_artifact_mode or "content"
             )
         settle_seconds = (

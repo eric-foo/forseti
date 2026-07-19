@@ -140,6 +140,19 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("ECR_DERIVER_VERSION",),
         "b94920e25627537b1cca0503cad52130982de3f5d9a53122e14978912b27b273",
     ),
+    "source_capture/retail_pdp_projection.py": (
+        (
+            "RETAIL_PDP_PROJECTION_VERSION",
+            "SEPHORA_PDP_PARSER_VERSION",
+            "LUCKYSCENT_PDP_PARSER_VERSION",
+            "NORDSTROM_PDP_PARSER_VERSION",
+        ),
+        # Shared-output-shaping decision: no. Existing typed retailer row
+        # semantics and RETAIL_PDP_PROJECTION_VERSION remain v0. The new
+        # Luckyscent and Nordstrom routes keep family-owned parser versions;
+        # raw/content equivalence is required before default retention flips.
+        "8fcf2201dfe6f69fee20a9d0991bd19b88b6a0c81f35f714e909c4dc4680eb78",
+    ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
         # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
@@ -192,19 +205,6 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # byte-identical candidate-intake copy from the divergent screening copy
         # (post-merge review W6-1); docstring-only, not output-shaping.
         "ff04f0767731be27f81ccf1e420fe9d51c7c0b510173e9af73e53d071fd45675",
-    ),
-    "source_capture/retail_pdp_projection.py": (
-        (
-            "RETAIL_PDP_PROJECTION_VERSION",
-            "SEPHORA_PDP_PARSER_VERSION",
-            "LUCKYSCENT_PDP_PARSER_VERSION",
-        ),
-        # Shared-output-shaping decision: no. Existing typed retailer row
-        # semantics and RETAIL_PDP_PROJECTION_VERSION remain v0. This adds the
-        # first family-owned Luckyscent route, whose new parser behavior is
-        # identified by LUCKYSCENT_PDP_PARSER_VERSION v1; raw/content
-        # equivalence is required before default retention flips.
-        "72b432647067707eeebb796d290f1f0ed8bfaf2a479e8175d218d069a8796c06",
     ),
     "source_capture/transcript/asr_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

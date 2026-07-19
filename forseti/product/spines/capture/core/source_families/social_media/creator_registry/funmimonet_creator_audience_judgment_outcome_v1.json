@@ -1,0 +1,341 @@
+{
+  "bundle_hash": "sha256:14958d8470247a6f1b95510d57431c2c70a5b56dad6da7446fa211a1fcf3f2ae",
+  "bundle_id": "caeb_399d2c8cd13ca5b310ec",
+  "creator_id": "tiktok:@funmimonet",
+  "model_api_calls": 0,
+  "profile_subject_id": "acct_tiktok_fragrance_001",
+  "raw_anchor": "01KWCYZ9P72W4SJD7NDPRQT0DB",
+  "record_id": "cajo_0cdad84d344bd0dc4708",
+  "response_bytes_b64": "ewogICJzY2hlbWFfdmVyc2lvbiI6ICJjcmVhdG9yX2F1ZGllbmNlX3NlbWFudGljX3Jlc3BvbnNlX3YxIiwKICAiZ2VuZXJhdGVkX2F0IjogIjIwMjYtMDctMTlUMjA6MTM6MTIuMzYxMTkxNiswODowMCIsCiAgImNsYWltcyI6IFsKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJmcmFncmFuY2Vfc3BlY2lmaWNfZW5nYWdlbWVudCIsCiAgICAgICJheGlzIjogImNhdGVnb3J5X2tub3dsZWRnZSIsCiAgICAgICJzdGF0ZW1lbnQiOiAiQ2FwdHVyZWQgcGFydGljaXBhbnRzIGVuZ2FnZSB3aXRoIGZyYWdyYW5jZS1zcGVjaWZpYyBkZXRhaWxzLCBpbmNsdWRpbmcgbmFtZWQgbm90ZXMgYW5kIGJyYW5kZWQgc2NlbnQgcGFpcmluZ3MuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiVXNlZnVsIGZvciBicmllZnMgdGhhdCBuZWVkIHNob3BwZXJzIHRvIGNvbXBhcmUgb3IgY29tYmluZSBzY2VudHMgaW4gY29uY3JldGUgdGVybXMuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDAyIiwgImUwMDAzIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAwMiIsICJlMDAwMyJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiQmFzZWQgb24gY2FwdHVyZWQgY29tbWVudHMsIG5vdCBhIHBsYXRmb3JtLXdpZGUgYXVkaWVuY2UgY2Vuc3VzLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInRyaWFsX2FuZF9zZWxlY3Rpb25faW50ZW50IiwKICAgICAgImF4aXMiOiAicHVyY2hhc2VfZGVjaXNpb25fc3RhZ2UiLAogICAgICAic3RhdGVtZW50IjogIkNhcHR1cmVkIHBhcnRpY2lwYW50cyBzaG93IGVhcmx5IHRyaWFsIGFuZCBzZWxlY3Rpb24gaW50ZW50LCBpbmNsdWRpbmcgd2FudGluZyB0byB0cnkgYSBuYW1lZCBmcmFncmFuY2UgYW5kIHByb3Bvc2luZyBhIG5hbWVkIHBhaXJpbmcuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiQ2FuIHR1cm4gZnJhZ3JhbmNlIGRpc2NvdmVyeSBpbnRvIGEgc3BlY2lmaWMgc2NlbnQgb3IgY29tYmluYXRpb24gdG8gY29uc2lkZXIuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDAxIiwgImUwMDAyIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAwMSIsICJlMDAwMiJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiSW50ZW50IGlzIG9ic2VydmVkIGluIGNhcHR1cmVkIGNvbW1lbnRzIGFuZCBkb2VzIG5vdCBlc3RhYmxpc2ggcHVyY2hhc2Ugb3IgY29udmVyc2lvbi4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJzb2NpYWxfcGF5b2ZmX2ZyYW1pbmciLAogICAgICAiYXhpcyI6ICJwcm9kdWN0X2JyYW5kX2FmZmluaXR5IiwKICAgICAgInN0YXRlbWVudCI6ICJBIGNhcHR1cmVkIHBhcnRpY2lwYW50IGNvbm5lY3RzIGEgbmFtZWQgZnJhZ3JhbmNlIHBhaXJpbmcgd2l0aCB0aGUgc29jaWFsIHBheW9mZiBvZiBiZWluZyBjb21wbGltZW50ZWQuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiQSBicmFuZCBjYW4gZnJhbWUgYSBjb21iaW5hdGlvbiBhcyBhIHNvY2lhbGx5IGxlZ2libGUgY2hvaWNlLCBub3Qgb25seSBhcyBhIGxpc3Qgb2Ygbm90ZXMuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDAyIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAwMiJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhpcyBwYXlvZmYgaXMgZXZpZGVuY2VkIGJ5IG9uZSBjYXB0dXJlZCBjb21tZW50LiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImlkZW50aXR5X2xlZF9zY2VudF9sYW5ndWFnZSIsCiAgICAgICJheGlzIjogImFzcGlyYXRpb25zX2lkZW50aXR5IiwKICAgICAgInN0YXRlbWVudCI6ICJUaGUgY3JlYXRvciB0cmFuc2xhdGVzIGZyYWdyYW5jZSBpbnRvIGlkZW50aXR5LWxlZCBtZWFuaW5ncyBzdWNoIGFzIGdyb3duLWdpcmwgbHV4dXJ5LCBjb25maWRlbmNlLCBzZW5zdWFsaXR5LCBhbmQgZW1wb3dlcm1lbnQuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiUHJvZHVjdHMgY2FuIGJlIHBvc2l0aW9uZWQgYXMgYW4gaWRlbnRpdHkgYW5kIGNvbmZpZGVuY2UgY2hvaWNlIHJhdGhlciB0aGFuIG9ubHkgYSBzY2VudCBwcm9maWxlLiIsCiAgICAgICJyZWxhdGlvbiI6ICJjcmVhdG9yX29ubHkiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAzMzQiLCAiZTAzODkiLCAiZTAzOTYiXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMzM0IiwgImUwMzg5IiwgImUwMzk2Il0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJUaGlzIGRlc2NyaWJlcyBjcmVhdG9yIGZyYW1pbmc7IGF1ZGllbmNlLXdpZGUgYWRvcHRpb24gb2YgdGhlc2UgbWVhbmluZ3MgaXMgbm90IGVzdGFibGlzaGVkLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInNlbnNvcnlfYXBwbGljYXRpb25fZGVtb25zdHJhdGlvbiIsCiAgICAgICJheGlzIjogInByZXNlbnRhdGlvbl9zdHlsZV9yZXNvbmFuY2UiLAogICAgICAic3RhdGVtZW50IjogIlRoZSBjcmVhdG9yIGNvbWJpbmVzIHZpdmlkIHNlbnNvcnkgdHJhbnNsYXRpb24gd2l0aCBlbWJvZGllZCBhcHBsaWNhdGlvbiwgaW5jbHVkaW5nIGhlYWQtdG8tdG9lLCBjbG90aGVzLWFuZC1oYWlyLCBsYXllcmluZywgYW5kIDEwMC1zcHJheSBkZW1vbnN0cmF0aW9ucy4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJBIHByb2R1Y3QgY2FuIGJlY29tZSBjb25jcmV0ZSBhbmQgdHJ5YWJsZSB0aHJvdWdoIGEgZGlzdGluY3RpdmUgd2VhciBkZW1vbnN0cmF0aW9uLiIsCiAgICAgICJyZWxhdGlvbiI6ICJjcmVhdG9yX29ubHkiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAzMzUiLCAiZTAzMzYiLCAiZTAzNTMiLCAiZTAzNTUiLCAiZTAzNjAiXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMzM1IiwgImUwMzM2IiwgImUwMzUzIiwgImUwMzU1IiwgImUwMzYwIl0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6IG51bGwsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInBsYXlmdWxfYWN0aW9uX29yaWVudGVkX3Jlc3BvbnNlIiwKICAgICAgImF4aXMiOiAibGFuZ3VhZ2VfY29tbXVuaXR5X25vcm1zIiwKICAgICAgInN0YXRlbWVudCI6ICJBdCBsZWFzdCBvbmUgY2FwdHVyZWQgcGFydGljaXBhbnQgbWlycm9ycyB0aGUgY3JlYXRvcidzIHBsYXlmdWwsIGFmZmVjdGlvbmF0ZSwgYWN0aW9uLW9yaWVudGVkIHNwcmF5IGxhbmd1YWdlLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkEgbWF0Y2hpbmcgY2FtcGFpZ24gY2FuIHN1c3RhaW4gYSBjZWxlYnJhdG9yeSB0b25lIHRoYXQgaW52aXRlcyB2aWV3ZXJzIHRvd2FyZCBhIGNvbmNyZXRlIHdlYXIgaWRlYS4iLAogICAgICAicmVsYXRpb24iOiAiYXVkaWVuY2VfZW1lcmdlbnQiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwMDYiXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDA2Il0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJPbmUgY2FwdHVyZWQgY29tbWVudCBkb2VzIG5vdCBlc3RhYmxpc2ggYSBjb21tdW5pdHktd2lkZSBsYW5ndWFnZSBub3JtLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImNvbnRyYXN0aXZlX2ZpdF9mcmFtaW5nIiwKICAgICAgImF4aXMiOiAib2JqZWN0aW9ucyIsCiAgICAgICJzdGF0ZW1lbnQiOiAiVGhlIGNyZWF0b3IgdXNlcyBjb250cmFzdGl2ZSBmaXQgbGFuZ3VhZ2UgYXJvdW5kIHN3ZWV0bmVzcywgaGVhdmluZXNzLCBhbmQgbWFzY3VsaW5pdHkgd2hlbiBkZXNjcmliaW5nIGZyYWdyYW5jZSBwcmVmZXJlbmNlLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkJyaWVmcyBjYW4gdXNlIGNsZWFyIGZpdCBjb250cmFzdHMgdG8gaGVscCB2aWV3ZXJzIHNlbGYtc2VsZWN0IHdpdGhvdXQgdHJlYXRpbmcgdGhlbSBhcyBtZWFzdXJlZCBhdWRpZW5jZSBvYmplY3Rpb25zLiIsCiAgICAgICJyZWxhdGlvbiI6ICJjcmVhdG9yX29ubHkiLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAzNjQiLCAiZTAzNjkiXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMzY0IiwgImUwMzY5Il0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJDYXB0dXJlZCBhdWRpZW5jZSBvYmplY3Rpb25zIGFyZSBub3QgZXN0YWJsaXNoZWQgYnkgdGhlc2UgY3JlYXRvciBzdGF0ZW1lbnRzLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInByaWNlX3ZhbHVlX3Bvc3R1cmVfbWlzc2luZyIsCiAgICAgICJheGlzIjogInByaWNlX3ZhbHVlX3Bvc3R1cmUiLAogICAgICAic3RhdGVtZW50IjogIkEgc3VwcG9ydGVkIGF1ZGllbmNlIHByaWNlIG9yIHZhbHVlIHBvc3R1cmUgaXMgbm90IGVzdGFibGlzaGVkLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkRvIG5vdCBwb3NpdGlvbiB0aGUgY3JlYXRvciBhcyBldmlkZW5jZSBmb3IgcHJlbWl1bS12YWx1ZSBhY2NlcHRhbmNlIG9yIHByaWNlIGp1c3RpZmljYXRpb24uIiwKICAgICAgInJlbGF0aW9uIjogIm1pc3NpbmciLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiTm8gY2l0ZWQgZXZpZGVuY2Ugc3VwcG9ydHMgYW4gYXVkaWVuY2UgcHJpY2Ugb3IgdmFsdWUgcG9zdHVyZS4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJhdWRpZW5jZV9vYmplY3Rpb25zX21pc3NpbmciLAogICAgICAiYXhpcyI6ICJvYmplY3Rpb25zIiwKICAgICAgInN0YXRlbWVudCI6ICJDYXB0dXJlZCBhdWRpZW5jZSBvYmplY3Rpb25zIGFyZSBub3QgZXN0YWJsaXNoZWQuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiVHJlYXQgb2JqZWN0aW9uIGhhbmRsaW5nIGFzIGEgYm91bmRlZCB0ZXN0IHJhdGhlciB0aGFuIGEgcHJvdmVuIGF1ZGllbmNlIHN0cmVuZ3RoLiIsCiAgICAgICJyZWxhdGlvbiI6ICJtaXNzaW5nIiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJsaW1pdGF0aW9uIjogIkNyZWF0b3Itc2lkZSBwcmVmZXJlbmNlIGNvbnRyYXN0cyBhcmUgbm90IGF1ZGllbmNlIG9iamVjdGlvbiBldmlkZW5jZS4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJlbmdhZ2VtZW50X21lbW9yYWJpbGl0eV9taXNzaW5nIiwKICAgICAgImF4aXMiOiAiZW5nYWdlbWVudF9tZW1vcmFiaWxpdHlfZWZmZWN0IiwKICAgICAgInN0YXRlbWVudCI6ICJBbiBlbmdhZ2VtZW50LXdlaWdodGVkIG1lbW9yYWJpbGl0eSBlZmZlY3QgaXMgbm90IGVzdGFibGlzaGVkLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkRvIG5vdCB1c2UgY29tbWVudCBlbmdhZ2VtZW50IGFzIGV2aWRlbmNlIG9mIHN1cGVyaW9yIHJlY2FsbCBvciBjYW1wYWlnbiBwZXJmb3JtYW5jZS4iLAogICAgICAicmVsYXRpb24iOiAibWlzc2luZyIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAibGltaXRhdGlvbiI6ICJObyBjaXRlZCBjb21tZW50IGlzIGVuZ2FnZW1lbnQtc2FsaWVuY2UgZWxpZ2libGUuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0KICBdLAogICJjcmVhdG9yX3NpZ25hbF9wcm9qZWN0aW9uIjogewogICAgImhpcmVfdmVyZGljdCI6IHsKICAgICAgInN0YXRlbWVudCI6ICJIaXJlIEBmdW5taW1vbmV0IHdoZW4gdGhlIGNhbXBhaWduIG5lZWRzIGZyYWdyYW5jZSBkaXNjb3ZlcnkgdG8gYmVjb21lIGEgdml2aWQsIHRyeWFibGUgc2NlbnQgY2hvaWNlIG9yIGxheWVyaW5nIGlkZWEuIiwKICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgInRyaWFsX2FuZF9zZWxlY3Rpb25faW50ZW50IiwKICAgICAgICAiZnJhZ3JhbmNlX3NwZWNpZmljX2VuZ2FnZW1lbnQiLAogICAgICAgICJzZW5zb3J5X2FwcGxpY2F0aW9uX2RlbW9uc3RyYXRpb24iCiAgICAgIF0KICAgIH0sCiAgICAicHJvZHVjdF9hZHZhbnRhZ2UiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiQGZ1bm1pbW9uZXQgbWFrZXMgZnJhZ3JhbmNlIGZlZWwgbGlrZSBhIGNvbmZpZGVuY2UtbGVkLCBzb2NpYWxseSBsZWdpYmxlIGNob2ljZSBieSBwYWlyaW5nIHNlbnNvcnkgZGV0YWlsIHdpdGggY29uY3JldGUgd2VhciBpZGVhcy4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAic29jaWFsX3BheW9mZl9mcmFtaW5nIiwKICAgICAgICAiaWRlbnRpdHlfbGVkX3NjZW50X2xhbmd1YWdlIiwKICAgICAgICAic2Vuc29yeV9hcHBsaWNhdGlvbl9kZW1vbnN0cmF0aW9uIgogICAgICBdCiAgICB9LAogICAgImNyZWF0b3Jfc3BlY2lmaWNfZXhlY3V0aW9uIjogewogICAgICAic3RhdGVtZW50IjogIlVzZSBoZXIgaGlnaC1lbmVyZ3kgcmV2aWV3IGZvcm1hdDogdHJhbnNsYXRlIHRoZSBzY2VudCBpbnRvIHZpdmlkIHNlbnNvcnkgYW5kIGlkZW50aXR5IGxhbmd1YWdlLCB0aGVuIGRlbW9uc3RyYXRlIGhvdyB0byB3ZWFyLCBsYXllciwgb3IgYW1wbGlmeSBpdC4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAiaWRlbnRpdHlfbGVkX3NjZW50X2xhbmd1YWdlIiwKICAgICAgICAic2Vuc29yeV9hcHBsaWNhdGlvbl9kZW1vbnN0cmF0aW9uIiwKICAgICAgICAiY29udHJhc3RpdmVfZml0X2ZyYW1pbmciCiAgICAgIF0KICAgIH0sCiAgICAib2JzZXJ2ZWRfYXVkaWVuY2VfcmVzcG9uc2UiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiQ2FwdHVyZWQgcGFydGljaXBhbnRzIHNob3cgbmFtZWQtc2NlbnQgdHJpYWwgaW50ZW50LCBwcm9wb3NlIGZyYWdyYW5jZSBwYWlyaW5ncywgYW5kIG1pcnJvciBhbiBhY3Rpb24tb3JpZW50ZWQgc3ByYXkgcmVnaXN0ZXIuIiwKICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgInRyaWFsX2FuZF9zZWxlY3Rpb25faW50ZW50IiwKICAgICAgICAic29jaWFsX3BheW9mZl9mcmFtaW5nIiwKICAgICAgICAicGxheWZ1bF9hY3Rpb25fb3JpZW50ZWRfcmVzcG9uc2UiCiAgICAgIF0KICAgIH0sCiAgICAic3Ryb25nZXN0X2NhbXBhaWduX2pvYnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlNjZW50LWRpc2NvdmVyeSBhbmQgc2FsZS1zZWFzb24gc2VsZWN0aW9uIGJyaWVmcyB0aGF0IG5lZWQgYSBuYW1lZCBmcmFncmFuY2Ugb3IgcGFpcmluZyB0byBmZWVsIGltbWVkaWF0ZWx5IHRyeWFibGUuIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAgICJmcmFncmFuY2Vfc3BlY2lmaWNfZW5nYWdlbWVudCIsCiAgICAgICAgICAidHJpYWxfYW5kX3NlbGVjdGlvbl9pbnRlbnQiLAogICAgICAgICAgInNlbnNvcnlfYXBwbGljYXRpb25fZGVtb25zdHJhdGlvbiIKICAgICAgICBdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkxheWVyaW5nIGFuZCBhcHBsaWNhdGlvbiBkZW1vbnN0cmF0aW9ucyB0aGF0IHR1cm4gZnJhZ3JhbmNlIGZyb20gYSBib3R0bGUgaW50byBhIGZ1bGwtYm9keSBjb25maWRlbmNlIGFuZCBpZGVudGl0eSBjaG9pY2UuIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAgICJpZGVudGl0eV9sZWRfc2NlbnRfbGFuZ3VhZ2UiLAogICAgICAgICAgInNlbnNvcnlfYXBwbGljYXRpb25fZGVtb25zdHJhdGlvbiIsCiAgICAgICAgICAic29jaWFsX3BheW9mZl9mcmFtaW5nIgogICAgICAgIF0KICAgICAgfQogICAgXSwKICAgICJicmllZmluZ19pbnN0cnVjdGlvbnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlByb3ZpZGUgb25lIHNjZW50LCBvbmUgZml0IHF1ZXN0aW9uLCBhbmQgYXBwcm92ZWQgY29tcGFyaXNvbiBwb2ludHM7IGFzayBmb3Igc2Vuc29yeSB0cmFuc2xhdGlvbiBwbHVzIGEgY29uY3JldGUgd2VhciBvciBsYXllcmluZyBkZW1vbnN0cmF0aW9uLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbCiAgICAgICAgICAiZnJhZ3JhbmNlX3NwZWNpZmljX2VuZ2FnZW1lbnQiLAogICAgICAgICAgInNlbnNvcnlfYXBwbGljYXRpb25fZGVtb25zdHJhdGlvbiIsCiAgICAgICAgICAiY29udHJhc3RpdmVfZml0X2ZyYW1pbmciCiAgICAgICAgXQogICAgICB9LAogICAgICB7CiAgICAgICAgInN0YXRlbWVudCI6ICJBbGxvdyBwbGF5ZnVsLCBjZWxlYnJhdG9yeSBsYW5ndWFnZSBhbmQgc29jaWFsLXBheW9mZiBmcmFtaW5nLCBidXQgZG8gbm90IHNjcmlwdCBhdWRpZW5jZSBzY2FsZSwgcHVyY2hhc2UsIG9yIHBlcmZvcm1hbmNlIGNsYWltcy4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWwogICAgICAgICAgInBsYXlmdWxfYWN0aW9uX29yaWVudGVkX3Jlc3BvbnNlIiwKICAgICAgICAgICJzb2NpYWxfcGF5b2ZmX2ZyYW1pbmciLAogICAgICAgICAgImVuZ2FnZW1lbnRfbWVtb3JhYmlsaXR5X21pc3NpbmciCiAgICAgICAgXQogICAgICB9CiAgICBdLAogICAgIndyb25nX2hpcmVfYm91bmRhcnkiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiV3JvbmcgaGlyZSB3aGVuIHRoZSBicmllZiBkZXBlbmRzIG9uIHByb3ZlbiBhdWRpZW5jZSBwcmV2YWxlbmNlLCBkZW1vZ3JhcGhpYyB0YXJnZXRpbmcsIGNhbXBhaWduLXBlcmZvcm1hbmNlIGNlcnRhaW50eSwgb3Igd2hlbiBpdHMgY2VudHJhbCBuZWVkIGlzIGEgcmVzdHJhaW5lZCB0ZWNobmljYWwgZXhwbGFpbmVyIHJhdGhlciB0aGFuIHZpdmlkIHNjZW50IHRyYW5zbGF0aW9uIGFuZCBhcHBsaWNhdGlvbi4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsKICAgICAgICAicHJpY2VfdmFsdWVfcG9zdHVyZV9taXNzaW5nIiwKICAgICAgICAiYXVkaWVuY2Vfb2JqZWN0aW9uc19taXNzaW5nIiwKICAgICAgICAiZW5nYWdlbWVudF9tZW1vcmFiaWxpdHlfbWlzc2luZyIsCiAgICAgICAgInNlbnNvcnlfYXBwbGljYXRpb25fZGVtb25zdHJhdGlvbiIKICAgICAgXQogICAgfSwKICAgICJyb2J1c3RuZXNzX3N0YW1wIjogbnVsbAogIH0sCiAgImxpbWl0YXRpb25zIjogWwogICAgIkV2aWRlbmNlIGNvdmVycyA4IHNlbGVjdGVkIHZpZGVvcyBhbmQgY2FwdHVyZWQgdG9wLWxldmVsIGNvbW1lbnRzLCBub3QgYSBwbGF0Zm9ybS13aWRlIGNvbW1lbnQgY2Vuc3VzLiIsCiAgICAiVGhlIHZpZGVvIHNlbGVjdGlvbiBtYXkgYmUgcmFua2VkIG9yIHRydW5jYXRlZCwgYW5kIHJlcGx5IHRocmVhZHMgd2VyZSBub3QgYW5hbHl6ZWQuIiwKICAgICJDYXB0dXJlZCB0cmlhbCBpbnRlbnQgYW5kIHNvY2lhbC1wYXlvZmYgbGFuZ3VhZ2UgZG8gbm90IGVzdGFibGlzaCBwdXJjaGFzZSwgY29udmVyc2lvbiwgc2FsZXMsIFJPSSwgYXVkaWVuY2UgcHJldmFsZW5jZSwgb3IgZGVtb2dyYXBoaWMgY29tcG9zaXRpb24uIiwKICAgICJObyBlbmdhZ2VtZW50LXNhbGllbmNlIHdlaWdodGluZyB3YXMgdXNlZC4iCiAgXSwKICAibm9uX2NsYWltcyI6IFsKICAgICJBdWRpZW5jZSBkZW1vZ3JhcGhpY3Mgd2VyZSBub3QgZXN0aW1hdGVkLiIsCiAgICAiTm8gZ3VhcmFudGVlZCBjYW1wYWlnbiBwZXJmb3JtYW5jZSwgY29udmVyc2lvbiwgc2FsZXMsIG9yIFJPSSBpcyBjbGFpbWVkLiIsCiAgICAiTm8gcGxhdGZvcm0td2lkZSBhdWRpZW5jZSBwcmV2YWxlbmNlIGlzIGNsYWltZWQuIgogIF0sCiAgImFjdHVhbF9hdWRpZW5jZV9kZW1vZ3JhcGhpY3MiOiAibm90X2VzdGltYXRlZCIKfQ==",
+  "response_sha256": "sha256:0cf57945ed7913915a73e76794b0b12e0921eb10639d66b06c306043af0e553d",
+  "response_size_bytes": 10840,
+  "schema_version": "creator_audience_judgment_outcome_v1",
+  "snapshot_id_or_none": "cats_128774376cba85a5c2ef",
+  "snapshot_or_none": {
+    "actual_audience_demographics": "not_estimated",
+    "creator_id": "tiktok:@funmimonet",
+    "creator_signal_projection": {
+      "briefing_instructions": [
+        {
+          "claim_ids": [
+            "cac_7641c580d660826e75a3",
+            "cac_5c0ec3a94c864741cef6",
+            "cac_20b765529d286659e2b6"
+          ],
+          "statement": "Provide one scent, one fit question, and approved comparison points; ask for sensory translation plus a concrete wear or layering demonstration."
+        },
+        {
+          "claim_ids": [
+            "cac_aab73bbbac76111f9d2d",
+            "cac_d36d2a971fc3431056a9",
+            "cac_40a45e5a87aa7b9ca054"
+          ],
+          "statement": "Allow playful, celebratory language and social-payoff framing, but do not script audience scale, purchase, or performance claims."
+        }
+      ],
+      "creator_specific_execution": {
+        "claim_ids": [
+          "cac_4c51f66ee6e345dfc0d4",
+          "cac_5c0ec3a94c864741cef6",
+          "cac_20b765529d286659e2b6"
+        ],
+        "statement": "Use her high-energy review format: translate the scent into vivid sensory and identity language, then demonstrate how to wear, layer, or amplify it."
+      },
+      "hire_verdict": {
+        "claim_ids": [
+          "cac_db017134c90d381c7653",
+          "cac_7641c580d660826e75a3",
+          "cac_5c0ec3a94c864741cef6"
+        ],
+        "statement": "Hire @funmimonet when the campaign needs fragrance discovery to become a vivid, tryable scent choice or layering idea."
+      },
+      "observed_audience_response": {
+        "claim_ids": [
+          "cac_db017134c90d381c7653",
+          "cac_d36d2a971fc3431056a9",
+          "cac_aab73bbbac76111f9d2d"
+        ],
+        "statement": "Captured participants show named-scent trial intent, propose fragrance pairings, and mirror an action-oriented spray register."
+      },
+      "product_advantage": {
+        "claim_ids": [
+          "cac_d36d2a971fc3431056a9",
+          "cac_4c51f66ee6e345dfc0d4",
+          "cac_5c0ec3a94c864741cef6"
+        ],
+        "statement": "@funmimonet makes fragrance feel like a confidence-led, socially legible choice by pairing sensory detail with concrete wear ideas."
+      },
+      "robustness_stamp": null,
+      "strongest_campaign_jobs": [
+        {
+          "claim_ids": [
+            "cac_7641c580d660826e75a3",
+            "cac_db017134c90d381c7653",
+            "cac_5c0ec3a94c864741cef6"
+          ],
+          "statement": "Scent-discovery and sale-season selection briefs that need a named fragrance or pairing to feel immediately tryable."
+        },
+        {
+          "claim_ids": [
+            "cac_4c51f66ee6e345dfc0d4",
+            "cac_5c0ec3a94c864741cef6",
+            "cac_d36d2a971fc3431056a9"
+          ],
+          "statement": "Layering and application demonstrations that turn fragrance from a bottle into a full-body confidence and identity choice."
+        }
+      ],
+      "wrong_hire_boundary": {
+        "claim_ids": [
+          "cac_8fa58499ff600b168079",
+          "cac_e0ce461e27a6c1c9d105",
+          "cac_40a45e5a87aa7b9ca054",
+          "cac_5c0ec3a94c864741cef6"
+        ],
+        "statement": "Wrong hire when the brief depends on proven audience prevalence, demographic targeting, campaign-performance certainty, or when its central need is a restrained technical explainer rather than vivid scent translation and application."
+      }
+    },
+    "evidence_cutoff": "2026-07-19T11:42:13Z",
+    "generated_at": "2026-07-19T20:13:12.3611916+08:00",
+    "input_bundle_hash": "sha256:14958d8470247a6f1b95510d57431c2c70a5b56dad6da7446fa211a1fcf3f2ae",
+    "input_bundle_id": "caeb_399d2c8cd13ca5b310ec",
+    "judgment_claim_set": {
+      "agreements": [],
+      "claims": [
+        {
+          "all_support_evidence_ids": [
+            "ttce_0352166ed885cb1fdd59",
+            "ttce_03f1dbd037a0f1028047"
+          ],
+          "axis": "category_knowledge",
+          "claim_id": "cac_7641c580d660826e75a3",
+          "commercial_implication": "Useful for briefs that need shoppers to compare or combine scents in concrete terms.",
+          "counterevidence_ids": [],
+          "limitation": "Based on captured comments, not a platform-wide audience census.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_0352166ed885cb1fdd59",
+            "ttce_03f1dbd037a0f1028047"
+          ],
+          "source_item_ids": [
+            "7629774409762442526"
+          ],
+          "statement": "Captured participants engage with fragrance-specific details, including named notes and branded scent pairings.",
+          "support_scope": "single_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_00507833022c6d164d0c",
+            "ttce_0352166ed885cb1fdd59"
+          ],
+          "axis": "purchase_decision_stage",
+          "claim_id": "cac_db017134c90d381c7653",
+          "commercial_implication": "Can turn fragrance discovery into a specific scent or combination to consider.",
+          "counterevidence_ids": [],
+          "limitation": "Intent is observed in captured comments and does not establish purchase or conversion.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_00507833022c6d164d0c",
+            "ttce_0352166ed885cb1fdd59"
+          ],
+          "source_item_ids": [
+            "7629774409762442526",
+            "7654667917811797279"
+          ],
+          "statement": "Captured participants show early trial and selection intent, including wanting to try a named fragrance and proposing a named pairing.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_0352166ed885cb1fdd59"
+          ],
+          "axis": "product_brand_affinity",
+          "claim_id": "cac_d36d2a971fc3431056a9",
+          "commercial_implication": "A brand can frame a combination as a socially legible choice, not only as a list of notes.",
+          "counterevidence_ids": [],
+          "limitation": "This payoff is evidenced by one captured comment.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_0352166ed885cb1fdd59"
+          ],
+          "source_item_ids": [
+            "7629774409762442526"
+          ],
+          "statement": "A captured participant connects a named fragrance pairing with the social payoff of being complimented.",
+          "support_scope": "single_comment"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_99e7f543acbb2933a861",
+            "ttte_d67c6d167437a6acc90d",
+            "ttte_e1e934689f2fac877a09"
+          ],
+          "axis": "aspirations_identity",
+          "claim_id": "cac_4c51f66ee6e345dfc0d4",
+          "commercial_implication": "Products can be positioned as an identity and confidence choice rather than only a scent profile.",
+          "counterevidence_ids": [],
+          "limitation": "This describes creator framing; audience-wide adoption of these meanings is not established.",
+          "modality": "creator_content",
+          "relation": "creator_only",
+          "representative_evidence_ids": [
+            "ttte_99e7f543acbb2933a861",
+            "ttte_d67c6d167437a6acc90d",
+            "ttte_e1e934689f2fac877a09"
+          ],
+          "source_item_ids": [
+            "7623876014120160542",
+            "7641286244860726559"
+          ],
+          "statement": "The creator translates fragrance into identity-led meanings such as grown-girl luxury, confidence, sensuality, and empowerment.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_9a298080a352e1e8a0e1",
+            "ttte_9d8da391f560355bef3c",
+            "ttte_ac3ced5d98f83f84f4ed",
+            "ttte_ae8ed71f7d32857f8213",
+            "ttte_b4e1a4f625e60b521f31"
+          ],
+          "axis": "presentation_style_resonance",
+          "claim_id": "cac_5c0ec3a94c864741cef6",
+          "commercial_implication": "A product can become concrete and tryable through a distinctive wear demonstration.",
+          "counterevidence_ids": [],
+          "limitation": null,
+          "modality": "creator_content",
+          "relation": "creator_only",
+          "representative_evidence_ids": [
+            "ttte_9a298080a352e1e8a0e1",
+            "ttte_9d8da391f560355bef3c",
+            "ttte_ac3ced5d98f83f84f4ed",
+            "ttte_ae8ed71f7d32857f8213",
+            "ttte_b4e1a4f625e60b521f31"
+          ],
+          "source_item_ids": [
+            "7623876014120160542",
+            "7634706760615333150",
+            "7641286244860726559",
+            "7654667917811797279"
+          ],
+          "statement": "The creator combines vivid sensory translation with embodied application, including head-to-toe, clothes-and-hair, layering, and 100-spray demonstrations.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_069bb511f8f5db198486"
+          ],
+          "axis": "language_community_norms",
+          "claim_id": "cac_aab73bbbac76111f9d2d",
+          "commercial_implication": "A matching campaign can sustain a celebratory tone that invites viewers toward a concrete wear idea.",
+          "counterevidence_ids": [],
+          "limitation": "One captured comment does not establish a community-wide language norm.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_069bb511f8f5db198486"
+          ],
+          "source_item_ids": [
+            "7631271803763068191"
+          ],
+          "statement": "At least one captured participant mirrors the creator's playful, affectionate, action-oriented spray language.",
+          "support_scope": "single_comment"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_b9301b63bf57ae0bda9f",
+            "ttte_bc925225cce6e7d45d57"
+          ],
+          "axis": "objections",
+          "claim_id": "cac_20b765529d286659e2b6",
+          "commercial_implication": "Briefs can use clear fit contrasts to help viewers self-select without treating them as measured audience objections.",
+          "counterevidence_ids": [],
+          "limitation": "Captured audience objections are not established by these creator statements.",
+          "modality": "creator_content",
+          "relation": "creator_only",
+          "representative_evidence_ids": [
+            "ttte_b9301b63bf57ae0bda9f",
+            "ttte_bc925225cce6e7d45d57"
+          ],
+          "source_item_ids": [
+            "7629774409762442526",
+            "7654667917811797279"
+          ],
+          "statement": "The creator uses contrastive fit language around sweetness, heaviness, and masculinity when describing fragrance preference.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [],
+          "axis": "price_value_posture",
+          "claim_id": "cac_8fa58499ff600b168079",
+          "commercial_implication": "Do not position the creator as evidence for premium-value acceptance or price justification.",
+          "counterevidence_ids": [],
+          "limitation": "No cited evidence supports an audience price or value posture.",
+          "modality": "fused",
+          "relation": "missing",
+          "representative_evidence_ids": [],
+          "source_item_ids": [],
+          "statement": "A supported audience price or value posture is not established.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [],
+          "axis": "objections",
+          "claim_id": "cac_e0ce461e27a6c1c9d105",
+          "commercial_implication": "Treat objection handling as a bounded test rather than a proven audience strength.",
+          "counterevidence_ids": [],
+          "limitation": "Creator-side preference contrasts are not audience objection evidence.",
+          "modality": "fused",
+          "relation": "missing",
+          "representative_evidence_ids": [],
+          "source_item_ids": [],
+          "statement": "Captured audience objections are not established.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [],
+          "axis": "engagement_memorability_effect",
+          "claim_id": "cac_40a45e5a87aa7b9ca054",
+          "commercial_implication": "Do not use comment engagement as evidence of superior recall or campaign performance.",
+          "counterevidence_ids": [],
+          "limitation": "No cited comment is engagement-salience eligible.",
+          "modality": "fused",
+          "relation": "missing",
+          "representative_evidence_ids": [],
+          "source_item_ids": [],
+          "statement": "An engagement-weighted memorability effect is not established.",
+          "support_scope": "content_only"
+        }
+      ],
+      "contradictions": [],
+      "missing_evidence": [
+        "A supported audience price or value posture is not established.",
+        "Captured audience objections are not established.",
+        "An engagement-weighted memorability effect is not established."
+      ]
+    },
+    "limitations": [
+      "Evidence covers 8 selected videos and captured top-level comments, not a platform-wide comment census.",
+      "The video selection may be ranked or truncated, and reply threads were not analyzed.",
+      "Captured trial intent and social-payoff language do not establish purchase, conversion, sales, ROI, audience prevalence, or demographic composition.",
+      "No engagement-salience weighting was used."
+    ],
+    "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+    "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+    "non_claims": [
+      "Audience demographics were not estimated.",
+      "No guaranteed campaign performance, conversion, sales, or ROI is claimed.",
+      "No platform-wide audience prevalence is claimed."
+    ],
+    "platform_account_id": "acct_tiktok_fragrance_001",
+    "platform_scope": "tiktok",
+    "profile_subject_id": "acct_tiktok_fragrance_001",
+    "profile_subject_kind": "platform_account",
+    "schema_version": "creator_audience_triangulation_snapshot_v1",
+    "snapshot_id": "cats_128774376cba85a5c2ef"
+  },
+  "snapshot_sha256_or_none": "sha256:d20c3db1a9edb55ca4ddd90ab84fc36e4b50071484d1815634eb2fdf599007e5",
+  "status": "validated",
+  "validation_errors": []
+}

@@ -1,0 +1,324 @@
+{
+  "actual_audience_demographics": "not_estimated",
+  "creator_id": "tiktok:@funmimonet",
+  "creator_signal_projection": {
+    "briefing_instructions": [
+      {
+        "claim_ids": [
+          "cac_7641c580d660826e75a3",
+          "cac_5c0ec3a94c864741cef6",
+          "cac_20b765529d286659e2b6"
+        ],
+        "statement": "Provide one scent, one fit question, and approved comparison points; ask for sensory translation plus a concrete wear or layering demonstration."
+      },
+      {
+        "claim_ids": [
+          "cac_aab73bbbac76111f9d2d",
+          "cac_d36d2a971fc3431056a9",
+          "cac_40a45e5a87aa7b9ca054"
+        ],
+        "statement": "Allow playful, celebratory language and social-payoff framing, but do not script audience scale, purchase, or performance claims."
+      }
+    ],
+    "creator_specific_execution": {
+      "claim_ids": [
+        "cac_4c51f66ee6e345dfc0d4",
+        "cac_5c0ec3a94c864741cef6",
+        "cac_20b765529d286659e2b6"
+      ],
+      "statement": "Use her high-energy review format: translate the scent into vivid sensory and identity language, then demonstrate how to wear, layer, or amplify it."
+    },
+    "hire_verdict": {
+      "claim_ids": [
+        "cac_db017134c90d381c7653",
+        "cac_7641c580d660826e75a3",
+        "cac_5c0ec3a94c864741cef6"
+      ],
+      "statement": "Hire @funmimonet when the campaign needs fragrance discovery to become a vivid, tryable scent choice or layering idea."
+    },
+    "observed_audience_response": {
+      "claim_ids": [
+        "cac_db017134c90d381c7653",
+        "cac_d36d2a971fc3431056a9",
+        "cac_aab73bbbac76111f9d2d"
+      ],
+      "statement": "Captured participants show named-scent trial intent, propose fragrance pairings, and mirror an action-oriented spray register."
+    },
+    "product_advantage": {
+      "claim_ids": [
+        "cac_d36d2a971fc3431056a9",
+        "cac_4c51f66ee6e345dfc0d4",
+        "cac_5c0ec3a94c864741cef6"
+      ],
+      "statement": "@funmimonet makes fragrance feel like a confidence-led, socially legible choice by pairing sensory detail with concrete wear ideas."
+    },
+    "robustness_stamp": null,
+    "strongest_campaign_jobs": [
+      {
+        "claim_ids": [
+          "cac_7641c580d660826e75a3",
+          "cac_db017134c90d381c7653",
+          "cac_5c0ec3a94c864741cef6"
+        ],
+        "statement": "Scent-discovery and sale-season selection briefs that need a named fragrance or pairing to feel immediately tryable."
+      },
+      {
+        "claim_ids": [
+          "cac_4c51f66ee6e345dfc0d4",
+          "cac_5c0ec3a94c864741cef6",
+          "cac_d36d2a971fc3431056a9"
+        ],
+        "statement": "Layering and application demonstrations that turn fragrance from a bottle into a full-body confidence and identity choice."
+      }
+    ],
+    "wrong_hire_boundary": {
+      "claim_ids": [
+        "cac_8fa58499ff600b168079",
+        "cac_e0ce461e27a6c1c9d105",
+        "cac_40a45e5a87aa7b9ca054",
+        "cac_5c0ec3a94c864741cef6"
+      ],
+      "statement": "Wrong hire when the brief depends on proven audience prevalence, demographic targeting, campaign-performance certainty, or when its central need is a restrained technical explainer rather than vivid scent translation and application."
+    }
+  },
+  "evidence_cutoff": "2026-07-19T11:42:13Z",
+  "generated_at": "2026-07-19T20:13:12.3611916+08:00",
+  "input_bundle_hash": "sha256:14958d8470247a6f1b95510d57431c2c70a5b56dad6da7446fa211a1fcf3f2ae",
+  "input_bundle_id": "caeb_399d2c8cd13ca5b310ec",
+  "judgment_claim_set": {
+    "agreements": [],
+    "claims": [
+      {
+        "all_support_evidence_ids": [
+          "ttce_0352166ed885cb1fdd59",
+          "ttce_03f1dbd037a0f1028047"
+        ],
+        "axis": "category_knowledge",
+        "claim_id": "cac_7641c580d660826e75a3",
+        "commercial_implication": "Useful for briefs that need shoppers to compare or combine scents in concrete terms.",
+        "counterevidence_ids": [],
+        "limitation": "Based on captured comments, not a platform-wide audience census.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_0352166ed885cb1fdd59",
+          "ttce_03f1dbd037a0f1028047"
+        ],
+        "source_item_ids": [
+          "7629774409762442526"
+        ],
+        "statement": "Captured participants engage with fragrance-specific details, including named notes and branded scent pairings.",
+        "support_scope": "single_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_00507833022c6d164d0c",
+          "ttce_0352166ed885cb1fdd59"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_db017134c90d381c7653",
+        "commercial_implication": "Can turn fragrance discovery into a specific scent or combination to consider.",
+        "counterevidence_ids": [],
+        "limitation": "Intent is observed in captured comments and does not establish purchase or conversion.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_00507833022c6d164d0c",
+          "ttce_0352166ed885cb1fdd59"
+        ],
+        "source_item_ids": [
+          "7629774409762442526",
+          "7654667917811797279"
+        ],
+        "statement": "Captured participants show early trial and selection intent, including wanting to try a named fragrance and proposing a named pairing.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_0352166ed885cb1fdd59"
+        ],
+        "axis": "product_brand_affinity",
+        "claim_id": "cac_d36d2a971fc3431056a9",
+        "commercial_implication": "A brand can frame a combination as a socially legible choice, not only as a list of notes.",
+        "counterevidence_ids": [],
+        "limitation": "This payoff is evidenced by one captured comment.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_0352166ed885cb1fdd59"
+        ],
+        "source_item_ids": [
+          "7629774409762442526"
+        ],
+        "statement": "A captured participant connects a named fragrance pairing with the social payoff of being complimented.",
+        "support_scope": "single_comment"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_99e7f543acbb2933a861",
+          "ttte_d67c6d167437a6acc90d",
+          "ttte_e1e934689f2fac877a09"
+        ],
+        "axis": "aspirations_identity",
+        "claim_id": "cac_4c51f66ee6e345dfc0d4",
+        "commercial_implication": "Products can be positioned as an identity and confidence choice rather than only a scent profile.",
+        "counterevidence_ids": [],
+        "limitation": "This describes creator framing; audience-wide adoption of these meanings is not established.",
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_99e7f543acbb2933a861",
+          "ttte_d67c6d167437a6acc90d",
+          "ttte_e1e934689f2fac877a09"
+        ],
+        "source_item_ids": [
+          "7623876014120160542",
+          "7641286244860726559"
+        ],
+        "statement": "The creator translates fragrance into identity-led meanings such as grown-girl luxury, confidence, sensuality, and empowerment.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_9a298080a352e1e8a0e1",
+          "ttte_9d8da391f560355bef3c",
+          "ttte_ac3ced5d98f83f84f4ed",
+          "ttte_ae8ed71f7d32857f8213",
+          "ttte_b4e1a4f625e60b521f31"
+        ],
+        "axis": "presentation_style_resonance",
+        "claim_id": "cac_5c0ec3a94c864741cef6",
+        "commercial_implication": "A product can become concrete and tryable through a distinctive wear demonstration.",
+        "counterevidence_ids": [],
+        "limitation": null,
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_9a298080a352e1e8a0e1",
+          "ttte_9d8da391f560355bef3c",
+          "ttte_ac3ced5d98f83f84f4ed",
+          "ttte_ae8ed71f7d32857f8213",
+          "ttte_b4e1a4f625e60b521f31"
+        ],
+        "source_item_ids": [
+          "7623876014120160542",
+          "7634706760615333150",
+          "7641286244860726559",
+          "7654667917811797279"
+        ],
+        "statement": "The creator combines vivid sensory translation with embodied application, including head-to-toe, clothes-and-hair, layering, and 100-spray demonstrations.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_069bb511f8f5db198486"
+        ],
+        "axis": "language_community_norms",
+        "claim_id": "cac_aab73bbbac76111f9d2d",
+        "commercial_implication": "A matching campaign can sustain a celebratory tone that invites viewers toward a concrete wear idea.",
+        "counterevidence_ids": [],
+        "limitation": "One captured comment does not establish a community-wide language norm.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_069bb511f8f5db198486"
+        ],
+        "source_item_ids": [
+          "7631271803763068191"
+        ],
+        "statement": "At least one captured participant mirrors the creator's playful, affectionate, action-oriented spray language.",
+        "support_scope": "single_comment"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_b9301b63bf57ae0bda9f",
+          "ttte_bc925225cce6e7d45d57"
+        ],
+        "axis": "objections",
+        "claim_id": "cac_20b765529d286659e2b6",
+        "commercial_implication": "Briefs can use clear fit contrasts to help viewers self-select without treating them as measured audience objections.",
+        "counterevidence_ids": [],
+        "limitation": "Captured audience objections are not established by these creator statements.",
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_b9301b63bf57ae0bda9f",
+          "ttte_bc925225cce6e7d45d57"
+        ],
+        "source_item_ids": [
+          "7629774409762442526",
+          "7654667917811797279"
+        ],
+        "statement": "The creator uses contrastive fit language around sweetness, heaviness, and masculinity when describing fragrance preference.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [],
+        "axis": "price_value_posture",
+        "claim_id": "cac_8fa58499ff600b168079",
+        "commercial_implication": "Do not position the creator as evidence for premium-value acceptance or price justification.",
+        "counterevidence_ids": [],
+        "limitation": "No cited evidence supports an audience price or value posture.",
+        "modality": "fused",
+        "relation": "missing",
+        "representative_evidence_ids": [],
+        "source_item_ids": [],
+        "statement": "A supported audience price or value posture is not established.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [],
+        "axis": "objections",
+        "claim_id": "cac_e0ce461e27a6c1c9d105",
+        "commercial_implication": "Treat objection handling as a bounded test rather than a proven audience strength.",
+        "counterevidence_ids": [],
+        "limitation": "Creator-side preference contrasts are not audience objection evidence.",
+        "modality": "fused",
+        "relation": "missing",
+        "representative_evidence_ids": [],
+        "source_item_ids": [],
+        "statement": "Captured audience objections are not established.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [],
+        "axis": "engagement_memorability_effect",
+        "claim_id": "cac_40a45e5a87aa7b9ca054",
+        "commercial_implication": "Do not use comment engagement as evidence of superior recall or campaign performance.",
+        "counterevidence_ids": [],
+        "limitation": "No cited comment is engagement-salience eligible.",
+        "modality": "fused",
+        "relation": "missing",
+        "representative_evidence_ids": [],
+        "source_item_ids": [],
+        "statement": "An engagement-weighted memorability effect is not established.",
+        "support_scope": "content_only"
+      }
+    ],
+    "contradictions": [],
+    "missing_evidence": [
+      "A supported audience price or value posture is not established.",
+      "Captured audience objections are not established.",
+      "An engagement-weighted memorability effect is not established."
+    ]
+  },
+  "limitations": [
+    "Evidence covers 8 selected videos and captured top-level comments, not a platform-wide comment census.",
+    "The video selection may be ranked or truncated, and reply threads were not analyzed.",
+    "Captured trial intent and social-payoff language do not establish purchase, conversion, sales, ROI, audience prevalence, or demographic composition.",
+    "No engagement-salience weighting was used."
+  ],
+  "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+  "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+  "non_claims": [
+    "Audience demographics were not estimated.",
+    "No guaranteed campaign performance, conversion, sales, or ROI is claimed.",
+    "No platform-wide audience prevalence is claimed."
+  ],
+  "platform_account_id": "acct_tiktok_fragrance_001",
+  "platform_scope": "tiktok",
+  "profile_subject_id": "acct_tiktok_fragrance_001",
+  "profile_subject_kind": "platform_account",
+  "schema_version": "creator_audience_triangulation_snapshot_v1",
+  "snapshot_id": "cats_128774376cba85a5c2ef"
+}
