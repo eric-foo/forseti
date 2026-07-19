@@ -97,6 +97,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
         "live grid capture is invoked by the operator/control wrapper, which supplies an "
         "explicit output_root or resolved data_root; this adapter does not use ambient admission"
     ),
+    "run_source_capture_sephora_onboarding.py": (
+        "live structured Sephora acquisition consumes a committed parent packet and "
+        "requires explicit append-only lake admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -300,6 +304,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "discovered from the served page's module-preload list (structural "
             "provenance) and certify_extraction is a content-integrity discriminator, not "
             "a subject identity claim beyond the URLs"
+        ),
+    },
+    "run_source_capture_sephora_onboarding.py": {
+        "status": "bound",
+        "mechanism": (
+            "before acquisition, a hash-verified parent packet must be retail_pdp and its "
+            "Sephora linkStore productId must match the requested product URL; every returned "
+            "question row must carry that productId and every review row must carry that "
+            "productId or a SKU enumerated by the same parent product before projection succeeds"
         ),
     },
     "run_source_capture_tiktok_batch_packet.py": {
@@ -1029,7 +1042,11 @@ def packet_producers() -> dict[str, RunnerSeam]:
                 exposes_env_fallback=(
                     "FORSETI_DATA_ROOT" in env_names
                     or scaffold_seam
-                    or ("--output" not in flags and "--admit-output" not in flags)
+                    or (
+                        "--output" not in flags
+                        and "--admit-output" not in flags
+                        and path.name not in EXPLICIT_DATA_ROOT_RUNNERS
+                    )
                 ),
                 explicit_data_root_only=path.name in EXPLICIT_DATA_ROOT_RUNNERS,
                 resolves_data_root="DataLakeRoot.resolve" in src or scaffold_seam,
