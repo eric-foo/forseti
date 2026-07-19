@@ -358,8 +358,11 @@ def pickup(
     committed work" claim, and the seam contract makes that claim valid only
     over a reconciled surface. When ``scope_packet_ids`` is supplied, reconcile
     and pickup are restricted to that immutable caller-owned set; no global
-    availability entries are purged. Pass ``reconcile=False`` only when the
-    caller reconciles itself first or visibly records its staleness tolerance.
+    availability entries are purged. Scoped pickup always re-verifies every
+    selected packet on the unfiltered public availability surface before any
+    source-family filtering, including when ``reconcile=False``. Pass
+    ``reconcile=False`` only when the caller reconciles itself first or visibly
+    records its staleness tolerance.
 
     Always by-key: every committed anchor is enumerated and compared; there is
     no incremental shortcut that could silently miss late-arriving work, and no
@@ -379,10 +382,43 @@ def pickup(
                     "scoped availability reconcile failed before pickup: "
                     f"{first['packet_id']}: {first['error']}"
                 )
-    available = root.list_available(source_family=source_family)
-    if scope_packet_ids is not None:
+    if scope_packet_ids is None:
+        available = root.list_available(source_family=source_family)
+    else:
         scope = set(scope_packet_ids)
-        available = [packet_id for packet_id in available if packet_id in scope]
+        if not scope:
+            available = []
+        else:
+            first_packet_id = min(scope)
+            try:
+                public_entries = root.snapshot_public_availability()
+            except Exception as exc:
+                _raise_if_root_unavailable(
+                    root, packet_id=first_packet_id, cause=exc
+                )
+                raise
+            public_packet_ids = {
+                entry["packet_id"] for entry in public_entries
+            }
+            missing = sorted(scope - public_packet_ids)
+            if missing:
+                error = ConsumptionSeamError(
+                    "scoped packet is missing from public availability before pickup: "
+                    f"{missing[0]}"
+                )
+                _raise_if_root_unavailable(
+                    root, packet_id=missing[0], cause=error
+                )
+                raise error
+            available = [
+                entry["packet_id"]
+                for entry in public_entries
+                if entry["packet_id"] in scope
+                and (
+                    source_family is None
+                    or entry.get("source_family") == source_family
+                )
+            ]
     for raw_anchor in available:
         obligation = obligation_fn(raw_anchor)
         if is_acknowledged(

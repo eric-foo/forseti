@@ -1164,20 +1164,31 @@ class DataLakeRoot:
                     packet_ids.append(packet_id)
         return sorted(packet_ids)
 
-    def list_available(self, *, source_family: str | None = None) -> list[str]:
-        """List committed packet ids by key, optionally filtered by source family."""
+    def snapshot_public_availability(self) -> list[dict]:
+        """Read public availability entries once in stable by-key order.
+
+        Root identity and tombstones are each checked once, then every
+        availability JSON entry is read at most once. Callers can validate and
+        filter the returned snapshot without racing a second index scan.
+        """
+        tombstoned = self.tombstoned_packet_ids()
         avail = self._path / "indexes" / "availability"
         if not avail.is_dir():
             return []
-        tombstoned = self.tombstoned_packet_ids()
-        out: list[str] = []
+        entries: list[dict] = []
         for entry_file in sorted(avail.glob("*.json")):
             entry = json.loads(entry_file.read_text(encoding="utf-8"))
-            if entry.get("packet_id") in tombstoned:
-                continue
-            if source_family is None or entry.get("source_family") == source_family:
-                out.append(entry["packet_id"])
-        return out
+            if entry.get("packet_id") not in tombstoned:
+                entries.append(entry)
+        return entries
+
+    def list_available(self, *, source_family: str | None = None) -> list[str]:
+        """List committed packet ids by key, optionally filtered by source family."""
+        return [
+            entry["packet_id"]
+            for entry in self.snapshot_public_availability()
+            if source_family is None or entry.get("source_family") == source_family
+        ]
 
     def rebuild_availability(self) -> int:
         """Rebuild indexes/availability entirely from committed raw packets
