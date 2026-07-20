@@ -181,8 +181,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Ulta parser v1 adds its retailer-owned canonical content schema and
         # URL-SKU-bound offer/review extraction while omitting the unrelated
         # Apollo loader envelope. The shared projection row/Silver semantics
-        # remain unchanged; historical raw decoding remains available.
-        "d55f46ae825047de4fa43e20e21f7340a5c992c7c6c332046fe6d736d313debb",
+        # remain unchanged; historical raw decoding remains available. The
+        # post-review correction restores the pre-flip raw fallback for
+        # apollo_requested_sku while keeping content URL-SKU-bound, so v1 raw
+        # semantics and raw/content Silver equivalence remain intact.
+        "7a8dadef499406fbe156ac29460f533f580e8e523fe6fae85cefd0b74f18aa48",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

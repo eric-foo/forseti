@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 
+from cleaning.retail_pdp import build_retail_pdp_cleaning_input
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.adapters.ulta_us_market import (
@@ -17,6 +18,8 @@ from source_capture.retail_pdp_content import (
     ULTA_PDP_CONTENT_RECORD_KIND,
     build_ulta_pdp_aggregate_content_record,
 )
+from source_capture.projection_shared import read_packet_directory
+from source_capture.retail_pdp_silver import build_retail_pdp_silver_records
 
 
 _URL = (
@@ -294,6 +297,64 @@ def test_ulta_aggregate_profile_defaults_to_lean_content(
         row["row_kind"] != "retail_embedded_structured_json"
         for row in record["rows"]
     )
+
+
+def test_ulta_raw_and_content_offer_review_and_silver_semantics_are_equal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer,
+        "fetch_cloakbrowser_snapshot_capture",
+        _fake_capture(),
+    )
+    profile = get_retail_capture_profile("ulta_pdp_aggregate")
+    content_kwargs = _run_kwargs(tmp_path / "content")
+    content_kwargs["retail_capture_profile"] = profile
+    raw_kwargs = _run_kwargs(tmp_path / "raw")
+    raw_kwargs["retail_capture_profile"] = profile
+    raw_kwargs["content_extraction"] = cloak_writer._ulta_content_extraction_spec(
+        "raw"
+    )
+
+    assert cloak_writer.run_source_capture_cloakbrowser_packet(
+        **content_kwargs
+    )[0] == 0
+    assert cloak_writer.run_source_capture_cloakbrowser_packet(**raw_kwargs)[0] == 0
+
+    def load(packet_path: Path):
+        packet, bodies = read_packet_directory(packet_path)
+        cleaning = build_retail_pdp_cleaning_input(
+            packet=packet,
+            file_bytes_by_file_id=bodies,
+        )
+        rows = {
+            row.row_kind: row.source_visible_fields
+            for row in cleaning.rows
+            if row.row_kind
+            in {"retail_variant_offer", "retail_review_substrate"}
+        }
+        silver = build_retail_pdp_silver_records(
+            packet=packet,
+            cleaning_input=cleaning,
+        )
+        observations = {
+            record["payload_kind"]: record["payload"]["observation"][
+                "source_visible_fields"
+            ]
+            for record in silver
+            if record["payload_kind"]
+            in {"RetailOfferObservation", "RetailReviewAggregateObservation"}
+        }
+        return cleaning.legacy_input, rows, observations
+
+    content = load(tmp_path / "content")
+    raw = load(tmp_path / "raw")
+
+    assert content[0] is False
+    assert raw[0] is True
+    assert content[1] == raw[1]
+    assert content[2] == raw[2]
 
 
 def test_ulta_content_is_deterministic_and_excludes_loader_baggage() -> None:
