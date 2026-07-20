@@ -172,7 +172,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Hard-cut plumbing only in this parser module: persisted Projection
         # writers were removed, while extracted and legacy-decoded row semantics
         # remain equivalent. Parser/projection tokens therefore stay unchanged.
-        "33afb6b44e85caced6a7c8efaedef1c28750c97ede3277e2883c54890b869f64",
+        # Luckyscent source-shape admission now accepts either the current single
+        # ProductGroup block or the earlier redundant ProductGroup+Product pair.
+        # Both carry the same required product/offer/review semantics, so the
+        # retailer parser token and shared projection token stay unchanged.
+        "7b0d6d0232ce619fec0f743df3a1de49d4d6254dbc3589ba1a707567c92df11d",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

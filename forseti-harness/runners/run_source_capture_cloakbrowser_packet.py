@@ -126,6 +126,9 @@ _BROWSER_SECRET_METADATA_PATTERNS = (
 SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE = "sephora_market_pin_failed"
 _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
 LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE = "luckyscent_market_pin_failed"
+LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE = (
+    "luckyscent_overlay_dismissal_failed"
+)
 _LUCKYSCENT_HOSTS = frozenset({"luckyscent.com", "www.luckyscent.com"})
 NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE = "nordstrom_country_pin_failed"
 NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE = "nordstrom_review_posture_failed"
@@ -427,6 +430,21 @@ def run_source_capture_cloakbrowser_packet(
             f"{luckyscent_pin_failure}; packet preserved but MUST NOT be admitted "
             "as Luckyscent US/USD storefront evidence"
         )
+    luckyscent_overlay_failure = _luckyscent_overlay_dismissal_failure(
+        luckyscent_market=luckyscent_market,
+        before_snapshot_steps_completed=capture_result.metadata.get(
+            "before_snapshot_steps_completed"
+        ),
+        before_snapshot_reason=capture_result.metadata.get(
+            "before_snapshot_reason"
+        ),
+    )
+    if luckyscent_overlay_failure is not None:
+        packet_limitations.append(
+            f"{LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE}: "
+            f"{luckyscent_overlay_failure}; packet preserved but MUST NOT be "
+            "admitted as unobstructed Luckyscent content evidence"
+        )
     amazon_pin_failure = _amazon_delivery_pin_failure(
         delivery_zip=delivery_zip,
         final_url=capture_result.final_url,
@@ -510,6 +528,10 @@ def run_source_capture_cloakbrowser_packet(
         packet_visible_mode_changes.append(
             LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE
         )
+    if luckyscent_overlay_failure is not None:
+        packet_visible_mode_changes.append(
+            LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE
+        )
     if amazon_pin_failure is not None:
         packet_visible_mode_changes.append(AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE)
     if amazon_vpn_fallback_reason is not None:
@@ -577,6 +599,7 @@ def run_source_capture_cloakbrowser_packet(
         or nordstrom_review_posture_failure is not None
         or ulta_pin_failure is not None
         or luckyscent_pin_failure is not None
+        or luckyscent_overlay_failure is not None
         or amazon_pin_failure is not None
         or target_pin_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
@@ -822,6 +845,13 @@ def run_source_capture_cloakbrowser_packet(
             f"{LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{result.output_directory}; {luckyscent_pin_failure}",
         )
+    if luckyscent_overlay_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE}: packet "
+            f"preserved at {result.output_directory}; "
+            f"{luckyscent_overlay_failure}",
+        )
     if amazon_pin_failure is not None:
         failure_tokens = [AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE]
         if amazon_vpn_fallback_reason is not None:
@@ -1029,6 +1059,22 @@ def _luckyscent_market_pin_failure(
     if pin_confirmed is not True:
         reasons.append("US/USD rendered-market conjunction was not confirmed")
     return "; ".join(reasons) if reasons else None
+
+
+def _luckyscent_overlay_dismissal_failure(
+    *,
+    luckyscent_market: str | None,
+    before_snapshot_steps_completed: object,
+    before_snapshot_reason: object,
+) -> str | None:
+    if (
+        luckyscent_market is None
+        or before_snapshot_steps_completed is not False
+    ):
+        return None
+    if isinstance(before_snapshot_reason, str) and before_snapshot_reason.strip():
+        return before_snapshot_reason.strip()
+    return "route-owned pre-snapshot overlay action did not complete"
 
 
 def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:

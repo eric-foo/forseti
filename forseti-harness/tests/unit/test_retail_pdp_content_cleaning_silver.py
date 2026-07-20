@@ -5,7 +5,10 @@ from pathlib import Path
 
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
-from source_capture.retail_pdp_projection import LUCKYSCENT_PDP_PARSER_VERSION
+from source_capture.retail_pdp_projection import (
+    LUCKYSCENT_PDP_PARSER_VERSION,
+    build_luckyscent_pdp_aggregate_content_record,
+)
 from source_capture.retail_pdp_silver import derive_retail_pdp_silver
 from source_capture.writer import write_local_source_capture_packet
 
@@ -127,3 +130,127 @@ def test_current_content_flows_directly_through_cleaning_to_retail_silver(
                 "content_record.json"
             )
         assert record["derived_refs"] == []
+
+
+def test_luckyscent_content_accepts_current_single_product_group_shape() -> None:
+    variants = [
+        {
+            "@type": "Product",
+            "name": f"Bread and Roses - {size}",
+            "size": size,
+            "sku": sku,
+            "url": f"{_URL}?variant={index}",
+            "offers": {
+                "@type": "Offer",
+                "price": price,
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock",
+                "seller": {"@type": "Organization", "name": "Luckyscent"},
+            },
+        }
+        for index, (size, sku, price) in enumerate(
+            (
+                ("50ml", "1016005", "120.0"),
+                ("15ml", "1016005_R", "45.0"),
+                ("1ml spray", "1016005_S", "5.0"),
+            ),
+            start=1,
+        )
+    ]
+    product_group = {
+        "@context": "https://schema.org",
+        "@type": "ProductGroup",
+        "productGroupID": "shopify_ZZ_9980138127681",
+        "name": "Bread and Roses",
+        "description": "Fresh baguette, warm spice, and red rose petals.",
+        "url": _URL,
+        "brand": {"@type": "Brand", "name": "Pearfat Parfum"},
+        "hasVariant": variants,
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": 3.75,
+            "reviewCount": 8,
+        },
+    }
+    histogram = "".join(
+        '<div class="jdgm-histogram__row" '
+        f'data-rating="{stars}" data-frequency="{count}" '
+        f'data-percentage="{percent}"></div>'
+        for stars, count, percent in (
+            (5, 4, 50),
+            (4, 1, 13),
+            (3, 0, 0),
+            (2, 3, 38),
+            (1, 0, 0),
+        )
+    )
+    reviews = "".join(
+        '<div class="jdgm-rev jdgm-divider-top jdgm--done-setup" '
+        'data-verified-buyer="true" '
+        f'data-review-id="review-{index}" '
+        'data-product-title="Bread and Roses" '
+        'data-product-url="/products/bread-and-roses-by-pearfat-parfum">'
+        f'<span class="jdgm-rev__rating" data-score="{5 if index < 5 else 2}"></span>'
+        f'<span class="jdgm-rev__timestamp" data-content="2026-07-{index:02d} '
+        f'00:00:00 UTC">07/{index:02d}/2026</span>'
+        f'<span class="jdgm-rev__author">Reviewer {index}</span>'
+        f'<div class="jdgm-rev__body"><p>Target review body {index}.</p></div>'
+        "</div>"
+        for index in range(1, 9)
+    )
+    rendered_dom = (
+        "<html><head><script type=\"application/ld+json\">"
+        + json.dumps(product_group, separators=(",", ":"))
+        + "</script></head><body>"
+        + histogram
+        + reviews
+        + '<div class="jdgm-paginate"></div></body></html>'
+    ).encode()
+    visible_text = b"""
+Bread and Roses
+Pearfat Parfum
+3.8
+(8)
+$120
+Size: 50ml
+50ml
+15ml
+1ml Spray Sample
+Add to Cart
+Fragrance Notes
+Fresh Baguette, Sweet Orange, Familiar Warmth, Red Rose Petals
+Fragrance Style
+Floral, Gourmand, Spicy
+Customer Reviews
+3.75 out of 5
+"""
+
+    record = build_luckyscent_pdp_aggregate_content_record(
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+        source_url=_URL,
+    )
+
+    structured_rows = [
+        row
+        for row in record["rows"]
+        if row["row_kind"] == "retail_embedded_structured_json"
+    ]
+    assert len(structured_rows) == 1
+    offer = next(
+        row
+        for row in record["rows"]
+        if row["row_kind"] == "retail_variant_offer"
+    )["source_visible_fields"]
+    assert [variant["price"] for variant in offer["variants"]] == [
+        "120.0",
+        "45.0",
+        "5.0",
+    ]
+    review = next(
+        row
+        for row in record["rows"]
+        if row["row_kind"] == "retail_review_substrate"
+    )["source_visible_fields"]
+    assert review["structured_rating"] == "3.75"
+    assert len(review["reviews"]) == 8
