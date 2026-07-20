@@ -432,11 +432,11 @@ def run_source_capture_cloakbrowser_packet(
         )
     luckyscent_overlay_failure = _luckyscent_overlay_dismissal_failure(
         luckyscent_market=luckyscent_market,
-        before_snapshot_steps_completed=capture_result.metadata.get(
-            "before_snapshot_steps_completed"
+        before_scroll_steps_completed=capture_result.metadata.get(
+            "before_scroll_steps_completed"
         ),
-        before_snapshot_reason=capture_result.metadata.get(
-            "before_snapshot_reason"
+        before_scroll_reason=capture_result.metadata.get(
+            "before_scroll_reason"
         ),
     )
     if luckyscent_overlay_failure is not None:
@@ -1064,19 +1064,19 @@ def _luckyscent_market_pin_failure(
 def _luckyscent_overlay_dismissal_failure(
     *,
     luckyscent_market: str | None,
-    before_snapshot_steps_completed: object,
-    before_snapshot_reason: object,
+    before_scroll_steps_completed: object,
+    before_scroll_reason: object,
 ) -> str | None:
     # Only an affirmative completed receipt admits content: ``True`` covers both
     # an absent modal and a successful dismissal, ``False`` is a failed
     # dismissal, and ``None``/missing means the receipt never arrived.
-    if luckyscent_market is None or before_snapshot_steps_completed is True:
+    if luckyscent_market is None or before_scroll_steps_completed is True:
         return None
-    if isinstance(before_snapshot_reason, str) and before_snapshot_reason.strip():
-        return before_snapshot_reason.strip()
-    if before_snapshot_steps_completed is False:
-        return "route-owned pre-snapshot overlay action did not complete"
-    return "route-owned pre-snapshot overlay outcome was not recorded"
+    if isinstance(before_scroll_reason, str) and before_scroll_reason.strip():
+        return before_scroll_reason.strip()
+    if before_scroll_steps_completed is False:
+        return "route-owned pre-scroll overlay action did not complete"
+    return "route-owned pre-scroll overlay outcome was not recorded"
 
 
 def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:

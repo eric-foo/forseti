@@ -57,9 +57,9 @@ def _fake_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
             **pre_capture.describe(),
             "pin_confirmed": confirmation.confirmed,
             # Modal genuinely absent: nothing attempted, vacuously completed.
-            "before_snapshot_attempted": False,
-            "before_snapshot_steps_completed": True,
-            "before_snapshot_reason": None,
+            "before_scroll_attempted": False,
+            "before_scroll_steps_completed": True,
+            "before_scroll_reason": None,
         },
         warning_notes=[],
         limitation_notes=[],
@@ -72,9 +72,9 @@ def _fake_capture_overlay_incomplete(**kwargs: Any) -> CloakBrowserSnapshotSucce
     success = _fake_capture(**kwargs)
     metadata = dict(success.metadata)
     metadata.update(
-        before_snapshot_attempted=True,
-        before_snapshot_steps_completed=False,
-        before_snapshot_reason=(
+        before_scroll_attempted=True,
+        before_scroll_steps_completed=False,
+        before_scroll_reason=(
             "Luckyscent promotional modal markers changed; missing "
             "'Claim My 10% Off'"
         ),
@@ -181,7 +181,7 @@ def test_plugin_dismisses_only_the_exact_luckyscent_promotional_modal() -> None:
     )
     page = _PromotionalPage(modal)
 
-    outcome = LuckyscentUSMarketPlugin().before_snapshot(
+    outcome = LuckyscentUSMarketPlugin().before_scroll(
         page, setup_timeout_ms=30_000
     )
 
@@ -201,7 +201,7 @@ def test_plugin_dismisses_only_the_exact_luckyscent_promotional_modal() -> None:
 
 def test_plugin_leaves_absent_or_changed_promotional_modal_untouched() -> None:
     absent = _PromotionalModal(text="", count=0)
-    absent_outcome = LuckyscentUSMarketPlugin().before_snapshot(
+    absent_outcome = LuckyscentUSMarketPlugin().before_scroll(
         _PromotionalPage(absent), setup_timeout_ms=30_000
     )
     assert absent_outcome.attempted is False
@@ -209,7 +209,7 @@ def test_plugin_leaves_absent_or_changed_promotional_modal_untouched() -> None:
     assert absent.close_control.click_count == 0
 
     changed = _PromotionalModal(text="An unrelated account dialog")
-    changed_outcome = LuckyscentUSMarketPlugin().before_snapshot(
+    changed_outcome = LuckyscentUSMarketPlugin().before_scroll(
         _PromotionalPage(changed), setup_timeout_ms=30_000
     )
     assert changed_outcome.attempted is True
@@ -234,22 +234,22 @@ def test_plugin_records_the_named_overlay_action_without_secret_state() -> None:
 def test_unresolved_luckyscent_overlay_fails_content_admission_explicitly() -> None:
     assert cloak_writer._luckyscent_overlay_dismissal_failure(
         luckyscent_market="US",
-        before_snapshot_steps_completed=False,
-        before_snapshot_reason="modal markers changed",
+        before_scroll_steps_completed=False,
+        before_scroll_reason="modal markers changed",
     ) == "modal markers changed"
     assert (
         cloak_writer._luckyscent_overlay_dismissal_failure(
             luckyscent_market="US",
-            before_snapshot_steps_completed=True,
-            before_snapshot_reason=None,
+            before_scroll_steps_completed=True,
+            before_scroll_reason=None,
         )
         is None
     )
     assert (
         cloak_writer._luckyscent_overlay_dismissal_failure(
             luckyscent_market=None,
-            before_snapshot_steps_completed=False,
-            before_snapshot_reason="unrelated route",
+            before_scroll_steps_completed=False,
+            before_scroll_reason="unrelated route",
         )
         is None
     )
@@ -371,8 +371,8 @@ def test_writer_fails_admission_when_overlay_receipt_missing(
     def _fake_capture_missing_receipt(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
         success = _fake_capture(**kwargs)
         metadata = dict(success.metadata)
-        metadata.pop("before_snapshot_steps_completed", None)
-        metadata.pop("before_snapshot_reason", None)
+        metadata.pop("before_scroll_steps_completed", None)
+        metadata.pop("before_scroll_reason", None)
         return replace(success, metadata=metadata)
 
     exit_code, output = _run_luckyscent_writer(
