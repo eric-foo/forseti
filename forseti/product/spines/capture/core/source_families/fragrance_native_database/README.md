@@ -37,6 +37,13 @@ Do not classify them as `retail_pdp`. They are specialist/enthusiast fragrance
 databases with product pages and community text, not merchant PDPs with
 verified-purchase/offer/availability semantics.
 
+Their derived source-classification view carries both
+`evidence_shapes: [reference_record, review]`. `reference_record` covers the
+source-visible product identity and attributes already retained in
+`fragrance_product_snapshot` rows; `review` covers rated/community text.
+`reference_record` does not promote either source to merchant, official, or
+canonical-product authority.
+
 ## Route Map
 
 | Source | Access route / source surface | Packet runner | Content extraction | Cleaning / Silver seam | Residuals to preserve |
@@ -140,8 +147,10 @@ fallback.
   semantics are Data Lake authority. Start at
   `forseti/product/spines/data_lake/README.md` and then open the named authority
   contract for the lake question.
-- Projection is mechanical, raw-anchored, and row/residual oriented. It must not
-  create demand, credibility, sentiment, or completeness claims.
+- Canonical content extraction is mechanical, source-anchored, and
+  row/residual oriented. Cleaning owns current row validation and adaptation.
+  Neither layer may create demand, credibility, sentiment, or completeness
+  claims.
 - For the Parfumo targeted and Basenotes persistent-Chrome content routes,
   "raw-anchored" means the immutable raw
   packet container: rows bind to JSON pointers in its preserved content record,
@@ -150,7 +159,7 @@ fallback.
   anchors.
 - Cleaning may normalize and emit audit/Silver records through its own writers.
   It does not repair missing full-corpus coverage or decide Judgment meaning.
-- ECR consumes source/projection refs and source-visible/residualized facts only.
+- ECR consumes source/content refs and source-visible/residualized facts only.
 
 ## Open First For Common Tasks
 
