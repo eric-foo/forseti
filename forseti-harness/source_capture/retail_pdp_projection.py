@@ -33,8 +33,8 @@ LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content
 LUCKYSCENT_PDP_PARSER_VERSION = "retail_pdp_luckyscent_aggregate_parser_v1"
 LUCKYSCENT_PDP_CONTENT_PROFILE = "luckyscent_pdp_aggregate"
 NORDSTROM_PDP_CONTENT_RECORD_KIND = "retail_pdp_nordstrom_aggregate_content"
-NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v1"
-NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v3"
+NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v2"
+NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v5"
 NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
 ULTA_PDP_CONTENT_RECORD_KIND = "retail_pdp_ulta_aggregate_content"
 ULTA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_ulta_aggregate_content_v1"
@@ -566,7 +566,16 @@ class NordstromPdpContentBinding(StrictModel):
 
 class NordstromPdpContentLossEntry(StrictModel):
     category: Literal[
-        "RETAIL_HERO_IMAGERY_COLLAPSED", "RETAIL_CART_NOTIFY_STATE_COLLAPSED"
+        "RETAIL_HERO_IMAGERY_COLLAPSED",
+        "RETAIL_CART_NOTIFY_STATE_COLLAPSED",
+        "RETAIL_MEDIA_BINARY_NOT_PRESERVED",
+        "RETAIL_REVIEW_DEFAULT_VIEW_NOT_SEPARATELY_RETAINED",
+        "RETAIL_REVIEW_INCENTIVE_FILTER_NOT_EXPOSED",
+        "RETAIL_REVIEW_DEMOGRAPHICS_NOT_EXPOSED",
+        "RETAIL_REVIEW_FIELDS_NOT_EXPOSED",
+        "RETAIL_AI_SENTIMENT_NOT_EXPOSED",
+        "RETAIL_QA_NOT_EXPOSED",
+        "RETAIL_VARIANT_MERCHANDISING_FLAGS_NOT_EXPOSED",
     ]
     count: int = Field(ge=0)
     reason: str
@@ -588,27 +597,39 @@ class NordstromPdpContentLossEntry(StrictModel):
 
 class NordstromPdpContentLossLedger(StrictModel):
     collapsed: list[NordstromPdpContentLossEntry] = Field(default_factory=list)
+    omitted_or_not_exposed: list[NordstromPdpContentLossEntry] = Field(
+        default_factory=list
+    )
     preserved_evidence_rows: int = Field(ge=0)
     preserved_bindings: int = Field(ge=0)
     timing: Literal["separate_not_collapsed"] = "separate_not_collapsed"
     hierarchy_preserved: bool
     structure_preserved: bool
     certification: Literal[
-        "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
-    ] = "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning"
+        "collapses_only_logged_frame_conditional_pdp_envelope; does_not_certify_cleaning",
+        "explicitly_logs_source_visible_omissions_and_not_exposed_surfaces; does_not_certify_cleaning",
+    ] = (
+        "explicitly_logs_source_visible_omissions_and_not_exposed_surfaces; "
+        "does_not_certify_cleaning"
+    )
 
 
 class NordstromPdpAggregateContentRecord(StrictModel):
     record_kind: Literal["retail_pdp_nordstrom_aggregate_content"] = (
         NORDSTROM_PDP_CONTENT_RECORD_KIND
     )
-    schema_version: Literal["retail_pdp_nordstrom_aggregate_content_v1"] = (
+    schema_version: Literal[
+        "retail_pdp_nordstrom_aggregate_content_v1",
+        "retail_pdp_nordstrom_aggregate_content_v2",
+    ] = (
         NORDSTROM_PDP_CONTENT_SCHEMA_VERSION
     )
     parser_version: Literal[
         "retail_pdp_nordstrom_aggregate_parser_v1",
         "retail_pdp_nordstrom_aggregate_parser_v2",
         "retail_pdp_nordstrom_aggregate_parser_v3",
+        "retail_pdp_nordstrom_aggregate_parser_v4",
+        "retail_pdp_nordstrom_aggregate_parser_v5",
     ] = NORDSTROM_PDP_PARSER_VERSION
     capture_profile: Literal["nordstrom_pdp_aggregate"] = (
         NORDSTROM_PDP_CONTENT_PROFILE
@@ -617,6 +638,7 @@ class NordstromPdpAggregateContentRecord(StrictModel):
     rows: list[NordstromPdpContentRow] = Field(default_factory=list)
     binding_map: list[NordstromPdpContentBinding] = Field(default_factory=list)
     loss_ledger: NordstromPdpContentLossLedger
+    information_extraction_coverage: dict[str, Any] = Field(default_factory=dict)
     residuals: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -634,6 +656,17 @@ class NordstromPdpAggregateContentRecord(StrictModel):
         if not required.issubset(row_kinds):
             raise ValueError(
                 "Nordstrom content record requires product, offer, and review rows"
+            )
+        if (
+            self.parser_version
+            in {
+                "retail_pdp_nordstrom_aggregate_parser_v4",
+                "retail_pdp_nordstrom_aggregate_parser_v5",
+            }
+            and not self.information_extraction_coverage
+        ):
+            raise ValueError(
+                "Nordstrom parser v4+ requires information_extraction_coverage"
             )
         return self
 
@@ -1844,6 +1877,17 @@ def build_nordstrom_pdp_aggregate_content_record(
         )
     offer = offer_rows[0].source_visible_fields
     review = review_rows[0].source_visible_fields
+    structured_state_rows = [
+        row
+        for row in projected.rows
+        if row.row_kind == "retail_embedded_structured_json"
+        and row.source_visible_fields.get("structured_json_kind")
+        == "nordstrom_initial_product_state"
+    ]
+    if len(structured_state_rows) != 1:
+        raise ValueError(
+            "Nordstrom aggregate content requires one target-bound initial product state"
+        )
     if _string_or_none(offer.get("product_id")) != product_id:
         raise ValueError("Nordstrom projected product id does not match the requested URL")
     if _string_or_none(offer.get("price_currency")) != "USD":
@@ -1862,6 +1906,11 @@ def build_nordstrom_pdp_aggregate_content_record(
             "Nordstrom projected review substrate lacks rating, count, histogram, "
             "or rendered review bodies"
         )
+    coverage = _nordstrom_information_extraction_coverage(
+        html=_decode_text(rendered_dom),
+        offer=offer,
+        review=review,
+    )
 
     record = NordstromPdpAggregateContentRecord(
         source_url=source_url,
@@ -1880,11 +1929,17 @@ def build_nordstrom_pdp_aggregate_content_record(
                 )
                 for entry in projected.collapsed
             ],
+            omitted_or_not_exposed=_nordstrom_standard_omissions(
+                coverage=coverage,
+                offer=offer,
+                review=review,
+            ),
             preserved_evidence_rows=len(projected.rows),
             preserved_bindings=len(projected.bindings),
             hierarchy_preserved=True,
             structure_preserved=_retail_structure_preserved(projected.bindings),
         ),
+        information_extraction_coverage=coverage,
         residuals=projected.residuals,
     )
     return record.model_dump(mode="json")
@@ -2152,6 +2207,7 @@ class _StructuredJsonEntry(StrictModel):
         "ld_json",
         "apollo_state",
         "next_data",
+        "nordstrom_initial_product_state",
         "sephora_link_store_product",
         "sephora_rendered_interactions",
     ]
@@ -2199,6 +2255,14 @@ def _project_retail_html(
             ]
         )
     if retailer == "nordstrom":
+        nordstrom_product_state = _nordstrom_initial_product_state_entry(
+            html=html,
+            source_url=_fact_value(source_slice.locator)
+            or _fact_value(packet.source_locator),
+            raw_anchor=raw_anchor,
+        )
+        if nordstrom_product_state is not None:
+            structured_entries.append(nordstrom_product_state)
         structured_entries = _nordstrom_target_structured_entries(
             structured_entries,
             source_url=_fact_value(source_slice.locator)
@@ -3283,6 +3347,269 @@ def _nordstrom_product_id_from_url(url: str | None) -> str | None:
     return match.group(1) if match else None
 
 
+def _nordstrom_initial_product_state_entry(
+    *,
+    html: str,
+    source_url: str | None,
+    raw_anchor: RetailProjectionRawAnchor,
+) -> _StructuredJsonEntry | None:
+    """Retain only the requested public product subtree from initial page state."""
+    product_id = _nordstrom_product_id_from_url(source_url)
+    if product_id is None:
+        return None
+    marker = re.search(r"window\.__INITIAL_CONFIG__\s*=\s*", html)
+    if marker is None:
+        return None
+    try:
+        initial_config, _end = json.JSONDecoder().raw_decode(html[marker.end() :])
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(initial_config, dict):
+        return None
+    product_display = initial_config.get("productDisplay")
+    if not isinstance(product_display, dict):
+        return None
+    displays = product_display.get("productDisplaysById")
+    if not isinstance(displays, dict):
+        return None
+    entities = displays.get("entities")
+    if not isinstance(entities, dict):
+        return None
+    product = entities.get(product_id)
+    if not isinstance(product, dict) or _string_or_none(product.get("id")) != product_id:
+        return None
+    interactions = product_display.get("interactions")
+    selection: object = None
+    if isinstance(interactions, dict):
+        interaction = interactions.get(f"product-page::{product_id}")
+        if isinstance(interaction, dict):
+            candidate = interaction.get("selections")
+            if isinstance(candidate, dict):
+                selection = candidate
+    target_state = {
+        "product_id": product_id,
+        "product_display": product,
+        "selected_options": selection,
+    }
+    return _StructuredJsonEntry(
+        kind="nordstrom_initial_product_state",
+        index=0,
+        raw_text=json.dumps(
+            target_state,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ),
+        parsed=target_state,
+        raw_anchor=_with_anchor(
+            raw_anchor,
+            "script_index",
+            f"window.__INITIAL_CONFIG__#/productDisplay/productDisplaysById/entities/{product_id}",
+        ),
+    )
+
+
+def _nordstrom_information_extraction_coverage(
+    *,
+    html: str,
+    offer: Mapping[str, Any],
+    review: Mapping[str, Any],
+) -> dict[str, Any]:
+    review_start = html.find('id="product-page-reviews"')
+    review_html = html[review_start:] if review_start >= 0 else ""
+    ai_sentiment_exposed = bool(
+        re.search(
+            r"AI[- ]generated|artificial intelligence|customers often note|"
+            r"review sentiment|review summary",
+            review_html,
+            flags=re.IGNORECASE,
+        )
+    )
+    qa_exposed = bool(
+        re.search(
+            r'id=["\']product-page-(?:questions|qa)["\']|'
+            r">\s*(?:Questions\s*&\s*Answers|Customer Questions)\s*<",
+            html,
+            flags=re.IGNORECASE,
+        )
+    )
+    review_exposure = review.get("review_field_exposure")
+    review_exposure_map = (
+        review_exposure if isinstance(review_exposure, Mapping) else {}
+    )
+    unsupported_review_card_fields = review.get("unsupported_review_card_fields")
+    if (
+        isinstance(unsupported_review_card_fields, list)
+        and unsupported_review_card_fields
+    ):
+        raise ValueError(
+            "Nordstrom review-card fields became source-visible but have no "
+            f"lossless parser: {', '.join(unsupported_review_card_fields)}; "
+            "raw fallback required"
+        )
+    for label, exposed in (
+        (
+            "Nordstrom incentive-review controls",
+            review_exposure_map.get("incentive_filter") == "exposed",
+        ),
+        (
+            "Nordstrom reviewer-demographic controls",
+            review_exposure_map.get("reviewer_demographics") == "exposed",
+        ),
+        ("Nordstrom AI review sentiment", ai_sentiment_exposed),
+        ("Nordstrom product Q&A", qa_exposed),
+    ):
+        if exposed:
+            raise ValueError(
+                f"{label} became source-visible but has no lossless v4 parser; "
+                "raw fallback required"
+            )
+    variants = offer.get("variants")
+    media = offer.get("media")
+    rendered_reviews = review.get("rendered_reviews")
+    return {
+        "target_identity": {
+            "status": "retained",
+            "product_id": offer.get("product_id"),
+            "sku": offer.get("sku"),
+            "item_number": offer.get("item_number"),
+            "core_product_id": offer.get("core_product_id"),
+            "breadcrumbs": offer.get("breadcrumbs"),
+        },
+        "product_and_variants": {
+            "status": "exact_target_product_state_and_flattened_inventory_retained",
+            "variant_count": len(variants) if isinstance(variants, list) else 0,
+            "out_of_stock_variant_count": offer.get("out_of_stock_variant_count"),
+            "raw_field_path_count": len(
+                offer.get("product_state_raw_field_inventory", [])
+            ),
+            "merchandising_flag_observation": offer.get(
+                "variant_merchandising_flag_observation"
+            ),
+        },
+        "media": {
+            "status": "references_and_metadata_retained_binary_not_fetched",
+            "reference_count": len(media) if isinstance(media, list) else 0,
+        },
+        "reviews": {
+            "status": "bounded_most_recent_rows_and_most_helpful_pair_retained",
+            "aggregate_review_count": review.get("review_count"),
+            "captured_review_body_count": (
+                len(rendered_reviews) if isinstance(rendered_reviews, list) else 0
+            ),
+            "most_helpful_review_pair_count": review.get(
+                "most_helpful_review_pair_count"
+            ),
+            "sort_posture": review.get("review_sort_posture"),
+            "field_exposure": dict(review_exposure_map),
+            "raw_review_field_inventory": review.get(
+                "raw_review_field_inventory"
+            ),
+        },
+        "ai_review_sentiment": {
+            "status": "not_exposed_on_target_pdp",
+            "chip_count": 0,
+        },
+        "questions_and_answers": {
+            "status": "not_exposed_on_target_pdp",
+            "aggregate_question_count": None,
+            "captured_question_rows": 0,
+            "captured_answer_rows": 0,
+        },
+    }
+
+
+def _nordstrom_standard_omissions(
+    *,
+    coverage: Mapping[str, Any],
+    offer: Mapping[str, Any],
+    review: Mapping[str, Any],
+) -> list[NordstromPdpContentLossEntry]:
+    entries = [
+        NordstromPdpContentLossEntry(
+            category="RETAIL_REVIEW_DEFAULT_VIEW_NOT_SEPARATELY_RETAINED",
+            count=1,
+            reason=(
+                "the interaction mutates the main review list to Most Recent before "
+                "snapshot; the persistent most-helpful positive/critical pair is "
+                "retained, but the initial main-list ordering is not separately retained"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_REVIEW_INCENTIVE_FILTER_NOT_EXPOSED",
+            count=1,
+            reason=(
+                "the target review controls expose Verified Purchases but no "
+                "non-incentivized filter or incentive disclosure vocabulary; captured "
+                "reviews must not be described as non-incentivized"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_REVIEW_DEMOGRAPHICS_NOT_EXPOSED",
+            count=1,
+            reason=(
+                "no reviewer age or other demographic filter vocabulary is exposed on "
+                "the target review surface; no demographic breakdown is claimed"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_REVIEW_FIELDS_NOT_EXPOSED",
+            count=4,
+            reason=(
+                "recommendation, unhelpful count, demographic declarations, and tag "
+                "fields are not exposed in the rendered review cards"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_AI_SENTIMENT_NOT_EXPOSED",
+            count=1,
+            reason=(
+                "no retailer AI review summary or positive/negative sentiment chips are "
+                "exposed on the target PDP"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_QA_NOT_EXPOSED",
+            count=1,
+            reason=(
+                "no product Q&A aggregate, question rows, answer rows, sort control, or "
+                "continuation is exposed on the target PDP"
+            ),
+            source_anchor_kind="file",
+        ),
+        NordstromPdpContentLossEntry(
+            category="RETAIL_VARIANT_MERCHANDISING_FLAGS_NOT_EXPOSED",
+            count=4,
+            reason=(
+                "limited-edition, limited-time-offer, new, and back-in-stock flags are "
+                "not present in the target product state; sold-out lists and salability "
+                "remain retained exactly"
+            ),
+            source_anchor_kind="file",
+        ),
+    ]
+    media = offer.get("media")
+    media_count = len(media) if isinstance(media, list) else 0
+    if media_count:
+        entries.append(
+            NordstromPdpContentLossEntry(
+                category="RETAIL_MEDIA_BINARY_NOT_PRESERVED",
+                count=media_count,
+                reason=(
+                    "source media URLs, ordering, variant binding, and metadata are "
+                    "retained; linked image bytes are not independently fetched"
+                ),
+                source_anchor_kind="file",
+            )
+        )
+    return entries
+
+
 def _nordstrom_target_structured_entries(
     entries: list[_StructuredJsonEntry],
     *,
@@ -3322,7 +3649,16 @@ def _nordstrom_target_structured_entries(
     selected: list[_StructuredJsonEntry] = []
     for entry in entries:
         parsed = entry.parsed
-        if not isinstance(parsed, dict) or parsed.get("@type") != "Product":
+        if not isinstance(parsed, dict):
+            continue
+        if entry.kind == "nordstrom_initial_product_state":
+            if _string_or_none(parsed.get("product_id")) == product_id:
+                selected.append(entry)
+            continue
+        if parsed.get("@type") == "BreadcrumbList":
+            selected.append(entry)
+            continue
+        if parsed.get("@type") != "Product":
             continue
         brand = parsed.get("brand")
         brand_name = (
@@ -3342,6 +3678,225 @@ def _nordstrom_target_product(
     return None
 
 
+def _nordstrom_product_state(
+    entries: list[_StructuredJsonEntry],
+) -> dict[str, Any] | None:
+    for entry in entries:
+        if entry.kind != "nordstrom_initial_product_state":
+            continue
+        if isinstance(entry.parsed, dict):
+            return entry.parsed
+    return None
+
+
+def _raw_field_path_inventory(value: object) -> list[str]:
+    paths: set[str] = set()
+
+    def walk(item: object, prefix: str) -> None:
+        if isinstance(item, Mapping):
+            for raw_key, child in item.items():
+                key = str(raw_key)
+                path = f"{prefix}.{key}" if prefix else key
+                paths.add(path)
+                walk(child, path)
+        elif isinstance(item, list):
+            array_path = f"{prefix}[]" if prefix else "[]"
+            paths.add(array_path)
+            for child in item:
+                walk(child, array_path)
+
+    walk(value, "")
+    return sorted(paths)
+
+
+def _nordstrom_breadcrumb_inventory(
+    entries: list[_StructuredJsonEntry],
+) -> list[dict[str, Any]]:
+    for entry in entries:
+        parsed = entry.parsed
+        if not isinstance(parsed, dict) or parsed.get("@type") != "BreadcrumbList":
+            continue
+        rows = parsed.get("itemListElement")
+        if not isinstance(rows, list):
+            continue
+        return [dict(row) for row in rows if isinstance(row, Mapping)]
+    return []
+
+
+def _nordstrom_variant_inventory(
+    product_state: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    product = product_state.get("product_display")
+    if not isinstance(product, Mapping):
+        return []
+    selected_options = product_state.get("selected_options")
+    selected = selected_options if isinstance(selected_options, Mapping) else {}
+    aggregate_propositions = product.get("propositions")
+    aggregate_rows = (
+        [row for row in aggregate_propositions if isinstance(row, Mapping)]
+        if isinstance(aggregate_propositions, list)
+        else []
+    )
+    sold_out_skus = {
+        str(value)
+        for proposition in aggregate_rows
+        for selection in (
+            proposition.get("coreChoiceSelections")
+            if isinstance(proposition.get("coreChoiceSelections"), list)
+            else []
+        )
+        if isinstance(selection, Mapping)
+        for value in (
+            selection.get("soldOutSkus")
+            if isinstance(selection.get("soldOutSkus"), list)
+            else []
+        )
+    }
+    core_products = product.get("coreProducts")
+    if not isinstance(core_products, list):
+        return []
+    variants: list[dict[str, Any]] = []
+    for core_product_index, core_product in enumerate(core_products):
+        if not isinstance(core_product, Mapping):
+            continue
+        choices = core_product.get("coreChoices")
+        if not isinstance(choices, list):
+            continue
+        for choice_index, choice in enumerate(choices):
+            if not isinstance(choice, Mapping):
+                continue
+            items = choice.get("items")
+            if not isinstance(items, list):
+                continue
+            for item_index, item in enumerate(items):
+                if not isinstance(item, Mapping):
+                    continue
+                sku = item.get("sku")
+                sku_map = sku if isinstance(sku, Mapping) else {}
+                sku_id = _string_or_none(sku_map.get("skuId"))
+                propositions = sku_map.get("propositions")
+                proposition_rows = (
+                    [row for row in propositions if isinstance(row, Mapping)]
+                    if isinstance(propositions, list)
+                    else []
+                )
+                primary = proposition_rows[0] if proposition_rows else {}
+                salability = primary.get("salability")
+                salability_map = (
+                    salability if isinstance(salability, Mapping) else {}
+                )
+                availability = primary.get("availability")
+                availability_map = (
+                    availability if isinstance(availability, Mapping) else {}
+                )
+                status = _string_or_none(salability_map.get("status"))
+                explicitly_unavailable = availability_map.get("isAvailable") is False
+                out_of_stock = (
+                    sku_id in sold_out_skus
+                    or explicitly_unavailable
+                    or (status is not None and status != "SELLABLE")
+                )
+                size = item.get("sizeDimension1")
+                size_map = size if isinstance(size, Mapping) else {}
+                choice_id = _string_or_none(choice.get("coreChoiceId"))
+                size_label = _string_or_none(size_map.get("label"))
+                variants.append(
+                    {
+                        "source_order": len(variants) + 1,
+                        "core_product_index": core_product_index,
+                        "core_choice_index": choice_index,
+                        "item_index": item_index,
+                        "core_product_id": _string_or_none(
+                            core_product.get("coreProductId")
+                        ),
+                        "core_choice_id": choice_id,
+                        "display_color_description": _string_or_none(
+                            choice.get("displayColorDescription")
+                        ),
+                        "color_family": choice.get("colorFamily"),
+                        "npin": _string_or_none(item.get("npin")),
+                        "sku_id": sku_id,
+                        "size": size,
+                        "display_size": _string_or_none(
+                            item.get("concatenatedDisplaySize")
+                        ),
+                        "upcs": item.get("upcs"),
+                        "age": item.get("age"),
+                        "skin_types": item.get("skinTypes"),
+                        "product_set_ids": item.get("productSetIds"),
+                        "propositions": proposition_rows,
+                        "selected": (
+                            choice_id is not None
+                            and choice_id == _string_or_none(selected.get("coreChoice"))
+                            and (
+                                _string_or_none(selected.get("size")) is None
+                                or size_label
+                                == _string_or_none(selected.get("size"))
+                            )
+                        ),
+                        "out_of_stock": out_of_stock,
+                        "limited_edition": None,
+                        "limited_time_offer": None,
+                        "new": None,
+                        "back_in_stock": None,
+                    }
+                )
+    return variants
+
+
+def _nordstrom_media_inventory(
+    product_state: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    product = product_state.get("product_display")
+    if not isinstance(product, Mapping):
+        return []
+    core_products = product.get("coreProducts")
+    if not isinstance(core_products, list):
+        return []
+    media: list[dict[str, Any]] = []
+    for core_product in core_products:
+        if not isinstance(core_product, Mapping):
+            continue
+        core_product_id = _string_or_none(core_product.get("coreProductId"))
+        for source_name in ("editorialShots",):
+            shots = core_product.get(source_name)
+            if isinstance(shots, list):
+                for shot in shots:
+                    if isinstance(shot, Mapping):
+                        media.append(
+                            {
+                                "source_order": len(media) + 1,
+                                "source": source_name,
+                                "core_product_id": core_product_id,
+                                "core_choice_id": None,
+                                "shot": dict(shot),
+                            }
+                        )
+        choices = core_product.get("coreChoices")
+        if not isinstance(choices, list):
+            continue
+        for choice in choices:
+            if not isinstance(choice, Mapping):
+                continue
+            shots = choice.get("orderedShots")
+            if not isinstance(shots, list):
+                continue
+            for shot in shots:
+                if isinstance(shot, Mapping):
+                    media.append(
+                        {
+                            "source_order": len(media) + 1,
+                            "source": "orderedShots",
+                            "core_product_id": core_product_id,
+                            "core_choice_id": _string_or_none(
+                                choice.get("coreChoiceId")
+                            ),
+                            "shot": dict(shot),
+                        }
+                    )
+    return media
+
+
 def _nordstrom_variant_offer_fields(
     *,
     visible_text: str,
@@ -3357,6 +3912,32 @@ def _nordstrom_variant_offer_fields(
     if target is None or product_id is None:
         return {}, ["nordstrom_target_product_json_ld_absent"]
     product, _anchor = target
+    product_state = _nordstrom_product_state(structured_entries)
+    if product_state is None:
+        return {}, ["nordstrom_target_initial_product_state_absent"]
+    product_display = product_state.get("product_display")
+    if not isinstance(product_display, Mapping):
+        return {}, ["nordstrom_target_initial_product_display_absent"]
+    variants = _nordstrom_variant_inventory(product_state)
+    if not variants:
+        return {}, ["nordstrom_target_variant_inventory_absent"]
+    media = _nordstrom_media_inventory(product_state)
+    selected_variants = [row for row in variants if row.get("selected") is True]
+    selected_variant = selected_variants[0] if len(selected_variants) == 1 else variants[0]
+    propositions = selected_variant.get("propositions")
+    selected_proposition = (
+        propositions[0]
+        if isinstance(propositions, list)
+        and propositions
+        and isinstance(propositions[0], Mapping)
+        else {}
+    )
+    structured_availability = selected_proposition.get("availability")
+    availability_map = (
+        structured_availability
+        if isinstance(structured_availability, Mapping)
+        else {}
+    )
     offers = product.get("offers")
     if not isinstance(offers, dict):
         return {}, ["nordstrom_target_offer_json_ld_absent"]
@@ -3386,7 +3967,9 @@ def _nordstrom_variant_offer_fields(
         main_text, (r"Shipping to\s+([^\r\n]+)",)
     )
     seller = _first_regex(main_text, (r"Sold by\s+([^\r\n]+)",))
-    variant_name = _first_regex(main_text, (r"(One Size)",))
+    variant_name = _string_or_none(selected_variant.get("display_size")) or _first_regex(
+        main_text, (r"(One Size)",)
+    )
     item_number = _first_regex(details_text, (r"Item #([A-Za-z0-9-]+)",))
     core_product_id = _first_regex(
         details_text, (r"Core Product ID\s+([A-Za-z0-9-]+)",)
@@ -3400,7 +3983,8 @@ def _nordstrom_variant_offer_fields(
         residuals.append("nordstrom_shipping_destination_display_absent")
     fields: dict[str, Any | None] = {
         "product_id": product_id,
-        "sku": item_number,
+        "sku": _string_or_none(selected_variant.get("sku_id")),
+        "item_number": item_number,
         "core_product_id": core_product_id,
         "product_name": _string_or_none(product.get("name")),
         "brand": brand_name,
@@ -3412,15 +3996,17 @@ def _nordstrom_variant_offer_fields(
         "price_isolation": "nordstrom_target_product_json_ld",
         "price_currency": _string_or_none(offers.get("priceCurrency")),
         "availability": _string_or_none(offers.get("availability")),
+        "structured_salability": selected_proposition.get("salability"),
+        "structured_availability": structured_availability,
         "seller": seller,
         "shipping_destination_display": (
             f"Shipping to {shipping_destination}" if shipping_destination else None
         ),
-        "shipping_availability": None,
+        "shipping_availability": availability_map.get("isShipAvailable"),
         "pickup_availability": _first_literal(
             main_text, ("No stores found near your location", "Pickup at choose store")
         ),
-        "delivery_availability": None,
+        "delivery_availability": availability_map.get("isAvailable"),
         "add_to_bag_present": "Add to Bag" in main_text,
         "description_html": _string_or_none(product.get("description")),
         "highlights": [
@@ -3431,8 +4017,30 @@ def _nordstrom_variant_offer_fields(
         "details_and_care_text": _compact_excerpt(details_and_care),
         "ingredients_text": _compact_excerpt(ingredients),
         "shipping_returns_text": _compact_excerpt(shipping_returns),
-        "exact_inventory_quantity": "not_observed",
+        "exact_inventory_quantity": {
+            key: availability_map.get(key)
+            for key in ("shipQuantity", "marketPickQuantity", "pickQuantity")
+        },
         "sold_units": "not_observed",
+        "variant_count": len(variants),
+        "out_of_stock_variant_count": sum(
+            row.get("out_of_stock") is True for row in variants
+        ),
+        "variants": variants,
+        "selected_options": product_state.get("selected_options"),
+        "media": media,
+        "media_reference_count": len(media),
+        "breadcrumbs": _nordstrom_breadcrumb_inventory(structured_entries),
+        "product_features": product_display.get("copyFeatures"),
+        "product_state_raw_field_inventory": _raw_field_path_inventory(
+            product_state
+        ),
+        "variant_merchandising_flag_observation": {
+            "limited_edition": "not_exposed_in_target_product_state",
+            "limited_time_offer": "not_exposed_in_target_product_state",
+            "new": "not_exposed_in_target_product_state",
+            "back_in_stock": "not_exposed_in_target_product_state",
+        },
     }
     residuals.extend(_retail_commerce_absence_residuals("nordstrom", fields))
     return fields, list(dict.fromkeys(residuals))
@@ -3454,30 +4062,10 @@ def _nordstrom_review_fields(
 
     review_section_start = html.find('id="product-page-reviews"')
     review_html = html[review_section_start:] if review_section_start >= 0 else ""
-    rendered_reviews: list[dict[str, str | int | None]] = []
-    review_pattern = re.compile(
-        r'itemprop="review"[\s\S]*?'
-        r'itemprop="name"\s+content="(?P<title>[^"]*)"[\s\S]*?'
-        r'itemprop="author"\s+content="(?P<author>[^"]*)"[\s\S]*?'
-        r'itemprop="datePublished"\s+content="(?P<date>[^"]*)"[\s\S]*?'
-        r'itemprop="ratingValue"\s+content="(?P<rating>[^"]*)"[\s\S]*?'
-        r'itemprop="reviewBody"\s+content="(?P<body>[^"]*)"',
-        flags=re.IGNORECASE,
+    rendered_reviews = _nordstrom_rendered_review_inventory(review_html)
+    unsupported_review_card_fields = _nordstrom_unsupported_review_card_fields(
+        review_html
     )
-    helpful_counts = _nordstrom_review_card_helpful_counts(review_html)
-    for display_position, match in enumerate(
-        review_pattern.finditer(review_html), start=1
-    ):
-        rendered_reviews.append(
-            {
-                **{
-                    key: html_lib.unescape(value).strip()
-                    for key, value in match.groupdict().items()
-                },
-                "source_display_position": display_position,
-                "helpful_count": helpful_counts.get(display_position),
-            }
-        )
 
     highlighted_reviews = {
         kind: _nordstrom_highlighted_review(review_html, kind=kind)
@@ -3508,6 +4096,22 @@ def _nordstrom_review_fields(
         int(review_load_more_batch_size_text.replace(",", ""))
         if review_load_more_batch_size_text
         else None
+    )
+    filter_end = review_html.find('id="reviews-container"')
+    filter_html = review_html[:filter_end] if filter_end >= 0 else review_html
+    incentive_filter_exposed = bool(
+        re.search(
+            r"incentivized|free product|sweepstakes",
+            filter_html,
+            flags=re.IGNORECASE,
+        )
+    )
+    demographic_filter_exposed = bool(
+        re.search(
+            r"age range|reviewer age|skin type|age-group",
+            filter_html,
+            flags=re.IGNORECASE,
+        )
     )
     buckets = {
         star: _first_regex(
@@ -3570,6 +4174,44 @@ def _nordstrom_review_fields(
             "review_sort_posture": review_sort_posture,
             "rendered_review_count": len(rendered_reviews),
             "rendered_reviews": rendered_reviews,
+            "unsupported_review_card_fields": unsupported_review_card_fields,
+            "raw_review_field_inventory": sorted(
+                {
+                    field_name
+                    for row in rendered_reviews
+                    for field_name in row.get("raw_field_names", [])
+                }
+            ),
+            "review_field_exposure": {
+                "unfiltered_initial_view": "not_separately_retained",
+                "most_recent_view": (
+                    "retained" if review_sort_posture == "Most Recent" else "not_observed"
+                ),
+                "most_helpful_snapshot": (
+                    "positive_and_critical_pair_retained"
+                    if all(value is not None for value in highlighted_reviews.values())
+                    else "incomplete"
+                ),
+                "incentive_filter": (
+                    "exposed" if incentive_filter_exposed else "not_exposed"
+                ),
+                "reviewer_demographics": (
+                    "exposed" if demographic_filter_exposed else "not_exposed"
+                ),
+                "recommendation": "not_exposed_in_rendered_review_cards",
+                "unhelpful_count": "not_exposed_in_rendered_review_cards",
+                "variant": (
+                    "retained"
+                    if any(row.get("reviewed_variant") for row in rendered_reviews)
+                    else "not_exposed_in_rendered_review_cards"
+                ),
+                "review_media": (
+                    "retained_as_references"
+                    if any(row.get("media_urls") for row in rendered_reviews)
+                    else "not_exposed_in_rendered_review_cards"
+                ),
+                "tags": "not_exposed_in_rendered_review_cards",
+            },
             "most_helpful_positive_review": highlighted_reviews["positive"],
             "most_helpful_critical_review": highlighted_reviews["critical"],
             "most_helpful_review_pair_count": sum(
@@ -3583,6 +4225,154 @@ def _nordstrom_review_fields(
         },
         residuals,
     )
+
+
+def _nordstrom_rendered_review_inventory(
+    review_html: str,
+) -> list[dict[str, Any]]:
+    microdata_pattern = re.compile(
+        r'itemprop=["\']review["\'][\s\S]*?'
+        r'itemprop=["\']name["\']\s+content=["\'](?P<title>[^"\']*)["\'][\s\S]*?'
+        r'itemprop=["\']author["\']\s+content=["\'](?P<author>[^"\']*)["\'][\s\S]*?'
+        r'itemprop=["\']datePublished["\']\s+content=["\'](?P<date>[^"\']*)["\'][\s\S]*?'
+        r'itemprop=["\']ratingValue["\']\s+content=["\'](?P<rating>[^"\']*)["\'][\s\S]*?'
+        r'itemprop=["\']reviewBody["\']\s+content=["\'](?P<body>[^"\']*)["\']',
+        flags=re.IGNORECASE,
+    )
+    microdata_rows = list(microdata_pattern.finditer(review_html))
+    starts = list(
+        re.finditer(
+            r'<div\b[^>]*\bid=["\']review-(\d+)["\'][^>]*>',
+            review_html,
+            flags=re.IGNORECASE,
+        )
+    )
+    if len(microdata_rows) != len(starts):
+        return []
+    reviews: list[dict[str, Any]] = []
+    for display_position, (start, microdata) in enumerate(
+        zip(starts, microdata_rows, strict=True), start=1
+    ):
+        card = _balanced_div_fragment(review_html, start=start.start())
+        if card is None:
+            continue
+        raw_values = microdata.groupdict()
+        helpful_count = _first_regex(
+            card,
+            (
+                r"<strong>\s*([\d,]+)\s*</strong>"
+                r"[\s\S]{0,300}?found this helpful",
+            ),
+        )
+        reposted_from = _first_regex(
+            card,
+            (r"Reposted from\s+([^<]+)",),
+        )
+        reviewed_variant = {
+            field_name: _clean_html_text(value)
+            for field_name, value in (
+                (
+                    "size_purchased",
+                    _first_regex(
+                        card,
+                        (
+                            r"<strong>\s*Size purchased:\s*</strong>\s*([^<]+)",
+                        ),
+                    ),
+                ),
+                (
+                    "color",
+                    _first_regex(
+                        card,
+                        (r"<strong>\s*Color:\s*</strong>\s*([^<]+)",),
+                    ),
+                ),
+            )
+            if value is not None
+        }
+        media_urls = sorted(
+            set(
+                html_lib.unescape(value)
+                for value in re.findall(
+                    r'https?://n\.nordstrommedia\.com/[^"\'\s<>]+',
+                    card,
+                    flags=re.IGNORECASE,
+                )
+            )
+        )
+        raw_field_names = [
+            "itemprop.author.content",
+            "itemprop.datePublished.content",
+            "itemprop.name.content",
+            "itemprop.ratingValue.content",
+            "itemprop.reviewBody.content",
+        ]
+        if helpful_count is not None:
+            raw_field_names.append("found_this_helpful.count")
+        if "Verified purchase" in _clean_html_text(card):
+            raw_field_names.append("verified_purchase.badge")
+        if reposted_from is not None:
+            raw_field_names.append("reposted_from.label")
+        raw_field_names.extend(
+            f"reviewed_variant.{field_name}"
+            for field_name in sorted(reviewed_variant)
+        )
+        if media_urls:
+            raw_field_names.append("review_media.url")
+        reviews.append(
+            {
+                key: html_lib.unescape(value or "").strip()
+                for key, value in raw_values.items()
+            }
+            | {
+                "source_card_id": f"review-{start.group(1)}",
+                "source_display_position": display_position,
+                "helpful_count": helpful_count,
+                "verified_purchase": "Verified purchase" in _clean_html_text(card),
+                "reposted_from": (
+                    html_lib.unescape(reposted_from).strip()
+                    if reposted_from
+                    else None
+                ),
+                "reviewed_variant": reviewed_variant or None,
+                "media_urls": media_urls,
+                "raw_field_names": sorted(raw_field_names),
+            }
+        )
+    return reviews
+
+
+def _nordstrom_unsupported_review_card_fields(review_html: str) -> list[str]:
+    field_labels = {
+        "recommendation": r"(?:would\s+recommend|recommendation|recommended?)",
+        "unhelpful_count": r"(?:not\s+helpful|unhelpful)",
+        "variant": r"(?:reviewed\s+variant|variant)",
+        "demographic_declarations": r"(?:age(?:\s+range)?|skin\s+type)",
+        "tags": r"(?:tags?|pros?|cons?|best\s+uses?)",
+    }
+    exposed: set[str] = set()
+    for start in re.finditer(
+        r'<div\b[^>]*\bid=["\']review-\d+["\'][^>]*>',
+        review_html,
+        flags=re.IGNORECASE,
+    ):
+        card = _balanced_div_fragment(review_html, start=start.start())
+        if card is None:
+            continue
+        for field_name, label_pattern in field_labels.items():
+            if re.search(
+                rf"<(?:dt|th|label|strong|b|span|div)\b[^>]*>\s*"
+                rf"{label_pattern}\s*:?\s*</(?:dt|th|label|strong|b|span|div)>",
+                card,
+                flags=re.IGNORECASE,
+            ) or re.search(
+                rf"\b(?:aria-label|name|data-[\w-]+)=([\"'])"
+                rf"[^\"']*(?<![A-Za-z]){label_pattern}(?![A-Za-z])[^\"']*\1",
+                card,
+                flags=re.IGNORECASE,
+            ):
+                exposed.add(field_name)
+    return sorted(exposed)
 
 
 def _nordstrom_highlighted_review(
@@ -3697,36 +4487,6 @@ def _balanced_div_fragment(html: str, *, start: int) -> str | None:
         if depth == 0:
             return html[start : start + token.end()]
     return None
-
-
-def _nordstrom_review_card_helpful_counts(
-    review_html: str,
-) -> dict[int, str]:
-    card_starts = list(
-        re.finditer(
-            r'<div\b[^>]*\bid=["\']review-(\d+)["\'][^>]*>',
-            review_html,
-            flags=re.IGNORECASE,
-        )
-    )
-    counts: dict[int, str] = {}
-    for index, card_start in enumerate(card_starts):
-        card_end = (
-            card_starts[index + 1].start()
-            if index + 1 < len(card_starts)
-            else len(review_html)
-        )
-        card_html = review_html[card_start.start() : card_end]
-        helpful_count = _first_regex(
-            card_html,
-            (
-                r"<strong>\s*([\d,]+)\s*</strong>"
-                r"[\s\S]{0,300}?found this helpful",
-            ),
-        )
-        if helpful_count is not None:
-            counts[int(card_start.group(1))] = helpful_count
-    return counts
 
 
 def _bounded_text_section(text: str, *, start: str, end: str) -> str:

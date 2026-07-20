@@ -165,11 +165,12 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
         # substrate, and explicit loss/residual fields; the shared projection
         # token moves to v1 so committed raw packets can re-surface. Nordstrom
-        # parser v3 additionally preserves the source-labelled most-helpful
-        # positive/critical pair. Its capture lifecycle can select Most Recent
-        # and retain a bounded 30-day window; window status stays in browser
-        # metadata while raw/content projection semantics remain equivalent.
-        # Known v1/v2 Nordstrom content-only packets remain readable.
+        # parser v4 / content schema v2 are output-shaping: retain the exact
+        # target initial product subtree, full SKU/OOS/media inventory, enriched
+        # review fields, standard coverage, and an explicit omission ledger.
+        # Nordstrom parser v5 is output-shaping: retain source-visible reviewed
+        # size/color and fail closed on newly exposed unsupported card fields.
+        # Known v1-v4 Nordstrom content packets remain readable.
         # Hard-cut plumbing only in this parser module: persisted Projection
         # writers were removed, while extracted and legacy-decoded row semantics
         # remain equivalent. Parser/projection tokens therefore stay unchanged.
@@ -181,7 +182,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # URL-SKU-bound offer/review extraction while omitting the unrelated
         # Apollo loader envelope. The shared projection row/Silver semantics
         # remain unchanged; historical raw decoding remains available.
-        "d181d9d2271c27f26ef82d3f65c1012e54176218e4e473f9770c5d050efa090d",
+        "d55f46ae825047de4fa43e20e21f7340a5c992c7c6c332046fe6d736d313debb",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
