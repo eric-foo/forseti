@@ -2,9 +2,11 @@
 
 Covers the ratified A2 contract (schema + derivation rule canonical): version
 pins on every entry, canonical-bytes determinism, centralized manifest-version
-dispatch that fails closed on unknown versions, required-field refusal, the
-locator-not-identity boundary, and canonical-part equality between by-key
-derivation and the materialized catalog rows.
+dispatch that fails closed on unknown versions, required-field refusal, and the
+locator-not-identity boundary. Canonical-part equality between by-key derivation
+and the materialized catalog rows is owned by PROOF-07 in
+test_data_lake_physicalization_proof.py, which proves the same equality with the
+index tree removed.
 """
 from __future__ import annotations
 
@@ -22,19 +24,9 @@ from data_lake.attachment_record_entry import (
     serialize_entries,
     serialize_entry,
 )
-from data_lake.catalog import (
-    BRONZE_CATALOG_SCHEMA_VERSION,
-    BRONZE_CATALOG_VERSION,
-    rebuild_catalog,
-    source_surface_catalog_rows,
-)
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
-
-_CATALOG_ONLY_KEYS = {"authority", "catalog_version", "catalog_schema_version", "stable_query_paths"}
-_CATALOG_REPLAY_PIN_KEYS = {"catalog_schema_version"}
-
 
 def _capture(root: DataLakeRoot, tmp_path: Path, body: str):
     src = tmp_path / f"{body}.json"
@@ -48,34 +40,6 @@ def _capture(root: DataLakeRoot, tmp_path: Path, body: str):
         decision_question="q",
         capture_context="entry serializer fixture",
     )
-
-
-def _canonical_projection(row: dict) -> dict:
-    """Strip catalog-only decorations from a materialized row, leaving the
-    canonical entry the pinned serializer owns."""
-    canonical = {key: value for key, value in row.items() if key not in _CATALOG_ONLY_KEYS}
-    pins = dict(canonical["replay_version_pins"])
-    pins.pop("catalog_schema_version", None)
-    canonical["replay_version_pins"] = pins
-    return canonical
-
-
-def _assert_row_is_canonical_plus_catalog_decorations(row: dict, canonical: dict) -> None:
-    assert set(row) == set(canonical) | _CATALOG_ONLY_KEYS
-    assert row["catalog_version"] == BRONZE_CATALOG_VERSION
-    assert row["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
-    assert isinstance(row["authority"], str) and row["authority"]
-    stable_query_paths = row["stable_query_paths"]
-    assert set(stable_query_paths) == {"by_attachment_record", "by_packet"}
-    assert stable_query_paths["by_attachment_record"] == (
-        f"attachment_records/by_attachment_record/{row['attachment_record_id']}.json"
-    )
-    assert stable_query_paths["by_packet"].startswith("attachment_records/by_packet/")
-    assert stable_query_paths["by_packet"].endswith(".jsonl")
-    row_pins = row["replay_version_pins"]
-    canonical_pins = canonical["replay_version_pins"]
-    assert set(row_pins) == set(canonical_pins) | _CATALOG_REPLAY_PIN_KEYS
-    assert row_pins["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
 
 
 def test_every_entry_carries_the_ratified_version_pins(tmp_path: Path) -> None:
@@ -108,34 +72,6 @@ def test_canonical_bytes_are_deterministic_and_newline_terminated(tmp_path: Path
     line = first.splitlines()[0]
     parsed = json.loads(line)
     assert list(parsed.keys()) == sorted(parsed.keys()), "canonical bytes must sort keys"
-
-
-def test_by_key_derivation_equals_canonical_part_of_catalog_rows(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
-    packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
-    assert rebuild_catalog(root)["status"] == "rebuilt"
-    rows = source_surface_catalog_rows(
-        root, source_family="reddit", source_surface="r/EntrySerializer"
-    )["attachment_record_rows"]
-    derived_entries = derive_entries_by_key(root, packet_id)
-    derived_by_id = {entry["attachment_record_id"]: entry for entry in derived_entries}
-    rows_by_id = {
-        row["attachment_record_id"]: row for row in rows if row["packet_id"] == packet_id
-    }
-    assert set(rows_by_id) == set(derived_by_id)
-    for record_id, row in rows_by_id.items():
-        _assert_row_is_canonical_plus_catalog_decorations(row, derived_by_id[record_id])
-    materialized_canonical = serialize_entries(
-        [_canonical_projection(rows_by_id[record_id]) for record_id in sorted(rows_by_id)]
-    )
-
-    derived = serialize_entries([derived_by_id[record_id] for record_id in sorted(derived_by_id)])
-
-    assert derived == materialized_canonical, (
-        "the materialized catalog row must be exactly the canonical entry plus "
-        "catalog decorations; any other difference means the serializer is not "
-        "the single derivation rule"
-    )
 
 
 def test_dispatch_fails_closed_on_unknown_manifest_version() -> None:

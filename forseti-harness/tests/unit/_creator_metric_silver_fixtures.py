@@ -45,6 +45,7 @@ def seed_preexisting_youtube_creator_metric_records(
     seed_document: Mapping[str, Any],
     *,
     wrapper_key: str,
+    limit_to_platform_account_ids: frozenset[str] | set[str] | None = None,
 ):
     """Build and seed synthetic pre-contract YouTube Silver record bytes.
 
@@ -52,6 +53,11 @@ def seed_preexisting_youtube_creator_metric_records(
     helper writes their output directly under the derived-record grammar. It
     is strictly a read-side classification fixture and must not be used as
     evidence that the authoritative append route accepts the records.
+
+    ``limit_to_platform_account_ids``, when given, restricts materialization to
+    the named accounts only, so callers that assert on a handful of accounts
+    are not charged for building and writing every committed-seed record.
+    Default ``None`` keeps the full seed and byte-identical behavior.
     """
     from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
         YoutubeCreatorMetricSilverResult,
@@ -61,6 +67,22 @@ def seed_preexisting_youtube_creator_metric_records(
 
     copied = deepcopy(seed_document)
     seed = copied[wrapper_key]
+    if limit_to_platform_account_ids is not None:
+        seed["metric_observations"] = [
+            seed_observation
+            for seed_observation in seed["metric_observations"]
+            if seed_observation["platform_account_id"] in limit_to_platform_account_ids
+        ]
+        if not seed["metric_observations"]:
+            raise AssertionError(
+                "limit_to_platform_account_ids matched zero metric_observations "
+                f"(check for typos): {sorted(limit_to_platform_account_ids)}"
+            )
+        seed["metric_rollups"] = [
+            seed_rollup
+            for seed_rollup in seed["metric_rollups"]
+            if seed_rollup["platform_account_ids"][0] in limit_to_platform_account_ids
+        ]
     observation_records: list[dict[str, Any]] = []
     observation_paths: list[Path] = []
     refs_by_seed_id: dict[str, dict[str, str]] = {}

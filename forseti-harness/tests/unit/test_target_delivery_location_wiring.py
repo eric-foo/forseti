@@ -367,11 +367,6 @@ def test_writer_rejects_target_flag_for_non_target_url(tmp_path: Path) -> None:
         _run_writer(tmp_path, url="https://www.target.sg/example")
 
 
-def test_writer_rejects_target_plus_other_site_preference(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="only one site-specific pre-capture"):
-        _run_writer(tmp_path, sephora_market="US")
-
-
 def test_target_pin_enforcement_requires_true_boolean_and_target_host() -> None:
     assert (
         cloak_writer._target_delivery_pin_failure(

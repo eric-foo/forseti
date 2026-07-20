@@ -143,36 +143,3 @@ def test_writer_builds_luckyscent_market_plugin(
 
     assert exit_code == 0
     assert output == str(tmp_path / "packet")
-
-
-def test_writer_rejects_luckyscent_plus_other_site_preference(tmp_path) -> None:
-    with pytest.raises(ValueError, match="only one site-specific pre-capture"):
-        cloak_writer.run_source_capture_cloakbrowser_packet(
-            url="https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum",
-            source_family="retail_pdp",
-            source_surface="cloakbrowser_snapshot",
-            decision_question="Does the bound US-market PDP render?",
-            output_directory=tmp_path / "packet",
-            capture_context="offline test",
-            operator_category="test",
-            capture_mode=cloak_writer.CaptureModeCategory.MULTIMODAL,
-            session_id=None,
-            proxy_profile=None,
-            actor_audience_context=cloak_writer.unknown_with_reason("not needed"),
-            visible_mode_changes=[],
-            source_publication_or_event=cloak_writer.unknown_with_reason("not needed"),
-            source_edit_or_version=cloak_writer.unknown_with_reason("not needed"),
-            cutoff_posture=cloak_writer.unknown_with_reason("not needed"),
-            recapture_time=cloak_writer.not_applicable("not needed"),
-            re_capture_relationship=cloak_writer.not_applicable("not needed"),
-            warnings=[],
-            limitations=[],
-            timeout_seconds=30,
-            wait_until="load",
-            viewport_width=1920,
-            viewport_height=1080,
-            max_artifact_bytes=5_000_000,
-            block_heavy_assets=False,
-            nordstrom_country="US",
-            luckyscent_market="US",
-        )

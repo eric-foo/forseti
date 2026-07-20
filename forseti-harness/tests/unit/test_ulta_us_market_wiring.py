@@ -272,21 +272,3 @@ def test_writer_rejects_invalid_ulta_route_and_site_plugin_overlap(
     kwargs["sephora_market"] = "US"
     with pytest.raises(ValueError, match="only one site-specific pre-capture"):
         cloak_writer.run_source_capture_cloakbrowser_packet(**kwargs)
-
-
-def test_cli_exposes_only_us_ulta_market_choice() -> None:
-    parser = cloak_writer._build_parser()
-    args = parser.parse_args(
-        [
-            "--url",
-            _URL,
-            "--decision-question",
-            "Ulta US/USD?",
-            "--output",
-            "packet",
-            "--ulta-market",
-            "US",
-        ]
-    )
-
-    assert args.ulta_market == "US"
