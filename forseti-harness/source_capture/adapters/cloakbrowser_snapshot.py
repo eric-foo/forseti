@@ -36,7 +36,7 @@ _SCROLL_TARGET_CONDITION_TIMEOUT_MS = 5000
 _SCROLL_TARGET_POLL_MS = 100
 CLOAKBROWSER_METHOD_CATEGORY = "anti_blocking_browser"
 CLOAKBROWSER_BACKEND = "playwright"
-CAPTURE_PHASE_TIMING_SCHEMA_VERSION = 2
+CAPTURE_PHASE_TIMING_SCHEMA_VERSION = 3
 HEAVY_RESOURCE_TYPES = frozenset({"font", "image", "media"})
 SECRET_LIKE_QUERY_KEYS = {
     "access_token",
@@ -165,8 +165,9 @@ class PreCapturePlugin(Protocol):
     The generic adapter knows nothing about any storefront, widget, or signal: it calls
     ``before`` after page creation (before the main goto), ``confirm`` on the rendered DOM
     after capture, ``describe`` for non-secret metadata, and ``note`` for the operator-facing
-    limitation note. A plugin may also expose ``before_snapshot`` for a bounded site-owned
-    interaction after navigation and configured scrolling but before artifact serialization.
+    limitation note. A plugin may also expose ``before_scroll`` for a bounded site-owned
+    interaction after navigation and settling but before any configured scrolling, and/or
+    ``before_snapshot`` for a bounded interaction after scrolling but before serialization.
     All site-specific wording (storefront name, currency signals, widget steps) lives in the
     plugin, never here. ``humanize`` selects the humanized browser launch profile.
     """
@@ -200,6 +201,8 @@ class CloakBrowserSnapshotEngineResult(Protocol):
     # when no plugin was supplied. ``fetch_...`` reads it via getattr so engines that predate
     # the seam (or fakes) without the attribute degrade to "no plugin ran".
     pre_capture_outcome: PreCaptureOutcome | None
+    # Optional bounded site-owned action after navigation/settling and before scrolling.
+    before_scroll_outcome: PreCaptureOutcome | None
     # Optional bounded site-owned action after navigation/scrolling and before snapshot.
     before_snapshot_outcome: PreCaptureOutcome | None
 
@@ -395,6 +398,9 @@ def fetch_cloakbrowser_snapshot_capture(
     pre_capture_outcome: PreCaptureOutcome | None = getattr(
         engine_result, "pre_capture_outcome", None
     )
+    before_scroll_outcome: PreCaptureOutcome | None = getattr(
+        engine_result, "before_scroll_outcome", None
+    )
     before_snapshot_outcome: PreCaptureOutcome | None = getattr(
         engine_result, "before_snapshot_outcome", None
     )
@@ -493,6 +499,21 @@ def fetch_cloakbrowser_snapshot_capture(
         ),
         "pre_capture_reason": (
             pre_capture_outcome.reason if pre_capture_outcome is not None else None
+        ),
+        "before_scroll_attempted": (
+            before_scroll_outcome.attempted
+            if before_scroll_outcome is not None
+            else False
+        ),
+        "before_scroll_steps_completed": (
+            before_scroll_outcome.steps_completed
+            if before_scroll_outcome is not None
+            else False
+        ),
+        "before_scroll_reason": (
+            before_scroll_outcome.reason
+            if before_scroll_outcome is not None
+            else None
         ),
         "before_snapshot_attempted": (
             before_snapshot_outcome.attempted
@@ -702,6 +723,17 @@ class _CloakBrowserSnapshotEngine:
                 if settle_seconds > 0:
                     page.wait_for_timeout(settle_seconds * 1000)
                 phase_ms["configured_settle"] = elapsed_ms(settle_started_ns)
+                before_scroll_outcome: PreCaptureOutcome | None = None
+                before_scroll_started_ns = clock_ns()
+                before_scroll = getattr(pre_capture, "before_scroll", None)
+                if callable(before_scroll):
+                    before_scroll_outcome = before_scroll(
+                        page, setup_timeout_ms=setup_timeout_ms
+                    )
+                    warning_notes.extend(before_scroll_outcome.warning_notes)
+                phase_ms["before_scroll_plugin"] = elapsed_ms(
+                    before_scroll_started_ns
+                )
                 check_scroll_stop(stage="after_configured_settle")
                 scroll_target_timing: dict[str, object] = {
                     "configured": scroll_target_selector is not None,
@@ -851,6 +883,7 @@ class _CloakBrowserSnapshotEngine:
                     screenshot_png=screenshot_png,
                     warning_notes=warning_notes,
                     pre_capture_outcome=pre_capture_outcome,
+                    before_scroll_outcome=before_scroll_outcome,
                     before_snapshot_outcome=before_snapshot_outcome,
                     capture_phase_timing=capture_phase_timing,
                 )
@@ -880,6 +913,7 @@ class _LiveEngineResult:
     screenshot_png: bytes
     warning_notes: list[str] = field(default_factory=list)
     pre_capture_outcome: PreCaptureOutcome | None = None
+    before_scroll_outcome: PreCaptureOutcome | None = None
     before_snapshot_outcome: PreCaptureOutcome | None = None
     capture_phase_timing: dict[str, object] = field(default_factory=dict)
 

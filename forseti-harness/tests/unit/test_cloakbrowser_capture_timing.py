@@ -96,7 +96,7 @@ def test_live_engine_emits_versioned_monotonic_phase_and_action_timings(monkeypa
     )
 
     timing = result.capture_phase_timing
-    assert timing["schema_version"] == 2
+    assert timing["schema_version"] == 3
     assert timing["scroll_target"] == {
         "configured": False,
         "action_ms": None,
@@ -113,6 +113,7 @@ def test_live_engine_emits_versioned_monotonic_phase_and_action_timings(monkeypa
         "page_creation",
             "asset_route_setup",
             "pre_capture_plugin",
+            "before_scroll_plugin",
             "before_snapshot_plugin",
             "navigation_wait_until",
         "configured_settle",
