@@ -5014,6 +5014,10 @@ def _ulta_apollo_offer_fields(
     for entry in structured_entries:
         if entry.kind != "apollo_state":
             continue
+        requested_sku = preferred_sku or _first_regex(
+            entry.raw_text,
+            (r'\\"sku\\":\\"([^\\"]+)\\"', r'"sku":"([^"]+)"'),
+        )
         best: dict[str, object] | None = None
         for item in _walk_dicts(entry.parsed):
             if item.get("skuId") and item.get("productName") and (item.get("listPrice") or item.get("salePrice")):
@@ -5034,7 +5038,7 @@ def _ulta_apollo_offer_fields(
             "price": price[1:] if isinstance(price, str) and price.startswith("$") else price,
             "price_currency": "USD" if price else None,
             "availability": _first_literal(json.dumps(entry.parsed), ("InStock", "OutOfStock")),
-            "apollo_requested_sku": preferred_sku,
+            "apollo_requested_sku": requested_sku,
             "variant_binding_source": "apollo_state",
         }, entry.raw_anchor
     return {}, None
