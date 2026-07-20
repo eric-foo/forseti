@@ -329,6 +329,14 @@ SOURCE_CLASSIFICATION_DEFINITIONS: tuple[SourceClassificationDefinition, ...] = 
         shapes=(EvidenceShape.REVIEW,),
         source="forseti-harness/source_capture/sephora_onboarding_capture.py",
     ),
+    _definition(
+        "retail_pdp",
+        "target_bazaarvoice_onboarding",
+        operator="target",
+        roles=(VenueRole.RETAILER,),
+        shapes=(EvidenceShape.REVIEW,),
+        source="forseti-harness/source_capture/target_onboarding_capture.py",
+    ),
     *(
         _definition(
             "social_media",

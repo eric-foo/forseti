@@ -4,9 +4,9 @@
 retrieval_header_version: 1
 artifact_role: Handoff packet
 scope: >
-  Cold-reader handoff for testing Target, Kohl's, and finally Nordstrom against
-  the proven Sephora information-extraction target after Walmart's direct
-  Bazaarvoice route was exhausted without a usable public configuration.
+  Cold-reader handoff for testing Kohl's and finally Nordstrom against the
+  proven Sephora information-extraction target after Walmart closed without a
+  usable public direct route and Target landed a direct Bazaarvoice companion.
 use_when:
   - Starting the next retailer-compatibility lane.
   - Deciding whether a retailer supports the Sephora-depth evidence target
@@ -25,13 +25,13 @@ stale_if:
 
 ## Load Contract
 
-- packet_version: 2
+- packet_version: 3
 - mode: max
 - updated_at: 2026-07-21
-- updated_by_lane: remaining-retailer handoff lane; provenance only, not authority
+- updated_by_lane: Target Bazaarvoice compatibility lane; provenance only, not authority
 - workspace: `C:\Users\vmon7\Desktop\projects\orca`
-- expected_branch: `codex/bazaarvoice-remaining-retailers-handoff`; receiver should start work from fresh `origin/main`
-- expected_base: `12c3fde4fe9f4d98deafb3528e5dbd7caa894908`
+- expected_branch: `codex/bazaarvoice-target-compat`; receiver should start the next retailer from fresh `origin/main`
+- expected_base: `199978a4cb0349d361b01e85bc9c42f49aea75ec`
 - source-loading_mode: repo-overlay-bound
 - load_rule: confirm-don't-trust; reread the named sources and verify current retailer evidence before acting
 - durable_destination_status: updates the existing compatibility handoff rather than creating a competing continuation artifact
@@ -39,8 +39,20 @@ stale_if:
 ## Goal Handoff
 
 - long_term_goal: Capture the deepest useful retailer product, review, demographic, aggregate, and Q&A evidence available at the lowest defensible request footprint.
-- active_goal: Test Target against the Sephora extraction target using Bazaarvoice first and every other bounded public method that can expose the same information without inventing shared mechanics.
-- success_signal: The lane either preserves a qualifying Target response fixture and implements a truthful retailer-specific adapter, or returns an exhausted-methods stop naming exactly which target information remains unavailable.
+- active_goal: Test Kohl's against the Sephora extraction target using Bazaarvoice first and every other bounded public method that can expose the same information without inventing shared mechanics.
+- success_signal: The lane either preserves a qualifying Kohl's response fixture and implements a truthful retailer-specific adapter, or returns an exhausted-methods stop naming exactly which target information remains unavailable.
+
+## Receiver Preflight
+
+- Output mode: `file-write`; destination is one fresh Kohl's implementation
+  branch/worktree plus append-only raw evidence under the configured data root.
+- Edit permission · targets · branch: `implementation-authorized`; limit edits
+  to the Kohl's retailer adapter/runner/tests, directly affected shared
+  identical mechanics, and this compatibility evidence/router; start from
+  current `origin/main` on an isolated lane branch.
+- Destinations: treat this handoff as the run-authoritative input; write the
+  qualifying raw packet to the data lake and land repository changes through
+  the per-lane PR flow.
 
 ## Short Ask
 
@@ -98,13 +110,15 @@ identifiers, filters, or provider identity.
 
 ## Retailer Sequence
 
-1. **Target — active.**
-   - Preserved packet: `01KXR823YS3V5M9E01QXP71ETC`.
-   - Known clue: deployment `targetcom/main_site/production/en_US`,
-     Bazaarvoice markers, and review identities.
-   - Missing proof: archived response fixture, public client configuration, and
-     product-to-review-family binding.
-2. **Kohl's — next after Target.**
+1. **Target — completed.**
+   - Parent packet: `01KXR823YS3V5M9E01QXP71ETC`.
+   - Bounded Helpful fixture: `01KY0C5A0416M58K87S8NYAVDJ`.
+   - Three-role live proof: `01KY0E4TCHFW9Q3DHNXD1N14TG`.
+   - Proven direct Bazaarvoice mapping: Target TCIN `80184023` equals
+     Bazaarvoice ProductId `80184023`; deployment
+     `targetcom/main_site/production/en_US`, API `5.5`, display code
+     `19988-en_us`.
+2. **Kohl's — active.**
    - Preserved packet: `01KXXHBKF2GPK4M96SAV1VQKM3`.
    - Known clue: `api.bazaarvoice.com` and deployment
      `kohls/redesign/production/en_US`.
@@ -121,6 +135,24 @@ identifiers, filters, or provider identity.
 
 Beauty Pie remains recon-only. Ulta remains outside this lane because its
 current review route is PowerReviews/Apollo.
+
+## Target Completed Result
+
+Target is now admitted as a direct public Bazaarvoice companion:
+
+- one response each preserves 100 `Most Helpful` and 100 `Most Recent` review
+  rows; the Recent anchor is `428236455`;
+- the Q&A response preserves all 34 returned questions and all 40 declared
+  included answers;
+- aggregates include total and filtered rating distributions, recommendations,
+  first/latest review times, helpfulness, media counts, and secondary ratings;
+- no age, skin-type, or skin-concern distribution was returned, and no
+  source-proven non-incentivized filter or row-level incentive marker was
+  exposed;
+- Target's embedded `cdui-orchestrations.target.com` review response remains
+  correctly labelled Target-owned page state, not Bazaarvoice;
+- exact API response bytes, compact body-free summaries, and token-free request
+  metadata are preserved.
 
 ## Walmart Closed Result
 
@@ -145,17 +177,18 @@ this lane or labelled Bazaarvoice.
 1. Start a fresh isolated worktree from current `origin/main`.
 2. Reread the overlay entrypoint, owning standard, compatibility section, and
    Sephora reference implementation/tests.
-3. Verify the Target packet and choose one representative Target beauty PDP.
+3. Verify Kohl's packet `01KXXHBKF2GPK4M96SAV1VQKM3` and choose one
+   representative Kohl's beauty PDP through the already admitted browser route.
 4. Build a field-by-field extraction-target matrix from the Sephora profile.
 5. Run the bounded method order above, preserving the first qualifying raw
    response fixture and its product-family mapping.
-6. If Target exposes sufficient information, implement the smallest complete
-   Target adapter with failure-visible preservation and focused tests.
+6. If Kohl's exposes sufficient information, implement the smallest complete
+   Kohl's adapter with failure-visible preservation and focused tests.
 7. If the methods are exhausted without a truthful route, stop before runtime
    edits and return `BLOCKED_UNVERIFIABLE` with the matrix of found versus
    missing fields.
-8. Land Target independently. Repeat for Kohl's. Start Nordstrom only after its
-   production-stability gate clears.
+8. Land Kohl's independently. Start Nordstrom only after its production-stability
+   gate clears.
 
 ## Frozen Decisions
 
@@ -167,7 +200,8 @@ this lane or labelled Bazaarvoice.
 - No adapter is admitted without a preserved response fixture and unambiguous
   identity mapping.
 - Walmart is closed for this direct-Bazaarvoice lane.
-- Order is Target, Kohl's, then Nordstrom.
+- Target is completed with packet-backed direct Bazaarvoice proof.
+- Remaining order is Kohl's, then Nordstrom.
 
 ## Open Decision
 
@@ -185,7 +219,7 @@ heartbeat design exists; do not claim deduplication is already implemented.
   - Reuse: reread before implementation.
 - `forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md`
   - Role: authoritative extraction and preservation target.
-  - Compare target at this update: git blob `6647b561b567914739ece6f7054d967d16232caf`.
+  - Compare target at this update: git blob `b8df945fb7d60e069420505fe2df48bc3064e10a`.
 - `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
   - Role: packet-backed retailer evidence and explicitly labelled later observations.
   - Compare target: reread required because this handoff update changes Walmart's status.
@@ -202,6 +236,8 @@ heartbeat design exists; do not claim deduplication is already implemented.
 ## Drift Guard
 
 - Do not resume Walmart inside this lane.
+- Do not reopen Target inside this lane except for a defect in its landed,
+  packet-proven adapter.
 - Do not copy Sephora parameters or call a retailer-native route Bazaarvoice.
 - Do not extract a universal transport layer until at least two retailers prove
   identical public mechanics.
@@ -216,7 +252,7 @@ heartbeat design exists; do not claim deduplication is already implemented.
 - Reread the owning standard and compatibility evidence.
 - Verify the named retailer packet and current public product mapping.
 - Return one outcome:
-  - `REUSE`: sources match; begin Target proof.
+  - `REUSE`: sources match; begin Kohl's proof.
   - `PARTIAL_REUSE`: non-load-bearing context drifted; rederive and continue.
   - `STALE_REREAD_REQUIRED`: load-bearing sources moved; reread before acting.
   - `BLOCKED_DRIFT`: the owner constraints or retailer order conflict.
@@ -227,4 +263,4 @@ heartbeat design exists; do not claim deduplication is already implemented.
 - Find as much of the Sephora information target as the retailer truly exposes.
 - Try Bazaarvoice first, then exhaust the other bounded public methods.
 - Missing data is a valid result; invented parity is not.
-- Target first, Kohl's second, Nordstrom last.
+- Target is complete; Kohl's is next; Nordstrom remains last.

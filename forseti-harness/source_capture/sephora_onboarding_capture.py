@@ -21,7 +21,7 @@ from urllib.parse import unquote
 
 from data_lake.root import DataLakeRoot, LoadedRawPacket
 from harness_utils import utc_now_z
-from source_capture.adapters.sephora_bazaarvoice import (
+from source_capture.adapters.bazaarvoice_api import (
     BAZAARVOICE_API_HOST,
     ApiFetcher,
     ApiRequestSpec,

@@ -1970,7 +1970,7 @@ durable packet-backed evidence.
 | --- | --- | --- |
 | Sephora | Packet `01KXZYFSBDJRDMPSJ0G40QW437` and current runner | Reviews and questions are proven end to end; implement and packet-prove the three-role target. |
 | Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. A later compatibility lane mapped item `2150828728` to product `3Y2AMXE2TTC1` and review-family ID `282PMOVUGY9E`, but found the current page retrieving reviews through Walmart's first-party persisted `ReviewsById` GraphQL query via `cegateway`; no public Bazaarvoice client/deployment configuration was exposed. | Historical Bazaarvoice-shaped review data is proven, but a current direct public Bazaarvoice route is not. Close Walmart as a direct Bazaarvoice extension candidate; any future implementation must be a separately proven Walmart-native adapter. |
-| Target | Packet `01KXR823YS3V5M9E01QXP71ETC` contains deployment `targetcom/main_site/production/en_US`, Bazaarvoice markers, and review identities, but no archived API response or family binding. | Preserve one bounded response fixture and bind retailer product ID to Bazaarvoice family ID before enabling. |
+| Target | Parent packet `01KXR823YS3V5M9E01QXP71ETC`, bounded Helpful fixture `01KY0C5A0416M58K87S8NYAVDJ`, and three-role live proof `01KY0E4TCHFW9Q3DHNXD1N14TG`. The public deployment chain resolves `targetcom/main_site/production/en_US`, API `5.5`, display code `19988-en_us`, and TCIN `80184023` to Bazaarvoice ProductId `80184023`. | Direct public Bazaarvoice is proven and implemented as the Target-specific three-role companion. Preserve Target's missing incentive semantics and demographics as losses; do not substitute the separately observed Target-owned CDUI response or label it Bazaarvoice. |
 | Kohl's | Packet `01KXXHBKF2GPK4M96SAV1VQKM3` contains `api.bazaarvoice.com` and deployment `kohls/redesign/production/en_US`, but no archived review response. | Use the admitted Kohl's browser route for one bounded response fixture and product-family binding before enabling. |
 | Nordstrom | Packet `01KXR9BNWBP8R8XKPKFJHZJTPN` contains Bazaarvoice-hosted media URLs but no API host, deployment, passkey, or review response. | Media provenance is insufficient; do not enable without recon. |
 | Beauty Pie | Its archived homepage loads `apps.bazaarvoice.com` but contains no product response or identifier mapping. | Historical integration is suspected; do not enable without product-level recon. |
@@ -1995,6 +1995,24 @@ source-visible `Most Recent` and `Most Helpful` sorts, locale `en_US`, only a
 and disabled Q&A. No runtime change or response fixture was produced. These
 facts close the attempted direct-Bazaarvoice extension without claiming that
 Walmart never uses Bazaarvoice behind its first-party surface.
+
+The Target compatibility lane used the same extraction target but did not copy
+Sephora-only parameters. Target's page-declared deployment led through its
+public `bv.js` and `bvapi.js` configuration to the public Bazaarvoice API. The
+live proof preserves one 100-row `Most Helpful` response with review statistics,
+one 100-row `Most Recent` response with anchor review `428236455`, and all 34
+returned questions with all 40 declared included answers. It binds Target TCIN
+`80184023` to Bazaarvoice ProductId `80184023`.
+
+Target returned total and filtered rating distributions, recommended and
+not-recommended counts, first and latest review times, photo/video counts,
+helpfulness totals, and secondary-rating averages. It returned no age, skin
+type, or skin concern distribution in the bounded Helpful response and exposed
+no source-proven non-incentivized filter or row-level incentive marker. The
+bounded Recent response did expose `verifiedPurchaser`, syndicated rows, media
+references, and source-client identity. Target's separately embedded
+`cdui-orchestrations.target.com` review response is recorded as Target-owned
+page state, not Bazaarvoice evidence.
 
 Monitoring retention remains unresolved. No route may claim storage
 deduplication until a later implementation chooses and proves preservation of
