@@ -197,6 +197,68 @@ def _seeded_root(root: DataLakeRoot, tmp_path: Path) -> tuple[str, str]:
     return first, second
 
 
+
+
+def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from data_lake.derived_retrieval_views import (
+        query_exact_actor_context, query_sql_catalogue, sql_catalogue_path,
+        sql_catalogue_status, write_actor_query_audit,
+    )
+    payload = {
+        "platform": "tiktok",
+        "source_surface": "tiktok_creator_batch_comment_subtitle_admission",
+        "creator_handle": "creator",
+        "capture_timestamp": "2026-07-20T00:00:00Z",
+        "videos": [{
+            "video_id": "7000000000000000001", "create_time": 1784500000,
+            "comments": {"posture": "captured_page_owned_response", "comments": [{
+                "cid": "c1", "text": "wear test coordination",
+                "create_time": 1784500060,
+                "user": {"uid": "actor-1", "unique_id": "same_name"}
+            }]}
+        }]
+    }
+    source = tmp_path / "tiktok_batch_capture.json"
+    source.write_text(json.dumps(payload),encoding="utf-8")
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    write_local_source_capture_packet(
+        data_root=root,input_files=[source],source_family="tiktok",
+        source_surface="tiktok_creator_batch_comment_subtitle_admission",
+        source_locator=known_fact("https://www.tiktok.com/@creator"),
+        decision_question="test SQL retrieval",capture_context="fixture")
+    first = rebuild_derived_retrieval(root,product_mention_policy=_POLICY)
+    assert first["sql_catalogue"]["event_count"] == 1
+    second = rebuild_derived_retrieval(root,product_mention_policy=_POLICY)
+    assert second["sql_catalogue"]["status"] == "current"
+    found = query_sql_catalogue(root,body_query='"wear test"',platform="tiktok")
+    assert found["row_count"] == 1
+    assert "actor-1" not in json.dumps(found)
+    actor = query_exact_actor_context(
+        root,platform="tiktok",actor="actor-1",
+        from_utc="2026-07-01T00:00:00Z",to_utc="2026-07-31T00:00:00Z",
+        creator_id="creator")
+    assert actor["row_count"] == 1
+    with pytest.raises(ValueError, match="at most 90 days"):
+        query_exact_actor_context(
+            root,platform="tiktok",actor="actor-1",
+            from_utc="2026-07-01T00:00:00Z",to_utc="2026-10-01T00:00:01Z")
+    monkeypatch.setenv("FORSETI_DERIVED_RETRIEVAL_SQL_ROOT","relative")
+    with pytest.raises(DataLakeRootError, match="must be absolute"):
+        sql_catalogue_path(root)
+    monkeypatch.delenv("FORSETI_DERIVED_RETRIEVAL_SQL_ROOT")
+    monkeypatch.setenv("LOCALAPPDATA",str(tmp_path / "local"))
+    audit = write_actor_query_audit(
+        actor,decision_question_id="bounded_public_actor_context")
+    assert Path(audit).is_file()
+    assert "bounded_public_actor_context" in Path(audit).read_text(encoding="utf-8")
+    before = sql_catalogue_status(root)["logical_digest"]
+    rebuilt = rebuild_derived_retrieval(
+        root,product_mention_policy=_POLICY,full_rebuild=True)
+    assert rebuilt["sql_catalogue"]["logical_digest"] == before
+
+
 def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     first, second = _seeded_root(root, tmp_path)

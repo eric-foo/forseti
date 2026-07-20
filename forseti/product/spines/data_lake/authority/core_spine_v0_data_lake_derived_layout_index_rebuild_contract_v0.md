@@ -55,6 +55,14 @@ authorizes no implementation here (the builder is a separate bounded work unit),
 other view, and unifies no cross-platform identity (per the medallion contract's given-up
 limitation). Actor/commenter retrieval stays out of scope (separately governed).
 
+`DERIVED_RETRIEVAL_SQL_CATALOGUE_SELECTED_V0` (owner-ratified 2026-07-21).
+The later scan/query-latency trigger is now met. One SQLite catalogue under the
+existing `indexes/derived_retrieval/` lifecycle may index captured evidence
+bodies and structured routing fields. It is derived, disposable, rebuilt from
+verified lake material, and written only by the sanctioned index updater under
+the existing single-writer lock. Capture runners never depend on or write it;
+canonical JSON views and by-key discovery keep their existing authority.
+
 The first `by_mention` population on a fresh root has no stored policy manifest.
 It may bind the checked-out product-extraction policy only through an explicit
 one-time bootstrap command that records the exact version and fingerprint and

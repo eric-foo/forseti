@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -57,7 +58,12 @@ from data_lake.derived_retrieval_views import (
     current_generation_root,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
+    prove_sql_catalogue_rebuildability,
+    query_exact_actor_context,
+    query_sql_catalogue,
     rebuild_derived_retrieval,
+    sql_catalogue_status,
+    write_actor_query_audit,
 )
 from data_lake.product_mention_selection import normalize_product_mention_policy
 from data_lake.root import DataLakeRoot, DataLakeRootError
@@ -204,7 +210,51 @@ def main(argv: list[str] | None = None) -> int:
             "policy from this checkout and refuse an existing by_mention manifest."
         ),
     )
+
+    parser.add_argument("--sql-status", action="store_true", help="Report SQL catalogue health and freshness.")
+    parser.add_argument("--sql-query", action="store_true", help="Run a bounded evidence search.")
+    parser.add_argument("--sql-exact-actor", help="Hydrate one exact public actor identifier for one bounded query.")
+    parser.add_argument("--sql-body-query")
+    parser.add_argument("--sql-platform")
+    parser.add_argument("--sql-vendor")
+    parser.add_argument("--sql-creator-id")
+    parser.add_argument("--sql-content-id")
+    parser.add_argument("--sql-product-id")
+    parser.add_argument("--sql-from-utc")
+    parser.add_argument("--sql-to-utc")
+    parser.add_argument("--sql-limit", type=int, default=1000)
+    parser.add_argument("--decision-question-id")
     args = parser.parse_args(argv)
+
+    sql_modes = sum(bool(value) for value in (args.sql_status,args.sql_query,args.sql_exact_actor))
+    if sql_modes > 1:
+        parser.error("choose only one SQL status/query mode")
+    if sql_modes:
+        try:
+            root = DataLakeRoot.resolve(explicit=args.data_root)
+            if args.sql_status:
+                report = sql_catalogue_status(root)
+            elif args.sql_query:
+                report = query_sql_catalogue(
+                    root,body_query=args.sql_body_query,platform=args.sql_platform,
+                    vendor=args.sql_vendor,creator_id=args.sql_creator_id,
+                    content_id=args.sql_content_id,product_id=args.sql_product_id,
+                    from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,limit=args.sql_limit)
+            else:
+                if not (args.sql_platform and args.sql_from_utc and args.sql_to_utc
+                        and args.decision_question_id):
+                    parser.error("--sql-exact-actor requires platform, from/to UTC, and decision-question-id")
+                report = query_exact_actor_context(
+                    root,platform=args.sql_platform,actor=args.sql_exact_actor,
+                    from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,
+                    creator_id=args.sql_creator_id,content_id=args.sql_content_id)
+                report["audit_path"] = write_actor_query_audit(
+                    report,decision_question_id=args.decision_question_id)
+        except (DataLakeRootError,ValueError,sqlite3.DatabaseError) as exc:
+            print(json.dumps({"status":"error","error":str(exc)},indent=2,sort_keys=True))
+            return 2
+        print(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=False))
+        return 0
     verification_modes = sum(
         bool(value)
         for value in (
@@ -320,6 +370,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.target in ("derived_retrieval", "all"):
             if args.prove_rebuildability:
                 derived = prove_derived_retrieval_rebuildability(root)
+                sql_proof = prove_sql_catalogue_rebuildability(root)
+                derived["sql_catalogue"] = sql_proof
+                if sql_proof["status"] != "proven":
+                    derived["status"] = "failed"
             elif args.prove_incremental_equality:
                 derived = prove_incremental_rebuild_equality(
                     root,

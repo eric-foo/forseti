@@ -141,6 +141,16 @@ gate2_ratification:
   modifications: none
 ```
 
+## T3 Re-ratification — Disposable SQLite Reader (2026-07-21)
+
+The Stage 3 derived-retrieval decision selects SQLite only as a rebuildable
+reader catalogue under `indexes/`; it does not store authoritative raw or
+Silver material. T3 was therefore answered by re-ratifying this deferral
+unchanged: no SQLite expiry, cleanup, lifecycle, versioning, or WORM setting
+may carry retention meaning; the catalogue may be deleted and rebuilt, while
+raw evidence remains governed by the existing tombstone-only posture and claim
+ceiling. Multi-machine writing or a server-backend migration fires T3 again.
+
 ## Direction Change Propagation
 
 ```yaml
