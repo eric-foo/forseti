@@ -76,6 +76,11 @@ Each phase normally consumes two completed operator/model turns:
    silently substitute generic browsing or rediscovery.
 4. Run authorized scanning and capture. Record every selected route, route
    result, scan/capture receipt, source/provenance locator, and real failure.
+   Scanning's current MGT operating model owns continuation and closure against
+   the bound phase question. Apply its lead-to-angle-to-material-seam rule:
+   evidence-revealed, decision-relevant angles receive a discriminating check,
+   and every material seam is supported, contradicted, meaningfully bounded, or
+   honestly blocked/gapped before sealing.
 5. If a material required-route or capture failure is load-bearing and a
    plausible owner action can materially unblock it, issue one consolidated
    owner-unblock escalation during the run, before sealing:
@@ -141,6 +146,14 @@ an honestly typed blocking result. A required route that was skipped, silently
 substituted, incompletely captured, or described as exhausted without the
 matching route evidence forces the blocked state.
 
+Route disposition is necessary but not sufficient. A touched lens, zero-yield
+route, exhausted route list, or absence of a promotable candidate cannot
+authorize Deliver. If a material seam remains unresolved because a commission
+limit or source boundary stops acquisition, or if the assembled evidence cannot
+support a decision-useful answer to the bound question, use
+`BLOCKED_ACQUISITION_INCOMPLETE`; do not lower the answer standard to pass the
+seal.
+
 ### Turn B — Deliver
 
 Start in fresh context and load the phase acquisition seal, not the accumulated
@@ -148,6 +161,9 @@ capture chat. Verify its identity, canonical phase, bound question/use, seal
 state, route receipts, provenance, and material gaps before synthesis. If the
 gate is blocked or the artifact is incomplete, stop and return to Acquire &
 Seal; do not issue a nominal deliverable.
+
+Deliver compresses and communicates the acquired evidence. Its succinctness
+discipline is never grounds to under-acquire during Acquire & Seal.
 
 When the gate passes, synthesize the phase deliverable, craft the human report
 or framing artifact, validate it under the owning contract, and hand off the

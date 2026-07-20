@@ -142,11 +142,11 @@ Scanning does not own:
 
 Scanning owns, inside an authorized run:
 
-- choosing the next public read by expected decision value;
-- recording why a plausible move is dominated by an equal-or-better included
-  move;
-- deciding marginal acquisition and acquisition closure under the value test
-  below;
+- choosing the next public read by its expected contribution to the outcome the
+  scan was commissioned to inform;
+- recording when a plausible route is genuinely redundant with evidence already
+  acquired for the same information job;
+- deciding acquisition continuation and closure under the value test below;
 - producing screen-light summaries, short quotes, precursor signals, precursor
   surfaces, venue evaluations, hidden-venue pointers, negatives, access notes,
   and candidate observations;
@@ -159,9 +159,18 @@ Scanning owns, inside an authorized run:
 A frontier is a next-read candidate: a URL, venue, search phrase, hub, thread,
 byline trail, source-family surface, or cross-reference the walk may inspect.
 
-Choose the next frontier by expected decision value, not by crawl coverage.
-Compare its credible effect on the action, action ceiling, rival assessment, or
-hold condition against marginal cost, latency, access risk, and duplication.
+Choose the next frontier by its expected contribution to the outcome the scan
+was commissioned to inform, not by crawl coverage. For an Intelligence Cycle,
+that outcome is the bound phase question; for a gate-run scan, it is the action,
+action ceiling, rival assessment, or hold condition.
+
+Rank frontiers to decide sequence only. A lower-ranked frontier remains live
+when it could add a distinct, material contribution; a higher-ranked move never
+substitutes merely by outranking it. Same-direction evidence remains valuable
+when it adds an independent origin, substantive detail, another angle or
+attribute, mechanism, qualification, segmentation, corroboration, or
+contradiction.
+
 High-value reasons include:
 
 - likely value of a CSB-nominated venue for this decision;
@@ -179,6 +188,44 @@ High-value reasons include:
 
 The scan records why a frontier was selected when that reason is load-bearing.
 This reason is a steering explanation, not a score or proof.
+
+## Leads, Angles, And Material Seams
+
+A **lead** is an individual observation or pointer. An **angle** is a coherent,
+product-relevant inquiry created by one direct lead or by several leads that
+converge on the same attribute, mechanism, condition, or consequence. A
+**material seam** is an evidence-revealed relationship, alignment, tension, or
+contradiction between observable surfaces that could materially change,
+qualify, deepen, or explain the answer to the bound question.
+
+One direct lead opens an angle immediately when it directly supports or attacks
+a load-bearing promise, use case, mechanism, experience, channel translation,
+or value condition. Several weaker leads open an angle when they coherently
+converge; no lead count establishes or prevents an angle.
+
+Every evidence-revealed, decision-relevant angle receives a discriminating
+check unless it is already answered, plainly immaterial to the bound question,
+or genuinely repetitive. The check is question-directed; it is not a one-query
+ceiling or permission for a shallow pass. An angle becomes a material seam when
+the check supplies independent corroboration, exposes a material contradiction,
+or reveals an important mechanism or condition. A single exceptionally direct
+observation may establish a material seam's existence or risk, never its
+prevalence.
+
+Once visible, a material seam is a required information job. Before acquisition
+can close, it must be supported, contradicted, meaningfully bounded, or honestly
+blocked or gapped. This is adaptive evidence work, not an up-front seam
+inventory, source quota, observation quota, or new ledger. Use the existing
+observation, pointer, negative, gap, and capture-request vocabulary.
+
+Example: a detailed report of pilling directly attacks a product's
+"layers seamlessly under makeup" claim and opens a layering-compatibility
+angle. Independent reports or an important condition promote the claim-to-
+experience relationship to a material seam. Several pump complaints that
+converge on trapped product and lost value can open a packaging-to-value angle.
+Unrelated complaints about delivery, bottle color, coupons, and a damaged
+shipping carton remain separate leads unless they form a coherent,
+product-relevant inquiry.
 
 Precursor is a venue-routing concept here. Do not relabel ordinary weak
 owned/channel/editorial evidence as a precursor just because it falls below the
@@ -250,20 +297,27 @@ Rules:
 
 ## Branch Decay, Pivot, And Stop
 
-Continue acquisition only while the best remaining move has a credible chance
-of changing the action, action ceiling, rival assessment, or hold condition
-enough to justify its marginal cost, latency, access risk, and duplication.
-When an active branch decays, pivot only to a non-dominated frontier with higher
-expected decision value.
+Continue acquisition while any practical remaining move is reasonably likely
+to add material incremental value to the outcome the scan was commissioned to
+inform. Incremental value includes changing, strengthening, independently
+corroborating, qualifying, segmenting, or meaningfully deepening a finding;
+adding mechanism, substance, another angle or attribute; pursuing a material
+seam exposed by initial or later evidence; and testing a credible alternative or
+contradiction. Rank moves to decide sequence only, never to eliminate distinct
+work.
 
-Close acquisition when every material requirement is answered, contradicted,
-held as a typed gap, or has no remaining non-dominated acquisition path whose
-expected decision value materially exceeds its marginal cost, latency, access
-risk, and duplication.
-A typed gap closes a requirement only when no remaining non-dominated path
-whose expected decision value materially exceeds its marginal cost, latency,
-access risk, and duplication could still answer it within the commission's
-lawful, access, and safety bounds.
+Before claiming closure, let the language, explanations, complaints,
+comparisons, contradictions, and unexplained observations actually found
+generate the remaining frontier. Close acquisition only when every material
+seam has an earned disposition and the remaining practical moves are reasonably
+expected to add only immaterial or genuinely repetitive evidence. Evidence is
+repetitive only when it adds no meaningful independent origin, substance, angle,
+mechanism, qualification, segmentation, corroboration, or contradiction.
+
+A typed gap closes a material requirement only when the commission's existing
+limits or source boundaries prevent the remaining answer-bearing work. A
+touched lens, zero-yield route, exhausted route list, or absence of a promotable
+candidate is a route result, never evidence of acquisition closure.
 
 The following conditions stop the current run but do not by themselves prove
 acquisition closure:
@@ -325,9 +379,10 @@ separate downstream shapes:
 - `hidden_venue_pointer` - a URL, venue, hub, or source-family surface not
   surfaced by the starting CSB board but worth returning to CSB, scanning, or
   Capture as a route candidate;
-- `dominance_record` - a rejected route plus the equal-or-better included route
-  that substitutes for its decision-material job, with the cost, latency,
-  access-risk, or duplication reason;
+- `dominance_record` - a rejected route proven likely to repeat evidence already
+  acquired for the same information job, naming the acquired substitute and the
+  shared underlying origin, substance, or angle; it is a route-redundancy record,
+  never a ranking comparison between distinct information jobs;
 - `candidate` - possible target/company/topic worth carrying forward;
 - `observation` - screen-light evidence or contradiction tied to a URL;
 - `pointer` - a URL, venue, byline, hub, or cross-reference likely to improve
@@ -407,9 +462,12 @@ not merely because a venue produced a non-empty clue. At least one must be true:
 - a hidden venue is high-yield enough that Capture-owned acquisition is the
   right next action, not another screen-light scan move.
 
-The request must name the decision-material information job and why no
-equal-or-better included observation or existing lake packet substitutes for
-the requested capture.
+The request must name the decision-material information job, the specific
+acquisition or preservation value sought, and why an acquired observation or
+existing lake packet does not already provide that value. A similar conclusion
+does not substitute when the requested capture adds an independent origin,
+substance, angle, mechanism, qualification, segmentation, corroboration, or
+contradiction.
 
 Do not emit a capture request for ordinary owned-only chronology, retailer
 presence, editorial visibility, AEO visibility, or weak precursor material
@@ -521,63 +579,6 @@ buyer-contact work is authorized here.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    CSB-first scanning now includes a bounded broad-scout phase by default, and
-    MGT frontier selection now treats recency/currentness as an attention and
-    relevance weight: same-strength newer/current public signals normally receive
-    more scan attention than older context. Broad scout may be performed by one
-    route-ledger subagent when available, but the doctrine requires the bounded
-    phase, not a subagent runtime dependency.
-  trigger: product_doctrine
-  related_triggers:
-    - workflow_authority
-    - output_authority
-  controlling_sources_updated:
-    - forseti/product/spines/scanning/README.md
-    - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  intentionally_not_updated:
-    - path: forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-      reason: >
-        Scan-core already controls promoted-observation freshness and 21-day
-        forward stale_after behavior. This change controls CSB-first broad-scout
-        routing and pre-promotion frontier priority in MGT.
-    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-      reason: >
-        Capture route binding remains unchanged; broad-scout output may request
-        preservation but cannot bind Capture routes or treat recency as proof.
-    - path: forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-      reason: >
-        Source-access routing remains capture-owned and unchanged.
-  stale_language_search: >
-    rg -n "broad scout|broad-scout|subagent|recent|recency|freshness|crawler|monitor|registry|atlas|capture route|gate proof"
-    forseti/product/spines/scanning docs/workflows/orca_repo_map_v0.md
-    (run 2026-06-23)
-  stale_language_search_result: >
-    Executed 2026-06-23 after edit. Hits are this accepted broad-scout/recency
-    default, existing scan-core freshness/monitor safeguards, repo-map registry
-    route entries, or explicit no-crawler/no-monitor/no-capture-route/no-gate-proof
-    boundaries. No capless crawl, standing monitor, gate-proof leakage,
-    Capture route binding, or mandatory subagent-runtime claim was found.
-  non_claims:
-    - not validation
-    - not readiness
-    - not scan authorization
-    - not capture authorization
-    - not source-access authorization
-    - not implementation authorization
-```
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Scanning core now treats public YouTube videos/Shorts as bounded non-login
     creator-video routes for creator/social exact-query and frontier reads,
     while preserving no TikTok/Instagram live read without separate authorization,
@@ -644,6 +645,64 @@ direction_change_propagation:
     - not capture authorization
     - not source-access authorization
     - not implementation authorization
+```
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Scanning now treats evidence-revealed angles and material seams as adaptive
+    acquisition work, values substantive same-direction evidence, uses ranking
+    only for sequence, narrows dominance to genuine route redundancy, and
+    blocks rather than seals when unresolved material seams outlive the
+    commission's existing limits.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+      reason: >
+        CSB owns planning-time route inclusion and already delegates acquisition
+        continuation and closure to Scanning; the observed failure occurred
+        after commissioning.
+    - path: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+      reason: >
+        Its equal-or-better language governs planning-time route substitution,
+        not evidence-derived frontier closure, and it already states that zero
+        yield and coverage do not establish acquisition completion.
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        Lead, angle, seam, and evidence sufficiency are judgment semantics; no
+        new field or mechanically truth-verifiable predicate was added.
+    - path: docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+      reason: >
+        The capability-target lens and accepted-residual discipline are
+        unchanged; this edit applies them to acquisition behavior.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        No path, owner, or start route changed.
+  stale_language_search: >
+    rg -n -i "best remaining move|higher expected decision value|equal-or-better included|lawful, access, and safety bounds|zero yield.*completion|lens.*acquisition closure"
+    forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+    forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not behavioral proof
+    - not a source, observation, lead, angle, or seam quota
+    - not a new acquisition schema or validator gate
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
