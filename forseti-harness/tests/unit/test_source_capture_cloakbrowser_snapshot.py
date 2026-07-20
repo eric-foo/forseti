@@ -107,7 +107,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
     assert result.metadata["capture_phase_timing"] == {
-        "schema_version": 2,
+        "schema_version": 3,
         "measurement_status": "unavailable",
         "clock": "monotonic",
         "unit": "milliseconds",
@@ -1113,7 +1113,7 @@ def test_cloakbrowser_runner_threads_load_more_to_capture(monkeypatch: pytest.Mo
     assert seen["load_more_clicks"] == 3
 
 
-def test_live_engine_runs_optional_before_snapshot_action_before_serialization(
+def test_live_engine_runs_early_and_late_site_actions_at_their_owned_stages(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
@@ -1127,6 +1127,16 @@ def test_live_engine_runs_optional_before_snapshot_action_before_serialization(
 
         def goto(self, url: str, **kwargs: object) -> None:
             calls.append("goto")
+
+        def wait_for_timeout(self, ms: float) -> None:
+            calls.append("wait")
+
+        def evaluate(self, script: str, arg: object = None) -> object:
+            if "scrollHeight" in script:
+                return 700
+            if "scrollTo" in script:
+                calls.append("scroll")
+            return None
 
         def content(self) -> str:
             calls.append("content")
@@ -1174,6 +1184,12 @@ def test_live_engine_runs_optional_before_snapshot_action_before_serialization(
             calls.append("before_snapshot")
             return PreCaptureOutcome(attempted=True, steps_completed=True)
 
+        def before_scroll(
+            self, page: object, *, setup_timeout_ms: float
+        ) -> PreCaptureOutcome:
+            calls.append("before_scroll")
+            return PreCaptureOutcome(attempted=True, steps_completed=True)
+
         def confirm(self, rendered_dom: str) -> PinConfirmation:
             return PinConfirmation(confirmed=True, detail="fixture")
 
@@ -1197,13 +1213,20 @@ def test_live_engine_runs_optional_before_snapshot_action_before_serialization(
         url="https://example.com/rendered",
         timeout_seconds=5,
         pre_capture=FakePlugin(),
+        scroll_step_px=700,
         engine=_CloakBrowserSnapshotEngine(),
     )
 
     assert isinstance(result, CloakBrowserSnapshotSuccess)
-    assert calls.index("goto") < calls.index("before_snapshot") < calls.index(
-        "content"
+    assert (
+        calls.index("goto")
+        < calls.index("before_scroll")
+        < calls.index("scroll")
+        < calls.index("before_snapshot")
+        < calls.index("content")
     )
+    assert result.metadata["before_scroll_attempted"] is True
+    assert result.metadata["before_scroll_steps_completed"] is True
     assert result.metadata["before_snapshot_attempted"] is True
     assert result.metadata["before_snapshot_steps_completed"] is True
 

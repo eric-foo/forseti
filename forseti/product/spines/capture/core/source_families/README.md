@@ -16,6 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/source_taxonomy/source_classification_compatibility_contract_v0.md
   - forseti/product/spines/data_lake/README.md
 stale_if:
   - A new source-family capture-to-lake lane lands without a row here.
@@ -41,6 +42,9 @@ Authority split:
 - This folder owns the Capture source-family routing home: where to open for a
   known family, which runner/projection/cleaning surfaces exist, and which
   residuals travel forward.
+- `../source_taxonomy/source_classification_compatibility_contract_v0.md` owns
+  the derived multi-axis interpretation of incumbent `source_family` /
+  `source_surface` strings; this lane catalog remains route navigation.
 - Family indexes and route cards point to the Source Capture Playbook and probe
   receipts for volatile access mechanics; they do not duplicate those mechanics.
 - `forseti/product/spines/data_lake/authority/` owns raw admission, path grammar,

@@ -16,6 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
+  - docs/research/forseti_beauty_retailer_surface_probe_results_v0.md
 ```
 
 ## Bound outcome
@@ -100,11 +101,11 @@ apply the retailer's exact non-incentivized filter when it exists:
 
 1. Preserve a source-labelled `Most Helpful` snapshot with selected sort/filter
    evidence and every available review-row field in the inventory above.
-2. Preserve a source-labelled newest/`Most Recent` cohort with the
-   non-incentivized filter. Continue until the oldest retained source date
-   reaches at least 30 days before capture or the source exhausts. The
-   retailer's current content/Cleaning contract owns any additional
-   low-density floor or cap.
+2. Preserve a source-labelled newest/`Most Recent` response with the
+   non-incentivized filter. This response establishes the monitoring anchor.
+   Continue to a 30-day cohort only when that deeper corpus window is
+   commissioned; a bounded onboarding response must otherwise remain labelled
+   as bounded rather than complete.
 3. Inventory the live rendered demographic vocabulary rather than promoting a
    generic embedded configuration. Preserve each exact label, request value,
    count, denominator, share of declared-demographic subset, coverage of all
@@ -131,7 +132,10 @@ Every onboarding packet requires:
 - content qualification over the exact preserved bytes or operator scratch
   inputs used by the route;
 - raw-to-summary or scratch-to-content row accounting for counts, identifiers,
-  source order, bodies, aggregates, and filtered/demographic counts;
+  source order, body presence, aggregates, and filtered/demographic counts;
+- compact summaries that carry identifiers, counts, dates, and raw-file
+  references without duplicating review, question, or answer bodies already
+  preserved in the exact raw response;
 - an explicit loss ledger covering bounded windows, missing nested rows,
   absent demographics, unknown raw fields, disagreements, and access limits;
 - a raw failure fallback that commits all bytes acquired before acquisition,
@@ -159,11 +163,15 @@ Sephora's current proven mechanics are a source-specific benchmark:
 | --- | --- |
 | Product/variants | The complete `linkStore.page.product` subtree is the broad structured inventory. Preserve every `regularChildSkus` row and exact `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and back-in-stock fields. |
 | AI sentiment | Green and red chips are primary facts; polarity, exact label, and count are separate. The verified sample included positive `Softness`, `Scent`, and `Texture`, plus negative `Irritation` and `Scent`. |
-| Helpful reviews | Use Sephora's `Most Helpful` posture together with `Non-Incentivized Reviews Only`; the page-declared Bazaarvoice companion uses `TotalPositiveFeedbackCount:desc`. Preserve exact response order without claiming Sephora's proprietary ranking algorithm. |
-| Recent reviews | Use `Most Recent` plus `Non-Incentivized Reviews Only`; the Bazaarvoice companion uses `SubmissionTime:desc`, pages at source offsets, and stops only after the oldest source date crosses the inclusive 30-day cutoff or the source exhausts. |
-| Reviewer age | The live labels are exactly `20s`, `30s`, `40s`, and `50s +`; their observed Bazaarvoice values are `20s`, `30s`, `40s`, and `50s`. The conflicting generic embedded `13-17` through `Over54` vocabulary is not live authority. |
-| Q&A | Select `Most Answers`. If the rendered continuation toggles without progress, preserve that failure and use the page-declared Bazaarvoice request `TotalAnswerCount:desc`, including nested answers, within the commissioned bound. |
-| Companion role | `sephora_bazaarvoice_onboarding_summary_v3` supplements the hash-verified aggregate PDP packet. It never replaces the rendered source or retroactively changes a legacy packet. |
+| Helpful reviews | On onboarding, preserve one `Most Helpful` response with `Non-Incentivized Reviews Only`, `TotalPositiveFeedbackCount:desc`, review bodies, and supported filtered review statistics. Preserve exact response order without claiming Sephora's proprietary ranking algorithm. |
+| Recent reviews | On onboarding, preserve one `Most Recent` response with `Non-Incentivized Reviews Only` and `SubmissionTime:desc`; a passively observed page-load response may satisfy this role only when its exact bytes are archived and qualified. It establishes the last-seen review ID for monitoring and is not a 30-day corpus claim. |
+| Reviewer demographics | Promote the live age, skin-type, and skin-concern distributions. The live age labels are exactly `20s`, `30s`, `40s`, and `50s +`; their observed Bazaarvoice values are `20s`, `30s`, `40s`, and `50s`. Retain other returned distributions and statistics in the raw response without promoting them into the compact summary. These self-reported rows form an analytically useful observed subset, not the full reviewer population or a representative census. |
+| Q&A | On onboarding, preserve one `Most Answers` response using `TotalAnswerCount:desc`, including returned answer bodies, within the commissioned limit. It is a bounded answer-rich window, not the complete Q&A corpus. |
+| Monitoring | Request `Most Recent` only. Stop as soon as the prior last-seen review ID is found; follow source offsets only when the first response does not contain it. Do not routinely refresh `Most Helpful` or Q&A. |
+| Companion role | The accepted low-footprint target has three response roles: Helpful plus statistics, Recent, and Q&A. Exact bodies remain in raw responses; the summary carries compact facts and raw-file references. The current `sephora_bazaarvoice_onboarding_summary_v3` runner predates this target and remains append-only historical evidence until a later implementation proves the new route. |
 
 The Sephora profile is a quality bar for search depth and loss visibility. It
-is not a template that licenses invented fields on another retailer.
+is not a template that licenses invented fields on another retailer. The
+packet-backed evidence, unarchived observation boundary, storage measurements,
+and cross-retailer compatibility findings behind this target are recorded in
+`docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`.

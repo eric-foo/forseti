@@ -28,6 +28,19 @@ _ENQUEUE_ARGUMENT_RE = re.compile(
     r"(?P<argument>\"(?:\\.|[^\"\\])*\")\s*\)",
     flags=re.DOTALL,
 )
+_PROMOTIONAL_OVERLAY_SELECTOR = (
+    '[role="dialog"][aria-modal="true"][aria-label="POPUP Form"]'
+    '[data-kl-scroll-locking-modal="true"]'
+)
+_PROMOTIONAL_OVERLAY_CLOSE_SELECTOR = (
+    'button.klaviyo-close-form[aria-label="Close dialog"]'
+)
+_PROMOTIONAL_OVERLAY_MARKERS = (
+    "Lucky You!",
+    "10% off Your First Order.",
+    "Claim My 10% Off",
+)
+_PROMOTIONAL_OVERLAY_TIMEOUT_MS = 5_000
 
 
 @dataclass(frozen=True)
@@ -54,6 +67,69 @@ class LuckyscentUSMarketPlugin:
             warning_notes=[],
         )
 
+    def before_scroll(
+        self, page: object, *, setup_timeout_ms: float
+    ) -> PreCaptureOutcome:
+        """Dismiss only Luckyscent's exact first-order promotional modal.
+
+        This is a route-owned ``benign_dismissible_overlay`` action. It never
+        guesses from a generic X, submits the email form, grants cookie consent,
+        or handles a challenge. Unknown or ambiguous dialogs remain untouched
+        and fail visibly through the existing capture sufficiency/extraction
+        gates.
+        """
+        timeout_ms = max(
+            1,
+            min(int(setup_timeout_ms), _PROMOTIONAL_OVERLAY_TIMEOUT_MS),
+        )
+        try:
+            modal = page.locator(_PROMOTIONAL_OVERLAY_SELECTOR)  # type: ignore[union-attr]
+            modal_count = modal.count()
+            if modal_count == 0:
+                return PreCaptureOutcome(
+                    attempted=False,
+                    steps_completed=True,
+                    reason=None,
+                    warning_notes=[],
+                )
+            if modal_count != 1:
+                return _overlay_failure(
+                    f"expected one Luckyscent promotional modal, observed {modal_count}"
+                )
+
+            modal_text = modal.inner_text(timeout=timeout_ms)
+            missing_markers = [
+                marker
+                for marker in _PROMOTIONAL_OVERLAY_MARKERS
+                if marker not in modal_text
+            ]
+            if missing_markers:
+                return _overlay_failure(
+                    "Luckyscent promotional modal markers changed; missing "
+                    + ", ".join(repr(marker) for marker in missing_markers)
+                )
+
+            close_control = modal.locator(_PROMOTIONAL_OVERLAY_CLOSE_SELECTOR)
+            close_count = close_control.count()
+            if close_count != 1:
+                return _overlay_failure(
+                    "expected one exact Luckyscent promotional close control, "
+                    f"observed {close_count}"
+                )
+            close_control.click(timeout=timeout_ms)
+            modal.wait_for(state="hidden", timeout=timeout_ms)
+            return PreCaptureOutcome(
+                attempted=True,
+                steps_completed=True,
+                reason=None,
+                warning_notes=[],
+            )
+        except Exception as exc:
+            return _overlay_failure(
+                "Luckyscent promotional modal dismissal failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
     def confirm(self, rendered_dom: str) -> PinConfirmation:
         return confirm_luckyscent_us_market(rendered_dom)
 
@@ -63,6 +139,16 @@ class LuckyscentUSMarketPlugin:
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
             "market_preference_action": "none_default_market_assertion",
+            "overlay_action_classification": "benign_dismissible_overlay",
+            "overlay_action_name": "luckyscent_first_order_promo_dismiss_v1",
+            "overlay_action_target": "luckyscent_klaviyo_first_order_promo",
+            "overlay_action_allowed_control": "Close dialog",
+            "overlay_action_forbidden_controls": [
+                "Claim My 10% Off",
+                "email submission",
+                "cookie consent controls",
+                "challenge controls",
+            ],
         }
 
     def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
@@ -80,6 +166,15 @@ class LuckyscentUSMarketPlugin:
             f"confirmed ({reason}); treat storefront country and currency as un-pinned "
             "(honest gap)"
         )
+
+
+def _overlay_failure(reason: str) -> PreCaptureOutcome:
+    return PreCaptureOutcome(
+        attempted=True,
+        steps_completed=False,
+        reason=reason,
+        warning_notes=[f"luckyscent_overlay_dismissal_failed: {reason}"],
+    )
 
 
 def confirm_luckyscent_us_market(rendered_dom: str) -> PinConfirmation:

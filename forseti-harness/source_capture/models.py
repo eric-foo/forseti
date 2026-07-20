@@ -295,6 +295,12 @@ class SourceCapturePacket(StrictModel):
     limitations: list[str] = Field(default_factory=list)
     receipt_metadata: ReceiptMetadata
 
+    def derived_source_classification(self) -> dict[str, object]:
+        """Return the re-derivable view without changing persisted packet fields."""
+        from source_capture.source_classification import classify_source_pair
+
+        return classify_source_pair(self.source_family, self.source_surface).to_dict()
+
     @model_validator(mode="after")
     def validate_closed_postures(self) -> "SourceCapturePacket":
         _require_closed_posture(

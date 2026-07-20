@@ -210,7 +210,7 @@ authorized.
 | --- | --- |
 | `forseti-harness/capture_spine/` | Capture-spine implementation packages. |
 | `forseti-harness/containers/` | Reusable container definitions for bounded unattended capture; currently the private real-Chrome-under-Xvfb browser host. |
-| `forseti-harness/source_capture/` | Packet, adapter, source-family, transcript, and capture orchestration code. |
+| `forseti-harness/source_capture/` | Packet, adapter, source-family, derived source-classification, transcript, and capture orchestration code. |
 | `forseti-harness/youtube_capture/` | Bounded YouTube public-metadata capture helpers. |
 | `forseti-harness/data_lake/` | Filesystem lake, catalog, availability, and retrieval helpers. |
 | `forseti-harness/cleaning/` | Bounded Cleaning models, transforms, and lake writers. |
