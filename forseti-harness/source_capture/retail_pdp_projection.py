@@ -8,7 +8,7 @@ from html import unescape
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Mapping, Sequence
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from pydantic import Field, field_validator, model_validator
 
@@ -36,6 +36,10 @@ NORDSTROM_PDP_CONTENT_RECORD_KIND = "retail_pdp_nordstrom_aggregate_content"
 NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v2"
 NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v5"
 NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
+ULTA_PDP_CONTENT_RECORD_KIND = "retail_pdp_ulta_aggregate_content"
+ULTA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_ulta_aggregate_content_v1"
+ULTA_PDP_PARSER_VERSION = "retail_pdp_ulta_aggregate_parser_v1"
+ULTA_PDP_CONTENT_PROFILE = "ulta_pdp_aggregate"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
@@ -663,6 +667,87 @@ class NordstromPdpAggregateContentRecord(StrictModel):
         ):
             raise ValueError(
                 "Nordstrom parser v4+ requires information_extraction_coverage"
+            )
+        return self
+
+
+UltaContentAnchorKind = Literal[
+    "file", "html_selector", "script_index", "text_pattern"
+]
+
+
+class UltaPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_carried_module",
+    ]
+    retailer: Literal["ulta"] = "ulta"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: UltaContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Ulta PDP content source_visible_fields may carry raw facts only; "
+                f"forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "UltaPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class UltaPdpAggregateContentRecord(StrictModel):
+    """Lean canonical content; loader envelopes remain represented by input hashes."""
+
+    record_kind: Literal["retail_pdp_ulta_aggregate_content"] = (
+        ULTA_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_ulta_aggregate_content_v1"] = (
+        ULTA_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_ulta_aggregate_parser_v1"] = (
+        ULTA_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["ulta_pdp_aggregate"] = ULTA_PDP_CONTENT_PROFILE
+    source_url: str
+    rows: list[UltaPdpContentRow] = Field(default_factory=list)
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_required_rows(self) -> "UltaPdpAggregateContentRecord":
+        counts = {
+            kind: sum(row.row_kind == kind for row in self.rows)
+            for kind in (
+                "retail_pdp_product",
+                "retail_variant_offer",
+                "retail_review_substrate",
+            )
+        }
+        if any(count != 1 for count in counts.values()):
+            raise ValueError(
+                "Ulta content record requires exactly one product, offer, and "
+                "review-substrate row"
             )
         return self
 
@@ -1482,6 +1567,235 @@ def _validate_luckyscent_content_packet_metadata(
         raise ValueError(
             "Luckyscent content packet does not carry a confirmed US/USD market pin"
         )
+
+
+def build_ulta_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Retain target-bound Ulta facts without retaining its loader envelope."""
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    requested_sku = _ulta_sku_from_source_url(source_url)
+    if requested_sku is None:
+        raise ValueError(
+            "Ulta aggregate content records require an ulta.com PDP URL with "
+            "exactly one numeric sku"
+        )
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=None,
+        currency_pin=None,
+        variant_pin=SimpleNamespace(
+            status=VisibleFactStatus.KNOWN,
+            value=f"sku={requested_sku}",
+        ),
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    projected = _project_retail_html(
+        _decode_text(rendered_dom),
+        visible_text_files=[(visible_text_file, _decode_text(visible_text))],
+        visible_text=_decode_text(visible_text),
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="ulta",
+    )
+    if projected.residuals:
+        raise ValueError(
+            "Ulta aggregate content requires a residual-free target binding; "
+            f"found: {', '.join(projected.residuals)}"
+        )
+
+    product_rows = [
+        row for row in projected.rows if row.row_kind == "retail_pdp_product"
+    ]
+    offer_rows = [
+        row for row in projected.rows if row.row_kind == "retail_variant_offer"
+    ]
+    review_rows = [
+        row for row in projected.rows if row.row_kind == "retail_review_substrate"
+    ]
+    if not (
+        len(product_rows) == len(offer_rows) == len(review_rows) == 1
+    ):
+        raise ValueError(
+            "Ulta aggregate content requires exactly one product, offer, and "
+            "review-substrate row"
+        )
+    offer = offer_rows[0].source_visible_fields
+    review = review_rows[0].source_visible_fields
+    if _string_or_none(offer.get("sku")) != requested_sku:
+        raise ValueError("Ulta projected SKU does not match the requested URL")
+    if _string_or_none(offer.get("price_currency")) != "USD":
+        raise ValueError("Ulta projected offer does not carry USD")
+    if not _string_or_none(offer.get("price")):
+        raise ValueError("Ulta projected offer lacks target-bound price evidence")
+    if not _string_or_none(offer.get("availability")):
+        raise ValueError("Ulta projected offer lacks target-bound availability")
+    if (
+        not _string_or_none(review.get("rating"))
+        or not _string_or_none(review.get("review_count"))
+        or not _string_or_none(review.get("ld_json_rating"))
+        or not _string_or_none(review.get("apollo_rating"))
+    ):
+        raise ValueError(
+            "Ulta projected review substrate lacks agreeing JSON-LD/Apollo "
+            "rating or count evidence"
+        )
+
+    product_document, breadcrumb_document = _ulta_target_documents(
+        projected.rows, requested_sku=requested_sku
+    )
+    if product_document is None:
+        raise ValueError("Ulta target Product JSON-LD was not retained by the parser")
+    product_fields = _ulta_product_content_fields(
+        product_document,
+        breadcrumb_document=breadcrumb_document,
+        source_url=source_url,
+    )
+    content_rows = [
+        UltaPdpContentRow(
+            slice_id=slice_id,
+            row_id=product_rows[0].row_id,
+            row_kind="retail_pdp_product",
+            source_visible_fields=product_fields,
+            residuals=product_rows[0].residuals,
+            source_anchor_kind="script_index",
+            source_anchor_value=f"ld_json Product sku={requested_sku}",
+        ),
+        _ulta_content_row(offer_rows[0]),
+        _ulta_content_row(review_rows[0]),
+        *[
+            _ulta_content_row(row)
+            for row in projected.rows
+            if row.row_kind == "retail_carried_module"
+        ],
+    ]
+    record = UltaPdpAggregateContentRecord(
+        source_url=source_url,
+        rows=content_rows,
+        residuals=[],
+    )
+    return record.model_dump(mode="json")
+
+
+def _ulta_content_row(row: RetailPdpProjectionRow) -> UltaPdpContentRow:
+    return UltaPdpContentRow(
+        slice_id=row.raw_ref.slice_id,
+        row_id=row.row_id,
+        row_kind=row.row_kind,
+        retailer="ulta",
+        source_visible_fields=dict(row.source_visible_fields),
+        residuals=row.residuals,
+        source_anchor_kind=row.raw_anchor.anchor_kind,
+        source_anchor_value=row.raw_anchor.anchor_value,
+    )
+
+
+def _ulta_target_documents(
+    rows: Sequence[RetailPdpProjectionRow],
+    *,
+    requested_sku: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    product: dict[str, Any] | None = None
+    breadcrumb: dict[str, Any] | None = None
+    for row in rows:
+        if row.row_kind != "retail_embedded_structured_json":
+            continue
+        fields = row.source_visible_fields
+        if fields.get("structured_json_kind") != "ld_json":
+            continue
+        raw = fields.get("raw_json_text")
+        if not isinstance(raw, str):
+            continue
+        try:
+            document = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(document, dict):
+            continue
+        document_type = document.get("@type")
+        if (
+            document_type == "Product"
+            and _string_or_none(document.get("sku")) == requested_sku
+        ):
+            product = document
+        elif document_type == "BreadcrumbList":
+            breadcrumb = document
+    return product, breadcrumb
+
+
+def _ulta_product_content_fields(
+    product: Mapping[str, object],
+    *,
+    breadcrumb_document: Mapping[str, object] | None,
+    source_url: str,
+) -> dict[str, Any | None]:
+    brand_value = product.get("brand")
+    brand = (
+        _string_or_none(brand_value.get("name"))
+        if isinstance(brand_value, Mapping)
+        else _string_or_none(brand_value)
+    )
+    breadcrumb: list[str] = []
+    if breadcrumb_document is not None:
+        items = breadcrumb_document.get("itemListElement")
+        if isinstance(items, list):
+            for item in items:
+                if not isinstance(item, Mapping):
+                    continue
+                nested = item.get("item")
+                name = (
+                    _string_or_none(nested.get("name"))
+                    if isinstance(nested, Mapping)
+                    else _string_or_none(item.get("name"))
+                )
+                if name:
+                    breadcrumb.append(name)
+    return {
+        "product_id": _string_or_none(product.get("productID")),
+        "sku": _string_or_none(product.get("sku")),
+        "product_name": _string_or_none(product.get("name")),
+        "brand": brand,
+        "description": _string_or_none(product.get("description")),
+        "scent": _string_or_none(product.get("scent")),
+        "source_product_url": source_url,
+        "breadcrumb": breadcrumb,
+    }
 
 
 def build_nordstrom_pdp_aggregate_content_record(
@@ -2409,7 +2723,16 @@ def _variant_offer_fields(
         structured_entries,
         preferred_sku=selected_sku,
     )
-    apollo_fields, apollo_anchor = _ulta_apollo_offer_fields(structured_entries) if retailer == "ulta" else ({}, None)
+    apollo_fields, apollo_anchor = (
+        _ulta_apollo_offer_fields(
+            structured_entries,
+            preferred_sku=_sku_from_variant_pin(
+                _fact_value(source_slice.variant_pin)
+            ),
+        )
+        if retailer == "ulta"
+        else ({}, None)
+    )
     if retailer == "ulta" and not apollo_fields and _ulta_apollo_offer_substrate_present(structured_entries):
         residuals.append(f"{source_slice.slice_id}:ulta:variant_offer_substrate_present_but_unextracted")
     if retailer == "sephora" and selected_sku and not structured_fields:
@@ -2700,7 +3023,10 @@ def _review_substrate_fields(
         )
         return fields, anchor, residuals
     if retailer == "ulta":
-        fields, residuals = _ulta_review_fields(structured_entries)
+        fields, residuals = _ulta_review_fields(
+            structured_entries,
+            requested_sku=_ulta_sku_from_source_url(source_url or ""),
+        )
         return fields, _with_anchor(fallback_anchor, "script_index", "ld_json/apollo_state review modules"), residuals
     if retailer == "walmart":
         return _walmart_review_fields(visible_text), _with_anchor(fallback_anchor, "html_selector", "#__NEXT_DATA__"), []
@@ -4682,14 +5008,20 @@ def _offer_fields_from_product(
 
 def _ulta_apollo_offer_fields(
     structured_entries: list[_StructuredJsonEntry],
+    *,
+    preferred_sku: str | None = None,
 ) -> tuple[dict[str, Any | None], RetailProjectionRawAnchor | None]:
     for entry in structured_entries:
         if entry.kind != "apollo_state":
             continue
-        requested_sku = _first_regex(entry.raw_text, (r'\\"sku\\":\\"([^\\"]+)\\"', r'"sku":"([^"]+)"'))
         best: dict[str, object] | None = None
         for item in _walk_dicts(entry.parsed):
             if item.get("skuId") and item.get("productName") and (item.get("listPrice") or item.get("salePrice")):
+                if (
+                    preferred_sku is not None
+                    and _string_or_none(item.get("skuId")) != preferred_sku
+                ):
+                    continue
                 best = item
                 break
         if best is None:
@@ -4702,7 +5034,7 @@ def _ulta_apollo_offer_fields(
             "price": price[1:] if isinstance(price, str) and price.startswith("$") else price,
             "price_currency": "USD" if price else None,
             "availability": _first_literal(json.dumps(entry.parsed), ("InStock", "OutOfStock")),
-            "apollo_requested_sku": requested_sku,
+            "apollo_requested_sku": preferred_sku,
             "variant_binding_source": "apollo_state",
         }, entry.raw_anchor
     return {}, None
@@ -4945,18 +5277,28 @@ def _equivalent_review_count(left: str, right: str) -> bool:
     return left.replace(",", "").strip() == right.replace(",", "").strip()
 
 
-def _ulta_review_fields(structured_entries: list[_StructuredJsonEntry]) -> tuple[dict[str, Any | None], list[str]]:
+def _ulta_review_fields(
+    structured_entries: list[_StructuredJsonEntry],
+    *,
+    requested_sku: str | None,
+) -> tuple[dict[str, Any | None], list[str]]:
     residuals: list[str] = []
     ld_count = None
     ld_rating = None
     apollo_count = None
     apollo_rating = None
+    reviews: list[dict[str, Any | None]] = []
     for entry in structured_entries:
         for item in _walk_dicts(entry.parsed):
             aggregate = item.get("aggregateRating") if isinstance(item, dict) else None
             if entry.kind == "ld_json" and isinstance(aggregate, dict):
+                item_sku = _string_or_none(item.get("sku"))
+                if requested_sku and item_sku != requested_sku:
+                    continue
                 ld_count = _string_or_none(aggregate.get("reviewCount")) or ld_count
                 ld_rating = _string_or_none(aggregate.get("ratingValue")) or ld_rating
+                if not reviews:
+                    reviews = _ulta_review_body_rows(item.get("review"))
             if entry.kind == "apollo_state" and item.get("reviewCount") and item.get("rating"):
                 apollo_count = _string_or_none(item.get("reviewCount")) or apollo_count
                 apollo_rating = _string_or_none(item.get("rating")) or apollo_rating
@@ -4972,7 +5314,58 @@ def _ulta_review_fields(structured_entries: list[_StructuredJsonEntry]) -> tuple
         "ld_json_rating": ld_rating,
         "apollo_review_count": apollo_count,
         "apollo_rating": apollo_rating,
+        "displayed_review_body_count": len(reviews),
+        "review_body_coverage": "target_product_json_ld",
+        "reviews": reviews,
     }, residuals
+
+
+def _ulta_review_body_rows(value: object) -> list[dict[str, Any | None]]:
+    if not isinstance(value, list):
+        return []
+    reviews: list[dict[str, Any | None]] = []
+    for item in value:
+        if not isinstance(item, Mapping) or item.get("@type") != "Review":
+            continue
+        author_value = item.get("author")
+        location_value = item.get("locationCreated")
+        rating_value = item.get("reviewRating")
+        reviews.append(
+            {
+                "title": _string_or_none(item.get("name")),
+                "body": _string_or_none(item.get("reviewBody")),
+                "date_published": _string_or_none(item.get("datePublished")),
+                "author": (
+                    _string_or_none(author_value.get("name"))
+                    if isinstance(author_value, Mapping)
+                    else _string_or_none(author_value)
+                ),
+                "location": (
+                    _string_or_none(location_value.get("name"))
+                    if isinstance(location_value, Mapping)
+                    else _string_or_none(location_value)
+                ),
+                "rating": (
+                    _string_or_none(rating_value.get("ratingValue"))
+                    if isinstance(rating_value, Mapping)
+                    else None
+                ),
+            }
+        )
+    return reviews
+
+
+def _ulta_sku_from_source_url(source_url: str) -> str | None:
+    parsed = urlparse(source_url)
+    requested_skus = parse_qs(parsed.query).get("sku", [])
+    if (
+        parsed.scheme not in {"http", "https"}
+        or parsed.hostname not in {"ulta.com", "www.ulta.com"}
+        or len(requested_skus) != 1
+        or not requested_skus[0].isdigit()
+    ):
+        return None
+    return requested_skus[0]
 
 
 def _carried_module_fields(
@@ -5519,6 +5912,10 @@ __all__ = [
     "SEPHORA_PDP_CONTENT_RECORD_KIND",
     "SEPHORA_PDP_CONTENT_SCHEMA_VERSION",
     "SEPHORA_PDP_PARSER_VERSION",
+    "ULTA_PDP_CONTENT_PROFILE",
+    "ULTA_PDP_CONTENT_RECORD_KIND",
+    "ULTA_PDP_CONTENT_SCHEMA_VERSION",
+    "ULTA_PDP_PARSER_VERSION",
     "PROJECTION_RETAIL_PDP_LANE",
     "Retailer",
     "RetailPdpProjectionInputError",
@@ -5534,8 +5931,10 @@ __all__ = [
     "build_luckyscent_pdp_aggregate_content_record",
     "NordstromPdpAggregateContentRecord",
     "SephoraPdpAggregateContentRecord",
+    "UltaPdpAggregateContentRecord",
     "build_nordstrom_pdp_aggregate_content_record",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
     "build_sephora_pdp_aggregate_content_record",
+    "build_ulta_pdp_aggregate_content_record",
 ]

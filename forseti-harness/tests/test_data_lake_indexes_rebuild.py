@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import sqlite3
 from pathlib import Path
 
 from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION
@@ -22,15 +23,21 @@ from data_lake.derived_retrieval_cache import (
     _CLASSIFIER_SOURCE_NAMES,
 )
 from data_lake.derived_retrieval_views import (
+    CURRENT_POINTER_FILENAME,
     MENTIONS_LANE,
     audit_derived_retrieval_source_integrity,
     build_by_creator_view,
     build_by_mention_view,
+    current_generation_root,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
 )
-from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.derived_retrieval_state import (
+    IncrementalSourceInventory,
+    STATE_PARTS,
+)
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from data_lake.silver_lineage import (
     SilverAnchor,
     SilverLineage,
@@ -45,6 +52,7 @@ from data_lake.silver_record import (
 from data_lake.sibling_selection import SiblingSelectionError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from tests.unit._creator_metric_silver_fixtures import commit_raw_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-02T00:00:00+00:00"}
 _NS = "projection_ig"
@@ -53,6 +61,10 @@ _POLICY_ARGS = [
     "--product-mention-policy-version", "v0",
     "--product-mention-policy-fingerprint-sha256", "a" * 64,
 ]
+
+
+def _current_core(root: DataLakeRoot) -> Path:
+    return current_generation_root(root)[0]
 
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
@@ -192,14 +204,13 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     legacy_root = root.path / "indexes" / "derived_retrieval" / "object_level"
     legacy_root.mkdir(parents=True)
     (legacy_root / "by_mention.json").write_text("legacy", encoding="utf-8")
-    silver_core = root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
-
     report = rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert report["status"] == "rebuilt"
     assert report["views"] == ["by_creator", "by_mention", "undone"]
     assert report["deferred_views"] == []
 
     assert not legacy_root.exists()
+    silver_core = _current_core(root)
     by_creator = json.loads((silver_core / "query_tables" / "by_creator.json").read_text("utf-8"))
     by_mention = json.loads((silver_core / "query_tables" / "by_mention.json").read_text("utf-8"))
     undone = json.loads((silver_core / "query_tables" / "undone.json").read_text("utf-8"))
@@ -327,10 +338,7 @@ def test_prove_rebuildability_green_then_tamper_fails(tmp_path: Path) -> None:
         "undone": "rebuildable",
     }
 
-    view_path = (
-        root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
-        / "query_tables" / "undone.json"
-    )
+    view_path = _current_core(root) / "query_tables" / "undone.json"
     view_path.write_bytes(view_path.read_bytes() + b" ")  # smuggled state
     proof = prove_derived_retrieval_rebuildability(root)
     assert proof["status"] == "failed"
@@ -373,9 +381,7 @@ def test_incremental_cache_is_disposable_and_byte_identical(tmp_path: Path) -> N
         stamp=_STAMP,
         full_rebuild=True,
     )
-    target_root = root._within(
-        "indexes", "derived_retrieval", "silver_vault", "core"
-    )
+    target_root = _current_core(root)
     cold_files = {
         path.relative_to(target_root).as_posix(): path.read_bytes()
         for path in sorted(target_root.rglob("*.json"))
@@ -411,6 +417,148 @@ def test_incremental_cache_is_disposable_and_byte_identical(tmp_path: Path) -> N
     }
     assert rebuilt_without_cache["classification_cache"]["hits"] == 0
     assert rebuilt_files == cold_files
+
+
+def test_repeat_refresh_is_noop_and_new_source_publishes_incrementally(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+
+    first = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY
+    )
+    repeated = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY
+    )
+
+    assert repeated["status"] == "current"
+    assert repeated["generation_id"] == first["generation_id"]
+    assert repeated["source_inventory"]["source_body_reads"] == 0
+
+    packet_id = _commit_packet(root, tmp_path, "incremental-new-source")
+    _write_fragrantica_projection(root, packet_id)
+    advanced = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY
+    )
+
+    assert advanced["status"] == "rebuilt"
+    assert advanced["generation_id"] != first["generation_id"]
+    assert advanced["source_inventory"]["new_sources"] == 1
+    assert advanced["source_inventory"]["source_body_reads"] == 1
+    by_mention = json.loads(
+        (_current_core(root) / "query_tables" / "by_mention.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert "Ariana Grande" in by_mention["native_product_pages"]
+
+
+def test_incremental_refresh_rejects_changed_or_disappeared_source(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+    source = next(
+        path for path in (root.path / "derived").glob("*/*/*/*") if path.is_file()
+    )
+    original = source.read_bytes()
+
+    source.write_bytes(original + b" ")
+    with pytest.raises(DataLakeRootError, match="changed after it was inventoried"):
+        rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+    source.write_bytes(original)
+    source.unlink()
+    with pytest.raises(DataLakeRootError, match="disappeared after it was inventoried"):
+        rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+
+def test_failed_pointer_switch_keeps_previous_complete_generation(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import data_lake.derived_retrieval_views as views
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    first = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY
+    )
+    pointer = _current_core(root).parent.parent / CURRENT_POINTER_FILENAME
+    pointer_before = pointer.read_bytes()
+    packet_id = _commit_packet(root, tmp_path, "pointer-failure")
+    _write_fragrantica_projection(root, packet_id)
+    real_atomic_replace = views._atomic_replace
+
+    def fail_pointer(target: Path, data: bytes) -> None:
+        if target.name == CURRENT_POINTER_FILENAME:
+            raise OSError("seeded pointer failure")
+        real_atomic_replace(target, data)
+
+    monkeypatch.setattr(views, "_atomic_replace", fail_pointer)
+    with pytest.raises(OSError, match="seeded pointer failure"):
+        rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+    assert pointer.read_bytes() == pointer_before
+    assert current_generation_root(root)[1] == first["generation_id"]
+
+
+def test_concurrent_updater_fails_loud_and_disposable_state_rebuilds(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    first = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY, stamp=_STAMP
+    )
+    first_files = {
+        path.relative_to(_current_core(root)).as_posix(): path.read_bytes()
+        for path in sorted(_current_core(root).rglob("*.json"))
+    }
+
+    with IncrementalSourceInventory(root):
+        with pytest.raises(DataLakeRootError, match="another updater is active"):
+            rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+    root._within(*STATE_PARTS).unlink()
+    rebuilt = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY, stamp=_STAMP
+    )
+    rebuilt_files = {
+        path.relative_to(_current_core(root)).as_posix(): path.read_bytes()
+        for path in sorted(_current_core(root).rglob("*.json"))
+    }
+    assert rebuilt["status"] == "rebuilt"
+    assert rebuilt["generation_id"] == first["generation_id"]
+    assert rebuilt_files == first_files
+
+
+def test_unsupported_inventory_schema_releases_writer_before_recovery(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _seeded_root(root, tmp_path)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+    inventory_path = root._within(*STATE_PARTS)
+    connection = sqlite3.connect(inventory_path)
+    try:
+        connection.execute(
+            "UPDATE metadata SET value = 'unsupported' "
+            "WHERE key = 'state_schema_version'"
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    with pytest.raises(DataLakeRootError, match="unsupported lake-map"):
+        rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+    inventory_path.unlink()
+    recovered = rebuild_derived_retrieval(
+        root, product_mention_policy=_POLICY, full_rebuild=True
+    )
+    assert recovered["status"] == "rebuilt"
 
 
 def test_classifier_version_covers_local_authority_implementation_modules() -> None:
@@ -560,9 +708,7 @@ def test_incremental_equality_and_integrity_audit_are_read_only_gates(
     rebuild_derived_retrieval(
         root, product_mention_policy=_POLICY, stamp=_STAMP
     )
-    target_root = root._within(
-        "indexes", "derived_retrieval", "silver_vault", "core"
-    )
+    target_root = _current_core(root)
     before = {
         path.relative_to(target_root).as_posix(): path.read_bytes()
         for path in sorted(target_root.rglob("*.json"))
@@ -841,6 +987,45 @@ def test_by_creator_surfaces_conflicting_account_aliases(tmp_path: Path) -> None
     )
 
 
+def test_incremental_and_cold_alias_conflicts_are_byte_identical(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    first = "01J00000000000000000000003"
+    second = "01J00000000000000000000004"
+    assert first < second
+    assert raw_shard(first) > raw_shard(second)
+
+    for packet_id, account_id in (
+        (first, "acct_ig_fixture_002"),
+        (second, "acct_ig_fixture_001"),
+    ):
+        commit_raw_packet(
+            root,
+            packet_id=packet_id,
+            body=f'{{"packet_id": "{packet_id}"}}'.encode(),
+        )
+        root.record_availability(packet_id)
+        _write_creator_metric_record(
+            root,
+            packet_id,
+            "account_metric.json",
+            subject_ref={
+                "namespace": "instagram",
+                "kind": "platform_public_account",
+                "native_id": "fixture_creator",
+                "orca_platform_account_id": account_id,
+            },
+        )
+
+    report = prove_incremental_rebuild_equality(
+        root, product_mention_policy=_POLICY
+    )
+
+    assert report["status"] == "proven"
+    assert report["mismatched_files"] == []
+
+
 def test_by_mention_carries_native_product_page_identity(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_packet(root, tmp_path, "product")
@@ -978,15 +1163,7 @@ def test_lookup_runner_fails_closed_on_absent_or_tampered_view_pair(
     pid = _commit_packet(root, tmp_path, "tampered-view")
     _write_fragrantica_projection(root, pid)
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
-    view_path = (
-        root.path
-        / "indexes"
-        / "derived_retrieval"
-        / "silver_vault"
-        / "core"
-        / "query_tables"
-        / "by_mention.json"
-    )
+    view_path = _current_core(root) / "query_tables" / "by_mention.json"
     tampered = json.loads(view_path.read_text(encoding="utf-8"))
     tampered["native_product_pages"]["Ariana Grande"]["Cloud"][0][
         "canonical_url"
@@ -1037,15 +1214,9 @@ def test_runner_cli_bootstraps_active_policy_once(
     assert report["product_mention_policy_source"] == "active_checkout_bootstrap"
     assert report["product_mention_policy"] == expected_policy
     manifest = json.loads(
-        (
-            root.path
-            / "indexes"
-            / "derived_retrieval"
-            / "silver_vault"
-            / "core"
-            / "manifests"
-            / "by_mention.json"
-        ).read_text(encoding="utf-8")
+        (_current_core(root) / "manifests" / "by_mention.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert (
         manifest["selection_policy_versions"]["product_mention_policy"]
@@ -1109,7 +1280,8 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     ) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["mode"] == "incremental_rebuild"
-    assert report["derived_retrieval"]["classification_cache"]["hits"] > 0
+    assert report["derived_retrieval"]["status"] == "current"
+    assert report["derived_retrieval"]["source_inventory"]["source_body_reads"] == 0
 
     assert main(
         [
@@ -1138,10 +1310,7 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     assert report["mode"] == "audit_source_integrity"
     assert report["derived_retrieval"]["status"] == "proven"
 
-    view_path = (
-        root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
-        / "query_tables" / "by_mention.json"
-    )
+    view_path = _current_core(root) / "query_tables" / "by_mention.json"
     view_path.write_bytes(view_path.read_bytes() + b" ")
     assert main(["--root", str(root.path), "--target", "derived_retrieval", "--prove-rebuildability"]) == 1
     report = json.loads(capsys.readouterr().out)

@@ -67,7 +67,7 @@ class LuckyscentUSMarketPlugin:
             warning_notes=[],
         )
 
-    def before_snapshot(
+    def before_scroll(
         self, page: object, *, setup_timeout_ms: float
     ) -> PreCaptureOutcome:
         """Dismiss only Luckyscent's exact first-order promotional modal.

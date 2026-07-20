@@ -77,9 +77,12 @@ from source_capture.retail_pdp_content import (
     NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_CONTENT_PROFILE,
     SEPHORA_PDP_PARSER_VERSION,
+    ULTA_PDP_CONTENT_PROFILE,
+    ULTA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
+    build_ulta_pdp_aggregate_content_record,
 )
 from source_capture.source_detail_sufficiency import (
     SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -253,6 +256,13 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _nordstrom_content_extraction_spec("content")
+        if retail_capture_profile.name == ULTA_PDP_CONTENT_PROFILE:
+            if ulta_market != "US":
+                raise ValueError(
+                    "ulta_pdp_aggregate content capture requires --ulta-market US"
+                )
+            if content_extraction is None:
+                content_extraction = _ulta_content_extraction_spec("content")
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -432,11 +442,11 @@ def run_source_capture_cloakbrowser_packet(
         )
     luckyscent_overlay_failure = _luckyscent_overlay_dismissal_failure(
         luckyscent_market=luckyscent_market,
-        before_snapshot_steps_completed=capture_result.metadata.get(
-            "before_snapshot_steps_completed"
+        before_scroll_steps_completed=capture_result.metadata.get(
+            "before_scroll_steps_completed"
         ),
-        before_snapshot_reason=capture_result.metadata.get(
-            "before_snapshot_reason"
+        before_scroll_reason=capture_result.metadata.get(
+            "before_scroll_reason"
         ),
     )
     if luckyscent_overlay_failure is not None:
@@ -1064,19 +1074,19 @@ def _luckyscent_market_pin_failure(
 def _luckyscent_overlay_dismissal_failure(
     *,
     luckyscent_market: str | None,
-    before_snapshot_steps_completed: object,
-    before_snapshot_reason: object,
+    before_scroll_steps_completed: object,
+    before_scroll_reason: object,
 ) -> str | None:
     # Only an affirmative completed receipt admits content: ``True`` covers both
     # an absent modal and a successful dismissal, ``False`` is a failed
     # dismissal, and ``None``/missing means the receipt never arrived.
-    if luckyscent_market is None or before_snapshot_steps_completed is True:
+    if luckyscent_market is None or before_scroll_steps_completed is True:
         return None
-    if isinstance(before_snapshot_reason, str) and before_snapshot_reason.strip():
-        return before_snapshot_reason.strip()
-    if before_snapshot_steps_completed is False:
-        return "route-owned pre-snapshot overlay action did not complete"
-    return "route-owned pre-snapshot overlay outcome was not recorded"
+    if isinstance(before_scroll_reason, str) and before_scroll_reason.strip():
+        return before_scroll_reason.strip()
+    if before_scroll_steps_completed is False:
+        return "route-owned pre-scroll overlay action did not complete"
+    return "route-owned pre-scroll overlay outcome was not recorded"
 
 
 def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
@@ -1085,6 +1095,20 @@ def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionS
         extractor_version=LUCKYSCENT_PDP_PARSER_VERSION,
         extractor=lambda rendered_dom, visible_text, final_url: (
             build_luckyscent_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            )
+        ),
+    )
+
+
+def _ulta_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=ULTA_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
+            build_ulta_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
                 source_url=final_url,
@@ -1353,9 +1377,9 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["content", "raw"],
         default=None,
         help=(
-            "Retention mode for the enabled Sephora, Luckyscent, and "
-            "Nordstrom aggregate routes. Omitted defaults those routes to content; "
-            "other profiles remain raw."
+            "Retention mode for the enabled Sephora, Luckyscent, Nordstrom, and "
+            "Ulta aggregate routes. Omitted defaults those routes to content; other "
+            "profiles remain raw."
         ),
     )
     parser.add_argument("--session-id", default=None)
@@ -1641,6 +1665,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             SEPHORA_PDP_CONTENT_PROFILE,
             LUCKYSCENT_PDP_CONTENT_PROFILE,
             NORDSTROM_PDP_CONTENT_PROFILE,
+            ULTA_PDP_CONTENT_PROFILE,
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -1691,6 +1716,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "--nordstrom-country US"
                 )
             content_extraction = _nordstrom_content_extraction_spec(
+                args.retention_mode or "content"
+            )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == ULTA_PDP_CONTENT_PROFILE
+        ):
+            if args.ulta_market != "US":
+                raise ValueError(
+                    "ulta_pdp_aggregate content capture requires --ulta-market US"
+                )
+            content_extraction = _ulta_content_extraction_spec(
                 args.retention_mode or "content"
             )
         settle_seconds = (

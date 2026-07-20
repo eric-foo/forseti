@@ -27,6 +27,7 @@ from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from data_lake.silver_record import append_raw_packet_tombstone
 import runners.run_data_lake_catalog as catalog_runner
 from source_capture.models import known_fact
+from source_capture.source_classification import SOURCE_CLASSIFICATION_SCHEMA_VERSION
 from source_capture.writer import write_local_source_capture_packet
 
 
@@ -63,6 +64,35 @@ def _write_reddit_packet(
         session_identity=session_identity,
         series_id=series_id,
     )
+
+
+def test_catalog_exposes_reference_record_and_review_for_fragrance_database(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    src = tmp_path / "fragrantica_content.json"
+    src.write_text(json.dumps({"product": "test fragrance"}), encoding="utf-8")
+    write_local_source_capture_packet(
+        data_root=root,
+        input_files=[src],
+        source_family="fragrance_native_database",
+        source_surface="fragrantica_product_page_direct_http",
+        source_locator=known_fact("https://www.fragrantica.com/perfume/test"),
+        decision_question="what source-visible product and review evidence is present?",
+        capture_context="catalog classification fixture",
+    )
+
+    rebuild_catalog(root)
+
+    rows = _source_surface_rows(root)
+    assert len(rows) == 1
+    classification = rows[0]["source_classification"]
+    assert classification["schema_version"] == SOURCE_CLASSIFICATION_SCHEMA_VERSION
+    assert classification["evidence_shapes"] == ["reference_record", "review"]
+    assert classification["projection_mechanics"] == [
+        "entity_attribute_snapshot",
+        "rated_text_recency",
+    ]
 
 
 def test_rebuild_catalog_excludes_tombstoned_packet_but_keeps_raw_auditable(

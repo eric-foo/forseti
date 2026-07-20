@@ -65,9 +65,18 @@ Compactness never authorizes dropping valuable rows.
 - `sephora_pdp_aggregate`
 - `luckyscent_pdp_aggregate`
 - `nordstrom_pdp_aggregate`
+- `ulta_pdp_aggregate`
 
 Every other Retail/PDP or grid profile remains raw until separately proven.
 Direct-HTTP grids remain raw.
+
+Ulta content retains the requested product/SKU, target offer, aggregate rating
+and count, every target Product JSON-LD review body present in the rendered
+capture, and the declared compact product modules. The full Apollo/loader
+envelope is not canonical content: its supplied-input hash remains in extraction
+metadata, while recommendation products and unrelated loader state are not
+retained. Historical Ulta raw packets remain readable through the legacy
+decoder.
 
 Nordstrom review onboarding captures the complete Most Recent 30-day cohort.
 If fewer than 12 reviews fall in that window, it continues in the same source

@@ -161,11 +161,29 @@ lake indexes rebuild --root <FORSETI_DATA_ROOT> --target availability|derived_re
   hash_basis material and stays content-free and passive.
 - `derived_retrieval` rebuilds only from committed `derived/` + raw refs and remains
   non-authoritative, governance-gated, and build-deferred.
+- The built Silver map publishes complete immutable editions under
+  `indexes/derived_retrieval/silver_vault/core/generations/<generation_id>/`
+  and atomically replaces the small `core/CURRENT` pointer only after all
+  query-table and manifest bytes exist. An interrupted build therefore leaves
+  the previous complete generation current. Published generations are retained;
+  automatic garbage collection is not part of this contract.
+- `core/cache/source_inventory.sqlite3` is a private, disposable builder
+  notebook. It inventories every relevant derived source path and immutable
+  content hash, allowing unchanged bytes and valid classification keys to be
+  reused. It is never lake authority, never a reader surface, and never the
+  byte-proof target. Deleting it causes a cold inventory bootstrap; the
+  canonical JSON views and manifests remain the engine-neutral proof surface.
+- A previously inventoried write-once source that changes or disappears fails
+  the incremental refresh loudly. A same-input refresh publishes nothing and
+  returns `current`; a changed-input refresh reads new or metadata-changed
+  source bodies and publishes a new generation.
 - The prove-rebuildability check fails if any `indexes/` entry cannot be regenerated
   from committed raw/attachment/derived material, or if `availability` contains
   routing, priority, success, actor-history, dossier, or analytic content. Any
   `indexes/` content that cannot be regenerated from committed material is not an
-  index.
+  index. SQLite file bytes are not compared; deletion plus cold reconstruction
+  and incremental-versus-cold canonical JSON equality prove that the builder
+  notebook contains no unique truth.
 
 ## Accepted Residuals
 

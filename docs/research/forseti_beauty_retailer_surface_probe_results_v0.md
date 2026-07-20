@@ -7,11 +7,11 @@ scope: >
   Records bounded, subject-bound retailer page-state observations commissioned
   by the Beauty Retailer Surface Probe handoff. Target x Naturium, Nordstrom x
   Nécessaire, and Luckyscent x Pearfat Parfum are complete with their pin and
-  projection limitations typed explicitly. Owner-authorized Tower 28 price,
-  certification-directory, and diversion add-on reads are also recorded.
+  projection limitations typed explicitly. Owner-authorized Tower 28 add-on
+  reads and the packet-backed Bazaarvoice route inventory are also recorded.
 use_when:
   - Comparing public retailer assortment, offer, review, and claims surfaces for accepted beauty-pool companies.
-  - Retrieving canonical packet locators and limits for the three completed probes and the Tower 28 add-on reads.
+  - Retrieving canonical packet locators and limits for the completed probes, Tower 28 add-on reads, or Bazaarvoice route findings.
 authority_boundary: evidence_register_only
 open_next:
   - docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md
@@ -1907,6 +1907,99 @@ observations:
   performance. The content supplement adds three bounded SOBS rows without
   changing the storefront-pin verdict.
 
+## Bazaarvoice low-footprint route findings (2026-07-21)
+
+This section is implementation input for the owning
+`forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md`.
+It authorizes no runtime change. Packet-backed facts are separated from one
+unarchived live observation so the target route is not misreported as already
+implemented or proven.
+
+### Accepted Sephora target
+
+The smallest complete onboarding target has three response roles:
+
+1. one non-incentivized `Most Helpful` response containing source-ordered
+   review bodies and supported filtered review statistics;
+2. one non-incentivized `Most Recent` response establishing the last-seen
+   review ID; and
+3. one bounded `Most Answers` Q&A response containing returned answer bodies.
+
+A qualifying page-load Recent response may satisfy the second role only when
+its exact bytes are archived and qualified; otherwise the companion issues one
+explicit Recent request. The compact summary promotes age, skin type, and skin
+concerns and retains other statistics only in raw. Review, question, and answer
+bodies also remain in exact raw responses; summary rows carry IDs, ranks,
+dates, body presence, counts, and raw-file references.
+
+Routine monitoring requests only `Most Recent`, stops when the prior last-seen
+review ID is found, and follows offsets only when needed to find that anchor.
+Helpful and Q&A are not routinely refreshed. Demographics are self-reported:
+a large observed subset can be analytically useful, but sample size does not
+remove self-selection or missingness and is not a representative census.
+
+### Packet-backed storage facts
+
+Verified Sephora packet
+`F:\forseti-data-lake\raw\af1\01KXZYFSBDJRDMPSJ0G40QW437` preserves ten files
+totalling 2,878,971 bytes:
+
+| Preserved file | Bytes | Finding |
+| --- | ---: | --- |
+| `questions_most_answers_offset_000.json` | 917,298 | The 100-question response and included answer bodies dominate bounded Q&A storage. |
+| `reviews_non_incentivized_most_helpful_offset_000.json` | 282,409 | One 100-row Helpful response, including review bodies, is modest relative to the summary. |
+| `reviews_non_incentivized_most_recent_offset_00000.json` | 222,802 | One 100-row Recent response establishes the approximate monitoring-response scale for this product. |
+| `sephora_onboarding_summary.json` | 1,437,000 | The current summary repeats complete question and review inventories already present in raw. |
+
+The current runner and packet use eight response documents: Q&A, a separate
+review total, Helpful, four separate age buckets, and Recent. Its Helpful
+response has no `FilteredStats`, so the packet proves current cost and
+summary duplication, not the proposed combined-statistics request.
+
+A bounded live probe separately observed that Bazaarvoice accepted
+`Include=Products&FilteredStats=Reviews` on Helpful and returned review
+aggregates plus context distributions, including the same four age counts,
+skin type, and skin concerns. Helpful plus that statistics response was roughly
+300 KB for the tested product. Those probe bytes were not admitted to the
+lake; the combined request is therefore an accepted target to prove, not
+durable packet-backed evidence.
+
+### Retailer compatibility
+
+| Retailer | Preserved evidence | Conclusion and next action |
+| --- | --- | --- |
+| Sephora | Packet `01KXZYFSBDJRDMPSJ0G40QW437` and current runner | Reviews and questions are proven end to end; implement and packet-prove the three-role target. |
+| Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. A later compatibility lane mapped item `2150828728` to product `3Y2AMXE2TTC1` and review-family ID `282PMOVUGY9E`, but found the current page retrieving reviews through Walmart's first-party persisted `ReviewsById` GraphQL query via `cegateway`; no public Bazaarvoice client/deployment configuration was exposed. | Historical Bazaarvoice-shaped review data is proven, but a current direct public Bazaarvoice route is not. Close Walmart as a direct Bazaarvoice extension candidate; any future implementation must be a separately proven Walmart-native adapter. |
+| Target | Packet `01KXR823YS3V5M9E01QXP71ETC` contains deployment `targetcom/main_site/production/en_US`, Bazaarvoice markers, and review identities, but no archived API response or family binding. | Preserve one bounded response fixture and bind retailer product ID to Bazaarvoice family ID before enabling. |
+| Kohl's | Packet `01KXXHBKF2GPK4M96SAV1VQKM3` contains `api.bazaarvoice.com` and deployment `kohls/redesign/production/en_US`, but no archived review response. | Use the admitted Kohl's browser route for one bounded response fixture and product-family binding before enabling. |
+| Nordstrom | Packet `01KXR9BNWBP8R8XKPKFJHZJTPN` contains Bazaarvoice-hosted media URLs but no API host, deployment, passkey, or review response. | Media provenance is insufficient; do not enable without recon. |
+| Beauty Pie | Its archived homepage loads `apps.bazaarvoice.com` but contains no product response or identifier mapping. | Historical integration is suspected; do not enable without product-level recon. |
+| Ulta | `docs/research/retail_pdp_review_record_capture_recon_v0.md` identifies rendered PowerReviews DOM and Apollo/JSON-LD review state. | Keep a separate PowerReviews adapter. |
+
+Credo, LuckyScent, Tower 28 DTC, and the tested Amazon route have no
+packet-backed basis for this Bazaarvoice path. Absence in existing samples does
+not prove that a retailer never uses Bazaarvoice.
+
+Shared code should model the three response roles and own secret-safe request
+construction, exact response preservation, row-ID deduplication, last-seen
+stopping, and compact raw references. Each retailer adapter owns its public
+client/deployment and locale, product-family mapping, incentive filter,
+demographic fields, passive Recent availability, and Q&A behavior. Sephora
+parameters must not be copied merely because another retailer loads
+Bazaarvoice.
+
+The Walmart follow-on observation above was returned by the compatibility lane,
+not admitted as a new packet-backed API fixture. That lane also observed
+source-visible `Most Recent` and `Most Helpful` sorts, locale `en_US`, only a
+`Verified purchases only` filter, no demographic or non-incentivized filter,
+and disabled Q&A. No runtime change or response fixture was produced. These
+facts close the attempted direct-Bazaarvoice extension without claiming that
+Walmart never uses Bazaarvoice behind its first-party surface.
+
+Monitoring retention remains unresolved. No route may claim storage
+deduplication until a later implementation chooses and proves preservation of
+every unchanged response, content-addressed payload reuse, or a smaller
+heartbeat tied to a retained response.
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,

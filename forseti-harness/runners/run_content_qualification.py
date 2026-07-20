@@ -35,9 +35,11 @@ from source_capture.retail_pdp_projection import (  # noqa: E402
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_PARSER_VERSION,
+    ULTA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
+    build_ulta_pdp_aggregate_content_record,
 )
 
 Extractor = Callable[[bytes, bytes, str], dict[str, Any]]
@@ -91,6 +93,10 @@ _ROUTES: dict[str, tuple[str, Extractor]] = {
     "nordstrom": (
         NORDSTROM_PDP_PARSER_VERSION,
         _rendered(build_nordstrom_pdp_aggregate_content_record),
+    ),
+    "ulta": (
+        ULTA_PDP_PARSER_VERSION,
+        _rendered(build_ulta_pdp_aggregate_content_record),
     ),
 }
 

@@ -5,7 +5,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from data_lake.sibling_selection import SiblingCandidate, select_current_record_per_subject
 from data_lake.silver_record import (
@@ -109,6 +109,7 @@ def select_product_mention_records(
     *,
     policy: Mapping[str, Any],
     preclassified_authority: Mapping[str, SilverSourceAuthority] | None = None,
+    source_records: Iterable[Any] | None = None,
 ) -> ProductMentionSelectionResult:
     """Select one exact-policy record per transcript evidence subject.
 
@@ -121,116 +122,130 @@ def select_product_mention_records(
     source_refs: list[str] = []
     candidates: list[SiblingCandidate] = []
 
-    for raw_anchor in sorted(root.list_available()):
-        lane_dir = root.lane_dir(
-            subtree="derived", raw_anchor=raw_anchor, lane=MENTIONS_LANE
-        )
-        if not lane_dir.is_dir():
-            continue
-        for record_file in sorted(path for path in lane_dir.iterdir() if path.is_file()):
-            body = record_file.read_bytes()
-            source_refs.append(f"{raw_anchor}/{MENTIONS_LANE}/{record_file.name}")
-            try:
-                record = json.loads(body.decode("utf-8"))
-            except ValueError:
-                record = None
-            if not isinstance(record, dict):
-                residuals.append(_residual(raw_anchor, record_file.name, "unreadable"))
-                continue
+    available = set(root.list_available())
+    if source_records is None:
+        rows = []
+        for raw_anchor in sorted(available):
+            lane_dir = root.lane_dir(
+                subtree="derived", raw_anchor=raw_anchor, lane=MENTIONS_LANE
+            )
+            if lane_dir.is_dir():
+                rows.extend(
+                    (raw_anchor, record_file.name, record_file.read_bytes())
+                    for record_file in sorted(
+                        path for path in lane_dir.iterdir() if path.is_file()
+                    )
+                )
+    else:
+        rows = [
+            (row.raw_anchor, row.record_id, row.body)
+            for row in source_records
+            if row.raw_anchor in available and row.lane == MENTIONS_LANE
+        ]
 
-            observation = _observation(record)
-            actual_version = observation.get("policy_version") if observation else None
-            actual_fingerprint = (
-                observation.get("policy_fingerprint_sha256") if observation else None
+    for raw_anchor, record_id, body in rows:
+        source_refs.append(f"{raw_anchor}/{MENTIONS_LANE}/{record_id}")
+        try:
+            record = json.loads(body.decode("utf-8"))
+        except ValueError:
+            record = None
+        if not isinstance(record, dict):
+            residuals.append(_residual(raw_anchor, record_id, "unreadable"))
+            continue
+
+        observation = _observation(record)
+        actual_version = observation.get("policy_version") if observation else None
+        actual_fingerprint = (
+            observation.get("policy_fingerprint_sha256") if observation else None
+        )
+        if (
+            not isinstance(actual_version, str)
+            or not actual_version.strip()
+            or not isinstance(actual_fingerprint, str)
+            or re.fullmatch(r"[0-9a-f]{64}", actual_fingerprint) is None
+        ):
+            residuals.append(
+                _residual(
+                    raw_anchor,
+                    record_id,
+                    "missing_or_invalid_policy_identity",
+                )
             )
-            if (
-                not isinstance(actual_version, str)
-                or not actual_version.strip()
-                or not isinstance(actual_fingerprint, str)
-                or re.fullmatch(r"[0-9a-f]{64}", actual_fingerprint) is None
-            ):
-                residuals.append(
-                    _residual(
-                        raw_anchor,
-                        record_file.name,
-                        "missing_or_invalid_policy_identity",
-                    )
-                )
-                continue
-            try:
-                validate_silver_vault_record(record)
-            except SilverRecordError:
-                residuals.append(
-                    _residual(raw_anchor, record_file.name, "invalid_silver_envelope")
-                )
-                continue
-            record_ref = f"{raw_anchor}/{MENTIONS_LANE}/{record_file.name}"
-            authority = (
-                preclassified_authority.get(record_ref)
-                if preclassified_authority is not None
-                else None
+            continue
+        try:
+            validate_silver_vault_record(record)
+        except SilverRecordError:
+            residuals.append(
+                _residual(raw_anchor, record_id, "invalid_silver_envelope")
             )
-            try:
-                if authority is None:
-                    verify_silver_vault_record_sources(root, record)
-                elif authority.status != CURRENT_SOURCE_BACKED_AUTHORITY:
-                    detail = f": {authority.error}" if authority.error else ""
-                    raise SilverRecordError(
-                        "Silver source authority is "
-                        f"{authority.status} ({authority.reason_code}){detail}"
-                    )
-            except SilverRecordError as exc:
-                residuals.append(
-                    _residual(
-                        raw_anchor,
-                        record_file.name,
-                        "source_ref_unresolved",
-                        error=str(exc),
-                    )
+            continue
+        record_ref = f"{raw_anchor}/{MENTIONS_LANE}/{record_id}"
+        authority = (
+            preclassified_authority.get(record_ref)
+            if preclassified_authority is not None
+            else None
+        )
+        try:
+            if authority is None:
+                verify_silver_vault_record_sources(root, record)
+            elif authority.status != CURRENT_SOURCE_BACKED_AUTHORITY:
+                detail = f": {authority.error}" if authority.error else ""
+                raise SilverRecordError(
+                    "Silver source authority is "
+                    f"{authority.status} ({authority.reason_code}){detail}"
                 )
-                continue
-            if observation.get("observation_set_kind") != "transcript_product_mentions":
-                residuals.append(
-                    _residual(raw_anchor, record_file.name, "wrong_observation_set_kind")
+        except SilverRecordError as exc:
+            residuals.append(
+                _residual(
+                    raw_anchor,
+                    record_id,
+                    "source_ref_unresolved",
+                    error=str(exc),
                 )
-                continue
-            if (
-                actual_version != normalized["policy_version"]
-                or actual_fingerprint != normalized["policy_fingerprint_sha256"]
-            ):
-                residuals.append(
-                    _residual(
-                        raw_anchor,
-                        record_file.name,
-                        "policy_mismatch",
-                        actual_policy_version=actual_version,
-                        actual_policy_fingerprint_sha256=actual_fingerprint,
-                    )
+            )
+            continue
+        if observation.get("observation_set_kind") != "transcript_product_mentions":
+            residuals.append(
+                _residual(raw_anchor, record_id, "wrong_observation_set_kind")
+            )
+            continue
+        if (
+            actual_version != normalized["policy_version"]
+            or actual_fingerprint != normalized["policy_fingerprint_sha256"]
+        ):
+            residuals.append(
+                _residual(
+                    raw_anchor,
+                    record_id,
+                    "policy_mismatch",
+                    actual_policy_version=actual_version,
+                    actual_policy_fingerprint_sha256=actual_fingerprint,
                 )
-                continue
-            subject_key = _subject_key(raw_anchor, record)
-            if subject_key is None:
-                residuals.append(
-                    _residual(raw_anchor, record_file.name, "missing_selection_subject")
-                )
-                continue
-            selected_record = SelectedProductMentionRecord(
-                raw_anchor=raw_anchor,
-                record_id=record_file.name,
-                sha256=hashlib.sha256(body).hexdigest(),
+            )
+            continue
+        subject_key = _subject_key(raw_anchor, record)
+        if subject_key is None:
+            residuals.append(
+                _residual(raw_anchor, record_id, "missing_selection_subject")
+            )
+            continue
+        selected_record = SelectedProductMentionRecord(
+            raw_anchor=raw_anchor,
+            record_id=record_id,
+            sha256=hashlib.sha256(body).hexdigest(),
+            subject_key=subject_key,
+            record=record,
+        )
+        candidates.append(
+            SiblingCandidate(
                 subject_key=subject_key,
-                record=record,
+                raw_anchor=raw_anchor,
+                record_ref=selected_record.record_ref,
+                content_hash=str(record["content_hash"]),
+                derivation_rank=0,
+                payload=selected_record,
             )
-            candidates.append(
-                SiblingCandidate(
-                    subject_key=subject_key,
-                    raw_anchor=raw_anchor,
-                    record_ref=selected_record.record_ref,
-                    content_hash=str(record["content_hash"]),
-                    derivation_rank=0,
-                    payload=selected_record,
-                )
-            )
+        )
 
     selected: list[SelectedProductMentionRecord] = []
     for _subject_key_value, result in sorted(
