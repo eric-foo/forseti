@@ -3,10 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Intelligence Cycle acquisition seal
-scope: Passing Acquire & Seal closeout after bounded Sephora and Reddit recovery for the Summer Fridays current-company Understanding commission.
+scope: Owner-reopened Acquire & Seal state pending an adversarial material-evidence-gap review of the Summer Fridays current-company Understanding commission.
 use_when:
   - Verifying whether Deliver is authorized.
-  - Auditing the required Sephora review and Reddit recovery receipts and their accepted limits.
+  - Auditing the preserved passing Turn A at commit 4f3e3476309b78777e4254814b23cfa1b6b34dc9 without treating that historical seal as current Deliver authority.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_beauty_summer_fridays_current_understanding_two_turn_handoff_v0.md
@@ -15,10 +15,10 @@ open_next:
 ```
 
 ```yaml
-current_lifecycle_status: ACQUISITION_SEALED
-intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_COMPLETED
-resume_allowed: true_only_by_new_commission_or_material_source_change
-correct_intake_result: SEALED_READY_FOR_DELIVER
+current_lifecycle_status: ACQUISITION_REOPENED_BY_OWNER
+intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_INCOMPLETE
+resume_allowed: true_only_for_adversarial_gap_review_then_owner_adjudicated_bounded_acquisition
+correct_intake_result: BLOCKED_ACQUISITION_INCOMPLETE
 ```
 
 ```yaml
@@ -178,20 +178,37 @@ phase_acquisition_seal:
       requirement: Sephora fulfillment context
       result: canonical US/USD storefront is confirmed on the exact PDP; delivery location remains unpinned
       blocking: false
+    - gap_id: GAP-004
+      requirement: owner-adjudicated material completeness of the evidence world
+      result: >
+        The owner reopened Turn A before Deliver and commissioned an independent
+        adversarial review of portfolio/hero-product concentration, cross-product
+        customer evidence, attention trajectory, and any other material omission.
+      blocking: true
   consolidated_recovery_receipt:
     completed_at: "2026-07-21"
     sephora_result: exact P455936 US/USD parent plus qualified Bazaarvoice companion passed
     reddit_result: four exact first-rung 403 failures retained; guarded same-thread CloakBrowser packets, consolidation, and agent views passed
     discovery_expansion: none
-  seal_state: SEALED_READY_FOR_DELIVER
-  acquisition_gate: pass
-  deliver_allowed: true
+  owner_reopen_receipt:
+    reopened_at: "2026-07-21"
+    authority: current_owner_instruction
+    preserved_review_target: 4f3e3476309b78777e4254814b23cfa1b6b34dc9
+    reason: determine whether materially missing evidence should be acquired before Deliver rather than equating a sufficient seal with a highest-quality evidence world
+    next_step: read-only adversarial evidence-gap review followed by owner adjudication of any proposed bounded acquisition
+  seal_state: BLOCKED_ACQUISITION_INCOMPLETE
+  acquisition_gate: blocked
+  deliver_allowed: false
   sealed_at: "2026-07-21"
+  reopened_at: "2026-07-21"
 ```
 
-`SEALED_READY_FOR_DELIVER`.
+`BLOCKED_ACQUISITION_INCOMPLETE`.
 
-The three passing fields agree. Bounded recovery closed the two required routes
-without reopening discovery, deleting first-rung failures, or converting
-self-selected customer evidence into prevalence or representative approval.
-Fresh-context Turn B is authorized from this seal.
+The three current gate fields agree in the blocked state. Commit
+`4f3e3476309b78777e4254814b23cfa1b6b34dc9` preserves the previously passing
+Turn A for exact adversarial inspection, including its successful Sephora and
+Reddit recovery. The owner has withdrawn Deliver authorization until an
+independent reviewer identifies which additional evidence, if any, is material
+to the unchanged bound question and the owner adjudicates the proposed bounded
+reopening scope.
