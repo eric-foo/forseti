@@ -16,12 +16,16 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from html.parser import HTMLParser
-from typing import Any, Iterator
+from typing import Any, Iterator, Literal
 from urllib.parse import parse_qs, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
     PreCaptureOutcome,
+)
+from source_capture.sephora_brand_grid import (
+    SephoraBrandGridStateError,
+    load_sephora_brand_grid_state,
 )
 
 
@@ -43,10 +47,13 @@ class SephoraUSMarketPlugin:
     target_url: str
     country_code: str = "US"
     currency_code: str = "USD"
+    page_kind: Literal["pdp", "grid"] = "pdp"
 
     def __post_init__(self) -> None:
         if self.country_code != "US" or self.currency_code != "USD":
             raise ValueError("Sephora market assertion currently supports only US/USD")
+        if self.page_kind not in {"pdp", "grid"}:
+            raise ValueError("Sephora market assertion page_kind must be pdp or grid")
         parsed = urlparse(self.target_url)
         country_switch = parse_qs(parsed.query).get("country_switch", [])
         if (
@@ -113,11 +120,12 @@ class SephoraUSMarketPlugin:
             )
 
     def confirm(self, rendered_dom: str) -> PinConfirmation:
-        return confirm_sephora_us_market(rendered_dom)
+        return confirm_sephora_us_market(rendered_dom, page_kind=self.page_kind)
 
     def describe(self) -> dict[str, object]:
         return {
             "pre_capture": "sephora_us_country_continuation_and_market_assertion",
+            "market_page_kind": self.page_kind,
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
             "market_preference_action": (
@@ -141,23 +149,48 @@ class SephoraUSMarketPlugin:
         )
 
 
-def confirm_sephora_us_market(rendered_dom: str) -> PinConfirmation:
-    """Require no country dialog, served US state, and a Sephora-sold USD offer."""
+def confirm_sephora_us_market(
+    rendered_dom: str, *, page_kind: Literal["pdp", "grid"] = "pdp"
+) -> PinConfirmation:
+    """Require independent retailer-owned US and exact-USD evidence."""
     dom = rendered_dom or ""
     country_dialog_absent = _COUNTRY_DIALOG_DIAGNOSTIC_TEXT not in dom
     country_confirmed = any(
         params.get("country") == "US" for params in _iter_render_query_params(dom)
     )
-    usd_offer_confirmed = any(
-        _is_sephora_usd_offer(candidate) for candidate in _iter_json_ld_objects(dom)
-    )
-    if country_dialog_absent and country_confirmed and usd_offer_confirmed:
+    if page_kind == "pdp":
+        currency_confirmed = any(
+            _is_sephora_usd_offer(candidate) for candidate in _iter_json_ld_objects(dom)
+        )
+        currency_detail = (
+            "product JSON-LD contained a Sephora-sold Offer with priceCurrency=USD"
+        )
+        currency_missing = "Sephora-sold JSON-LD Offer with priceCurrency=USD"
+    elif page_kind == "grid":
+        try:
+            grid_state = load_sephora_brand_grid_state(dom)
+        except SephoraBrandGridStateError:
+            grid_state = None
+        currency_confirmed = (
+            grid_state is not None
+            and bool(grid_state.products)
+            and grid_state.explicit_currency_codes == ("USD",)
+        )
+        currency_detail = (
+            "brand-grid linkStore PageJSON contained product rows and only explicit "
+            "currency code USD"
+        )
+        currency_missing = (
+            "brand-grid linkStore product state with an explicit selected USD currency code"
+        )
+    else:
+        raise ValueError("Sephora market confirmation page_kind must be pdp or grid")
+    if country_dialog_absent and country_confirmed and currency_confirmed:
         return PinConfirmation(
             confirmed=True,
             detail=(
                 "country-routing dialog absent, Sephora.renderQueryParams bound "
-                "country=US, and product JSON-LD contained a Sephora-sold Offer "
-                "with priceCurrency=USD"
+                f"country=US, and {currency_detail}"
             ),
         )
     missing: list[str] = []
@@ -165,8 +198,8 @@ def confirm_sephora_us_market(rendered_dom: str) -> PinConfirmation:
         missing.append("country-routing dialog absent")
     if not country_confirmed:
         missing.append("Sephora.renderQueryParams country=US")
-    if not usd_offer_confirmed:
-        missing.append("Sephora-sold JSON-LD Offer with priceCurrency=USD")
+    if not currency_confirmed:
+        missing.append(currency_missing)
     return PinConfirmation(
         confirmed=False,
         detail="required Sephora US/USD rendered conjunction absent: " + "; ".join(missing),

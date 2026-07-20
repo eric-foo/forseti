@@ -248,8 +248,17 @@ _PROFILES = {
             scroll_passes=1,
             scroll_step_px=350,
             requirements=_requirements(
-                visible_text_contains=("Results for", "Quicklook", "Lip Sleeping Mask"),
-                visible_text_regexes=(r"\d+\s+Results for", r"\$\d+\.\d{2}"),
+                visible_text_contains=("Quicklook",),
+                visible_text_regexes=(
+                    r"\d+\s+Results",
+                    r"\d+-\d+\s+of\s+\d+\s+Results",
+                    r"\$\d+\.\d{2}",
+                ),
+                rendered_dom_contains=('id="linkStore"', '"nthBrand"'),
+                rendered_dom_regexes=(
+                    r'"products"\s*:\s*\[',
+                    r'"totalProducts"\s*:\s*\d+',
+                ),
             ),
         ),
         RetailCaptureProfile(
