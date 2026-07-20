@@ -6,8 +6,8 @@ artifact_role: Product architecture declaration (capability tier)
 scope: >
   Declares the columnar packer v0 (payload-agnostic core + creator-audience
   adapter) Mini God Tier for the bound capability of model-facing serialization
-  of an already-selected evidence set, with named accepted residuals; explicitly
-  refuses a full God Tier claim.
+  of an already-selected evidence set, with named accepted residuals; this
+  declaration does not claim full God Tier.
 use_when:
   - Checking what capability tier the current packing implementation may be described as.
   - Deciding whether a residual's upgrade trigger has fired.
@@ -20,7 +20,7 @@ open_next:
   - forseti-harness/tests/unit/test_packing_columnar_v0.py
 stale_if:
   - Any residual below is closed, reassigned, or its trigger fires.
-  - A later owner decision declares full God Tier or supersedes this tier.
+  - This declaration is superseded if a later owner decision declares full God Tier.
   - The serialization contract's boundary or invariants are amended.
 ```
 
