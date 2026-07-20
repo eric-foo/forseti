@@ -259,6 +259,107 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     assert rebuilt["sql_catalogue"]["logical_digest"] == before
 
 
+def test_sql_catalogue_extracts_silver_events_and_never_persists_actor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Genuinely exercise the Silver extraction branch of refresh_sql_catalogue.
+
+    The raw-packet path is covered above; before this regression nothing drove
+    ``_dr_silver_events``, so the ``CURRENT_SOURCE_BACKED_AUTHORITY`` reference
+    used by the Silver branch raised ``NameError`` only on a live build over a
+    real Silver lane (the reported bootstrap failure). Here a committed
+    ``silver__capture__audience_comments`` record classified as current
+    source-backed must yield a searchable evidence event whose commenter
+    identifier is hydrated on demand but never stored in SQL.
+    """
+    from data_lake.derived_retrieval_views import (
+        SQL_EVENT_LANES,
+        _incremental_source_lanes,
+        query_exact_actor_context,
+        query_sql_catalogue,
+        refresh_sql_catalogue,
+        sql_catalogue_status,
+    )
+
+    assert "silver__capture__audience_comments" in SQL_EVENT_LANES
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    anchor = _commit_packet(root, tmp_path, "silver-audience")
+    record = {
+        "record_id": "audience_comment.json",
+        "raw_anchor": anchor,
+        "schema_version": "silver_vault_record_v0",
+        "producer_row_kind": "instagram_audience_comment",
+        "source_family": "instagram",
+        "source_surface": "instagram_audience_comments",
+        "captured_at": "2026-07-20T00:00:00Z",
+        "observed_at": "2026-07-18T00:00:00Z",
+        "payload": {
+            "observation": {
+                "subject": {
+                    "ref_type": "entity_key",
+                    "ref": {"namespace": "instagram", "native_id": "reel-123"},
+                },
+                "rows": [
+                    {
+                        "text_value": "love this fragrance pick",
+                        "comment": {
+                            "created_at_unix": 1784500060,
+                            "author_username": "secret_commenter",
+                        },
+                    }
+                ],
+            }
+        },
+    }
+    root.append_record(
+        subtree="derived",
+        raw_anchor=anchor,
+        lane="silver__capture__audience_comments",
+        record_id="audience_comment.json",
+        data=canonical_record_bytes(record),
+    )
+    monkeypatch.setattr(
+        "data_lake.derived_retrieval_views.classify_silver_vault_record_sources",
+        lambda *args, **kwargs: SilverSourceAuthority(
+            CURRENT_SOURCE_BACKED_AUTHORITY, "regression_current"
+        ),
+    )
+    with IncrementalSourceInventory(root, persistent=False) as inventory:
+        inventory.refresh(
+            derived_lanes=_incremental_source_lanes(),
+            include_acknowledgements=True,
+        )
+        result = refresh_sql_catalogue(root, inventory)
+    # The Silver branch produced exactly one evidence event (raw comment body),
+    # not a rolled-back NameError transaction.
+    assert result["status"] == "rebuilt"
+    assert result["event_count"] == 1
+    assert result["source_count"] == 1
+
+    found = query_sql_catalogue(
+        root, body_query='"fragrance pick"', platform="instagram"
+    )
+    assert found["row_count"] == 1
+    assert found["rows"][0]["content_native_id"] == "reel-123"
+    assert found["rows"][0]["vendor"] is None
+    # The commenter identifier is an actor: never persisted in SQL.
+    assert "secret_commenter" not in json.dumps(found)
+    status = sql_catalogue_status(root)
+    assert status["event_count"] == 1
+    with sqlite3.connect(status["path"]) as raw:
+        dumped = "\n".join(raw.iterdump())
+    assert "secret_commenter" not in dumped
+
+    # Exact-actor rehydration reads the cited Silver bytes on demand and matches.
+    actor = query_exact_actor_context(
+        root, platform="instagram", actor="secret_commenter",
+        from_utc="2026-07-01T00:00:00Z", to_utc="2026-07-31T00:00:00Z",
+        content_id="reel-123",
+    )
+    assert actor["row_count"] == 1
+    assert actor["rows"][0]["actor_public_identifier"] == "secret_commenter"
+
+
 def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     first, second = _seeded_root(root, tmp_path)

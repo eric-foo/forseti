@@ -78,6 +78,7 @@ from data_lake.product_mention_selection import (
 )
 from data_lake.root import DataLakeRootError, _atomic_create, _atomic_replace
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
     PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     classify_silver_vault_record_sources,
