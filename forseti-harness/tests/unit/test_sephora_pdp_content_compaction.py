@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+import source_capture.retail_pdp_projection as retail_pdp_projection
 from runners.run_source_capture_cloakbrowser_packet import (
     _sephora_content_extraction_spec,
 )
@@ -164,4 +165,56 @@ def test_sephora_content_route_writes_compact_json_only_for_sephora() -> None:
             extractor_version="test",
             extractor=lambda _dom, _text, _url: {},
             json_indent=-1,
+        )
+
+
+@pytest.mark.parametrize(
+    ("broken_row_kind", "broken_field", "expected_error"),
+    (
+        (
+            "retail_variant_offer",
+            "product_details_state",
+            "cannot reconstruct linkStore.page.product.productDetails",
+        ),
+        (
+            "retail_review_substrate",
+            "displayed_review_rows",
+            "does not reconstruct rendered interactions",
+        ),
+    ),
+)
+def test_sephora_v3_fails_loud_when_canonical_rows_cannot_reconstruct(
+    monkeypatch: pytest.MonkeyPatch,
+    broken_row_kind: str,
+    broken_field: str,
+    expected_error: str,
+) -> None:
+    project_retail_html = retail_pdp_projection._project_retail_html
+
+    def project_with_broken_canonical_row(*args, **kwargs):
+        projected = project_retail_html(*args, **kwargs)
+        rows = []
+        for row in projected.rows:
+            if row.row_kind != broken_row_kind:
+                rows.append(row)
+                continue
+            fields = dict(row.source_visible_fields)
+            if broken_field == "displayed_review_rows":
+                fields[broken_field] = []
+            else:
+                fields.pop(broken_field)
+            rows.append(row.model_copy(update={"source_visible_fields": fields}))
+        return projected.model_copy(update={"rows": rows})
+
+    monkeypatch.setattr(
+        retail_pdp_projection,
+        "_project_retail_html",
+        project_with_broken_canonical_row,
+    )
+
+    with pytest.raises(ValueError, match=expected_error):
+        build_sephora_pdp_aggregate_content_record(
+            rendered_dom=_synthetic_sephora_html(),
+            visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
+            source_url=SOURCE_URL,
         )
