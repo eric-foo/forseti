@@ -529,7 +529,7 @@ def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
         items=[],
         dom_view_text_by_id={video_id: "1K" for video_id in ids[:19]},
     )
-    shifted_ids = [*ids[11:], *[str(index) for index in range(31, 42)]]
+    shifted_ids = ids[11:]
     passive = _capture(
         ordered_ids=shifted_ids,
         items=[],
