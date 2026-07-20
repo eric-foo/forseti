@@ -196,6 +196,27 @@ phase_acquisition_seal:
     preserved_review_target: 4f3e3476309b78777e4254814b23cfa1b6b34dc9
     reason: determine whether materially missing evidence should be acquired before Deliver rather than equating a sufficient seal with a highest-quality evidence world
     next_step: read-only adversarial evidence-gap review followed by owner adjudication of any proposed bounded acquisition
+  pending_adjudication_recommendation:
+    recorded_at: "2026-07-21"
+    status: noted_not_authorized
+    review_report: docs/review-outputs/adversarial-artifact-reviews/forseti_beauty_summer_fridays_turn_a_evidence_world_gap_review_v0.md
+    must_capture:
+      - owned assortment architecture set: Shop All, Best Sellers, Jet Lag Collection, and the exact owned Jet Lag Mask PDP
+      - pin-confirmed Sephora US brand grid
+      - Sephora Jet Lag Mask parent plus Bazaarvoice companion, executed last with the review's centrality abort condition
+      - owned homepage
+    conditional:
+      - screen the owned sustainability or values surface; capture it only if a distinct current claim survives, otherwise record an explicit negative
+      - embed exact unfiltered review-total probes in any companion run
+    rejected_for_this_commission:
+      - Amazon US brand-store capture
+      - Google Trends or other search-interest series
+      - creator, founder, or social-video surfaces
+      - comparator or competitor evidence
+      - additional Reddit breadth or retailer corpora for already-bounded products
+      - wider retailer-presentation expansion
+    expected_packet_count: 8, or 9 only if the sustainability or values surface survives the distinct-job screen
+    authority_boundary: recommendation_only; no acquisition, reseal, or Deliver authorization
   seal_state: BLOCKED_ACQUISITION_INCOMPLETE
   acquisition_gate: blocked
   deliver_allowed: false
