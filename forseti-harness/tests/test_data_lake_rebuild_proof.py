@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from data_lake.derived_retrieval_views import (
+    current_generation_root,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
 )
@@ -34,7 +35,7 @@ def _snapshot(index_dir: Path) -> dict[str, bytes]:
     return {
         p.relative_to(index_dir).as_posix(): p.read_bytes()
         for p in sorted(index_dir.rglob("*"))
-        if p.is_file()
+        if p.is_file() and "cache" not in p.parts
     }
 
 
@@ -42,7 +43,9 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     # Prove-rebuildability for every populated index kind in this fixture:
     # indexes/ holds no unique truth. Wiping the ENTIRE cache tier and
     # rebuilding from authoritative raw/ (+ committed derived/ack material)
-    # yields byte-identical entries. Silver Vault derived-retrieval views
+    # yields byte-identical published entries. The disposable SQLite working
+    # notebook is excluded from byte comparison; its deletion/reconstruction
+    # is covered by the incremental-state recovery test. Silver Vault views
     # are rebuilt under a fixed generation stamp — the runner's
     # --prove-rebuildability does the same with the stamp recorded in the
     # stored manifest, so determinism here is the same claim it checks.
@@ -53,8 +56,12 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     before = _snapshot(indexes)
     assert {f"availability/{packet_id}.json" for packet_id in packet_ids} <= set(before)
-    assert "derived_retrieval/silver_vault/core/query_tables/undone.json" in before
-    assert "derived_retrieval/silver_vault/core/manifests/by_mention.json" in before
+    generation_prefix = (
+        "derived_retrieval/silver_vault/core/generations/"
+        f"{_STAMP['generation_id']}"
+    )
+    assert f"{generation_prefix}/query_tables/undone.json" in before
+    assert f"{generation_prefix}/manifests/by_mention.json" in before
 
     shutil.rmtree(indexes)  # wipe the entire cache tier
     assert root.rebuild_availability() == 3
@@ -75,13 +82,7 @@ def test_prove_classifies_malformed_stored_policy_as_unreadable_manifest(tmp_pat
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
 
     manifest_path = (
-        root.path
-        / "indexes"
-        / "derived_retrieval"
-        / "silver_vault"
-        / "core"
-        / "manifests"
-        / "by_mention.json"
+        current_generation_root(root)[0] / "manifests" / "by_mention.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["selection_policy_versions"]["product_mention_policy"][

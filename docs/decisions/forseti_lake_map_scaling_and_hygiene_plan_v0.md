@@ -243,6 +243,77 @@ Stages 2–4 remain trigger-gated.
   owner-scheduled cold source re-hash independently of rebuilds. View and
   manifest schemas and canonical output bytes are unchanged.
 
+### Stage 1B — Generation-published incremental source reuse
+
+Owner-pulled forward 2026-07-20 after the daily dogfood showed that 22,526
+classification-cache hits still required a 59.151-second whole-lake file walk
+and readers could observe the delete-then-rewrite publication window.
+
+- A disposable SQLite source inventory under the existing map cache home
+  remembers every relevant derived source path, immutable content hash, body,
+  and reusable classification key. Normal refresh still enumerates paths to
+  reconcile against the lake, but it reopens no unchanged source body. A
+  changed or disappeared write-once source fails loudly.
+- The complete canonical JSON output is written under a new immutable
+  generation directory. `core/CURRENT` changes atomically only after all six
+  files exist. No generation cleanup is installed: the current output is small,
+  and cleanup would add a reader race before a real storage trigger exists.
+- A same-input refresh returns `current` without publishing another edition.
+  A cold run deletes or ignores all updater state and must reproduce the same
+  canonical JSON and manifests. SQLite file bytes are not proof; canonical
+  published bytes are.
+- Readers use one shared pointer/pair/hash verifier. The lookup and TikTok
+  comment-coordination runners are the two sanctioned map consumers observed
+  in the implementation census; pickup remains map-independent.
+- This private SQLite notebook is not the deferred Stage 3 SQL query lens. No
+  agent or vendor queries it, and it carries no authority.
+
+## Operator Maintenance And Recovery
+
+Routine maintenance is automatic at the successful tail of
+`run_seam_cadence.py --run`; the enabled `Forseti Daily Lake Cadence` Windows
+task remains the current daily trigger. The fast no-change path makes a shorter
+future schedule cheap, but this work unit does not silently change the live
+task's frequency or runtime checkout.
+
+Fresh-root bootstrap, exactly once:
+
+```powershell
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root <FORSETI_DATA_ROOT> --target derived_retrieval --bootstrap-active-product-mention-policy
+```
+
+Immediate refresh before same-day analysis:
+
+```powershell
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root <FORSETI_DATA_ROOT> --target derived_retrieval --use-stored-product-mention-policy
+```
+
+Independent proof and periodic deep audit:
+
+```powershell
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root <FORSETI_DATA_ROOT> --target derived_retrieval --prove-incremental-equality --use-stored-product-mention-policy
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root <FORSETI_DATA_ROOT> --target derived_retrieval --audit-source-integrity
+```
+
+Agent/operator response table:
+
+| Observed result | What it means | What the agent should tell the owner to do |
+| --- | --- | --- |
+| `status=current` | The current edition already covers the reconciled inputs. | Nothing. Do not force another edition. |
+| `status=rebuilt` | New inputs were incorporated and a complete edition was published. | Nothing unless a requested lookup still misses. |
+| `another updater is active` / database locked | One writer already owns the disposable notebook. | Let the current run finish and retry once or wait for the next scheduled run. If repeated, inspect the running process/task; do not delete the database underneath it. |
+| SQLite inventory has a supported schema but needs a clean refresh | Disposable updater state is stale; published map and evidence remain separate. | Run the same refresh with `--full-rebuild --use-stored-product-mention-policy`; reset occurs only after the updater holds the single-writer lock. |
+| SQLite inventory unreadable/corrupt or has an unsupported schema, with source audit otherwise clean | Disposable updater state failed; published map and evidence remain separate. | Stop the scheduled updater, confirm no refresh process is running, remove only `core/cache/source_inventory.sqlite3`, then run the full-rebuild command. Never remove `raw/`, `derived/`, `generations/`, or `CURRENT` as part of this repair. |
+| `append-only lake source changed` or `disappeared` | Possible evidence corruption or an out-of-contract rewrite, not a cache problem. | Stop. Preserve the failing path, run the lake doctor and `--audit-source-integrity`, and diagnose the source before resetting updater state. |
+| `CURRENT` unreadable or names an absent generation | Publication pointer damage; existing generation directories may still be complete. | Do not hand-edit the pointer. Inspect retained generations and recover using exact stored policy pins or perform a cold rebuild; report that retrieval is unavailable, not that evidence is lost. |
+| incremental/cold equality or rebuildability fails | The fast map and authoritative reconstruction disagree. | Preserve the current generation and reports, stop using the map as current, and investigate before rebuilding away the mismatch. |
+| lake root unavailable | The evidence drive cannot be verified. | Reconnect the expected root and run the lake doctor. Never create or fall back to another root. |
+| scheduled task fails once | Automatic maintenance did not complete. | Run the documented immediate-refresh command once. Repeated failure requires checking the task log, pinned runtime checkout, and root health. |
+
+Map failure never implies evidence loss. Evidence durability remains a separate
+deployment obligation: independently back up `raw/` and `derived/`; the map,
+its generations, and its SQLite notebook need no backup.
+
 ### Stage 2 — Per-creator view sharding
 
 - **Trigger:** by_creator file size makes lookup loads slow (analysis:
@@ -377,4 +448,70 @@ direction_change_propagation:
     - not a change to view authority or the proof model
     - not a claim that Stage 2, Stage 3, or Stage 4 fired
     - not a claim that monitoring provides continuous freshness between runs
+```
+
+```yaml
+direction_change_propagation:
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  doctrine_changed: >
+    Stage 1 now reuses a complete disposable source inventory rather than
+    reopening every unchanged derived record, publishes complete immutable map
+    generations through one atomic CURRENT pointer, and binds sanctioned
+    readers plus operator recovery to that generation contract. The canonical
+    JSON views remain the cross-vendor proof surface; the private SQLite
+    notebook is neither authority nor the deferred Stage 3 query lens.
+  controlling_sources_updated:
+    - docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - forseti-harness/data_lake/derived_retrieval_state.py
+    - forseti-harness/data_lake/derived_retrieval_cache.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/data_lake/product_mention_selection.py
+    - forseti-harness/runners/run_data_lake_indexes_rebuild.py
+    - forseti-harness/runners/run_derived_retrieval_lookup.py
+    - forseti-harness/runners/run_tiktok_comment_coordination.py
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/root.py
+    - forseti-harness/runners/run_seam_cadence.py
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+    - forseti-harness/tests/test_data_lake_rebuild_proof.py
+    - forseti-harness/tests/unit/test_tiktok_comment_coordination.py
+    - forseti-harness/tests/unit/test_seam_cadence.py
+  intentionally_not_updated:
+    - path: forseti-harness/data_lake/root.py
+      reason: >
+        The root still creates the fixed query_tables/manifests directories as
+        the pre-pointer migration fallback. Dynamic generation directories are
+        builder-owned and need no new authoritative root write surface.
+    - path: forseti-harness/runners/run_seam_cadence.py
+      reason: >
+        It already invokes the sole sanctioned updater only after a passing
+        cadence. The updater's new current/rebuilt distinction does not change
+        cadence success or failure semantics.
+    - path: live Windows Task Scheduler configuration
+      reason: >
+        The enabled daily task remains the observed automatic trigger. This
+        repository work does not silently change its frequency or pinned
+        runtime checkout.
+  stale_language_search: >
+    rg -n "core/(query_tables|manifests)|core\\\\(query_tables|manifests)|
+    derived_retrieval/silver_vault/core/query_tables|wipes and rewrites|
+    delete-then" forseti-harness forseti/product/spines/data_lake
+    docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-20. Remaining fixed-path hits are the root's deliberate
+    empty migration directories and the consumption contract's explicit
+    pre-CURRENT fallback. The lookup-runner stale docstring and contract
+    one-screen summary were updated. Historical 59.151-second and
+    delete-then-rewrite wording remains only as the observed reason Stage 1B
+    was pulled forward.
+  non_claims:
+    - not live deployment or a change to the current scheduled-task frequency
+    - not evidence backup or drive-failure recovery
+    - not Stage 2 sharding or the Stage 3 SQL query lens
+    - not continuous freshness between updater reconciliations
 ```

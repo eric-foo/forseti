@@ -10,8 +10,9 @@ Modes:
 
 - **rebuild** (default): regenerate the requested index tier(s) from committed
   material. ``availability`` delegates to ``DataLakeRoot.rebuild_availability``;
-  ``derived_retrieval`` wipes and rewrites the object-level views under a
-  fresh generation stamp.
+  ``derived_retrieval`` reuses unchanged inventoried source bytes, writes a
+  complete immutable generation, then atomically publishes ``CURRENT``. An
+  unchanged refresh exits successfully as ``current`` without publishing.
 - **--prove-rebuildability**: verification. ``derived_retrieval`` is proven
   read-only — every stored view is regenerated under the stamps its stored
   manifest recorded and byte-compared (a rebuild is never compared against
@@ -19,9 +20,9 @@ Modes:
   an in-place rebuild (mutation-to-truth): any drift means the stored index
   was smuggling non-regenerable or stale state and is reported as a failure.
 - **--prove-incremental-equality**: read-only Stage 1 gate. Generate the lake
-  map once through the incremental classification cache and once through a
-  full cold classification sweep under one stamp, then byte-compare every
-  view and manifest.
+  map once through the disposable source inventory/classification cache and
+  once through a full cold sweep under one stamp, then byte-compare every view
+  and manifest.
 - **--audit-source-integrity**: read-only cold source re-hash and byte proof,
   intended for the owner-operated periodic integrity schedule.
 
@@ -53,6 +54,7 @@ from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION
 from cleaning.transcript_product_lake import product_mentions_policy_fingerprint
 from data_lake.derived_retrieval_views import (
     audit_derived_retrieval_source_integrity,
+    current_generation_root,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
     rebuild_derived_retrieval,
@@ -91,14 +93,8 @@ def _rebuild_availability(root: DataLakeRoot, *, prove: bool) -> dict:
 
 
 def _by_mention_manifest_path(root: DataLakeRoot) -> Path:
-    return root._within(
-        "indexes",
-        "derived_retrieval",
-        "silver_vault",
-        "core",
-        "manifests",
-        "by_mention.json",
-    )
+    generation_root, _generation_id, _layout = current_generation_root(root)
+    return generation_root / "manifests" / "by_mention.json"
 
 
 def _stored_product_mention_policy(root: DataLakeRoot) -> dict[str, str]:
@@ -179,7 +175,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--full-rebuild",
         action="store_true",
-        help="Ignore the persisted classification cache for this rebuild.",
+        help=(
+            "Recreate the disposable source inventory and ignore the persisted "
+            "classification cache for this rebuild."
+        ),
     )
     parser.add_argument(
         "--product-mention-policy-version",
@@ -342,7 +341,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=2, sort_keys=True))
         return 2
 
-    report["status"] = "ok" if all(s in {"rebuilt", "proven"} for s in statuses) else "failed"
+    report["status"] = (
+        "ok"
+        if all(s in {"current", "rebuilt", "proven"} for s in statuses)
+        else "failed"
+    )
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if report["status"] == "ok" else 1
 

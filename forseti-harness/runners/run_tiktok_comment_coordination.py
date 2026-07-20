@@ -18,17 +18,12 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.tiktok_silver_analytics import comment_coordination_signals
+from data_lake.derived_retrieval_views import load_derived_retrieval_view
 from data_lake.root import DataLakeRoot
 from harness_utils import hash_file
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_SURFACE
 
 
-_BY_CREATOR_TABLE = Path(
-    "indexes/derived_retrieval/silver_vault/core/query_tables/by_creator.json"
-)
-_BY_CREATOR_MANIFEST = Path(
-    "indexes/derived_retrieval/silver_vault/core/manifests/by_creator.json"
-)
 _BATCH_FILENAME = "tiktok_batch_capture.json"
 
 
@@ -49,9 +44,11 @@ def _normalized_creator(value: str) -> str:
 def _map_packet_ids(
     root: DataLakeRoot, creator: str
 ) -> tuple[list[str], dict[str, Any]]:
-    table_path = root.path / _BY_CREATOR_TABLE
-    manifest_path = root.path / _BY_CREATOR_MANIFEST
-    table = _load_json_object(table_path)
+    table, manifest, _provenance = load_derived_retrieval_view(
+        root, "by_creator"
+    )
+    if table is None or manifest is None:
+        raise ValueError("by_creator lake map has not been built")
     creators = table.get("creators")
     if not isinstance(creators, Mapping):
         raise ValueError("by_creator query table lacks creators")
@@ -71,7 +68,6 @@ def _map_packet_ids(
     packets = matched.get("packets")
     if not isinstance(packets, Mapping) or not packets:
         raise ValueError(f"creator @{creator} has no mapped packets")
-    manifest = _load_json_object(manifest_path)
     return sorted(str(packet_id) for packet_id in packets), manifest
 
 
@@ -182,9 +178,9 @@ def build_creator_coordination_report(
     map_manifest: dict[str, Any] | None = None
     if packet_ids:
         selected_packet_ids = sorted(set(packet_ids))
-        manifest_path = root.path / _BY_CREATOR_MANIFEST
-        if manifest_path.is_file():
-            map_manifest = _load_json_object(manifest_path)
+        _table, map_manifest, _provenance = load_derived_retrieval_view(
+            root, "by_creator"
+        )
         selection_source = "explicit_packet_ids"
     else:
         selected_packet_ids, map_manifest = _map_packet_ids(root, creator)

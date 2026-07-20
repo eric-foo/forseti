@@ -5,9 +5,10 @@ public account) or a brand/line product entity to its committed packet and
 Silver-record refs, with the build-time authority classification the views
 carry, in one call — instead of a whole-lake scan.
 
-Reads ONLY the generated views under
-``indexes/derived_retrieval/silver_vault/core/query_tables`` plus their
-manifests. The views are rebuildable, non-authoritative routing caches:
+Reads ONLY the complete generation named by
+``indexes/derived_retrieval/silver_vault/core/CURRENT`` (or the fixed-path
+migration fallback before the first pointer publication). The views are
+rebuildable, non-authoritative routing caches:
 by-key discovery over ``derived/`` stays the retrieval authority, and every
 result carries the generation provenance so a consumer can detect staleness
 and rebuild (``run_data_lake_indexes_rebuild.py --target derived_retrieval``).
@@ -16,7 +17,6 @@ A key absent from a view means "not captured or not indexed" — never zero.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -26,7 +26,7 @@ from typing import Any
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from data_lake.derived_retrieval_views import SILVER_VAULT_CORE_PARTS
+from data_lake.derived_retrieval_views import load_derived_retrieval_view
 from data_lake.root import DataLakeRoot, DataLakeRootError
 
 
@@ -34,45 +34,24 @@ def _normalized(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip().casefold())
 
 
-def _load_view(root: DataLakeRoot, view_name: str) -> tuple[dict | None, dict | None]:
-    core = root.path.joinpath(*SILVER_VAULT_CORE_PARTS)
-    view_path = core / "query_tables" / f"{view_name}.json"
-    manifest_path = core / "manifests" / f"{view_name}.json"
-    view_exists = view_path.is_file()
-    manifest_exists = manifest_path.is_file()
-    if not view_exists and not manifest_exists:
-        return None, None
-    if not view_exists or not manifest_exists:
-        raise ValueError(f"{view_name} generated view/manifest pair is incomplete")
-    view_bytes = view_path.read_bytes()
-    view = json.loads(view_bytes.decode("utf-8"))
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if not isinstance(view, dict) or not isinstance(manifest, dict):
-        raise ValueError(f"{view_name} generated view/manifest must both be JSON objects")
-    if view.get("view") != view_name or manifest.get("view") != view_name:
-        raise ValueError(f"{view_name} generated view/manifest identity mismatch")
-    if view.get("view_schema_version") != manifest.get("view_schema_version"):
-        raise ValueError(f"{view_name} generated view/manifest schema mismatch")
-    actual_sha256 = hashlib.sha256(view_bytes).hexdigest()
-    if manifest.get("view_sha256") != actual_sha256:
-        raise ValueError(
-            f"{view_name} view_sha256 mismatch: manifest does not match stored view bytes"
-        )
-    return view, manifest
-
-
-def _provenance(manifest: dict | None) -> dict[str, Any]:
+def _provenance(
+    manifest: dict | None, reader_provenance: dict[str, Any]
+) -> dict[str, Any]:
     if not isinstance(manifest, dict):
-        return {"manifest": "absent"}
+        return {"manifest": "absent", **reader_provenance}
     return {
         "generation_id": manifest.get("generation_id"),
         "generated_at": manifest.get("generated_at"),
+        "freshness": manifest.get("freshness"),
         "stale_if": manifest.get("stale_if"),
+        **reader_provenance,
     }
 
 
 def lookup_creator(root: DataLakeRoot, query: str) -> dict[str, Any]:
-    view, manifest = _load_view(root, "by_creator")
+    view, manifest, reader_provenance = load_derived_retrieval_view(
+        root, "by_creator"
+    )
     if view is None:
         return {
             "status": "view_not_built",
@@ -110,12 +89,14 @@ def lookup_creator(root: DataLakeRoot, query: str) -> dict[str, Any]:
         "matches": matches,
         "zero_rows_meaning": view.get("zero_rows_meaning"),
         "authority_note": view.get("semantics"),
-        "view_provenance": _provenance(manifest),
+        "view_provenance": _provenance(manifest, reader_provenance),
     }
 
 
 def lookup_mention(root: DataLakeRoot, query: str) -> dict[str, Any]:
-    view, manifest = _load_view(root, "by_mention")
+    view, manifest, reader_provenance = load_derived_retrieval_view(
+        root, "by_mention"
+    )
     if view is None:
         return {
             "status": "view_not_built",
@@ -143,7 +124,7 @@ def lookup_mention(root: DataLakeRoot, query: str) -> dict[str, Any]:
         "matches": matches,
         "zero_rows_meaning": view.get("zero_rows_meaning"),
         "authority_note": view.get("semantics"),
-        "view_provenance": _provenance(manifest),
+        "view_provenance": _provenance(manifest, reader_provenance),
     }
 
 
