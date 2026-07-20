@@ -16,6 +16,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/amazon_demand_signal_route_candidates_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_silver_producer_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/amazon_us_vpn_regression_recovery_playbook_v0.md
@@ -41,7 +42,7 @@ cross-pointer here and in the Scanning family entrypoint.
 
 | Layer | Current home | What to confirm |
 | --- | --- | --- |
-| Access / method | `retail_pdp_content_cleaning_contract_v0.md` | Retailer-owned extraction, retention, target binding, residuals, Cleaning, and Silver handoff. |
+| Access / method | `retailer_information_extraction_standard_v0.md`; `retail_pdp_content_cleaning_contract_v0.md` | Cross-retailer evidence categories and discovery behavior; retailer-owned extraction, retention, target binding, residuals, Cleaning, and Silver handoff. |
 | Storefront pins | `retail_storefront_pin_registry_v0.md`; `amazon_us_vpn_regression_recovery_playbook_v0.md`; supporting recon and live receipts linked there | Session, storefront-country, currency, and delivery-location state independently; a working route, VPN geography, or observed context is not a confirmed pin. |
 | Retail/PDP packet/content | `run_source_capture_cloakbrowser_packet.py`; `source_capture/retail_pdp_content.py`; `cleaning/retail_pdp.py` | The three admitted profiles default to canonical content after retailer-owned pin/access/sufficiency/extraction gates. Raw remains the failure and unflipped-route posture. |
 | Retail/PDP Silver | `retail_pdp_silver_producer_contract_v0.md`; `run_retail_pdp_silver_producer.py`; `source_capture/retail_pdp_silver.py` | Cleaning-owned source anchors, retailer-local identity, and source-visible offer/review observations only. |

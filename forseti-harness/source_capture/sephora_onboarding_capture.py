@@ -2,9 +2,11 @@
 
 This module is intentionally retailer-specific.  It consumes a hash-verified
 rendered Sephora PDP packet, reads the API configuration declared by that page,
-and captures a bounded ``Most Answers`` Q&A window plus exact
-non-incentivized-review age counts.  Network access stays in this acquisition
-seam; the packet summary is derived in flight from preserved response bytes.
+and captures a bounded ``Most Answers`` Q&A window, exact non-incentivized
+review age counts, a non-incentivized ``Most Helpful`` snapshot, and a
+source-date-bounded non-incentivized ``Most Recent`` window of at least 30 days.
+Network access stays in this acquisition seam; the packet summary is derived
+in flight from preserved response bytes.
 """
 
 from __future__ import annotations
@@ -13,6 +15,7 @@ import html as html_lib
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping, Sequence
 from urllib.parse import unquote
 
@@ -38,9 +41,11 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 
 
 SEPHORA_ONBOARDING_SOURCE_SURFACE = "sephora_bazaarvoice_onboarding"
-SEPHORA_ONBOARDING_PARSER_VERSION = "sephora_bazaarvoice_onboarding_v1"
+SEPHORA_ONBOARDING_PARSER_VERSION = "sephora_bazaarvoice_onboarding_v3"
 SEPHORA_AGE_BUCKETS: tuple[str, ...] = ("20s", "30s", "40s", "50s +")
 DEFAULT_QUESTION_LIMIT = 100
+DEFAULT_REVIEW_PAGE_LIMIT = 100
+DEFAULT_RECENT_WINDOW_DAYS = 30
 
 
 class SephoraOnboardingCaptureError(RuntimeError):
@@ -58,6 +63,29 @@ _AGE_BUCKET_SPECS: tuple[AgeBucketSpec, ...] = (
     AgeBucketSpec("30s", "30s"),
     AgeBucketSpec("40s", "40s"),
     AgeBucketSpec("50s +", "50s"),
+)
+
+_PROJECTED_REVIEW_SOURCE_FIELDS = frozenset(
+    {
+        "Id",
+        "ProductId",
+        "Title",
+        "ReviewText",
+        "Rating",
+        "SubmissionTime",
+        "UserNickname",
+        "IsRecommended",
+        "IsVerifiedBuyer",
+        "TotalFeedbackCount",
+        "TotalPositiveFeedbackCount",
+        "TotalNegativeFeedbackCount",
+        "ContextDataValues",
+        "AdditionalFields",
+        "Badges",
+        "Photos",
+        "Videos",
+        "TagDimensions",
+    }
 )
 
 
@@ -78,6 +106,8 @@ def capture_sephora_onboarding_packet(
     data_root: DataLakeRoot,
     parent_packet_id: str,
     question_limit: int = DEFAULT_QUESTION_LIMIT,
+    review_page_limit: int = DEFAULT_REVIEW_PAGE_LIMIT,
+    recent_window_days: int = DEFAULT_RECENT_WINDOW_DAYS,
     timeout_seconds: float = 20.0,
     max_bytes: int = 8_000_000,
     fetcher: ApiFetcher | None = None,
@@ -93,13 +123,19 @@ def capture_sephora_onboarding_packet(
         raise SephoraOnboardingCaptureError("capture requires a writable DataLakeRoot")
     if not 1 <= question_limit <= 100:
         raise ValueError("question_limit must be between 1 and 100")
+    if not 1 <= review_page_limit <= 100:
+        raise ValueError("review_page_limit must be between 1 and 100")
+    if recent_window_days < 30:
+        raise ValueError("recent_window_days must be at least 30")
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be greater than zero")
     if max_bytes <= 0:
         raise ValueError("max_bytes must be greater than zero")
 
     parent = _parent_context(data_root.load_raw_packet(parent_packet_id), parent_packet_id)
-    request_specs = _request_specs(parent.product_id, question_limit)
+    request_specs = list(
+        _base_request_specs(parent.product_id, question_limit, review_page_limit)
+    )
     api_fetcher = fetcher or fetch_bazaarvoice_api_response
     captured: list[tuple[ApiRequestSpec, ApiResponse]] = []
     acquisition_failure: dict[str, Any] | None = None
@@ -129,6 +165,69 @@ def capture_sephora_onboarding_packet(
             }
             break
 
+    if acquisition_failure is None:
+        recent_offset = 0
+        recent_cutoff: datetime | None = None
+        while True:
+            spec = _recent_request_spec(
+                parent.product_id,
+                review_page_limit,
+                recent_offset,
+            )
+            request_specs.append(spec)
+            try:
+                response = api_fetcher(
+                    spec,
+                    parent.review_config,
+                    timeout_seconds,
+                    max_bytes,
+                )
+            except Exception as exc:
+                acquisition_failure = {
+                    "artifact_name": spec.artifact_name,
+                    "error_type": type(exc).__name__,
+                    "error": _safe_error_text(exc),
+                }
+                break
+            if parent.review_config.token.encode("utf-8") in response.body:
+                raise SephoraOnboardingCaptureError(
+                    f"{spec.artifact_name} response echoed the page-declared read token; "
+                    "refusing to persist secret-bearing bytes"
+                )
+            captured.append((spec, response))
+            if not 200 <= response.status < 300:
+                acquisition_failure = {
+                    "artifact_name": spec.artifact_name,
+                    "http_status": response.status,
+                    "reason": response.reason,
+                }
+                break
+            try:
+                page = _recent_page_state(
+                    response.body,
+                    spec.artifact_name,
+                    parent.allowed_product_ids,
+                )
+                if recent_cutoff is None:
+                    recent_cutoff = _parse_timestamp(
+                        response.captured_at,
+                        f"{spec.artifact_name} captured_at",
+                    ) - timedelta(days=recent_window_days)
+            except SephoraOnboardingCaptureError:
+                # The exact response is already preserved. Projection will fail
+                # closed and emit the raw fallback rather than guessing how to
+                # continue an unparseable or identity-ambiguous page.
+                break
+            next_offset = recent_offset + page["row_count"]
+            if (
+                page["oldest_submission_time"] <= recent_cutoff
+                or next_offset >= page["total_results"]
+                or page["row_count"] == 0
+                or next_offset <= recent_offset
+            ):
+                break
+            recent_offset = next_offset
+
     request_manifest = _request_manifest(parent, request_specs, captured)
     artifacts: list[tuple[str, bytes]] = [
         (spec.artifact_name, response.body) for spec, response in captured
@@ -149,7 +248,7 @@ def capture_sephora_onboarding_packet(
             "before the failure is preserved and no successful summary is claimed"
         )
         summary: dict[str, Any] = {
-            "record_kind": "sephora_bazaarvoice_onboarding_capture_failure_v1",
+            "record_kind": "sephora_bazaarvoice_onboarding_capture_failure_v3",
             "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
             "parent_packet_id": parent.packet_id,
             "product_id": parent.product_id,
@@ -167,6 +266,8 @@ def capture_sephora_onboarding_packet(
                 parent=parent,
                 captured_responses=captured,
                 question_limit=question_limit,
+                review_page_limit=review_page_limit,
+                recent_window_days=recent_window_days,
             )
             limitations.extend(entry["detail"] for entry in summary["loss_ledger"])
             artifacts.append(("sephora_onboarding_summary.json", _json_bytes(summary)))
@@ -177,7 +278,7 @@ def capture_sephora_onboarding_packet(
                 "response bytes are preserved as the required raw fallback"
             )
             summary = {
-                "record_kind": "sephora_bazaarvoice_onboarding_adaptation_failure_v1",
+                "record_kind": "sephora_bazaarvoice_onboarding_adaptation_failure_v3",
                 "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
                 "parent_packet_id": parent.packet_id,
                 "product_id": parent.product_id,
@@ -213,16 +314,38 @@ def build_sephora_onboarding_summary(
     parent: ParentContext,
     captured_responses: Sequence[tuple[ApiRequestSpec, ApiResponse]],
     question_limit: int,
+    review_page_limit: int = DEFAULT_REVIEW_PAGE_LIMIT,
+    recent_window_days: int = DEFAULT_RECENT_WINDOW_DAYS,
 ) -> dict[str, Any]:
     """Build a capture summary exclusively from preserved response bytes."""
     by_name = {
         spec.artifact_name: _load_api_document(response.body, spec.artifact_name)
         for spec, response in captured_responses
     }
-    expected_names = {spec.artifact_name for spec in _request_specs(parent.product_id, question_limit)}
-    if set(by_name) != expected_names:
+    expected_base_names = {
+        spec.artifact_name
+        for spec in _base_request_specs(
+            parent.product_id,
+            question_limit,
+            review_page_limit,
+        )
+    }
+    recent_pairs = [
+        (spec, response)
+        for spec, response in captured_responses
+        if spec.artifact_name.startswith(
+            "reviews_non_incentivized_most_recent_offset_"
+        )
+    ]
+    if not expected_base_names.issubset(by_name) or not recent_pairs:
         raise SephoraOnboardingCaptureError(
             "summary adaptation requires the complete declared response set"
+        )
+    if set(by_name) != expected_base_names | {
+        spec.artifact_name for spec, _response in recent_pairs
+    }:
+        raise SephoraOnboardingCaptureError(
+            "summary adaptation received an undeclared Sephora response artifact"
         )
 
     questions_doc = by_name["questions_most_answers_offset_000.json"]
@@ -285,6 +408,7 @@ def build_sephora_onboarding_summary(
         ),
         allowed_product_ids=parent.allowed_product_ids,
         label="non-incentivized reviews",
+        allow_historical_review_product_ids=True,
     )
     age_counts: dict[str, int] = {}
     for bucket in _AGE_BUCKET_SPECS:
@@ -302,6 +426,7 @@ def build_sephora_onboarding_summary(
             allowed_product_ids=parent.allowed_product_ids,
             label=f"non-incentivized reviews age {bucket.display_label}",
             allow_empty=age_counts[bucket.display_label] == 0,
+            allow_historical_review_product_ids=True,
         )
     declared_age_total = sum(age_counts.values())
     if declared_age_total > non_incentivized_total:
@@ -323,6 +448,129 @@ def build_sephora_onboarding_summary(
         }
         for bucket in _AGE_BUCKET_SPECS
     ]
+
+    helpful_doc = by_name["reviews_non_incentivized_most_helpful_offset_000.json"]
+    helpful_rows = _require_list(
+        helpful_doc,
+        "Results",
+        "non-incentivized Most Helpful reviews",
+    )
+    helpful_total = _total_results(
+        helpful_doc,
+        "non-incentivized Most Helpful reviews",
+    )
+    _validate_result_product_ids(
+        helpful_rows,
+        allowed_product_ids=parent.allowed_product_ids,
+        label="non-incentivized Most Helpful reviews",
+        allow_empty=helpful_total == 0,
+        allow_historical_review_product_ids=True,
+    )
+    helpful_inventory = [
+        _review_inventory_row(row, rank=index + 1)
+        for index, row in enumerate(helpful_rows)
+    ]
+
+    recent_rows: list[Mapping[str, Any]] = []
+    recent_page_receipts: list[dict[str, Any]] = []
+    expected_offset = 0
+    recent_total: int | None = None
+    recent_capture_time: datetime | None = None
+    for spec, response in recent_pairs:
+        offset = _recent_offset(spec.artifact_name)
+        if offset != expected_offset:
+            raise SephoraOnboardingCaptureError(
+                "Most Recent response offsets are not contiguous"
+            )
+        state = _recent_page_state(
+            response.body,
+            spec.artifact_name,
+            parent.allowed_product_ids,
+        )
+        if recent_total is None:
+            recent_total = state["total_results"]
+            recent_capture_time = _parse_timestamp(
+                response.captured_at,
+                f"{spec.artifact_name} captured_at",
+            )
+        elif state["total_results"] != recent_total:
+            raise SephoraOnboardingCaptureError(
+                "Most Recent TotalResults changed during pagination"
+            )
+        page_rows = _require_list(
+            by_name[spec.artifact_name],
+            "Results",
+            spec.artifact_name,
+        )
+        recent_rows.extend(page_rows)
+        recent_page_receipts.append(
+            {
+                "artifact_name": spec.artifact_name,
+                "offset": offset,
+                "row_count": state["row_count"],
+                "oldest_submission_time": _format_timestamp(
+                    state["oldest_submission_time"]
+                ),
+                "newest_submission_time": _format_timestamp(
+                    state["newest_submission_time"]
+                ),
+                "source_exhausted": state["exhausted"],
+            }
+        )
+        expected_offset += state["row_count"]
+
+    assert recent_total is not None
+    assert recent_capture_time is not None
+    recent_cutoff = recent_capture_time - timedelta(days=recent_window_days)
+    recent_dates = [
+        _parse_timestamp(
+            _required_string(
+                row.get("SubmissionTime"),
+                f"Most Recent row {index}.SubmissionTime",
+            ),
+            f"Most Recent row {index}.SubmissionTime",
+        )
+        for index, row in enumerate(recent_rows)
+    ]
+    if recent_dates != sorted(recent_dates, reverse=True):
+        raise SephoraOnboardingCaptureError(
+            "Most Recent rows are not in non-increasing SubmissionTime order"
+        )
+    recent_exhausted = len(recent_rows) >= recent_total
+    recent_cutoff_reached = bool(recent_dates) and min(recent_dates) <= recent_cutoff
+    if not recent_exhausted and not recent_cutoff_reached:
+        raise SephoraOnboardingCaptureError(
+            "Most Recent pagination ended before 30-day coverage or source exhaustion"
+        )
+    recent_inventory = [
+        _review_inventory_row(row, rank=index + 1)
+        for index, row in enumerate(recent_rows)
+    ]
+    within_window_inventory = [
+        inventory
+        for inventory, submission_time in zip(
+            recent_inventory,
+            recent_dates,
+            strict=True,
+        )
+        if submission_time >= recent_cutoff
+    ]
+    helpful_fields = _review_field_inventory(helpful_rows)
+    recent_fields = _review_field_inventory(recent_rows)
+    observed_review_product_ids = sorted(
+        {row["product_id"] for row in helpful_inventory + recent_inventory}
+    )
+    historical_review_product_ids = sorted(
+        set(observed_review_product_ids) - set(parent.allowed_product_ids)
+    )
+    historical_review_row_count = sum(
+        row["product_id"] in historical_review_product_ids
+        for row in helpful_inventory + recent_inventory
+    )
+    additional_review_fields = sorted(
+        (helpful_fields | recent_fields) - _PROJECTED_REVIEW_SOURCE_FIELDS
+    )
+    unsummarized_review_fields: list[str] = []
     questions_not_captured = max(question_total - len(question_rows), 0)
     answers_not_included = max(answer_count_sum - len(included_answers), 0)
     reviews_without_live_age_bucket = non_incentivized_total - declared_age_total
@@ -354,10 +602,38 @@ def build_sephora_onboarding_summary(
                 "the demographic composition is not a percentage of all reviewers"
             ),
         },
+        {
+            "field": "most_helpful_reviews_beyond_snapshot",
+            "count": max(helpful_total - len(helpful_rows), 0),
+            "detail": (
+                f"Most Helpful preserves {len(helpful_rows)} source-ordered "
+                f"non-incentivized reviews of {helpful_total}; the remainder stays "
+                "outside this bounded snapshot"
+            ),
+        },
+        {
+            "field": "raw_review_fields_not_lifted_into_summary",
+            "count": len(unsummarized_review_fields),
+            "fields": unsummarized_review_fields,
+            "detail": (
+                "every raw review field is represented by a named summary field or "
+                "the per-row additional_source_fields map"
+            ),
+        },
+        {
+            "field": "review_product_ids_not_in_current_parent_sku_set",
+            "count": historical_review_row_count,
+            "product_ids": historical_review_product_ids,
+            "detail": (
+                "the exact product-group filter returned review rows bound to these "
+                "historical or no-longer-current SKU identifiers; rows remain captured "
+                "and are not misclassified as current variants"
+            ),
+        },
     ]
 
     return {
-        "record_kind": "sephora_bazaarvoice_onboarding_summary_v1",
+        "record_kind": "sephora_bazaarvoice_onboarding_summary_v3",
         "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
         "parent_packet": {
             "packet_id": parent.packet_id,
@@ -392,11 +668,69 @@ def build_sephora_onboarding_summary(
                 reviews_without_live_age_bucket, non_incentivized_total
             ),
             "age_breakdown": age_breakdown,
+            "most_helpful": {
+                "sort": "TotalPositiveFeedbackCount:desc",
+                "offset": 0,
+                "requested_limit": review_page_limit,
+                "total_filtered_reviews": helpful_total,
+                "captured_review_rows": len(helpful_rows),
+                "captured_review_bodies": sum(
+                    row["review_text"] is not None for row in helpful_inventory
+                ),
+                "review_inventory": helpful_inventory,
+            },
+            "most_recent_30d": {
+                "sort": "SubmissionTime:desc",
+                "window_days": recent_window_days,
+                "cutoff_inclusive": _format_timestamp(recent_cutoff),
+                "total_filtered_reviews": recent_total,
+                "captured_page_count": len(recent_page_receipts),
+                "captured_page_rows": len(recent_rows),
+                "captured_page_review_bodies": sum(
+                    row["review_text"] is not None for row in recent_inventory
+                ),
+                "within_window_rows": len(within_window_inventory),
+                "within_window_review_bodies": sum(
+                    row["review_text"] is not None
+                    for row in within_window_inventory
+                ),
+                "newest_source_date": (
+                    _format_timestamp(max(recent_dates)) if recent_dates else None
+                ),
+                "oldest_source_date": (
+                    _format_timestamp(min(recent_dates)) if recent_dates else None
+                ),
+                "cutoff_reached": recent_cutoff_reached,
+                "source_exhausted": recent_exhausted,
+                "coverage_status": (
+                    "source_exhausted"
+                    if recent_exhausted and not recent_cutoff_reached
+                    else "covered_through_cutoff"
+                ),
+                "pages": recent_page_receipts,
+                "captured_page_review_inventory": recent_inventory,
+                "within_window_review_inventory": within_window_inventory,
+            },
+            "raw_review_field_inventory": {
+                "most_helpful_fields": sorted(helpful_fields),
+                "most_recent_fields": sorted(recent_fields),
+                "additional_source_fields_carried": additional_review_fields,
+                "unsummarized_fields_preserved_only_in_raw": unsummarized_review_fields,
+            },
+            "review_product_identity": {
+                "requested_product_group_id": parent.product_id,
+                "current_parent_product_and_sku_ids": list(parent.allowed_product_ids),
+                "observed_review_product_ids": observed_review_product_ids,
+                "historical_or_unlisted_review_product_ids": historical_review_product_ids,
+                "historical_or_unlisted_review_rows": historical_review_row_count,
+            },
         },
         "content_qualification": {
             "status": "passed",
             "response_documents": len(by_name),
             "age_bucket_vocabulary_exact": list(age_counts) == list(SEPHORA_AGE_BUCKETS),
+            "recent_window_coverage_proven": recent_exhausted
+            or recent_cutoff_reached,
         },
         "row_accounting": {
             "question_rows_raw": len(question_rows),
@@ -406,6 +740,15 @@ def build_sephora_onboarding_summary(
             "answer_rows_preserved_in_raw_includes": len(included_answers),
             "answers_equal": answer_count_sum == len(included_answers),
             "age_counts_source": "raw TotalResults from one exact filtered response per bucket",
+            "most_helpful_raw_rows": len(helpful_rows),
+            "most_helpful_summarized_rows": len(helpful_inventory),
+            "most_helpful_row_order_equal": _review_ids(helpful_rows)
+            == [row["review_id"] for row in helpful_inventory],
+            "most_recent_raw_rows": len(recent_rows),
+            "most_recent_summarized_rows": len(recent_inventory),
+            "most_recent_row_order_equal": _review_ids(recent_rows)
+            == [row["review_id"] for row in recent_inventory],
+            "all_raw_review_fields_accounted_for": not unsummarized_review_fields,
         },
         "raw_failure_fallback": {
             "status": "armed",
@@ -537,7 +880,11 @@ def _sephora_product_and_sku_ids(product: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(ids))
 
 
-def _request_specs(product_id: str, question_limit: int) -> tuple[ApiRequestSpec, ...]:
+def _base_request_specs(
+    product_id: str,
+    question_limit: int,
+    review_page_limit: int,
+) -> tuple[ApiRequestSpec, ...]:
     common_review = (
         ("Filter", f"ProductId:eq:{product_id}"),
         ("Filter", "ContextDataValue_IncentivizedReview:eq:False"),
@@ -563,6 +910,17 @@ def _request_specs(product_id: str, question_limit: int) -> tuple[ApiRequestSpec
             config_kind="reviews",
             parameters=common_review,
         ),
+        ApiRequestSpec(
+            artifact_name="reviews_non_incentivized_most_helpful_offset_000.json",
+            endpoint="reviews.json",
+            config_kind="reviews",
+            parameters=(
+                *common_review[:2],
+                ("Limit", str(review_page_limit)),
+                ("Offset", "0"),
+                ("Sort", "TotalPositiveFeedbackCount:desc"),
+            ),
+        ),
     ]
     for bucket in _AGE_BUCKET_SPECS:
         specs.append(
@@ -580,6 +938,79 @@ def _request_specs(product_id: str, question_limit: int) -> tuple[ApiRequestSpec
     return tuple(specs)
 
 
+def _recent_request_spec(
+    product_id: str,
+    review_page_limit: int,
+    offset: int,
+) -> ApiRequestSpec:
+    return ApiRequestSpec(
+        artifact_name=(
+            f"reviews_non_incentivized_most_recent_offset_{offset:05d}.json"
+        ),
+        endpoint="reviews.json",
+        config_kind="reviews",
+        parameters=(
+            ("Filter", f"ProductId:eq:{product_id}"),
+            ("Filter", "ContextDataValue_IncentivizedReview:eq:False"),
+            ("Limit", str(review_page_limit)),
+            ("Offset", str(offset)),
+            ("Sort", "SubmissionTime:desc"),
+        ),
+    )
+
+
+def _recent_page_state(
+    body: bytes,
+    label: str,
+    allowed_product_ids: Sequence[str],
+) -> dict[str, Any]:
+    document = _load_api_document(body, label)
+    rows = _require_list(document, "Results", label)
+    total_results = _total_results(document, label)
+    _validate_result_product_ids(
+        rows,
+        allowed_product_ids=allowed_product_ids,
+        label=label,
+        allow_empty=total_results == 0,
+        allow_historical_review_product_ids=True,
+    )
+    dates = [
+        _parse_timestamp(
+            _required_string(
+                row.get("SubmissionTime") if isinstance(row, Mapping) else None,
+                f"{label}.Results[{index}].SubmissionTime",
+            ),
+            f"{label}.Results[{index}].SubmissionTime",
+        )
+        for index, row in enumerate(rows)
+    ]
+    if dates != sorted(dates, reverse=True):
+        raise SephoraOnboardingCaptureError(
+            f"{label} is not ordered by SubmissionTime descending"
+        )
+    return {
+        "total_results": total_results,
+        "row_count": len(rows),
+        "newest_submission_time": max(dates) if dates else None,
+        "oldest_submission_time": min(dates) if dates else datetime.min.replace(
+            tzinfo=timezone.utc
+        ),
+        "exhausted": len(rows) >= total_results,
+    }
+
+
+def _recent_offset(artifact_name: str) -> int:
+    match = re.fullmatch(
+        r"reviews_non_incentivized_most_recent_offset_(\d+)\.json",
+        artifact_name,
+    )
+    if match is None:
+        raise SephoraOnboardingCaptureError(
+            f"invalid Most Recent artifact name: {artifact_name}"
+        )
+    return int(match.group(1))
+
+
 def _request_manifest(
     parent: ParentContext,
     specs: Sequence[ApiRequestSpec],
@@ -587,7 +1018,7 @@ def _request_manifest(
 ) -> dict[str, Any]:
     response_by_name = {spec.artifact_name: response for spec, response in captured}
     return {
-        "record_kind": "sephora_bazaarvoice_request_manifest_v1",
+        "record_kind": "sephora_bazaarvoice_request_manifest_v3",
         "parent_packet_id": parent.packet_id,
         "parent_file_id": parent.file_id,
         "parent_file_sha256": parent.file_sha256,
@@ -677,8 +1108,9 @@ def _write_packet(
         source_surface=SEPHORA_ONBOARDING_SOURCE_SURFACE,
         source_locator=known_fact(parent.product_url),
         decision_question=(
-            "What does Sephora expose in a bounded Most Answers Q&A window, and what "
-            "is the exact live age-bucket composition of non-incentivized reviews?"
+            "What does Sephora expose in a bounded Most Answers Q&A window, a "
+            "non-incentivized Most Helpful review snapshot, a source-date-bounded "
+            "30-day Most Recent window, and its exact live age-bucket counts?"
         ),
         capture_context=(
             f"structured companion capture from hash-verified parent packet "
@@ -694,6 +1126,9 @@ def _write_packet(
         visible_mode_changes=[
             "questions_sort_total_answer_count_desc",
             "reviews_filter_non_incentivized_false",
+            "reviews_sort_total_positive_feedback_count_desc",
+            "reviews_sort_submission_time_desc",
+            "reviews_recent_window_source_date_bounded_30d_minimum",
             "review_age_bucket_inventory_20s_30s_40s_50s_plus",
         ],
         source_publication_or_event=timing.source_publication_or_event,
@@ -715,6 +1150,8 @@ def _write_packet(
             "not the complete Q&A corpus",
             "not reviewer population representativeness",
             "not an age estimate for reviews without a live age bucket",
+            "not proof of Sephora's proprietary helpfulness ranking algorithm",
+            "not a complete historical review corpus",
             "not review-body normalization or Judgment",
             "not a replacement for the parent rendered PDP packet",
         ],
@@ -765,6 +1202,7 @@ def _validate_result_product_ids(
     allowed_product_ids: Sequence[str],
     label: str,
     allow_empty: bool = False,
+    allow_historical_review_product_ids: bool = False,
 ) -> None:
     if not rows:
         if allow_empty:
@@ -779,7 +1217,10 @@ def _validate_result_product_ids(
             row.get("ProductId"),
             f"{label}.Results[{index}].ProductId",
         )
-        if product_id not in allowed_product_ids:
+        if (
+            not allow_historical_review_product_ids
+            and product_id not in allowed_product_ids
+        ):
             raise SephoraOnboardingCaptureError(
                 f"{label}.Results[{index}] product mismatch: "
                 f"expected one of {list(allowed_product_ids)}, got {product_id}"
@@ -788,6 +1229,84 @@ def _validate_result_product_ids(
 
 def _total_results(document: Mapping[str, Any], label: str) -> int:
     return _require_nonnegative_int(document, "TotalResults", label)
+
+
+def _review_inventory_row(row: Any, *, rank: int) -> dict[str, Any]:
+    if not isinstance(row, Mapping):
+        raise SephoraOnboardingCaptureError(f"review row {rank} must be an object")
+    review_id = _required_string(row.get("Id"), f"review row {rank}.Id")
+    product_id = _required_string(
+        row.get("ProductId"),
+        f"review row {rank}.ProductId",
+    )
+    review_text = _optional_string(row.get("ReviewText"))
+    return {
+        "rank": rank,
+        "review_id": review_id,
+        "product_id": product_id,
+        "title": _optional_string(row.get("Title")),
+        "review_text": review_text,
+        "review_text_display": _display_text(review_text) if review_text else None,
+        "rating": row.get("Rating"),
+        "submission_time": _optional_string(row.get("SubmissionTime")),
+        "user_nickname": _optional_string(row.get("UserNickname")),
+        "is_recommended": row.get("IsRecommended"),
+        "is_verified_buyer": row.get("IsVerifiedBuyer"),
+        "total_feedback_count": row.get("TotalFeedbackCount"),
+        "total_positive_feedback_count": row.get("TotalPositiveFeedbackCount"),
+        "total_negative_feedback_count": row.get("TotalNegativeFeedbackCount"),
+        "context_data_values": row.get("ContextDataValues"),
+        "additional_fields": row.get("AdditionalFields"),
+        "badges": row.get("Badges"),
+        "photos": row.get("Photos"),
+        "videos": row.get("Videos"),
+        "tag_dimensions": row.get("TagDimensions"),
+        "additional_source_fields": {
+            str(key): value
+            for key, value in row.items()
+            if str(key) not in _PROJECTED_REVIEW_SOURCE_FIELDS
+        },
+        "source_fields": sorted(str(key) for key in row),
+    }
+
+
+def _review_field_inventory(rows: Sequence[Any]) -> set[str]:
+    fields: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, Mapping):
+            raise SephoraOnboardingCaptureError(
+                f"review field inventory row {index} must be an object"
+            )
+        fields.update(str(key) for key in row)
+    return fields
+
+
+def _review_ids(rows: Sequence[Any]) -> list[str]:
+    return [
+        _required_string(
+            row.get("Id") if isinstance(row, Mapping) else None,
+            f"review row {index}.Id",
+        )
+        for index, row in enumerate(rows)
+    ]
+
+
+def _parse_timestamp(value: str, label: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise SephoraOnboardingCaptureError(
+            f"{label} is not an ISO-8601 timestamp"
+        ) from exc
+    if parsed.tzinfo is None:
+        raise SephoraOnboardingCaptureError(f"{label} lacks a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def _format_timestamp(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _required_string(value: Any, label: str) -> str:
@@ -842,6 +1361,8 @@ __all__ = [
     "ApiResponse",
     "BazaarvoiceReadConfig",
     "DEFAULT_QUESTION_LIMIT",
+    "DEFAULT_RECENT_WINDOW_DAYS",
+    "DEFAULT_REVIEW_PAGE_LIMIT",
     "ParentContext",
     "SEPHORA_AGE_BUCKETS",
     "SEPHORA_ONBOARDING_PARSER_VERSION",
