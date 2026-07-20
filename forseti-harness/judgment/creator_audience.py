@@ -14,6 +14,7 @@ from judgment.tiktok_audience_triangulation import (
     TriangulationValidationError,
     parse_triangulation_response as parse_legacy_tiktok_response,
 )
+from packing.creator_audience_adapter import pack_creator_audience_view
 from schemas.creator_audience_models import (
     CreatorAudienceSemanticResponse,
     CreatorAudienceTriangulationSnapshotV1,
@@ -236,7 +237,7 @@ def build_creator_audience_prompt(
         raise ValueError(
             "supplied method text does not match the audience bundle method binding"
         )
-    view = build_compact_judgment_view(bundle)
+    packed_view = pack_creator_audience_view(build_compact_judgment_view(bundle))
     allowed_axes = "|".join(get_args(AudienceClaimAxis))
     response_shape = {
         "schema_version": "creator_audience_semantic_response_v1",
@@ -306,7 +307,11 @@ def build_creator_audience_prompt(
         "RETURN_ONLY_THIS_JSON_SHAPE\n"
         f"{json.dumps(response_shape, ensure_ascii=False, indent=2)}\n\n"
         "COMPACT_EVIDENCE_VIEW\n"
-        f"{json.dumps(view, ensure_ascii=False, separators=(',', ':'))}"
+        "Evidence rows are packed as columnar tables: in each table under "
+        "evidence_tables, columns names the fields once and each entry of rows is "
+        "one evidence row's values in that order; a row's kind is its table name "
+        "without the _duplicates suffix.\n"
+        f"{json.dumps(packed_view, ensure_ascii=False, separators=(',', ':'))}"
     )
 
 

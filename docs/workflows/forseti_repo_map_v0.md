@@ -218,6 +218,7 @@ authorized.
 | `forseti-harness/signal_content/` | Retained compatibility implementation for the deprecated/dormant Signal Content Record. |
 | `forseti-harness/evidence_binding/` | JSG-01-scoped evidence binding and composition. |
 | `forseti-harness/judgment/` | Judgment-stage prompt construction, response validation, and bounded profile assembly. |
+| `forseti-harness/packing/` | Packing Spine model-facing serialization: payload-agnostic columnar packing core plus per-consumer adapters; encoding only, never selection. |
 | `forseti-harness/schemas/` | Shared typed models. |
 | `forseti-harness/scoring/` | Deterministic scoring and calibration helpers. |
 | `forseti-harness/runners/` | CLI entry points; enumerate only on demand with `git ls-files forseti-harness/runners/*.py`. |
