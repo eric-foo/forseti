@@ -2895,9 +2895,10 @@ def _validate_luckyscent_projected_content(
         raise ValueError(
             "Luckyscent content projection requires exactly one review-substrate row"
         )
-    if len(structured_rows) != 2:
+    if len(structured_rows) not in {1, 2}:
         raise ValueError(
-            "Luckyscent content projection requires the two target structured-JSON rows"
+            "Luckyscent content projection requires one or two target "
+            "structured-JSON rows"
         )
 
     variant_fields = variant_rows[0].source_visible_fields
