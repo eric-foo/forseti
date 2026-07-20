@@ -461,9 +461,11 @@ Scanning / screening activity reads the screening-side distillation of this meth
 Equipment Kit** in `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md` (public pages,
 no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
 
-For raw-to-Judgment projection views, also open
-`forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`; it constrains projection
-as a view over raw, not Cleaning, Judgment, or a new spine layer.
+For capture retention and content-to-Cleaning ownership, also open
+`forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+and the Cleaning foundation it names. Analytical cross-packet projections use
+their own source-family contracts; there is no shared capture Projection
+doctrine or capture-Projection read pack.
 
 ## ECR Source-Side Spine Read Pack
 

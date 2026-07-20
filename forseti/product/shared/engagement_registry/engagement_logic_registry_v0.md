@@ -322,7 +322,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
@@ -359,7 +359,7 @@ direction_change_propagation:
     forseti/product/shared/engagement_registry
     forseti/product/spines/capture
     forseti/product/spines/cleaning
-    forseti/product/shared/projection_doctrine
+    forseti/product/spines/foundation/product_contract
     forseti/product/spines/data_lake
     forseti/product/spines/commission_signal_board
     forseti/product/spines/scanning

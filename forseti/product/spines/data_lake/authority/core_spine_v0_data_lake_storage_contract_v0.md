@@ -18,7 +18,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-  - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 downstream_consumers:
   - physical data-lake storage lane

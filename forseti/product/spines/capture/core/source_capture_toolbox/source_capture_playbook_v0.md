@@ -340,56 +340,45 @@ helpful votes, or official-response markers stay source facts. Capture still
 runs Step 0, chooses the cheapest matching route, and records the captured state
 as source facts, not proof.
 
-## Capture artifact mode — content-mode standard (owner direction, 2026-07-17)
+## Capture retention — canonical content or raw (owner direction, 2026-07-20)
 
-For cadenced fleet capture, the standard artifact posture is **content mode**:
-the source family's projector runs in flight and the packet preserves the
-DERIVED content record as its hash-anchored file, while disposable projector
-inputs are sha256-hashed and then discarded (their hashes, parser version, byte
-counts, roles, preservation states, and projection status remain in
-route-appropriate capture metadata — the provenance floor). A small rotating
-daily **sample** preserves BOTH projector inputs and derived content in one
-packet so a parser-fit drift check can re-project the inputs and diff against
-the stored record. **Raw** mode remains for probes, one-off captures, and any
-claim that needs third-party re-verifiable bytes. This is a standard posture,
-not a volume-triggered exception (efficiency first): families flip to
-capture-time derivation as their lanes are next touched, retiring the standard
-post-hoc path only for the surface that flipped; ECR stays source-agnostic and
-reads whatever hash-anchored preserved file the packet carries.
+Content-eligible routes extract their family-owned canonical
+`content_record.json` during capture. Only after access, route pin, source
+sufficiency, secret rejection, and deterministic extraction succeed may the
+runner hash and discard declared disposable DOM, visible text, or HTTP response
+bytes. `content_extraction_metadata.json` records
+`requested_retention_mode`, `retention_outcome`, `extractor_version`,
+`extraction_status`, and each input's role, filename, SHA-256, byte count, and
+preservation state.
 
-Seam: `forseti-harness/source_capture/content_capture.py`
-(`ContentCaptureSpec` into `run_source_capture_http_packet`); first flipped
-family: Reddit (grid + deep-dive runners, `--capture-mode content|raw|sample`;
-drift check: `run_reddit_parser_fit_check.py`). Owning doctrine:
-`forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md`
-(Storage and retention). Named residual: a content-only packet is
-attestation-grade, not third-party re-reproducible; a projector failure in
-flight falls back loudly to a preserved raw packet, never silent loss.
+The public retention modes are `content` and `raw`. `raw` preserves the original
+source evidence. Any admission or extraction failure preserves all supplied
+original artifacts, records a typed failure, and returns nonzero. Capture does
+not write a Projection packet, and post-hoc capture Projection is not an
+operating path.
 
-Parfumo's pinned targeted-rendered product-page surface is the second
-family-owned adoption. Its adapter hashes and discards rendered DOM and visible
-text after successful projection, preserves the route receipt and any supplied
-screenshot as source evidence, and records the content binding in
-`content_record.json` plus `content_capture_metadata.json`. Sample packets are
-checked by `run_parfumo_parser_fit_check.py`. The direct-HTTP canary and the
-shared projection runner remain raw/legacy paths. This targeted adapter does
-not establish a generic multi-artifact content seam; another route must prove
-that abstraction before it is added.
+There is no admitted sample mode. Extractor qualification uses explicit
+operator scratch inputs and `run_content_qualification.py`; it compares current
+deterministic extraction with a retained content record without creating a
+packet. Match releases only the named scratch DOM/text and leaves a report.
+Drift or failure preserves scratch for diagnosis. This is a release gate, not a
+standing capture or lake lane.
 
-Basenotes' pinned persistent-Chrome current-window product-page surface is the
-next family-owned adoption. It retains browser snapshot metadata as provenance,
-hashes and discards rendered DOM/text after successful projection, and binds
-content rows to packet-local JSON pointers for Projection, Cleaning, and
-catch-up. `run_basenotes_parser_fit_check.py` checks sample packets. Screenshot
-acquisition is trigger-controlled: direct CDP does not request one unless the
-capture names `route_baseline`, `visual_content`,
-`access_or_overlay_diagnostic`, or `owner_requested`; a manual screenshot and
-its trigger must appear together. Exact URL plus challenge-free, source-sufficient
-DOM/text remains the access gate—a screenshot is not access proof. This second
-family implementation still does not establish a generic multi-artifact seam;
-shared lifecycle mechanics may be extracted only when their implementations
-are demonstrably identical, while Basenotes parsing and schema remain
-family-owned.
+Seams:
+
+- `forseti-harness/source_capture/content_extraction.py`
+- `forseti-harness/source_capture/content_qualification.py`
+- `forseti-harness/cleaning/content.py`
+
+Family schemas and parsers remain family-owned. Cleaning validates current
+content records and binds rows to real packet identity and JSON pointers.
+Historical raw, sample-era, content, and Projection-era artifacts remain
+readable only through explicit read-only legacy decoders. Cross-packet
+analytical projections are unaffected.
+
+Screenshot acquisition remains route-triggered. Exact URL and route-specific
+locale, currency, ZIP, challenge-free, and source-sufficiency checks remain the
+access gate; a screenshot is not access proof.
 
 ## Rendered overlays and screenshot economy
 
@@ -575,7 +564,6 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - .agents/workflow-overlay/source-loading.md
     - docs/workflows/orca_repo_map_v0.md
-    - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
     - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
     - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - forseti/product/spines/scanning/README.md
@@ -591,10 +579,6 @@ direction_change_propagation:
       reason: >
         The repo map routes to this playbook at file level; no new artifact home
         or anchor is needed.
-    - path: forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
-      reason: >
-        Its supplied-screenshot retention rule remains true; this change
-        distinguishes upstream screenshot acquisition from packet retention.
     - path: docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
       reason: >
         Its source-owned benign-overlay and challenge actions already satisfy

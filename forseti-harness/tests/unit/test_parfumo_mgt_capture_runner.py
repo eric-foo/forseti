@@ -131,8 +131,8 @@ def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_netwo
     assert summary["packet_roles"][TARGETED_RENDERED_SLOT]["source_surface"] == TARGETED_RENDERED_SURFACE
     assert "not full Parfumo corpus capture" in summary["non_claims"]
     assert "not live network capture by this local packet writer" in summary["non_claims"]
-    assert summary["capture_parameters"]["capture_artifact_mode"] == "content"
-    assert summary["projection_status"] == "succeeded"
+    assert summary["capture_parameters"]["requested_retention_mode"] == "content"
+    assert summary["extraction_status"] == "succeeded"
 
     packet_path = Path(summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"])
     manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
@@ -162,7 +162,7 @@ def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_netwo
     assert any(path.endswith("route_receipt.json") for path in preserved_paths)
     assert any(path.endswith("viewport_screenshot.png") for path in preserved_paths)
     assert any(path.endswith("content_record.json") for path in preserved_paths)
-    assert any(path.endswith("content_capture_metadata.json") for path in preserved_paths)
+    assert any(path.endswith("content_extraction_metadata.json") for path in preserved_paths)
     assert any(path.endswith("/05_parfumo_targeted_capture_plan.json") for path in preserved_paths)
     assert all(
         source_slice["preserved_file_ids"] == ["file_01", "file_02", "file_03", "file_04", "file_05"]
@@ -171,9 +171,8 @@ def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_netwo
 
 
 @pytest.mark.parametrize(
-    ("mode", "expect_content", "expect_projector_inputs"),
+    ("mode", "expect_content", "expect_extractor_inputs"),
     [
-        ("sample", True, True),
         ("raw", False, True),
     ],
 )
@@ -181,7 +180,7 @@ def test_parfumo_targeted_rendered_artifact_modes(
     tmp_path: Path,
     mode: str,
     expect_content: bool,
-    expect_projector_inputs: bool,
+    expect_extractor_inputs: bool,
 ) -> None:
     artifacts = _write_targeted_artifacts(tmp_path / "artifacts")
 
@@ -192,7 +191,7 @@ def test_parfumo_targeted_rendered_artifact_modes(
         visible_text_path=artifacts["visible_text"],
         route_receipt_path=artifacts["route_receipt"],
         screenshot_path=artifacts["screenshot"],
-        capture_artifact_mode=mode,
+        requested_retention_mode=mode,
     )
 
     assert exit_code == 0
@@ -201,16 +200,14 @@ def test_parfumo_targeted_rendered_artifact_modes(
     manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
     paths = [item["relative_packet_path"] for item in manifest["preserved_files"]]
     assert any(path.endswith("content_record.json") for path in paths) is expect_content
-    assert any(path.endswith("rendered_dom.html") for path in paths) is expect_projector_inputs
-    assert any(path.endswith("visible_text.txt") for path in paths) is expect_projector_inputs
+    assert any(path.endswith("rendered_dom.html") for path in paths) is expect_extractor_inputs
+    assert any(path.endswith("visible_text.txt") for path in paths) is expect_extractor_inputs
     metadata_path = next(
-        packet_path / path for path in paths if path.endswith("content_capture_metadata.json")
+        packet_path / path for path in paths if path.endswith("content_extraction_metadata.json")
     )
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    assert metadata["capture_artifact_mode"] == mode
-    assert metadata["projection_status"] == (
-        "succeeded" if mode == "sample" else "not_attempted: raw mode"
-    )
+    assert metadata["requested_retention_mode"] == mode
+    assert metadata["extraction_status"] == "not_attempted: raw retention requested"
 
 
 def test_parfumo_targeted_projection_failure_preserves_raw_and_stays_loud(
@@ -234,7 +231,7 @@ def test_parfumo_targeted_projection_failure_preserves_raw_and_stays_loud(
 
     assert exit_code == 4
     summary = json.loads(Path(message).read_text(encoding="utf-8"))
-    assert summary["projection_status"] == "failed: RuntimeError: fixture parser failure"
+    assert summary["extraction_status"] == "failed: RuntimeError: fixture parser failure"
     packet_path = Path(summary["packet_roles"][TARGETED_RENDERED_SLOT]["packet_path"])
     manifest = json.loads((packet_path / "manifest.json").read_text(encoding="utf-8"))
     paths = [item["relative_packet_path"] for item in manifest["preserved_files"]]
@@ -242,7 +239,7 @@ def test_parfumo_targeted_projection_failure_preserves_raw_and_stays_loud(
     assert any(path.endswith("visible_text.txt") for path in paths)
     assert not any(path.endswith("content_record.json") for path in paths)
     assert any(
-        "content-mode projection failed in flight" in limitation
+        "content extraction failed in flight" in limitation
         for limitation in manifest["limitations"]
     )
 
@@ -252,7 +249,7 @@ def test_parfumo_direct_http_rejects_content_mode(tmp_path: Path) -> None:
         runner_module.main(
             [
                 "--direct-http",
-                "--capture-mode",
+                "--retention-mode",
                 "content",
                 "--url",
                 _LOCATOR,

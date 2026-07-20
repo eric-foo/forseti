@@ -28,7 +28,7 @@ branch_or_commit: >
   delegated review report hash above.
 stale_if:
   - Silver Vault common header fields, raw_refs, derived_refs, or DataLakeRoot derived path grammar change.
-  - Projection raw_ref/raw_anchor models, CleaningRawAnchor, CleaningProjectionRef, or transcript_asr record semantics change.
+  - CleaningSourceAnchor, analytical projection lineage, or transcript_asr record semantics change.
   - IG one-render deep capture gains a raw packet, Attachment Record, or other persisted raw source object.
 ```
 
@@ -112,7 +112,7 @@ decision, but it must not be used to duplicate or weaken the header refs.
 | IG legacy and reels-grid projection | Rows carry packet/slice/file/hash anchors, JSON pointers, source-surface candidates, and selection policy data. | Fits directly; source-surface disagreement belongs in payload, lineage points to raw evidence. |
 | YouTube caption packets | Caption json3 is raw source material in a SourceCapturePacket; flat text is non-authoritative. | Fits raw packet/file refs. |
 | YouTube and IG standalone ASR | Raw audio is staged as a SourceCapturePacket; generated transcript lives as a `transcript_asr` derived record with provenance back to packet/file/hash. | Fits raw refs for the ASR record and derived refs for downstream consumers. |
-| Cleaning projection handles | `CleaningRawAnchor` already supports preserved-file anchors and `derived_record` anchors; `CleaningProjectionRef` separately carries `row_id` and `row_kind`. | Strong fit; this is existing proof that file refs, derived-record refs, and projection-row identity all need first-class support. |
+| Cleaning source handles | `CleaningSourceAnchor` supports packet-local content-record pointers and contained historical file anchors; source-row identity remains on the handle. | Strong fit; file refs and content-row identity remain first-class without a persisted capture Projection object. |
 | Product mentions from transcripts | Current product-mention silver records key by transcript anchor/source but need exact transcript derived-record identity to avoid same-shortcode ambiguity. | Fits, but this is a current gap the helper should close first. |
 | IG one-render deep capture | Current pending shape writes comments and transcript members keyed by shortcode; media URL is transient and redacted; no raw media bytes or raw render packet are persisted. | Fits only with explicit `lineage_limitations`. Full source-backed completeness would require a raw packet or Attachment Record later. |
 
@@ -208,7 +208,7 @@ the member's address.
 For a projection-derived fact, `row_locator` is required when the consumed
 derived record is a multi-row projection record and the fact depends on one row.
 This preserves the `row_id`/`row_kind` distinction already modeled by
-`CleaningProjectionRef` without requiring a third top-level ref bucket in v0.
+the Cleaning source handle without requiring a third top-level ref bucket in v0.
 If a producer has an existing projection-ref object, the helper should preserve
 that same row identity rather than reducing the lineage to `lane + record_id`.
 

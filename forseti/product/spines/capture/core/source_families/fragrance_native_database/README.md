@@ -6,22 +6,22 @@ artifact_role: Capture source-family lane index
 scope: >
   Cold-start lane index for fragrance-native database capture routes:
   Fragrantica, Parfumo, and Basenotes. Ties source-access route evidence,
-  packet runners, mechanical projection, Data Lake, ECR, and Cleaning seams
+  packet runners, canonical content extraction, Data Lake, ECR, and Cleaning seams
   without re-owning downstream layer contracts.
 use_when:
   - Starting Fragrantica, Parfumo, or Basenotes capture-to-lake work.
   - Checking whether a fragrance-native database source should be treated as retail/PDP.
-  - Finding the first runner, projection helper, or Cleaning lake writer for a fragrance-native database packet.
+  - Finding the first runner, content extractor, or Cleaning lake writer for a fragrance-native database packet.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/orca_fragrance_native_database_live_probe_v0.md
-  - docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/parfumo_targeted_capture_contract_v0.md
   - forseti/product/spines/data_lake/README.md
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
 stale_if:
   - Fragrantica, Parfumo, or Basenotes route posture changes.
-  - A fragrance-native database runner, projection helper, or Cleaning lake writer changes source_family/source_surface requirements.
+  - A fragrance-native database runner, content extractor, or Cleaning lake writer changes source_family/source_surface requirements.
   - Data Lake raw/derived/Silver authority changes.
 ```
 
@@ -39,11 +39,11 @@ verified-purchase/offer/availability semantics.
 
 ## Route Map
 
-| Source | Access route / source surface | Packet runner | Projection | Cleaning / Silver seam | Residuals to preserve |
+| Source | Access route / source surface | Packet runner | Content extraction | Cleaning / Silver seam | Residuals to preserve |
 | --- | --- | --- | --- | --- | --- |
-| Fragrantica | One raw direct-HTTP canary plus content-mode CloakBrowser initial-viewport and deep-scroll current-window packets. Surfaces: `fragrantica_product_page_direct_http`, `fragrantica_product_page_cloakbrowser_initial_viewport`, `fragrantica_product_page_cloakbrowser_deep_scroll_current_window`. | `forseti-harness/runners/run_fragrantica_mgt_capture.py`; parser-fit checker `run_fragrantica_parser_fit_check.py`. | Family schema/parser in `forseti-harness/source_capture/fragrantica_projection.py`; raw/sample/legacy runner `run_fragrantica_projection.py`; lane `projection_fragrantica`. | `forseti-harness/cleaning/fragrantica.py`; lake writer `forseti-harness/cleaning/fragrantica_lake.py`; catch-up consumes content records without rereading discarded DOM/text. | Current-window review capture only; full archive/login prompt remains residual. Active CloakBrowser capture retains screenshots; content mode hashes then discards DOM/text after successful projection. |
-| Parfumo | Targeted rendered/session route for high-value sample; direct HTTP/AJAX is historical/canary. Targeted surface: `parfumo_product_page_chrome_extension_targeted_rendered_session`. | `forseti-harness/runners/run_parfumo_mgt_capture.py`; targeted route defaults to hybrid `content` mode and retains route receipt plus supplied screenshot. | Capture-time content record through `forseti-harness/source_capture/parfumo_projection.py`; parser-fit runner `run_parfumo_parser_fit_check.py`; legacy/raw runner `run_parfumo_projection.py`; lane `projection_parfumo`. | `forseti-harness/cleaning/parfumo.py`; lake writer `forseti-harness/cleaning/parfumo_lake.py`; content packets bind Cleaning inputs to packet-local content-record JSON pointers. | Targeted latest/high/low review and statement samples only; no full 369-review / 1390-statement corpus; no secret/browser-state export; content mode discards DOM/text only after hashing and successful projection. |
-| Basenotes | User-cleared persistent Chrome public-page export. Surface: `basenotes_product_page_user_cleared_persistent_chrome_current_window`. | `forseti-harness/runners/run_basenotes_mgt_capture.py`; the pinned route defaults to family-owned `content` mode after live parser-fit and equivalence dogfood. | Capture-time content record through `forseti-harness/source_capture/basenotes_projection.py`; parser-fit runner `run_basenotes_parser_fit_check.py`; raw/legacy runner `run_basenotes_projection.py`; lane `projection_basenotes`. | `forseti-harness/cleaning/basenotes.py`; lake writer `forseti-harness/cleaning/basenotes_lake.py`; content packets bind Cleaning inputs to packet-local content-record JSON pointers. | Exact-URL, challenge-free DOM/text, and product-detail sufficiency remain fail-closed access proof; a screenshot is never access proof. The route exports no cookie, credential, storage-state, or profile data. In-page JSON-LD review subset is not full corpus; `/reviews/` and sentiment sub-URLs remain archive gates. |
+| Fragrantica | One raw direct-HTTP canary plus content CloakBrowser initial-viewport and deep-scroll current-window packets. | `forseti-harness/runners/run_fragrantica_mgt_capture.py`. | Family extractor in `forseti-harness/source_capture/fragrantica_projection.py`; current captures persist canonical `content_record.json`, while raw packets are historical inputs only. | `forseti-harness/cleaning/fragrantica.py`; lake writer `forseti-harness/cleaning/fragrantica_lake.py`; Cleaning validates and adapts content records directly. | Current-window review capture only; full archive/login prompt remains residual. Active capture may retain a triggered screenshot; successful content extraction hashes then discards DOM/text. |
+| Parfumo | Targeted rendered/session route for a bounded high-value review sample; direct HTTP/AJAX is historical/canary. | `forseti-harness/runners/run_parfumo_mgt_capture.py`; the targeted route retains its receipt and any supplied screenshot. | Family extractor in `forseti-harness/source_capture/parfumo_projection.py`; content is canonical and raw is historical compatibility. | `forseti-harness/cleaning/parfumo.py`; lake writer `forseti-harness/cleaning/parfumo_lake.py`; Cleaning owns source-row validation and adaptation. | Latest/high/low review and statement samples only; no full 369-review / 1390-statement corpus; no secret/browser-state export. |
+| Basenotes | User-cleared persistent Chrome public-page export. | `forseti-harness/runners/run_basenotes_mgt_capture.py`. | Family extractor in `forseti-harness/source_capture/basenotes_projection.py`; current captures persist canonical content only. | `forseti-harness/cleaning/basenotes.py`; lake writer `forseti-harness/cleaning/basenotes_lake.py`; Cleaning consumes content without rereading discarded DOM/text. | Exact URL, challenge-free DOM/text, and product-detail sufficiency remain fail-closed access proof; a screenshot is never access proof. |
 
 ## Basenotes Persistent-Chrome Bundle Contract
 
@@ -81,12 +81,13 @@ caller-bound product path, missing Product/review/reviewBody JSON-LD markers,
 symlinks, empty/oversized files, invalid supplied screenshots, missing required
 files, trigger mismatches, or unexpected files before packet publication.
 
-The route supports `--capture-mode content|sample|raw`. Successful `content`
-captures hash and discard rendered DOM/text, retain browser metadata,
-`content_record.json`, and `content_capture_metadata.json`, and retain a screenshot
-only when intentionally triggered. `sample` retains DOM/text plus the content
-record for `run_basenotes_parser_fit_check.py`; `raw` retains the legacy parser
-inputs. Projection failure preserves all supplied artifacts and exits `4`.
+The route supports current `content` retention and explicit historical `raw`
+retention. Successful content extraction hashes and discards rendered DOM/text,
+retains browser metadata, `content_record.json`, and
+`content_extraction_metadata.json`, and retains a screenshot only when
+intentionally triggered. Extraction failure preserves all supplied artifacts and
+exits `4`. Parser qualification is an explicit scratch workflow; it never admits
+a sample packet to the lake.
 
 ```text
 python forseti-harness/runners/run_basenotes_mgt_capture.py \
@@ -156,7 +157,7 @@ fallback.
 | Task | Open |
 | --- | --- |
 | Reconstruct route diagnosis and pinned evidence | `docs/research/orca_fragrance_native_database_live_probe_v0.md` |
-| Continue Fragrantica raw/projection/ECR/Cleaning handoff | `docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md` |
+| Check current Capture-to-Cleaning ownership | `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` |
 | Check Parfumo targeted-sample contract | `docs/workflows/parfumo_targeted_capture_contract_v0.md` |
 | Inspect actual runner source_family/source_surface strings | `run_*_mgt_capture.py` for the named source, then the matching projection helper |
 | Check lake layout/admission/Silver rules | `forseti/product/spines/data_lake/README.md` -> `authority/` |

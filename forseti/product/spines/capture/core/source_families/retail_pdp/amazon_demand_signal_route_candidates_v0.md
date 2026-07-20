@@ -21,8 +21,7 @@ open_next:
   - docs/research/forseti_demand_signal_backtest_probe_findings_v0.md
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
-  - docs/workflows/retail_pdp_amazon_first_silver_lane_handoff_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
 stale_if:
   - The capture lane binds, rejects, or supersedes any candidate route below (point here to the binding record).
   - Amazon changes the badge, rank rendering, cart-quantity behavior, or SP-API/BSA terms materially.

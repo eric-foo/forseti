@@ -223,12 +223,6 @@
       "module": "runners/run_capture_ecr_cleaning_smoke.py"
     },
     {
-      "a2_fork_impact": "none",
-      "call": "record_path",
-      "count": 1,
-      "module": "runners/run_cleaning_spine_periodic_audit.py"
-    },
-    {
       "a2_fork_impact": "packet_index",
       "call": "catalog_coverage_census",
       "count": 1,
@@ -346,19 +340,7 @@
       "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
-      "module": "source_capture/basenotes_projection.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_record",
-      "count": 1,
       "module": "source_capture/fragrance_review_lake.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_record",
-      "count": 1,
-      "module": "source_capture/fragrantica_projection.py"
     },
     {
       "a2_fork_impact": "none",
@@ -416,25 +398,7 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record",
-      "count": 1,
-      "module": "source_capture/parfumo_projection.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_record",
-      "count": 1,
-      "module": "source_capture/retail_pdp_projection.py"
-    },
-    {
-      "a2_fork_impact": "none",
       "call": "append_silver_record",
-      "count": 1,
-      "module": "source_capture/retail_pdp_silver.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "record_path",
       "count": 1,
       "module": "source_capture/retail_pdp_silver.py"
     },

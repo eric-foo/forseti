@@ -28,7 +28,7 @@ def _fixture_html() -> str:
 
 def test_basenotes_registry_roles_match_validator_expectations() -> None:
     assert role_of("cleaning_basenotes_audit") is LaneRole.CLEANING_AUDIT
-    assert role_of(PROJECTION_BASENOTES_LANE) is LaneRole.PROJECTION
+    assert role_of(PROJECTION_BASENOTES_LANE) is LaneRole.RETIRED_CAPTURE_PROJECTION
     assert role_of("cleaning_basenotes_silver") is LaneRole.SILVER_ENVELOPE
 
 

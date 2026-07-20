@@ -308,7 +308,7 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
         == "2026-06-19T00:00:00Z"
     )
     assert summary["reviews"]["raw_review_field_inventory"][
-        "unprojected_fields_preserved_only_in_raw"
+        "unsummarized_fields_preserved_only_in_raw"
     ] == []
     assert summary["reviews"]["raw_review_field_inventory"][
         "additional_source_fields_carried"
@@ -325,12 +325,12 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
     assert summary["questions"]["total_questions"] == 1390
     assert summary["questions"]["captured_question_rows"] == 2
     assert summary["questions"]["captured_included_answer_rows"] == 3
-    assert summary["projection_equivalence"]["answers_equal"] is True
-    assert summary["projection_equivalence"]["most_helpful_row_order_equal"] is True
-    assert summary["projection_equivalence"]["most_recent_row_order_equal"] is True
-    assert summary["projection_equivalence"]["all_raw_review_fields_accounted_for"] is True
-    assert summary["parser_fit"]["status"] == "passed"
-    assert summary["parser_fit"]["recent_window_coverage_proven"] is True
+    assert summary["row_accounting"]["answers_equal"] is True
+    assert summary["row_accounting"]["most_helpful_row_order_equal"] is True
+    assert summary["row_accounting"]["most_recent_row_order_equal"] is True
+    assert summary["row_accounting"]["all_raw_review_fields_accounted_for"] is True
+    assert summary["content_qualification"]["status"] == "passed"
+    assert summary["content_qualification"]["recent_window_coverage_proven"] is True
 
     names = {
         Path(item["original_path"]).name
@@ -347,7 +347,7 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
     assert _QUESTION_TOKEN.encode() not in persisted
 
 
-def test_projection_failure_commits_every_raw_response_as_fallback(tmp_path: Path) -> None:
+def test_adaptation_failure_commits_every_raw_response_as_fallback(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path)
 
@@ -365,8 +365,8 @@ def test_projection_failure_commits_every_raw_response_as_fallback(tmp_path: Pat
         for item in loaded.manifest["preserved_files"]
     ]
     assert len([name for name in names if name.endswith(".json")]) == 11
-    assert "sephora_projection_failure.json" in names
-    failure = _artifact_json(loaded, "sephora_projection_failure.json")
+    assert "sephora_adaptation_failure.json" in names
+    failure = _artifact_json(loaded, "sephora_adaptation_failure.json")
     assert failure["raw_failure_fallback"] == {
         "expected_response_count": 9,
         "preserved_response_count": 9,
@@ -383,7 +383,7 @@ def test_recent_window_stops_on_cumulative_source_exhaustion(tmp_path: Path) -> 
     """When every non-incentivized review is inside the 30-day window and the
     corpus spans more than one page, acquisition must stop on cumulative source
     exhaustion. Detecting exhaustion only per page would paginate past the end,
-    capture an empty page, and misreport a complete capture as a projection
+    capture an empty page, and misreport a complete capture as a summary
     failure."""
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path)
@@ -462,7 +462,7 @@ def test_recent_window_stops_on_cumulative_source_exhaustion(tmp_path: Path) -> 
     assert recent["within_window_rows"] == 3
     assert recent["source_exhausted"] is True
     assert recent["coverage_status"] == "source_exhausted"
-    assert summary["parser_fit"]["recent_window_coverage_proven"] is True
+    assert summary["content_qualification"]["recent_window_coverage_proven"] is True
 
     names = {
         Path(item["original_path"]).name

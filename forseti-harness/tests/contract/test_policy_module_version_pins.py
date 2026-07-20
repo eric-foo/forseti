@@ -67,13 +67,17 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Pin bumped: raw_refs None-first sort key (bugfix -- mixed None/str ref
         # keys raised TypeError; previously-successful inputs order identically),
         # not output-shaping.
-        "99aee399f1a989c50c3c100ad6aebd84daef3fcfaa6fb62dcc8ce4eddc182f0f",
+        # Output-shaping hard cut: source anchors replace raw/projection sibling
+        # refs; Cleaning core/method and producer tokens are bumped below.
+        "648fa0bbffa9b69fbb6d4a28e396426ddb0e69fdd5a587f42eac40cf2edf7543",
     ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
         # Admission-shaping v1: user-cleared persistent Chrome replaces the retired proxy surface.
         # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
-        "c1f3fa8e66d16551e585c734cb2fa76da1bf44f69a31499807104afb7794f734",
+        # Output-shaping: current content adapts directly under Cleaning and
+        # historical raw uses the contained decoder; method token bumped to v2.
+        "81e40f663c427904d44c3c78f67f7d90083c2871fce1c3bc4d7a46ff5466571b",
     ),
     "cleaning/basenotes_lake.py": (
         (
@@ -84,13 +88,16 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Cleaning method v1 re-fingerprints obligations for the changed source admission.
         # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
         # data_lake/canonical_json.py; not output-shaping.
-        "a44fe51c0908f38b53a48092e12c9c4c1c75f0c2528941b18c60b3f4a98467ad",
+        # Output-shaping lineage/handle change; audit, Silver, and Cleaning
+        # method tokens are bumped.
+        "6bb64954a4f7216e0ee31875d98926116bb0ee071cb1bd8b1bdd58cdfaac9089",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
         # Output-shaping: projection-v1 residual names change raw-pull-required output;
         # the cleaning method token is bumped to v1.
-        "a06d40ecb8c83bee8a8b1dad01c16b29a00c0a16270bd24038e2d45410975af4",
+        # Output-shaping direct-content adaptation; Cleaning method bumped v2.
+        "b59b41a75ea5e886f432894617012adcd1653379b97fa4d7e74debf0fe601f80",
     ),
     "cleaning/fragrantica_lake.py": (
         (
@@ -102,16 +109,21 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Output-shaping: FRAGRANTICA_CLEANING_METHOD_ID v1 re-fingerprints
         # obligations for the projection-v1 residual vocabulary.
-        "673cd8b2cd391345d154518bac6bf50a57f2f412ac80007415ee77ad208d3f16",
+        # Output-shaping lineage/handle change; audit, text, metric, and method
+        # producer tokens are bumped.
+        "68cbbfc04fa04ef069a770955b768fe0d7a8f9d71f35e35e9b63f3768d456aea",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
-        "3b0c4858333d1bb04937b95ced0e154aa05f5d82b3db56af95732ae85a9009f0",
+        # Output-shaping handle contract: source anchors replace raw/projection
+        # sibling refs, so CLEANING_CORE_VERSION is bumped to v1.
+        "5c8cbf0e8cd0becd33bac0fb99f78497b423040dd7d83c6cdc9d9bac9c579c63",
     ),
     "cleaning/parfumo.py": (
         ("PARFUMO_RATING_CARRY_RULE", "PARFUMO_CLEANING_METHOD_ID (cleaning/parfumo_lake.py)"),
         # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
-        "6f4c4cda538e94056eb124d6006c8e5c7ea4749df4fe4bfe22ec92d57009b176",
+        # Output-shaping direct-content adaptation; Cleaning method bumped v1.
+        "4454d22c45ad9082126bcb45069166f17609120df4c8881945c9c914990a05e1",
     ),
     "cleaning/parfumo_lake.py": (
         (
@@ -122,7 +134,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
         # data_lake/canonical_json.py; not output-shaping.
-        "d19fd40113b4410530804fcadab0689db125885af9af058477deaf1a6fe59911",
+        # Output-shaping lineage/handle change; audit, text, metric, and method
+        # producer tokens are bumped.
+        "49d7325412f50e08d964d74ab36693cd42a3417c6949a721f3c1aae6a3ba1a8d",
     ),
     "cleaning/transcript_product_extractor.py": (
         ("EXTRACTOR_RUBRIC_VERSION",),
@@ -155,7 +169,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # and retain a bounded 30-day window; window status stays in browser
         # metadata while raw/content projection semantics remain equivalent.
         # Known v1/v2 Nordstrom content-only packets remain readable.
-        "0eb09d62a4941dd854fd7dfaed445441d543f66e813b4f1cffc3312b204aa8fc",
+        # Hard-cut plumbing only in this parser module: persisted Projection
+        # writers were removed, while extracted and legacy-decoded row semantics
+        # remain equivalent. Parser/projection tokens therefore stay unchanged.
+        "33afb6b44e85caced6a7c8efaedef1c28750c97ede3277e2883c54890b869f64",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
@@ -165,7 +182,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Pin bumped: family-owned content-record schema/parser and JSON-pointer packet binding.
         # Raw/legacy row semantics remain equivalent, so BASENOTES_PROJECTION_VERSION stays v1;
         # content and parser behavior carry separate version constants.
-        "b3f276b8ff5c0ba69be08db81e5b624428ce794b4087582d2436ad9fd331407e",
+        # Removed persisted writer and unbound packet scaffolding; content and
+        # historical decoded rows are unchanged, so the family token stays v1.
+        "92a674be3efa82d11eb27cc005f683c7756960b31e9df9445f4746222954b46e",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
@@ -185,7 +204,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # surfaces and tightens body selection plus residual vocabulary. The
         # family-owned content record adds parser-versioned retention and
         # JSON-pointer rebinding without another projection semantic change.
-        "5568bffd0918e851c46b6983509daa3509d533593e1cd81352d782e92370bbab",
+        # Removed persisted writer and unbound packet scaffolding; content and
+        # historical decoded rows are unchanged, so the family token stays v1.
+        "5ab86e7f97f2c80d4bb56c7b4491790c1cd2f0fb1e0d0cbbe6276fb5518125d1",
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
@@ -197,7 +218,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("PARFUMO_PROJECTION_VERSION",),
         # Pin bumped: corrected a latent in-memory hash-basis literal; the anchor is
         # discarded before serialization, so projection outputs remain unchanged.
-        "efb6592a166cb7aa8c064a05a68ab4d9213d7b62b8b3450f8262254a66408a1a",
+        # Removed persisted writer and unbound packet scaffolding; content and
+        # historical decoded rows are unchanged, so the family token stays v0.
+        "cc544bb46bc93d4813fc1162d3aec31daaf019011e7a013372c98d684b18cc10",
     ),
     "source_capture/projection_shared.py": (
         (

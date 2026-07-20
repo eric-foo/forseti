@@ -15,7 +15,7 @@ use_when:
   - Reusing the Amazon-first proof without creating an Amazon-specific lane.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti-harness/source_capture/retail_pdp_silver.py
   - forseti-harness/runners/run_retail_pdp_silver_producer.py
@@ -165,7 +165,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/source-of-truth.md
     - forseti/product/spines/capture/core/source_families/retail_pdp/README.md
-    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - forseti-harness/data_lake/silver_record.py
     - forseti-harness/data_lake/silver_lineage.py

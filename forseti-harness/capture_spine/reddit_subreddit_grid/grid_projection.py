@@ -22,7 +22,7 @@ from source_capture.projection_shared import canonical_old_reddit_thread_url
 
 # Bump on ANY behavior change to this projection so content packets written
 # under the old behavior stay distinguishable from re-projections under the
-# new one (parser-fit drift checks compare records only within one version).
+# new one (qualification compares records only within one version).
 GRID_PROJECTION_PARSER_VERSION = "1"
 
 GRID_CONTENT_RECORD_KIND = "reddit_subreddit_grid_view_v0"
@@ -109,7 +109,7 @@ def build_grid_content_record(
     """Project one grid page into the deterministic content-packet record.
 
     Pure function of its inputs (no timestamps, no environment reads) so a
-    parser-fit check can re-project sampled raw bytes and compare the result
+    qualification can re-extract scratch raw bytes and compare the result
     byte-for-byte against the stored record.
     """
     view = project_old_reddit_grid_html(

@@ -15,9 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
 branch_or_commit:
   - Stacked on codex/data-lake-mechanics-map at 482b499c; verify PR #225 and PR #226 landing state before treating this as mainline context.
 stale_if:
@@ -193,17 +191,17 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     - forseti/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md
     - forseti/product/spines/capture/core/source_capture_toolbox/README.md
-    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
-    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md
-    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
-    - orca-harness/source_capture/retail_pdp_projection.py
+    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+    - orca-harness/source_capture/retail_pdp_content.py
+    - orca-harness/cleaning/retail_pdp.py
     - orca-harness/runners/run_source_capture_cloakbrowser_packet.py
-    - orca-harness/runners/run_retail_pdp_projection.py
-    - orca-harness/tests/unit/test_retail_pdp_projection.py
+    - orca-harness/runners/run_retail_pdp_silver_producer.py
+    - orca-harness/tests/unit/test_retail_pdp_content_cleaning_silver.py
     - orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py
   intentionally_not_updated:
     - path: orca-harness/source_capture/retail_pdp_projection.py
-      reason: Probe is architecture-only; existing helper already demonstrates the logical shape.
+      reason: The module retains family parsers and the read-only historical decoder; it is not a persisted lane.
     - path: orca-harness/source_capture/models.py
       reason: No new SourceCaptureSlice field or schema migration is authorized.
     - path: docs/workflows/ecr_spine_submap_v0.md

@@ -199,7 +199,6 @@ transitional registry/doctrine area, not a durable home for this contract.
 | `forseti/product/case_families/product_learning/` | Product-learning case families across fragrance and other verticals. |
 | `forseti/product/information/` | Reusable, decision-agnostic product information; open `forseti/product/information/README.md`, then the current `company_surface/README.md` domain front door. |
 | `forseti/product/shared/engagement_registry/` | Shared engagement registry and logic. |
-| `forseti/product/shared/projection_doctrine/` | Shared projection boundaries and doctrine. |
 
 ## Forseti Harness Areas
 

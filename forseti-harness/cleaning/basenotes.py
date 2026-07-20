@@ -1,7 +1,7 @@
 """Basenotes-specific adapter into the Cleaning Spine v0 core."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Mapping
 
 from cleaning._shared import (
     ecr_ref as _ecr_ref,
@@ -12,12 +12,20 @@ from cleaning._shared import (
     raw_pull_triggers_for_packet_residuals as _raw_pull_triggers_for_packet_residuals,
 )
 from cleaning.models import (
+    CleaningInputHandle,
     CleaningInputGrain,
     CleaningPacket,
     CleaningTransformLedgerEntry,
 )
-from cleaning.projection import cleaning_input_handles_from_projection_rows
-from source_capture.basenotes_projection import BasenotesProjectionPacket, BasenotesProjectionRow
+from cleaning.content import (
+    cleaning_input_handles_from_content_rows,
+    load_validated_content_record,
+)
+from cleaning.legacy import cleaning_handles_from_legacy_rows, decode_basenotes_raw
+from source_capture.basenotes_projection import (
+    BasenotesContentRecord,
+)
+from source_capture.models import SourceCapturePacket
 
 BASENOTES_CLEANING_HANDLE_PREFIX = "cleaning:basenotes"
 
@@ -44,21 +52,74 @@ _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL = {
 }
 
 
-def build_basenotes_cleaning_packet(
-    projection: BasenotesProjectionPacket,
-    *,
-    attach_ecr_ref: bool = True,
+def _build_basenotes_cleaning_packet_from_legacy(
+    decoded: Any, *, attach_ecr_ref: bool
 ) -> CleaningPacket:
-    """Build a CleaningPacket from a Basenotes projection packet."""
-    handles = cleaning_input_handles_from_projection_rows(
+    handles = cleaning_handles_from_legacy_rows(
         source_family=_BASENOTES_SOURCE_FAMILY,
         source_surface=_BASENOTES_SOURCE_SURFACE,
-        projection_packet=projection,
+        packet_id=decoded.packet_id,
+        rows=decoded.rows,
         handle_id_prefix=BASENOTES_CLEANING_HANDLE_PREFIX,
     )
-    row_by_id = {row.row_id: row for row in projection.rows}
-    ecr_ref = _ecr_ref(projection.packet_id) if attach_ecr_ref else None
-    packet_residuals = sorted(set(projection.residuals))
+    return _build_basenotes_cleaning_packet(
+        rows=decoded.rows,
+        handles=handles,
+        packet_id=decoded.packet_id,
+        packet_residuals=decoded.residuals,
+        attach_ecr_ref=attach_ecr_ref,
+    )
+
+
+def build_basenotes_cleaning_packet_from_source(
+    *,
+    packet: SourceCapturePacket,
+    file_bytes_by_file_id: Mapping[str, bytes],
+    attach_ecr_ref: bool = True,
+) -> CleaningPacket:
+    """Adapt canonical content directly; decode raw only for historical packets."""
+    loaded = load_validated_content_record(
+        packet=packet,
+        file_bytes_by_file_id=file_bytes_by_file_id,
+        record_model=BasenotesContentRecord,
+        family_label="Basenotes",
+    )
+    if loaded is None:
+        legacy = decode_basenotes_raw(
+            packet=packet, file_bytes_by_file_id=file_bytes_by_file_id
+        )
+        return _build_basenotes_cleaning_packet_from_legacy(
+            legacy, attach_ecr_ref=attach_ecr_ref
+        )
+    content_file, record = loaded
+    handles = cleaning_input_handles_from_content_rows(
+        packet=packet,
+        content_file=content_file,
+        source_family=_BASENOTES_SOURCE_FAMILY,
+        source_surface=_BASENOTES_SOURCE_SURFACE,
+        rows=record.rows,
+        handle_id_prefix=BASENOTES_CLEANING_HANDLE_PREFIX,
+    )
+    return _build_basenotes_cleaning_packet(
+        rows=record.rows,
+        handles=handles,
+        packet_id=packet.packet_id,
+        packet_residuals=record.residuals,
+        attach_ecr_ref=attach_ecr_ref,
+    )
+
+
+def _build_basenotes_cleaning_packet(
+    *,
+    rows: list[Any],
+    handles: list[CleaningInputHandle],
+    packet_id: str,
+    packet_residuals: list[str],
+    attach_ecr_ref: bool,
+) -> CleaningPacket:
+    row_by_id = {row.row_id: row for row in rows}
+    ecr_ref = _ecr_ref(packet_id) if attach_ecr_ref else None
+    packet_residuals = sorted(set(packet_residuals))
     packet_raw_pull_triggers = _raw_pull_triggers_for_packet_residuals(
         packet_residuals, _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL
     )
@@ -66,7 +127,7 @@ def build_basenotes_cleaning_packet(
     enriched_handles = []
     handle_id_by_row_id: dict[str, str] = {}
     for handle in handles:
-        row_id = handle.projection_ref.row_id if handle.projection_ref else None
+        row_id = handle.source_row_id
         if row_id is None:
             enriched_handles.append(handle)
             continue
@@ -85,7 +146,7 @@ def build_basenotes_cleaning_packet(
         handle_id_by_row_id[row_id] = enriched.handle_id
 
     transform_ledger: list[CleaningTransformLedgerEntry] = []
-    for row in projection.rows:
+    for row in rows:
         if row.row_kind not in _TEXT_ROW_KINDS:
             continue
         transform_ledger.extend(
@@ -99,7 +160,7 @@ def build_basenotes_cleaning_packet(
 
 
 def _text_row_transform_entries(
-    row: BasenotesProjectionRow,
+    row: Any,
     *,
     input_handle_id: str,
 ) -> list[CleaningTransformLedgerEntry]:
@@ -153,4 +214,7 @@ def _row_text(fields: dict[str, Any | None]) -> str | None:
     )
 
 
-__all__ = ["BASENOTES_CLEANING_HANDLE_PREFIX", "build_basenotes_cleaning_packet"]
+__all__ = [
+    "BASENOTES_CLEANING_HANDLE_PREFIX",
+    "build_basenotes_cleaning_packet_from_source",
+]

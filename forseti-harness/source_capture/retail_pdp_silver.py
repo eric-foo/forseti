@@ -1,9 +1,4 @@
-"""Derive generic Retail/PDP Silver records from one exact projection record.
-
-The producer is intentionally retailer-generic. Amazon is the first proof
-source, not a lane boundary. Inputs are caller-pinned projection record ids;
-the producer never guesses which append-only sibling is current.
-"""
+"""Derive generic Retail/PDP Silver records from Cleaning-owned content input."""
 from __future__ import annotations
 
 import hashlib
@@ -14,21 +9,19 @@ from typing import TYPE_CHECKING, Any, Iterable
 
 from data_lake.silver_lineage import (
     SilverAnchor,
-    SilverDerivedRef,
     SilverLineage,
     SilverRawRef,
-    SilverRowLocator,
     SilverSourceObject,
     has_complete_silver_lineage_structure,
 )
 from data_lake.silver_record import append_silver_record, validate_silver_vault_record
 from harness_utils import generate_ulid
-from source_capture.models import SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
-from source_capture.retail_pdp_projection import (
-    PROJECTION_RETAIL_PDP_LANE,
-    RetailPdpProjectionPacket,
-    RetailPdpProjectionRow,
+from cleaning.models import CleaningInputHandle
+from cleaning.retail_pdp import (
+    RetailPdpCleaningInput,
+    build_retail_pdp_cleaning_input,
 )
+from source_capture.models import SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -39,17 +32,16 @@ RETAIL_PDP_SILVER_SCHEMA_VERSION = "silver_vault_record_v0"
 RETAIL_PDP_SILVER_PRODUCER_SCHEMA_VERSION = "retail_pdp_silver_v0"
 
 _CONTENT_HASH_BASIS = "canonical_json_excluding_content_hash"
-_DERIVED_HASH_BASIS = "derived_record_bytes"
 _PRODUCER_ID = (
     "forseti-harness.source_capture.retail_pdp_silver"
-    ".derive_retail_pdp_silver_from_projection"
+    ".derive_retail_pdp_silver"
 )
 _SELECTED_ROW_KINDS = frozenset(
     {"retail_pdp_product", "retail_variant_offer", "retail_review_substrate"}
 )
 _NON_CLAIMS = (
     "not_cleaning",
-    "not_complete_amazon_demand_projection",
+    "not_complete_amazon_demand_observation",
     "not_exact_inventory_quantity",
     "not_exact_sold_units",
     "not_judgment",
@@ -58,50 +50,28 @@ _NON_CLAIMS = (
 
 
 class RetailPdpSilverError(ValueError):
-    """The pinned projection cannot produce truthful Retail/PDP Silver records."""
+    """The validated Cleaning input cannot produce truthful Retail/PDP Silver."""
 
 
 @dataclass(frozen=True)
 class RetailPdpSilverResult:
-    projection_record_id: str
+    cleaning_basis: str
     records: list[dict[str, Any]]
     paths: list[Path]
 
 
-def derive_retail_pdp_silver_from_projection(
-    *, data_root: "DataLakeRoot", packet_id: str, projection_record_id: str
+def derive_retail_pdp_silver(
+    *, data_root: "DataLakeRoot", packet_id: str
 ) -> RetailPdpSilverResult:
-    """Read one exact projection record and append its selected Silver semantics."""
-    projection_path = data_root.record_path(
-        subtree="derived",
-        raw_anchor=packet_id,
-        lane=PROJECTION_RETAIL_PDP_LANE,
-        record_id=projection_record_id,
-    )
-    if not projection_path.is_file():
-        raise RetailPdpSilverError(
-            f"Retail/PDP projection record does not exist: {projection_record_id!r}"
-        )
-    try:
-        projection_bytes = projection_path.read_bytes()
-        projection = RetailPdpProjectionPacket.model_validate_json(projection_bytes)
-    except (OSError, ValueError) as exc:
-        raise RetailPdpSilverError(
-            f"Retail/PDP projection record is unreadable or invalid: {projection_record_id!r}: {exc}"
-        ) from exc
-    if projection.packet_id != packet_id:
-        raise RetailPdpSilverError(
-            "Retail/PDP projection packet_id does not match the requested raw anchor: "
-            f"{projection.packet_id!r} != {packet_id!r}"
-        )
-
+    """Load one packet, adapt it under Cleaning, and append selected Silver."""
     loaded = data_root.load_raw_packet(packet_id)
     packet = SourceCapturePacket.model_validate(loaded.manifest)
+    cleaning_input = build_retail_pdp_cleaning_input(
+        packet=packet, file_bytes_by_file_id=loaded.bodies
+    )
     records = build_retail_pdp_silver_records(
         packet=packet,
-        projection=projection,
-        projection_record_id=projection_record_id,
-        projection_sha256=hashlib.sha256(projection_bytes).hexdigest(),
+        cleaning_input=cleaning_input,
     )
     # Validate the full batch before the first append; malformed input cannot
     # create a partial-success record prefix.
@@ -122,30 +92,31 @@ def derive_retail_pdp_silver_from_projection(
         )
         for record in records
     ]
-    return RetailPdpSilverResult(projection_record_id, records, paths)
+    return RetailPdpSilverResult(
+        "legacy_raw_decoder" if cleaning_input.legacy_input else "content_record",
+        records,
+        paths,
+    )
 
 
 def build_retail_pdp_silver_records(
     *,
     packet: SourceCapturePacket,
-    projection: RetailPdpProjectionPacket,
-    projection_record_id: str,
-    projection_sha256: str,
+    cleaning_input: RetailPdpCleaningInput,
 ) -> list[dict[str, Any]]:
     """Build the selected entity/offer/review record set in memory."""
-    if projection.packet_id != packet.packet_id:
-        raise RetailPdpSilverError("projection and raw packet ids do not match")
-    if not projection_sha256.strip():
-        raise RetailPdpSilverError("projection derived-record hash must be non-empty")
+    if cleaning_input.packet_id != packet.packet_id:
+        raise RetailPdpSilverError("Cleaning input and packet ids do not match")
 
-    selected = [row for row in projection.rows if row.row_kind in _SELECTED_ROW_KINDS]
-    _verify_selected_rows(packet, selected)
+    selected = [row for row in cleaning_input.rows if row.row_kind in _SELECTED_ROW_KINDS]
+    handles = cleaning_input.handle_by_row_id
+    _verify_selected_rows(packet, selected, handles)
     products = _one_row_per_key(selected, "retail_pdp_product")
     variants = _one_row_per_key(selected, "retail_variant_offer")
     reviews = _one_row_per_key(selected, "retail_review_substrate")
     if not variants:
         raise RetailPdpSilverError(
-            "projection has no retail_variant_offer row; refusing an empty Silver success"
+            "Cleaning input has no retail_variant_offer row; refusing an empty Silver success"
         )
 
     records: list[dict[str, Any]] = []
@@ -155,14 +126,13 @@ def build_retail_pdp_silver_records(
             raise RetailPdpSilverError(
                 f"variant row {variant.row_id!r} has no matching retail_pdp_product context"
             )
-        source_slice = _source_slice(packet, variant.raw_ref.slice_id)
+        source_slice = _source_slice(packet, _row_slice_id(variant))
         entity_key = _entity_key(variant)
         common = {
             "packet": packet,
             "source_slice": source_slice,
             "entity_key": entity_key,
-            "projection_record_id": projection_record_id,
-            "projection_sha256": projection_sha256,
+            "handles_by_row_id": handles,
         }
         records.append(_entity_record(product_row=product, variant_row=variant, **common))
         records.append(
@@ -199,19 +169,17 @@ def _entity_record(
     *,
     packet: SourceCapturePacket,
     source_slice: SourceCaptureSlice,
-    product_row: RetailPdpProjectionRow,
-    variant_row: RetailPdpProjectionRow,
+    product_row: Any,
+    variant_row: Any,
     entity_key: dict[str, str],
-    projection_record_id: str,
-    projection_sha256: str,
+    handles_by_row_id: dict[str, CleaningInputHandle],
 ) -> dict[str, Any]:
     lineage = _lineage(
         packet,
         source_slice,
         (product_row, variant_row),
         entity_key,
-        projection_record_id,
-        projection_sha256,
+        handles_by_row_id,
     )
     record = _base_record(
         packet, source_slice, variant_row.row_kind, "ProductEntity", "entity", lineage
@@ -233,21 +201,19 @@ def _observation_record(
     *,
     packet: SourceCapturePacket,
     source_slice: SourceCaptureSlice,
-    supporting_rows: tuple[RetailPdpProjectionRow, ...],
-    observed_row: RetailPdpProjectionRow,
+    supporting_rows: tuple[Any, ...],
+    observed_row: Any,
     entity_key: dict[str, str],
     payload_kind: str,
     observation_kind: str,
-    projection_record_id: str,
-    projection_sha256: str,
+    handles_by_row_id: dict[str, CleaningInputHandle],
 ) -> dict[str, Any]:
     lineage = _lineage(
         packet,
         source_slice,
         supporting_rows,
         entity_key,
-        projection_record_id,
-        projection_sha256,
+        handles_by_row_id,
     )
     record = _base_record(
         packet, source_slice, observed_row.row_kind, payload_kind, "observation", lineage
@@ -295,10 +261,9 @@ def _base_record(
 def _lineage(
     packet: SourceCapturePacket,
     source_slice: SourceCaptureSlice,
-    rows: Iterable[RetailPdpProjectionRow],
+    rows: Iterable[Any],
     entity_key: dict[str, str],
-    projection_record_id: str,
-    projection_sha256: str,
+    handles_by_row_id: dict[str, CleaningInputHandle],
 ) -> SilverLineage:
     row_list = list(rows)
     source_url = _known_value(source_slice.locator) or _known_value(packet.source_locator)
@@ -314,73 +279,79 @@ def _lineage(
         ),
         observed_at=_known_capture_time(source_slice),
         captured_at=_known_capture_time(source_slice),
-        raw_refs=[_raw_ref(row) for row in row_list],
-        derived_refs=[
-            SilverDerivedRef(
-                raw_anchor=packet.packet_id,
-                lane=PROJECTION_RETAIL_PDP_LANE,
-                record_id=projection_record_id,
-                row_locator=SilverRowLocator(row_id=row.row_id, row_kind=row.row_kind),
-                sha256=projection_sha256,
-                hash_basis=_DERIVED_HASH_BASIS,
-                relation="consumed",
-            )
+        raw_refs=[
+            _source_ref(handles_by_row_id[row.row_id])
             for row in row_list
         ],
+        derived_refs=[],
     )
 
 
-def _raw_ref(row: RetailPdpProjectionRow) -> SilverRawRef:
+def _source_ref(handle: CleaningInputHandle) -> SilverRawRef:
+    anchor = handle.source_anchor
     return SilverRawRef(
-        packet_id=row.raw_ref.packet_id,
-        slice_id=row.raw_ref.slice_id,
-        file_id=row.raw_anchor.file_id,
-        relative_packet_path=row.raw_anchor.relative_packet_path,
-        sha256=row.raw_anchor.sha256,
-        hash_basis=row.raw_anchor.hash_basis,
+        packet_id=anchor.packet_id,
+        slice_id=anchor.slice_id,
+        file_id=anchor.file_id,
+        relative_packet_path=anchor.relative_packet_path,
+        sha256=anchor.sha256,
+        hash_basis=anchor.hash_basis,
         anchor=SilverAnchor(
-            kind=row.raw_anchor.anchor_kind, value=row.raw_anchor.anchor_value
+            kind=anchor.anchor_kind,
+            value=anchor.json_pointer or anchor.anchor_value,
         ),
         relation="observed_from",
     )
 
 
 def _verify_selected_rows(
-    packet: SourceCapturePacket, rows: Iterable[RetailPdpProjectionRow]
+    packet: SourceCapturePacket,
+    rows: Iterable[Any],
+    handles_by_row_id: dict[str, CleaningInputHandle],
 ) -> None:
     files = {item.file_id: item for item in packet.preserved_files}
     slices = {item.slice_id: item for item in packet.source_slices}
     for row in rows:
-        if row.raw_ref.packet_id != packet.packet_id:
-            raise RetailPdpSilverError(f"projection row {row.row_id!r} points at another packet")
-        source_slice = slices.get(row.raw_ref.slice_id)
+        handle = handles_by_row_id.get(row.row_id)
+        if handle is None:
+            raise RetailPdpSilverError(
+                f"Cleaning handle is missing for row {row.row_id!r}"
+            )
+        anchor = handle.source_anchor
+        if anchor.packet_id != packet.packet_id:
+            raise RetailPdpSilverError(
+                f"source row {row.row_id!r} points at another packet"
+            )
+        source_slice = slices.get(anchor.slice_id)
         if source_slice is None:
             raise RetailPdpSilverError(
-                f"projection row {row.row_id!r} points at unknown slice {row.raw_ref.slice_id!r}"
+                f"source row {row.row_id!r} points at unknown slice {anchor.slice_id!r}"
             )
-        preserved = files.get(row.raw_anchor.file_id)
-        if preserved is None or row.raw_anchor.file_id not in source_slice.preserved_file_ids:
-            raise RetailPdpSilverError(f"projection row {row.row_id!r} points at an unbound raw file")
+        preserved = files.get(anchor.file_id)
+        if preserved is None or anchor.file_id not in source_slice.preserved_file_ids:
+            raise RetailPdpSilverError(
+                f"source row {row.row_id!r} points at an unbound file"
+            )
         expected = (preserved.relative_packet_path, preserved.sha256, preserved.hash_basis)
         actual = (
-            row.raw_anchor.relative_packet_path,
-            row.raw_anchor.sha256,
-            row.raw_anchor.hash_basis,
+            anchor.relative_packet_path,
+            anchor.sha256,
+            anchor.hash_basis,
         )
         if actual != expected:
             raise RetailPdpSilverError(
-                f"projection row {row.row_id!r} raw ref does not match the committed packet"
+                f"source row {row.row_id!r} ref does not match the committed packet"
             )
 
 
 def _one_row_per_key(
-    rows: Iterable[RetailPdpProjectionRow], row_kind: str
-) -> dict[tuple[str, str], RetailPdpProjectionRow]:
-    result: dict[tuple[str, str], RetailPdpProjectionRow] = {}
+    rows: Iterable[Any], row_kind: str
+) -> dict[tuple[str, str], Any]:
+    result: dict[tuple[str, str], Any] = {}
     for row in rows:
         if row.row_kind != row_kind:
             continue
-        key = (row.raw_ref.slice_id, row.retailer)
+        key = (_row_slice_id(row), row.retailer)
         if key in result:
             raise RetailPdpSilverError(
                 f"multiple {row_kind} rows for {key[0]}:{key[1]}; identity binding is ambiguous"
@@ -389,7 +360,7 @@ def _one_row_per_key(
     return result
 
 
-def _entity_key(row: RetailPdpProjectionRow) -> dict[str, str]:
+def _entity_key(row: Any) -> dict[str, str]:
     if row.retailer == "unknown":
         raise RetailPdpSilverError(f"variant row {row.row_id!r} has unknown retailer identity")
     native_id = _non_empty(row.source_visible_fields.get("product_id")) or _non_empty(
@@ -404,6 +375,17 @@ def _entity_key(row: RetailPdpProjectionRow) -> dict[str, str]:
         "kind": "retailer_product",
         "native_id": native_id,
     }
+
+
+def _row_slice_id(row: Any) -> str:
+    slice_id = getattr(row, "slice_id", None)
+    if isinstance(slice_id, str) and slice_id.strip():
+        return slice_id
+    raw_ref = getattr(row, "raw_ref", None)
+    legacy_slice_id = getattr(raw_ref, "slice_id", None)
+    if isinstance(legacy_slice_id, str) and legacy_slice_id.strip():
+        return legacy_slice_id
+    raise RetailPdpSilverError(f"row {getattr(row, 'row_id', None)!r} has no slice identity")
 
 
 def _source_slice(packet: SourceCapturePacket, slice_id: str) -> SourceCaptureSlice:
@@ -454,5 +436,5 @@ __all__ = [
     "RetailPdpSilverError",
     "RetailPdpSilverResult",
     "build_retail_pdp_silver_records",
-    "derive_retail_pdp_silver_from_projection",
+    "derive_retail_pdp_silver",
 ]

@@ -16,7 +16,7 @@ open_next:
   - orca-harness/data_lake/root.py
   - orca-harness/source_capture/transcript/asr_packet.py
   - orca-harness/runners/run_capture_ecr_cleaning_smoke.py
-  - orca-harness/runners/run_cleaning_spine_periodic_audit.py
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - docs/decisions/cleaning_derived_record_anchor_contract_v0.md
 authority_boundary: retrieval_only
 status: SPEC_REVIEWED_SOUND_WITH_CHANGES -- owner-authorized 2026-06-27; a fresh delegated adversarial review returned SOUND_WITH_CHANGES (architecture validated against code; fixes folded -- see adjudication). Builds on AO-2 (#405). Authorizes no merge; implementation in progress on this lane.

@@ -22,11 +22,11 @@ open_next:
   - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
   - orca-harness/docs/source_capture_agent_runbook.md
-  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_readme_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - The branch is rebased, merged, or materially updated.
   - The smoke output directory is regenerated with different counts or findings.

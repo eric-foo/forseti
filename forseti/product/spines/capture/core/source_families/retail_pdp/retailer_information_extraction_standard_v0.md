@@ -8,14 +8,13 @@ scope: >
   and source-specific profile needed to onboard a retailer PDP for broad
   information extraction. Sephora is the first reference profile.
 use_when:
-  - Reconnoitring a new retailer PDP before writing its parser or projection.
+  - Reconnoitring a new retailer PDP before writing its extractor or Cleaning adapter.
   - Deciding whether a retailer onboarding capture inventoried the valuable
     source-visible product, variant, review, sentiment, and Q&A evidence.
-  - Comparing raw retailer evidence with a derived Retail/PDP projection.
+  - Comparing raw retailer evidence with retained content, an in-packet summary, or Cleaning adaptation.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
 ```
 
@@ -23,9 +22,10 @@ open_next:
 
 A retailer onboarding is complete only when it has attempted every evidence
 category below, recorded what the source actually exposed, preserved the exact
-raw substrate, and compared the raw field inventory with the derived
-projection. The standard is an attempt-and-evidence contract, not a claim that
-every retailer exposes Sephora's controls.
+raw substrate required by the route, and compared the raw field inventory with
+the retained content or in-packet summary and its Cleaning handoff. The
+standard is an attempt-and-evidence contract, not a claim that every retailer
+exposes Sephora's controls.
 
 Each category gets one status:
 
@@ -59,7 +59,7 @@ pretend those mechanics are portable.
 
 Unknown fields discovered in raw source are not silently ignored. Add them to
 the retailer profile or name them in the loss ledger as raw-preserved but not
-projected.
+summarized or retained in canonical content.
 
 ## Behavioral discovery procedure
 
@@ -67,7 +67,7 @@ projected.
    Preserve the initial rendered/structured source before changing controls.
 2. Inventory the entire target product/variant subtree and every visible
    section, sort, filter, tab, accordion, badge, chip, and continuation control.
-   Do not begin from the existing projection's field list.
+   Do not begin from the existing summary, content record, or Cleaning row list.
 3. Change one source control at a time. Preserve the exact source label,
    selected-state evidence, displayed range/count, and resulting row order.
    A requested parameter without source-state or response evidence is intent,
@@ -83,9 +83,10 @@ projected.
 6. Compare rendered, embedded, and structured values field by field. Preserve
    every disagreement with both values and exact source anchors; never silently
    choose the more convenient value.
-7. Inventory all raw top-level and row-level field names before projection.
+7. Inventory all raw top-level and row-level field names before summarization
+   or canonical-content retention.
    Classify every omitted valuable field in the loss ledger and rerun the
-   raw-to-derived comparison after repair.
+   raw-to-retained comparison after repair.
 
 The behavioral procedure discovers source-specific mechanics. It is not
 generic cross-site clicking, permission for broad crawling, or authorization
@@ -101,8 +102,9 @@ apply the retailer's exact non-incentivized filter when it exists:
    evidence and every available review-row field in the inventory above.
 2. Preserve a source-labelled newest/`Most Recent` cohort with the
    non-incentivized filter. Continue until the oldest retained source date
-   reaches at least 30 days before capture or the source exhausts. The current
-   Retail/PDP projection playbook owns any additional low-density floor or cap.
+   reaches at least 30 days before capture or the source exhausts. The
+   retailer's current content/Cleaning contract owns any additional
+   low-density floor or cap.
 3. Inventory the live rendered demographic vocabulary rather than promoting a
    generic embedded configuration. Preserve each exact label, request value,
    count, denominator, share of declared-demographic subset, coverage of all
@@ -120,21 +122,27 @@ rows, per-question declared answer counts, included answer bodies, and their
 differences separate. An include block is not a complete answer corpus merely
 because it contains many rows.
 
-## Preservation and projection acceptance
+## Preservation and adaptation acceptance
 
 Every onboarding packet requires:
 
 - exact raw bytes for every consumed source and continuation page, with hashes;
 - a secret-safe request/control manifest and parent packet identity;
-- parser-fit over the exact preserved bytes;
-- projection equivalence for row counts, identifiers, source order, bodies,
-  aggregates, and filtered/demographic counts;
+- content qualification over the exact preserved bytes or operator scratch
+  inputs used by the route;
+- raw-to-summary or scratch-to-content row accounting for counts, identifiers,
+  source order, bodies, aggregates, and filtered/demographic counts;
 - an explicit loss ledger covering bounded windows, missing nested rows,
   absent demographics, unknown raw fields, disagreements, and access limits;
-- a raw failure fallback that commits all bytes acquired before acquisition or
-  projection failure and exits nonzero;
+- a raw failure fallback that commits all bytes acquired before acquisition,
+  summary adaptation, or content qualification failure and exits nonzero;
 - append-only retention: legacy and failed raw packets are never retroactively
   deleted or rewritten.
+
+Legacy sampled-raw packets may describe the same historical evidence as
+`parser-fit` or `projection equivalence`. Current Retail/PDP routes do not
+create a Projection packet: canonical content is retained at capture, in-packet
+summaries stay capture evidence, and Cleaning owns downstream adaptation.
 
 Success means the declared capture bound is proven. It does not mean source
 completeness, demographic representativeness, ranking-algorithm validation,

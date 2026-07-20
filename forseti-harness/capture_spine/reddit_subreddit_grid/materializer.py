@@ -170,7 +170,7 @@ def read_grid_packet(*, packet_or_manifest_path: Path) -> PacketGridRead:
     # Content-mode packets preserve the capture-time derived record instead of
     # raw HTML (storage-and-retention doctrine, 2026-07-17); sample packets
     # carry both and the stored derived record is authoritative here (drift
-    # between raw and derived is the parser-fit check runner's job, not the
+    # between scratch source and content is the qualification runner's job, not the
     # registry's). Raw-only packets keep the original re-projection path.
     content_file = _resolve_preserved_file(
         packet, file_name="content_record.json", required=False

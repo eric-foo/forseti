@@ -41,6 +41,7 @@ class LaneRole(str, Enum):
     COMPLETION_MARKER = "completion_marker"
     CLEANING_AUDIT = "cleaning_audit"
     PROJECTION = "projection"
+    RETIRED_CAPTURE_PROJECTION = "retired_capture_projection"
     ECR = "ecr"
     SIGNAL_CONTENT = "signal_content"
     TRANSCRIPT_CAPTURE = "transcript_capture"
@@ -86,14 +87,15 @@ LANE_ROLES: dict[str, LaneRole] = {
     "cleaning_basenotes_audit": LaneRole.CLEANING_AUDIT,
     "cleaning_fragrantica_audit": LaneRole.CLEANING_AUDIT,
     "cleaning_parfumo_audit": LaneRole.CLEANING_AUDIT,
-    # --- mechanical projections (explicitly not_cleaned / not_judgment_ready)
-    "projection_basenotes": LaneRole.PROJECTION,
-    "projection_fragrantica": LaneRole.PROJECTION,
-    "projection_parfumo": LaneRole.PROJECTION,
+    # --- historical capture projections: readable, never current writer targets
+    "projection_basenotes": LaneRole.RETIRED_CAPTURE_PROJECTION,
+    "projection_fragrantica": LaneRole.RETIRED_CAPTURE_PROJECTION,
+    "projection_parfumo": LaneRole.RETIRED_CAPTURE_PROJECTION,
+    "projection_retail_pdp": LaneRole.RETIRED_CAPTURE_PROJECTION,
+    "projection_fragrance_review": LaneRole.PROJECTION,
+    # --- analytical projections (aggregation/observation, not capture retention)
     "projection_ig": LaneRole.PROJECTION,
     "projection_ig_reels_grid": LaneRole.PROJECTION,
-    "projection_retail_pdp": LaneRole.PROJECTION,
-    "projection_fragrance_review": LaneRole.PROJECTION,
     # --- ECR source-side epistemic postures (+ completion marker)
     "ecr_timing": LaneRole.ECR,
     "ecr_inspectability": LaneRole.ECR,
@@ -153,6 +155,15 @@ RETIRED_LANE_BASELINE: frozenset[str] = frozenset(
     }
 )
 
+RETIRED_CAPTURE_PROJECTION_BASELINE: frozenset[str] = frozenset(
+    {
+        "projection_basenotes",
+        "projection_fragrantica",
+        "projection_parfumo",
+        "projection_retail_pdp",
+    }
+)
+
 
 def validate_registry() -> list[str]:
     """Registry invariants the no-blur guard enforces before scanning: the
@@ -206,6 +217,18 @@ def validate_registry() -> list[str]:
             f"removed={sorted(set(RETIRED_LANE_BASELINE) - retired_general)!r}); "
             "retired lane names remain reserved and must not regain current-reader authority."
         )
+    retired_capture_projection = {
+        lane
+        for lane, role in LANE_ROLES.items()
+        if role is LaneRole.RETIRED_CAPTURE_PROJECTION
+    }
+    if retired_capture_projection != set(RETIRED_CAPTURE_PROJECTION_BASELINE):
+        errors.append(
+            "RETIRED_CAPTURE_PROJECTION entries drifted from their historical baseline "
+            f"(added={sorted(retired_capture_projection - set(RETIRED_CAPTURE_PROJECTION_BASELINE))!r}, "
+            f"removed={sorted(set(RETIRED_CAPTURE_PROJECTION_BASELINE) - retired_capture_projection)!r}); "
+            "historical capture Projection lanes remain readable but never regain writer authority."
+        )
     return errors
 
 
@@ -241,6 +264,7 @@ __all__ = [
     "FRONT_DOOR_PENDING_BASELINE",
     "SILVER_LINEAGE_LEGACY_BASELINE",
     "RETIRED_SILVER_LINEAGE_BASELINE",
+    "RETIRED_CAPTURE_PROJECTION_BASELINE",
     "SILVER_ENVELOPE_LANES",
     "SILVER_LINEAGE_LANES",
     "SILVER_LANES",

@@ -16,9 +16,9 @@ authority_boundary: evidence_register_only
 open_next:
   - docs/workflows/forseti_capture_beauty_retailer_surface_probe_handoff_v0.md
   - docs/workflows/forseti_kohls_beauty_retailer_capture_recovery_handoff_v0.md
-  - docs/workflows/forseti_beauty_retailer_sampled_raw_full_derived_flip_handoff_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/README.md
 stale_if:
   - A later capture supersedes a recorded point-in-time page state.
   - A recorded packet is unavailable or fails its preserved-file hash check.
@@ -58,8 +58,9 @@ PDP; Ulta PDP; Walmart PDP; Credo PDP and Yotpo review responses; and Kohl's
 access-failure diagnostics. Tower 28 DTC/stores and the certifier-directory
 reads are also raw in their separate source families.
 
-The exhaustive route-by-route gaps and flip boundary are maintained in
-`forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md`.
+The current retention and downstream ownership boundary is maintained in
+`forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`
+and the family content-to-Cleaning contracts.
 No existing raw packet is authorized for retroactive deletion. A future route
 may be promoted only after its compact derived record preserves all
 claim-bearing fields, its loss is explicit, and a representative raw-plus-
@@ -136,8 +137,8 @@ retroactive deletion or compaction of any historical raw packet.
   collision; the generated prose summary is secondary context.
 - These gaps are requirements for future Sephora review/Q&A onboarding, not
   defects hidden by this bounded parser-fit sample. The owning continuation
-  posture is
-  `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`;
+  posture is the Nordstrom row in
+  `forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md`;
   it requires selected `Most Answers`, a `Most Helpful` plus
   non-incentivized review view, non-incentivized most-recent loading through at
   least 30 days, and exact reviewer age-bucket counts while retaining an

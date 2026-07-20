@@ -85,62 +85,33 @@ waves are breaking out). The registry supplies routing (which subs get a
 pass) and baseline (velocity denominator); it never stores a computed trend
 or breakout claim.
 
-## Storage and retention (owner direction, 2026-07-17)
+## Storage and retention
 
-Keep-all-raw does not survive scale: measured grids are ~96% CSS/JS/chrome
-(raw ~183K avg vs ~7K of content rows; threads 340–700K raw vs 13–36K pure
-text), and a fleet of hundreds-to-thousands of tracked subs at daily-or-
-faster cadence makes raw retention hundreds of GB/year of junk. The
-accepted retention scheme is **sampled-raw with full derived**:
+Keep-all-raw does not survive scale: measured grids are ~96% CSS/JS/chrome,
+while the canonical rows retain the source-visible venue and post facts.
+Current fleet and deep-dive capture therefore uses the same two-state rule as
+other rendered sources:
 
-1. **Daily parser-fit checks (raw kept).** A small rotating sample — a few
-   subreddits per day spread across layout classes, plus one or two
-   deep-dive threads — captured as sample packets preserving **both** the
-   raw HTML and the capture-time derived record in one packet. Each sample
-   is re-projected through the current parser and diffed against its own
-   stored derived record; drift means Reddit changed markup and alarms
-   before the fleet silently degrades. This bounds any parser bug's blast
-   radius to roughly one day of passes.
-2. **Fleet captures: content packets.** All other grid captures preserve
-   the **derived record** (grid rows + venue envelope) as the packet's
-   hash-anchored file instead of raw HTML. Raw bytes are hashed and then
-   discarded.
-3. **Provenance floor (never dropped):** URL, capture timestamp, HTTP
-   status, method/UA posture receipt, **sha256 of the discarded raw
-   bytes**, parser version, and the hash of the derived record. The chain
-   stays tamper-evident end to end and ECR inspectability stays satisfied
-   (hash-anchored preserved file). The named loss is **replay**: a
-   content-only packet cannot be re-projected under a future parser; the
-   daily raw sample plus on-demand live re-capture of later-material
-   threads are the accepted mitigations.
-4. **Deep dives follow the same rule** (owner correction, 2026-07-17,
-   replacing an earlier keep-raw default): breakout-thread volume at scale
-   is unproven and may reach 50–100/day, and the thread consolidation
-   already keeps every word — title, post, all comments, deletion/removal
-   postures, thread structure. Content mode discards only the HTML shell
-   and third-party re-verifiability. Deep dives therefore capture as
-   content packets too; the daily raw sample rotation covers both surface
-   shapes, and a later-material thread can be re-captured live as raw on
-   demand when a claim needs raw-verifiable backing.
+1. **Content is the admitted default.** Acquisition extracts the canonical
+   content record before publication, hashes the disposable HTML/text inputs,
+   and discards them only after successful extraction.
+2. **Raw is explicit compatibility evidence.** It is retained only when a
+   commissioned investigation genuinely needs the original transport body.
+   Historical raw packets remain immutable and readable through the contained
+   legacy decoder.
+3. **Qualification is scratch, not a third packet mode.** A bounded operator
+   run may compare fresh raw inputs with fresh deterministic extraction before
+   admission. Match deletes only those scratch DOM/text inputs; drift preserves
+   them with a report. No sample packet enters the lake.
+4. **Provenance is never dropped.** URL, capture timestamp, HTTP/source-policy
+   receipt, hashes and byte counts of discarded inputs, extractor version, and
+   the canonical content-record hash remain packet evidence.
 
-Content-mode capture is the **standard posture, not a volume-triggered
-exception** (owner direction, 2026-07-17: efficiency first). The
-content-packet writer seam is built family-agnostic (it takes each
-family's projector); other source families flip to capture-time
-derivation as their lanes are next touched, retiring their post-hoc
-projection lanes as they flip — no waiting for volume pain. Projection
-thereby stops being a separate artifact layer and becomes one derivation
-codebase invoked at capture time (fleet default) or post-hoc (raw
-samples and legacy raw Bronze packets). ECR stays source-agnostic and
-unchanged: it reads whatever hash-anchored preserved file the packet
-carries.
-
-**Build gate:** the content-packet writer (parse-in-flight capture mode:
-the shared seam plus `--capture-mode content|raw|sample` on the grid and
-deep-dive runners) must exist before the cadence scales beyond the
-current registry (~35 subs). Until then the fleet is small enough that
-current keep-raw behavior stands, and no existing Bronze packet is
-deleted retroactively.
+The named loss is replay under a future extractor. On-demand live recapture is
+the honest mitigation; Forseti does not pay an indefinite fleet-wide raw or
+sample retention tax merely to preserve that option. Cleaning validates and
+adapts current content records directly. There is no Reddit post-hoc capture
+Projection lane.
 
 ## Remaining gates before execution
 
@@ -159,8 +130,7 @@ deleted retroactively.
    deep-dive committed to Bronze; registry refreshed from the packet).
    Still open: the breakout rule (owner-deferred until enough passes
    accumulate per-sub behavior distributions; radar pass 001 on 2026-07-17
-   is sample #1), the content-packet writer (the Storage-and-retention
-   build gate above), and venue subscriber counts on the public grid
+   is observation #1), and venue subscriber counts on the public grid
    surface — old Reddit no longer renders the titlebox subscriber block on
    listing pages, so grid observations carry an honest absent reason and
    the subscriber series continues via the `about.json`/sanctioned-API
@@ -173,21 +143,11 @@ deleted retroactively.
 # storage-and-retention direction 2026-07-17 (owner).
 direction_change_propagation:
   doctrine_changed: >
-    Reddit radar storage moves from implicit keep-all-raw to sampled-raw
-    with full derived: a small rotating daily raw sample (both raw and
-    derived preserved per sample packet) for parser-fit checks, content
-    packets (derived record preserved, raw hashed then discarded) for the
-    grid fleet AND for deep dives (owner correction 2026-07-17 replacing
-    the earlier deep-dive keep-raw default), and a never-dropped
-    provenance floor (URL, timestamp, status, posture receipt, raw
-    sha256, parser version, derived-record hash). Content-mode capture is
-    the standard repo posture, not a volume-triggered exception: the
-    writer seam is family-agnostic, other families flip as their lanes
-    are next touched, and post-hoc projection lanes retire per family as
-    they flip while ECR stays source-agnostic and unchanged. The
-    content-packet writer is a named build gate before cadence scales
-    beyond the current registry; no existing Bronze packet is deleted
-    retroactively.
+    Reddit radar storage uses canonical content by default, explicit raw only
+    when commissioned, and scratch-only qualification rather than admitted
+    sample packets. Acquisition retains provenance and hashes discarded inputs;
+    Cleaning owns validation/adaptation, historical raw remains immutable and
+    readable, and no post-hoc capture Projection lane remains.
   trigger: architecture_doctrine
   related_triggers:
     - lifecycle_boundary
