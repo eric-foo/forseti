@@ -67,7 +67,7 @@ def real_records(tmp_path: Path) -> dict[str, object]:
 
 def test_registry_roles_match_the_validator_expectations() -> None:
     assert role_of("cleaning_fragrantica_audit") is LaneRole.CLEANING_AUDIT
-    assert role_of(PROJECTION_FRAGRANTICA_LANE) is LaneRole.PROJECTION
+    assert role_of(PROJECTION_FRAGRANTICA_LANE) is LaneRole.RETIRED_CAPTURE_PROJECTION
 
 
 def test_real_cleaning_audit_pack_passes(real_records: dict[str, object]) -> None:

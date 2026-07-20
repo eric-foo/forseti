@@ -1,9 +1,9 @@
 """Cleaning Spine v0 source-invariant models.
 
-These models implement the smallest runtime substrate from the Cleaning Spine
-foundation: a stable input handle keyed to raw, a non-destructive transform
-ledger, and exact-identity dedupe mechanics. Source-family adapters can feed
-these models, but the core does not parse sources or make Judgment claims.
+Cleaning receives packet-local source anchors. For content-retention packets
+those anchors point into ``content_record.json``; for raw or historical inputs
+they point at the preserved source substrate. Projection is not an intermediate
+Cleaning contract.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pydantic import Field, field_validator, model_validator
 
 from schemas.case_models import StrictModel
 
-CLEANING_CORE_VERSION = "v0"
+CLEANING_CORE_VERSION = "v1"
 
 REQUIRED_NON_CLAIMS = frozenset(
     {
@@ -67,10 +67,6 @@ def _find_token_matches(value: str, tokens: frozenset[str]) -> list[str]:
     return sorted(token for token in tokens if f"_{token}_" in padded)
 
 
-class CleaningRelation(StrEnum):
-    KEYED_SIBLINGS_OVER_RAW = "keyed_siblings_over_raw"
-
-
 class CleaningRuleScope(StrEnum):
     SOURCE_INVARIANT_CORE = "source_invariant_core"
     SOURCE_FAMILY_ADAPTATION = "source_family_adaptation"
@@ -95,13 +91,13 @@ class CleaningInputGrain(StrEnum):
 
 
 class CleaningDedupeBasis(StrEnum):
-    RAW_ANCHOR_IDENTITY = "raw_anchor_identity"
+    SOURCE_ANCHOR_IDENTITY = "source_anchor_identity"
 
 
 class CleaningDerivedRecordRef(StrictModel):
     """Locates a DERIVED lake record (``derived/<raw_anchor>/<lane>/<record_id>``) that has no
     preserved-file substrate -- the cleaning-input form for ASR transcripts and future derived
-    sources. Carried by a ``CleaningRawAnchor`` with ``anchor_kind="derived_record"``. The lake's
+    sources. Carried by a ``CleaningSourceAnchor`` with ``anchor_kind="derived_record"``. The lake's
     segment grammar (``data_lake.root``) is enforced at resolution time, so a malformed
     lane/record_id surfaces as a fail-closed audit finding rather than a crash."""
 
@@ -117,7 +113,7 @@ class CleaningDerivedRecordRef(StrictModel):
         return value
 
 
-class CleaningRawAnchor(StrictModel):
+class CleaningSourceAnchor(StrictModel):
     # A preserved-file anchor (the default) keys to a packet's preserved file via
     # slice_id/file_id/relative_packet_path. A ``derived_record`` anchor instead keys to a derived
     # lake record via ``derived_record_ref`` and carries NONE of the preserved-file fields.
@@ -138,7 +134,7 @@ class CleaningRawAnchor(StrictModel):
     @classmethod
     def reject_blank_anchor_fields(cls, value: str) -> str:
         if not value.strip():
-            raise ValueError("CleaningRawAnchor fields must be non-empty.")
+            raise ValueError("CleaningSourceAnchor fields must be non-empty.")
         return value
 
     @field_validator("slice_id", "file_id", "relative_packet_path")
@@ -148,11 +144,11 @@ class CleaningRawAnchor(StrictModel):
         # require them is enforced in validate_anchor_substrate. This field validator runs BEFORE
         # the model validators, so it must tolerate None or a derived_record anchor cannot construct.
         if value is not None and not value.strip():
-            raise ValueError("CleaningRawAnchor preserved-file fields must be non-empty when set.")
+            raise ValueError("CleaningSourceAnchor preserved-file fields must be non-empty when set.")
         return value
 
     @model_validator(mode="after")
-    def validate_anchor_specificity(self) -> "CleaningRawAnchor":
+    def validate_anchor_specificity(self) -> "CleaningSourceAnchor":
         if self.anchor_kind == "json_pointer" and not (
             self.json_pointer and self.json_pointer.strip()
         ):
@@ -166,7 +162,7 @@ class CleaningRawAnchor(StrictModel):
         return self
 
     @model_validator(mode="after")
-    def validate_anchor_substrate(self) -> "CleaningRawAnchor":
+    def validate_anchor_substrate(self) -> "CleaningSourceAnchor":
         """Enforce the two anchor shapes are never mixed: a ``derived_record`` anchor references a
         lake record (``derived_record_ref``, no preserved-file fields, no anchor_value/json_pointer);
         every other kind references a preserved file (slice_id/file_id/relative_packet_path present,
@@ -193,32 +189,6 @@ class CleaningRawAnchor(StrictModel):
         return self
 
 
-class CleaningProjectionRef(StrictModel):
-    projection_method: str
-    projection_version: str
-    certification: str
-    packet_id: str
-    row_id: str | None = None
-    row_kind: str | None = None
-
-    @field_validator("projection_method", "projection_version", "certification", "packet_id")
-    @classmethod
-    def reject_blank_projection_fields(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("CleaningProjectionRef fields must be non-empty.")
-        return value
-
-    @model_validator(mode="after")
-    def validate_projection_is_not_cleaning_or_judgment(self) -> "CleaningProjectionRef":
-        cert = self.certification.lower()
-        if "not_cleaned" not in cert or "not_judgment_ready" not in cert:
-            raise ValueError(
-                "CleaningProjectionRef.certification must show the projection is "
-                "not cleaned and not Judgment-ready."
-            )
-        return self
-
-
 class CleaningEcrRef(StrictModel):
     packet_id: str
     ref_id: str
@@ -237,10 +207,10 @@ class CleaningInputHandle(StrictModel):
     handle_id: str
     source_family: str
     source_surface: str
-    raw_anchor: CleaningRawAnchor
-    projection_ref: CleaningProjectionRef | None = None
+    source_anchor: CleaningSourceAnchor
+    source_row_id: str | None = None
+    source_row_kind: str | None = None
     ecr_ref: CleaningEcrRef | None = None
-    relation: CleaningRelation = CleaningRelation.KEYED_SIBLINGS_OVER_RAW
     residuals: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     raw_pull_triggers: list[str] = Field(default_factory=list)
@@ -266,11 +236,9 @@ class CleaningInputHandle(StrictModel):
         return value
 
     @model_validator(mode="after")
-    def validate_refs_stay_keyed_to_raw(self) -> "CleaningInputHandle":
-        if self.projection_ref is not None and self.projection_ref.packet_id != self.raw_anchor.packet_id:
-            raise ValueError("projection_ref.packet_id must match raw_anchor.packet_id.")
-        if self.ecr_ref is not None and self.ecr_ref.packet_id != self.raw_anchor.packet_id:
-            raise ValueError("ecr_ref.packet_id must match raw_anchor.packet_id.")
+    def validate_refs_stay_keyed_to_source(self) -> "CleaningInputHandle":
+        if self.ecr_ref is not None and self.ecr_ref.packet_id != self.source_anchor.packet_id:
+            raise ValueError("ecr_ref.packet_id must match source_anchor.packet_id.")
         return self
 
 
@@ -407,7 +375,7 @@ class CleaningDedupeGroup(StrictModel):
 
 
 class CleaningPacket(StrictModel):
-    cleaning_version: Literal["v0"] = CLEANING_CORE_VERSION
+    cleaning_version: Literal["v1"] = CLEANING_CORE_VERSION
     handles: list[CleaningInputHandle] = Field(min_length=1)
     transform_ledger: list[CleaningTransformLedgerEntry] = Field(default_factory=list)
     exact_identity_duplicate_groups: list[CleaningDedupeGroup] = Field(default_factory=list)

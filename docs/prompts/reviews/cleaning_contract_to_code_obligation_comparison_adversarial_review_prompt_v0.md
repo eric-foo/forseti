@@ -12,7 +12,7 @@ use_when:
   - Checking whether the checklist overclaims coverage, misses an obligation, or names the wrong next patch before step 2.
 authority_boundary: retrieval_only
 open_next:
-  - docs/workflows/cleaning_contract_to_code_reconciliation_checklist_v0.md
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md

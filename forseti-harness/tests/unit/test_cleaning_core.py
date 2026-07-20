@@ -10,26 +10,13 @@ from cleaning import (
     CleaningInputHandle,
     CleaningPacket,
     CleaningPreservationCheck,
-    CleaningProjectionRef,
-    CleaningRawAnchor,
+    CleaningSourceAnchor,
     CleaningRuleScope,
     CleaningTransform,
     CleaningTransformClass,
     CleaningTransformLedgerEntry,
     derive_exact_identity_duplicate_groups,
 )
-from source_capture.reddit_projection import (
-    REDDIT_PROJECTION_CERTIFICATION,
-    REDDIT_PROJECTION_METHOD,
-    REDDIT_PROJECTION_VERSION,
-)
-from source_capture.retail_pdp_projection import (
-    RETAIL_PDP_PROJECTION_CERTIFICATION,
-    RETAIL_PDP_PROJECTION_METHOD,
-    RETAIL_PDP_PROJECTION_VERSION,
-)
-
-
 def _preservation() -> CleaningPreservationCheck:
     return CleaningPreservationCheck(
         originals_addressable=True,
@@ -55,9 +42,6 @@ def _handle(
     anchor_kind: str = "json_pointer",
     anchor_value: str | None = None,
     json_pointer: str | None = "/data/children/0",
-    projection_method: str = REDDIT_PROJECTION_METHOD,
-    projection_version: str = REDDIT_PROJECTION_VERSION,
-    projection_certification: str = REDDIT_PROJECTION_CERTIFICATION,
     row_id: str = "row_01",
     row_kind: str = "reddit_comment",
     ecr_ref: CleaningEcrRef | None = None,
@@ -69,7 +53,7 @@ def _handle(
         handle_id=handle_id,
         source_family=source_family,
         source_surface=source_surface,
-        raw_anchor=CleaningRawAnchor(
+        source_anchor=CleaningSourceAnchor(
             packet_id=packet_id,
             slice_id=slice_id,
             file_id=file_id,
@@ -80,14 +64,8 @@ def _handle(
             anchor_value=anchor_value,
             json_pointer=json_pointer,
         ),
-        projection_ref=CleaningProjectionRef(
-            projection_method=projection_method,
-            projection_version=projection_version,
-            certification=projection_certification,
-            packet_id=packet_id,
-            row_id=row_id,
-            row_kind=row_kind,
-        ),
+        source_row_id=row_id,
+        source_row_kind=row_kind,
         ecr_ref=ecr_ref,
         residuals=residuals or [],
         warnings=warnings or [],
@@ -95,7 +73,7 @@ def _handle(
     )
 
 
-def test_handles_keep_reddit_and_retail_projection_refs_distinct_from_raw() -> None:
+def test_handles_keep_source_rows_bound_to_source_anchors() -> None:
     reddit = _handle("h_reddit")
     retail = _handle(
         "h_retail",
@@ -109,21 +87,16 @@ def test_handles_keep_reddit_and_retail_projection_refs_distinct_from_raw() -> N
         anchor_kind="html_selector",
         anchor_value="#averageCustomerReviews",
         json_pointer=None,
-        projection_method=RETAIL_PDP_PROJECTION_METHOD,
-        projection_version=RETAIL_PDP_PROJECTION_VERSION,
-        projection_certification=RETAIL_PDP_PROJECTION_CERTIFICATION,
         row_id="retail_review_01",
         row_kind="retail_review_substrate",
     )
 
     packet = CleaningPacket(handles=[reddit, retail])
 
-    assert packet.handles[0].raw_anchor.packet_id == "packet_01"
-    assert packet.handles[0].projection_ref is not None
-    assert packet.handles[0].projection_ref.projection_method == REDDIT_PROJECTION_METHOD
-    assert packet.handles[1].raw_anchor.anchor_kind == "html_selector"
-    assert packet.handles[1].projection_ref is not None
-    assert packet.handles[1].projection_ref.projection_method == RETAIL_PDP_PROJECTION_METHOD
+    assert packet.handles[0].source_anchor.packet_id == "packet_01"
+    assert packet.handles[0].source_row_id == "row_01"
+    assert packet.handles[1].source_anchor.anchor_kind == "html_selector"
+    assert packet.handles[1].source_row_kind == "retail_review_substrate"
 
 
 def test_input_handle_carries_layer_owned_trace_notes() -> None:
@@ -247,7 +220,7 @@ def test_packet_rejects_unknown_transform_handle() -> None:
         CleaningPacket(handles=[handle], transform_ledger=[entry])
 
 
-def test_exact_identity_dedupe_groups_only_full_raw_anchor_matches() -> None:
+def test_exact_identity_dedupe_groups_only_full_source_anchor_matches() -> None:
     first = _handle("h1", row_id="row_1")
     duplicate = _handle("h2", row_id="row_2")
     same_file_different_pointer = _handle("h3", row_id="row_3", json_pointer="/data/children/1")
@@ -255,7 +228,7 @@ def test_exact_identity_dedupe_groups_only_full_raw_anchor_matches() -> None:
     groups = derive_exact_identity_duplicate_groups([same_file_different_pointer, duplicate, first])
 
     assert len(groups) == 1
-    assert groups[0].basis.value == "raw_anchor_identity"
+    assert groups[0].basis.value == "source_anchor_identity"
     assert groups[0].member_handle_ids == ["h1", "h2"]
     assert groups[0].instance_count == 2
 
@@ -309,17 +282,6 @@ def test_transform_ledger_allows_mechanical_raw_pull_trigger() -> None:
     assert entry.raw_pull_triggers == ["projection anchor missing"]
 
 
-def test_projection_ref_must_not_claim_cleaned_or_judgment_ready() -> None:
-    with pytest.raises(ValidationError, match="not cleaned"):
-        CleaningProjectionRef(
-            projection_method="bad_projection",
-            projection_version="v0",
-            certification="cleaned; judgment_ready",
-            packet_id="p1",
-            row_id="r1",
-        )
-
-
 def test_ecr_ref_may_share_raw_packet_key() -> None:
     handle = _handle(
         "h_ecr",
@@ -332,7 +294,7 @@ def test_ecr_ref_may_share_raw_packet_key() -> None:
     )
 
     assert handle.ecr_ref is not None
-    assert handle.ecr_ref.packet_id == handle.raw_anchor.packet_id
+    assert handle.ecr_ref.packet_id == handle.source_anchor.packet_id
 
 
 def test_ecr_ref_must_stay_keyed_to_raw_packet() -> None:

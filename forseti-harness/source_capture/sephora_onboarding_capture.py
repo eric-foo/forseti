@@ -4,7 +4,7 @@ This module is intentionally retailer-specific.  It consumes a hash-verified
 rendered Sephora PDP packet, reads the API configuration declared by that page,
 and captures a bounded ``Most Answers`` Q&A window plus exact
 non-incentivized-review age counts.  Network access stays in this acquisition
-seam; projection remains a no-network transform over preserved response bytes.
+seam; the packet summary is derived in flight from preserved response bytes.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ DEFAULT_QUESTION_LIMIT = 100
 
 
 class SephoraOnboardingCaptureError(RuntimeError):
-    """Fail-closed capture or parser-fit error."""
+    """Fail-closed acquisition or content-qualification error."""
 
 
 @dataclass(frozen=True)
@@ -84,8 +84,8 @@ def capture_sephora_onboarding_packet(
 ) -> tuple[int, dict[str, Any]]:
     """Capture and commit one Sephora review/Q&A companion packet.
 
-    Exit 0 is a parser-fit success. Exit 4 means one or more HTTP responses were
-    non-2xx. Exit 5 means raw responses were acquired but the projection failed;
+    Exit 0 is a content-qualification success. Exit 4 means one or more HTTP responses
+    were non-2xx. Exit 5 means raw responses were acquired but summary adaptation failed;
     those raw bytes are still committed with an explicit failure artifact.
     Pre-acquisition parent/config failures raise and write nothing.
     """
@@ -146,7 +146,7 @@ def capture_sephora_onboarding_packet(
         exit_code = 4
         limitations.append(
             "structured API acquisition did not complete; every response body acquired "
-            "before the failure is preserved and no successful projection is claimed"
+            "before the failure is preserved and no successful summary is claimed"
         )
         summary: dict[str, Any] = {
             "record_kind": "sephora_bazaarvoice_onboarding_capture_failure_v1",
@@ -173,11 +173,11 @@ def capture_sephora_onboarding_packet(
         except Exception as exc:
             exit_code = 5
             limitations.append(
-                "onboarding projection failed after acquisition; all exact raw API "
+                "onboarding summary adaptation failed after acquisition; all exact raw API "
                 "response bytes are preserved as the required raw fallback"
             )
             summary = {
-                "record_kind": "sephora_bazaarvoice_onboarding_projection_failure_v1",
+                "record_kind": "sephora_bazaarvoice_onboarding_adaptation_failure_v1",
                 "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
                 "parent_packet_id": parent.packet_id,
                 "product_id": parent.product_id,
@@ -191,7 +191,7 @@ def capture_sephora_onboarding_packet(
                     "expected_response_count": len(request_specs),
                 },
             }
-            artifacts.append(("sephora_projection_failure.json", _json_bytes(summary)))
+            artifacts.append(("sephora_adaptation_failure.json", _json_bytes(summary)))
 
     written = _write_packet(
         data_root=data_root,
@@ -214,7 +214,7 @@ def build_sephora_onboarding_summary(
     captured_responses: Sequence[tuple[ApiRequestSpec, ApiResponse]],
     question_limit: int,
 ) -> dict[str, Any]:
-    """Project a capture summary exclusively from preserved response bytes."""
+    """Build a capture summary exclusively from preserved response bytes."""
     by_name = {
         spec.artifact_name: _load_api_document(response.body, spec.artifact_name)
         for spec, response in captured_responses
@@ -222,7 +222,7 @@ def build_sephora_onboarding_summary(
     expected_names = {spec.artifact_name for spec in _request_specs(parent.product_id, question_limit)}
     if set(by_name) != expected_names:
         raise SephoraOnboardingCaptureError(
-            "projection requires the complete declared response set"
+            "summary adaptation requires the complete declared response set"
         )
 
     questions_doc = by_name["questions_most_answers_offset_000.json"]
@@ -393,14 +393,14 @@ def build_sephora_onboarding_summary(
             ),
             "age_breakdown": age_breakdown,
         },
-        "parser_fit": {
+        "content_qualification": {
             "status": "passed",
             "response_documents": len(by_name),
             "age_bucket_vocabulary_exact": list(age_counts) == list(SEPHORA_AGE_BUCKETS),
         },
-        "projection_equivalence": {
+        "row_accounting": {
             "question_rows_raw": len(question_rows),
-            "question_rows_projected": len(question_inventory),
+            "question_rows_summarized": len(question_inventory),
             "question_rows_equal": len(question_rows) == len(question_inventory),
             "answer_count_declared_by_captured_questions": answer_count_sum,
             "answer_rows_preserved_in_raw_includes": len(included_answers),
@@ -410,8 +410,8 @@ def build_sephora_onboarding_summary(
         "raw_failure_fallback": {
             "status": "armed",
             "behavior": (
-                "if projection raises after acquisition, commit every acquired raw response "
-                "plus sephora_projection_failure.json and return exit 5"
+                "if summary adaptation raises after acquisition, commit every acquired raw response "
+                "plus sephora_adaptation_failure.json and return exit 5"
             ),
         },
         "loss_ledger": loss_ledger,

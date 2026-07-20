@@ -1,4 +1,4 @@
-"""Append generic Retail/PDP Silver records from one exact projection record."""
+"""Append generic Retail/PDP Silver records through Cleaning."""
 from __future__ import annotations
 
 import argparse
@@ -12,34 +12,28 @@ if __package__ in {None, ""}:
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.retail_pdp_silver import (
     RetailPdpSilverResult,
-    derive_retail_pdp_silver_from_projection,
+    derive_retail_pdp_silver,
 )
 
 
 def run_producer(
-    data_root: DataLakeRoot, *, packet_id: str, projection_record_id: str
+    data_root: DataLakeRoot, *, packet_id: str
 ) -> RetailPdpSilverResult:
-    return derive_retail_pdp_silver_from_projection(
+    return derive_retail_pdp_silver(
         data_root=data_root,
         packet_id=packet_id,
-        projection_record_id=projection_record_id,
     )
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Append generic Retail/PDP Silver records from one exact "
-            "projection_retail_pdp record."
+            "Append generic Retail/PDP Silver records from one packet through "
+            "Cleaning-owned content adaptation."
         )
     )
     parser.add_argument("--data-root", default=None)
     parser.add_argument("--packet-id", required=True)
-    parser.add_argument(
-        "--projection-record-id",
-        required=True,
-        help="Exact record filename in projection_retail_pdp; no sibling guessing.",
-    )
     return parser
 
 
@@ -51,7 +45,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = run_producer(
             data_root,
             packet_id=args.packet_id,
-            projection_record_id=args.projection_record_id,
         )
     except (DataLakeRootError, OSError, ValueError) as exc:
         parser.exit(
@@ -61,7 +54,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     print(
         f"appended {len(result.records)} Retail/PDP Silver record(s) "
-        f"from projection {result.projection_record_id}"
+        f"from Cleaning basis {result.cleaning_basis}"
     )
     for path in result.paths:
         print(f"  silver: {path}")

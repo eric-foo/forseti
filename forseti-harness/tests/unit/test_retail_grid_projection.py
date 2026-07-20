@@ -249,9 +249,9 @@ def test_smoke_accepts_grid_projection_and_preserves_anchors_residuals_and_linea
     assert len(cleaning["handles"]) == len(projection.rows) == 1
     assert len(cleaning["transform_ledger"]) == 1
     handle = cleaning["handles"][0]
-    assert handle["projection_ref"]["row_kind"] == "retail_grid_product"
-    assert handle["raw_anchor"]["anchor_kind"] == "json_pointer"
-    assert handle["raw_anchor"]["json_pointer"].endswith("/itemStacks/0/items/0")
+    assert handle["source_row_kind"] == "retail_grid_product"
+    assert handle["source_anchor"]["anchor_kind"] == "json_pointer"
+    assert handle["source_anchor"]["json_pointer"].endswith("/itemStacks/0/items/0")
     assert "walmart_grid_written_review_count_not_observed" in handle["residuals"]
     assert "walmart_grid_exact_inventory_quantity_not_observed" in handle["residuals"]
     assert summary["sources"][0]["page_kind"] == "grid"

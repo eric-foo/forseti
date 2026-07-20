@@ -126,7 +126,7 @@ def build_thread_content_record(*, html_text: str, source_url: str) -> dict[str,
 
     Parse-in-flight counterpart of ``consolidate_reddit_packet``: same parser,
     but a pure function of ``(html_text, source_url)`` — no timestamps, no
-    packet references, no environment reads — so a parser-fit check can
+    packet references, no environment reads — so ephemeral qualification can
     re-project sampled raw bytes and compare byte-for-byte against the stored
     record. Provenance lives at the packet level (the record is preserved
     inside the packet it describes); parse failures raise and are handled by

@@ -15,7 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
@@ -131,7 +131,7 @@ pass over both.
 - overlay source-loading policy: `.agents/workflow-overlay/source-loading.md`.
 - targets to enter the ladder:
   - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md`
-  - `orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`
+  - `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
   - `docs/workflows/ecr_spine_submap_v0.md`
   - `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
   - `orca-harness/runners/run_source_capture_ig_reels_grid_packet.py`

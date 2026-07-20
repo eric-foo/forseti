@@ -17,7 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/retail_pdp_review_record_capture_recon_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
 input_hashes:
   docs/research/retail_pdp_review_record_capture_recon_v0.md: 692aa51bfb42df57017c71c8bd1497805c7cbaa9b75db1683220b8777c33a057
 branch_or_commit: codex/retail-pdp-review-recon @ a9dadb90650c9855e93c21a0ffa24ce48b931788

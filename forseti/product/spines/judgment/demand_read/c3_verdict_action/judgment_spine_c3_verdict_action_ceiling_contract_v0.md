@@ -249,12 +249,12 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/grading/judgment_spine_demand_read_grading_rubric_v0.md
     - forseti/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
   intentionally_not_updated: []
   stale_language_search: >
     rg -n "observed persistence|observed post-trigger|observed via monitoring|not predicted|cannot call durable|never asserted at t=0|durable is earned|persists past|stayed strong|transient-default|earned-durable"
-    docs/decisions/forseti_product_thesis_consumer_demand_v0.md forseti/product/spines/foundation/demand_read_taxonomy forseti/product/spines/scanning/scan_core forseti/product/spines/commission_signal_board forseti/product/spines/product_lead/buyer_proof forseti/product/spines/judgment/demand_read forseti/product/spines/capture/core/contracts/obligation_contracts forseti/product/shared/projection_doctrine forseti/product/satellites
+    docs/decisions/forseti_product_thesis_consumer_demand_v0.md forseti/product/spines/foundation/demand_read_taxonomy forseti/product/spines/scanning/scan_core forseti/product/spines/commission_signal_board forseti/product/spines/product_lead/buyer_proof forseti/product/spines/judgment/demand_read forseti/product/spines/capture/core/contracts/obligation_contracts forseti/product/spines/foundation/product_contract forseti/product/satellites
   stale_language_search_result: >
     Executed during 2026-06-23 delegated-review adjudication. The confirmed
     active stale hit outside the original spine-scoped search was the fragrance

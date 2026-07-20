@@ -113,8 +113,8 @@ def raw_pull_triggers_for_packet_residuals(
 # --- lake-side helpers (audit-pack / Silver record input refs) ---
 
 
-def handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
-    anchor = handle.raw_anchor
+def handle_source_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
+    anchor = handle.source_anchor
     return {
         "ref_type": "raw_packet",
         "packet_id": anchor.packet_id,
@@ -133,21 +133,13 @@ def _none_first_ref_key(key: tuple[str | None, ...]) -> tuple[tuple[int, str], .
     return tuple((0, "") if part is None else (1, part) for part in key)
 
 
-def raw_refs(cleaning_packet: CleaningPacket) -> list[dict[str, str | None]]:
+def source_refs(cleaning_packet: CleaningPacket) -> list[dict[str, str | None]]:
     refs: dict[tuple[str | None, ...], dict[str, str | None]] = {}
     for handle in cleaning_packet.handles:
-        ref = handle_raw_ref(handle)
+        ref = handle_source_ref(handle)
         key = tuple(ref[field] for field in sorted(ref))
         refs[key] = ref
     return [refs[key] for key in sorted(refs, key=_none_first_ref_key)]
-
-
-def projection_refs(cleaning_packet: CleaningPacket) -> list[dict[str, Any]]:
-    return dedupe_refs(
-        handle.projection_ref.model_dump(mode="json")
-        for handle in cleaning_packet.handles
-        if handle.projection_ref is not None
-    )
 
 
 def ecr_refs(cleaning_packet: CleaningPacket) -> list[dict[str, Any]]:
@@ -173,13 +165,12 @@ __all__ = [
     "dedupe_refs",
     "ecr_ref",
     "ecr_refs",
-    "handle_raw_ref",
+    "handle_source_ref",
     "length_bin",
     "non_empty_string_or_none",
     "normalization_entry",
     "normalize_space",
     "preservation",
-    "projection_refs",
     "raw_pull_triggers_for_packet_residuals",
-    "raw_refs",
+    "source_refs",
 ]

@@ -57,10 +57,10 @@ from source_capture.cli_support import (
     build_optional_fact,
     require_series_identity,
 )
-from source_capture.content_capture import (
-    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+from source_capture.content_extraction import (
+    CONTENT_EXTRACTION_FAILED_EXIT_CODE,
     CONTENT_RECORD_FILENAME,
-    RenderedContentCaptureSpec,
+    RenderedContentExtractionSpec,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
 from source_capture.retail_capture_profiles import (
@@ -70,7 +70,7 @@ from source_capture.retail_capture_profiles import (
     retail_capture_profile_names,
     validate_retail_capture_profile_route,
 )
-from source_capture.retail_pdp_projection import (
+from source_capture.retail_pdp_content import (
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_CONTENT_PROFILE,
@@ -80,7 +80,6 @@ from source_capture.retail_pdp_projection import (
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
-    write_retail_pdp_projection,
 )
 from source_capture.source_detail_sufficiency import (
     SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -198,7 +197,7 @@ def run_source_capture_cloakbrowser_packet(
     cold_start_at=None,
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
-    content_capture: RenderedContentCaptureSpec | None = None,
+    content_extraction: RenderedContentExtractionSpec | None = None,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
@@ -234,23 +233,23 @@ def run_source_capture_cloakbrowser_packet(
                 raise ValueError(
                     "sephora_pdp_aggregate content capture requires --sephora-market US"
                 )
-            if content_capture is None:
-                content_capture = _sephora_content_capture_spec("content")
+            if content_extraction is None:
+                content_extraction = _sephora_content_extraction_spec("content")
         if retail_capture_profile.name == LUCKYSCENT_PDP_CONTENT_PROFILE:
             if luckyscent_market != "US":
                 raise ValueError(
                     "luckyscent_pdp_aggregate content capture requires --luckyscent-market US"
                 )
-            if content_capture is None:
-                content_capture = _luckyscent_content_capture_spec("content")
+            if content_extraction is None:
+                content_extraction = _luckyscent_content_extraction_spec("content")
         if retail_capture_profile.name == NORDSTROM_PDP_CONTENT_PROFILE:
             if nordstrom_country != "US":
                 raise ValueError(
                     "nordstrom_pdp_aggregate content capture requires "
                     "--nordstrom-country US"
                 )
-            if content_capture is None:
-                content_capture = _nordstrom_content_capture_spec("content")
+            if content_extraction is None:
+                content_extraction = _nordstrom_content_extraction_spec("content")
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -536,37 +535,40 @@ def run_source_capture_cloakbrowser_packet(
             snapshot_metadata_bytes,
         ),
     ]
-    if content_capture is not None:
+    if content_extraction is not None:
         _assert_no_browser_secret_bytes(
             (role, body)
             for role, _filename, body in input_artifacts
             if role != "screenshot"
         )
-    projection_failure: str | None = None
+    extraction_failure: str | None = None
     content_record_bytes: bytes | None = None
-    if content_capture is not None and content_capture.capture_artifact_mode != "raw":
+    if (
+        content_extraction is not None
+        and content_extraction.requested_retention_mode == "content"
+    ):
         try:
-            record = content_capture.projector(
+            record = content_extraction.extractor(
                 rendered_dom_bytes,
                 visible_text_bytes,
                 capture_result.final_url,
             )
             if not isinstance(record, dict):
                 raise TypeError(
-                    "rendered content projector must return a JSON object, "
+                    "rendered content extractor must return a JSON object, "
                     f"got {type(record).__name__}"
                 )
             content_record_bytes = (
                 json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
             ).encode("utf-8")
-            projection_status = "succeeded"
+            extraction_status = "succeeded"
         except Exception as exc:
-            projection_failure = f"{type(exc).__name__}: {exc}"
-            projection_status = f"failed: {projection_failure}"
-    elif content_capture is not None:
-        projection_status = "not_attempted: raw mode"
+            extraction_failure = f"{type(exc).__name__}: {exc}"
+            extraction_status = f"failed: {extraction_failure}"
+    elif content_extraction is not None:
+        extraction_status = "not_attempted: raw retention requested"
     else:
-        projection_status = "not_configured"
+        extraction_status = "not_configured"
 
     retention_admission_failed = (
         capture_result.access_block_reason is not None
@@ -579,15 +581,22 @@ def run_source_capture_cloakbrowser_packet(
         or target_pin_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
     )
-    raw_projector_inputs_preserved = (
-        content_capture is None
-        or content_capture.capture_artifact_mode in {"raw", "sample"}
-        or projection_failure is not None
+    raw_extraction_inputs_preserved = (
+        content_extraction is None
+        or content_extraction.requested_retention_mode == "raw"
+        or extraction_failure is not None
         or retention_admission_failed
     )
+    retention_outcome = (
+        "content"
+        if content_record_bytes is not None and not raw_extraction_inputs_preserved
+        else "raw_failure"
+        if extraction_failure is not None or retention_admission_failed
+        else "raw"
+    )
     preserved_by_role = {
-        "rendered_dom": raw_projector_inputs_preserved,
-        "visible_text": raw_projector_inputs_preserved,
+        "rendered_dom": raw_extraction_inputs_preserved,
+        "visible_text": raw_extraction_inputs_preserved,
         "screenshot": True,
         "browser_metadata": True,
     }
@@ -598,11 +607,12 @@ def run_source_capture_cloakbrowser_packet(
     ]
     if content_record_bytes is not None:
         artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
-    if content_capture is not None:
-        content_capture_metadata = {
-            "capture_artifact_mode": content_capture.capture_artifact_mode,
-            "parser_version": content_capture.parser_version,
-            "projection_status": projection_status,
+    if content_extraction is not None:
+        content_extraction_metadata = {
+            "requested_retention_mode": content_extraction.requested_retention_mode,
+            "retention_outcome": retention_outcome,
+            "extractor_version": content_extraction.extractor_version,
+            "extraction_status": extraction_status,
             "inputs": [
                 {
                     "role": role,
@@ -616,43 +626,38 @@ def run_source_capture_cloakbrowser_packet(
         }
         artifacts.append(
             (
-                "content_capture_metadata.json",
+                "content_extraction_metadata.json",
                 (
-                    json.dumps(content_capture_metadata, indent=2, sort_keys=True)
+                    json.dumps(content_extraction_metadata, indent=2, sort_keys=True)
                     + "\n"
                 ).encode("utf-8"),
             )
         )
-        if projection_failure is not None:
+        if extraction_failure is not None:
             packet_limitations.append(
-                "content-mode projection failed in flight; rendered DOM, visible text, "
-                f"browser metadata, and screenshot preserved as fallback: {projection_failure}"
+                "content extraction failed in flight; rendered DOM, visible text, "
+                f"browser metadata, and screenshot preserved as fallback: {extraction_failure}"
             )
         elif (
-            content_capture.capture_artifact_mode == "content"
-            and not raw_projector_inputs_preserved
+            content_extraction.requested_retention_mode == "content"
+            and not raw_extraction_inputs_preserved
         ):
             packet_limitations.append(
-                "content-mode packet: rendered DOM and visible text discarded after hashing; "
+                "content-retention packet: rendered DOM and visible text discarded after hashing; "
                 "content record, browser metadata, and screenshot preserved"
             )
-        elif content_capture.capture_artifact_mode == "content":
+        elif content_extraction.requested_retention_mode == "content":
             packet_limitations.append(
-                "content-mode admission failed; rendered DOM and visible text preserved "
-                "with the derived content record for diagnosis"
-            )
-        elif content_capture.capture_artifact_mode == "sample":
-            packet_limitations.append(
-                "sample packet: rendered DOM, visible text, content record, browser metadata, "
-                "and screenshot preserved for parser-fit drift checks"
+                "content-retention admission failed; rendered DOM and visible text preserved "
+                "for diagnosis"
             )
         packet_visible_mode_changes.append(
-            f"capture artifact mode: {content_capture.capture_artifact_mode}"
+            f"requested retention mode: {content_extraction.requested_retention_mode}"
         )
-        if not raw_projector_inputs_preserved:
+        if not raw_extraction_inputs_preserved:
             packet_visible_mode_changes.append(
                 "rendered DOM and visible text hashed then discarded after successful "
-                "capture-time projection"
+                "capture-time extraction"
             )
         if content_record_bytes is not None:
             packet_visible_mode_changes.append(
@@ -765,12 +770,12 @@ def run_source_capture_cloakbrowser_packet(
             receipt_summary=_receipt_summary(
                 source_family=source_family,
                 access_block_reason=capture_result.access_block_reason,
-                capture_artifact_mode=(
-                    content_capture.capture_artifact_mode
-                    if content_capture is not None
+                requested_retention_mode=(
+                    content_extraction.requested_retention_mode
+                    if content_extraction is not None
                     else None
                 ),
-                raw_projector_inputs_preserved=raw_projector_inputs_preserved,
+                raw_extraction_inputs_preserved=raw_extraction_inputs_preserved,
                 nordstrom_review_posture=nordstrom_review_posture,
             ),
             receipt_non_claims=_cloakbrowser_snapshot_non_claims(
@@ -837,8 +842,8 @@ def run_source_capture_cloakbrowser_packet(
             output_directory=result.output_directory,
             result=sufficiency_result,
         )
-    if projection_failure is not None:
-        return CONTENT_PROJECTION_FAILED_EXIT_CODE, result.output_directory
+    if extraction_failure is not None:
+        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, result.output_directory
     return 0, result.output_directory
 
 
@@ -877,11 +882,11 @@ def _sephora_market_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
-def _sephora_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
-    return RenderedContentCaptureSpec(
-        capture_artifact_mode=mode,
-        parser_version=SEPHORA_PDP_PARSER_VERSION,
-        projector=lambda rendered_dom, visible_text, final_url: (
+def _sephora_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=SEPHORA_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
             build_sephora_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
@@ -911,11 +916,11 @@ def _nordstrom_country_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
-def _nordstrom_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
-    return RenderedContentCaptureSpec(
-        capture_artifact_mode=mode,
-        parser_version=NORDSTROM_PDP_PARSER_VERSION,
-        projector=lambda rendered_dom, visible_text, final_url: (
+def _nordstrom_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=NORDSTROM_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
             build_nordstrom_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
@@ -1026,11 +1031,11 @@ def _luckyscent_market_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
-def _luckyscent_content_capture_spec(mode: str) -> RenderedContentCaptureSpec:
-    return RenderedContentCaptureSpec(
-        capture_artifact_mode=mode,
-        parser_version=LUCKYSCENT_PDP_PARSER_VERSION,
-        projector=lambda rendered_dom, visible_text, final_url: (
+def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=LUCKYSCENT_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
             build_luckyscent_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
@@ -1192,8 +1197,8 @@ def _receipt_summary(
     *,
     source_family: str,
     access_block_reason: str | None,
-    capture_artifact_mode: str | None = None,
-    raw_projector_inputs_preserved: bool = True,
+    requested_retention_mode: str | None = None,
+    raw_extraction_inputs_preserved: bool = True,
     nordstrom_review_posture: str | None = None,
 ) -> str:
     if access_block_reason is not None:
@@ -1201,7 +1206,7 @@ def _receipt_summary(
             f"CloakBrowser snapshot packet for {source_family} with rendered access-block artifacts "
             f"preserved for one supplied URL; source content was not captured: {access_block_reason}."
         )
-    elif raw_projector_inputs_preserved:
+    elif raw_extraction_inputs_preserved:
         summary = (
             f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
             f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
@@ -1210,10 +1215,10 @@ def _receipt_summary(
         summary = (
             f"CloakBrowser snapshot packet for {source_family} with a capture-time content record, "
             "viewport screenshot, and method-provenance metadata preserved; rendered DOM and "
-            "visible text were hashed then discarded after successful projection."
+            "visible text were hashed then discarded after successful extraction."
         )
-    if capture_artifact_mode is not None:
-        summary += f" Artifact mode: {capture_artifact_mode}."
+    if requested_retention_mode is not None:
+        summary += f" Requested retention mode: {requested_retention_mode}."
     if nordstrom_review_posture == "recent_window_30d":
         summary += (
             " Nordstrom onboarding review posture: most-helpful positive/critical "
@@ -1286,15 +1291,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Commit into the Forseti data lake at this root; explicit --data-root is mutually exclusive with --output. FORSETI_DATA_ROOT is used only when --output is omitted; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument(
-        "--retail-pdp-projection-output",
-        type=Path,
-        default=None,
-        help=(
-            "Optional Retail/PDP-only sidecar: after a successful packet write, build the "
-            "local no-network projection JSON at this path. Requires --source-family retail_pdp."
-        ),
-    )
-    parser.add_argument(
         "--capture-context",
         default=None,
     )
@@ -1305,11 +1301,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=CaptureModeCategory.MULTIMODAL.value,
     )
     parser.add_argument(
-        "--capture-artifact-mode",
-        choices=["content", "sample", "raw"],
+        "--retention-mode",
+        choices=["content", "raw"],
         default=None,
         help=(
-            "Artifact-retention mode for the enabled Sephora, Luckyscent, and "
+            "Retention mode for the enabled Sephora, Luckyscent, and "
             "Nordstrom aggregate routes. Omitted defaults those routes to content; "
             "other profiles remain raw."
         ),
@@ -1598,12 +1594,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             LUCKYSCENT_PDP_CONTENT_PROFILE,
             NORDSTROM_PDP_CONTENT_PROFILE,
         }
-        if args.capture_artifact_mode is not None and (
+        if args.retention_mode is not None and (
             retail_capture_profile is None
             or retail_capture_profile.name not in content_profiles
         ):
             raise ValueError(
-                "--capture-artifact-mode currently requires an enabled aggregate "
+                "--retention-mode currently requires an enabled aggregate "
                 "content profile"
             )
         if args.nordstrom_review_posture is not None and (
@@ -1613,7 +1609,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 "--nordstrom-review-posture requires nordstrom_pdp_aggregate"
             )
-        content_capture = None
+        content_extraction = None
         if (
             retail_capture_profile is not None
             and retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE
@@ -1622,8 +1618,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError(
                     "sephora_pdp_aggregate content capture requires --sephora-market US"
                 )
-            content_capture = _sephora_content_capture_spec(
-                args.capture_artifact_mode or "content"
+            content_extraction = _sephora_content_extraction_spec(
+                args.retention_mode or "content"
             )
         elif (
             retail_capture_profile is not None
@@ -1634,8 +1630,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "luckyscent_pdp_aggregate content capture requires "
                     "--luckyscent-market US"
                 )
-            content_capture = _luckyscent_content_capture_spec(
-                args.capture_artifact_mode or "content"
+            content_extraction = _luckyscent_content_extraction_spec(
+                args.retention_mode or "content"
             )
         elif (
             retail_capture_profile is not None
@@ -1646,8 +1642,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "nordstrom_pdp_aggregate content capture requires "
                     "--nordstrom-country US"
                 )
-            content_capture = _nordstrom_content_capture_spec(
-                args.capture_artifact_mode or "content"
+            content_extraction = _nordstrom_content_extraction_spec(
+                args.retention_mode or "content"
             )
         settle_seconds = (
             args.settle_seconds
@@ -1684,8 +1680,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             if retail_capture_profile is not None
             else None
         )
-        if args.retail_pdp_projection_output is not None and args.source_family != "retail_pdp":
-            raise ValueError("--retail-pdp-projection-output requires --source-family retail_pdp")
         proxy_profile = _load_optional_proxy_profile(
             label=args.proxy_profile_label,
             category=args.proxy_profile_category,
@@ -1873,7 +1867,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 not_applicable_reason=args.pre_coverage_history_posture_not_applicable_reason,
             ),
             intended_cadence=build_intended_cadence(args),
-            content_capture=content_capture,
+            content_extraction=content_extraction,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
@@ -1881,17 +1875,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.exit(status=3, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
 
     if exit_code == 0:
-        if args.retail_pdp_projection_output is not None:
-            try:
-                write_retail_pdp_projection(
-                    packet_directory=Path(message),
-                    output_path=args.retail_pdp_projection_output,
-                )
-            except Exception as exc:
-                parser.exit(status=2, message=f"retail PDP projection failed after capture: {exc}\n")
-            print(message)
-            print(args.retail_pdp_projection_output)
-            return 0
         print(message)
         return 0
 

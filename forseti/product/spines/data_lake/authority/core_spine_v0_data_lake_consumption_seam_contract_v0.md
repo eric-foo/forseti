@@ -428,7 +428,7 @@ direction_change_propagation:
     - forseti-harness/data_lake/root.py
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   intentionally_not_updated:
@@ -446,8 +446,8 @@ direction_change_propagation:
       reason: Capture propagation classes and downstream checks are unchanged; this work coordinates existing consumers.
     - path: forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
       reason: Layer flow and authority routing are unchanged.
-    - path: forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
-      reason: Projection evidence and non-authority semantics are unchanged.
+    - path: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+      reason: Capture-to-Cleaning ownership and historical-decoder containment remain unchanged.
     - path: forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
       reason: ECR derivation and evidence semantics are unchanged.
     - path: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md

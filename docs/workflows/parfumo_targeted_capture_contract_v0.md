@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/orca_fragrance_native_database_live_probe_v0.md
-  - docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
 stale_if:
   - Parfumo Chrome-extension/user-visible route stops reaching real product DOM.
@@ -42,23 +42,26 @@ receipt names the actual transport.
 
 The packet writer may package local rendered artifacts and fixtures without live network access. Live Parfumo capture remains owner-authorized per operation.
 
-## Capture Artifact Modes
+## Retention Modes
 
-The pinned targeted-rendered route defaults to `content` mode:
+The pinned targeted-rendered route defaults to canonical `content` retention:
 
-- `content`: project in flight; preserve `content_record.json`, the route
-  receipt, capture plan, content-capture metadata, and any supplied screenshot;
-  hash and discard rendered DOM and visible text after projection succeeds.
-- `sample`: preserve the same content record plus rendered DOM and visible text
-  so `run_parfumo_parser_fit_check.py` can re-project and require an exact
-  `match`.
-- `raw`: preserve the pre-flip local-artifact packet shape and do not run the
-  content projector.
+- `content`: extract in flight; preserve `content_record.json`, the route
+  receipt, capture plan, extraction metadata, and any supplied screenshot;
+  hash and discard rendered DOM and visible text after extraction succeeds.
+- `raw`: preserve the historical local-artifact packet shape for explicitly
+  authorized compatibility capture.
 
-`content_capture_metadata.json` is the provenance floor for discarded projector
-inputs: mode, parser version, projection status, and each input role's filename,
-SHA-256, byte count, and preservation state. A projector failure is loud: all
+`content_extraction_metadata.json` is the provenance floor for discarded
+extractor inputs: retention mode, extractor version, extraction status, and
+each input role's filename, SHA-256, byte count, and preservation state. An
+extraction failure is loud: all
 supplied artifacts are preserved as fallback and the runner exits `4`.
+
+Parser qualification is a scratch-only pre-admission operation. It compares
+fresh rendered inputs with a fresh deterministic extraction, writes a
+qualification report outside the lake, and deletes only its own disposable
+DOM/text inputs after a match. It never creates an admitted sample packet.
 
 The screenshot is not a discardable projector input. When supplied, it remains
 preserved in every mode because it is source media evidence. This is a retention
@@ -72,11 +75,9 @@ does not request another screenshot unless the shared visual triggers in
 remain preserved because they establish access and capture scope rather than
 page-content payload.
 
-Projection and Cleaning prefer a valid content record and bind rows to its
-packet-local JSON pointers. Raw and legacy packets retain the existing raw
-projection path. The shared projection runner therefore remains available for
-raw, legacy, and direct-HTTP canary packets; only its standard use for the pinned
-targeted route retires.
+Cleaning validates the canonical content record and adapts its source rows
+directly. Raw and legacy packets remain readable through a contained read-only
+historical decoder; no post-hoc Parfumo Projection lane remains.
 
 ## Rendered Overlay And Repeat-Screenshot Policy
 
@@ -104,7 +105,7 @@ route-owned.
   unobstructed product-page evidence.
 
 Therefore a next-day capture of the same product using the same healthy route
-and projector requests no screenshot by default. The earlier screenshot's
+and extractor requests no screenshot by default. The earlier screenshot's
 existence is not itself a screenshot trigger.
 
 If this route originates from a CSB commission, CSB only names what visual
@@ -132,7 +133,7 @@ Batch 1 is complete when fixture/local rendered artifacts can be packaged into a
 - a guard that rejects obvious cookie/storage/Cloudflare-token strings in supplied text artifacts.
 
 The original Batch 1 packet-shape acceptance remains historical. The current
-targeted route adds capture-time content projection without changing the bounded
+targeted route adds capture-time content extraction without changing the bounded
 sample, secret-export, Silver-write, or full-corpus boundaries above.
 
 ## Direction Change Propagation
@@ -147,7 +148,6 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md
     - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
     - forseti-harness/runners/run_parfumo_mgt_capture.py
     - forseti-harness/source_capture/parfumo_projection.py
     - forseti-harness/cleaning/parfumo_lake.py
@@ -156,7 +156,7 @@ direction_change_propagation:
     - {path: AGENTS.md, reason: "No project-wide authorization, isolation, landing, or safety rule changed."}
     - {path: .agents/workflow-overlay, reason: "Source hierarchy, validation, review, and lifecycle mechanics are unchanged."}
     - {path: docs/workflows/forseti_repo_map_v0.md, reason: "No artifact family, owner, or retrieval route moved."}
-    - {path: forseti-harness/source_capture/content_capture.py, reason: "The HTTP ContentCaptureSpec seam is unchanged; the pinned local-artifact route remains family-owned."}
+    - {path: forseti-harness/source_capture/content_extraction.py, reason: "The shared retention lifecycle is unchanged; the Parfumo extractor remains family-owned."}
   stale_language_search: 'rg -n "projection is Batch [2]|Parfumo: first Phase B flip \\(HTTP seam drop[-]in\\)|NEAREST DROP[-]IN" docs/workflows/parfumo_targeted_capture_contract_v0.md forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md forseti/product/spines/capture/core/source_capture_toolbox'
   non_claims:
     - not live-route validation
@@ -177,7 +177,6 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
     - docs/workflows/parfumo_targeted_capture_contract_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
     - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
     - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - forseti/product/spines/scanning/README.md
@@ -188,7 +187,6 @@ direction_change_propagation:
   intentionally_not_updated:
     - {path: forseti-harness/runners/run_parfumo_mgt_capture.py, reason: "It already accepts an optional screenshot and preserves one when supplied; it does not own live browser acquisition."}
     - {path: forseti-harness/source_capture/adapters/browser_snapshot.py, reason: "No generic visual clicker is authorized; a deterministic route-owned action needs a separate implementation unit."}
-    - {path: forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md, reason: "Its retention semantics remain accurate; the new rule governs whether acquisition requests a screenshot."}
     - {path: forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md, reason: "The route index already points to this contract; no route status or family boundary changed."}
     - {path: CSB and Scanning controlling sources, reason: "They already hand commission requirements and capture requests downstream to Capture and do not own preservation adapters; no duplicate screenshot rule added."}
   stale_language_search: >

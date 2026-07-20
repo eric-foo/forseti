@@ -1,8 +1,8 @@
 """Persist Fragrantica Cleaning output into the Data Lake.
 
 The verified read half lives on ``DataLakeRoot``. This adapter reads a committed
-Fragrantica raw packet by key, rebuilds the mechanical Fragrantica projection,
-builds the source-family Cleaning packet, and appends two kinds of derived
+Fragrantica packet by key, asks Cleaning to adapt its canonical content record
+or historical raw bytes, and appends two kinds of derived
 record:
 
 1. one raw-anchored **Cleaning audit pack** (``schema_version`` =
@@ -31,11 +31,10 @@ from typing import TYPE_CHECKING, Any
 
 from cleaning._shared import (
     ecr_refs as _ecr_refs,
-    handle_raw_ref as _handle_raw_ref,
-    projection_refs as _projection_refs,
-    raw_refs as _raw_refs,
+    handle_source_ref as _handle_source_ref,
+    source_refs as _source_refs,
 )
-from cleaning.fragrantica import build_fragrantica_cleaning_packet
+from cleaning.fragrantica import build_fragrantica_cleaning_packet_from_source
 from cleaning.models import (
     CLEANING_CORE_VERSION,
     REQUIRED_NON_CLAIMS,
@@ -44,10 +43,8 @@ from cleaning.models import (
 )
 from harness_utils import generate_ulid
 from source_capture.fragrantica_projection import (
-    FRAGRANTICA_PROJECTION_CERTIFICATION,
-    FRAGRANTICA_PROJECTION_METHOD,
-    FRAGRANTICA_PROJECTION_VERSION,
-    build_fragrantica_projection,
+    FRAGRANTICA_CONTENT_SCHEMA_VERSION,
+    FRAGRANTICA_PARSER_VERSION,
 )
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from data_lake.silver_record import append_silver_record
@@ -64,13 +61,13 @@ FRAGRANTICA_CLEANING_AUDIT_LANE = "cleaning_fragrantica_audit"
 FRAGRANTICA_CLEANING_SILVER_LANE = "cleaning_fragrantica_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
-FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_audit_pack_v1"
-FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_silver_textobservation_v2"
-FRAGRANTICA_CLEANING_METHOD_ID = "fragrantica_cleaning_method_v1"
+FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_audit_pack_v2"
+FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_silver_textobservation_v3"
+FRAGRANTICA_CLEANING_METHOD_ID = "fragrantica_cleaning_method_v2"
 REVIEW_TEXT_NORMALIZATION_RULE = "fragrantica_review_text_whitespace_normalization"
 REVIEW_VOTE_CARRY_RULE = "fragrantica_source_visible_vote_field_carry"
 FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = (
-    "fragrantica_cleaning_silver_metricobservation_v3"
+    "fragrantica_cleaning_silver_metricobservation_v4"
 )
 FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION = "fragrantica_review_vote_valid_ordinal_v1"
 
@@ -130,11 +127,10 @@ def derive_fragrantica_cleaning_into_lake(
     """
     loaded = data_root.load_raw_packet(packet_id)
     packet = SourceCapturePacket.model_validate(loaded.manifest)
-    projection = build_fragrantica_projection(
+    cleaning_packet = build_fragrantica_cleaning_packet_from_source(
         packet=packet,
-        raw_file_bytes_by_file_id=loaded.bodies,
+        file_bytes_by_file_id=loaded.bodies,
     )
-    cleaning_packet = build_fragrantica_cleaning_packet(projection)
 
     audit_seed = record_id if record_id is not None else generate_ulid()
     audit_record_name = f"{audit_seed}.json"
@@ -221,16 +217,15 @@ def fragrantica_cleaning_audit_pack_payload(
         "source_surface": packet.source_surface,
         "captured_at": capture_time,
         "input_refs": {
-            "raw_refs": _raw_refs(cleaning_packet),
-            "projection_refs": _projection_refs(cleaning_packet),
+            "source_refs": _source_refs(cleaning_packet),
             "ecr_refs": _ecr_refs(cleaning_packet),
         },
         "coverage": _coverage(cleaning_packet),
         "payload": {
             "cleaning_core_version": CLEANING_CORE_VERSION,
-            "projection_method": FRAGRANTICA_PROJECTION_METHOD,
-            "projection_version": FRAGRANTICA_PROJECTION_VERSION,
-            "projection_certification": FRAGRANTICA_PROJECTION_CERTIFICATION,
+            "content_schema_version": FRAGRANTICA_CONTENT_SCHEMA_VERSION,
+            "extractor_version": FRAGRANTICA_PARSER_VERSION,
+            "legacy_raw_decoder_supported": True,
             "handle_count": len(cleaning_packet.handles),
             "transform_entry_count": len(cleaning_packet.transform_ledger),
             "cleaning_packet": cleaning_packet.model_dump(mode="json"),
@@ -379,7 +374,7 @@ def _post_cleaned_silver_record(
         "source_surface": packet.source_surface,
         "observed_at": capture_time,
         "captured_at": capture_time,
-        "raw_refs": [_handle_raw_ref(handle)],
+        "raw_refs": [_handle_source_ref(handle)],
         # Standard Silver-header lineage: this record is generated from a prior
         # derived record (the audit pack), so the link lives here, not a sidecar.
         "derived_refs": [
@@ -451,7 +446,7 @@ def _post_cleaned_metric_record(
         "source_surface": packet.source_surface,
         "observed_at": capture_time,
         "captured_at": capture_time,
-        "raw_refs": [_handle_raw_ref(handle)],
+        "raw_refs": [_handle_source_ref(handle)],
         # Same standard-header lineage as the TextObservation: generated from the
         # audit pack, so the link lives in derived_refs.
         "derived_refs": [
@@ -506,8 +501,8 @@ def _silver_subject(handle: CleaningInputHandle) -> dict[str, Any]:
         "review_handle_id": handle.handle_id,
         "source_surface": handle.source_surface,
     }
-    if handle.projection_ref is not None:
-        subject["review_row_id"] = handle.projection_ref.row_id
+    if handle.source_row_id is not None:
+        subject["review_row_id"] = handle.source_row_id
     return subject
 
 

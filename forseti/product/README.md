@@ -24,7 +24,7 @@ Second-level axis: `spines/` (by function) plus `satellites/`, `case_families/`,
 - `information/` — reusable, decision-agnostic information-domain contracts;
   the first accepted domain is `company_surface/`. Actual records remain in
   Data Lake-owned storage, and operational work remains in the owning spine.
-- `shared/` — cross-spine registries: `engagement_registry/`, `projection_doctrine/` (both transitional, pending their own re-home decisions)
+- `shared/` — cross-spine registries such as `engagement_registry/`.
 
 ## Authority
 

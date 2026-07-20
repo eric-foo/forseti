@@ -17,18 +17,13 @@ from cleaning.models import (
     CleaningInputHandle,
     CleaningPacket,
     CleaningPreservationCheck,
-    CleaningProjectionRef,
-    CleaningRawAnchor,
-    CleaningRelation,
+    CleaningSourceAnchor,
     CleaningRuleScope,
     CleaningTransform,
     CleaningTransformClass,
     CleaningTransformLedgerEntry,
 )
-from cleaning.projection import (
-    cleaning_input_handle_from_projection_row,
-    cleaning_input_handles_from_projection_rows,
-)
+from cleaning.content import cleaning_input_handles_from_content_rows
 
 __all__ = [
     "CLEANING_CORE_VERSION",
@@ -40,14 +35,11 @@ __all__ = [
     "CleaningInputHandle",
     "CleaningPacket",
     "CleaningPreservationCheck",
-    "CleaningProjectionRef",
-    "CleaningRawAnchor",
-    "CleaningRelation",
+    "CleaningSourceAnchor",
     "CleaningRuleScope",
     "CleaningTransform",
     "CleaningTransformClass",
     "CleaningTransformLedgerEntry",
-    "cleaning_input_handle_from_projection_row",
-    "cleaning_input_handles_from_projection_rows",
+    "cleaning_input_handles_from_content_rows",
     "derive_exact_identity_duplicate_groups",
 ]

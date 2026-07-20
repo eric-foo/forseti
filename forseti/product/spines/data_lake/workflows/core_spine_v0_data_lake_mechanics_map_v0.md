@@ -21,7 +21,7 @@ open_next:
   - forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
-  - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
 branch_or_commit:
   - Based on codex/source-capture-tenant-payload-boundary at d5dcf1a4; verify landing status before relying on this boundary from another base.
@@ -230,7 +230,7 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     - forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
-    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
     - forseti-harness/source_capture/models.py
     - forseti-harness/ecr/

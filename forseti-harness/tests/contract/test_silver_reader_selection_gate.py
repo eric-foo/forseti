@@ -45,10 +45,6 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
         "catch-up writer checks one deterministic current-policy transcript id "
         "before acking; it does not select among sibling records"
     ),
-    "runners/run_cleaning_spine_periodic_audit.py": (
-        "audit resolves explicitly named derived_record anchors; it is not pickup "
-        "authority over a sibling set"
-    ),
     "runners/run_ig_reels_lane_orchestrator.py": (
         "orchestrator checks completion markers for exact downstream outputs"
     ),
@@ -59,10 +55,6 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
     "source_capture/ig_reels_grid_projection.py": (
         "projection writer checks exact bronze-catalog proof paths while appending "
         "stable derived records"
-    ),
-    "source_capture/retail_pdp_silver.py": (
-        "producer reads one caller-pinned projection record id by key; it never "
-        "selects among or walks a sibling set"
     ),
 }
 

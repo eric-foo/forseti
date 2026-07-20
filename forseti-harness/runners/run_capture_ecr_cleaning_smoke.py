@@ -23,14 +23,13 @@ from cleaning.models import (  # noqa: E402
     CleaningInputHandle,
     CleaningPacket,
     CleaningPreservationCheck,
-    CleaningProjectionRef,
-    CleaningRawAnchor,
+    CleaningSourceAnchor,
     CleaningRuleScope,
     CleaningTransform,
     CleaningTransformClass,
     CleaningTransformLedgerEntry,
 )
-from cleaning.projection import cleaning_input_handles_from_projection_rows  # noqa: E402
+from cleaning.legacy import cleaning_handles_from_legacy_rows  # noqa: E402
 from data_lake.root import DataLakeRoot  # noqa: E402
 from ecr.deriver import (  # noqa: E402
     derive_identity_postures,
@@ -54,7 +53,6 @@ from source_capture.retail_grid_projection import (  # noqa: E402
     RETAIL_GRID_PROJECTION_METHOD,
     RetailGridProjectionPacket,
 )
-from source_capture.retail_pdp_projection import RetailPdpProjectionPacket  # noqa: E402
 
 
 ECR_OUTPUT_NAME = "ecr_source_side_receipts.json"
@@ -91,7 +89,7 @@ INSTAGRAM_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_instagram_use"
 RETAIL_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_retail_use"
 RETAIL_PROJECTION_RESIDUAL_REASON = "projection_residual_present"
 
-_RETAIL_TRANSFORM_CONTEXT_ROW_KINDS = frozenset({"retail_pdp_product"})
+_RETAIL_TRANSFORM_CONTEXT_ROW_KINDS = frozenset()
 _RETAIL_TRANSFORM_METADATA_FIELDS = frozenset(
     {
         "archive_history_posture",
@@ -318,10 +316,11 @@ def _process_retail_entry(
         projection_residuals=projection.residuals,
     )
 
-    base_handles = cleaning_input_handles_from_projection_rows(
+    base_handles = cleaning_handles_from_legacy_rows(
         source_family=packet.source_family,
         source_surface=packet.source_surface,
-        projection_packet=projection,
+        packet_id=packet.packet_id,
+        rows=projection.rows,
         handle_id_prefix=f"retail:{_handle_token(retailer)}:{packet.packet_id}",
     )
     _verify_retail_projection_anchors(
@@ -398,7 +397,7 @@ def _process_retail_entry(
             "projection_method": projection.projection_method,
             "projection_version": projection.projection_version,
             "page_kind": (
-                "grid" if projection.projection_method == RETAIL_GRID_PROJECTION_METHOD else "pdp"
+                "grid"
             ),
             "structure_preserved": structure_preserved,
             "capture_validity_supported": capture_validity_supported,
@@ -551,10 +550,11 @@ def _process_instagram_entry(
     )
 
     structure_preserved = bool(projection.loss_ledger.structure_preserved)
-    base_handles = cleaning_input_handles_from_projection_rows(
+    base_handles = cleaning_handles_from_legacy_rows(
         source_family=packet.source_family,
         source_surface=packet.source_surface,
-        projection_packet=projection,
+        packet_id=packet.packet_id,
+        rows=projection.rows,
         handle_id_prefix=f"instagram:{_handle_token(handle)}:{packet.packet_id}",
     )
     _verify_instagram_projection_anchors(
@@ -795,7 +795,7 @@ def _reddit_handle(
         handle_id=f"{source_label}:{packet.packet_id}:{row_id}",
         source_family=packet.source_family,
         source_surface=packet.source_surface,
-        raw_anchor=CleaningRawAnchor(
+        source_anchor=CleaningSourceAnchor(
             packet_id=packet.packet_id,
             slice_id=slice_id,
             file_id=raw_file.file_id,
@@ -805,14 +805,8 @@ def _reddit_handle(
             anchor_kind=anchor_kind,
             anchor_value=anchor_value,
         ),
-        projection_ref=CleaningProjectionRef(
-            projection_method="old_reddit_thread_consolidation_row_view",
-            projection_version=REDDIT_THREAD_CONSOLIDATION_SCHEMA_VERSION,
-            certification="view_only; not_cleaned; not_normalized; not_judgment_ready",
-            packet_id=packet.packet_id,
-            row_id=row_id,
-            row_kind=row_kind,
-        ),
+        source_row_id=row_id,
+        source_row_kind=row_kind,
         ecr_ref=ecr_ref,
     )
 
@@ -909,7 +903,7 @@ def _process_youtube_entry(
                     ),
                     source_family=packet.source_family,
                     source_surface=packet.source_surface,
-                    raw_anchor=CleaningRawAnchor(
+                    source_anchor=CleaningSourceAnchor(
                         packet_id=packet.packet_id,
                         slice_id=source_slice.slice_id,
                         file_id=verified_file.file_id,
@@ -1036,7 +1030,7 @@ def _process_youtube_asr_entry(
         handle_id=f"{source_label}:{audio_packet_id}:{record_id}",
         source_family=packet.source_family,
         source_surface=packet.source_surface,
-        raw_anchor=CleaningRawAnchor(
+        source_anchor=CleaningSourceAnchor(
             packet_id=audio_packet_id,
             sha256=anchor_sha256,
             hash_basis=anchor_hash_basis,
@@ -1108,7 +1102,7 @@ def _verify_retail_projection_anchors(
     *,
     packet_dir: Path,
     packet: SourceCapturePacket,
-    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
+    projection: RetailGridProjectionPacket,
     source_label: str,
     findings: list[dict[str, Any]],
 ) -> None:
@@ -1262,7 +1256,7 @@ def _retail_capture_validity_reasons(
     *,
     packet_dir: Path,
     packet: SourceCapturePacket,
-    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
+    projection: RetailGridProjectionPacket,
 ) -> list[str]:
     reasons: list[str] = []
     inspectable_files = [
@@ -1337,7 +1331,7 @@ def _retail_handle_trace_notes(
 
 
 def _projection_has_all_null_required_rows(
-    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
+    projection: RetailGridProjectionPacket,
 ) -> bool:
     for row in projection.rows:
         if row.row_kind == "retail_grid_product" and not all(
@@ -1360,10 +1354,13 @@ def _projection_has_all_null_required_rows(
 
 def _load_retail_projection(
     payload: dict[str, Any],
-) -> RetailPdpProjectionPacket | RetailGridProjectionPacket:
-    if payload.get("projection_method") == RETAIL_GRID_PROJECTION_METHOD:
-        return RetailGridProjectionPacket.model_validate(payload)
-    return RetailPdpProjectionPacket.model_validate(payload)
+) -> RetailGridProjectionPacket:
+    if payload.get("projection_method") != RETAIL_GRID_PROJECTION_METHOD:
+        raise ValueError(
+            "the smoke adapter accepts analytical Retail Grid projections only; "
+            "Retail PDP content is adapted directly by Cleaning"
+        )
+    return RetailGridProjectionPacket.model_validate(payload)
 
 
 def _source_value_present(value: Any) -> bool:

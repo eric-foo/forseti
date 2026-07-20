@@ -15,7 +15,7 @@ use_when:
   - Checking what AO-2 changes vs. leaves invariant across the model, the smoke runner, and the audit.
 open_next:
   - orca-harness/cleaning/models.py
-  - orca-harness/runners/run_cleaning_spine_periodic_audit.py
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - orca-harness/runners/run_capture_ecr_cleaning_smoke.py
   - orca-harness/runners/run_transcript_product_extract.py
   - orca-harness/data_lake/root.py

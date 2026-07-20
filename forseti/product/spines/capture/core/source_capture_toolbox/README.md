@@ -87,9 +87,7 @@ Silver, ECR, Cleaning, or Judgment authority.
 | `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
 | `docs/workflows/screening_read_service_build_receipt_v0.md` | Build receipt and clean-agent usage pointers for the bounded screening-read service and `screening_browser_read` wrapper: orchestrator-invoked, public-only, no packet, no manifest, no ECR. |
 | `docs/workflows/screening_read_reusable_findings_v0.md` | Cross-site reuse pattern for public browser/interstitial screening reads and same-shaped structured listing extraction: visible-text `block_shell`, row-local locators, and range sanity. |
-| `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
-| `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
-| `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
+| `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md` | Retail/PDP canonical-content, target-binding, Cleaning, residual, and Silver-handoff contract. |
 | `forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_capture_pilot_v0.md` | Five-site fragrance purchase-review row-capture receipt: ignored JSONL corpus location, per-source row counts, extraction substrates, validation read, and packet-window residuals; no raw review bodies in tracked docs. |
 | `forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md` | Five-site fragrance purchase-review widget-expansion probe receipt: Judge.me/Yotpo route findings, pagination totals, rating/media filter diagnostics, ignored raw response paths, and current row-completion residuals; no raw review bodies in tracked docs. |
 | `forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md` | Focused fragrance purchase-review coverage MGT target: Luckyscent pinned-route receipt, row-selection policy, adaptive cap, adapter shape, drift fallback contract, and accepted residuals; no raw review bodies in tracked docs. |
@@ -193,22 +191,21 @@ carried-module rows, including the bounded opt-in capture sidecar, before any
 ECR sequencing.
 
 The contract is at
-`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md`.
+`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
 It covers Amazon, Sephora, and Ulta binding postures; unsafe fallback residuals;
 Sephora target `ProductPage` DOM price binding versus structured-JSON fallback;
 Ulta requested-SKU versus projected-SKU residuals; Amazon DOM target price and
 storefront pin limits; `structure_preserved` semantics; and explicit
 no-Cleaning/no-ECR/no-Judgment boundaries.
 
-Implemented capture-side wiring is opt-in only:
-`run_source_capture_cloakbrowser_packet.py --source-family retail_pdp
---retail-pdp-projection-output <path>` writes a separate local projection JSON
-after a successful packet write. It does not change packet schema, packet
-receipts, residual rules, or ECR sequencing.
-
-For exact Amazon/Sephora/Ulta smoke commands, expected residuals, and
-code-enforceable follow-up flags, use
-`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md`.
+Implemented capture-side wiring admits either a family content record or a raw
+packet. Current content records are validated and adapted under Cleaning; no
+separate persisted Retail/PDP Projection sidecar is written. Scratch
+qualification may compare disposable DOM/text with the derived content record,
+but qualification output is not a lake packet and cannot admit sample mode.
+For retailer pins, sufficiency failures, content ownership, legacy raw
+compatibility, and the Silver handoff, use
+`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
 
 It is product contract context only. It is not capture execution, validation,
 readiness, implementation authorization, source completeness proof, or buyer
@@ -430,7 +427,7 @@ Amazon, Sephora, and Ulta PDP packets into source-visible product, offer,
 review-substrate, embedded-JSON, and carried-module rows.
 
 The playbook is at
-`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`.
+`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
 It names the raw packet inputs, allowed projection rows, binding map requirements,
 loss and residual rules, retailer-specific target-binding posture, and next-move
 selector for playbook versus wiring versus ECR sequencing.
@@ -607,12 +604,9 @@ Implemented v0 scope:
 - anonymous non-persistent CloakBrowser launch;
 - rendered DOM, visible text, viewport screenshot, and method-provenance
   metadata preserved into a Source Capture Packet;
-- optional Retail/PDP-only no-network projection sidecar when
-  `--source-family retail_pdp` and `--retail-pdp-projection-output` are
-  supplied; the sidecar writes a separate JSON and does not alter the packet
-  manifest or receipt. Use
-  `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md`
-  for the three-retailer smoke procedure;
+- Retail/PDP content extraction after retailer pin, access, and sufficiency
+  checks; current content flows directly into Cleaning, while extraction
+  failure preserves supplied raw inputs through the typed failure path;
 - no stored session, browser profile, raw cookies, storage-state file, proxy,
   credential injection, CAPTCHA service, crawler, target discovery, parser,
   consolidation, storage, dashboard, scheduler, deployment, production runtime,

@@ -9,12 +9,14 @@ from typing import TYPE_CHECKING, Any
 
 from cleaning._shared import (
     ecr_refs as _ecr_refs,
-    handle_raw_ref as _handle_raw_ref,
-    projection_refs as _projection_refs,
-    raw_refs as _raw_refs,
+    handle_source_ref as _handle_source_ref,
+    source_refs as _source_refs,
 )
 from cleaning.models import CLEANING_CORE_VERSION, REQUIRED_NON_CLAIMS, CleaningInputHandle, CleaningPacket
-from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE, build_parfumo_cleaning_packet
+from cleaning.parfumo import (
+    PARFUMO_RATING_CARRY_RULE,
+    build_parfumo_cleaning_packet_from_source,
+)
 from data_lake.canonical_json import (
     canonical_record_bytes as _json_bytes,
     record_content_hash as _content_hash,
@@ -23,10 +25,8 @@ from data_lake.silver_record import append_silver_record
 from harness_utils import generate_ulid
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from source_capture.parfumo_projection import (
-    PARFUMO_PROJECTION_CERTIFICATION,
-    PARFUMO_PROJECTION_METHOD,
-    PARFUMO_PROJECTION_VERSION,
-    build_parfumo_projection,
+    PARFUMO_TARGETED_CONTENT_SCHEMA_VERSION,
+    PARFUMO_TARGETED_PARSER_VERSION,
 )
 
 if TYPE_CHECKING:
@@ -37,10 +37,10 @@ PARFUMO_CLEANING_AUDIT_LANE = "cleaning_parfumo_audit"
 PARFUMO_CLEANING_SILVER_LANE = "cleaning_parfumo_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
-PARFUMO_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_audit_pack_v1"
-PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v2"
-PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v2"
-PARFUMO_CLEANING_METHOD_ID = "parfumo_cleaning_method_v0"
+PARFUMO_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_audit_pack_v2"
+PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v3"
+PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v3"
+PARFUMO_CLEANING_METHOD_ID = "parfumo_cleaning_method_v1"
 TEXT_NORMALIZATION_RULE = "parfumo_text_whitespace_normalization"
 PARFUMO_RATING_METRIC_ABSENT_RESIDUAL = (
     "parfumo_review_rating_metric_absent_no_source_visible_numeric_rating"
@@ -78,13 +78,9 @@ def derive_parfumo_cleaning_into_lake(
     """Build and append the Parfumo Cleaning audit pack plus post-cleaned Silver."""
     loaded = data_root.load_raw_packet(packet_id)
     packet = SourceCapturePacket.model_validate(loaded.manifest)
-    projection = build_parfumo_projection(
+    cleaning_packet = build_parfumo_cleaning_packet_from_source(
         packet=packet,
-        raw_file_bytes_by_file_id=loaded.bodies,
-    )
-    cleaning_packet = build_parfumo_cleaning_packet(
-        projection,
-        source_surface=packet.source_surface,
+        file_bytes_by_file_id=loaded.bodies,
     )
 
     audit_seed = record_id if record_id is not None else generate_ulid()
@@ -162,16 +158,15 @@ def parfumo_cleaning_audit_pack_payload(
         "source_surface": packet.source_surface,
         "captured_at": capture_time,
         "input_refs": {
-            "raw_refs": _raw_refs(cleaning_packet),
-            "projection_refs": _projection_refs(cleaning_packet),
+            "source_refs": _source_refs(cleaning_packet),
             "ecr_refs": _ecr_refs(cleaning_packet),
         },
         "coverage": _coverage(cleaning_packet),
         "payload": {
             "cleaning_core_version": CLEANING_CORE_VERSION,
-            "projection_method": PARFUMO_PROJECTION_METHOD,
-            "projection_version": PARFUMO_PROJECTION_VERSION,
-            "projection_certification": PARFUMO_PROJECTION_CERTIFICATION,
+            "content_schema_version": PARFUMO_TARGETED_CONTENT_SCHEMA_VERSION,
+            "extractor_version": PARFUMO_TARGETED_PARSER_VERSION,
+            "legacy_raw_decoder_supported": True,
             "handle_count": len(cleaning_packet.handles),
             "transform_entry_count": len(cleaning_packet.transform_ledger),
             "cleaning_packet": cleaning_packet.model_dump(mode="json"),
@@ -285,7 +280,7 @@ def _post_cleaned_silver_record(
     audit_content_hash: str,
 ) -> dict[str, Any]:
     is_statement = bool(
-        handle.projection_ref and handle.projection_ref.row_kind == "fragrance_statement_current_window"
+        handle.source_row_kind == "fragrance_statement_current_window"
     )
     text_artifact_type = "review_body"
     producer_row_kind = "parfumo_statement_body_text" if is_statement else "parfumo_review_body_text"
@@ -305,7 +300,7 @@ def _post_cleaned_silver_record(
         "source_surface": packet.source_surface,
         "observed_at": capture_time,
         "captured_at": capture_time,
-        "raw_refs": [_handle_raw_ref(handle)],
+        "raw_refs": [_handle_source_ref(handle)],
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
@@ -375,7 +370,7 @@ def _post_cleaned_metric_record(
         "source_surface": packet.source_surface,
         "observed_at": capture_time,
         "captured_at": capture_time,
-        "raw_refs": [_handle_raw_ref(handle)],
+        "raw_refs": [_handle_source_ref(handle)],
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
@@ -419,16 +414,16 @@ def _post_cleaned_metric_record(
     return record
 
 
-# helper-delta: text-keyed subject (text_handle_id/projection_row_id/
-# projection_row_kind), unlike fragrantica_lake's review-keyed subject -- stays local.
+# helper-delta: text-keyed subject (text_handle_id/source_row_id/
+# source_row_kind), unlike fragrantica_lake's review-keyed subject -- stays local.
 def _silver_subject(handle: CleaningInputHandle) -> dict[str, Any]:
     subject: dict[str, Any] = {
         "text_handle_id": handle.handle_id,
         "source_surface": handle.source_surface,
     }
-    if handle.projection_ref is not None:
-        subject["projection_row_id"] = handle.projection_ref.row_id
-        subject["projection_row_kind"] = handle.projection_ref.row_kind
+    if handle.source_row_id is not None:
+        subject["source_row_id"] = handle.source_row_id
+        subject["source_row_kind"] = handle.source_row_kind
     return subject
 
 

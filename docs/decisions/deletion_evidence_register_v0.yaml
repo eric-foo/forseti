@@ -291,3 +291,32 @@ deletions:
       semantic_delta: |
         The deleted artifact was a proposed, non-authorizing Instagram-only ideal-audience design over captions, bio, and link text. It was never the current runtime and explicitly lacked transcript and observed-comment triangulation. The successor preserves the durable content-fit boundary while replacing the stale design with the owner-ratified creator-isolated transcript-plus-comment architecture, explicit content-fit versus observed-participant claims, Judgment-owned fusion, Creator Signal commercial projection, exact evidence binding, and a no-invented-demographics rule. Lost from the live tree are only the superseded Instagram-specific proposed weights, Tier-1/Tier-2-A schema proposal, and unbuilt two-pass mechanics; their history remains recoverable from git and frozen review/migration records.
       rollback: git revert <executing merge sha>
+  - targets:
+      - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    evidence:
+      reverse_ref_check: |
+        A repo-wide exact-path and basename search was run before deletion. Remaining references are frozen review outputs, migration manifests/indexes, superseded proposals, and hygiene inventories; no live source router, runtime import, packet writer, Cleaning entry point, or current open_next depends on this artifact. Current source-loading and product-boundary routes were changed in the same work unit to point directly at the Cleaning-owned boundary.
+      successor: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+      semantic_delta: |
+        The deleted doctrine defined persisted Capture-to-Projection operating artifacts and pointer-bearing intermediate rows. That operating layer is intentionally retired for the flipped capture families: acquisition now retains content records and Cleaning owns current-record validation and adaptation. The successor preserves the durable capture-versus-cleaning ownership boundary, evidence preservation, no-fabrication rule, and current/legacy distinction. True analytical Projection surfaces remain registered separately; historical raw packet decoding remains available only through Cleaning's legacy adapter. Lost from the live tree are the superseded persisted sidecar lifecycle and its sample/raw-derived operating instructions.
+      rollback: git revert <executing merge sha>
+  - targets:
+      - forseti/product/spines/capture/core/source_capture_toolbox/content_mode_lane_flip_handoff_v0.md
+    evidence:
+      reverse_ref_check: |
+        A repo-wide exact-path and basename search was run before deletion. Its one surviving exact-path citation was a completed retailer probe research note and was rewritten in this work unit to name the current source-capture/content-cleaning authority. No live map, open_next, runtime, or current capture route depends on the handoff.
+      successor: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      semantic_delta: |
+        The deleted handoff accumulated the route-by-route sample/raw/content flip campaign and post-hoc parser-fit procedure. Those migration instructions are no longer an operating authority after the hard cut: admitted packets are content or raw, qualification is scratch-only, and current content is consumed directly under Cleaning. The successor preserves current capture operation, fail-closed retention, and family routing; the foundation boundary preserves downstream ownership. Historical campaign detail remains recoverable from git.
+      rollback: git revert <executing merge sha>
+  - targets:
+      - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+      - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md
+      - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide exact-path and basename searches were run before deletion. Live Retail/PDP README, source-capture toolbox, source-family research routes, and current prompt pointers were reconciled in this work unit to the Retail content-to-Cleaning contract or the general source-capture playbook. Remaining hits are frozen reviews, migration manifests/indexes, superseded proposals, historical handoffs, and archived review-input snapshots; none is a current runtime or routing dependency.
+      successor: forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
+      semantic_delta: |
+        The three deleted artifacts specified and operated the persisted Retail/PDP Projection sidecar. The successor owns the current contract: retailer content records are retained at capture and validated/adapted directly by Cleaning before Retail Silver, while raw historical packets use a sealed legacy decoder. Product/offer/review facts, retailer-specific sufficiency and market-pin failures, raw-preservation behavior, and Silver semantic equivalence remain covered by code and tests. Lost from the live tree are only the superseded sidecar commands, Projection packet shape, and operator ceremony.
+      rollback: git revert <executing merge sha>

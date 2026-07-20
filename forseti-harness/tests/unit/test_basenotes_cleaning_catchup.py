@@ -107,7 +107,7 @@ def _commit_content_packet(data_root, tmp_path: Path, *, name: str = "content") 
         bundle_directory=bundle,
         output_root=tmp_path / f"{name}_output",
         data_root=data_root,
-        capture_artifact_mode="content",
+        requested_retention_mode="content",
     )
     assert exit_code == 0
     summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))

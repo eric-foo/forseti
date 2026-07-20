@@ -15,7 +15,10 @@ from harness_utils import utc_now_z
 from runners.run_source_capture_cloakbrowser_packet import run_source_capture_cloakbrowser_packet
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory, known_fact, not_applicable, unknown_with_reason
-from source_capture.content_capture import CAPTURE_ARTIFACT_MODES, RenderedContentCaptureSpec
+from source_capture.content_extraction import (
+    CAPTURE_RETENTION_MODES,
+    RenderedContentExtractionSpec,
+)
 from source_capture.fragrantica_projection import (
     FRAGRANTICA_PARSER_VERSION,
     build_fragrantica_content_record,
@@ -57,14 +60,14 @@ ACCEPTED_RESIDUALS = [
     "direct HTTP packet preserves server HTML and embedded structured attributes when publicly returned",
     "rendered sample/raw packets preserve current-window DOM and visible text; content packets retain their hashes, the family content record, screenshot, and method metadata",
     "linked media assets are not independently fetched or preserved beyond viewport screenshots",
-    "capture-time projection is mechanical only; ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
+    "capture-time extraction is mechanical only; ECR, cleaning, judgment scoring, and buyer-proof claims are intentionally out of scope",
 ]
 
 NON_CLAIMS = [
     "not full Fragrantica archive capture",
     "not account-authenticated capture",
     "not anti-login-gate bypass",
-    "not archive-complete projection",
+    "not archive-complete content",
     "not ECR design",
     "not Cleaning implementation",
     "not Judgment scoring",
@@ -89,7 +92,7 @@ def run_fragrantica_mgt_capture(
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     http_max_bytes: int = DEFAULT_HTTP_MAX_BYTES,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
-    capture_artifact_mode: Literal["content", "sample", "raw"] = "content",
+    requested_retention_mode: Literal["content", "raw"] = "content",
     http_runner: PacketRunner = run_source_capture_http_packet,
     cloakbrowser_runner: PacketRunner = run_source_capture_cloakbrowser_packet,
 ) -> tuple[int, str]:
@@ -101,7 +104,7 @@ def run_fragrantica_mgt_capture(
     _validate_positive("timeout_seconds", timeout_seconds)
     _validate_positive("http_max_bytes", http_max_bytes)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
-    _validate_capture_mode(capture_artifact_mode)
+    _validate_retention_mode(requested_retention_mode)
     _validate_non_negative("initial_settle_seconds", initial_settle_seconds)
     _validate_non_negative("deep_settle_seconds", deep_settle_seconds)
     _validate_non_negative("deep_scroll_passes", deep_scroll_passes)
@@ -184,8 +187,8 @@ def run_fragrantica_mgt_capture(
         load_more_clicks=0,
         scroll_step_px=0,
         session_visibility_pin=_anonymous_session_pin(),
-        content_capture=_rendered_content_capture_spec(
-            capture_artifact_mode=capture_artifact_mode,
+        content_extraction=_rendered_content_extraction_spec(
+            requested_retention_mode=requested_retention_mode,
             source_surface=INITIAL_VIEWPORT_SURFACE,
         ),
     )
@@ -233,8 +236,8 @@ def run_fragrantica_mgt_capture(
         load_more_clicks=0,
         scroll_step_px=deep_scroll_step_px,
         session_visibility_pin=_anonymous_session_pin(),
-        content_capture=_rendered_content_capture_spec(
-            capture_artifact_mode=capture_artifact_mode,
+        content_extraction=_rendered_content_extraction_spec(
+            requested_retention_mode=requested_retention_mode,
             source_surface=DEEP_SCROLL_SURFACE,
         ),
     )
@@ -262,8 +265,8 @@ def run_fragrantica_mgt_capture(
             "timeout_seconds": timeout_seconds,
             "http_max_bytes": http_max_bytes,
             "max_artifact_bytes": max_artifact_bytes,
-            "rendered_capture_artifact_mode": capture_artifact_mode,
-            "direct_http_capture_artifact_mode": "raw",
+            "rendered_requested_retention_mode": requested_retention_mode,
+            "direct_http_retention_mode": "raw",
         },
     )
     summary_path = output_root / SUMMARY_FILENAME
@@ -290,11 +293,11 @@ def build_fragrantica_mgt_capture_summary(
             "access_posture": manifest.get("access_posture"),
             "archive_history_posture": manifest.get("archive_history_posture"),
             "slice_postures": _slice_postures(manifest),
-            "capture_artifact_mode": _packet_content_metadata_value(
-                packet_dir, "capture_artifact_mode"
+            "requested_retention_mode": _packet_content_metadata_value(
+                packet_dir, "requested_retention_mode"
             ),
-            "projection_status": _packet_content_metadata_value(
-                packet_dir, "projection_status"
+            "extraction_status": _packet_content_metadata_value(
+                packet_dir, "extraction_status"
             ),
         }
 
@@ -316,8 +319,8 @@ def build_fragrantica_mgt_capture_summary(
         "accepted_residuals": list(ACCEPTED_RESIDUALS),
         "non_claims": list(NON_CLAIMS),
         "capture_parameters": dict(capture_parameters),
-        "projection_status": (
-            "capture_time_for_rendered_packets; direct_http_remains_raw_canary"
+        "content_adaptation_status": (
+            "cleaning_owned_for_rendered_packets; direct_http_remains_raw_canary"
         ),
     }
 
@@ -388,23 +391,23 @@ def _validate_non_negative(name: str, value: int | float) -> None:
         raise ValueError(f"{name} must be non-negative")
 
 
-def _validate_capture_mode(capture_artifact_mode: str) -> None:
-    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+def _validate_retention_mode(requested_retention_mode: str) -> None:
+    if requested_retention_mode not in CAPTURE_RETENTION_MODES:
         raise ValueError(
-            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}; "
-            f"got {capture_artifact_mode!r}"
+            f"requested_retention_mode must be one of {CAPTURE_RETENTION_MODES}; "
+            f"got {requested_retention_mode!r}"
         )
 
 
-def _rendered_content_capture_spec(
+def _rendered_content_extraction_spec(
     *,
-    capture_artifact_mode: str,
+    requested_retention_mode: str,
     source_surface: str,
-) -> RenderedContentCaptureSpec:
-    return RenderedContentCaptureSpec(
-        capture_artifact_mode=capture_artifact_mode,
-        parser_version=FRAGRANTICA_PARSER_VERSION,
-        projector=lambda rendered_dom, visible_text, final_url: (
+) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=requested_retention_mode,
+        extractor_version=FRAGRANTICA_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
             build_fragrantica_content_record(
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
@@ -419,24 +422,24 @@ def _packet_content_metadata_value(packet_dir: Path, key: str) -> object:
     manifest = _read_manifest(packet_dir)
     preserved_files = manifest.get("preserved_files")
     if not isinstance(preserved_files, list):
-        return "raw_canary" if key == "capture_artifact_mode" else "not_attempted"
+        return "raw_canary" if key == "requested_retention_mode" else "not_attempted"
     matches = [
         item.get("relative_packet_path")
         for item in preserved_files
         if isinstance(item, dict)
         and isinstance(item.get("relative_packet_path"), str)
-        and str(item["relative_packet_path"]).endswith("content_capture_metadata.json")
+        and str(item["relative_packet_path"]).endswith("content_extraction_metadata.json")
     ]
     if not matches:
-        return "raw_canary" if key == "capture_artifact_mode" else "not_attempted"
+        return "raw_canary" if key == "requested_retention_mode" else "not_attempted"
     if len(matches) != 1:
         raise ValueError(
-            f"packet must preserve exactly one content_capture_metadata.json: {packet_dir}"
+            f"packet must preserve exactly one content_extraction_metadata.json: {packet_dir}"
         )
     metadata_path = packet_dir / str(matches[0])
     loaded = json.loads(metadata_path.read_text(encoding="utf-8"))
     if not isinstance(loaded, dict):
-        raise ValueError(f"content capture metadata is not a JSON object: {metadata_path}")
+        raise ValueError(f"content extraction metadata is not a JSON object: {metadata_path}")
     return loaded.get(key)
 
 
@@ -511,12 +514,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--http-max-bytes", type=int, default=DEFAULT_HTTP_MAX_BYTES)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
     parser.add_argument(
-        "--capture-mode",
-        choices=CAPTURE_ARTIFACT_MODES,
+        "--retention-mode",
+        choices=CAPTURE_RETENTION_MODES,
         default="content",
         help=(
-            "Artifact mode for both rendered CloakBrowser packets. Direct HTTP remains raw. "
-            "Content discards rendered DOM/text after projection; sample retains both; raw "
+            "Retention mode for both rendered CloakBrowser packets. Direct HTTP remains raw. "
+            "Content discards rendered DOM/text after extraction; raw "
             "preserves the historical rendered packet."
         ),
     )
@@ -556,7 +559,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
             http_max_bytes=args.http_max_bytes,
             max_artifact_bytes=args.max_artifact_bytes,
-            capture_artifact_mode=args.capture_mode,
+            requested_retention_mode=args.retention_mode,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"fragrantica MGT capture failed: {exc}\n")

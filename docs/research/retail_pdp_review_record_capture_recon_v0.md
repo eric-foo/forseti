@@ -10,7 +10,7 @@ use_when:
   - Preparing the minimal retail_pdp review_record adapter scope after Attachment Record storage binding is locked.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - orca-harness/source_capture/retail_pdp_projection.py
 stale_if:

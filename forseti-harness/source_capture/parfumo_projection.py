@@ -589,46 +589,6 @@ def build_parfumo_projection_from_packet_directory(
     )
 
 
-def write_parfumo_projection(
-    *,
-    packet_or_manifest_path: Path,
-    output_path: Path,
-    overwrite: bool = False,
-) -> ParfumoProjectionPacket:
-    projection = build_parfumo_projection_from_packet_directory(
-        packet_or_manifest_path=packet_or_manifest_path,
-    )
-    if output_path.exists() and not overwrite:
-        raise FileExistsError(f"output already exists: {output_path}")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(_projection_json_text(projection), encoding="utf-8")
-    return projection
-
-
-def project_parfumo_into_lake(
-    *,
-    data_root: "DataLakeRoot",
-    packet_id: str,
-    record_id: str | None = None,
-) -> tuple[ParfumoProjectionPacket, Path]:
-    """Project a committed Parfumo raw packet into an append-only derived record."""
-    loaded = data_root.load_raw_packet(packet_id)
-    packet = SourceCapturePacket.model_validate(loaded.manifest)
-    projection = build_parfumo_projection(
-        packet=packet,
-        raw_file_bytes_by_file_id=loaded.bodies,
-    )
-    record = record_id if record_id is not None else generate_ulid()
-    derived_path = data_root.append_record(
-        subtree="derived",
-        raw_anchor=packet_id,
-        lane=PROJECTION_PARFUMO_LANE,
-        record_id=f"{record}.json",
-        data=_projection_json_text(projection).encode("utf-8"),
-    )
-    return projection, derived_path
-
-
 class _ProjectedParfumoHtml(StrictModel):
     rows: list[ParfumoProjectionRow] = Field(default_factory=list)
     bindings: list[ParfumoProjectionBinding] = Field(default_factory=list)
@@ -1707,6 +1667,4 @@ __all__ = [
     "build_parfumo_projection",
     "build_parfumo_projection_from_packet_directory",
     "build_parfumo_targeted_content_record",
-    "project_parfumo_into_lake",
-    "write_parfumo_projection",
 ]

@@ -21,7 +21,7 @@ use_when:
   - Checking the capture/downstream boundary for reviews (what capture must NOT do).
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md                   # current PDP projection (aggregate review substrate row this extends)
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/demand_durability_multi_retailer_rendered_capture_spec_v0.md  # per-retailer rendered capture, measured-ToS, one-series-per-retailer
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md                           # Attachment Records (source-family payload home); lake owns no identity/dedup/judgment
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md                        # record-kind slots; raw canonical; append-only derived; physicalization deferred
@@ -46,7 +46,7 @@ execution and landing to `main` stay owner-gated.** Caps at `product_learning` /
 
 Today the Retail/PDP projection preserves only the **aggregate** review substrate — a
 `retail_review_substrate` row carrying review **count + rating** and how it was located
-(`retail_pdp_projection_contract_v0.md`). That is enough for "how much / how highly reviewed,"
+(`retail_pdp_content_cleaning_contract_v0.md`). That is enough for "how much / how highly reviewed,"
 but **not** for either downstream consumer that needs the **individual reviews**:
 
 - the **demand read** wants review **velocity over time**, **content/pain-point shift**, and

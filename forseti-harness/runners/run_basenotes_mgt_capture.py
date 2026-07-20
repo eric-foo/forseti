@@ -36,9 +36,9 @@ from source_capture.source_detail_sufficiency import (
     SourceDetailSufficiencyRequirements,
     evaluate_source_detail_sufficiency,
 )
-from source_capture.content_capture import (
-    CAPTURE_ARTIFACT_MODES,
-    CONTENT_PROJECTION_FAILED_EXIT_CODE,
+from source_capture.content_extraction import (
+    CAPTURE_RETENTION_MODES,
+    CONTENT_EXTRACTION_FAILED_EXIT_CODE,
     CONTENT_RECORD_FILENAME,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
@@ -66,7 +66,7 @@ REQUIRED_BUNDLE_FILENAMES = (
     "browser_snapshot_metadata.json",
 )
 SCREENSHOT_FILENAME = "browser_viewport_screenshot.png"
-CONTENT_CAPTURE_METADATA_FILENAME = "content_capture_metadata.json"
+CONTENT_EXTRACTION_METADATA_FILENAME = "content_extraction_metadata.json"
 SCREENSHOT_TRIGGERS = (
     "route_baseline",
     "visual_content",
@@ -147,14 +147,14 @@ def run_basenotes_mgt_capture(
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     cdp_endpoint: str | None = None,
     cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
-    capture_artifact_mode: Literal["content", "sample", "raw"] = "content",
+    requested_retention_mode: Literal["content", "raw"] = "content",
     screenshot_trigger: ScreenshotTrigger | None = None,
 ) -> tuple[int, str]:
     """Validate a persistent-Chrome export and publish one Basenotes packet."""
 
     _validate_basenotes_url(url)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
-    _validate_capture_mode(capture_artifact_mode)
+    _validate_retention_mode(requested_retention_mode)
     _validate_screenshot_trigger(screenshot_trigger)
     if cdp_endpoint is not None:
         _assert_output_root_available(output_root)
@@ -190,9 +190,9 @@ def run_basenotes_mgt_capture(
         input_paths["screenshot"] = bundle.screenshot_path
     input_bytes = {role: path.read_bytes() for role, path in input_paths.items()}
 
-    projection_failure: str | None = None
+    extraction_failure: str | None = None
     content_record_bytes: bytes | None = None
-    if capture_artifact_mode != "raw":
+    if requested_retention_mode == "content":
         try:
             content_record = build_basenotes_content_record(
                 rendered_dom=input_bytes["rendered_dom"],
@@ -200,26 +200,34 @@ def run_basenotes_mgt_capture(
                 source_url=url,
             )
             content_record_bytes = _json_bytes(content_record)
-            projection_status = "succeeded"
+            extraction_status = "succeeded"
         except Exception as exc:
-            projection_failure = f"{type(exc).__name__}: {exc}"
-            projection_status = f"failed: {projection_failure}"
+            extraction_failure = f"{type(exc).__name__}: {exc}"
+            extraction_status = f"failed: {extraction_failure}"
     else:
-        projection_status = "not_attempted: raw mode"
+        extraction_status = "not_attempted: raw retention requested"
 
-    raw_projector_inputs_preserved = (
-        capture_artifact_mode in {"raw", "sample"} or projection_failure is not None
+    raw_extraction_inputs_preserved = (
+        requested_retention_mode == "raw" or extraction_failure is not None
+    )
+    retention_outcome = (
+        "content"
+        if content_record_bytes is not None and extraction_failure is None
+        else "raw_failure"
+        if extraction_failure is not None
+        else "raw"
     )
     preserved_by_role = {
-        "rendered_dom": raw_projector_inputs_preserved,
-        "visible_text": raw_projector_inputs_preserved,
+        "rendered_dom": raw_extraction_inputs_preserved,
+        "visible_text": raw_extraction_inputs_preserved,
         "browser_metadata": True,
         "screenshot": bundle.screenshot_path is not None,
     }
-    content_capture_metadata = {
-        "capture_artifact_mode": capture_artifact_mode,
-        "parser_version": BASENOTES_PARSER_VERSION,
-        "projection_status": projection_status,
+    content_extraction_metadata = {
+        "requested_retention_mode": requested_retention_mode,
+        "retention_outcome": retention_outcome,
+        "extractor_version": BASENOTES_PARSER_VERSION,
+        "extraction_status": extraction_status,
         "screenshot_trigger": screenshot_trigger,
         "inputs": [
             {
@@ -239,7 +247,7 @@ def run_basenotes_mgt_capture(
     if content_record_bytes is not None:
         staged_artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
     staged_artifacts.append(
-        (CONTENT_CAPTURE_METADATA_FILENAME, _json_bytes(content_capture_metadata))
+        (CONTENT_EXTRACTION_METADATA_FILENAME, _json_bytes(content_extraction_metadata))
     )
     _assert_unique_artifact_names(staged_artifacts)
     file_ids = list(staged_file_id_map(staged_artifacts).values())
@@ -317,30 +325,25 @@ def run_basenotes_mgt_capture(
         ),
         "browser snapshot metadata preserved without browser-secret export",
     ]
-    if raw_projector_inputs_preserved:
+    if raw_extraction_inputs_preserved:
         mode_changes.extend(["rendered DOM preserved", "visible text preserved"])
     else:
         mode_changes.append(
-            "rendered DOM and visible text hashed then discarded after successful capture-time projection"
+            "rendered DOM and visible text hashed then discarded after successful capture-time extraction"
         )
     if content_record_bytes is not None:
         mode_changes.append("capture-time Basenotes content record preserved")
 
     packet_limitations = list(ACCEPTED_RESIDUALS)
-    if projection_failure is not None:
+    if extraction_failure is not None:
         packet_limitations.append(
-            "content-mode projection failed in flight; all supplied source artifacts "
-            f"were preserved as fallback: {projection_failure}"
+            "content extraction failed in flight; all supplied source artifacts "
+            f"were preserved as fallback: {extraction_failure}"
         )
-    elif capture_artifact_mode == "content":
+    elif requested_retention_mode == "content":
         packet_limitations.append(
-            "content-mode packet: rendered DOM and visible text discarded after hashing; "
+            "content-retention packet: rendered DOM and visible text discarded after hashing; "
             "browser metadata and any trigger-bound screenshot retained"
-        )
-    elif capture_artifact_mode == "sample":
-        packet_limitations.append(
-            "sample packet: rendered DOM, visible text, and derived content record preserved "
-            "for parser-fit drift checks"
         )
 
     result = stage_and_write_packet(
@@ -383,7 +386,10 @@ def run_basenotes_mgt_capture(
         ],
         warnings=warnings,
         limitations=packet_limitations,
-        receipt_summary=f"{receipt_summary} Artifact mode: {capture_artifact_mode}.",
+        receipt_summary=(
+            f"{receipt_summary} Requested retention mode: {requested_retention_mode}; "
+            f"outcome: {retention_outcome}."
+        ),
         receipt_non_claims=list(NON_CLAIMS),
     )
     packet_dir = Path(result.output_directory)
@@ -413,15 +419,16 @@ def run_basenotes_mgt_capture(
                 else "manual_bundle"
             ),
             "capture_performed_this_run": capture_performed_this_run,
-            "capture_artifact_mode": capture_artifact_mode,
+            "requested_retention_mode": requested_retention_mode,
+            "retention_outcome": retention_outcome,
             "screenshot_trigger": screenshot_trigger,
         },
-        projection_status=projection_status,
+        extraction_status=extraction_status,
     )
     summary_path = output_root / SUMMARY_FILENAME
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return (
-        CONTENT_PROJECTION_FAILED_EXIT_CODE if projection_failure is not None else 0,
+        CONTENT_EXTRACTION_FAILED_EXIT_CODE if extraction_failure is not None else 0,
         str(summary_path),
     )
 
@@ -433,7 +440,7 @@ def build_basenotes_mgt_capture_summary(
     data_root_path: Path | None,
     packet_directories: Mapping[str, Path],
     capture_parameters: Mapping[str, object],
-    projection_status: str = "not_run; projection is a later lane over the raw packet evidence",
+    extraction_status: str = "not_configured",
 ) -> dict[str, object]:
     packet_roles: dict[str, dict[str, object]] = {}
     for slot, packet_dir in packet_directories.items():
@@ -465,7 +472,7 @@ def build_basenotes_mgt_capture_summary(
         "accepted_residuals": list(ACCEPTED_RESIDUALS),
         "non_claims": list(NON_CLAIMS),
         "capture_parameters": dict(capture_parameters),
-        "projection_status": projection_status,
+        "extraction_status": extraction_status,
     }
 
 
@@ -878,11 +885,11 @@ def _validate_basenotes_url(url: str) -> None:
         )
 
 
-def _validate_capture_mode(capture_artifact_mode: str) -> None:
-    if capture_artifact_mode not in CAPTURE_ARTIFACT_MODES:
+def _validate_retention_mode(requested_retention_mode: str) -> None:
+    if requested_retention_mode not in CAPTURE_RETENTION_MODES:
         raise ValueError(
-            f"capture_artifact_mode must be one of {CAPTURE_ARTIFACT_MODES}, "
-            f"got {capture_artifact_mode!r}"
+            f"requested_retention_mode must be one of {CAPTURE_RETENTION_MODES}, "
+            f"got {requested_retention_mode!r}"
         )
 
 
@@ -896,9 +903,9 @@ def _validate_screenshot_trigger(screenshot_trigger: str | None) -> None:
 
 def _assert_no_browser_secret_text(paths: Iterable[Path]) -> None:
     for path in paths:
-        sample = path.read_bytes().decode("utf-8", errors="ignore")
+        decoded = path.read_bytes().decode("utf-8", errors="ignore")
         for pattern in _BROWSER_SECRET_PATTERNS:
-            if pattern in sample:
+            if pattern in decoded:
                 raise ValueError(
                     f"browser-secret material is forbidden in supplied artifact "
                     f"{path.name}: {pattern}"
@@ -1004,12 +1011,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--decision-question", default=DEFAULT_DECISION_QUESTION)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
     parser.add_argument(
-        "--capture-mode",
-        choices=CAPTURE_ARTIFACT_MODES,
+        "--retention-mode",
+        choices=CAPTURE_RETENTION_MODES,
         default="content",
         help=(
-            "Artifact mode. Content is the pinned-route default; sample retains "
-            "projector inputs for parser-fit checks and raw preserves legacy inputs."
+            "Retention mode. Content is the pinned-route default; raw preserves "
+            "the source envelope."
         ),
     )
     parser.add_argument(
@@ -1073,7 +1080,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             decision_question=args.decision_question,
             max_artifact_bytes=args.max_artifact_bytes,
             cdp_endpoint=args.cdp_endpoint,
-            capture_artifact_mode=args.capture_mode,
+            requested_retention_mode=args.retention_mode,
             screenshot_trigger=args.screenshot_trigger,
         )
     except ValueError as exc:

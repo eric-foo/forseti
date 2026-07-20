@@ -1086,7 +1086,7 @@ def tracked_harness_python_files() -> tuple[Path, ...]:
     paths: list[Path] = []
     for line in result.stdout.splitlines():
         path = HARNESS_ROOT.parent / line
-        if path.suffix != ".py":
+        if path.suffix != ".py" or not path.is_file():
             continue
         relative_path = path.relative_to(HARNESS_ROOT).as_posix()
         if relative_path.startswith("tests/"):
