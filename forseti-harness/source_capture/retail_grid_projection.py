@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any, Literal, Mapping
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, urlunparse
 
 from pydantic import Field, field_validator, model_validator
 
@@ -14,13 +14,18 @@ from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 from source_capture.projection_shared import is_forbidden_field_token_match
 from source_capture.retail_pdp_projection import RetailProjectionRawAnchor, RetailProjectionRawRef
+from source_capture.sephora_brand_grid import (
+    SephoraBrandGridState,
+    SephoraBrandGridStateError,
+    load_sephora_brand_grid_state,
+)
 
 
 RETAIL_GRID_PROJECTION_METHOD = "retail_grid_mechanical_projection"
 RETAIL_GRID_PROJECTION_VERSION = "v0"
 RETAIL_GRID_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 
-RetailGridRetailer = Literal["walmart", "target"]
+RetailGridRetailer = Literal["walmart", "target", "sephora"]
 
 _FORBIDDEN_FIELD_TOKENS = frozenset(
     {
@@ -60,6 +65,7 @@ class RetailGridProjectionRow(StrictModel):
     retailer: RetailGridRetailer
     raw_ref: RetailProjectionRawRef
     raw_anchor: RetailProjectionRawAnchor
+    placements: list["RetailGridProjectionPlacement"] = Field(default_factory=list)
     source_visible_fields: dict[str, Any | None]
     residuals: list[str] = Field(default_factory=list)
 
@@ -87,6 +93,26 @@ class RetailGridProjectionRow(StrictModel):
         return value
 
 
+class RetailGridProjectionPlacement(StrictModel):
+    grid_position: int = Field(ge=1)
+    raw_anchor: RetailProjectionRawAnchor
+
+
+class RetailGridCompletenessReconciliation(StrictModel):
+    status: Literal["complete", "incomplete", "not_evaluated"]
+    page_declared_result_count: int | None = Field(default=None, ge=0)
+    extracted_unique_parent_count: int = Field(ge=0)
+    extracted_placement_count: int = Field(ge=0)
+    duplicate_placement_count: int = Field(ge=0)
+    subject_binding_confirmed: bool | None = None
+    termination: Literal[
+        "retailer_serialized_count_reconciled",
+        "unproven",
+        "not_evaluated",
+    ]
+    residuals: list[str] = Field(default_factory=list)
+
+
 class RetailGridProjectionLossLedger(StrictModel):
     preserved_evidence_rows: int = Field(ge=0)
     timing: Literal["separate_not_collapsed"] = "separate_not_collapsed"
@@ -105,6 +131,8 @@ class RetailGridProjectionPacket(StrictModel):
     ] = RETAIL_GRID_PROJECTION_CERTIFICATION
     packet_id: str
     rows: list[RetailGridProjectionRow] = Field(default_factory=list)
+    source_visible_grid_facts: dict[str, Any | None] = Field(default_factory=dict)
+    completeness: RetailGridCompletenessReconciliation
     loss_ledger: RetailGridProjectionLossLedger
     residuals: list[str] = Field(default_factory=list)
 
@@ -114,6 +142,22 @@ class RetailGridProjectionPacket(StrictModel):
             raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
         if self.loss_ledger.structure_preserved != bool(self.rows):
             raise ValueError("grid structure_preserved must be true exactly when product rows exist")
+        if self.completeness.extracted_unique_parent_count != len(self.rows):
+            raise ValueError(
+                "completeness.extracted_unique_parent_count must match rows length"
+            )
+        expected_placements = sum(max(1, len(row.placements)) for row in self.rows)
+        if self.completeness.extracted_placement_count != expected_placements:
+            raise ValueError(
+                "completeness.extracted_placement_count must match anchored placements"
+            )
+        if (
+            self.completeness.duplicate_placement_count
+            != expected_placements - len(self.rows)
+        ):
+            raise ValueError(
+                "completeness.duplicate_placement_count must match placement surplus"
+            )
         return self
 
 
@@ -132,6 +176,10 @@ def write_retail_grid_projection(
     projection = build_retail_grid_projection_from_packet_directory(
         packet_directory=packet_directory
     )
+    if output_path.exists():
+        raise RetailGridProjectionInputError(
+            f"projection output already exists; refusing overwrite: {output_path}"
+        )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
         f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
@@ -147,6 +195,7 @@ def build_retail_grid_projection(
     preserved_files = {item.file_id: item for item in packet.preserved_files}
     rows: list[RetailGridProjectionRow] = []
     residuals: list[str] = []
+    sephora_states: list[SephoraBrandGridState] = []
 
     for source_slice in packet.source_slices:
         raw_ref = RetailProjectionRawRef(
@@ -168,7 +217,7 @@ def build_retail_grid_projection(
                     raw_ref=raw_ref,
                     raw_anchor=raw_anchor,
                 )
-            else:
+            elif retailer == "target":
                 projected, file_residuals = _project_target_cards(
                     text,
                     packet=packet,
@@ -176,19 +225,276 @@ def build_retail_grid_projection(
                     raw_ref=raw_ref,
                     raw_anchor=raw_anchor,
                 )
+            else:
+                projected, file_residuals, sephora_state = _project_sephora_linkstore(
+                    text,
+                    packet=packet,
+                    source_slice=source_slice,
+                    raw_ref=raw_ref,
+                    raw_anchor=raw_anchor,
+                )
+                if sephora_state is not None:
+                    sephora_states.append(sephora_state)
             rows.extend(projected)
             residuals.extend(file_residuals)
             slice_row_count += len(projected)
         if slice_row_count == 0:
             residuals.append(f"{source_slice.slice_id}:{retailer}:grid_product_tiles_absent")
 
+    if retailer == "sephora":
+        rows, merge_residuals = _merge_sephora_parent_rows(rows)
+        residuals.extend(merge_residuals)
+        grid_facts, completeness = _sephora_grid_reconciliation(
+            packet=packet,
+            rows=rows,
+            states=sephora_states,
+            residuals=residuals,
+        )
+    else:
+        grid_facts = {}
+        completeness = RetailGridCompletenessReconciliation(
+            status="not_evaluated",
+            extracted_unique_parent_count=len(rows),
+            extracted_placement_count=len(rows),
+            duplicate_placement_count=0,
+            subject_binding_confirmed=None,
+            termination="not_evaluated",
+            residuals=[],
+        )
+
     return RetailGridProjectionPacket(
         packet_id=packet.packet_id,
         rows=rows,
+        source_visible_grid_facts=grid_facts,
+        completeness=completeness,
         loss_ledger=RetailGridProjectionLossLedger(
             preserved_evidence_rows=len(rows), structure_preserved=bool(rows)
         ),
         residuals=_dedupe(residuals),
+    )
+
+
+def _project_sephora_linkstore(
+    text: str,
+    *,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+    raw_ref: RetailProjectionRawRef,
+    raw_anchor: RetailProjectionRawAnchor,
+) -> tuple[
+    list[RetailGridProjectionRow], list[str], SephoraBrandGridState | None
+]:
+    try:
+        state = load_sephora_brand_grid_state(text)
+    except SephoraBrandGridStateError as exc:
+        raise RetailGridProjectionInputError(str(exc)) from exc
+    if state is None:
+        return [], [], None
+    rows: list[RetailGridProjectionRow] = []
+    residuals: list[str] = []
+    currency_code = (
+        state.explicit_currency_codes[0]
+        if len(state.explicit_currency_codes) == 1
+        else None
+    )
+    for index, product in enumerate(state.products):
+        product_id = _text(product.get("productId"))
+        product_url = _absolute_url(
+            "https://www.sephora.com", _text(product.get("targetUrl"))
+        )
+        name = _text(product.get("displayName"))
+        if product_id is None or product_url is None or name is None:
+            residuals.append(
+                f"{source_slice.slice_id}:sephora:grid_tile_identity_incomplete:{index}"
+            )
+            continue
+        current_sku = product.get("currentSku")
+        current_sku = current_sku if isinstance(current_sku, dict) else {}
+        pointer = f"/page/nthBrand/products/{index}"
+        placement_anchor = _with_anchor(raw_anchor, "json_pointer", pointer)
+        price_display = _text(current_sku.get("listPrice"))
+        fields = _base_fields(
+            packet=packet, source_slice=source_slice, retailer="sephora"
+        )
+        fields.update(
+            {
+                "source_product_id": product_id,
+                "product_url": product_url,
+                "canonical_product_url": _canonical_url(product_url),
+                "name": name,
+                "brand": _text(product.get("brandName")),
+                "grid_position": index + 1,
+                "category": None,
+                "breadcrumb": None,
+                "selected_sku_id": _text(current_sku.get("skuId")),
+                "selected_variant": None,
+                "price": _price_value(price_display),
+                "price_display": price_display,
+                "price_range": None,
+                "price_currency": currency_code,
+                "currency_symbol": (
+                    "$"
+                    if price_display is not None and price_display.startswith("$")
+                    else None
+                ),
+                "average_rating": _first_present(product.get("rating")),
+                "rating_count": _first_present(product.get("reviews")),
+                "review_count": _first_present(product.get("reviews")),
+                "badges": _sephora_badges(current_sku),
+                "availability_summary": None,
+                "pickup_eligible": _strict_bool(product.get("pickupEligible")),
+                "same_day_eligible": _strict_bool(product.get("sameDayEligible")),
+                "visible_variant_count": _integer(product.get("moreColors")),
+                "location_ids": [],
+                "seller": "Sephora",
+            }
+        )
+        row_residuals = _row_residuals(
+            retailer="sephora",
+            selected_variant=None,
+            location_observed=False,
+        )
+        row_residuals.extend(
+            [
+                "sephora_grid_product_category_not_observed",
+                "sephora_grid_availability_summary_not_observed",
+            ]
+        )
+        if currency_code is None:
+            row_residuals.append("sephora_grid_explicit_currency_code_not_observed")
+        rows.append(
+            RetailGridProjectionRow(
+                row_id=f"{source_slice.slice_id}:grid:sephora:{product_id}",
+                retailer="sephora",
+                raw_ref=raw_ref,
+                raw_anchor=placement_anchor,
+                placements=[
+                    RetailGridProjectionPlacement(
+                        grid_position=index + 1, raw_anchor=placement_anchor
+                    )
+                ],
+                source_visible_fields=fields,
+                residuals=_dedupe(row_residuals),
+            )
+        )
+    return rows, residuals, state
+
+
+def _merge_sephora_parent_rows(
+    rows: list[RetailGridProjectionRow],
+) -> tuple[list[RetailGridProjectionRow], list[str]]:
+    by_product_id: dict[str, RetailGridProjectionRow] = {}
+    residuals: list[str] = []
+    for row in rows:
+        product_id = str(row.source_visible_fields["source_product_id"])
+        existing = by_product_id.get(product_id)
+        if existing is None:
+            by_product_id[product_id] = row
+            continue
+        placements = [*existing.placements, *row.placements]
+        row_residuals = [
+            *existing.residuals,
+            f"sephora_grid_duplicate_parent_placement:{product_id}:{len(placements)}",
+        ]
+        if existing.source_visible_fields != row.source_visible_fields:
+            row_residuals.append(
+                f"sephora_grid_duplicate_parent_fields_differ:{product_id}"
+            )
+        by_product_id[product_id] = existing.model_copy(
+            update={
+                "placements": placements,
+                "residuals": _dedupe(row_residuals),
+            }
+        )
+        residuals.append(
+            f"sephora_grid_duplicate_parent_placement:{product_id}:{len(placements)}"
+        )
+    return list(by_product_id.values()), residuals
+
+
+def _sephora_grid_reconciliation(
+    *,
+    packet: SourceCapturePacket,
+    rows: list[RetailGridProjectionRow],
+    states: list[SephoraBrandGridState],
+    residuals: list[str],
+) -> tuple[dict[str, Any | None], RetailGridCompletenessReconciliation]:
+    reconciliation_residuals: list[str] = []
+    state = states[0] if len(states) == 1 else None
+    if not states:
+        reconciliation_residuals.append("sephora_grid_linkstore_state_absent")
+    elif len(states) != 1:
+        reconciliation_residuals.append(
+            f"sephora_grid_linkstore_state_count:{len(states)}"
+        )
+    declared_count = state.total_products if state is not None else None
+    placement_count = sum(max(1, len(row.placements)) for row in rows)
+    duplicate_count = placement_count - len(rows)
+    requested_slug = _requested_brand_slug(packet)
+    observed_brand = state.brand_name if state is not None else None
+    observed_target = state.target_url if state is not None else None
+    subject_confirmed = (
+        requested_slug is not None
+        and observed_brand is not None
+        and _slugify(observed_brand) == requested_slug
+        and observed_target is not None
+        and urlparse(observed_target).path.rstrip("/")
+        == f"/brand/{requested_slug}"
+    )
+    if not subject_confirmed:
+        reconciliation_residuals.append("sephora_grid_subject_binding_unconfirmed")
+    if declared_count is None:
+        reconciliation_residuals.append("sephora_grid_page_declared_count_absent")
+    elif declared_count != len(rows):
+        reconciliation_residuals.append(
+            "sephora_grid_declared_unique_parent_count_mismatch:"
+            f"declared={declared_count}:extracted={len(rows)}"
+        )
+    if state is not None and len(state.products) != placement_count:
+        reconciliation_residuals.append(
+            "sephora_grid_serialized_placement_count_mismatch:"
+            f"serialized={len(state.products)}:anchored={placement_count}"
+        )
+    if any("identity_incomplete" in item for item in residuals):
+        reconciliation_residuals.append(
+            "sephora_grid_incomplete_product_identity_present"
+        )
+    complete = not reconciliation_residuals
+    grid_facts: dict[str, Any | None] = {
+        "retailer": "sephora",
+        "page_kind": "brand_grid",
+        "brand_id": state.brand_id if state is not None else None,
+        "brand_name": observed_brand,
+        "short_name": state.short_name if state is not None else None,
+        "result_id": state.result_id if state is not None else None,
+        "target_url": observed_target,
+        "canonical_url": state.canonical_url if state is not None else None,
+        "page_size": state.page_size if state is not None else None,
+        "page_declared_result_count": declared_count,
+        "serialized_product_placement_count": (
+            len(state.products) if state is not None else None
+        ),
+        "requested_brand_slug": requested_slug,
+        "subject_binding_confirmed": subject_confirmed,
+        "explicit_currency_codes": (
+            list(state.explicit_currency_codes) if state is not None else []
+        ),
+        "currency_evidence_paths": (
+            list(state.currency_evidence_paths) if state is not None else []
+        ),
+        "delivery_location_pin": None,
+    }
+    return grid_facts, RetailGridCompletenessReconciliation(
+        status="complete" if complete else "incomplete",
+        page_declared_result_count=declared_count,
+        extracted_unique_parent_count=len(rows),
+        extracted_placement_count=placement_count,
+        duplicate_placement_count=duplicate_count,
+        subject_binding_confirmed=subject_confirmed,
+        termination=(
+            "retailer_serialized_count_reconciled" if complete else "unproven"
+        ),
+        residuals=_dedupe(reconciliation_residuals),
     )
 
 
@@ -474,8 +780,10 @@ def _detect_retailer(packet: SourceCapturePacket) -> RetailGridRetailer:
         return "walmart"
     if "target." in joined:
         return "target"
+    if "sephora." in joined:
+        return "sephora"
     raise RetailGridProjectionInputError(
-        "retail grid projection supports only source-visible Walmart or Target locators"
+        "retail grid projection supports only source-visible Walmart, Target, or Sephora locators"
     )
 
 
@@ -533,7 +841,7 @@ def _raw_anchor(preserved_file: PreservedFile) -> RetailProjectionRawAnchor:
 
 def _with_anchor(
     raw_anchor: RetailProjectionRawAnchor,
-    anchor_kind: Literal["json_pointer", "text_pattern"],
+    anchor_kind: Literal["html_selector", "json_pointer", "text_pattern"],
     anchor_value: str,
 ) -> RetailProjectionRawAnchor:
     return raw_anchor.model_copy(
@@ -558,6 +866,68 @@ def _fact_value(fact: object | None) -> str | None:
 
 def _absolute_url(base: str, value: str | None) -> str | None:
     return urljoin(base, html_module.unescape(value)) if value else None
+
+
+def _requested_brand_slug(packet: SourceCapturePacket) -> str | None:
+    locators = [_fact_value(packet.source_locator)] + [
+        _fact_value(source_slice.locator) for source_slice in packet.source_slices
+    ]
+    for locator in locators:
+        if locator is None:
+            continue
+        parts = [part for part in urlparse(locator).path.split("/") if part]
+        if len(parts) >= 2 and parts[0].lower() == "brand":
+            return parts[1].lower()
+    return None
+
+
+def _slugify(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def _canonical_url(value: str) -> str:
+    parsed = urlparse(value)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+
+
+def _price_value(value: str | None) -> str | None:
+    if value is None:
+        return None
+    return value.lstrip("$").strip() or None
+
+
+def _sephora_badges(current_sku: dict[str, Any]) -> list[str]:
+    badges = []
+    badge = _text(current_sku.get("badge"))
+    if badge is not None:
+        badges.append(badge)
+    for key in (
+        "isAppExclusive",
+        "isBI",
+        "isBest",
+        "isBestseller",
+        "isFirstAccess",
+        "isLimitedEdition",
+        "isLimitedTimeOffer",
+        "isNatural",
+        "isNew",
+        "isOnlineOnly",
+        "isOrganic",
+        "isSephoraExclusive",
+    ):
+        if current_sku.get(key) is True:
+            badges.append(key)
+    return badges
+
+
+def _integer(value: object) -> int | None:
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return None
+
+
+def _strict_bool(value: object) -> bool | None:
+    return value if isinstance(value, bool) else None
 
 
 def _first_regex(text: str, patterns: tuple[str, ...]) -> str | None:
@@ -595,9 +965,11 @@ __all__ = [
     "RETAIL_GRID_PROJECTION_CERTIFICATION",
     "RETAIL_GRID_PROJECTION_METHOD",
     "RETAIL_GRID_PROJECTION_VERSION",
+    "RetailGridCompletenessReconciliation",
     "RetailGridProjectionInputError",
     "RetailGridProjectionLossLedger",
     "RetailGridProjectionPacket",
+    "RetailGridProjectionPlacement",
     "RetailGridProjectionRow",
     "build_retail_grid_projection",
     "build_retail_grid_projection_from_packet_directory",

@@ -74,6 +74,30 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert nordstrom.derive_target_nordstrom_product_id_from_url is True
 
 
+def test_sephora_grid_profile_is_subject_agnostic_and_requires_grid_structure() -> None:
+    profile = get_retail_capture_profile("sephora_grid_aggregate")
+    requirements = profile.requirements_for_capture(
+        url="https://www.sephora.com/brand/summer-fridays?country_switch=us"
+    )
+
+    assert all("Lip Sleeping Mask" not in value for value in requirements.visible_text_contains)
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=(
+            "Summer Fridays 2 Results Quicklook Product One $24.00 "
+            "Quicklook Product Two $42.00 1-2 of 2 Results"
+        ),
+        rendered_dom=(
+            '<script id="linkStore" type="text/json">'
+            '{"page":{"nthBrand":{"products":[{"productId":"P1"}],'
+            '"totalProducts":2}}}</script>'
+        ),
+    )
+
+    assert result.passed is True
+
+
 def test_nordstrom_profile_binds_the_requested_product_id() -> None:
     profile = get_retail_capture_profile("nordstrom_pdp_aggregate")
     assert (

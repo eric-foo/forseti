@@ -144,9 +144,13 @@ Every onboarding packet requires:
   deleted or rewritten.
 
 Legacy sampled-raw packets may describe the same historical evidence as
-`parser-fit` or `projection equivalence`. Current Retail/PDP routes do not
-create a Projection packet: canonical content is retained at capture, in-packet
-summaries stay capture evidence, and Cleaning owns downstream adaptation.
+`parser-fit` or `projection equivalence`. Current Retail/PDP content routes do
+not create a Projection packet: canonical content is retained at capture,
+in-packet summaries stay capture evidence, and Cleaning owns downstream
+adaptation. The Sephora brand-grid route is a narrow exception: it writes a
+separate mechanical parent-product projection from the preserved raw packet,
+certified `view_only; not_cleaned; not_normalized; not_judgment_ready`. That
+grid projection is not PDP content, Cleaning, or Silver.
 
 Success means the declared capture bound is proven. It does not mean source
 completeness, demographic representativeness, ranking-algorithm validation,
@@ -169,12 +173,17 @@ Sephora's current proven mechanics are a source-specific benchmark:
 | Q&A | On onboarding, preserve one `Most Answers` response using `TotalAnswerCount:desc`, including returned answer bodies, within the commissioned limit. It is a bounded answer-rich window, not the complete Q&A corpus. |
 | Monitoring | Request `Most Recent` only. Stop as soon as the prior last-seen review ID is found; follow source offsets only when the first response does not contain it. Do not routinely refresh `Most Helpful` or Q&A. |
 | Companion role | The accepted low-footprint target has three response roles: Helpful plus statistics, Recent, and Q&A. Exact bodies remain in raw responses; the summary carries compact facts and raw-file references. The current `sephora_bazaarvoice_onboarding_summary_v3` runner predates this target and remains append-only historical evidence until a later implementation proves the new route. |
+| Brand grid | `sephora_grid_aggregate` preserves the rendered raw packet and mechanically projects one row per unique parent product from retailer-owned `linkStore.page.nthBrand.products`. Every serialized placement retains its source-order position and JSON-pointer anchor. Admission reconciles the page-declared result count, serialized placements, unique parent count, subject slug/target binding, and termination; mismatches remain explicit and exit nonzero. The grid market assertion is page-kind-specific and requires `Sephora.renderQueryParams.country=US`, the country-routing dialog absent, and an explicit selected `USD` currency code in retailer-owned grid state. A dollar glyph never supplies that code. |
 
 The Sephora profile is a quality bar for search depth and loss visibility. It
 is not a template that licenses invented fields on another retailer. The
 packet-backed evidence, unarchived observation boundary, storage measurements,
 and cross-retailer compatibility findings behind this target are recorded in
-`docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`.
+`docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`. The first
+Summer Fridays grid-route proof is recorded in
+`docs/research/forseti_sephora_brand_grid_capture_live_proof_v0.md`; its
+34-of-34 projection reconciled, but its US/USD assertion failed closed because
+the grid exposed no explicit currency code.
 
 ## Nordstrom reference profile
 

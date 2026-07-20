@@ -196,6 +196,95 @@ def test_target_duplicate_product_placements_receive_ordinal_anchors() -> None:
     ]
 
 
+def test_sephora_linkstore_projection_deduplicates_parent_products_and_reconciles_count() -> None:
+    products = [
+        _sephora_product(product_id="P455936", name="Lip Butter Balm"),
+        _sephora_product(product_id="P455936", name="Lip Butter Balm"),
+        _sephora_product(product_id="P429952", name="Jet Lag Mask"),
+    ]
+    body = _sephora_grid_html(
+        products=products,
+        total_products=2,
+        currency_code="USD",
+    )
+    packet = _packet(
+        retailer="sephora",
+        locator="https://www.sephora.com/brand/summer-fridays?country_switch=us",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert [row.source_visible_fields["source_product_id"] for row in projection.rows] == [
+        "P455936",
+        "P429952",
+    ]
+    first = projection.rows[0]
+    assert first.source_visible_fields["canonical_product_url"] == (
+        "https://www.sephora.com/product/lip-butter-balm-P455936"
+    )
+    assert first.source_visible_fields["price"] == "24.00"
+    assert first.source_visible_fields["price_currency"] == "USD"
+    assert first.source_visible_fields["average_rating"] == 4.29
+    assert first.source_visible_fields["review_count"] == 17635
+    assert first.source_visible_fields["visible_variant_count"] == 11
+    assert first.source_visible_fields["badges"] == ["isBestseller", "isNew"]
+    assert [placement.grid_position for placement in first.placements] == [1, 2]
+    assert [placement.raw_anchor.anchor_value for placement in first.placements] == [
+        "/page/nthBrand/products/0",
+        "/page/nthBrand/products/1",
+    ]
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.page_declared_result_count == 2
+    assert projection.completeness.extracted_unique_parent_count == 2
+    assert projection.completeness.extracted_placement_count == 3
+    assert projection.completeness.duplicate_placement_count == 1
+    assert projection.completeness.termination == (
+        "retailer_serialized_count_reconciled"
+    )
+    assert projection.source_visible_grid_facts["subject_binding_confirmed"] is True
+
+
+def test_sephora_projection_preserves_partial_tile_and_fails_count_reconciliation() -> None:
+    incomplete = _sephora_product(product_id="P000002", name="Missing URL")
+    incomplete["targetUrl"] = None
+    body = _sephora_grid_html(
+        products=[
+            _sephora_product(product_id="P000001", name="Complete Product"),
+            incomplete,
+        ],
+        total_products=2,
+        currency_code="USD",
+    )
+    packet = _packet(
+        retailer="sephora",
+        locator="https://www.sephora.com/brand/summer-fridays?country_switch=us",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert len(projection.rows) == 1
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert any(
+        "declared_unique_parent_count_mismatch" in residual
+        for residual in projection.completeness.residuals
+    )
+    assert "sephora_grid_incomplete_product_identity_present" in (
+        projection.completeness.residuals
+    )
+    assert any("grid_tile_identity_incomplete:1" in item for item in projection.residuals)
+
+
 def test_grid_projection_runner_writes_hash_verified_sidecar(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -221,6 +310,14 @@ def test_grid_projection_packet_directory_blocks_hash_mismatch(tmp_path: Path) -
     raw_path.write_bytes(raw_path.read_bytes() + b"tampered")
 
     with pytest.raises(RetailGridProjectionInputError, match="size mismatch"):
+        build_retail_grid_projection_from_packet_directory(packet_directory=packet_dir)
+
+
+def test_grid_projection_packet_directory_blocks_missing_raw_file(tmp_path: Path) -> None:
+    packet_dir = _write_walmart_packet(tmp_path)
+    (packet_dir / "raw/01_http_response_body.bin").unlink()
+
+    with pytest.raises(RetailGridProjectionInputError, match="not found"):
         build_retail_grid_projection_from_packet_directory(packet_directory=packet_dir)
 
 
@@ -360,6 +457,53 @@ def _target_html() -> str:
       </div>
     </div></body></html>
     """
+
+
+def _sephora_product(*, product_id: str, name: str) -> dict[str, object]:
+    return {
+        "brandName": "Summer Fridays",
+        "currentSku": {
+            "isBestseller": True,
+            "isNew": True,
+            "listPrice": "$24.00",
+            "skuId": f"SKU-{product_id}",
+        },
+        "displayName": name,
+        "moreColors": 11,
+        "pickupEligible": False,
+        "productId": product_id,
+        "rating": 4.29,
+        "reviews": 17635,
+        "sameDayEligible": False,
+        "targetUrl": f"/product/{name.lower().replace(' ', '-')}-{product_id}?skuId=1",
+    }
+
+
+def _sephora_grid_html(
+    *,
+    products: list[dict[str, object]],
+    total_products: int,
+    currency_code: str | None,
+) -> bytes:
+    nth_brand: dict[str, object] = {
+        "brandId": "6247",
+        "displayName": "Summer Fridays",
+        "shortName": "Summer Fridays",
+        "resultId": "test-result",
+        "targetUrl": "/brand/summer-fridays",
+        "seoCanonicalUrl": "/brand/summer-fridays",
+        "pageSize": 60,
+        "totalProducts": total_products,
+        "products": products,
+    }
+    if currency_code is not None:
+        nth_brand["currencyCode"] = currency_code
+    payload = {"page": {"nthBrand": nth_brand}}
+    return (
+        '<html><body><script id="linkStore" type="text/json">'
+        + json.dumps(payload, separators=(",", ":"))
+        + "</script></body></html>"
+    ).encode("utf-8")
 
 
 def _packet(
