@@ -86,6 +86,7 @@ owning source; this README does not restate them.
 | Packet schema | Source Capture Packet core-facts vs typed-attachment split and the schema-evolution boundary. | `core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`, `core/packet_schema/source_capture_core_payload_split_explainer_v0.md` |
 | Source Capture Toolbox (Armory) | Source-access method, shared capture tooling, anti-block ladder, packet core, source-quality support. | `core/source_capture_toolbox/README.md` |
 | Source families | Known capture-to-lake route homes (fragrance-native DB, retail/PDP, vendor pricing, social IG/TikTok/YouTube/Reddit, creator registry, cross-archive). | `core/source_families/README.md` |
+| Source taxonomy | Re-derivable multi-axis classification over incumbent source-family/source-surface strings, including unknown residual posture. | `core/source_taxonomy/source_classification_compatibility_contract_v0.md` |
 | Demand-durability indicators | Capture profiles for durability indicators (price time-series, availability/restock, search interest, review velocity) plus the shared capture-envelope durability delta they consume. | `core/demand_durability_indicators/demand_durability_indicator_capture_deconfliction_note_v0.md` |
 
 The blueprint (`core/operating_model/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`)

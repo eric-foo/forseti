@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Iterable
 
+from source_capture.source_classification import source_classification_view
+
 from data_lake.attachment_record_entry import (
     ATTACHMENT_RECORD_PHYSICALIZATION,
     ATTACHMENT_RECORD_SCHEMA_VERSION,
@@ -57,6 +59,12 @@ _SOURCE_SURFACE_COMPLETENESS = (
     "projection_coverage, source_family_completeness, or validation"
 )
 _SOURCE_SURFACE_FIELD_SEMANTICS = {
+    "source_classification": (
+        "re-derivable compatibility view over the exact legacy source_family/"
+        "source_surface pair; classified rows expose independent operator, venue-role, "
+        "evidence-shape, projection-mechanics, and access-overlay axes; unknown rows "
+        "carry an explicit residual and are never guessed"
+    ),
     "attachment_record_count": (
         "count of generated Attachment Record entries for packets in this observed "
         "source-surface bucket; not source-family completeness or payload validation"
@@ -390,6 +398,7 @@ def source_surface_catalog_rows(
         return {
             "source_family": family,
             "source_surface": surface,
+            "source_classification": source_classification_view(family, surface).to_dict(),
             "catalog_query_paths": {},
             "packet_rows": [],
             "attachment_record_query_rows": [],
@@ -412,6 +421,7 @@ def source_surface_catalog_rows(
     return {
         "source_family": family,
         "source_surface": surface,
+        "source_classification": surface_row["source_classification"],
         "catalog_query_paths": {
             "by_source_surface": surface_row.get("by_source_surface_path"),
             "attachment_records_by_source_surface": surface_row.get("attachment_records_path"),
@@ -470,6 +480,7 @@ def _coverage_census_surface_row(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "source_family": row.get("source_family"),
         "source_surface": row.get("source_surface"),
+        "source_classification": row.get("source_classification"),
         "packet_count": row.get("packet_count", 0),
         "attachment_record_count": row.get("attachment_record_count", 0),
         "facet_extractor": row.get("facet_extractor"),
@@ -749,6 +760,9 @@ def _source_surface_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any
         {
             "source_family": bucket["source_family"],
             "source_surface": bucket["source_surface"],
+            "source_classification": source_classification_view(
+                bucket["source_family"], bucket["source_surface"]
+            ).to_dict(),
             "by_source_surface_path": bucket["by_source_surface_path"],
             "attachment_records_path": _attachment_records_source_surface_path(
                 bucket["source_surface"]
