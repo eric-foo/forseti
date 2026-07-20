@@ -12,7 +12,11 @@ WHAT THIS DOES
     - the file is in the allowlisted claim-owning/record path families below;
     - every claim-bearing sentence/clause carries bounding ballast (negation /
       boundary vocabulary such as "not", "pending", "excluded", "ceiling",
-      "fixture", "claim tier");
+      "fixture", "claim tier") -- evaluated on the line itself, and, for
+      sentences wrapped across lines (YAML folded scalars, prose wrapping),
+      re-evaluated with the ADJACENT added lines joined in; non-contiguous
+      added lines never lend each other ballast, and sentence boundaries
+      still split clauses in the joined text;
     - the line carries the deliberate, review-visible ack token
       `full-gt-claim-ack`.
 
@@ -63,7 +67,8 @@ CLAIM_RE = re.compile(r"full[\s_-]*god[\s_-]*tier|\bfull[\s_-]*gt\b", re.IGNOREC
 CLAUSE_SPLIT_RE = re.compile(r"[.;:!?]")
 BALLAST_RE = re.compile(
     r"\b(?:not|never|no|pending|proposed|excluded|exclusion|exclusions|ceiling|"
-    r"fixture|fixtures|residual|residuals|historical|superseded|toward|towards|"
+    r"fixture|fixtures|residual|residuals|historical|superseded|supersedes?|"
+    r"refuse[sd]?|reject(?:s|ed)?|decline[sd]?|toward|towards|"
     r"distance|before|until|bounded)\b"
     r"|claim[\s_-]*tier"
     r"|" + re.escape(ACK_TOKEN),
@@ -124,6 +129,43 @@ def classify_added_line(relposix: str, line: str) -> str | None:
         "to a claim-owning record, or mark a deliberate exception with "
         f"`{ACK_TOKEN}`. Rule authority: {RULE_AUTHORITY}."
     )
+
+
+def _joined_with_adjacent(pairs: list[tuple[int, str]], index: int) -> str:
+    """The line at ``index`` joined with its ADJACENT added neighbors.
+
+    Wrapped sentences (YAML folded scalars, prose wrapping) put a claim and its
+    ballast on different physical lines; joining recovers the sentence. Only
+    lineno-contiguous added lines join -- separate hunks stay separate.
+    """
+    lineno, line = pairs[index]
+    parts = [line]
+    if index > 0 and pairs[index - 1][0] == lineno - 1:
+        parts.insert(0, pairs[index - 1][1])
+    if index + 1 < len(pairs) and pairs[index + 1][0] == lineno + 1:
+        parts.append(pairs[index + 1][1])
+    return " ".join(parts)
+
+
+def classify_added_pairs(
+    relposix: str, pairs: list[tuple[int, str]]
+) -> list[tuple[int, str]]:
+    """Findings for a file's added (lineno, line) pairs, wrap-tolerant.
+
+    A line flagged in isolation is cleared when joining its adjacent added
+    lines yields fully ballasted claim clauses (sentence boundaries still
+    split; see _joined_with_adjacent).
+    """
+    findings: list[tuple[int, str]] = []
+    for index, (lineno, line) in enumerate(pairs):
+        message = classify_added_line(relposix, line)
+        if message is None:
+            continue
+        context = _joined_with_adjacent(pairs, index)
+        if context != line and has_bounding_ballast(context):
+            continue
+        findings.append((lineno, message))
+    return findings
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
@@ -190,10 +232,8 @@ def scan_changed(root: Path, base_ref: str) -> list[str] | None:
         return None
     findings: list[str] = []
     for relposix, lines in per_file.items():
-        for lineno, line in lines:
-            message = classify_added_line(relposix, line)
-            if message:
-                findings.append(f"{relposix}:{lineno}: {message}")
+        for lineno, message in classify_added_pairs(relposix, lines):
+            findings.append(f"{relposix}:{lineno}: {message}")
     return findings
 
 
@@ -210,10 +250,9 @@ def scan_whole_files(root: Path, paths: list[str]) -> list[str]:
             text = candidate.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        for lineno, line in enumerate(text.splitlines(), start=1):
-            message = classify_added_line(relposix, line)
-            if message:
-                findings.append(f"{relposix}:{lineno}: {message}")
+        pairs = list(enumerate(text.splitlines(), start=1))
+        for lineno, message in classify_added_pairs(relposix, pairs):
+            findings.append(f"{relposix}:{lineno}: {message}")
     return findings
 
 
@@ -263,8 +302,9 @@ def run_hook() -> int:
         return 0
     findings = [
         f"{relposix}:{lineno}: {message}"
-        for lineno, line in _uncommitted_added_lines(root, relposix)
-        if (message := classify_added_line(relposix, line))
+        for lineno, message in classify_added_pairs(
+            relposix, _uncommitted_added_lines(root, relposix)
+        )
     ]
     if findings:
         msg = (
@@ -330,6 +370,34 @@ def selftest() -> int:
     check("unrelated line is clean",
           classify_added_line("docs/decisions/x.md", "The catalog rebuilds byte-identically."),
           None)
+
+    # Wrap-tolerant classification: ballast on an ADJACENT added line clears a
+    # wrapped sentence; sentence boundaries and non-contiguous lines do not.
+    check("refuses ballast on the same line is clean",
+          classify_added_line("docs/decisions/x.md",
+                              "This declaration refuses a full God Tier claim."), None)
+    check("supersedes ballast on the same line is clean",
+          classify_added_line("docs/decisions/x.md",
+                              "A later owner decision declares full God Tier or supersedes this."),
+          None)
+    check("wrapped ballast on the previous added line is clean",
+          classify_added_pairs("docs/decisions/x.md",
+                               [(9, "with named accepted residuals; this declaration does not"),
+                                (10, "claim full God Tier in any form.")]), [])
+    check("wrapped ballast on the next added line is clean",
+          classify_added_pairs("docs/decisions/x.md",
+                               [(3, "The bronze surface reaches full God Tier only"),
+                                (4, "pending the owner decision.")]), [])
+    check("adjacent separate-sentence ballast still fires",
+          len(classify_added_pairs("docs/decisions/x.md",
+                                   [(1, "This is not about production."),
+                                    (2, "Bronze is full God Tier.")])), 1)
+    check("non-adjacent added lines do not lend ballast",
+          len(classify_added_pairs("docs/decisions/x.md",
+                                   [(1, "This line is not related."),
+                                    (5, "Bronze is full God Tier.")])), 1)
+    check("plain unballasted claim still fires through the pair scan",
+          len(classify_added_pairs("docs/decisions/x.md", [(1, plain)])), 1)
 
     # FIND-02 red-green: an added content line beginning `++` renders as
     # `+++...` inside a hunk and must be parsed as CONTENT with correct
