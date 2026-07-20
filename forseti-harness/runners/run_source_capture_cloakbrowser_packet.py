@@ -590,8 +590,16 @@ def run_source_capture_cloakbrowser_packet(
                     "rendered content extractor must return a JSON object, "
                     f"got {type(record).__name__}"
                 )
+            serialization_options: dict[str, object] = {
+                "sort_keys": True,
+                "ensure_ascii": False,
+            }
+            if content_extraction.json_indent is None:
+                serialization_options["separators"] = (",", ":")
+            else:
+                serialization_options["indent"] = content_extraction.json_indent
             content_record_bytes = (
-                json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+                json.dumps(record, **serialization_options) + "\n"
             ).encode("utf-8")
             extraction_status = "succeeded"
         except Exception as exc:
@@ -926,6 +934,7 @@ def _sephora_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec
     return RenderedContentExtractionSpec(
         requested_retention_mode=mode,
         extractor_version=SEPHORA_PDP_PARSER_VERSION,
+        json_indent=None,
         extractor=lambda rendered_dom, visible_text, final_url: (
             build_sephora_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,

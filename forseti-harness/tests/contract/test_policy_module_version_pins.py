@@ -185,7 +185,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # post-review correction restores the pre-flip raw fallback for
         # apollo_requested_sku while keeping content URL-SKU-bound, so v1 raw
         # semantics and raw/content Silver equivalence remain intact.
-        "7a8dadef499406fbe156ac29460f533f580e8e523fe6fae85cefd0b74f18aa48",
+        # Output-shaping Sephora v3 stores duplicated product and interaction
+        # fields once, proves exact source-state reconstruction, and preserves
+        # unknown product-root fields automatically.
+        "2a8b2de286fdd3abf27c994aebaef6de05dde3736eb884eb8faa015c6ba10a05",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
