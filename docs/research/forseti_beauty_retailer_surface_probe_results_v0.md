@@ -1969,8 +1969,8 @@ durable packet-backed evidence.
 | Retailer | Preserved evidence | Conclusion and next action |
 | --- | --- | --- |
 | Sephora | Packet `01KXZYFSBDJRDMPSJ0G40QW437` and current runner | Reviews and questions are proven end to end; implement and packet-prove the three-role target. |
-| Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. | Bazaarvoice review data is proven; first extension candidate after one parent-family mapping probe. |
-| Target | Packet `01KXR823YS3V5M9E01QXP71ETC` contains deployment `targetcom/main_site/production/en_US`, Bazaarvoice markers, and review identities, but no archived API response or family binding. | Preserve one bounded response fixture and bind retailer product ID to Bazaarvoice family ID before enabling. |
+| Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. A later compatibility lane mapped item `2150828728` to product `3Y2AMXE2TTC1` and review-family ID `282PMOVUGY9E`, but found the current page retrieving reviews through Walmart's first-party persisted `ReviewsById` GraphQL query via `cegateway`; no public Bazaarvoice client/deployment configuration was exposed. | Historical Bazaarvoice-shaped review data is proven, but a current direct public Bazaarvoice route is not. Close Walmart as a direct Bazaarvoice extension candidate; any future implementation must be a separately proven Walmart-native adapter. |
+| Target | Parent packet `01KXR823YS3V5M9E01QXP71ETC`, bounded Helpful fixture `01KY0C5A0416M58K87S8NYAVDJ`, and three-role live proof `01KY0E4TCHFW9Q3DHNXD1N14TG`. The public deployment chain resolves `targetcom/main_site/production/en_US`, API `5.5`, display code `19988-en_us`, and TCIN `80184023` to Bazaarvoice ProductId `80184023`. | Direct public Bazaarvoice is proven and implemented as the Target-specific three-role companion. Preserve Target's missing incentive semantics and demographics as losses; do not substitute the separately observed Target-owned CDUI response or label it Bazaarvoice. |
 | Kohl's | Packet `01KXXHBKF2GPK4M96SAV1VQKM3` contains `api.bazaarvoice.com` and deployment `kohls/redesign/production/en_US`, but no archived review response. | Use the admitted Kohl's browser route for one bounded response fixture and product-family binding before enabling. |
 | Nordstrom | Packet `01KXR9BNWBP8R8XKPKFJHZJTPN` contains Bazaarvoice-hosted media URLs but no API host, deployment, passkey, or review response. | Media provenance is insufficient; do not enable without recon. |
 | Beauty Pie | Its archived homepage loads `apps.bazaarvoice.com` but contains no product response or identifier mapping. | Historical integration is suspected; do not enable without product-level recon. |
@@ -1988,10 +1988,86 @@ demographic fields, passive Recent availability, and Q&A behavior. Sephora
 parameters must not be copied merely because another retailer loads
 Bazaarvoice.
 
+The Walmart follow-on observation above was returned by the compatibility lane,
+not admitted as a new packet-backed API fixture. That lane also observed
+source-visible `Most Recent` and `Most Helpful` sorts, locale `en_US`, only a
+`Verified purchases only` filter, no demographic or non-incentivized filter,
+and disabled Q&A. No runtime change or response fixture was produced. These
+facts close the attempted direct-Bazaarvoice extension without claiming that
+Walmart never uses Bazaarvoice behind its first-party surface.
+
+The Target compatibility lane used the same extraction target but did not copy
+Sephora-only parameters. Target's page-declared deployment led through its
+public `bv.js` and `bvapi.js` configuration to the public Bazaarvoice API. The
+live proof preserves one 100-row `Most Helpful` response with review statistics,
+one 100-row `Most Recent` response with anchor review `428236455`, and all 34
+returned questions with all 40 declared included answers. It binds Target TCIN
+`80184023` to Bazaarvoice ProductId `80184023`.
+
+Target returned total and filtered rating distributions, recommended and
+not-recommended counts, first and latest review times, photo/video counts,
+helpfulness totals, and secondary-rating averages. It returned no age, skin
+type, or skin concern distribution in the bounded Helpful response and exposed
+no source-proven non-incentivized filter or row-level incentive marker. The
+bounded Recent response did expose `verifiedPurchaser`, syndicated rows, media
+references, and source-client identity. Target's separately embedded
+`cdui-orchestrations.target.com` review response is recorded as Target-owned
+page state, not Bazaarvoice evidence.
+
 Monitoring retention remains unresolved. No route may claim storage
 deduplication until a later implementation chooses and proves preservation of
 every unchanged response, content-addressed payload reuse, or a smaller
 heartbeat tied to a retained response.
+
+### Target compatibility observations and superseding proof (2026-07-21)
+
+The Target compatibility lanes ran the bounded method order against the
+Naturium Vitamin C Complex Serum PDP (`A-80184023`, TCIN `80184023`), the same
+subject as preserved parent packet `01KXR823YS3V5M9E01QXP71ETC`.
+
+An initial rendered-page observation saw no live `api.bazaarvoice.com` request,
+no loaded `bv.js`, and no `window.BV`. It correctly identified the page's
+embedded `bazaarvoice.apiKey` as a Target-owned `redsky.target.com` key and
+recorded the separate Target-owned CDUI/redsky page-state route. That absence
+from one page-load trace was not proof that Target exposed no public
+Bazaarvoice configuration.
+
+The superseding compatibility proof followed the public deployment named by
+the preserved page:
+`apps.bazaarvoice.com/deployments/targetcom/main_site/production/en_US/bv.js`.
+That public resource names the legacy
+`display.ugc.bazaarvoice.com/static/targetcom/main_site/en_US/bvapi.js`
+configuration. The configuration resolves API version `5.5`, display code
+`19988-en_us`, and a public client passkey used only in memory. Direct bounded
+Bazaarvoice calls then bound TCIN `80184023` to Bazaarvoice ProductId
+`80184023`. Packet `01KY0E4TCHFW9Q3DHNXD1N14TG` preserves the exact successful
+responses: 100 source-ordered `Most Helpful` reviews with statistics, 100
+`Most Recent` reviews with anchor `428236455`, and all 34 questions with all 40
+declared included answers. The token-free manifest persists no passkey.
+
+**Retailer-native route: separate and partly CAPTCHA-gated.** Target's embedded
+CDUI page state independently exposes review aggregates and eight thin
+most-recent rows. A direct GET to Target's own `redsky_aggregations`
+`product_reviews` route returned HTTP `403` with a CAPTCHA challenge. That
+Target-owned endpoint is not required for the proven direct Bazaarvoice
+companion and must never be labelled Bazaarvoice. No CAPTCHA solving or
+anti-block bypass was attempted.
+
+The parent rendered packet preserves the clean product-content dimension:
+identity, title, brand, category breadcrumbs, claims, full INCI ingredients,
+warnings, media references, and price/offer state. Its embedded Target-owned
+page state additionally showed review aggregates, attribute sub-ratings, and
+eight recent review bodies. These observations supplement the Bazaarvoice
+responses; they do not change their provider identity.
+
+**Missing against the Sephora extraction target.** The bounded Target
+Bazaarvoice responses exposed no age, skin-type, or skin-concern distributions
+and no source-proven non-incentivized filter or row-level incentive marker.
+Target did return `verifiedPurchaser`, syndication, media, helpfulness, review
+statistics, recommendation totals, Q&A bodies, and exact raw API bytes. The
+live proof therefore admits a truthful Target-specific Bazaarvoice adapter with
+an explicit loss ledger rather than claiming full Sephora parity.
+
 ## Non-claims
 
 These observations do not establish demand, velocity, revenue, sell-through,

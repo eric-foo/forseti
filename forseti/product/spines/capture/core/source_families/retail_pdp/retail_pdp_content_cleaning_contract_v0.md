@@ -65,9 +65,18 @@ Compactness never authorizes dropping valuable rows.
 - `sephora_pdp_aggregate`
 - `luckyscent_pdp_aggregate`
 - `nordstrom_pdp_aggregate`
+- `ulta_pdp_aggregate`
 
 Every other Retail/PDP or grid profile remains raw until separately proven.
 Direct-HTTP grids remain raw.
+
+Ulta content retains the requested product/SKU, target offer, aggregate rating
+and count, every target Product JSON-LD review body present in the rendered
+capture, and the declared compact product modules. The full Apollo/loader
+envelope is not canonical content: its supplied-input hash remains in extraction
+metadata, while recommendation products and unrelated loader state are not
+retained. Historical Ulta raw packets remain readable through the legacy
+decoder.
 
 Nordstrom review onboarding captures the complete Most Recent 30-day cohort.
 If fewer than 12 reviews fall in that window, it continues in the same source
@@ -75,6 +84,22 @@ order to 30 total rows or proven exhaustion, while retaining the separately
 visible most-helpful positive/critical pair. Each `Load 6 more reviews`
 activation is one six-row append; a 30-row cap inside the recent window is
 explicitly truncated.
+
+Nordstrom content v2 retains the exact target-bound
+`window.__INITIAL_CONFIG__.productDisplay` product subtree and selected-option
+state, not the unrelated shopper/configuration envelope. It also flattens every
+source SKU, salability/OOS signal, quantity, price, media reference, claim,
+taxonomy field, and source order for direct use. Rendered review rows retain
+their complete microdata inventory plus source card id/order, helpful count,
+verified-purchase badge, reposted/syndication label, source-visible reviewed
+size/color, and media references.
+The record carries an explicit omission/not-exposed ledger for the initial
+main-list view, incentive filtering, reviewer demographics, absent review
+fields, AI sentiment, product Q&A, merchandising flags, and unfetched media
+bytes. A newly exposed incentive, recommendation, unhelpful count, unsupported
+reviewed variant, demographic declaration, review-tag, AI-sentiment, or Q&A
+surface without a lossless parser fails extraction so the runner retains raw
+inputs and exits nonzero.
 
 ## Non-claims
 

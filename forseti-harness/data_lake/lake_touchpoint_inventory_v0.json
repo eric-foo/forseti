@@ -630,6 +630,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "mechanism": "before acquisition, a hash-verified retail_pdp parent must bind the Target URL TCIN to the ProductDetailWebDatasourceCore TCIN and the admitted public Bazaarvoice deployment; every returned question and review row plus the included Bazaarvoice product must carry that same TCIN",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_target_onboarding.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "creator_handle and creator_profile_url are checked for request self-consistency and grid-enrichment items with a mismatched authorUniqueId are dropped, but the admitted cadence rows are attributed to the requested creator without a served-content author check",
           "status": "unbound"
         },
@@ -722,7 +731,8 @@
       {
         "a2_fork_impact": "manifest_shape",
         "defined_in": [
-          "source_capture/sephora_onboarding_capture.py"
+          "source_capture/sephora_onboarding_capture.py",
+          "source_capture/target_onboarding_capture.py"
         ],
         "function": "_write_packet"
       },
@@ -732,6 +742,13 @@
           "source_capture/sephora_onboarding_capture.py"
         ],
         "function": "capture_sephora_onboarding_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/target_onboarding_capture.py"
+        ],
+        "function": "capture_target_onboarding_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",

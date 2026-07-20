@@ -11,12 +11,13 @@ from types import MappingProxyType
 from typing import Iterable, Literal
 
 
-SOURCE_CLASSIFICATION_SCHEMA_VERSION = "source_classification_v0"
+SOURCE_CLASSIFICATION_SCHEMA_VERSION = "source_classification_v1"
 
 
 class EvidenceShape(StrEnum):
     THREAD = "thread"
     REVIEW = "review"
+    REFERENCE_RECORD = "reference_record"
     SOCIAL_VIDEO = "social_video"
     SOCIAL_PROFILE = "social_profile"
     COMMUNITY_LISTING = "community_listing"
@@ -59,6 +60,7 @@ _PROJECTION_MECHANICS_BY_SHAPE = MappingProxyType(
     {
         EvidenceShape.THREAD: "threaded_chain",
         EvidenceShape.REVIEW: "rated_text_recency",
+        EvidenceShape.REFERENCE_RECORD: "entity_attribute_snapshot",
         EvidenceShape.SOCIAL_VIDEO: "channel_public_output",
         EvidenceShape.SOCIAL_PROFILE: "channel_public_output",
         EvidenceShape.COMMUNITY_LISTING: "threaded_chain",
@@ -184,7 +186,7 @@ SOURCE_CLASSIFICATION_DEFINITIONS: tuple[SourceClassificationDefinition, ...] = 
             operator=operator,
             roles=(VenueRole.COMMUNITY,),
             subtype=VenueSubtype.SPECIALIST,
-            shapes=(EvidenceShape.REVIEW,),
+            shapes=(EvidenceShape.REFERENCE_RECORD, EvidenceShape.REVIEW),
             overlay=overlay,
             source=_FRAGRANCE_SOURCE,
         )
@@ -326,6 +328,14 @@ SOURCE_CLASSIFICATION_DEFINITIONS: tuple[SourceClassificationDefinition, ...] = 
         roles=(VenueRole.RETAILER,),
         shapes=(EvidenceShape.REVIEW,),
         source="forseti-harness/source_capture/sephora_onboarding_capture.py",
+    ),
+    _definition(
+        "retail_pdp",
+        "target_bazaarvoice_onboarding",
+        operator="target",
+        roles=(VenueRole.RETAILER,),
+        shapes=(EvidenceShape.REVIEW,),
+        source="forseti-harness/source_capture/target_onboarding_capture.py",
     ),
     *(
         _definition(

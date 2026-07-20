@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -224,24 +225,26 @@ def _write_creator_map(root: DataLakeRoot, *, creator: str, packet_id: str) -> N
     manifest_path = table_path.parent.parent / "manifests" / "by_creator.json"
     table_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    table_path.write_text(
-        json.dumps(
-            {
-                "creators": {
-                    "tiktok": {
-                        "unspecified": {creator: {"packets": {packet_id: {}}}}
-                    }
-                }
+    table = {
+        "view": "by_creator",
+        "view_schema_version": 2,
+        "creators": {
+            "tiktok": {
+                "unspecified": {creator: {"packets": {packet_id: {}}}}
             }
-        ),
-        encoding="utf-8",
-    )
+        },
+    }
+    table_bytes = json.dumps(table).encode("utf-8")
+    table_path.write_bytes(table_bytes)
     manifest_path.write_text(
         json.dumps(
             {
+                "view": "by_creator",
+                "view_schema_version": 2,
                 "generated_at": "2000-01-01T00:00:00Z",
                 "source_high_watermark": "test-watermark",
                 "stale_if": "newer availability exists",
+                "view_sha256": hashlib.sha256(table_bytes).hexdigest(),
             }
         ),
         encoding="utf-8",

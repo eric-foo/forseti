@@ -95,6 +95,7 @@ not changes to source precedence.
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
 | Creator ideal audience or commercial creator-fit method | `forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md` |
+| Pack a judgment view or author a packing adapter | `forseti/product/spines/packing/README.md`, then `forseti/product/spines/packing/authority/packing_spine_v0_serialization_contract_v0.md` |
 | Cross-spine research-engine grouping | `docs/workflows/forseti_research_engine_map_v0.md` |
 | Repo-map architecture and T1/T2/T3 boundary | `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` |
 | Rename compatibility boundary | `docs/decisions/forseti_compatibility_migration_boundary_v0.md` |
@@ -188,6 +189,7 @@ transitional registry/doctrine area, not a durable home for this contract.
 | `forseti/product/spines/scanning/` | Discovery-side scanning; open its `README.md` first. |
 | `forseti/product/spines/capture/` | Data Capture contracts, source families, packet schema, and source-access ownership; use the Capture submap. |
 | `forseti/product/spines/data_lake/` | Cross-layer storage contracts and logical lake mechanics. |
+| `forseti/product/spines/packing/` | Model-facing serialization contracts: packing boundary, invariants, envelope versioning, adapter contract, capability declarations. |
 | `forseti/product/spines/cleaning/` | Cleaning-layer contracts and transforms. |
 | `forseti/product/spines/ecr/` | ECR integrity and retained Signal Content contracts; use the ECR submap. |
 | `forseti/product/spines/judgment/` | Judgment claim ladder, conductor, demand read, and toolkit gaps; use the Judgment consolidation map. |
@@ -218,6 +220,7 @@ authorized.
 | `forseti-harness/signal_content/` | Retained compatibility implementation for the deprecated/dormant Signal Content Record. |
 | `forseti-harness/evidence_binding/` | JSG-01-scoped evidence binding and composition. |
 | `forseti-harness/judgment/` | Judgment-stage prompt construction, response validation, and bounded profile assembly. |
+| `forseti-harness/packing/` | Packing Spine model-facing serialization: payload-agnostic columnar packing core plus per-consumer adapters; encoding only, never selection. |
 | `forseti-harness/schemas/` | Shared typed models. |
 | `forseti-harness/scoring/` | Deterministic scoring and calibration helpers. |
 | `forseti-harness/runners/` | CLI entry points; enumerate only on demand with `git ls-files forseti-harness/runners/*.py`. |

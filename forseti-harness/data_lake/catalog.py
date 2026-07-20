@@ -62,8 +62,9 @@ _SOURCE_SURFACE_FIELD_SEMANTICS = {
     "source_classification": (
         "re-derivable compatibility view over the exact legacy source_family/"
         "source_surface pair; classified rows expose independent operator, venue-role, "
-        "evidence-shape, projection-mechanics, and access-overlay axes; unknown rows "
-        "carry an explicit residual and are never guessed"
+        "evidence-shape, compatibility-named projection-mechanics, and access-overlay "
+        "axes; mechanics are classification labels and do not create a Capture "
+        "Projection runtime; unknown rows carry an explicit residual and are never guessed"
     ),
     "attachment_record_count": (
         "count of generated Attachment Record entries for packets in this observed "

@@ -5,10 +5,12 @@ from pathlib import Path
 
 import pytest
 
+from runners.run_content_qualification import _ROUTES
 from source_capture.content_qualification import (
     ContentQualificationError,
     qualify_rendered_content,
 )
+from source_capture.retail_pdp_projection import ULTA_PDP_PARSER_VERSION
 
 
 def _extract(dom: bytes, text: bytes, source_url: str) -> dict:
@@ -128,3 +130,9 @@ def test_scratch_boundary_is_fail_closed(tmp_path: Path) -> None:
             source_url="https://example.test/p",
             extractor=_extract,
         )
+
+
+def test_ulta_route_uses_its_family_owned_parser() -> None:
+    parser_version, _extractor = _ROUTES["ulta"]
+
+    assert parser_version == ULTA_PDP_PARSER_VERSION

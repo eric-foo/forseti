@@ -6,12 +6,20 @@ from typing import Any
 
 import pytest
 
+from cleaning.retail_pdp import build_retail_pdp_cleaning_input
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.adapters.ulta_us_market import (
     UltaUSMarketPlugin,
     confirm_ulta_us_market,
 )
+from source_capture.retail_capture_profiles import get_retail_capture_profile
+from source_capture.retail_pdp_content import (
+    ULTA_PDP_CONTENT_RECORD_KIND,
+    build_ulta_pdp_aggregate_content_record,
+)
+from source_capture.projection_shared import read_packet_directory
+from source_capture.retail_pdp_silver import build_retail_pdp_silver_records
 
 
 _URL = (
@@ -32,15 +40,18 @@ def _dom(
     product_sku: str = _SKU,
     offer_currency: str = "USD",
     offer_price: str = "12.00",
+    apollo_modules: list[dict[str, Any]] | None = None,
     extra: str = "",
 ) -> str:
     product = {
         "@context": "https://schema.org/",
         "@type": "Product",
         "name": "Night Shift Overnight Lip Mask - Watermelon",
+        "productID": "pimprod2046225",
         "sku": product_sku,
         "offers": {
             "@type": "Offer",
+            "availability": "https://schema.org/InStock",
             "price": offer_price,
             "priceCurrency": offer_currency,
             "url": _URL,
@@ -51,6 +62,27 @@ def _dom(
             "reviewCount": 671,
         },
     }
+    apollo = {
+        "ROOT_QUERY": {
+            'Page({"moduleParams":{"sku":"2645443"}})': {
+                "content": {
+                    "modules": [
+                        {
+                            "skuId": "2645443",
+                            "productId": "pimprod2046225",
+                            "productName": "Night Shift Overnight Lip Mask",
+                            "listPrice": "$12.00",
+                            "availability": "InStock",
+                            "rating": 4.3,
+                            "reviewCount": 671,
+                        }
+                    ]
+                    if apollo_modules is None
+                    else apollo_modules
+                }
+            }
+        }
+    }
     return (
         f'<html lang="{html_lang}"><head>'
         f"<script>window.__APP_LOCALE__ = '{app_locale}';"
@@ -59,7 +91,9 @@ def _dom(
         "</script>"
         '<script type="application/ld+json">'
         f"{json.dumps(product)}"
-        "</script></head><body>"
+        "</script>"
+        f"<script>window.__APOLLO_STATE__={json.dumps(apollo)}</script>"
+        "</head><body>"
         '<square-placement data-page-type="product" '
         f'data-consumer-locale="{placement_locale}" '
         f'data-currency="{placement_currency}" data-amount="{placement_amount}">'
@@ -87,7 +121,7 @@ def _fake_capture(
             rendered_dom=dom,
             visible_text=(
                 "ULTA Beauty Collection Night Shift Overnight Lip Mask "
-                "Watermelon $12.00 671 Reviews"
+                "Watermelon $12.00 671 Reviews In stock and ready to ship"
             ),
             screenshot_png=b"\x89PNG\r\n\x1a\n",
             metadata={
@@ -218,6 +252,281 @@ def test_writer_builds_ulta_plugin_and_accepts_confirmed_packet(
     assert metadata["product_sku_requested"] == _SKU
 
 
+def test_ulta_aggregate_profile_defaults_to_lean_content(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer,
+        "fetch_cloakbrowser_snapshot_capture",
+        _fake_capture(),
+    )
+    kwargs = _run_kwargs(tmp_path / "content")
+    kwargs["retail_capture_profile"] = get_retail_capture_profile(
+        "ulta_pdp_aggregate"
+    )
+
+    exit_code, output = cloak_writer.run_source_capture_cloakbrowser_packet(
+        **kwargs
+    )
+
+    assert exit_code == 0
+    assert output == str(tmp_path / "content")
+    manifest = json.loads((tmp_path / "content" / "manifest.json").read_text())
+    names = {
+        Path(item["relative_packet_path"]).name
+        for item in manifest["preserved_files"]
+    }
+    assert any(name.endswith("content_record.json") for name in names)
+    assert not any(name.endswith("rendered_dom.html") for name in names)
+    assert not any(name.endswith("visible_text.txt") for name in names)
+    record_path = next(
+        tmp_path / "content" / item["relative_packet_path"]
+        for item in manifest["preserved_files"]
+        if item["relative_packet_path"].endswith("content_record.json")
+    )
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    assert {
+        row["row_kind"] for row in record["rows"]
+    } >= {
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+    }
+    assert all(
+        row["row_kind"] != "retail_embedded_structured_json"
+        for row in record["rows"]
+    )
+
+
+def test_ulta_raw_and_content_offer_review_and_silver_semantics_are_equal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer,
+        "fetch_cloakbrowser_snapshot_capture",
+        _fake_capture(),
+    )
+    profile = get_retail_capture_profile("ulta_pdp_aggregate")
+    content_kwargs = _run_kwargs(tmp_path / "content")
+    content_kwargs["retail_capture_profile"] = profile
+    raw_kwargs = _run_kwargs(tmp_path / "raw")
+    raw_kwargs["retail_capture_profile"] = profile
+    raw_kwargs["content_extraction"] = cloak_writer._ulta_content_extraction_spec(
+        "raw"
+    )
+
+    assert cloak_writer.run_source_capture_cloakbrowser_packet(
+        **content_kwargs
+    )[0] == 0
+    assert cloak_writer.run_source_capture_cloakbrowser_packet(**raw_kwargs)[0] == 0
+
+    def load(packet_path: Path):
+        packet, bodies = read_packet_directory(packet_path)
+        cleaning = build_retail_pdp_cleaning_input(
+            packet=packet,
+            file_bytes_by_file_id=bodies,
+        )
+        rows = {
+            row.row_kind: row.source_visible_fields
+            for row in cleaning.rows
+            if row.row_kind
+            in {"retail_variant_offer", "retail_review_substrate"}
+        }
+        silver = build_retail_pdp_silver_records(
+            packet=packet,
+            cleaning_input=cleaning,
+        )
+        observations = {
+            record["payload_kind"]: record["payload"]["observation"][
+                "source_visible_fields"
+            ]
+            for record in silver
+            if record["payload_kind"]
+            in {"RetailOfferObservation", "RetailReviewAggregateObservation"}
+        }
+        return cleaning.legacy_input, rows, observations
+
+    content = load(tmp_path / "content")
+    raw = load(tmp_path / "raw")
+
+    assert content[0] is False
+    assert raw[0] is True
+    assert content[1] == raw[1]
+    assert content[2] == raw[2]
+
+
+def test_ulta_content_is_deterministic_and_excludes_loader_baggage() -> None:
+    reviews = [
+        {
+            "@type": "Review",
+            "name": f"Review {index}",
+            "reviewBody": f"Target review body {index}.",
+            "datePublished": f"2026-07-0{index}",
+            "author": {"@type": "Person", "name": f"Reviewer {index}"},
+            "locationCreated": {
+                "@type": "AdministrativeArea",
+                "name": "New York, NY",
+            },
+            "reviewRating": {"@type": "Rating", "ratingValue": index + 3},
+        }
+        for index in (1, 2)
+    ]
+    target_product = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "Night Shift Overnight Lip Mask - Watermelon",
+        "description": "Target product description.",
+        "brand": "ULTA Beauty Collection",
+        "productID": "pimprod2046225",
+        "sku": _SKU,
+        "scent": "Watermelon",
+        "offers": {
+            "@type": "Offer",
+            "availability": "https://schema.org/InStock",
+            "price": "12.00",
+            "priceCurrency": "USD",
+            "url": _URL,
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": 4.3,
+            "reviewCount": 671,
+        },
+        "review": reviews,
+    }
+    loader_padding = "not-valuable-loader-state-" * 5_000
+    rendered_dom = _dom(
+        extra=(
+            '<script type="application/ld+json">'
+            + json.dumps(target_product)
+            + "</script><script>window.loaderPadding="
+            + json.dumps(loader_padding)
+            + "</script>"
+            + "<section>Free standard shipping over $35.</section>"
+            + "<section>Earn points with Rewards.</section>"
+            + "<section>Make it a routine</section>"
+        )
+    ).encode()
+    visible_text = (
+        "Night Shift Overnight Lip Mask Watermelon $12.00 671 Reviews "
+        "In stock and ready to ship"
+    ).encode()
+
+    first = build_ulta_pdp_aggregate_content_record(
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+        source_url=_URL,
+    )
+    second = build_ulta_pdp_aggregate_content_record(
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+        source_url=_URL,
+    )
+
+    assert first == second
+    assert first["record_kind"] == ULTA_PDP_CONTENT_RECORD_KIND
+    encoded = json.dumps(first, sort_keys=True)
+    assert loader_padding not in encoded
+    assert "raw_json_text" not in encoded
+    assert "__APOLLO_STATE__" not in encoded
+    review = next(
+        row["source_visible_fields"]
+        for row in first["rows"]
+        if row["row_kind"] == "retail_review_substrate"
+    )
+    assert review["review_count"] == "671"
+    assert review["displayed_review_body_count"] == 2
+    assert [item["body"] for item in review["reviews"]] == [
+        "Target review body 1.",
+        "Target review body 2.",
+    ]
+    assert len(encoded.encode()) < len(rendered_dom)
+
+
+def test_ulta_content_ignores_unrelated_recommendation_offer_and_reviews() -> None:
+    recommendation = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "Recommendation Product",
+        "productID": "pimprod9999999",
+        "sku": "9999999",
+        "offers": {
+            "@type": "Offer",
+            "availability": "https://schema.org/InStock",
+            "price": "99.00",
+            "priceCurrency": "USD",
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": 1.0,
+            "reviewCount": 9999,
+        },
+        "review": [
+            {
+                "@type": "Review",
+                "name": "Unrelated",
+                "reviewBody": "This review belongs to a recommendation.",
+                "reviewRating": {"@type": "Rating", "ratingValue": 1},
+            }
+        ],
+    }
+    rendered_dom = _dom(
+        apollo_modules=[
+            {
+                "skuId": "9999999",
+                "productId": "pimprod9999999",
+                "productName": "Recommendation Product",
+                "listPrice": "$99.00",
+                "availability": "InStock",
+                "rating": 1.0,
+                "reviewCount": 9999,
+            },
+            {
+                "skuId": _SKU,
+                "productId": "pimprod2046225",
+                "productName": "Night Shift Overnight Lip Mask",
+                "listPrice": "$12.00",
+                "availability": "InStock",
+                "rating": 4.3,
+                "reviewCount": 671,
+            },
+        ],
+        extra=(
+            '<script type="application/ld+json">'
+            + json.dumps(recommendation)
+            + "</script>"
+        ),
+    ).encode()
+
+    record = build_ulta_pdp_aggregate_content_record(
+        rendered_dom=rendered_dom,
+        visible_text=(
+            b"Night Shift Overnight Lip Mask Watermelon $12.00 671 Reviews "
+            b"In stock and ready to ship"
+        ),
+        source_url=_URL,
+    )
+
+    offer = next(
+        row["source_visible_fields"]
+        for row in record["rows"]
+        if row["row_kind"] == "retail_variant_offer"
+    )
+    review = next(
+        row["source_visible_fields"]
+        for row in record["rows"]
+        if row["row_kind"] == "retail_review_substrate"
+    )
+    assert offer["sku"] == _SKU
+    assert offer["price"] == "12.00"
+    assert review["review_count"] == "671"
+    assert review["rating"] == "4.3"
+    assert "Recommendation Product" not in json.dumps(record)
+    assert "This review belongs to a recommendation." not in json.dumps(record)
+
+
 def test_writer_preserves_typed_packet_and_exits_nonzero_when_pin_fails(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -228,8 +537,12 @@ def test_writer_preserves_typed_packet_and_exits_nonzero_when_pin_fails(
         _fake_capture(dom="<html><body>www.ulta.com $12 USD</body></html>"),
     )
 
+    kwargs = _run_kwargs(tmp_path / "failed")
+    kwargs["retail_capture_profile"] = get_retail_capture_profile(
+        "ulta_pdp_aggregate"
+    )
     exit_code, message = cloak_writer.run_source_capture_cloakbrowser_packet(
-        **_run_kwargs(tmp_path / "failed")
+        **kwargs
     )
 
     assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
@@ -240,6 +553,12 @@ def test_writer_preserves_typed_packet_and_exits_nonzero_when_pin_fails(
         "MUST NOT be admitted as Ulta US/USD storefront evidence" in limitation
         for limitation in manifest["limitations"]
     )
+    names = {
+        Path(item["relative_packet_path"]).name
+        for item in manifest["preserved_files"]
+    }
+    assert any(name.endswith("rendered_dom.html") for name in names)
+    assert any(name.endswith("visible_text.txt") for name in names)
 
 
 def test_writer_rejects_final_host_drift_even_with_true_confirmation(

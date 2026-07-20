@@ -17,6 +17,7 @@ from data_lake.root import (
     LEGACY_EPOCH_MARKER_FILENAME,
     LEGACY_ROOT_MARKER_FILENAME,
     ROOT_MARKER_FILENAME,
+    _atomic_replace,
     raw_shard,
 )
 from data_lake.silver_record import (
@@ -302,6 +303,12 @@ class ClassificationCacheSession:
     def path(self) -> Path:
         return self.root._within(*CACHE_PARTS)
 
+    def catalog_fingerprint(self) -> str:
+        """Return the once-per-session Bronze catalog dependency fingerprint."""
+        if self._catalog_fingerprint is None:
+            self._catalog_fingerprint = _catalog_fingerprint(self.root)
+        return self._catalog_fingerprint
+
     def _load(self) -> None:
         try:
             payload = json.loads(self.path.read_text(encoding="utf-8"))
@@ -331,7 +338,7 @@ class ClassificationCacheSession:
             for ref in record.get("raw_refs", [])
         )
         if attachment_backed and self._catalog_fingerprint is None:
-            self._catalog_fingerprint = _catalog_fingerprint(self.root)
+            self._catalog_fingerprint = self.catalog_fingerprint()
         referenced_bytes_fingerprint, creator_metric = _reference_fingerprint(
             self.root,
             record,
@@ -407,10 +414,18 @@ class ClassificationCacheSession:
         if key is None:
             self.uncacheable += 1
             return None, None
+        return key, self.lookup_cached_key(key)
+
+    def lookup_cached_key(self, key: str) -> SilverSourceAuthority | None:
+        """Return a verdict for a previously computed dependency key.
+
+        The caller may reuse a key only while the append-only source body and
+        every global dependency represented by that key are unchanged.
+        """
         cached = self.verdicts.get(key)
         if not isinstance(cached, dict):
             self.misses += 1
-            return key, None
+            return None
         if (
             cached.get("status") not in _VALID_AUTHORITY_STATUSES
             or not isinstance(cached.get("reason_code"), str)
@@ -421,7 +436,7 @@ class ClassificationCacheSession:
             )
         ):
             self.misses += 1
-            return key, None
+            return None
         try:
             verdict = SilverSourceAuthority(
                 status=cached["status"],
@@ -430,9 +445,9 @@ class ClassificationCacheSession:
             )
         except (KeyError, TypeError, ValueError):
             self.misses += 1
-            return key, None
+            return None
         self.hits += 1
-        return key, verdict
+        return verdict
 
     def remember(self, key: str | None, verdict: SilverSourceAuthority) -> None:
         if key is None:
@@ -451,7 +466,7 @@ class ClassificationCacheSession:
         }
         target = self.path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(canonical_record_bytes(payload))
+        _atomic_replace(target, canonical_record_bytes(payload))
 
     def report(self) -> dict[str, Any]:
         return {

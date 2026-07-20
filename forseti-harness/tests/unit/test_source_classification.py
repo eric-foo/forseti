@@ -20,7 +20,7 @@ from source_capture.source_classification import (
 def test_inventory_is_closed_source_cited_and_deterministic() -> None:
     inventory = implemented_source_pair_inventory()
 
-    assert len(inventory) == 42
+    assert len(inventory) == 43
     assert inventory == tuple(sorted(inventory))
     assert len(set(inventory)) == len(inventory)
     assert all(
@@ -99,6 +99,29 @@ def test_review_is_an_evidence_shape_not_a_universal_venue() -> None:
     assert view.venue_roles == ()
     assert view.operator_identity is None
     assert view.residuals == ("operator_and_venue_role_require_actual_host_facts",)
+
+
+def test_fragrance_native_product_pages_carry_reference_record_and_review() -> None:
+    surfaces = (
+        "basenotes_product_page_user_cleared_persistent_chrome_current_window",
+        "fragrantica_product_page_cloakbrowser_deep_scroll_current_window",
+        "fragrantica_product_page_cloakbrowser_initial_viewport",
+        "fragrantica_product_page_direct_http",
+        "parfumo_product_page_chrome_extension_targeted_rendered_session",
+        "parfumo_product_page_direct_http",
+    )
+
+    for surface in surfaces:
+        view = classify_source_pair("fragrance_native_database", surface)
+
+        assert view.schema_version == "source_classification_v1"
+        assert view.venue_roles == ("community",)
+        assert view.venue_subtype == "specialist"
+        assert view.evidence_shapes == ("reference_record", "review")
+        assert view.projection_mechanics == (
+            "entity_attribute_snapshot",
+            "rated_text_recency",
+        )
 
 
 def test_tiktok_shop_and_retailer_coexist_without_role_or_shape_flattening() -> None:
