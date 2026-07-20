@@ -379,6 +379,101 @@ def test_projection_failure_commits_every_raw_response_as_fallback(tmp_path: Pat
     )
 
 
+def test_recent_window_stops_on_cumulative_source_exhaustion(tmp_path: Path) -> None:
+    """When every non-incentivized review is inside the 30-day window and the
+    corpus spans more than one page, acquisition must stop on cumulative source
+    exhaustion. Detecting exhaustion only per page would paginate past the end,
+    capture an empty page, and misreport a complete capture as a projection
+    failure."""
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+
+    recent_pages = {
+        0: [
+            _review_row("r1", "2026-07-19T00:00:00Z", "Recent one"),
+            _review_row("r2", "2026-07-15T00:00:00Z", "Recent two"),
+        ],
+        2: [
+            _review_row("r3", "2026-07-05T00:00:00Z", "Recent three"),
+        ],
+    }
+    age_totals = {
+        "reviews_non_incentivized_age_20s.json": 1,
+        "reviews_non_incentivized_age_30s.json": 1,
+        "reviews_non_incentivized_age_40s.json": 1,
+        "reviews_non_incentivized_age_50s_plus.json": 0,
+    }
+
+    def fetch(
+        spec: ApiRequestSpec,
+        config: BazaarvoiceReadConfig,
+        _timeout_seconds: float,
+        _max_bytes: int,
+    ) -> ApiResponse:
+        if spec.config_kind == "questions":
+            document: dict = _question_document()
+        elif spec.artifact_name == "reviews_non_incentivized_most_helpful_offset_000.json":
+            document = {
+                "HasErrors": False,
+                "TotalResults": 3,
+                "Results": [_review_row("h1", "2026-07-18T00:00:00Z", "Helpful one")],
+            }
+        elif spec.artifact_name.startswith("reviews_non_incentivized_most_recent_offset_"):
+            offset = int(dict(spec.parameters)["Offset"])
+            document = {
+                "HasErrors": False,
+                "TotalResults": 3,
+                "Results": recent_pages[offset],
+            }
+        elif spec.artifact_name == "reviews_non_incentivized_total.json":
+            document = {
+                "HasErrors": False,
+                "TotalResults": 3,
+                "Results": [{"Id": "r1", "ProductId": "P420652"}],
+            }
+        else:
+            document = {
+                "HasErrors": False,
+                "TotalResults": age_totals[spec.artifact_name],
+                "Results": [{"Id": "r1", "ProductId": "P420652"}],
+            }
+        body = json.dumps(document, separators=(",", ":")).encode("utf-8")
+        return ApiResponse(
+            status=200,
+            reason="OK",
+            body=body,
+            content_type="application/json",
+            captured_at="2026-07-20T00:00:00Z",
+        )
+
+    exit_code, result = capture_sephora_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        review_page_limit=2,
+        fetcher=fetch,
+    )
+
+    assert exit_code == 0
+    loaded = root.load_raw_packet(result["packet_id"])
+    summary = _artifact_json(loaded, "sephora_onboarding_summary.json")
+    recent = summary["reviews"]["most_recent_30d"]
+    assert recent["captured_page_count"] == 2
+    assert recent["captured_page_rows"] == 3
+    assert recent["within_window_rows"] == 3
+    assert recent["source_exhausted"] is True
+    assert recent["coverage_status"] == "source_exhausted"
+    assert summary["parser_fit"]["recent_window_coverage_proven"] is True
+
+    names = {
+        Path(item["original_path"]).name
+        for item in loaded.manifest["preserved_files"]
+    }
+    assert "reviews_non_incentivized_most_recent_offset_00000.json" in names
+    assert "reviews_non_incentivized_most_recent_offset_00002.json" in names
+    # No past-the-end empty page is ever requested once the corpus is exhausted.
+    assert "reviews_non_incentivized_most_recent_offset_00003.json" not in names
+
+
 def test_parent_product_identity_mismatch_fails_before_fetch(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path, link_store_product_id="P999999")

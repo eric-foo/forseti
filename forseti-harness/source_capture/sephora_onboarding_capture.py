@@ -218,10 +218,13 @@ def capture_sephora_onboarding_packet(
                 # closed and emit the raw fallback rather than guessing how to
                 # continue an unparseable or identity-ambiguous page.
                 break
-            if page["exhausted"] or page["oldest_submission_time"] <= recent_cutoff:
-                break
             next_offset = recent_offset + page["row_count"]
-            if page["row_count"] == 0 or next_offset <= recent_offset:
+            if (
+                page["oldest_submission_time"] <= recent_cutoff
+                or next_offset >= page["total_results"]
+                or page["row_count"] == 0
+                or next_offset <= recent_offset
+            ):
                 break
             recent_offset = next_offset
 
