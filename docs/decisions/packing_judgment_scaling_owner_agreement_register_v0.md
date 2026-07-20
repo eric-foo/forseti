@@ -13,6 +13,8 @@ use_when:
   - Checking whether a Packing or judgment-scaling direction was owner-agreed, merely proposed, or still open.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/packing/README.md
+  - forseti/product/spines/packing/authority/packing_spine_v0_serialization_contract_v0.md
   - docs/research/packing-phase/README.md
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md
   - docs/research/judgment-spine/evidence_condensation_hierarchy_deferred_direction_v0.md
@@ -112,6 +114,13 @@ stale_if:
   write it down somewhere that when we want to improve / go to GT etc it would
   be there present." The design record lives at
   `docs/research/judgment-spine/evidence_condensation_hierarchy_deferred_direction_v0.md`.
+- **Packing Spine commissioned; columnar v0 declared MGT with residuals
+  (2026-07-21).** Owner: "i will 100% be using it often, let's plan out a
+  spine for it too" + "is this form of packing MGT / GT then?", ratified with
+  "proceed". Authority now lives at
+  `forseti/product/spines/packing/authority/packing_spine_v0_serialization_contract_v0.md`
+  (boundary, invariants, versioning, adapter contract) and the tier record at
+  `forseti/product/spines/packing/authority/packing_spine_v0_columnar_mgt_declaration_v0.md`.
 
 ## Uncontested (presented earlier, not disputed; owner asked these be recorded as presumed agreement)
 
@@ -132,7 +141,15 @@ stale_if:
   `forseti-harness/tests/unit/test_packing_columnar_v0.py`: -34.0% (scaled
   TikTok fixture, 15 evidence rows), -9.5% (Instagram fixture), and +8.3%
   (larger) on a tiny one-row-per-table fixture where the column headers
-  dominate. The ~54% figure was not reproduced and must not be cited.
+  dominate. Live-lake reproduction the same day (read-only in-memory rebuild
+  of the judged `tiktok:@fragranceknowledge` 8-video bundle: 294 transcript
+  cues + 139 comments, 430 aliases after dedupe): flat v3 view 98,805 B vs
+  packed 49,840 B = **-49.6%**; whole prompt ~116 KB -> ~66 KB. Caveat: the
+  rebuilt bundle hash did not match the receipt (question text and grid refs
+  were not reconstructed), but transcript/comment row counts match the
+  receipt exactly, so the size figures stand. The real-bundle regime lands
+  near the original ~54% estimate; savings scale with rows per table, which
+  is why small fixtures under-measured it.
 - Mini-round outputs reuse the existing claim shape (statement + representative
   and full support aliases, compiled and validated) — no second citation
   system; the condensation act is a descriptive Judgment round, owned by

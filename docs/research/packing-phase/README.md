@@ -16,6 +16,13 @@ open_next:
   - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
+> **Boundary authority moved (2026-07-21).** The Packing Spine now owns the
+> packing boundary, invariants, versioning, and adapter contract:
+> `forseti/product/spines/packing/authority/packing_spine_v0_serialization_contract_v0.md`
+> (front door `forseti/product/spines/packing/README.md`). This README remains
+> the phase-process research record; where the two differ, the spine contract
+> governs.
+
 The Packing Phase turns cleaned, source-backed evidence material into judgment-ready case artifacts.
 
 It sits between Cleaning and Judgment Harness work:
