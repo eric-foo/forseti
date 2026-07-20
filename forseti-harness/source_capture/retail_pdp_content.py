@@ -22,23 +22,30 @@ from source_capture.retail_pdp_projection import (
     SEPHORA_PDP_CONTENT_PROFILE,
     SEPHORA_PDP_CONTENT_RECORD_KIND,
     SEPHORA_PDP_PARSER_VERSION,
+    ULTA_PDP_CONTENT_PROFILE,
+    ULTA_PDP_CONTENT_RECORD_KIND,
+    ULTA_PDP_PARSER_VERSION,
     LuckyscentPdpAggregateContentRecord,
     NordstromPdpAggregateContentRecord,
     SephoraPdpAggregateContentRecord,
+    UltaPdpAggregateContentRecord,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
+    build_ulta_pdp_aggregate_content_record,
 )
 
 _RECORD_MODEL_BY_KIND = {
     SEPHORA_PDP_CONTENT_RECORD_KIND: SephoraPdpAggregateContentRecord,
     LUCKYSCENT_PDP_CONTENT_RECORD_KIND: LuckyscentPdpAggregateContentRecord,
     NORDSTROM_PDP_CONTENT_RECORD_KIND: NordstromPdpAggregateContentRecord,
+    ULTA_PDP_CONTENT_RECORD_KIND: UltaPdpAggregateContentRecord,
 }
 _EXPECTED_VERSION_BY_PROFILE = {
     SEPHORA_PDP_CONTENT_PROFILE: SEPHORA_PDP_PARSER_VERSION,
     LUCKYSCENT_PDP_CONTENT_PROFILE: LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_CONTENT_PROFILE: NORDSTROM_PDP_PARSER_VERSION,
+    ULTA_PDP_CONTENT_PROFILE: ULTA_PDP_PARSER_VERSION,
 }
 
 
@@ -152,8 +159,11 @@ __all__ = [
     "NORDSTROM_PDP_PARSER_VERSION",
     "SEPHORA_PDP_CONTENT_PROFILE",
     "SEPHORA_PDP_PARSER_VERSION",
+    "ULTA_PDP_CONTENT_PROFILE",
+    "ULTA_PDP_PARSER_VERSION",
     "build_luckyscent_pdp_aggregate_content_record",
     "build_nordstrom_pdp_aggregate_content_record",
     "build_sephora_pdp_aggregate_content_record",
+    "build_ulta_pdp_aggregate_content_record",
     "load_retail_pdp_content_record",
 ]
