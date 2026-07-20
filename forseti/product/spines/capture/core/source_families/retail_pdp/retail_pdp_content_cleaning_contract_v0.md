@@ -76,6 +76,20 @@ visible most-helpful positive/critical pair. Each `Load 6 more reviews`
 activation is one six-row append; a 30-row cap inside the recent window is
 explicitly truncated.
 
+Nordstrom content v2 retains the exact target-bound
+`window.__INITIAL_CONFIG__.productDisplay` product subtree and selected-option
+state, not the unrelated shopper/configuration envelope. It also flattens every
+source SKU, salability/OOS signal, quantity, price, media reference, claim,
+taxonomy field, and source order for direct use. Rendered review rows retain
+their complete microdata inventory plus source card id/order, helpful count,
+verified-purchase badge, reposted/syndication label, and media references.
+The record carries an explicit omission/not-exposed ledger for the initial
+main-list view, incentive filtering, reviewer demographics, absent review
+fields, AI sentiment, product Q&A, merchandising flags, and unfetched media
+bytes. A newly exposed incentive, demographic, AI-sentiment, or Q&A surface
+without a lossless parser fails extraction so the runner retains raw inputs and
+exits nonzero.
+
 ## Non-claims
 
 This contract is not live capture authority, corpus completeness, price truth,

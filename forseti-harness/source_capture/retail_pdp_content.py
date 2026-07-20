@@ -80,8 +80,10 @@ def load_retail_pdp_content_record(
             current_metadata[0],
             "content_extraction_metadata.json",
         )
-        if metadata.get("extractor_version") != expected_version:
+        if metadata.get("extractor_version") != record.parser_version:
             raise ValueError("Retail/PDP extractor version does not match content record")
+        if record.parser_version != expected_version and profile != NORDSTROM_PDP_CONTENT_PROFILE:
+            raise ValueError("Retail/PDP content record does not use the current extractor")
         if metadata.get("extraction_status") != "succeeded":
             raise ValueError("Retail/PDP content extraction did not succeed")
         if metadata.get("retention_outcome") != "content":
