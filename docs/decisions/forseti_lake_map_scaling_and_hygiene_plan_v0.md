@@ -12,7 +12,7 @@ scope: >
 use_when:
   - Deciding whether a lake-map performance or retrievability complaint fires a recorded trigger.
   - Scoping the incremental classification cache, view sharding, SQL query lens, retention, or identity follow-ups.
-  - Checking why the lake map is flat JSON rather than SQL today.
+  - Checking why JSON remains the routing/proof surface while SQL serves disposable evidence search.
 stale_if:
   - A later accepted decision supersedes a stage, trigger, or deferral recorded here.
   - The consumption seam contract changes the built-view set or authority boundary.
@@ -322,24 +322,61 @@ its generations, and its SQLite notebook need no backup.
   files is an NTFS liability). Per-shard canonical JSON keeps the existing
   byte-compare prove-rebuildability unchanged.
 
-### Stage 3 — SQL query lens, as a disposable projection only
+### Stage 3 — SQL evidence catalogue, as a disposable projection only
 
-- **Trigger:** an ad-hoc cross-entity or cross-time question the flat views
-  cannot answer efficiently (the consumption seam contract's staged
-  query-lens trigger). Entity point-lookups do NOT fire it — they are
-  sub-second on the views.
-- **Ratified shape:** SQLite/DuckDB built FROM the byte-proven JSON views and
-  regenerated, never migrated; never a proof target, never authority.
-  prove-rebuildability keeps byte-comparing the JSON (DB file bytes are not
-  reproducible; a DB-only artifact would need a sorted-row content-hash
-  comparison, a doctrine amendment deliberately not taken while the JSON
-  remains canonical).
-- **Semantic invariants any schema must carry:** per-row authority status +
-  reason from the shared classifier; absence-never-zero structurally (posture
-  and coverage columns; no `NOT NULL DEFAULT 0` counts; no `COALESCE(x,0)`);
-  generation provenance columns; per-platform discriminated identity keys
-  (namespace, identity kind, native id); exact observed strings with any
-  normalization as a separate labeled column.
+The trigger has fired: bodies, dates, creators, products, vendors, and surfaces
+must be searchable together without reopening the lake for every question.
+The selected v0 engine is SQLite because one guarded local updater and many
+readers match today's single-machine operation. This is not a choice to put the
+lake itself in SQL.
+
+- The immutable lake remains authority. The canonical JSON map remains the
+  routing and cross-vendor proof surface. The SQL catalogue is a disposable
+  reader copy under `indexes/derived_retrieval/`; deleting and rebuilding it
+  loses no evidence.
+- Capture runners never write SQL. The sanctioned index updater holds the
+  existing single-writer inventory lock and absorbs completed Silver records
+  plus verified TikTok and YouTube raw packets. An ordinary refresh appends
+  only unseen write-once sources; an altered or disappeared source fails loud.
+- Full rebuild is reserved for extractor/schema changes, corruption recovery,
+  explicit rebuildability proof, or operator choice. Daily onboarding/cadence
+  and the hourly tail use incremental refresh so capture can continue.
+- The durable schema contains no commenter/reviewer identifier. Exact-actor
+  questions re-open the original verified source temporarily, stay within one
+  admitted platform and a maximum 90-day window, write an audit receipt before
+  returning results, and never persist a result cache. Audit receipts retain
+  for 365 days; 1,000 returned rows marks an elevated query.
+- The database uses WAL, full synchronous durability, strict tables,
+  parameterized filters, FTS5 body search, source hashes, a logical row digest,
+  and `quick_check`. Rebuildability proof compares sorted logical content, not
+  SQLite file bytes.
+- The normal location is the lake's index tree. A separate local SSD may be
+  selected with `FORSETI_DERIVED_RETRIEVAL_SQL_ROOT`; never place the SQLite
+  file on a network share or let two machines write it.
+
+Operator commands:
+
+```powershell
+# Incremental refresh (also performed by the daily seam cadence)
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --target derived_retrieval --use-stored-product-mention-policy
+
+# Health/freshness and ordinary evidence search
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --sql-status
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --sql-query --sql-body-query 'phrase' --sql-platform tiktok
+```
+
+The live automation is a separate Windows task named
+`Forseti Hourly Lake Retrieval Tail`, scheduled at minute 30 every hour with
+`StartWhenAvailable` and `IgnoreNew`. It uses the pinned runtime checkout and
+writes an operator log. A nonzero result is visible failure; the next run can
+catch up after a transient writer collision.
+
+The accepted MGT residual is one local writer. Upgrade to a server database
+(PostgreSQL first candidate) only when more than one machine must write the
+catalogue, lock collisions repeatedly miss freshness targets, local query or
+refresh latency breaches the measured service target, or the catalogue no
+longer fits comfortably on the local SSD. Row count alone—even millions or low
+billions—is not the migration trigger.
 
 ### Stage 4 — Governed retention
 
@@ -376,8 +413,9 @@ its generations, and its SQLite notebook need no backup.
 
 ## Accepted Residuals
 
-- The lake map answers known reverse lookups; free-text and fuzzy search stay
-  out of scope (exact normalized identity matching is deliberate).
+- The JSON lake map answers known reverse lookups. The disposable SQL catalogue
+  answers captured-body free-text and exact structured filters; fuzzy semantic
+  similarity remains out of scope until a measured decision need justifies it.
 - `by_mention`'s mentions section stays empty until the transcript
   product-mention producers run over real transcript inputs (0 records
   lake-wide as of this record; the ideal-audience judgment consumes
@@ -390,12 +428,14 @@ its generations, and its SQLite notebook need no backup.
   hash verification proves integrity rather than currency.
 - Automation boundary: the enabled `Forseti Daily Lake Cadence` task runs
   daily at `09:00 +08:00`; a successful `run_seam_cadence.py --run`
-  maintains the lake and rebuilds the map automatically, while `--check` does
-  not rebuild. Runtime code is deliberately pinned and deployed manually rather
-  than self-updating. A fresh root uses one explicit
-  `--bootstrap-active-product-mention-policy` cadence run, which pins the
-  checkout's exact active policy and refuses an existing manifest. Later runs
-  reuse those stored pins.
+  maintains the lake, map, and SQL catalogue automatically, while `--check`
+  does not rebuild. The separate hourly retrieval-tail task incrementally
+  catches up newly completed evidence between daily cadences. Runtime code is
+  deliberately pinned and deployed manually rather than self-updating. A fresh
+  root uses one explicit `--bootstrap-active-product-mention-policy` cadence
+  run, which pins the checkout's exact active policy and refuses an existing
+  manifest. Later runs reuse those stored pins; the SQL catalogue needs no
+  separate bootstrap command.
 
 ```yaml
 direction_change_propagation:
@@ -514,4 +554,51 @@ direction_change_propagation:
     - not evidence backup or drive-failure recovery
     - not Stage 2 sharding or the Stage 3 SQL query lens
     - not continuous freshness between updater reconciliations
+```
+
+```yaml
+direction_change_propagation:
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  doctrine_changed: >
+    Stage 3 is now selected and implemented as a disposable incremental SQLite
+    evidence catalogue. The lake remains authority, canonical JSON views remain
+    routing/proof surfaces, capture writers remain independent, and exact-actor
+    retrieval is transient, bounded, and audited.
+  controlling_sources_updated:
+    - docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/runners/run_data_lake_indexes_rebuild.py
+  downstream_surfaces_checked:
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+    - forseti-harness/runners/run_seam_cadence.py
+    - forseti-harness/runners/run_tiktok_comment_coordination.py
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: forseti-harness/runners/run_seam_cadence.py
+      reason: >
+        It already calls the sanctioned derived-retrieval updater after a
+        passing cadence, so SQL maintenance is inherited without a second
+        capture-side write path.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        No new durable artifact class or authority surface was created; the
+        existing data-lake contracts and scaling-plan routes still own it.
+  stale_language_search: >
+    rg -n "No SQL engine|SQL query-lens stays|free-text and fuzzy search stay"
+    docs/decisions/forseti_lake_map_scaling_and_hygiene_plan_v0.md
+    forseti/product/spines/data_lake/authority
+  non_claims:
+    - not live deployment until the merged revision is installed and dogfooded
+    - not a server database or multi-machine writer design
+    - not fuzzy semantic search or an actor dossier
+    - not evidence backup or drive-failure recovery
 ```

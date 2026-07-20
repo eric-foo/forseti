@@ -200,6 +200,15 @@ Rejected outputs:
 This preserves the decision-integrity value of timing evidence for astroturfing
 inspection without building a person dossier.
 
+Implementation binding (owner-ratified 2026-07-21): the durable SQL catalogue
+has no actor/commenter/reviewer identifier column. Exact-actor retrieval must
+use one of `creator_comment_coordination`, `content_comment_coordination`, or
+`bounded_public_actor_context`; stay within one admitted platform and at most
+90 days; rehydrate exact source material transiently; write an audit receipt
+before returning results; and persist no result cache. Audit receipts retain
+for 365 days, and 1,000 returned rows is marked elevated. These bounds govern
+retrieval mechanics only and do not authorize any rejected output above.
+
 ## Gold-Ready Assembly Contract
 
 Gold-ready assembly may gather evidence for a bounded question, but it remains

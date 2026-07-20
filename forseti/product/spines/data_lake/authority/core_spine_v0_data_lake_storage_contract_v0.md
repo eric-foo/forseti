@@ -189,6 +189,19 @@ A selection is acceptable only if the lane proves these invariants:
   read-by-key, hash verification, and index-rebuild behavior for the selected
   engine.
 
+### Selected derived-reader engine (2026-07-21)
+
+SQLite is selected only for the disposable evidence catalogue under
+`indexes/derived_retrieval/`. This does not physicalize raw or Silver evidence,
+change record authority, or select a storage backend for the lake. The
+catalogue uses one local writer, may have many local readers, and must be
+rebuildable from verified lake material with a deterministic logical-row proof.
+It must not live on a network share or accept writes from multiple machines.
+
+Gate 2 trigger T3 was re-ratified against this narrow engine choice: SQLite
+lifecycle features carry no retention policy, raw bytes remain write-once, and
+tombstone-only unavailability plus the existing claim ceiling remain unchanged.
+
 ## Blocker 1 Direction
 
 The accepted direction for Attachment Record representation is
