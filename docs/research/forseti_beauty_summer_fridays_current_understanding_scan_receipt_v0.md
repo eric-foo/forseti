@@ -6,7 +6,7 @@ artifact_role: Research artifact
 scope: CSB-first chronological scan receipt and preservation accounting for the Summer Fridays current-company Understanding Acquire & Seal turn.
 use_when:
   - Auditing the bounded evidence walk and its material-seam dispositions.
-  - Recovering the required retailer-review and Reddit preservation failures before Deliver.
+  - Verifying the bounded Sephora Bazaarvoice and Reddit fallback recovery that closed the acquisition gate.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_summer_fridays_current_understanding_commission_board_v0.md
@@ -55,11 +55,11 @@ Three material seams earned discriminating checks:
 3. the brand's gently effective, intuitive routine proposition versus expansion
    into fragrance, apparel collaboration, and travel retail.
 
-Each seam is interpretable, but the required retailer-review route and the
-mandatory bounded Reddit route did not yield usable preserved row/thread
-content. The evidence world therefore cannot pass to Deliver under the live
-playbook even though the remaining first-party, retailer-grid, and trade
-origins are preserved.
+The first retailer-review and Reddit preservation attempts failed. Bounded
+recovery on 2026-07-21 then used the existing Sephora Bazaarvoice companion and
+the Reddit operator playbook's one-URL CloakBrowser fallback. Both required
+routes now have usable, hash-verified packets and derived receipts, so the
+assembled evidence world can pass to Deliver with the limits below.
 
 Venue evaluation and hidden venue pointer accounting retained recency and
 current-state posture throughout. The recommended main deepening was limited
@@ -86,12 +86,12 @@ rewrite its pre-scan ledger.
 | EQ-004 | official upgraded ShadeDrops SPF 50 | Current launch and experience claims | positive | Preserve for claim-to-experience seam. |
 | EQ-005 | official authorized retailers | Current named channel set | positive | Preserve; absence is bounded to this page. |
 | EQ-006 | official Sunlit Vanilla PDP | Current fragrance extension | positive | Preserve first-party product origin. |
-| EQ-007 | Sephora US Summer Fridays brand grid | Current US retailer translation | positive_partial | Preserve rendered grid; market pin remained unconfirmed. |
-| EQ-008 | Sephora Lip Butter Balm PDP and review surface | Product-review rows and corpus state | blocked | No reproducible row-level review corpus. |
-| EQ-009 | Sephora community review policy | Incentive-label interpretation | positive_screen_light_capture_failed | Policy was readable during scanning; direct packet is a 403 body. |
-| EQ-010 | current Reddit Lip Butter Balm | Attributable wear, hydration, and value examples | positive_screen_light_capture_failed | Retain exact URLs and limits; captured bodies are 403 block pages. |
-| EQ-011 | current Reddit upgraded ShadeDrops | Attributable finish and tolerance examples | positive_screen_light_capture_failed | Retain exact URL and limits; captured body is a 403 block page. |
-| EQ-012 | current Reddit Sunlit Vanilla | Attributable fragrance-performance examples | positive_screen_light_capture_failed | Retain exact URL and limits; captured body is a 403 block page. |
+| EQ-007 | Sephora US Summer Fridays brand grid and Lip Butter Balm PDP | Current US retailer translation | positive | Exact PDP packet confirms the canonical US/USD pin; delivery remains unpinned. |
+| EQ-008 | Sephora Lip Butter Balm Bazaarvoice review and Q&A surface | Product-review rows and corpus state | positive | Preserve the qualified non-incentivized Helpful, Recent, age-bucket, and Q&A responses under their bounded windows. |
+| EQ-009 | Sephora community review policy | Incentive-label interpretation | partial_residual | Direct policy packet remains a 403 body; the product corpus independently applies the source filter `ContextDataValue_IncentivizedReview:eq:False`. |
+| EQ-010 | current Reddit Lip Butter Balm | Attributable wear, hydration, and value examples | positive | Four exact threads preserved through guarded CloakBrowser and consolidated without parser warnings. |
+| EQ-011 | current Reddit upgraded ShadeDrops | Attributable finish and tolerance examples | positive | Exact thread preserved and consolidated; 31 present and one collapsed comment posture retained. |
+| EQ-012 | current Reddit Sunlit Vanilla | Attributable fragrance-performance examples | positive | Exact thread preserved and consolidated; 26 present comments retained. |
 | EQ-013 | current Summer Fridays travel retail | Recent channel expansion | positive | Preserve original trade origin. |
 | EQ-014 | current Summer Fridays CEO transition | Recent operating context | positive | Preserve without causal inference. |
 | EQ-015 | Gap x Summer Fridays collaboration | Bounded chronology/background | positive_historical | Preserve partner origin; do not relabel current. |
@@ -104,9 +104,9 @@ rewrite its pre-scan ledger.
 | M01 | COV-001 | Owned proposition and About | Current gently effective, intuitive, community-oriented framing read and preserved. | Owned proposition job complete. |
 | M02 | COV-001 | Owned assortment and Lip Butter Balm | Hybrid makeup and lip-balm claim architecture read and preserved. | No approval inference. |
 | M03 | COV-001 | Owned ShadeDrops and fragrance | Current SPF 50 and first-fragrance extension read and preserved. | Two evidence-derived seams opened. |
-| M04 | COV-002 | Sephora US brand grid | Rendered current assortment and prices preserved; explicit market pin failed. | Partial retailer translation only. |
-| M05 | COV-003 | Sephora PDP, reviews, and policy | Indexed PDP/policy material was screen-light; no attributable rows or reproducible corpus. | Required route blocked. |
-| M06 | COV-004 | Bounded Reddit scout | Four current exact threads informed discriminating checks during scanning; direct preservation returned 403 for all four. | Mandatory route incompletely captured. |
+| M04 | COV-002 | Sephora US brand grid and exact PDP | Initial grid pin failed; bounded exact-PDP recovery confirmed the canonical US/USD conjunction. | Retailer translation complete; delivery unpinned. |
+| M05 | COV-003 | Sephora PDP reviews and Q&A | Qualified Bazaarvoice packet preserved 100 non-incentivized Helpful rows, 100 Recent rows covering the 30-day cutoff, age-bucket counts, and 100 answer-rich questions. | Required route complete under explicit bounded windows. |
+| M06 | COV-004 | Bounded Reddit scout | Direct HTTP returned 403; the owning guarded CloakBrowser fallback preserved and consolidated all four exact threads. | Mandatory route complete; self-selection and source-completeness limits retained. |
 | M07 | COV-007, COV-008 | Current independent/trade | Travel-retail entry and CEO transition found and preserved. | Current operating context sufficient for bounded use. |
 | M08 | COV-008 | Partner chronology | December 2025 Gap collaboration preserved as background only. | Historical boundary applied. |
 | M09 | COV-005, COV-006, COV-009, COV-010 | Conditional-route closure | Ulta subject presence was not established; Quora, creator/video, and comparator work had no distinct surviving job. | Dominated routes stopped with rationale. |
@@ -217,79 +217,79 @@ uncertainty_or_limits: "The page establishes brand framing and offer, not adopti
 ```yaml
 observation_id: OBS-008
 source_move_id: M04
-url: "https://www.sephora.com/brand/summer-fridays?country_switch=us&lang=en"
-retrieval_date: 2026-07-20
-short_quote_or_summary: "The rendered Sephora brand grid displayed 34 results across skincare, makeup, fragrance, body, and tools, including Lip Butter Balm at $24 and ShadeDrops SPF 50 at $38."
+url: "https://www.sephora.com/product/summer-fridays-lip-butter-balm-P455936?country_switch=us&lang=en"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "The exact rendered Lip Butter Balm PDP binds product group P455936 and confirms the canonical Sephora US/USD storefront conjunction."
 signal_stage: venue_value
-claim_it_might_support: current retailer assortment and price translation
+claim_it_might_support: current US retailer product identity and storefront translation
 gate_role: none
 independence_hypothesis: retailer surface; descriptive copy may be brand-supplied
-uncertainty_or_limits: "The capture requested US/USD and displayed a United States-English footer and USD prices, but route metadata says pin_confirmed false; delivery location, stock, ranking basis, and purchase are not established."
+uncertainty_or_limits: "The pin confirms storefront country and currency only; delivery location, stock, ranking basis, sales, and purchase are not established."
 ```
 
 ```yaml
 observation_id: OBS-009
 source_move_id: M05
-url: "https://www.sephora.com/beauty/community-faq/"
-retrieval_date: 2026-07-20
-short_quote_or_summary: "During screening, Sephora policy material explained that an incentivized label can reflect free product, payment, or sweepstakes consideration."
-signal_stage: access_note
-claim_it_might_support: interpretation of source-visible retailer review disclosures
+url: "https://www.sephora.com/product/summer-fridays-lip-butter-balm-P455936?country_switch=us&lang=en"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "The page-declared Bazaarvoice companion reports 14,107 exact non-incentivized reviews, preserving 100 source-ordered Most Helpful rows and 100 Most Recent rows, of which 86 fall inside the 30-day window; it also preserves 100 Most Answers questions and 905 included answer bodies."
+signal_stage: venue_value
+claim_it_might_support: bounded attributable retailer-review and Q&A corpus
 gate_role: none
-independence_hypothesis: retailer policy origin
-uncertainty_or_limits: "The preserved direct-HTTP packet is a 403 body, and no product-level rows, labels, dates, ratings, sort, filter, truncation, or corpus boundary were acquired."
+independence_hypothesis: retailer-declared Bazaarvoice surface containing customer-authored rows
+uncertainty_or_limits: "The Helpful and Recent windows are bounded and self-selected, not representative approval measures. Q&A preserves 100 of 2,175 questions and 905 of 998 answers declared by those captured questions. The v3 runner predates PR 1201's unimplemented lower-footprint target."
 ```
 
 ```yaml
 observation_id: OBS-010
 source_move_id: M06
 url: "https://www.reddit.com/r/LipBalm/comments/1t79b03/the_gloss_report_summer_fridays_lip_butter_balm/"
-retrieval_date: 2026-07-20
+retrieval_date: 2026-07-21
 short_quote_or_summary: "One current self-identified purchaser described comfortable application and short wear; replies included both drying or low-value reports and more favorable residual-hydration experiences."
 signal_stage: contradiction
 claim_it_might_support: existence of heterogeneous Lip Butter Balm wear and hydration experiences
 gate_role: none
 independence_hypothesis: customer/community evidence only
-uncertainty_or_limits: "Self-selected thread; no prevalence, recurrence, product-authenticity, or mechanism claim. The exact-thread capture preserved only a 403 block body."
+uncertainty_or_limits: "Self-selected thread; no prevalence, recurrence, product-authenticity, or mechanism claim. Guarded exact-thread packet and 10 observable comments were preserved and consolidated."
 ```
 
 ```yaml
 observation_id: OBS-011
 source_move_id: M06
 url: "https://www.reddit.com/r/Sephora/comments/1pneo7v/i_cant_stand_the_summer_fridays_lip_balm/"
-retrieval_date: 2026-07-20
+retrieval_date: 2026-07-21
 short_quote_or_summary: "One current poster reported thin feel, short wear, and peeling while replies included both similar and contrary formula-preference experiences."
 signal_stage: contradiction
 claim_it_might_support: existence of heterogeneous Lip Butter Balm feel and value experiences
 gate_role: none
 independence_hypothesis: customer/community evidence only
-uncertainty_or_limits: "Self-selected thread; no prevalence, recurrence, causal formula claim, or priority claim. The exact-thread capture preserved only a 403 block body."
+uncertainty_or_limits: "Self-selected thread; no prevalence, recurrence, causal formula claim, or priority claim. Guarded exact-thread packet and 60 observable comments were preserved and consolidated."
 ```
 
 ```yaml
 observation_id: OBS-012
 source_move_id: M06
 url: "https://www.reddit.com/r/Sephora/comments/1talyhk/summer_fridays_sunscreen/"
-retrieval_date: 2026-07-20
+retrieval_date: 2026-07-21
 short_quote_or_summary: "A current discussion of upgraded ShadeDrops included oily or slippery and reaction concerns alongside favorable reports."
 signal_stage: contradiction
 claim_it_might_support: existence of heterogeneous finish and tolerance experiences for upgraded ShadeDrops
 gate_role: none
 independence_hypothesis: customer/community evidence only
-uncertainty_or_limits: "Self-selected thread; no diagnosis, causality, safety, recurrence, or prevalence claim. The exact-thread capture preserved only a 403 block body."
+uncertainty_or_limits: "Self-selected thread; no diagnosis, causality, safety, recurrence, or prevalence claim. Guarded packet preserved 31 present and one collapsed observable comment posture."
 ```
 
 ```yaml
 observation_id: OBS-013
 source_move_id: M06
 url: "https://www.reddit.com/r/Sephora/comments/1rylldx/summer_fridays_sunlit_vanilla_edp/"
-retrieval_date: 2026-07-20
+retrieval_date: 2026-07-21
 short_quote_or_summary: "A current Sunlit Vanilla discussion included favorable gourmand impressions and stronger-performance reports alongside short-longevity and ordinary-scent reports."
 signal_stage: contradiction
 claim_it_might_support: existence of heterogeneous fragrance and longevity experiences
 gate_role: none
 independence_hypothesis: customer/community evidence only
-uncertainty_or_limits: "Self-selected thread; no adoption, prevalence, durability, or commercial-importance claim. The exact-thread capture preserved only a 403 block body."
+uncertainty_or_limits: "Self-selected thread; no adoption, prevalence, durability, or commercial-importance claim. Guarded exact-thread packet and 26 observable comments were preserved and consolidated."
 ```
 
 ```yaml
@@ -335,27 +335,28 @@ uncertainty_or_limits: "Historical partner announcement only; it does not establ
 
 | Seam ID | Evidence-derived seam | Discriminating check | Disposition | Remaining boundary |
 | --- | --- | --- | --- | --- |
-| MSEAM-001 | Owned ShadeDrops promise versus lived finish/tolerance | Current owned launch page plus exact current Reddit thread | meaningfully_bounded | Opposing experiences exist in screen-light evidence, but preservation failed and no prevalence, mechanism, or safety conclusion is permitted. |
-| MSEAM-002 | Owned Lip Butter Balm moisture proposition versus lived wear/dryness/value | Current owned PDP plus two exact current Reddit threads | meaningfully_bounded | Heterogeneous reports exist in screen-light evidence, but preservation failed and no prevalence, recurrence, or approval metric is permitted. |
+| MSEAM-001 | Owned ShadeDrops promise versus lived finish/tolerance | Current owned launch page plus exact current Reddit thread | meaningfully_bounded | Opposing preserved experiences exist, but no prevalence, mechanism, or safety conclusion is permitted. |
+| MSEAM-002 | Owned Lip Butter Balm moisture proposition versus lived wear/dryness/value | Current owned PDP, bounded Sephora rows, and two exact current Reddit threads | meaningfully_bounded | Preserved retailer/community evidence shows heterogeneous experiences; no representative prevalence or approval metric is permitted. |
 | MSEAM-003 | Gently effective intuitive-routine proposition versus fragrance, apparel, and travel-retail extension | Owned About/fragrance, partner release, and current trade origin | supported | The same proposition is observably extended across categories and channels; adoption, economic importance, and durability remain unknown. |
-| MSEAM-004 | Strong current Sephora presentation versus reproducible customer evidence | Rendered brand grid plus PDP/review/policy route | honestly_blocked | The retailer grid is preserved, but explicit market pin, attributable review rows, incentive state, and reproducible corpus boundary are absent. |
+| MSEAM-004 | Strong current Sephora presentation versus reproducible customer evidence | Exact US/USD PDP plus qualified Bazaarvoice companion | supported_with_bounded_corpus | Product identity, filter, sort, row order, dates, bodies, and corpus windows are preserved; bounded/self-selected evidence still cannot establish representative approval. |
 
 ## Negatives And Access Notes
 
-- `ACCESS-001`: Sephora brand-grid capture preserved a rendered page, visible
-  text, screenshot, and metadata. The page displayed a United States-English
-  footer and USD prices, but canonical route metadata records
-  `pin_confirmed: false`; geographic conjunction is not admitted as confirmed.
-- `ACCESS-002`: the generic Sephora PDP/review fallback could not satisfy the
-  profile-owned scroll-stop guard. Shipped Sephora aggregate profiles contained
-  an unrelated product-specific stop literal, so no Summer Fridays review
-  corpus was produced.
-- `ACCESS-003`: the Sephora policy direct packet is HTTP 403. Its screen-light
-  policy reading cannot substitute for product-level review rows.
-- `ACCESS-004`: all four bounded old-Reddit direct-HTTP packets are HTTP 403
-  block bodies with identical raw-body hashes. Content-mode produced no derived
-  content record. The exact URLs are retained, but their thread content is not
-  admitted as preserved evidence.
+- `ACCESS-001`: the initial Sephora brand-grid capture preserved a rendered
+  page but recorded `pin_confirmed: false`. The later exact-PDP parent packet
+  confirmed the canonical US/USD storefront conjunction; delivery remains
+  unpinned.
+- `ACCESS-002`: the first generic Sephora PDP/review attempt hit a
+  profile-owned scroll-stop guard. PR 1201 exposed the already-proven,
+  page-declared Bazaarvoice companion, which succeeded on the exact Summer
+  Fridays parent packet. Its current v3 runner remains larger than PR 1201's
+  accepted but unimplemented low-footprint target.
+- `ACCESS-003`: the Sephora policy direct packet remains HTTP 403. No claim
+  depends on that body; the product-level Bazaarvoice request manifest preserves
+  the exact non-incentivized filter used for the admitted rows.
+- `ACCESS-004`: all four first-rung old-Reddit Direct-HTTP packets remain HTTP
+  403 block bodies. The owning operator playbook's guarded one-URL
+  CloakBrowser fallback then preserved and consolidated the same exact threads.
 - `NEG-001`: the official authorized-retailer page did not name Ulta, and a
   bounded exact search did not establish a Summer Fridays Ulta product surface.
   This supports route non-selection only, not universal absence.
@@ -363,12 +364,13 @@ uncertainty_or_limits: "Historical partner announcement only; it does not establ
   Reddit, and category-aware discovery routes were specified.
 - `NEG-003`: no evidence-derived product-demonstration, campaign-disclosure, or
   comparative-performance job justified creator/video or comparator deepening.
-- `GAP-001`: required Sephora product-level retailer-review evidence is
-  unavailable and incompletely captured.
-- `GAP-002`: mandatory Reddit community evidence is screen-light and
-  incompletely captured.
-- `GAP-003`: the Sephora storefront market pin and delivery context are not
-  confirmed.
+- `GAP-001`: PR 1201's lower-footprint combined-statistics onboarding target is
+  documented but not implemented; the proven v3 packet remains sufficient for
+  this bounded commission.
+- `GAP-002`: the four Reddit threads are self-selected exact examples, not a
+  complete source corpus or prevalence sample.
+- `GAP-003`: Sephora delivery context remains unpinned even though the
+  storefront US/USD conjunction is confirmed.
 
 No severe-safety conclusion was commissioned or earned. Individual reaction
 reports remain attributable customer examples only.
@@ -379,8 +381,8 @@ Packet root:
 `C:\tmp\forseti-summer-fridays-understanding-handoff\_acquisition\summer_fridays_current_understanding\`.
 
 All manifest-declared preserved-file hashes were recomputed on 2026-07-20 and
-matched. Passing packet hashes establish preservation integrity, not content
-sufficiency.
+again for recovery packets on 2026-07-21; all matched. Passing packet hashes
+establish preservation integrity, not content sufficiency.
 
 | Evidence row | Packet / manifest | Packet ID | Manifest SHA-256 | Result and admission boundary |
 | --- | --- | --- | --- | --- |
@@ -390,23 +392,26 @@ sufficiency.
 | OBS-005 | `obs_005_shadedrops_spf50/manifest.json` | `01KY00R0FH1DV54HE8P71GM037` | `33D82BE596205FE892F4159175E173EA8F1D1B879BE5346334AC5FC33B3E4600` | PASS_HTTP_200; owned launch claims only. |
 | OBS-006 | `obs_006_authorized_retailers/manifest.json` | `01KY00R1WP3B32SQ4XQ8Z4PR56` | `0DD9B40678E5F55A1FF532C0FA66935305DA3852EF2D434EFA8DFF733ED4F023` | PASS_HTTP_200; bounded current-page retailer list only. |
 | OBS-007 | `obs_007_sunlit_vanilla/manifest.json` | `01KY00R3A4EXMYNCYG9Q23K6H1` | `5CFDF91E0E5A6200F61159BC6B5B73F36BE02FBB72354A743E7334C42828FD90` | PASS_HTTP_200; owned fragrance framing only. |
-| OBS-008 | `obs_008_sephora_brand_grid/manifest.json` | `01KY0149MBPECWY85BHQPQ16RQ` | `9F04DA38C71C15E683F9BC169E7564FE40855C7BD7CD7C1D31E88DC55DD278B8` | PARTIAL_RENDERED; exact brand grid preserved, market pin false and delivery unpinned. |
-| OBS-009 | `obs_009_sephora_review_policy/manifest.json` | `01KY00VTWS0KEZV06EYMG47ZES` | `1501A222BEEADFD2963236C473E557072B17D06A25DE2952D95BBA1E943A1076` | BLOCKED_HTTP_403; response body only, no policy-content admission. |
+| ROUTE-RESIDUAL | `obs_008_sephora_brand_grid/manifest.json` | `01KY0149MBPECWY85BHQPQ16RQ` | `9F04DA38C71C15E683F9BC169E7564FE40855C7BD7CD7C1D31E88DC55DD278B8` | PARTIAL_RENDERED; initial grid preserved with market pin false. |
+| ROUTE-RESIDUAL | `obs_009_sephora_review_policy/manifest.json` | `01KY00VTWS0KEZV06EYMG47ZES` | `1501A222BEEADFD2963236C473E557072B17D06A25DE2952D95BBA1E943A1076` | BLOCKED_HTTP_403; response body only. |
+| OBS-008 | `F:\forseti-data-lake\raw\e93\01KY07CC8RJM5VG1WDKZZ6XWZR\manifest.json` | `01KY07CC8RJM5VG1WDKZZ6XWZR` | `EE8A799D7CB47CD06B5AA2230CBCF1BAF995E3820CC5C2147C7647754305D110` | PASS_RENDERED_EXACT_PDP; P455936 and US/USD pin confirmed, delivery unpinned. |
+| OBS-009 | `F:\forseti-data-lake\raw\b99\01KY07DWJ3FQY94ZSWBKEJCZ9N\manifest.json` | `01KY07DWJ3FQY94ZSWBKEJCZ9N` | `ABE435B259FA95735430C257D1011EED80E8923DBD88B06F6773586FBC8A0C1A` | PASS_BAZAARVOICE_ONBOARDING; eight exact responses plus request manifest and qualified summary. |
 | OBS-014 | `obs_010_travel_retail/manifest.json` | `01KY00R4YGK3XSPWQYD3E34KHK` | `F990F79633F17D5DA84F4DE4EEE2F27CE8AACCDA8DD2D70E41DD54334AAE40DC` | PASS_HTTP_200; dated trade report only. |
 | OBS-015 | `obs_011_ceo_transition/manifest.json` | `01KY00R6MB8KKV71MWQYMH4VZT` | `D7AAB0CA3808259D3395356A29E87CAECD4170F12FE177B3F71E071B8A251B2A` | PASS_HTTP_200; dated trade report only. |
 | OBS-016 | `obs_012_gap_collaboration/manifest.json` | `01KY00R8BS36W6ADD062K5REP6` | `F00B5BBF3571197CB5B03F59A62DFE25D2D592224A0492053201329CB017BC59` | PASS_HTTP_200; partner chronology only. |
-| OBS-010 | `reddit_batch/slot_001_packet/manifest.json` | `01KY00R9CYQVS6EKHBXMBSWJ8W` | `1D3C744B7F91B146F54B6538CB1848B4E417B88679109FEC06ED087E43A34204` | BLOCKED_HTTP_403; exact URL and block response only. |
-| OBS-011 | `reddit_batch/slot_002_packet/manifest.json` | `01KY00S702A0CQEPCJ6KFWWRWX` | `480B3783B3D3750FC999DADDAA924D0093CB6A5F3E24C64D5928AD1AF214582A` | BLOCKED_HTTP_403; exact URL and block response only. |
-| OBS-012 | `reddit_batch/slot_003_packet/manifest.json` | `01KY00T4M54Y7E94Q13MX3BRM1` | `84B34FAE5E4ECBD949144ED32EBAF4B6963BBA987C2884AEFF6B33BC89555722` | BLOCKED_HTTP_403; exact URL and block response only. |
-| OBS-013 | `reddit_batch/slot_004_packet/manifest.json` | `01KY00V27CQKBEH8QW4SYMTVQ7` | `170A93D44D5B5037733058DD6C0C72E22F7CE628EDB8E3F6D0989BCAFBE05A15` | BLOCKED_HTTP_403; exact URL and block response only. |
+| ROUTE-RESIDUAL | `reddit_batch/slot_001_packet/manifest.json` through `slot_004_packet` | four first-rung packet IDs | individual hashes retained in prior packet manifests | BLOCKED_HTTP_403; exact URLs and block responses retained. |
+| OBS-010 | `reddit_cloak/slot_001_packet/manifest.json` | `01KY07FSJ09Z18H3KA2434CXWV` | `30DDA4A9195BCC11C252F022968F58EDDE2706E3C0F62988817E998FDCA5575B` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 10 observable present comments, no warnings. |
+| OBS-011 | `reddit_cloak/slot_002_packet/manifest.json` | `01KY07G3G9BCYNHM2DA0PV4JZA` | `50584DF697D8A07F1FA1634EC414B6EE5659E2D085D51EFC33DC65AFF800AC8A` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 60 observable present comments, no warnings. |
+| OBS-012 | `reddit_cloak/slot_003_packet/manifest.json` | `01KY07GC4BB1DP58SXNXN5KPZS` | `119BE3F6315985117265D0F1196ACCFB31533664BDF908D90E98291FBEC0FF78` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 31 present and one collapsed comment posture, no warnings. |
+| OBS-013 | `reddit_cloak/slot_004_packet/manifest.json` | `01KY07GMVW4X0H3WD6138R0DZF` | `B93C18523C961CF6507D31BF9A02CA061594A364352E32DEFAC2FB7C0BE800F4` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 26 observable present comments, no warnings. |
 
 ## Capture Triage
 
-No new Capture request is left open by Scanning. The required retailer-review
-and Reddit routes already returned typed failures through their current
-canonical paths. Under the live playbook, those incompletely captured required
-routes must return to Acquire & Seal through a bounded recovery; they cannot be
-carried into Deliver as ordinary caveats.
+No Capture request is left open by Scanning. The bounded recovery closed both
+required routes without reopening discovery: Sephora used the exact P455936
+parent plus its page-declared Bazaarvoice companion; Reddit used the four
+already-selected URLs through the owning guarded CloakBrowser fallback,
+consolidation, and cleaned agent views.
 
 ## Candidate Decision
 
@@ -416,19 +421,20 @@ candidate_decision:
   independent_origins_seen:
     - official_first_party
     - retailer
-    - customer_community_screen_light
+    - customer_community
     - independent_trade
     - first_party_partner
   reason: >
     The scan produced decision-relevant current company-model evidence and
     earned material seams, but no Company Surface import or downstream-lane
-    candidate was commissioned. The acquisition gate remains blocked by
-    required-route preservation failures.
+    candidate was commissioned. Bounded recovery closed the two required-route
+    preservation failures without changing the evidence set.
 ```
 
 ## Closeout
 
 `no_candidate_after_discovery`.
 
-The intelligent walk reached route and seam closure, but acquisition did not
-reach evidence-sufficiency closure. Deliver is not authorized.
+The intelligent walk and bounded recovery reached route, seam, preservation,
+and evidence-sufficiency closure. Deliver is authorized only under the passing
+acquisition seal and its stated limits.

@@ -3,10 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Intelligence Cycle acquisition seal
-scope: Blocked Acquire & Seal closeout for the Summer Fridays current-company Understanding commission.
+scope: Passing Acquire & Seal closeout after bounded Sephora and Reddit recovery for the Summer Fridays current-company Understanding commission.
 use_when:
   - Verifying whether Deliver is authorized.
-  - Recovering the required Sephora review and Reddit preservation routes without reopening unrelated discovery.
+  - Auditing the required Sephora review and Reddit recovery receipts and their accepted limits.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_beauty_summer_fridays_current_understanding_two_turn_handoff_v0.md
@@ -15,10 +15,10 @@ open_next:
 ```
 
 ```yaml
-current_lifecycle_status: ACQUISITION_BLOCKED
-intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_INCOMPLETE
-resume_allowed: true_only_for_bounded_required_route_recovery
-correct_intake_result: BLOCKED_ACQUISITION_INCOMPLETE
+current_lifecycle_status: ACQUISITION_SEALED
+intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_COMPLETED
+resume_allowed: true_only_by_new_commission_or_material_source_change
+correct_intake_result: SEALED_READY_FOR_DELIVER
 ```
 
 ```yaml
@@ -45,20 +45,20 @@ phase_acquisition_seal:
       recipe_or_recon_pointer: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#preservation-and-provenance-index
       disposition: used
     - coverage_id: COV-002
-      route_identity: current Sephora Summer Fridays brand grid
-      route_authority: canonical anonymous Sephora route with US market request
-      recipe_or_recon_pointer: _acquisition/summer_fridays_current_understanding/obs_008_sephora_brand_grid/manifest.json
+      route_identity: current Sephora Summer Fridays brand grid and exact P455936 PDP
+      route_authority: canonical anonymous Sephora route with fail-closed US/USD market assertion
+      recipe_or_recon_pointer: F:\forseti-data-lake\raw\e93\01KY07CC8RJM5VG1WDKZZ6XWZR\manifest.json
       disposition: used
     - coverage_id: COV-003
-      route_identity: attributable Sephora product-review rows and review policy
-      route_authority: canonical Sephora PDP/review route
-      recipe_or_recon_pointer: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#negatives-and-access-notes
-      disposition: blocked
+      route_identity: attributable non-incentivized Sephora review rows, bounded Recent window, live age buckets, and answer-rich Q&A
+      route_authority: page-declared Bazaarvoice onboarding companion identified by PR 1201 and bound to exact parent P455936
+      recipe_or_recon_pointer: F:\forseti-data-lake\raw\b99\01KY07DWJ3FQY94ZSWBKEJCZ9N\manifest.json
+      disposition: used
     - coverage_id: COV-004
       route_identity: four exact current Reddit threads for Lip Butter Balm, ShadeDrops, and Sunlit Vanilla
-      route_authority: canonical bounded old-Reddit direct-HTTP batch
-      recipe_or_recon_pointer: _acquisition/summer_fridays_current_understanding/reddit_batch/
-      disposition: blocked
+      route_authority: Reddit Capture operator playbook Direct-HTTP first rung plus guarded one-URL CloakBrowser fallback, consolidation, and cleaned agent view
+      recipe_or_recon_pointer: _acquisition/summer_fridays_current_understanding/reddit_cloak/
+      disposition: used
     - coverage_id: COV-005
       route_identity: conditional Ulta US subject check
       route_authority: canonical Ulta route if a distinct job survives
@@ -97,7 +97,7 @@ phase_acquisition_seal:
   scan_receipts:
     - receipt_type: chronological_scan_and_seam_receipt
       locator: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md
-      result: COMPLETE_WALK_BLOCKED_EVIDENCE_WORLD
+      result: COMPLETE_WALK_AND_BOUNDED_RECOVERY_PASS
   capture_receipts:
     - evidence_rows: [OBS-002, OBS-003, OBS-004, OBS-005, OBS-006, OBS-007]
       packet_ids:
@@ -109,15 +109,23 @@ phase_acquisition_seal:
         - 01KY00R3A4EXMYNCYG9Q23K6H1
       result: PASS_HTTP_200_OWNED
       locator: _acquisition/summer_fridays_current_understanding/
-    - evidence_row: OBS-008
+    - evidence_row: ROUTE-RESIDUAL
       packet_id: 01KY0149MBPECWY85BHQPQ16RQ
       result: PARTIAL_RENDERED_MARKET_PIN_FALSE
       locator: _acquisition/summer_fridays_current_understanding/obs_008_sephora_brand_grid/manifest.json
-    - evidence_row: OBS-009
+    - evidence_row: ROUTE-RESIDUAL
       packet_id: 01KY00VTWS0KEZV06EYMG47ZES
       result: BLOCKED_HTTP_403_NO_POLICY_CONTENT_ADMITTED
       locator: _acquisition/summer_fridays_current_understanding/obs_009_sephora_review_policy/manifest.json
-    - evidence_rows: [OBS-010, OBS-011, OBS-012, OBS-013]
+    - evidence_row: OBS-008
+      packet_id: 01KY07CC8RJM5VG1WDKZZ6XWZR
+      result: PASS_RENDERED_EXACT_PDP_US_USD_PIN
+      locator: F:\forseti-data-lake\raw\e93\01KY07CC8RJM5VG1WDKZZ6XWZR\manifest.json
+    - evidence_row: OBS-009
+      packet_id: 01KY07DWJ3FQY94ZSWBKEJCZ9N
+      result: PASS_QUALIFIED_BAZAARVOICE_ONBOARDING
+      locator: F:\forseti-data-lake\raw\b99\01KY07DWJ3FQY94ZSWBKEJCZ9N\manifest.json
+    - evidence_rows: [ROUTE-RESIDUAL]
       packet_ids:
         - 01KY00R9CYQVS6EKHBXMBSWJ8W
         - 01KY00S702A0CQEPCJ6KFWWRWX
@@ -125,6 +133,14 @@ phase_acquisition_seal:
         - 01KY00V27CQKBEH8QW4SYMTVQ7
       result: BLOCKED_HTTP_403_NO_THREAD_CONTENT_ADMITTED
       locator: _acquisition/summer_fridays_current_understanding/reddit_batch/
+    - evidence_rows: [OBS-010, OBS-011, OBS-012, OBS-013]
+      packet_ids:
+        - 01KY07FSJ09Z18H3KA2434CXWV
+        - 01KY07G3G9BCYNHM2DA0PV4JZA
+        - 01KY07GC4BB1DP58SXNXN5KPZS
+        - 01KY07GMVW4X0H3WD6138R0DZF
+      result: PASS_GUARDED_CLOAK_CONSOLIDATION_AND_AGENT_VIEWS
+      locator: _acquisition/summer_fridays_current_understanding/reddit_cloak/
     - evidence_rows: [OBS-014, OBS-015, OBS-016]
       packet_ids:
         - 01KY00R4YGK3XSPWQYD3E34KHK
@@ -134,53 +150,48 @@ phase_acquisition_seal:
       locator: _acquisition/summer_fridays_current_understanding/
   provenance_index:
     - locator: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#preservation-and-provenance-index
-      verification: all_manifest_declared_file_hashes_recomputed_and_matched_2026-07-20
-      boundary: hash_integrity_does_not_convert_403_or_partial_packets_into_sufficient_evidence
+      verification: all_admitted_manifest_declared_file_hashes_recomputed_and_matched_2026-07-20_and_2026-07-21
+      boundary: failed first-rung packets remain visible; only separately qualified recovery packets support the passing routes
   material_seams:
     - seam_id: MSEAM-001
       seam: owned ShadeDrops experience promise versus current customer finish and tolerance reports
-      disposition: meaningfully_bounded_but_required_preservation_failed
+      disposition: meaningfully_bounded_with_preserved_opposing_experiences
     - seam_id: MSEAM-002
       seam: owned Lip Butter Balm moisture proposition versus current customer wear, dryness, and value reports
-      disposition: meaningfully_bounded_but_required_preservation_failed
+      disposition: meaningfully_bounded_with_preserved_retailer_and_community_evidence
     - seam_id: MSEAM-003
       seam: gently effective intuitive-routine proposition versus fragrance, apparel, and travel-retail extension
       disposition: supported_with_importance_and_durability_unknown
     - seam_id: MSEAM-004
       seam: strong current Sephora presentation versus reproducible customer evidence
-      disposition: honestly_blocked
+      disposition: supported_with_bounded_self_selected_corpus
   material_gaps_and_failures:
     - gap_id: GAP-001
-      requirement: COV-003 attributable retailer-review evidence
-      result: no product-level rows, visible incentive state, dates, ratings, sort, filter, truncation, or reproducible corpus boundary
-      blocking: true
-    - gap_id: GAP-002
-      requirement: COV-004 mandatory bounded Reddit evidence
-      result: four exact-thread screen reads but every canonical capture packet is an HTTP 403 block body with no derived content record
-      blocking: true
-    - gap_id: GAP-003
-      requirement: COV-002 confirmed US retailer translation
-      result: requested US/USD and rendered USD/United States-English cues, but canonical metadata reports pin_confirmed false and delivery is unpinned
+      requirement: lower-footprint Sephora monitoring implementation
+      result: PR 1201 documents an accepted three-role target but the proven v3 onboarding runner remains the current executable route
       blocking: false
-  consolidated_recovery_boundary:
-    purpose: recover only the two blocking required routes
-    permitted_scope:
-      - obtain a reproducible attributable Summer Fridays Sephora review corpus with visible row and window state, or return a terminal owning-route result
-      - preserve usable content from the four already-selected Reddit thread URLs through an owning same-thread fallback, or return a terminal owning-route result
-    prohibited_scope:
-      - no broad rescan
-      - no new company subject
-      - no Deliver
-      - no problem framing, recommendation, outreach, offer, or wedge
-  seal_state: BLOCKED_ACQUISITION_INCOMPLETE
-  acquisition_gate: blocked
-  deliver_allowed: false
-  sealed_at: "2026-07-20"
+    - gap_id: GAP-002
+      requirement: representative customer-response inference
+      result: four exact Reddit threads and bounded Sephora rows are self-selected evidence and do not establish prevalence or representative approval
+      blocking: false
+    - gap_id: GAP-003
+      requirement: Sephora fulfillment context
+      result: canonical US/USD storefront is confirmed on the exact PDP; delivery location remains unpinned
+      blocking: false
+  consolidated_recovery_receipt:
+    completed_at: "2026-07-21"
+    sephora_result: exact P455936 US/USD parent plus qualified Bazaarvoice companion passed
+    reddit_result: four exact first-rung 403 failures retained; guarded same-thread CloakBrowser packets, consolidation, and agent views passed
+    discovery_expansion: none
+  seal_state: SEALED_READY_FOR_DELIVER
+  acquisition_gate: pass
+  deliver_allowed: true
+  sealed_at: "2026-07-21"
 ```
 
-`BLOCKED_ACQUISITION_INCOMPLETE`.
+`SEALED_READY_FOR_DELIVER`.
 
-The three passing fields agree in the blocked state. The blocked seal preserves
-real failure visibility: route and seam accounting is complete, but the
-required retailer-review and Reddit evidence is not durably sufficient.
-Turn B is not authorized.
+The three passing fields agree. Bounded recovery closed the two required routes
+without reopening discovery, deleting first-rung failures, or converting
+self-selected customer evidence into prevalence or representative approval.
+Fresh-context Turn B is authorized from this seal.
