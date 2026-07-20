@@ -779,6 +779,30 @@ SKU/item-reception and known/inferred/unknown matrices as plain Markdown tables,
 using explicit gap or unknown cells where evidence is absent. The typed ledgers
 remain the audit floor behind the narrative, never the front door.
 
+When offerings, retail presentation, or customer experience are material to a
+company commission, acquire breadth before product depth. First establish the
+owned portfolio architecture (public shop-all/bestseller surfaces,
+collections or franchises, parent products, and visible variants), then the
+brand/assortment grid at one primary retailer, and reconcile both into a
+franchise -> parent product -> variant/SKU -> retailer-listing map. Only then
+select up to three representative franchises for PDP and customer-evidence
+deepening: the evidence-supported dominant franchise; the founding or otherwise
+strategically central franchise; and, only when materially distinct, one
+contrasting extension or plausible weak link. Fewer than three is valid; do not
+pad the set or presuppose hero status.
+
+Choose the primary retailer from subject authorization, target-market
+relevance, assortment breadth, structured evidence depth, and route
+admissibility. When the subject has a material retailer presence and the bound
+question depends on retail expression, that primary-retailer row is required.
+At most one secondary retailer is conditional on a named, non-duplicative
+channel, assortment, price, availability, authenticity, or customer-evidence
+job. A tertiary retailer is exception-only to resolve a material contradiction
+or gap. Use the existing coverage-ledger `requirement`, `relevance_rationale`,
+and typed-gap fields; retailer role adds no new schema, quota, or completion
+credit. Retailer evidence remains retailer evidence, not authority for internal
+company fact.
+
 ### Executive Intelligence Brief (completed reports only)
 
 A completed company report (`run_boundary:
@@ -805,14 +829,15 @@ The brief contains:
   representativeness, and keep the report
   decision-aware-neutral: consequence names which decisions the conclusion
   could inform, never pain, priority, buyer, or wedge assignment.
-- One chain card per hero product where the evidence supports it: five cited
-  lines — the claim; observed buy motivation within the cited customer-world
-  sample (not willingness-to-pay or representative demand); observed
-  experience; the complaint that attacks the claim; the bounded substitute
-  customers cite or compare when the claim breaks (not a defection or
-  demand-capture claim). A card compresses to one front-page conclusion row;
-  normally present three or four such rows when the hero set and evidence
-  support them, and never pad to reach that range.
+- One chain card per evidence-selected representative franchise where the
+  evidence supports it, using one representative parent product for the
+  customer-evidence chain: five cited lines — the claim; observed buy motivation
+  within the cited customer-world sample (not willingness-to-pay or
+  representative demand); observed experience; the complaint that attacks the
+  claim; and the bounded substitute customers cite or compare when the claim
+  breaks (not a defection or demand-capture claim). A card compresses to one
+  front-page conclusion row. Present at most three such rows, and fewer when the
+  reconciled portfolio does not support three materially distinct franchises.
 - The central-promise voice and internal adjudication frame: where observable
   value resides; what drives it; whether the evidence shows it strengthening,
   weakening, or not proven; and what threatens it — each statement carrying
@@ -886,6 +911,13 @@ job survives the substitution test. External scouting is requested only for a
 non-dominated job. Zero yield is a route result, not completion. Other forum
 discovery is category-aware. A blocked or missing row needs a typed gap/request;
 `not_applicable` needs a rationale.
+
+When retail is material, use separate coverage rows for the owned architecture,
+the primary retailer, and any conditional secondary or exception-only tertiary
+retailer. State each retailer's role and distinct information job in
+`relevance_rationale`; do not make secondary or tertiary coverage mandatory by
+count. A conditional retailer becomes load-bearing only when acquired evidence
+promotes its named job into a material seam under the acquisition playbook.
 
 ### 4. Observation Ledger
 
@@ -996,13 +1028,28 @@ neither representative demand, market consensus, prevalence beyond its defined
 corpus, causal incentive distortion, nor a comparison without a comparable
 method and denominator.
 
-For each hero product (the small set the evidence itself marks as central:
-assortment prominence, review volume, brand-labeled bestsellers), add one
-choice-mechanism chain card: claim -> why customers buy -> what they
-experience -> which complaints attack the claim -> where defectors go, every
-link citing observation IDs. Feed each link only from sources that can
-observe it; no route observes population rates, switching volume, or
-sell-through, so no cell may state one. Buy-reason carries reported
+Retailer product attributes and reviewer attributes are different evidence
+classes. Label retailer-authored suitability or taxonomy as retailer metadata;
+label age, skin type, skin concern, or similar review fields as reviewer
+self-report when that is their source. Summarize a reviewer-attribute
+distribution only with the captured-corpus denominator, the attribute-reporting
+denominator, missingness or coverage, selection/filter basis, and visible
+incentive posture. A large reporting subgroup may make that subgroup estimate
+precise; it does not make the subgroup representative of all reviewers,
+purchasers, or customers. Cross-product comparisons require comparable capture
+methods and missingness boundaries.
+
+For each evidence-selected representative franchise, add at most one
+choice-mechanism chain card using one representative parent product: claim ->
+why customers buy -> what they experience -> which complaints attack the claim
+-> where defectors go, every link citing observation IDs. Select no more than
+three franchises after owned and primary-retailer portfolio reconciliation;
+normally cover the dominant franchise, the founding or strategically central
+franchise, and one materially distinct contrasting extension or plausible weak
+link. Do not call a franchise a hero until owned prominence and independent
+retailer/customer evidence support that conclusion. Feed each link only from
+sources that can observe it; no route observes population rates, switching
+volume, or sell-through, so no cell may state one. Buy-reason carries reported
 motivation and positioned draws, never measured demand; substitutes are cited
 alternatives and price gaps, never switching.
 
