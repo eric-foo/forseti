@@ -17,7 +17,7 @@ open_next:
   - docs/research/retail_pdp_review_record_capture_recon_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/retail_pdp_review_record_capture_recon_delegated_adversarial_review_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
   - orca-harness/source_capture/retail_pdp_projection.py
 branch_or_commit: codex/retail-pdp-review-recon @ 3da8d9268af740780139b2683cebbf746010f396
 stale_if:

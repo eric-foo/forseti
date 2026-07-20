@@ -125,7 +125,7 @@ direction_change_propagation:
     - forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py
     - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
   intentionally_not_updated:
-    - path: forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - path: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
       reason: >
         This is not a projection promoted into raw authority. It is an explicitly fidelity-limited
         automated-extraction capture whose selected source-visible observables are the admitted raw

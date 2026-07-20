@@ -19,7 +19,7 @@ open_next:
   - orca-harness/source_capture/models.py
   - forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
   - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md
-  - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
   - SourceCaptureSlice adds, removes, or reclassifies tenant/source-family payload fields.
@@ -68,7 +68,7 @@ Loaded source basis:
 - `forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md`:
   proposed storage-spine core/satellite boundary and projection store/cache
   language.
-- `forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`: Mechanical Source
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`: Capture content and Cleaning
   Projection / Projected Unit view-contract non-claims.
 - `forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`:
   write-once/hash-pin and replay-not-mutate discipline.
@@ -275,7 +275,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/artifact-roles.md
     - .agents/workflow-overlay/validation-gates.md
     - forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
-    - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - orca-harness/source_capture/models.py
   intentionally_not_updated:
     - path: orca-harness/source_capture/models.py
@@ -286,7 +286,7 @@ direction_change_propagation:
       reason: >
         Its write-once/hash-pin and replay-not-mutate discipline is reused as
         controlling source; no changed schema-evolution rule is introduced.
-    - path: forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - path: forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
       reason: >
         Projection doctrine remains correct; this artifact only clarifies what
         payload attachment source a projection reader consumes.

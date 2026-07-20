@@ -1,6 +1,6 @@
 """Generic Silver lineage grammar: build/validate the source-reference fields a
 Silver record carries, so a downstream agent can tell source-backed evidence,
-derived-record evidence, projection-row evidence, and accepted limitations apart
+derived-record evidence, source-row evidence, and accepted limitations apart
 without inventing per-lane provenance fields.
 
 This is the additive helper/validator from the adjudicated genericity check
@@ -21,8 +21,8 @@ documented:
   the record in place. It deliberately does NOT emit a nested ``silver_lineage``
   object, so a producer cannot create two homes for the refs.
 - AR-02 (projection row identity). ``SilverDerivedRef`` carries an optional
-  ``row_locator`` (``row_id``/``row_kind``) mirroring ``CleaningProjectionRef``, so a
-  fact derived from one row of a multi-row projection record is not collapsed to
+  ``row_locator`` (``row_id``/``row_kind``) mirroring Cleaning source-row identity, so a
+  fact derived from one row of a multi-row source record is not collapsed to
   ``lane + record_id`` alone.
 
 Field names track the genericity check grammar and the Common Record Header
@@ -171,8 +171,8 @@ class SilverRawRef(StrictModel):
 
 
 class SilverRowLocator(StrictModel):
-    """Identifies one row inside a multi-row projection-derived record (AR-02),
-    mirroring ``CleaningProjectionRef.row_id``/``row_kind``. Both fields travel
+    """Identifies one row inside a multi-row source-derived record (AR-02),
+    mirroring ``CleaningInputHandle.source_row_id``/``source_row_kind``. Both fields travel
     together: a half-specified row pointer cannot locate a row."""
 
     row_id: str

@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - Cleaning Spine Foundation changes the layer boundary, allowed transform classes, ledger contract, or source-family adaptation boundary.
   - Data Capture / Evidence Candidate Record / Cleaning / Judgment ownership changes.

@@ -649,59 +649,6 @@ def build_retail_pdp_projection_from_packet_directory(*, packet_directory: Path)
     return build_retail_pdp_projection(packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id)
 
 
-def write_retail_pdp_projection(*, packet_directory: Path, output_path: Path) -> RetailPdpProjectionPacket:
-    """Write a projection JSON sidecar from an existing packet directory.
-
-    This is a local view writer only: it reads ``manifest.json`` plus hash-verified
-    preserved files, then writes the mechanical projection. It performs no capture,
-    fetch, Cleaning, ECR, or Judgment work.
-    """
-    projection = build_retail_pdp_projection_from_packet_directory(packet_directory=packet_directory)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
-        encoding="utf-8",
-    )
-    return projection
-
-
-def project_retail_pdp_into_lake(
-    *,
-    data_root: "DataLakeRoot",
-    packet_id: str,
-    record_id: str | None = None,
-) -> tuple[RetailPdpProjectionPacket, Path]:
-    """Project a committed raw packet -- read by key from the lake and
-    hash-verified -- into a Retail/PDP projection, and append it as a derived
-    record at ``derived/<packet_id>/projection_retail_pdp/<record_id>.json``
-    (append-only; re-derive = new sibling).
-
-    The verified read is the lake loader (``DataLakeRoot.load_raw_packet``); the
-    extraction is byte-identical to the legacy directory path
-    (``build_retail_pdp_projection_from_packet_directory``). This adds no capture,
-    fetch, Cleaning, ECR, or Judgment. Returns the projection and the derived
-    record path.
-    """
-    loaded = data_root.load_raw_packet(packet_id)
-    packet = SourceCapturePacket.model_validate(loaded.manifest)
-    projection = build_retail_pdp_projection(
-        packet=packet,
-        raw_file_bytes_by_file_id=loaded.bodies,
-    )
-    record = record_id if record_id is not None else generate_ulid()
-    data = (
-        f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
-    ).encode("utf-8")
-    derived_path = data_root.append_record(
-        subtree="derived",
-        raw_anchor=packet_id,
-        lane=PROJECTION_RETAIL_PDP_LANE,
-        record_id=f"{record}.json",
-        data=data,
-    )
-    return projection, derived_path
-
-
 def build_retail_pdp_projection(
     *,
     packet: SourceCapturePacket,
@@ -1410,18 +1357,30 @@ def _validate_sephora_content_packet_metadata(
             raise ValueError(f"{filename} must contain a JSON object")
         return value
 
-    capture_metadata = _one_json("content_capture_metadata.json")
+    try:
+        capture_metadata = _one_json("content_extraction_metadata.json")
+        metadata_is_current = True
+    except ValueError:
+        capture_metadata = _one_json("content_capture_metadata.json")
+        metadata_is_current = False
     if expected_parser_version not in {
         "retail_pdp_sephora_aggregate_parser_v1",
         SEPHORA_PDP_PARSER_VERSION,
     }:
         raise ValueError("Sephora content packet parser version is unknown")
-    if capture_metadata.get("parser_version") != expected_parser_version:
+    version_key = "extractor_version" if metadata_is_current else "parser_version"
+    if capture_metadata.get(version_key) != expected_parser_version:
         raise ValueError("Sephora content packet parser version does not match its record")
-    if capture_metadata.get("projection_status") != "succeeded":
-        raise ValueError("Sephora content packet projection did not succeed")
-    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
-        raise ValueError("Sephora content packet must use content or sample mode")
+    if metadata_is_current:
+        if capture_metadata.get("extraction_status") != "succeeded":
+            raise ValueError("Sephora content packet extraction did not succeed")
+        if capture_metadata.get("retention_outcome") != "content":
+            raise ValueError("Sephora content packet must have content retention outcome")
+    else:
+        if capture_metadata.get("projection_status") != "succeeded":
+            raise ValueError("legacy Sephora content packet projection did not succeed")
+        if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+            raise ValueError("legacy Sephora content packet mode is invalid")
 
     browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
     profile = browser_metadata.get("retail_capture_profile")
@@ -1459,13 +1418,25 @@ def _validate_luckyscent_content_packet_metadata(
             raise ValueError(f"{filename} must contain a JSON object")
         return value
 
-    capture_metadata = _one_json("content_capture_metadata.json")
-    if capture_metadata.get("parser_version") != LUCKYSCENT_PDP_PARSER_VERSION:
+    try:
+        capture_metadata = _one_json("content_extraction_metadata.json")
+        metadata_is_current = True
+    except ValueError:
+        capture_metadata = _one_json("content_capture_metadata.json")
+        metadata_is_current = False
+    version_key = "extractor_version" if metadata_is_current else "parser_version"
+    if capture_metadata.get(version_key) != LUCKYSCENT_PDP_PARSER_VERSION:
         raise ValueError("Luckyscent content packet parser version does not match current")
-    if capture_metadata.get("projection_status") != "succeeded":
-        raise ValueError("Luckyscent content packet projection did not succeed")
-    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
-        raise ValueError("Luckyscent content packet must use content or sample mode")
+    if metadata_is_current:
+        if capture_metadata.get("extraction_status") != "succeeded":
+            raise ValueError("Luckyscent content packet extraction did not succeed")
+        if capture_metadata.get("retention_outcome") != "content":
+            raise ValueError("Luckyscent content packet must have content retention outcome")
+    else:
+        if capture_metadata.get("projection_status") != "succeeded":
+            raise ValueError("legacy Luckyscent content packet projection did not succeed")
+        if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+            raise ValueError("legacy Luckyscent content packet mode is invalid")
 
     browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
     profile = browser_metadata.get("retail_capture_profile")
@@ -1806,8 +1777,14 @@ def _validate_nordstrom_content_packet_metadata(
             raise ValueError(f"{filename} must contain a JSON object")
         return value
 
-    capture_metadata = _one_json("content_capture_metadata.json")
-    if capture_metadata.get("parser_version") not in {
+    try:
+        capture_metadata = _one_json("content_extraction_metadata.json")
+        metadata_is_current = True
+    except ValueError:
+        capture_metadata = _one_json("content_capture_metadata.json")
+        metadata_is_current = False
+    version_key = "extractor_version" if metadata_is_current else "parser_version"
+    if capture_metadata.get(version_key) not in {
         "retail_pdp_nordstrom_aggregate_parser_v1",
         "retail_pdp_nordstrom_aggregate_parser_v2",
         NORDSTROM_PDP_PARSER_VERSION,
@@ -1815,10 +1792,16 @@ def _validate_nordstrom_content_packet_metadata(
         raise ValueError(
             "Nordstrom content packet parser version is not a supported durable version"
         )
-    if capture_metadata.get("projection_status") != "succeeded":
-        raise ValueError("Nordstrom content packet projection did not succeed")
-    if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
-        raise ValueError("Nordstrom content packet must use content or sample mode")
+    if metadata_is_current:
+        if capture_metadata.get("extraction_status") != "succeeded":
+            raise ValueError("Nordstrom content packet extraction did not succeed")
+        if capture_metadata.get("retention_outcome") != "content":
+            raise ValueError("Nordstrom content packet must have content retention outcome")
+    else:
+        if capture_metadata.get("projection_status") != "succeeded":
+            raise ValueError("legacy Nordstrom content packet projection did not succeed")
+        if capture_metadata.get("capture_artifact_mode") not in {"content", "sample"}:
+            raise ValueError("legacy Nordstrom content packet mode is invalid")
 
     browser_metadata = _one_json("cloakbrowser_snapshot_metadata.json")
     profile = browser_metadata.get("retail_capture_profile")
@@ -4794,6 +4777,4 @@ __all__ = [
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
     "build_sephora_pdp_aggregate_content_record",
-    "project_retail_pdp_into_lake",
-    "write_retail_pdp_projection",
 ]

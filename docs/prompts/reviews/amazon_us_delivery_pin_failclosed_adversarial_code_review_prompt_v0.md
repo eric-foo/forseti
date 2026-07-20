@@ -38,7 +38,7 @@ targets:
   - forseti-harness/runners/run_source_capture_cloakbrowser_packet.py
   - forseti-harness/tests/unit/test_durability_us_storefront_pin_wiring.py
   - forseti/product/spines/capture/core/source_families/retail_pdp/demand_durability_us_storefront_pin_recon_verdict_v0.md
-  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
 reviews: findings-first adversarial implementation review; confidence labels are bound; no formal approval, readiness verdict, patch queue, or runtime-model routing
 doctrine_change: none
 input_prompt_source: docs/prompts/reviews/amazon_us_delivery_pin_failclosed_adversarial_code_review_prompt_v0.md

@@ -42,7 +42,7 @@ The focused corpus must include:
 
 This focused reader view is not the retailer onboarding acquisition sample.
 Retailer PDP onboarding follows the chronological rule in
-`retail_pdp_projection_playbook_v0.md`: complete last-30-day cohort first, then
+`retail_pdp_content_cleaning_contract_v0.md`: complete last-30-day cohort first, then
 Most Recent historical context to 30 rows or proven source exhaustion when the
 cohort has fewer than 12. The acquired chronological corpus and aggregate rating
 distribution are the basis for general product understanding. This document's

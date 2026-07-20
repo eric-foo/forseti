@@ -16,7 +16,7 @@ open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py

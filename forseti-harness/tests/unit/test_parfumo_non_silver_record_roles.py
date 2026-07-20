@@ -29,7 +29,7 @@ _HTML = """
 
 def test_parfumo_registry_roles_match_validator_expectations() -> None:
     assert role_of("cleaning_parfumo_audit") is LaneRole.CLEANING_AUDIT
-    assert role_of(PROJECTION_PARFUMO_LANE) is LaneRole.PROJECTION
+    assert role_of(PROJECTION_PARFUMO_LANE) is LaneRole.RETIRED_CAPTURE_PROJECTION
     assert role_of("cleaning_parfumo_silver") is LaneRole.SILVER_ENVELOPE
 
 

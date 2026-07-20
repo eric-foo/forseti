@@ -1,11 +1,15 @@
+"""Historical raw-packet compatibility at the Cleaning boundary."""
+
 from __future__ import annotations
 
+import hashlib
 import json
+from pathlib import Path
 
-from cleaning import (
-    CleaningPacket,
-    cleaning_input_handles_from_projection_rows,
-)
+from cleaning.basenotes import build_basenotes_cleaning_packet_from_source
+from cleaning.fragrantica import build_fragrantica_cleaning_packet_from_source
+from cleaning.parfumo import build_parfumo_cleaning_packet_from_source
+from cleaning.retail_pdp import build_retail_pdp_cleaning_input
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -18,301 +22,265 @@ from source_capture.models import (
     not_attempted,
     unknown_with_reason,
 )
-from source_capture.reddit_projection import (
-    REDDIT_PROJECTION_CERTIFICATION,
-    build_reddit_api_projection,
+
+
+_BASENOTES_FIXTURE = (
+    Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "basenotes"
+    / "mojave_ghost_product_page.html"
 )
-from source_capture.retail_pdp_projection import (
-    RETAIL_PDP_PROJECTION_CERTIFICATION,
-    build_retail_pdp_projection,
-)
 
+_FRAGRANTICA_HTML = """
+<html><head>
+  <link rel="canonical" href="https://www.fragrantica.com/perfume/Maison-Francis-Kurkdjian/Baccarat-Rouge-540-33519.html"/>
+</head><body>
+  <div id="perfume-description-content" itemprop="description">
+    <p><b>Baccarat Rouge 540</b> by <b>Maison Francis Kurkdjian</b> is a fragrance.</p>
+  </div>
+  <button data-tab="all-reviews" data-active="true">All reviews by date</button>
+  <div class="review-tab-panel" id="all-reviews">
+    <div id="parent3090334" class="cell tw-review-card" itemprop="review" itemscope>
+      <user-perfume-votes-new :perfume-votes="{&quot;rating&quot;:5,&quot;longevity&quot;:3,&quot;sillage&quot;:2,&quot;gender&quot;:&quot;female_unisex&quot;,&quot;relation&quot;:&quot;have&quot;}"></user-perfume-votes-new>
+      <meta itemprop="name" content="Rimazy"/>
+      <span itemprop="datePublished" content="2026-06-25">06/25/26</span>
+      <div id="review_3090334"><p>This perfume died young.</p></div>
+    </div>
+  </div>
+</body></html>
+"""
 
-def test_reddit_projection_rows_become_raw_keyed_cleaning_handles() -> None:
-    packet = _reddit_packet()
-    projection = build_reddit_api_projection(
-        packet=packet,
-        raw_file_bytes_by_file_id={"file_01": _reddit_comments_bytes()},
-    )
-
-    handles = cleaning_input_handles_from_projection_rows(
-        source_family=packet.source_family,
-        source_surface=packet.source_surface,
-        projection_packet=projection,
-    )
-
-    assert len(handles) == len(projection.rows) == 4
-    CleaningPacket(handles=handles)
-
-    first_row = projection.rows[0]
-    first_handle = handles[0]
-    assert first_handle.raw_anchor.packet_id == packet.packet_id
-    assert first_handle.raw_anchor.slice_id == first_row.raw_ref.slice_id
-    assert first_handle.raw_anchor.file_id == first_row.raw_anchor.file_id
-    assert first_handle.raw_anchor.anchor_kind == "json_pointer"
-    assert first_handle.raw_anchor.json_pointer == first_row.raw_anchor.json_pointer
-    assert first_handle.projection_ref is not None
-    assert first_handle.projection_ref.certification == REDDIT_PROJECTION_CERTIFICATION
-    assert first_handle.projection_ref.row_id == first_row.row_id
-    assert first_handle.projection_ref.row_kind == first_row.row_kind
-
-
-def test_retail_projection_rows_keep_source_anchor_kind_in_cleaning_handles() -> None:
-    packet = _retail_packet()
-    projection = build_retail_pdp_projection(
-        packet=packet,
-        raw_file_bytes_by_file_id={
-            "file_01": _retail_html().encode("utf-8"),
-            "file_02": _retail_visible_text().encode("utf-8"),
-        },
-    )
-
-    handles = cleaning_input_handles_from_projection_rows(
-        source_family=packet.source_family,
-        source_surface=packet.source_surface,
-        projection_packet=projection,
-    )
-
-    assert len(handles) == len(projection.rows)
-    CleaningPacket(handles=handles)
-
-    review_row = _single_projection_row(projection.rows, "retail_review_substrate")
-    review_handle = next(
-        handle for handle in handles if handle.projection_ref and handle.projection_ref.row_id == review_row.row_id
-    )
-    assert review_handle.raw_anchor.packet_id == packet.packet_id
-    assert review_handle.raw_anchor.anchor_kind == "html_selector"
-    assert review_handle.raw_anchor.anchor_value == "#averageCustomerReviews/#acrCustomerReviewText"
-    assert review_handle.projection_ref is not None
-    assert review_handle.projection_ref.certification == RETAIL_PDP_PROJECTION_CERTIFICATION
-    assert review_handle.projection_ref.row_kind == "retail_review_substrate"
+_PARFUMO_HTML = """
+<html><head>
+  <link rel="canonical" href="https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum"/>
+  <title>Baccarat Rouge 540 Eau de Parfum by Maison Francis Kurkdjian</title>
+</head><body>
+  <main data-perfume-id="67720" data-rating-count="5176" data-review-count="369" data-statement-count="1390">
+    <script>const routes = {reviews: "/action/perfume/get_reviews.php", statements: "/action/perfume/get_statements.php", p_id: 67720};</script>
+    <article data-review-id="900001" data-author="Rimazy" data-rating="8.0">
+      <time datetime="2026-06-25">06/25/26</time>
+      <p data-role="review-text">This perfume died young.</p>
+    </article>
+    <article data-statement-id="st7001" data-author="Lyra">
+      <time datetime="2026-06-24">06/24/26</time>
+      <p data-role="statement-text">Airy amber trail.</p>
+    </article>
+  </main>
+</body></html>
+"""
 
 
 def _timing() -> PacketTiming:
     return PacketTiming(
-        source_publication_or_event=unknown_with_reason("fixture does not supply source event timing"),
-        source_edit_or_version=unknown_with_reason("fixture does not supply edit timing"),
-        capture_time=known_fact("2026-06-16T00:00:00Z"),
+        source_publication_or_event=unknown_with_reason(
+            "fixture does not supply source event timing"
+        ),
+        source_edit_or_version=unknown_with_reason(
+            "fixture does not supply edit timing"
+        ),
+        capture_time=known_fact("2026-07-01T00:00:00Z"),
         recapture_time=not_applicable("first capture"),
-        cutoff_posture=unknown_with_reason("test fixture has no decision cutoff"),
+        cutoff_posture=unknown_with_reason("test fixture has no cutoff"),
     )
 
 
-def _reddit_packet() -> SourceCapturePacket:
+def _raw_packet(
+    *,
+    packet_id: str,
+    source_family: str,
+    source_surface: str,
+    source_url: str,
+    files: dict[str, tuple[str, bytes]],
+) -> tuple[SourceCapturePacket, dict[str, bytes]]:
     timing = _timing()
-    return SourceCapturePacket(
-        packet_id="01TESTREDDITCLEANING",
+    preserved = []
+    file_bytes = {}
+    file_ids = []
+    for index, (name, body) in enumerate(files.values(), 1):
+        file_id = f"file_{index:02d}"
+        file_ids.append(file_id)
+        file_bytes[file_id] = body
+        preserved.append(
+            PreservedFile(
+                file_id=file_id,
+                original_path=name,
+                relative_packet_path=f"raw/{index:02d}_{name}",
+                sha256=hashlib.sha256(body).hexdigest(),
+                hash_basis="raw_stored_bytes",
+                size_bytes=len(body),
+            )
+        )
+    packet = SourceCapturePacket(
+        packet_id=packet_id,
         manifest_version="source_capture_packet_manifest_v1",
-        obligation_contract_version="core_spine_v0_data_capture_spine_obligation_contract_v0",
-        source_family="reddit",
-        source_surface="reddit_api_comments",
-        source_locator=known_fact("https://www.reddit.com/comments/abc123"),
-        requested_decision_context=known_fact("test projection to cleaning traceability"),
-        capture_context=known_fact("unit test packet"),
-        actor_audience_context=unknown_with_reason("not supplied by fixture"),
+        obligation_contract_version=(
+            "core_spine_v0_data_capture_spine_obligation_contract_v0"
+        ),
+        source_family=source_family,
+        source_surface=source_surface,
+        source_locator=known_fact(source_url),
+        requested_decision_context=known_fact("legacy raw compatibility test"),
+        capture_context=known_fact("unit test historical raw packet"),
+        actor_audience_context=unknown_with_reason("not supplied"),
         capture_mode=CaptureModeCategory.STRUCTURED_ACCESS,
         operator_category="unit_test",
-        session_identity="01TESTSESSION",
+        session_identity="",
         timing=timing,
-        access_posture=known_fact("reddit api fixture supplied"),
+        access_posture=known_fact("raw fixture supplied"),
         archive_history_posture=not_attempted("archive not queried"),
-        media_modality_posture=not_attempted("media not fetched"),
+        media_modality_posture=not_attempted("media not supplied"),
         re_capture_relationship=not_applicable("first capture"),
         source_slices=[
             SourceCaptureSlice(
-                slice_id="reddit_post_01",
-                locator=known_fact("https://www.reddit.com/comments/abc123"),
+                slice_id="slice_01",
+                locator=known_fact(source_url),
                 timing=timing,
-                access_posture=known_fact("reddit api fixture supplied"),
+                access_posture=known_fact("raw fixture supplied"),
                 archive_history_posture=not_attempted("archive not queried"),
-                media_modality_posture=not_attempted("media not fetched"),
+                media_modality_posture=not_attempted("media not supplied"),
                 re_capture_relationship=not_applicable("first capture"),
                 limitations=[],
                 warning_notes=[],
-                preserved_file_ids=["file_01"],
+                preserved_file_ids=file_ids,
             )
         ],
-        preserved_files=[
-            PreservedFile(
-                file_id="file_01",
-                original_path="reddit_comments.json",
-                relative_packet_path="raw/01_reddit_comments.json",
-                sha256="abc123sha",
-                hash_basis="raw_stored_bytes",
-                size_bytes=123,
-            )
-        ],
+        preserved_files=preserved,
         receipt_metadata=ReceiptMetadata(
             title="Source Capture Packet Receipt",
-            generated_at="2026-06-16T00:00:00Z",
-            summary="unit test packet",
-            non_claims=["not Cleaning", "not Judgment"],
+            generated_at="2026-07-01T00:00:01Z",
+            summary="historical raw compatibility fixture",
+            non_claims=["not live capture"],
         ),
+    )
+    return packet, file_bytes
+
+
+def _assert_legacy_handles(packet, *, expected_prefix: str) -> None:
+    assert packet.handles
+    assert all(handle.source_row_id for handle in packet.handles)
+    assert all(
+        handle.handle_id.startswith(expected_prefix) for handle in packet.handles
+    )
+    assert all(
+        handle.source_anchor is not None
+        and handle.source_anchor.anchor_kind != "json_pointer"
+        for handle in packet.handles
     )
 
 
-def _retail_packet() -> SourceCapturePacket:
-    timing = _timing()
-    return SourceCapturePacket(
-        packet_id="01TESTRETAILCLEANING",
-        manifest_version="source_capture_packet_manifest_v1",
-        obligation_contract_version="core_spine_v0_data_capture_spine_obligation_contract_v0",
-        source_family="web_page",
-        source_surface="cloakbrowser_snapshot",
-        source_locator=known_fact("https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK"),
-        requested_decision_context=known_fact("test projection to cleaning traceability"),
-        capture_context=known_fact("unit test packet"),
-        actor_audience_context=unknown_with_reason("not supplied by fixture"),
-        capture_mode=CaptureModeCategory.MULTIMODAL,
-        operator_category="unit_test",
-        session_identity="01TESTSESSION",
-        timing=timing,
-        access_posture=known_fact("rendered DOM fixture supplied"),
-        archive_history_posture=not_attempted("archive not queried"),
-        media_modality_posture=not_attempted("screenshot not supplied"),
-        re_capture_relationship=not_applicable("first capture"),
-        series_id="amazon_laneige_lipmask_berry_us_v0",
-        intended_cadence={"mode": "fixed", "slot_count": 3},
-        source_slices=[
-            SourceCaptureSlice(
-                slice_id="cloakbrowser_snapshot_01",
-                locator=known_fact("https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK"),
-                timing=timing,
-                access_posture=known_fact("rendered DOM fixture supplied"),
-                archive_history_posture=not_attempted("archive not queried"),
-                media_modality_posture=not_attempted("screenshot not supplied"),
-                re_capture_relationship=not_applicable("first capture"),
-                locale_pin=known_fact("en-US"),
-                currency_pin=known_fact("USD"),
-                variant_pin=known_fact("Berry 2.5g (B07XXPHQZK)"),
-                limitations=[],
-                warning_notes=[],
-                preserved_file_ids=["file_01", "file_02"],
-            )
-        ],
-        preserved_files=[
-            PreservedFile(
-                file_id="file_01",
-                original_path="rendered_dom.html",
-                relative_packet_path="raw/01_cloakbrowser_rendered_dom.html",
-                sha256="htmlsha",
-                hash_basis="raw_stored_bytes",
-                size_bytes=123,
-            ),
-            PreservedFile(
-                file_id="file_02",
-                original_path="visible_text.txt",
-                relative_packet_path="raw/02_cloakbrowser_visible_text.txt",
-                sha256="textsha",
-                hash_basis="raw_stored_bytes",
-                size_bytes=123,
-            ),
-        ],
-        receipt_metadata=ReceiptMetadata(
-            title="Source Capture Packet Receipt",
-            generated_at="2026-06-16T00:00:00Z",
-            summary="unit test packet",
-            non_claims=["not Cleaning", "not Judgment"],
+def test_basenotes_raw_packet_uses_legacy_decoder_under_cleaning() -> None:
+    url = "https://basenotes.com/fragrances/mojave-ghost-by-byredo.26143979"
+    packet, bodies = _raw_packet(
+        packet_id="01LEGACYBASENOTES",
+        source_family="fragrance_native_database",
+        source_surface=(
+            "basenotes_product_page_user_cleared_persistent_chrome_current_window"
         ),
-    )
-
-
-def _reddit_comments_bytes() -> bytes:
-    post_listing = {
-        "kind": "Listing",
-        "data": {
-            "children": [
-                {
-                    "kind": "t3",
-                    "data": {
-                        "id": "abc123",
-                        "name": "t3_abc123",
-                        "title": "API pricing changed",
-                        "selftext": "Original post body",
-                        "author": "poster",
-                        "created_utc": 1700000000.0,
-                        "subreddit": "testsub",
-                        "permalink": "/r/testsub/comments/abc123/api_pricing_changed/",
-                        "score": 12,
-                        "num_comments": 2,
-                    },
-                }
-            ]
+        source_url=url,
+        files={
+            "dom": (
+                "browser_rendered_dom.html",
+                _BASENOTES_FIXTURE.read_bytes(),
+            ),
+            "text": ("browser_visible_text.txt", b"Mojave Ghost visible text"),
         },
-    }
-    comments_listing = {
-        "kind": "Listing",
-        "data": {
-            "children": [
-                {
-                    "kind": "t1",
-                    "data": {
-                        "id": "c1",
-                        "name": "t1_c1",
-                        "parent_id": "t3_abc123",
-                        "link_id": "t3_abc123",
-                        "body": "first comment",
-                        "author": "commenter",
-                        "created_utc": 1700000001.0,
-                        "score": 3,
-                        "replies": {
-                            "kind": "Listing",
-                            "data": {
-                                "children": [
-                                    {
-                                        "kind": "t1",
-                                        "data": {
-                                            "id": "c2",
-                                            "name": "t1_c2",
-                                            "parent_id": "t1_c1",
-                                            "link_id": "t3_abc123",
-                                            "body": "nested reply",
-                                            "author": "replier",
-                                            "created_utc": 1700000002.0,
-                                            "score": 1,
-                                        },
-                                    }
-                                ]
-                            },
-                        },
-                    },
+    )
+    result = build_basenotes_cleaning_packet_from_source(
+        packet=packet, file_bytes_by_file_id=bodies
+    )
+    _assert_legacy_handles(result, expected_prefix="cleaning:basenotes:")
+
+
+def test_fragrantica_raw_packet_uses_legacy_decoder_under_cleaning() -> None:
+    url = (
+        "https://www.fragrantica.com/perfume/Maison-Francis-Kurkdjian/"
+        "Baccarat-Rouge-540-33519.html"
+    )
+    packet, bodies = _raw_packet(
+        packet_id="01LEGACYFRAGRANTICA",
+        source_family="fragrance_native_database",
+        source_surface="fragrantica_product_page_direct_http",
+        source_url=url,
+        files={
+            "body": ("http_response_body.bin", _FRAGRANTICA_HTML.encode()),
+            "metadata": ("http_response_metadata.json", b'{"status": 200}'),
+        },
+    )
+    result = build_fragrantica_cleaning_packet_from_source(
+        packet=packet, file_bytes_by_file_id=bodies
+    )
+    _assert_legacy_handles(result, expected_prefix="cleaning:fragrantica:")
+
+
+def test_parfumo_raw_packet_uses_legacy_decoder_under_cleaning() -> None:
+    url = (
+        "https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/"
+        "Baccarat_Rouge_540_Eau_de_Parfum"
+    )
+    packet, bodies = _raw_packet(
+        packet_id="01LEGACYPARFUMO",
+        source_family="fragrance_native_database",
+        source_surface="parfumo_product_page_direct_http",
+        source_url=url,
+        files={
+            "body": ("http_response_body.bin", _PARFUMO_HTML.encode()),
+            "metadata": ("http_response_metadata.json", b'{"status": 200}'),
+        },
+    )
+    result = build_parfumo_cleaning_packet_from_source(
+        packet=packet, file_bytes_by_file_id=bodies
+    )
+    _assert_legacy_handles(result, expected_prefix="cleaning:parfumo:")
+
+
+def test_retail_raw_packet_uses_legacy_decoder_under_cleaning() -> None:
+    url = "https://www.sephora.com/product/lip-sleeping-mask-in-berry-2-5g-P446304"
+    product = {
+        "@context": "https://schema.org",
+        "@type": "ProductGroup",
+        "productGroupID": "P446304",
+        "name": "Lip Sleeping Mask",
+        "hasVariant": [
+            {
+                "@type": "Product",
+                "sku": "2240844",
+                "name": "Lip Sleeping Mask in Berry",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "25.00",
+                    "priceCurrency": "USD",
+                    "availability": "https://schema.org/InStock",
                 },
-                {"kind": "more", "data": {"id": "more1", "count": 5, "children": ["c3", "c4"]}},
-            ]
+            }
+        ],
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.3",
+            "reviewCount": "22000",
         },
     }
-    return json.dumps([post_listing, comments_listing]).encode("utf-8")
-
-
-def _retail_html() -> str:
-    return """
-    <html><body>
-      <input type="hidden" id="ASIN" name="ASIN" value="B07XXPHQZK">
-      <input type="hidden" name="items[0.base][customerVisiblePrice][amount]" value="16.8">
-      <div id="averageCustomerReviews"><span>4.6 out of 5 stars</span></div>
-      <span id="acrCustomerReviewText">36,799 global ratings</span>
-      <div id="imageBlock_feature_div">hero image chrome</div>
-    </body></html>
-    """
-
-
-def _retail_visible_text() -> str:
-    return """
-    LANEIGE Lip Sleeping Mask
-    Style: Berry
-    $16.80
-    FREE delivery Sunday, June 21 on orders shipped by Amazon over $35
-    In Stock
-    Customer reviews
-    4.6 out of 5 stars
-    36,799 global ratings
-    Best Sellers Rank: #249 in Beauty & Personal Care
-    Get a $10 Amazon Store Card instantly upon approval
-    LANEIGE products customers bought together
-    """
-
-
-def _single_projection_row(rows, row_kind: str):
-    matching_rows = [row for row in rows if row.row_kind == row_kind]
-    assert len(matching_rows) == 1
-    return matching_rows[0]
+    html = (
+        '<html><head><script type="application/ld+json">'
+        + json.dumps(product)
+        + "</script></head><body>IN STOCK</body></html>"
+    ).encode()
+    packet, bodies = _raw_packet(
+        packet_id="01LEGACYRETAILPDP",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_url=url,
+        files={
+            "dom": ("cloakbrowser_rendered_dom.html", html),
+            "text": (
+                "cloakbrowser_visible_text.txt",
+                b"IN STOCK\nRatings & Reviews\n4.3\n22000 Reviews",
+            ),
+        },
+    )
+    result = build_retail_pdp_cleaning_input(
+        packet=packet, file_bytes_by_file_id=bodies
+    )
+    assert result.legacy_input is True
+    assert result.content_schema_version is None
+    assert result.extractor_version is None
+    _assert_legacy_handles(result, expected_prefix="cleaning:retail_pdp:")

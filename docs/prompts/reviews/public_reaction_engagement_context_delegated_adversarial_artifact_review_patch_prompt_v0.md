@@ -3,6 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Delegated review-and-patch prompt
+output_mode: review-report
 scope: >
   Operator-couriered, de-correlated adversarial artifact review-and-patch
   commission for the public-reaction engagement context doctrine patch. The
@@ -22,7 +23,7 @@ open_next:
   - .agents/workflow-overlay/validation-gates.md
   - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
   - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
 input_hashes_sha256_worktree:

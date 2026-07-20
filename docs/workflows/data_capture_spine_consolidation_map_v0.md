@@ -72,14 +72,11 @@ stale_if:
 | Check Capture obligations / forbidden outputs | `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
 | Check tenant/source-family payload attachment boundary | `forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md` |
 | Explain the core-facts vs typed-attachment split in plain language | `forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md` |
-| Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check logical data-lake mechanics from Capture through canonical content, ECR/SCR, Cleaning, and Judgment | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
 | Check Retail/PDP as the first non-IG typed-envelope probe | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md` |
-| Check raw-to-Judgment projection view doctrine | `forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md` |
-| Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
-| Check current Retail/PDP projection playbook for Amazon, Sephora, and Ulta | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` |
-| Project an existing Retail/PDP packet directory into local projection JSON | `orca-harness/runners/run_retail_pdp_projection.py`, `orca-harness/source_capture/retail_pdp_projection.py`, and `orca-harness/tests/unit/test_retail_pdp_projection.py` |
-| Capture one Retail/PDP CloakBrowser packet and opt into local projection sidecar | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
-| Run or hand off the three-retailer Retail/PDP sidecar smoke | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` (canonical Amazon/Sephora/Ulta URLs, flags, output inspection, failure taxonomy, and code-enforceable follow-up flags) |
+| Check Capture-to-Cleaning authority and adaptation boundary | `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` |
+| Check Retail/PDP content and Cleaning contract | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md` |
+| Produce Retail/PDP Silver from a committed packet through Cleaning-owned content adaptation | `forseti-harness/runners/run_retail_pdp_silver_producer.py`, `forseti-harness/cleaning/retail_pdp.py`, and `forseti-harness/tests/unit/test_retail_pdp_content_cleaning_silver.py` |
 | Check fragrance purchase-review focused coverage MGT | `forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md` (Luckyscent pinned-route receipt, row-selection policy, adaptive cap, drift fallback contract, accepted residuals; no raw review bodies in tracked docs) |
 | Build a local fragrance purchase-review focused coverage receipt from saved widget/PDP files | `orca-harness/runners/run_fragrance_review_coverage.py`, `orca-harness/source_capture/fragrance_review_coverage.py`, and `orca-harness/tests/unit/test_fragrance_review_coverage.py` (offline helper; selected reader bodies plus skipped metadata/hashes; no live capture, ECR, Cleaning, Judgment, or integrity scoring) |
 | Project an existing IG creator-momentum packet directory into local projection JSON | `orca-harness/runners/run_ig_creator_momentum_projection.py`, `orca-harness/source_capture/ig_projection.py`, and `orca-harness/tests/unit/test_source_capture_ig_projection.py` (offline, view-only, no live IG capture, scheduler, production store, or momentum score) |
@@ -415,7 +412,7 @@ stale_if:
   Ulta: raw inputs, allowed projected rows, binding map requirements, residual
   meanings, retailer-specific target-binding limits, and the playbook-first
   boundary before auto-project wiring or ECR sequencing.
-- owner: `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`
+- owner: `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`
 
 ### Anti-block capture ladder
 

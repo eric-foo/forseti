@@ -55,8 +55,8 @@ def main(argv: list[str] | None = None) -> int:
         "record_kind": summary.get("record_kind"),
         "questions": summary.get("questions", {}),
         "reviews": summary.get("reviews", {}),
-        "parser_fit": summary.get("parser_fit"),
-        "projection_equivalence": summary.get("projection_equivalence"),
+        "content_qualification": summary.get("content_qualification"),
+        "row_accounting": summary.get("row_accounting"),
         "loss_ledger": summary.get("loss_ledger"),
         "raw_failure_fallback": summary.get("raw_failure_fallback"),
     }

@@ -10,10 +10,10 @@ use_when:
   - Checking why this packet is classified as fragrance-native database material rather than retail PDP material.
 authority_boundary: retrieval_only
 open_next:
-  - docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md
+  - forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 input_hashes:
@@ -175,8 +175,6 @@ Observed command outputs from this continuation:
 git status --short --branch
 ## codex/fragrance-native-live-probe...origin/codex/fragrance-native-live-probe
  M docs/research/orca_fragrance_native_database_live_probe_v0.md
-?? docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md
-
 git rev-parse --short HEAD
 b4641d65
 

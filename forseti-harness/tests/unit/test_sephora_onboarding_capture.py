@@ -226,8 +226,8 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
     assert summary["questions"]["total_questions"] == 1390
     assert summary["questions"]["captured_question_rows"] == 2
     assert summary["questions"]["captured_included_answer_rows"] == 3
-    assert summary["projection_equivalence"]["answers_equal"] is True
-    assert summary["parser_fit"]["status"] == "passed"
+    assert summary["row_accounting"]["answers_equal"] is True
+    assert summary["content_qualification"]["status"] == "passed"
 
     names = {
         Path(item["original_path"]).name
@@ -241,7 +241,7 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
     assert _QUESTION_TOKEN.encode() not in persisted
 
 
-def test_projection_failure_commits_every_raw_response_as_fallback(tmp_path: Path) -> None:
+def test_adaptation_failure_commits_every_raw_response_as_fallback(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path)
 
@@ -258,8 +258,8 @@ def test_projection_failure_commits_every_raw_response_as_fallback(tmp_path: Pat
         for item in loaded.manifest["preserved_files"]
     ]
     assert len([name for name in names if name.endswith(".json")]) == 8
-    assert "sephora_projection_failure.json" in names
-    failure = _artifact_json(loaded, "sephora_projection_failure.json")
+    assert "sephora_adaptation_failure.json" in names
+    failure = _artifact_json(loaded, "sephora_adaptation_failure.json")
     assert failure["raw_failure_fallback"] == {
         "expected_response_count": 6,
         "preserved_response_count": 6,

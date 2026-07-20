@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from cleaning.projection import cleaning_input_handles_from_projection_rows
+from cleaning.legacy import cleaning_handles_from_legacy_rows
 from data_lake.root import DataLakeRoot
 from runners.run_tiktok_batch_projection import main as tiktok_projection_main
 from source_capture.tiktok.batch_coverage import (
@@ -139,25 +139,24 @@ def test_tiktok_batch_projection_rejects_coverage_without_raw_ref(tmp_path: Path
         build_tiktok_batch_projection_from_coverage(coverage)
 
 
-def test_tiktok_batch_projection_cleaning_handles_remain_raw_keyed(tmp_path: Path) -> None:
+def test_tiktok_analytical_rows_adapt_to_cleaning_source_anchors(tmp_path: Path) -> None:
     projection = build_tiktok_batch_projection_from_packet_directory(_write_fixture_packet(tmp_path))
 
-    handles = cleaning_input_handles_from_projection_rows(
+    handles = cleaning_handles_from_legacy_rows(
         source_family="tiktok",
         source_surface=TIKTOK_BATCH_CAPTURE_SURFACE,
-        projection_packet=projection,
-        handle_id_prefix="tiktok_projection",
+        packet_id=projection.packet_id,
+        rows=projection.rows,
+        handle_id_prefix="tiktok_analytical",
     )
 
     assert len(handles) == len(projection.rows)
     first = handles[0]
-    assert first.raw_anchor.packet_id == projection.packet_id
-    assert first.raw_anchor.slice_id == "videos/0"
-    assert first.raw_anchor.anchor_kind == "json_pointer"
-    assert first.raw_anchor.json_pointer == "/videos/0"
-    assert first.projection_ref is not None
-    assert first.projection_ref.projection_method == TIKTOK_BATCH_PROJECTION_METHOD
-    assert first.projection_ref.certification == TIKTOK_BATCH_PROJECTION_CERTIFICATION
+    assert first.source_anchor.packet_id == projection.packet_id
+    assert first.source_anchor.slice_id == "videos/0"
+    assert first.source_anchor.anchor_kind == "json_pointer"
+    assert first.source_anchor.json_pointer == "/videos/0"
+    assert first.source_row_id == projection.rows[0].row_id
 
 
 def test_tiktok_batch_projection_cli_reads_data_lake_packet_id(
