@@ -161,7 +161,7 @@ Sephora's current proven mechanics are a source-specific benchmark:
 
 | Area | Reference behavior |
 | --- | --- |
-| Product/variants | The complete `linkStore.page.product` subtree is the broad structured inventory. Preserve every `regularChildSkus` row and exact `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and back-in-stock fields. |
+| Product/variants | The complete `linkStore.page.product` subtree is the broad structured inventory. Preserve every `regularChildSkus` row and exact `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and back-in-stock fields. The content record may store fields once across canonical rows plus `additional_source_fields` only when the extractor proves that those rows reconstruct the complete subtree exactly; unknown root fields must therefore remain captured rather than vanish on a page change. |
 | AI sentiment | Green and red chips are primary facts; polarity, exact label, and count are separate. The verified sample included positive `Softness`, `Scent`, and `Texture`, plus negative `Irritation` and `Scent`. |
 | Helpful reviews | On onboarding, preserve one `Most Helpful` response with `Non-Incentivized Reviews Only`, `TotalPositiveFeedbackCount:desc`, review bodies, and supported filtered review statistics. Preserve exact response order without claiming Sephora's proprietary ranking algorithm. |
 | Recent reviews | On onboarding, preserve one `Most Recent` response with `Non-Incentivized Reviews Only` and `SubmissionTime:desc`; a passively observed page-load response may satisfy this role only when its exact bytes are archived and qualified. It establishes the last-seen review ID for monitoring and is not a 30-day corpus claim. |

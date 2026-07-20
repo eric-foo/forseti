@@ -45,6 +45,7 @@ class RenderedContentExtractionSpec:
     requested_retention_mode: RequestedRetentionMode
     extractor_version: str
     extractor: Callable[[bytes, bytes, str], dict]
+    json_indent: int | None = 2
 
     def __post_init__(self) -> None:
         if self.requested_retention_mode not in CAPTURE_RETENTION_MODES:
@@ -54,6 +55,8 @@ class RenderedContentExtractionSpec:
             )
         if not self.extractor_version.strip():
             raise ValueError("extractor_version must be a non-empty string")
+        if self.json_indent is not None and self.json_indent < 0:
+            raise ValueError("json_indent must be non-negative or None")
 
 
 __all__ = [

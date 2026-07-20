@@ -25,8 +25,8 @@ RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
 RETAIL_PDP_PROJECTION_VERSION = "v1"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
-SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v2"
-SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v2"
+SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v3"
+SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v3"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
 LUCKYSCENT_PDP_CONTENT_RECORD_KIND = "retail_pdp_luckyscent_aggregate_content"
 LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content_v1"
@@ -323,12 +323,14 @@ class SephoraPdpAggregateContentRecord(StrictModel):
     schema_version: Literal[
         "retail_pdp_sephora_aggregate_content_v1",
         "retail_pdp_sephora_aggregate_content_v2",
+        "retail_pdp_sephora_aggregate_content_v3",
     ] = (
         SEPHORA_PDP_CONTENT_SCHEMA_VERSION
     )
     parser_version: Literal[
         "retail_pdp_sephora_aggregate_parser_v1",
         "retail_pdp_sephora_aggregate_parser_v2",
+        "retail_pdp_sephora_aggregate_parser_v3",
     ] = (
         SEPHORA_PDP_PARSER_VERSION
     )
@@ -344,6 +346,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         expected_pair = {
             "retail_pdp_sephora_aggregate_content_v1": "retail_pdp_sephora_aggregate_parser_v1",
             "retail_pdp_sephora_aggregate_content_v2": "retail_pdp_sephora_aggregate_parser_v2",
+            "retail_pdp_sephora_aggregate_content_v3": "retail_pdp_sephora_aggregate_parser_v3",
         }
         if expected_pair[self.schema_version] != self.parser_version:
             raise ValueError("Sephora content schema and parser versions must match")
@@ -987,9 +990,13 @@ def build_sephora_pdp_aggregate_content_record(
         raw_anchor=dom_anchor,
         retailer="sephora",
     )
+    content_rows = _compact_sephora_content_rows(
+        projected.rows,
+        product_state=product_state,
+    )
     record = SephoraPdpAggregateContentRecord(
         source_url=source_url,
-        rows=[_sephora_content_row(row) for row in projected.rows],
+        rows=[_sephora_content_row(row) for row in content_rows],
         binding_map=[
             _sephora_content_binding(binding) for binding in projected.bindings
         ],
@@ -1004,7 +1011,7 @@ def build_sephora_pdp_aggregate_content_record(
                 )
                 for entry in projected.collapsed
             ],
-            preserved_evidence_rows=len(projected.rows),
+            preserved_evidence_rows=len(content_rows),
             preserved_bindings=len(projected.bindings),
             hierarchy_preserved=True,
             structure_preserved=_retail_structure_preserved(projected.bindings),
@@ -2649,6 +2656,184 @@ def _sephora_product_state(
         ):
             return entry.parsed
     return None
+
+
+_SEPHORA_CANONICAL_PRODUCT_FIELDS = {
+    "currentSku": ("retail_variant_offer", "selected_variant_state"),
+    "regularChildSkus": ("retail_variant_offer", "all_variant_states"),
+    "productDetails": ("retail_variant_offer", "product_details_state"),
+    "reviewFilters": ("retail_review_substrate", "review_filters"),
+    "sentiments": ("retail_review_substrate", "review_sentiments"),
+    "reviewImages": ("retail_review_substrate", "review_images"),
+}
+
+
+def _compact_sephora_content_rows(
+    rows: Sequence[RetailPdpProjectionRow],
+    *,
+    product_state: Mapping[str, Any],
+) -> list[RetailPdpProjectionRow]:
+    """Retain each Sephora source fact once and prove the source state rebuilds."""
+    compact_rows: list[RetailPdpProjectionRow] = []
+    original_interactions: dict[str, Any] | None = None
+
+    for row in rows:
+        fields = row.source_visible_fields
+        structured_kind = fields.get("structured_json_kind")
+        if structured_kind == "sephora_link_store_product":
+            additional_source_fields = {
+                key: value
+                for key, value in product_state.items()
+                if key not in _SEPHORA_CANONICAL_PRODUCT_FIELDS
+            }
+            compact_rows.append(
+                row.model_copy(
+                    update={
+                        "source_visible_fields": {
+                            key: value
+                            for key, value in fields.items()
+                            if key != "raw_json_text"
+                        }
+                        | {
+                            "additional_source_fields": additional_source_fields,
+                            "deduplicated_canonical_fields": sorted(
+                                _SEPHORA_CANONICAL_PRODUCT_FIELDS
+                            ),
+                        }
+                    }
+                )
+            )
+            continue
+
+        if structured_kind == "sephora_rendered_interactions":
+            raw_interactions = _safe_json_loads(
+                _string_or_none(fields.get("raw_json_text")) or ""
+            )
+            if not isinstance(raw_interactions, dict):
+                raise ValueError(
+                    "Sephora rendered interactions could not be compacted safely"
+                )
+            original_interactions = raw_interactions
+            compact_rows.append(
+                row.model_copy(
+                    update={
+                        "source_visible_fields": {
+                            key: value
+                            for key, value in fields.items()
+                            if key != "raw_json_text"
+                        }
+                        | {
+                            "displayed_questions": raw_interactions.get(
+                                "displayed_questions", []
+                            ),
+                            "displayed_answers": raw_interactions.get(
+                                "displayed_answers", []
+                            ),
+                            "deduplicated_canonical_fields": [
+                                "displayed_reviews"
+                            ],
+                        }
+                    }
+                )
+            )
+            continue
+
+        compact_rows.append(row)
+
+    _assert_sephora_product_state_reconstructs(
+        product_state=product_state,
+        rows=compact_rows,
+    )
+    if original_interactions is not None:
+        _assert_sephora_interactions_reconstruct(
+            original_interactions=original_interactions,
+            rows=compact_rows,
+        )
+    return compact_rows
+
+
+def _assert_sephora_product_state_reconstructs(
+    *,
+    product_state: Mapping[str, Any],
+    rows: Sequence[RetailPdpProjectionRow],
+) -> None:
+    structured_row = next(
+        (
+            row
+            for row in rows
+            if row.source_visible_fields.get("structured_json_kind")
+            == "sephora_link_store_product"
+        ),
+        None,
+    )
+    if structured_row is None:
+        raise ValueError("Sephora compact content is missing product source fields")
+    additional = structured_row.source_visible_fields.get(
+        "additional_source_fields"
+    )
+    if not isinstance(additional, dict):
+        raise ValueError(
+            "Sephora compact content is missing additional product source fields"
+        )
+
+    reconstructed = dict(additional)
+    for product_key, (row_kind, field_name) in (
+        _SEPHORA_CANONICAL_PRODUCT_FIELDS.items()
+    ):
+        canonical_row = next(
+            (row for row in rows if row.row_kind == row_kind),
+            None,
+        )
+        if canonical_row is None or field_name not in canonical_row.source_visible_fields:
+            raise ValueError(
+                "Sephora compact content cannot reconstruct "
+                f"linkStore.page.product.{product_key}"
+            )
+        reconstructed[product_key] = canonical_row.source_visible_fields[field_name]
+
+    if reconstructed != dict(product_state):
+        raise ValueError(
+            "Sephora compact content does not reconstruct linkStore.page.product"
+        )
+
+
+def _assert_sephora_interactions_reconstruct(
+    *,
+    original_interactions: Mapping[str, Any],
+    rows: Sequence[RetailPdpProjectionRow],
+) -> None:
+    structured_row = next(
+        (
+            row
+            for row in rows
+            if row.source_visible_fields.get("structured_json_kind")
+            == "sephora_rendered_interactions"
+        ),
+        None,
+    )
+    review_row = next(
+        (row for row in rows if row.row_kind == "retail_review_substrate"),
+        None,
+    )
+    if structured_row is None or review_row is None:
+        raise ValueError(
+            "Sephora compact content cannot reconstruct rendered interactions"
+        )
+    reconstructed = {
+        "displayed_reviews": review_row.source_visible_fields.get(
+            "displayed_review_rows", []
+        ),
+        "displayed_questions": structured_row.source_visible_fields.get(
+            "displayed_questions", []
+        ),
+        "displayed_answers": structured_row.source_visible_fields.get(
+            "displayed_answers", []
+        ),
+    }
+    if reconstructed != dict(original_interactions):
+        raise ValueError(
+            "Sephora compact content does not reconstruct rendered interactions"
+        )
 
 
 def _sephora_product_id_from_url(source_url: str) -> str | None:
