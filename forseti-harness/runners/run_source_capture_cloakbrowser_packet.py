@@ -1067,14 +1067,16 @@ def _luckyscent_overlay_dismissal_failure(
     before_snapshot_steps_completed: object,
     before_snapshot_reason: object,
 ) -> str | None:
-    if (
-        luckyscent_market is None
-        or before_snapshot_steps_completed is not False
-    ):
+    # Only an affirmative completed receipt admits content: ``True`` covers both
+    # an absent modal and a successful dismissal, ``False`` is a failed
+    # dismissal, and ``None``/missing means the receipt never arrived.
+    if luckyscent_market is None or before_snapshot_steps_completed is True:
         return None
     if isinstance(before_snapshot_reason, str) and before_snapshot_reason.strip():
         return before_snapshot_reason.strip()
-    return "route-owned pre-snapshot overlay action did not complete"
+    if before_snapshot_steps_completed is False:
+        return "route-owned pre-snapshot overlay action did not complete"
+    return "route-owned pre-snapshot overlay outcome was not recorded"
 
 
 def _luckyscent_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:

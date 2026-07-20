@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -55,10 +56,30 @@ def _fake_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
             "requested_url": kwargs["url"],
             **pre_capture.describe(),
             "pin_confirmed": confirmation.confirmed,
+            # Modal genuinely absent: nothing attempted, vacuously completed.
+            "before_snapshot_attempted": False,
+            "before_snapshot_steps_completed": True,
+            "before_snapshot_reason": None,
         },
         warning_notes=[],
         limitation_notes=[],
     )
+
+
+def _fake_capture_overlay_incomplete(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+    """Same confirmed US/USD capture, but the route-owned overlay dismissal did
+    not complete (changed modal markers), so the receipt is an explicit False."""
+    success = _fake_capture(**kwargs)
+    metadata = dict(success.metadata)
+    metadata.update(
+        before_snapshot_attempted=True,
+        before_snapshot_steps_completed=False,
+        before_snapshot_reason=(
+            "Luckyscent promotional modal markers changed; missing "
+            "'Claim My 10% Off'"
+        ),
+    )
+    return replace(success, metadata=metadata)
 
 
 def test_confirmation_requires_one_luckyscent_i18n_conjunction() -> None:
@@ -239,12 +260,17 @@ def test_plugin_rejects_non_us_market() -> None:
         LuckyscentUSMarketPlugin(country_code="SG", currency_code="SGD")
 
 
-def test_writer_builds_luckyscent_market_plugin(
-    monkeypatch: pytest.MonkeyPatch, tmp_path
-) -> None:
-    monkeypatch.setattr(cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_capture)
-
-    exit_code, output = cloak_writer.run_source_capture_cloakbrowser_packet(
+def _run_luckyscent_writer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+    fake,
+    *,
+    content_mode: bool = False,
+) -> tuple[int, str]:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", fake
+    )
+    return cloak_writer.run_source_capture_cloakbrowser_packet(
         url="https://www.luckyscent.com/products/bread-and-roses-by-pearfat-parfum",
         source_family="retail_pdp",
         source_surface="cloakbrowser_snapshot",
@@ -271,7 +297,94 @@ def test_writer_builds_luckyscent_market_plugin(
         max_artifact_bytes=5_000_000,
         block_heavy_assets=False,
         luckyscent_market="US",
+        content_extraction=(
+            cloak_writer.RenderedContentExtractionSpec(
+                requested_retention_mode="content",
+                extractor_version="test_luckyscent_parser_v1",
+                extractor=lambda _dom, _text, final_url: {
+                    "record_kind": "test_luckyscent_content",
+                    "source_url": final_url,
+                },
+            )
+            if content_mode
+            else None
+        ),
     )
+
+
+def _assert_content_failure_preserved_raw(packet_dir) -> None:
+    raw_dir = packet_dir / "raw"
+    raw_files = {path.name: path for path in raw_dir.iterdir()}
+    assert any(name.endswith("cloakbrowser_rendered_dom.html") for name in raw_files)
+    assert any(name.endswith("cloakbrowser_visible_text.txt") for name in raw_files)
+    metadata_path = next(
+        path
+        for name, path in raw_files.items()
+        if name.endswith("content_extraction_metadata.json")
+    )
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["requested_retention_mode"] == "content"
+    assert metadata["retention_outcome"] == "raw_failure"
+    preservation = {
+        item["role"]: item["preserved"] for item in metadata["inputs"]
+    }
+    assert preservation["rendered_dom"] is True
+    assert preservation["visible_text"] is True
+
+
+def test_writer_builds_luckyscent_market_plugin(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    exit_code, output = _run_luckyscent_writer(monkeypatch, tmp_path, _fake_capture)
 
     assert exit_code == 0
     assert output == str(tmp_path / "packet")
+
+
+def test_writer_fails_admission_when_overlay_dismissal_incomplete(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """End-to-end: a non-completed overlay receipt must block content admission
+    with a typed nonzero exit while the supplied packet is still preserved."""
+    exit_code, output = _run_luckyscent_writer(
+        monkeypatch,
+        tmp_path,
+        _fake_capture_overlay_incomplete,
+        content_mode=True,
+    )
+
+    assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert (
+        cloak_writer.LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE in output
+    )
+    assert "markers changed" in output
+    packet_dir = tmp_path / "packet"
+    _assert_content_failure_preserved_raw(packet_dir)
+
+
+def test_writer_fails_admission_when_overlay_receipt_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """A disappeared/absent before_snapshot receipt (None) must fail closed, not
+    fall through as an admitted content-only packet."""
+
+    def _fake_capture_missing_receipt(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+        success = _fake_capture(**kwargs)
+        metadata = dict(success.metadata)
+        metadata.pop("before_snapshot_steps_completed", None)
+        metadata.pop("before_snapshot_reason", None)
+        return replace(success, metadata=metadata)
+
+    exit_code, output = _run_luckyscent_writer(
+        monkeypatch,
+        tmp_path,
+        _fake_capture_missing_receipt,
+        content_mode=True,
+    )
+
+    assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert (
+        cloak_writer.LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE in output
+    )
+    assert "was not recorded" in output
+    _assert_content_failure_preserved_raw(tmp_path / "packet")
