@@ -186,6 +186,21 @@ def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None
     assert report["source_surface_count"] == 2
     assert inspect_catalog(root)["status"] == "ok"
 
+    classifications = {
+        (row["source_family"], row["source_surface"]): row["source_classification"]
+        for row in _source_surface_rows(root)
+    }
+    assert classifications[
+        ("instagram_creator", "ig_reels_grid_dom_passive_json")
+    ]["mapping_status"] == "classified"
+    assert classifications[
+        ("instagram_creator", "ig_reels_grid_dom_passive_json")
+    ]["operator_identity"] == "instagram"
+    assert classifications[("reddit", "r/B2BMarketing")]["mapping_status"] == "unknown"
+    assert classifications[("reddit", "r/B2BMarketing")]["residuals"] == [
+        "unmapped_legacy_source_pair"
+    ]
+
     ig_pid = ig.packet.packet_id
     ig_entry = json.loads(
         (_catalog_root(root) / "by_packet" / f"{ig_pid}.json").read_text(encoding="utf-8")

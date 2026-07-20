@@ -42,6 +42,7 @@ stale_if:
 | --- | --- |
 | Understand current Source Capture Armory components and gaps | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | Start known-source capture-to-lake lane routing | `forseti/product/spines/capture/core/source_families/README.md` |
+| Classify incumbent source-family/source-surface pairs without rewriting packets | `forseti/product/spines/capture/core/source_taxonomy/source_classification_compatibility_contract_v0.md` |
 | Check fragrance-native database capture routes (Fragrantica/Parfumo/Basenotes) | `forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md` |
 | Check Retail/PDP source-family route map | `forseti/product/spines/capture/core/source_families/retail_pdp/README.md` |
 | Check vendor pricing-page source-family route map | `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md` |
