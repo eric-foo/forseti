@@ -51,9 +51,10 @@ Pickup   = by-key scan of committed availability, minus anchors whose current
            never trust a view; heavy packet loading only for undone anchors.
 Ack      = append-only lane-owned record in acknowledgements/, namespace =
            a lane name already declared in lane_registry.LANE_ROLES.
-Views    = rebuildable Silver Retrieval query tables under
-           indexes/derived_retrieval/silver_vault/core/query_tables/, paired
-           with manifests/ rows; built by the rebuild runner; never consulted
+Views    = rebuildable Silver Retrieval editions under
+           indexes/derived_retrieval/silver_vault/core/generations/, selected
+           by CURRENT and paired with manifests; built by the rebuild runner;
+           never consulted
            by pickup.
 Metrics  = computed on demand by default; precomputed only as rebuildable
            manifest-backed views; first families owner-named, each
@@ -232,13 +233,23 @@ regenerates from the exact policy stored in each view manifest and does not
 accept an implicit current/latest policy.
 
 - `--target availability` delegates to `DataLakeRoot.rebuild_availability`.
-- `--target derived_retrieval` builds the gate-opened object-level views as
-  `indexes/derived_retrieval/silver_vault/core/query_tables/<view>.json`, with
-  the paired manifest at
-  `indexes/derived_retrieval/silver_vault/core/manifests/<view>.json` carrying
-  the Silver Vault read-model obligations (generation id, source record ids,
-  source high-watermark, selection policy versions, generated_at, stale/drift
-  detection fields).
+- `--target derived_retrieval` builds the gate-opened object-level views under
+  `indexes/derived_retrieval/silver_vault/core/generations/<generation_id>/`,
+  with `query_tables/<view>.json` paired to `manifests/<view>.json`. Once every
+  pair exists, the runner atomically replaces `core/CURRENT`. Fixed
+  `core/query_tables/` and `core/manifests/` paths are a read-only migration
+  fallback only before the first `CURRENT` publication; they are never updated
+  afterward.
+- Every sanctioned reader resolves `CURRENT` once, reads only that generation,
+  and verifies view identity, schema, manifest generation, and `view_sha256`.
+  A reader must fail on an unreadable pointer, absent generation, incomplete
+  pair, generation mismatch, or hash mismatch; it must not fall back to an
+  older generation after a pointer exists.
+- Manifests carry generation id, view-specific source ids/high-watermark,
+  policy pins, generated_at, view hash, and structured freshness stating
+  `current_as_of_generation` plus the reconciled derived-source inventory.
+  This is an honest point-in-time claim, not proof that no source arrived after
+  publication. A consumer needing same-day certainty refreshes first.
 - Built views in v0: `by_creator`, `by_mention`, and `undone`. `by_creator`
   was deferred at gate opening behind the audience-silver lake wiring; that
   wiring has since landed (registered creator-metric, grid, and

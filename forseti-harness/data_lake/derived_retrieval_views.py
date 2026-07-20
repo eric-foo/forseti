@@ -17,8 +17,9 @@ capture, not only to creator-content mentions).
 Invariants enforced here:
 
 - Views are regenerated ONLY from committed availability + ``derived/`` +
-  ``acknowledgements/`` records — never from another index, so
-  prove-rebuildability is meaningful.
+  ``acknowledgements/`` records. The disposable SQLite source inventory may
+  reuse already-read immutable bytes and classification keys, but deleting it
+  produces the same cold generation and readers never consult it.
 - Views are caches: nothing in the seam helper (``data_lake.consumption``)
   reads them, and the ``undone`` view's weaker no-ack semantics are stated in
   the view body itself.
@@ -39,15 +40,19 @@ Invariants enforced here:
   byte-deterministic (``--prove-rebuildability`` regenerates under the stored
   manifest's stamps and byte-compares; it never compares a rebuild against
   itself).
+- A complete generation is written beside the current one and published only
+  by atomically replacing ``core/CURRENT``. Readers resolve that pointer once;
+  an interrupted build cannot expose a mixed or partial generation.
 
-Writes follow the incumbent generated-index pattern (``data_lake.catalog``):
-``root._reverify()`` + ``root._within(...)`` + replacement of only the
-owned generated views. No behavior is added to ``DataLakeRoot``.
+Writes stay inside the contract-owned disposable index home. No behavior is
+added to ``DataLakeRoot``.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
 import shutil
 import uuid
 from collections import Counter, defaultdict
@@ -63,12 +68,14 @@ from data_lake.creator_metric_lineage import (
     build_creator_metric_lineage_index,
 )
 from data_lake.derived_retrieval_cache import ClassificationCacheSession
+from data_lake.derived_retrieval_state import IncrementalSourceInventory
 from data_lake.lane_registry import LANE_ROLES, LaneRole
 from data_lake.product_mention_selection import (
     MENTIONS_LANE,
     normalize_product_mention_policy,
     select_product_mention_records,
 )
+from data_lake.root import DataLakeRootError, _atomic_create, _atomic_replace
 from data_lake.silver_record import (
     PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
@@ -79,9 +86,13 @@ UNDONE_VIEW_SCHEMA_VERSION = 1
 BY_MENTION_VIEW_SCHEMA_VERSION = 3
 BY_CREATOR_VIEW_SCHEMA_VERSION = 2
 VIEW_SCHEMA_VERSION = BY_MENTION_VIEW_SCHEMA_VERSION
-MANIFEST_SCHEMA_VERSION = 1
+MANIFEST_SCHEMA_VERSION = 2
 SILVER_VAULT_CORE_PARTS = ("indexes", "derived_retrieval", "silver_vault", "core")
 BUILT_VIEWS = ("by_creator", "by_mention", "undone")
+CURRENT_POINTER_FILENAME = "CURRENT"
+CURRENT_POINTER_SCHEMA_VERSION = 1
+GENERATIONS_DIRNAME = "generations"
+_GENERATION_ID = re.compile(r"[0-9a-f]{32}")
 
 FRAGRANTICA_PROJECTION_LANE = "projection_fragrantica"
 FRAGRANTICA_PRODUCT_ROW_KIND = "fragrance_product_snapshot"
@@ -121,12 +132,122 @@ def generation_stamp() -> dict[str, str]:
     }
 
 
-def build_undone_view(root) -> tuple[dict, list[str]]:
+def _generation_id(value: object) -> str:
+    generation_id = str(value or "")
+    if _GENERATION_ID.fullmatch(generation_id) is None:
+        raise DataLakeRootError(
+            f"invalid derived-retrieval generation id: {generation_id!r}"
+        )
+    return generation_id
+
+
+def current_generation_root(root) -> tuple[Path, str | None, str]:
+    """Resolve the complete current map generation.
+
+    Fixed paths remain a migration fallback until the first
+    generation-published rebuild creates ``CURRENT``.
+    """
+    core = _silver_vault_core_root(root)
+    pointer = core / CURRENT_POINTER_FILENAME
+    if not pointer.is_file():
+        return core, None, "legacy_fixed_paths"
+    try:
+        payload = json.loads(pointer.read_text(encoding="utf-8"))
+        if (
+            not isinstance(payload, dict)
+            or payload.get("pointer_schema_version")
+            != CURRENT_POINTER_SCHEMA_VERSION
+        ):
+            raise ValueError("unsupported pointer schema")
+        generation_id = _generation_id(payload["generation_id"])
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise DataLakeRootError(
+            f"derived-retrieval CURRENT pointer is unreadable: {exc}"
+        ) from exc
+    generation_root = core / GENERATIONS_DIRNAME / generation_id
+    if not generation_root.is_dir():
+        raise DataLakeRootError(
+            "derived-retrieval CURRENT pointer names an absent generation: "
+            f"{generation_id}"
+        )
+    return generation_root, generation_id, "generation_pointer"
+
+
+def load_derived_retrieval_view(
+    root, view_name: str
+) -> tuple[dict | None, dict | None, dict[str, Any]]:
+    """Load and verify one sanctioned generated view/manifest pair."""
+    if view_name not in BUILT_VIEWS:
+        raise ValueError(f"unknown derived-retrieval view: {view_name!r}")
+    generation_root, pointer_generation, layout = current_generation_root(root)
+    view_path = generation_root / "query_tables" / f"{view_name}.json"
+    manifest_path = generation_root / "manifests" / f"{view_name}.json"
+    view_exists = view_path.is_file()
+    manifest_exists = manifest_path.is_file()
+    provenance = {
+        "layout": layout,
+        "pointer_generation_id": pointer_generation,
+    }
+    if not view_exists and not manifest_exists:
+        return None, None, provenance
+    if not view_exists or not manifest_exists:
+        raise DataLakeRootError(
+            f"{view_name} generated view/manifest pair is incomplete"
+        )
+    try:
+        view_bytes = view_path.read_bytes()
+        view = json.loads(view_bytes.decode("utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        raise DataLakeRootError(
+            f"{view_name} generated view/manifest pair is unreadable: {exc}"
+        ) from exc
+    if not isinstance(view, dict) or not isinstance(manifest, dict):
+        raise DataLakeRootError(
+            f"{view_name} generated view/manifest must both be JSON objects"
+        )
+    if view.get("view") != view_name or manifest.get("view") != view_name:
+        raise DataLakeRootError(
+            f"{view_name} generated view/manifest identity mismatch"
+        )
+    if view.get("view_schema_version") != manifest.get("view_schema_version"):
+        raise DataLakeRootError(
+            f"{view_name} generated view/manifest schema mismatch"
+        )
+    if (
+        pointer_generation is not None
+        and manifest.get("generation_id") != pointer_generation
+    ):
+        raise DataLakeRootError(
+            f"{view_name} manifest generation does not match CURRENT"
+        )
+    actual_sha256 = hashlib.sha256(view_bytes).hexdigest()
+    if manifest.get("view_sha256") != actual_sha256:
+        raise DataLakeRootError(
+            f"{view_name} view_sha256 mismatch: manifest does not match view bytes"
+        )
+    return view, manifest, provenance
+
+
+def build_undone_view(
+    root,
+    *,
+    source_inventory: IncrementalSourceInventory | None = None,
+) -> tuple[dict, list[str]]:
     """The undone view body plus the source refs its manifest must cite."""
     committed = sorted(root.list_available())
     acked_by_namespace: dict[str, set[str]] = {}
     ack_refs: list[str] = []
-    for raw_anchor, namespace, ack in iter_all_acks(root):
+    if source_inventory is None:
+        acknowledgements = iter_all_acks(root)
+    else:
+        acknowledgements = (
+            (row.raw_anchor, row.lane, ack)
+            for row in source_inventory.records(subtree="acknowledgements")
+            for ack in (_acknowledgement_from_bytes(row.body),)
+            if ack is not None
+        )
+    for raw_anchor, namespace, ack in acknowledgements:
         acked_by_namespace.setdefault(namespace, set()).add(raw_anchor)
         ack_refs.append(f"{raw_anchor}/{namespace}/{ack.get('obligation_fingerprint', '')}")
     view = {
@@ -151,6 +272,21 @@ def build_undone_view(root) -> tuple[dict, list[str]]:
     return view, source_refs
 
 
+def _acknowledgement_from_bytes(body: bytes) -> dict | None:
+    """Match the consumption seam's safe acknowledgement parsing from bytes."""
+    try:
+        value = json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return None
+    if (
+        isinstance(value, dict)
+        and value.get("record_kind") == "acknowledgement"
+        and isinstance(value.get("obligation_fingerprint"), str)
+    ):
+        return value
+    return None
+
+
 _ACTIVE_SILVER_ENVELOPE_LANES = tuple(
     sorted(
         (lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE),
@@ -164,6 +300,7 @@ def _classified_silver_sweep(
     root,
     *,
     cache_session: ClassificationCacheSession | None = None,
+    source_inventory: IncrementalSourceInventory | None = None,
 ) -> dict[str, Any]:
     """One deterministic classification sweep over every registered active
     ``silver_envelope`` lane: per-anchor/lane/status counts, account-bearing
@@ -180,17 +317,62 @@ def _classified_silver_sweep(
     verification_cache: dict[str, Any] = {}
     derived = root.path / "derived"
     lineage = None
-    for lane in _ACTIVE_SILVER_ENVELOPE_LANES:
-        for path in sorted(derived.glob(f"*/*/{lane}/*")):
-            if not path.is_file():
-                continue
-            anchor = path.parents[1].name
-            ref_key = f"{anchor}/{lane}/{path.name}"
+    if source_inventory is None:
+        source_rows = (
+            (
+                path,
+                path.parents[1].name,
+                lane,
+                path.name,
+                path.read_bytes(),
+                None,
+            )
+            for lane in _ACTIVE_SILVER_ENVELOPE_LANES
+            for path in sorted(derived.glob(f"*/*/{lane}/*"))
+            if path.is_file()
+        )
+    else:
+        source_rows = (
+            (
+                root.path / row.relative_path,
+                row.raw_anchor,
+                row.lane,
+                row.record_id,
+                row.body,
+                row,
+            )
+            for row in source_inventory.records(
+                subtree="derived", lanes=_ACTIVE_SILVER_ENVELOPE_LANES
+            )
+        )
+    previous_classifier_version = (
+        source_inventory.metadata("classifier_version")
+        if source_inventory is not None
+        else None
+    )
+    previous_lineage_fingerprint = (
+        source_inventory.metadata("creator_lineage_state_fingerprint")
+        if source_inventory is not None
+        else None
+    )
+    previous_catalog_fingerprint = (
+        source_inventory.metadata("bronze_catalog_fingerprint")
+        if source_inventory is not None
+        else None
+    )
+    current_catalog_fingerprint: str | None = None
+    for path, anchor, lane, record_id, body, stored_row in source_rows:
+            ref_key = f"{anchor}/{lane}/{record_id}"
             try:
-                record = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
+                record = json.loads(body.decode("utf-8"))
+            except (UnicodeDecodeError, ValueError):
                 residuals.append(
-                    {"status": "unreadable", "raw_anchor": anchor, "lane": lane, "record_id": path.name}
+                    {
+                        "status": "unreadable",
+                        "raw_anchor": anchor,
+                        "lane": lane,
+                        "record_id": record_id,
+                    }
                 )
                 continue
             if (
@@ -210,17 +392,49 @@ def _classified_silver_sweep(
                         "status": "non_envelope_schema_audit_only",
                         "raw_anchor": anchor,
                         "lane": lane,
-                        "record_id": path.name,
+                        "record_id": record_id,
                     }
                 )
                 continue
             source_refs.append(ref_key)
-            cache_key = None
+            cache_key = (
+                stored_row.classification_cache_key
+                if stored_row is not None
+                else None
+            )
             authority = None
+            attachment_backed = any(
+                isinstance(ref, dict)
+                and ref.get("ref_type") == "bronze_attachment_record"
+                for ref in record.get("raw_refs", [])
+            )
+            creator_metric = record.get("lane_namespace") in _CREATOR_METRIC_LANES
             if cache_session is not None:
-                cache_key, authority = cache_session.lookup(
-                    record, record_path=path
+                global_key_state_matches = (
+                    previous_classifier_version == cache_session.classifier_version
                 )
+                if creator_metric:
+                    global_key_state_matches = (
+                        global_key_state_matches
+                        and previous_lineage_fingerprint
+                        == cache_session.lineage_fingerprint
+                    )
+                if attachment_backed:
+                    if current_catalog_fingerprint is None:
+                        current_catalog_fingerprint = (
+                            cache_session.catalog_fingerprint()
+                        )
+                    global_key_state_matches = (
+                        global_key_state_matches
+                        and previous_catalog_fingerprint
+                        == current_catalog_fingerprint
+                    )
+                if cache_key is not None and global_key_state_matches:
+                    authority = cache_session.lookup_cached_key(cache_key)
+                if authority is None:
+                    cache_key, authority = cache_session.lookup(
+                        record, record_path=path
+                    )
             if authority is None:
                 if (
                     record.get("lane_namespace") in _CREATOR_METRIC_LANES
@@ -236,6 +450,10 @@ def _classified_silver_sweep(
                 )
                 if cache_session is not None:
                     cache_session.remember(cache_key, authority)
+            if source_inventory is not None and stored_row is not None:
+                source_inventory.remember_classification_cache_key(
+                    stored_row.relative_path, cache_key
+                )
             authority_by_ref[ref_key] = authority
             anchor_lane_status[anchor][lane][authority.status] += 1
             ref = {
@@ -255,7 +473,7 @@ def _classified_silver_sweep(
                         **problem,
                         "raw_anchor": anchor,
                         "lane": lane,
-                        "record_id": path.name,
+                        "record_id": record_id,
                     }
                 )
             for namespace, identity_kind, native_id, aliases in account_keys:
@@ -271,6 +489,18 @@ def _classified_silver_sweep(
                     entry["aliases"].setdefault(alias_key, alias_value)
                     entry["alias_values"][alias_key].add(str(alias_value))
                 entry["refs_by_anchor"][anchor].append(ref)
+    if source_inventory is not None and cache_session is not None:
+        source_inventory.remember_metadata(
+            "classifier_version", cache_session.classifier_version
+        )
+        source_inventory.remember_metadata(
+            "creator_lineage_state_fingerprint",
+            cache_session.lineage_fingerprint,
+        )
+        if current_catalog_fingerprint is not None:
+            source_inventory.remember_metadata(
+                "bronze_catalog_fingerprint", current_catalog_fingerprint
+            )
     for (namespace, identity_kind, native_id), entry in sorted(accounts.items()):
         for alias_key, alias_values in sorted(entry["alias_values"].items()):
             if len(alias_values) > 1:
@@ -471,7 +701,75 @@ NATIVE_PRODUCT_PAGE_SOURCES: tuple[tuple[str, str, Any], ...] = (
 )
 
 
-def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict]]:
+def _incremental_source_lanes() -> tuple[str, ...]:
+    return tuple(
+        sorted(
+            set(_ACTIVE_SILVER_ENVELOPE_LANES)
+            | {lane for lane, _row_kind, _extractor in NATIVE_PRODUCT_PAGE_SOURCES}
+        )
+    )
+
+
+def _cold_source_inventory(root) -> dict[str, object]:
+    rows = []
+    derived = root.path / "derived"
+    for lane in _incremental_source_lanes():
+        for path in sorted(derived.glob(f"*/*/{lane}/*")):
+            if path.is_file():
+                rows.append(
+                    {
+                        "relative_path": path.relative_to(root.path).as_posix(),
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                    }
+                )
+    acknowledgements = root.path / "acknowledgements"
+    if acknowledgements.is_dir():
+        for path in sorted(acknowledgements.glob("*/*/*/*")):
+            if path.is_file():
+                rows.append(
+                    {
+                        "relative_path": path.relative_to(root.path).as_posix(),
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                    }
+                )
+    rows.sort(key=lambda row: str(row["relative_path"]))
+    return {
+        "source_count": len(rows),
+        "source_inventory_sha256": hashlib.sha256(
+            canonical_record_bytes(rows)
+        ).hexdigest(),
+    }
+
+
+def _input_fingerprint(
+    root,
+    *,
+    source_inventory: IncrementalSourceInventory,
+    cache_session: ClassificationCacheSession,
+    product_mention_policy: dict[str, str],
+) -> str:
+    _undone, undone_source_refs = build_undone_view(
+        root, source_inventory=source_inventory
+    )
+    payload = {
+        "derived_source_inventory": source_inventory.inventory(),
+        "undone_source_refs": undone_source_refs,
+        "product_mention_policy": normalize_product_mention_policy(
+            product_mention_policy
+        ),
+        "classifier_version": cache_session.classifier_version,
+        "creator_lineage_state_fingerprint": cache_session.lineage_fingerprint,
+        "bronze_catalog_fingerprint": cache_session.catalog_fingerprint(),
+    }
+    return hashlib.sha256(canonical_record_bytes(payload)).hexdigest()
+
+
+def _native_product_pages(
+    root,
+    sweep: dict,
+    *,
+    source_inventory: IncrementalSourceInventory | None = None,
+) -> tuple[dict, list[str], list[dict]]:
     """Native product-page identity rows from the registered projection
     sources (view-only mechanical records used as identity ROUTING, never
     authority), each joined to its anchor's classified Silver record counts."""
@@ -481,21 +779,35 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
     residuals: list[dict[str, Any]] = []
     derived = root.path / "derived"
     for source_lane, source_row_kind, extract_identity in NATIVE_PRODUCT_PAGE_SOURCES:
-        for path in sorted(derived.glob(f"*/*/{source_lane}/*")):
-            if not path.is_file():
-                continue
+        if source_inventory is None:
+            source_rows = (
+                (
+                    path.parents[1].name,
+                    path.name,
+                    path.read_bytes(),
+                )
+                for path in sorted(derived.glob(f"*/*/{source_lane}/*"))
+                if path.is_file()
+            )
+        else:
+            source_rows = (
+                (row.raw_anchor, row.record_id, row.body)
+                for row in source_inventory.records(
+                    subtree="derived", lanes=(source_lane,)
+                )
+            )
+        for anchor, record_id, body in source_rows:
             try:
-                projection = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
+                projection = json.loads(body.decode("utf-8"))
+            except (UnicodeDecodeError, ValueError):
                 continue
             rows = projection.get("rows") if isinstance(projection, dict) else None
             if not isinstance(rows, list):
                 continue
-            anchor = path.parents[1].name
             for row in rows:
                 if not isinstance(row, dict) or row.get("row_kind") != source_row_kind:
                     continue
-                source_ref = f"{anchor}/{source_lane}/{path.name}"
+                source_ref = f"{anchor}/{source_lane}/{record_id}"
                 source_refs.add(source_ref)
                 identity = extract_identity(row)
                 brand = identity["brand"]
@@ -511,7 +823,7 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
                             "status": "native_product_page_identity_incomplete",
                             "raw_anchor": anchor,
                             "lane": source_lane,
-                            "record_id": path.name,
+                            "record_id": record_id,
                             "row_id": row.get("row_id"),
                             "missing_fields": missing_fields,
                         }
@@ -546,7 +858,7 @@ def _native_product_pages(root, sweep: dict) -> tuple[dict, list[str], list[dict
                             "status": "native_product_page_identity_conflict",
                             "raw_anchor": anchor,
                             "lane": source_lane,
-                            "record_id": path.name,
+                            "record_id": record_id,
                             "row_id": row.get("row_id"),
                             "brand": brand,
                             "line": line,
@@ -585,13 +897,23 @@ def build_by_mention_view(
     *,
     product_mention_policy: dict[str, str],
     sweep: dict | None = None,
+    source_inventory: IncrementalSourceInventory | None = None,
 ) -> tuple[dict, list[str]]:
     """The exact-policy by_mention view plus every non-evidence residual."""
-    sweep = sweep or _classified_silver_sweep(root)
+    sweep = sweep or _classified_silver_sweep(
+        root, source_inventory=source_inventory
+    )
     selection = select_product_mention_records(
         root,
         policy=product_mention_policy,
         preclassified_authority=sweep["authority_by_ref"],
+        source_records=(
+            source_inventory.records(
+                subtree="derived", lanes=(MENTIONS_LANE,)
+            )
+            if source_inventory is not None
+            else None
+        ),
     )
     mentions: dict[str, dict[str, list[dict]]] = {}
     mention_ref_keys: dict[tuple[str, str], set[tuple[str, str, str]]] = defaultdict(set)
@@ -617,7 +939,7 @@ def build_by_mention_view(
                 mention_ref_keys[(brand, line)].add(ref_key)
                 refs.append(ref)
     native_pages, native_refs, native_residuals = _native_product_pages(
-        root, sweep
+        root, sweep, source_inventory=source_inventory
     )
     view = {
         "view": "by_mention",
@@ -656,6 +978,7 @@ def _manifest(
     source_refs: list[str],
     stamp: dict,
     product_mention_policy: dict[str, str] | None,
+    source_inventory: dict[str, object],
 ) -> dict:
     selection_policy_versions: dict[str, Any] = {
         "view_schema": _VIEW_SCHEMA_VERSIONS[view_name],
@@ -686,9 +1009,15 @@ def _manifest(
         ).hexdigest(),
         "selection_policy_versions": selection_policy_versions,
         "view_sha256": hashlib.sha256(view_bytes).hexdigest(),
+        "freshness": {
+            "posture": "current_as_of_generation",
+            "reconciled_at": stamp["generated_at"],
+            "derived_source_inventory": source_inventory,
+        },
         "stale_if": (
             "any committed availability/derived/acknowledgement change after "
-            "source_high_watermark; verify with --prove-rebuildability"
+            "this generation; refresh before same-day analysis or verify with "
+            "--prove-rebuildability"
         ),
     }
 
@@ -700,6 +1029,7 @@ def _generate(
     product_mention_policy: dict[str, str] | None,
     views: tuple[str, ...] = BUILT_VIEWS,
     cache_session: ClassificationCacheSession | None = None,
+    source_inventory: IncrementalSourceInventory | None = None,
 ) -> dict[str, bytes]:
     """All owned view files as relpath -> bytes, regenerated purely from
     committed material under the given stamp."""
@@ -707,8 +1037,17 @@ def _generate(
         normalize_product_mention_policy(product_mention_policy)
         if "by_mention" in views else None
     )
+    inventory_state = (
+        source_inventory.inventory()
+        if source_inventory is not None
+        else _cold_source_inventory(root)
+    )
     sweep = (
-        _classified_silver_sweep(root, cache_session=cache_session)
+        _classified_silver_sweep(
+            root,
+            cache_session=cache_session,
+            source_inventory=source_inventory,
+        )
         if any(name in views for name in ("by_creator", "by_mention"))
         else None
     )
@@ -721,9 +1060,12 @@ def _generate(
                 root,
                 product_mention_policy=normalized_policy,
                 sweep=sweep,
+                source_inventory=source_inventory,
             )
         else:
-            view, source_refs = build_undone_view(root)
+            view, source_refs = build_undone_view(
+                root, source_inventory=source_inventory
+            )
         view_bytes = canonical_record_bytes(view)
         manifest_bytes = canonical_record_bytes(
             _manifest(
@@ -732,6 +1074,7 @@ def _generate(
                 source_refs,
                 stamp,
                 normalized_policy,
+                inventory_state,
             )
         )
         files[f"query_tables/{view_name}.json"] = view_bytes
@@ -743,6 +1086,47 @@ def _silver_vault_core_root(root) -> Path:
     return root._within(*SILVER_VAULT_CORE_PARTS)
 
 
+def _publish_generation(root, files: dict[str, bytes], stamp: dict) -> Path:
+    """Publish one complete immutable map generation, then switch CURRENT."""
+    generation_id = _generation_id(stamp.get("generation_id"))
+    core = _silver_vault_core_root(root)
+    generations = core / GENERATIONS_DIRNAME
+    generations.mkdir(parents=True, exist_ok=True)
+    target = generations / generation_id
+    staging = generations / f".building-{generation_id}-{uuid.uuid4().hex}"
+    staging.mkdir(parents=False, exist_ok=False)
+    try:
+        for relpath, data in sorted(files.items()):
+            destination = staging / relpath
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            _atomic_create(destination, data)
+        if target.exists():
+            mismatches = [
+                relpath
+                for relpath, data in sorted(files.items())
+                if not (target / relpath).is_file()
+                or (target / relpath).read_bytes() != data
+            ]
+            if mismatches:
+                raise DataLakeRootError(
+                    "derived-retrieval generation id collision with different "
+                    f"bytes: {generation_id}: {mismatches}"
+                )
+        else:
+            os.replace(staging, target)
+        pointer_bytes = canonical_record_bytes(
+            {
+                "pointer_schema_version": CURRENT_POINTER_SCHEMA_VERSION,
+                "generation_id": generation_id,
+            }
+        )
+        _atomic_replace(core / CURRENT_POINTER_FILENAME, pointer_bytes)
+        return target
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+
+
 def rebuild_derived_retrieval(
     root,
     *,
@@ -752,32 +1136,63 @@ def rebuild_derived_retrieval(
 ) -> dict:
     """Replace the owned views and remove their contradictory legacy home."""
     root._reverify()
+    allow_noop = stamp is None
     stamp = stamp or generation_stamp()
     cache_session = ClassificationCacheSession(
         root, use_existing=not full_rebuild
     )
-    files = _generate(
-        root,
-        stamp,
-        product_mention_policy=product_mention_policy,
-        cache_session=cache_session,
-    )
-    target_root = _silver_vault_core_root(root)
-    legacy_root = root._within("indexes", "derived_retrieval", "object_level")
-    if legacy_root.exists():
-        shutil.rmtree(legacy_root)
-    for view_name in BUILT_VIEWS:
-        for target in (
-            target_root / "query_tables" / f"{view_name}.json",
-            target_root / "manifests" / f"{view_name}.json",
+    with IncrementalSourceInventory(root, reset=full_rebuild) as source_inventory:
+        source_inventory.refresh(
+            derived_lanes=_incremental_source_lanes(),
+            include_acknowledgements=True,
+        )
+        input_fingerprint = _input_fingerprint(
+            root,
+            source_inventory=source_inventory,
+            cache_session=cache_session,
+            product_mention_policy=product_mention_policy,
+        )
+        _current_root, current_generation_id, current_layout = (
+            current_generation_root(root)
+        )
+        if (
+            allow_noop
+            and not full_rebuild
+            and current_generation_id is not None
+            and source_inventory.metadata("last_input_fingerprint")
+            == input_fingerprint
         ):
-            if target.exists():
-                target.unlink()
-    for relpath, data in files.items():
-        target = target_root / relpath
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
-    cache_session.save()
+            return {
+                "status": "current",
+                "views": list(BUILT_VIEWS),
+                "deferred_views": [],
+                "generation_id": current_generation_id,
+                "file_count": len(BUILT_VIEWS) * 2,
+                "classification_cache": cache_session.report(),
+                "source_inventory": source_inventory.report(),
+                "generation_root": str(_current_root),
+                "layout": current_layout,
+                "full_rebuild": False,
+            }
+        files = _generate(
+            root,
+            stamp,
+            product_mention_policy=product_mention_policy,
+            cache_session=cache_session,
+            source_inventory=source_inventory,
+        )
+        legacy_root = root._within("indexes", "derived_retrieval", "object_level")
+        if legacy_root.exists():
+            shutil.rmtree(legacy_root)
+        cache_session.save()
+        generation_root = _publish_generation(root, files, stamp)
+        source_inventory.remember_metadata(
+            "last_input_fingerprint", input_fingerprint
+        )
+        source_inventory.remember_metadata(
+            "last_generation_id", stamp["generation_id"]
+        )
+        source_inventory_report = source_inventory.report()
     return {
         "status": "rebuilt",
         "views": list(BUILT_VIEWS),
@@ -785,6 +1200,8 @@ def rebuild_derived_retrieval(
         "generation_id": stamp["generation_id"],
         "file_count": len(files),
         "classification_cache": cache_session.report(),
+        "source_inventory": source_inventory_report,
+        "generation_root": str(generation_root),
         "full_rebuild": full_rebuild,
     }
 
@@ -798,12 +1215,21 @@ def prove_incremental_rebuild_equality(
     root._reverify()
     stamp = generation_stamp()
     incremental_cache = ClassificationCacheSession(root, use_existing=True)
-    incremental = _generate(
-        root,
-        stamp,
-        product_mention_policy=product_mention_policy,
-        cache_session=incremental_cache,
-    )
+    with IncrementalSourceInventory(
+        root, persistent=False
+    ) as source_inventory:
+        source_inventory.refresh(
+            derived_lanes=_incremental_source_lanes(),
+            include_acknowledgements=True,
+        )
+        incremental = _generate(
+            root,
+            stamp,
+            product_mention_policy=product_mention_policy,
+            cache_session=incremental_cache,
+            source_inventory=source_inventory,
+        )
+        source_inventory_report = source_inventory.report()
     cold_cache = ClassificationCacheSession(root, use_existing=False)
     cold = _generate(
         root,
@@ -821,6 +1247,7 @@ def prove_incremental_rebuild_equality(
         "mismatched_files": mismatches,
         "file_count": len(cold),
         "incremental_classification_cache": incremental_cache.report(),
+        "incremental_source_inventory": source_inventory_report,
         "cold_classification_cache": cold_cache.report(),
     }
 
@@ -843,7 +1270,7 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
     stored manifest recorded and byte-compare. Never compares a rebuild against
     itself; never writes."""
     root._reverify()
-    target_root = _silver_vault_core_root(root)
+    target_root, _generation_id_value, _layout = current_generation_root(root)
     view_paths = {
         view_name: target_root / "query_tables" / f"{view_name}.json"
         for view_name in BUILT_VIEWS
@@ -961,6 +1388,8 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
 __all__ = [
     "BUILT_VIEWS",
     "BY_CREATOR_VIEW_SCHEMA_VERSION",
+    "CURRENT_POINTER_FILENAME",
+    "GENERATIONS_DIRNAME",
     "MANIFEST_SCHEMA_VERSION",
     "MENTIONS_LANE",
     "SILVER_VAULT_CORE_PARTS",
@@ -969,7 +1398,9 @@ __all__ = [
     "build_by_mention_view",
     "build_undone_view",
     "audit_derived_retrieval_source_integrity",
+    "current_generation_root",
     "generation_stamp",
+    "load_derived_retrieval_view",
     "prove_incremental_rebuild_equality",
     "prove_derived_retrieval_rebuildability",
     "rebuild_derived_retrieval",
