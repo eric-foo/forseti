@@ -167,3 +167,28 @@ Sephora's current proven mechanics are a source-specific benchmark:
 
 The Sephora profile is a quality bar for search depth and loss visibility. It
 is not a template that licenses invented fields on another retailer.
+
+## Nordstrom reference profile
+
+Reference PDP:
+`https://www.nordstrom.com/s/the-lip-balm/8260802`.
+
+Nordstrom applies the shared standard through its own source vocabulary:
+
+| Area | Reference behavior |
+| --- | --- |
+| Product/variants | Retain only the target-bound `window.__INITIAL_CONFIG__.productDisplay` product subtree and selected options, then flatten every core product, core choice, item, SKU, UPC, size, skin type, price, salability, exact quantity, sellable/previewable/sold-out list, and source order. Never copy unrelated shopper configuration. |
+| OOS and merchandising | Treat explicit salability, `isAvailable`, and sold-out SKU lists as OOS evidence. Preserve `isFinalSale` and source enticements. If limited-edition, limited-time-offer, new, or back-in-stock fields are absent, record `not_exposed`; do not infer them from recommendations or marketing copy. |
+| Media and product content | Retain every ordered/editorial media reference with its metadata and variant binding, plus exact claims, ingredients, taxonomy, certifications, services, and product-state raw field paths. Record that linked binary bytes were not independently fetched. |
+| Review provider | Bazaarvoice is Nordstrom's declared ratings/reviews and syndication network. Nordstrom renders the captured reviews through retailer-owned HTML and schema, so provider identification is source context rather than proof that a literal Bazaarvoice widget marker will appear in every raw DOM. |
+| Helpful reviews | Retain Nordstrom's persistent source-labelled most-helpful positive and critical cards, including body, rating, date, author, helpful count, verified-purchase status, reposted/syndication label, and any source-visible reviewed size/color. This is a two-card snapshot, not proof of the retailer's ranking algorithm. |
+| Recent reviews | Select `Most Recent`; retain the complete inclusive 30-day cohort. If it has fewer than 12 rows, continue in the same source order to 30 rows or proven exhaustion. Preserve each six-row continuation count and label the fallback cohort as historical context rather than recent reviews. |
+| Review filters/demographics | Preserve the unfiltered rendered evidence. The verified reference exposes a Verified Purchases control but no non-incentivized filter and no reviewer-age vocabulary, so reviews are not claimed as non-incentivized and no demographic distribution is invented. A newly exposed incentive, recommendation, unhelpful count, unsupported reviewed variant, demographic declaration, or review-tag surface without a lossless parser forces raw fallback. |
+| AI sentiment and Q&A | The verified reference exposes neither retailer AI sentiment nor product Q&A. Record both as `not_exposed_on_target_pdp`; generic footer FAQs, assistant text, and unrelated recommendations are not product Q&A. Newly exposed target surfaces without a lossless parser force raw fallback. |
+| Adaptation | Current content v2 flows directly into Cleaning. Acceptance is exact content-to-Cleaning row-id/residual accounting; no current Projection packet or retroactive mutation of historical sample/raw packets is permitted. |
+
+This profile demonstrates cross-retailer behavioral discovery: inspect
+page-declared state and controls first, preserve the retailer's exact
+vocabulary, fail closed on newly exposed unsupported surfaces, and use the
+shared field classes without forcing Sephora-specific mechanics onto
+Nordstrom.
