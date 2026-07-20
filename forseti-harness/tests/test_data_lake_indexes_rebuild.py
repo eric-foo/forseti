@@ -52,6 +52,7 @@ from data_lake.silver_record import (
 from data_lake.sibling_selection import SiblingSelectionError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from tests.unit._creator_metric_silver_fixtures import commit_raw_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-02T00:00:00+00:00"}
 _NS = "projection_ig"
@@ -984,6 +985,45 @@ def test_by_creator_surfaces_conflicting_account_aliases(tmp_path: Path) -> None
         == ["acct_ig_fixture_001", "acct_ig_fixture_002"]
         for residual in view["residuals"]
     )
+
+
+def test_incremental_and_cold_alias_conflicts_are_byte_identical(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    first = "01J00000000000000000000003"
+    second = "01J00000000000000000000004"
+    assert first < second
+    assert raw_shard(first) > raw_shard(second)
+
+    for packet_id, account_id in (
+        (first, "acct_ig_fixture_002"),
+        (second, "acct_ig_fixture_001"),
+    ):
+        commit_raw_packet(
+            root,
+            packet_id=packet_id,
+            body=f'{{"packet_id": "{packet_id}"}}'.encode(),
+        )
+        root.record_availability(packet_id)
+        _write_creator_metric_record(
+            root,
+            packet_id,
+            "account_metric.json",
+            subject_ref={
+                "namespace": "instagram",
+                "kind": "platform_public_account",
+                "native_id": "fixture_creator",
+                "orca_platform_account_id": account_id,
+            },
+        )
+
+    report = prove_incremental_rebuild_equality(
+        root, product_mention_policy=_POLICY
+    )
+
+    assert report["status"] == "proven"
+    assert report["mismatched_files"] == []
 
 
 def test_by_mention_carries_native_product_page_identity(tmp_path: Path) -> None:

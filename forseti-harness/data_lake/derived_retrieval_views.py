@@ -486,7 +486,12 @@ def _classified_silver_sweep(
                     },
                 )
                 for alias_key, alias_value in aliases.items():
-                    entry["aliases"].setdefault(alias_key, alias_value)
+                    # Cold is shard-ordered while the inventory is anchor-ordered.
+                    # Pick a stable minimum so modeled alias conflicts cannot make
+                    # published bytes depend on the builder path.
+                    current = entry["aliases"].get(alias_key)
+                    if current is None or str(alias_value) < str(current):
+                        entry["aliases"][alias_key] = alias_value
                     entry["alias_values"][alias_key].add(str(alias_value))
                 entry["refs_by_anchor"][anchor].append(ref)
     if source_inventory is not None and cache_session is not None:
