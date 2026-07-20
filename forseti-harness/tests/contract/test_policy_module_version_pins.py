@@ -160,6 +160,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "SEPHORA_PDP_PARSER_VERSION",
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
+            "ULTA_PDP_PARSER_VERSION",
         ),
         # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
         # substrate, and explicit loss/residual fields; the shared projection
@@ -176,7 +177,11 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # ProductGroup block or the earlier redundant ProductGroup+Product pair.
         # Both carry the same required product/offer/review semantics, so the
         # retailer parser token and shared projection token stay unchanged.
-        "7b0d6d0232ce619fec0f743df3a1de49d4d6254dbc3589ba1a707567c92df11d",
+        # Ulta parser v1 adds its retailer-owned canonical content schema and
+        # URL-SKU-bound offer/review extraction while omitting the unrelated
+        # Apollo loader envelope. The shared projection row/Silver semantics
+        # remain unchanged; historical raw decoding remains available.
+        "d181d9d2271c27f26ef82d3f65c1012e54176218e4e473f9770c5d050efa090d",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

@@ -376,7 +376,11 @@ _PROFILES = {
             ordinary_operation=True,
             settle_seconds=5.0,
             requirements=_requirements(
-                visible_text_contains=("Night Shift Overnight Lip Mask", "Reviews", "Offers"),
+                visible_text_contains=(
+                    "Night Shift Overnight Lip Mask",
+                    "Reviews",
+                    "In stock and ready to ship",
+                ),
                 visible_text_regexes=(r"\d+(?:,\d+)* Reviews", r"\$\d+\.\d{2}"),
                 rendered_dom_contains=("__APOLLO_STATE__",),
                 rendered_dom_regexes=(r'"aggregateRating"',),
