@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Intelligence Cycle acquisition seal
-scope: Owner-reopened Acquire & Seal state pending an adversarial material-evidence-gap review of the Summer Fridays current-company Understanding commission.
+scope: Owner-reopened Acquire & Seal state with an adjudicated portfolio-first acquisition supplement pending for the Summer Fridays current-company Understanding commission.
 use_when:
   - Verifying whether Deliver is authorized.
   - Auditing the preserved passing Turn A at commit 4f3e3476309b78777e4254814b23cfa1b6b34dc9 without treating that historical seal as current Deliver authority.
@@ -17,7 +17,7 @@ open_next:
 ```yaml
 current_lifecycle_status: ACQUISITION_REOPENED_BY_OWNER
 intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_INCOMPLETE
-resume_allowed: true_only_for_adversarial_gap_review_then_owner_adjudicated_bounded_acquisition
+resume_allowed: true_only_for_owner_adjudicated_bounded_acquisition_then_reseal
 correct_intake_result: BLOCKED_ACQUISITION_INCOMPLETE
 ```
 
@@ -179,11 +179,12 @@ phase_acquisition_seal:
       result: canonical US/USD storefront is confirmed on the exact PDP; delivery location remains unpinned
       blocking: false
     - gap_id: GAP-004
-      requirement: owner-adjudicated material completeness of the evidence world
+      requirement: owner-adjudicated material completeness supplement
       result: >
-        The owner reopened Turn A before Deliver and commissioned an independent
-        adversarial review of portfolio/hero-product concentration, cross-product
-        customer evidence, attention trajectory, and any other material omission.
+        The adversarial review is complete and the owner accepted a modified,
+        portfolio-first supplement. Its owned architecture, pinned Sephora grid,
+        reconciled franchise map, and evidence-selected missing franchise depth
+        have not yet been captured and resealed.
       blocking: true
   consolidated_recovery_receipt:
     completed_at: "2026-07-21"
@@ -195,33 +196,45 @@ phase_acquisition_seal:
     authority: current_owner_instruction
     preserved_review_target: 4f3e3476309b78777e4254814b23cfa1b6b34dc9
     reason: determine whether materially missing evidence should be acquired before Deliver rather than equating a sufficient seal with a highest-quality evidence world
-    next_step: read-only adversarial evidence-gap review followed by owner adjudication of any proposed bounded acquisition
-  pending_adjudication_recommendation:
+    next_step: execute the owner-adjudicated portfolio-first supplement, preserve typed route outcomes, and reseal before Deliver
+  owner_adjudicated_reopen_scope:
     recorded_at: "2026-07-21"
-    status: noted_not_authorized
+    adjudicated_at: "2026-07-21"
+    status: accepted_with_modification
     review_report: docs/review-outputs/adversarial-artifact-reviews/forseti_beauty_summer_fridays_turn_a_evidence_world_gap_review_v0.md
-    must_capture:
-      - owned assortment architecture set: Shop All, Best Sellers, Jet Lag Collection, and the exact owned Jet Lag Mask PDP
-      - pin-confirmed Sephora US brand grid
-      - Sephora Jet Lag Mask parent plus Bazaarvoice companion, executed last with the review's centrality abort condition
-      - owned homepage
+    acquisition_order:
+      - "capture the owned portfolio architecture: homepage, Shop All, Best Sellers, collection or franchise surfaces, and exact owned PDPs needed for identity reconciliation"
+      - capture a pin-confirmed Sephora US brand and assortment grid as the primary-retailer breadth view
+      - reconcile franchise, parent-product, visible variant or SKU, and retailer-listing identity before choosing product depth
+      - "select up to three representative franchises from the evidence: dominant; founding or strategically central; and, only if materially distinct, one contrast or plausible weak link"
+      - reuse the captured Lip Butter Balm parent and review corpus, then capture only missing PDP and review evidence required for the selected franchises
+    selection_boundary:
+      lip_butter_balm: already_captured_reference_not_a_selection_premise
+      jet_lag: leading_second_franchise_hypothesis_not_preselected; capture depth only if owned and Sephora breadth confirm centrality
+      third_franchise: optional_only_if_materially_distinct
+      fewer_than_three: valid
     conditional:
       - screen the owned sustainability or values surface; capture it only if a distinct current claim survives, otherwise record an explicit negative
       - embed exact unfiltered review-total probes in any companion run
+      - attempt the official Summer Fridays Amazon US storefront only if its authenticity, authorized-marketplace, storefront-assortment, or marketplace-presentation job survives owned and Sephora reconciliation; success is not a completion gate unless evidence promotes that job into a material seam
+    tertiary_retailer:
+      venue: REVOLVE
+      status: not_commissioned
+      activation_condition: only a material retail contradiction or gap unresolved by owned, Sephora, and the conditional Amazon job
     rejected_for_this_commission:
-      - Amazon US brand-store capture
       - Google Trends or other search-interest series
       - creator, founder, or social-video surfaces
       - comparator or competitor evidence
-      - additional Reddit breadth or retailer corpora for already-bounded products
-      - wider retailer-presentation expansion
-    expected_packet_count: 8, or 9 only if the sustainability or values surface survives the distinct-job screen
-    authority_boundary: recommendation_only; no acquisition, reseal, or Deliver authorization
+      - additional Reddit breadth for already-bounded products
+      - wider retailer-presentation expansion absent the named Amazon secondary job or a later tertiary activation condition
+    packet_count_posture: no fixed quota; capture only missing evidence required by the reconciled representative-franchise set and typed conditional jobs
+    authority_boundary: owner_authorized_bounded_acquisition_only; no reseal or Deliver authorization
   seal_state: BLOCKED_ACQUISITION_INCOMPLETE
   acquisition_gate: blocked
   deliver_allowed: false
   sealed_at: "2026-07-21"
   reopened_at: "2026-07-21"
+  owner_adjudicated_at: "2026-07-21"
 ```
 
 `BLOCKED_ACQUISITION_INCOMPLETE`.
@@ -229,7 +242,7 @@ phase_acquisition_seal:
 The three current gate fields agree in the blocked state. Commit
 `4f3e3476309b78777e4254814b23cfa1b6b34dc9` preserves the previously passing
 Turn A for exact adversarial inspection, including its successful Sephora and
-Reddit recovery. The owner has withdrawn Deliver authorization until an
-independent reviewer identifies which additional evidence, if any, is material
-to the unchanged bound question and the owner adjudicates the proposed bounded
-reopening scope.
+Reddit recovery. The review is complete and the owner has adjudicated the
+bounded portfolio-first supplement. Deliver remains unauthorized until that
+supplement is captured with typed outcomes and the acquisition seal passes
+again.

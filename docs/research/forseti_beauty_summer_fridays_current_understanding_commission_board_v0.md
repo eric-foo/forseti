@@ -2,20 +2,23 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Sealed company competitive-intelligence commission board
-scope: Pre-scan input for the current-state Summer Fridays Understanding commission.
+artifact_role: Sealed company competitive-intelligence commission board with owner-adjudicated reopened-acquisition amendment
+scope: Initial pre-scan input plus the bounded portfolio-first amendment for the current-state Summer Fridays Understanding commission.
 use_when:
-  - Dispatching the bounded Summer Fridays Understanding Acquire & Seal turn.
-  - Auditing the commissioned routes and decision-neutral boundary.
+  - Dispatching or resuming the bounded Summer Fridays Understanding Acquire & Seal turn.
+  - Auditing the commissioned routes, retailer roles, representative-franchise selection rule, and decision-neutral boundary.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_beauty_summer_fridays_current_understanding_two_turn_handoff_v0.md
+  - docs/workflows/forseti_beauty_summer_fridays_current_understanding_acquisition_seal_v0.md
 ```
 
-This board is sealed before substantive external acquisition. It contains no
-externally earned company conclusion. Summer Fridays is the sole subject;
-founders, retailers, creators, and competitors may appear only as bounded
-context needed to interpret Summer Fridays.
+This board was sealed before substantive external acquisition and contains no
+externally earned company conclusion. Its coverage ledger now also carries the
+owner-adjudicated portfolio-first supplement; the acquisition seal remains the
+current lifecycle authority. Summer Fridays is the sole subject; founders,
+retailers, creators, and competitors may appear only as bounded context needed
+to interpret Summer Fridays.
 
 ### 1. Company Commission And Identity Receipt
 
@@ -68,10 +71,10 @@ separately named commission.
 coverage_ledger:
   - coverage_id: COV-001
     source_family: owned_channels
-    source_surface: current_brand_assortment_and_product_pages
+    source_surface: current_owned_portfolio_architecture_and_product_pages
     venue: Summer Fridays
-    relevance_rationale: Current proposition, assortment architecture, claims, hero and new-product presentation, and direct-channel expression.
-    route_or_query: current official Summer Fridays about, category, collection, product, sustainability, and authorized-retailer surfaces
+    relevance_rationale: "Establish the owned portfolio first: proposition, collections or franchises, parent products, visible variants, best-seller signals, claims, and direct-channel expression before any franchise is treated as a hero or selected for depth."
+    route_or_query: current official Summer Fridays homepage, About, Shop All, Best Sellers, collection or franchise, exact reconciliation-needed product, sustainability or values, and authorized-retailer surfaces
     requirement: required
     status: not_checked
     yield: unknown
@@ -81,10 +84,10 @@ coverage_ledger:
     gap_id: null
   - coverage_id: COV-002
     source_family: retail_pdp
-    source_surface: current_us_brand_and_product_pages
+    source_surface: current_us_primary_retailer_brand_assortment_grid_and_product_pages
     venue: Sephora US
-    relevance_rationale: Current US assortment, price, retailer claim translation, offer context, and review-surface availability.
-    route_or_query: canonical anonymous Sephora US route with country and USD conjunction required for geographic claims
+    relevance_rationale: Primary-retailer view of current US assortment breadth, category placement, parent listings, visible price and review-volume signals, retailer claim translation, offer context, and structured product or reviewer attributes; capture the grid before choosing PDP depth.
+    route_or_query: canonical anonymous Sephora US brand-grid route with country and USD conjunction required for geographic claims, followed by exact PDP routes only after owned-to-retailer identity reconciliation
     requirement: required
     status: not_checked
     yield: unknown
@@ -94,10 +97,10 @@ coverage_ledger:
     gap_id: null
   - coverage_id: COV-003
     source_family: reviews
-    source_surface: attributable_retailer_review_rows
+    source_surface: attributable_primary_retailer_review_rows_for_representative_franchises
     venue: Sephora US
-    relevance_rationale: Current customer experience, use conditions, claim attacks, recurrence clues, and visible incentive posture.
-    route_or_query: canonical retailer-review route; preserve row dates, ratings, source-visible incentive labels, corpus boundary, sort, filter, and truncation
+    relevance_rationale: After portfolio reconciliation, deepen only the evidence-selected representative franchises for current customer experience, use conditions, claim attacks, recurrence clues, and visible incentive posture; the already captured Lip Butter Balm corpus remains reusable evidence rather than a reason to bias selection.
+    route_or_query: canonical retailer-review route for missing representative-franchise evidence only; preserve row dates, ratings, source-visible incentive labels, corpus boundary, sort, filter, truncation, reviewer-attribute reporting denominators, and missingness
     requirement: required
     status: not_checked
     yield: unknown
@@ -209,6 +212,19 @@ coverage_ledger:
     access: local_repository_read
     relevance: commission_binding_only
     gap_id: null
+  - coverage_id: COV-012
+    source_family: retail_pdp
+    source_surface: conditional_secondary_official_marketplace_storefront
+    venue: Amazon US
+    relevance_rationale: Conditional secondary-retailer check for the distinct authenticity, authorized-marketplace, storefront-assortment, or marketplace-presentation job that Sephora cannot observe; route success is not a completion gate unless acquired evidence promotes the job into a material seam.
+    route_or_query: official Summer Fridays Amazon storefront through the canonical Amazon US route, attempted only after owned and Sephora portfolio reconciliation confirms the distinct job still survives
+    requirement: conditional
+    status: not_checked
+    yield: unknown
+    recency: unknown
+    access: route_commissioned_if_triggered
+    relevance: conditional
+    gap_id: null
 ```
 
 ### 4. Observation Ledger
@@ -247,11 +263,14 @@ observation_ledger:
 
 ### 5. Positioning, Offerings, Markets, And Channels
 
-No external conclusion is earned at commission seal (OBS-001). COV-001,
-COV-002, COV-005, and COV-007 commission current proposition, assortment,
-owned-to-US-retail translation, and channel work. Ulta remains conditional and
-cannot be treated as a subject channel until observed evidence supports that
-claim.
+No external conclusion is earned at commission seal (OBS-001). COV-001 first
+maps the owned portfolio; COV-002 then captures the Sephora US primary-retailer
+grid before product depth. The two surfaces must be reconciled into franchise,
+parent-product, visible variant or SKU, and retailer-listing identity before up
+to three representative franchises are selected. COV-012 is a conditional
+Amazon US secondary for its named marketplace job. COV-005 remains a historical
+conditional Ulta row, and no tertiary retailer is commissioned absent a later
+material contradiction or gap.
 
 ### 6. Strategic And Operating Chronology
 
@@ -264,9 +283,15 @@ relabeled current.
 ### 7. Customer And Community Response
 
 No customer or community conclusion is earned at commission seal (OBS-001).
-COV-003 and COV-004 commission attributable retailer-review and bounded Reddit
-evidence. COV-009 is conditional. External response cannot establish
-representative demand, prevalence, or internal company fact.
+COV-003 commissions attributable Sephora review depth only after the reconciled
+portfolio selects up to three representative franchises: dominant, founding or
+strategically central, and an optional materially distinct contrast or plausible
+weak link. Fewer is valid; Jet Lag is a leading hypothesis, not a preselected
+hero. Reviewer age, skin, or similar distributions require captured-corpus and
+attribute-reporting denominators plus missingness and cannot establish customer
+population demographics. COV-004 retains bounded Reddit evidence and COV-009 is
+conditional. External response cannot establish representative demand,
+prevalence, or internal company fact.
 
 ### 8. Competitor Context, Contradictions, And Gaps
 
@@ -310,7 +335,7 @@ completion_ledger:
   required_lens_coverage:
     positioning: {status: gap, observation_ids: [], rationale: current owned and independent routes are commissioned but not yet scanned}
     offerings_and_claims: {status: gap, observation_ids: [], rationale: owned and retailer routes are commissioned but not yet scanned}
-    markets_and_channels: {status: gap, observation_ids: [], rationale: current owned and Sephora US routes are commissioned; Ulta subject presence is unverified and conditional}
+    markets_and_channels: {status: gap, observation_ids: [], rationale: owned architecture and the Sephora US primary-retailer grid are required; Amazon US is a conditional secondary for a distinct marketplace job; Ulta remains a historical conditional row and no tertiary is currently commissioned}
     strategic_and_operating_moves: {status: gap, observation_ids: [], rationale: dated current editorial and trade routes are commissioned but not yet scanned}
     customer_and_community_response: {status: gap, observation_ids: [], rationale: Sephora review and bounded Reddit routes are commissioned but not yet scanned}
     competitor_and_substitute_context: {status: gap, observation_ids: [], rationale: bounded comparator context awaits a named interpretive job from subject evidence}
@@ -321,7 +346,7 @@ completion_ledger:
       gap_type: pre_scan_acquisition
       status: open
       description: All substantive owned, US retail, review, community, search, editorial, creator, and comparator routes remain unrun.
-      affected_coverage_ids: [COV-001, COV-002, COV-003, COV-004, COV-005, COV-007, COV-008, COV-009, COV-010]
+      affected_coverage_ids: [COV-001, COV-002, COV-003, COV-004, COV-005, COV-007, COV-008, COV-009, COV-010, COV-012]
       request_ids: [REQ-001]
   requests:
     - request_id: REQ-001
