@@ -20,7 +20,7 @@ from source_capture.source_classification import (
 def test_inventory_is_closed_source_cited_and_deterministic() -> None:
     inventory = implemented_source_pair_inventory()
 
-    assert len(inventory) == 43
+    assert len(inventory) == 44
     assert inventory == tuple(sorted(inventory))
     assert len(set(inventory)) == len(inventory)
     assert all(

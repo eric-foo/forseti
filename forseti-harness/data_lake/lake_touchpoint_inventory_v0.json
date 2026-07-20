@@ -486,6 +486,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "mechanism": "a hash-verified parent binds source and served Amazon URLs to one ASIN, requires an unblocked US pin plus USD marker, and admits only unique native review row ids inside labelled Amazon top-review sections",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_amazon_review_onboarding.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "subject is the requested URL itself: requested_url is preserved as source_locator and the served final_url on the slice; block-shell classification explicitly refuses to certify the body as source content; no subject identity beyond the URL is asserted",
           "status": "not_applicable"
         },
@@ -731,10 +740,18 @@
       {
         "a2_fork_impact": "manifest_shape",
         "defined_in": [
+          "source_capture/amazon_review_onboarding_capture.py",
           "source_capture/sephora_onboarding_capture.py",
           "source_capture/target_onboarding_capture.py"
         ],
         "function": "_write_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/amazon_review_onboarding_capture.py"
+        ],
+        "function": "capture_amazon_review_onboarding_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",
