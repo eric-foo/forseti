@@ -2281,8 +2281,9 @@ def capture_tiktok_creator_grid(
 
     final = captures[-1]
     frozen_dom_capture = initial if initial_window_sufficient else final
+    frozen_ids = initial_ids if initial_window_sufficient else prior_ids
     final_id_set = set(prior_ids)
-    if len(prior_ids) < sufficient_dom_video_count:
+    if len(frozen_ids) < sufficient_dom_video_count:
         raise TikTokCreatorOnboardingError(
             "one grid DOM batch did not produce the minimum usable window"
         )
