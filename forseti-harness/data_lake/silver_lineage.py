@@ -21,8 +21,8 @@ documented:
   the record in place. It deliberately does NOT emit a nested ``silver_lineage``
   object, so a producer cannot create two homes for the refs.
 - AR-02 (projection row identity). ``SilverDerivedRef`` carries an optional
-``row_locator`` (``row_id``/``row_kind``) mirroring Cleaning source-row identity, so a
-fact derived from one row of a multi-row source record is not collapsed to
+  ``row_locator`` (``row_id``/``row_kind``) mirroring Cleaning source-row identity, so a
+  fact derived from one row of a multi-row source record is not collapsed to
   ``lane + record_id`` alone.
 
 Field names track the genericity check grammar and the Common Record Header
