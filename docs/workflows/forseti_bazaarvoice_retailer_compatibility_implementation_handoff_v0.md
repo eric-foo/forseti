@@ -1,307 +1,230 @@
-# Handoff Packet — Bazaarvoice Retailer Compatibility Implementation
+# Handoff Packet — Remaining Bazaarvoice Retailer Compatibility
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Handoff packet
 scope: >
-  Cold-reader implementation handoff for extending Forseti's proven Sephora
-  Bazaarvoice capture route to compatible retailers with retailer-specific
-  mappings and packet-backed admission.
+  Cold-reader handoff for testing Target, Kohl's, and finally Nordstrom against
+  the proven Sephora information-extraction target after Walmart's direct
+  Bazaarvoice route was exhausted without a usable public configuration.
 use_when:
-  - Starting the multi-retailer Bazaarvoice implementation in a fresh lane.
-  - Deciding which retailer is ready for implementation versus bounded recon.
+  - Starting the next retailer-compatibility lane.
+  - Deciding whether a retailer supports the Sephora-depth evidence target
+    through Bazaarvoice or another bounded public route.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md
   - docs/research/forseti_beauty_retailer_surface_probe_results_v0.md
   - forseti-harness/source_capture/sephora_onboarding_capture.py
 stale_if:
-  - The owning Retail/PDP standard changes the three-role onboarding or Recent-only monitoring target.
-  - A newer packet-backed retailer inventory supersedes the 2026-07-21 findings.
-  - The Nordstrom production lane lands a stable review-response route or changes its product identity model.
+  - The owning Retail/PDP standard changes the Sephora extraction target.
+  - A newer packet-backed retailer probe supersedes this compatibility inventory.
+  - The Nordstrom production owner declares its route stable or changes its
+    product/review identity model.
 ```
 
 ## Load Contract
 
-- packet_version: 1
+- packet_version: 2
 - mode: max
-- created_at: 2026-07-21
-- created_by_lane: Bazaarvoice compatibility handoff lane; provenance only, not authority
+- updated_at: 2026-07-21
+- updated_by_lane: remaining-retailer handoff lane; provenance only, not authority
 - workspace: `C:\Users\vmon7\Desktop\projects\orca`
-- handoff_path: `docs/workflows/forseti_bazaarvoice_retailer_compatibility_implementation_handoff_v0.md`
-- expected_branch: `codex/bazaarvoice-compat-handoff`; receiver should start implementation from fresh `origin/main`
-- expected_head: `2fe20400d7e2c0921de5d4cccc5333b381916ee3`
-- expected_dirty_state_including_handoff_file: this handoff is the only intended change on its authoring branch; implementation belongs on a separate branch/worktree
-- load_rule: confirm-don't-trust; re-verify every load-bearing fact against its compare target before acting
+- expected_branch: `codex/bazaarvoice-remaining-retailers-handoff`; receiver should start work from fresh `origin/main`
+- expected_base: `12c3fde4fe9f4d98deafb3528e5dbd7caa894908`
 - source-loading_mode: repo-overlay-bound
-- durable_destination_status: bound to the repository's `docs/workflows/` handoff surface
+- load_rule: confirm-don't-trust; reread the named sources and verify current retailer evidence before acting
+- durable_destination_status: updates the existing compatibility handoff rather than creating a competing continuation artifact
 
 ## Goal Handoff
 
-- long_term_goal: Give Forseti a reusable, low-footprint Bazaarvoice capture route across supported retailers while preserving all commissioned review, demographic, aggregate, and Q&A evidence without request storms or duplicate derived bodies.
-- anchor_goal: Prove retailer compatibility one retailer at a time, beginning with Walmart, and extract only the shared mechanics demonstrated by Sephora plus that second retailer.
-- success_signal: Each enabled retailer has a verified product-family mapping, an exact preserved response fixture, a thin retailer adapter, passing unit tests, and a live packet proving the three applicable response roles without silently copying Sephora-only parameters.
+- long_term_goal: Capture the deepest useful retailer product, review, demographic, aggregate, and Q&A evidence available at the lowest defensible request footprint.
+- active_goal: Test Target against the Sephora extraction target using Bazaarvoice first and every other bounded public method that can expose the same information without inventing shared mechanics.
+- success_signal: The lane either preserves a qualifying Target response fixture and implements a truthful retailer-specific adapter, or returns an exhausted-methods stop naming exactly which target information remains unavailable.
 
-## Open Decision / Fork
+## Short Ask
 
-- decision: How should unchanged `Most Recent` monitoring responses be retained?
-  - options:
-    - Preserve every exact response: strongest no-change evidence, highest repeated storage.
-    - Content-address the unchanged payload and preserve a per-run receipt pointing to it: recommended if the lake can do this without pretending a request was not made.
-    - Preserve only a small heartbeat containing anchor, count, and hash: smallest storage, but weaker raw proof of what the source returned on that run.
-  - already constrained / off the table: do not discard new review bodies; do not claim deduplication before it exists; do not block onboarding implementation on this choice.
-  - trade-offs: defensibility versus repeated storage and added storage semantics.
-  - owner of the call: human owner before monitoring-retention behavior is implemented.
-  - recommendation and why: continue preserving exact monitoring responses until content-addressed reuse is explicitly designed and verified; it fails visibly and does not weaken evidence.
+Use the proven Sephora Bazaarvoice capture as the reference. First inventory the
+information Sephora gave us and treat that as the extraction target. Try the
+same Bazaarvoice technique on the retailer, then exhaust the other bounded
+public methods below. Preserve whatever the retailer actually exposes, state
+every missing field, and do not pretend a retailer-native endpoint is
+Bazaarvoice.
 
-## Drift Guard
+## Extraction Target From Sephora
 
-- Nordstrom uses Bazaarvoice; this is owner-confirmed and must not be re-litigated.
-  - why it matters: the existing saved Nordstrom packet proves only Bazaarvoice media provenance, not the full adapter mapping. That evidence gap is about capture readiness, not provider identity.
-  - what violating it would break: repeating provider recon would waste work and contradict the current owner direction.
-- Nordstrom implementation is last.
-  - why it matters: the broader Nordstrom capture route is still undergoing production work.
-  - what violating it would break: binding an adapter to unstable product or access mechanics would create immediate rework.
-- Do not build one universal retailer configuration before the Walmart comparison.
-  - why it matters: only Sephora is proven end to end today; premature generalization would encode Sephora assumptions as shared truth.
-  - what violating it would break: retailer-specific identifiers, filters, demographics, and Q&A behavior could be silently misrepresented.
-- Do not copy Sephora request parameters merely because a page loads Bazaarvoice.
-- Do not run full review or Q&A corpora. The accepted route is bounded onboarding plus anchor-based monitoring.
-- Do not add schedules, fleet orchestration, Docker-per-page execution, proxy rotation, or anti-block bypass work.
-- Do not change Ulta through this lane; Ulta uses PowerReviews/Apollo.
-- Beauty Pie remains recon-only until a product-level response and identifier mapping are preserved.
-- Existing raw packets are append-only historical evidence; never rewrite them to match the new route.
+The owning standard is authoritative. At minimum, compare the candidate
+retailer against these Sephora-proven information classes:
 
-## Inherited Context (does NOT flow to a new lane)
+- product identity, full variant/SKU state, price, availability, claims,
+  ingredients, usage, media references, and source disagreements;
+- one source-ordered `Most Helpful` review response with exact review bodies,
+  identifiers, dates, ratings, helpfulness, badges, incentive markers, and
+  every other returned row field;
+- one `Most Recent` response with exact bodies and a last-seen review ID;
+- rating distribution, recommended/not-recommended counts, first/latest review
+  dates, photo/video counts, and other returned review aggregates;
+- age, skin type, and skin concerns when the retailer exposes them, with exact
+  labels, counts, denominators, and missingness;
+- one bounded answer-rich Q&A response with exact question and returned answer
+  bodies when Q&A exists;
+- exact raw responses as evidence, with compact summaries containing IDs,
+  counts, dates, body presence, loss notes, and raw-file references rather than
+  duplicated bodies.
 
-### Source-loading state to re-establish
+This is an extraction target, not a parity claim. A retailer may legitimately
+lack demographics, incentive filtering, Q&A, or some aggregates. Missing
+information must be explicit.
 
-- overlay source-loading policy: `.agents/workflow-overlay/source-loading.md`, entered through `.agents/workflow-overlay/README.md`
-- targets to enter the ladder:
-  - owning standard: `forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md`
-  - evidence register, section `Bazaarvoice low-footprint route findings (2026-07-21)`: `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
-  - current Sephora orchestration: `forseti-harness/source_capture/sephora_onboarding_capture.py`
-  - current network seam: `forseti-harness/source_capture/adapters/sephora_bazaarvoice.py`
-  - current tests: `forseti-harness/tests/unit/test_sephora_onboarding_capture.py`
-- already loaded: the five targets above at `origin/main` head `2fe20400`; this is weak orientation, not authority
-- must load first: overlay README, owning standard, and evidence-register compatibility section
-- load rule: rerun progressive source loading; this packet only seeds the ladder
+## Bounded Method Order
 
-### Earlier-decided concepts and behaviors
+For one representative product, inspect in this order:
 
-- Onboarding has three roles: Helpful plus supported statistics, Recent, and bounded Q&A.
-  - decided in: owning standard, Sephora reference profile
-  - compare target: blob `6647b561b567914739ece6f7054d967d16232caf`
-  - verify before: changing request construction or packet summaries
-- Monitoring requests Recent only and stops when the prior last-seen review ID is found.
-  - decided in: owning standard, Sephora `Monitoring` row
-  - compare target: same standard blob
-  - verify before: implementing monitoring pagination
-- Exact bodies stay raw; compact summaries carry IDs, counts, dates, body presence, and raw-file references.
-  - decided in: owning standard, `Preservation and adaptation acceptance`
-  - compare target: same standard blob
-  - verify before: changing summary schemas
-- Cross-retailer implementation order is Walmart, Target, Kohl's, then Nordstrom.
-  - decided in: packet-backed compatibility findings plus current owner direction
-  - compare target: research blob `8e213656c2baee0703482e4603deb3e83c05d8c5`; Nordstrom-last is `reread-required` from the current user direction
-  - verify before: starting a retailer work unit
+1. existing preserved packet, embedded page state, and public configuration;
+2. passive browser network responses produced by an ordinary product-page load;
+3. a directly exposed public Bazaarvoice Reviews/Questions route;
+4. rendered DOM and embedded JSON/state;
+5. a retailer-owned public review endpoint, if it lawfully returns target
+   information unavailable through Bazaarvoice.
 
-## Active Objective
+Stop when these public methods are exhausted or the target is proven. Do not
+add authentication bypass, secret recovery, proxy rotation, request floods, or
+full-corpus pagination. Preserve one bounded fixture before implementation.
 
-Deliver the first non-Sephora compatibility unit: prove Walmart's public
-Bazaarvoice configuration and product-family mapping from preserved source,
-then implement Walmart using the existing request/preservation seam. Extract a
-shared Bazaarvoice core only for mechanics now proven identical across Sephora
-and Walmart. Leave Target, Kohl's, and Nordstrom as ordered follow-on units.
+If a retailer-owned endpoint is the winning route, describe and implement it as
+a retailer-native adapter. Shared code may normalize evidence roles and
+preservation behavior; it must not falsely share request construction,
+identifiers, filters, or provider identity.
+
+## Retailer Sequence
+
+1. **Target — active.**
+   - Preserved packet: `01KXR823YS3V5M9E01QXP71ETC`.
+   - Known clue: deployment `targetcom/main_site/production/en_US`,
+     Bazaarvoice markers, and review identities.
+   - Missing proof: archived response fixture, public client configuration, and
+     product-to-review-family binding.
+2. **Kohl's — next after Target.**
+   - Preserved packet: `01KXXHBKF2GPK4M96SAV1VQKM3`.
+   - Known clue: `api.bazaarvoice.com` and deployment
+     `kohls/redesign/production/en_US`.
+   - Missing proof: archived response fixture and product-family binding.
+   - Reuse the admitted Kohl's browser route; do not reopen its unrelated access
+     recovery work from this lane.
+3. **Nordstrom — last.**
+   - Bazaarvoice provider identity is owner-confirmed and must not be
+     re-litigated.
+   - Existing packet `01KXR9BNWBP8R8XKPKFJHZJTPN` proves only
+     Bazaarvoice-hosted media, not a review response or adapter mapping.
+   - Do not begin until the broader Nordstrom production owner confirms the
+     route is stable.
+
+Beauty Pie remains recon-only. Ulta remains outside this lane because its
+current review route is PowerReviews/Apollo.
+
+## Walmart Closed Result
+
+Walmart is ticked off as an attempted direct Bazaarvoice extension:
+
+- item `2150828728` mapped to product `3Y2AMXE2TTC1` and review-family ID
+  `282PMOVUGY9E`;
+- `Most Recent` and `Most Helpful` were visible, locale was `en_US`, only
+  `Verified purchases only` was exposed, demographics and a non-incentivized
+  filter were absent, and Q&A was disabled;
+- the current page used Walmart's first-party persisted `ReviewsById` GraphQL
+  query through `cegateway`;
+- no public Bazaarvoice client/deployment configuration was found;
+- no runtime change or qualifying response fixture was produced.
+
+Therefore Walmart is not a remaining direct-Bazaarvoice candidate. A future
+Walmart-native adapter is a separate work unit and must not be smuggled into
+this lane or labelled Bazaarvoice.
 
 ## Exact Next Authorized Action
 
-1. Start a fresh implementation worktree from current `origin/main`; do not use this documentation branch.
-2. Re-verify the owning standard and evidence register against their compare targets.
-3. Inspect Walmart packet `01KXSV9HFFEPNEXVA407318KW1` and its parent page state. Bind:
-   - public Bazaarvoice client/deployment and locale;
-   - retailer item ID to Bazaarvoice parent-family ID;
-   - incentive-filter behavior;
-   - supported demographic distributions;
-   - whether a qualifying Recent response is already passive;
-   - Q&A availability and source ordering.
-4. Preserve one bounded Walmart response fixture before designing the adapter. If client configuration or parent-family identity is ambiguous, stop with the exact unresolved mapping; do not guess.
-5. Compare the proven Walmart mechanics with Sephora. Extract only identical request construction, secret redaction, exact-response preservation, compact raw references, failure fallback, ID deduplication, and last-seen stopping into a shared core.
-6. Implement the thin Walmart adapter and fixtures. Keep Sephora behavior backward-compatible at its public runner boundary; use a new parser/record version for materially changed packet shape.
-7. Run focused unit tests, the relevant broader capture tests, documentation/placement gates for any touched docs, and one live packet-backed Walmart proof.
-8. Land the complete Walmart unit through its own PR. Repeat the same prove-before-adapt sequence for Target, then Kohl's. Begin Nordstrom only after its production owner confirms the underlying route is stable.
-
-## Authority And Source Ledger
-
-- Repository instructions:
-  - `AGENTS.md`
-    - Role: project behavior, isolation, validation, and PR lifecycle
-    - Load-bearing: yes
-    - Compare target: `reread-required`
-    - Last checked: 2026-07-21
-    - Reuse rule: reread before implementation
-- Overlay:
-  - `.agents/workflow-overlay/README.md`
-    - Role: entrypoint to Forseti source loading and implementation routing
-    - Load-bearing: yes
-    - Compare target: `reread-required`
-    - Last checked: earlier in the authoring thread
-    - Reuse rule: receiver must reload
-- Source-read ledger:
-  - `forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md`
-    - Role: owning capture-depth and preservation standard
-    - Load-bearing: yes
-    - Compare target: git blob `6647b561b567914739ece6f7054d967d16232caf`
-    - Last checked: 2026-07-21
-    - Reuse rule: reread if blob differs
-  - `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
-    - Role: packet-backed storage and compatibility evidence register
-    - Load-bearing: yes
-    - Compare target: git blob `8e213656c2baee0703482e4603deb3e83c05d8c5`
-    - Last checked: 2026-07-21
-    - Reuse rule: reread the Bazaarvoice section if blob differs
-  - `forseti-harness/source_capture/sephora_onboarding_capture.py`
-    - Role: incumbent eight-response acquisition and summary implementation
-    - Load-bearing: yes
-    - Compare target: git blob `251ede03a015df8688e072fcaf077f0484d4f7af`
-    - Last checked: 2026-07-21
-    - Reuse rule: reread before refactoring or preserving compatibility
-  - `forseti-harness/source_capture/adapters/sephora_bazaarvoice.py`
-    - Role: current token-safe request/response seam
-    - Load-bearing: yes
-    - Compare target: git blob `b160da8bdc5765af2445d507ecc63eba8b350302`
-    - Last checked: 2026-07-21
-    - Reuse rule: reread before extracting shared code
-  - `forseti-harness/tests/unit/test_sephora_onboarding_capture.py`
-    - Role: current success, failure-fallback, identity, and pagination coverage
-    - Load-bearing: yes
-    - Compare target: git blob `7d02153641a24b5ffcf32c65c58ca076df1c450c`
-    - Last checked: 2026-07-21
-    - Reuse rule: rerun and extend; do not weaken existing failure coverage
-- User constraints:
-  - Nordstrom is Bazaarvoice and goes last because Nordstrom remains in production.
-  - Load-bearing: yes
-  - Compare target: `reread-required` from the current owner instruction
-- Source gaps:
-  - Walmart's exact public client configuration and parent-family mapping are not bound.
-  - Target and Kohl's lack archived qualifying API response fixtures.
-  - Nordstrom's stable production mapping is intentionally deferred.
-- Strict-only blockers:
-  - no retailer is enabled without a preserved qualifying fixture and unambiguous identity mapping
-- Not-proven boundaries:
-  - provider presence does not prove product-family mapping, filter semantics, Q&A support, or scale safety
-
-## Current Task State
-
-- Completed:
-  - Sephora route proven end to end in the existing runtime.
-  - Low-footprint three-role target and storage implications merged in PR `#1201`, merge commit `2fe20400`.
-  - Compatibility evidence recorded for Walmart, Target, Kohl's, Nordstrom, Beauty Pie, and Ulta.
-- Partially completed:
-  - shared-core shape is identified but must be earned through the Walmart comparison.
-- Broken or uncertain:
-  - monitoring unchanged-response retention remains owner-unresolved.
-  - Walmart, Target, Kohl's, and Nordstrom are not yet admitted adapters.
-
-## Workspace State
-
-- Branch: `codex/bazaarvoice-compat-handoff`
-- Head: `2fe20400d7e2c0921de5d4cccc5333b381916ee3`
-- Dirty or untracked state before handoff: clean
-- Dirty or untracked state after writing handoff: this handoff file is newly added until committed
-- Target artifact: this handoff file only
-- Related work:
-  - PR `#1201` is merged and owns the documented findings.
-  - Nordstrom production work is concurrent and must not be modified from this lane.
-
-## Changed / Inspected / Tested Files
-
-- `docs/workflows/forseti_bazaarvoice_retailer_compatibility_implementation_handoff_v0.md`
-  - Status: added
-  - Role: durable cold-reader implementation handoff
-- The five source-ledger files above
-  - Status: inspected, unchanged
-  - Important observation: current runtime is still Sephora-specific and performs eight response documents
-- Runtime tests
-  - Status: not run; this work unit changes documentation only
+1. Start a fresh isolated worktree from current `origin/main`.
+2. Reread the overlay entrypoint, owning standard, compatibility section, and
+   Sephora reference implementation/tests.
+3. Verify the Target packet and choose one representative Target beauty PDP.
+4. Build a field-by-field extraction-target matrix from the Sephora profile.
+5. Run the bounded method order above, preserving the first qualifying raw
+   response fixture and its product-family mapping.
+6. If Target exposes sufficient information, implement the smallest complete
+   Target adapter with failure-visible preservation and focused tests.
+7. If the methods are exhausted without a truthful route, stop before runtime
+   edits and return `BLOCKED_UNVERIFIABLE` with the matrix of found versus
+   missing fields.
+8. Land Target independently. Repeat for Kohl's. Start Nordstrom only after its
+   production-stability gate clears.
 
 ## Frozen Decisions
 
-- Preserve three onboarding response roles, not a full corpus.
-- Helpful and Q&A are onboarding-only; monitoring is Recent-only.
-- Promote only supported, retailer-proven demographics.
-- Preserve exact bodies in raw and avoid repeating them in compact summaries.
-- Prove fixture and identity mapping before enabling any adapter.
-- Implementation order: Walmart, Target, Kohl's, Nordstrom.
-- Nordstrom provider identity is settled; production readiness is not.
+- Sephora defines the information-depth target, not universal provider mechanics.
+- Exact bodies stay in raw evidence; compact summaries do not duplicate them.
+- Onboarding uses one Helpful response, one Recent response, and one bounded Q&A
+  response when those roles exist.
+- Monitoring is Recent-only and stops at the prior last-seen review ID.
+- No adapter is admitted without a preserved response fixture and unambiguous
+  identity mapping.
+- Walmart is closed for this direct-Bazaarvoice lane.
+- Order is Target, Kohl's, then Nordstrom.
 
-## Mutable Questions
+## Open Decision
 
-- Monitoring unchanged-response retention.
-  - Why still mutable: the owner has not chosen the defensibility/storage trade-off.
-  - What resolves it: explicit owner ruling or a separately accepted storage design.
-- Per-retailer Q&A and demographic support.
-  - Why still mutable: provider capabilities and retailer configurations differ.
-  - What resolves it: preserved retailer-specific fixtures.
+Monitoring retention for unchanged responses remains unresolved. Preserve exact
+responses until a separately approved and verified content-addressed or
+heartbeat design exists; do not claim deduplication is already implemented.
 
-## Superseded / Dangerous-To-Reuse Context
+## Authority And Source Ledger
 
-- “Nordstrom Bazaarvoice is unproven” as a provider-level conclusion.
-  - Why dangerous: current owner direction confirms the provider.
-  - Current replacement: provider is confirmed; adapter readiness remains unproven and deferred.
-- The current Sephora eight-response shape as the desired future route.
-  - Why dangerous: it repeats four demographic requests and body-heavy summaries.
-  - Current replacement: the merged three-role target in the owning standard.
-- A universal configuration inferred from Sephora alone.
-  - Why dangerous: retailer mechanics differ.
-  - Current replacement: prove Walmart, then extract only demonstrated commonality.
+- `AGENTS.md`
+  - Role: project behavior, isolation, validation, and PR lifecycle.
+  - Reuse: reread before implementation.
+- `.agents/workflow-overlay/README.md`
+  - Role: Forseti source-loading entrypoint.
+  - Reuse: reread before implementation.
+- `forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md`
+  - Role: authoritative extraction and preservation target.
+  - Compare target at this update: git blob `6647b561b567914739ece6f7054d967d16232caf`.
+- `docs/research/forseti_beauty_retailer_surface_probe_results_v0.md`
+  - Role: packet-backed retailer evidence and explicitly labelled later observations.
+  - Compare target: reread required because this handoff update changes Walmart's status.
+- `forseti-harness/source_capture/sephora_onboarding_capture.py`
+  - Role: incumbent Sephora acquisition and summary implementation.
+  - Compare target: git blob `251ede03a015df8688e072fcaf077f0484d4f7af`.
+- `forseti-harness/source_capture/adapters/sephora_bazaarvoice.py`
+  - Role: incumbent secret-safe Sephora request/response seam.
+  - Compare target: git blob `b160da8bdc5765af2445d507ecc63eba8b350302`.
+- `forseti-harness/tests/unit/test_sephora_onboarding_capture.py`
+  - Role: current success, fallback, identity, and pagination coverage.
+  - Compare target: git blob `7d02153641a24b5ffcf32c65c58ca076df1c450c`.
 
-## Commands And Verification Evidence
+## Drift Guard
 
-- Authoring-state verification:
-  ```powershell
-  git rev-parse HEAD
-  git status --short --branch
-  git hash-object -- <source-ledger-path>
-  ```
-  Result:
-  - head `2fe20400d7e2c0921de5d4cccc5333b381916ee3`
-  - clean before the handoff file was added
-  - source hashes recorded in the ledger
-  - receiver must rerun against current `origin/main`
-- Packet evidence:
-  - preserved packet identifiers and limitations are in the research-register compatibility table
-  - receiver must verified-read the exact packet before adapter claims
-
-## Blockers And Risks
-
-- Premature shared abstraction:
-  - Evidence: only Sephora is currently proven end to end.
-  - Next action: earn commonality through Walmart.
-- Unstable Nordstrom route:
-  - Evidence: owner says the broader lane remains in production.
-  - Next action: defer without re-proving provider identity.
-- Request footprint drift:
-  - Evidence: the current Sephora route performs eight response documents.
-  - Next action: assert request-role count and no duplicate Recent request in fixtures/tests.
-- Summary storage regression:
-  - Evidence: current Sephora summary is 1,437,000 bytes because it repeats inventories.
-  - Next action: test that bodies remain raw and compact summaries carry references.
+- Do not resume Walmart inside this lane.
+- Do not copy Sephora parameters or call a retailer-native route Bazaarvoice.
+- Do not extract a universal transport layer until at least two retailers prove
+  identical public mechanics.
+- Do not begin Nordstrom before its production-stability gate clears.
+- Do not run full review/Q&A corpora, schedules, fleets, Docker-per-page,
+  proxies, or anti-block bypass work.
+- Existing raw packets are append-only historical evidence.
 
 ## Confirm-Don't-Trust Load Checklist
 
-- Re-verify current `origin/main`, worktree cleanliness, and the five source blobs.
-- Reread the owning standard and compatibility section before design.
-- Verify each retailer packet and public mapping before implementation.
-- Return exactly one load outcome:
-  - `REUSE`: all load-bearing sources and owner constraints match; start Walmart proof.
-  - `PARTIAL_REUSE`: only non-load-bearing context drifted; re-derive it and continue.
-  - `STALE_REREAD_REQUIRED`: source blobs or `origin/main` moved; reread before acting.
-  - `BLOCKED_DRIFT`: source changes contradict the three-role target or retailer ordering.
-  - `BLOCKED_UNVERIFIABLE`: a product-family mapping cannot be derived from preserved evidence.
+- Verify current `origin/main`, worktree cleanliness, and source blobs.
+- Reread the owning standard and compatibility evidence.
+- Verify the named retailer packet and current public product mapping.
+- Return one outcome:
+  - `REUSE`: sources match; begin Target proof.
+  - `PARTIAL_REUSE`: non-load-bearing context drifted; rederive and continue.
+  - `STALE_REREAD_REQUIRED`: load-bearing sources moved; reread before acting.
+  - `BLOCKED_DRIFT`: the owner constraints or retailer order conflict.
+  - `BLOCKED_UNVERIFIABLE`: bounded public methods cannot establish a truthful route.
 
 ## Do Not Forget
 
-- Nordstrom uses Bazaarvoice, but goes last.
-- A large demographic subset can be useful without being representative.
-- No adapter admission without exact preserved response evidence.
+- Find as much of the Sephora information target as the retailer truly exposes.
+- Try Bazaarvoice first, then exhaust the other bounded public methods.
+- Missing data is a valid result; invented parity is not.
+- Target first, Kohl's second, Nordstrom last.

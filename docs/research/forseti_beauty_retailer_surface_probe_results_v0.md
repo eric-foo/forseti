@@ -1969,7 +1969,7 @@ durable packet-backed evidence.
 | Retailer | Preserved evidence | Conclusion and next action |
 | --- | --- | --- |
 | Sephora | Packet `01KXZYFSBDJRDMPSJ0G40QW437` and current runner | Reviews and questions are proven end to end; implement and packet-prove the three-role target. |
-| Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. | Bazaarvoice review data is proven; first extension candidate after one parent-family mapping probe. |
+| Walmart | Packet `01KXSV9HFFEPNEXVA407318KW1` contains `api.bazaarvoice.com` and structured product/review IDs, body, nickname, time, badges, and syndication fields. A later compatibility lane mapped item `2150828728` to product `3Y2AMXE2TTC1` and review-family ID `282PMOVUGY9E`, but found the current page retrieving reviews through Walmart's first-party persisted `ReviewsById` GraphQL query via `cegateway`; no public Bazaarvoice client/deployment configuration was exposed. | Historical Bazaarvoice-shaped review data is proven, but a current direct public Bazaarvoice route is not. Close Walmart as a direct Bazaarvoice extension candidate; any future implementation must be a separately proven Walmart-native adapter. |
 | Target | Packet `01KXR823YS3V5M9E01QXP71ETC` contains deployment `targetcom/main_site/production/en_US`, Bazaarvoice markers, and review identities, but no archived API response or family binding. | Preserve one bounded response fixture and bind retailer product ID to Bazaarvoice family ID before enabling. |
 | Kohl's | Packet `01KXXHBKF2GPK4M96SAV1VQKM3` contains `api.bazaarvoice.com` and deployment `kohls/redesign/production/en_US`, but no archived review response. | Use the admitted Kohl's browser route for one bounded response fixture and product-family binding before enabling. |
 | Nordstrom | Packet `01KXR9BNWBP8R8XKPKFJHZJTPN` contains Bazaarvoice-hosted media URLs but no API host, deployment, passkey, or review response. | Media provenance is insufficient; do not enable without recon. |
@@ -1987,6 +1987,14 @@ client/deployment and locale, product-family mapping, incentive filter,
 demographic fields, passive Recent availability, and Q&A behavior. Sephora
 parameters must not be copied merely because another retailer loads
 Bazaarvoice.
+
+The Walmart follow-on observation above was returned by the compatibility lane,
+not admitted as a new packet-backed API fixture. That lane also observed
+source-visible `Most Recent` and `Most Helpful` sorts, locale `en_US`, only a
+`Verified purchases only` filter, no demographic or non-incentivized filter,
+and disabled Q&A. No runtime change or response fixture was produced. These
+facts close the attempted direct-Bazaarvoice extension without claiming that
+Walmart never uses Bazaarvoice behind its first-party surface.
 
 Monitoring retention remains unresolved. No route may claim storage
 deduplication until a later implementation chooses and proves preservation of
