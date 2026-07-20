@@ -101,6 +101,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
         "live structured Sephora acquisition consumes a committed parent packet and "
         "requires explicit append-only lake admission"
     ),
+    "run_source_capture_target_onboarding.py": (
+        "live structured Target acquisition consumes a committed parent packet and "
+        "requires explicit append-only lake admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -323,6 +327,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "Sephora linkStore productId must match the requested product URL; every returned "
             "question row must carry that productId and every review row must carry that "
             "productId or a SKU enumerated by the same parent product before projection succeeds"
+        ),
+    },
+    "run_source_capture_target_onboarding.py": {
+        "status": "bound",
+        "mechanism": (
+            "before acquisition, a hash-verified retail_pdp parent must bind the Target "
+            "URL TCIN to the ProductDetailWebDatasourceCore TCIN and the admitted public "
+            "Bazaarvoice deployment; every returned question and review row plus the "
+            "included Bazaarvoice product must carry that same TCIN"
         ),
     },
     "run_source_capture_tiktok_batch_packet.py": {
