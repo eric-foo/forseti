@@ -202,6 +202,7 @@ def _seeded_root(root: DataLakeRoot, tmp_path: Path) -> tuple[str, str]:
 def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    import data_lake.derived_retrieval_views as retrieval_views
     from data_lake.derived_retrieval_views import (
         query_exact_actor_context, query_sql_catalogue, sql_catalogue_path,
         sql_catalogue_status, write_actor_query_audit,
@@ -223,18 +224,31 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     source = tmp_path / "tiktok_batch_capture.json"
     source.write_text(json.dumps(payload),encoding="utf-8")
     root = DataLakeRoot.for_test(tmp_path / "lake")
-    write_local_source_capture_packet(
+    receipt = write_local_source_capture_packet(
         data_root=root,input_files=[source],source_family="tiktok",
         source_surface="tiktok_creator_batch_comment_subtitle_admission",
         source_locator=known_fact("https://www.tiktok.com/@creator"),
         decision_question="test SQL retrieval",capture_context="fixture")
+    silver = json.loads((Path(__file__).parent / "fixtures" / "silver_compatibility" /
+                         "fragrantica_text_v0.json").read_text(encoding="utf-8"))
+    root.append_record(
+        subtree="derived",raw_anchor=receipt.packet.packet_id,
+        lane="cleaning_fragrantica_silver",record_id=silver["record_id"],
+        data=canonical_record_bytes(silver))
+    monkeypatch.setattr(
+        retrieval_views,"classify_silver_vault_record_sources",
+        lambda *_args,**_kwargs: SilverSourceAuthority(
+            CURRENT_SOURCE_BACKED_AUTHORITY,"test_current"))
     first = rebuild_derived_retrieval(root,product_mention_policy=_POLICY)
-    assert first["sql_catalogue"]["event_count"] == 1
+    assert first["sql_catalogue"]["event_count"] == 2
     second = rebuild_derived_retrieval(root,product_mention_policy=_POLICY)
     assert second["sql_catalogue"]["status"] == "current"
     found = query_sql_catalogue(root,body_query='"wear test"',platform="tiktok")
     assert found["row_count"] == 1
     assert "actor-1" not in json.dumps(found)
+    silver_found = query_sql_catalogue(
+        root,body_query='"Synthetic fixture"',vendor="fragrantica")
+    assert silver_found["row_count"] == 1
     actor = query_exact_actor_context(
         root,platform="tiktok",actor="actor-1",
         from_utc="2026-07-01T00:00:00Z",to_utc="2026-07-31T00:00:00Z",
