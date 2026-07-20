@@ -238,6 +238,26 @@ operating moves; customer and community response; bounded competitor or
 substitute context; contradictions; and evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
+When offerings, retail presentation, or customer experience are material, the
+company route is portfolio-first. Acquire the owned portfolio architecture and
+one primary-retailer brand/assortment grid, reconcile franchise, parent-product,
+variant/SKU, and retailer-listing identity, and only then select up to three
+representative franchises for PDP and customer-evidence depth. The set is
+evidence-selected rather than quota-filled: dominant; founding or strategically
+central; and, only when materially distinct, one contrasting extension or
+plausible weak link. Fewer than three is valid, and hero status is an earned
+conclusion rather than a selection premise.
+
+The primary retailer is chosen from subject authorization, target-market
+relevance, assortment breadth, structured evidence depth, and route
+admissibility. When the company has a material retailer presence and the bound
+question depends on retail expression, the primary route is required. At most
+one secondary retailer is conditional on a named non-duplicative job; a tertiary
+retailer is exception-only to resolve a material contradiction or gap. These
+roles use the existing coverage-ledger requirement, rationale, and typed-gap
+fields. They create no retailer-count quota, new schema, or automatic completion
+credit, and retailer evidence does not become internal company fact.
+
 When a decision-material retailer-review corpus has row-level ratings,
 source-visible incentive posture, and a reproducible boundary, the company
 report may derive the prompt-defined retailer-review approval signal. Preserve
@@ -251,9 +271,19 @@ round-half-up. Rows lacking an incentive marker are `not marked
 incentivized`, never confirmed organic.
 Neither this view nor an explicit-non-incentivized sensitivity establishes
 representative demand, market consensus, prevalence beyond the defined corpus,
-causal incentive distortion, or a comparison without a comparable method and
+causal incentive distortion, nor a comparison without a comparable method and
 denominator. Omit the signal when its row-level or corpus-boundary inputs are
 not reproducible.
+
+Retailer-authored product suitability/taxonomy and reviewer-self-reported
+attributes are separate evidence classes. Age, skin type, skin concern, or
+similar reviewer distributions must carry the captured-corpus denominator, the
+attribute-reporting denominator, missingness or coverage, selection/filter
+basis, and visible incentive posture. Precision within a large reporting
+subgroup does not make that subgroup representative of all reviewers,
+purchasers, or customers. Cross-product comparison requires comparable methods
+and missingness boundaries. This is guidance-bound narrative using existing
+observation provenance and ambiguity fields, not a new schema or validator.
 
 A completed company report additionally carries the synthesis layer as
 guidance-bound narrative (no schema or validator fields): an Executive
@@ -263,11 +293,14 @@ maximum decisive directness in consequence and plainly stated,
 evidence-calibrated confidence inside the decision-neutral boundary — with
 inference worded as inference even at full directness, and small or
 uncorroborated samples supporting existence rather than concentration, rate,
-or comparative claims absent a cited comparator base — chain cards that
-do not imply willingness-to-pay, representative demand, defection, or demand
-capture, and the central-promise voice plus internal adjudication frame (where
-observable value resides, what drives it, whether it is strengthening,
-weakening, or not proven, and what threatens it) with invalidation conditions;
+or comparative claims absent a cited comparator base — at most three chain
+cards for the evidence-selected representative franchises, using one
+representative parent product per franchise and never padding or presupposing
+hero status, that do not imply willingness-to-pay, representative demand,
+defection, or demand capture — and the central-promise voice plus internal
+adjudication frame (where observable value resides, what drives it, whether it
+is strengthening, weakening, or not proven, and what threatens it) with
+invalidation conditions;
 this frame does not replace decision adjudication as the product center.
 Publicly visible concentration appears in the channels lens; invalidation
 signals appear in the chronology lens; the customer-choice mechanism chain with

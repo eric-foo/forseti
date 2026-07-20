@@ -74,6 +74,13 @@ Each phase normally consumes two completed operator/model turns:
    Resolve Ulta and Quora through their existing source-specific records,
    preserving each route's scope, maturity, and typed limitations; do not
    silently substitute generic browsing or rediscovery.
+   For a company Understanding commission where offerings, retail presentation,
+   or customer experience are material, preserve the prompt's portfolio-first
+   order: owned architecture -> one primary-retailer assortment grid ->
+   reconciled franchise/product map -> up to three evidence-selected
+   representative franchises -> PDP and customer-evidence depth. A conditional
+   secondary retailer follows only for its named non-duplicative job; a tertiary
+   retailer is exception-only to resolve a material contradiction or gap.
 4. Run authorized scanning and capture. Record every selected route, route
    result, scan/capture receipt, source/provenance locator, and real failure.
    Scanning's current MGT operating model owns continuation and closure against
@@ -182,6 +189,13 @@ using round-half-up. If the route yields only a headline aggregate or an
 unreproducible slice, omit the signal and preserve the gap. This is
 conditional synthesis, not a mandatory acquisition step or completion gate.
 
+When the retailer evidence exposes age, skin type, skin concern, or similar
+attributes, distinguish retailer-authored product metadata from reviewer
+self-report. Any reviewer-attribute summary states the captured-corpus and
+attribute-reporting denominators, missingness or coverage, selection/filter
+basis, and visible incentive posture. It describes the reporting subgroup only;
+sample size does not convert that subgroup into a customer-population estimate.
+
 Understanding Deliver produces the decision-neutral company-intelligence
 artifact. Problem Framing may acquire only decision-specific supplements to the
 Understanding substrate, never a general re-scan; its eventual human output
@@ -285,8 +299,15 @@ gate above controls whether Deliver may begin.
    included item performs that job. Use exclusion or `not_applicable` records
    for dominated routes.
 6. For company commissions, route retail, customer, and claims research first,
-   subject to the same named-job and substitution rules. This orders attention;
-   it is not a quota, proof hierarchy, or Scanning execution instruction.
+   subject to the same named-job and substitution rules. When retail is
+   material, use the existing coverage-ledger fields to name one required
+   primary retailer, at most one conditional secondary retailer with a distinct
+   information job, and an exception-only tertiary retailer only when a
+   material contradiction or gap requires it. Commission owned and
+   primary-retailer portfolio breadth before selecting up to three
+   representative franchises for product depth. This orders attention; it is
+   not a quota, proof hierarchy, new ledger schema, or Scanning execution
+   instruction.
 7. For a recurring or actively radarred source family, put a lake-first
    preflight in the downstream request: relevant Silver/current view, then
    packet or catalog inventory, then raw material when necessary. Treat the
