@@ -363,6 +363,27 @@ internal revenue, margin, or management reporting. This interpretation consumes
 the company substrate already captured for Understanding; it does not create a
 separate acquisition checklist.
 
+When retail expression is material, acquire this substrate breadth-first. First
+establish the owned category, collection/franchise, parent-product, visible-
+variant, declared-total, and typed-gap census. Then test the qualified US beauty
+ladder -- Sephora, Ulta, Target, and Amazon -- and preserve an exact typed result
+such as `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
+`SURFACE_NOT_EXPOSED` when a retailer does not qualify; never invent a listing or
+completion credit. For every qualified retailer, capture its brand/assortment
+grid and one full-raw baseline PDP for every exact parent listing found, using a
+common lean fact floor while retaining source-visible retailer-native fields.
+Only after that baseline may expensive review or Q&A depth be selected for the
+products whose evidence gives it a named, non-duplicative job. This is a
+qualified-ladder test, not an all-retailer or source-count quota, and it does not
+require universal deep capture or a complete global SKU graph.
+
+Sephora is the guarded default primary when it is authorized, US-admissible, and
+materially complete; override it when a material omission, failed market
+pin/route, or named non-duplicative job requires another qualified retailer.
+Keep retailer counts as separate, traceable series unless exact corpus identity
+and deterministic deduplication justify comparison. Counts show accumulated
+retailer-local attention, never sales.
+
 | Observed public pattern | Strongest ordinary interpretation | Required boundary |
 | --- | --- | --- |
 | Large accumulated review base, continuing review velocity, and broad authorized distribution | Established leading product | Large totals alone establish accumulated attention, not current sales |

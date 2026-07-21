@@ -75,19 +75,18 @@ Each phase normally consumes two completed operator/model turns:
    preserving each route's scope, maturity, and typed limitations; do not
    silently substitute generic browsing or rediscovery.
    For a company Understanding commission where offerings, retail presentation,
-   or customer experience are material, preserve the prompt's bounded
-   breadth-before-depth order: owned franchise/candidate census -> one
-   primary-retailer assortment grid -> decision-material identity
-   reconciliation -> up to three evidence-selected representative franchises,
-   each anchored by one representative parent product -> PDP and
-   customer-evidence depth. Do not require a full global SKU graph. Product-level
-   evidence may resolve multiple jobs, but multiple products in one franchise do
-   not create extra chain cards or increase the three-franchise ceiling. Use the
-   prompt's four selection jobs, analysis-enablement inputs,
-   displacement rule, stopping rule, calibrated review-volume semantics,
-   accepted residuals, non-claims, and upgrade trigger. A conditional secondary
-   retailer follows only for its named non-duplicative job; a tertiary retailer
-   is exception-only to resolve a material contradiction or gap.
+   or customer experience are material, preserve the prompt's bounded sequence:
+   owned category/franchise/parent census -> qualified US ladder tests and
+   retailer grids -> every exact-parent listing's baseline PDP at each qualified
+   retailer -> evidence-selected review/Q&A depth. Test Sephora, Ulta, Target,
+   and Amazon; preserve exact typed failure instead of inventing a listing or
+   completion credit. Use the common lean baseline, preserve full raw material,
+   and retain source-visible retailer-native extensions. Apply the guarded
+   Sephora-primary default when it qualifies and is materially complete. A named
+   non-duplicative job must justify each expensive deepening, and there is no
+   fixed deep-product count. Do not require a full global SKU graph, universal
+   deep capture, or an all-retailer/source-count quota. Preserve calibrated
+   review-volume semantics, accepted residuals, non-claims, and upgrade trigger.
 4. Run authorized scanning and capture. Record every selected route, route
    result, scan/capture receipt, source/provenance locator, and real failure.
    Scanning's current MGT operating model owns continuation and closure against
@@ -306,22 +305,21 @@ gate above controls whether Deliver may begin.
    included item performs that job. Use exclusion or `not_applicable` records
    for dominated routes.
 6. For company commissions, route retail, customer, and claims research first,
-   subject to the same named-job and substitution rules. When retail is
-   material, use the existing coverage-ledger fields to name one required
-   primary retailer, at most one conditional secondary retailer with a distinct
-   information job, and an exception-only tertiary retailer only when a
-   material contradiction or gap requires it. Apply the prompt's guarded
-   Sephora-primary default. Commission the owned and primary-retailer bounded
-   candidate census before selecting up to three representative franchises,
-   each anchored by one representative parent product, for depth. Product-level
-   evidence may cover multiple jobs, but multiple products in one franchise do
-   not add chain cards or increase the three-franchise ceiling. Reconcile
-   identity deeply only where a candidate could change selection, a match is
-   ambiguous, or a selected product requires it.
-   Preserve the four selection jobs, analysis-enablement inputs, displacement
-   rule, stop-or-gap rule, review-volume claim guards, accepted residuals,
-   non-claims, and upgrade trigger. This orders attention; it is not a quota,
-   proof hierarchy, full-SKU-graph requirement, new ledger schema, or Scanning
+   subject to the same named-job and substitution rules. When retail is material,
+   use the existing coverage-ledger fields to commission the owned census, test
+   and record the exact result for Sephora, Ulta, Target, and Amazon, acquire a
+   grid for every qualified retailer, and acquire one full-raw common-floor
+   baseline PDP for every exact parent listing found there. Apply the prompt's
+   guarded Sephora-primary default, but do not let primary status excuse another
+   qualified retailer's baseline. Preserve typed route failures without
+   completion credit and retain retailer-native fields when source-visible.
+   Only after breadth is sealed, select expensive review/Q&A depth for evidence-
+   selected products. Each deepening needs a named non-duplicative job, there is
+   no fixed product count, and retailer counts remain separate rather than
+   becoming sales. Preserve analysis-enablement inputs, stop-or-gap rules, review-
+   volume claim guards, accepted residuals, non-claims, and upgrade trigger. This
+   orders attention; it is not a source quota, proof hierarchy, universal-deep-
+   capture rule, full-SKU-graph requirement, new ledger schema, or Scanning
    execution instruction.
 7. For a recurring or actively radarred source family, put a lake-first
    preflight in the downstream request: relevant Silver/current view, then
