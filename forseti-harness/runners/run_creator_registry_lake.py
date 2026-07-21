@@ -58,6 +58,9 @@ def _parser() -> argparse.ArgumentParser:
 
     rebuild = commands.add_parser("rebuild")
     rebuild.add_argument("--data-root", required=True)
+    rebuild_mode = rebuild.add_mutually_exclusive_group(required=True)
+    rebuild_mode.add_argument("--dry-run", action="store_true")
+    rebuild_mode.add_argument("--write", action="store_true")
 
     show = commands.add_parser("show")
     show.add_argument("--data-root", required=True)
@@ -108,7 +111,12 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        root = DataLakeRoot.resolve(explicit=args.data_root)
+        dry_run = args.command in {"migrate", "rebuild"} and args.dry_run
+        root = (
+            DataLakeRoot.resolve_readonly(explicit=args.data_root)
+            if dry_run
+            else DataLakeRoot.resolve(explicit=args.data_root)
+        )
         if args.command == "migrate":
             result = migrate_legacy_registry(
                 data_root=root,
@@ -118,7 +126,11 @@ def main(argv: list[str] | None = None) -> int:
                 dry_run=args.dry_run,
             )
         elif args.command == "rebuild":
-            result = publish_creator_registry_generation(root)
+            result = publish_creator_registry_generation(root, dry_run=args.dry_run)
+            result = {
+                "status": "dry_run_passed" if args.dry_run else "rebuilt",
+                **result,
+            }
         elif args.command == "show":
             result = (
                 load_current_creator_registry(root)
