@@ -26,6 +26,10 @@ from capture_spine.creator_profile_current.validation import (
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.creator_registry import load_current_registry_preflight_view
 from data_lake.root import DataLakeRoot
+from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
+    build_tiktok_creator_promotion_decisions,
+    promotion_decision_for_handle,
+)
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
     RefreshOutcome,
@@ -67,6 +71,7 @@ DEFAULT_CREATOR_REGISTRY = (
     / "creator_registry/creator_profile_current_view_v0.json"
 )
 REGISTRY_PREFLIGHT_JSON_NAME = "creator_registry_match_preflight.json"
+PROMOTION_DECISIONS_JSON_NAME = "tiktok_creator_promotion_decisions.json"
 DEFAULT_DECISION_QUESTION = (
     "Admit the selected TikTok onboarding videos' public comments, "
     "subtitles, source text, and typed extraction seeds."
@@ -127,6 +132,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--creator-registry", type=Path, default=DEFAULT_CREATOR_REGISTRY
     )
+    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; required for genuinely absent new onboarding")
+    parser.add_argument("--promotion-only", action="store_true", help="write promotion decisions and exit before Registry/browser work")
     parser.add_argument(
         "--session-profile",
         default="chowdakr_sg_tiktok",
@@ -200,7 +207,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     data_root = None
     capture_scope = "full_deep_capture"
     prior_coverage: dict[str, object] | None = None
+    promotion_decisions = None
     try:
+        if args.promotion_only and args.promotion_grid_dir is None:
+            raise ValueError("--promotion-only requires --promotion-grid-dir")
+        if args.promotion_grid_dir is not None:
+            promotion_path, promotion_decisions = _write_promotion_decisions(args.promotion_grid_dir, args.output_dir)
+            _emit_progress("promotion_decisions_complete", {"path": str(promotion_path), "counts": promotion_decisions["tiktok_creator_promotion_decisions"]["counts"]})
+        if args.promotion_only:
+            return 0
         if args.data_root is not None:
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
             registry_document = load_current_registry_preflight_view(data_root)
@@ -218,6 +233,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
             registry_document=registry_document,
+            promotion_decisions=promotion_decisions,
         )
         if selected_candidate is not None:
             _emit_progress("creator_selected_from_registry", selected_candidate)
@@ -244,6 +260,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     f"or a genuinely absent account; found decision={decision!r}"
                 )
             onboarding_state = preflight_result.get("registry_onboarding_state")
+            if decision == "new_candidate":
+                _require_promoted(promotion_decisions, args.creator_handle)
             if decision == "existing_match" and onboarding_state != "not_onboarded":
                 raise TikTokCreatorOnboardingError(
                     "new_onboarding requires onboarding_state=not_onboarded; "
@@ -521,6 +539,7 @@ def _resolve_creator_handle(
     creator_intent: str,
     registry_document: dict[str, object] | None = None,
     registry_path: Path | None = None,
+    promotion_decisions: dict[str, object] | None = None,
 ) -> tuple[str, dict[str, str] | None]:
     if creator_handle is not None and creator_handle.strip():
         return creator_handle, None
@@ -532,12 +551,73 @@ def _resolve_creator_handle(
         if registry_path is None:
             raise ValueError("registry_document or registry_path is required")
         registry_document = load_creator_profile_current_view(registry_path)
+    if promotion_decisions is not None:
+        return _select_promoted_creator(promotion_decisions, registry_document)
     candidate = select_creator_onboarding_candidate(
         registry_document,
         platform="tiktok",
     )
     return candidate["public_handle"], candidate
 
+
+
+def _write_promotion_decisions(grid_dir: Path, output_dir: Path) -> tuple[Path, dict[str, object]]:
+    paths = sorted(grid_dir.glob("*.grid.json"), key=lambda path: path.name.lower())
+    if not paths:
+        raise ValueError(f"no *.grid.json files in {grid_dir}")
+    grids, sources = [], []
+    for path in paths:
+        raw = path.read_bytes()
+        grid = json.loads(raw.decode("utf-8-sig"))
+        if not isinstance(grid, dict):
+            raise ValueError(f"grid must be an object: {path}")
+        grids.append(grid)
+        sources.append({"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()})
+    document = build_tiktok_creator_promotion_decisions(grids, sources=sources)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output = output_dir / PROMOTION_DECISIONS_JSON_NAME
+    output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    return output, document
+
+
+def _registry_tiktok_states(registry: dict[str, object]) -> dict[str, str]:
+    wrapper = registry.get("creator_profile_current_view")
+    if not isinstance(wrapper, dict) or not isinstance(wrapper.get("profiles"), list):
+        raise ValueError("Creator Registry current view requires profiles")
+    states = {}
+    for profile in wrapper["profiles"]:
+        if not isinstance(profile, dict):
+            continue
+        onboarding = profile.get("onboarding")
+        state = onboarding.get("onboarding_state") if isinstance(onboarding, dict) else None
+        if state not in {"onboarded", "not_onboarded"}:
+            raise ValueError("Creator Registry profile has invalid onboarding state")
+        for account in profile.get("platform_accounts", []):
+            if isinstance(account, dict) and str(account.get("platform", "")).lower() == "tiktok":
+                handle = str(account.get("normalized_public_handle") or account.get("public_handle") or "").strip().lstrip("@").lower()
+                if handle in states:
+                    raise ValueError(f"duplicate TikTok registry handle: {handle}")
+                states[handle] = state
+    return states
+
+
+def _select_promoted_creator(document: dict[str, object], registry: dict[str, object]) -> tuple[str, dict[str, str]]:
+    wrapper = document.get("tiktok_creator_promotion_decisions")
+    if not isinstance(wrapper, dict):
+        raise ValueError("promotion decisions wrapper required")
+    states = _registry_tiktok_states(registry)
+    rows = sorted((row for row in wrapper.get("decisions", []) if isinstance(row, dict) and row.get("registry_action") == "promote_now"), key=lambda row: int(row["priority_rank"]))
+    for row in rows:
+        handle = str(row["handle"]).strip().lstrip("@").lower()
+        if states.get(handle) != "onboarded":
+            return handle, {"public_handle": handle, "selection_source": "promotion_frontier"}
+    raise ValueError("no promote_now creator remains outside onboarded Registry rows")
+
+
+def _require_promoted(document: dict[str, object] | None, handle: str) -> None:
+    row = promotion_decision_for_handle(document, handle) if document is not None else None
+    if row is None or row.get("registry_action") != "promote_now":
+        raise TikTokCreatorOnboardingError("genuinely absent new_onboarding creator requires a promote_now Discovery Frontier decision")
 
 
 def _emit_progress(event: str, fields: dict[str, object]) -> None:
