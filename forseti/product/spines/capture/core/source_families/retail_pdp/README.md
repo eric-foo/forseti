@@ -45,10 +45,28 @@ cross-pointer here and in the Scanning family entrypoint.
 | Access / method | `retailer_information_extraction_standard_v0.md`; `retail_pdp_content_cleaning_contract_v0.md` | Cross-retailer evidence categories and discovery behavior; retailer-owned extraction, retention, target binding, residuals, Cleaning, and Silver handoff. |
 | Storefront pins | `retail_storefront_pin_registry_v0.md`; `amazon_us_vpn_regression_recovery_playbook_v0.md`; supporting recon and live receipts linked there | Session, storefront-country, currency, and delivery-location state independently; a working route, VPN geography, or observed context is not a confirmed pin. |
 | Retail/PDP packet/content | `run_source_capture_cloakbrowser_packet.py`; `source_capture/retail_pdp_content.py`; `cleaning/retail_pdp.py` | Five admitted profiles default to canonical content after retailer-owned pin/access/sufficiency/extraction gates. Amazon remains an explicit raw-unflipped route consumed through the legacy raw decoder into the same Cleaning/Silver floor. Shallow ladder profiles derive the commissioned PDP/search identity from the URL and require their exact US pin input; historical canary names are not target evidence. |
-| Retail grid packet/projection | `run_source_capture_cloakbrowser_packet.py`; `source_capture/sephora_brand_grid.py`; `source_capture/retail_grid_projection.py`; `docs/research/forseti_sephora_brand_grid_capture_live_proof_v0.md` | Raw remains authoritative. Sephora and Target have admitted mechanical projection paths; the capture runner requires their sidecar. Sephora additionally reconciles subject, page-declared count, serialized placements, unique parents, and termination. Amazon search-grid capture remains raw-only and cannot be presented as a complete brand denominator; Ulta grid remains non-ordinary until a live subject-agnostic route is proven. |
+| Retail grid packet/projection | `run_source_capture_cloakbrowser_packet.py`; `source_capture/sephora_brand_grid.py`; `source_capture/retail_grid_projection.py`; `docs/research/forseti_sephora_brand_grid_capture_live_proof_v0.md` | Raw remains authoritative. Sephora, Ulta, and Target have admitted mechanical projection paths; the capture runner requires their sidecar. Sephora and Ulta additionally reconcile subject, retailer-declared count, placements, unique parents, and termination. Amazon search-grid capture remains raw-only and cannot be presented as a complete brand denominator. |
+| Portfolio breadth composition | `run_retail_portfolio_onboarding.py`; `source_capture/retail_portfolio_onboarding.py` | Compose the owned parent census, one typed outcome for each ladder retailer, every verified grid row's explicit parent/listing reconciliation, and one hash-verified raw Retail/PDP packet per exact non-bundle retailer listing. The derived record preserves duplicate placements, variant URLs, bundles/sets, ambiguity, unmatched rows, missing material variants, and route failures without granting false parent coverage. |
 | Retail/PDP Silver | `retail_pdp_silver_producer_contract_v0.md`; `run_retail_pdp_silver_producer.py`; `source_capture/retail_pdp_silver.py` | Cleaning-owned source anchors, retailer-local identity, and source-visible offer/review observations only. |
 | Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `forseti-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
 | Data Lake authority | `forseti/product/spines/data_lake/README.md` -> `authority/` | Raw admission, path grammar, derived layout, and Silver semantics. The family index does not own them. |
+
+## Portfolio Breadth Composition
+
+The portfolio compositor is a local, no-network coverage gate. Its JSON
+commission names the owned census packet and parents; exactly one outcome for
+Sephora, Ulta, Target, and Amazon; one explicit reconciliation for every row in
+each captured grid packet; and the raw Retail/PDP packet directory for every
+exact non-bundle retailer listing. Captured outcomes point to packet
+directories, not trusted projection summaries: the compositor re-hashes raw
+bytes and rebuilds the retailer projection. Baseline packet locators must bind
+the retailer-native listing identity.
+
+Run `python runners/run_retail_portfolio_onboarding.py --commission <json>
+--output <json>` from `forseti-harness/`. The derived output is
+write-once and does not alter Raw. It is a coverage-composition record, not a
+new CSB ledger schema, global SKU graph, sales estimate, or product-role
+selection.
 
 ## Non-Claims
 

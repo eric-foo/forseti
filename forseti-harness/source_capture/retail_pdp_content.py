@@ -13,6 +13,9 @@ from typing import Any, Mapping
 
 from source_capture.models import PreservedFile, SourceCapturePacket
 from source_capture.retail_pdp_projection import (
+    AMAZON_PDP_CONTENT_PROFILE,
+    AMAZON_PDP_CONTENT_RECORD_KIND,
+    AMAZON_PDP_PARSER_VERSION,
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_CONTENT_RECORD_KIND,
     LUCKYSCENT_PDP_PARSER_VERSION,
@@ -28,11 +31,13 @@ from source_capture.retail_pdp_projection import (
     ULTA_PDP_CONTENT_PROFILE,
     ULTA_PDP_CONTENT_RECORD_KIND,
     ULTA_PDP_PARSER_VERSION,
+    AmazonPdpAggregateContentRecord,
     LuckyscentPdpAggregateContentRecord,
     NordstromPdpAggregateContentRecord,
     SephoraPdpAggregateContentRecord,
     TargetPdpAggregateContentRecord,
     UltaPdpAggregateContentRecord,
+    build_amazon_pdp_aggregate_content_record,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
@@ -46,6 +51,7 @@ _RECORD_MODEL_BY_KIND = {
     NORDSTROM_PDP_CONTENT_RECORD_KIND: NordstromPdpAggregateContentRecord,
     ULTA_PDP_CONTENT_RECORD_KIND: UltaPdpAggregateContentRecord,
     TARGET_PDP_CONTENT_RECORD_KIND: TargetPdpAggregateContentRecord,
+    AMAZON_PDP_CONTENT_RECORD_KIND: AmazonPdpAggregateContentRecord,
 }
 _EXPECTED_VERSION_BY_PROFILE = {
     SEPHORA_PDP_CONTENT_PROFILE: SEPHORA_PDP_PARSER_VERSION,
@@ -53,6 +59,7 @@ _EXPECTED_VERSION_BY_PROFILE = {
     NORDSTROM_PDP_CONTENT_PROFILE: NORDSTROM_PDP_PARSER_VERSION,
     ULTA_PDP_CONTENT_PROFILE: ULTA_PDP_PARSER_VERSION,
     TARGET_PDP_CONTENT_PROFILE: TARGET_PDP_PARSER_VERSION,
+    AMAZON_PDP_CONTENT_PROFILE: AMAZON_PDP_PARSER_VERSION,
 }
 
 
@@ -162,6 +169,8 @@ def _json_object(
 
 
 __all__ = [
+    "AMAZON_PDP_CONTENT_PROFILE",
+    "AMAZON_PDP_PARSER_VERSION",
     "LUCKYSCENT_PDP_CONTENT_PROFILE",
     "LUCKYSCENT_PDP_PARSER_VERSION",
     "NORDSTROM_PDP_CONTENT_PROFILE",
@@ -172,6 +181,7 @@ __all__ = [
     "TARGET_PDP_PARSER_VERSION",
     "ULTA_PDP_CONTENT_PROFILE",
     "ULTA_PDP_PARSER_VERSION",
+    "build_amazon_pdp_aggregate_content_record",
     "build_luckyscent_pdp_aggregate_content_record",
     "build_nordstrom_pdp_aggregate_content_record",
     "build_sephora_pdp_aggregate_content_record",

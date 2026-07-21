@@ -87,6 +87,14 @@ Each phase normally consumes two completed operator/model turns:
    fixed deep-product count. Do not require a full global SKU graph, universal
    deep capture, or an all-retailer/source-count quota. Preserve calibrated
    review-volume semantics, accepted residuals, non-claims, and upgrade trigger.
+   Before selecting depth, run the portfolio breadth compositor (or prove the
+   same fields through the existing coverage ledger): one owned-parent
+   denominator, one typed outcome per ladder retailer, one reconciliation per
+   verified grid row, and one verified raw PDP baseline per exact non-bundle
+   listing. Duplicate placements, variant URLs, bundles/sets, ambiguity,
+   unmatched rows, missing material variants, and route failures stay distinct.
+   The compositor output is derived acquisition accounting, not a new ledger
+   schema or product-role assignment.
 4. Run authorized scanning and capture. Record every selected route, route
    result, scan/capture receipt, source/provenance locator, and real failure.
    Scanning's current MGT operating model owns continuation and closure against

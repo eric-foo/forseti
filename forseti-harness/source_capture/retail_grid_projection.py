@@ -173,7 +173,7 @@ class RetailGridProjectionPacket(StrictModel):
 def build_retail_grid_projection_from_packet_directory(
     *, packet_directory: Path
 ) -> RetailGridProjectionPacket:
-    packet, raw_file_bytes_by_file_id = _load_packet_directory_projection_inputs(packet_directory)
+    packet, raw_file_bytes_by_file_id = load_verified_source_capture_packet_directory(packet_directory)
     return build_retail_grid_projection(
         packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id
     )
@@ -224,7 +224,7 @@ def project_retail_grid_into_lake(
 def build_retail_grid_projection(
     *, packet: SourceCapturePacket, raw_file_bytes_by_file_id: Mapping[str, bytes]
 ) -> RetailGridProjectionPacket:
-    retailer = _detect_retailer(packet)
+    retailer = detect_retail_grid_retailer(packet)
     if retailer == "ulta":
         from source_capture.ulta_grid_projection import build_ulta_grid_projection
 
@@ -811,27 +811,39 @@ def _target_channel_text(card: str, label: str) -> str | None:
     return html_module.unescape(value) if value else None
 
 
-def _detect_retailer(packet: SourceCapturePacket) -> RetailGridRetailer:
+def detect_retail_grid_retailer(packet: SourceCapturePacket) -> RetailGridRetailer:
+    """Return the retailer named by an admitted source-visible grid locator."""
     locators = [_fact_value(packet.source_locator)] + [
         _fact_value(source_slice.locator) for source_slice in packet.source_slices
     ]
-    joined = " ".join(value.lower() for value in locators if value)
-    if "walmart." in joined:
-        return "walmart"
-    if "target." in joined:
-        return "target"
-    if "sephora." in joined:
-        return "sephora"
-    if "ulta." in joined:
-        return "ulta"
+    for locator in locators:
+        if locator is None:
+            continue
+        parsed = urlparse(locator)
+        hostname = (parsed.hostname or "").lower()
+        path = parsed.path.rstrip("/").lower()
+        if _hostname_matches(hostname, "walmart.com") and path == "/search":
+            return "walmart"
+        if _hostname_matches(hostname, "target.com") and path == "/s":
+            return "target"
+        if _hostname_matches(hostname, "sephora.com") and path.startswith("/brand/"):
+            return "sephora"
+        if _hostname_matches(hostname, "ulta.com") and path.startswith("/brand/"):
+            return "ulta"
     raise RetailGridProjectionInputError(
-        "retail grid projection supports only source-visible Walmart, Target, Sephora, or Ulta locators"
+        "retail grid projection requires an admitted source-visible Walmart search, "
+        "Target search, Sephora brand, or Ulta brand locator"
     )
 
 
-def _load_packet_directory_projection_inputs(
+def _hostname_matches(hostname: str, retailer_domain: str) -> bool:
+    return hostname == retailer_domain or hostname.endswith(f".{retailer_domain}")
+
+
+def load_verified_source_capture_packet_directory(
     packet_directory: Path,
 ) -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    """Load a packet directory and re-hash every manifest-declared raw file."""
     manifest_path = packet_directory / "manifest.json"
     if not manifest_path.is_file():
         raise RetailGridProjectionInputError(f"packet manifest not found: {manifest_path}")
@@ -1028,6 +1040,8 @@ __all__ = [
     "RetailGridProjectionRow",
     "build_retail_grid_projection",
     "build_retail_grid_projection_from_packet_directory",
+    "detect_retail_grid_retailer",
+    "load_verified_source_capture_packet_directory",
     "project_retail_grid_into_lake",
     "write_retail_grid_projection",
 ]

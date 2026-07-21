@@ -132,13 +132,12 @@ def apply_tiktok_creator_onboarding_dedupe(
     *,
     registry_states: Mapping[str, str],
     frontier_registers: Sequence[Mapping[str, Any]] = (),
+    frontier_dispositions: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Annotate promotion results with the live Registry/Frontier action gate.
 
-    Performance decisions remain unchanged. The actionable queue excludes an
-    owner-deferred account, an onboarded Registry account, and any creator
-    already scanned as a Frontier root, while a known not-onboarded Registry
-    account remains actionable.
+    Performance decisions remain unchanged. Only Registry ``not_onboarded``
+    accounts without a current deferred/rejected disposition are actionable.
     """
     wrapper = document.get("tiktok_creator_promotion_decisions")
     if not isinstance(wrapper, Mapping) or wrapper.get("schema_version") != TIKTOK_CREATOR_PROMOTION_SCHEMA:
@@ -154,6 +153,27 @@ def apply_tiktok_creator_onboarding_dedupe(
     if invalid_states:
         raise ValueError(f"invalid Creator Registry onboarding states: {invalid_states}")
     _, scanned_root_keys = _collect_candidate_records(frontier_registers)
+    disposition_by_handle: dict[str, dict[str, Any]] = {}
+    if frontier_dispositions is not None:
+        disposition_wrapper = frontier_dispositions.get("creator_frontier_disposition_current")
+        if not isinstance(disposition_wrapper, Mapping) or disposition_wrapper.get(
+            "schema_version"
+        ) != "creator_frontier_disposition_current_v1":
+            raise ValueError("unsupported Creator Frontier disposition current view")
+        raw_dispositions = disposition_wrapper.get("dispositions")
+        if not isinstance(raw_dispositions, list):
+            raise ValueError("Creator Frontier disposition current view requires dispositions")
+        for raw in raw_dispositions:
+            if not isinstance(raw, Mapping):
+                raise ValueError("Creator Frontier disposition rows must be objects")
+            key = _handle_key(raw.get("public_handle"))
+            if (
+                key is None
+                or key in disposition_by_handle
+                or raw.get("status") not in {"eligible", "deferred", "rejected"}
+            ):
+                raise ValueError("duplicate or invalid Creator Frontier disposition handle")
+            disposition_by_handle[key] = dict(raw)
 
     result = {"tiktok_creator_promotion_decisions": dict(wrapper)}
     result_wrapper = result["tiktok_creator_promotion_decisions"]
@@ -168,24 +188,37 @@ def apply_tiktok_creator_onboarding_dedupe(
         if not handle or not handle_key:
             raise ValueError("promotion decision handle is required")
         registry_state = normalized_states.get(handle_key)
-        owner_disposition = _OWNER_ONBOARDING_DISPOSITIONS.get(handle_key)
-        if owner_disposition is not None:
-            queue_status = "owner_deferred"
-        elif registry_state == "onboarded":
+        owner_disposition = disposition_by_handle.get(handle_key)
+        legacy_disposition = (
+            _OWNER_ONBOARDING_DISPOSITIONS.get(handle_key)
+            if owner_disposition is None
+            else None
+        )
+        if registry_state == "onboarded":
             queue_status = "already_onboarded"
-        elif handle_key in scanned_root_keys:
-            queue_status = "already_scanned_frontier"
+        elif owner_disposition is not None and owner_disposition.get("status") == "deferred":
+            queue_status = "owner_deferred"
+        elif owner_disposition is not None and owner_disposition.get("status") == "rejected":
+            queue_status = "owner_rejected"
+        elif legacy_disposition is not None:
+            queue_status = "owner_deferred"
         elif registry_state == "not_onboarded":
             queue_status = "known_not_onboarded"
+        elif owner_disposition is not None and owner_disposition.get("status") == "eligible":
+            queue_status = "frontier_eligible_not_registered"
+        elif handle_key in scanned_root_keys:
+            queue_status = "already_scanned_frontier"
         else:
             queue_status = "new_candidate"
         actionable = (
             row.get("registry_action") == "promote_now"
-            and queue_status in {"known_not_onboarded", "new_candidate"}
+            and queue_status == "known_not_onboarded"
         )
         row["onboarding_queue_status"] = queue_status
         row["owner_onboarding_disposition_or_none"] = (
-            dict(owner_disposition) if owner_disposition is not None else None
+            dict(owner_disposition)
+            if owner_disposition is not None
+            else (dict(legacy_disposition) if legacy_disposition is not None else None)
         )
         row["actionable_promote_now"] = actionable
         rows.append(row)
@@ -199,6 +232,16 @@ def apply_tiktok_creator_onboarding_dedupe(
     counts["owner_deferred_promote_now"] = sum(
         row.get("registry_action") == "promote_now"
         and row["onboarding_queue_status"] == "owner_deferred"
+        for row in rows
+    )
+    counts["owner_rejected_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "owner_rejected"
+        for row in rows
+    )
+    counts["frontier_eligible_not_registered_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "frontier_eligible_not_registered"
         for row in rows
     )
     counts["already_onboarded_promote_now"] = sum(

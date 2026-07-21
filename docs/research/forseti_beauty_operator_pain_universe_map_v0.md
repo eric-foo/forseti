@@ -16,17 +16,16 @@ use_when:
   - Scoping a paid-source follow-up pass (see the paywalled-source receipt).
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md # nonresolving: on branch claude/gtm-silent-pain-taxonomy (origin), not yet merged to main
+  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md
   - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
 stale_if:
-  - The owner adjudicates these candidates into the taxonomy (map consumed for that purpose; invisible list may outlive it).
+  - The owner re-adjudicates or re-tiers a candidate inherited by the taxonomy; use the taxonomy for current class authority.
   - The owner re-tiers the taxonomy in a way that changes the prior art below.
 ```
 
-Pointer note: the silent-pain taxonomy is not yet on `origin/main` at authoring
-time; it lives on branch `claude/gtm-silent-pain-taxonomy`
-(`origin/claude/gtm-silent-pain-taxonomy`, tip `32255dbe` at authoring time,
-including the class-10 gray-market addition). Reread it there until it merges.
+Currentness note: the observable candidates were adjudicated into the taxonomy
+linked above. Use that taxonomy for current class authority; this map remains
+research provenance, the corroborable/invisible boundary, and the paid-source receipt.
 
 ## Provenance and method
 

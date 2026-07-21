@@ -67,6 +67,7 @@ Compactness never authorizes dropping valuable rows.
 - `nordstrom_pdp_aggregate`
 - `ulta_pdp_aggregate`
 - `target_pdp_aggregate`
+- `amazon_pdp_aggregate`
 
 Content schema versions are retailer-local revisions, not a shared maturity
 scale. Amazon remains explicitly raw-unflipped: its ASIN-bound aggregate PDP is
@@ -82,6 +83,7 @@ The current canonical-content acquisition census is:
 | `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
 | `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v2` | `retail_pdp_ulta_aggregate_parser_v2` | Current canonical content. |
 | `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
+| `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
 
 `RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
@@ -102,7 +104,7 @@ Direct-HTTP grids remain raw.
 
 | Retailer / route | Current deep-PDP mark |
 | --- | --- |
-| Amazon `amazon_pdp_aggregate` | `raw_unflipped`; no content schema exists. |
+| Amazon `amazon_pdp_distribution` | `raw_unflipped`; no content schema exists, and its extra `customers mention` gate is not admitted for information capture. |
 | Walmart `walmart_pdp_aggregate` | `raw_unflipped`; the Direct HTTP runner does not yet support content retention. |
 | Credo Direct HTTP PDP | `raw_unflipped`; no admitted content profile exists. |
 | Kohl's unattended real-Chrome PDP | `raw_unflipped`; no content profile exists and the real-Chrome runner does not yet support content retention. |
@@ -133,6 +135,34 @@ review identity only, and the Target-native review UUIDs do not join the
 companion's Bazaarvoice review IDs. Guest session and bot-defense material
 carried in the page state is never retained, and its presence alone is
 recorded.
+
+Amazon content is built from the rendered PDP's own `celwidget` feature
+modules, each of which Amazon stamps with the page's target ASIN. Price,
+availability, ship-from/sold-by, delivery promise, and the bought-in-past-month
+badge are read only from modules bound to the requested ASIN; a module carrying
+another ASIN, or a page-global merchandising signal that no bound module
+carries, fails extraction rather than binding to the target. Amazon declares far
+more detail-page modules than the server fills, so all of them are inventoried
+with their render and target-binding state in one inventory row. Variants come
+from Amazon's own `desktop-twister-sort-filter-data` page state; a twister
+module that renders without parsable state fails extraction rather than
+reporting variants as observed.
+
+**Amazon content retains the exact review bodies.** This is the one place
+Amazon deliberately diverges from Target. Amazon has no separate raw
+review-response companion: `amazon_pdp_review_onboarding_v1` writes only a
+control manifest and a body-free summary over an already-preserved raw parent,
+so the bodies exist solely in the parent PDP DOM that content mode hashes and
+discards. Each body is read from the reviewer's own rich-content block, not from
+the surrounding accessibility and expander chrome, and every exposed row is
+kept, including separately labelled international rows; the eight US rows are
+the default US-market analysis window rather than the whole set. That companion
+therefore remains valid over raw-retained Amazon parents and is redundant for
+content-retained captures. Guest session and anti-CSRF material carried in the
+DOM is never retained, and its presence alone is recorded. Amazon exposes
+neither retailer AI review sentiment nor customer product Q&A on the admitted
+target PDP; a newly exposed AI-summary or Q&A surface without a lossless parser
+fails extraction so the runner retains raw inputs and exits nonzero.
 
 Nordstrom review onboarding captures the complete Most Recent 30-day cohort.
 If fewer than 12 reviews fall in that window, it continues in the same source

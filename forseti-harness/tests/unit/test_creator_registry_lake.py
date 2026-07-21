@@ -9,17 +9,25 @@ import pytest
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.creator_registry import (
     ADMISSION_LANE,
+    CANDIDATE_ADMISSION_LANE,
     CreatorRegistryLakeError,
     admit_tiktok_creator_account,
+    admit_tiktok_creator_candidate,
     deterministic_platform_account_id,
     load_current_creator_profiles,
     load_current_creator_registry,
+    load_current_registry_preflight_view,
     migrate_legacy_registry,
     monitoring_eligible_accounts,
     publish_creator_registry_generation,
 )
 from data_lake.root import DataLakeRoot, raw_shard
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_creator_frontier_dispositions,
+    write_creator_frontier_dispositions,
+)
+from runners import run_source_capture_tiktok_creator_onboarding as onboarding_runner
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -122,6 +130,30 @@ def _packet_and_outcome(root: DataLakeRoot) -> tuple[str, Path, str]:
     return packet_id, path, account_id
 
 
+def _candidate_admit(root: DataLakeRoot, packet_id: str) -> dict:
+    written = write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "eligible",
+                "priority": "high",
+                "reason_code": "owner_choice",
+            }
+        ],
+        recorded_at="2026-07-21T12:01:00Z",
+    )
+    disposition = written["current"]["creator_frontier_disposition_current"][
+        "dispositions"
+    ][0]
+    return admit_tiktok_creator_candidate(
+        data_root=root,
+        packet_id=packet_id,
+        frontier_disposition_id=disposition["disposition_id"],
+    )
+
+
 def test_migration_dry_run_does_not_write_and_write_preserves_account_set(tmp_path: Path) -> None:
     root = _root(tmp_path)
     dry = _migrate(root, dry_run=True)
@@ -141,6 +173,8 @@ def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path
     root = _root(tmp_path)
     _migrate(root)
     packet_id, outcome_path, account_id = _packet_and_outcome(root)
+    candidate = _candidate_admit(root, packet_id)
+    assert candidate["status"] == "admitted"
 
     first = admit_tiktok_creator_account(
         data_root=root,
@@ -163,6 +197,20 @@ def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path
         "reason": "validated_onboarding_admission",
         "scheduled": False,
     }
+    assert rows[0]["onboarding"]["onboarding_state"] == "onboarded"
+    assert rows[0]["capture_state"] == "identity_observed_content_packet_available"
+    assert (
+        rows[0]["routing_decision"]
+        == "dedupe_exact_platform_account_then_attach_new_discovery_evidence"
+    )
+    assert rows[0]["source_pointers"] == [
+        outcome_path.resolve().relative_to(root.path.resolve()).as_posix()
+    ]
+    assert not [
+        claim
+        for claim in rows[0]["non_claims"]
+        if claim in {"not onboarded", "not monitoring eligible", "not public profile admission"}
+    ]
     eligible = monitoring_eligible_accounts(root, platform="tiktok")
     assert sum(row["platform_account_id"] == account_id for row in eligible) == 1
 
@@ -182,12 +230,46 @@ def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path
 
     admissions = list((root.path / "derived").glob(f"*/*/{ADMISSION_LANE}/*"))
     assert len(admissions) == 1
+    candidates = list((root.path / "derived").glob(f"*/*/{CANDIDATE_ADMISSION_LANE}/*"))
+    assert len(candidates) == 1
+
+
+def test_validated_admission_content_id_and_native_identity_fail_closed(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, outcome_path, _account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    admit_tiktok_creator_account(
+        data_root=root,
+        packet_id=packet_id,
+        judgment_outcome_path=outcome_path,
+    )
+
+    admission_path = next((root.path / "derived").glob(f"*/*/{ADMISSION_LANE}/*"))
+    admission = json.loads(admission_path.read_text(encoding="utf-8"))
+    admission["platform_account"]["platform_public_account_id_or_none"] = "112233445566"
+    admission_path.write_bytes(canonical_record_bytes(admission))
+    with pytest.raises(CreatorRegistryLakeError, match="content id mismatch"):
+        load_current_creator_registry(root)
+
+    payload = {key: value for key, value in admission.items() if key != "record_id"}
+    admission["record_id"] = (
+        "cra_" + hashlib.sha256(canonical_record_bytes(payload)).hexdigest()[:24]
+    )
+    rebound_path = admission_path.with_name(admission["record_id"])
+    admission_path.rename(rebound_path)
+    rebound_path.write_bytes(canonical_record_bytes(admission))
+    with pytest.raises(CreatorRegistryLakeError, match="identity differs from its grid packet"):
+        load_current_creator_registry(root)
 
 
 def test_cold_rebuild_is_byte_identical_and_stale_current_fails_closed(tmp_path: Path) -> None:
     root = _root(tmp_path)
     _migrate(root)
     packet_id, outcome_path, _account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
     admitted = admit_tiktok_creator_account(
         data_root=root,
         packet_id=packet_id,
@@ -236,3 +318,110 @@ def test_cold_rebuild_is_byte_identical_and_stale_current_fails_closed(tmp_path:
     )
     with pytest.raises(CreatorRegistryLakeError):
         load_current_creator_registry(root)
+
+
+def test_candidate_admission_is_internal_unmonitored_and_non_public(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, _outcome_path, account_id = _packet_and_outcome(root)
+
+    first = _candidate_admit(root, packet_id)
+    second = _candidate_admit(root, packet_id)
+
+    assert first["status"] == "admitted"
+    assert second["status"] == "already_current"
+    rows = [
+        row
+        for row in load_current_creator_registry(root)["creator_registry_index"][
+            "platform_accounts"
+        ]
+        if row["platform_account_id"] == account_id
+    ]
+    assert len(rows) == 1
+    assert rows[0]["onboarding"]["onboarding_state"] == "not_onboarded"
+    assert rows[0]["monitoring_eligibility"]["eligible"] is False
+    assert all(
+        row["profile_subject_id"] != account_id
+        for row in load_current_creator_profiles(root)["creator_profile_public"]["profiles"]
+    )
+
+
+def test_validated_admission_requires_registry_candidate_and_current_route(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, outcome_path, _account_id = _packet_and_outcome(root)
+
+    with pytest.raises(CreatorRegistryLakeError, match="Registry not_onboarded"):
+        admit_tiktok_creator_account(
+            data_root=root,
+            packet_id=packet_id,
+            judgment_outcome_path=outcome_path,
+        )
+
+    _candidate_admit(root, packet_id)
+    write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "deferred",
+                "reason_code": "owner_choice",
+                "reconsideration": "owner_reopen",
+            }
+        ],
+        recorded_at="2026-07-21T12:02:00Z",
+    )
+    with pytest.raises(CreatorRegistryLakeError, match="blocked by the current Frontier"):
+        admit_tiktok_creator_account(
+            data_root=root,
+            packet_id=packet_id,
+            judgment_outcome_path=outcome_path,
+        )
+
+
+def test_browser_free_temporary_lake_candidate_dogfood(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, _outcome_path, account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+
+    internal = load_current_creator_registry(root)["creator_registry_index"]
+    candidate = next(
+        row for row in internal["platform_accounts"] if row["platform_account_id"] == account_id
+    )
+    public = load_current_creator_profiles(root)["creator_profile_public"]
+    assert candidate["onboarding"]["onboarding_state"] == "not_onboarded"
+    assert candidate["monitoring_eligibility"]["eligible"] is False
+    assert not any(row["profile_subject_id"] == account_id for row in public["profiles"])
+
+    preflight = load_current_registry_preflight_view(root)
+    handle, selected = onboarding_runner._resolve_creator_handle(
+        creator_handle=None,
+        creator_intent="new_onboarding",
+        registry_document=preflight,
+        frontier_dispositions=load_creator_frontier_dispositions(root),
+    )
+    assert handle == "new.fragrance"
+    assert selected["platform_account_id"] == account_id
+
+    write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "deferred",
+                "reason_code": "owner_choice",
+                "reconsideration": "owner_reopen",
+            }
+        ],
+        recorded_at="2026-07-21T12:02:00Z",
+    )
+    with pytest.raises(ValueError, match="no actionable not_onboarded"):
+        onboarding_runner._resolve_creator_handle(
+            creator_handle=None,
+            creator_intent="new_onboarding",
+            registry_document=load_current_registry_preflight_view(root),
+            frontier_dispositions=load_creator_frontier_dispositions(root),
+        )
