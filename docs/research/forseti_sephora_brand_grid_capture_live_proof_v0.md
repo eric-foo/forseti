@@ -39,9 +39,9 @@ not admitted as Sephora US/USD storefront evidence.
 - Data root: `C:\tmp\forseti-sephora-brand-grid-data`.
 - Raw packet: `raw/260/01KY0R5E8MFSZWT456KKMEYRWK`.
 - Typed projection:
-  `derived/sephora_brand_grid/summer_fridays_brand_grid_projection_20260721_01.json`.
+  `derived/sephora_brand_grid/summer_fridays_brand_grid_projection_20260721_02.json`.
 - Projection SHA-256:
-  `84ffff227d9d32eb4c599a06c6b142b58f6d558811e6ff6ab40b8675a8faa90e`.
+  `b0b09bf0fd67eb229cd9a28f7762fbdaee91876405cffd9c531ca4a2f9304756`.
 - Projection certification:
   `view_only; not_cleaned; not_normalized; not_judgment_ready`.
 
@@ -61,7 +61,8 @@ python -B forseti-harness/runners/run_source_capture_cloakbrowser_packet.py `
 ```
 
 The command returned exit code `4` with
-`sephora_market_pin_failed`; both the raw packet and projection were preserved.
+`sephora_market_pin_failed`; both the raw packet and initial `_01` projection
+were preserved.
 
 ## Raw Integrity
 
@@ -74,6 +75,30 @@ matched:
 | `raw/02_cloakbrowser_visible_text.txt` | `ed9677594147e81d667544f1de73c159e8af22479fda8ac64defabc2ff7a9861` |
 | `raw/03_cloakbrowser_viewport_screenshot.png` | `1d39003c2f4738b5dd2b10365b98f302bb90f735aca41aca90b85cd156964d2e` |
 | `raw/04_cloakbrowser_snapshot_metadata.json` | `60f3fa7c63b02ee878be443222bf051000cdc11d79d1faeeea9e3d0e09ee323c` |
+
+## Post-Review Projection Correction
+
+The delegated review returned `NO_PATCH_NEEDED` but flagged ranged Sephora
+`listPrice` handling as a low-severity residual. Home-lane adjudication checked
+that observation against the preserved source and found five explicit price
+ranges. The initial `_01` projection had retained each exact string in
+`price_display` but incorrectly left `price_range` null and carried the range as
+a scalar `price`; that contradicted the commissioned price/range requirement.
+
+The implementation was corrected and the projection was regenerated append-only
+from the same hash-verified packet:
+
+```powershell
+python -B forseti-harness/runners/run_retail_grid_projection.py `
+  --packet-dir 'C:\tmp\forseti-sephora-brand-grid-data\raw\260\01KY0R5E8MFSZWT456KKMEYRWK' `
+  --output 'C:\tmp\forseti-sephora-brand-grid-data\derived\sephora_brand_grid\summer_fridays_brand_grid_projection_20260721_02.json'
+```
+
+The `_02` projection is the current typed view for this receipt. It contains 34
+rows, remains `complete`, and has SHA-256
+`b0b09bf0fd67eb229cd9a28f7762fbdaee91876405cffd9c531ca4a2f9304756`
+over 106,619 stored bytes. The append-only `_01` output remains historical and
+is superseded for typed price use; no raw bytes were recaptured or rewritten.
 
 ## Projection and Completeness
 
@@ -88,6 +113,7 @@ matched:
 | Termination | `retailer_serialized_count_reconciled` |
 | Projection-level residuals | none |
 | Explicit currency codes | none |
+| Explicit price ranges | `5`, retained as exact display plus typed minimum/maximum |
 
 Each typed row has a unique Sephora parent product ID and a raw JSON-pointer
 anchor into the preserved `linkStore.page.nthBrand.products` array. Missing

@@ -200,7 +200,11 @@ def test_sephora_linkstore_projection_deduplicates_parent_products_and_reconcile
     products = [
         _sephora_product(product_id="P455936", name="Lip Butter Balm"),
         _sephora_product(product_id="P455936", name="Lip Butter Balm"),
-        _sephora_product(product_id="P429952", name="Jet Lag Mask"),
+        _sephora_product(
+            product_id="P429952",
+            name="Jet Lag Mask",
+            list_price="$26.00 - $49.00",
+        ),
     ]
     body = _sephora_grid_html(
         products=products,
@@ -247,6 +251,13 @@ def test_sephora_linkstore_projection_deduplicates_parent_products_and_reconcile
         "retailer_serialized_count_reconciled"
     )
     assert projection.source_visible_grid_facts["subject_binding_confirmed"] is True
+    ranged = projection.rows[1]
+    assert ranged.source_visible_fields["price"] is None
+    assert ranged.source_visible_fields["price_display"] == "$26.00 - $49.00"
+    assert ranged.source_visible_fields["price_range"] == {
+        "minimum": "26.00",
+        "maximum": "49.00",
+    }
 
 
 def test_sephora_projection_preserves_partial_tile_and_fails_count_reconciliation() -> None:
@@ -459,13 +470,15 @@ def _target_html() -> str:
     """
 
 
-def _sephora_product(*, product_id: str, name: str) -> dict[str, object]:
+def _sephora_product(
+    *, product_id: str, name: str, list_price: str = "$24.00"
+) -> dict[str, object]:
     return {
         "brandName": "Summer Fridays",
         "currentSku": {
             "isBestseller": True,
             "isNew": True,
-            "listPrice": "$24.00",
+            "listPrice": list_price,
             "skuId": f"SKU-{product_id}",
         },
         "displayName": name,

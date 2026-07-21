@@ -53,6 +53,9 @@ _TARGET_CARD_RE = re.compile(
     r"<div[^>]*\bdata-focusid=[\"'](?P<product_id>\d+)_product_card[\"'][^>]*>",
     flags=re.IGNORECASE,
 )
+_PRICE_RANGE_RE = re.compile(
+    r"^\s*\$?(?P<minimum>\d+(?:\.\d+)?)\s*[-\u2013]\s*\$?(?P<maximum>\d+(?:\.\d+)?)\s*$"
+)
 
 
 class RetailGridProjectionInputError(ValueError):
@@ -313,6 +316,7 @@ def _project_sephora_linkstore(
         pointer = f"/page/nthBrand/products/{index}"
         placement_anchor = _with_anchor(raw_anchor, "json_pointer", pointer)
         price_display = _text(current_sku.get("listPrice"))
+        price, price_range = _price_fields(price_display)
         fields = _base_fields(
             packet=packet, source_slice=source_slice, retailer="sephora"
         )
@@ -328,9 +332,9 @@ def _project_sephora_linkstore(
                 "breadcrumb": None,
                 "selected_sku_id": _text(current_sku.get("skuId")),
                 "selected_variant": None,
-                "price": _price_value(price_display),
+                "price": price,
                 "price_display": price_display,
-                "price_range": None,
+                "price_range": price_range,
                 "price_currency": currency_code,
                 "currency_symbol": (
                     "$"
@@ -890,10 +894,18 @@ def _canonical_url(value: str) -> str:
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
 
 
-def _price_value(value: str | None) -> str | None:
+def _price_fields(
+    value: str | None,
+) -> tuple[str | None, dict[str, str] | None]:
     if value is None:
-        return None
-    return value.lstrip("$").strip() or None
+        return None, None
+    range_match = _PRICE_RANGE_RE.fullmatch(value)
+    if range_match is not None:
+        return None, {
+            "minimum": range_match.group("minimum"),
+            "maximum": range_match.group("maximum"),
+        }
+    return value.lstrip("$").strip() or None, None
 
 
 def _sephora_badges(current_sku: dict[str, Any]) -> list[str]:
