@@ -3,10 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Research artifact
-scope: CSB-first chronological scan receipt and preservation accounting for the Summer Fridays current-company Understanding Acquire & Seal turn.
+scope: CSB-first chronological scan receipt, owner-reopened portfolio supplement, and preservation accounting for the Summer Fridays current-company Understanding Acquire & Seal turn.
 use_when:
   - Auditing the bounded evidence walk and its material-seam dispositions.
-  - Verifying the bounded Sephora Bazaarvoice and Reddit fallback recovery that closed the acquisition gate.
+  - Verifying the initial recovery and the later portfolio-first supplement.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_beauty_summer_fridays_current_understanding_commission_board_v0.md
@@ -19,14 +19,16 @@ open_next:
 scan_receipt_version: 1
 commission_id: summer_fridays_current_company_understanding_csb_20260720
 scan_date: 2026-07-20
+portfolio_supplement_date: 2026-07-21
+portfolio_supplement_state: complete_with_typed_route_residuals
 mode: forward
 subject: Summer Fridays
 market_or_geography: US current-state focus with bounded global channel context
 source_context_status: SOURCE_CONTEXT_READY
 run_caps:
-  max_screening_moves_total: 12
+  max_screening_moves_total: 18
   max_exact_queries_total: 20
-screening_moves_used: 9
+screening_moves_used: 15
 exact_queries_used: 16
 hidden_venue_pointers: 3
 capture_requests: 0
@@ -331,6 +333,116 @@ independence_hypothesis: first-party partner origin
 uncertainty_or_limits: "Historical partner announcement only; it does not establish current availability, performance, or lasting strategic importance."
 ```
 
+## Owner-Reopened Portfolio Supplement
+
+The 2026-07-21 supplement captured the official homepage, Shop All, Best
+Sellers, public product catalog, Jet Lag collection and PDP, sustainability
+page, complete Sephora brand grid, exact Jet Lag and Flushed PDPs, and the
+official Amazon US storefront. It then reconciled raw records into franchise,
+parent, visible variant, and retailer-listing identities before selecting depth.
+
+The public owned catalog returned 134 candidate records. It includes samples,
+sets, merchandise, shade- or flavor-specific handles, hidden or discontinued
+tags, and duplicated or legacy-looking records. Therefore 134 is not a live
+parent-product or SKU count. The Sephora grid declared 34 results and serialized
+34 unique parents with no duplicate placements. It is a complete retailer
+denominator, but the grid exposes neither a category field nor an explicit
+currency code.
+
+| Franchise | Owned expression | Sephora expression | Reconciliation |
+| --- | --- | --- | --- |
+| Lip Butter Balm | 13 explicit franchise-tagged flavor/shade records | P455936, 11 visible variants, grid position 1, 17,637 displayed reviews | Owned shade handles collapse under one retailer parent. |
+| Jet Lag | Nine explicit franchise-tagged records and nine visible collection cards | Seven parents spanning mask/mini, patches, set, mist, serum, and eye serum | A multi-product skincare franchise, not one hero SKU. |
+| Dream Lip Oil | Eight explicit franchise-tagged shade records | P509439 with eight visible variants and 2,651 displayed reviews | Shade handles collapse under one parent. |
+| Cloud Dew | Four catalog records including duplicated or legacy-looking titles | Full-size and mini parents P520770 and P520764 | Size and record status require reconciliation. |
+
+| Selection job | Disposition | Basis and boundary |
+| --- | --- | --- |
+| Current retail-prominence representative | Lip Butter Balm selected | Strongest observed Sephora position, review-volume, and variant signals plus qualified prior customer evidence; a prominence prior, not sales or demand. |
+| Founding/strategically central representative | Jet Lag selected | Owned origin and collection, nine-card franchise, seven Sephora parents, exact US/USD mask PDP, and preserved raw reviews; outside-in centrality, not internal economics. |
+| Optional contrast/plausible weak link | Flushed Lip Stain retained as watch item, not selected | 684 reviews and 3.6974 grid rating plus exact US/USD PDP, but its structured review capture failed twice; rating alone cannot explain weakness. |
+
+Two selected franchises satisfy the owner-approved boundary, which explicitly
+allows fewer than three.
+
+```yaml
+observation_id: OBS-017
+source_move_id: M10
+url: "https://summerfridays.com/products.json?limit=250"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "The public owned catalog returned 134 candidate records; explicit franchise tags counted Lip Butter Balm 13, Jet Lag 9, Dream Lip Oil 8, and Cloud Dew 4."
+signal_stage: venue_value
+claim_it_might_support: current owned portfolio candidate inventory and franchise labels
+gate_role: none
+independence_hypothesis: official first-party public catalog
+uncertainty_or_limits: "Candidate inventory only; not a live SKU or parent count because variants, sets, samples, merch, status flags, and duplicates are present."
+```
+
+```yaml
+observation_id: OBS-018
+source_move_id: M11
+url: "https://www.sephora.com/brand/summer-fridays?country_switch=us&lang=en"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "The grid declared 34 placements and reconciled 34 unique parents; Lip Butter Balm displayed 17,637 reviews, Jet Lag Mask 6,677, and Dream Lip Oil 2,651."
+signal_stage: venue_value
+claim_it_might_support: current primary-retailer breadth and prominence priors
+gate_role: none
+independence_hypothesis: retailer surface
+uncertainty_or_limits: "No explicit grid currency, category, sold units, ranking basis, or comparable sales inference."
+```
+
+```yaml
+observation_id: OBS-019
+source_move_id: M12
+url: "https://www.sephora.com/product/jet-lag-mask-P429952?country_switch=us&lang=en"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "Exact P429952 passed US/USD; 2,393 non-incentivized reviews, 100 Most Helpful rows, and 100 Most Recent rows were preserved."
+signal_stage: contradiction
+claim_it_might_support: founding-franchise retailer translation and heterogeneous customer experience
+gate_role: none
+independence_hypothesis: retailer PDP plus retailer-declared Bazaarvoice customer rows
+uncertainty_or_limits: "Derived adaptation failed on Q&A mini-parent P480630; raw sorted samples cannot establish prevalence, causality, or safety."
+```
+
+```yaml
+observation_id: OBS-020
+source_move_id: M13
+url: "https://www.sephora.com/product/summer-fridays-flushed-lip-stain-P520759?country_switch=us&lang=en"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "Exact P520759 passed US/USD and showed $22, six visible variants, 684 displayed reviews, and a 3.6974 grid rating."
+signal_stage: contradiction
+claim_it_might_support: plausible contrast or weak-link watch item
+gate_role: none
+independence_hypothesis: retailer PDP
+uncertainty_or_limits: "Review companion preserved zero responses; rating alone cannot explain weakness or commercial importance."
+```
+
+```yaml
+observation_id: OBS-021
+source_move_id: M14
+url: "https://www.amazon.com/stores/page/A8960F37-D90E-4C5B-8F99-47ABDAB051A2"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "The official Store rendered with New York 10001 and visible lip, Jet Lag, moisturizer, makeup, skincare, body, mini, and Shop All navigation."
+signal_stage: venue_value
+claim_it_might_support: bounded secondary-retailer assortment and marketplace presentation
+gate_role: none
+independence_hypothesis: authorized marketplace storefront
+uncertainty_or_limits: "Bounded Makeup landing surface; Shop All lost ZIP pin and Jet Lag deepening was network-denied."
+```
+
+```yaml
+observation_id: OBS-022
+source_move_id: M15
+url: "https://summerfridays.com/pages/sustainability"
+retrieval_date: 2026-07-21
+short_quote_or_summary: "Owned claims name aluminum, glass, sugarcane or recycled plastics, FSC-certified cartons, Pact Collective, vegan and cruelty-free products, and a take-back incentive."
+signal_stage: candidate_support
+claim_it_might_support: current owned sustainability and packaging posture
+gate_role: none
+independence_hypothesis: official first-party claim
+uncertainty_or_limits: "No independent impact verification, coverage denominator, target, or progress series was captured."
+```
+
 ## Material Seam Dispositions
 
 | Seam ID | Evidence-derived seam | Discriminating check | Disposition | Remaining boundary |
@@ -339,6 +451,10 @@ uncertainty_or_limits: "Historical partner announcement only; it does not establ
 | MSEAM-002 | Owned Lip Butter Balm moisture proposition versus lived wear/dryness/value | Current owned PDP, bounded Sephora rows, and two exact current Reddit threads | meaningfully_bounded | Preserved retailer/community evidence shows heterogeneous experiences; no representative prevalence or approval metric is permitted. |
 | MSEAM-003 | Gently effective intuitive-routine proposition versus fragrance, apparel, and travel-retail extension | Owned About/fragrance, partner release, and current trade origin | supported | The same proposition is observably extended across categories and channels; adoption, economic importance, and durability remain unknown. |
 | MSEAM-004 | Strong current Sephora presentation versus reproducible customer evidence | Exact US/USD PDP plus qualified Bazaarvoice companion | supported_with_bounded_corpus | Product identity, filter, sort, row order, dates, bodies, and corpus windows are preserved; bounded/self-selected evidence still cannot establish representative approval. |
+| MSEAM-005 | Single-product hero framing versus portfolio reality | Owned catalog/franchises plus complete grid | contradicted_as_single_product_model | Lip Butter leads observed retailer prominence, while Jet Lag is a seven-parent retailer franchise and the portfolio spans multiple categories; internal mix unknown. |
+| MSEAM-006 | Jet Lag hydration/all-skin-type claim versus customer experience | Exact PDP plus raw non-incentivized review windows | meaningfully_bounded | Bounded low-rating examples include reaction, breakout, dryness, pilling, and value concerns; no recurrence, causality, safety, or prevalence claim. |
+| MSEAM-007 | Complete retailer breadth versus grid-wide US/USD proof | Complete grid plus exact Lip Butter, Jet Lag, and Flushed PDPs | bounded_with_row_level_pins | Selected rows are US/USD; the grid itself cannot carry a currency claim. |
+| MSEAM-008 | Flushed weak-link signal versus explainable mechanism | Complete grid, exact PDP, failed review companion | honestly_gapped | Rating supports watch status only; row-level mechanism remains uncaptured. |
 
 ## Negatives And Access Notes
 
@@ -369,19 +485,35 @@ uncertainty_or_limits: "Historical partner announcement only; it does not establ
   this bounded commission.
 - `GAP-002`: the four Reddit threads are self-selected exact examples, not a
   complete source corpus or prevalence sample.
-- `GAP-003`: Sephora delivery context remains unpinned even though the
-  storefront US/USD conjunction is confirmed.
+- `GAP-003`: Sephora delivery remains unpinned. The complete brand grid
+  also lacks an explicit currency code; exact Lip Butter Balm, Jet Lag Mask,
+  and Flushed Lip Stain PDPs confirm US/USD only for those parents.
+- `ACCESS-005`: the official Amazon Store passed with New York 10001. Shop All
+  preserved a typed ZIP-pin failure; Jet Lag deepening hit
+  `ERR_NETWORK_ACCESS_DENIED` before packet write. Neither was an amazon.sg
+  redirect, so the current route did not authorize a VPN retry.
+- `ACCESS-006`: Jet Lag onboarding preserved all eight API responses, then
+  failed derived adaptation because Q&A returned mini parent P480630 rather
+  than P429952. Raw review responses remain admitted and hash-verified.
+- `ACCESS-007`: Flushed onboarding failed before its first response; the one
+  retry reproduced identical failure bytes and the writer refused duplication.
+- `GAP-004`: the 134-record public catalog is not an exhaustive live-SKU
+  master; status, size, set, sample, merch, and variant reconciliation remains.
+- `GAP-005`: Amazon supplied a bounded second retailer world, not a complete
+  selected-franchise review corpus. Its commissioned gate required the attempt,
+  not successful content yield.
 
 No severe-safety conclusion was commissioned or earned. Individual reaction
 reports remain attributable customer examples only.
 
 ## Preservation And Provenance Index
 
-Packet root:
-`C:\tmp\forseti-summer-fridays-understanding-handoff\_acquisition\summer_fridays_current_understanding\`.
+Packet roots:
+- `C:\tmp\forseti-summer-fridays-understanding-handoff\_acquisition\summer_fridays_current_understanding\`
+- `F:\forseti-data-lake\raw\`
 
 All manifest-declared preserved-file hashes were recomputed on 2026-07-20 and
-again for recovery packets on 2026-07-21; all matched. Passing packet hashes
+again for recovery and portfolio-supplement packets on 2026-07-21; all matched. Passing packet hashes
 establish preservation integrity, not content sufficiency.
 
 | Evidence row | Packet / manifest | Packet ID | Manifest SHA-256 | Result and admission boundary |
@@ -399,6 +531,13 @@ establish preservation integrity, not content sufficiency.
 | OBS-014 | `obs_010_travel_retail/manifest.json` | `01KY00R4YGK3XSPWQYD3E34KHK` | `F990F79633F17D5DA84F4DE4EEE2F27CE8AACCDA8DD2D70E41DD54334AAE40DC` | PASS_HTTP_200; dated trade report only. |
 | OBS-015 | `obs_011_ceo_transition/manifest.json` | `01KY00R6MB8KKV71MWQYMH4VZT` | `D7AAB0CA3808259D3395356A29E87CAECD4170F12FE177B3F71E071B8A251B2A` | PASS_HTTP_200; dated trade report only. |
 | OBS-016 | `obs_012_gap_collaboration/manifest.json` | `01KY00R8BS36W6ADD062K5REP6` | `F00B5BBF3571197CB5B03F59A62DFE25D2D592224A0492053201329CB017BC59` | PASS_HTTP_200; partner chronology only. |
+| OBS-017 | owned portfolio packets | `01KY24DGK9CEJS01KS8DGHR8HF`, `01KY24DJP14051GCY1G7MS2MTN`, `01KY24DMQH0FVMDWKYM6Q1PXMC`, `01KY24DPTPR4GA6M7VKQ39Z9KP`, `01KY24DS15FA825BG1QZ65DF2V`, `01KY24HYDY87A0S3713W5NSKNK` | `E340CAC6...`, `A2002200...`, `5C58D7E3...`, `BA059719...`, `25E0AD48...`, `31850684...` | PASS; owned portfolio and candidate catalog. |
+| OBS-018 | `F:\forseti-data-lake\raw\2d5\01KY24F2XWBFNSN2MCWZCFZJ6N\manifest.json` | `01KY24F2XWBFNSN2MCWZCFZJ6N` | `D5F597A652989556D2BB57F3B16523DC36C0E8DDB4472183AD316710F3EE77D9` | COMPLETE_34_ROW_GRID; market pin false. |
+| OBS-019 | Jet Lag exact PDP and companion | `01KY250DJ1VJAED3AVPDCTE211`, `01KY2513H5HNQWBN2SC20APY1D` | `3F83D3ED...`, `38EC2B5E...` | Exact US/USD parent passed; eight raw API responses preserved; adaptation failed. |
+| OBS-020 | Flushed exact PDP and companion | `01KY252S44KHJZQAH91BT68H30`, `01KY255K4C5CPA9GAS6JAKCCZ4` | `DD4648EA...`, `2AE33486...` | Exact US/USD parent passed; review network read failed. |
+| OBS-021 | Amazon Store and Shop All residual | `01KY24NW8MCZKZQE2FHR2GRWCQ`, `01KY24RH8AFGDKWX5VD0P81X24` | `D3A5913E...`, `9CCB1C5E...` | Official Store passed 10001; Shop All pin failed. |
+| OBS-022 | `F:\forseti-data-lake\raw\d7c\01KY24DV0NJX9BZV9MBXESNSM1\manifest.json` | `01KY24DV0NJX9BZV9MBXESNSM1` | `39A1C8E2FBC1B990A0425FB03453D1E7F4B1AA88ACE207CAB5844C9B9BE999E9` | PASS_HTTP_200; owned sustainability claims. |
+
 | ROUTE-RESIDUAL | `reddit_batch/slot_001_packet/manifest.json` through `slot_004_packet` | four first-rung packet IDs | individual hashes retained in prior packet manifests | BLOCKED_HTTP_403; exact URLs and block responses retained. |
 | OBS-010 | `reddit_cloak/slot_001_packet/manifest.json` | `01KY07FSJ09Z18H3KA2434CXWV` | `30DDA4A9195BCC11C252F022968F58EDDE2706E3C0F62988817E998FDCA5575B` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 10 observable present comments, no warnings. |
 | OBS-011 | `reddit_cloak/slot_002_packet/manifest.json` | `01KY07G3G9BCYNHM2DA0PV4JZA` | `50584DF697D8A07F1FA1634EC414B6EE5659E2D085D51EFC33DC65AFF800AC8A` | PASS_GUARDED_CLOAK_AND_CONSOLIDATION; 60 observable present comments, no warnings. |
@@ -407,11 +546,11 @@ establish preservation integrity, not content sufficiency.
 
 ## Capture Triage
 
-No Capture request is left open by Scanning. The bounded recovery closed both
-required routes without reopening discovery: Sephora used the exact P455936
-parent plus its page-declared Bazaarvoice companion; Reddit used the four
-already-selected URLs through the owning guarded CloakBrowser fallback,
-consolidation, and cleaned agent views.
+No material Capture request is left open. The supplement closed owned
+architecture, the complete primary-retailer denominator, reconciliation, a
+two-franchise representative set, the required Amazon attempt, and
+sustainability screening. Failed derived adaptation, optional Flushed depth,
+grid currency, and Amazon deep paths remain typed residuals.
 
 ## Candidate Decision
 
@@ -435,6 +574,8 @@ candidate_decision:
 
 `no_candidate_after_discovery`.
 
-The intelligent walk and bounded recovery reached route, seam, preservation,
-and evidence-sufficiency closure. Deliver is authorized only under the passing
-acquisition seal and its stated limits.
+The intelligent walk, recovery, and owner-reopened supplement reached route,
+seam, preservation, and evidence-sufficiency closure. The evidence supports a
+decision-useful outside-in portfolio architecture and two-franchise
+representative set; internal economics and a clean live-SKU master remain
+unclaimed. Deliver is authorized only under the passing acquisition seal.

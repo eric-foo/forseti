@@ -3,10 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Intelligence Cycle acquisition seal
-scope: Owner-reopened Acquire & Seal state with an adjudicated portfolio-first acquisition supplement pending for the Summer Fridays current-company Understanding commission.
+scope: Passing Acquire & Seal state after the owner-adjudicated portfolio-first supplement for the Summer Fridays current-company Understanding commission.
 use_when:
   - Verifying whether Deliver is authorized.
-  - Auditing the preserved passing Turn A at commit 4f3e3476309b78777e4254814b23cfa1b6b34dc9 without treating that historical seal as current Deliver authority.
+  - Auditing the completed portfolio supplement, representative selection, and typed residuals.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_beauty_summer_fridays_current_understanding_two_turn_handoff_v0.md
@@ -15,10 +15,10 @@ open_next:
 ```
 
 ```yaml
-current_lifecycle_status: ACQUISITION_REOPENED_BY_OWNER
-intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_INCOMPLETE
-resume_allowed: true_only_for_owner_adjudicated_bounded_acquisition_then_reseal
-correct_intake_result: BLOCKED_ACQUISITION_INCOMPLETE
+current_lifecycle_status: ACQUISITION_SEALED_READY_FOR_DELIVER
+intelligence_cycle_phase_status: UNDERSTANDING_ACQUIRE_AND_SEAL_COMPLETE
+resume_allowed: false_without_new_owner_reopen
+correct_intake_result: READY_FOR_DELIVER
 ```
 
 ```yaml
@@ -45,15 +45,15 @@ phase_acquisition_seal:
       recipe_or_recon_pointer: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#preservation-and-provenance-index
       disposition: used
     - coverage_id: COV-002
-      route_identity: current Sephora Summer Fridays brand grid and exact P455936 PDP
-      route_authority: canonical anonymous Sephora route with fail-closed US/USD market assertion
-      recipe_or_recon_pointer: F:\forseti-data-lake\raw\e93\01KY07CC8RJM5VG1WDKZZ6XWZR\manifest.json
-      disposition: used
+      route_identity: complete 34-parent Sephora grid plus exact US/USD Lip Butter Balm, Jet Lag Mask, and Flushed Lip Stain PDPs
+      route_authority: canonical anonymous Sephora route with fail-closed row-level US/USD assertion and explicit grid-currency residual
+      recipe_or_recon_pointer: F:\forseti-data-lake\raw\2d5\01KY24F2XWBFNSN2MCWZCFZJ6N\manifest.json
+      disposition: used_with_grid_currency_residual
     - coverage_id: COV-003
-      route_identity: attributable non-incentivized Sephora review rows, bounded Recent window, live age buckets, and answer-rich Q&A
-      route_authority: page-declared Bazaarvoice onboarding companion identified by PR 1201 and bound to exact parent P455936
-      recipe_or_recon_pointer: F:\forseti-data-lake\raw\b99\01KY07DWJ3FQY94ZSWBKEJCZ9N\manifest.json
-      disposition: used
+      route_identity: qualified Lip Butter corpus plus raw Jet Lag non-incentivized review windows and failed optional Flushed companion
+      route_authority: page-declared Bazaarvoice onboarding companions bound to exact retailer parents
+      recipe_or_recon_pointer: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#owner-reopened-portfolio-supplement
+      disposition: used_with_typed_adapter_and_optional_depth_residuals
     - coverage_id: COV-004
       route_identity: four exact current Reddit threads for Lip Butter Balm, ShadeDrops, and Sunlit Vanilla
       route_authority: Reddit Capture operator playbook Direct-HTTP first rung plus guarded one-URL CloakBrowser fallback, consolidation, and cleaned agent view
@@ -94,10 +94,15 @@ phase_acquisition_seal:
       route_authority: frozen local commission
       recipe_or_recon_pointer: docs/workflows/forseti_beauty_summer_fridays_current_understanding_two_turn_handoff_v0.md
       disposition: used
+    - coverage_id: COV-012
+      route_identity: official authorized Summer Fridays Amazon US storefront and selected-franchise deepening attempts
+      route_authority: canonical anonymous Amazon route with delivery ZIP 10001 and VPN only after a typed SG redirect
+      recipe_or_recon_pointer: F:\forseti-data-lake\raw\895\01KY24NW8MCZKZQE2FHR2GRWCQ\manifest.json
+      disposition: required_attempt_complete_with_typed_deepening_residuals
   scan_receipts:
     - receipt_type: chronological_scan_and_seam_receipt
       locator: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md
-      result: COMPLETE_WALK_AND_BOUNDED_RECOVERY_PASS
+      result: COMPLETE_WALK_RECOVERY_AND_PORTFOLIO_SUPPLEMENT_PASS
   capture_receipts:
     - evidence_rows: [OBS-002, OBS-003, OBS-004, OBS-005, OBS-006, OBS-007]
       packet_ids:
@@ -148,6 +153,27 @@ phase_acquisition_seal:
         - 01KY00R8BS36W6ADD062K5REP6
       result: PASS_HTTP_200_TRADE_AND_PARTNER
       locator: _acquisition/summer_fridays_current_understanding/
+  portfolio_supplement_capture_receipts:
+    - job: owned_portfolio_architecture
+      packet_ids: [01KY24DGK9CEJS01KS8DGHR8HF, 01KY24DJP14051GCY1G7MS2MTN, 01KY24DMQH0FVMDWKYM6Q1PXMC, 01KY24DPTPR4GA6M7VKQ39Z9KP, 01KY24DS15FA825BG1QZ65DF2V, 01KY24HYDY87A0S3713W5NSKNK]
+      result: pass_with_candidate_catalog_boundary
+    - job: complete_primary_retailer_grid
+      packet_id: 01KY24F2XWBFNSN2MCWZCFZJ6N
+      manifest_sha256: D5F597A652989556D2BB57F3B16523DC36C0E8DDB4472183AD316710F3EE77D9
+      result: 34_of_34_unique_parents_complete_grid_currency_unpinned
+    - job: jet_lag_selected_franchise
+      packet_ids: [01KY250DJ1VJAED3AVPDCTE211, 01KY2513H5HNQWBN2SC20APY1D]
+      manifest_sha256: [3F83D3EDC8CBBE7B081AC15ED7D296B03221056886BEC73E5F1592A6F0201A49, 38EC2B5E8598D893CA80D5B1C2D05D27F83E7EABD2DB6AD0F3F8368D4A79F9EA]
+      result: exact_usd_parent_pass_raw_responses_pass_adaptation_fail
+    - job: flushed_watch_item
+      packet_ids: [01KY252S44KHJZQAH91BT68H30, 01KY255K4C5CPA9GAS6JAKCCZ4]
+      result: exact_usd_parent_pass_review_capture_fail
+    - job: authorized_amazon_secondary
+      packet_ids: [01KY24NW8MCZKZQE2FHR2GRWCQ, 01KY24RH8AFGDKWX5VD0P81X24]
+      result: official_store_10001_pass_shop_all_pin_fail
+    - job: owned_sustainability_screen
+      packet_id: 01KY24DV0NJX9BZV9MBXESNSM1
+      result: pass_first_party_claims_only
   provenance_index:
     - locator: docs/research/forseti_beauty_summer_fridays_current_understanding_scan_receipt_v0.md#preservation-and-provenance-index
       verification: all_admitted_manifest_declared_file_hashes_recomputed_and_matched_2026-07-20_and_2026-07-21
@@ -165,6 +191,18 @@ phase_acquisition_seal:
     - seam_id: MSEAM-004
       seam: strong current Sephora presentation versus reproducible customer evidence
       disposition: supported_with_bounded_self_selected_corpus
+    - seam_id: MSEAM-005
+      seam: single-product hero framing versus portfolio reality
+      disposition: contradicted_as_single_product_model_internal_mix_unknown
+    - seam_id: MSEAM-006
+      seam: Jet Lag hydration claim versus customer experience
+      disposition: meaningfully_bounded_with_raw_review_examples
+    - seam_id: MSEAM-007
+      seam: complete retailer breadth versus grid-wide US/USD proof
+      disposition: bounded_with_three_exact_parent_pins
+    - seam_id: MSEAM-008
+      seam: Flushed weak-link signal versus explainable mechanism
+      disposition: honestly_gapped_watch_item_not_selected
   material_gaps_and_failures:
     - gap_id: GAP-001
       requirement: lower-footprint Sephora monitoring implementation
@@ -175,18 +213,29 @@ phase_acquisition_seal:
       result: four exact Reddit threads and bounded Sephora rows are self-selected evidence and do not establish prevalence or representative approval
       blocking: false
     - gap_id: GAP-003
-      requirement: Sephora fulfillment context
-      result: canonical US/USD storefront is confirmed on the exact PDP; delivery location remains unpinned
+      requirement: Sephora grid-wide market and fulfillment context
+      result: complete grid lacks explicit currency; three exact parents confirm US/USD; delivery remains unpinned
       blocking: false
     - gap_id: GAP-004
       requirement: owner-adjudicated material completeness supplement
-      result: >
-        The adversarial review is complete and the owner accepted a modified,
-        portfolio-first supplement. Its owned architecture, pinned Sephora grid,
-        reconciled franchise map, required Amazon secondary attempt, and
-        evidence-selected missing franchise depth have not yet been captured
-        and resealed.
-      blocking: true
+      result: owned architecture, complete grid, reconciliation, two-franchise set, Amazon attempt, and sustainability screen completed
+      blocking: false
+    - gap_id: GAP-005
+      requirement: clean exhaustive live-SKU master
+      result: 134 candidate records include variants, sets, samples, merch, status flags, and duplicates
+      blocking: false
+    - gap_id: GAP-006
+      requirement: Jet Lag derived review summary
+      result: eight raw responses preserved; adaptation failed on Q&A mini-parent mismatch
+      blocking: false
+    - gap_id: GAP-007
+      requirement: optional third-franchise mechanism
+      result: Flushed PDP passed but review capture failed; retained as unselected watch item
+      blocking: false
+    - gap_id: GAP-008
+      requirement: Amazon selected-franchise deepening
+      result: Store passed; Shop All lost ZIP pin and Jet Lag navigation was network-denied; attempt gate did not require yield
+      blocking: false
   consolidated_recovery_receipt:
     completed_at: "2026-07-21"
     sephora_result: exact P455936 US/USD parent plus qualified Bazaarvoice companion passed
@@ -197,7 +246,7 @@ phase_acquisition_seal:
     authority: current_owner_instruction
     preserved_review_target: 4f3e3476309b78777e4254814b23cfa1b6b34dc9
     reason: determine whether materially missing evidence should be acquired before Deliver rather than equating a sufficient seal with a highest-quality evidence world
-    next_step: execute the owner-adjudicated portfolio-first supplement, preserve typed route outcomes, and reseal before Deliver
+    next_step: completed; typed route outcomes preserved and acquisition resealed for Deliver
   owner_adjudicated_reopen_scope:
     recorded_at: "2026-07-21"
     adjudicated_at: "2026-07-21"
@@ -236,21 +285,27 @@ phase_acquisition_seal:
       - additional Reddit breadth for already-bounded products
       - wider retailer-presentation expansion absent a later tertiary activation condition
     packet_count_posture: no fixed quota; capture only missing evidence required by the reconciled representative-franchise set, the required Amazon attempt, and typed conditional jobs
-    authority_boundary: owner_authorized_bounded_acquisition_only; no reseal or Deliver authorization
-  seal_state: BLOCKED_ACQUISITION_INCOMPLETE
-  acquisition_gate: blocked
-  deliver_allowed: false
+    authority_boundary: owner_authorized_bounded_acquisition_and_reseal_only; no Deliver synthesis in Turn A
+  representative_franchise_selection:
+    selected:
+      - {franchise: Lip Butter Balm, role: current_retail_prominence_representative, boundary: not_sales_or_demand}
+      - {franchise: Jet Lag, role: founding_and_strategically_central_representative, boundary: outside_in_not_internal_economics}
+    watch_items:
+      - {franchise: Flushed Lip Stain, role: plausible_weak_link, boundary: not_selected_review_mechanism_failed}
+  seal_state: SEALED_READY_FOR_DELIVER
+  acquisition_gate: pass
+  deliver_allowed: true
   sealed_at: "2026-07-21"
   reopened_at: "2026-07-21"
   owner_adjudicated_at: "2026-07-21"
 ```
 
-`BLOCKED_ACQUISITION_INCOMPLETE`.
+`READY_FOR_DELIVER`.
 
-The three current gate fields agree in the blocked state. Commit
-`4f3e3476309b78777e4254814b23cfa1b6b34dc9` preserves the previously passing
-Turn A for exact adversarial inspection, including its successful Sephora and
-Reddit recovery. The review is complete and the owner has adjudicated the
-bounded portfolio-first supplement. Deliver remains unauthorized until that
-supplement is captured with typed outcomes and the acquisition seal passes
-again.
+The three current gate fields agree in the passing state. The portfolio
+supplement is complete: outside-in architecture, complete 34-parent Sephora
+breadth, identity reconciliation, a two-franchise representative set, the
+required Amazon attempt, and sustainability screening are preserved. Grid
+currency, a clean live-SKU master, Flushed review mechanism, Jet Lag derived
+adaptation, and Amazon deep paths remain explicit nonblocking residuals. Turn A
+stops here without synthesizing Deliver.
