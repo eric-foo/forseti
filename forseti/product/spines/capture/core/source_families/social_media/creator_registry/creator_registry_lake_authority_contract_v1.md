@@ -4,12 +4,14 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Operational Creator Registry authority, migration, admission, generated-current
-  view, monitoring-eligibility, and client-safe projection boundaries after the
-  Git-to-Data-Lake cutover.
+  Operational Creator Frontier dispositions, Creator Registry migration and
+  admission, generated-current views, monitoring eligibility, and client-safe
+  projection boundaries after the Git-to-Data-Lake cutover.
 use_when:
   - Deciding whether a creator is already onboarded.
   - Adding a newly validated creator without a data-only pull request.
+  - Recording or inspecting a TikTok Creator Frontier disposition.
+  - Candidate-admitting a grid-identified TikTok account before onboarding.
   - Reading monitoring-eligible accounts or a client-safe creator profile.
   - Migrating or rebuilding Creator Registry state.
 open_next:
@@ -29,8 +31,10 @@ registry, profile, Judgment export, or metric snapshot merely to become current.
 The authority and read-model split is:
 
 ```text
-derived/.../creator_registry_baseline/<record-id>          authority, one migration
-derived/.../creator_registry_account_admission/<record-id> authority, append-only
+derived/.../creator_frontier_disposition/<record-id>       Frontier authority, append-only
+derived/.../creator_registry_baseline/<record-id>          Registry authority, one migration
+derived/.../creator_registry_candidate_admission/<record-id> Registry authority, append-only
+derived/.../creator_registry_account_admission/<record-id> Registry authority, append-only
 derived/.../creator_audience_judgment_outcome/<record-id>  Judgment authority
 
 indexes/derived_retrieval/creator_registry/
@@ -38,13 +42,49 @@ indexes/derived_retrieval/creator_registry/
   generations/<generation-id>/
     query_tables/creator_registry_index_v1.json            internal current view
     profiles/creator_profile_public_v1.json                 client-safe current view
-    manifests/creator_registry_generation_v1.json           hashes and authority inventory
+    manifests/creator_registry_generation_v2.json           hashes and authority inventory
 ```
 
 The generated files under `indexes/` carry no authority. A reader verifies the
 complete generation, file hashes, and the current append-only authority inventory.
-An authority record newer than `CURRENT`, a missing member, or a hash mismatch
-fails closed and requires a rebuild.
+An authority record newer than `CURRENT`, an older pointer/generation epoch, a
+missing member, or a hash mismatch fails closed and requires a rebuild. Epoch v2
+inventories the baseline, candidate admissions, and validated admissions; a v1
+reader cannot silently omit candidate authority.
+
+## Creator Frontier dispositions
+
+TikTok Creator Frontier decisions are operational lake state, not tracked data.
+`creator_frontier_disposition_batch_v1` records are append-only and fold on
+read; v1 has no `CURRENT` projection. Each entry carries an explicit platform,
+normalized handle and profile URL, candidate key, owner-assertion posture,
+timestamp, content-derived id, raw owner-action packet anchor, and explicit
+supersession ids.
+
+The allowed action vocabulary is:
+
+- `status`: `eligible`, `deferred`, or `rejected`;
+- `priority`: `super`, `high`, `normal`, or `low`, required only for `eligible`;
+- `reason_code`: `non_us_market`, `low_reach`, `low_potential`,
+  `duplicate_or_backup`, `profile_unavailable`, `self_brand_only`,
+  `owner_choice`, or `other`; `other` requires a note; and
+- `reconsideration`: `owner_reopen` or `new_signal`, required only for
+  `deferred`.
+
+The writer validates the complete batch before creating a packet or derived
+record. An exact semantic replay is `already_current`; a changed action
+supersedes every current head for that candidate. Invalid supersession,
+content-id mismatch, raw-anchor mismatch, or zero/multiple unsuperseded heads
+fails closed.
+
+The existing Registry CLI is the operational front door:
+
+```text
+run_creator_registry_lake.py frontier-disposition ...
+run_creator_registry_lake.py frontier-import --input <json-list> ...
+run_creator_registry_lake.py frontier-show ...
+run_creator_registry_lake.py admit-tiktok-candidate ...
+```
 
 ## Baseline and admission
 
@@ -54,7 +94,15 @@ one normalized `creator_registry_baseline_v1` record. A dry run must prove the
 account and profile sets before the first authority write. An identical rerun is
 `already_current`; different baseline hashes are a blocker.
 
-`creator_registry_account_admission_v1` is the first live admission contract.
+`creator_registry_candidate_admission_v1` admits one TikTok account internally
+before full onboarding. It requires a committed grid packet with one stable
+numeric account identity, the named current `eligible` Frontier disposition,
+and conflict-free identity against the baseline plus candidate and validated
+admissions. It publishes `onboarding_state=not_onboarded`,
+`monitoring_eligible=false`, and no public profile. A second candidate admission
+for the same stage fails closed; an exact replay is idempotent.
+
+`creator_registry_account_admission_v1` is the validated admission contract.
 Its v1 writer supports TikTok and requires:
 
 - stable TikTok numeric account id, handle, display name, and observation time
@@ -66,14 +114,22 @@ Its v1 writer supports TikTok and requires:
 - one conflict-free platform account mapping; and
 - `monitoring_eligible=true`.
 
-The admission record id is content-derived. Repeating the same admission is
-byte-idempotent. Conflicting account id, native id, handle, outcome, or snapshot
-bindings fail closed. A previously validated outcome keeps its already-bound
-profile subject id when no current account exists; otherwise new TikTok subjects
-use a deterministic opaque id derived from platform plus numeric native id.
+The captured identity must already resolve to exactly one Registry account in
+`not_onboarded` state on the first validated admission. A validated admission
+may follow the candidate admission for the same stable account and upgrades that
+row; candidate plus validated records for the same account are valid, while
+identity conflicts and duplicate same-stage admissions are not. An exact
+validated replay remains idempotent.
 
-Bronze capture does not promote the registry. Promotion occurs only after
-successful Judgment validation, when the coordinator appends the admission,
+Admission record ids are content-derived. Repeating the same admission is
+byte-idempotent. Conflicting account id, native id, handle, outcome, or snapshot
+bindings fail closed. New TikTok candidate subjects use a deterministic opaque
+id derived from platform plus numeric native id; a validated admission must bind
+that same current Registry subject.
+
+Grid capture alone does not promote the Registry. Candidate admission is the
+internal eligibility step. Promotion to onboarded occurs only after successful
+Judgment validation, when the coordinator appends the validated admission,
 publishes one complete generation, and freshly reads back exactly one internal
 account and one public profile.
 
@@ -105,6 +161,21 @@ Repository JSON may be supplied only as explicit test dependency injection. The
 Instagram and YouTube account state migrates into the baseline and remains
 readable; new admission writers for those platforms are deferred.
 
+TikTok onboarding routing is fail-closed:
+
+```text
+Registry onboarded                         -> already_onboarded
+current Frontier deferred or rejected      -> blocked
+Registry not_onboarded                     -> only onboarding source
+current Frontier eligible, absent Registry -> frontier_eligible_not_registered
+scanned or unknown, absent Registry         -> nonactionable
+```
+
+Automatic onboarding selection reads Registry `not_onboarded` accounts only.
+An explicit absent account is rejected before any browser probe. Promotion and
+suggested-account queues deduplicate against both Registry accounts and all
+current Frontier dispositions.
+
 ## Lifecycle and rollback
 
 The code/contract cutover is one PR. Production migration is additive: the old
@@ -125,6 +196,8 @@ onboarding PR requires semantic parity and exact-once readback through this path
   authentication, or replication.
 - A generation publication failure after an append leaves detectable stale
   current state; it is not reported as successful promotion.
+- The current hardcoded `eddeparfum` owner disposition remains a temporary
+  compatibility fallback until a later live migration removes it.
 - This contract creates no database, general event framework, scheduler, or
   standing timing system.
 - Not buyer proof, contact authorization, legal-name identity proof, or guaranteed

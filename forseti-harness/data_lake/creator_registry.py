@@ -29,23 +29,28 @@ from source_capture.models import (
     not_attempted,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_creator_frontier_dispositions,
+)
 
 
 BASELINE_LANE = "creator_registry_baseline"
+CANDIDATE_ADMISSION_LANE = "creator_registry_candidate_admission"
 ADMISSION_LANE = "creator_registry_account_admission"
 JUDGMENT_LANE = "creator_audience_judgment_outcome"
 BASELINE_SCHEMA_VERSION = "creator_registry_baseline_v1"
+CANDIDATE_ADMISSION_SCHEMA_VERSION = "creator_registry_candidate_admission_v1"
 ADMISSION_SCHEMA_VERSION = "creator_registry_account_admission_v1"
 INDEX_SCHEMA_VERSION = "creator_registry_index_v1"
 PUBLIC_PROFILE_SCHEMA_VERSION = "creator_profile_public_v1"
-GENERATION_MANIFEST_SCHEMA_VERSION = "creator_registry_generation_v1"
-CURRENT_POINTER_SCHEMA_VERSION = 1
+GENERATION_MANIFEST_SCHEMA_VERSION = "creator_registry_generation_v2"
+CURRENT_POINTER_SCHEMA_VERSION = 2
 REGISTRY_ROOT_PARTS = ("indexes", "derived_retrieval", "creator_registry")
 CURRENT_FILENAME = "CURRENT"
 GENERATIONS_DIRNAME = "generations"
 INDEX_FILENAME = "creator_registry_index_v1.json"
 PROFILE_FILENAME = "creator_profile_public_v1.json"
-MANIFEST_FILENAME = "creator_registry_generation_v1.json"
+MANIFEST_FILENAME = "creator_registry_generation_v2.json"
 LEGACY_BASELINE_SURFACE = "creator_registry_legacy_baseline"
 _WINDOWS_ABSOLUTE = re.compile(r"^[A-Za-z]:[\\/]")
 
@@ -232,6 +237,148 @@ def migrate_legacy_registry(
     }
 
 
+def admit_tiktok_creator_candidate(
+    *,
+    data_root: DataLakeRoot,
+    packet_id: str,
+    frontier_disposition_id: str,
+) -> dict[str, Any]:
+    """Admit one grid-identified, owner-eligible TikTok account as not onboarded."""
+    identity = extract_tiktok_packet_identity(data_root, packet_id)
+    frontier = load_creator_frontier_dispositions(data_root)[
+        "creator_frontier_disposition_current"
+    ]
+    matches = [
+        row
+        for row in frontier["dispositions"]
+        if row.get("candidate_key") == f"tiktok:@{identity['public_handle']}"
+    ]
+    if len(matches) != 1:
+        raise CreatorRegistryLakeError(
+            "candidate admission requires exactly one current Frontier disposition"
+        )
+    disposition = matches[0]
+    if (
+        disposition.get("disposition_id") != frontier_disposition_id
+        or disposition.get("status") != "eligible"
+    ):
+        raise CreatorRegistryLakeError(
+            "candidate admission requires the named current eligible Frontier disposition"
+        )
+    account_id = resolve_tiktok_profile_subject_id(data_root=data_root, packet_id=packet_id)
+    try:
+        current_index = load_current_creator_registry(data_root)
+    except CreatorRegistryLakeError as exc:
+        if "has not been migrated" in str(exc):
+            raise CreatorRegistryLakeError(
+                "Creator Registry baseline must be migrated before candidate admission"
+            ) from exc
+        raise
+    existing_matches = _matching_index_rows(current_index, identity)
+    if len(existing_matches) > 1:
+        raise CreatorRegistryLakeError(
+            "TikTok candidate identity matches multiple current Registry accounts"
+        )
+    account = {
+        "platform_account_id": account_id,
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": identity["platform_public_account_id"],
+        "public_handle": identity["public_handle"],
+        "public_profile_url": identity["public_profile_url"],
+        "handle_source_pointer": f"{identity['identity_source_pointer']}#/items/0/author/uniqueId",
+        "handle_observed_at": identity["observed_at"],
+        "public_display_name_or_none": identity["public_display_name"],
+        "display_name_source_pointer_or_none": (
+            f"{identity['identity_source_pointer']}#/items/0/author/nickname"
+        ),
+        "display_name_source_field_or_none": "items[0].author.nickname",
+    }
+    payload = {
+        "schema_version": CANDIDATE_ADMISSION_SCHEMA_VERSION,
+        "raw_anchor": packet_id,
+        "admitted_at": identity["observed_at"],
+        "platform_account": account,
+        "onboarding": {
+            "onboarding_state": "not_onboarded",
+            "onboarded_at_or_none": None,
+            "evidence_packet_id_or_none": packet_id,
+            "evidence_source_family_or_none": "tiktok",
+            "evidence_source_surface_or_none": "tiktok_creator_grid",
+            "policy_version": "creator_registry_candidate_admission_v1",
+        },
+        "frontier_disposition": {
+            "disposition_id": disposition["disposition_id"],
+            "candidate_key": disposition["candidate_key"],
+            "record_ref": disposition["authority_record_ref"],
+            "record_sha256": disposition["authority_record_sha256"],
+        },
+        "monitoring_eligible": False,
+    }
+    record_id = "crc_" + _sha256(canonical_record_bytes(payload))[:24]
+    candidate = {"record_id": record_id, **payload}
+    target = (
+        data_root.path
+        / "derived"
+        / hashlib.sha256(packet_id.encode("ascii")).hexdigest()[:3]
+        / packet_id
+        / CANDIDATE_ADMISSION_LANE
+        / record_id
+    )
+    rendered = canonical_record_bytes(candidate)
+    if target.exists():
+        if target.read_bytes() != rendered:
+            raise CreatorRegistryLakeError("existing candidate admission id has different bytes")
+        write_status = "already_current"
+    else:
+        if existing_matches:
+            raise CreatorRegistryLakeError(
+                "a Registry account cannot receive a new candidate admission"
+            )
+        records = _load_authority_records(data_root)
+        _validate_authority_admission_set(
+            records["baselines"][0],
+            [*records["candidate_admissions"], candidate],
+            records["admissions"],
+        )
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=CANDIDATE_ADMISSION_LANE,
+            record_id=record_id,
+            data=rendered,
+        )
+        write_status = "admitted"
+    published = publish_creator_registry_generation(data_root)
+    index = load_current_creator_registry(data_root)
+    public = load_current_creator_profiles(data_root)
+    index_matches = [
+        row
+        for row in index["creator_registry_index"]["platform_accounts"]
+        if row.get("platform_account_id") == account_id
+    ]
+    public_matches = [
+        row
+        for row in public["creator_profile_public"]["profiles"]
+        if row.get("profile_subject_id") == account_id
+    ]
+    if (
+        len(index_matches) != 1
+        or index_matches[0].get("onboarding", {}).get("onboarding_state") != "not_onboarded"
+        or index_matches[0].get("monitoring_eligibility", {}).get("eligible") is not False
+        or public_matches
+    ):
+        raise CreatorRegistryLakeError(
+            "candidate Registry readback must be internal not_onboarded, unmonitored, and non-public"
+        )
+    return {
+        "status": write_status,
+        "record_id": record_id,
+        "platform_account_id": account_id,
+        "public_handle": identity["public_handle"],
+        **published,
+    }
+
+
 def admit_tiktok_creator_account(
     *,
     data_root: DataLakeRoot,
@@ -274,6 +421,33 @@ def admit_tiktok_creator_account(
         packet_id=packet_id,
         requested_id=profile_subject_id,
     )
+    current_index = load_current_creator_registry(data_root)
+    current_matches = _matching_index_rows(current_index, identity)
+    if (
+        len(current_matches) != 1
+        or current_matches[0].get("platform_account_id") != profile_subject_id
+        or current_matches[0].get("onboarding", {}).get("onboarding_state")
+        not in {"not_onboarded", "onboarded"}
+    ):
+        raise CreatorRegistryLakeError(
+            "validated onboarding requires exactly one Registry not_onboarded account"
+        )
+    frontier_rows = load_creator_frontier_dispositions(data_root)[
+        "creator_frontier_disposition_current"
+    ]["dispositions"]
+    current_frontier = [
+        row
+        for row in frontier_rows
+        if row.get("candidate_key") == f"tiktok:@{identity['public_handle']}"
+    ]
+    if len(current_frontier) > 1:
+        raise CreatorRegistryLakeError(
+            "validated onboarding found conflicting current Frontier dispositions"
+        )
+    if current_frontier and current_frontier[0].get("status") in {"deferred", "rejected"}:
+        raise CreatorRegistryLakeError(
+            "validated onboarding is blocked by the current Frontier disposition"
+        )
     manifest = data_root.load_raw_packet(packet_id).manifest
     capture_time = _object(_object(manifest.get("timing"), "packet timing").get("capture_time"), "capture time")
     onboarded_at = _text(capture_time.get("value"), "capture time value")
@@ -533,7 +707,7 @@ def _load_authority_records(
 ) -> dict[str, Any]:
     data_root._reverify()
     records: list[tuple[str, bytes, dict[str, Any]]] = []
-    for lane in (BASELINE_LANE, ADMISSION_LANE):
+    for lane in (BASELINE_LANE, CANDIDATE_ADMISSION_LANE, ADMISSION_LANE):
         for path in sorted((data_root.path / "derived").glob(f"*/*/{lane}/*")):
             if not path.is_file():
                 continue
@@ -544,11 +718,20 @@ def _load_authority_records(
                 raise CreatorRegistryLakeError(f"unreadable Creator Registry authority record: {path}") from exc
             if not isinstance(record, dict):
                 raise CreatorRegistryLakeError(f"Creator Registry authority record is not an object: {path}")
-            expected_schema = BASELINE_SCHEMA_VERSION if lane == BASELINE_LANE else ADMISSION_SCHEMA_VERSION
+            expected_schema = {
+                BASELINE_LANE: BASELINE_SCHEMA_VERSION,
+                CANDIDATE_ADMISSION_LANE: CANDIDATE_ADMISSION_SCHEMA_VERSION,
+                ADMISSION_LANE: ADMISSION_SCHEMA_VERSION,
+            }[lane]
             if record.get("schema_version") != expected_schema or record.get("record_id") != path.name:
                 raise CreatorRegistryLakeError(f"Creator Registry authority record identity mismatch: {path}")
             records.append((_relative_to_root(data_root, path), body, record))
     baselines = [record for ref, body, record in records if record["schema_version"] == BASELINE_SCHEMA_VERSION]
+    candidate_admissions = [
+        record
+        for ref, body, record in records
+        if record["schema_version"] == CANDIDATE_ADMISSION_SCHEMA_VERSION
+    ]
     admissions = [record for ref, body, record in records if record["schema_version"] == ADMISSION_SCHEMA_VERSION]
     if len(baselines) > 1:
         raise CreatorRegistryLakeError("multiple Creator Registry baselines are not allowed")
@@ -556,15 +739,20 @@ def _load_authority_records(
         raise CreatorRegistryLakeError("Creator Registry has not been migrated into the data lake")
     if baselines:
         _verify_baseline(data_root, baselines[0])
+    for candidate in candidate_admissions:
+        _verify_candidate_admission(data_root, candidate)
     for admission in admissions:
         _verify_admission(data_root, admission)
     if baselines:
-        _validate_authority_admission_set(baselines[0], admissions)
+        _validate_authority_admission_set(baselines[0], candidate_admissions, admissions)
     authority_refs = [
         {"record_ref": ref, "sha256": _sha256(body)} for ref, body, _record in sorted(records)
     ]
     return {
         "baselines": baselines,
+        "candidate_admissions": sorted(
+            candidate_admissions, key=lambda row: row["record_id"]
+        ),
         "admissions": sorted(admissions, key=lambda row: row["record_id"]),
         "authority_refs": authority_refs,
         "authority_inventory_sha256": _sha256(canonical_record_bytes(authority_refs)),
@@ -578,6 +766,57 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
     wrapper = document["creator_registry_index"]
     rows = [deepcopy(_object(row, "Creator Registry row")) for row in wrapper.get("platform_accounts", [])]
     by_id = {row["platform_account_id"]: row for row in rows}
+    for candidate in records["candidate_admissions"]:
+        account = candidate["platform_account"]
+        account_id = account["platform_account_id"]
+        row = by_id.get(account_id)
+        if row is None:
+            row = {
+                "platform_account_id": account_id,
+                "creator_record_id_or_none": None,
+                "identity_state": "single_platform_observed",
+                "linkage_state": "single_platform_observed",
+                "discovery_state": "known_account",
+                "capture_state": "identity_observed_grid_packet_available",
+                "routing_decision": "onboard_only_after_explicit_full_onboarding",
+                "source_pointers": [
+                    candidate["frontier_disposition"]["record_ref"],
+                    account["handle_source_pointer"],
+                ],
+                "non_claims": [
+                    "not onboarded",
+                    "not monitoring eligible",
+                    "not public profile admission",
+                    "not final cross-platform identity",
+                    "not contact or outreach authorization",
+                ],
+            }
+            rows.append(row)
+            by_id[account_id] = row
+        row.update(
+            {
+                "platform": account["platform"],
+                "platform_public_account_id_or_none": account[
+                    "platform_public_account_id_or_none"
+                ],
+                "public_handle": account["public_handle"],
+                "normalized_public_handle": _normalize_handle(account["public_handle"]),
+                "public_profile_url": account["public_profile_url"],
+                "public_display_name_or_none": account["public_display_name_or_none"],
+                "onboarding": deepcopy(candidate["onboarding"]),
+                "monitoring_eligibility": {
+                    "eligible": False,
+                    "reason": "not_onboarded",
+                    "scheduled": False,
+                },
+                "freshness": {
+                    **deepcopy(row.get("freshness") or {}),
+                    "identity_observed_at": account["handle_observed_at"],
+                    "last_capture_observed_at_or_none": account["handle_observed_at"],
+                },
+            }
+        )
+        row["lookup_keys"] = _lookup_keys(account)
     for admission in records["admissions"]:
         account = admission["platform_account"]
         account_id = account["platform_account_id"]
@@ -642,7 +881,7 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
             "platform_accounts": rows,
             "source_inputs": deepcopy(records["authority_refs"]),
             "source_policy_posture": (
-                "Generated from one immutable legacy baseline plus append-only account admissions; "
+                "Generated from one immutable legacy baseline plus append-only candidate and validated account admissions; "
                 "the generation is a rebuildable current view, not authority."
             ),
             "accepted_residuals": [
@@ -777,35 +1016,11 @@ def _public_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
 
 def _validate_admission_conflicts(data_root: DataLakeRoot, candidate: Mapping[str, Any]) -> None:
     records = _load_authority_records(data_root)
-    account = candidate["platform_account"]
-    for existing in records["admissions"]:
-        other = existing["platform_account"]
-        if other["platform_account_id"] == account["platform_account_id"]:
-            raise CreatorRegistryLakeError("platform account already has a different admission record")
-        if (
-            other["platform"] == account["platform"]
-            and other["platform_public_account_id_or_none"] == account["platform_public_account_id_or_none"]
-        ):
-            raise CreatorRegistryLakeError("platform native account id already maps to another admission")
-        if other["platform"] == account["platform"] and _normalize_handle(
-            other["public_handle"]
-        ) == _normalize_handle(account["public_handle"]):
-            raise CreatorRegistryLakeError("platform handle already maps to another admission")
-    baseline_accounts = records["baselines"][0]["account_ledger"][
-        "creator_public_handle_linkage_ledger"
-    ]["platform_accounts"]
-    for raw in baseline_accounts:
-        other = _object(raw, "baseline platform account")
-        same_id = other.get("platform_account_id") == account["platform_account_id"]
-        same_native = (
-            other.get("platform") == account["platform"]
-            and other.get("platform_public_account_id_or_none") == account["platform_public_account_id_or_none"]
-        )
-        same_handle = other.get("platform") == account["platform"] and _normalize_handle(
-            other.get("public_handle")
-        ) == _normalize_handle(account["public_handle"])
-        if (same_id or same_native or same_handle) and not same_id:
-            raise CreatorRegistryLakeError("admission identity conflicts with migrated baseline account")
+    _validate_authority_admission_set(
+        records["baselines"][0],
+        records["candidate_admissions"],
+        [*records["admissions"], candidate],
+    )
 
 
 def _verify_baseline(data_root: DataLakeRoot, baseline: Mapping[str, Any]) -> None:
@@ -828,6 +1043,114 @@ def _verify_baseline(data_root: DataLakeRoot, baseline: Mapping[str, Any]) -> No
             ]
             if len(preserved) != 1 or preserved[0].get("sha256") != hashes.get(role):
                 raise CreatorRegistryLakeError(f"Creator Registry baseline hash mismatch for {role}")
+
+
+def _verify_candidate_admission(
+    data_root: DataLakeRoot, candidate: Mapping[str, Any]
+) -> None:
+    if set(candidate) != {
+        "record_id",
+        "schema_version",
+        "raw_anchor",
+        "admitted_at",
+        "platform_account",
+        "onboarding",
+        "frontier_disposition",
+        "monitoring_eligible",
+    }:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate admission fields do not match v1"
+        )
+    identity_payload = {key: value for key, value in candidate.items() if key != "record_id"}
+    expected_record_id = "crc_" + _sha256(canonical_record_bytes(identity_payload))[:24]
+    if candidate.get("record_id") != expected_record_id:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate admission content id mismatch"
+        )
+    if candidate.get("monitoring_eligible") is not False:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate admission must not be monitoring eligible"
+        )
+    account = _object(candidate.get("platform_account"), "candidate platform account")
+    if account.get("platform") != "tiktok" or not account.get(
+        "platform_public_account_id_or_none"
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry TikTok candidate lacks stable native identity"
+        )
+    identity = extract_tiktok_packet_identity(
+        data_root, _text(candidate.get("raw_anchor"), "candidate raw anchor")
+    )
+    if candidate.get("admitted_at") != identity["observed_at"]:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate admitted_at differs from its grid packet"
+        )
+    expected_account = {
+        "platform_account_id": deterministic_platform_account_id(
+            "tiktok", identity["platform_public_account_id"]
+        ),
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": identity["platform_public_account_id"],
+        "public_handle": identity["public_handle"],
+        "public_profile_url": identity["public_profile_url"],
+        "handle_source_pointer": f"{identity['identity_source_pointer']}#/items/0/author/uniqueId",
+        "handle_observed_at": identity["observed_at"],
+        "public_display_name_or_none": identity["public_display_name"],
+        "display_name_source_pointer_or_none": (
+            f"{identity['identity_source_pointer']}#/items/0/author/nickname"
+        ),
+        "display_name_source_field_or_none": "items[0].author.nickname",
+    }
+    if account != expected_account:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate identity differs from its grid packet"
+        )
+    onboarding = _object(candidate.get("onboarding"), "candidate onboarding")
+    if onboarding != {
+        "onboarding_state": "not_onboarded",
+        "onboarded_at_or_none": None,
+        "evidence_packet_id_or_none": candidate["raw_anchor"],
+        "evidence_source_family_or_none": "tiktok",
+        "evidence_source_surface_or_none": "tiktok_creator_grid",
+        "policy_version": "creator_registry_candidate_admission_v1",
+    }:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate onboarding fields do not match v1"
+        )
+    disposition = _object(
+        candidate.get("frontier_disposition"), "candidate Frontier disposition"
+    )
+    path = data_root.path.joinpath(
+        *_text(disposition.get("record_ref"), "Frontier record ref").split("/")
+    )
+    if not path.is_file() or _sha256(path.read_bytes()) != disposition.get(
+        "record_sha256"
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate Frontier disposition is missing or changed"
+        )
+    frontier = load_creator_frontier_dispositions(data_root)[
+        "creator_frontier_disposition_current"
+    ]
+    history = [
+        row
+        for row in frontier["history"]
+        if row.get("disposition_id") == disposition.get("disposition_id")
+    ]
+    if set(disposition) != {
+        "disposition_id",
+        "candidate_key",
+        "record_ref",
+        "record_sha256",
+    } or (
+        len(history) != 1
+        or history[0].get("status") != "eligible"
+        or history[0].get("candidate_key") != disposition.get("candidate_key")
+        or disposition.get("candidate_key") != f"tiktok:@{identity['public_handle']}"
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate does not cite one eligible Frontier disposition"
+        )
 
 
 def _verify_admission(data_root: DataLakeRoot, admission: Mapping[str, Any]) -> None:
@@ -858,7 +1181,9 @@ def _verify_admission(data_root: DataLakeRoot, admission: Mapping[str, Any]) -> 
 
 
 def _validate_authority_admission_set(
-    baseline: Mapping[str, Any], admissions: Sequence[Mapping[str, Any]]
+    baseline: Mapping[str, Any],
+    candidate_admissions: Sequence[Mapping[str, Any]],
+    admissions: Sequence[Mapping[str, Any]],
 ) -> None:
     baseline_accounts = baseline["account_ledger"]["creator_public_handle_linkage_ledger"][
         "platform_accounts"
@@ -874,30 +1199,36 @@ def _validate_authority_admission_set(
         if native_id:
             native[(platform, str(native_id))] = account_id
         handle[(platform, _normalize_handle(row.get("public_handle")))] = account_id
-    admitted_ids: set[str] = set()
-    for admission in admissions:
-        account = _object(admission.get("platform_account"), "admission account")
-        account_id = str(account["platform_account_id"])
-        if account_id in admitted_ids:
-            raise CreatorRegistryLakeError("multiple admissions target the same platform account")
-        admitted_ids.add(account_id)
-        platform = str(account["platform"])
-        native_key = (platform, str(account["platform_public_account_id_or_none"]))
-        handle_key = (platform, _normalize_handle(account["public_handle"]))
-        native_owner = native.get(native_key)
-        handle_owner = handle.get(handle_key)
-        if native_owner not in {None, account_id} or handle_owner not in {None, account_id}:
-            raise CreatorRegistryLakeError("admission identity conflicts with current authority")
-        baseline_row = by_id.get(account_id)
-        if baseline_row is not None:
-            baseline_native = baseline_row.get("platform_public_account_id_or_none")
-            same_handle = _normalize_handle(baseline_row.get("public_handle")) == handle_key[1]
-            if baseline_native and str(baseline_native) != native_key[1]:
-                raise CreatorRegistryLakeError("admission native id conflicts with baseline account id")
-            if not baseline_native and not same_handle:
-                raise CreatorRegistryLakeError("admission handle conflicts with handle-only baseline account")
-        native[native_key] = account_id
-        handle[handle_key] = account_id
+    for role, authority_rows in (
+        ("candidate admissions", candidate_admissions),
+        ("validated admissions", admissions),
+    ):
+        admitted_ids: set[str] = set()
+        for admission in authority_rows:
+            account = _object(admission.get("platform_account"), f"{role} account")
+            account_id = str(account["platform_account_id"])
+            if account_id in admitted_ids:
+                raise CreatorRegistryLakeError(
+                    f"multiple {role} target the same platform account"
+                )
+            admitted_ids.add(account_id)
+            platform = str(account["platform"])
+            native_key = (platform, str(account["platform_public_account_id_or_none"]))
+            handle_key = (platform, _normalize_handle(account["public_handle"]))
+            native_owner = native.get(native_key)
+            handle_owner = handle.get(handle_key)
+            if native_owner not in {None, account_id} or handle_owner not in {None, account_id}:
+                raise CreatorRegistryLakeError("admission identity conflicts with current authority")
+            baseline_row = by_id.get(account_id)
+            if baseline_row is not None:
+                baseline_native = baseline_row.get("platform_public_account_id_or_none")
+                same_handle = _normalize_handle(baseline_row.get("public_handle")) == handle_key[1]
+                if baseline_native and str(baseline_native) != native_key[1]:
+                    raise CreatorRegistryLakeError("admission native id conflicts with baseline account id")
+                if not baseline_native and not same_handle:
+                    raise CreatorRegistryLakeError("admission handle conflicts with handle-only baseline account")
+            native[native_key] = account_id
+            handle[handle_key] = account_id
 
 
 def _write_baseline_source_packet(
@@ -1005,6 +1336,10 @@ def _baseline_generated_at(documents: Mapping[str, Any]) -> str:
 
 def _generation_time(records: Mapping[str, Any]) -> str:
     values = [_text(records["baselines"][0].get("generated_at"), "baseline generated_at")]
+    values.extend(
+        _text(row.get("admitted_at"), "candidate admitted_at")
+        for row in records["candidate_admissions"]
+    )
     values.extend(_text(row.get("admitted_at"), "admission admitted_at") for row in records["admissions"])
     return max(values)
 
@@ -1110,8 +1445,10 @@ def _normalize_handle(value: Any) -> str:
 __all__ = [
     "ADMISSION_LANE",
     "BASELINE_LANE",
+    "CANDIDATE_ADMISSION_LANE",
     "CreatorRegistryLakeError",
     "admit_tiktok_creator_account",
+    "admit_tiktok_creator_candidate",
     "deterministic_platform_account_id",
     "extract_tiktok_packet_identity",
     "load_current_creator_profiles",

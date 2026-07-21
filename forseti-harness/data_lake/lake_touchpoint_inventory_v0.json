@@ -75,13 +75,13 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record",
-      "count": 1,
+      "count": 2,
       "module": "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "lane_dir",
-      "count": 1,
+      "count": 2,
       "module": "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py"
     },
     {
@@ -153,7 +153,7 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record",
-      "count": 2,
+      "count": 3,
       "module": "data_lake/creator_registry.py"
     },
     {

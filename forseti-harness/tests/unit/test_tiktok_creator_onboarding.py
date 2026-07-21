@@ -1834,52 +1834,6 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
 
 
 
-def test_frontier_selection_skips_onboarded_and_absent_requires_promote() -> None:
-    decisions = {"tiktok_creator_promotion_decisions": {"schema_version": "tiktok_creator_promotion_decisions_v1", "decisions": [
-        {"handle": "done", "registry_action": "promote_now", "priority_rank": 1},
-        {"handle": "next", "registry_action": "promote_now", "priority_rank": 2},
-    ]}}
-    registry = {"creator_profile_current_view": {"profiles": [{"onboarding": {"onboarding_state": "onboarded"}, "platform_accounts": [{"platform": "tiktok", "public_handle": "done"}]}]}}
-    handle, selected = runner._select_promoted_creator(decisions, registry)
-    assert handle == "next"
-    assert selected["selection_source"] == "promotion_frontier"
-    with pytest.raises(TikTokCreatorOnboardingError, match="requires a promote_now"):
-        runner._require_promoted(None, "unknown")
-    deferred = {"tiktok_creator_promotion_decisions": {
-        "schema_version": "tiktok_creator_promotion_decisions_v1",
-        "decisions": [{
-            "handle": "eddeparfum",
-            "registry_action": "promote_now",
-            "onboarding_queue_status": "owner_deferred",
-        }],
-    }}
-    with pytest.raises(TikTokCreatorOnboardingError, match="owner-deferred"):
-        runner._require_promoted(deferred, "eddeparfum")
-
-
-def test_frontier_selection_skips_already_scanned_frontier_root() -> None:
-    decisions = {"tiktok_creator_promotion_decisions": {"schema_version": "tiktok_creator_promotion_decisions_v1", "decisions": [
-        {"handle": "scanned", "registry_action": "promote_now", "priority_rank": 1},
-        {"handle": "next", "registry_action": "promote_now", "priority_rank": 2},
-    ]}}
-    registry = {"creator_profile_current_view": {"profiles": []}}
-    frontier = {
-        "tiktok_creator_discovery_frontier_register": {
-            "root_seed": {"handle": "scanned"},
-            "nodes": [],
-            "edges": [],
-        }
-    }
-
-    handle, _ = runner._select_promoted_creator(
-        decisions,
-        registry,
-        frontier_registers=(frontier,),
-    )
-
-    assert handle == "next"
-
-
 def test_onboarding_cli_defaults_to_fixed_top_eight_and_seven_fourteen_range() -> None:
     args = runner.build_parser().parse_args(
         [
@@ -1949,6 +1903,47 @@ def test_new_onboarding_without_handle_selects_next_registry_candidate(
     assert handle == "next_creator"
     assert candidate is not None
     assert candidate["platform_account_id"] == "acct_tt_next"
+
+
+def test_new_onboarding_auto_selection_uses_registry_and_skips_frontier_blocked() -> None:
+    registry_document = {
+        "creator_profile_current_view": {
+            "profiles": [
+                {
+                    "profile_subject_id": f"acct_{handle}",
+                    "profile_subject_kind": "platform_account",
+                    "onboarding": {"onboarding_state": "not_onboarded"},
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": f"acct_{handle}",
+                            "public_handle": handle,
+                            "public_profile_url": f"https://www.tiktok.com/@{handle}",
+                        }
+                    ],
+                }
+                for handle in ("blocked_creator", "ready_creator")
+            ]
+        }
+    }
+    frontier = {
+        "creator_frontier_disposition_current": {
+            "schema_version": "creator_frontier_disposition_current_v1",
+            "dispositions": [
+                {"public_handle": "blocked_creator", "status": "deferred"}
+            ],
+        }
+    }
+
+    handle, candidate = runner._resolve_creator_handle(
+        creator_handle=None,
+        creator_intent="new_onboarding",
+        registry_document=registry_document,
+        frontier_dispositions=frontier,
+    )
+
+    assert handle == "ready_creator"
+    assert candidate["selection_policy"] == "sole_actionable_registry_not_onboarded_account"
 
 
 def test_onboarding_cli_rejects_window_below_sufficient_dom_minimum() -> None:
@@ -3118,8 +3113,8 @@ def test_new_onboarding_blocks_ineligible_creator_before_browser_probe(
     assert expected_message in capsys.readouterr().err
 
 
-def test_new_onboarding_allows_genuinely_absent_account_preflight(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_new_onboarding_rejects_genuinely_absent_account_before_browser_probe(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     registry_path = tmp_path / "registry.json"
     registry_path.write_text("{}", encoding="utf-8")
@@ -3133,15 +3128,24 @@ def test_new_onboarding_allows_genuinely_absent_account_preflight(
     monkeypatch.setattr(
         runner, "load_creator_profile_current_view", lambda _path: registry_document
     )
-    _receipt, result = runner._write_creator_registry_preflight(
-        creator_handle="missing_creator",
-        creator_intent="new_onboarding",
-        registry_path=registry_path,
-        output_dir=tmp_path / "out",
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: pytest.fail("browser probe must not run"),
     )
-    assert result["decision"] == "new_candidate"
-    assert result["action_status"] == "allowed"
-    assert result["registry_onboarding_state"] is None
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "missing_creator",
+                "--creator-registry",
+                str(registry_path),
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    assert exc_info.value.code == 2
+    assert "must be candidate-admitted first" in capsys.readouterr().err
 
 
 def test_suggested_failure_receipt_carries_profile_evidence_failure_status() -> None:
