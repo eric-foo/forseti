@@ -40,6 +40,12 @@ Sephora storefront-pin reconciliation.
 
 ## Capture artifact-mode audit
 
+This is a historical inventory of the packet modes observed on the dates below,
+not the current route selector. As of `2026-07-21`, new Sephora deep-page
+capture uses `sephora_pdp_aggregate` content v3; the sampled-raw/full-derived
+and Projection-era packets below are superseded for new acquisition but remain
+append-only evidence.
+
 A `2026-07-19` fresh read of the original packet manifests cited by this
 register found 48 source packets: 48 `raw`, zero `content`, and zero `sample`.
 The Sephora completeness audit then added three append-only `sample` packets,
@@ -49,25 +55,27 @@ certification-directory, company-official, or fragrance-review source
 families. The seven other ULIDs identify derived records rather than source
 packets.
 
-The exact Sephora aggregate-PDP route now proves sampled-raw with full-derived
-retention through the receipt below. Nordstrom aggregate PDP still lacks its
-required sample audit. Every other retailer surface named here remains raw:
+At the time of this audit, the exact Sephora aggregate-PDP route proved
+sampled-raw with full-derived retention through the receipt below, and
+Nordstrom aggregate PDP still lacked its required sample audit. The remaining
+surface-mode inventory is likewise frozen to that audit; it is not a statement
+of later route promotions. Every other retailer surface named here was raw:
 Target grid
 and PDP; Nordstrom grid; Luckyscent grid and PDP; Amazon search/discovery and
 PDP; Ulta PDP; Walmart PDP; Credo PDP and Yotpo review responses; and Kohl's
 access-failure diagnostics. Tower 28 DTC/stores and the certifier-directory
 reads are also raw in their separate source families.
 
-The current retention and downstream ownership boundary is maintained in
-`forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`
-and the family content-to-Cleaning contracts.
+The current Retail/PDP retention and downstream ownership boundary is maintained
+in `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`;
+this historical audit does not override it.
 No existing raw packet is authorized for retroactive deletion. A future route
 may be promoted only after its compact derived record preserves all
 claim-bearing fields, its loss is explicit, and a representative raw-plus-
 derived sample packet is verified. The Sephora completion does not authorize
 retroactive deletion or compaction of any historical raw packet.
 
-### Sephora sampled-raw/full-derived audit receipt
+### Historical Sephora sampled-raw/full-derived audit receipt (superseded for new acquisition)
 
 - Pre-repair sample:
   `F:\forseti-data-lake\raw\d54\01KXXBZ1DK7YERYH5D12GBT22C`. Its v1 content
