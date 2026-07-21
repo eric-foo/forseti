@@ -243,84 +243,79 @@ company route acquires bounded portfolio breadth before product depth. Owned
 surfaces remain canonical for company portfolio and franchise expression. Use
 their public categories, collections/franchises, visible parent products,
 declared totals when exposed, bestseller/new/owned-prominence signals, and typed
-coverage gaps to establish a franchise/candidate census; a complete every-SKU
-architecture is not required by default. Capture source-visible target/use-case,
-price-tier, channel, and geography differentiation; owned/retailer prominence,
-new/launch, and distribution state; product/franchise concentration and overlap
-evidence; explicit strategic statements or moves; and shared capability or
-dependency evidence where exposed. These are analysis-enablement inputs, not
-permission for Understanding to infer portfolio roles or competitive strategy.
+coverage gaps to establish the owned census; a complete every-SKU architecture
+is not required by default. Capture source-visible target/use-case, price-tier,
+channel, and geography differentiation; owned/retailer prominence, new/launch,
+and distribution state; product/franchise concentration and overlap evidence;
+explicit strategic statements or moves; and shared capability or dependency
+evidence where exposed. These are analysis-enablement inputs, not permission for
+Understanding to infer portfolio roles or competitive strategy.
 
-Acquire one primary-retailer brand/assortment grid as a second candidate
-denominator and source of channel-local commercial and customer prominence
-signals. Reconcile owned and retailer identity deeply only for candidates that
-could materially change selection, ambiguous matches, and selected products. Do
-not require a complete global franchise -> parent-product -> variant/SKU ->
-retailer-listing graph.
+Test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon -- after
+the owned census. A retailer qualifies only when the subject is relevant there
+and the authorized route is pinned to the US market and admissible. Use the
+existing coverage-ledger requirement, rationale, status, yield, access, and
+typed-gap fields to preserve each test and its exact result. Current result types
+include `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, and
+`SURFACE_NOT_EXPOSED`; never infer a listing or award completion credit for a
+failed or unobserved route. This ladder is a named US qualification test, not a
+retailer-count, all-retailer, or source-count quota.
 
-Select up to three evidence-selected representative franchises, each anchored
-by one representative parent product, for PDP and customer-evidence depth.
-Candidate evidence may be product-level, one candidate may perform multiple
-jobs, and fewer than three franchises remain valid. The candidate set must
-resolve four jobs: (1) an established prominence candidate; (2) a founding,
-strategically central, or currently promoted/new candidate; (3) a
-complaint-heavy or customer-friction candidate supported by bounded negative
-evidence rather than raw review count alone; and (4) a plausible contrasting
-extension or observed weak-link candidate supported by comparable rating,
-negative-share, or recent complaint evidence with an adequate observed evidence
-floor. New or strategic products remain eligible through owned/current-promotion
-evidence despite low review tenure. A product-level candidate uniquely
-representing a material segment, use case, price tier, channel, geography,
-adjacency, or dependency may change which parent product anchors a franchise or
-may displace a redundant prominence- or complaint-oriented franchise within the
-same max-three-franchise ceiling. Multiple products in one franchise do not
-create extra chain cards, count as additional franchises, or create another
-quota. If that ceiling cannot cover materially distinct analysis-enablement
-evidence, emit a typed selection residual or gap rather than padding or silently
-omitting it. Hero status is an earned conclusion, never a selection premise.
+For every qualified retailer, acquire its brand/assortment grid as a channel-
+local denominator. Reconcile every exact parent listing found to the owned parent
+architecture, then acquire one baseline PDP for each exact parent listing with
+exact identity and parent/variant/listing relation, price and promotion,
+availability, aggregate rating/review state, assortment/exclusive cues,
+timestamp, and residuals. Preserve the full raw source. Retain source-visible
+retailer-native extensions such as merchandising, badges, fulfilment,
+seller/authenticity, related products, Q&A availability, review provider, and
+native identifiers or metadata. The common baseline does not require a complete
+global franchise -> parent-product -> variant/SKU -> retailer-listing graph.
+
+Only after the qualified-grid and exact-parent PDP baseline may expensive review
+or Q&A depth be selected. Evidence-selected depth may resolve established
+prominence; founding, strategic, promoted, or new centrality; concentrated
+complaint or customer friction; a plausible contrasting extension or weak link;
+a material contradiction; or an incident. One product may perform multiple jobs,
+there is no fixed product count, and a named non-duplicative job must justify
+every deepening. Hero status is an earned conclusion, never a selection premise.
 Use calibrated labels such as `prominence candidate` and `observed weak-link
-candidate`; do not call these selections a sales leader, best-performing
-product, or worst product.
+candidate`; do not call a selection a sales leader, best-performing product, or
+worst product.
 
 Review volume is a channel-, tenure-, assortment-, and syndication-sensitive
 prominence prior, not sales, demand, or commercial-performance evidence. Keep
 counts separate by retailer and corpus; never sum them unless exact corpus
 identity and deduplication justify the operation. Review volume alone must not
-optimize the selected set. Stop breadth acquisition when the visible
-franchise/candidate set is sufficient to resolve the four selection jobs and
-material analysis-enablement dimensions, and the remaining omissions are typed
-residuals unlikely to change the selected set. If missing grid pages or category
-totals, identity conflicts, or review comparability could change selection, emit
-a portfolio-coverage or selection gap and continue acquisition or block; never
-silently select from a partial list.
+optimize the selected set. If missing grid pages or category totals, identity
+conflicts, or review comparability could change selection, emit a portfolio-
+coverage or selection gap and continue acquisition or block; never silently
+select from a partial list. A qualified retailer's grid and exact-parent baseline
+are breadth obligations; deep review/Q&A capture stops when its named jobs and
+material seams are supported, contradicted, bounded, or typed as gaps.
 
 The primary retailer is chosen from subject authorization, target-market
 relevance, assortment breadth, structured evidence depth, and route
-admissibility. When Sephora is authorized for the target market,
-route-admissible, and materially complete for the relevant candidate or
-franchise, it is the default retail primary for normalized product, assortment,
-and review controls. Override that default at product or franchise level when
-Sephora omits a material product or variant, is unpinned or blocked, or another
-authorized retailer is required for the bound information job. When the company
-has a material retailer presence and the bound question depends on retail
-expression, the primary route is required. At most one secondary retailer is
-conditional on a named non-duplicative job; a tertiary retailer is exception-only
-to resolve a material contradiction or gap. These roles use the existing
-coverage-ledger requirement, rationale, and typed-gap fields. They create no
-retailer-count quota, all-retailers corpus requirement, new schema, or automatic
-completion credit, and retailer evidence does not become internal company fact.
-PDP and customer-evidence depth begins only after candidate selection.
+admissibility. When Sephora is authorized for the target market, route-admissible,
+and materially complete for the relevant candidate or franchise, it is the
+default retail primary for normalized product, assortment, and review controls.
+Override that default at product or franchise level when Sephora omits a material
+product or variant, is unpinned or blocked, or another qualified retailer is
+required for the bound information job. Primary status selects the richest
+normalization/reference surface; it does not excuse baseline coverage at any
+other qualified retailer. The qualified-ladder rule uses the existing coverage
+ledger and creates no new schema or automatic completion credit. Retailer
+evidence does not become internal company fact.
 
 This MGT portfolio-selection method explicitly accepts that unselected long-tail
-products may remain at grid/collection identity rather than PDP/SKU depth;
-review volume remains channel/tenure/syndication biased and supports prominence
-ordering only; observed complaint or weak-link candidates are not market-wide
-worst-product conclusions; and a full global SKU graph and automated identity
-resolver remain out of scope. Upgrade when unresolved breadth, identity,
-syndication, or comparability could materially change the selected set.
-Assortment and review evidence alone cannot establish sales, cash generation,
-growth, cannibalization, intent, control, competitive strategy, or operational
-leverage.
+variants may remain at parent-PDP baseline rather than review/Q&A depth; review
+volume remains channel/tenure/syndication biased and supports prominence ordering
+only; observed complaint or weak-link candidates are not market-wide worst-
+product conclusions; and a full global SKU graph and automated identity resolver
+remain out of scope. Upgrade when unresolved breadth, identity, syndication, or
+comparability could materially change the selected set. Assortment and review
+evidence alone cannot establish sales, cash generation, growth, cannibalization,
+intent, control, competitive strategy, or operational leverage.
 
 When a decision-material retailer-review corpus has row-level ratings,
 source-visible incentive posture, and a reproducible boundary, the company
