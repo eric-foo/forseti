@@ -355,6 +355,43 @@ The current CSB one-company competitive-intelligence profile may produce this
 decision-neutral substrate. It must not be mistaken for the later
 decision-specific adjudication run.
 
+### Public portfolio-role inference
+
+Retailer grids, exact parent PDPs, and their longitudinal observations may
+support an outside-in product-role interpretation without pretending to expose
+internal revenue, margin, or management reporting. This interpretation consumes
+the company substrate already captured for Understanding; it does not create a
+separate acquisition checklist.
+
+| Observed public pattern | Strongest ordinary interpretation | Required boundary |
+| --- | --- | --- |
+| Large accumulated review base, continuing review velocity, and broad authorized distribution | Established leading product | Large totals alone establish accumulated attention, not current sales |
+| Rising age-adjusted review velocity plus new variants or retailer expansion | Product receiving growth investment | Do not call it a revenue growth engine without economics |
+| Lower price, mini or trial format, wide availability, and frequent inclusion in starter bundles | Entry or trial product | Format and merchandising show intended access, not conversion |
+| Founding status, central brand language, prominent placement, and sustained support | Flagship or credibility anchor | Strategic prominence can differ from current volume |
+| Recent launch, narrow distribution, and limited variants | Experiment or early adjacency | Low totals are expected for a young product and do not prove weakness |
+| Weak age-adjusted velocity plus repeated discounting or shrinking availability | Plausible weak link | Require a stable observation window; one low total or one stockout is insufficient |
+| Frequent bundling with a higher-traction product | Attachment or cross-sell product | Bundling shows merchandising intent, not attach rate |
+| New shades, sizes, bundles, or channel placements despite ordinary totals | Actively supported franchise | Visible investment does not prove successful investment |
+| Large historical base, slowing velocity, stable price, and stable distribution | Mature franchise | Do not call it declining, harvested, or a cash generator without stronger trend or economic evidence |
+
+Apply the table with four rules:
+
+1. Reconcile exact parent identities and normalize product age before comparing
+   review totals or velocity. Keep every retailer as a separate series.
+2. Preserve all captured review rows. Deduplicate analysis deterministically
+   first using provider/origin review IDs and, when absent, a normalized
+   rating-date-author-title-body fingerprint. An LLM may flag ambiguous
+   near-matches for adjudication; it must not delete, merge, or become canonical
+   review identity.
+3. A directional role such as growth investment or weak link requires review
+   movement plus at least one independent public behavior such as assortment,
+   variants, placement, pricing, promotion, availability, or channel breadth.
+4. Use the named target market as the default evidence frame. For a US decision,
+   do not build an international map unless geography, expansion, price,
+   channel dependence, supply exposure, or the later decision gives it a named
+   information job.
+
 ## Company Surface Boundary
 
 Company Surface is not required for the first proving run. This architecture is
