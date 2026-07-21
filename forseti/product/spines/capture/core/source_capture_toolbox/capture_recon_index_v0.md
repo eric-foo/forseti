@@ -152,6 +152,26 @@ below.
 |---|---|---|---|---|
 | Kohl's unattended Xvfb real-Chrome route | `docs/workflows/forseti_unattended_akamai_headful_capture_route_handoff_v0.md`; implementation at `forseti-harness/runners/run_kohls_unattended_capture.py` and `forseti-harness/containers/realchrome_xvfb/`; verified PDP `F:\forseti-data-lake\raw\897\01KXXV920Z8PQVHP6DN16335DF` and policy `F:\forseti-data-lake\raw\950\01KXXVA8B5EHY86N4EJZ7Y6360` | The one-shot built the real-Chrome image, started a temporary headful Chrome under Xvfb with a private loopback-only CDP port, captured both bound surfaces through the rung-7 packet seam, and stopped the container. Both packets recorded unattended provisioning and a persistent profile, returned HTTP 200, were not access-blocked, and passed exact product/policy gates. The passing browser exposed no usable WebGL context, retracting the earlier “real GPU required” explanation without isolating the exact Akamai discriminator. | `GO_KOHLS_UNATTENDED_REALCHROME_XVFB`; the admitted route is no longer operator-gated for the bound Kohl's PDP + policy. No recurring schedule was registered because no owner-approved frequency exists and every run writes two durable packets. The generic operator-provided rung-7 path remains available for other sources; arbitrary Akamai sites, Linux sandbox behavior, and datacenter egress remain unproven. | HIGH ⭐ |
 
+### Certifier / accreditation "seal" directories (JS-rendered landing → public data endpoint)
+| Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
+| --- | --- | --- | --- | --- |
+| NEA (National Eczema Association) Seal of Acceptance | Tower 28 v2 CI scan `docs/research/forseti_beauty_tower28_company_intelligence_scan_v2.md` (merged PR #1087); packets `01KXRMFR7P8QSKPQM66XTVXW46` (landing), `01KXRMGB4WEVBF19G464PSHZNJ` (REST) | Landing `https://nationaleczema.org/eczema-products/` is a JS-rendered **zero-yield** page; the product list lives in the **WordPress REST API on the CMS host**: `https://cms.nationaleczema.org/wp-json/wp/v2/eczema-products?search=<term>&per_page=20` | **GO** via direct fetch of the REST endpoint (9 Tower 28 titles; one record binds to tower28beauty.com) | HIGH |
+| NRS (National Rosacea Society) Seal of Acceptance | same scan; packet `01KXRM4HZJVVRVFAGFFX6VY5DD` | The **Drupal Views fulltext-filter URL** returns the list directly: `https://www.rosacea.org/seal-of-acceptance/information?search_api_fulltext=<Term+With+Plus>` | **GO** (7 "by Tower 28" products; reproduced by re-loading the filter URL) | HIGH |
+| NPF (National Psoriasis Foundation) Seal of Recognition | same scan; packets `01KXRMHRKJEZ9TJYXBYFB78514` (landing→redirect), `01KXRMJBBSE3BP9RF0PAEQ3B7H` (feed) | Landing `https://www.psoriasis.org/seal-of-recognition/` redirects to `/seal-of-recognition-program/` and is **zero-yield**; data is a **Gatsby `page-data.json` feed per category**: `https://www.psoriasis.org/page-data/seal-of-recognition/<category>/page-data.json` (e.g. `skin-care`), client-side filter on `product_company` | **GO** via direct fetch of the page-data feed (7 `product_company "Tower 28 Beauty"` products) | HIGH |
+
+**Certifier "seal" directories — working read shape (Tower 28 v2 CI, 2026-07-18).** All three
+health-org product directories (NEA eczema, NRS rosacea, NPF psoriasis) serve a **zero-yield
+landing page** and hold the real product list behind a **public, unauthenticated JSON/data
+endpoint** — textbook **Pattern 2** (locate the substrate first) plus **Pattern 1** (the empty
+landing is not "blocked"). The endpoint shape is stable per CMS engine: **WordPress REST**
+(`/wp-json/wp/v2/<type>?search=`), **Drupal Views fulltext** (`?search_api_fulltext=`), **Gatsby
+page-data** (`/page-data/<route>/page-data.json`). **Prefer `get_page_text` / direct fetch of the
+data endpoint; screenshots time out on the rendered landing pages** and returned only the
+zero-yield view. Directory presence verifies **seal acceptance/recognition only — not efficacy or
+comedogenicity**. Next certifier-directory read (any subject with health-org / clean / cruelty-free
+seals; silent-pain class 9): hit these endpoints directly and skip the landing page and
+screenshots.
+
 ### Browser-automation runner
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
@@ -228,7 +248,7 @@ subtitle availability.
 ## Coverage map
 
 - **Well-covered:** forums/threads (Reddit ×4, WSO), pricing (M&I, Teal, OpenAI-lane), archive/history (Daimler, Unity), docs-PDF body (Daimler — the strongest anti-bot escalation case), browser runner (CloakBrowser), reviews (ClickUp + Sephora-pending).
-- **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only).
+- **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only), certifier/accreditation directories (NEA/NRS/NPF, one run — JS-landing→public-JSON pattern).
 - **ABSENT / PARTIAL — directly relevant to the stated multi-source product direction:**
   **TikTok is no longer absent, but remains partial.** First-slice TikTok recon and a sessioned
   capture spec/warm-probe plan now exist (see Social networks table), proving route existence for
