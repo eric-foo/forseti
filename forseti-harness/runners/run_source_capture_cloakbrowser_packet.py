@@ -414,7 +414,7 @@ def run_source_capture_cloakbrowser_packet(
     if sephora_pin_failure is not None:
         packet_limitations.append(
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: {sephora_pin_failure}; packet "
-            "preserved but MUST NOT be admitted as Sephora US/USD storefront evidence"
+            "preserved but MUST NOT be admitted as the asserted Sephora storefront evidence"
         )
     nordstrom_pin_failure = _nordstrom_country_pin_failure(
         nordstrom_country=nordstrom_country,
@@ -1012,7 +1012,7 @@ def _sephora_market_pin_failure(
             f"final storefront host was {final_hostname or 'unknown'!r}, not sephora.com"
         )
     if pin_confirmed is not True:
-        reasons.append("US/USD rendered-market conjunction was not confirmed")
+        reasons.append("required rendered-market assertion was not confirmed")
     return "; ".join(reasons) if reasons else None
 
 
@@ -1678,11 +1678,14 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["US"],
         default=None,
         help=(
-            "Fail-closed assertion for a Sephora US/USD rendered storefront. Requires "
-            "country_switch=us in the requested Sephora URL, "
-            "Sephora.renderQueryParams country=US, and a Sephora-sold JSON-LD Offer "
-            "with priceCurrency=USD. Performs no preference mutation and does not "
-            "claim a delivery location."
+            "Fail-closed assertion for a Sephora rendered storefront. PDP capture "
+            "requires country_switch=us, Sephora.renderQueryParams country=US, and a "
+            "Sephora-sold JSON-LD Offer with priceCurrency=USD. Brand-grid capture "
+            "admits the US country route only when the country-routing dialog is "
+            "absent and every serialized country binds US, while retaining currency "
+            "separately and never inferring USD from a dollar glyph. The "
+            "country-dialog continuation performs no login and does not claim a "
+            "delivery location."
         ),
     )
     parser.add_argument(

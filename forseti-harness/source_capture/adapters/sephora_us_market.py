@@ -1,14 +1,15 @@
-"""Sephora US/USD storefront preference and assertion for CloakBrowser capture.
+"""Sephora storefront-country preference and assertion for browser capture.
 
 The public Sephora route accepts ``country_switch=us`` as request intent and
-serializes the served country in ``Sephora.renderQueryParams``. Product JSON-LD
-then exposes retailer-bound offer currency. Outside the US, Sephora may place a
-country-routing dialog over that otherwise valid US/USD page. This plugin uses
-only the dialog's explicit ``Continue to Sephora.com`` action before the main
-capture navigation, then confirms the final rendered page only when the dialog
-is absent and the independent retailer-owned signals agree on US/USD.
+serializes the served country in ``Sephora.renderQueryParams``. Outside the US,
+Sephora may place a country-routing dialog over the target. This plugin uses only
+the dialog's explicit ``Continue to Sephora.com`` action before the main capture
+navigation.
 
-Delivery location is deliberately outside this assertion.
+PDP admission remains strict US/USD and requires retailer-bound offer currency.
+Brand-grid admission confirms the US country route independently; currency stays
+separately observed and is never inferred from a dollar glyph. Delivery location
+is deliberately outside both assertions.
 """
 
 from __future__ import annotations
@@ -42,7 +43,7 @@ _COUNTRY_DIALOG_POST_CLICK_WAIT_MS = 2_000
 
 @dataclass(frozen=True)
 class SephoraUSMarketPlugin:
-    """Establish and confirm the rendered Sephora US/USD storefront."""
+    """Establish and confirm the page-kind-specific Sephora storefront."""
 
     target_url: str
     country_code: str = "US"
@@ -128,20 +129,35 @@ class SephoraUSMarketPlugin:
             "market_page_kind": self.page_kind,
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
+            "market_confirmation_scope": (
+                "country_and_currency" if self.page_kind == "pdp" else "country_route_only"
+            ),
             "market_preference_action": (
                 "exact_country_dialog_continue_then_main_target_navigation"
             ),
         }
 
     def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
+        reason = confirmation.detail
+        if not outcome.steps_completed and outcome.reason is not None:
+            reason = f"pre-capture assertion setup failed: {outcome.reason}; {reason}"
+        if self.page_kind == "grid":
+            if confirmation.confirmed:
+                return (
+                    "declared_storefront_country: Sephora rendered route CONFIRMED as "
+                    f"US ({confirmation.detail}); currency and delivery location remain "
+                    "separately typed"
+                )
+            return (
+                "declared_storefront_country: Sephora US country-route assertion NOT "
+                f"confirmed ({reason}); treat storefront country, currency, and delivery "
+                "location as un-pinned (honest gap)"
+            )
         if confirmation.confirmed:
             return (
                 "declared_storefront_market: Sephora rendered route CONFIRMED as "
                 f"US/USD ({confirmation.detail}); delivery location remains un-pinned"
             )
-        reason = confirmation.detail
-        if not outcome.steps_completed and outcome.reason is not None:
-            reason = f"pre-capture assertion setup failed: {outcome.reason}; {reason}"
         return (
             "declared_storefront_market: Sephora US/USD rendered-market assertion NOT "
             f"confirmed ({reason}); treat storefront country and currency as un-pinned "
@@ -152,45 +168,100 @@ class SephoraUSMarketPlugin:
 def confirm_sephora_us_market(
     rendered_dom: str, *, page_kind: Literal["pdp", "grid"] = "pdp"
 ) -> PinConfirmation:
-    """Require independent retailer-owned US and exact-USD evidence."""
+    """Confirm the US route; require exact USD independently for PDPs only."""
     dom = rendered_dom or ""
     country_dialog_absent = _COUNTRY_DIALOG_DIAGNOSTIC_TEXT not in dom
-    country_confirmed = any(
-        params.get("country") == "US" for params in _iter_render_query_params(dom)
-    )
-    if page_kind == "pdp":
-        currency_confirmed = any(
-            _is_sephora_usd_offer(candidate) for candidate in _iter_json_ld_objects(dom)
+    country_values = [
+        params["country"]
+        for params in _iter_render_query_params(dom)
+        if "country" in params
+    ]
+    if page_kind == "grid":
+        # Grid admission carries no second retailer-owned conjunct, so the country
+        # evidence must be unanimous: contradictory serialized country values
+        # fail closed instead of being outvoted by one US occurrence.
+        country_confirmed = bool(country_values) and all(
+            value == "US" for value in country_values
         )
-        currency_detail = (
-            "product JSON-LD contained a Sephora-sold Offer with priceCurrency=USD"
-        )
-        currency_missing = "Sephora-sold JSON-LD Offer with priceCurrency=USD"
-    elif page_kind == "grid":
+        grid_state_error: str | None = None
         try:
             grid_state = load_sephora_brand_grid_state(dom)
-        except SephoraBrandGridStateError:
+        except SephoraBrandGridStateError as exc:
             grid_state = None
-        currency_confirmed = (
-            grid_state is not None
-            and bool(grid_state.products)
-            and grid_state.explicit_currency_codes == ("USD",)
+            grid_state_error = str(exc)
+        currency_codes = (
+            grid_state.explicit_currency_codes if grid_state is not None else ()
         )
-        currency_detail = (
-            "brand-grid linkStore PageJSON contained product rows and only explicit "
-            "currency code USD"
+        # Currency is reported as observed, never as inferred. An unreadable or
+        # absent grid state is not evidence that no explicit currency code exists.
+        if grid_state_error is not None:
+            currency_observation = (
+                f"grid currency state was unreadable ({grid_state_error}), so "
+                "currency remains un-pinned"
+            )
+        elif grid_state is None:
+            currency_observation = (
+                "no retailer-owned grid currency state was present, so currency "
+                "remains un-pinned"
+            )
+        elif currency_codes == ("USD",):
+            currency_observation = (
+                "explicit grid currency code USD was observed separately"
+            )
+        elif currency_codes:
+            currency_observation = (
+                "explicit grid currency code(s) "
+                + ", ".join(currency_codes)
+                + " were observed separately and were not promoted to USD"
+            )
+        else:
+            currency_observation = (
+                "grid state exposed no explicit currency code, so currency "
+                "remains un-pinned"
+            )
+        if country_dialog_absent and country_confirmed:
+            return PinConfirmation(
+                confirmed=True,
+                detail=(
+                    "country-routing dialog absent and Sephora.renderQueryParams bound "
+                    f"country=US; {currency_observation}; grid admission is country-only"
+                ),
+            )
+        missing: list[str] = []
+        if not country_dialog_absent:
+            missing.append("country-routing dialog absent")
+        if not country_confirmed:
+            if country_values:
+                missing.append(
+                    "unanimous Sephora.renderQueryParams country=US (observed "
+                    + ", ".join(repr(value) for value in country_values)
+                    + ")"
+                )
+            else:
+                missing.append("Sephora.renderQueryParams country=US")
+        return PinConfirmation(
+            confirmed=False,
+            detail=(
+                "required Sephora US country-route conjunction absent: "
+                + "; ".join(missing)
+                + f"; {currency_observation}"
+            ),
         )
-        currency_missing = (
-            "brand-grid linkStore product state with an explicit selected USD currency code"
-        )
-    else:
+    if page_kind != "pdp":
         raise ValueError("Sephora market confirmation page_kind must be pdp or grid")
+    # PDP admission keeps its existing country rule because the Sephora-sold USD
+    # Offer below is an independent second conjunct.
+    country_confirmed = any(value == "US" for value in country_values)
+    currency_confirmed = any(
+        _is_sephora_usd_offer(candidate) for candidate in _iter_json_ld_objects(dom)
+    )
     if country_dialog_absent and country_confirmed and currency_confirmed:
         return PinConfirmation(
             confirmed=True,
             detail=(
                 "country-routing dialog absent, Sephora.renderQueryParams bound "
-                f"country=US, and {currency_detail}"
+                "country=US, and product JSON-LD contained a Sephora-sold Offer "
+                "with priceCurrency=USD"
             ),
         )
     missing: list[str] = []
@@ -199,7 +270,7 @@ def confirm_sephora_us_market(
     if not country_confirmed:
         missing.append("Sephora.renderQueryParams country=US")
     if not currency_confirmed:
-        missing.append(currency_missing)
+        missing.append("Sephora-sold JSON-LD Offer with priceCurrency=USD")
     return PinConfirmation(
         confirmed=False,
         detail="required Sephora US/USD rendered conjunction absent: " + "; ".join(missing),
