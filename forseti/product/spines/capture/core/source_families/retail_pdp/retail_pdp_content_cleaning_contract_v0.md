@@ -18,7 +18,7 @@ stale_if:
   - A retailer content schema, extractor, pin, review-coverage rule, Cleaning adapter, or Silver producer changes.
 ```
 
-Status: current contract, revised 2026-07-20.
+Status: current contract, revised 2026-07-21.
 
 ## Current boundary
 
@@ -66,6 +66,15 @@ Compactness never authorizes dropping valuable rows.
 - `luckyscent_pdp_aggregate`
 - `nordstrom_pdp_aggregate`
 - `ulta_pdp_aggregate`
+
+For Sephora, `sephora_pdp_aggregate` is the sole normal deep-page capture route
+for new packets. It defaults to `content` retention and writes
+`retail_pdp_sephora_aggregate_content_v3` with
+`retail_pdp_sephora_aggregate_parser_v3`. Sampled-raw/full-derived v2 and
+Projection-era methods are superseded for new acquisition but remain readable
+through legacy compatibility. Explicit `raw` is diagnosis/recovery posture, not
+a second normal deep-capture route. Bazaarvoice review and Q&A evidence remains
+a separate companion governed by `retailer_information_extraction_standard_v0.md`.
 
 Every other Retail/PDP or grid profile remains raw until separately proven.
 Direct-HTTP grids remain raw.

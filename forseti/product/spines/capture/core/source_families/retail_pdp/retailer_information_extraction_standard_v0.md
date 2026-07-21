@@ -161,6 +161,7 @@ Sephora's current proven mechanics are a source-specific benchmark:
 
 | Area | Reference behavior |
 | --- | --- |
+| Canonical deep-page capture | Every new Sephora deep-page capture uses `sephora_pdp_aggregate` with `content` retention; omitting `--retention-mode` defaults this profile to `content`. The retained record is `retail_pdp_sephora_aggregate_content_v3`, produced by `retail_pdp_sephora_aggregate_parser_v3`. This supersedes sampled-raw/full-derived v2 and Projection-era methods for new acquisition. Existing older packets remain append-only, readable historical evidence and are not rewritten. Explicit `raw` is diagnostic/recovery-only; a failed access, pin, sufficiency, target-binding, or extraction gate preserves acquired raw inputs and exits nonzero. |
 | Product/variants | The complete `linkStore.page.product` subtree is the broad structured inventory. Preserve every `regularChildSkus` row and exact `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and back-in-stock fields. The content record may store fields once across canonical rows plus `additional_source_fields` only when the extractor proves that those rows reconstruct the complete subtree exactly; unknown root fields must therefore remain captured rather than vanish on a page change. |
 | AI sentiment | Green and red chips are primary facts; polarity, exact label, and count are separate. The verified sample included positive `Softness`, `Scent`, and `Texture`, plus negative `Irritation` and `Scent`. |
 | Helpful reviews | On onboarding, preserve one `Most Helpful` response with `Non-Incentivized Reviews Only`, `TotalPositiveFeedbackCount:desc`, review bodies, and supported filtered review statistics. Preserve exact response order without claiming Sephora's proprietary ranking algorithm. |
@@ -169,6 +170,12 @@ Sephora's current proven mechanics are a source-specific benchmark:
 | Q&A | On onboarding, preserve one `Most Answers` response using `TotalAnswerCount:desc`, including returned answer bodies, within the commissioned limit. It is a bounded answer-rich window, not the complete Q&A corpus. |
 | Monitoring | Request `Most Recent` only. Stop as soon as the prior last-seen review ID is found; follow source offsets only when the first response does not contain it. Do not routinely refresh `Most Helpful` or Q&A. |
 | Companion role | The accepted low-footprint target has three response roles: Helpful plus statistics, Recent, and Q&A. Exact bodies remain in raw responses; the summary carries compact facts and raw-file references. The current `sephora_bazaarvoice_onboarding_summary_v3` runner predates this target and remains append-only historical evidence until a later implementation proves the new route. |
+
+The main Sephora deep-capture package is the canonical v3 page capture plus the
+separate Bazaarvoice companion roles when the commissioned bound requires them:
+Helpful plus statistics, Recent, and Q&A for onboarding; Recent only for routine
+monitoring. The page record does not replace or supersede those review and Q&A
+responses.
 
 The Sephora profile is a quality bar for search depth and loss visibility. It
 is not a template that licenses invented fields on another retailer. The
