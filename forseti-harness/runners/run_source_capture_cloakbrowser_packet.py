@@ -148,6 +148,7 @@ TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
+RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
 
 
 def run_source_capture_cloakbrowser_packet(
@@ -412,6 +413,17 @@ def run_source_capture_cloakbrowser_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    retail_target_identity_failure = _retail_target_identity_failure(
+        retail_capture_profile=retail_capture_profile,
+        requested_url=url,
+        final_url=capture_result.final_url,
+    )
+    if retail_target_identity_failure is not None:
+        packet_limitations.append(
+            f"{RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE}: "
+            f"{retail_target_identity_failure}; packet preserved but MUST NOT be "
+            "admitted as evidence for the commissioned product"
+        )
     sephora_pin_failure = _sephora_market_pin_failure(
         sephora_market=sephora_market,
         final_url=capture_result.final_url,
@@ -550,6 +562,10 @@ def run_source_capture_cloakbrowser_packet(
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
     packet_visible_mode_changes = list(visible_mode_changes)
+    if retail_target_identity_failure is not None:
+        packet_visible_mode_changes.append(
+            RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE
+        )
     if sephora_pin_failure is not None:
         packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if nordstrom_pin_failure is not None:
@@ -890,6 +906,12 @@ def run_source_capture_cloakbrowser_packet(
                 "retail_grid_projection_failed: "
                 f"{type(exc).__name__}: {exc}"
             )
+    if retail_target_identity_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {retail_target_identity_failure}",
+        )
     if sephora_pin_failure is not None:
         projection_detail = (
             f"; projection preserved at {grid_projection_path}"
@@ -979,6 +1001,28 @@ def _validate_sephora_us_market_url(url: str) -> None:
         raise ValueError(
             "--sephora-market US requires a sephora.com URL with country_switch=us"
         )
+
+
+def _retail_target_identity_failure(
+    *,
+    retail_capture_profile: RetailCaptureProfile | None,
+    requested_url: str,
+    final_url: str,
+) -> str | None:
+    if retail_capture_profile is None:
+        return None
+    expected = retail_capture_profile.target_product_identity_from_url(
+        url=requested_url
+    )
+    if expected is None:
+        return None
+    observed = retail_capture_profile.target_product_identity_from_url(url=final_url)
+    if observed is not None and observed.casefold() == expected.casefold():
+        return None
+    return (
+        f"{retail_capture_profile.name} requested product {expected!r}, but the "
+        f"final browser route encoded {observed!r}"
+    )
 
 
 def _validate_retail_baseline_profile_request(
