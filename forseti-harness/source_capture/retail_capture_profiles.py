@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 from source_capture.adapters.cloakbrowser_snapshot import ScrollStopCondition
 from source_capture.source_detail_sufficiency import (
@@ -22,6 +22,9 @@ _ULTA_PRODUCT_ID_IN_PATH = re.compile(
     flags=re.IGNORECASE,
 )
 _TARGET_PRODUCT_ID_IN_PATH = re.compile(r"/-/A-(\d+)(?:[/?]|$)", flags=re.IGNORECASE)
+_TARGET_BRAND_GRID_PATH = re.compile(
+    r"^/b/(?P<slug>[^/]+)/-/N-[^/]+/?$", flags=re.IGNORECASE
+)
 
 
 def extract_amazon_asin_from_url(url: str) -> str | None:
@@ -63,6 +66,48 @@ def extract_target_search_query_from_url(url: str) -> str | None:
     return values[0].strip()
 
 
+def extract_target_grid_subject_from_url(url: str) -> tuple[str, str] | None:
+    """Return the retailer-owned Target grid subject encoded by ``url``."""
+    parsed = urlparse(url)
+    if parsed.path.rstrip("/") == "/s":
+        query = extract_target_search_query_from_url(url)
+        return ("search_query", query) if query is not None else None
+    match = _TARGET_BRAND_GRID_PATH.fullmatch(parsed.path)
+    if match is None:
+        return None
+    return "brand", match.group("slug")
+
+
+def target_bestseller_grid_url(url: str) -> str:
+    """Start an admitted Target grid at page one in retailer bestseller order."""
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or (parsed.hostname or "").lower() not in {
+        "target.com",
+        "www.target.com",
+    }:
+        raise ValueError("Target grid capture requires an HTTPS target.com URL")
+    if extract_target_grid_subject_from_url(url) is None:
+        raise ValueError(
+            "Target grid capture requires /s?searchTerm=<query> or "
+            "/b/<brand>/-/N-<category>"
+        )
+    replaced = {"sortby", "moveto", "count", "nao"}
+    query = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key.casefold() not in replaced
+    ]
+    query.extend(
+        (("sortBy", "bestselling"), ("moveTo", "product-list-grid"))
+    )
+    return urlunparse(parsed._replace(query=urlencode(query), fragment=""))
+
+
+def _target_brand_visible_text_regex(slug: str) -> str:
+    parts = [part for part in re.split(r"[-_]+", slug) if part]
+    return "(?i)" + r"[\s.\-_]*".join(re.escape(part) for part in parts)
+
+
 def _exact_identity_regex(product_id: str) -> str:
     """Bind ``product_id`` as a whole token in the rendered DOM.
 
@@ -100,6 +145,7 @@ class RetailCaptureProfile:
     derive_target_ulta_product_id_from_url: bool = False
     derive_target_target_product_id_from_url: bool = False
     derive_target_target_search_query_from_url: bool = False
+    derive_target_target_grid_subject_from_url: bool = False
 
     def requirements_for_capture(self, *, url: str) -> SourceDetailSufficiencyRequirements:
         """Sufficiency requirements for one capture, with any per-target identity resolved.
@@ -121,6 +167,8 @@ class RetailCaptureProfile:
           merely contains it cannot satisfy the gate.
         - ``derive_target_target_search_query_from_url``: the Target search-grid analogue
           of the Amazon ``k`` check, reading the ``searchTerm`` query parameter.
+        - ``derive_target_target_grid_subject_from_url``: a Target search query or
+          ``/b/<brand>/-/N-...`` brand slug echoed in retailer-visible page text.
         """
         if self.derive_target_asin_from_url:
             asin = extract_amazon_asin_from_url(url)
@@ -207,6 +255,30 @@ class RetailCaptureProfile:
                 self.requirements,
                 SourceDetailSufficiencyRequirements(
                     visible_text_regexes=(f"(?i){re.escape(query)}",),
+                ),
+            )
+        if self.derive_target_target_grid_subject_from_url:
+            subject = extract_target_grid_subject_from_url(url)
+            if subject is None:
+                if urlparse(url).path.rstrip("/") == "/s":
+                    raise ValueError(
+                        f"retail capture profile {self.name} requires a non-empty "
+                        f"Target search query in --url; got {url!r}"
+                    )
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a Target search or "
+                    f"brand-grid URL; got {url!r}"
+                )
+            kind, value = subject
+            visible_pattern = (
+                f"(?i){re.escape(value)}"
+                if kind == "search_query"
+                else _target_brand_visible_text_regex(value)
+            )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    visible_text_regexes=(visible_pattern,),
                 ),
             )
         return self.requirements
@@ -606,10 +678,11 @@ _PROFILES = {
             source_surface="cloakbrowser_snapshot",
             ordinary_operation=True,
             settle_seconds=6.0,
-            scroll_passes=1,
-            derive_target_target_search_query_from_url=True,
+            scroll_passes=0,
+            requirements_define_scroll_stop=False,
+            derive_target_target_grid_subject_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("results", "Guest Rating"),
+                visible_text_contains=("results",),
                 visible_text_regexes=(r"\d+\s+results", r"\$\d+\.\d{2}"),
             ),
         ),

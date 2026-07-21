@@ -154,13 +154,23 @@ For the qualified ladder, Sephora, Ulta, and Target have admitted projected
 grid paths. Sephora reconciles its retailer-declared count against unique
 parent rows; Ulta reconciles its retailer-declared and viewed counts against
 anchored placements, so a complete Ulta grid may hold more placements than
-unique parents. Target has no retailer-declared count and stays
-`not_evaluated`. Amazon search-grid capture remains query-bound raw, not a
-complete or authorized-only brand denominator.
+unique parents. Target's admitted search and `/b/<brand>/-/N-...` brand grids
+start at page one in retailer-owned `bestselling` order, preserve each
+source-visible main-grid placement, advance only through Target's same-tab
+`next page` control, and reconcile the current retailer-declared count against
+unique TCIN parents, placements, duplicates, and proven termination. Every
+page's count observation remains preserved because the live assortment can
+change during traversal. An unsupported larger `count` hint is never a
+completeness dependency. Amazon
+search-grid capture remains query-bound raw, not a complete or authorized-only
+brand denominator.
 Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
 decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
 ordinary shallow profile derives its target from the commissioned URL and
-requires its exact US pin. A capability gap is never replaced with snippets,
+requires its exact US pin, except Target catalog grids, which may remain
+delivery-ZIP-unrequested when catalog corpus and rank are the claim. Their
+source-visible fulfilment facts remain tied only to the preserved page state.
+A capability gap is never replaced with snippets,
 another market, a canary product, or an inferred list.
 
 Before depth selection, compose the owned parent denominator with exactly one

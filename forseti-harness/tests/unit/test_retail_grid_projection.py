@@ -24,12 +24,23 @@ from source_capture.models import (
 )
 from source_capture.retail_grid_projection import (
     RetailGridProjectionInputError,
+    build_target_grid_aggregate_content_record,
     build_retail_grid_projection,
     build_retail_grid_projection_from_packet_directory,
     project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
 from source_capture.writer import write_local_source_capture_packet
+
+
+_TARGET_SEARCH_GRID_URL = (
+    "https://www.target.com/s?searchTerm=lip%20mask&sortBy=bestselling"
+    "&moveTo=product-list-grid"
+)
+_TARGET_BRAND_GRID_URL = (
+    "https://www.target.com/b/e-l-f/-/N-5oajg?sortBy=bestselling"
+    "&moveTo=product-list-grid"
+)
 
 
 def test_walmart_next_data_projection_preserves_one_row_per_product_tile() -> None:
@@ -136,7 +147,7 @@ def test_target_rendered_projection_preserves_product_cards_and_channel_availabi
     body = _target_html().encode("utf-8")
     packet = _packet(
         retailer="target",
-        locator="https://www.target.com/s?searchTerm=lip%20mask",
+        locator=_TARGET_SEARCH_GRID_URL,
         relative_path="raw/01_cloakbrowser_rendered_dom.html",
         body=body,
         surface="cloakbrowser_snapshot",
@@ -178,7 +189,7 @@ def test_target_duplicate_product_placements_receive_ordinal_anchors() -> None:
     body = rendered_html.encode("utf-8")
     packet = _packet(
         retailer="target",
-        locator="https://www.target.com/s?searchTerm=lip%20mask",
+        locator=_TARGET_SEARCH_GRID_URL,
         relative_path="raw/01_cloakbrowser_rendered_dom.html",
         body=body,
         surface="cloakbrowser_snapshot",
@@ -187,16 +198,275 @@ def test_target_duplicate_product_placements_receive_ordinal_anchors() -> None:
     projection = build_retail_grid_projection(
         packet=packet, raw_file_bytes_by_file_id={"file_01": body}
     )
-    duplicate_anchors = [
-        row.raw_anchor.anchor_value
+    duplicate = next(
+        row
         for row in projection.rows
         if row.source_visible_fields["source_product_id"] == "94631382"
-    ]
+    )
 
-    assert duplicate_anchors == [
+    assert [placement.raw_anchor.anchor_value for placement in duplicate.placements] == [
         ':nth-match([data-focusid="94631382_product_card"], 1)',
         ':nth-match([data-focusid="94631382_product_card"], 2)',
     ]
+    assert any("duplicate_parent_placement" in value for value in duplicate.residuals)
+
+
+def test_target_content_record_reconciles_pages_duplicates_query_and_fields() -> None:
+    rendered_pages = (
+        _target_grid_page_html(
+            products=[
+                ("10000001", "First Target Product", "$10.99"),
+                ("10000002", "Second Target Product", "$8.00"),
+            ],
+            declared=4,
+        ),
+        _target_grid_page_html(
+            products=[
+                ("10000002", "Second Target Product", "$8.00"),
+                ("10000003", "Third Target Product", "$6.50"),
+            ],
+            declared=4,
+        ).replace(": Target</title>", ": Page 2 : Target</title>"),
+    )
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=rendered_pages,
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(
+            _TARGET_SEARCH_GRID_URL,
+            _TARGET_SEARCH_GRID_URL + "&Nao=24",
+        ),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+    body = (json.dumps(record, sort_keys=True) + "\n").encode()
+    packet = _packet(
+        retailer="target",
+        locator=_TARGET_SEARCH_GRID_URL,
+        relative_path="raw/01_rendered_content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.extracted_unique_parent_count == 3
+    assert projection.completeness.extracted_placement_count == 4
+    assert projection.completeness.duplicate_placement_count == 1
+    assert projection.completeness.subject_binding_confirmed is True
+    assert projection.completeness.termination == "retailer_visible_count_reconciled"
+    assert projection.source_visible_grid_facts["page_load_count"] == 2
+    assert projection.source_visible_grid_facts[
+        "declared_result_count_observations"
+    ] == [4, 4]
+    duplicate = next(
+        row
+        for row in projection.rows
+        if row.source_visible_fields["source_product_id"] == "10000002"
+    )
+    assert [(item.page, item.page_position) for item in duplicate.placements] == [
+        (1, 2),
+        (2, 1),
+    ]
+    first = projection.rows[0]
+    assert first.source_visible_fields["price_display"] == "$10.99"
+    assert first.source_visible_fields["price"] == "10.99"
+    assert first.source_visible_fields["average_rating"] == "4.6"
+    assert first.source_visible_fields["rating_count"] == "145"
+    assert first.source_visible_fields["location_pin"] == "10001"
+    assert first.source_visible_fields["visible_fulfilment_text"] == [
+        "Shipping dates may vary"
+    ]
+
+
+def test_target_brand_grid_binds_subject_bestseller_order_and_merchandising() -> None:
+    rendered_pages = (
+        _target_grid_page_html(
+            products=[
+                ("10000001", "First e.l.f. Product", "$10.99"),
+                ("10000002", "Second e.l.f. Product", "$8.00"),
+            ],
+            declared=3,
+            title="e.l.f. : Target",
+            heading="e.l.f.",
+        ).replace(
+            "<span>$10.99</span>",
+            "<span>Bestseller</span><span>34k+ bought in last month</span>"
+            "<span>$10.99</span>",
+            1,
+        ),
+        _target_grid_page_html(
+            products=[("10000003", "Third e.l.f. Product", "$6.50")],
+            declared=3,
+            title="e.l.f. : Page 2 : Target",
+            heading="e.l.f.",
+        ),
+    )
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=rendered_pages,
+        requested_url=_TARGET_BRAND_GRID_URL,
+        page_urls=(_TARGET_BRAND_GRID_URL, _TARGET_BRAND_GRID_URL + "&Nao=24"),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+    body = (json.dumps(record, sort_keys=True) + "\n").encode()
+    packet = _packet(
+        retailer="target",
+        locator=_TARGET_BRAND_GRID_URL,
+        relative_path="raw/01_rendered_content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.source_visible_grid_facts["page_kind"] == "brand_grid"
+    assert projection.source_visible_grid_facts["requested_subject"] == "e-l-f"
+    assert projection.source_visible_grid_facts["observed_subjects"] == ["e.l.f."]
+    assert projection.source_visible_grid_facts["sort_order"] == "bestselling"
+    first = projection.rows[0].source_visible_fields
+    assert first["retailer_merchandising_labels"] == ["Bestseller"]
+    assert first["bought_recently_text"] == "34k+ bought in last month"
+
+
+def test_target_brand_grid_does_not_admit_missing_bestseller_order() -> None:
+    rendered = _target_grid_page_html(
+        products=[("10000001", "First e.l.f. Product", "$10.99")],
+        declared=1,
+        title="e.l.f. : Target",
+        heading="e.l.f.",
+    )
+    unsorted_url = "https://www.target.com/b/e-l-f/-/N-5oajg"
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=unsorted_url,
+        page_urls=(unsorted_url,),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+
+    assert "target_grid_bestseller_sort_unconfirmed" in record["residuals"]
+
+
+def test_target_content_record_fails_closed_on_count_or_identity_gap() -> None:
+    rendered = _target_grid_page_html(
+        products=[("10000001", "", "$10.99")],
+        declared=2,
+    )
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(_TARGET_SEARCH_GRID_URL,),
+        traversal_observation={"target_grid_termination": "unproven"},
+    )
+    body = (json.dumps(record, sort_keys=True) + "\n").encode()
+    packet = _packet(
+        retailer="target",
+        locator=_TARGET_SEARCH_GRID_URL,
+        relative_path="raw/01_rendered_content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert "target_grid_incomplete_product_identity_present" in (
+        projection.completeness.residuals
+    )
+    assert any(
+        "declared_placement_count_mismatch" in value
+        for value in projection.completeness.residuals
+    )
+
+
+def test_target_content_record_binds_name_to_current_content_anchor() -> None:
+    rendered = _target_grid_page_html(
+        products=[("10000001", "Actual Product Name", "$10.99")],
+        declared=1,
+    ).replace(
+        '<div data-focusid="10000001_product_card">',
+        '<div data-focusid="10000001_product_card"><h3>Related to your search</h3>',
+    )
+
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(_TARGET_SEARCH_GRID_URL,),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+
+    assert record["pages"][0]["products"][0]["name"] == "Actual Product Name"
+
+
+def test_target_content_record_takes_precedence_over_fallback_rendered_dom() -> None:
+    rendered = _target_grid_page_html(
+        products=[("10000001", "Actual Product Name", "$10.99")],
+        declared=1,
+    )
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(_TARGET_SEARCH_GRID_URL,),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+    content_body = (json.dumps(record, sort_keys=True) + "\n").encode()
+    rendered_body = rendered.encode()
+    packet = _packet(
+        retailer="target",
+        locator=_TARGET_SEARCH_GRID_URL,
+        relative_path="raw/01_content_record.json",
+        body=content_body,
+        surface="cloakbrowser_snapshot",
+    )
+    fallback_file = PreservedFile(
+        file_id="file_02",
+        original_path="rendered_dom.html",
+        relative_packet_path="raw/02_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_body).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(rendered_body),
+    )
+    packet = packet.model_copy(
+        update={
+            "preserved_files": [*packet.preserved_files, fallback_file],
+            "source_slices": [
+                packet.source_slices[0].model_copy(
+                    update={"preserved_file_ids": ["file_01", "file_02"]}
+                )
+            ],
+        }
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id={
+            "file_01": content_body,
+            "file_02": rendered_body,
+        },
+    )
+
+    assert projection.completeness.status == "complete"
+    assert len(projection.rows) == 1
+    assert not any(
+        value.startswith("target_grid_content_record_count:")
+        for value in projection.completeness.residuals
+    )
 
 
 def test_sephora_linkstore_projection_deduplicates_parent_products_and_reconciles_count() -> None:
@@ -330,7 +600,7 @@ def test_retail_grid_lake_projection_loads_verified_raw_and_appends_derived(
         source_family="retail_pdp",
         source_surface="cloakbrowser_snapshot",
         source_locator=known_fact(
-            "https://www.target.com/s?searchTerm=lip%20mask"
+            _TARGET_SEARCH_GRID_URL
         ),
         decision_question="What products are visible in the Target grid?",
         capture_context="offline unit fixture",
@@ -510,6 +780,42 @@ def _target_html() -> str:
         <div aria-label="4.2 stars with 12 ratings"></div>
       </div>
     </div></body></html>
+    """
+
+
+def _target_grid_page_html(
+    *,
+    products: list[tuple[str, str, str]],
+    declared: int,
+    title: str = '"lip mask" : Target',
+    heading: str | None = None,
+) -> str:
+    cards = []
+    for product_id, name, price in products:
+        product_heading = f"<h3><span>{name}</span></h3>" if name else ""
+        cards.append(
+            f"""
+            <div data-focusid="{product_id}_product_card">
+              <a data-test="content" href="/p/product-{product_id}/-/A-{product_id}">
+                <span>{price}</span>
+                {product_heading}
+                <div data-test="rating-stars"
+                     aria-label="Average customer rating is 4.6 out of 5 stars with 145 reviews.">
+                </div>
+                <span>Shipping dates may vary</span>
+              </a>
+            </div>
+            """
+        )
+    return f"""
+    <html><head><title>{title}</title></head><body>
+      {f'<h1>{heading}</h1>' if heading is not None else ''}
+      <button id="zip-code-id-btn" aria-label="Ship to location: 10001">
+        <span data-test="@web/ZipCodeButton/ZipCodeNumber">Ship to 10001</span>
+      </button>
+      <div>{declared} results</div>
+      {''.join(cards)}
+    </body></html>
     """
 
 

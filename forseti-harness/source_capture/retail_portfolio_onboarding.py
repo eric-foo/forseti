@@ -135,10 +135,22 @@ def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_d
                 grid_completeness=projection.completeness.model_dump(mode="json"),
                 grid_row_count=len(projection.rows))
             for row in projection.rows:
-                key = (retailer, row.row_id)
-                if key in grid_rows:
-                    raise RetailPortfolioOnboardingError(f"duplicate grid row: {key}")
-                grid_rows[key] = row
+                row_keys = [(retailer, row.row_id)]
+                if retailer == "target":
+                    row_prefix = row.row_id.rsplit(":", 2)[0]
+                    product_id = str(row.source_visible_fields["source_product_id"])
+                    row_keys.extend(
+                        (
+                            retailer,
+                            f"{row_prefix}:{placement.grid_position - 1}:{product_id}",
+                        )
+                        for placement in row.placements
+                    )
+                for key in dict.fromkeys(row_keys):
+                    existing = grid_rows.get(key)
+                    if existing is not None and existing.row_id != row.row_id:
+                        raise RetailPortfolioOnboardingError(f"duplicate grid row: {key}")
+                    grid_rows[key] = row
         outcome_rows.append(rendered)
 
     reconciled: dict[tuple[str, str], ListingReconciliation] = {}

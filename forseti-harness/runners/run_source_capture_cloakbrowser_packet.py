@@ -47,7 +47,10 @@ from source_capture.adapters.nordstrom_country_preference import (
     observe_nordstrom_review_window,
 )
 from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
-from source_capture.adapters.target_delivery_location import TargetDeliveryLocationPlugin
+from source_capture.adapters.target_delivery_location import (
+    TargetDeliveryLocationPlugin,
+    TargetGridPlugin,
+)
 from source_capture.adapters.ulta_us_market import UltaUSMarketPlugin
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.browser_user_data import browser_user_data_path_for_label
@@ -68,9 +71,12 @@ from source_capture.retail_capture_profiles import (
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
+    target_bestseller_grid_url,
     validate_retail_capture_profile_route,
 )
 from source_capture.retail_grid_projection import (
+    TARGET_GRID_CONTENT_RECORD_VERSION,
+    build_target_grid_aggregate_content_record,
     project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
@@ -155,6 +161,7 @@ _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
 _AMAZON_CONTENT_DELIVERY_ZIP = "10001"
 _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
+TARGET_GRID_CONTENT_PROFILE = "target_grid_aggregate"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
@@ -240,6 +247,8 @@ def run_source_capture_cloakbrowser_packet(
         )
 
     if retail_capture_profile is not None:
+        if retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE:
+            url = target_bestseller_grid_url(url)
         if retail_capture_profile.source_surface != "cloakbrowser_snapshot":
             raise ValueError(
                 f"retail capture profile {retail_capture_profile.name} belongs to "
@@ -419,6 +428,30 @@ def run_source_capture_cloakbrowser_packet(
             sku=ulta_sku,
             country_code=ulta_market,
             page_kind=ulta_page_kind,
+        )
+    elif (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
+    ):
+        _validate_target_delivery_zip_url(url)
+        pre_capture = TargetGridPlugin(
+            target_url=url,
+            delivery_zip=target_zip,
+            setup_timeout_seconds=target_zip_setup_timeout_seconds,
+            traversal_timeout_seconds=timeout_seconds,
+            require_delivery_pin=target_zip is not None,
+        )
+        content_extraction = RenderedContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version=TARGET_GRID_CONTENT_RECORD_VERSION,
+            extractor=lambda _rendered_dom, _visible_text, _final_url: (
+                build_target_grid_aggregate_content_record(
+                    rendered_pages=pre_capture.grid_page_doms,
+                    requested_url=url,
+                    page_urls=pre_capture.grid_page_urls,
+                    traversal_observation=pre_capture.grid_observation,
+                )
+            ),
         )
     elif target_zip is not None:
         _validate_target_delivery_zip_url(url)
@@ -659,7 +692,21 @@ def run_source_capture_cloakbrowser_packet(
     if sufficiency_mode_change is not None:
         packet_visible_mode_changes.append(sufficiency_mode_change)
 
-    rendered_dom_bytes = capture_result.rendered_dom.encode("utf-8")
+    rendered_dom_for_packet = capture_result.rendered_dom
+    if (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
+    ):
+        rendered_dom_for_packet = _strip_script_elements(rendered_dom_for_packet)
+        packet_limitations.append(
+            "Target grid security redaction removed script elements before packet "
+            "staging because the retailer embeds ephemeral guest-session material; the "
+            "sanitized multi-page content record remains the source-visible grid evidence"
+        )
+        packet_visible_mode_changes.append(
+            "Target grid script elements removed before packet staging"
+        )
+    rendered_dom_bytes = rendered_dom_for_packet.encode("utf-8")
     visible_text_bytes = capture_result.visible_text.encode("utf-8")
     snapshot_metadata_bytes = (
         json.dumps(capture_result.metadata, indent=2, sort_keys=True) + "\n"
@@ -1118,6 +1165,8 @@ def _validate_retail_baseline_profile_request(
             f"retail capture profile {retail_capture_profile.name} is not admitted "
             "for ordinary operation; preserve the capability gap instead"
         )
+    if retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE:
+        return
     required_pin = {
         "amazon": (delivery_zip, "10001", "--delivery-zip 10001"),
         "sephora": (sephora_market, "US", "--sephora-market US"),
@@ -1549,6 +1598,15 @@ def _assert_no_browser_secret_bytes(inputs) -> None:
                     "browser-secret material is forbidden in rendered content input "
                     f"{role}: {pattern.pattern}"
                 )
+
+
+def _strip_script_elements(rendered_dom: str) -> str:
+    return re.sub(
+        r"<script\b[^>]*>.*?</script\s*>",
+        "",
+        rendered_dom,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
 
 
 def _failure_report_token(failure_kind: CloakBrowserSnapshotFailureKind) -> str:
@@ -2025,6 +2083,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ULTA_PDP_CONTENT_PROFILE,
             TARGET_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
+            TARGET_GRID_CONTENT_PROFILE,
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -2088,6 +2147,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_extraction = _ulta_content_extraction_spec(
                 args.retention_mode or "content"
             )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "target_grid_aggregate requires content retention because Target "
+                    "embeds ephemeral guest-session material in rendered scripts"
+                )
         elif (
             retail_capture_profile is not None
             and retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE
