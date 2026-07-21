@@ -1170,8 +1170,7 @@ def _project_target_cards(
         rows.append(
             RetailGridProjectionRow(
                 row_id=(
-                    f"{source_slice.slice_id}:grid:target:{page_number}:"
-                    f"{page_position}:{product_id}"
+                    f"{source_slice.slice_id}:grid:target:{global_index}:{product_id}"
                 ),
                 retailer="target",
                 raw_ref=raw_ref,
