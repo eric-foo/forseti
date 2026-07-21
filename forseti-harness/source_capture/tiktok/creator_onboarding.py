@@ -1819,6 +1819,7 @@ class _GridOverlayCaptureSequence:
         self.current_overlay_url: str | None = None
         self.capture_order: list[str] = []
         self.last_grid_view: dict[str, object] = {}
+        self.last_pagination_direction: str | None = None
 
     def __call__(
         self, index: int, pending_video_urls: Sequence[str]
@@ -1982,6 +1983,7 @@ class _GridOverlayCaptureSequence:
                 self.receipt["grid_pagination_passes_executed"]
             ) + 1
             direction = self._pagination_direction(pending_video_ids)
+            self.last_pagination_direction = direction
             capture = _capture_visible_selected_grid_tiles(
                 profile_url=self.profile_url,
                 creator_handle=self.creator_handle,
@@ -2153,6 +2155,8 @@ class _GridOverlayCaptureSequence:
                 return "up"
             if below:
                 return "down"
+            if self.last_pagination_direction is not None:
+                return self.last_pagination_direction
         return "up" if float(self.last_grid_view.get("scroll_y") or 0) > 0 else "down"
 
     def _close_current_overlay(
