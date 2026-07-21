@@ -188,9 +188,18 @@ existing key changed, and the companion summary was proven byte-identical:
 rebuilding `01KY0S1ZACF3AG467GV6VA8CJN`'s summary from the same parent yields
 sha256 `fa9184f5…9dd8c8` before and after. The content record uses the precise
 fields and preserves the chrome-bearing text alongside as
-`review_text_hook_with_page_chrome`, so the difference stays visible. **The
-companion's own summary output is therefore still wrong in the ways listed
-above; that is a separate, out-of-lane fix.**
+`review_text_hook_with_page_chrome`, so the difference stays visible.
+
+**Superseded by the companion v2 fix.** The byte-identity recorded above held
+for `amazon_pdp_review_onboarding_v1` and was the correct no-re-surface result
+for that change. The separate out-of-lane fix has since landed: the companion
+summary now consumes `body_rich_text`, `author_profile_names`, and
+`_amazon_undoubled`, which deliberately changes its output and therefore bumps
+the route to `amazon_pdp_review_onboarding_v2` /
+`amazon_review_onboarding_summary_v2`. Rebuilding `01KY0S1ZACF3AG467GV6VA8CJN`
+under v2 no longer reproduces `fa9184f5…9dd8c8` — that break is the intended
+re-surface signal, not a regression. The landed v1 packet is append-only and is
+not rewritten.
 
 ## 6. Loss Ledger and Non-Claims
 
