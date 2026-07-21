@@ -766,6 +766,7 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
     wrapper = document["creator_registry_index"]
     rows = [deepcopy(_object(row, "Creator Registry row")) for row in wrapper.get("platform_accounts", [])]
     by_id = {row["platform_account_id"]: row for row in rows}
+    candidate_created_ids: set[str] = set()
     for candidate in records["candidate_admissions"]:
         account = candidate["platform_account"]
         account_id = account["platform_account_id"]
@@ -793,6 +794,7 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
             }
             rows.append(row)
             by_id[account_id] = row
+            candidate_created_ids.add(account_id)
         row.update(
             {
                 "platform": account["platform"],
@@ -821,6 +823,18 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
         account = admission["platform_account"]
         account_id = account["platform_account_id"]
         row = by_id.get(account_id)
+        validated_row_state = {
+            "capture_state": "identity_observed_content_packet_available",
+            "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+            "source_pointers": [admission["judgment"]["record_ref"]],
+            "non_claims": [
+                "not current handle guarantee",
+                "not final cross-platform identity",
+                "not metric authority",
+                "not audience authority",
+                "not contact or outreach authorization",
+            ],
+        }
         if row is None:
             row = {
                 "platform_account_id": account_id,
@@ -828,19 +842,14 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
                 "identity_state": "single_platform_observed",
                 "linkage_state": "single_platform_observed",
                 "discovery_state": "known_account",
-                "capture_state": "identity_observed_content_packet_available",
-                "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-                "source_pointers": [admission["judgment"]["record_ref"]],
-                "non_claims": [
-                    "not current handle guarantee",
-                    "not final cross-platform identity",
-                    "not metric authority",
-                    "not audience authority",
-                    "not contact or outreach authorization",
-                ],
+                **deepcopy(validated_row_state),
             }
             rows.append(row)
             by_id[account_id] = row
+        elif account_id in candidate_created_ids:
+            # A validated admission upgrades the candidate row it follows; the
+            # candidate-only routing state and non-claims must not survive it.
+            row.update(deepcopy(validated_row_state))
         row.update(
             {
                 "platform": account["platform"],
@@ -1154,11 +1163,52 @@ def _verify_candidate_admission(
 
 
 def _verify_admission(data_root: DataLakeRoot, admission: Mapping[str, Any]) -> None:
+    if set(admission) != {
+        "record_id",
+        "schema_version",
+        "raw_anchor",
+        "admitted_at",
+        "platform_account",
+        "onboarding",
+        "judgment",
+        "snapshot",
+        "monitoring_eligible",
+    }:
+        raise CreatorRegistryLakeError(
+            "Creator Registry validated admission fields do not match v1"
+        )
+    identity_payload = {key: value for key, value in admission.items() if key != "record_id"}
+    expected_record_id = "cra_" + _sha256(canonical_record_bytes(identity_payload))[:24]
+    if admission.get("record_id") != expected_record_id:
+        raise CreatorRegistryLakeError(
+            "Creator Registry validated admission content id mismatch"
+        )
     if admission.get("monitoring_eligible") is not True:
         raise CreatorRegistryLakeError("Creator Registry admission must be monitoring eligible")
     account = _object(admission.get("platform_account"), "admission platform account")
     if account.get("platform") != "tiktok" or not account.get("platform_public_account_id_or_none"):
         raise CreatorRegistryLakeError("Creator Registry TikTok admission lacks stable native identity")
+    identity = extract_tiktok_packet_identity(
+        data_root, _text(admission.get("raw_anchor"), "admission raw anchor")
+    )
+    expected_account = {
+        "platform_account_id": account.get("platform_account_id"),
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": identity["platform_public_account_id"],
+        "public_handle": identity["public_handle"],
+        "public_profile_url": identity["public_profile_url"],
+        "handle_source_pointer": f"{identity['identity_source_pointer']}#/items/0/author/uniqueId",
+        "handle_observed_at": identity["observed_at"],
+        "public_display_name_or_none": identity["public_display_name"],
+        "display_name_source_pointer_or_none": (
+            f"{identity['identity_source_pointer']}#/items/0/author/nickname"
+        ),
+        "display_name_source_field_or_none": "items[0].author.nickname",
+    }
+    if account != expected_account:
+        raise CreatorRegistryLakeError(
+            "Creator Registry validated admission identity differs from its grid packet"
+        )
     judgment = _object(admission.get("judgment"), "admission Judgment")
     path = data_root.path.joinpath(*_text(judgment.get("record_ref"), "Judgment record ref").split("/"))
     if not path.is_file() or _sha256(path.read_bytes()) != judgment.get("record_sha256"):

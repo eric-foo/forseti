@@ -120,8 +120,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--creator-handle",
         help=(
             "TikTok handle. When omitted for new_onboarding, auto-select the sole "
-            "not_onboarded TikTok platform account in the Creator Registry. An "
-            "explicit handle may also name a genuinely absent account."
+            "actionable not_onboarded TikTok platform account in the Creator "
+            "Registry. An explicit handle must also already be a Registry "
+            "not_onboarded account; a genuinely absent account is rejected "
+            "before any browser probe and must be candidate-admitted first."
         ),
     )
     parser.add_argument(
@@ -129,15 +131,16 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("new_onboarding", "new_capture", "update_existing"),
         default="new_onboarding",
         help=(
-            "New onboarding requires either an exact Creator Registry match with "
-            "onboarding_state=not_onboarded or a genuinely absent account; new capture blocks exact matches; "
+            "New onboarding requires an exact Creator Registry match with "
+            "onboarding_state=not_onboarded and no current deferred/rejected "
+            "Frontier disposition; new capture blocks exact matches; "
             "update existing requires an exact match."
         ),
     )
     parser.add_argument(
         "--creator-registry", type=Path, default=DEFAULT_CREATOR_REGISTRY
     )
-    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; required for genuinely absent new onboarding")
+    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; writes promotion decisions, which never authorize onboarding an absent account")
     parser.add_argument("--promotion-only", action="store_true", help="write promotion decisions and exit before Registry/browser work")
     parser.add_argument(
         "--session-profile",

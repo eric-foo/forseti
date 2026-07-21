@@ -234,6 +234,16 @@ def apply_tiktok_creator_onboarding_dedupe(
         and row["onboarding_queue_status"] == "owner_deferred"
         for row in rows
     )
+    counts["owner_rejected_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "owner_rejected"
+        for row in rows
+    )
+    counts["frontier_eligible_not_registered_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "frontier_eligible_not_registered"
+        for row in rows
+    )
     counts["already_onboarded_promote_now"] = sum(
         row.get("registry_action") == "promote_now"
         and row["onboarding_queue_status"] == "already_onboarded"

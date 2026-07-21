@@ -197,6 +197,20 @@ def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path
         "reason": "validated_onboarding_admission",
         "scheduled": False,
     }
+    assert rows[0]["onboarding"]["onboarding_state"] == "onboarded"
+    assert rows[0]["capture_state"] == "identity_observed_content_packet_available"
+    assert (
+        rows[0]["routing_decision"]
+        == "dedupe_exact_platform_account_then_attach_new_discovery_evidence"
+    )
+    assert rows[0]["source_pointers"] == [
+        outcome_path.resolve().relative_to(root.path.resolve()).as_posix()
+    ]
+    assert not [
+        claim
+        for claim in rows[0]["non_claims"]
+        if claim in {"not onboarded", "not monitoring eligible", "not public profile admission"}
+    ]
     eligible = monitoring_eligible_accounts(root, platform="tiktok")
     assert sum(row["platform_account_id"] == account_id for row in eligible) == 1
 
@@ -218,6 +232,37 @@ def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path
     assert len(admissions) == 1
     candidates = list((root.path / "derived").glob(f"*/*/{CANDIDATE_ADMISSION_LANE}/*"))
     assert len(candidates) == 1
+
+
+def test_validated_admission_content_id_and_native_identity_fail_closed(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, outcome_path, _account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    admit_tiktok_creator_account(
+        data_root=root,
+        packet_id=packet_id,
+        judgment_outcome_path=outcome_path,
+    )
+
+    admission_path = next((root.path / "derived").glob(f"*/*/{ADMISSION_LANE}/*"))
+    admission = json.loads(admission_path.read_text(encoding="utf-8"))
+    admission["platform_account"]["platform_public_account_id_or_none"] = "112233445566"
+    admission_path.write_bytes(canonical_record_bytes(admission))
+    with pytest.raises(CreatorRegistryLakeError, match="content id mismatch"):
+        load_current_creator_registry(root)
+
+    payload = {key: value for key, value in admission.items() if key != "record_id"}
+    admission["record_id"] = (
+        "cra_" + hashlib.sha256(canonical_record_bytes(payload)).hexdigest()[:24]
+    )
+    rebound_path = admission_path.with_name(admission["record_id"])
+    admission_path.rename(rebound_path)
+    rebound_path.write_bytes(canonical_record_bytes(admission))
+    with pytest.raises(CreatorRegistryLakeError, match="identity differs from its grid packet"):
+        load_current_creator_registry(root)
 
 
 def test_cold_rebuild_is_byte_identical_and_stale_current_fails_closed(tmp_path: Path) -> None:

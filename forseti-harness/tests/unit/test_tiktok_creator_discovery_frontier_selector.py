@@ -192,6 +192,13 @@ def test_onboarding_dedupe_routes_current_frontier_and_registry_states() -> None
     assert rows["rejected_absent"]["onboarding_queue_status"] == "owner_rejected"
     assert not any(row["actionable_promote_now"] for row in rows.values())
 
+    counts = document["tiktok_creator_promotion_decisions"]["counts"]
+    assert counts["promote_now"] == 3
+    assert counts["actionable_promote_now"] == 0
+    assert counts["owner_deferred_promote_now"] == 1
+    assert counts["owner_rejected_promote_now"] == 1
+    assert counts["frontier_eligible_not_registered_promote_now"] == 1
+
 
 def test_target_ranker_prioritizes_once_only_expanded_fragrance_over_repeated_hub() -> None:
     registers = [
