@@ -246,16 +246,19 @@ def test_generation_and_existing_baseline_dry_runs_are_read_only(
 ) -> None:
     root = _root(tmp_path)
     _migrate(root)
-    readonly = DataLakeRoot.resolve_readonly(explicit=root.path)
+    # repo_root=None keeps the readonly resolve usable on a `for_test` root, which
+    # may legitimately live inside the working tree (see DataLakeRoot.for_test).
+    readonly = DataLakeRoot.resolve_readonly(explicit=root.path, repo_root=None)
+    assert readonly.readonly is True
 
-    def snapshot() -> dict[str, tuple[bytes, int]]:
+    def snapshot() -> dict[str, tuple[bytes, int] | None]:
+        # Directories are included so a dry run that only creates an empty
+        # directory is caught too, not just one that writes bytes.
         return {
             path.relative_to(root.path).as_posix(): (
-                path.read_bytes(),
-                path.stat().st_mtime_ns,
+                (path.read_bytes(), path.stat().st_mtime_ns) if path.is_file() else None
             )
             for path in root.path.rglob("*")
-            if path.is_file()
         }
 
     before = snapshot()
