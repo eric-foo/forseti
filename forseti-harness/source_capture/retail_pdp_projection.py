@@ -51,6 +51,16 @@ TARGET_PDP_CONTENT_PROFILE = "target_pdp_aggregate"
 # recorded.  The CDUI orchestration URL embeds a page-declared Redsky key, which
 # follows the same page-declared-public-key treatment as Ulta's display key.
 _TARGET_SESSION_SECRET_QUERY_PREFIX = "site-top-of-funnel/get-cookies"
+# A short page-state value is treated as secret only under a secret-bearing key;
+# an unkeyed short string is ordinary page data and equality-scanning it would
+# refuse legitimate captures.
+_TARGET_SECRET_KEY_PATTERN = re.compile(
+    r"token|auth|secret|session|password|passwd|credential|cookie|jwt|apikey"
+    r"|api_key|_px|sid$",
+    flags=re.IGNORECASE,
+)
+_TARGET_SECRET_KEYED_MIN_LENGTH = 6
+_TARGET_SECRET_UNKEYED_MIN_LENGTH = 16
 _TARGET_REDACTED_KEY_MARKER = "[REDACTED_PAGE_DECLARED_PUBLIC_DISPLAY_KEY]"
 # CDUI data-source modules that the layout declares for every PDP.  Server-side
 # rendering hydrates only the core product datasource; price, fulfillment,
@@ -2410,15 +2420,14 @@ def _target_core_product(cdui: Mapping[str, Any]) -> Mapping[str, Any]:
 
 def _target_declared_module_rows(
     cdui: Mapping[str, Any],
-) -> tuple[list[dict[str, Any | None]], bool, bool]:
+) -> tuple[list[dict[str, Any | None]], list[str]]:
     """Inventory declared CDUI modules and their server-side hydration state.
 
-    Returns one field dict per declared data-source module, whether a variation
-    datasource was hydrated, and whether a price datasource was hydrated.
+    Returns one field dict per declared data-source module and the non-core
+    modules whose hydrated payloads this parser does not yet retain.
     """
     rows: list[dict[str, Any | None]] = []
-    variation_hydrated = False
-    price_hydrated = False
+    unsupported_hydrated_modules: list[str] = []
     for module in cdui.get("data_source_modules") or []:
         if not isinstance(module, Mapping):
             continue
@@ -2427,10 +2436,8 @@ def _target_declared_module_rows(
         hydrated = isinstance(payload, Mapping) and isinstance(
             payload.get("data"), Mapping
         )
-        if module_type and "Variation" in module_type and hydrated:
-            variation_hydrated = True
-        if module_type and "CircleOffers" in module_type and hydrated:
-            price_hydrated = True
+        if hydrated and module_type and module_type != _TARGET_CORE_DATASOURCE_MODULE:
+            unsupported_hydrated_modules.append(module_type)
         rows.append(
             {
                 "module_type": module_type,
@@ -2461,7 +2468,7 @@ def _target_declared_module_rows(
             "server_side_hydration": "layout_only",
         }
     )
-    return rows, variation_hydrated, price_hydrated
+    return rows, sorted(set(unsupported_hydrated_modules))
 
 
 def _target_product_content_fields(
@@ -2712,17 +2719,38 @@ def _target_review_identity_rows(
 def _target_session_secret_values(
     queries: Sequence[Mapping[str, Any]],
 ) -> list[str]:
-    """Collect the guest-session secret values the PDP page state carries."""
+    """Collect the guest-session secret values the PDP page state carries.
+
+    The scan recurses so a nested value cannot escape it. Length alone cannot
+    decide what is secret: a short value is collected only under a
+    secret-bearing key. The observed `__attentive_ss_referrer` value is the
+    bare word `ORGANIC`, which legitimately appears in uppercase ingredient
+    copy, so equality-scanning every short string refuses ordinary captures.
+    """
     values: list[str] = []
     for query in queries:
         if not _target_query_name(query).startswith(
             _TARGET_SESSION_SECRET_QUERY_PREFIX
         ):
             continue
-        for value in as_dict(as_dict(query.get("state")).get("data")).values():
-            if isinstance(value, str) and len(value) >= 16:
-                values.append(value)
-    return values
+        pending: list[tuple[str | None, Any]] = [
+            (None, as_dict(query.get("state")).get("data"))
+        ]
+        while pending:
+            key, value = pending.pop()
+            if isinstance(value, Mapping):
+                pending.extend(value.items())
+            elif isinstance(value, list):
+                pending.extend((key, item) for item in value)
+            elif isinstance(value, str):
+                minimum = (
+                    _TARGET_SECRET_KEYED_MIN_LENGTH
+                    if key and _TARGET_SECRET_KEY_PATTERN.search(key)
+                    else _TARGET_SECRET_UNKEYED_MIN_LENGTH
+                )
+                if len(value) >= minimum:
+                    values.append(value)
+    return sorted(set(values))
 
 
 def _target_assert_no_session_secrets(
@@ -2837,9 +2865,12 @@ def build_target_pdp_aggregate_content_record(
             f"{structured_tcin!r} does not match requested {requested_tcin!r}"
         )
 
-    module_field_rows, variation_hydrated, _price_datasource_hydrated = (
-        _target_declared_module_rows(cdui)
-    )
+    module_field_rows, unsupported_hydrated_modules = _target_declared_module_rows(cdui)
+    if unsupported_hydrated_modules:
+        raise ValueError(
+            "Target CDUI hydrated unsupported non-core datasource module(s): "
+            + ", ".join(unsupported_hydrated_modules)
+        )
     product_fields = _target_product_content_fields(product, source_url=source_url)
     subtree_fields = _target_product_subtree_fields(product)
     statistics = _target_next_data_review_statistics(product)
@@ -2896,9 +2927,12 @@ def build_target_pdp_aggregate_content_record(
     )
     if session_secret_values:
         residuals.append("target_guest_session_secret_query_present_not_retained")
-    variant_module_state = "observed" if variation_hydrated else "not_exposed"
-    if variant_module_state == "not_exposed":
-        residuals.append("target_variation_datasource_not_hydrated_no_variants_retained")
+    # Reaching here proves no non-core datasource hydrated: a hydrated variation
+    # module fails the gate above rather than being reported as observed, because
+    # this parser retains no variant rows. `observed` becomes reachable only when
+    # a later revision adds variant retention and relaxes that gate.
+    variant_module_state = "not_exposed"
+    residuals.append("target_variation_datasource_not_hydrated_no_variants_retained")
 
     content_rows = [
         TargetPdpContentRow(
@@ -5971,6 +6005,34 @@ def _walmart_variant_offer_fields(
     }
 
 
+def _target_product_detail_price(html: str) -> str | None:
+    """Return a price only from Target's target-product price module."""
+    prices: list[str] = []
+    module_pattern = re.compile(
+        r'<div\b(?=[^>]*\bdata-module-type=["\']ProductDetailPrice["\'])[^>]*>',
+        flags=re.IGNORECASE,
+    )
+    for match in module_pattern.finditer(html):
+        fragment = _balanced_div_fragment(html, start=match.start())
+        if fragment is None:
+            raise ValueError("Target ProductDetailPrice module is not balanced HTML")
+        prices.extend(
+            re.findall(
+                r'data-test=["\'](?:current-price|product-price)["\'][^>]*>'
+                r'[\s\S]{0,300}?\$([\d,.]+)',
+                fragment,
+                flags=re.IGNORECASE,
+            )
+        )
+    unique_prices = sorted(set(prices))
+    if len(unique_prices) > 1:
+        raise ValueError(
+            "Target ProductDetailPrice module exposes conflicting current prices: "
+            + ", ".join(unique_prices)
+        )
+    return unique_prices[0] if unique_prices else None
+
+
 def _target_variant_offer_fields(
     *,
     html: str,
@@ -5981,10 +6043,7 @@ def _target_variant_offer_fields(
     product_id = _retail_product_id(packet=packet, source_slice=source_slice, retailer="target")
     if product_id is None:
         return {}
-    price = _first_regex(
-        html,
-        (r'data-test=["\'](?:current-price|product-price)["\'][\s\S]*?\$([\d,.]+)',),
-    ) or _first_regex(visible_text, (r"^\$([\d,.]+)$",))
+    price = _target_product_detail_price(html)
     channels = _fulfillment_channel_fields(visible_text)
     return {
         "product_id": product_id,

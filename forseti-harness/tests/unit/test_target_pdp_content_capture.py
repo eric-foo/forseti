@@ -277,7 +277,8 @@ def _dom(next_data: dict | None = None, *, include_next_data: bool = True) -> by
         "<html><head><title>Naturium Vitamin C Complex Serum : Target</title>"
         '<meta property="og:title" content="Naturium Vitamin C Complex Serum- 1 fl oz">'
         "</head><body>"
-        '<div data-test="current-price"><span>$14.69</span></div>'
+        '<div data-module-type="ProductDetailPrice">'
+        '<div data-test="current-price"><span>$14.69</span></div></div>'
         f"{script}</body></html>"
     ).encode("utf-8")
 
@@ -357,13 +358,33 @@ def test_offer_comes_from_rendered_dom_because_ssr_leaves_it_unhydrated() -> Non
 
 def test_price_absence_is_reported_not_invented() -> None:
     record = _build(
-        rendered_dom=_dom().replace(b'<div data-test="current-price"><span>$14.69</span></div>', b""),
+        rendered_dom=_dom().replace(
+            b'<div data-test="current-price"><span>$14.69</span></div>', b""
+        ),
         visible_text=_VISIBLE_TEXT.replace("$14.69 was $17.89", "").encode("utf-8"),
     )
 
     assert record["offer_module_state"] == "declared_unhydrated"
     assert "target_price_absent_from_rendered_dom_and_page_state" in record["residuals"]
     assert _fields(record, "retail_variant_offer")["price"] is None
+
+
+def test_offer_does_not_bind_a_recommendation_rail_price_to_the_target_tcin() -> None:
+    unrelated_price = (
+        b'<div data-module-type="GlobalRecommendedProducts">'
+        b'<div data-test="current-price"><span>$3.99</span></div></div>'
+    )
+    record = _build(rendered_dom=_dom().replace(b"<body>", b"<body>" + unrelated_price))
+
+    assert _fields(record, "retail_variant_offer")["price"] == "14.69"
+
+
+def test_offer_does_not_use_visible_text_when_target_price_module_is_absent() -> None:
+    dom = _dom().replace(b' data-module-type="ProductDetailPrice"', b"")
+    record = _build(rendered_dom=dom)
+
+    assert _fields(record, "retail_variant_offer")["price"] is None
+    assert "target_price_absent_from_rendered_dom_and_page_state" in record["residuals"]
 
 
 def test_preserves_three_way_review_count_disagreement() -> None:
@@ -418,6 +439,42 @@ def test_refuses_to_emit_guest_session_secret_material() -> None:
     )
 
 
+def test_short_unkeyed_session_value_does_not_refuse_ordinary_product_copy() -> None:
+    """A short cookie value that is an ordinary word must not block capture.
+
+    Observed on the real parent packet: `__attentive_ss_referrer` is the bare
+    word `ORGANIC`, which routinely appears in uppercase ingredient copy.
+    Scanning every short string by length alone refuses legitimate captures.
+    """
+    product = _product()
+    product["item"]["enrichment"]["nutrition_facts"]["ingredients"] = (
+        "ORGANIC ALOE BARBADENSIS LEAF JUICE, Glycerin"
+    )
+    payload = _next_data(product=product)
+    payload["props"]["dehydratedState"]["queries"][1]["state"]["data"] = {
+        "__attentive_ss_referrer": "ORGANIC",
+        "adScriptData": "04",
+    }
+
+    record = _build(rendered_dom=_dom(payload))
+
+    subtree = _fields(record, "retail_product_module_subtree")
+    assert subtree["ingredients"].startswith("ORGANIC ALOE BARBADENSIS")
+
+
+def test_refuses_nested_short_session_secret_echoed_through_retained_field() -> None:
+    short_secret = "r0tated"
+    product = _product()
+    product["item"]["primary_brand"]["name"] = short_secret
+    payload = _next_data(product=product)
+    payload["props"]["dehydratedState"]["queries"][1]["state"]["data"] = {
+        "nested": {"accessToken": short_secret}
+    }
+
+    with pytest.raises(ValueError, match="session secret material"):
+        _build(rendered_dom=_dom(payload))
+
+
 def test_variant_state_is_not_exposed_when_variation_datasource_is_null() -> None:
     record = _build()
 
@@ -428,10 +485,20 @@ def test_variant_state_is_not_exposed_when_variation_datasource_is_null() -> Non
     )
 
 
-def test_variant_state_is_observed_when_variation_datasource_hydrates() -> None:
-    record = _build(rendered_dom=_dom(_next_data(hydrate_variations=True)))
+def test_fails_loud_when_unretained_variation_datasource_hydrates() -> None:
+    with pytest.raises(ValueError, match="unsupported non-core datasource"):
+        _build(rendered_dom=_dom(_next_data(hydrate_variations=True)))
 
-    assert record["variant_module_state"] == "observed"
+
+def test_fails_loud_when_any_unretained_non_core_datasource_hydrates() -> None:
+    payload = _next_data()
+    modules = payload["props"]["dehydratedState"]["queries"][0]["state"]["data"]["data"][
+        "data_source_modules"
+    ]
+    modules[0]["module_data"] = {"data": {"offers": [{"price": 3.99}]}}
+
+    with pytest.raises(ValueError, match="ProductDetailWebDatasourceCircleOffers"):
+        _build(rendered_dom=_dom(payload))
 
 
 def test_declared_cdui_modules_are_inventoried_with_hydration_state() -> None:

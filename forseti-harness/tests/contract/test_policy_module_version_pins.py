@@ -202,7 +202,16 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # retailer extractor, shared projection row, or Silver semantic changes,
         # so RETAIL_PDP_PROJECTION_VERSION and the Sephora/Luckyscent/Nordstrom/
         # Ulta tokens stay unchanged and no committed packet re-surfaces.
-        "56351103501cfea88648a2aa3fe14f43eb84ea4e6c45db73b44f51d5cd03aabc",
+        # Delegated-review hardening on the same Target v1: the shared
+        # _target_variant_offer_fields price extractor is now scoped to Target's
+        # ProductDetailPrice module instead of matching page-globally, which the
+        # legacy raw decoder also reaches. Checked against every committed Target
+        # PDP raw packet with a DOM (01KXR823YS3V5M9E01QXP71ETC,
+        # 01KXWMXEYB58SMVSJT80XJAP9D, 01KXWMTJXN7JX775Q17D24E8NT): old and new
+        # both yield 14.69, so no committed packet re-surfaces and the shared
+        # projection token stays unchanged. Future captures can differ by design
+        # — that is the defect being fixed, not a re-surface.
+        "0bbef4618461c22b0643cbb980063f62851790c60f3d349f100e6d671febd73d",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
