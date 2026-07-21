@@ -339,6 +339,14 @@ SOURCE_CLASSIFICATION_DEFINITIONS: tuple[SourceClassificationDefinition, ...] = 
     ),
     _definition(
         "retail_pdp",
+        "ulta_powerreviews_onboarding",
+        operator="ulta",
+        roles=(VenueRole.RETAILER,),
+        shapes=(EvidenceShape.REVIEW,),
+        source="forseti-harness/source_capture/ulta_onboarding_capture.py",
+    ),
+    _definition(
+        "retail_pdp",
         "amazon_review_onboarding",
         operator="amazon",
         roles=(VenueRole.RETAILER,),

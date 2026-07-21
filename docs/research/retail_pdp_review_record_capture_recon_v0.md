@@ -150,6 +150,20 @@ US-pinned PDP. Preserve international rows separately but exclude them from
 default US-market analysis. Do not implement authenticated review capture or
 customer-review portal entry before the v3 content-structure change.
 
+## 2026-07-21 Ulta PowerReviews ID-semantics resolution addendum
+
+Commissioned work after the historical recon resolved this report's Ulta typed
+risk (`FIELD_RISK` item 3 below). Gate 1 of the Ulta PowerReviews adapter
+commission cross-checked rendered `pr-rd-review-headline-<id>` numeric
+suffixes against the structured public display-route `review_id` values on the
+same pin-proven Night Shift PDP: every rendered suffix matched a structured
+`review_id` with identical headline text, and `review_id` equalled `ugc_id` on
+every captured row. Verdict: `NATIVE_REVIEW_ID_MAPPING_PROVEN` (fixture
+packets `01KY1ZR7NTR633VE4HQ8TKAM97` and `01KY1ZWAZFJ3CR34WDB617Y6RA`). The
+proof report and landed adapter are recorded in
+`docs/research/forseti_ulta_powerreviews_review_capture_proof_v0.md`; the
+Ulta `FIELD_RISK` entry is retained below as historical recon evidence only.
+
 ## Recommended Minimal Next Scope
 
 Do not start a full adapter build yet. The next smallest complete step is a selector-level design patch that:

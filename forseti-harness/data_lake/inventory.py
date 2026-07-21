@@ -109,6 +109,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
         "local Amazon review adaptation consumes a committed parent packet and "
         "requires explicit append-only lake admission"
     ),
+    "run_source_capture_ulta_onboarding.py": (
+        "live structured Ulta PowerReviews acquisition consumes a committed parent "
+        "packet and requires explicit append-only lake admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -340,6 +344,16 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "URL TCIN to the ProductDetailWebDatasourceCore TCIN and the admitted public "
             "Bazaarvoice deployment; every returned question and review row plus the "
             "included Bazaarvoice product must carry that same TCIN"
+        ),
+    },
+    "run_source_capture_ulta_onboarding.py": {
+        "status": "bound",
+        "mechanism": (
+            "before acquisition, a hash-verified retail_pdp parent must carry a "
+            "confirmed unblocked ulta_us_market_assertion pin and bind the Ulta URL "
+            "product id to the page-declared PowerReviews page_id; every returned "
+            "review row must carry that page_id, and review_id must equal ugc_id on "
+            "every row before the summary succeeds"
         ),
     },
     "run_source_capture_amazon_review_onboarding.py": {

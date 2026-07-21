@@ -702,6 +702,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "mechanism": "before acquisition, a hash-verified retail_pdp parent must carry a confirmed unblocked ulta_us_market_assertion pin and bind the Ulta URL product id to the page-declared PowerReviews page_id; every returned review row must carry that page_id, and review_id must equal ugc_id on every row before the summary succeeds",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ulta_onboarding.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "mechanism": "yt-dlp writes the downloaded audio under the SERVED video id (%(id)s output template) and download_audio accepts only the file named exactly <requested id>.*, so a mis-served id fails closed as a download failure; no additional served-metadata check is performed",
           "status": "bound"
         },
@@ -742,7 +751,8 @@
         "defined_in": [
           "source_capture/amazon_review_onboarding_capture.py",
           "source_capture/sephora_onboarding_capture.py",
-          "source_capture/target_onboarding_capture.py"
+          "source_capture/target_onboarding_capture.py",
+          "source_capture/ulta_onboarding_capture.py"
         ],
         "function": "_write_packet"
       },
@@ -766,6 +776,13 @@
           "source_capture/target_onboarding_capture.py"
         ],
         "function": "capture_target_onboarding_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/ulta_onboarding_capture.py"
+        ],
+        "function": "capture_ulta_onboarding_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",

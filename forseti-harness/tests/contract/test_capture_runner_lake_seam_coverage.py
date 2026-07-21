@@ -75,6 +75,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_source_capture_realchrome_cdp_packet.py",
         "run_source_capture_sephora_onboarding.py",
         "run_source_capture_target_onboarding.py",
+        "run_source_capture_ulta_onboarding.py",
         "run_source_capture_tiktok_batch_packet.py",
         "run_source_capture_tiktok_grid_packet.py",
         "run_source_capture_tiktok_live_batch_probe.py",
