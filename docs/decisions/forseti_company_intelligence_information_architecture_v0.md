@@ -406,6 +406,12 @@ Apply the table with four rules:
    rating-date-author-title-body fingerprint. An LLM may flag ambiguous
    near-matches for adjudication; it must not delete, merge, or become canonical
    review identity.
+   The implemented post-Capture selective-depth and linkage producer is
+   `cleaning.retail_review_overlap`. It emits
+   `retail_review_depth_selection_v0` and
+   `retail_review_overlap_linkage_v0`, re-verifies raw packet references,
+   preserves native review occurrences and retailer totals, and leaves ambiguous
+   conflicts unmerged. It is not raw Capture or portfolio-role/sales Judgment.
 3. A directional role such as growth investment or weak link requires review
    movement plus at least one independent public behavior such as assortment,
    variants, placement, pricing, promotion, availability, or channel breadth.
