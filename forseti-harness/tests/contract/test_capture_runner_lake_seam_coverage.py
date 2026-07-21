@@ -196,6 +196,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("source_capture/ig_reels_grid_projection.py", "load_attachment_record_body"): 1,
         ("source_capture/ig_reels_grid_projection.py", "record_path"): 1,
         ("source_capture/ig_reels_grid_projection.py", "source_surface_catalog_rows"): 1,
+        ("source_capture/retail_grid_projection.py", "append_record"): 1,
         ("source_capture/retail_pdp_silver.py", "append_silver_record"): 1,
         ("source_capture/transcript/asr_packet.py", "append_record_set"): 1,
         ("source_capture/transcript/ig_reels_audio_packet.py", "append_record"): 1,

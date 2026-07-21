@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from data_lake.root import DataLakeRoot
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from source_capture.adapters.cloakbrowser_snapshot import (
     CloakBrowserSnapshotSuccess,
@@ -486,7 +487,10 @@ def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
     )
 
     assert exit_code == 0
-    assert output == str(tmp_path / "packet")
+    assert output == (
+        f"raw packet preserved at {tmp_path / 'packet'}; "
+        f"projection preserved at {projection_path}"
+    )
     projection = json.loads(projection_path.read_text(encoding="utf-8"))
     assert projection["completeness"]["status"] == "complete"
     assert projection["completeness"]["page_declared_result_count"] == 2
@@ -495,6 +499,38 @@ def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
     assert projection["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
         _sephora_grid_dom(currency_code=None).encode("utf-8")
     ).hexdigest()
+
+
+def test_writer_automatically_files_grid_projection_in_data_root(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_grid_capture
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    profile = get_retail_capture_profile("sephora_grid_aggregate")
+
+    exit_code, output = _run_writer(
+        tmp_path,
+        url=_SEPHORA_GRID_URL,
+        decision_question="What is the Summer Fridays grid?",
+        output_directory=None,
+        data_root=root,
+        retail_capture_profile=profile,
+    )
+
+    assert exit_code == 0
+    raw_text, projection_text = output.split("; ", maxsplit=1)
+    raw_path = Path(raw_text.removeprefix("raw packet preserved at "))
+    projection_path = Path(
+        projection_text.removeprefix("projection preserved at ")
+    )
+    loaded = root.load_raw_packet(raw_path.name)
+    projection = json.loads(projection_path.read_text(encoding="utf-8"))
+    assert loaded.manifest["packet_id"] == raw_path.name
+    assert projection["packet_id"] == raw_path.name
+    assert projection["completeness"]["status"] == "complete"
+    assert projection_path.parent.name == "projection_retail_grid"
 
 
 def test_writer_requires_sephora_us_request_route(tmp_path: Path) -> None:

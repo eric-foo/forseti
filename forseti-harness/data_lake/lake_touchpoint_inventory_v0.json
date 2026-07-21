@@ -410,6 +410,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/retail_grid_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_silver_record",
       "count": 1,
       "module": "source_capture/retail_pdp_silver.py"
