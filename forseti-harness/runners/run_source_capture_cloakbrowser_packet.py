@@ -310,6 +310,18 @@ def run_source_capture_cloakbrowser_packet(
         load_more_clicks = retail_capture_profile.load_more_clicks
     elif load_more_clicks is None:
         load_more_clicks = 0
+    if (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == AMAZON_PDP_CONTENT_PROFILE
+        and content_extraction is not None
+    ):
+        _validate_amazon_content_capture_envelope(
+            requested_retention_mode=content_extraction.requested_retention_mode,
+            scroll_passes=scroll_passes,
+            scroll_step_px=scroll_step_px,
+            scroll_target_selector=scroll_target_selector,
+            load_more_clicks=load_more_clicks,
+        )
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -1245,6 +1257,34 @@ def _amazon_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
             )
         ),
     )
+
+
+def _validate_amazon_content_capture_envelope(
+    *,
+    requested_retention_mode: str,
+    scroll_passes: int,
+    scroll_step_px: int,
+    scroll_target_selector: str | None,
+    load_more_clicks: int,
+) -> None:
+    """Fail before navigation when generic actions exceed Amazon's bound envelope."""
+    if requested_retention_mode != "content":
+        return
+    if scroll_passes != 0 or scroll_step_px != 0:
+        raise ValueError(
+            "amazon_pdp_aggregate content capture permits only the optional "
+            "bounded --scroll-target-selector #customerReviews action; generic "
+            "scroll passes and progressive scrolling are forbidden"
+        )
+    if scroll_target_selector not in {None, "#customerReviews"}:
+        raise ValueError(
+            "amazon_pdp_aggregate content capture may scroll only to #customerReviews"
+        )
+    if load_more_clicks != 0:
+        raise ValueError(
+            "amazon_pdp_aggregate content capture forbids generic load-more, "
+            "pagination, and review-portal actions"
+        )
 
 
 def _target_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:

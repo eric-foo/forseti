@@ -6,7 +6,7 @@ artifact_role: Research proof record
 scope: >
   Live-capture proof, raw-to-content reconstruction result, and loss ledger for
   the Amazon canonical PDP content route
-  (retail_pdp_amazon_aggregate_content_v1 / parser_v1), built strictly inside
+  (retail_pdp_amazon_aggregate_content_v1 / parser_v2), built strictly inside
   the owner-approved pre-v3 Amazon information-capture envelope.
 use_when:
   - Judging what Amazon canonical content does and does not retain.
@@ -25,7 +25,7 @@ stale_if:
 ## 1. What Landed
 
 `retail_pdp_amazon_aggregate_content_v1` with
-`retail_pdp_amazon_aggregate_parser_v1`. `amazon_pdp_aggregate` is now a
+`retail_pdp_amazon_aggregate_parser_v2`. `amazon_pdp_aggregate` is now a
 content-eligible profile and defaults to `content` retention; content retention
 is admitted only at the envelope's single US pin, `--delivery-zip 10001`.
 Explicit `--retention-mode raw` remains available at any destination for
@@ -63,10 +63,10 @@ proof packet:
 
 | Measure | Value |
 | --- | ---: |
-| Declared feature modules | 383 |
-| Server-side hydrated | 134 |
-| Declared but left empty | 249 |
-| Stamped with the target ASIN | 323 |
+| Declared feature modules | 391 |
+| Server-side hydrated | 135 |
+| Declared but left empty | 256 |
+| Stamped with the target ASIN | 331 |
 
 This is Amazon's analogue of Target's declared-but-null CDUI datasources, and
 it is inventoried rather than omitted. The attribute is also the only
@@ -152,8 +152,10 @@ the same serialization (11.4%, 8.7x).
 **Live-versus-parent comparison** (2 days apart) shows the route stable and the
 drift real, not parser noise: identical ASIN, price `24.00`, bought-in-past-month
 `70K+`, availability `In Stock`, seller `Amazon.com`, rating `4.6`, 13 review
-rows in the same 8-US/5-international split, and an identical 383/134/249 module
-inventory. Genuinely changed: `rating_count` 37,045 → 37,047 (two new ratings)
+rows in the same 8-US/5-international split, and an identical 383/134/249
+parser-v1 module inventory. Parser v2 subsequently recognized eight additional
+class-list `celwidget` declarations on the preserved parent (391/135/256); the
+append-only live v1 content packet was not rewritten. Genuinely changed: `rating_count` 37,045 → 37,047 (two new ratings)
 and the twister variant list 13 → 15 (two new style variants).
 
 The live run also used **fewer** actions than the envelope admits: it completed

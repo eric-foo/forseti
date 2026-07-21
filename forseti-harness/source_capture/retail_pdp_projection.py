@@ -46,7 +46,7 @@ TARGET_PDP_PARSER_VERSION = "retail_pdp_target_aggregate_parser_v1"
 TARGET_PDP_CONTENT_PROFILE = "target_pdp_aggregate"
 AMAZON_PDP_CONTENT_RECORD_KIND = "retail_pdp_amazon_aggregate_content"
 AMAZON_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_amazon_aggregate_content_v1"
-AMAZON_PDP_PARSER_VERSION = "retail_pdp_amazon_aggregate_parser_v1"
+AMAZON_PDP_PARSER_VERSION = "retail_pdp_amazon_aggregate_parser_v2"
 AMAZON_PDP_CONTENT_PROFILE = "amazon_pdp_aggregate"
 
 # Amazon renders one ``celwidget`` div per declared detail-page feature module
@@ -57,7 +57,8 @@ AMAZON_PDP_CONTENT_PROFILE = "amazon_pdp_aggregate"
 # also the only page-native way to prove a merchandising signal belongs to the
 # requested ASIN rather than to a recommendation rail.
 _AMAZON_CELWIDGET_PATTERN = re.compile(
-    r'<div\b(?=[^>]*\bclass="celwidget")(?=[^>]*\bdata-feature-name=)[^>]*>',
+    r'<div\b(?=[^>]*\bclass=["\'][^"\']*\bcelwidget\b[^"\']*["\'])'
+    r'(?=[^>]*\bdata-feature-name=)[^>]*>',
     flags=re.IGNORECASE,
 )
 _AMAZON_PRICE_MODULE_FEATURES = frozenset({"corePrice", "corePriceDisplay_desktop"})
@@ -1025,7 +1026,7 @@ class AmazonPdpAggregateContentRecord(StrictModel):
     Amazon PDP capture.
 
     Amazon has no separate raw review-response companion: the
-    ``amazon_pdp_review_onboarding_v1`` companion holds a control manifest and a
+    ``amazon_pdp_review_onboarding_v2`` companion holds a control manifest and a
     deliberately body-free summary, and the exact review bodies exist only in
     the parent PDP DOM that content mode hashes and discards.  This record
     therefore **retains the exact review bodies** — the one place Amazon
@@ -1038,9 +1039,10 @@ class AmazonPdpAggregateContentRecord(StrictModel):
     schema_version: Literal["retail_pdp_amazon_aggregate_content_v1"] = (
         AMAZON_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_amazon_aggregate_parser_v1"] = (
-        AMAZON_PDP_PARSER_VERSION
-    )
+    parser_version: Literal[
+        "retail_pdp_amazon_aggregate_parser_v1",
+        "retail_pdp_amazon_aggregate_parser_v2",
+    ] = AMAZON_PDP_PARSER_VERSION
     capture_profile: Literal["amazon_pdp_aggregate"] = AMAZON_PDP_CONTENT_PROFILE
     review_provider: Literal["amazon_native_rendered_pdp"] = (
         "amazon_native_rendered_pdp"
@@ -3983,6 +3985,19 @@ def _amazon_session_secret_values(html: str) -> list[str]:
         value = _html_attr_value(tag, "value")
         if value and len(value) >= _AMAZON_SECRET_KEYED_MIN_LENGTH:
             values.append(value)
+    # Amazon also carries tokens such as ``aapiCsrfToken`` and
+    # ``glowValidationToken`` in inline JSON rather than hidden inputs. Record
+    # only values whose own key is secret-bearing; never scan arbitrary long
+    # strings as secrets.
+    for match in re.finditer(
+        r'["\'](?P<key>[^"\']{1,100})["\']\s*:\s*["\'](?P<value>[^"\']+)["\']',
+        html,
+    ):
+        if not _AMAZON_SECRET_KEY_PATTERN.search(match.group("key")):
+            continue
+        value = html_lib.unescape(match.group("value"))
+        if len(value) >= _AMAZON_SECRET_KEYED_MIN_LENGTH:
+            values.append(value)
     return sorted(set(values))
 
 
@@ -4023,7 +4038,7 @@ def build_amazon_pdp_aggregate_content_record(
 ) -> dict[str, Any]:
     """Retain target-bound Amazon PDP facts, including exact review bodies.
 
-    Amazon's review companion (``amazon_pdp_review_onboarding_v1``) is
+    Amazon's review companion (``amazon_pdp_review_onboarding_v2``) is
     deliberately body-free and holds no raw response bytes of its own, so the
     exact review bodies exist only inside the parent PDP DOM that content mode
     hashes and discards.  Retaining them here is the difference between this
@@ -4155,7 +4170,7 @@ def build_amazon_pdp_aggregate_content_record(
                 _first_regex(
                     fragment,
                     (
-                        r"<span[^>]*class=\"[^\"]*mvt-ac-badge[^\"]*\""
+                        r'<span\b[^>]*\bclass=["\'][^"\']*mvt-ac-badge[^"\']*["\']'
                         r"[^>]*>([\s\S]{0,200}?)</span>",
                         r"(Amazon's Choice)",
                     ),

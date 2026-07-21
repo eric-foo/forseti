@@ -463,7 +463,14 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
         # The reviewer's name lives in the profile widget; data-hook="review-by-line"
         # now wraps only the date, which is what the v1 author field captured.
         profile_names = row.get("author_profile_names") or []
-        author = "; ".join(profile_names) if profile_names else None
+        author = profile_names[0] if len(profile_names) == 1 else None
+        author_resolution = (
+            "one_profile_name"
+            if len(profile_names) == 1
+            else "multiple_profile_names_unresolved"
+            if profile_names
+            else "profile_name_absent"
+        )
         verified_purchase = True if "Verified Purchase" in badge_labels else None
         inventory.append(
             {
@@ -482,6 +489,8 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
                 "source_date": row["source_date"],
                 "source_date_text": source_date_text,
                 "author": author,
+                "author_profile_names": list(profile_names),
+                "author_resolution": author_resolution,
                 "review_location": review_location,
                 "variant_text": variant_text,
                 "verified_purchase": verified_purchase,
@@ -506,6 +515,11 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
     # Same basis as verified_purchase_rows: read the corrected inventory so a
     # doubled badge cannot skew the rollup.
     incentive_count = sum(bool(item["incentive_labels"]) for item in inventory)
+    ambiguous_author_rows = [
+        item["review_id"]
+        for item in inventory
+        if item["author_resolution"] == "multiple_profile_names_unresolved"
+    ]
     context_keys = sorted(
         {
             hook
@@ -556,6 +570,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             "rows_with_helpful_count": sum(row["helpful_count"] is not None for row in parsed_rows),
             "rows_with_media_references": sum(bool(row["media_references"]) for row in parsed_rows),
             "rows_with_incentive_marker": incentive_count,
+            "ambiguous_author_rows": ambiguous_author_rows,
             "context_hook_keys": context_keys,
             "review_inventory": inventory,
         },
@@ -617,6 +632,20 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
                 "category": "provider",
                 "detail": "The winning route is Amazon-native rendered PDP content and is not Bazaarvoice.",
             },
+            *(
+                [
+                    {
+                        "category": "author_identity",
+                        "detail": (
+                            "Multiple profile names were exposed inside review row(s) "
+                            + ", ".join(ambiguous_author_rows)
+                            + "; author remains unresolved rather than joining distinct names."
+                        ),
+                    }
+                ]
+                if ambiguous_author_rows
+                else []
+            ),
         ],
         "raw_failure_fallback": {
             "status": "parent_already_preserved",

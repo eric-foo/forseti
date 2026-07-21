@@ -119,6 +119,28 @@ def test_author_is_the_reviewer_not_the_review_date(tmp_path: Path) -> None:
     assert "Reviewed in" not in (row["author"] or "")
 
 
+def test_multiple_profile_names_remain_unresolved_not_synthetically_joined(
+    tmp_path: Path,
+) -> None:
+    html = _REAL_SHAPE_DOM.replace(
+        '<span class="a-profile-name">HonesTee</span></div>'
+        '<i data-hook="review-star-rating">5.0 out of 5 stars</i>',
+        '<span class="a-profile-name">Second Profile</span></div>'
+        '<i data-hook="review-star-rating">5.0 out of 5 stars</i>',
+        1,
+    )
+    summary = _summary_for(tmp_path, html)
+    row = _only_row(summary)
+
+    assert row["author"] is None
+    assert row["author_profile_names"] == ["HonesTee", "Second Profile"]
+    assert row["author_resolution"] == "multiple_profile_names_unresolved"
+    assert summary["reviews"]["ambiguous_author_rows"] == ["R1S7HOZY4X45ZI"]
+    assert any(
+        item["category"] == "author_identity" for item in summary["loss_ledger"]
+    )
+
+
 def test_doubled_header_text_is_collapsed_to_one_copy(tmp_path: Path) -> None:
     row = _only_row(_summary_for(tmp_path, _REAL_SHAPE_DOM))
 
