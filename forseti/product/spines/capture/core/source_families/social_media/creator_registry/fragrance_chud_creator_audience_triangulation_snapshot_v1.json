@@ -1,0 +1,241 @@
+{
+  "actual_audience_demographics": "not_estimated",
+  "creator_id": "tiktok:@fragrance.chud",
+  "creator_signal_projection": {
+    "briefing_instructions": [
+      {
+        "claim_ids": [
+          "cac_2704351f388d69780efd",
+          "cac_b6547755f6b97a14212c"
+        ],
+        "statement": "Give @fragrance.chud a real comparison set, a price point, and permission to state the product's tradeoffs; preserve a clear evaluative stance."
+      },
+      {
+        "claim_ids": [
+          "cac_fb04530bf0b13ed06672",
+          "cac_a695aff8ed42f1230a3f"
+        ],
+        "statement": "Use the creator's high-energy humor to carry a tightly defined buying question, rather than asking for a generic endorsement."
+      }
+    ],
+    "creator_specific_execution": {
+      "claim_ids": [
+        "cac_2704351f388d69780efd",
+        "cac_fb04530bf0b13ed06672"
+      ],
+      "statement": "Commission a fast, blunt ranked comparison that names the cheaper alternative, the tradeoff, and the product's best use case in his high-energy voice."
+    },
+    "hire_verdict": {
+      "claim_ids": [
+        "cac_fa003b2f1738cd2da6cb",
+        "cac_a695aff8ed42f1230a3f",
+        "cac_2704351f388d69780efd"
+      ],
+      "statement": "Hire @fragrance.chud when a fragrance brand needs to make a value-sensitive, comparison-heavy choice feel clear and worth trying."
+    },
+    "observed_audience_response": {
+      "claim_ids": [
+        "cac_a695aff8ed42f1230a3f",
+        "cac_fb04530bf0b13ed06672"
+      ],
+      "statement": "Captured commenters ask for dupes, buying guidance, availability, and blind-buy reassurance, and they echo recurring lines from the videos."
+    },
+    "product_advantage": {
+      "claim_ids": [
+        "cac_2704351f388d69780efd",
+        "cac_b6547755f6b97a14212c"
+      ],
+      "statement": "He turns price, performance, similarity, and wearability into a concrete verdict that gives a product a defendable place beside familiar options."
+    },
+    "robustness_stamp": null,
+    "strongest_campaign_jobs": [
+      {
+        "claim_ids": [
+          "cac_fa003b2f1738cd2da6cb",
+          "cac_2704351f388d69780efd"
+        ],
+        "statement": "Launch or reposition a fragrance against familiar alternatives by making its price, performance, and use-case tradeoff explicit."
+      },
+      {
+        "claim_ids": [
+          "cac_a695aff8ed42f1230a3f",
+          "cac_fa003b2f1738cd2da6cb"
+        ],
+        "statement": "Create an alternative-finding brief for shoppers asking whether a lower-cost or easier-to-find option is worth trying."
+      }
+    ],
+    "wrong_hire_boundary": {
+      "claim_ids": [
+        "cac_2704351f388d69780efd",
+        "cac_b6547755f6b97a14212c",
+        "cac_fb04530bf0b13ed06672"
+      ],
+      "statement": "Do not hire @fragrance.chud for a polished, claim-light prestige endorsement that cannot tolerate blunt comparison, price scrutiny, or audience disagreement."
+    }
+  },
+  "evidence_cutoff": "2026-07-21T10:05:09Z",
+  "generated_at": "2026-07-21T10:05:09Z",
+  "input_bundle_hash": "sha256:f7aadec25809ba94768e43bc7a86b27edcf66c1f8603b19f1a6d7c9b526c9b43",
+  "input_bundle_id": "caeb_f83c5c93f660ff1502d3",
+  "judgment_claim_set": {
+    "agreements": [
+      "Captured comments echo the creator's recurring lines and describe the presentation as overstimulating, while also requesting more structured themes.",
+      "Captured commenters reward or seek takes perceived as independent, while also actively contesting rankings and recommendations."
+    ],
+    "claims": [
+      {
+        "all_support_evidence_ids": [
+          "ttce_1b382803f9a3f7402b4f",
+          "ttce_6c4c1fcf875bb68a930f",
+          "ttce_dbd910d5db48de4c7911"
+        ],
+        "axis": "price_value_posture",
+        "claim_id": "cac_fa003b2f1738cd2da6cb",
+        "commercial_implication": "A matching brand can use price-and-performance comparisons to make value easier to judge without promising purchase outcomes.",
+        "counterevidence_ids": [],
+        "limitation": "Captured top-level comments only; this does not establish audience-wide price sensitivity.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_1b382803f9a3f7402b4f",
+          "ttce_6c4c1fcf875bb68a930f",
+          "ttce_dbd910d5db48de4c7911"
+        ],
+        "source_item_ids": [
+          "7657553108578340127",
+          "7659046707895880990"
+        ],
+        "statement": "Captured commenters frame fragrance choices through price, cheaper alternatives, and whether a purchase is worth it.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_250fdc19bc4f675ad7e4",
+          "ttce_a62c4a1c8b769d594b6a",
+          "ttce_d55cd25533bb08f0a7ed"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_a695aff8ed42f1230a3f",
+        "commercial_implication": "The creator is suited to briefs that reduce uncertainty around alternatives, price points, and first-try decisions.",
+        "counterevidence_ids": [],
+        "limitation": "Questions show decision interest, not completed purchases or conversion.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_250fdc19bc4f675ad7e4",
+          "ttce_a62c4a1c8b769d594b6a",
+          "ttce_d55cd25533bb08f0a7ed"
+        ],
+        "source_item_ids": [
+          "7660331065801854239",
+          "7662883847830375711"
+        ],
+        "statement": "Captured commenters ask for dupes, purchase guidance, availability, and blind-buy reassurance.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_83fac403129bc5811261",
+          "ttte_9398e5ef19bcd2d485f9",
+          "ttte_b305d1441a83d754e541",
+          "ttte_bc2d71986377bc014f93"
+        ],
+        "axis": "objections",
+        "claim_id": "cac_2704351f388d69780efd",
+        "commercial_implication": "A brand can commission clear comparative verdicts that give a product a defensible place against familiar alternatives.",
+        "counterevidence_ids": [],
+        "limitation": "Transcript fragments are captured without full audiovisual context.",
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_83fac403129bc5811261",
+          "ttte_9398e5ef19bcd2d485f9",
+          "ttte_b305d1441a83d754e541",
+          "ttte_bc2d71986377bc014f93"
+        ],
+        "source_item_ids": [
+          "7657553108578340127",
+          "7662423306011675935"
+        ],
+        "statement": "The creator repeatedly ranks fragrances with blunt praise or criticism tied to price, performance, similarity, and wearability.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_94e73c20c8251ccba3bf",
+          "ttce_d19a194ad09a4889d96b",
+          "ttce_1d9fab5339cf7506f477"
+        ],
+        "axis": "presentation_style_resonance",
+        "claim_id": "cac_fb04530bf0b13ed06672",
+        "commercial_implication": "The creator's high-energy, joke-heavy delivery is a distinctive attention device, but a brief can retain it while giving the comparison a clear organizing question.",
+        "counterevidence_ids": [
+          "ttce_1d9fab5339cf7506f477"
+        ],
+        "limitation": "The request for more serious themes is a counter-signal against assuming the current presentation fits every brief.",
+        "modality": "observed_comments",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_94e73c20c8251ccba3bf",
+          "ttce_d19a194ad09a4889d96b",
+          "ttce_1d9fab5339cf7506f477"
+        ],
+        "source_item_ids": [
+          "7657553108578340127",
+          "7659552671409491231",
+          "7660331065801854239"
+        ],
+        "statement": "Captured comments echo the creator's recurring lines and describe the presentation as overstimulating, while also requesting more structured themes.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_8622a9afc6999c9403d9",
+          "ttce_a6dc1824a27e4f8acee4",
+          "ttce_d3371e226b33cbcc09e7"
+        ],
+        "axis": "language_community_norms",
+        "claim_id": "cac_b6547755f6b97a14212c",
+        "commercial_implication": "The strongest sponsored work should preserve an explicit point of view and make the comparison criteria visible rather than read as unqualified endorsement.",
+        "counterevidence_ids": [
+          "ttce_a6dc1824a27e4f8acee4"
+        ],
+        "limitation": "Comments indicate perceived credibility and debate, not universal trust.",
+        "modality": "observed_comments",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttce_8622a9afc6999c9403d9",
+          "ttce_a6dc1824a27e4f8acee4",
+          "ttce_d3371e226b33cbcc09e7"
+        ],
+        "source_item_ids": [
+          "7659552671409491231",
+          "7662423306011675935"
+        ],
+        "statement": "Captured commenters reward or seek takes perceived as independent, while also actively contesting rankings and recommendations.",
+        "support_scope": "multi_item"
+      }
+    ],
+    "contradictions": [],
+    "missing_evidence": []
+  },
+  "limitations": [
+    "Evidence covers eight selected TikTok videos and captured top-level comments only.",
+    "The capture is not a platform-wide comment census and may be ranked or truncated.",
+    "No reply-thread analysis was captured.",
+    "Transcript fragments may omit audiovisual context."
+  ],
+  "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+  "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+  "non_claims": [
+    "No audience prevalence, demographics, conversion, sales, ROI, or guaranteed campaign performance is estimated.",
+    "Comment questions do not prove purchases or broader audience behavior.",
+    "Perceived independence in captured comments does not prove universal trust."
+  ],
+  "platform_account_id": "acct_tiktok_fragrance_010",
+  "platform_scope": "tiktok",
+  "profile_subject_id": "acct_tiktok_fragrance_010",
+  "profile_subject_kind": "platform_account",
+  "schema_version": "creator_audience_triangulation_snapshot_v1",
+  "snapshot_id": "cats_57a1390a71fb2e4eace8"
+}

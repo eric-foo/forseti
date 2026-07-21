@@ -542,6 +542,18 @@
         "display_name_source_field_or_none": "items[0].author.nickname"
       },
       {
+        "platform_account_id": "acct_tiktok_fragrance_010",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": "7628842689794049054",
+        "public_handle": "fragrance.chud",
+        "public_profile_url": "https://www.tiktok.com/@fragrance.chud",
+        "handle_source_pointer": "F:\\forseti-data-lake\\raw\\70d\\01KY225W9RZZK2RY44796D8SA0\\raw\\02_tiktok_grid_window.json#/items/0/author/uniqueId",
+        "handle_observed_at": "2026-07-21T10:02:11Z",
+        "public_display_name_or_none": "Archer Fragrance",
+        "display_name_source_pointer_or_none": "F:\\forseti-data-lake\\raw\\70d\\01KY225W9RZZK2RY44796D8SA0\\raw\\02_tiktok_grid_window.json#/items/0/author/nickname",
+        "display_name_source_field_or_none": "items[0].author.nickname"
+      },
+      {
         "platform_account_id": "acct_yt_fragrance_032",
         "platform": "youtube",
         "platform_public_account_id_or_none": "UCJ7EzNsSGFBx1w5KQqRzMqA",
