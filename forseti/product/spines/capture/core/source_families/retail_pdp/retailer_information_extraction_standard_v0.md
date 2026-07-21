@@ -150,15 +150,26 @@ in-packet summaries stay capture evidence, and Cleaning owns downstream
 adaptation. Grid projections are separate retailer-specific mechanical views,
 not PDP content, Cleaning, or Silver.
 
-For the qualified ladder, Sephora and Target have admitted projected grid
-paths; only Sephora currently reconciles a retailer-declared complete parent
+For the qualified ladder, Sephora, Ulta, and Target have admitted projected
+grid paths; Sephora and Ulta reconcile a retailer-declared complete parent
 count. Amazon search-grid capture remains query-bound raw, not a complete or
-authorized-only brand denominator. Ulta's grid profile remains non-ordinary.
+authorized-only brand denominator.
 Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
 decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
 ordinary shallow profile derives its target from the commissioned URL and
 requires its exact US pin. A capability gap is never replaced with snippets,
 another market, a canary product, or an inferred list.
+
+Before depth selection, compose the owned parent denominator with exactly one
+typed outcome for each ladder retailer. For every captured grid, re-project
+hash-verified raw bytes and require one explicit reconciliation per grid row.
+Count parent coverage by retailer-native listing identity, not placement:
+duplicate placements, variant URLs, bundles/sets, ambiguous matches, and
+unmatched rows remain separate residuals and cannot inflate the owned-parent
+count. Require one hash-verified full-raw Retail/PDP baseline for each exact
+non-bundle listing. Missing material variants and route failures remain typed;
+neither receives coverage credit. This composition is acquisition accounting,
+not hero, growth, weak-link, sales, or internal-economics Judgment.
 
 Success means the declared capture bound is proven. It does not mean source
 completeness, demographic representativeness, ranking-algorithm validation,

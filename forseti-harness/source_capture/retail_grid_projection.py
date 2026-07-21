@@ -168,7 +168,7 @@ class RetailGridProjectionPacket(StrictModel):
 def build_retail_grid_projection_from_packet_directory(
     *, packet_directory: Path
 ) -> RetailGridProjectionPacket:
-    packet, raw_file_bytes_by_file_id = _load_packet_directory_projection_inputs(packet_directory)
+    packet, raw_file_bytes_by_file_id = load_verified_source_capture_packet_directory(packet_directory)
     return build_retail_grid_projection(
         packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id
     )
@@ -800,9 +800,10 @@ def _detect_retailer(packet: SourceCapturePacket) -> RetailGridRetailer:
     )
 
 
-def _load_packet_directory_projection_inputs(
+def load_verified_source_capture_packet_directory(
     packet_directory: Path,
 ) -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    """Load a packet directory and re-hash every manifest-declared raw file."""
     manifest_path = packet_directory / "manifest.json"
     if not manifest_path.is_file():
         raise RetailGridProjectionInputError(f"packet manifest not found: {manifest_path}")
