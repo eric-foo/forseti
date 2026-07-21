@@ -118,23 +118,24 @@ Landed, retailer-native (never labelled Bazaarvoice):
   append-only retention. Hard gates: parent `ulta_us_market_assertion` with
   `pin_confirmed=true` and no access block; URL product id ==
   page-declared `page_id`; every row bound to that `page_id`;
-  `review_id == ugc_id` on every row (Gate 1 invariant); unique IDs;
-  order verification per role; key-echo refusal; zero-rows-with-declared-total
-  refusal.
+  `review_id == ugc_id` on every review row (Gate 1 invariant); unique IDs;
+  order verification per role; Q&A product binding; key-echo refusal;
+  zero-rows-with-declared-total refusal for reviews and Q&A.
 - `forseti-harness/runners/run_source_capture_ulta_onboarding.py` — CLI on
   the existing packet seam, with lake-seam wiring reconciled in
   `data_lake/inventory.py` (explicit data-root reason + identity binding),
   `source_capture/source_classification.py`
   (`ulta_powerreviews_onboarding`), the seam-coverage contract list, and the
   regenerated `lake_touchpoint_inventory_v0.json`.
-- `forseti-harness/tests/unit/test_ulta_onboarding_capture.py` — 13 focused
+- `forseti-harness/tests/unit/test_ulta_onboarding_capture.py` — 16 focused
   tests mirroring the Sephora/Target coverage classes: success without
   body/key duplication, acquisition fail-loud with partial preservation,
-  adaptation fail-loud raw fallback (native-ID invariant break and foreign
-  product row), identity-mapping and pin/sufficiency refusals before any
-  network read, key-echo refusal, route page-cap rejection, corrupt-response
-  preservation, and config-resolution failure shapes. All pass, plus the
-  lake-seam and inventory contract gates.
+  adaptation fail-loud raw fallback (native-ID invariant break, foreign review
+  or question product, and declared-but-empty Q&A), identity-mapping and
+  pin/sufficiency refusals before any network read, key-echo refusal, route
+  page-cap rejection, corrupt-response preservation, and named-script/config
+  resolution failure shapes. All pass, plus the lake-seam and inventory
+  contract gates.
 
 Live proof packet: `01KY20GH02FH8CCSAV2D6M9NKR`
 (`F:\forseti-data-lake\raw\c38\...`), exit code 0 — 100 Most Helpful rows +

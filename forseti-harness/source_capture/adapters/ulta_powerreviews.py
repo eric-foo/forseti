@@ -28,6 +28,10 @@ POWERREVIEWS_DISPLAY_PAGE_SIZE_MAX = 25
 _API_USER_AGENT = "ForsetiUltaPowerReviewsCapture/1.0 (raw-preserving structured read)"
 _NO_PROXY_OPENER = build_opener(ProxyHandler({}))
 
+_RENDER_SCRIPT = re.compile(
+    r"""<script\b(?=[^>]*\bid\s*=\s*(?P<quote>["'])PowerReviewsRender(?P=quote))[^>]*>(?P<body>.*?)</script\s*>""",
+    re.IGNORECASE | re.DOTALL,
+)
 _RENDER_BLOCK = re.compile(
     r"POWERREVIEWS\.display\.render\(\{(?P<body>.*?)\}\)",
     re.DOTALL,
@@ -85,10 +89,15 @@ def resolve_ulta_powerreviews_config(dom_text: str) -> PowerReviewsReadConfig:
     for in-flight use only and must never be written into manifests, summaries,
     or error text.
     """
-    blocks = _RENDER_BLOCK.findall(dom_text)
+    scripts = [match.group("body") for match in _RENDER_SCRIPT.finditer(dom_text)]
+    if len(scripts) != 1:
+        raise UltaPowerReviewsConfigError(
+            "Ulta parent DOM must declare exactly one script#PowerReviewsRender"
+        )
+    blocks = _RENDER_BLOCK.findall(scripts[0])
     if len(blocks) != 1:
         raise UltaPowerReviewsConfigError(
-            "Ulta parent DOM must declare exactly one "
+            "script#PowerReviewsRender must contain exactly one "
             "POWERREVIEWS.display.render configuration block"
         )
     body = blocks[0]

@@ -702,7 +702,7 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
-          "mechanism": "before acquisition, a hash-verified retail_pdp parent must carry a confirmed unblocked ulta_us_market_assertion pin and bind the Ulta URL product id to the page-declared PowerReviews page_id; every returned review row must carry that page_id, and review_id must equal ugc_id on every row before the summary succeeds",
+          "mechanism": "before acquisition, a hash-verified retail_pdp parent must carry a confirmed unblocked ulta_us_market_assertion pin and bind the Ulta URL product id to the page-declared PowerReviews page_id; every returned review and question row must carry that page_id, and review_id must equal ugc_id on every review row before the summary succeeds",
           "status": "bound"
         },
         "kind": "direct_packet_writer",

@@ -26,7 +26,8 @@ _PRODUCT_ID = "pimprod2046225"
 _PRODUCT_URL = (
     f"https://www.ulta.com/p/night-shift-overnight-lip-mask-{_PRODUCT_ID}"
 )
-_API_KEY = "daa0f241-c242-4483-afb7-4449942d1a2b"
+# Synthetic valid-shaped fixture value; never copy a live page-declared key here.
+_API_KEY = "00000000-0000-4000-8000-000000000001"
 _MERCHANT_ID = "6406"
 
 
@@ -167,39 +168,44 @@ def _reviews_document(
     }
 
 
-def _questions_document() -> dict[str, Any]:
+def _questions_document(
+    *,
+    page_id: str = _PRODUCT_ID,
+    include_rows: bool = True,
+) -> dict[str, Any]:
+    rows = [
+        {
+            "ugc_id": 555338720,
+            "question_id": "10993814",
+            "details": {
+                "nickname": "asker",
+                "created_date": 1750304118163,
+                "text": "Is this petroleum free?",
+                "product_page_id": page_id,
+                "is_seeded": False,
+            },
+            "answer": [
+                {
+                    "ugc_id": 555886396,
+                    "answer_id": "555886396",
+                    "details": {
+                        "nickname": "Liv",
+                        "text": "No it is not.",
+                        "is_expert": True,
+                        "author_type": "EXPERT",
+                        "brand_name": "Ulta Beauty Collection",
+                        "created_date": 1750880577016,
+                    },
+                    "metrics": {"helpful_votes": 1, "not_helpful_votes": 0},
+                }
+            ],
+            "answer_count": 1,
+        }
+    ]
     return {
         "name": "question",
         "paging": {"total_results": 1},
-        "results": [
-            {
-                "ugc_id": 555338720,
-                "question_id": "10993814",
-                "details": {
-                    "nickname": "asker",
-                    "created_date": 1750304118163,
-                    "text": "Is this petroleum free?",
-                    "product_page_id": _PRODUCT_ID,
-                    "is_seeded": False,
-                },
-                "answer": [
-                    {
-                        "ugc_id": 555886396,
-                        "answer_id": "555886396",
-                        "details": {
-                            "nickname": "Liv",
-                            "text": "No it is not.",
-                            "is_expert": True,
-                            "author_type": "EXPERT",
-                            "brand_name": "Ulta Beauty Collection",
-                            "created_date": 1750880577016,
-                        },
-                        "metrics": {"helpful_votes": 1, "not_helpful_votes": 0},
-                    }
-                ],
-                "answer_count": 1,
-            }
-        ],
+        "results": rows if include_rows else [],
     }
 
 
@@ -208,6 +214,8 @@ def _api_fetcher(
     corrupt_recent: bool = False,
     recent_status: int = 200,
     foreign_recent_page_id: bool = False,
+    foreign_question_page_id: bool = False,
+    empty_questions: bool = False,
     break_native_id: bool = False,
     total: int = 40,
 ):
@@ -224,7 +232,14 @@ def _api_fetcher(
         offset = int(parameters.get("paging.from", "0"))
         page_size = int(parameters["paging.size"])
         if spec.resource == "questions":
-            document: dict[str, Any] = _questions_document()
+            document: dict[str, Any] = _questions_document(
+                page_id=(
+                    "pimprod9999999"
+                    if foreign_question_page_id
+                    else _PRODUCT_ID
+                ),
+                include_rows=not empty_questions,
+            )
         elif parameters["sort"] == "MostHelpful":
             rows = [
                 _review_row(
@@ -399,6 +414,40 @@ def test_foreign_product_row_fails_adaptation_with_raw_fallback(
     assert "foreign" in result["summary"]["failure"]["error"]
 
 
+def test_foreign_product_question_fails_adaptation_with_raw_fallback(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+
+    exit_code, result = capture_ulta_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        pages_per_role=1,
+        api_fetcher=_api_fetcher(foreign_question_page_id=True, total=20),
+    )
+    assert exit_code == 5
+    assert "foreign product_page_id" in result["summary"]["failure"]["error"]
+
+
+def test_declared_questions_without_rows_fail_adaptation_with_raw_fallback(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+
+    exit_code, result = capture_ulta_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        pages_per_role=1,
+        api_fetcher=_api_fetcher(empty_questions=True, total=20),
+    )
+    assert exit_code == 5
+    assert "returned zero rows although the source declares 1" in result[
+        "summary"
+    ]["failure"]["error"]
+
+
 def test_parent_identity_mismatch_fails_before_any_api_read(
     tmp_path: Path,
 ) -> None:
@@ -508,6 +557,14 @@ def test_config_resolution_requires_exactly_one_render_block() -> None:
     doubled = _render_block() + _render_block()
     with pytest.raises(UltaPowerReviewsConfigError, match="exactly one"):
         resolve_ulta_powerreviews_config(doubled)
+
+
+def test_config_resolution_requires_named_render_script() -> None:
+    wrong_anchor = _render_block().replace(
+        'id="PowerReviewsRender"', 'id="NotPowerReviewsRender"'
+    )
+    with pytest.raises(UltaPowerReviewsConfigError, match="script#PowerReviewsRender"):
+        resolve_ulta_powerreviews_config(wrong_anchor)
 
 
 def test_config_resolution_rejects_invalid_key_shape() -> None:

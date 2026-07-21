@@ -293,7 +293,9 @@ def build_ulta_onboarding_summary(
     total_disagreement = sorted(set(totals.values()))
 
     question_spec, question_document = question_docs[0]
-    question_rows = _question_rows(question_document, question_spec.artifact_name)
+    question_rows = _question_rows(
+        question_document, question_spec.artifact_name, config.page_id
+    )
     included_answer_counts = [
         len(_list_value(row.get("answer"))) for row in question_rows
     ]
@@ -322,8 +324,9 @@ def build_ulta_onboarding_summary(
             "merchant_group_id": config.merchant_group_id,
             "locale": config.locale,
             "native_review_id_semantics": (
-                "review_id equals ugc_id on every captured row and equals the "
-                "rendered pr-rd-review-headline-<id> numeric suffix (Gate 1)"
+                "review_id equals ugc_id on every captured row; the separate Gate 1 "
+                "cross-check established that structured review_id corresponds to the "
+                "rendered pr-rd-review-headline-<id> suffix on the reference PDP"
             ),
         },
         "configuration": {
@@ -763,12 +766,26 @@ def _review_row_summary(
 def _question_rows(
     document: Mapping[str, Any],
     label: str,
+    page_id: str,
 ) -> list[Mapping[str, Any]]:
     rows = _document_questions(document, label)
+    total = _total_results(document, label)
+    if not rows and total > 0:
+        raise UltaOnboardingCaptureError(
+            f"{label} returned zero rows although the source declares {total} results"
+        )
     for row in rows:
         if row.get("question_id") is None and row.get("ugc_id") is None:
             raise UltaOnboardingCaptureError(
                 f"{label} contains a question row without an identifier"
+            )
+        declared_page = str(
+            _mapping_value(row.get("details")).get("product_page_id")
+        )
+        if declared_page != page_id:
+            raise UltaOnboardingCaptureError(
+                f"{label} contains a question bound to foreign "
+                f"product_page_id {declared_page!r}"
             )
     return rows
 

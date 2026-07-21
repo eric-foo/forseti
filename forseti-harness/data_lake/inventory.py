@@ -352,8 +352,8 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "before acquisition, a hash-verified retail_pdp parent must carry a "
             "confirmed unblocked ulta_us_market_assertion pin and bind the Ulta URL "
             "product id to the page-declared PowerReviews page_id; every returned "
-            "review row must carry that page_id, and review_id must equal ugc_id on "
-            "every row before the summary succeeds"
+            "review and question row must carry that page_id, and review_id must "
+            "equal ugc_id on every review row before the summary succeeds"
         ),
     },
     "run_source_capture_amazon_review_onboarding.py": {
