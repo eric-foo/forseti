@@ -780,28 +780,86 @@ using explicit gap or unknown cells where evidence is absent. The typed ledgers
 remain the audit floor behind the narrative, never the front door.
 
 When offerings, retail presentation, or customer experience are material to a
-company commission, acquire breadth before product depth. First establish the
-owned portfolio architecture (public shop-all/bestseller surfaces,
-collections or franchises, parent products, and visible variants), then the
-brand/assortment grid at one primary retailer, and reconcile both into a
-franchise -> parent product -> variant/SKU -> retailer-listing map. Only then
-select up to three representative franchises for PDP and customer-evidence
-deepening: the evidence-supported dominant franchise; the founding or otherwise
-strategically central franchise; and, only when materially distinct, one
-contrasting extension or plausible weak link. Fewer than three is valid; do not
-pad the set or presuppose hero status.
+company commission, acquire bounded portfolio breadth before product depth.
+Owned surfaces remain canonical for company portfolio and franchise expression.
+Use public categories, collections/franchises, visible parent products, declared
+totals when exposed, bestseller/new/owned-prominence signals, and typed coverage
+gaps to establish a franchise/candidate census; do not require a complete
+every-SKU architecture. Capture source-visible target/use-case, price-tier,
+channel, and geography differentiation; owned/retailer prominence, new/launch,
+and distribution state; product/franchise concentration and overlap evidence;
+explicit strategic statements or moves; and shared capability or dependency
+evidence where exposed. These inputs position later analysis but do not authorize
+Understanding to infer portfolio roles, competitive strategy, or leverage.
+
+Then acquire one primary-retailer brand/assortment grid as a second candidate
+denominator and source of channel-local commercial and customer prominence
+signals. Reconcile owned and retailer identity deeply only for candidates that
+could materially change selection, ambiguous matches, and selected products; a
+complete global franchise -> parent product -> variant/SKU -> retailer-listing
+graph is out of scope by default.
+
+Select up to three representative franchises, each anchored by one
+representative parent product, for PDP and customer-evidence deepening.
+Candidate evidence may be product-level, one candidate may perform multiple
+jobs, and fewer than three franchises remain valid. Resolve four jobs: (1) an
+established prominence candidate; (2) a founding, strategically central, or
+currently promoted/new candidate; (3) a complaint-heavy or customer-friction
+candidate supported by bounded negative evidence rather than raw review count
+alone; and (4) a plausible contrasting extension or observed weak-link candidate
+supported by comparable rating, negative-share, or recent complaint evidence
+with an adequate observed evidence floor. Keep new or strategic products
+eligible through owned/current-promotion evidence despite low review tenure. A
+product-level candidate uniquely representing a material segment, use case,
+price tier, channel, geography, adjacency, or dependency may change which parent
+product anchors a franchise or may displace a redundant prominence- or
+complaint-oriented franchise within the same max-three-franchise ceiling.
+Multiple products in one franchise do not create extra chain cards, count as
+additional franchises, or create another quota. If the ceiling cannot cover
+materially distinct analysis-enablement evidence, record a typed selection
+residual or gap rather than padding or silently omitting it. Do not presuppose
+hero status or label a selection a sales leader, best-performing product, or
+worst product.
+
+Review volume is a channel-, tenure-, assortment-, and syndication-sensitive
+prominence prior, not evidence of sales, demand, or commercial performance.
+Keep counts separate by retailer and corpus; do not sum them unless exact corpus
+identity and deduplication justify it. Review volume alone must not optimize the
+selected set. Stop breadth acquisition when the visible candidate set resolves
+the four jobs and material analysis-enablement dimensions and remaining
+omissions are typed residuals unlikely to change the selected set. If missing
+grid pages or category totals, identity conflicts, or review comparability could
+change selection, record a portfolio-coverage or selection gap and continue
+acquisition or block; never silently choose from a partial list.
 
 Choose the primary retailer from subject authorization, target-market
 relevance, assortment breadth, structured evidence depth, and route
-admissibility. When the subject has a material retailer presence and the bound
-question depends on retail expression, that primary-retailer row is required.
-At most one secondary retailer is conditional on a named, non-duplicative
-channel, assortment, price, availability, authenticity, or customer-evidence
-job. A tertiary retailer is exception-only to resolve a material contradiction
-or gap. Use the existing coverage-ledger `requirement`, `relevance_rationale`,
-and typed-gap fields; retailer role adds no new schema, quota, or completion
-credit. Retailer evidence remains retailer evidence, not authority for internal
-company fact.
+admissibility. When Sephora is authorized for the target market,
+route-admissible, and materially complete for the relevant candidate or
+franchise, use it as the default retail primary for normalized product,
+assortment, and review controls. Override at product or franchise level when
+Sephora omits a material product or variant, is unpinned or blocked, or another
+authorized retailer is required for the bound information job. When the subject
+has a material retailer presence and the bound question depends on retail
+expression, that primary-retailer row is required. At most one secondary
+retailer is conditional on a named, non-duplicative channel, assortment, price,
+availability, authenticity, or customer-evidence job. A tertiary retailer is
+exception-only to resolve a material contradiction or gap. Use the existing
+coverage-ledger `requirement`, `relevance_rationale`, and typed-gap fields;
+retailer role adds no new schema, quota, all-retailers/full-corpus requirement,
+or completion credit. Retailer evidence remains retailer evidence, not
+authority for internal company fact. Apply PDP and customer-evidence depth only
+after candidate selection.
+
+Carry these MGT accepted residuals: unselected long-tail products may remain at
+grid/collection identity rather than PDP/SKU depth; review volume remains
+channel/tenure/syndication biased and supports prominence ordering only;
+observed complaint or weak-link candidates are not market-wide worst-product
+conclusions; and a full global SKU graph and automated identity resolver remain
+out of scope. Upgrade when unresolved breadth, identity, syndication, or
+comparability could materially change the selected set. Assortment and review
+evidence alone cannot establish sales, cash generation, growth, cannibalization,
+intent, control, competitive strategy, or operational leverage.
 
 ### Executive Intelligence Brief (completed reports only)
 
@@ -837,7 +895,8 @@ The brief contains:
   claim; and the bounded substitute customers cite or compare when the claim
   breaks (not a defection or demand-capture claim). A card compresses to one
   front-page conclusion row. Present at most three such rows, and fewer when the
-  reconciled portfolio does not support three materially distinct franchises.
+  bounded candidate census does not support three materially distinct
+  franchises.
 - The central-promise voice and internal adjudication frame: where observable
   value resides; what drives it; whether the evidence shows it strengthening,
   weakening, or not proven; and what threatens it — each statement carrying
@@ -1043,13 +1102,14 @@ For each evidence-selected representative franchise, add at most one
 choice-mechanism chain card using one representative parent product: claim ->
 why customers buy -> what they experience -> which complaints attack the claim
 -> where defectors go, every link citing observation IDs. Select no more than
-three franchises after owned and primary-retailer portfolio reconciliation;
-normally cover the dominant franchise, the founding or strategically central
-franchise, and one materially distinct contrasting extension or plausible weak
-link. Do not call a franchise a hero until owned prominence and independent
-retailer/customer evidence support that conclusion. Feed each link only from
-sources that can observe it; no route observes population rates, switching
-volume, or sell-through, so no cell may state one. Buy-reason carries reported
+three franchises after the owned and primary-retailer candidate census resolves
+the four selection jobs above; product-level candidate evidence may resolve
+multiple jobs, but multiple products within one franchise do not create extra
+chain cards or increase the three-franchise ceiling. Do not call a franchise a
+hero until owned prominence and independent retailer/customer evidence support
+that conclusion. Feed each link only from sources that can
+observe it; no route observes population rates, switching volume, sell-through,
+or product sales, so no cell may state one. Buy-reason carries reported
 motivation and positioned draws, never measured demand; substitutes are cited
 alternatives and price gaps, never switching.
 
