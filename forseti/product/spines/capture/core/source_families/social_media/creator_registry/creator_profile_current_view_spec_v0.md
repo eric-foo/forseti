@@ -337,8 +337,11 @@ Identity-state mapping:
 
 Onboarding-state mapping:
 
-- The profile copies the exact account-level `onboarding` block from
-  `creator_registry_index_v0.json`; it does not infer or independently mutate it.
+- The legacy profile copies the exact account-level `onboarding` block from the
+  v0 index. After the lake cutover, onboarding remains internal to generated
+  `creator_registry_index_v1`; the client-safe `creator_profile_public_v1`
+  projection intentionally omits onboarding and monitoring controls under
+  `creator_registry_lake_authority_contract_v1.md`.
 - `onboarded` means a complete, verified, official committed Bronze content
   packet was exactly attributed to the account. It does not mean fresh,
   high-quality, representative, influential, or fully analyzed.

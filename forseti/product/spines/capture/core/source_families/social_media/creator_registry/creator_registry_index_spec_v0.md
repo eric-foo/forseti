@@ -119,11 +119,12 @@ Discovery/Capture a different one.
   superseded packets from eligibility without deleting audit bytes. Recency,
   paused monitoring, and stale metrics remain separate fields.
 
-`run_creator_registry_onboarding_refresh.py` is the named read-only materializer.
-It scans committed manifests, verifies only the schema-owned JSON member needed
-for attribution, fails on ambiguous identity, and never writes the lake. The
-profile-current materializer consumes this index and must expose the identical
-onboarding block; individual capture runners do not flip registry state.
+The live successor is governed by
+`creator_registry_lake_authority_contract_v1.md`. The checked-in v0 index is a
+frozen migration input. After cutover, `creator_registry_index_v1` is rebuilt
+from the one baseline plus append-only admissions and published under the lake
+`CURRENT` generation. Bronze capture alone does not flip state; validated
+Judgment completion performs the admission and exact-once readback.
 
 `linkage_state` is inherited from the public-handle linkage ledger:
 

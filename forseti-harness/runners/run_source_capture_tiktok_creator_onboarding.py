@@ -23,6 +23,9 @@ from capture_spine.creator_profile_current.creator_onboarding_selection import (
 from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
 )
+from data_lake.canonical_json import canonical_record_bytes
+from data_lake.creator_registry import load_current_registry_preflight_view
+from data_lake.root import DataLakeRoot
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
     RefreshOutcome,
@@ -54,9 +57,6 @@ from source_capture.tiktok.creator_onboarding import (
     run_tiktok_creator_profile_refresh,
 )
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
-from runners.run_creator_registry_onboarding_refresh import (
-    refresh_creator_registry_projections,
-)
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
 PROGRESS_PREFIX = "tiktok_creator_onboarding_progress_json="
 BLOCKER_PREFIX = "tiktok_creator_onboarding_blocker_json="
@@ -110,7 +110,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--creator-handle",
         help=(
             "TikTok handle. When omitted for new_onboarding, auto-select the sole "
-            "not_onboarded TikTok platform account in the Creator Registry."
+            "not_onboarded TikTok platform account in the Creator Registry. An "
+            "explicit handle may also name a genuinely absent account."
         ),
     )
     parser.add_argument(
@@ -118,8 +119,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("new_onboarding", "new_capture", "update_existing"),
         default="new_onboarding",
         help=(
-            "New onboarding requires an exact Creator Registry match with "
-            "onboarding_state=not_onboarded; new capture blocks exact matches; "
+            "New onboarding requires either an exact Creator Registry match with "
+            "onboarding_state=not_onboarded or a genuinely absent account; new capture blocks exact matches; "
             "update existing requires an exact match."
         ),
     )
@@ -200,10 +201,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     capture_scope = "full_deep_capture"
     prior_coverage: dict[str, object] | None = None
     try:
+        if args.data_root is not None:
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+            registry_document = load_current_registry_preflight_view(data_root)
+            registry_source_pointer = (
+                "indexes/derived_retrieval/creator_registry/CURRENT"
+            )
+            registry_sha256 = hashlib.sha256(
+                canonical_record_bytes(registry_document)
+            ).hexdigest()
+        else:
+            registry_document = load_creator_profile_current_view(args.creator_registry)
+            registry_source_pointer = str(args.creator_registry)
+            registry_sha256 = hashlib.sha256(args.creator_registry.read_bytes()).hexdigest()
         args.creator_handle, selected_candidate = _resolve_creator_handle(
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
-            registry_path=args.creator_registry,
+            registry_document=registry_document,
         )
         if selected_candidate is not None:
             _emit_progress("creator_selected_from_registry", selected_candidate)
@@ -217,17 +231,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         preflight_path, preflight_result = _write_creator_registry_preflight(
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
-            registry_path=args.creator_registry,
+            registry_document=registry_document,
+            registry_source_pointer=registry_source_pointer,
+            registry_sha256=registry_sha256,
             output_dir=args.output_dir,
         )
         if args.creator_intent == "new_onboarding":
-            if preflight_result.get("decision") != "existing_match":
+            decision = preflight_result.get("decision")
+            if decision not in {"existing_match", "new_candidate"}:
                 raise TikTokCreatorOnboardingError(
-                    "new_onboarding requires an exact Creator Registry match; "
-                    f"found decision={preflight_result.get('decision')!r}"
+                    "new_onboarding requires either one exact not-onboarded match "
+                    f"or a genuinely absent account; found decision={decision!r}"
                 )
             onboarding_state = preflight_result.get("registry_onboarding_state")
-            if onboarding_state != "not_onboarded":
+            if decision == "existing_match" and onboarding_state != "not_onboarded":
                 raise TikTokCreatorOnboardingError(
                     "new_onboarding requires onboarding_state=not_onboarded; "
                     f"found onboarding_state={onboarding_state!r}"
@@ -240,10 +257,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 "--force-deep-recapture requires --prior-capture-pointer"
             )
-        if args.data_root is not None:
-            from data_lake.root import DataLakeRoot
-
-            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         if args.prior_capture_pointer and not args.force_deep_recapture:
             prior_coverage = _validate_reusable_prior_capture(
                 prior_capture_pointer=args.prior_capture_pointer,
@@ -409,23 +422,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         admitted_path = str(output)
         if data_root is not None:
             _emit_progress(
-                "registry_projection_refresh_started",
+                "registry_admission_deferred_until_validated_judgment",
                 {"admitted_path": admitted_path},
             )
-            try:
-                registry_projection_refresh = refresh_creator_registry_projections(
-                    data_root=data_root,
-                )
-            except Exception as exc:
-                _emit_blocker("REGISTRY_PROJECTION_REFRESH_FAILED", "admission")
-                parser.exit(
-                    status=3,
-                    message=(
-                        "TikTok admission committed, but Creator Registry projection "
-                        f"refresh failed: {type(exc).__name__}: {exc}\n"
-                    ),
-                )
-                return 3
         if data_root is not None and capture_scope == "full_deep_capture":
             try:
                 frontier_path = _write_suggested_frontier(
@@ -520,7 +519,8 @@ def _resolve_creator_handle(
     *,
     creator_handle: str | None,
     creator_intent: str,
-    registry_path: Path,
+    registry_document: dict[str, object] | None = None,
+    registry_path: Path | None = None,
 ) -> tuple[str, dict[str, str] | None]:
     if creator_handle is not None and creator_handle.strip():
         return creator_handle, None
@@ -528,7 +528,10 @@ def _resolve_creator_handle(
         raise ValueError(
             "--creator-handle is required unless --creator-intent=new_onboarding"
         )
-    registry_document = load_creator_profile_current_view(registry_path)
+    if registry_document is None:
+        if registry_path is None:
+            raise ValueError("registry_document or registry_path is required")
+        registry_document = load_creator_profile_current_view(registry_path)
     candidate = select_creator_onboarding_candidate(
         registry_document,
         platform="tiktok",
@@ -605,13 +608,23 @@ def _write_creator_registry_preflight(
     *,
     creator_handle: str,
     creator_intent: str,
-    registry_path: Path,
+    registry_document: dict[str, object] | None = None,
+    registry_source_pointer: str | None = None,
+    registry_sha256: str | None = None,
+    registry_path: Path | None = None,
     output_dir: Path,
 ) -> tuple[Path, dict[str, object]]:
     normalized_handle = creator_handle.strip().lstrip("@").lower()
-    registry_document = load_creator_profile_current_view(registry_path)
+    if registry_document is None:
+        if registry_path is None:
+            raise ValueError("registry_document or registry_path is required")
+        registry_document = load_creator_profile_current_view(registry_path)
+        registry_source_pointer = str(registry_path)
+        registry_sha256 = hashlib.sha256(registry_path.read_bytes()).hexdigest()
+    if registry_source_pointer is None or registry_sha256 is None:
+        raise ValueError("registry source pointer and sha256 are required")
     registry_intent = (
-        "update_existing" if creator_intent == "new_onboarding" else creator_intent
+        "classify" if creator_intent == "new_onboarding" else creator_intent
     )
     receipt = build_creator_registry_match_preflight_receipt(
         candidates=[
@@ -626,8 +639,8 @@ def _write_creator_registry_preflight(
             }
         ],
         registry_document=registry_document,
-        registry_source_pointer=str(registry_path),
-        registry_sha256=hashlib.sha256(registry_path.read_bytes()).hexdigest(),
+        registry_source_pointer=registry_source_pointer,
+        registry_sha256=registry_sha256,
         generated_at_utc=(
             datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
         ),
