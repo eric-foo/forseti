@@ -1845,6 +1845,16 @@ def test_frontier_selection_skips_onboarded_and_absent_requires_promote() -> Non
     assert selected["selection_source"] == "promotion_frontier"
     with pytest.raises(TikTokCreatorOnboardingError, match="requires a promote_now"):
         runner._require_promoted(None, "unknown")
+    deferred = {"tiktok_creator_promotion_decisions": {
+        "schema_version": "tiktok_creator_promotion_decisions_v1",
+        "decisions": [{
+            "handle": "eddeparfum",
+            "registry_action": "promote_now",
+            "onboarding_queue_status": "owner_deferred",
+        }],
+    }}
+    with pytest.raises(TikTokCreatorOnboardingError, match="owner-deferred"):
+        runner._require_promoted(deferred, "eddeparfum")
 
 
 def test_frontier_selection_skips_already_scanned_frontier_root() -> None:

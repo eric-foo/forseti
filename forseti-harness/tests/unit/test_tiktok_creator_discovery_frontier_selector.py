@@ -121,7 +121,7 @@ def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() 
                 for age in (16, 20, 25)
             ],
         }
-        for handle in ("done", "scanned", "known", "fresh")
+        for handle in ("done", "scanned", "known", "fresh", "eddeparfum")
     ]
     document = apply_tiktok_creator_onboarding_dedupe(
         build_tiktok_creator_promotion_decisions(grids),
@@ -131,12 +131,20 @@ def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() 
     wrapper = document["tiktok_creator_promotion_decisions"]
     rows = {row["handle"]: row for row in wrapper["decisions"]}
 
-    assert wrapper["counts"]["promote_now"] == 4
+    assert wrapper["counts"]["promote_now"] == 5
     assert wrapper["counts"]["actionable_promote_now"] == 2
+    assert wrapper["counts"]["owner_deferred_promote_now"] == 1
     assert wrapper["actionable_promote_now_handles"] == ["fresh", "known"]
     assert rows["done"]["onboarding_queue_status"] == "already_onboarded"
     assert rows["scanned"]["onboarding_queue_status"] == "already_scanned_frontier"
     assert rows["known"]["actionable_promote_now"] is True
+    assert rows["eddeparfum"]["onboarding_queue_status"] == "owner_deferred"
+    assert rows["eddeparfum"]["owner_onboarding_disposition_or_none"] == {
+        "action": "defer",
+        "reason": "owner_observed_non_us",
+        "recorded_on": "2026-07-22",
+    }
+    assert rows["eddeparfum"]["actionable_promote_now"] is False
 
 
 def test_target_ranker_prioritizes_once_only_expanded_fragrance_over_repeated_hub() -> None:
