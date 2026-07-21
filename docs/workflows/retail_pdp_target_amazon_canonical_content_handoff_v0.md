@@ -18,33 +18,81 @@ open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/amazon_demand_signal_route_candidates_v0.md
 branch_or_commit: >
-  Authored against 798b94c48f608dd62bb89faa33cb506d20f5b9f1 (PR #1231), the tip
-  of origin/main at authoring time.
+  Authored against 798b94c48f608dd62bb89faa33cb506d20f5b9f1 (PR #1231). Phase 1
+  landed as 6e64b35ffc63e4a9848dd2a4c309dbb0e8898ff5 (PR #1238); this packet was
+  revised against that result.
 stale_if:
   - The Retail/PDP content cleaning contract changes its content-vs-raw retention rule.
-  - A later lane lands any Target or Amazon content schema, making this a delta rather than a build.
+  - A later lane lands an Amazon content schema, making Phase 2 a delta rather than a build.
   - The Amazon pre-v3 capture envelope is renegotiated with the owner.
 ```
 
+## Phase Status
+
+- **Phase 1 (Target): COMPLETE.** Landed as
+  `6e64b35ffc63e4a9848dd2a4c309dbb0e8898ff5` (PR #1238). The route is
+  `retail_pdp_target_aggregate_content_v1` /
+  `retail_pdp_target_aggregate_parser_v1`; `target_pdp_aggregate` is
+  content-eligible and defaults to `content` retention. Evidence:
+  `docs/research/forseti_target_canonical_content_capture_proof_v0.md`.
+  Do not rebuild it. Read the Phase 1 corrections below before starting Phase 2.
+- **Phase 2 (Amazon): NOT STARTED.** Startable now that Phase 1 has landed,
+  after the concurrent-writer reconciliation below.
+
+## Phase 1 Corrections — Read Before Phase 2
+
+Phase 1 disproved parts of this packet as originally written. The corrections
+generalize, and Amazon is likely to repeat them.
+
+- **"Build from `__NEXT_DATA__` CDUI state" was incomplete.** Target's SSR
+  hydrates exactly one CDUI datasource (`ProductDetailWebDatasourceCore`). The
+  price, offer, fulfillment, variation, and store datasources are declared in the
+  layout and left `null`; `current_retail`, `"price"`, `availability_status`, and
+  `child_tcin` occur zero times in the whole document. The offer had to come from
+  the rendered DOM. **Expect the same split on Amazon**: plan for page state plus
+  rendered DOM from the start, and inventory declared-but-unhydrated modules
+  rather than omitting them.
+- **A capture profile's product literal can make it unsatisfiable.**
+  `target_pdp_aggregate` required `BYOMA Liptide Lip Mask` in visible text — the
+  brand-grid fixture product, which never appears on a Target PDP. The profile
+  had never qualified a real PDP capture, and the existing Target PDP packets in
+  the lake were captured with no profile at all (`pin_confirmed: null`).
+  **Check `amazon_pdp_aggregate` for the same defect before assuming it can
+  qualify a capture.**
+- **Profile requirements merge as a union, not an override.** A CLI
+  `--require-visible-text` cannot relax a profile's product pin. "Prove the route
+  live against one named product" is only achievable when the profile pins that
+  product; otherwise prove offline against the pinned packet.
+- **A delegated de-correlated review found three defect classes worth applying to
+  Amazon from the start** (PR #1238, second commit): extract price from the
+  target product's own module rather than page-globally; scan for session secrets
+  by key name plus a length floor, never length alone (a bare-word cookie value
+  collided with ordinary product copy and refused legitimate captures); and fail
+  loud on any hydrated datasource the parser does not retain instead of reporting
+  it as observed.
+- **Doc drift is real.** PR #1231 raised Ulta content to v2 in code without
+  touching the Retail/PDP contract census. Phase 1 reconciled it. Re-check the
+  contract against code before trusting it.
+
 ## Load Contract
 
-- packet_version: 1
+- packet_version: 2
 - mode: max
-- updated_at: 2026-07-21
+- updated_at: 2026-07-21 (revised after Phase 1 landed)
 - updated_by_lane: Target/Amazon canonical content commission lane; provenance only, not authority
 - workspace: `C:\Users\vmon7\Desktop\projects\orca`
-- required_revision: `798b94c48f608dd62bb89faa33cb506d20f5b9f1` (merge commit of PR #1231)
+- required_revision: `6e64b35ffc63e4a9848dd2a4c309dbb0e8898ff5` (Phase 1, PR #1238)
 - revision_mode: `ancestor` — start from current `origin/main`; verify with
-  `git merge-base --is-ancestor 798b94c48f608dd62bb89faa33cb506d20f5b9f1 HEAD`
+  `git merge-base --is-ancestor 6e64b35ffc63e4a9848dd2a4c309dbb0e8898ff5 HEAD`
 - source-loading_mode: repo-overlay-bound
 - load_rule: confirm-don't-trust; reread the named sources and re-verify the
   named packets before acting
-- durable_destination_status: new handoff; no existing artifact covers the
-  Target-then-Amazon content sequence
+- durable_destination_status: revised in place; this packet remains the single
+  Target-then-Amazon commission record
 
-`798b94c4` is the commit that landed the Ulta PowerReviews adapter, Ulta content
-v2, and the Sephora three-role v4 target. A lane that starts below it does not
-have the benchmarks this handoff names.
+`798b94c4` landed the Ulta PowerReviews adapter, Ulta content v2, and the
+Sephora three-role v4 target; `6e64b35f` landed Phase 1 on top of it. A lane that
+starts below `6e64b35f` lacks both the benchmarks and the Target route.
 
 ## Goal Handoff
 
@@ -165,74 +213,75 @@ retention admission gate at L626-661. Note that `amazon_pin_failure` and
 though neither profile is content-eligible yet. Extend the existing seam; do not
 build a parallel one.
 
-## Phase 1 — Target
+## Phase 1 — Target (landed)
 
-Start here. Do not begin Amazon in this branch.
+Complete at `6e64b35ffc63e4a9848dd2a4c309dbb0e8898ff5` (PR #1238). The route
+builds `retail_pdp_target_aggregate_content_v1` from the Target-owned
+`__NEXT_DATA__` CDUI core datasource plus the rendered offer and review regions,
+leaves the `target_bazaarvoice_onboarding` companion untouched as the owner of
+exact review and Q&A bodies, and retains body-free review identity only.
 
-**Build** `retail_pdp_target_aggregate_content_v1` from the Target-owned
-`__NEXT_DATA__` CDUI/Redsky page state already embedded in the rendered PDP.
-Target's parent capture parses that document today at
-`target_onboarding_capture.py:520` (detection) and `:583` (extraction), and the
-CDUI orchestration host is named at `:48`. This is Target-owned page state and
-must never be labelled Bazaarvoice.
+What it proved, and what a Phase 2 reader should carry:
 
-**Preserve** complete product identity, variants, offers, fulfillment, product
-copy, ingredients, media references, and review aggregates.
+- reconstruction 29/29 against parent packet `01KXR823YS3V5M9E01QXP71ETC`
+  (TCIN `80184023`); qualification `match` / exit 0, and `drift` / exit 1 on a
+  corrupted control; Cleaning yields `cleaning_basis == "content_record"`;
+  extraction failure preserves every raw input and exits nonzero;
+- live dogfood packets `01KY2E0Q5C2V598GSEGG6ABZRM` and
+  `01KY2E4GG7J3CN93S6ZA4CRQT2` retained 5.4% of disposable bytes (18.5x);
+- Target-native review UUIDs do not join the companion's numeric Bazaarvoice
+  ids: 0 of 8 ids overlap while 7 of 8 bodies match by text. No join key exists
+  and none was invented;
+- the contract's stale Ulta rows and the Target `raw_unflipped` row are
+  reconciled.
 
-**Do not duplicate the companion.** The existing direct Bazaarvoice companion
-`target_bazaarvoice_onboarding_v1` stays unchanged. It already preserves exact
-review and answer bodies in raw response bytes and deliberately keeps them out
-of its summary — `summary_duplicates_review_or_answer_bodies: false` at
-`target_onboarding_capture.py:495`, with per-row `body_present` flags only. The
-content record must not restate those bodies.
-
-**Prove** against TCIN `80184023` (Naturium Vitamin C Complex Serum,
-`https://www.target.com/p/-/A-80184023`) and companion packet
-`01KY0E4TCHFW9Q3DHNXD1N14TG` (parent `01KXR823YS3V5M9E01QXP71ETC`). The proven
-identity mapping is TCIN `80184023` == Bazaarvoice ProductId `80184023`,
-deployment `targetcom/main_site/production/en_US`, API `5.5`, display code
-`19988-en_us`.
-
-**Default new Target captures to content mode only after** reconstruction,
-Cleaning, and raw-fallback tests pass. Until then the profile stays `raw`.
-
-**Reconcile the contract in this phase.** The Retail/PDP content cleaning
-contract census at
-`retail_pdp_content_cleaning_contract_v0.md:78` still records Ulta as
-`retail_pdp_ulta_aggregate_content_v1` / `parser_v1`, while the landed code at
-`retail_pdp_projection.py:40-41` is `_v2` / `_v2`. The same file's L113-119 still
-describes Ulta content as JSON-LD-review-based rather than the landed
-Apollo-module shape. PR #1231 raised the code and did not touch the contract. You
-will be reading that contract as authority and adding a Target row to the same
-tables, so correct the stale Ulta row and the Target `raw_unflipped` row
-(L100) in the same work unit. Do not expand beyond those rows.
+Full evidence and loss ledger:
+`docs/research/forseti_target_canonical_content_capture_proof_v0.md`.
 
 ## Phase 2 — Amazon
 
-**Do not start until Target has landed on `main`.**
+Target landed on `main` at `6e64b35f`, so this phase is startable. It is a
+separate branch and PR, and it requires its own implementation authorization.
 
-### Concurrent-writer reconciliation — required first step
+### Concurrent-writer reconciliation — harvested 2026-07-21
 
-An uncommitted, never-landed Amazon content-mode implementation exists on disk at
-`C:\Users\vmon7\Desktop\projects\orca\.codex\worktrees\amazon-content-mode`
-(branch `codex/amazon-content-mode`, base `4c2e6464`, file mtimes 2026-07-19).
-It is absent from every branch and every ref — `git grep` across `refs/heads` and
-`refs/remotes` finds none of its identifiers — but it is present in that working
-tree:
+`.codex/worktrees/amazon-content-mode` (branch `codex/amazon-content-mode`, base
+`4c2e6464`) held an uncommitted, never-landed Amazon content-mode attempt that
+already defined `retail_pdp_amazon_aggregate_content_v1`. Its base predates Ulta
+v2, Sephora v4, the `retail_pdp_content.py` boundary, and the content-eligible
+profile gate, so its nine modified files would regress the tree and are not
+reusable. The owner directed harvest-then-discard on 2026-07-21.
 
-- modified: `retail_pdp_projection.py` (+691), `run_source_capture_cloakbrowser_packet.py` (+47), two test files, five docs;
-- untracked: `forseti-harness/runners/run_amazon_pdp_parser_fit_check.py` and `forseti-harness/tests/unit/test_amazon_pdp_content_capture.py`;
-- it already defines `AMAZON_PDP_CONTENT_RECORD_KIND = "retail_pdp_amazon_aggregate_content"` and `..._SCHEMA_VERSION = "retail_pdp_amazon_aggregate_content_v1"` — exactly the identifiers this phase would create.
+Its two untracked files were read and harvested here; the code itself is not
+carried forward (it imports `build_amazon_pdp_aggregate_content_record` and
+sibling symbols that do not exist on `main`). What it knew, and Phase 2 should
+reuse:
 
-Its base predates Ulta v2, Sephora v4, Nordstrom v2/parser v5, the
-`retail_pdp_content.py` boundary, and the content-eligible profile gate. Merging
-it as-is would regress the tree.
+- **Amazon DOM anchors it bound against**: `#ASIN`, `#averageCustomerReviews`,
+  `#acrCustomerReviewText`, `#availability`, `#deliveryBlock`,
+  `#pqv-bought-in-last-month`, `#shipFromSoldByAbbreviatedODF_feature_div`,
+  and `currencyOfPreference` / `en-US`.
+- **It independently anticipated the recommendation-binding defect class** that
+  the Phase 1 delegated review later found in Target's price extractor. It
+  carried two fail-loud tests — one rejecting a `bought in past month` signal
+  that is not target-ASIN bound, one rejecting a seller/shipper block that is not
+  target bound. Treat target-binding of every merchandising signal as a required
+  gate, not a nicety.
+- **It enforced the ZIP `10001` pin at the CLI boundary** for Amazon content
+  capture, matching the admitted envelope.
+- **It carried a browser-secret fail-loud rejection**, the same class Phase 1
+  implemented for Target.
+- **It kept `amazon_pdp_aggregate` raw by default** until a live gate passed, and
+  preserved all inputs with a typed nonzero exit on projection failure.
+- **It carried a parser-fit drift check** over pinned sample packets — a runner
+  that rebuilds the record from a preserved packet and reports drift, with cases
+  for target-fact perturbation, metadata mismatch, input-hash drift, malformed
+  records, and non-sample packets. Phase 1 got equivalent coverage from
+  `run_content_qualification.py --route target`; prefer extending that existing
+  runner over reintroducing a second one.
 
-Treat those files as presumptively authored artifacts, not scratch. Before any
-Amazon edit: confirm provenance with the owner, harvest anything worth keeping
-(the untracked parser-fit runner and the 756-line content test are the likely
-value), and only then eliminate the competing writer. Do not delete the branch or
-worktree, and do not run the two lanes concurrently.
+Before Phase 2 writes anything, confirm that worktree no longer holds
+uncommitted work, so there is exactly one writer for the Amazon identifiers.
 
 ### Build
 
@@ -288,9 +337,9 @@ Carry them forward in the loss ledger; do not quietly resolve or paper over them
 
 ## Drift Guard
 
-- Do not open Amazon before Target lands on `main`.
-- Do not run the Amazon lane while `codex/amazon-content-mode` remains an unreconciled writer.
-- Do not delete or force-clean that worktree, branch, or its untracked files.
+- Do not run the Amazon lane while `codex/amazon-content-mode` still holds uncommitted work; its untracked files were harvested into this packet on 2026-07-21.
+- Do not reintroduce the superseded Amazon implementation from that worktree; its base predates every current benchmark.
+- Do not reopen Phase 1 except for a defect in the landed, packet-proven route.
 - Do not add review-portal, authentication, pagination, API, or extra media requests to either retailer.
 - Do not label Target CDUI/Redsky page state or Amazon rendered-PDP content as Bazaarvoice.
 - Do not rebuild Target's Bazaarvoice companion or Amazon's review companion; both are reused.
