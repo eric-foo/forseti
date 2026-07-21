@@ -218,7 +218,17 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # the no-secret assertion to JSON-carried session/CSRF values. Historical
         # Amazon parser-v1 content records remain explicitly readable; the
         # shared Projection token and other retailer parser tokens stay unchanged.
-        "56e5fa1ddbb660307677a89e97c86b3ca3ab68e29924d4caba4948230ebd8e74",
+        # Output-shaping Target parser v2: a price that renders on the page but does
+        # not bind to the target's ProductDetailPrice module is now recorded as an
+        # unbound-price disagreement instead of page absence, which would be a false
+        # statement while the capture profile's own sufficiency gate requires a
+        # visible price. Residuals reach Cleaning, so committed Target content
+        # packets re-surface. Schema stays content_v1: values change, shape does
+        # not. Historical parser_v1 packets remain readable via the widened Literal
+        # and the current-extractor exemption. v2 final behavior: a rendered price
+        # the parser cannot bind to the target's ProductDetailPrice module forces
+        # raw fallback rather than a residual, so the DOM survives for diagnosis.
+        "f799d9e6ff5db8afe73d69ec74eb20e1cbc6c67b2e81260dff6567fc56be37bb",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

@@ -109,6 +109,7 @@ def load_retail_pdp_content_record(
         if record.parser_version != expected_version and profile not in {
             NORDSTROM_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
+            TARGET_PDP_CONTENT_PROFILE,
         }:
             raise ValueError("Retail/PDP content record does not use the current extractor")
         if metadata.get("extraction_status") != "succeeded":

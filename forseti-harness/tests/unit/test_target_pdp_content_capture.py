@@ -380,11 +380,18 @@ def test_offer_does_not_bind_a_recommendation_rail_price_to_the_target_tcin() ->
 
 
 def test_offer_does_not_use_visible_text_when_target_price_module_is_absent() -> None:
-    dom = _dom().replace(b' data-module-type="ProductDetailPrice"', b"")
-    record = _build(rendered_dom=dom)
+    """No page-global fallback: an unbound price is still not bound to the target.
 
-    assert _fields(record, "retail_variant_offer")["price"] is None
-    assert "target_price_absent_from_rendered_dom_and_page_state" in record["residuals"]
+    The residual for this case is the rendered-but-unbound one, asserted in
+    test_unbound_rendered_price_is_not_reported_as_page_absence below; page
+    absence is a different, separately asserted condition.
+    """
+    dom = _dom().replace(b' data-module-type="ProductDetailPrice"', b"")
+
+    # A rendered-but-unbindable price now fails loud so the DOM survives for
+    # diagnosis; it is never silently retained as a priceless offer.
+    with pytest.raises(ValueError, match="not bound to the target's"):
+        _build(rendered_dom=dom)
 
 
 def test_preserves_three_way_review_count_disagreement() -> None:
@@ -877,3 +884,30 @@ def test_unpainted_review_widget_is_recorded_not_inferred() -> None:
     # The structured aggregates are unaffected and remain exact per-star counts.
     assert review["structured_review_count"] == "758"
     assert review["structured_rating_distribution"]["rating5"] == 1319
+
+
+def test_rendered_but_unbindable_price_fails_loud_and_keeps_the_dom() -> None:
+    """A price the page shows but the price module does not carry forces raw.
+
+    Observed at the admitted ZIP 10001 pin (packet 01KY32AAVCG3JMCM08JGPSJS8T):
+    the capture profile's sufficiency gate requires a visible `$n.nn` and
+    passed, yet the module-scoped extractor bound no price. Retaining that as
+    content would contradict the runner's own gate and discard the only DOM
+    that could explain it, so it is an extraction failure instead.
+    """
+    dom = _dom().replace(b' data-module-type="ProductDetailPrice"', b"")
+
+    with pytest.raises(ValueError, match="not bound to the target's"):
+        _build(rendered_dom=dom)
+
+
+def test_true_page_absence_is_still_reported_as_absence() -> None:
+    dom = _dom().replace(
+        b'<div data-test="current-price"><span>$14.69</span></div>', b""
+    )
+    record = _build(
+        rendered_dom=dom,
+        visible_text=_VISIBLE_TEXT.replace("$14.69 was $17.89", "").encode("utf-8"),
+    )
+
+    assert "target_price_absent_from_rendered_dom_and_page_state" in record["residuals"]

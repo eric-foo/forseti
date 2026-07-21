@@ -56,6 +56,10 @@ edits, routine prose, mechanical patches, and ordinary review continue to use
 the cheap inline path — the author edits directly, or the standard
 source-read-only review lane applies. This is never a mandatory front door.
 
+If delegation is explicitly commissioned for a work unit, freeze an
+implementation commit inside the open PR, delegate, adjudicate and incorporate
+accepted patches in that same PR, rerun validation, then merge.
+
 **Direct invocation is courier-prompt authoring only.** An explicit user request
 such as `delegate patch`, `write the delegate patch prompt`, or an invocation of
 the delegated-review-patch skill requires the authoring agent to immediately
