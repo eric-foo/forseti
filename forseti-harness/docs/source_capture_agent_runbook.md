@@ -250,8 +250,18 @@ or message.
 Establish the creator grid once on the acquired page. Suggested primary,
 fallback, relationship-modal close, grid collection, and every onboarding deep
 capture stay on that page; do not reload an already matching creator path or
-click Latest, Popular, or Oldest. Grid acquisition reads the initial exact-
-creator DOM order. If at least 27 videos are already loaded, it performs zero
+click Latest, Popular, or Oldest during grid acquisition or deep capture. After
+a successful full new-onboarding deep capture only, the runner performs one
+bounded `Oldest` sort observation on the same page, verifies the exact control's
+`data-active=true` state, and chooses the minimum exact creator-owned
+`createTime` from the first returned batch. It retains only the typed canonical
+observation in the existing grid/batch evidence; a missing control is
+`oldest_sort_not_exposed`, a verified empty profile is `no_public_posts`, and an
+exposed but unverifiable selection or creator identity fails onboarding. This is
+not part of profile refresh, never claims account creation time, and restores
+the shared page to a mechanically verified `Latest` state after a successful
+observation. Grid
+acquisition reads the initial exact-creator DOM order. If at least 27 videos are already loaded, it performs zero
 wheel actions; otherwise it uses bounded adaptive normal 20-35 percent viewport
 mouse-wheel bursts only until the first positive exact-video-ID batch delta.
 After the sufficient initial window or first new batch is identified, perform no

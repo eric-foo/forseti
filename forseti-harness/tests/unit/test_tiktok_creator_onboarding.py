@@ -170,6 +170,46 @@ def _suggested_surface_closed_capture(
     )
 
 
+def _oldest_probe_capture(
+    *,
+    active: bool,
+    latest_active: bool = False,
+    items: Sequence[dict[str, object]] = (),
+    control_present: bool = True,
+    no_public_posts: bool = False,
+    clicked: bool | None = None,
+    action_name: str = "tiktok_profile_oldest_sort_v0",
+) -> BrowserPageObservationSuccess:
+    capture = _capture(items=items)
+    dom_observation = {
+        "sort_control_present": control_present,
+        "oldest_control_present": control_present,
+        "oldest_active": active,
+        "latest_active": latest_active,
+        "ordered_videos": [
+            {
+                "video_id": str(item["id"]),
+                "video_url": f"https://www.tiktok.com/@creator/video/{item['id']}",
+                "pinned_visible": index == 0,
+            }
+            for index, item in enumerate(items)
+        ],
+        "no_public_posts_visible": no_public_posts,
+    }
+    metadata = dict(capture.metadata)
+    if clicked is not None:
+        metadata["post_load_pointer_actions"] = [
+            {
+                "action_name": action_name,
+                "target_found": clicked,
+                "clicked": clicked,
+                "observed_response_count_before": 0,
+                "observed_response_count_after": len(capture.responses),
+            }
+        ]
+    return replace(capture, dom_observation=dom_observation, metadata=metadata)
+
+
 @dataclass
 class _FakeEngine:
     outcomes: list[BrowserPageObservationSuccess]
@@ -906,7 +946,26 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         items=grid_items,
     )
     engine = _FakeEngine(
-        [suggested, _suggested_surface_closed_capture(), *_stable_grid_capture_sequence(grid)]
+        [
+            suggested,
+            _suggested_surface_closed_capture(),
+            *_stable_grid_capture_sequence(grid),
+            _oldest_probe_capture(active=False),
+            _oldest_probe_capture(
+                active=True,
+                clicked=True,
+                items=[
+                    {**_item("90", 10, 1), "createTime": 1_600_000_100},
+                    {**_item("80", 20, 2), "createTime": 1_500_000_000},
+                ],
+            ),
+            _oldest_probe_capture(
+                active=False,
+                latest_active=True,
+                clicked=True,
+                action_name="tiktok_profile_latest_sort_reset_v0",
+            ),
+        ]
     )
     deep_calls: list[dict[str, object]] = []
     progress_events: list[tuple[str, dict[str, object]]] = []
@@ -940,7 +999,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         sleep_fn=lambda _seconds: None,
     )
 
-    assert len(engine.calls) == 6
+    assert len(engine.calls) == 9
     assert engine.calls[1]["dom_extract_arg"] == {"creator_handle": "creator"}
     assert [
         action.action_name for action in engine.calls[1]["post_load_pointer_actions"]
@@ -960,9 +1019,10 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "select",
         "enter_grid_overlay_capture_sequence",
         "deep_capture",
+        "observe_earliest_public_post",
         "close",
     ]
-    assert progress_events[-2][1] == {"selected_count": 2}
+    assert progress_events[-3][1] == {"selected_count": 2}
     assert deep_calls[0]["video_urls"] == [
         "https://www.tiktok.com/@creator/video/1",
         "https://www.tiktok.com/@creator/video/2",
@@ -1001,6 +1061,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "first_deep_capture_released",
         "grid_overlay_deep_capture_sequence_completed",
         "deep_capture_completed",
+        "earliest_public_post_observation_completed",
     ]
     assert receipt["grid_deep_entry_or_none"]["status"] == "complete"
     assert receipt["grid_deep_entry_or_none"]["targeted_tile_scroll_performed"] is False
@@ -1028,6 +1089,118 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert subtitle_url not in (
         tmp_path / TIKTOK_ONBOARDING_SELECTION_JSON_NAME
     ).read_text(encoding="utf-8")
+    grid_window = json.loads(
+        (tmp_path / TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME).read_text(encoding="utf-8")
+    )
+    assert grid_window["earliest_public_post_observation"]["published_at_utc"] == (
+        "2017-07-14T02:40:00Z"
+    )
+
+
+def test_oldest_probe_chooses_minimum_exact_time_despite_pinned_disorder(
+    tmp_path: Path,
+) -> None:
+    newer = {**_item("90", 10, 1), "createTime": 1_700_000_000}
+    oldest = {**_item("80", 20, 2), "createTime": 1_500_000_000}
+    engine = _FakeEngine(
+        [
+            _oldest_probe_capture(active=False),
+            _oldest_probe_capture(active=True, items=[newer, oldest], clicked=True),
+            _oldest_probe_capture(
+                active=False,
+                latest_active=True,
+                clicked=True,
+                action_name="tiktok_profile_latest_sort_reset_v0",
+            ),
+        ]
+    )
+
+    result = onboarding.capture_tiktok_earliest_public_post_observation(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=engine,
+        utc_now_fn=lambda: datetime(2026, 7, 21, tzinfo=UTC),
+    )
+
+    assert result["status"] == "observed"
+    assert result["source_video_id"] == "80"
+    assert result["published_at_utc"] == "2017-07-14T02:40:00Z"
+
+
+def test_oldest_probe_types_control_absence_without_click(tmp_path: Path) -> None:
+    engine = _FakeEngine([_oldest_probe_capture(active=False, control_present=False)])
+
+    result = onboarding.capture_tiktok_earliest_public_post_observation(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=engine,
+    )
+
+    assert result["status"] == "oldest_sort_not_exposed"
+    assert result["published_at_utc"] is None
+    assert len(engine.calls) == 1
+
+
+def test_oldest_probe_types_verified_empty_profile(tmp_path: Path) -> None:
+    engine = _FakeEngine(
+        [
+            _oldest_probe_capture(active=False),
+            _oldest_probe_capture(active=True, no_public_posts=True, clicked=True),
+            _oldest_probe_capture(
+                active=False,
+                latest_active=True,
+                clicked=True,
+                action_name="tiktok_profile_latest_sort_reset_v0",
+            ),
+        ]
+    )
+
+    result = onboarding.capture_tiktok_earliest_public_post_observation(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=engine,
+    )
+
+    assert result["status"] == "no_public_posts"
+
+
+@pytest.mark.parametrize("defect", ["selection", "identity"])
+def test_oldest_probe_fails_closed_on_unverified_selection_or_identity(
+    tmp_path: Path, defect: str
+) -> None:
+    wrong = {
+        "id": "90",
+        "author": {"uniqueId": "other" if defect == "identity" else "creator"},
+        "stats": {"playCount": 1, "diggCount": 1, "commentCount": 0},
+        "createTime": 1_700_000_000,
+    }
+    engine = _FakeEngine(
+        [
+            _oldest_probe_capture(active=False),
+            _oldest_probe_capture(
+                active=defect != "selection", items=[wrong], clicked=True
+            ),
+        ]
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError):
+        onboarding.capture_tiktok_earliest_public_post_observation(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            storage_state_path=tmp_path / "state.json",
+            timeout_seconds=10,
+            settle_seconds=0,
+            engine=engine,
+        )
 
 
 def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
