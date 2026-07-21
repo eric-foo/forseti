@@ -110,11 +110,11 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         (
             "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py",
             "append_record",
-        ): 1,
+        ): 2,
         (
             "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py",
             "lane_dir",
-        ): 1,
+        ): 2,
         (
             "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py",
             "append_silver_record",
@@ -153,7 +153,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/company_surface.py", "append_silver_record"): 1,
         ("data_lake/consumption.py", "append_record"): 1,
         ("data_lake/consumption.py", "lane_dir"): 1,
-        ("data_lake/creator_registry.py", "append_record"): 2,
+        ("data_lake/creator_registry.py", "append_record"): 3,
         ("data_lake/derived_retrieval_cache.py", "record_path"): 1,
         ("data_lake/product_mention_selection.py", "lane_dir"): 1,
         ("data_lake/silver_census.py", "is_record_set_complete"): 1,

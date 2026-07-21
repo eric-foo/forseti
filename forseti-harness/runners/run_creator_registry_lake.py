@@ -12,6 +12,7 @@ if __package__ in {None, ""}:
 from data_lake.creator_registry import (
     CreatorRegistryLakeError,
     admit_tiktok_creator_account,
+    admit_tiktok_creator_candidate,
     load_current_creator_profiles,
     load_current_creator_registry,
     migrate_legacy_registry,
@@ -19,6 +20,10 @@ from data_lake.creator_registry import (
     publish_creator_registry_generation,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_creator_frontier_dispositions,
+    write_creator_frontier_dispositions,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,6 +71,37 @@ def _parser() -> argparse.ArgumentParser:
     admit.add_argument("--data-root", required=True)
     admit.add_argument("--packet-id", required=True)
     admit.add_argument("--judgment-outcome", type=Path, required=True)
+
+    disposition = commands.add_parser("frontier-disposition")
+    disposition.add_argument("--data-root", required=True)
+    disposition.add_argument("--platform", choices=("tiktok",), default="tiktok")
+    disposition.add_argument("--handle", required=True)
+    disposition.add_argument("--status", choices=("eligible", "deferred", "rejected"), required=True)
+    disposition.add_argument("--priority", choices=("super", "high", "normal", "low"))
+    disposition.add_argument(
+        "--reason-code",
+        choices=(
+            "non_us_market", "low_reach", "low_potential", "duplicate_or_backup",
+            "profile_unavailable", "self_brand_only", "owner_choice", "other",
+        ),
+        required=True,
+    )
+    disposition.add_argument("--note")
+    disposition.add_argument("--reconsideration", choices=("owner_reopen", "new_signal"))
+    disposition.add_argument("--recorded-at")
+
+    frontier_import = commands.add_parser("frontier-import")
+    frontier_import.add_argument("--data-root", required=True)
+    frontier_import.add_argument("--input", type=Path, required=True)
+    frontier_import.add_argument("--recorded-at")
+
+    frontier_show = commands.add_parser("frontier-show")
+    frontier_show.add_argument("--data-root", required=True)
+
+    candidate = commands.add_parser("admit-tiktok-candidate")
+    candidate.add_argument("--data-root", required=True)
+    candidate.add_argument("--packet-id", required=True)
+    candidate.add_argument("--frontier-disposition-id", required=True)
     return parser
 
 
@@ -92,11 +128,44 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "eligible":
             rows = monitoring_eligible_accounts(root, platform=args.platform)
             result = {"platform": args.platform, "count": len(rows), "accounts": rows}
-        else:
+        elif args.command == "admit-tiktok":
             result = admit_tiktok_creator_account(
                 data_root=root,
                 packet_id=args.packet_id,
                 judgment_outcome_path=args.judgment_outcome,
+            )
+        elif args.command == "frontier-disposition":
+            result = write_creator_frontier_dispositions(
+                data_root=root,
+                actions=[
+                    {
+                        "platform": args.platform,
+                        "handle": args.handle,
+                        "status": args.status,
+                        "priority": args.priority,
+                        "reason_code": args.reason_code,
+                        "note": args.note,
+                        "reconsideration": args.reconsideration,
+                    }
+                ],
+                recorded_at=args.recorded_at,
+            )
+        elif args.command == "frontier-import":
+            actions = json.loads(args.input.read_text(encoding="utf-8-sig"))
+            if not isinstance(actions, list):
+                raise ValueError("Frontier import input must be one JSON list of action objects")
+            result = write_creator_frontier_dispositions(
+                data_root=root,
+                actions=actions,
+                recorded_at=args.recorded_at,
+            )
+        elif args.command == "frontier-show":
+            result = load_creator_frontier_dispositions(root)
+        else:
+            result = admit_tiktok_creator_candidate(
+                data_root=root,
+                packet_id=args.packet_id,
+                frontier_disposition_id=args.frontier_disposition_id,
             )
     except (CreatorRegistryLakeError, DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
