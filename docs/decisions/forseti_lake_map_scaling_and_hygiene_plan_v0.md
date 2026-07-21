@@ -341,11 +341,16 @@ lake itself in SQL.
 - Full rebuild is reserved for extractor/schema changes, corruption recovery,
   explicit rebuildability proof, or operator choice. Daily onboarding/cadence
   and the hourly tail use incremental refresh so capture can continue.
+- Every SQL result echoes its normalized query and reports whether the bounded
+  result set is complete or truncated. Exploratory searches add no receipt or
+  source reread. Supplying `--decision-question-id` makes an ordinary search
+  decision-grade: a truncated result fails, each cited raw/Silver source is
+  re-hashed once, and a body-free citation receipt is written before output.
 - The durable schema contains no commenter/reviewer identifier. Exact-actor
-  questions re-open the original verified source temporarily, stay within one
-  admitted platform and a maximum 90-day window, write an audit receipt before
-  returning results, and never persist a result cache. Audit receipts retain
-  for 365 days; 1,000 returned rows marks an elevated query.
+  questions use the same verified receipt shape, re-open the original source
+  temporarily, stay within one admitted platform and a maximum 90-day window,
+  and never persist a result cache. Audit receipts retain for 365 days; 1,000
+  returned rows marks an elevated query.
 - The database uses WAL, full synchronous durability, strict tables,
   parameterized filters, FTS5 body search, source hashes, a logical row digest,
   and `quick_check`. Rebuildability proof compares sorted logical content, not
@@ -363,6 +368,10 @@ python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forset
 # Health/freshness and ordinary evidence search
 python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --sql-status
 python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --sql-query --sql-body-query 'phrase' --sql-platform tiktok
+
+# Decision-grade search: require a complete bounded result, verify citations,
+# then atomically write one receipt through the existing 365-day audit lifecycle.
+python forseti-harness/runners/run_data_lake_indexes_rebuild.py --root F:\forseti-data-lake --sql-query --sql-body-query 'phrase' --sql-platform tiktok --decision-question-id creator_comment_coordination
 ```
 
 The live automation is a separate Windows task named

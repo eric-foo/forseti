@@ -63,7 +63,9 @@ from data_lake.derived_retrieval_views import (
     query_sql_catalogue,
     rebuild_derived_retrieval,
     sql_catalogue_status,
+    verify_sql_query_sources,
     write_actor_query_audit,
+    write_evidence_query_audit,
 )
 from data_lake.product_mention_selection import normalize_product_mention_policy
 from data_lake.root import DataLakeRoot, DataLakeRootError
@@ -230,6 +232,8 @@ def main(argv: list[str] | None = None) -> int:
     sql_modes = sum(bool(value) for value in (args.sql_status,args.sql_query,args.sql_exact_actor))
     if sql_modes > 1:
         parser.error("choose only one SQL status/query mode")
+    if args.decision_question_id and not (args.sql_query or args.sql_exact_actor):
+        parser.error("--decision-question-id requires --sql-query or --sql-exact-actor")
     if sql_modes:
         try:
             root = DataLakeRoot.resolve(explicit=args.data_root)
@@ -242,6 +246,13 @@ def main(argv: list[str] | None = None) -> int:
                     creator_id=args.sql_creator_id,
                     content_id=args.sql_content_id,product_id=args.sql_product_id,
                     from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,limit=args.sql_limit)
+                if args.decision_question_id:
+                    if not report["result_set_complete"]:
+                        raise ValueError(
+                            "decision query result set is truncated; narrow the query")
+                    report["source_verification"] = verify_sql_query_sources(root,report)
+                    report["audit_path"] = write_evidence_query_audit(
+                        report,decision_question_id=args.decision_question_id)
             else:
                 if not (args.sql_platform and args.sql_from_utc and args.sql_to_utc
                         and args.decision_question_id):
@@ -252,7 +263,7 @@ def main(argv: list[str] | None = None) -> int:
                     creator_id=args.sql_creator_id,content_id=args.sql_content_id)
                 report["audit_path"] = write_actor_query_audit(
                     report,decision_question_id=args.decision_question_id)
-        except (DataLakeRootError,ValueError,sqlite3.DatabaseError) as exc:
+        except (OSError,DataLakeRootError,ValueError,sqlite3.DatabaseError) as exc:
             print(json.dumps({"status":"error","error":str(exc)},indent=2,sort_keys=True))
             return 2
         print(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=True))
