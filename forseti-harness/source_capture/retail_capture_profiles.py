@@ -63,6 +63,18 @@ def extract_target_search_query_from_url(url: str) -> str | None:
     return values[0].strip()
 
 
+def _exact_identity_regex(product_id: str) -> str:
+    """Bind ``product_id`` as a whole token in the rendered DOM.
+
+    A bare ``re.escape(product_id)`` also matches inside any longer alphanumeric
+    run, so a shorter requested id, or an unrelated numeric blob such as an epoch
+    timestamp, satisfies the gate on a page for a different product. The Nordstrom
+    derivation avoids this by anchoring its id inside a URL shape; retailer ids
+    captured without such a shape use token boundaries instead.
+    """
+    return rf"(?<![A-Za-z0-9]){re.escape(product_id)}(?![A-Za-z0-9])"
+
+
 @dataclass(frozen=True)
 class RetailCaptureProfile:
     name: str
@@ -103,6 +115,12 @@ class RetailCaptureProfile:
           "1-N of M results for '<query>'" banner echoes it back), proving the grid
           rendered real results for the query actually searched rather than a block page
           or unrelated content.
+        - the Nordstrom, Sephora, Ulta, and Target product-id flags: the retailer id in
+          ``url`` must appear in the rendered DOM, anchored (URL shape for Nordstrom,
+          token boundaries elsewhere) so a longer id or an unrelated numeric run that
+          merely contains it cannot satisfy the gate.
+        - ``derive_target_target_search_query_from_url``: the Target search-grid analogue
+          of the Amazon ``k`` check, reading the ``searchTerm`` query parameter.
         """
         if self.derive_target_asin_from_url:
             asin = extract_amazon_asin_from_url(url)
@@ -148,7 +166,9 @@ class RetailCaptureProfile:
                 )
             return merge_source_detail_sufficiency_requirements(
                 self.requirements,
-                SourceDetailSufficiencyRequirements(rendered_dom_regexes=(re.escape(product_id),)),
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
             )
         if self.derive_target_ulta_product_id_from_url:
             product_id = extract_ulta_product_id_from_url(url)
@@ -159,7 +179,9 @@ class RetailCaptureProfile:
                 )
             return merge_source_detail_sufficiency_requirements(
                 self.requirements,
-                SourceDetailSufficiencyRequirements(rendered_dom_regexes=(re.escape(product_id),)),
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
             )
         if self.derive_target_target_product_id_from_url:
             product_id = extract_target_product_id_from_url(url)
@@ -170,7 +192,9 @@ class RetailCaptureProfile:
                 )
             return merge_source_detail_sufficiency_requirements(
                 self.requirements,
-                SourceDetailSufficiencyRequirements(rendered_dom_regexes=(re.escape(product_id),)),
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
             )
         if self.derive_target_target_search_query_from_url:
             query = extract_target_search_query_from_url(url)
@@ -186,6 +210,20 @@ class RetailCaptureProfile:
                 ),
             )
         return self.requirements
+
+    def target_product_identity_from_url(self, *, url: str) -> str | None:
+        """Return the profile-bound PDP identity encoded by the URL, if any."""
+        if self.derive_target_asin_from_url:
+            return extract_amazon_asin_from_url(url)
+        if self.derive_target_nordstrom_product_id_from_url:
+            return extract_nordstrom_product_id_from_url(url)
+        if self.derive_target_sephora_product_id_from_url:
+            return extract_sephora_product_id_from_url(url)
+        if self.derive_target_ulta_product_id_from_url:
+            return extract_ulta_product_id_from_url(url)
+        if self.derive_target_target_product_id_from_url:
+            return extract_target_product_id_from_url(url)
+        return None
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
         if (

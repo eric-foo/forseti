@@ -149,6 +149,162 @@ def test_target_grid_profile_binds_the_requested_search_query() -> None:
     assert mismatched.passed is False
 
 
+_SHALLOW_PDP_IDENTITY_CASES = (
+    (
+        "sephora_pdp_aggregate",
+        "https://www.sephora.com/product/example-P420652",
+        "https://www.sephora.com/product/other-P999999",
+        "https://www.sephora.com/product/other-P42065",
+        "Ratings & Reviews (1,234)\n$24.00\n",
+        '<div id="linkStore">{"product":{"productId":"P420652"}}</div>',
+    ),
+    (
+        "ulta_pdp_aggregate",
+        "https://www.ulta.com/p/example-pimprod2046225?sku=2645443",
+        "https://www.ulta.com/p/other-pimprod9999999?sku=2645443",
+        "https://www.ulta.com/p/other-pimprod204622?sku=2645443",
+        "Reviews\n1,204 Reviews\n$24.00\n",
+        '<script>window.__APOLLO_STATE__={"aggregateRating":4.5,'
+        '"availability":"InStock","id":"pimprod2046225"}</script>',
+    ),
+    (
+        "target_pdp_aggregate",
+        "https://www.target.com/p/example/-/A-80184023",
+        "https://www.target.com/p/other/-/A-99999999",
+        "https://www.target.com/p/other/-/A-16801840",
+        "Pickup\nShipping\n4.5 out of 5 stars with 12 reviews\n$24.00\n",
+        '<script id="__NEXT_DATA__">{"tcin":"80184023","ts":1680184023456}</script>',
+    ),
+)
+
+
+@pytest.mark.parametrize(
+    (
+        "profile_name",
+        "captured_url",
+        "wrong_product_url",
+        "contained_id_url",
+        "visible_text",
+        "rendered_dom",
+    ),
+    _SHALLOW_PDP_IDENTITY_CASES,
+)
+def test_shallow_pdp_profiles_bind_the_captured_products_own_id(
+    profile_name: str,
+    captured_url: str,
+    wrong_product_url: str,
+    contained_id_url: str,
+    visible_text: str,
+    rendered_dom: str,
+) -> None:
+    profile = get_retail_capture_profile(profile_name)
+
+    def evaluate(url: str):
+        return evaluate_source_detail_sufficiency(
+            requirements=profile.requirements_for_capture(url=url),
+            access_block_reason=None,
+            visible_text=visible_text,
+            rendered_dom=rendered_dom,
+        )
+
+    assert evaluate(captured_url).passed is True
+    assert evaluate(wrong_product_url).passed is False
+    # A requested id that merely occurs inside a longer id or numeric run on the
+    # page is a different product, not the commissioned one.
+    assert evaluate(contained_id_url).passed is False
+
+
+@pytest.mark.parametrize(
+    ("profile_name", "url", "message"),
+    (
+        (
+            "sephora_pdp_aggregate",
+            "https://www.sephora.com/product/example",
+            "requires a Sephora product id",
+        ),
+        (
+            "ulta_pdp_aggregate",
+            "https://www.ulta.com/p/example",
+            "requires an Ulta product id",
+        ),
+        (
+            "target_pdp_aggregate",
+            "https://www.target.com/p/example",
+            "requires a Target TCIN",
+        ),
+        (
+            "target_grid_aggregate",
+            "https://www.target.com/s?searchTerm=%20",
+            "requires a non-empty Target search query",
+        ),
+    ),
+)
+def test_shallow_profiles_refuse_a_url_without_a_derivable_target(
+    profile_name: str, url: str, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        get_retail_capture_profile(profile_name).requirements_for_capture(url=url)
+
+
+@pytest.mark.parametrize(
+    ("profile_name", "requested_url", "same_product_final_url", "wrong_product_final_url"),
+    (
+        (
+            "amazon_pdp_aggregate",
+            "https://www.amazon.com/dp/B012345678",
+            "https://www.amazon.com/example/dp/B012345678?th=1",
+            "https://www.amazon.com/dp/B987654321",
+        ),
+        (
+            "nordstrom_pdp_aggregate",
+            "https://www.nordstrom.com/s/example/1234567",
+            "https://www.nordstrom.com/s/canonical-name/1234567?color=Black",
+            "https://www.nordstrom.com/s/example/7654321",
+        ),
+        (
+            "sephora_pdp_aggregate",
+            "https://www.sephora.com/product/example-P420652",
+            "https://www.sephora.com/product/canonical-name-P420652?skuId=1",
+            "https://www.sephora.com/product/example-P999999",
+        ),
+        (
+            "ulta_pdp_aggregate",
+            "https://www.ulta.com/p/example-pimprod2046225?sku=2645443",
+            "https://www.ulta.com/p/canonical-name-pimprod2046225?sku=2645443",
+            "https://www.ulta.com/p/example-pimprod9999999?sku=2645443",
+        ),
+        (
+            "target_pdp_aggregate",
+            "https://www.target.com/p/example/-/A-80184023",
+            "https://www.target.com/p/canonical-name/-/A-80184023?preselect=1",
+            "https://www.target.com/p/example/-/A-99999999",
+        ),
+    ),
+)
+def test_pdp_profiles_require_the_final_route_to_retain_the_requested_product(
+    profile_name: str,
+    requested_url: str,
+    same_product_final_url: str,
+    wrong_product_final_url: str,
+) -> None:
+    profile = get_retail_capture_profile(profile_name)
+    assert (
+        cloakbrowser_runner._retail_target_identity_failure(
+            retail_capture_profile=profile,
+            requested_url=requested_url,
+            final_url=same_product_final_url,
+        )
+        is None
+    )
+    failure = cloakbrowser_runner._retail_target_identity_failure(
+        retail_capture_profile=profile,
+        requested_url=requested_url,
+        final_url=wrong_product_final_url,
+    )
+    assert failure is not None
+    assert "final browser route encoded" in failure
+
+
 def test_nordstrom_profile_binds_the_requested_product_id() -> None:
     profile = get_retail_capture_profile("nordstrom_pdp_aggregate")
     assert (
