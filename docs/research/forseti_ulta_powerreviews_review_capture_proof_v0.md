@@ -33,9 +33,10 @@ stale_if:
   `HEAD bbb2bd8d` (equal to `origin/main` at start).
 - Commission prompt:
   `docs/prompts/handoffs/ulta_powerreviews_review_capture_commission_prompt_v0.md`
-  (untracked authoring copy in the sibling research worktree; blob
-  `530bb2ca`). This report is its commissioned output; no collision — this
-  report did not exist at start.
+  (not yet on any branch — untracked authoring copy in the sibling research
+  worktree `beauty-retailer-corpus-research-2a49fa`; blob `530bb2ca`). This
+  report is its commissioned output; no collision — this report did not exist
+  at start.
 - Source load (`REUSE`/`REFRESH` from current bytes; blob prefixes recorded):
   `AGENTS.md` `be4aa889`; `.agents/workflow-overlay/README.md` `e05f8e6f`;
   preflight defaults `b2f8c5a7`; extraction standard `df63fb8c`; recon report
