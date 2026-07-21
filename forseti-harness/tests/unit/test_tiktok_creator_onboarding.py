@@ -1568,6 +1568,86 @@ def test_grid_overlay_sequence_stops_on_non_consecutive_progress_cycle(
     )
 
 
+def test_grid_overlay_sequence_keeps_direction_when_pending_tile_is_in_range(
+    tmp_path: Path,
+) -> None:
+    closed_at_370 = _visible_tiles_capture(
+        visible_min=1, visible_max=32, scroll_y=370, document_height=2461
+    )
+    closed_at_370.metadata["post_load_pointer_actions"] = [
+        {
+            "action_name": "tiktok_video_overlay_close_v0",
+            "target_found": True,
+            "clicked": True,
+            "move_steps": 6,
+        }
+    ]
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(
+                visible_min=1, visible_max=22, scroll_y=0, document_height=2461
+            ),
+            _visible_tiles_capture(
+                "1", visible_min=1, visible_max=32, scroll_y=370, document_height=2461
+            ),
+            _clicked_capture("1"),
+            closed_at_370,
+            _visible_tiles_capture(
+                visible_min=1, visible_max=32, scroll_y=370, document_height=2461
+            ),
+            _visible_tiles_capture(
+                "2", visible_min=10, visible_max=32, scroll_y=700, document_height=2461
+            ),
+            _clicked_capture("2"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = onboarding._GridOverlayCaptureSequence(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        selected_video_ids=["1", "2"],
+        window_by_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
+                "visible_in_viewport": True,
+                "grid_position": position,
+                "views": 400,
+                "likes": 20,
+            }
+            for video_id, position in (("1", 20), ("2", 24))
+        },
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        pagination_pass_cap=2,
+        engine=engine,
+        rng=type("FirstChoice", (), {"choice": lambda _self, rows: rows[0]})(),
+        sleep_fn=lambda _seconds: None,
+        monotonic_fn=lambda: 0.0,
+        utc_now_fn=lambda: datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
+        receipt=receipt,
+    )
+
+    sequence(
+        0,
+        [
+            "https://www.tiktok.com/@creator/video/1",
+            "https://www.tiktok.com/@creator/video/2",
+        ],
+    )
+    sequence(1, ["https://www.tiktok.com/@creator/video/2"])
+
+    wheel_directions = [
+        call["post_load_wheel_action"].direction
+        for call in engine.calls
+        if call.get("post_load_wheel_action") is not None
+    ]
+    assert wheel_directions == ["down", "down"]
+    assert receipt["grid_pagination_stop_reason"] is None
+    assert receipt["status"] == "complete"
+
+
 def test_grid_below_sufficient_window_fails_before_deep_capture(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
