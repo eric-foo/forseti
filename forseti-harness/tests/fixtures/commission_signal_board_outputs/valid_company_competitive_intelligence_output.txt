@@ -282,9 +282,46 @@ observation_ledger:
     consumed_by_sections: [6, 8, 9]
 ```
 
-### 5. Positioning, Offerings, Markets, And Channels
+### 5. Portfolio And Retail Architecture
 
-The current first-party page presents Product One as the flagship (OBS-001). A retailer page corroborates a US channel presence but not sales or inventory depth (OBS-003).
+The evidence supports a narrow portfolio view: Product One is the visible anchor,
+while retailer breadth remains partly observed (OBS-001, OBS-003).
+
+#### Owned Portfolio Denominator
+
+| Category / franchise | Current parent products | Material variants | Bundles / sets | Coverage state | Gap IDs | Observation IDs |
+| --- | ---: | --- | --- | --- | --- | --- |
+| Core line | 1 | not exposed | none observed | bounded current page | none | OBS-001 |
+
+#### Product, Claim, And Price Architecture
+
+| Product / franchise | Format and use case | Price tier | Claims / proof posture | Ingredient or formula family | Relationship | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+| Product One | current flagship offer | unknown | first-party flagship language | not captured | visible anchor | OBS-001 |
+
+#### Qualified Retailer Corpus
+
+| Retailer | Qualification and typed outcome | Grid denominator | Reconciled exact listings | PDP baseline coverage | Distinct retailer facts | Gap IDs | Observation IDs |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| Example Retailer | qualified; observed listing | unknown | 1 | bounded page | US presence | none | OBS-003 |
+
+#### Evidence-Selected Product Depth
+
+| Product | Named evidence job | Selection evidence | Deep surfaces | Corpus boundary / overlap state | Limitations | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+| Product One | visible anchor | first-party prominence | owned and retailer pages | no review corpus | no rate inference | OBS-001, OBS-003 |
+
+#### Outside-In Portfolio Interpretation
+
+| Product / franchise | Visible role | Decisive observed pattern | Evidence boundary | Confidence | Invalidation condition | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+| Product One | flagship anchor | owned prominence plus retailer presence | not sales leadership | medium | a complete census exposes another anchor | OBS-001, OBS-003 |
+
+#### Strategic Positioning, Markets, And Channels
+
+| Arena | Visible company move | Evidence | Strongest bounded interpretation | Gap / contradiction | Observation IDs |
+| --- | --- | --- | --- | --- | --- |
+| US retail | retailer presence | current retailer page | visible US channel pursuit | assortment depth unknown | OBS-003 |
 
 ### 6. Strategic And Operating Chronology
 
@@ -337,6 +374,7 @@ completion_ledger:
   deep_competitor_treatment: separate_named_follow_up_required
   classifier_handoff: omitted
   required_lens_coverage:
+    portfolio_and_retail_architecture: {status: complete, observation_ids: [OBS-001, OBS-003], rationale: owned and retailer architecture is visible}
     positioning: {status: complete, observation_ids: [OBS-001], rationale: current first-party statement}
     offerings_and_claims: {status: complete, observation_ids: [OBS-001], rationale: bounded current offering claim}
     markets_and_channels: {status: complete, observation_ids: [OBS-003], rationale: retailer channel observation}

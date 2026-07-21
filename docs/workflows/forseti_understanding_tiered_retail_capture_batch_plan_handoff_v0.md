@@ -172,23 +172,33 @@ All are under `forseti/product/spines/capture/core/source_families/retail_pdp/`.
 
 **Acceptance:** deterministic replay; conflicting near-matches remain ambiguous; no raw loss; native totals never change; one fixture selects a non-prominence product and proves fame is not automatic selection.
 
-### STEP-5 — Establish grid/PDP monitoring
+### STEP-5 — Install Portfolio and Retail Architecture in Understanding
 
-**Outcome:** retailer-local series for review velocity, price/promo, availability, assortment, variant, badges, seller, fulfillment, bought-band, and rank after stable onboarding.
+**Outcome:** make the breadth-first owned portfolio, four-retailer corpus,
+evidence-selected depth set, and outside-in interpretation a first-class,
+validated completed-report section. Longitudinal monitoring is explicitly
+deferred until a later owner commission.
 
-**Must read/likely change**
+**Must read/change**
 
-- review-velocity, availability/restock, and price-timeseries profiles under `capture/core/demand_durability_indicators/`
-- `demand_durability_multi_retailer_rendered_capture_spec_v0.md`
-- storefront registry and Retail/PDP README.
+- CI information architecture
+- CSB authority rules, prompt, and playbook
+- CSB output validator, company fixtures, and focused tests
 
-**Runtime/tests:** `run_source_capture_durability_series.py`, grid projection runner/module, `test_source_capture_durability_series.py`, `test_durability_multiretailer_rendered_wiring.py`, `test_retail_grid_projection.py`, retailer pin/onboarding tests.
+**Runtime/tests:** no Capture or monitoring runtime change. Update the company
+report validator and its focused fixtures/tests only.
 
-**Acceptance:** one series per retailer/market/exact parent/listing/variant semantics; two dates produce comparable deltas; product age and window are available; add/remove, price, promo, availability, variant, review count remain separate; blocked observation is a gap; provider reset, listing merge, reformulation breaks or explicitly rebases the series; no unnamed universal cadence.
+**Acceptance:** canonical Section 5 is `Portfolio And Retail Architecture`; its
+six ordered subsections expose the owned denominator, product/claim/price
+architecture, qualified retailer corpus, evidence-selected depth, outside-in
+interpretation, and strategic positioning/markets/channels; the completion
+ledger carries the new lens; validator fixtures prove the section, subsection
+order, and lens are mandatory; headings never substitute for evidence-ledger
+truth.
 
 ### STEP-6 — Prove decision-useful Understanding
 
-**Outcome:** run a fresh real-company acquisition/report; show what cross-retailer and longitudinal evidence materially strengthens, weakens, or changes; patch only defects the proof reveals.
+**Outcome:** when separately authorized, run a clean-room Summer Fridays acquisition/report under STEP-5 without using the previous run as evidence or selection input. Cross-retailer evidence must materially strengthen, weaken, or change the Understanding; longitudinal evidence is not required.
 
 **Likely surfaces:** CSB prompt/rules/playbook and CI architecture only for observed defects; CSB validator fixture/test if output changes; a new commissioned company seal/report, never a rewrite of historical receipts.
 
@@ -198,27 +208,27 @@ All are under `forseti/product/spines/capture/core/source_families/retail_pdp/`.
 
 | Surface | B1 | B2 | B3 | B4 | B5 | B6 |
 | --- | --- | --- | --- | --- | --- | --- |
-| CI architecture | must | — | — | pointer if needed | — | defect only |
-| CSB rules/prompt/playbook | must | — | detail only | — | — | proof defects |
+| CI architecture | must | — | — | pointer if needed | must | defect only |
+| CSB rules/prompt/playbook | must | — | detail only | — | must | proof defects |
 | Retail/PDP docs | — | must | composition | depth | monitoring pointer | — |
-| Storefront registry | — | route truth | — | — | re-probe | — |
-| Grid projection | — | capability | compose | — | recur | — |
-| PDP Cleaning/Silver | — | lean floor | compose | linkage consumer if owned | observations | — |
-| Retailer adapters | — | route gaps | compose | selected depth | refresh | — |
-| Review linkage | — | — | — | must | anchor | — |
-| Durability series | — | — | — | — | must | — |
-| CSB fixture/validator | inspect | — | — | — | — | output proof |
+| Storefront registry | — | route truth | — | — | — | proof use |
+| Grid projection | — | capability | compose | — | — | proof use |
+| PDP Cleaning/Silver | — | lean floor | compose | linkage consumer if owned | — | proof use |
+| Retailer adapters | — | route gaps | compose | selected depth | — | proof use |
+| Review linkage | — | — | — | must | — | proof use |
+| Durability series | — | — | — | — | deferred | — |
+| CSB fixture/validator | inspect | — | — | — | must | output proof |
 
 ## Authorization and Stop Conditions
 
 | Unit | Readiness | Authorization |
 | --- | --- | --- |
-| STEP-1 | `READY_FOR_COMMISSIONING` | `BLOCKED_BY_AUTHORIZATION` |
-| STEP-2 | `BLOCKED_BY_PREDECESSOR` | not authorized |
-| STEP-3 | `BLOCKED_BY_PREDECESSOR` | not authorized |
-| STEP-4 | `BLOCKED_BY_PREDECESSOR` | not authorized |
-| STEP-5 | `BLOCKED_BY_PREDECESSOR` | not authorized |
-| STEP-6 | `BLOCKED_BY_PREDECESSOR` | not authorized |
+| STEP-1 | `LANDED` | complete |
+| STEP-2 | `LANDED` | complete |
+| STEP-3 | `LANDED` | complete |
+| STEP-4 | `LANDED` | complete |
+| STEP-5 | `IMPLEMENTED_AWAITING_DELEGATED_REVIEW` | implementation verified; delegated patch return pending |
+| STEP-6 | `DEFERRED_BY_OWNER` | not authorized |
 
 Every batch runs focused tests, current repo-required gates, `git diff --check`, exact diff inspection, and fresh target verification. Live route changes require live proof; fixtures cannot upgrade registry status. A typed live failure is valid evidence, not fake coverage.
 
@@ -259,9 +269,9 @@ Resolve shorthand paths through the Retail/PDP README and repo map; hashes are c
 
 - `plan_intake`: complete
 - `acceptance_basis`: explicit owner acceptance of tiered depth
-- `implementation_profile`: standard; six units
-- `implementation_start_readiness`: `READY_FOR_BATCH_1_COMMISSIONING`
-- `current_turn_authorization`: planning artifact only
-- `next_authorized_step`: commission STEP-1 in a fresh lane; stop after its docs-only patch lands
+- `implementation_profile`: standard; STEP-5 contract upgrade active, STEP-6 deferred
+- `implementation_start_readiness`: `STEP_5_AUTHORIZED`
+- `current_turn_authorization`: implement STEP-5 only; delegated patch before merge
+- `next_authorized_step`: complete and land STEP-5 after delegated review-and-patch adjudication; do not start STEP-6
 
 Recommended Implementation Model: judgment_lane — multi-domain contracts require sequencing judgment

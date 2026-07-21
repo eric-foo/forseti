@@ -76,8 +76,8 @@ Each phase normally consumes two completed operator/model turns:
    silently substitute generic browsing or rediscovery.
    For a company Understanding commission where offerings, retail presentation,
    or customer experience are material, preserve the prompt's bounded sequence:
-   owned category/franchise/parent census -> qualified US ladder tests and
-   retailer grids -> every exact-parent listing's baseline PDP at each qualified
+   complete publicly exposed current owned category/franchise/parent and
+   material-variant denominator -> qualified US ladder tests and retailer grids -> every exact-parent listing's baseline PDP at each qualified
    retailer -> evidence-selected review/Q&A depth. Test Sephora, Ulta, Target,
    and Amazon; preserve exact typed failure instead of inventing a listing or
    completion credit. Use the common lean baseline, preserve full raw material,
@@ -191,6 +191,14 @@ or framing artifact, validate it under the owning contract, and hand off the
 next phase or step. Every evidence, coverage, provenance, and route-exhaustion
 claim must resolve to the seal. Preserve the final deliverable as the sealed
 phase output before commissioning post-delivery review.
+
+For company Understanding where offerings or retail are material, Deliver makes
+the breadth-first substrate visible in Section 5, `Portfolio And Retail
+Architecture`. Its ordered subsections and compact matrices show the owned
+denominator, product/claim/price structure, four-retailer corpus,
+evidence-selected depth, outside-in portfolio interpretation, and strategic
+positioning/markets/channels. The section synthesizes the sealed ledgers; it does
+not replace acquisition accounting or award completion from headings.
 
 For Understanding, derive the prompt's optional retailer-review approval signal
 only when the commissioned question gives it a named decision-material job and

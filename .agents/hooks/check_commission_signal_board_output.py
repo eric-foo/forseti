@@ -58,12 +58,20 @@ EXPECTED_COMPANY_SECTIONS = [
     "Decision-Neutral Boundary",
     "Source-Family And Venue Coverage Ledger",
     "Observation Ledger",
-    "Positioning, Offerings, Markets, And Channels",
+    "Portfolio And Retail Architecture",
     "Strategic And Operating Chronology",
     "Customer And Community Response",
     "Competitor Context, Contradictions, And Gaps",
     "Company Surface Candidate Ledger",
     "Completion Ledger And Run Boundary",
+]
+REQUIRED_PORTFOLIO_RETAIL_SUBSECTIONS = [
+    "Owned Portfolio Denominator",
+    "Product, Claim, And Price Architecture",
+    "Qualified Retailer Corpus",
+    "Evidence-Selected Product Depth",
+    "Outside-In Portfolio Interpretation",
+    "Strategic Positioning, Markets, And Channels",
 ]
 REQUIRED_ROW_COLUMNS = {
     "row_id",
@@ -303,6 +311,7 @@ COMPANY_COVERAGE_REQUIREMENTS = {
     "conditional",
 }
 COMPANY_LENS_KEYS = {
+    "portfolio_and_retail_architecture",
     "positioning",
     "offerings_and_claims",
     "markets_and_channels",
@@ -838,6 +847,30 @@ def _validate_company_sections(text: str) -> list[Finding]:
         Finding(
             "invalid_company_section_contract",
             "Company report must contain its conditional Sections 1-10 in the prompt-defined order.",
+        )
+    ]
+
+
+def _validate_portfolio_retail_subsections(text: str) -> list[Finding]:
+    section, findings = _extract_section(
+        _company_section_pattern(5, EXPECTED_COMPANY_SECTIONS[4]),
+        text,
+        "missing_company_section_5",
+        "Missing company report Section 5 Portfolio And Retail Architecture.",
+    )
+    if findings or not section:
+        return []
+    headings = [
+        _normalize_header(match.group("title"))
+        for match in re.finditer(r"^####\s+(?P<title>.+?)\s*$", section, re.MULTILINE)
+    ]
+    expected = [_normalize_header(title) for title in REQUIRED_PORTFOLIO_RETAIL_SUBSECTIONS]
+    if headings == expected:
+        return []
+    return [
+        Finding(
+            "invalid_portfolio_retail_subsection_contract",
+            "Company report Section 5 must contain the six Portfolio And Retail Architecture subsections in prompt-defined order.",
         )
     ]
 
@@ -1457,7 +1490,7 @@ def _validate_company_completion(
 
     lens = completion.get("required_lens_coverage")
     if not isinstance(lens, dict) or set(lens) != COMPANY_LENS_KEYS:
-        findings.append(Finding("invalid_required_lens_coverage", "required_lens_coverage must contain the eight company-report lenses."))
+        findings.append(Finding("invalid_required_lens_coverage", "required_lens_coverage must contain the nine company-report lenses."))
     else:
         for key, value in lens.items():
             if not isinstance(value, dict) or _normalize_vocab(value.get("status")) not in {"complete", "gap", "not_applicable_with_rationale"}:
@@ -1492,6 +1525,7 @@ def _validate_company_completion(
 
 def validate_company_report(text: str) -> list[Finding]:
     findings = _validate_company_sections(text)
+    findings.extend(_validate_portfolio_retail_subsections(text))
     findings.extend(_validate_engagement_overclaims(text))
     section_specs = [
         (1, EXPECTED_COMPANY_SECTIONS[0], "company_commission_receipt"),
