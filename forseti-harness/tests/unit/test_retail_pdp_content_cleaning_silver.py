@@ -6,6 +6,7 @@ from pathlib import Path
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
+    AMAZON_PDP_PARSER_VERSION,
     LUCKYSCENT_PDP_PARSER_VERSION,
     TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_PARSER_VERSION,
@@ -21,6 +22,7 @@ _ULTA_URL = (
     "?sku=2645443"
 )
 _TARGET_URL = "https://www.target.com/p/-/A-80184023"
+_AMAZON_URL = "https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK"
 
 
 def _json_file(path: Path, value: object) -> Path:
@@ -534,6 +536,153 @@ def test_target_content_flows_directly_through_cleaning_to_retail_silver(
         source_locator=known_fact(_TARGET_URL),
         decision_question="What source-visible Target product facts are present?",
         capture_context="Direct Target content-to-Cleaning Retail Silver proof",
+    )
+
+    result = derive_retail_pdp_silver(
+        data_root=root,
+        packet_id=written.packet.packet_id,
+    )
+
+    assert result.cleaning_basis == "content_record"
+    assert [record["payload_kind"] for record in result.records] == [
+        "ProductEntity",
+        "RetailOfferObservation",
+        "RetailReviewAggregateObservation",
+    ]
+    for record in result.records:
+        for source_ref in record["raw_refs"]:
+            assert source_ref["anchor"]["kind"] == "json_pointer"
+            assert source_ref["anchor"]["value"].startswith("/rows/")
+            assert source_ref["relative_packet_path"].endswith(
+                "content_record.json"
+            )
+
+
+def test_amazon_content_flows_directly_through_cleaning_to_retail_silver(
+    tmp_path: Path,
+) -> None:
+    content = {
+        "record_kind": "retail_pdp_amazon_aggregate_content",
+        "schema_version": "retail_pdp_amazon_aggregate_content_v1",
+        "parser_version": AMAZON_PDP_PARSER_VERSION,
+        "capture_profile": "amazon_pdp_aggregate",
+        "review_provider": "amazon_native_rendered_pdp",
+        "review_body_retention": "exact_bodies_retained_in_this_record",
+        "source_url": _AMAZON_URL,
+        "asin": "B07XXPHQZK",
+        "offer_module_state": "hydrated_in_rendered_dom",
+        "variant_module_state": "observed",
+        "ai_review_summary_state": "not_exposed_on_target_pdp",
+        "customer_q_and_a_state": "not_exposed_on_target_pdp",
+        "rows": [
+            {
+                "slice_id": "slice_01",
+                "row_id": "product",
+                "row_kind": "retail_pdp_product",
+                "retailer": "amazon",
+                "source_visible_fields": {
+                    "product_id": "B07XXPHQZK",
+                    "asin": "B07XXPHQZK",
+                    "product_name": "LANEIGE Lip Sleeping Mask",
+                    "brand_logo_title": "LANEIGE",
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "#productTitle data-csa-c-asin=B07XXPHQZK",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "offer",
+                "row_kind": "retail_variant_offer",
+                "retailer": "amazon",
+                "source_visible_fields": {
+                    "product_id": "B07XXPHQZK",
+                    "sku": "B07XXPHQZK",
+                    "price": "24.00",
+                    "price_currency": "USD",
+                    "availability": "In Stock",
+                    "seller": "Amazon.com",
+                    "bought_in_past_month": "70K+ bought in past month",
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "target-ASIN-bound corePrice module",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "reviews",
+                "row_kind": "retail_review_substrate",
+                "retailer": "amazon",
+                "source_visible_fields": {
+                    "rating": "4.6",
+                    "rating_count": "37,045",
+                    "captured_review_rows": 13,
+                    "review_body_retention": "exact_bodies_retained_in_this_record",
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "#averageCustomerReviews + #histogramTable",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "amazon_product_module_subtree",
+                "row_kind": "retail_product_module_subtree",
+                "retailer": "amazon",
+                "source_visible_fields": {
+                    "feature_bullet_count": 4,
+                    "image_reference_count": 30,
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "#feature-bullets + #detailBullets_feature_div",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "amazon_review_row_000",
+                "row_kind": "retail_review_row",
+                "retailer": "amazon",
+                "source_visible_fields": {
+                    "review_id": "R1S7HOZY4X45ZI",
+                    "body": "Thick, nourishing, and it lasts a long time.",
+                    "body_retained_here": True,
+                    "author": "HonesTee",
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": '#R1S7HOZY4X45ZI[data-hook="review"]',
+            },
+        ],
+        "residuals": [
+            "amazon_route_is_amazon_native_rendered_pdp_and_is_not_bazaarvoice"
+        ],
+    }
+    extraction_metadata = {
+        "extractor_version": AMAZON_PDP_PARSER_VERSION,
+        "extraction_status": "succeeded",
+        "retention_outcome": "content",
+    }
+    browser_metadata = {
+        "retail_capture_profile": {"name": "amazon_pdp_aggregate"},
+        "pin_confirmed": True,
+    }
+    inputs = [
+        _json_file(tmp_path / "content_record.json", content),
+        _json_file(
+            tmp_path / "content_extraction_metadata.json", extraction_metadata
+        ),
+        _json_file(
+            tmp_path / "cloakbrowser_snapshot_metadata.json", browser_metadata
+        ),
+    ]
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    written = write_local_source_capture_packet(
+        data_root=root,
+        input_files=inputs,
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=known_fact(_AMAZON_URL),
+        decision_question="What source-visible Amazon product facts are present?",
+        capture_context="Direct Amazon content-to-Cleaning Retail Silver proof",
     )
 
     result = derive_retail_pdp_silver(

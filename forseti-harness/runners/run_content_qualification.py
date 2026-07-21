@@ -32,11 +32,13 @@ from source_capture.parfumo_projection import (  # noqa: E402
     build_parfumo_targeted_content_record,
 )
 from source_capture.retail_pdp_projection import (  # noqa: E402
+    AMAZON_PDP_PARSER_VERSION,
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_PARSER_VERSION,
     TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_PARSER_VERSION,
+    build_amazon_pdp_aggregate_content_record,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
@@ -103,6 +105,10 @@ _ROUTES: dict[str, tuple[str, Extractor]] = {
     "target": (
         TARGET_PDP_PARSER_VERSION,
         _rendered(build_target_pdp_aggregate_content_record),
+    ),
+    "amazon": (
+        AMAZON_PDP_PARSER_VERSION,
+        _rendered(build_amazon_pdp_aggregate_content_record),
     ),
 }
 

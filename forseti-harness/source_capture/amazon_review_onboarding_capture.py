@@ -120,6 +120,8 @@ class _AmazonReviewParser(HTMLParser):
             )
         elif "aplus-question" in attr_map.get("class", "").split():
             special = ("aplus_question", "")
+        elif "a-profile-name" in attr_map.get("class", "").split():
+            special = ("profile_name", "")
 
         if hook == "review":
             if self._current is not None:
@@ -236,6 +238,8 @@ class _AmazonReviewParser(HTMLParser):
                 self.histogram[star] = int(pct_match.group(1))
         elif kind == "aplus_question" and text:
             self.aplus_question_count += 1
+        elif kind == "profile_name" and text and self._current is not None:
+            self._current.setdefault("profile_names", []).append(text)
         elif kind == "review_root":
             self._finish_review(value)
 
@@ -295,12 +299,21 @@ class _AmazonReviewParser(HTMLParser):
             for label in badge_labels
             if re.search(r"(?i)(vine|free product|incentiv)", label)
         ]
+        profile_names = current.get("profile_names") or []
         self.rows.append(
             {
                 "review_id": review_id,
                 "section": current["section"],
                 "title": title,
                 "body": body,
+                # Amazon repeats each review's header markup inside one row and
+                # wraps the body in a11y teaser text plus a Read more/less
+                # footer.  These additional keys carry the exact review body and
+                # the reviewer's own profile name so a consumer that must retain
+                # the body verbatim does not have to retain that chrome.  They
+                # are additive: no existing key changes.
+                "body_rich_text": hook_text.get("reviewRichContentContainer"),
+                "author_profile_names": sorted(set(profile_names)),
                 "author": author,
                 "rating": float(rating_match.group(1)),
                 "rating_text": rating_text,
@@ -320,6 +333,47 @@ class _AmazonReviewParser(HTMLParser):
                 "source_attribute_names": sorted(current["source_attribute_names"]),
             }
         )
+
+
+@dataclass(frozen=True)
+class AmazonPdpReviewSections:
+    """Source-labelled Amazon top-review evidence parsed from exact PDP HTML."""
+
+    rows: tuple[dict[str, Any], ...]
+    section_labels: Mapping[str, str]
+    rating_distribution_percent: Mapping[str, int]
+    aplus_question_count: int
+
+
+def parse_amazon_pdp_review_sections(html: str) -> AmazonPdpReviewSections:
+    """Parse the Amazon-native top-review sections out of one exact PDP DOM.
+
+    Both the body-free companion summary and the canonical Amazon content
+    record read the same rendered rows, so the parser stays single-sourced
+    here.  Exact review bodies are returned; each caller decides whether it is
+    the surface that retains them.
+    """
+    parser = _AmazonReviewParser()
+    parser.feed(html)
+    parser.close()
+    if not parser.rows:
+        raise AmazonReviewOnboardingCaptureError("Amazon parent exposes no supported review rows")
+    review_ids = [row["review_id"] for row in parser.rows]
+    if len(set(review_ids)) != len(review_ids):
+        raise AmazonReviewOnboardingCaptureError("Amazon parent contains duplicate review ids")
+    for section, expected in _EXPECTED_SECTION_LABELS.items():
+        if any(row["section"] == section for row in parser.rows):
+            observed = parser.section_labels.get(section)
+            if observed != expected:
+                raise AmazonReviewOnboardingCaptureError(
+                    f"Amazon review section label mismatch for {section}: {observed!r}"
+                )
+    return AmazonPdpReviewSections(
+        rows=tuple(parser.rows),
+        section_labels=dict(parser.section_labels),
+        rating_distribution_percent=dict(sorted(parser.histogram.items(), reverse=True)),
+        aplus_question_count=parser.aplus_question_count,
+    )
 
 
 def capture_amazon_review_onboarding_packet(
@@ -365,27 +419,15 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
         visible_text = parent.visible_text.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise AmazonReviewOnboardingCaptureError("Amazon parent text is not UTF-8") from exc
-    parser = _AmazonReviewParser()
-    parser.feed(html)
-    parser.close()
-    if not parser.rows:
-        raise AmazonReviewOnboardingCaptureError("Amazon parent exposes no supported review rows")
-    review_ids = [row["review_id"] for row in parser.rows]
-    if len(set(review_ids)) != len(review_ids):
-        raise AmazonReviewOnboardingCaptureError("Amazon parent contains duplicate review ids")
-    for section, expected in _EXPECTED_SECTION_LABELS.items():
-        if any(row["section"] == section for row in parser.rows):
-            observed = parser.section_labels.get(section)
-            if observed != expected:
-                raise AmazonReviewOnboardingCaptureError(
-                    f"Amazon review section label mismatch for {section}: {observed!r}"
-                )
+    parsed = parse_amazon_pdp_review_sections(html)
+    parsed_rows = list(parsed.rows)
+    review_ids = [row["review_id"] for row in parsed_rows]
 
     rating_match = _RATING_RE.search(visible_text)
     count_match = _REVIEW_COUNT_RE.search(visible_text)
     inventory: list[dict[str, Any]] = []
     section_ranks: dict[str, int] = {}
-    for rank, row in enumerate(parser.rows, start=1):
+    for rank, row in enumerate(parsed_rows, start=1):
         section = row["section"]
         section_ranks[section] = section_ranks.get(section, 0) + 1
         body = row["body"]
@@ -394,7 +436,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
                 "rank": rank,
                 "section_rank": section_ranks[section],
                 "section": section,
-                "section_label": parser.section_labels[section],
+                "section_label": parsed.section_labels[section],
                 "review_id": row["review_id"],
                 "title": row["title"],
                 "body_present": True,
@@ -426,11 +468,11 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             }
         )
 
-    incentive_count = sum(bool(row["incentive_labels"]) for row in parser.rows)
+    incentive_count = sum(bool(row["incentive_labels"]) for row in parsed_rows)
     context_keys = sorted(
         {
             hook
-            for row in parser.rows
+            for row in parsed_rows
             for hook in row["source_hooks"]
             if re.search(r"(?i)(profile|genome|demographic|skin|age)", hook)
         }
@@ -456,7 +498,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
         "review_aggregate": {
             "rating": float(rating_match.group(1)) if rating_match else None,
             "rating_count": int(count_match.group(1).replace(",", "")) if count_match else None,
-            "rating_distribution_percent": dict(sorted(parser.histogram.items(), reverse=True)),
+            "rating_distribution_percent": dict(parsed.rating_distribution_percent),
             "source": "parent Amazon PDP rendered DOM and visible text",
         },
         "reviews": {
@@ -468,9 +510,9 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             "captured_review_bodies_in_parent_raw": len(inventory),
             "united_states_rows": section_ranks.get("top_reviews_united_states", 0),
             "other_countries_rows": section_ranks.get("top_reviews_other_countries", 0),
-            "verified_purchase_rows": sum(row["verified_purchase"] is True for row in parser.rows),
-            "rows_with_helpful_count": sum(row["helpful_count"] is not None for row in parser.rows),
-            "rows_with_media_references": sum(bool(row["media_references"]) for row in parser.rows),
+            "verified_purchase_rows": sum(row["verified_purchase"] is True for row in parsed_rows),
+            "rows_with_helpful_count": sum(row["helpful_count"] is not None for row in parsed_rows),
+            "rows_with_media_references": sum(bool(row["media_references"]) for row in parsed_rows),
             "rows_with_incentive_marker": incentive_count,
             "context_hook_keys": context_keys,
             "review_inventory": inventory,
@@ -479,7 +521,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             "product_customer_q_and_a_status": "not_exposed_on_target_pdp",
             "captured_customer_questions": 0,
             "captured_customer_answers": 0,
-            "excluded_brand_authored_aplus_faq_questions": parser.aplus_question_count,
+            "excluded_brand_authored_aplus_faq_questions": parsed.aplus_question_count,
         },
         "route_classification": {
             "bazaarvoice_marker_count": len(_BAZAARVOICE_RE.findall(html)),
@@ -523,7 +565,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             },
             {
                 "category": "questions_and_answers",
-                "detail": f"No customer product Q&A is exposed; {parser.aplus_question_count} brand-authored A+ FAQ questions are excluded from customer Q&A.",
+                "detail": f"No customer product Q&A is exposed; {parsed.aplus_question_count} brand-authored A+ FAQ questions are excluded from customer Q&A.",
             },
             {
                 "category": "linked_media",
