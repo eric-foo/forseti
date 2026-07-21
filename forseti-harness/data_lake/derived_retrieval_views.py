@@ -1410,6 +1410,9 @@ SQL_RAW_SURFACES = frozenset({
     "tiktok_creator_batch_comment_subtitle_admission",
     "youtube_watch_metadata_comments",
 })
+# Bound on the candidate window an exact-actor rehydration may scan. Reaching it
+# means the window was truncated, which is a loud failure, never a short answer.
+SQL_ACTOR_CANDIDATE_LIMIT = 10000
 SQL_DECISION_QUESTIONS = frozenset({
     "creator_comment_coordination", "content_comment_coordination",
     "bounded_public_actor_context",
@@ -1442,22 +1445,27 @@ def _dr_connect(path: Path, *, read_only: bool = False):
     return connection
 
 
-def _dr_schema(connection, *, reset: bool) -> None:
-    if reset:
-        connection.executescript("""
-        DROP TRIGGER IF EXISTS dr_ai; DROP TRIGGER IF EXISTS dr_ad;
-        DROP TABLE IF EXISTS evidence_fts; DROP TABLE IF EXISTS evidence_events;
-        DROP TABLE IF EXISTS evidence_sources; DROP TABLE IF EXISTS evidence_metadata;
-        """)
-    connection.executescript("""
-    CREATE TABLE IF NOT EXISTS evidence_metadata(
-      key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT;
-    CREATE TABLE IF NOT EXISTS evidence_sources(
+# Issued one statement at a time inside the caller's IMMEDIATE transaction:
+# executescript() COMMITs any pending transaction first, which would let a
+# --full-rebuild that dies mid-extraction leave the catalogue dropped instead
+# of untouched.
+_DR_RESET_STATEMENTS = (
+    "DROP TRIGGER IF EXISTS dr_ai",
+    "DROP TRIGGER IF EXISTS dr_ad",
+    "DROP TABLE IF EXISTS evidence_fts",
+    "DROP TABLE IF EXISTS evidence_events",
+    "DROP TABLE IF EXISTS evidence_sources",
+    "DROP TABLE IF EXISTS evidence_metadata",
+)
+_DR_SCHEMA_STATEMENTS = (
+    """CREATE TABLE IF NOT EXISTS evidence_metadata(
+      key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT""",
+    """CREATE TABLE IF NOT EXISTS evidence_sources(
       source_ref TEXT PRIMARY KEY, source_kind TEXT NOT NULL,
       raw_anchor TEXT NOT NULL, source_sha256 TEXT NOT NULL,
       extractor_profile TEXT NOT NULL, event_count INTEGER NOT NULL,
-      residuals_json TEXT NOT NULL) STRICT;
-    CREATE TABLE IF NOT EXISTS evidence_events(
+      residuals_json TEXT NOT NULL) STRICT""",
+    """CREATE TABLE IF NOT EXISTS evidence_events(
       row_id INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,
       source_ref TEXT NOT NULL REFERENCES evidence_sources(source_ref) ON DELETE CASCADE,
       source_kind TEXT NOT NULL, event_locator TEXT NOT NULL,
@@ -1469,26 +1477,34 @@ def _dr_schema(connection, *, reset: bool) -> None:
       event_time_utc TEXT, event_time_precision TEXT, event_time_source_text TEXT,
       post_time_utc TEXT, capture_time_utc TEXT, body_text TEXT NOT NULL,
       body_sha256 TEXT NOT NULL, authority_status TEXT NOT NULL,
-      limitations_json TEXT NOT NULL) STRICT;
-    CREATE INDEX IF NOT EXISTS dr_creator_time ON evidence_events(
-      creator_namespace,creator_native_id,event_time_utc);
-    CREATE INDEX IF NOT EXISTS dr_content_time ON evidence_events(
-      platform,content_native_id,event_time_utc);
-    CREATE INDEX IF NOT EXISTS dr_product_time ON evidence_events(
-      product_namespace,product_native_id,event_time_utc);
-    CREATE INDEX IF NOT EXISTS dr_surface_time ON evidence_events(
-      source_surface,event_time_utc);
-    CREATE INDEX IF NOT EXISTS dr_body_hash ON evidence_events(body_sha256);
-    CREATE VIRTUAL TABLE IF NOT EXISTS evidence_fts USING fts5(
-      body_text,content='evidence_events',content_rowid='row_id',tokenize='unicode61');
-    CREATE TRIGGER IF NOT EXISTS dr_ai AFTER INSERT ON evidence_events BEGIN
+      limitations_json TEXT NOT NULL) STRICT""",
+    """CREATE INDEX IF NOT EXISTS dr_creator_time ON evidence_events(
+      creator_namespace,creator_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_content_time ON evidence_events(
+      platform,content_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_product_time ON evidence_events(
+      product_namespace,product_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_surface_time ON evidence_events(
+      source_surface,event_time_utc)""",
+    "CREATE INDEX IF NOT EXISTS dr_body_hash ON evidence_events(body_sha256)",
+    """CREATE VIRTUAL TABLE IF NOT EXISTS evidence_fts USING fts5(
+      body_text,content='evidence_events',content_rowid='row_id',tokenize='unicode61')""",
+    """CREATE TRIGGER IF NOT EXISTS dr_ai AFTER INSERT ON evidence_events BEGIN
       INSERT INTO evidence_fts(rowid,body_text) VALUES(new.row_id,new.body_text);
-    END;
-    CREATE TRIGGER IF NOT EXISTS dr_ad AFTER DELETE ON evidence_events BEGIN
+    END""",
+    """CREATE TRIGGER IF NOT EXISTS dr_ad AFTER DELETE ON evidence_events BEGIN
       INSERT INTO evidence_fts(evidence_fts,rowid,body_text)
       VALUES('delete',old.row_id,old.body_text);
-    END;
-    """)
+    END""",
+)
+
+
+def _dr_schema(connection, *, reset: bool) -> None:
+    if reset:
+        for statement in _DR_RESET_STATEMENTS:
+            connection.execute(statement)
+    for statement in _DR_SCHEMA_STATEMENTS:
+        connection.execute(statement)
     row = connection.execute(
         "SELECT value FROM evidence_metadata WHERE key='schema_version'"
     ).fetchone()
@@ -1531,6 +1547,17 @@ def _dr_time(value):
     else:
         precision = "second"
     return parsed.astimezone(timezone.utc).isoformat(), precision, text
+
+
+def _dr_window_bound(value, label):
+    """Stored event/capture times are canonical UTC ``+00:00`` isoformat and the
+    window filter compares them as TEXT. A caller bound must be normalized the
+    same way first, or a ``Z``-suffixed or non-UTC-offset bound silently selects
+    a lexicographically shifted window instead of the requested instants."""
+    normalized, _precision, _source_text = _dr_time(value)
+    if normalized is None:
+        raise ValueError("%s must be an ISO-8601 timestamp: %r" % (label, value))
+    return normalized
 
 
 def _dr_event(source_ref, source_kind, locator, kind, raw_anchor, body, *,
@@ -1712,8 +1739,8 @@ def refresh_sql_catalogue(root, source_inventory, *, full_rebuild=False, path=No
     connection = _dr_connect(path)
     changed = 0; seen = set(); verification_cache = {}
     try:
-        _dr_schema(connection, reset=full_rebuild)
         connection.execute("BEGIN IMMEDIATE")
+        _dr_schema(connection, reset=full_rebuild)
         candidates = []
         for stored in source_inventory.records(subtree="derived", lanes=SQL_EVENT_LANES):
             candidates.append((stored.relative_path, "silver_record", stored.raw_anchor,
@@ -1815,7 +1842,7 @@ def sql_catalogue_status(root, *, path=None):
 
 
 def query_sql_catalogue(root, *, body_query=None, platform=None, vendor=None,
-                        creator_id=None, content_id=None, product_id=None,
+                        surface=None, creator_id=None, content_id=None, product_id=None,
                         from_utc=None, to_utc=None, limit=1000):
     if limit < 1 or limit > 10000: raise ValueError("limit must be 1..10000")
     connection = _dr_connect(sql_catalogue_path(root), read_only=True)
@@ -1825,11 +1852,16 @@ def query_sql_catalogue(root, *, body_query=None, platform=None, vendor=None,
             join = " JOIN evidence_fts ON evidence_fts.rowid=e.row_id"
             clauses.append("evidence_fts MATCH ?"); values.append(body_query)
         for column,value in (("platform",platform),("vendor",vendor),
-            ("creator_native_id",creator_id),("content_native_id",content_id),
+            ("source_surface",surface),("creator_native_id",creator_id),
+            ("content_native_id",content_id),
             ("product_native_id",product_id)):
             if value is not None: clauses.append("e.%s=?" % column); values.append(value)
-        if from_utc: clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)>=?"); values.append(from_utc)
-        if to_utc: clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)<=?"); values.append(to_utc)
+        if from_utc:
+            clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)>=?")
+            values.append(_dr_window_bound(from_utc, "from_utc"))
+        if to_utc:
+            clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)<=?")
+            values.append(_dr_window_bound(to_utc, "to_utc"))
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
         rows = [dict(row) for row in connection.execute(
             "SELECT e.* FROM evidence_events e" + join + where +
@@ -1856,11 +1888,20 @@ def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
         raise ValueError("actor window must be greater than zero and at most 90 days")
     if not actor.strip():
         raise ValueError("actor identifier must not be empty")
+    # The enforced window is the normalized one; report and audit it, never the
+    # caller's unnormalized spelling.
+    from_utc = start.astimezone(timezone.utc).isoformat()
+    to_utc = end.astimezone(timezone.utc).isoformat()
     report = query_sql_catalogue(root,platform=platform,creator_id=creator_id,
-        content_id=content_id,from_utc=from_utc,to_utc=to_utc,limit=10000)
+        content_id=content_id,from_utc=from_utc,to_utc=to_utc,
+        limit=SQL_ACTOR_CANDIDATE_LIMIT)
     source_refs = sorted({row["source_ref"] for row in report["rows"]})
-    if len(report["rows"]) >= 10000 and not (creator_id or content_id):
-        raise ValueError("actor candidate set too broad; add creator/content anchor")
+    # A saturated window is silently truncated evidence: an anchor does not make
+    # the dropped tail safe, so fail loud instead of returning a short answer.
+    if len(report["rows"]) >= SQL_ACTOR_CANDIDATE_LIMIT:
+        raise ValueError(
+            "actor candidate set saturated the bounded window; narrow the time "
+            "window or add a creator/content anchor")
     connection = _dr_connect(sql_catalogue_path(root),read_only=True)
     try:
         sources = {row["source_ref"]:dict(row) for row in connection.execute(

@@ -217,6 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sql-body-query")
     parser.add_argument("--sql-platform")
     parser.add_argument("--sql-vendor")
+    parser.add_argument("--sql-surface")
     parser.add_argument("--sql-creator-id")
     parser.add_argument("--sql-content-id")
     parser.add_argument("--sql-product-id")
@@ -237,7 +238,8 @@ def main(argv: list[str] | None = None) -> int:
             elif args.sql_query:
                 report = query_sql_catalogue(
                     root,body_query=args.sql_body_query,platform=args.sql_platform,
-                    vendor=args.sql_vendor,creator_id=args.sql_creator_id,
+                    vendor=args.sql_vendor,surface=args.sql_surface,
+                    creator_id=args.sql_creator_id,
                     content_id=args.sql_content_id,product_id=args.sql_product_id,
                     from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,limit=args.sql_limit)
             else:
