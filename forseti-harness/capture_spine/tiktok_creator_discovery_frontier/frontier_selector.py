@@ -120,6 +120,83 @@ def promotion_decision_for_handle(document: Mapping[str, Any], handle: str) -> M
     return matches[0] if matches else None
 
 
+def apply_tiktok_creator_onboarding_dedupe(
+    document: Mapping[str, Any],
+    *,
+    registry_states: Mapping[str, str],
+    frontier_registers: Sequence[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    """Annotate promotion results with the live Registry/Frontier action gate.
+
+    Performance decisions remain unchanged. The actionable queue excludes an
+    onboarded Registry account and any creator already scanned as a Frontier
+    root, while a known not-onboarded Registry account remains actionable.
+    """
+    wrapper = document.get("tiktok_creator_promotion_decisions")
+    if not isinstance(wrapper, Mapping) or wrapper.get("schema_version") != TIKTOK_CREATOR_PROMOTION_SCHEMA:
+        raise ValueError("unsupported TikTok promotion decisions")
+    normalized_states = {
+        key: state
+        for handle, state in registry_states.items()
+        if (key := _handle_key(handle)) is not None
+    }
+    invalid_states = sorted(
+        {state for state in normalized_states.values() if state not in {"onboarded", "not_onboarded"}}
+    )
+    if invalid_states:
+        raise ValueError(f"invalid Creator Registry onboarding states: {invalid_states}")
+    _, scanned_root_keys = _collect_candidate_records(frontier_registers)
+
+    result = {"tiktok_creator_promotion_decisions": dict(wrapper)}
+    result_wrapper = result["tiktok_creator_promotion_decisions"]
+    rows: list[dict[str, Any]] = []
+    actionable_handles: list[str] = []
+    for source_row in wrapper.get("decisions", []):
+        if not isinstance(source_row, Mapping):
+            raise ValueError("promotion decision rows must be objects")
+        row = dict(source_row)
+        handle = _clean_handle(row.get("handle"))
+        handle_key = _handle_key(handle)
+        if not handle or not handle_key:
+            raise ValueError("promotion decision handle is required")
+        registry_state = normalized_states.get(handle_key)
+        if registry_state == "onboarded":
+            queue_status = "already_onboarded"
+        elif handle_key in scanned_root_keys:
+            queue_status = "already_scanned_frontier"
+        elif registry_state == "not_onboarded":
+            queue_status = "known_not_onboarded"
+        else:
+            queue_status = "new_candidate"
+        actionable = (
+            row.get("registry_action") == "promote_now"
+            and queue_status in {"known_not_onboarded", "new_candidate"}
+        )
+        row["onboarding_queue_status"] = queue_status
+        row["actionable_promote_now"] = actionable
+        rows.append(row)
+        if actionable:
+            actionable_handles.append(handle)
+
+    result_wrapper["decisions"] = rows
+    original_counts = wrapper.get("counts")
+    counts = dict(original_counts) if isinstance(original_counts, Mapping) else {}
+    counts["actionable_promote_now"] = len(actionable_handles)
+    counts["already_onboarded_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "already_onboarded"
+        for row in rows
+    )
+    counts["already_scanned_frontier_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "already_scanned_frontier"
+        for row in rows
+    )
+    result_wrapper["counts"] = counts
+    result_wrapper["actionable_promote_now_handles"] = actionable_handles
+    return result
+
+
 def _utc(value: Any) -> datetime:
     if not isinstance(value, str):
         raise ValueError("capture_timestamp must be ISO-8601 text")
