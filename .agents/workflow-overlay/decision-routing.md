@@ -149,11 +149,16 @@ standing default.
 ### Task-Local Tool-Stall Circuit
 
 After one silent sandboxed tool stall, open a circuit for that
-tool-plus-permission route in the current task. Use a realistic timeout; absent
-better evidence, allow 20 seconds for reads or patches and 60 seconds for tests.
-Wait at most once for any remaining original budget, then terminate the call.
-Do not retry the same route merely because the command or conversation turn
-changed.
+tool-plus-permission route in the current task. Use a realistic,
+operation-specific timeout. On Windows, absent stronger operation-specific
+evidence, allow a full 60 seconds for reads or patches before declaring
+`sandboxed_tool_stall`. A yielded or deferred running handle alone is not a
+stall before that budget expires; give the owner a concise progress update
+around 30 seconds while it continues. Longer operations such as tests keep
+their operation-specific expected runtime and are not forced into the 60-second
+budget. Wait at most once for any remaining original budget, then terminate the
+call. Do not retry the same route merely because the command or conversation
+turn changed.
 
 If the stalled operation might have written, inspect only its intended targets
 once. Retry a safe in-scope operation at most once through a distinct approved
