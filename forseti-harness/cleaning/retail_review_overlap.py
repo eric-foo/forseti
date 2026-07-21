@@ -267,14 +267,27 @@ def build_depth_selection(
             raise RetailReviewOverlapError(
                 f"portfolio has duplicate PDP baseline: {key}"
             )
+        if not _non_blank_text(item.get("packet_id")) or not _non_blank_text(
+            item.get("source_locator")
+        ):
+            raise RetailReviewOverlapError(
+                f"portfolio PDP baseline lacks a verified packet binding: {key}"
+            )
         baselines[key] = item
 
     listings_by_parent: dict[str, list[dict[str, Any]]] = {
         key: [] for key in parent_ids
     }
+    seen_listings: set[tuple[str, str]] = set()
     for item in _object_list(portfolio, "listing_identities"):
         retailer = str(item.get("retailer"))
         source_product_id = str(item.get("source_product_id"))
+        if (retailer, source_product_id) in seen_listings:
+            raise RetailReviewOverlapError(
+                "portfolio has duplicate listing identity: "
+                f"{(retailer, source_product_id)}"
+            )
+        seen_listings.add((retailer, source_product_id))
         baseline = baselines.get((retailer, source_product_id))
         for parent_id in item.get("exact_owned_parent_ids", []):
             if parent_id not in listings_by_parent:
@@ -412,13 +425,51 @@ def build_review_linkage(
         raise RetailReviewOverlapError(
             f"linkage rows name products not selected for depth: {outside}"
         )
+    review_job_bindings = {
+        (str(item.get("owned_parent_id")), str(item.get("retailer")))
+        for item in _object_list(selection, "companion_onboarding_jobs")
+        if item.get("surface") == "REVIEWS"
+    }
+    unbound = sorted(
+        (
+            {
+                (item.owned_parent_id, item.retailer)
+                for item in commission.occurrences
+            }
+            | {
+                (item.owned_parent_id, item.retailer)
+                for item in commission.native_review_totals
+            }
+        )
+        - review_job_bindings
+    )
+    if unbound:
+        raise RetailReviewOverlapError(
+            "linkage rows name product/retailer pairs with no selected REVIEWS "
+            f"companion job: {unbound}"
+        )
 
     verified_refs: set[
         tuple[str, str, str, str, str, str, str]
     ] = set()
+    claimed_raw_rows: dict[tuple[str, str, str], str] = {}
     for occurrence in commission.occurrences:
         for raw_ref in occurrence.raw_refs:
             _verify_raw_ref(raw_ref, base_directory, verified_refs)
+            row_key = (
+                raw_ref.packet_id,
+                raw_ref.file_id,
+                raw_ref.raw_row_anchor,
+            )
+            claimant = claimed_raw_rows.setdefault(
+                row_key, occurrence.occurrence_id
+            )
+            if claimant != occurrence.occurrence_id:
+                raise RetailReviewOverlapError(
+                    "one raw review row backs more than one occurrence: "
+                    f"{row_key} claimed by {claimant} and "
+                    f"{occurrence.occurrence_id}"
+                )
     for total in commission.native_review_totals:
         for raw_ref in total.raw_refs:
             _verify_raw_ref(raw_ref, base_directory, verified_refs)
@@ -435,7 +486,12 @@ def build_review_linkage(
             if left.owned_parent_id != right.owned_parent_id:
                 continue
             basis = _match_basis(left, right)
-            conflicts = _conflicting_fields(left, right) if basis else []
+            conflicts = (
+                _conflicting_fields(left, right)
+                + _identity_conflicts(left, right, basis)
+                if basis
+                else []
+            )
             near_conflicts = _near_match_conflicts(left, right)
             if conflicts or near_conflicts:
                 candidate_basis = basis or "NORMALIZED_NEAR_MATCH"
@@ -781,6 +837,40 @@ def _near_match_conflicts(
     return []
 
 
+_IDENTITY_TIERS: tuple[tuple[str, str, bool], ...] = (
+    ("origin_review_id", "PROVIDER_ORIGIN_ID", False),
+    ("source_native_review_id", "PROVIDER_NATIVE_ID", True),
+    ("explicit_syndication_key", "EXPLICIT_SYNDICATION", False),
+)
+
+
+def _identity_conflicts(
+    left: ReviewOccurrence, right: ReviewOccurrence, basis: str
+) -> list[str]:
+    """Provider identity fields that outrank ``basis`` and disagree.
+
+    A weaker match never overrides a stronger identity signal: when the same
+    provider gives the two rows different ids, the provider itself calls them
+    different reviews, so the pair belongs in the ambiguous queue rather than a
+    merged unique review. Native ids are retailer-scoped because one syndicated
+    review legitimately carries a different native id at each retailer.
+    """
+    if _normalize_text(left.provider) != _normalize_text(right.provider):
+        return []
+    basis_priority = _basis_priority(basis)
+    conflicts: list[str] = []
+    for field, tier, retailer_scoped in _IDENTITY_TIERS:
+        if _basis_priority(tier) >= basis_priority:
+            continue
+        if retailer_scoped and left.retailer != right.retailer:
+            continue
+        left_value = _normalize_text(getattr(left, field))
+        right_value = _normalize_text(getattr(right, field))
+        if left_value and right_value and left_value != right_value:
+            conflicts.append(field)
+    return conflicts
+
+
 def _conflicting_fields(
     left: ReviewOccurrence, right: ReviewOccurrence
 ) -> list[str]:
@@ -840,6 +930,10 @@ def _normalize_rating(value: object) -> str:
     except InvalidOperation:
         return _normalize_text(value)
     return format(normalized, "f")
+
+
+def _non_blank_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _load_json_object(path: Path, label: str) -> dict[str, Any]:
