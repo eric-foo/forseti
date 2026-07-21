@@ -81,7 +81,7 @@ scale. The current acquisition census is:
 | `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 | `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
 
-`RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2` versions the shared profile-registry
+`RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 3` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
 record to `v2` without a real schema or retention change would be a misleading
 label and is not allowed.

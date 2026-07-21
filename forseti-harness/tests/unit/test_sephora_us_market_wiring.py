@@ -9,7 +9,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
-from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
+from source_capture.adapters.cloakbrowser_snapshot import (
+    CloakBrowserSnapshotSuccess,
+    PreCaptureOutcome,
+)
 from source_capture.adapters.sephora_us_market import (
     SephoraUSMarketPlugin,
     confirm_sephora_us_market,
@@ -57,11 +60,13 @@ def _sephora_dom(
     )
 
 
-def _sephora_grid_dom(*, currency_code: str | None = "USD") -> str:
+def _sephora_grid_dom(
+    *, country: str = "US", currency_code: str | None = "USD"
+) -> str:
     render_query = json.dumps(
         {
             "channel": "rwd",
-            "country": "US",
+            "country": country,
             "language": "en",
             "urlPath": "/brand/summer-fridays",
         },
@@ -165,7 +170,7 @@ def _fake_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
     pre_capture = kwargs["pre_capture"]
     assert isinstance(pre_capture, SephoraUSMarketPlugin)
     assert pre_capture.page_kind == "grid"
-    dom = _sephora_grid_dom()
+    dom = _sephora_grid_dom(currency_code=None)
     confirmation = pre_capture.confirm(dom)
     return CloakBrowserSnapshotSuccess(
         requested_url=kwargs["url"],
@@ -238,22 +243,26 @@ def test_confirmation_rejects_country_dialog_over_valid_usd_page() -> None:
     assert "country-routing dialog absent" in confirmation.detail
 
 
-def test_grid_confirmation_requires_exact_pagejson_currency_code() -> None:
-    confirmation = confirm_sephora_us_market(
-        _sephora_grid_dom(), page_kind="grid"
+def test_grid_confirmation_admits_us_country_independently_of_currency() -> None:
+    no_currency = confirm_sephora_us_market(
+        _sephora_grid_dom(currency_code=None), page_kind="grid"
+    )
+    usd = confirm_sephora_us_market(_sephora_grid_dom(), page_kind="grid")
+    cad = confirm_sephora_us_market(
+        _sephora_grid_dom(currency_code="CAD"), page_kind="grid"
     )
 
-    assert confirmation.confirmed is True
-    assert "currency code USD" in confirmation.detail
+    assert no_currency.confirmed is True
+    assert "country=US" in no_currency.detail
+    assert "currency remains un-pinned" in no_currency.detail
+    assert usd.confirmed is True
+    assert "currency code USD was observed separately" in usd.detail
+    assert cad.confirmed is True
+    assert "currency code(s) CAD" in cad.detail
+    assert "not promoted to USD" in cad.detail
     assert (
         confirm_sephora_us_market(
-            _sephora_grid_dom(currency_code=None), page_kind="grid"
-        ).confirmed
-        is False
-    )
-    assert (
-        confirm_sephora_us_market(
-            _sephora_grid_dom(currency_code="CAD"), page_kind="grid"
+            _sephora_grid_dom(country="CA"), page_kind="grid"
         ).confirmed
         is False
     )
@@ -263,6 +272,63 @@ def test_grid_confirmation_requires_exact_pagejson_currency_code() -> None:
             page_kind="grid",
         ).confirmed
         is False
+    )
+
+
+def test_grid_confirmation_fails_closed_on_contradictory_country_state() -> None:
+    contradictory = _sephora_grid_dom() + (
+        '<script>Sephora.renderQueryParams = {"country":"CA"};</script>'
+    )
+
+    grid = confirm_sephora_us_market(contradictory, page_kind="grid")
+
+    assert grid.confirmed is False
+    assert "unanimous Sephora.renderQueryParams country=US" in grid.detail
+    assert "'US', 'CA'" in grid.detail
+    # PDP admission is deliberately unchanged: its Sephora-sold USD Offer is an
+    # independent second conjunct, so it is not narrowed by the grid-only rule.
+    assert (
+        confirm_sephora_us_market(
+            _sephora_dom()
+            + '<script>Sephora.renderQueryParams = {"country":"CA"};</script>'
+        ).confirmed
+        is True
+    )
+
+
+def test_grid_currency_absence_is_not_asserted_when_grid_state_is_unreadable() -> None:
+    unreadable = _sephora_grid_dom(currency_code=None) + (
+        '<script id="linkStore" type="text/json">{}</script>'
+    )
+
+    confirmation = confirm_sephora_us_market(unreadable, page_kind="grid")
+
+    # The country route is still confirmable; currency is a separate typed fact
+    # and an unreadable state must not be reported as an observed absent code.
+    assert confirmation.confirmed is True
+    assert "grid currency state was unreadable" in confirmation.detail
+    assert "exposed no explicit currency code" not in confirmation.detail
+
+
+def test_grid_note_reports_country_only_admission() -> None:
+    plugin = SephoraUSMarketPlugin(target_url=_SEPHORA_GRID_URL, page_kind="grid")
+    outcome = PreCaptureOutcome(attempted=True, steps_completed=True, reason=None)
+    grid_dom = _sephora_grid_dom(currency_code=None)
+
+    confirmed_note = plugin.note(outcome, plugin.confirm(grid_dom))
+    rejected_note = plugin.note(
+        outcome,
+        plugin.confirm(grid_dom + f"<div>{_COUNTRY_DIALOG_TEXT}</div>"),
+    )
+
+    assert confirmed_note.startswith("declared_storefront_country:")
+    assert "CONFIRMED as US" in confirmed_note
+    assert "currency remains un-pinned" in confirmed_note
+    assert "US/USD" not in confirmed_note
+    assert "NOT confirmed" in rejected_note
+    assert (
+        "treat storefront country, currency, and delivery location as un-pinned"
+        in rejected_note
     )
 
 
@@ -320,7 +386,7 @@ def test_plugin_preflight_noops_after_target_navigation_when_dialog_absent() -> 
         wait_until="load",
         timeout=10_000,
     )
-    assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is False
+    assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is True
 
 
 def test_plugin_uses_exact_country_dialog_continuation() -> None:
@@ -427,7 +493,7 @@ def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
     assert projection["completeness"]["extracted_unique_parent_count"] == 2
     assert projection["source_visible_grid_facts"]["subject_binding_confirmed"] is True
     assert projection["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
-        _sephora_grid_dom().encode("utf-8")
+        _sephora_grid_dom(currency_code=None).encode("utf-8")
     ).hexdigest()
 
 
@@ -510,7 +576,8 @@ def test_writer_preserves_but_rejects_unconfirmed_sephora_market(
         "visible_mode_changes"
     ]
     assert any(
-        "MUST NOT be admitted as Sephora US/USD storefront evidence" in limitation
+        "MUST NOT be admitted as the asserted Sephora storefront evidence"
+        in limitation
         for limitation in manifest["limitations"]
     )
 

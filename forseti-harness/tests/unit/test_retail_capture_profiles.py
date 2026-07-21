@@ -81,6 +81,11 @@ def test_sephora_grid_profile_is_subject_agnostic_and_requires_grid_structure() 
     )
 
     assert all("Lip Sleeping Mask" not in value for value in requirements.visible_text_contains)
+    assert profile.scroll_passes == 1
+    assert profile.load_more_selector == "text=Show More Products"
+    assert profile.load_more_clicks == 10
+    assert profile.scroll_stop_condition() is None
+    assert profile.metadata()["expected_route_flags"]["load_more_clicks"] == 10
     result = evaluate_source_detail_sufficiency(
         requirements=requirements,
         access_block_reason=None,

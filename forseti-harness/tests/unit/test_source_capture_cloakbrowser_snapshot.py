@@ -23,6 +23,7 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     fetch_cloakbrowser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
+from source_capture.retail_capture_profiles import get_retail_capture_profile
 from source_capture.source_detail_sufficiency import (
     SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
     SourceDetailSufficiencyRequirements,
@@ -978,7 +979,7 @@ def test_live_engine_clicks_load_more_until_selector_gone(monkeypatch: pytest.Mo
             return "reviews"
 
     class FakeLoadMoreLocator:
-        # Present for the first 2 clicks, then gone (count -> 0): graceful end.
+        # Present for two clicks; the count gate then reports normal control exhaustion.
         def __init__(self, state: dict) -> None:
             self._state = state
 
@@ -990,6 +991,8 @@ def test_live_engine_clicks_load_more_until_selector_gone(monkeypatch: pytest.Mo
             return self
 
         def click(self, *, timeout: float) -> None:
+            if self._state["clicks"] >= 2:
+                raise TimeoutError("load-more control is gone")
             self._state["clicks"] += 1
             calls.append("click")
 
@@ -1111,6 +1114,59 @@ def test_cloakbrowser_runner_threads_load_more_to_capture(monkeypatch: pytest.Mo
     assert exit_code == 3
     assert seen["load_more_selector"] == "text=Show more"
     assert seen["load_more_clicks"] == 3
+
+
+def test_cloakbrowser_runner_uses_sephora_grid_profile_load_more_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://www.sephora.com/brand/clinique?country_switch=us",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.sephora.com/brand/clinique?country_switch=us",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does the profile own bounded grid continuation?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test Sephora grid continuation profile",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile("sephora_grid_aggregate"),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        sephora_market="US",
+        retail_grid_projection_output=Path("unused_projection_on_failure.json"),
+    )
+
+    assert exit_code == 3
+    assert seen["load_more_selector"] == "text=Show More Products"
+    assert seen["load_more_clicks"] == 10
+    assert seen["scroll_stop_condition"] is None
+    assert seen["pre_capture"].humanize is True
 
 
 def test_live_engine_runs_early_and_late_site_actions_at_their_owned_stages(

@@ -816,7 +816,12 @@ class _CloakBrowserSnapshotEngine:
                         action_started_ns = clock_ns()
                         try:
                             page.locator(load_more_selector).first.click(timeout=_LOAD_MORE_CLICK_TIMEOUT_MS)
-                        except Exception:
+                        except Exception as exc:
+                            if index == 0:
+                                warning_notes.append(
+                                    "cloakbrowser_snapshot first configured load-more action failed: "
+                                    f"{type(exc).__name__}: {exc}"
+                                )
                             break
                         action_ms = elapsed_ms(action_started_ns)
                         action_settle_started_ns = clock_ns()
