@@ -52,9 +52,11 @@ from runners.run_tiktok_creator_audience_triangulation import (
     submit_subscription_judgment,
 )
 from _silver_compatibility_fixture_lake import materialize_fixture_lake
+import runners.run_tiktok_comment_attention_producer as comment_attention_producer
 import runners.run_tiktok_creator_audience_triangulation as triangulation_runner
 from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
+import runners.run_tiktok_grid_observation_producer as grid_observation_producer
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
@@ -72,6 +74,35 @@ from test_tiktok_batch_admission import (
 OBSERVED = "2026-07-12T00:00:00Z"
 RAW_ANCHOR = "01TESTAUDIENCEPACKET"
 _, METHOD_DECK_SHA256 = load_method_deck()
+
+
+@pytest.mark.parametrize(
+    ("producer_module", "runner"),
+    (
+        (grid_observation_producer, run_tiktok_grid_observations),
+        (comment_attention_producer, run_comment_attention),
+    ),
+)
+def test_targeted_tiktok_silver_producers_scope_reconciliation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    producer_module: object,
+    runner: object,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    observed_scopes: list[object] = []
+
+    def stop_after_scope(_root: DataLakeRoot, *, scope_packet_ids: object) -> None:
+        observed_scopes.append(scope_packet_ids)
+        raise RuntimeError("scope observed")
+
+    monkeypatch.setattr(
+        producer_module, "reconcile_availability_per_packet", stop_after_scope
+    )
+    with pytest.raises(RuntimeError, match="scope observed"):
+        runner(data_root=data_root, packet_ids=["selected-packet"])
+
+    assert observed_scopes == [["selected-packet"]]
 
 
 def _video(video_id: str, comment_id: str, text: str, likes: int) -> dict:

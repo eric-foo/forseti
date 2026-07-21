@@ -86,7 +86,10 @@ def run_comment_attention(
     if reconcile_availability:
         results.extend(
             reconcile_availability_per_packet(
-                data_root, scope_packet_ids=scope_packet_ids
+                data_root,
+                scope_packet_ids=(
+                    scope_packet_ids if scope_packet_ids is not None else packet_ids
+                ),
             )
         )
     requested = set(packet_ids or ())
