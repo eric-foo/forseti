@@ -126,6 +126,30 @@ Explicit losses: no Most Helpful, Most Recent, last-seen anchor, complete
 corpus, reviewer age/skin/concern distributions, customer product Q&A, or
 independent linked-media-byte capture.
 
+### Authenticated cookie-session result and stopping decision (2026-07-21)
+
+The owner-authorized client-provided session changed access posture but did not
+increase the review evidence window:
+
+- `01KY1TD9VM70YWSKK72KM0P8A3`: authenticated legacy
+  `product-reviews` page, access-unblocked.
+- `01KY1TGCKSA3JREVGSC00VMZ8Y`: slugged authenticated portal route,
+  preserved `Page Not Found`.
+- `01KY1THNQ7ZXQ3Y0F13X203WNS`: non-slugged authenticated portal,
+  access-unblocked and hash-verified.
+
+The two successful authenticated pages exposed the same eight US review IDs in
+the same order as the anonymous PDP companion. Their source dates were not
+chronological despite `sortBy=recent`; no page-two link, customer Q&A,
+demographics, or Bazaarvoice marker appeared. The visible continuation control
+was not load-more: it declared an account-level POST that sends Amazon a
+request and promises an email within five business days. It was not activated.
+
+Owner decision: ordinary Amazon information capture stops at the anonymous,
+US-pinned PDP. Preserve international rows separately but exclude them from
+default US-market analysis. Do not implement authenticated review capture or
+customer-review portal entry before the v3 content-structure change.
+
 ## Recommended Minimal Next Scope
 
 Do not start a full adapter build yet. The next smallest complete step is a selector-level design patch that:

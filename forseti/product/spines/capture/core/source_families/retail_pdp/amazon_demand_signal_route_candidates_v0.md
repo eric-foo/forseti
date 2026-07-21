@@ -9,12 +9,14 @@ scope: >
   cart-quantity inventory-drawdown, vendor fallbacks) and the owner-directed
   posture for Amazon seller-account surfaces: BSA-covered analytics are
   quarantined internal-only; consented SP-API panel data is the sanctioned
-  calibration input. Route binding remains a separate capture-lane act.
+  calibration input. Demand-signal route binding remains a separate capture-lane
+  act; the pre-v3 information-capture envelope below is owner-bound.
 use_when:
   - Planning or adjudicating Amazon capture routes for demand-signal work.
   - Checking what may and may not touch the sold signal chain from Amazon surfaces.
   - Designing the tracked-SKU capture set for the pilot categories.
   - Reusing the proven logged-out Amazon route for a bounded product investigation.
+  - Applying the owner-approved minimal-request Amazon information-capture envelope before v3 retention.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/product_lead/gtm/forseti_demand_signal_gtm_design_v0.md
@@ -27,15 +29,18 @@ stale_if:
   - Amazon changes the badge, rank rendering, cart-quantity behavior, or SP-API/BSA terms materially.
   - The GTM micro-panel design is ratified or dropped.
   - PR 865 is superseded, rejected, or changes the anonymous session and per-page confirmation posture.
+  - Amazon v3 content retention supersedes the pre-v3 information-capture envelope below.
 ```
 
 ## Status
 
 `CANDIDATES_CAPTURED_PENDING_ADJUDICATION`. Owner-directed capture from the
-2026-07-10 demand-signal readout thread. Nothing here is a bound route, live
-capture authorization, build authorization, or validation. The quarantine
-rule below is operative as a CONSTRAINT (it forbids; it authorizes nothing).
-Evidence receipts cited from the probe findings are screening-tier.
+2026-07-10 demand-signal readout thread. The demand-signal candidates remain
+unbound; the narrow pre-v3 Amazon information-capture envelope below is the
+only owner-bound route in this record. It is not build authorization or v3
+content-shape authority. The quarantine rule below is operative as a
+CONSTRAINT (it forbids; it authorizes nothing). Evidence receipts cited from
+the probe findings are screening-tier.
 
 ## Pinned Logged-Out Investigation Route (2026-07-11)
 
@@ -73,6 +78,50 @@ in PR 865; they are not a claim that a reusable batch runner exists. Exact stock
 quantity and exact sold units remained unavailable. Preserve only the observed
 availability, rounded bought-in-past-month badge, rank, price, and review facts,
 with explicit unknowns or residuals for absent exact values.
+
+## Owner-approved pre-v3 information-capture envelope (2026-07-21)
+
+Status:
+`BOUND_FOR_AMAZON_INFORMATION_CAPTURE__V3_CONTENT_SHAPE_DEFERRED`.
+
+For one Amazon product, the smallest complete information-capture unit is one
+anonymous, US-pinned rendered PDP capture using `amazon_pdp_aggregate`. Apply
+ZIP 10001, keep the profile's `domcontentloaded` and zero-settle defaults, and
+perform at most one bounded scroll sufficient to render `#customerReviews`.
+Do not substitute `amazon_pdp_distribution`: its additional
+`customers mention` gate failed on a page whose useful product, aggregate,
+histogram, and review evidence was otherwise present.
+
+Request envelope:
+
+| Action | Bound |
+| --- | ---: |
+| Anonymous PDP navigation | 1 |
+| Bounded scroll to customer reviews | 1 |
+| Review portal, authentication, pagination, Bazaarvoice/API probes | 0 |
+| Linked review-media downloads | 0 |
+| Packet-local parsing passes over preserved bytes | Unbounded/local |
+
+Preserve the exact rendered DOM, visible text, metadata, and one screenshot
+once. Derive product identity, ASIN, brand, variants, offer/availability,
+product content, media references, rating aggregate, histogram, and source
+review rows locally from those preserved bytes. Preserve every exposed review
+row, including separately labelled international rows, but use the eight US
+top-review rows as the default US-market analysis window. International rows
+are excluded from that analysis by default, not deleted from raw evidence.
+
+Do not enter Amazon's customer-review portal for ordinary information capture.
+The consented cookie-session probes proved that authentication unlocks the page
+but does not unlock additional review rows, Recent ordering, or pagination. Do
+not maintain account-session custody, fetch linked review-media bytes, or
+repeat provider discovery per ASIN. Amazon remains
+`amazon_native_rendered_pdp`, never Bazaarvoice.
+
+This binds the capture envelope, not the future v3 content representation. The
+Amazon v3 lane may change retained record shape only after proving that the
+single preserved PDP reconstructs the intended v3 content and keeps every
+omission in a loss ledger. It must not add network requests merely to imitate
+Sephora fields Amazon does not expose.
 
 ## Candidate capture routes (demand-intensity, tracked-SKU set)
 
@@ -133,7 +182,9 @@ receipt).
 
 ## Non-claims
 
-Not route bindings, not live-capture or build authorization, not SP-API
-registration, not validation or readiness, not legal advice, not ECR /
-Cleaning / Judgment authority, and not a change to the source-access
-boundary decision (which this note operates under, not over).
+Not demand-signal route bindings, not SP-API registration, not validation or
+readiness, not legal advice, not ECR / Cleaning / Judgment authority, and not
+a change to the source-access boundary decision (which this note operates
+under, not over). The sole bound exception is the pre-v3 Amazon information-
+capture envelope above; it does not authorize a v3 content shape or broader
+live-capture program.
