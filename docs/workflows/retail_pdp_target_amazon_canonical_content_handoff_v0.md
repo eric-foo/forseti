@@ -317,7 +317,11 @@ lost.
 
 **Prove** against parent packet `01KY0PHPN10205MKKCK1GB7YH1` (Laneige Sleeping
 Berry, ASIN `B07XXPHQZK`, `cloakbrowser_snapshot`, 2026-07-20T21:22:40Z) and
-companion `01KY0S1ZACF3AG467GV6VA8CJN` (`amazon_pdp_review_onboarding_v1`).
+companion `01KY0S1ZACF3AG467GV6VA8CJN`, written by
+`amazon_pdp_review_onboarding_v1`. That route is now at
+`amazon_pdp_review_onboarding_v2` / `amazon_review_onboarding_summary_v2`, which
+corrects four measured summary defects; the landed v1 packet is append-only and
+stays readable as v1 evidence.
 Preserve every exposed review row including separately labelled international
 rows; use the eight US top-review rows as the default US-market analysis window,
 excluding international rows from that analysis by default rather than deleting
