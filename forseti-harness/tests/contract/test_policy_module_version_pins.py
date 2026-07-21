@@ -161,6 +161,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
             "ULTA_PDP_PARSER_VERSION",
+            "TARGET_PDP_PARSER_VERSION",
         ),
         # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
         # substrate, and explicit loss/residual fields; the shared projection
@@ -194,7 +195,14 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # count/product-binding checks, and an explicit module retention
         # inventory; non-target rails and shell envelopes stay unretained. No
         # committed v1 Ulta content packets exist, so no re-surface is needed.
-        "918d253a89096f401b3e8375b677d4a4b7cf2252a55a27ed0926187e729b8aa1",
+        # Target parser/schema v1 is purely additive: it adds the retailer-owned
+        # canonical content schema, the __NEXT_DATA__ CDUI core-datasource depth
+        # extractor, body-free review identity rows, a declared-module hydration
+        # inventory, and a fail-loud guest-session-secret refusal. No existing
+        # retailer extractor, shared projection row, or Silver semantic changes,
+        # so RETAIL_PDP_PROJECTION_VERSION and the Sephora/Luckyscent/Nordstrom/
+        # Ulta tokens stay unchanged and no committed packet re-surfaces.
+        "56351103501cfea88648a2aa3fe14f43eb84ea4e6c45db73b44f51d5cd03aabc",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

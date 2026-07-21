@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import Field, field_validator, model_validator
 
-from harness_utils import generate_ulid
+from harness_utils import as_dict, generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 from source_capture.projection_shared import is_forbidden_field_token_match
@@ -40,6 +40,23 @@ ULTA_PDP_CONTENT_RECORD_KIND = "retail_pdp_ulta_aggregate_content"
 ULTA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_ulta_aggregate_content_v2"
 ULTA_PDP_PARSER_VERSION = "retail_pdp_ulta_aggregate_parser_v2"
 ULTA_PDP_CONTENT_PROFILE = "ulta_pdp_aggregate"
+TARGET_PDP_CONTENT_RECORD_KIND = "retail_pdp_target_aggregate_content"
+TARGET_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_target_aggregate_content_v1"
+TARGET_PDP_PARSER_VERSION = "retail_pdp_target_aggregate_parser_v1"
+TARGET_PDP_CONTENT_PROFILE = "target_pdp_aggregate"
+
+# Target's SSR __NEXT_DATA__ carries one dehydrated React Query cache.  The
+# get-cookies query holds live guest session material (access/refresh/id tokens,
+# bot-defense cookies); it is never read into content and its presence alone is
+# recorded.  The CDUI orchestration URL embeds a page-declared Redsky key, which
+# follows the same page-declared-public-key treatment as Ulta's display key.
+_TARGET_SESSION_SECRET_QUERY_PREFIX = "site-top-of-funnel/get-cookies"
+_TARGET_REDACTED_KEY_MARKER = "[REDACTED_PAGE_DECLARED_PUBLIC_DISPLAY_KEY]"
+# CDUI data-source modules that the layout declares for every PDP.  Server-side
+# rendering hydrates only the core product datasource; price, fulfillment,
+# variation, offer, and store modules arrive after client hydration and are
+# recoverable from the rendered DOM, never from __NEXT_DATA__.
+_TARGET_CORE_DATASOURCE_MODULE = "ProductDetailWebDatasourceCore"
 
 # Apollo module names that carry other products (recommendation/ad rails).
 # They frequently embed the target product too, so target binding alone cannot
@@ -794,6 +811,97 @@ class UltaPdpAggregateContentRecord(StrictModel):
             raise ValueError(
                 "Ulta content record carries variant-state rows without an "
                 "observed variant module"
+            )
+        return self
+
+
+TargetContentAnchorKind = Literal[
+    "file", "html_selector", "script_index", "text_pattern"
+]
+
+
+class TargetPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_carried_module",
+        "retail_product_module_subtree",
+        "retail_review_identity",
+    ]
+    retailer: Literal["target"] = "target"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: TargetContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Target PDP content source_visible_fields may carry raw facts "
+                f"only; forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "TargetPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class TargetPdpAggregateContentRecord(StrictModel):
+    """Canonical content at full retained depth: the target-bound Redsky product
+    subtree from the Target-owned ``__NEXT_DATA__`` CDUI page state, plus the
+    rendered-DOM offer and review aggregates that server-side rendering leaves
+    unhydrated.  Review and answer bodies stay in the separate Bazaarvoice
+    companion; only body-free review identity is retained here."""
+
+    record_kind: Literal["retail_pdp_target_aggregate_content"] = (
+        TARGET_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_target_aggregate_content_v1"] = (
+        TARGET_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_target_aggregate_parser_v1"] = (
+        TARGET_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["target_pdp_aggregate"] = TARGET_PDP_CONTENT_PROFILE
+    source_url: str
+    tcin: str
+    offer_module_state: Literal["hydrated_in_rendered_dom", "declared_unhydrated"]
+    variant_module_state: Literal["observed", "not_exposed"]
+    rows: list[TargetPdpContentRow] = Field(default_factory=list)
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_required_rows(self) -> "TargetPdpAggregateContentRecord":
+        counts = {
+            kind: sum(row.row_kind == kind for row in self.rows)
+            for kind in (
+                "retail_pdp_product",
+                "retail_variant_offer",
+                "retail_review_substrate",
+                "retail_product_module_subtree",
+            )
+        }
+        if any(count != 1 for count in counts.values()):
+            raise ValueError(
+                "Target content record requires exactly one product, offer, "
+                "review-substrate, and product-module-subtree row"
             )
         return self
 
@@ -2216,6 +2324,664 @@ def _ulta_product_content_fields(
         "source_product_url": source_url,
         "breadcrumb": breadcrumb,
     }
+
+
+def _target_tcin_from_source_url(source_url: str) -> str | None:
+    parsed = urlparse(source_url)
+    if parsed.scheme not in {"http", "https"} or parsed.hostname not in {
+        "target.com",
+        "www.target.com",
+    }:
+        return None
+    tcins = re.findall(r"/A-(\d+)", parsed.path)
+    if len(tcins) != 1:
+        return None
+    return tcins[0]
+
+
+def _target_next_data_object(html: str) -> Mapping[str, Any]:
+    """Return the single Target-owned ``__NEXT_DATA__`` document."""
+    matches = re.findall(
+        r'<script\b[^>]*\bid=["\']__NEXT_DATA__["\'][^>]*>([\s\S]*?)</script\s*>',
+        html,
+    )
+    if len(matches) != 1:
+        raise ValueError(
+            "Target aggregate content requires exactly one __NEXT_DATA__ document; "
+            f"found {len(matches)}"
+        )
+    parsed = _safe_json_loads(matches[0])
+    if not isinstance(parsed, Mapping):
+        raise ValueError("Target __NEXT_DATA__ is not a JSON object")
+    return parsed
+
+
+def _target_dehydrated_queries(next_data: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    props = next_data.get("props")
+    dehydrated = props.get("dehydratedState") if isinstance(props, Mapping) else None
+    queries = dehydrated.get("queries") if isinstance(dehydrated, Mapping) else None
+    if not isinstance(queries, list) or not queries:
+        raise ValueError(
+            "Target __NEXT_DATA__ carries no dehydrated React Query cache"
+        )
+    return [item for item in queries if isinstance(item, Mapping)]
+
+
+def _target_query_name(query: Mapping[str, Any]) -> str:
+    key = query.get("queryKey")
+    if isinstance(key, list) and key and isinstance(key[0], str):
+        return key[0]
+    return ""
+
+
+def _target_cdui_data(queries: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    """Return the CDUI orchestration payload that carries the PDP layout."""
+    for query in queries:
+        data = as_dict(query.get("state", {})).get("data")
+        if not isinstance(data, Mapping):
+            continue
+        inner = data.get("data")
+        if isinstance(inner, Mapping) and "data_source_modules" in inner:
+            return inner
+    raise ValueError(
+        "Target __NEXT_DATA__ exposes no CDUI layout with data_source_modules"
+    )
+
+
+def _target_core_product(cdui: Mapping[str, Any]) -> Mapping[str, Any]:
+    modules = cdui.get("data_source_modules")
+    if not isinstance(modules, list):
+        raise ValueError("Target CDUI payload carries no data_source_modules list")
+    for module in modules:
+        if not isinstance(module, Mapping):
+            continue
+        if module.get("module_type") != _TARGET_CORE_DATASOURCE_MODULE:
+            continue
+        product = as_dict(as_dict(module.get("module_data")).get("data")).get(
+            "product"
+        )
+        if isinstance(product, Mapping):
+            return product
+    raise ValueError(
+        "Target CDUI payload does not hydrate "
+        f"{_TARGET_CORE_DATASOURCE_MODULE} with a product object"
+    )
+
+
+def _target_declared_module_rows(
+    cdui: Mapping[str, Any],
+) -> tuple[list[dict[str, Any | None]], bool, bool]:
+    """Inventory declared CDUI modules and their server-side hydration state.
+
+    Returns one field dict per declared data-source module, whether a variation
+    datasource was hydrated, and whether a price datasource was hydrated.
+    """
+    rows: list[dict[str, Any | None]] = []
+    variation_hydrated = False
+    price_hydrated = False
+    for module in cdui.get("data_source_modules") or []:
+        if not isinstance(module, Mapping):
+            continue
+        module_type = _string_or_none(module.get("module_type"))
+        payload = module.get("module_data")
+        hydrated = isinstance(payload, Mapping) and isinstance(
+            payload.get("data"), Mapping
+        )
+        if module_type and "Variation" in module_type and hydrated:
+            variation_hydrated = True
+        if module_type and "CircleOffers" in module_type and hydrated:
+            price_hydrated = True
+        rows.append(
+            {
+                "module_type": module_type,
+                "module_role": "cdui_data_source_module",
+                "module_placement_id": _string_or_none(
+                    module.get("module_placement_id")
+                ),
+                "server_side_hydration": (
+                    "hydrated" if hydrated else "declared_unhydrated"
+                ),
+            }
+        )
+    layout_modules: list[str] = []
+    layout = as_dict(cdui.get("layout"))
+    for zone in layout.get("zones") or []:
+        for group in as_dict(zone).get("module_groups") or []:
+            for module in as_dict(group).get("modules") or []:
+                module_type = _string_or_none(as_dict(module).get("module_type"))
+                if module_type:
+                    layout_modules.append(module_type)
+    rows.append(
+        {
+            "module_type": "cdui_layout_declared_modules",
+            "module_role": "cdui_layout_inventory",
+            "layout_id": _string_or_none(layout.get("id")),
+            "declared_module_count": len(layout_modules),
+            "declared_module_types": sorted(set(layout_modules)),
+            "server_side_hydration": "layout_only",
+        }
+    )
+    return rows, variation_hydrated, price_hydrated
+
+
+def _target_product_content_fields(
+    product: Mapping[str, Any], *, source_url: str
+) -> dict[str, Any | None]:
+    """Target-bound identity, brand, and product copy from the Redsky product."""
+    item = as_dict(product.get("item"))
+    description = as_dict(item.get("product_description"))
+    brand = as_dict(item.get("primary_brand"))
+    category = as_dict(product.get("category"))
+    classification = as_dict(item.get("product_classification"))
+    merchandise = as_dict(item.get("merchandise_classification"))
+    soft_bullets = as_dict(description.get("soft_bullets"))
+    breadcrumbs = [
+        _string_or_none(as_dict(node).get("name"))
+        for node in category.get("breadcrumbs") or []
+    ]
+    return {
+        "product_id": _string_or_none(product.get("tcin")),
+        "tcin": _string_or_none(product.get("tcin")),
+        "dpci": _string_or_none(item.get("dpci")),
+        "primary_barcode": _string_or_none(item.get("primary_barcode")),
+        "product_name": _string_or_none(description.get("title")),
+        "brand_name": _string_or_none(brand.get("name")),
+        "brand_canonical_url": _string_or_none(brand.get("canonical_url")),
+        "brand_linking_id": _string_or_none(brand.get("linking_id")),
+        "category_name": _string_or_none(category.get("name")),
+        "parent_category_id": _string_or_none(category.get("parent_category_id")),
+        "category_breadcrumbs": [name for name in breadcrumbs if name],
+        "product_type_name": _string_or_none(classification.get("product_type_name")),
+        "item_type_name": _string_or_none(
+            as_dict(classification.get("item_type")).get("name")
+        ),
+        "purchase_behavior": _string_or_none(classification.get("purchase_behavior")),
+        "department_name": _string_or_none(merchandise.get("department_name")),
+        "relationship_type_code": _string_or_none(item.get("relationship_type_code")),
+        "downstream_description": _string_or_none(
+            description.get("downstream_description")
+        ),
+        "bullet_descriptions": [
+            text
+            for text in (
+                _string_or_none(value)
+                for value in description.get("bullet_descriptions") or []
+            )
+            if text
+        ],
+        "soft_bullet_title": _string_or_none(soft_bullets.get("title")),
+        "soft_bullets": [
+            text
+            for text in (
+                _string_or_none(value) for value in soft_bullets.get("bullets") or []
+            )
+            if text
+        ],
+        "buy_url": _string_or_none(as_dict(item.get("enrichment")).get("buy_url")),
+        "canonical_source_url": source_url,
+        "product_binding_source": "target_next_data_cdui_core_datasource",
+    }
+
+
+def _target_product_subtree_fields(
+    product: Mapping[str, Any],
+) -> dict[str, Any | None]:
+    """Retain the deeper Redsky enrichment subtree the PDP exposes."""
+    item = as_dict(product.get("item"))
+    enrichment = as_dict(item.get("enrichment"))
+    nutrition = as_dict(enrichment.get("nutrition_facts"))
+    image_info = as_dict(enrichment.get("image_info"))
+    dimensions = as_dict(item.get("package_dimensions"))
+    wellness = [
+        {
+            "value_name": _string_or_none(as_dict(entry).get("value_name")),
+            "value_id": _string_or_none(as_dict(entry).get("value_id")),
+            "parent_id": _string_or_none(as_dict(entry).get("parent_id")),
+            "wellness_description": _string_or_none(
+                as_dict(entry).get("wellness_description")
+            ),
+        }
+        for entry in item.get("wellness_merchandise_attributes") or []
+    ]
+    videos = [
+        {
+            "video_title": _string_or_none(as_dict(entry).get("video_title")),
+            "video_length_seconds": as_dict(entry).get("video_length_seconds"),
+            "video_poster_image": _string_or_none(
+                as_dict(entry).get("video_poster_image")
+            ),
+            "video_file_count": len(as_dict(entry).get("video_files") or []),
+            "caption_count": len(as_dict(entry).get("video_captions") or []),
+        }
+        for entry in enrichment.get("videos") or []
+    ]
+    return {
+        "ingredients": _string_or_none(nutrition.get("ingredients")),
+        "nutrition_label_type_code": _string_or_none(
+            nutrition.get("nutrition_label_type_code")
+        ),
+        "nutrition_warning": _string_or_none(nutrition.get("warning")),
+        "image_base_url": _string_or_none(image_info.get("base_url")),
+        "primary_image_url": _string_or_none(
+            as_dict(image_info.get("primary_image")).get("url")
+        )
+        or _string_or_none(image_info.get("primary_image")),
+        "alternate_image_count": len(image_info.get("alternate_images") or []),
+        "alternate_image_urls": [
+            text
+            for text in (
+                _string_or_none(value)
+                if not isinstance(value, Mapping)
+                else _string_or_none(value.get("url"))
+                for value in image_info.get("alternate_images") or []
+            )
+            if text
+        ],
+        "content_label_count": len(image_info.get("content_labels") or []),
+        "videos": videos,
+        "wellness_merchandise_attributes": wellness,
+        "package_dimensions": {
+            key: dimensions.get(key)
+            for key in (
+                "depth",
+                "width",
+                "height",
+                "weight",
+                "dimension_unit_of_measure",
+                "weight_unit_of_measure",
+            )
+            if key in dimensions
+        },
+        "import_designation_description": _string_or_none(
+            as_dict(item.get("handling")).get("import_designation_description")
+        ),
+        "is_hazardous_material": as_dict(
+            item.get("environmental_segmentation")
+        ).get("is_hazardous_material"),
+        "purchase_limit": as_dict(item.get("fulfillment")).get("purchase_limit"),
+        "is_gift_wrap_eligible": as_dict(item.get("fulfillment")).get(
+            "is_gift_wrap_eligible"
+        ),
+        "cart_add_on_threshold": item.get("cart_add_on_threshold"),
+        "return_method": _string_or_none(item.get("return_method")),
+        "formatted_return_method": _string_or_none(
+            item.get("formatted_return_method")
+        ),
+        "return_policies_guest_message": _string_or_none(
+            item.get("return_policies_guest_message")
+        ),
+        "return_policies": [
+            {
+                "user_type": _string_or_none(as_dict(entry).get("user_type")),
+                "day_count": as_dict(entry).get("day_count"),
+            }
+            for entry in enrichment.get("return_policies") or []
+        ],
+        "disclaimer_type": _string_or_none(
+            as_dict(item.get("disclaimer")).get("type")
+        ),
+        "disclaimer_description": _string_or_none(
+            as_dict(item.get("disclaimer")).get("description")
+        ),
+        "eligibility_rules": sorted(
+            key
+            for key, value in as_dict(item.get("eligibility_rules")).items()
+            if as_dict(value).get("is_active") is True
+        ),
+        "desirability_cues": [
+            _string_or_none(as_dict(entry).get("code"))
+            for entry in product.get("desirability_cues") or []
+        ],
+        "subtree_binding_source": "target_next_data_cdui_core_datasource_item",
+    }
+
+
+def _target_next_data_review_statistics(
+    product: Mapping[str, Any],
+) -> dict[str, Any | None]:
+    """Structured review aggregates the rendered widget does not expose exactly."""
+    reviews = as_dict(product.get("ratings_and_reviews"))
+    statistics = as_dict(reviews.get("statistics"))
+    rating = as_dict(statistics.get("rating"))
+    distribution = as_dict(rating.get("distribution"))
+    secondary = [
+        {
+            "label": _string_or_none(as_dict(entry).get("label"))
+            or _string_or_none(as_dict(entry).get("name")),
+            "value": as_dict(entry).get("value"),
+        }
+        for entry in rating.get("secondary_averages") or []
+    ]
+    return {
+        "structured_rating_average": _string_or_none(rating.get("average")),
+        "structured_rating_count": _string_or_none(rating.get("count")),
+        "structured_review_count": _string_or_none(statistics.get("review_count")),
+        "structured_question_count": _string_or_none(statistics.get("question_count")),
+        "structured_recommended_count": _string_or_none(
+            statistics.get("recommended_count")
+        ),
+        "structured_not_recommended_count": _string_or_none(
+            statistics.get("not_recommended_count")
+        ),
+        "structured_recommended_percentage": _string_or_none(
+            statistics.get("recommended_percentage")
+        ),
+        "structured_rating_distribution": {
+            str(key): value for key, value in distribution.items()
+        },
+        "structured_secondary_averages": secondary,
+        "structured_review_photo_count": len(reviews.get("photos") or []),
+        "has_verified_reviews": reviews.get("has_verified"),
+    }
+
+
+def _target_review_identity_rows(
+    product: Mapping[str, Any],
+) -> list[dict[str, Any | None]]:
+    """Body-free identity for the thin most-recent rows the PDP page state holds.
+
+    The separate ``target_bazaarvoice_onboarding`` companion owns exact review
+    bodies.  These rows keep the Target-native identifiers and timestamps so the
+    two surfaces stay joinable-by-attempt, and record body presence without
+    duplicating any body text.
+    """
+    reviews = as_dict(product.get("ratings_and_reviews"))
+    rows: list[dict[str, Any | None]] = []
+    for entry in reviews.get("most_recent") or []:
+        row = as_dict(entry)
+        rating = as_dict(row.get("rating"))
+        body = row.get("text")
+        rows.append(
+            {
+                "target_native_review_id": _string_or_none(row.get("id")),
+                "review_id_family": "target_native_uuid",
+                "author_external_id": _string_or_none(
+                    as_dict(row.get("author")).get("external_id")
+                ),
+                "rating_value": rating.get("value"),
+                "submitted_at": _string_or_none(rating.get("submitted_at")),
+                "body_present": bool(_string_or_none(body)),
+                "body_char_count": len(body) if isinstance(body, str) else None,
+                "body_retained_here": False,
+                "body_owner": "target_bazaarvoice_onboarding companion raw responses",
+            }
+        )
+    return rows
+
+
+def _target_session_secret_values(
+    queries: Sequence[Mapping[str, Any]],
+) -> list[str]:
+    """Collect the guest-session secret values the PDP page state carries."""
+    values: list[str] = []
+    for query in queries:
+        if not _target_query_name(query).startswith(
+            _TARGET_SESSION_SECRET_QUERY_PREFIX
+        ):
+            continue
+        for value in as_dict(as_dict(query.get("state")).get("data")).values():
+            if isinstance(value, str) and len(value) >= 16:
+                values.append(value)
+    return values
+
+
+def _target_assert_no_session_secrets(
+    payload: Mapping[str, Any], secret_values: Sequence[str]
+) -> None:
+    """Fail loud rather than persist guest session or bot-defense material."""
+    if not secret_values:
+        return
+    serialized = json.dumps(payload)
+    leaked = sorted({value[:12] for value in secret_values if value in serialized})
+    if leaked:
+        raise ValueError(
+            "Target content record would retain guest session secret material "
+            f"({len(leaked)} value(s), e.g. {leaked[0]!r}...); refusing to emit"
+        )
+
+
+def build_target_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Retain target-bound Target facts without retaining its loader envelope."""
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    requested_tcin = _target_tcin_from_source_url(source_url)
+    if requested_tcin is None:
+        raise ValueError(
+            "Target aggregate content records require a target.com PDP URL with "
+            "exactly one /A-<tcin> path segment"
+        )
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=None,
+        currency_pin=None,
+        variant_pin=SimpleNamespace(
+            status=VisibleFactStatus.KNOWN,
+            value=f"tcin={requested_tcin}",
+        ),
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    html = _decode_text(rendered_dom)
+    projected = _project_retail_html(
+        html,
+        visible_text_files=[(visible_text_file, _decode_text(visible_text))],
+        visible_text=_decode_text(visible_text),
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="target",
+    )
+
+    product_rows = [
+        row for row in projected.rows if row.row_kind == "retail_pdp_product"
+    ]
+    offer_rows = [
+        row for row in projected.rows if row.row_kind == "retail_variant_offer"
+    ]
+    review_rows = [
+        row for row in projected.rows if row.row_kind == "retail_review_substrate"
+    ]
+    if not (len(product_rows) == len(offer_rows) == len(review_rows) == 1):
+        raise ValueError(
+            "Target aggregate content requires exactly one product, offer, and "
+            "review-substrate row"
+        )
+    offer = dict(offer_rows[0].source_visible_fields)
+    review = dict(review_rows[0].source_visible_fields)
+    if _string_or_none(offer.get("sku")) != requested_tcin:
+        raise ValueError("Target projected TCIN does not match the requested URL")
+
+    next_data = _target_next_data_object(html)
+    queries = _target_dehydrated_queries(next_data)
+    cdui = _target_cdui_data(queries)
+    product = _target_core_product(cdui)
+    structured_tcin = _string_or_none(product.get("tcin"))
+    if structured_tcin != requested_tcin:
+        raise ValueError(
+            "Target __NEXT_DATA__ product TCIN "
+            f"{structured_tcin!r} does not match requested {requested_tcin!r}"
+        )
+
+    module_field_rows, variation_hydrated, _price_datasource_hydrated = (
+        _target_declared_module_rows(cdui)
+    )
+    product_fields = _target_product_content_fields(product, source_url=source_url)
+    subtree_fields = _target_product_subtree_fields(product)
+    statistics = _target_next_data_review_statistics(product)
+    if not _string_or_none(statistics.get("structured_rating_average")):
+        raise ValueError(
+            "Target aggregate content requires a structured rating average from "
+            "the CDUI core datasource"
+        )
+    review.update(statistics)
+    review["review_count"] = statistics.get("structured_review_count")
+    identity_field_rows = _target_review_identity_rows(product)
+
+    session_secret_values = _target_session_secret_values(queries)
+    review["target_native_recent_row_count"] = len(identity_field_rows)
+    review["review_body_retention"] = (
+        "bodies_not_retained; owned by target_bazaarvoice_onboarding companion"
+    )
+
+    projected_residuals = set(projected.residuals)
+    # The rendered widget exposes no written-review count, but the CDUI page
+    # state does; keeping the projector's DOM-scoped absence residual would
+    # misreport a fact this record retains.
+    if _string_or_none(statistics.get("structured_review_count")):
+        projected_residuals.discard("target_written_review_count_not_observed")
+    residuals = sorted(
+        {
+            *projected_residuals,
+            "target_review_bodies_not_retained_companion_owns_them",
+            "target_native_review_ids_do_not_join_bazaarvoice_review_ids",
+            "target_customer_qa_bodies_not_retained_companion_owns_them",
+        }
+    )
+    price_value = _string_or_none(offer.get("price"))
+    offer_module_state = (
+        "hydrated_in_rendered_dom" if price_value else "declared_unhydrated"
+    )
+    if not price_value:
+        residuals.append("target_price_absent_from_rendered_dom_and_page_state")
+    if not _string_or_none(offer.get("availability")):
+        residuals.append("target_fulfillment_availability_not_observed")
+    # The guest review widget is lazy-rendered below the fold and does not paint
+    # under the admitted profile's posture, so its filtered-match count and
+    # percent distribution can be absent while the CDUI page-state aggregates
+    # (exact per-star counts) are present. Record the gap; never infer it.
+    if not _string_or_none(review.get("filtered_review_count")):
+        residuals.append("target_rendered_filtered_review_count_not_observed")
+    if not review.get("rating_distribution_buckets"):
+        residuals.append(
+            "target_rendered_percent_distribution_not_observed_"
+            "structured_counts_retained"
+        )
+    residuals.append(
+        "target_price_offer_fulfillment_variation_datasources_declared_unhydrated_in_ssr"
+    )
+    if session_secret_values:
+        residuals.append("target_guest_session_secret_query_present_not_retained")
+    variant_module_state = "observed" if variation_hydrated else "not_exposed"
+    if variant_module_state == "not_exposed":
+        residuals.append("target_variation_datasource_not_hydrated_no_variants_retained")
+
+    content_rows = [
+        TargetPdpContentRow(
+            slice_id=slice_id,
+            row_id=product_rows[0].row_id,
+            row_kind="retail_pdp_product",
+            source_visible_fields=product_fields,
+            residuals=product_rows[0].residuals,
+            source_anchor_kind="script_index",
+            source_anchor_value=(
+                f"__NEXT_DATA__ CDUI {_TARGET_CORE_DATASOURCE_MODULE} "
+                f"tcin={requested_tcin}"
+            ),
+        ),
+        TargetPdpContentRow(
+            slice_id=slice_id,
+            row_id=offer_rows[0].row_id,
+            row_kind="retail_variant_offer",
+            source_visible_fields=offer,
+            residuals=offer_rows[0].residuals,
+            source_anchor_kind="html_selector",
+            source_anchor_value="rendered PDP price/fulfillment region",
+        ),
+        TargetPdpContentRow(
+            slice_id=slice_id,
+            row_id=review_rows[0].row_id,
+            row_kind="retail_review_substrate",
+            source_visible_fields=review,
+            residuals=review_rows[0].residuals,
+            source_anchor_kind="html_selector",
+            source_anchor_value=(
+                "rendered review widget + __NEXT_DATA__ ratings_and_reviews.statistics"
+            ),
+        ),
+        TargetPdpContentRow(
+            slice_id=slice_id,
+            row_id="target_product_module_subtree",
+            row_kind="retail_product_module_subtree",
+            source_visible_fields=subtree_fields,
+            residuals=[],
+            source_anchor_kind="script_index",
+            source_anchor_value=(
+                f"__NEXT_DATA__ CDUI {_TARGET_CORE_DATASOURCE_MODULE} product.item"
+            ),
+        ),
+        *[
+            TargetPdpContentRow(
+                slice_id=slice_id,
+                row_id=f"target_carried_module_{index:03d}",
+                row_kind="retail_carried_module",
+                source_visible_fields=fields,
+                residuals=[],
+                source_anchor_kind="script_index",
+                source_anchor_value="__NEXT_DATA__ CDUI layout/data_source_modules",
+            )
+            for index, fields in enumerate(module_field_rows)
+        ],
+        *[
+            TargetPdpContentRow(
+                slice_id=slice_id,
+                row_id=f"target_review_identity_{index:03d}",
+                row_kind="retail_review_identity",
+                source_visible_fields=fields,
+                residuals=[],
+                source_anchor_kind="script_index",
+                source_anchor_value=(
+                    f"__NEXT_DATA__ ratings_and_reviews.most_recent[{index}]"
+                ),
+            )
+            for index, fields in enumerate(identity_field_rows)
+        ],
+    ]
+    record = TargetPdpAggregateContentRecord(
+        source_url=source_url,
+        tcin=requested_tcin,
+        offer_module_state=offer_module_state,
+        variant_module_state=variant_module_state,
+        rows=content_rows,
+        residuals=sorted(set(residuals)),
+    )
+    payload = record.model_dump(mode="json")
+    _target_assert_no_session_secrets(payload, session_secret_values)
+    return payload
 
 
 def build_nordstrom_pdp_aggregate_content_record(
