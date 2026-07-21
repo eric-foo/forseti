@@ -483,7 +483,16 @@ _PROFILES = {
             ordinary_operation=True,
             settle_seconds=6.0,
             requirements=_requirements(
-                visible_text_contains=("BYOMA Liptide Lip Mask", "reviews", "Pickup", "Shipping"),
+                # Pins this profile's own PDP proof product, as the Sephora,
+                # Ulta, and Nordstrom PDP profiles do. The prior literal named
+                # the brand-grid fixture product, which never appears on a
+                # Target PDP, so the profile could not qualify any PDP capture.
+                visible_text_contains=(
+                    "Naturium Vitamin C Complex Serum",
+                    "reviews",
+                    "Pickup",
+                    "Shipping",
+                ),
                 visible_text_regexes=(
                     r"\d(?:\.\d+)? out of 5 stars with \d+ reviews",
                     r"\$\d+\.\d{2}",

@@ -161,6 +161,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "LUCKYSCENT_PDP_PARSER_VERSION",
             "NORDSTROM_PDP_PARSER_VERSION",
             "ULTA_PDP_PARSER_VERSION",
+            "TARGET_PDP_PARSER_VERSION",
         ),
         # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
         # substrate, and explicit loss/residual fields; the shared projection
@@ -194,7 +195,23 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # count/product-binding checks, and an explicit module retention
         # inventory; non-target rails and shell envelopes stay unretained. No
         # committed v1 Ulta content packets exist, so no re-surface is needed.
-        "918d253a89096f401b3e8375b677d4a4b7cf2252a55a27ed0926187e729b8aa1",
+        # Target parser/schema v1 is purely additive: it adds the retailer-owned
+        # canonical content schema, the __NEXT_DATA__ CDUI core-datasource depth
+        # extractor, body-free review identity rows, a declared-module hydration
+        # inventory, and a fail-loud guest-session-secret refusal. No existing
+        # retailer extractor, shared projection row, or Silver semantic changes,
+        # so RETAIL_PDP_PROJECTION_VERSION and the Sephora/Luckyscent/Nordstrom/
+        # Ulta tokens stay unchanged and no committed packet re-surfaces.
+        # Delegated-review hardening on the same Target v1: the shared
+        # _target_variant_offer_fields price extractor is now scoped to Target's
+        # ProductDetailPrice module instead of matching page-globally, which the
+        # legacy raw decoder also reaches. Checked against every committed Target
+        # PDP raw packet with a DOM (01KXR823YS3V5M9E01QXP71ETC,
+        # 01KXWMXEYB58SMVSJT80XJAP9D, 01KXWMTJXN7JX775Q17D24E8NT): old and new
+        # both yield 14.69, so no committed packet re-surfaces and the shared
+        # projection token stays unchanged. Future captures can differ by design
+        # — that is the defect being fixed, not a re-surface.
+        "0bbef4618461c22b0643cbb980063f62851790c60f3d349f100e6d671febd73d",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

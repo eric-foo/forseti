@@ -46,9 +46,9 @@ from source_capture.tiktok.blocker_triage import (
 TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION = "tiktok_live_batch_probe_v0"
 TIKTOK_LIVE_BATCH_GRID_JSON_NAME = "tiktok_live_grid_result.json"
 TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME = "tiktok_live_cadence_result.json"
-TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS = 8.0
+TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS = 7.0
 TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS = 13.0
-TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS = 10.5
+TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS = 10.0
 
 TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
@@ -334,6 +334,7 @@ _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)
 
 JsonObject = dict[str, Any]
 SleepFn = Callable[[float], None]
+MonotonicFn = Callable[[], float]
 SubtitleFetchFn = Callable[[str], bytes]
 PageCaptureSequenceFn = Callable[
     [int, Sequence[str]],
@@ -378,6 +379,7 @@ def write_tiktok_live_batch_probe_outputs(
     allow_challenge_close_followthrough: bool = False,
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
+    monotonic_fn: MonotonicFn = time.monotonic,
     subtitle_fetcher: SubtitleFetchFn | None = None,
 ) -> TikTokLiveBatchProbeOutputPaths:
     """Capture sanitized TikTok live staging JSON for one creator.
@@ -415,6 +417,7 @@ def write_tiktok_live_batch_probe_outputs(
         allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         engine=engine,
         sleep_fn=sleep_fn,
+        monotonic_fn=monotonic_fn,
         subtitle_fetcher=subtitle_fetcher,
     )
 
@@ -459,6 +462,7 @@ def run_tiktok_live_batch_probe(
     allow_challenge_close_followthrough: bool = False,
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
+    monotonic_fn: MonotonicFn = time.monotonic,
     subtitle_fetcher: SubtitleFetchFn | None = None,
     capture_route: str = "direct_video_url",
     page_capture_sequence_fn: PageCaptureSequenceFn | None = None,
@@ -527,6 +531,7 @@ def _run_tiktok_live_batch_probe_with_engine(
     allow_challenge_close_followthrough: bool,
     engine: BrowserPageObservationEngine | None,
     sleep_fn: SleepFn,
+    monotonic_fn: MonotonicFn,
     subtitle_fetcher: SubtitleFetchFn | None,
     capture_route: str,
     page_capture_sequence_fn: PageCaptureSequenceFn | None,
@@ -560,6 +565,7 @@ def _run_tiktok_live_batch_probe_with_engine(
         inputs=inputs,
         engine=engine,
         sleep_fn=sleep_fn,
+        monotonic_fn=monotonic_fn,
         timeout_seconds=timeout_seconds,
         wait_until=wait_until,
         viewport_width=viewport_width,
@@ -757,11 +763,28 @@ class _CadenceCaptureOutcome:
     grid_items: list[JsonObject]
 
 
+def _wait_for_next_capture_start(
+    *,
+    planned_interval_seconds: float,
+    previous_capture_started_at: float,
+    monotonic_fn: MonotonicFn,
+    sleep_fn: SleepFn,
+) -> float:
+    elapsed_since_previous_start = max(
+        0.0, monotonic_fn() - previous_capture_started_at
+    )
+    remaining_wait = max(0.0, planned_interval_seconds - elapsed_since_previous_start)
+    if remaining_wait > 0:
+        sleep_fn(remaining_wait)
+    return monotonic_fn()
+
+
 def _capture_video_cadence_rows(
     *,
     inputs: _NormalizedProbeInputs,
     engine: BrowserPageObservationEngine | None,
     sleep_fn: SleepFn,
+    monotonic_fn: MonotonicFn,
     timeout_seconds: float,
     wait_until: str,
     viewport_width: int,
@@ -799,9 +822,17 @@ def _capture_video_cadence_rows(
     grid_items: list[JsonObject] = []
 
     pending_video_urls = list(normalized_video_urls)
+    previous_capture_started_at: float | None = None
     for index in range(len(normalized_video_urls)):
-        if index > 0:
-            sleep_fn(cadence_plan.planned_waits_seconds[index - 1])
+        if previous_capture_started_at is None:
+            previous_capture_started_at = monotonic_fn()
+        else:
+            previous_capture_started_at = _wait_for_next_capture_start(
+                planned_interval_seconds=cadence_plan.planned_waits_seconds[index - 1],
+                previous_capture_started_at=previous_capture_started_at,
+                monotonic_fn=monotonic_fn,
+                sleep_fn=sleep_fn,
+            )
 
         if page_capture_sequence_fn is None:
             video_url = pending_video_urls.pop(0)

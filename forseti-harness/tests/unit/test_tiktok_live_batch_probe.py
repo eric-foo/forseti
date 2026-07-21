@@ -3378,7 +3378,37 @@ def _hydration(
     }
 
 
-def test_live_probe_cli_defaults_to_eight_thirteen_second_range() -> None:
+def test_cadence_wait_sleeps_only_the_remainder_of_browser_work() -> None:
+    monotonic_values = iter((3.0, 10.0))
+    sleep_calls: list[float] = []
+
+    capture_started_at = live_batch_probe._wait_for_next_capture_start(
+        planned_interval_seconds=10.0,
+        previous_capture_started_at=0.0,
+        monotonic_fn=lambda: next(monotonic_values),
+        sleep_fn=sleep_calls.append,
+    )
+
+    assert sleep_calls == [7.0]
+    assert capture_started_at == 10.0
+
+
+def test_cadence_wait_is_zero_when_browser_work_exceeds_target() -> None:
+    monotonic_values = iter((12.0, 12.0))
+    sleep_calls: list[float] = []
+
+    capture_started_at = live_batch_probe._wait_for_next_capture_start(
+        planned_interval_seconds=10.0,
+        previous_capture_started_at=0.0,
+        monotonic_fn=lambda: next(monotonic_values),
+        sleep_fn=sleep_calls.append,
+    )
+
+    assert sleep_calls == []
+    assert capture_started_at == 12.0
+
+
+def test_live_probe_cli_defaults_to_seven_thirteen_second_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -3393,8 +3423,8 @@ def test_live_probe_cli_defaults_to_eight_thirteen_second_range() -> None:
         ]
     )
 
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
-    assert args.cadence_min_gap_seconds == 8.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.0
+    assert args.cadence_min_gap_seconds == 7.0
     assert args.cadence_max_gap_seconds == 13.0
 
 

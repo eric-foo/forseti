@@ -58,6 +58,15 @@ class OnboardingEvidence:
         return self.captured_at, self.packet_id
 
 
+@dataclass(frozen=True)
+class EarliestPublicPostEvidence:
+    published_at: str
+    packet_id: str
+
+    def sort_key(self) -> tuple[str, str]:
+        return self.published_at, self.packet_id
+
+
 def derive_onboarding_by_account(
     *, data_root: DataLakeRoot, platform_accounts: Sequence[Mapping[str, Any]]
 ) -> dict[str, dict[str, Any]]:
@@ -78,6 +87,7 @@ def derive_onboarding_snapshot(
         raise CreatorRegistryOnboardingError("duplicate platform_account_id in Creator Registry")
     by_native_id, by_handle = _identity_indexes(accounts)
     earliest: dict[str, OnboardingEvidence] = {}
+    earliest_public_posts: dict[str, EarliestPublicPostEvidence] = {}
     qualifying_packet_count = 0
     attributable_packet_count = 0
     unmatched_packet_count = 0
@@ -119,11 +129,22 @@ def derive_onboarding_snapshot(
         previous = earliest.get(account_id)
         if previous is None or evidence.sort_key() < previous.sort_key():
             earliest[account_id] = evidence
+        earliest_public_post_at = identity.get("earliest_public_post_at")
+        if earliest_public_post_at:
+            post_evidence = EarliestPublicPostEvidence(
+                published_at=earliest_public_post_at,
+                packet_id=packet_id,
+            )
+            previous_post = earliest_public_posts.get(account_id)
+            if previous_post is None or post_evidence.sort_key() < previous_post.sort_key():
+                earliest_public_posts[account_id] = post_evidence
 
     return {
         "policy_version": ONBOARDING_POLICY_VERSION,
         "accounts": {
-            account_id: _onboarding_block(earliest.get(account_id))
+            account_id: _onboarding_block(
+                earliest.get(account_id), earliest_public_posts.get(account_id)
+            )
             for account_id in sorted(accounts_by_id)
         },
         "diagnostics": {
@@ -338,7 +359,17 @@ def _packet_identity(
         return {"platform": "tiktok", "handle": _normalize_handle(payload.get("creator_handle"))}
     if source_surface == "tiktok_creator_batch_comment_subtitle_admission":
         payload = _json_body(data_root, packet_id, manifest, "tiktok_batch_capture.json")
-        return {"platform": "tiktok", "handle": _normalize_handle(payload.get("creator_handle"))}
+        identity = {
+            "platform": "tiktok",
+            "handle": _normalize_handle(payload.get("creator_handle")),
+        }
+        observation = payload.get("earliest_public_post_observation")
+        if isinstance(observation, Mapping) and observation.get("status") == "observed":
+            identity["earliest_public_post_at"] = _required_text(
+                observation.get("published_at_utc"),
+                "TikTok earliest public post published_at_utc",
+            )
+        return identity
     if source_surface == "tiktok_video_comment_subtitle_admission":
         payload = _json_body(data_root, packet_id, manifest, "tiktok_video_capture.json")
         url = _required_text(payload.get("video_url"), "TikTok video_url")
@@ -432,7 +463,10 @@ def _capture_time(manifest: Mapping[str, Any], *, packet_id: str) -> str:
     return _required_text(fact.get("value"), f"packet {packet_id} capture_time.value")
 
 
-def _onboarding_block(evidence: OnboardingEvidence | None) -> dict[str, Any]:
+def _onboarding_block(
+    evidence: OnboardingEvidence | None,
+    earliest_public_post: EarliestPublicPostEvidence | None,
+) -> dict[str, Any]:
     if evidence is None:
         return {
             "onboarding_state": "not_onboarded",
@@ -440,6 +474,8 @@ def _onboarding_block(evidence: OnboardingEvidence | None) -> dict[str, Any]:
             "evidence_packet_id_or_none": None,
             "evidence_source_family_or_none": None,
             "evidence_source_surface_or_none": None,
+            "earliest_public_post_at_or_none": None,
+            "earliest_public_post_evidence_packet_id_or_none": None,
             "policy_version": ONBOARDING_POLICY_VERSION,
         }
     return {
@@ -448,6 +484,12 @@ def _onboarding_block(evidence: OnboardingEvidence | None) -> dict[str, Any]:
         "evidence_packet_id_or_none": evidence.packet_id,
         "evidence_source_family_or_none": evidence.source_family,
         "evidence_source_surface_or_none": evidence.source_surface,
+        "earliest_public_post_at_or_none": (
+            earliest_public_post.published_at if earliest_public_post else None
+        ),
+        "earliest_public_post_evidence_packet_id_or_none": (
+            earliest_public_post.packet_id if earliest_public_post else None
+        ),
         "policy_version": ONBOARDING_POLICY_VERSION,
     }
 
@@ -603,10 +645,24 @@ def _validate_refreshed_registry(
             onboarding.get("evidence_source_family_or_none"),
             onboarding.get("evidence_source_surface_or_none"),
         )
+        earliest_post_values = (
+            onboarding.get("earliest_public_post_at_or_none"),
+            onboarding.get("earliest_public_post_evidence_packet_id_or_none"),
+        )
         if state == "onboarded" and not all(isinstance(value, str) and value for value in evidence_values):
             raise CreatorRegistryOnboardingError("onboarded rows require complete evidence fields")
         if state == "not_onboarded" and any(value is not None for value in evidence_values):
             raise CreatorRegistryOnboardingError("not_onboarded rows must not carry evidence fields")
+        if any(value is None for value in earliest_post_values) and any(
+            value is not None for value in earliest_post_values
+        ):
+            raise CreatorRegistryOnboardingError(
+                "earliest public post date and packet lineage must be present together"
+            )
+        if state == "not_onboarded" and any(value is not None for value in earliest_post_values):
+            raise CreatorRegistryOnboardingError(
+                "not_onboarded rows must not carry earliest public post evidence"
+            )
         if state not in {"not_onboarded", "onboarded"}:
             raise CreatorRegistryOnboardingError(f"unsupported onboarding state: {state!r}")
 

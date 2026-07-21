@@ -35,10 +35,12 @@ from source_capture.retail_pdp_projection import (  # noqa: E402
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_PARSER_VERSION,
+    TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
+    build_target_pdp_aggregate_content_record,
     build_ulta_pdp_aggregate_content_record,
 )
 
@@ -97,6 +99,10 @@ _ROUTES: dict[str, tuple[str, Extractor]] = {
     "ulta": (
         ULTA_PDP_PARSER_VERSION,
         _rendered(build_ulta_pdp_aggregate_content_record),
+    ),
+    "target": (
+        TARGET_PDP_PARSER_VERSION,
+        _rendered(build_target_pdp_aggregate_content_record),
     ),
 }
 

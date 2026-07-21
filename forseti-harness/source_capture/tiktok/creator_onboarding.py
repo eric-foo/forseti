@@ -53,7 +53,7 @@ from source_capture.tiktok.live_batch_probe import (
 )
 
 
-TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION = "tiktok_creator_onboarding_v0"
+TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION = "tiktok_creator_onboarding_v1"
 TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
@@ -166,6 +166,58 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
       follower_count: profileMetric('strong[data-e2e="followers-count"]'),
       profile_total_like_count: profileMetric('strong[data-e2e="likes-count"]')
     }
+  };
+}
+""".strip()
+
+TIKTOK_OLDEST_POST_DOM_EXTRACT_SCRIPT = r"""
+(arg) => {
+  const creator = String((arg && arg.creator_handle) || '')
+    .trim().replace(/^@/, '').toLowerCase();
+  const controls = Array.from(document.querySelectorAll(
+    '#user-post-sort-control button,#user-post-sort-control [role="button"],'
+    + '#user-post-sort-control [role="tab"]'
+  ));
+  const oldest = controls.find((node) =>
+    String(node.getAttribute('aria-label') || node.innerText || node.textContent || '')
+      .trim().toLowerCase() === 'oldest'
+  ) || null;
+  const latest = controls.find((node) =>
+    String(node.getAttribute('aria-label') || node.innerText || node.textContent || '')
+      .trim().toLowerCase() === 'latest'
+  ) || null;
+  const seen = new Set();
+  const orderedVideos = [];
+  for (const anchor of Array.from(document.querySelectorAll('a[href*="/video/"]'))) {
+    const href = String(anchor.href || anchor.getAttribute('href') || '');
+    const match = href.match(/\/@([^/]+)\/video\/(\d+)/);
+    if (!match || match[1].toLowerCase() !== creator || seen.has(match[2])) continue;
+    seen.add(match[2]);
+    let container = anchor;
+    let pinnedVisible = false;
+    for (let depth = 0; container && depth < 5; depth += 1) {
+      const text = String(container.innerText || container.textContent || '').toLowerCase();
+      if (text.includes('pinned') || container.querySelector('[data-e2e*="pinned"]')) {
+        pinnedVisible = true;
+        break;
+      }
+      container = container.parentElement;
+    }
+    orderedVideos.push({
+      video_id: match[2],
+      video_url: href,
+      pinned_visible: pinnedVisible
+    });
+  }
+  const bodyText = String(document.body && (document.body.innerText || document.body.textContent) || '')
+    .toLowerCase();
+  return {
+    sort_control_present: controls.length > 0,
+    oldest_control_present: Boolean(oldest),
+    oldest_active: Boolean(oldest && oldest.getAttribute('data-active') === 'true'),
+    latest_active: Boolean(latest && latest.getAttribute('data-active') === 'true'),
+    ordered_videos: orderedVideos,
+    no_public_posts_visible: bodyText.includes('no videos') || bodyText.includes('no posts')
   };
 }
 """.strip()
@@ -330,6 +382,30 @@ TIKTOK_FOLLOWERS_ACTION = BrowserPagePointerAction(
     ),
     text_markers=("followers",),
     wait_after_ms=1500,
+    prefer_smallest_match=True,
+)
+
+TIKTOK_PROFILE_LATEST_SORT_ACTION = BrowserPagePointerAction(
+    action_name="tiktok_profile_latest_sort_reset_v0",
+    candidate_selector=(
+        "#user-post-sort-control button,#user-post-sort-control [role='button'],"
+        "#user-post-sort-control [role='tab']"
+    ),
+    text_markers=(),
+    exact_text_markers=("latest",),
+    wait_after_ms=1500,
+    prefer_smallest_match=True,
+)
+
+TIKTOK_PROFILE_OLDEST_SORT_ACTION = BrowserPagePointerAction(
+    action_name="tiktok_profile_oldest_sort_v0",
+    candidate_selector=(
+        "#user-post-sort-control button,#user-post-sort-control [role='button'],"
+        "#user-post-sort-control [role='tab']"
+    ),
+    text_markers=(),
+    exact_text_markers=("oldest",),
+    wait_after_ms=2500,
     prefer_smallest_match=True,
 )
 
@@ -660,9 +736,24 @@ def run_tiktok_creator_onboarding(
             utc_now_fn=utc_now_fn,
             run_started_monotonic=run_started_monotonic,
         )
+        _run_earliest_public_post_phase(
+            state,
+            profile_url=profile_url,
+            creator_handle=normalized_handle,
+            storage_state_path=storage_state_path,
+            paths=paths,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            engine=observation_engine,
+            progress_fn=progress_fn,
+            utc_now_fn=utc_now_fn,
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+        )
         state.stage = "close"
         _notify_progress(progress_fn, state.stage, completed_count=state.completed_count)
     except Exception as exc:
+        state.status = "failed"
         state.error = f"{type(exc).__name__}: {exc}"
         raise
     finally:
@@ -837,6 +928,8 @@ class _OnboardingRunState:
     phase_chronology: list[dict[str, Any]] = field(default_factory=list)
     grid_capture: BrowserPageObservationSuccess | None = None
     grid_window: dict[str, Any] | None = None
+    selection: dict[str, Any] | None = None
+    earliest_public_post_observation: dict[str, Any] | None = None
     window_by_id: dict[str, Any] | None = None
     captured_video_ids: list[str] | None = None
     deep_capture: dict[str, Any] | None = None
@@ -998,6 +1091,7 @@ def _run_suggested_grid_and_selection_phase(
         expected_item_count=len(grid_window["items"]),
         selection_count=selection_count,
     )
+    state.selection = selection
     selection["onboarding_binding"] = {
         "creator_handle": creator_handle,
         "grid_window_file": paths.grid_window_json_path.name,
@@ -1022,6 +1116,207 @@ def _run_suggested_grid_and_selection_phase(
             utc_now_fn=utc_now_fn,
         )
     )
+
+
+def _run_earliest_public_post_phase(
+    state: _OnboardingRunState,
+    *,
+    profile_url: str,
+    creator_handle: str,
+    storage_state_path: Path,
+    paths: TikTokCreatorOnboardingOutputPaths,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+    progress_fn: ProgressFn | None,
+    utc_now_fn: UtcNowFn,
+    run_started_monotonic: float,
+    monotonic_fn: MonotonicFn,
+) -> None:
+    assert state.grid_window is not None
+    assert state.selection is not None
+    state.stage = "observe_earliest_public_post"
+    _notify_progress(progress_fn, state.stage)
+    observation = capture_tiktok_earliest_public_post_observation(
+        profile_url=profile_url,
+        creator_handle=creator_handle,
+        storage_state_path=storage_state_path,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        engine=engine,
+        utc_now_fn=utc_now_fn,
+    )
+    state.earliest_public_post_observation = observation
+    state.grid_window["earliest_public_post_observation"] = observation
+    _write_json(paths.grid_window_json_path, state.grid_window)
+    state.selection["onboarding_binding"]["grid_window_sha256"] = hash_file(
+        paths.grid_window_json_path
+    )
+    _write_json(paths.selection_json_path, state.selection)
+    state.phase_chronology.append(
+        _phase_chronology_row(
+            "earliest_public_post_observation_completed",
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+            utc_now_fn=utc_now_fn,
+        )
+    )
+
+
+def capture_tiktok_earliest_public_post_observation(
+    *,
+    profile_url: str,
+    creator_handle: str,
+    storage_state_path: Path,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+    utc_now_fn: UtcNowFn = _utc_now,
+) -> dict[str, Any]:
+    """Capture one bounded Oldest batch and retain only its earliest exact date."""
+
+    def observe(
+        actions: Sequence[BrowserPagePointerAction] = (),
+    ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
+        return fetch_browser_page_observation_capture(
+            url=profile_url,
+            dom_extract_script=TIKTOK_OLDEST_POST_DOM_EXTRACT_SCRIPT,
+            dom_extract_arg={"creator_handle": creator_handle},
+            response_url_predicate=is_tiktok_profile_item_list_url,
+            post_load_pointer_actions=actions,
+            timeout_seconds=timeout_seconds,
+            wait_until="domcontentloaded",
+            settle_seconds=settle_seconds,
+            storage_state_path=storage_state_path,
+            headless=False,
+            browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
+            human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+            human_challenge_handoff_timeout_seconds=180.0,
+            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+            engine=engine,
+        )
+
+    initial = observe()
+    if isinstance(initial, BrowserSnapshotFailure):
+        raise TikTokCreatorOnboardingError(
+            f"Oldest-sort availability observation failed: {initial.failure_kind.value}"
+        )
+    initial_dom = initial.dom_observation
+    if not isinstance(initial_dom, dict):
+        raise TikTokCreatorOnboardingError("Oldest-sort DOM observation is not an object")
+    if initial_dom.get("oldest_control_present") is not True:
+        return _earliest_public_post_unavailable("oldest_sort_not_exposed", utc_now_fn)
+
+    actions = (
+        (TIKTOK_PROFILE_LATEST_SORT_ACTION, TIKTOK_PROFILE_OLDEST_SORT_ACTION)
+        if initial_dom.get("oldest_active") is True
+        else (TIKTOK_PROFILE_OLDEST_SORT_ACTION,)
+    )
+    capture = observe(actions)
+    if isinstance(capture, BrowserSnapshotFailure):
+        raise TikTokCreatorOnboardingError(
+            f"Oldest-sort capture failed: {capture.failure_kind.value}"
+        )
+    dom = capture.dom_observation
+    if not isinstance(dom, dict) or dom.get("oldest_active") is not True:
+        raise TikTokCreatorOnboardingError("Oldest sort selection could not be verified")
+    receipts = capture.metadata.get("post_load_pointer_actions")
+    if not isinstance(receipts, list) or not receipts:
+        raise TikTokCreatorOnboardingError("Oldest sort action receipt is missing")
+    oldest_receipt = receipts[-1]
+    if not isinstance(oldest_receipt, dict) or oldest_receipt.get("clicked") is not True:
+        raise TikTokCreatorOnboardingError("Oldest sort control was exposed but not clicked")
+    response_start = oldest_receipt.get("observed_response_count_before")
+    if not isinstance(response_start, int) or isinstance(response_start, bool):
+        response_start = 0
+    oldest_responses = capture.responses[response_start:]
+    candidates = [
+        item
+        for item in _metric_items_from_responses(oldest_responses, creator_handle)
+        if item.get("authorUniqueId") == _normalize_handle(creator_handle)
+        and type(item.get("createTime")) is int
+    ]
+    if not candidates:
+        if dom.get("no_public_posts_visible") is True and not dom.get("ordered_videos"):
+            result = _earliest_public_post_unavailable("no_public_posts", utc_now_fn)
+            _restore_tiktok_latest_sort(observe)
+            return result
+        raise TikTokCreatorOnboardingError(
+            "Oldest sort produced no exact creator-owned createTime evidence"
+        )
+    earliest = min(candidates, key=lambda item: int(item["createTime"]))
+    video_id = str(earliest["video_id"])
+    video_url = f"https://www.tiktok.com/@{_normalize_handle(creator_handle)}/video/{video_id}"
+    if not _is_creator_video_url(
+        video_url=video_url,
+        creator_handle=creator_handle,
+        video_id=video_id,
+    ):
+        raise TikTokCreatorOnboardingError("earliest post creator identity is unverifiable")
+    result = {
+        "status": "observed",
+        "published_at_utc": _utc_iso(
+            datetime.fromtimestamp(int(earliest["createTime"]), tz=UTC)
+        ),
+        "source_video_id": video_id,
+        "source_video_url": video_url,
+        "observed_at_utc": _utc_iso(utc_now_fn()),
+        "selection_method": "tiktok_profile_oldest_sort_first_batch_min_exact_create_time_v1",
+        "timestamp_precision": "exact_source_create_time",
+        "limitations": [
+            "not_account_creation_time",
+            "deleted_or_private_earlier_posts_not_observable",
+        ],
+    }
+    assert_no_sensitive_tiktok_material(result)
+    _restore_tiktok_latest_sort(observe)
+    return result
+
+
+def _restore_tiktok_latest_sort(
+    observe: Callable[
+        [Sequence[BrowserPagePointerAction]],
+        BrowserPageObservationSuccess | BrowserSnapshotFailure,
+    ],
+) -> None:
+    restored = observe((TIKTOK_PROFILE_LATEST_SORT_ACTION,))
+    if isinstance(restored, BrowserSnapshotFailure):
+        raise TikTokCreatorOnboardingError(
+            f"Latest-sort restoration failed: {restored.failure_kind.value}"
+        )
+    dom = restored.dom_observation
+    if not isinstance(dom, dict) or dom.get("latest_active") is not True:
+        raise TikTokCreatorOnboardingError("Latest sort restoration could not be verified")
+    receipts = restored.metadata.get("post_load_pointer_actions")
+    if not isinstance(receipts, list) or not receipts:
+        raise TikTokCreatorOnboardingError("Latest sort restoration receipt is missing")
+    latest_receipt = receipts[-1]
+    if (
+        not isinstance(latest_receipt, dict)
+        or latest_receipt.get("action_name") != TIKTOK_PROFILE_LATEST_SORT_ACTION.action_name
+        or latest_receipt.get("clicked") is not True
+    ):
+        raise TikTokCreatorOnboardingError("Latest sort control was not restored")
+
+
+def _earliest_public_post_unavailable(
+    status: str, utc_now_fn: UtcNowFn
+) -> dict[str, Any]:
+    result = {
+        "status": status,
+        "published_at_utc": None,
+        "source_video_id": None,
+        "source_video_url": None,
+        "observed_at_utc": _utc_iso(utc_now_fn()),
+        "selection_method": "tiktok_profile_oldest_sort_first_batch_min_exact_create_time_v1",
+        "timestamp_precision": None,
+        "limitations": [
+            "not_account_creation_time",
+            "deleted_or_private_earlier_posts_not_observable",
+        ],
+    }
+    assert_no_sensitive_tiktok_material(result)
+    return result
 
 
 def _run_grid_overlay_deep_capture_phase(
@@ -1273,6 +1568,9 @@ def _build_onboarding_receipt(
         "completed_grid_overlay_capture_count": len(grid_overlay_capture_order),
         "initial_deep_capture_wait_or_none": state.initial_deep_capture_wait,
         "grid_deep_entry_or_none": state.grid_deep_entry,
+        "earliest_public_post_observation_or_none": (
+            state.earliest_public_post_observation
+        ),
         "phase_chronology": state.phase_chronology,
         "artifacts_written": state.artifacts_written,
         "browser_lifecycle": (
@@ -3298,6 +3596,7 @@ __all__ = [
     "TikTokCreatorOnboardingOutputPaths",
     "TikTokCreatorProfileRefreshOutputPaths",
     "build_tiktok_grid_window",
+    "capture_tiktok_earliest_public_post_observation",
     "capture_tiktok_creator_grid",
     "is_tiktok_profile_item_list_url",
     "run_tiktok_creator_onboarding",

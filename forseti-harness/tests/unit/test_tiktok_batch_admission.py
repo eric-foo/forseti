@@ -453,7 +453,7 @@ def test_write_tiktok_batch_packet_preserves_complete_onboarding_evidence(
             encoding="utf-8"
         )
     )
-    assert payload["capture_schema_version"] == "tiktok_batch_capture_admission_v1"
+    assert payload["capture_schema_version"] == "tiktok_batch_capture_admission_v2"
     assert payload["onboarding_evidence"] == {
         "grid_window_file": "tiktok_grid_window.json",
         "grid_window_sha256": hashlib.sha256(grid_window).hexdigest(),
@@ -466,6 +466,62 @@ def test_write_tiktok_batch_packet_preserves_complete_onboarding_evidence(
         "selection_grid_window_binding_verified": True,
         "selected_deep_capture_coverage_verified": True,
     }
+
+
+def test_batch_admission_embeds_oldest_observation_without_new_raw_artifact(
+    tmp_path: Path,
+) -> None:
+    grid_bytes, selection_bytes = _onboarding_evidence_payloads()
+    grid = json.loads(grid_bytes)
+    grid["schema_version"] = "tiktok_creator_onboarding_v1"
+    grid["earliest_public_post_observation"] = {
+        "status": "observed",
+        "published_at_utc": "2021-04-03T12:34:56Z",
+        "source_video_id": VIDEO_3,
+        "source_video_url": f"{PROFILE_URL}/video/{VIDEO_3}",
+        "observed_at_utc": "2026-07-21T10:00:00Z",
+        "selection_method": "tiktok_profile_oldest_sort_first_batch_min_exact_create_time_v1",
+        "timestamp_precision": "exact_source_create_time",
+        "limitations": [
+            "not_account_creation_time",
+            "deleted_or_private_earlier_posts_not_observable",
+        ],
+    }
+    grid_bytes = (json.dumps(grid, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    selection = json.loads(selection_bytes)
+    selection["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_bytes
+    ).hexdigest()
+    selection_bytes = (json.dumps(selection, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    output = tmp_path / "packet"
+
+    write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_bytes,
+        selection_result_json=selection_bytes,
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    manifest = SourceCapturePacket(
+        **json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    )
+    assert [item.relative_packet_path for item in manifest.preserved_files] == [
+        "raw/01_tiktok_batch_capture.json",
+        "raw/02_tiktok_grid_window.json",
+        "raw/03_tiktok_grid_video_selection.json",
+    ]
+    payload = json.loads(
+        (output / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8")
+    )
+    assert payload["earliest_public_post_observation"] == (
+        grid["earliest_public_post_observation"]
+    )
 
 
 def test_write_tiktok_batch_packet_requires_onboarding_evidence_pair(

@@ -66,6 +66,7 @@ Compactness never authorizes dropping valuable rows.
 - `luckyscent_pdp_aggregate`
 - `nordstrom_pdp_aggregate`
 - `ulta_pdp_aggregate`
+- `target_pdp_aggregate`
 
 Content schema versions are retailer-local revisions, not a shared maturity
 scale. The current acquisition census is:
@@ -75,7 +76,8 @@ scale. The current acquisition census is:
 | `sephora_pdp_aggregate` | `retail_pdp_sephora_aggregate_content_v3` | `retail_pdp_sephora_aggregate_parser_v3` | Current canonical content. |
 | `luckyscent_pdp_aggregate` | `retail_pdp_luckyscent_aggregate_content_v1` | `retail_pdp_luckyscent_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 | `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
-| `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v1` | `retail_pdp_ulta_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
+| `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v2` | `retail_pdp_ulta_aggregate_parser_v2` | Current canonical content. |
+| `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 
 `RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
@@ -97,7 +99,6 @@ Direct-HTTP grids remain raw.
 | Retailer / route | Current deep-PDP mark |
 | --- | --- |
 | Amazon `amazon_pdp_aggregate` | `raw_unflipped`; no content schema exists. |
-| Target `target_pdp_aggregate` | `raw_unflipped`; the separate Bazaarvoice companion does not turn the PDP into canonical content. |
 | Walmart `walmart_pdp_aggregate` | `raw_unflipped`; the Direct HTTP runner does not yet support content retention. |
 | Credo Direct HTTP PDP | `raw_unflipped`; no admitted content profile exists. |
 | Kohl's unattended real-Chrome PDP | `raw_unflipped`; no content profile exists and the real-Chrome runner does not yet support content retention. |
@@ -111,12 +112,23 @@ and Cleaning/Silver lineage. Grid and distribution profiles are separate
 support surfaces, not automatic deep-PDP conversion targets.
 
 Ulta content retains the requested product/SKU, target offer, aggregate rating
-and count, every target Product JSON-LD review body present in the rendered
-capture, and the declared compact product modules. The full Apollo/loader
-envelope is not canonical content: its supplied-input hash remains in extraction
-metadata, while recommendation products and unrelated loader state are not
-retained. Historical Ulta raw packets remain readable through the legacy
-decoder.
+and count, the target-bound Apollo product module subtree, and every
+source-ordered variant state. The full Apollo/loader envelope is not canonical
+content: its supplied-input hash remains in extraction metadata, while
+recommendation products and unrelated loader state are not retained. Historical
+Ulta raw packets remain readable through the legacy decoder.
+
+Target content is built from the Target-owned `__NEXT_DATA__` CDUI page state
+plus the rendered offer and review regions. Server-side rendering hydrates only
+the core product datasource; the price, offer, fulfillment, variation, and store
+datasources are declared in the layout and left null, so the offer is recovered
+from the rendered DOM and the declared-but-unhydrated modules are inventoried
+with their hydration state. Review and Q&A bodies stay in the separate
+`target_bazaarvoice_onboarding` companion: Target content retains body-free
+review identity only, and the Target-native review UUIDs do not join the
+companion's Bazaarvoice review IDs. Guest session and bot-defense material
+carried in the page state is never retained, and its presence alone is
+recorded.
 
 Nordstrom review onboarding captures the complete Most Recent 30-day cohort.
 If fewer than 12 reviews fall in that window, it continues in the same source
