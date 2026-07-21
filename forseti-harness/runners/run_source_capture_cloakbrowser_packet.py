@@ -233,6 +233,13 @@ def run_source_capture_cloakbrowser_packet(
             source_family=source_family,
             source_surface=source_surface,
         )
+        _validate_retail_baseline_profile_request(
+            retail_capture_profile=retail_capture_profile,
+            delivery_zip=delivery_zip,
+            sephora_market=sephora_market,
+            ulta_market=ulta_market,
+            target_zip=target_zip,
+        )
         source_detail_sufficiency_requirements = (
             merge_source_detail_sufficiency_requirements(
                 source_detail_sufficiency_requirements,
@@ -242,7 +249,6 @@ def run_source_capture_cloakbrowser_packet(
         _validate_retail_grid_projection_request(
             retail_capture_profile=retail_capture_profile,
             retail_grid_projection_output=retail_grid_projection_output,
-            sephora_market=sephora_market,
         )
         if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
             if sephora_market != "US":
@@ -975,25 +981,52 @@ def _validate_sephora_us_market_url(url: str) -> None:
         )
 
 
+def _validate_retail_baseline_profile_request(
+    *,
+    retail_capture_profile: RetailCaptureProfile,
+    delivery_zip: str | None,
+    sephora_market: str | None,
+    ulta_market: str | None,
+    target_zip: str | None,
+) -> None:
+    if retail_capture_profile.page_kind not in {"grid_aggregate", "pdp_aggregate"}:
+        return
+    if not retail_capture_profile.ordinary_operation:
+        raise ValueError(
+            f"retail capture profile {retail_capture_profile.name} is not admitted "
+            "for ordinary operation; preserve the capability gap instead"
+        )
+    required_pin = {
+        "amazon": (delivery_zip, "10001", "--delivery-zip 10001"),
+        "sephora": (sephora_market, "US", "--sephora-market US"),
+        "ulta": (ulta_market, "US", "--ulta-market US"),
+        "target": (target_zip, "10001", "--target-zip 10001"),
+    }.get(retail_capture_profile.retailer)
+    if required_pin is None:
+        return
+    actual, expected, flag = required_pin
+    if actual != expected:
+        raise ValueError(
+            f"{retail_capture_profile.name} shallow baseline requires {flag}"
+        )
+
+
 def _validate_retail_grid_projection_request(
     *,
     retail_capture_profile: RetailCaptureProfile,
     retail_grid_projection_output: Path | None,
-    sephora_market: str | None,
 ) -> None:
-    if retail_capture_profile.name == "sephora_grid_aggregate":
-        if sephora_market != "US":
-            raise ValueError(
-                "sephora_grid_aggregate requires --sephora-market US"
-            )
+    projection_profiles = {"sephora_grid_aggregate", "target_grid_aggregate"}
+    if retail_capture_profile.name in projection_profiles:
         if retail_grid_projection_output is None:
             raise ValueError(
-                "sephora_grid_aggregate requires --retail-grid-projection-output"
+                f"{retail_capture_profile.name} requires "
+                "--retail-grid-projection-output"
             )
     elif retail_grid_projection_output is not None:
         raise ValueError(
-            "--retail-grid-projection-output currently requires "
-            "sephora_grid_aggregate"
+            "--retail-grid-projection-output currently requires an admitted "
+            "Sephora or Target grid profile"
         )
 
 
@@ -1519,9 +1552,9 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required for sephora_grid_aggregate. Writes the hash-verified, view-only "
-            "typed grid projection sidecar and fails closed when completeness does not "
-            "reconcile."
+            "Required for admitted Sephora and Target aggregate grids. Writes the "
+            "hash-verified, view-only typed grid projection sidecar and fails closed "
+            "when evaluated completeness does not reconcile."
         ),
     )
     parser.add_argument(
@@ -1784,10 +1817,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 source_family=args.source_family,
                 source_surface=args.source_surface,
             )
+            _validate_retail_baseline_profile_request(
+                retail_capture_profile=retail_capture_profile,
+                delivery_zip=args.delivery_zip,
+                sephora_market=args.sephora_market,
+                ulta_market=args.ulta_market,
+                target_zip=args.target_zip,
+            )
             _validate_retail_grid_projection_request(
                 retail_capture_profile=retail_capture_profile,
                 retail_grid_projection_output=args.retail_grid_projection_output,
-                sephora_market=args.sephora_market,
             )
         elif args.retail_grid_projection_output is not None:
             raise ValueError(
