@@ -83,7 +83,7 @@ The current canonical-content acquisition census is:
 | `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
 | `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v2` | `retail_pdp_ulta_aggregate_parser_v2` | Current canonical content. |
 | `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
-| `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
+| `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v2` | Current canonical content; schema `v1` does not mean legacy. Parser v2 inventories `celwidget` class lists without rewriting historical parser-v1 packets. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
 
 `RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
@@ -150,7 +150,7 @@ reporting variants as observed.
 
 **Amazon content retains the exact review bodies.** This is the one place
 Amazon deliberately diverges from Target. Amazon has no separate raw
-review-response companion: `amazon_pdp_review_onboarding_v1` writes only a
+review-response companion: `amazon_pdp_review_onboarding_v2` writes only a
 control manifest and a body-free summary over an already-preserved raw parent,
 so the bodies exist solely in the parent PDP DOM that content mode hashes and
 discards. Each body is read from the reviewer's own rich-content block, not from

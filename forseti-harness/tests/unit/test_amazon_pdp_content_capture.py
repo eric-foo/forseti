@@ -332,6 +332,37 @@ def test_record_identity_and_versions_are_amazon_local() -> None:
     assert record["review_provider"] == "amazon_native_rendered_pdp"
 
 
+def test_historical_v1_content_record_remains_model_readable() -> None:
+    record = _build()
+    record["parser_version"] = "retail_pdp_amazon_aggregate_parser_v1"
+
+    assert AmazonPdpAggregateContentRecord.model_validate(record).parser_version.endswith(
+        "_v1"
+    )
+
+
+def test_celwidget_class_lists_are_inventoried_without_erasing_bound_modules() -> None:
+    baseline = _build()
+    class_list_dom = _dom().replace(
+        b'class="celwidget"', b'class="offer-display-feature celwidget extra"'
+    )
+
+    record = _build(rendered_dom=class_list_dom)
+
+    assert _fields(record, "retail_carried_module")["declared_module_count"] == _fields(
+        baseline, "retail_carried_module"
+    )["declared_module_count"]
+    assert _fields(record, "retail_variant_offer")["price"] == "24.00"
+
+
+def test_choice_badge_class_parser_retains_nonfallback_badge_text() -> None:
+    record = _build(
+        rendered_dom=_dom().replace(b"Amazon&#39;s Choice", b"Overall Pick")
+    )
+
+    assert _fields(record, "retail_pdp_product")["amazons_choice_badge_text"] == "Overall Pick"
+
+
 def test_exact_review_bodies_are_retained_here_because_no_companion_owns_them() -> None:
     """The inversion from Target: Amazon's companion is body-free, so this record keeps bodies."""
     record = _build()
@@ -634,6 +665,59 @@ def test_refuses_to_emit_guest_session_or_csrf_material() -> None:
     # The session id is echoed into a retained product field.
     with pytest.raises(ValueError, match="refusing"):
         _build(rendered_dom=leaking)
+
+
+def test_refuses_json_carried_csrf_material_if_it_reaches_output() -> None:
+    token = "JSON_CSRF_SECRET_123456"
+    leaking = _dom(
+        extra_head=(
+            f'<script type="application/json">{{"aapiCsrfToken":"{token}"}}</script>'
+            f'<span id="productTitle">Mask {token}</span>'
+        )
+    )
+
+    with pytest.raises(ValueError, match="refusing"):
+        _build(rendered_dom=leaking)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"scroll_passes": 1},
+        {"scroll_step_px": 250},
+        {"scroll_target_selector": "body"},
+        {"load_more_clicks": 1},
+    ],
+)
+def test_amazon_content_envelope_rejects_unbounded_browser_actions(kwargs: dict) -> None:
+    from runners.run_source_capture_cloakbrowser_packet import (
+        _validate_amazon_content_capture_envelope,
+    )
+
+    values = {
+        "requested_retention_mode": "content",
+        "scroll_passes": 0,
+        "scroll_step_px": 0,
+        "scroll_target_selector": None,
+        "load_more_clicks": 0,
+        **kwargs,
+    }
+    with pytest.raises(ValueError, match="amazon_pdp_aggregate content capture"):
+        _validate_amazon_content_capture_envelope(**values)
+
+
+def test_amazon_content_envelope_allows_only_the_bounded_review_target_scroll() -> None:
+    from runners.run_source_capture_cloakbrowser_packet import (
+        _validate_amazon_content_capture_envelope,
+    )
+
+    _validate_amazon_content_capture_envelope(
+        requested_retention_mode="content",
+        scroll_passes=0,
+        scroll_step_px=0,
+        scroll_target_selector="#customerReviews",
+        load_more_clicks=0,
+    )
 
 
 def test_short_product_copy_is_not_mistaken_for_a_secret() -> None:
