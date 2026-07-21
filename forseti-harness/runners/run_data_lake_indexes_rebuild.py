@@ -56,6 +56,7 @@ from cleaning.transcript_product_lake import product_mentions_policy_fingerprint
 from data_lake.derived_retrieval_views import (
     audit_derived_retrieval_source_integrity,
     current_generation_root,
+    normalize_decision_question_id,
     prove_incremental_rebuild_equality,
     prove_derived_retrieval_rebuildability,
     prove_sql_catalogue_rebuildability,
@@ -232,10 +233,16 @@ def main(argv: list[str] | None = None) -> int:
     sql_modes = sum(bool(value) for value in (args.sql_status,args.sql_query,args.sql_exact_actor))
     if sql_modes > 1:
         parser.error("choose only one SQL status/query mode")
-    if args.decision_question_id and not (args.sql_query or args.sql_exact_actor):
+    # Absence routes to exploratory; anything SUPPLIED -- including "" -- is a
+    # decision request and is validated before the query runs.
+    if args.decision_question_id is not None and not (
+            args.sql_query or args.sql_exact_actor):
         parser.error("--decision-question-id requires --sql-query or --sql-exact-actor")
     if sql_modes:
         try:
+            decision_question_id = (
+                normalize_decision_question_id(args.decision_question_id)
+                if args.decision_question_id is not None else None)
             root = DataLakeRoot.resolve(explicit=args.data_root)
             if args.sql_status:
                 report = sql_catalogue_status(root)
@@ -246,23 +253,23 @@ def main(argv: list[str] | None = None) -> int:
                     creator_id=args.sql_creator_id,
                     content_id=args.sql_content_id,product_id=args.sql_product_id,
                     from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,limit=args.sql_limit)
-                if args.decision_question_id:
+                if decision_question_id is not None:
                     if not report["result_set_complete"]:
                         raise ValueError(
                             "decision query result set is truncated; narrow the query")
                     report["source_verification"] = verify_sql_query_sources(root,report)
                     report["audit_path"] = write_evidence_query_audit(
-                        report,decision_question_id=args.decision_question_id)
+                        report,decision_question_id=decision_question_id)
             else:
                 if not (args.sql_platform and args.sql_from_utc and args.sql_to_utc
-                        and args.decision_question_id):
+                        and decision_question_id is not None):
                     parser.error("--sql-exact-actor requires platform, from/to UTC, and decision-question-id")
                 report = query_exact_actor_context(
                     root,platform=args.sql_platform,actor=args.sql_exact_actor,
                     from_utc=args.sql_from_utc,to_utc=args.sql_to_utc,
                     creator_id=args.sql_creator_id,content_id=args.sql_content_id)
                 report["audit_path"] = write_actor_query_audit(
-                    report,decision_question_id=args.decision_question_id)
+                    report,decision_question_id=decision_question_id)
         except (OSError,DataLakeRootError,ValueError,sqlite3.DatabaseError) as exc:
             print(json.dumps({"status":"error","error":str(exc)},indent=2,sort_keys=True))
             return 2
