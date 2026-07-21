@@ -858,7 +858,10 @@ def test_content_capture_requires_the_admitted_us_delivery_pin(capsys) -> None:
         )
 
     assert excinfo.value.code == 2
-    assert (
-        "amazon_pdp_aggregate content capture requires --delivery-zip 10001"
-        in capsys.readouterr().err
-    )
+    # Assert the actionable requirement, not one gate's prose: origin/main's
+    # shared retailer-baseline pin check now rejects this earlier than the
+    # Amazon content dispatch did, and is strictly stronger (it also covers
+    # raw captures). Either gate must name the one admitted destination.
+    error = capsys.readouterr().err
+    assert "amazon_pdp_aggregate" in error
+    assert "--delivery-zip 10001" in error
