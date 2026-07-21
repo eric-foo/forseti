@@ -9,6 +9,10 @@ from source_capture.retail_capture_profiles import (
     extract_amazon_asin_from_url,
     extract_amazon_search_query_from_url,
     extract_nordstrom_product_id_from_url,
+    extract_sephora_product_id_from_url,
+    extract_target_product_id_from_url,
+    extract_target_search_query_from_url,
+    extract_ulta_product_id_from_url,
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
@@ -67,6 +71,10 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert get_retail_capture_profile("amazon_pdp_distribution").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_pdp_aggregate").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_grid_aggregate").derive_target_query_from_url is True
+    assert get_retail_capture_profile("sephora_pdp_aggregate").derive_target_sephora_product_id_from_url is True
+    assert get_retail_capture_profile("ulta_pdp_aggregate").derive_target_ulta_product_id_from_url is True
+    assert get_retail_capture_profile("target_pdp_aggregate").derive_target_target_product_id_from_url is True
+    assert get_retail_capture_profile("target_grid_aggregate").derive_target_target_search_query_from_url is True
     nordstrom = get_retail_capture_profile("nordstrom_pdp_aggregate")
     assert nordstrom.wait_until == "domcontentloaded"
     assert nordstrom.scroll_passes == 1
@@ -101,6 +109,44 @@ def test_sephora_grid_profile_is_subject_agnostic_and_requires_grid_structure() 
     )
 
     assert result.passed is True
+
+
+@pytest.mark.parametrize(
+    ("extractor", "url", "expected"),
+    (
+        (extract_sephora_product_id_from_url, "https://www.sephora.com/product/example-P123456", "P123456"),
+        (extract_ulta_product_id_from_url, "https://www.ulta.com/p/example-pimprod2046225?sku=2645443", "pimprod2046225"),
+        (extract_target_product_id_from_url, "https://www.target.com/p/example/-/A-80184023", "80184023"),
+        (extract_target_search_query_from_url, "https://www.target.com/s?searchTerm=Summer%20Fridays", "Summer Fridays"),
+    ),
+)
+def test_shallow_profiles_derive_the_commissioned_target_from_the_url(
+    extractor, url: str, expected: str
+) -> None:
+    assert extractor(url) == expected
+
+
+def test_target_grid_profile_binds_the_requested_search_query() -> None:
+    profile = get_retail_capture_profile("target_grid_aggregate")
+    visible_text = "Summer Fridays 12 results Guest Rating $24.00"
+    admitted = evaluate_source_detail_sufficiency(
+        requirements=profile.requirements_for_capture(
+            url="https://www.target.com/s?searchTerm=Summer%20Fridays"
+        ),
+        access_block_reason=None,
+        visible_text=visible_text,
+        rendered_dom="<html>target product cards</html>",
+    )
+    mismatched = evaluate_source_detail_sufficiency(
+        requirements=profile.requirements_for_capture(
+            url="https://www.target.com/s?searchTerm=Another%20Brand"
+        ),
+        access_block_reason=None,
+        visible_text=visible_text,
+        rendered_dom="<html>target product cards</html>",
+    )
+    assert admitted.passed is True
+    assert mismatched.passed is False
 
 
 def test_nordstrom_profile_binds_the_requested_product_id() -> None:
@@ -498,6 +544,63 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
         )
 
 
+@pytest.mark.parametrize(
+    ("profile_name", "pin_field", "pin_value"),
+    (
+        ("amazon_grid_aggregate", "delivery_zip", "10001"),
+        ("amazon_pdp_aggregate", "delivery_zip", "10001"),
+        ("sephora_grid_aggregate", "sephora_market", "US"),
+        ("sephora_pdp_aggregate", "sephora_market", "US"),
+        ("ulta_pdp_aggregate", "ulta_market", "US"),
+        ("target_grid_aggregate", "target_zip", "10001"),
+        ("target_pdp_aggregate", "target_zip", "10001"),
+    ),
+)
+def test_shallow_ladder_profiles_require_their_exact_us_pin(
+    profile_name: str, pin_field: str, pin_value: str
+) -> None:
+    kwargs = {"delivery_zip": None, "sephora_market": None, "ulta_market": None, "target_zip": None}
+    profile = get_retail_capture_profile(profile_name)
+    with pytest.raises(ValueError, match="shallow baseline requires"):
+        cloakbrowser_runner._validate_retail_baseline_profile_request(
+            retail_capture_profile=profile, **kwargs
+        )
+    kwargs[pin_field] = pin_value
+    cloakbrowser_runner._validate_retail_baseline_profile_request(
+        retail_capture_profile=profile, **kwargs
+    )
+
+
+def test_nonordinary_ulta_grid_is_a_visible_capability_gap() -> None:
+    with pytest.raises(ValueError, match="not admitted for ordinary operation"):
+        cloakbrowser_runner._validate_retail_baseline_profile_request(
+            retail_capture_profile=get_retail_capture_profile("ulta_grid_aggregate"),
+            delivery_zip=None,
+            sephora_market=None,
+            ulta_market="US",
+            target_zip=None,
+        )
+
+
+def test_target_grid_requires_projection_but_amazon_search_grid_cannot_fake_one(
+    tmp_path: Path,
+) -> None:
+    target = get_retail_capture_profile("target_grid_aggregate")
+    with pytest.raises(ValueError, match="target_grid_aggregate requires"):
+        cloakbrowser_runner._validate_retail_grid_projection_request(
+            retail_capture_profile=target, retail_grid_projection_output=None
+        )
+    cloakbrowser_runner._validate_retail_grid_projection_request(
+        retail_capture_profile=target,
+        retail_grid_projection_output=tmp_path / "target-grid.json",
+    )
+    with pytest.raises(ValueError, match="Sephora or Target"):
+        cloakbrowser_runner._validate_retail_grid_projection_request(
+            retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),
+            retail_grid_projection_output=tmp_path / "amazon-grid.json",
+        )
+
+
 def test_profile_requirements_merge_with_explicit_requirements_without_weakening_either() -> None:
     explicit = SourceDetailSufficiencyRequirements(
         min_visible_text_bytes=100,
@@ -512,7 +615,5 @@ def test_profile_requirements_merge_with_explicit_requirements_without_weakening
     assert merged.min_visible_text_bytes == 100
     assert merged.visible_text_contains == (
         "operator marker",
-        "Lip Sleeping Mask",
         "Ratings & Reviews",
-        "Color",
     )
