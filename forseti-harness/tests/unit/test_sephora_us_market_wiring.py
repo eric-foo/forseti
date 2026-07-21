@@ -320,7 +320,7 @@ def test_plugin_preflight_noops_after_target_navigation_when_dialog_absent() -> 
         wait_until="load",
         timeout=10_000,
     )
-    assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is False
+    assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is True
 
 
 def test_plugin_uses_exact_country_dialog_continuation() -> None:

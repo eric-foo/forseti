@@ -186,7 +186,7 @@ def run_source_capture_cloakbrowser_packet(
     settle_seconds: float = 0.0,
     scroll_passes: int = 0,
     load_more_selector: str | None = None,
-    load_more_clicks: int = 0,
+    load_more_clicks: int | None = None,
     scroll_step_px: int = 0,
     scroll_target_selector: str | None = None,
     delivery_zip: str | None = None,
@@ -280,6 +280,15 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _target_content_extraction_spec("content")
+    if (
+        retail_capture_profile is not None
+        and load_more_selector is None
+        and load_more_clicks is None
+    ):
+        load_more_selector = retail_capture_profile.load_more_selector
+        load_more_clicks = retail_capture_profile.load_more_clicks
+    elif load_more_clicks is None:
+        load_more_clicks = 0
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -1540,16 +1549,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Selector (CSS or 'text=...') for a click-to-load-more control, e.g. "
-            "'text=Show more'. Site-specific, supplied per capture; requires --load-more-clicks."
+            "'text=Show more'. Without an explicit value, a retail profile may own the selector."
         ),
     )
     parser.add_argument(
         "--load-more-clicks",
         type=int,
-        default=0,
+        default=None,
         help=(
             "After scrolling, click --load-more-selector up to this many times (pausing between), "
-            "stopping early when it disappears. Default 0 (no clicks)."
+            "stopping early when it disappears. Default 0 without a retail profile; otherwise "
+            "the profile's bounded continuation posture."
         ),
     )
     parser.add_argument(

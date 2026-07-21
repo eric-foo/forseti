@@ -141,6 +141,59 @@ The earlier diagnostic packet
 This comparison establishes stability across the two bounded observations, not
 longitudinal assortment stability.
 
+## Clinique Multi-Page Follow-Up
+
+A live Clinique follow-up on 2026-07-21 established the lowest-footprint
+multi-page behavior. CloakBrowser launched with `humanize=True`; the Sephora
+market plugin used the same page object to warm the commissioned URL, scope and
+activate the exact country-dialog continuation when present, and navigate the
+main target. The grid profile then performed one bottom scroll, settled for two
+seconds, and activated the unique retailer-owned `Show More Products` control.
+
+Packet
+`C:\tmp\forseti-sephora-brand-grid-data\raw\c31\01KY2MDZ61BNYMAKP39SAKJ6ZG`
+records one scroll and one humanized click. Sephora changed the URL to
+`currentPage=2`, displayed `1-79 of 79 Results`, and removed the continuation
+button. The rendered `linkStore.page.nthBrand.products` array nevertheless
+remained the first page's 60 rows, so projection
+`clinique_brand_grid_projection_20260721_05.json` correctly remained
+`incomplete` (SHA-256
+`ec5f723c608db178d6590c993c586c2499737b5716e50eb196c6291aff22c7f4`).
+
+A second same-tab capture of Sephora's retailer-generated
+`currentPage=2` state, packet
+`C:\tmp\forseti-sephora-brand-grid-data\raw\369\01KY2MHMTGDXDTFGHYWQDZW1W5`,
+serialized the remaining 19 rows. Its page-local projection is
+`clinique_brand_grid_projection_20260721_06.json` (SHA-256
+`8d82cccbe631f2bde79e6ebb7ec677c13413e9de27cd9768a6f12c02d502be0d`).
+The two page states reconcile to 79 unique parent IDs with zero overlap and
+zero duplicate IDs. All 79 rows retain a price or price range, rating, and
+review count; 66 have scalar prices, 13 have price ranges, and 9 have one or
+more source-visible badges.
+
+The comparison-only union is preserved outside the repository as:
+
+- `C:\tmp\forseti-sephora-brand-grid-data\derived\sephora_brand_grid\clinique_brand_grid_two_page_comparison_20260721_01.json`
+  (SHA-256
+  `211700fdb2e21216cd4c43ef0645c00664cdae3d9ed8172bfaa1f41e2bfcf525`);
+- `C:\tmp\forseti-sephora-brand-grid-data\derived\sephora_brand_grid\clinique_brand_grid_two_page_comparison_20260721_01.csv`
+  (SHA-256
+  `eaa7fa3f7a089a90c16364ea07289b29aa228f21fa135bf3496a7c44ad03c324`).
+
+That union is explicitly not a single certified Projection packet: each source
+row retains its own packet, slice, and raw anchor. The result proves that
+Sephora's visible continuation and serialized product state have different
+lifecycles; displayed `1-N` plus a vanished button cannot upgrade one
+page-local `linkStore` array to complete. Both packets also remain failed
+closed for US/USD admission because neither grid state exposes an explicit USD
+currency code.
+
+The append-only diagnostic sequence remains preserved. The initial no-pagination
+capture (`_01`) held 60/79; `_02` exposed a non-waiting selector race; `_03`
+confirmed the selector action still did not fire; `_04` recorded
+`ElementNotStableError` under humanization; `_05` proved the settled
+humanized click; and `_06` isolated the 19-row serialized second page.
+
 ## Non-Claims
 
 This receipt is not a Sephora US/USD-admitted packet, current assortment
