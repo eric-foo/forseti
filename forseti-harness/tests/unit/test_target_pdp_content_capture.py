@@ -723,6 +723,145 @@ def test_extraction_failure_preserves_the_raw_packet_and_exits_nonzero(
     assert metadata["extraction_status"].startswith("failed:")
 
 
+def test_admission_failure_suppresses_the_content_record_and_exits_nonzero(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """An unconfirmed delivery pin must not leave a canonical record behind.
+
+    Extraction runs before admission is decided, so a pin failure can hold a
+    perfectly parsed record. Retaining it would put a canonical-content-shaped
+    artifact inside a packet that MUST NOT be admitted -- observed on packet
+    01KY32KG4DVVV5AEYW9P4P5S89, whose ZIP 10001 pin failed. The parse itself is
+    not lost: this asserts the preserved raw inputs still re-derive the record.
+    """
+    import runners.run_source_capture_cloakbrowser_packet as cloakbrowser_runner
+    from runners.run_source_capture_cloakbrowser_packet import (
+        SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+        TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE,
+        run_source_capture_cloakbrowser_packet,
+    )
+    from source_capture.adapters.cloakbrowser_snapshot import (
+        CloakBrowserSnapshotSuccess,
+    )
+    from source_capture.content_extraction import RenderedContentExtractionSpec
+    from source_capture.models import CaptureModeCategory
+
+    output = tmp_path / "admission-failure-packet"
+    rendered_dom = _dom().decode("utf-8")
+
+    def fake_capture(**kwargs):
+        return CloakBrowserSnapshotSuccess(
+            requested_url=_SOURCE_URL,
+            final_url=_SOURCE_URL,
+            title="Target",
+            # A fully parseable PDP: only the storefront pin failed.
+            rendered_dom=rendered_dom,
+            visible_text=_VISIBLE_TEXT,
+            screenshot_png=b"\x89PNG\r\n\x1a\ntarget",
+            metadata={
+                "requested_url": _SOURCE_URL,
+                "final_url": _SOURCE_URL,
+                "title": "Target",
+                "capture_timestamp": "2026-07-21T00:00:00Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "none",
+                "storage_state_loaded": False,
+                "proxy_used": False,
+                "geoip_used": False,
+                "extension_paths_loaded": False,
+                "pin_confirmed": False,
+                "rendered_dom_byte_count": len(rendered_dom.encode("utf-8")),
+                "visible_text_byte_count": len(_VISIBLE_TEXT.encode("utf-8")),
+                "screenshot_byte_count": 16,
+            },
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(
+        cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture
+    )
+    exit_code, message = run_source_capture_cloakbrowser_packet(
+        url=_SOURCE_URL,
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="Does Target retain the canonical product evidence?",
+        output_directory=output,
+        capture_context="Target admission failure unit proof",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000_000,
+        block_heavy_assets=False,
+        target_zip="10001",
+        content_extraction=RenderedContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version=TARGET_PDP_PARSER_VERSION,
+            extractor=lambda _dom, _text, _url: build_target_pdp_aggregate_content_record(
+                rendered_dom=_dom,
+                visible_text=_text,
+                source_url=_url,
+            ),
+        ),
+    )
+
+    assert exit_code == SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE in message
+    manifest = json.loads((output / "manifest.json").read_text())
+    paths = {row["relative_packet_path"] for row in manifest["preserved_files"]}
+    # Every acquired raw input survives the failed admission.
+    assert {
+        "raw/01_cloakbrowser_rendered_dom.html",
+        "raw/02_cloakbrowser_visible_text.txt",
+        "raw/03_cloakbrowser_viewport_screenshot.png",
+        "raw/04_cloakbrowser_snapshot_metadata.json",
+        "raw/05_content_extraction_metadata.json",
+    }.issubset(paths)
+    # The extraction succeeded; admission is what failed. The record is still
+    # withheld, exactly as the extraction-failure path withholds it.
+    assert not any(path.endswith("content_record.json") for path in paths)
+    metadata = json.loads(
+        (output / "raw" / "05_content_extraction_metadata.json").read_text()
+    )
+    assert metadata["retention_outcome"] == "raw_failure"
+    assert metadata["extraction_status"] == "succeeded"
+    assert all(item["preserved"] for item in metadata["inputs"])
+    # The packet must not claim a content record it does not carry.
+    assert "capture-time rendered content record preserved" not in json.dumps(
+        manifest
+    )
+    # Nothing is lost: the preserved raw inputs re-derive the discarded record.
+    rederived = build_target_pdp_aggregate_content_record(
+        rendered_dom=(output / "raw" / "01_cloakbrowser_rendered_dom.html").read_bytes(),
+        visible_text=(output / "raw" / "02_cloakbrowser_visible_text.txt").read_bytes(),
+        source_url=_SOURCE_URL,
+    )
+    assert rederived["record_kind"] == TARGET_PDP_CONTENT_RECORD_KIND
+    assert rederived["parser_version"] == metadata["extractor_version"]
+
+
 def test_unpainted_review_widget_is_recorded_not_inferred() -> None:
     """Live captures can miss the lazy below-fold widget; page state still holds.
 

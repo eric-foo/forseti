@@ -353,9 +353,13 @@ preservation state.
 
 The public retention modes are `content` and `raw`. `raw` preserves the original
 source evidence. Any admission or extraction failure preserves all supplied
-original artifacts, records a typed failure, and returns nonzero. Capture does
-not write a Projection packet, and post-hoc capture Projection is not an
-operating path.
+original artifacts, writes no `content_record.json`, records a typed failure,
+and returns nonzero. A packet therefore carries a canonical content record only
+when its `retention_outcome` is `content`; because extraction runs before
+admission is decided, an admission failure discards an already-parsed record,
+which the preserved inputs re-derive at the recorded `extractor_version`.
+Capture does not write a Projection packet, and post-hoc capture Projection is
+not an operating path.
 
 There is no admitted sample mode. Extractor qualification uses explicit
 operator scratch inputs and `run_content_qualification.py`; it compares current
