@@ -149,15 +149,53 @@ def _review_row(
     }
 
 
-def _fake_fetcher(*, corrupt_age: str | None = None):
-    totals = {
-        "reviews_non_incentivized_total.json": 14327,
-        "reviews_non_incentivized_age_20s.json": 244,
-        "reviews_non_incentivized_age_30s.json": 338,
-        "reviews_non_incentivized_age_40s.json": 130,
-        "reviews_non_incentivized_age_50s_plus.json": 563,
+def _statistics_product(
+    *,
+    total: int = 14327,
+    age_values: list[dict] | None = None,
+) -> dict:
+    if age_values is None:
+        age_values = [
+            {"Value": "20s", "Count": 244},
+            {"Value": "30s", "Count": 338},
+            {"Value": "40s", "Count": 130},
+            {"Value": "50s", "Count": 563},
+        ]
+    return {
+        "Id": "P420652",
+        "ReviewStatistics": {
+            "TotalReviewCount": 22000,
+            "AverageOverallRating": 4.3,
+            "RecommendedCount": 15000,
+            "NotRecommendedCount": 2000,
+            "RatingDistribution": [{"RatingValue": 5, "Count": 15000}],
+        },
+        "FilteredReviewStatistics": {
+            "TotalReviewCount": total,
+            "AverageOverallRating": 4.4,
+            "RecommendedCount": 11000,
+            "NotRecommendedCount": 1200,
+            "RatingDistribution": [{"RatingValue": 5, "Count": 11000}],
+            "ContextDataDistribution": {
+                "ageRange": {"Values": age_values},
+                "skinType": {
+                    "Values": [
+                        {"Value": "combination", "Count": 900},
+                        {"Value": "dry", "Count": 700},
+                    ]
+                },
+                "skinConcerns": {
+                    "Values": [{"Value": "dryness", "Count": 400}]
+                },
+                "eyeColor": {
+                    "Values": [{"Value": "brown", "Count": 100}]
+                },
+            },
+        },
     }
 
+
+def _fake_fetcher(*, corrupt_artifact: str | None = None):
     def fetch(
         spec: ApiRequestSpec,
         config: BazaarvoiceReadConfig,
@@ -176,6 +214,9 @@ def _fake_fetcher(*, corrupt_age: str | None = None):
             ) in spec.parameters
             if spec.artifact_name == "reviews_non_incentivized_most_helpful_offset_000.json":
                 assert ("Sort", "TotalPositiveFeedbackCount:desc") in spec.parameters
+                assert ("Include", "Products") in spec.parameters
+                assert ("Stats", "Reviews") in spec.parameters
+                assert ("FilteredStats", "Reviews") in spec.parameters
                 document = {
                     "HasErrors": False,
                     "TotalResults": 14327,
@@ -188,10 +229,12 @@ def _fake_fetcher(*, corrupt_age: str | None = None):
                             product_id="2901072",
                         ),
                     ],
+                    "Includes": {"Products": {"P420652": _statistics_product()}},
                 }
-            elif spec.artifact_name.startswith(
-                "reviews_non_incentivized_most_recent_offset_"
-            ):
+            else:
+                assert spec.artifact_name.startswith(
+                    "reviews_non_incentivized_most_recent_offset_"
+                )
                 assert ("Sort", "SubmissionTime:desc") in spec.parameters
                 offset = int(dict(spec.parameters)["Offset"])
                 pages = {
@@ -209,18 +252,7 @@ def _fake_fetcher(*, corrupt_age: str | None = None):
                     "TotalResults": 14327,
                     "Results": pages[offset],
                 }
-            else:
-                if spec.artifact_name == "reviews_non_incentivized_age_50s_plus.json":
-                    assert (
-                        "Filter",
-                        "ContextDataValue_ageRange:eq:50s",
-                    ) in spec.parameters
-                document = {
-                    "HasErrors": False,
-                    "TotalResults": totals[spec.artifact_name],
-                    "Results": [{"Id": "r1", "ProductId": "P420652"}],
-                }
-        if spec.artifact_name == corrupt_age:
+        if spec.artifact_name == corrupt_artifact:
             body = b"{invalid-json"
         else:
             body = json.dumps(document, separators=(",", ":")).encode("utf-8")
@@ -244,7 +276,9 @@ def _artifact_json(loaded, suffix: str) -> dict:
     return json.loads(loaded.bodies[preserved["file_id"]].decode("utf-8"))
 
 
-def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) -> None:
+def test_success_uses_three_roles_and_promotes_filtered_statistics(
+    tmp_path: Path,
+) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path)
 
@@ -259,95 +293,149 @@ def test_success_preserves_raw_and_projects_exact_age_breakdown(tmp_path: Path) 
     loaded = root.load_raw_packet(result["packet_id"])
     assert loaded.manifest["source_surface"] == "sephora_bazaarvoice_onboarding"
     summary = _artifact_json(loaded, "sephora_onboarding_summary.json")
-    assert summary["reviews"]["live_age_bucket_values"] == list(SEPHORA_AGE_BUCKETS)
-    assert summary["reviews"]["exact_non_incentivized_total"] == 14327
-    assert summary["reviews"]["declared_age_subset_total"] == 1275
-    assert summary["reviews"]["declared_age_coverage_pct"] == 8.9
-    assert summary["reviews"]["without_live_age_bucket_pct"] == 91.1
-    assert summary["reviews"]["age_breakdown"] == [
+    assert summary["record_kind"] == "sephora_bazaarvoice_onboarding_summary_v4"
+    reviews = summary["reviews"]
+    assert reviews["exact_non_incentivized_total"] == 14327
+    assert reviews["statistics"]["filtered"]["AverageOverallRating"] == 4.4
+    assert reviews["statistics"]["unfiltered"]["TotalReviewCount"] == 22000
+    demographics = reviews["demographics"]
+    assert demographics["age_display_labels"] == list(SEPHORA_AGE_BUCKETS)
+    assert demographics["declared_age_subset_total"] == 1275
+    assert demographics["declared_age_coverage_pct"] == 8.9
+    assert demographics["without_declared_age_pct"] == 91.1
+    assert demographics["age_breakdown"] == [
         {
             "bucket": "20s",
-            "api_value": "20s",
             "count": 244,
             "share_of_declared_age_subset_pct": 19.14,
             "share_of_all_non_incentivized_reviews_pct": 1.7,
         },
         {
             "bucket": "30s",
-            "api_value": "30s",
             "count": 338,
             "share_of_declared_age_subset_pct": 26.51,
             "share_of_all_non_incentivized_reviews_pct": 2.36,
         },
         {
             "bucket": "40s",
-            "api_value": "40s",
             "count": 130,
             "share_of_declared_age_subset_pct": 10.2,
             "share_of_all_non_incentivized_reviews_pct": 0.91,
         },
         {
             "bucket": "50s +",
-            "api_value": "50s",
             "count": 563,
             "share_of_declared_age_subset_pct": 44.16,
             "share_of_all_non_incentivized_reviews_pct": 3.93,
         },
     ]
-    assert summary["reviews"]["most_helpful"]["captured_review_rows"] == 2
-    assert summary["reviews"]["most_helpful"]["captured_review_bodies"] == 2
-    assert summary["reviews"]["most_recent_30d"]["captured_page_count"] == 2
-    assert summary["reviews"]["most_recent_30d"]["captured_page_rows"] == 4
-    assert summary["reviews"]["most_recent_30d"]["within_window_rows"] == 3
-    assert (
-        summary["reviews"]["most_recent_30d"]["coverage_status"]
-        == "covered_through_cutoff"
-    )
-    assert (
-        summary["reviews"]["most_recent_30d"]["oldest_source_date"]
-        == "2026-06-19T00:00:00Z"
-    )
-    assert summary["reviews"]["raw_review_field_inventory"][
-        "unsummarized_fields_preserved_only_in_raw"
-    ] == []
-    assert summary["reviews"]["raw_review_field_inventory"][
+    assert demographics["skin_type_distribution"] == [
+        {"value": "combination", "count": 900},
+        {"value": "dry", "count": 700},
+    ]
+    assert demographics["skin_concern_distribution"] == [
+        {"value": "dryness", "count": 400}
+    ]
+    # Other distributions (eyeColor) stay raw-only.
+    assert "eyeColor" not in json.dumps(demographics)
+
+    assert reviews["most_helpful"]["captured_review_rows"] == 2
+    assert reviews["most_helpful"]["captured_review_bodies"] == 2
+    recent = reviews["most_recent_30d"]
+    assert recent["last_seen_review_id"] == "r1"
+    assert recent["captured_page_count"] == 2
+    assert recent["captured_page_rows"] == 4
+    assert recent["within_window_rows"] == 3
+    assert recent["coverage_status"] == "covered_through_cutoff"
+    assert recent["oldest_source_date"] == "2026-06-19T00:00:00Z"
+
+    # Compact, body-free summary rows; bodies stay only in raw responses.
+    helpful_row = reviews["most_helpful"]["review_inventory"][0]
+    assert helpful_row["body_present"] is True
+    assert "review_text" not in helpful_row
+    assert "Helpful one" not in json.dumps(summary)
+    assert "First question details" not in json.dumps(summary)
+    assert reviews["raw_review_field_inventory"][
         "additional_source_fields_carried"
     ] == ["UnexpectedValuableField"]
-    assert summary["reviews"]["most_helpful"]["review_inventory"][0][
-        "additional_source_fields"
-    ] == {"UnexpectedValuableField": "preserve-h1"}
-    assert summary["reviews"]["review_product_identity"][
+    assert reviews["review_product_identity"][
         "historical_or_unlisted_review_product_ids"
     ] == ["2901072"]
-    assert summary["reviews"]["review_product_identity"][
-        "historical_or_unlisted_review_rows"
-    ] == 1
     assert summary["questions"]["total_questions"] == 1390
     assert summary["questions"]["captured_question_rows"] == 2
     assert summary["questions"]["captured_included_answer_rows"] == 3
     assert summary["row_accounting"]["answers_equal"] is True
     assert summary["row_accounting"]["most_helpful_row_order_equal"] is True
     assert summary["row_accounting"]["most_recent_row_order_equal"] is True
-    assert summary["row_accounting"]["all_raw_review_fields_accounted_for"] is True
-    assert summary["content_qualification"]["status"] == "passed"
-    assert summary["content_qualification"]["recent_window_coverage_proven"] is True
+    qualification = summary["content_qualification"]
+    assert qualification["status"] == "passed"
+    assert qualification["three_response_roles_present"] is True
+    assert qualification["combined_statistics_present"] is True
+    assert qualification["age_bucket_vocabulary_exact"] is True
+    assert qualification["recent_window_coverage_proven"] is True
+    assert qualification["summary_duplicates_review_or_answer_bodies"] is False
 
     names = {
         Path(item["original_path"]).name
         for item in loaded.manifest["preserved_files"]
     }
-    assert "questions_most_answers_offset_000.json" in names
-    assert "reviews_non_incentivized_most_helpful_offset_000.json" in names
-    assert "reviews_non_incentivized_most_recent_offset_00000.json" in names
-    assert "reviews_non_incentivized_most_recent_offset_00002.json" in names
-    assert "sephora_request_manifest.json" in names
-    assert "sephora_onboarding_summary.json" in names
+    assert names == {
+        "questions_most_answers_offset_000.json",
+        "reviews_non_incentivized_most_helpful_offset_000.json",
+        "reviews_non_incentivized_most_recent_offset_00000.json",
+        "reviews_non_incentivized_most_recent_offset_00002.json",
+        "sephora_request_manifest.json",
+        "sephora_onboarding_summary.json",
+    }
     persisted = b"".join(loaded.bodies.values())
     assert _REVIEW_TOKEN.encode() not in persisted
     assert _QUESTION_TOKEN.encode() not in persisted
 
 
-def test_adaptation_failure_commits_every_raw_response_as_fallback(tmp_path: Path) -> None:
+def test_missing_combined_statistics_fails_adaptation_with_raw_fallback(
+    tmp_path: Path,
+) -> None:
+    def fetch(
+        spec: ApiRequestSpec,
+        config: BazaarvoiceReadConfig,
+        timeout_seconds: float,
+        max_bytes: int,
+    ) -> ApiResponse:
+        response = _fake_fetcher()(spec, config, timeout_seconds, max_bytes)
+        if spec.artifact_name == (
+            "reviews_non_incentivized_most_helpful_offset_000.json"
+        ):
+            document = json.loads(response.body)
+            document.pop("Includes", None)
+            response = ApiResponse(
+                status=200,
+                reason="OK",
+                body=json.dumps(document).encode("utf-8"),
+                content_type="application/json",
+                captured_at=response.captured_at,
+            )
+        return response
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+    exit_code, result = capture_sephora_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        review_page_limit=2,
+        fetcher=fetch,
+    )
+    assert exit_code == 5
+    loaded = root.load_raw_packet(result["packet_id"])
+    failure = _artifact_json(loaded, "sephora_adaptation_failure.json")
+    assert failure["record_kind"] == (
+        "sephora_bazaarvoice_onboarding_adaptation_failure_v4"
+    )
+    assert "Includes.Products" in failure["failure"]["error"]
+
+
+def test_adaptation_failure_commits_every_raw_response_as_fallback(
+    tmp_path: Path,
+) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     parent_id = _parent_packet(root, tmp_path)
 
@@ -355,7 +443,11 @@ def test_adaptation_failure_commits_every_raw_response_as_fallback(tmp_path: Pat
         data_root=root,
         parent_packet_id=parent_id,
         review_page_limit=2,
-        fetcher=_fake_fetcher(corrupt_age="reviews_non_incentivized_age_40s.json"),
+        fetcher=_fake_fetcher(
+            corrupt_artifact=(
+                "reviews_non_incentivized_most_helpful_offset_000.json"
+            )
+        ),
     )
 
     assert exit_code == 5
@@ -364,12 +456,13 @@ def test_adaptation_failure_commits_every_raw_response_as_fallback(tmp_path: Pat
         Path(item["original_path"]).name
         for item in loaded.manifest["preserved_files"]
     ]
-    assert len([name for name in names if name.endswith(".json")]) == 11
+    # 2 base + 2 recent responses + manifest + failure artifact.
+    assert len([name for name in names if name.endswith(".json")]) == 6
     assert "sephora_adaptation_failure.json" in names
     failure = _artifact_json(loaded, "sephora_adaptation_failure.json")
     assert failure["raw_failure_fallback"] == {
-        "expected_response_count": 9,
-        "preserved_response_count": 9,
+        "expected_response_count": 4,
+        "preserved_response_count": 4,
         "status": "all_responses_preserved",
     }
     assert any(
@@ -397,12 +490,6 @@ def test_recent_window_stops_on_cumulative_source_exhaustion(tmp_path: Path) -> 
             _review_row("r3", "2026-07-05T00:00:00Z", "Recent three"),
         ],
     }
-    age_totals = {
-        "reviews_non_incentivized_age_20s.json": 1,
-        "reviews_non_incentivized_age_30s.json": 1,
-        "reviews_non_incentivized_age_40s.json": 1,
-        "reviews_non_incentivized_age_50s_plus.json": 0,
-    }
 
     def fetch(
         spec: ApiRequestSpec,
@@ -417,25 +504,24 @@ def test_recent_window_stops_on_cumulative_source_exhaustion(tmp_path: Path) -> 
                 "HasErrors": False,
                 "TotalResults": 3,
                 "Results": [_review_row("h1", "2026-07-18T00:00:00Z", "Helpful one")],
+                "Includes": {
+                    "Products": {
+                        "P420652": _statistics_product(
+                            total=3,
+                            age_values=[{"Value": "30s", "Count": 2}],
+                        )
+                    }
+                },
             }
-        elif spec.artifact_name.startswith("reviews_non_incentivized_most_recent_offset_"):
+        else:
+            assert spec.artifact_name.startswith(
+                "reviews_non_incentivized_most_recent_offset_"
+            )
             offset = int(dict(spec.parameters)["Offset"])
             document = {
                 "HasErrors": False,
                 "TotalResults": 3,
                 "Results": recent_pages[offset],
-            }
-        elif spec.artifact_name == "reviews_non_incentivized_total.json":
-            document = {
-                "HasErrors": False,
-                "TotalResults": 3,
-                "Results": [{"Id": "r1", "ProductId": "P420652"}],
-            }
-        else:
-            document = {
-                "HasErrors": False,
-                "TotalResults": age_totals[spec.artifact_name],
-                "Results": [{"Id": "r1", "ProductId": "P420652"}],
             }
         body = json.dumps(document, separators=(",", ":")).encode("utf-8")
         return ApiResponse(

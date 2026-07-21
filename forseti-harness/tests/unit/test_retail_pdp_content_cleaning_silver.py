@@ -266,11 +266,45 @@ def test_ulta_content_flows_directly_through_cleaning_to_retail_silver(
 ) -> None:
     content = {
         "record_kind": "retail_pdp_ulta_aggregate_content",
-        "schema_version": "retail_pdp_ulta_aggregate_content_v1",
+        "schema_version": "retail_pdp_ulta_aggregate_content_v2",
         "parser_version": ULTA_PDP_PARSER_VERSION,
         "capture_profile": "ulta_pdp_aggregate",
         "source_url": _ULTA_URL,
+        "variant_module_state": "not_exposed",
         "rows": [
+            {
+                "slice_id": "slice_01",
+                "row_id": "ulta_product_module_subtree",
+                "row_kind": "retail_product_module_subtree",
+                "retailer": "ulta",
+                "source_visible_fields": {
+                    "module_subtree": [
+                        {
+                            "skuId": "2645443",
+                            "productId": "pimprod2046225",
+                            "listPrice": "$12.00",
+                        }
+                    ],
+                    "module_inventory": [
+                        {
+                            "source_order": 0,
+                            "module_name": None,
+                            "retained": True,
+                            "byte_size": 64,
+                            "contains_target_binding": True,
+                            "exclusion_reason": None,
+                        }
+                    ],
+                    "retained_module_names": [],
+                    "page_data_capture": None,
+                    "seo": None,
+                    "redactions": {"count": 0, "paths": [], "marker": "[REDACTED_PAGE_DECLARED_PUBLIC_DISPLAY_KEY]"},
+                    "retention_rule": "target-bound Apollo product modules retained verbatim",
+                },
+                "residuals": [],
+                "source_anchor_kind": "script_index",
+                "source_anchor_value": "apollo_state Page.content.modules",
+            },
             {
                 "slice_id": "slice_01",
                 "row_id": "product",
