@@ -30,10 +30,12 @@ grid assertion, read-only re-evaluation still rejects that packet because its
 preserved DOM retains the country-dialog diagnostic marker; it is not
 retroactively forced through.
 
-The later warmed Clinique page states confirm the US country route from the
-country-dialog-absent plus rendered `country=US` conjunction. Neither exposes
-an explicit currency code, so currency remains unpinned. Dollar glyphs are never
-promoted to `USD`.
+The later warmed Clinique page states satisfy the US country route — country
+dialog absent plus rendered `country=US` — under read-only re-evaluation of
+their preserved bytes. Both were captured before the country-only grid rule
+existed, so their own manifests remain immutable failed-pin records; no
+runtime-confirmed grid packet exists yet. Neither exposes an explicit currency
+code, so currency remains unpinned. Dollar glyphs are never promoted to `USD`.
 
 ## Run Boundary
 
@@ -199,9 +201,18 @@ lifecycles; displayed `1-N` plus a vanished button cannot upgrade one
 page-local `linkStore` array to complete. Read-only replay through the current
 page-kind assertion returns `confirmed=True` for both packets: the
 country-routing dialog is absent and `Sephora.renderQueryParams.country=US`.
-They are therefore admitted as US country-route evidence. Neither grid state
-exposes an explicit currency code, so currency remains unpinned and no USD claim
-is made.
+
+Both manifests are immutable and still record the historical runtime result,
+because the implementation in force at capture time required an explicit grid
+currency code. Each carries `sephora_market_pin_failed: US/USD rendered-market
+conjunction was not confirmed; packet preserved but MUST NOT be admitted as
+Sephora US/USD storefront evidence`, and a `declared_storefront_market`
+limitation ending `treat storefront country and currency as un-pinned (honest
+gap)`. The US country-route reading is therefore this offline re-evaluation of
+the preserved rendered bytes, not the packets' own recorded runtime result; a
+runtime-confirmed grid packet requires a fresh run under the current assertion.
+Neither grid state exposes an explicit currency code, so currency remains
+unpinned and no USD claim is made.
 
 The append-only diagnostic sequence remains preserved. The initial no-pagination
 capture (`_01`) held 60/79; `_02` exposed a non-waiting selector race; `_03`
@@ -211,8 +222,10 @@ humanized click; and `_06` isolated the 19-row serialized second page.
 
 ## Non-Claims
 
-The warmed Clinique packets are admitted only as US country-route evidence. This
-receipt is not USD admission for either grid, current assortment authority,
+The warmed Clinique packets read as US country-route evidence only through
+current offline re-evaluation of their preserved bytes; their own manifests
+remain immutable failed-pin records and are not restated as runtime
+confirmations. This receipt is not USD admission for either grid, current assortment authority,
 delivery-location proof, exact inventory, realized transaction price, sales,
 demand, velocity, Cleaning, Silver, Judgment, buyer proof, monitoring readiness,
 or commercial readiness. It does not infer `USD` from a dollar glyph. The older

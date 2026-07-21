@@ -1681,8 +1681,9 @@ def _build_parser() -> argparse.ArgumentParser:
             "Fail-closed assertion for a Sephora rendered storefront. PDP capture "
             "requires country_switch=us, Sephora.renderQueryParams country=US, and a "
             "Sephora-sold JSON-LD Offer with priceCurrency=USD. Brand-grid capture "
-            "admits the independently confirmed US country route while retaining "
-            "currency separately and never inferring USD from a dollar glyph. The "
+            "admits the US country route only when the country-routing dialog is "
+            "absent and every serialized country binds US, while retaining currency "
+            "separately and never inferring USD from a dollar glyph. The "
             "country-dialog continuation performs no login and does not claim a "
             "delivery location."
         ),
