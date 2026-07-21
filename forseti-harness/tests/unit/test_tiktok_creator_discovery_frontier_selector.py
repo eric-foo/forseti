@@ -132,12 +132,14 @@ def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() 
     rows = {row["handle"]: row for row in wrapper["decisions"]}
 
     assert wrapper["counts"]["promote_now"] == 5
-    assert wrapper["counts"]["actionable_promote_now"] == 2
+    assert wrapper["counts"]["actionable_promote_now"] == 1
     assert wrapper["counts"]["owner_deferred_promote_now"] == 1
-    assert wrapper["actionable_promote_now_handles"] == ["fresh", "known"]
+    assert wrapper["actionable_promote_now_handles"] == ["known"]
     assert rows["done"]["onboarding_queue_status"] == "already_onboarded"
     assert rows["scanned"]["onboarding_queue_status"] == "already_scanned_frontier"
     assert rows["known"]["actionable_promote_now"] is True
+    assert rows["fresh"]["onboarding_queue_status"] == "new_candidate"
+    assert rows["fresh"]["actionable_promote_now"] is False
     assert rows["eddeparfum"]["onboarding_queue_status"] == "owner_deferred"
     assert rows["eddeparfum"]["owner_onboarding_disposition_or_none"] == {
         "action": "defer",
@@ -145,6 +147,57 @@ def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() 
         "recorded_on": "2026-07-22",
     }
     assert rows["eddeparfum"]["actionable_promote_now"] is False
+
+
+def test_onboarding_dedupe_routes_current_frontier_and_registry_states() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grids = [
+        {
+            "creator_handle": handle,
+            "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+            "items": [
+                {
+                    "createTime": int(captured.timestamp() - age * 86400),
+                    "pinned_visible": False,
+                    "stats": {"playCount": 30000},
+                }
+                for age in (16, 20, 25)
+            ],
+        }
+        for handle in ("eligible_absent", "deferred_registered", "rejected_absent")
+    ]
+    dispositions = {
+        "creator_frontier_disposition_current": {
+            "schema_version": "creator_frontier_disposition_current_v1",
+            "dispositions": [
+                {"public_handle": "eligible_absent", "status": "eligible"},
+                {"public_handle": "deferred_registered", "status": "deferred"},
+                {"public_handle": "rejected_absent", "status": "rejected"},
+            ],
+        }
+    }
+
+    document = apply_tiktok_creator_onboarding_dedupe(
+        build_tiktok_creator_promotion_decisions(grids),
+        registry_states={"deferred_registered": "not_onboarded"},
+        frontier_dispositions=dispositions,
+    )
+    rows = {
+        row["handle"]: row
+        for row in document["tiktok_creator_promotion_decisions"]["decisions"]
+    }
+
+    assert rows["eligible_absent"]["onboarding_queue_status"] == "frontier_eligible_not_registered"
+    assert rows["deferred_registered"]["onboarding_queue_status"] == "owner_deferred"
+    assert rows["rejected_absent"]["onboarding_queue_status"] == "owner_rejected"
+    assert not any(row["actionable_promote_now"] for row in rows.values())
+
+    counts = document["tiktok_creator_promotion_decisions"]["counts"]
+    assert counts["promote_now"] == 3
+    assert counts["actionable_promote_now"] == 0
+    assert counts["owner_deferred_promote_now"] == 1
+    assert counts["owner_rejected_promote_now"] == 1
+    assert counts["frontier_eligible_not_registered_promote_now"] == 1
 
 
 def test_target_ranker_prioritizes_once_only_expanded_fragrance_over_repeated_hub() -> None:

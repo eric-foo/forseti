@@ -18,7 +18,7 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
     dump_creator_registry_match_preflight_receipt,
 )
 from capture_spine.creator_profile_current.creator_onboarding_selection import (
-    select_creator_onboarding_candidate,
+    eligible_creator_onboarding_candidates,
 )
 from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
@@ -29,10 +29,10 @@ from data_lake.root import DataLakeRoot
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
     apply_tiktok_creator_onboarding_dedupe,
     build_tiktok_creator_promotion_decisions,
-    promotion_decision_for_handle,
     rank_tiktok_creator_discovery_targets,
 )
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_creator_frontier_dispositions,
     load_tiktok_creator_discovery_frontier_registers,
 )
 from capture_spine.tiktok_creator_discovery_frontier import (
@@ -120,8 +120,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--creator-handle",
         help=(
             "TikTok handle. When omitted for new_onboarding, auto-select the sole "
-            "not_onboarded TikTok platform account in the Creator Registry. An "
-            "explicit handle may also name a genuinely absent account."
+            "actionable not_onboarded TikTok platform account in the Creator "
+            "Registry. An explicit handle must also already be a Registry "
+            "not_onboarded account; a genuinely absent account is rejected "
+            "before any browser probe and must be candidate-admitted first."
         ),
     )
     parser.add_argument(
@@ -129,15 +131,16 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("new_onboarding", "new_capture", "update_existing"),
         default="new_onboarding",
         help=(
-            "New onboarding requires either an exact Creator Registry match with "
-            "onboarding_state=not_onboarded or a genuinely absent account; new capture blocks exact matches; "
+            "New onboarding requires an exact Creator Registry match with "
+            "onboarding_state=not_onboarded and no current deferred/rejected "
+            "Frontier disposition; new capture blocks exact matches; "
             "update existing requires an exact match."
         ),
     )
     parser.add_argument(
         "--creator-registry", type=Path, default=DEFAULT_CREATOR_REGISTRY
     )
-    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; required for genuinely absent new onboarding")
+    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; writes promotion decisions, which never authorize onboarding an absent account")
     parser.add_argument("--promotion-only", action="store_true", help="write promotion decisions and exit before Registry/browser work")
     parser.add_argument(
         "--session-profile",
@@ -214,6 +217,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     prior_coverage: dict[str, object] | None = None
     promotion_decisions = None
     frontier_registers: list[dict[str, object]] = []
+    frontier_dispositions: dict[str, object] | None = None
     frontier_queue: dict[str, object] | None = None
     try:
         if args.promotion_only and args.promotion_grid_dir is None:
@@ -222,6 +226,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
             registry_document = load_current_registry_preflight_view(data_root)
             frontier_registers = load_tiktok_creator_discovery_frontier_registers(data_root)
+            frontier_dispositions = load_creator_frontier_dispositions(data_root)
             registry_source_pointer = (
                 "indexes/derived_retrieval/creator_registry/CURRENT"
             )
@@ -238,6 +243,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.output_dir,
                 registry_document=registry_document,
                 frontier_registers=frontier_registers,
+                frontier_dispositions=frontier_dispositions,
             )
             _emit_progress("promotion_decisions_complete", {"path": str(promotion_path), "counts": promotion_decisions["tiktok_creator_promotion_decisions"]["counts"]})
         if args.promotion_only:
@@ -246,8 +252,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
             registry_document=registry_document,
-            promotion_decisions=promotion_decisions,
-            frontier_registers=frontier_registers,
+            frontier_dispositions=frontier_dispositions,
         )
         if selected_candidate is not None:
             _emit_progress("creator_selected_from_registry", selected_candidate)
@@ -268,18 +273,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         if args.creator_intent == "new_onboarding":
             decision = preflight_result.get("decision")
-            if decision not in {"existing_match", "new_candidate"}:
+            if decision != "existing_match":
                 raise TikTokCreatorOnboardingError(
-                    "new_onboarding requires either one exact not-onboarded match "
-                    f"or a genuinely absent account; found decision={decision!r}"
+                    "new_onboarding requires one exact Registry not_onboarded account; "
+                    f"genuinely absent accounts must be candidate-admitted first; found decision={decision!r}"
                 )
             onboarding_state = preflight_result.get("registry_onboarding_state")
-            if decision == "new_candidate":
-                _require_promoted(promotion_decisions, args.creator_handle)
-            if decision == "existing_match" and onboarding_state != "not_onboarded":
+            if onboarding_state != "not_onboarded":
                 raise TikTokCreatorOnboardingError(
                     "new_onboarding requires onboarding_state=not_onboarded; "
                     f"found onboarding_state={onboarding_state!r}"
+                )
+            disposition = _frontier_disposition_for_handle(
+                frontier_dispositions, args.creator_handle
+            )
+            if disposition is not None and disposition.get("status") in {"deferred", "rejected"}:
+                raise TikTokCreatorOnboardingError(
+                    "current Frontier disposition blocks onboarding: "
+                    f"status={disposition.get('status')!r}"
                 )
         if preflight_result["action_status"] != "allowed":
             raise TikTokCreatorOnboardingError(
@@ -469,6 +480,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 frontier_queue = _build_frontier_queue(
                     data_root=data_root,
                     registry_document=registry_document,
+                    frontier_dispositions=frontier_dispositions,
                 )
             except Exception as exc:
                 _emit_blocker("SUGGESTED_FRONTIER_WRITE_FAILED", "admission")
@@ -558,8 +570,7 @@ def _resolve_creator_handle(
     creator_intent: str,
     registry_document: dict[str, object] | None = None,
     registry_path: Path | None = None,
-    promotion_decisions: dict[str, object] | None = None,
-    frontier_registers: Sequence[dict[str, object]] = (),
+    frontier_dispositions: dict[str, object] | None = None,
 ) -> tuple[str, dict[str, str] | None]:
     if creator_handle is not None and creator_handle.strip():
         return creator_handle, None
@@ -571,16 +582,23 @@ def _resolve_creator_handle(
         if registry_path is None:
             raise ValueError("registry_document or registry_path is required")
         registry_document = load_creator_profile_current_view(registry_path)
-    if promotion_decisions is not None:
-        return _select_promoted_creator(
-            promotion_decisions,
-            registry_document,
-            frontier_registers=frontier_registers,
+    candidates = eligible_creator_onboarding_candidates(registry_document, platform="tiktok")
+    candidates = [
+        candidate
+        for candidate in candidates
+        if (
+            (_frontier_disposition_for_handle(frontier_dispositions, candidate["public_handle"]) or {}).get("status")
+            not in {"deferred", "rejected"}
         )
-    candidate = select_creator_onboarding_candidate(
-        registry_document,
-        platform="tiktok",
-    )
+    ]
+    if not candidates:
+        raise ValueError("Creator Registry has no actionable not_onboarded tiktok account")
+    if len(candidates) != 1:
+        raise ValueError(
+            "Creator Registry has multiple actionable not_onboarded tiktok accounts; "
+            f"provide --creator-handle from {[row['platform_account_id'] for row in candidates]}"
+        )
+    candidate = {**candidates[0], "selection_policy": "sole_actionable_registry_not_onboarded_account"}
     return candidate["public_handle"], candidate
 
 
@@ -591,6 +609,7 @@ def _write_promotion_decisions(
     *,
     registry_document: dict[str, object],
     frontier_registers: Sequence[dict[str, object]] = (),
+    frontier_dispositions: dict[str, object] | None = None,
 ) -> tuple[Path, dict[str, object]]:
     paths = sorted(grid_dir.glob("*.grid.json"), key=lambda path: path.name.lower())
     if not paths:
@@ -607,6 +626,7 @@ def _write_promotion_decisions(
         build_tiktok_creator_promotion_decisions(grids, sources=sources),
         registry_states=_registry_tiktok_states(registry_document),
         frontier_registers=frontier_registers,
+        frontier_dispositions=frontier_dispositions,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / PROMOTION_DECISIONS_JSON_NAME
@@ -633,36 +653,6 @@ def _registry_tiktok_states(registry: dict[str, object]) -> dict[str, str]:
                     raise ValueError(f"duplicate TikTok registry handle: {handle}")
                 states[handle] = state
     return states
-
-
-def _select_promoted_creator(
-    document: dict[str, object],
-    registry: dict[str, object],
-    *,
-    frontier_registers: Sequence[dict[str, object]] = (),
-) -> tuple[str, dict[str, str]]:
-    gated = apply_tiktok_creator_onboarding_dedupe(
-        document,
-        registry_states=_registry_tiktok_states(registry),
-        frontier_registers=frontier_registers,
-    )
-    wrapper = gated["tiktok_creator_promotion_decisions"]
-    rows = sorted((row for row in wrapper.get("decisions", []) if isinstance(row, dict) and row.get("registry_action") == "promote_now"), key=lambda row: int(row["priority_rank"]))
-    for row in rows:
-        handle = str(row["handle"]).strip().lstrip("@").lower()
-        if row.get("actionable_promote_now") is True:
-            return handle, {"public_handle": handle, "selection_source": "promotion_frontier"}
-    raise ValueError("no promote_now creator remains after Registry and Frontier dedupe")
-
-
-def _require_promoted(document: dict[str, object] | None, handle: str) -> None:
-    row = promotion_decision_for_handle(document, handle) if document is not None else None
-    if row is not None and row.get("onboarding_queue_status") == "owner_deferred":
-        raise TikTokCreatorOnboardingError(
-            "owner-deferred creator is not actionable for onboarding"
-        )
-    if row is None or row.get("registry_action") != "promote_now":
-        raise TikTokCreatorOnboardingError("genuinely absent new_onboarding creator requires a promote_now Discovery Frontier decision")
 
 
 def _emit_progress(event: str, fields: dict[str, object]) -> None:
@@ -970,17 +960,68 @@ def _build_frontier_queue(
     *,
     data_root: object,
     registry_document: dict[str, object],
+    frontier_dispositions: dict[str, object] | None = None,
 ) -> dict[str, object]:
     registers = load_tiktok_creator_discovery_frontier_registers(data_root)
     ranked = rank_tiktok_creator_discovery_targets(
         registers,
-        already_scanned_handles=tuple(_registry_tiktok_states(registry_document)),
+        already_scanned_handles=(
+            *tuple(_registry_tiktok_states(registry_document)),
+            *tuple(_frontier_disposition_handles(frontier_dispositions)),
+        ),
     )
     return {
         "register_count": len(registers),
         "actionable_candidate_count": len(ranked),
         "actionable_handles": [str(row["handle"]) for row in ranked],
     }
+
+
+def _frontier_disposition_handles(document: dict[str, object] | None) -> list[str]:
+    if document is None:
+        return []
+    wrapper = document.get("creator_frontier_disposition_current")
+    if not isinstance(wrapper, dict) or wrapper.get("schema_version") != "creator_frontier_disposition_current_v1":
+        raise ValueError("unsupported Creator Frontier disposition current view")
+    rows = wrapper.get("dispositions")
+    if not isinstance(rows, list):
+        raise ValueError("Creator Frontier disposition current view requires dispositions")
+    handles: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("Creator Frontier disposition rows must be objects")
+        handle = str(row.get("public_handle") or "").strip().lstrip("@").lower()
+        if (
+            not handle
+            or handle in handles
+            or row.get("status") not in {"eligible", "deferred", "rejected"}
+        ):
+            raise ValueError("Creator Frontier disposition handles must be unique normalized text")
+        handles.append(handle)
+    return handles
+
+
+def _frontier_disposition_for_handle(
+    document: dict[str, object] | None, handle: str
+) -> dict[str, object] | None:
+    normalized = handle.strip().lstrip("@").lower()
+    _frontier_disposition_handles(document)
+    wrapper = None if document is None else document.get("creator_frontier_disposition_current")
+    if document is not None and (
+        not isinstance(wrapper, dict)
+        or wrapper.get("schema_version") != "creator_frontier_disposition_current_v1"
+        or not isinstance(wrapper.get("dispositions"), list)
+    ):
+        raise ValueError("unsupported Creator Frontier disposition current view")
+    matches = [
+        row
+        for row in ([] if wrapper is None else wrapper["dispositions"])
+        if isinstance(row, dict)
+        and str(row.get("public_handle") or "").strip().lstrip("@").lower() == normalized
+    ]
+    if len(matches) > 1:
+        raise ValueError("multiple current Frontier dispositions match one TikTok handle")
+    return matches[0] if matches else None
 
 
 if __name__ == "__main__":
