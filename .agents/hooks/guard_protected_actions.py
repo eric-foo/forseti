@@ -269,14 +269,42 @@ def _check_ok(c):
     return False
 
 
+def _lane_branches(git_result=None):
+    """Branches checked out in any worktree of THIS repository, or None.
+
+    The own-lane check cannot rely on the hook process's own cwd alone. A hook
+    pinned to a fixed project directory (Claude Code's `$CLAUDE_PROJECT_DIR`)
+    reports the session root's branch, not the lane the guarded command targets,
+    so a legitimate author self-merge from a sibling lane worktree was refused
+    while the identical action under a cwd-resolved harness (the Codex adapter)
+    passed. A branch checked out in one of this repository's own worktrees is
+    this operator's lane; a stranger's branch is not. Returns None on probe
+    failure so the caller keeps failing closed.
+    """
+    if git_result is None:
+        git_result = _git_result
+    rc, out = git_result(["worktree", "list", "--porcelain"])
+    if rc != 0:
+        return None
+    prefix = "branch refs/heads/"
+    branches = {
+        line[len(prefix):].strip()
+        for line in (out or "").splitlines()
+        if line.startswith(prefix) and line[len(prefix):].strip()
+    }
+    return branches or None
+
+
 def _with_current_branch(state, git_result=None):
-    """Attach the fail-closed current-branch identity used by merge decisions."""
+    """Attach the fail-closed lane identity used by merge decisions."""
     if git_result is None:
         git_result = _git_result
     rc, current_branch = git_result(
         ["symbolic-ref", "--quiet", "--short", "HEAD"]
     )
     state["_currentBranch"] = current_branch if rc == 0 else None
+    if "_laneBranches" not in state:
+        state["_laneBranches"] = _lane_branches(git_result)
     return state
 
 
@@ -324,9 +352,13 @@ def _merge_decision(pr_ref, lookup):
                 % (pr_ref, state.get("baseRefName") or "?"))
     head_branch = state.get("headRefName")
     current_branch = state.get("_currentBranch")
-    if not head_branch or not current_branch or head_branch != current_branch:
-        return ("EP-03 merge blocked - PR %s head branch '%s' does not match "
-                "the current lane branch '%s' (own-lane check)"
+    lane_branches = state.get("_laneBranches")
+    owned = head_branch == current_branch or (
+        lane_branches is not None and head_branch in lane_branches
+    )
+    if not head_branch or not owned:
+        return ("EP-03 merge blocked - PR %s head branch '%s' is not a lane of "
+                "this repository (current '%s'; own-lane check)"
                 % (pr_ref, head_branch or "?", current_branch or "?"))
     mergeable = state.get("mergeable")
     if mergeable != "MERGEABLE":
@@ -496,7 +528,8 @@ def _selftest():
                 "headRefName": None},                                 # missing PR head identity
         "112": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL}],
-                "_currentBranch": None},                              # detached/unresolved checkout
+                "_currentBranch": None,
+                "_laneBranches": None},                               # unresolvable lane identity
         "113": {"mergeStateStatus": "BEHIND", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL}]},              # stale but conflict-free
         "114": {"mergeable": "CONFLICTING", "mergeStateStatus": "CLEAN",
@@ -506,6 +539,14 @@ def _selftest():
                 "labels": [{"name": AUTOMERGE_LABEL}]},              # malformed rollup must block
         "116": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": 7},                                        # malformed labels must block
+        "117": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": "codex/sibling-lane",
+                "_laneBranches": {"codex/example-lane", "codex/sibling-lane"}},
+        # own lane checked out in a SIBLING worktree -> ALLOW
+        "118": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": "codex/not-a-worktree-lane"},          # no worktree -> BLOCK
     }
     for _state in _FAKE.values():
         _state.setdefault("mergeable", "MERGEABLE")
@@ -513,6 +554,7 @@ def _selftest():
         _state.setdefault("baseRefName", "main")
         _state.setdefault("isCrossRepository", False)
         _state.setdefault("_currentBranch", "codex/example-lane")
+        _state.setdefault("_laneBranches", {"codex/example-lane"})
     _fake = lambda pr: _FAKE.get(str(pr))            # unknown PR -> None -> fail closed
     _published = lambda: "origin/codex/example-lane"
     _unpublished = lambda: None
@@ -541,6 +583,8 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 114"}, True, _fake),                            # conflict blocks even if CLEAN
         ("Bash", {"command": "gh pr merge 115"}, True, _fake),                            # malformed rollup fails closed
         ("Bash", {"command": "gh pr merge 116"}, True, _fake),                            # malformed labels fail closed
+        ("Bash", {"command": "gh pr merge 117"}, False, _fake),                           # sibling-worktree lane -> ALLOW
+        ("Bash", {"command": "gh pr merge 118"}, True, _fake),                            # branch in no worktree -> BLOCK
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
