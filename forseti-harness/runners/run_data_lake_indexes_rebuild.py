@@ -253,7 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         except (DataLakeRootError,ValueError,sqlite3.DatabaseError) as exc:
             print(json.dumps({"status":"error","error":str(exc)},indent=2,sort_keys=True))
             return 2
-        print(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=False))
+        print(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=True))
         return 0
     verification_modes = sum(
         bool(value)
