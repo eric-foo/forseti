@@ -67,6 +67,21 @@ Compactness never authorizes dropping valuable rows.
 - `nordstrom_pdp_aggregate`
 - `ulta_pdp_aggregate`
 
+Content schema versions are retailer-local revisions, not a shared maturity
+scale. The current acquisition census is:
+
+| Profile | Content schema | Parser | Current mark |
+| --- | --- | --- | --- |
+| `sephora_pdp_aggregate` | `retail_pdp_sephora_aggregate_content_v3` | `retail_pdp_sephora_aggregate_parser_v3` | Current canonical content. |
+| `luckyscent_pdp_aggregate` | `retail_pdp_luckyscent_aggregate_content_v1` | `retail_pdp_luckyscent_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
+| `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
+| `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v1` | `retail_pdp_ulta_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
+
+`RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2` versions the shared profile-registry
+metadata only; it is not a retailer content version. Renaming a current `v1`
+record to `v2` without a real schema or retention change would be a misleading
+label and is not allowed.
+
 For Sephora, `sephora_pdp_aggregate` is the sole normal deep-page capture route
 for new packets. It defaults to `content` retention and writes
 `retail_pdp_sephora_aggregate_content_v3` with
@@ -78,6 +93,22 @@ a separate companion governed by `retailer_information_extraction_standard_v0.md
 
 Every other Retail/PDP or grid profile remains raw until separately proven.
 Direct-HTTP grids remain raw.
+
+| Retailer / route | Current deep-PDP mark |
+| --- | --- |
+| Amazon `amazon_pdp_aggregate` | `raw_unflipped`; no content schema exists. |
+| Target `target_pdp_aggregate` | `raw_unflipped`; the separate Bazaarvoice companion does not turn the PDP into canonical content. |
+| Walmart `walmart_pdp_aggregate` | `raw_unflipped`; the Direct HTTP runner does not yet support content retention. |
+| Credo Direct HTTP PDP | `raw_unflipped`; no admitted content profile exists. |
+| Kohl's unattended real-Chrome PDP | `raw_unflipped`; no content profile exists and the real-Chrome runner does not yet support content retention. |
+| Beauty Pie product route | `unknown_unproven`; no product-level route is admitted. |
+
+The migration goal is to move each proven raw aggregate PDP route to its own
+lossless canonical-content contract, not to label every retailer `v2`. A
+content-version increment requires a real retailer-local schema or retention
+change plus raw-to-content equivalence, explicit loss, fail-loud raw fallback,
+and Cleaning/Silver lineage. Grid and distribution profiles are separate
+support surfaces, not automatic deep-PDP conversion targets.
 
 Ulta content retains the requested product/SKU, target offer, aggregate rating
 and count, every target Product JSON-LD review body present in the rendered
