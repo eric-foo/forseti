@@ -183,8 +183,9 @@ phase_acquisition_seal:
       result: >
         The adversarial review is complete and the owner accepted a modified,
         portfolio-first supplement. Its owned architecture, pinned Sephora grid,
-        reconciled franchise map, and evidence-selected missing franchise depth
-        have not yet been captured and resealed.
+        reconciled franchise map, required Amazon secondary attempt, and
+        evidence-selected missing franchise depth have not yet been captured
+        and resealed.
       blocking: true
   consolidated_recovery_receipt:
     completed_at: "2026-07-21"
@@ -206,28 +207,35 @@ phase_acquisition_seal:
       - "capture the owned portfolio architecture: homepage, Shop All, Best Sellers, collection or franchise surfaces, and exact owned PDPs needed for identity reconciliation"
       - capture a pin-confirmed Sephora US brand and assortment grid as the primary-retailer breadth view
       - reconcile franchise, parent-product, visible variant or SKU, and retailer-listing identity before choosing product depth
+      - "attempt the official Summer Fridays Amazon US storefront as the secondary retailer: capture its authorized assortment and product-information surface, then preserve a typed failure or exact absence if the route or listing cannot be qualified"
       - "select up to three representative franchises from the evidence: dominant; founding or strategically central; and, only if materially distinct, one contrast or plausible weak link"
-      - reuse the captured Lip Butter Balm parent and review corpus, then capture only missing PDP and review evidence required for the selected franchises
+      - reuse the captured Lip Butter Balm evidence, then capture only missing Sephora and exact-official-listing Amazon PDP or review evidence required for the selected franchises
     selection_boundary:
       lip_butter_balm: already_captured_reference_not_a_selection_premise
-      jet_lag: leading_second_franchise_hypothesis_not_preselected; capture depth only if owned and Sephora breadth confirm centrality
+      jet_lag: leading_second_franchise_hypothesis_not_preselected; capture depth only if portfolio breadth confirms centrality
       third_franchise: optional_only_if_materially_distinct
       fewer_than_three: valid
+    secondary_retailer:
+      venue: Amazon US
+      status: required_attempt
+      required_job: second assortment, product-information, and customer-review world plus authenticity and authorized-marketplace presentation
+      success_gate: attempt_is_required; qualified content yield is not required when a typed route failure or exact-listing absence is preserved
+      review_boundary: capture only exact official listings for the selected franchises and preserve listing, time, syndication, filter, incentive, and corpus boundaries
+      cross_retailer_boundary: triangulate themes and claim attacks; do not treat raw review counts, ratings, dates, or rankings as comparable sales or demand measures
     conditional:
       - screen the owned sustainability or values surface; capture it only if a distinct current claim survives, otherwise record an explicit negative
       - embed exact unfiltered review-total probes in any companion run
-      - attempt the official Summer Fridays Amazon US storefront only if its authenticity, authorized-marketplace, storefront-assortment, or marketplace-presentation job survives owned and Sephora reconciliation; success is not a completion gate unless evidence promotes that job into a material seam
     tertiary_retailer:
       venue: REVOLVE
       status: not_commissioned
-      activation_condition: only a material retail contradiction or gap unresolved by owned, Sephora, and the conditional Amazon job
+      activation_condition: only a material retail contradiction or gap unresolved after the required Amazon secondary attempt
     rejected_for_this_commission:
       - Google Trends or other search-interest series
       - creator, founder, or social-video surfaces
       - comparator or competitor evidence
       - additional Reddit breadth for already-bounded products
-      - wider retailer-presentation expansion absent the named Amazon secondary job or a later tertiary activation condition
-    packet_count_posture: no fixed quota; capture only missing evidence required by the reconciled representative-franchise set and typed conditional jobs
+      - wider retailer-presentation expansion absent a later tertiary activation condition
+    packet_count_posture: no fixed quota; capture only missing evidence required by the reconciled representative-franchise set, the required Amazon attempt, and typed conditional jobs
     authority_boundary: owner_authorized_bounded_acquisition_only; no reseal or Deliver authorization
   seal_state: BLOCKED_ACQUISITION_INCOMPLETE
   acquisition_gate: blocked

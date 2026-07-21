@@ -214,16 +214,16 @@ coverage_ledger:
     gap_id: null
   - coverage_id: COV-012
     source_family: retail_pdp
-    source_surface: conditional_secondary_official_marketplace_storefront
+    source_surface: required_secondary_authorized_marketplace_storefront_and_reviews
     venue: Amazon US
-    relevance_rationale: Conditional secondary-retailer check for the distinct authenticity, authorized-marketplace, storefront-assortment, or marketplace-presentation job that Sephora cannot observe; route success is not a completion gate unless acquired evidence promotes the job into a material seam.
-    route_or_query: official Summer Fridays Amazon storefront through the canonical Amazon US route, attempted only after owned and Sephora portfolio reconciliation confirms the distinct job still survives
-    requirement: conditional
+    relevance_rationale: Required secondary-retailer attempt for a second assortment, product-information, and customer-review world plus the authenticity and authorized-marketplace job that Sephora cannot observe; the attempt is load-bearing but successful content yield is not a completion gate.
+    route_or_query: official Summer Fridays Amazon storefront through the canonical Amazon US route, followed by exact official listings and review surfaces for the evidence-selected franchises where identity and route availability can be confirmed
+    requirement: required
     status: not_checked
     yield: unknown
     recency: unknown
-    access: route_commissioned_if_triggered
-    relevance: conditional
+    access: route_commissioned
+    relevance: load_bearing_attempt_only
     gap_id: null
 ```
 
@@ -267,10 +267,11 @@ No external conclusion is earned at commission seal (OBS-001). COV-001 first
 maps the owned portfolio; COV-002 then captures the Sephora US primary-retailer
 grid before product depth. The two surfaces must be reconciled into franchise,
 parent-product, visible variant or SKU, and retailer-listing identity before up
-to three representative franchises are selected. COV-012 is a conditional
-Amazon US secondary for its named marketplace job. COV-005 remains a historical
-conditional Ulta row, and no tertiary retailer is commissioned absent a later
-material contradiction or gap.
+to three representative franchises are selected. COV-012 is the required-attempt
+Amazon US secondary for a second assortment, product-information, and review
+world plus its marketplace job; a typed route failure or exact-listing absence
+is admissible. COV-005 remains a historical conditional Ulta row, and no
+tertiary retailer is commissioned absent a later material contradiction or gap.
 
 ### 6. Strategic And Operating Chronology
 
@@ -289,9 +290,14 @@ strategically central, and an optional materially distinct contrast or plausible
 weak link. Fewer is valid; Jet Lag is a leading hypothesis, not a preselected
 hero. Reviewer age, skin, or similar distributions require captured-corpus and
 attribute-reporting denominators plus missingness and cannot establish customer
-population demographics. COV-004 retains bounded Reddit evidence and COV-009 is
-conditional. External response cannot establish representative demand,
-prevalence, or internal company fact.
+population demographics. COV-012 requires an Amazon secondary attempt and exact
+official-listing review capture for the selected franchises where available.
+Cross-retailer comparison may triangulate themes and claim attacks, but raw
+review counts, ratings, dates, or rankings are not sales estimates and are not
+comparable without matched listing, time, syndication, and corpus boundaries.
+COV-004 retains bounded Reddit evidence and COV-009 is conditional. External
+response cannot establish representative demand, prevalence, or internal
+company fact.
 
 ### 8. Competitor Context, Contradictions, And Gaps
 
@@ -335,9 +341,9 @@ completion_ledger:
   required_lens_coverage:
     positioning: {status: gap, observation_ids: [], rationale: current owned and independent routes are commissioned but not yet scanned}
     offerings_and_claims: {status: gap, observation_ids: [], rationale: owned and retailer routes are commissioned but not yet scanned}
-    markets_and_channels: {status: gap, observation_ids: [], rationale: owned architecture and the Sephora US primary-retailer grid are required; Amazon US is a conditional secondary for a distinct marketplace job; Ulta remains a historical conditional row and no tertiary is currently commissioned}
+    markets_and_channels: {status: gap, observation_ids: [], rationale: owned architecture and the Sephora US primary-retailer grid are required; Amazon US is a required secondary attempt for a second retail and review world plus its marketplace job; Ulta remains a historical conditional row and no tertiary is currently commissioned}
     strategic_and_operating_moves: {status: gap, observation_ids: [], rationale: dated current editorial and trade routes are commissioned but not yet scanned}
-    customer_and_community_response: {status: gap, observation_ids: [], rationale: Sephora review and bounded Reddit routes are commissioned but not yet scanned}
+    customer_and_community_response: {status: gap, observation_ids: [], rationale: Sephora review depth and an Amazon exact-official-listing review attempt for the selected franchises are required alongside bounded Reddit; cross-retailer counts remain non-comparable without matched boundaries}
     competitor_and_substitute_context: {status: gap, observation_ids: [], rationale: bounded comparator context awaits a named interpretive job from subject evidence}
     contradictions: {status: gap, observation_ids: [], rationale: no substantive external evidence has yet been acquired}
     evidence_gaps: {status: complete, observation_ids: [OBS-001], rationale: all external routes remain unrun at commission seal}
