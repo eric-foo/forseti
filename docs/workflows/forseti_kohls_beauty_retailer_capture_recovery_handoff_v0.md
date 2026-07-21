@@ -1,26 +1,24 @@
-# Kohl's Beauty Retailer Capture Recovery Handoff v0
+# Kohl's Beauty Retailer Capture Recovery Handoff v0 (Superseded)
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Cold handoff packet for the final unresolved beauty-retailer capture
+artifact_role: Historical cold handoff packet for the resolved Kohl's capture recovery
 scope: >
-  Commissions one bounded Kohl's x Tower 28 capture-recovery lane after the
-  anonymous Direct HTTP, header-complete HTTP, and anonymous CloakBrowser
-  routes all preserved typed Akamai access denial.
+  Preserves the bounded pre-success Kohl's x Tower 28 recovery commission after
+  anonymous Direct HTTP, header-complete HTTP, and anonymous CloakBrowser routes
+  had preserved typed Akamai access denial.
 use_when:
-  - Starting a fresh lane to obtain current, subject-bound Kohl's US/USD page-state evidence.
-  - Deciding whether a proposed Kohl's access route is new evidence or merely repeats an exhausted rung.
+  - Reconstructing the pre-success Kohl's access state and exhausted rungs.
+  - Understanding the historical commission that preceded the admitted unattended route.
 authority_boundary: retrieval_only
 open_next:
-  - docs/research/forseti_beauty_retailer_surface_probe_results_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_storefront_pin_registry_v0.md
-  - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md
-stale_if:
-  - A later Kohl's packet establishes a successful subject-bound route.
-  - The commissioned PDP or policy URL changes.
-  - A registered US browser/proxy profile or entitled retailer feed becomes available through a different named route.
+  - docs/research/forseti_beauty_retailer_surface_probe_results_v0.md
 ```
+
+Status: superseded by the admitted unattended real-Chrome route recorded in the
+storefront-pin registry. Do not execute this historical commission as a current
+recovery lane.
 
 ## Load Contract
 
@@ -195,8 +193,9 @@ success evidence. The current durable verdict is:
 - The anonymous no-proxy ladder is exhausted for the two commissioned routes.
 - A successful public capture may use ordinary ephemeral session state created
   by the retailer UI, but no hidden state or credential is injected.
-- Kohl's stays outside the sampled-raw/full-derived flip queue until a
-  successful subject-bound packet exists.
+- At commission time, Kohl's stayed outside the sampled-raw/full-derived flip
+  queue until a successful subject-bound packet existed. That condition is now
+  satisfied; this statement is historical and authorizes no new recovery lane.
 
 ## Mutable Questions
 
