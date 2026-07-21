@@ -56,6 +56,18 @@ edits, routine prose, mechanical patches, and ordinary review continue to use
 the cheap inline path — the author edits directly, or the standard
 source-read-only review lane applies. This is never a mandatory front door.
 
+An owner instruction to `success implement` is an explicit **conditional**
+commission for this lane, not a universal review gate. At implementation
+closeout, before merge, it activates only when the Chief Architect can name a
+material failure mode specific to the diff that could still pass every bound
+test and required CI because the implementation and validation share the same
+assumption, or because the decisive path has no independent oracle. The
+commission must name that failure class, the validation gap, and the bounded
+editable target. Generic author bias and labels of size, importance, novelty,
+production proximity, or high stakes alone never satisfy this trigger. If that
+concrete case cannot be made, delegation is not commissioned and the ordinary
+validated path continues.
+
 If delegation is explicitly commissioned for a work unit, freeze an
 implementation commit inside the open PR, delegate, adjudicate and incorporate
 accepted patches in that same PR, rerun validation, then merge.
