@@ -57,11 +57,13 @@ def _sephora_dom(
     )
 
 
-def _sephora_grid_dom(*, currency_code: str | None = "USD") -> str:
+def _sephora_grid_dom(
+    *, country: str = "US", currency_code: str | None = "USD"
+) -> str:
     render_query = json.dumps(
         {
             "channel": "rwd",
-            "country": "US",
+            "country": country,
             "language": "en",
             "urlPath": "/brand/summer-fridays",
         },
@@ -165,7 +167,7 @@ def _fake_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
     pre_capture = kwargs["pre_capture"]
     assert isinstance(pre_capture, SephoraUSMarketPlugin)
     assert pre_capture.page_kind == "grid"
-    dom = _sephora_grid_dom()
+    dom = _sephora_grid_dom(currency_code=None)
     confirmation = pre_capture.confirm(dom)
     return CloakBrowserSnapshotSuccess(
         requested_url=kwargs["url"],
@@ -238,22 +240,26 @@ def test_confirmation_rejects_country_dialog_over_valid_usd_page() -> None:
     assert "country-routing dialog absent" in confirmation.detail
 
 
-def test_grid_confirmation_requires_exact_pagejson_currency_code() -> None:
-    confirmation = confirm_sephora_us_market(
-        _sephora_grid_dom(), page_kind="grid"
+def test_grid_confirmation_admits_us_country_independently_of_currency() -> None:
+    no_currency = confirm_sephora_us_market(
+        _sephora_grid_dom(currency_code=None), page_kind="grid"
+    )
+    usd = confirm_sephora_us_market(_sephora_grid_dom(), page_kind="grid")
+    cad = confirm_sephora_us_market(
+        _sephora_grid_dom(currency_code="CAD"), page_kind="grid"
     )
 
-    assert confirmation.confirmed is True
-    assert "currency code USD" in confirmation.detail
+    assert no_currency.confirmed is True
+    assert "country=US" in no_currency.detail
+    assert "currency remains un-pinned" in no_currency.detail
+    assert usd.confirmed is True
+    assert "currency code USD was observed separately" in usd.detail
+    assert cad.confirmed is True
+    assert "currency code(s) CAD" in cad.detail
+    assert "not promoted to USD" in cad.detail
     assert (
         confirm_sephora_us_market(
-            _sephora_grid_dom(currency_code=None), page_kind="grid"
-        ).confirmed
-        is False
-    )
-    assert (
-        confirm_sephora_us_market(
-            _sephora_grid_dom(currency_code="CAD"), page_kind="grid"
+            _sephora_grid_dom(country="CA"), page_kind="grid"
         ).confirmed
         is False
     )
@@ -427,7 +433,7 @@ def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
     assert projection["completeness"]["extracted_unique_parent_count"] == 2
     assert projection["source_visible_grid_facts"]["subject_binding_confirmed"] is True
     assert projection["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
-        _sephora_grid_dom().encode("utf-8")
+        _sephora_grid_dom(currency_code=None).encode("utf-8")
     ).hexdigest()
 
 
@@ -510,7 +516,8 @@ def test_writer_preserves_but_rejects_unconfirmed_sephora_market(
         "visible_mode_changes"
     ]
     assert any(
-        "MUST NOT be admitted as Sephora US/USD storefront evidence" in limitation
+        "MUST NOT be admitted as the asserted Sephora storefront evidence"
+        in limitation
         for limitation in manifest["limitations"]
     )
 

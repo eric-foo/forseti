@@ -6,7 +6,7 @@ artifact_role: Research / implementation validation receipt
 scope: >
   Records the bounded 2026-07-20 UTC live Summer Fridays Sephora brand-grid
   capture, typed view-only projection, raw-file integrity check, completeness
-  reconciliation, and fail-closed US/USD market result.
+  reconciliation, and page-kind-specific storefront-country/currency results.
 use_when:
   - Reviewing the first live proof for the reusable Sephora brand-grid route.
   - Rechecking the captured Summer Fridays grid count, projection, or market-pin limitation.
@@ -21,13 +21,19 @@ stale_if:
 
 ## Outcome
 
-`BLOCKED_GRID_USD_PIN_EXPLICIT_CODE_ABSENT`.
+`MIXED_PAGE_KIND_PIN_RESULT`.
 
 The supported runner preserved a complete 34-of-34 Summer Fridays parent-product
-projection, then exited nonzero because the rendered Sephora grid exposed
-retailer-owned `country=US` but no explicit selected currency code. Dollar
-glyphs in price displays were not promoted to `USD`. The packet is therefore
-not admitted as Sephora US/USD storefront evidence.
+projection. Under the historical implementation it exited nonzero because the
+grid exposed no explicit selected currency code. Under the current country-only
+grid assertion, read-only re-evaluation still rejects that packet because its
+preserved DOM retains the country-dialog diagnostic marker; it is not
+retroactively forced through.
+
+The later warmed Clinique page states confirm the US country route from the
+country-dialog-absent plus rendered `country=US` conjunction. Neither exposes
+an explicit currency code, so currency remains unpinned. Dollar glyphs are never
+promoted to `USD`.
 
 ## Run Boundary
 
@@ -60,9 +66,15 @@ python -B forseti-harness/runners/run_source_capture_cloakbrowser_packet.py `
   --timeout-seconds 90
 ```
 
-The command returned exit code `4` with
+The command historically returned exit code `4` with
 `sephora_market_pin_failed`; both the raw packet and initial `_01` projection
-were preserved.
+were preserved. Its manifest remains immutable and continues to record that
+historical runtime result.
+
+A read-only current-assertion replay over the preserved DOM returned
+`confirmed=False` because the country-dialog diagnostic marker remains in the
+bytes. This is now the decisive country-route failure; absent explicit currency
+is retained only as an independently typed `UNPINNED` currency result.
 
 ## Raw Integrity
 
@@ -184,9 +196,12 @@ That union is explicitly not a single certified Projection packet: each source
 row retains its own packet, slice, and raw anchor. The result proves that
 Sephora's visible continuation and serialized product state have different
 lifecycles; displayed `1-N` plus a vanished button cannot upgrade one
-page-local `linkStore` array to complete. Both packets also remain failed
-closed for US/USD admission because neither grid state exposes an explicit USD
-currency code.
+page-local `linkStore` array to complete. Read-only replay through the current
+page-kind assertion returns `confirmed=True` for both packets: the
+country-routing dialog is absent and `Sephora.renderQueryParams.country=US`.
+They are therefore admitted as US country-route evidence. Neither grid state
+exposes an explicit currency code, so currency remains unpinned and no USD claim
+is made.
 
 The append-only diagnostic sequence remains preserved. The initial no-pagination
 capture (`_01`) held 60/79; `_02` exposed a non-waiting selector race; `_03`
@@ -196,10 +211,12 @@ humanized click; and `_06` isolated the 19-row serialized second page.
 
 ## Non-Claims
 
-This receipt is not a Sephora US/USD-admitted packet, current assortment
-authority, delivery-location proof, exact inventory, realized transaction
-price, sales, demand, velocity, Cleaning, Silver, Judgment, buyer proof,
-monitoring readiness, or commercial readiness. It does not infer `USD` from a
-dollar glyph. Re-run the supported route for any claim that depends on current
-source state; admit it as US/USD evidence only if the independent retailer-owned
-country and explicit currency conjunction passes.
+The warmed Clinique packets are admitted only as US country-route evidence. This
+receipt is not USD admission for either grid, current assortment authority,
+delivery-location proof, exact inventory, realized transaction price, sales,
+demand, velocity, Cleaning, Silver, Judgment, buyer proof, monitoring readiness,
+or commercial readiness. It does not infer `USD` from a dollar glyph. The older
+Summer Fridays packet remains country-route-rejected because its preserved DOM
+retains the dialog diagnostic marker. Re-run the supported route for any claim
+that depends on current source state; evaluate country, currency, delivery, and
+completeness as separate typed facts.
