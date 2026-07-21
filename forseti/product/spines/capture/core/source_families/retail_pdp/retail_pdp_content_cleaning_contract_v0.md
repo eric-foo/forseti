@@ -82,7 +82,7 @@ The current canonical-content acquisition census is:
 | `luckyscent_pdp_aggregate` | `retail_pdp_luckyscent_aggregate_content_v1` | `retail_pdp_luckyscent_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 | `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
 | `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v2` | `retail_pdp_ulta_aggregate_parser_v2` | Current canonical content. |
-| `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
+| `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v2` | Current canonical content; `v1` does not mean legacy. |
 | `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v2` | Current canonical content; schema `v1` does not mean legacy. Parser v2 inventories `celwidget` class lists without rewriting historical parser-v1 packets. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
 
 `RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4` versions the shared profile-registry

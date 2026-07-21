@@ -42,7 +42,7 @@ ULTA_PDP_PARSER_VERSION = "retail_pdp_ulta_aggregate_parser_v2"
 ULTA_PDP_CONTENT_PROFILE = "ulta_pdp_aggregate"
 TARGET_PDP_CONTENT_RECORD_KIND = "retail_pdp_target_aggregate_content"
 TARGET_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_target_aggregate_content_v1"
-TARGET_PDP_PARSER_VERSION = "retail_pdp_target_aggregate_parser_v1"
+TARGET_PDP_PARSER_VERSION = "retail_pdp_target_aggregate_parser_v2"
 TARGET_PDP_CONTENT_PROFILE = "target_pdp_aggregate"
 AMAZON_PDP_CONTENT_RECORD_KIND = "retail_pdp_amazon_aggregate_content"
 AMAZON_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_amazon_aggregate_content_v1"
@@ -942,9 +942,10 @@ class TargetPdpAggregateContentRecord(StrictModel):
     schema_version: Literal["retail_pdp_target_aggregate_content_v1"] = (
         TARGET_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_target_aggregate_parser_v1"] = (
-        TARGET_PDP_PARSER_VERSION
-    )
+    parser_version: Literal[
+        "retail_pdp_target_aggregate_parser_v1",
+        "retail_pdp_target_aggregate_parser_v2",
+    ] = TARGET_PDP_PARSER_VERSION
     capture_profile: Literal["target_pdp_aggregate"] = TARGET_PDP_CONTENT_PROFILE
     source_url: str
     tcin: str
@@ -3082,7 +3083,19 @@ def build_target_pdp_aggregate_content_record(
         "hydrated_in_rendered_dom" if price_value else "declared_unhydrated"
     )
     if not price_value:
-        residuals.append("target_price_absent_from_rendered_dom_and_page_state")
+        # Distinguish "the page showed no price" from "a price rendered but did
+        # not bind to the target's ProductDetailPrice module". The capture
+        # profile's own sufficiency gate requires a visible price, so claiming
+        # absence from the page while that gate passed would be a false record.
+        # The unbound case is a disagreement between two source-visible signals;
+        # no page-global price is bound to the target from it either way.
+        if re.search(r"\$\d[\d,]*\.\d{2}", _decode_text(visible_text)):
+            residuals.append(
+                "target_price_rendered_in_visible_text_but_not_bound_to_"
+                "product_detail_price_module"
+            )
+        else:
+            residuals.append("target_price_absent_from_rendered_dom_and_page_state")
     if not _string_or_none(offer.get("availability")):
         residuals.append("target_fulfillment_availability_not_observed")
     # The guest review widget is lazy-rendered below the fold and does not paint

@@ -66,17 +66,41 @@ modules are inventoried with their hydration state rather than silently omitted.
 - Negative control: corrupting one field yields `status: drift`, exit 1,
   `changed_top_level_keys: ["tcin"]`, scratch preserved. The gate can fail.
 
-**Live dogfood**, one PDP navigation, ZIP `52404`, content retention:
+**Live dogfood.** The original dogfood ran at ZIP `52404`, which is **not an
+admitted Target destination**. `retail_storefront_pin_registry_v0.md` admits
+`CONFIRMED_ZIP_10001` only, and `52404` is the ZIP recorded in that registry's
+`NO_GO_SPLIT_LOCATION_SIGNAL` probe. Packets `01KY2E0Q5C2V598GSEGG6ABZRM` and
+`01KY2E4GG7J3CN93S6ZA4CRQT2` therefore carry `pin_confirmed: true` for a
+destination the registry does not admit. They remain append-only historical
+evidence of the extraction shape and are **superseded for pin evidence**; the
+shared retailer-baseline gate now rejects that ZIP outright.
+
+Re-dogfooded 2026-07-22 at the admitted pin, one PDP navigation each:
 
 | Packet | Posture | Result |
 | --- | --- | --- |
-| `01KY2E0Q5C2V598GSEGG6ABZRM` | profile default | `succeeded` / `content`, `pin_confirmed: true` |
-| `01KY2E4GG7J3CN93S6ZA4CRQT2` | `scroll_passes=1` probe | `succeeded` / `content`, `pin_confirmed: true` |
+| `01KY32AAVCG3JMCM08JGPSJS8T` | content, ZIP `10001` | `succeeded` / `content`, `pin_confirmed: true`, `Ship to 10001` |
+| `01KY32E2RH3B60W0MCQ899WZY9` | raw diagnostic, ZIP `10001` | `pin_confirmed: true`; DOM retained for diagnosis |
+| `01KY32KG4DVVV5AEYW9P4P5S89` | content attempt, ZIP `10001` | `target_delivery_zip_pin_failed`; `retention_outcome: raw_failure`, all inputs preserved |
 
-Both discarded the rendered DOM and visible text after hashing and retained a
-content record only. Storage impact on the live run: 438,700 disposable bytes in,
-23,683 bytes retained — **5.4% retained, 18.5x reduction**. The offline parent
-packet measures 500,420 in / 23,800 out (4.76%, 21.0x).
+The content packet retains 18 rows, TCIN `80184023`, rating `4.45` / `1772`
+ratings / `758` reviews, and full fulfillment. Storage: 441,592 disposable bytes
+in, 23,826 retained — **5.4%, 18.5x**, matching the earlier run. The offline
+parent packet measures 500,420 in / 23,800 out (4.76%, 21.0x).
+
+Two intermittency findings, both recorded rather than tuned away:
+
+- **The ZIP-10001 pin is not reliable**: one of three attempts returned
+  `target_delivery_zip_pin_failed`. The route failed correctly — raw preserved,
+  no admitted content — and this matches the registry's note that the Target ZIP
+  control needs a bounded readiness wait. No settle or retry change was made
+  here; that is a capture-envelope decision for the owner.
+- **The price does not always bind to the target's price module.** The content
+  packet at `10001` bound no price, while the raw diagnostic captured minutes
+  later contains one `data-module-type="ProductDetailPrice"` module carrying
+  `$14.69`, and the module-scoped extractor returns `14.69` when run against it.
+  The capture profile's own sufficiency gate requires a visible `$n.nn` and
+  passed on the content run, so a price was on that page too.
 
 **Live-versus-parent comparison** (4 days apart) shows the route stable and the
 drift real, not parser noise: identical structure (18 rows; 1 product, 1 offer,
