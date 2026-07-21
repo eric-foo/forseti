@@ -40,6 +40,13 @@ _PROMOTION_POLICY = {
     "quality_p25": 0.34425675, "quality_median": 0.907743, "quality_p75": 2.3942015,
     "weekly_reach_p75": 89258.649442, "cadence_cap": 10.629303,
 }
+_OWNER_ONBOARDING_DISPOSITIONS = {
+    "eddeparfum": {
+        "action": "defer",
+        "reason": "owner_observed_non_us",
+        "recorded_on": "2026-07-22",
+    },
+}
 
 
 def build_tiktok_creator_promotion_decisions(
@@ -129,8 +136,9 @@ def apply_tiktok_creator_onboarding_dedupe(
     """Annotate promotion results with the live Registry/Frontier action gate.
 
     Performance decisions remain unchanged. The actionable queue excludes an
-    onboarded Registry account and any creator already scanned as a Frontier
-    root, while a known not-onboarded Registry account remains actionable.
+    owner-deferred account, an onboarded Registry account, and any creator
+    already scanned as a Frontier root, while a known not-onboarded Registry
+    account remains actionable.
     """
     wrapper = document.get("tiktok_creator_promotion_decisions")
     if not isinstance(wrapper, Mapping) or wrapper.get("schema_version") != TIKTOK_CREATOR_PROMOTION_SCHEMA:
@@ -160,7 +168,10 @@ def apply_tiktok_creator_onboarding_dedupe(
         if not handle or not handle_key:
             raise ValueError("promotion decision handle is required")
         registry_state = normalized_states.get(handle_key)
-        if registry_state == "onboarded":
+        owner_disposition = _OWNER_ONBOARDING_DISPOSITIONS.get(handle_key)
+        if owner_disposition is not None:
+            queue_status = "owner_deferred"
+        elif registry_state == "onboarded":
             queue_status = "already_onboarded"
         elif handle_key in scanned_root_keys:
             queue_status = "already_scanned_frontier"
@@ -173,6 +184,9 @@ def apply_tiktok_creator_onboarding_dedupe(
             and queue_status in {"known_not_onboarded", "new_candidate"}
         )
         row["onboarding_queue_status"] = queue_status
+        row["owner_onboarding_disposition_or_none"] = (
+            dict(owner_disposition) if owner_disposition is not None else None
+        )
         row["actionable_promote_now"] = actionable
         rows.append(row)
         if actionable:
@@ -182,6 +196,11 @@ def apply_tiktok_creator_onboarding_dedupe(
     original_counts = wrapper.get("counts")
     counts = dict(original_counts) if isinstance(original_counts, Mapping) else {}
     counts["actionable_promote_now"] = len(actionable_handles)
+    counts["owner_deferred_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "owner_deferred"
+        for row in rows
+    )
     counts["already_onboarded_promote_now"] = sum(
         row.get("registry_action") == "promote_now"
         and row["onboarding_queue_status"] == "already_onboarded"

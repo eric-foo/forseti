@@ -657,6 +657,10 @@ def _select_promoted_creator(
 
 def _require_promoted(document: dict[str, object] | None, handle: str) -> None:
     row = promotion_decision_for_handle(document, handle) if document is not None else None
+    if row is not None and row.get("onboarding_queue_status") == "owner_deferred":
+        raise TikTokCreatorOnboardingError(
+            "owner-deferred creator is not actionable for onboarding"
+        )
     if row is None or row.get("registry_action") != "promote_now":
         raise TikTokCreatorOnboardingError("genuinely absent new_onboarding creator requires a promote_now Discovery Frontier decision")
 
