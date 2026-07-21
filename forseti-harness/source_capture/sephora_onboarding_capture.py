@@ -41,7 +41,7 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 
 
 SEPHORA_ONBOARDING_SOURCE_SURFACE = "sephora_bazaarvoice_onboarding"
-SEPHORA_ONBOARDING_PARSER_VERSION = "sephora_bazaarvoice_onboarding_v3"
+SEPHORA_ONBOARDING_PARSER_VERSION = "sephora_bazaarvoice_onboarding_v4"
 SEPHORA_AGE_BUCKETS: tuple[str, ...] = ("20s", "30s", "40s", "50s +")
 DEFAULT_QUESTION_LIMIT = 100
 DEFAULT_REVIEW_PAGE_LIMIT = 100
@@ -248,7 +248,7 @@ def capture_sephora_onboarding_packet(
             "before the failure is preserved and no successful summary is claimed"
         )
         summary: dict[str, Any] = {
-            "record_kind": "sephora_bazaarvoice_onboarding_capture_failure_v3",
+            "record_kind": "sephora_bazaarvoice_onboarding_capture_failure_v4",
             "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
             "parent_packet_id": parent.packet_id,
             "product_id": parent.product_id,
@@ -278,7 +278,7 @@ def capture_sephora_onboarding_packet(
                 "response bytes are preserved as the required raw fallback"
             )
             summary = {
-                "record_kind": "sephora_bazaarvoice_onboarding_adaptation_failure_v3",
+                "record_kind": "sephora_bazaarvoice_onboarding_adaptation_failure_v4",
                 "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
                 "parent_packet_id": parent.packet_id,
                 "product_id": parent.product_id,
@@ -386,70 +386,55 @@ def build_sephora_onboarding_summary(
             {
                 "rank": index + 1,
                 "question_id": _optional_string(raw_row.get("Id")),
-                "question_text": _display_text(question_details or question_summary),
-                "question_text_source": question_details or question_summary,
-                "question_summary": question_summary,
-                "question_details": question_details,
+                "question_summary_present": question_summary is not None,
+                "question_details_present": question_details is not None,
                 "total_answer_count": answer_count,
                 "submission_time": _optional_string(raw_row.get("SubmissionTime")),
-                "user_nickname": _optional_string(raw_row.get("UserNickname")),
+                "nickname_present": _optional_string(raw_row.get("UserNickname"))
+                is not None,
             }
         )
 
-    non_incentivized_total = _total_results(
-        by_name["reviews_non_incentivized_total.json"],
-        "non-incentivized reviews",
+    helpful_doc = by_name["reviews_non_incentivized_most_helpful_offset_000.json"]
+    review_statistics, filtered_statistics = _helpful_statistics(
+        helpful_doc, parent.product_id
     )
-    _validate_result_product_ids(
-        _require_list(
-            by_name["reviews_non_incentivized_total.json"],
-            "Results",
-            "non-incentivized reviews",
-        ),
-        allowed_product_ids=parent.allowed_product_ids,
-        label="non-incentivized reviews",
-        allow_historical_review_product_ids=True,
+    non_incentivized_total = _mapping_nonnegative_int(
+        filtered_statistics,
+        "TotalReviewCount",
+        "FilteredReviewStatistics",
+    )
+    age_distribution = _context_distribution(filtered_statistics, "ageRange")
+    skin_type_distribution = _context_distribution(filtered_statistics, "skinType")
+    skin_concern_distribution = _context_distribution(
+        filtered_statistics, "skinConcerns"
     )
     age_counts: dict[str, int] = {}
-    for bucket in _AGE_BUCKET_SPECS:
-        age_document = by_name[_age_artifact_name(bucket.display_label)]
-        age_counts[bucket.display_label] = _total_results(
-            age_document,
-            f"non-incentivized reviews age {bucket.display_label}",
-        )
-        _validate_result_product_ids(
-            _require_list(
-                age_document,
-                "Results",
-                f"non-incentivized reviews age {bucket.display_label}",
-            ),
-            allowed_product_ids=parent.allowed_product_ids,
-            label=f"non-incentivized reviews age {bucket.display_label}",
-            allow_empty=age_counts[bucket.display_label] == 0,
-            allow_historical_review_product_ids=True,
-        )
+    api_label_by_value = {
+        bucket.api_value: bucket.display_label for bucket in _AGE_BUCKET_SPECS
+    }
+    for entry in age_distribution or []:
+        display = api_label_by_value.get(entry["value"], entry["value"])
+        age_counts[display] = age_counts.get(display, 0) + entry["count"]
     declared_age_total = sum(age_counts.values())
     if declared_age_total > non_incentivized_total:
         raise SephoraOnboardingCaptureError(
-            "sum of live age-bucket counts exceeds non-incentivized review total"
+            "sum of filtered age-distribution counts exceeds the "
+            "non-incentivized review total"
         )
-
     age_breakdown = [
         {
-            "bucket": bucket.display_label,
-            "api_value": bucket.api_value,
-            "count": age_counts[bucket.display_label],
+            "bucket": display,
+            "count": count,
             "share_of_declared_age_subset_pct": _percentage(
-                age_counts[bucket.display_label], declared_age_total
+                count, declared_age_total
             ),
             "share_of_all_non_incentivized_reviews_pct": _percentage(
-                age_counts[bucket.display_label], non_incentivized_total
+                count, non_incentivized_total
             ),
         }
-        for bucket in _AGE_BUCKET_SPECS
+        for display, count in age_counts.items()
     ]
-
-    helpful_doc = by_name["reviews_non_incentivized_most_helpful_offset_000.json"]
     helpful_rows = _require_list(
         helpful_doc,
         "Results",
@@ -570,7 +555,6 @@ def build_sephora_onboarding_summary(
     additional_review_fields = sorted(
         (helpful_fields | recent_fields) - _PROJECTED_REVIEW_SOURCE_FIELDS
     )
-    unsummarized_review_fields: list[str] = []
     questions_not_captured = max(question_total - len(question_rows), 0)
     answers_not_included = max(answer_count_sum - len(included_answers), 0)
     reviews_without_live_age_bucket = non_incentivized_total - declared_age_total
@@ -594,12 +578,22 @@ def build_sephora_onboarding_summary(
             ),
         },
         {
-            "field": "non_incentivized_reviews_without_live_age_bucket",
+            "field": "non_incentivized_reviews_without_declared_age",
             "count": reviews_without_live_age_bucket,
             "detail": (
                 f"{reviews_without_live_age_bucket} of {non_incentivized_total} exact "
-                "non-incentivized reviews do not contribute to the four live age buckets; "
-                "the demographic composition is not a percentage of all reviewers"
+                "non-incentivized reviews declare no age in the filtered context "
+                "distribution; the demographic composition is not a percentage of "
+                "all reviewers"
+            ),
+        },
+        {
+            "field": "statistics_not_promoted_into_summary",
+            "count": 0,
+            "detail": (
+                "review statistics beyond the promoted aggregates and the age, "
+                "skin-type, and skin-concern distributions remain only in the raw "
+                "Most Helpful response"
             ),
         },
         {
@@ -612,12 +606,13 @@ def build_sephora_onboarding_summary(
             ),
         },
         {
-            "field": "raw_review_fields_not_lifted_into_summary",
-            "count": len(unsummarized_review_fields),
-            "fields": unsummarized_review_fields,
+            "field": "review_bodies_and_full_fields_preserved_only_in_raw",
+            "count": len(additional_review_fields),
+            "fields": additional_review_fields,
             "detail": (
-                "every raw review field is represented by a named summary field or "
-                "the per-row additional_source_fields map"
+                "summary rows are compact and body-free; every raw review field "
+                "name is inventoried here and its exact values remain only in the "
+                "preserved raw responses"
             ),
         },
         {
@@ -633,7 +628,7 @@ def build_sephora_onboarding_summary(
     ]
 
     return {
-        "record_kind": "sephora_bazaarvoice_onboarding_summary_v3",
+        "record_kind": "sephora_bazaarvoice_onboarding_summary_v4",
         "parser_version": SEPHORA_ONBOARDING_PARSER_VERSION,
         "parent_packet": {
             "packet_id": parent.packet_id,
@@ -658,16 +653,29 @@ def build_sephora_onboarding_summary(
         "reviews": {
             "filter": "ContextDataValue_IncentivizedReview:eq:False",
             "exact_non_incentivized_total": non_incentivized_total,
-            "live_age_bucket_values": list(SEPHORA_AGE_BUCKETS),
-            "declared_age_subset_total": declared_age_total,
-            "declared_age_coverage_pct": _percentage(
-                declared_age_total, non_incentivized_total
-            ),
-            "without_live_age_bucket_count": reviews_without_live_age_bucket,
-            "without_live_age_bucket_pct": _percentage(
-                reviews_without_live_age_bucket, non_incentivized_total
-            ),
-            "age_breakdown": age_breakdown,
+            "statistics": {
+                "raw_file": "reviews_non_incentivized_most_helpful_offset_000.json",
+                "filtered": _promoted_statistics(filtered_statistics),
+                "unfiltered": _promoted_statistics(review_statistics),
+            },
+            "demographics": {
+                "source": (
+                    "FilteredReviewStatistics.ContextDataDistribution of the "
+                    "combined Most Helpful response"
+                ),
+                "age_display_labels": list(SEPHORA_AGE_BUCKETS),
+                "declared_age_subset_total": declared_age_total,
+                "declared_age_coverage_pct": _percentage(
+                    declared_age_total, non_incentivized_total
+                ),
+                "without_declared_age_count": reviews_without_live_age_bucket,
+                "without_declared_age_pct": _percentage(
+                    reviews_without_live_age_bucket, non_incentivized_total
+                ),
+                "age_breakdown": age_breakdown,
+                "skin_type_distribution": skin_type_distribution,
+                "skin_concern_distribution": skin_concern_distribution,
+            },
             "most_helpful": {
                 "sort": "TotalPositiveFeedbackCount:desc",
                 "offset": 0,
@@ -675,7 +683,7 @@ def build_sephora_onboarding_summary(
                 "total_filtered_reviews": helpful_total,
                 "captured_review_rows": len(helpful_rows),
                 "captured_review_bodies": sum(
-                    row["review_text"] is not None for row in helpful_inventory
+                    row["body_present"] for row in helpful_inventory
                 ),
                 "review_inventory": helpful_inventory,
             },
@@ -684,15 +692,17 @@ def build_sephora_onboarding_summary(
                 "window_days": recent_window_days,
                 "cutoff_inclusive": _format_timestamp(recent_cutoff),
                 "total_filtered_reviews": recent_total,
+                "last_seen_review_id": (
+                    recent_inventory[0]["review_id"] if recent_inventory else None
+                ),
                 "captured_page_count": len(recent_page_receipts),
                 "captured_page_rows": len(recent_rows),
                 "captured_page_review_bodies": sum(
-                    row["review_text"] is not None for row in recent_inventory
+                    row["body_present"] for row in recent_inventory
                 ),
                 "within_window_rows": len(within_window_inventory),
                 "within_window_review_bodies": sum(
-                    row["review_text"] is not None
-                    for row in within_window_inventory
+                    row["body_present"] for row in within_window_inventory
                 ),
                 "newest_source_date": (
                     _format_timestamp(max(recent_dates)) if recent_dates else None
@@ -715,7 +725,7 @@ def build_sephora_onboarding_summary(
                 "most_helpful_fields": sorted(helpful_fields),
                 "most_recent_fields": sorted(recent_fields),
                 "additional_source_fields_carried": additional_review_fields,
-                "unsummarized_fields_preserved_only_in_raw": unsummarized_review_fields,
+                "fields_preserved_only_in_raw": additional_review_fields,
             },
             "review_product_identity": {
                 "requested_product_group_id": parent.product_id,
@@ -728,9 +738,13 @@ def build_sephora_onboarding_summary(
         "content_qualification": {
             "status": "passed",
             "response_documents": len(by_name),
-            "age_bucket_vocabulary_exact": list(age_counts) == list(SEPHORA_AGE_BUCKETS),
+            "three_response_roles_present": True,
+            "combined_statistics_present": True,
+            "age_bucket_vocabulary_exact": sorted(age_counts)
+            == sorted(SEPHORA_AGE_BUCKETS),
             "recent_window_coverage_proven": recent_exhausted
             or recent_cutoff_reached,
+            "summary_duplicates_review_or_answer_bodies": False,
         },
         "row_accounting": {
             "question_rows_raw": len(question_rows),
@@ -739,7 +753,10 @@ def build_sephora_onboarding_summary(
             "answer_count_declared_by_captured_questions": answer_count_sum,
             "answer_rows_preserved_in_raw_includes": len(included_answers),
             "answers_equal": answer_count_sum == len(included_answers),
-            "age_counts_source": "raw TotalResults from one exact filtered response per bucket",
+            "age_counts_source": (
+                "FilteredReviewStatistics.ContextDataDistribution.ageRange of the "
+                "combined Most Helpful response"
+            ),
             "most_helpful_raw_rows": len(helpful_rows),
             "most_helpful_summarized_rows": len(helpful_inventory),
             "most_helpful_row_order_equal": _review_ids(helpful_rows)
@@ -748,7 +765,7 @@ def build_sephora_onboarding_summary(
             "most_recent_summarized_rows": len(recent_inventory),
             "most_recent_row_order_equal": _review_ids(recent_rows)
             == [row["review_id"] for row in recent_inventory],
-            "all_raw_review_fields_accounted_for": not unsummarized_review_fields,
+            "all_raw_review_field_names_inventoried": True,
         },
         "raw_failure_fallback": {
             "status": "armed",
@@ -885,13 +902,12 @@ def _base_request_specs(
     question_limit: int,
     review_page_limit: int,
 ) -> tuple[ApiRequestSpec, ...]:
-    common_review = (
-        ("Filter", f"ProductId:eq:{product_id}"),
-        ("Filter", "ContextDataValue_IncentivizedReview:eq:False"),
-        ("Limit", "1"),
-        ("Offset", "0"),
-    )
-    specs = [
+    # The accepted low-footprint target has exactly three response roles:
+    # Helpful plus combined statistics, Recent (issued separately with bounded
+    # continuation), and answer-rich Q&A. Demographics are promoted from the
+    # Helpful response's FilteredStats context distributions instead of
+    # separate per-bucket count requests.
+    return (
         ApiRequestSpec(
             artifact_name="questions_most_answers_offset_000.json",
             endpoint="questions.json",
@@ -905,37 +921,21 @@ def _base_request_specs(
             ),
         ),
         ApiRequestSpec(
-            artifact_name="reviews_non_incentivized_total.json",
-            endpoint="reviews.json",
-            config_kind="reviews",
-            parameters=common_review,
-        ),
-        ApiRequestSpec(
             artifact_name="reviews_non_incentivized_most_helpful_offset_000.json",
             endpoint="reviews.json",
             config_kind="reviews",
             parameters=(
-                *common_review[:2],
+                ("Filter", f"ProductId:eq:{product_id}"),
+                ("Filter", "ContextDataValue_IncentivizedReview:eq:False"),
+                ("Include", "Products"),
+                ("Stats", "Reviews"),
+                ("FilteredStats", "Reviews"),
                 ("Limit", str(review_page_limit)),
                 ("Offset", "0"),
                 ("Sort", "TotalPositiveFeedbackCount:desc"),
             ),
         ),
-    ]
-    for bucket in _AGE_BUCKET_SPECS:
-        specs.append(
-            ApiRequestSpec(
-                artifact_name=_age_artifact_name(bucket.display_label),
-                endpoint="reviews.json",
-                config_kind="reviews",
-                parameters=(
-                    *common_review[:2],
-                    ("Filter", f"ContextDataValue_ageRange:eq:{bucket.api_value}"),
-                    *common_review[2:],
-                ),
-            )
-        )
-    return tuple(specs)
+    )
 
 
 def _recent_request_spec(
@@ -1018,7 +1018,7 @@ def _request_manifest(
 ) -> dict[str, Any]:
     response_by_name = {spec.artifact_name: response for spec, response in captured}
     return {
-        "record_kind": "sephora_bazaarvoice_request_manifest_v3",
+        "record_kind": "sephora_bazaarvoice_request_manifest_v4",
         "parent_packet_id": parent.packet_id,
         "parent_file_id": parent.file_id,
         "parent_file_sha256": parent.file_sha256,
@@ -1232,6 +1232,7 @@ def _total_results(document: Mapping[str, Any], label: str) -> int:
 
 
 def _review_inventory_row(row: Any, *, rank: int) -> dict[str, Any]:
+    """Compact, body-free row: exact bodies stay only in the raw response."""
     if not isinstance(row, Mapping):
         raise SephoraOnboardingCaptureError(f"review row {rank} must be an object")
     review_id = _required_string(row.get("Id"), f"review row {rank}.Id")
@@ -1240,32 +1241,32 @@ def _review_inventory_row(row: Any, *, rank: int) -> dict[str, Any]:
         f"review row {rank}.ProductId",
     )
     review_text = _optional_string(row.get("ReviewText"))
+    badges = row.get("Badges")
+    context = row.get("ContextDataValues")
     return {
         "rank": rank,
         "review_id": review_id,
         "product_id": product_id,
-        "title": _optional_string(row.get("Title")),
-        "review_text": review_text,
-        "review_text_display": _display_text(review_text) if review_text else None,
+        "title_present": _optional_string(row.get("Title")) is not None,
+        "body_present": review_text is not None,
         "rating": row.get("Rating"),
         "submission_time": _optional_string(row.get("SubmissionTime")),
-        "user_nickname": _optional_string(row.get("UserNickname")),
+        "nickname_present": _optional_string(row.get("UserNickname")) is not None,
         "is_recommended": row.get("IsRecommended"),
         "is_verified_buyer": row.get("IsVerifiedBuyer"),
         "total_feedback_count": row.get("TotalFeedbackCount"),
         "total_positive_feedback_count": row.get("TotalPositiveFeedbackCount"),
         "total_negative_feedback_count": row.get("TotalNegativeFeedbackCount"),
-        "context_data_values": row.get("ContextDataValues"),
-        "additional_fields": row.get("AdditionalFields"),
-        "badges": row.get("Badges"),
-        "photos": row.get("Photos"),
-        "videos": row.get("Videos"),
-        "tag_dimensions": row.get("TagDimensions"),
-        "additional_source_fields": {
-            str(key): value
-            for key, value in row.items()
-            if str(key) not in _PROJECTED_REVIEW_SOURCE_FIELDS
-        },
+        "context_dimension_keys": (
+            sorted(str(key) for key in context)
+            if isinstance(context, Mapping)
+            else []
+        ),
+        "badge_ids": (
+            sorted(str(key) for key in badges) if isinstance(badges, Mapping) else []
+        ),
+        "photo_count": len(row.get("Photos") or []),
+        "video_count": len(row.get("Videos") or []),
         "source_fields": sorted(str(key) for key in row),
     }
 
@@ -1328,9 +1329,89 @@ def _product_id_from_url(url: str) -> str:
     return f"P{match.group(1)}"
 
 
-def _age_artifact_name(bucket: str) -> str:
-    slug = bucket.lower().replace(" ", "").replace("+", "_plus")
-    return f"reviews_non_incentivized_age_{slug}.json"
+def _helpful_statistics(
+    document: Mapping[str, Any],
+    product_id: str,
+) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    includes = document.get("Includes", {})
+    products = includes.get("Products") if isinstance(includes, Mapping) else None
+    if not isinstance(products, Mapping):
+        raise SephoraOnboardingCaptureError(
+            "Most Helpful response lacks the Includes.Products statistics block"
+        )
+    product = products.get(product_id)
+    if not isinstance(product, Mapping):
+        raise SephoraOnboardingCaptureError(
+            f"Most Helpful Includes.Products does not include {product_id}"
+        )
+    statistics = product.get("ReviewStatistics")
+    filtered = product.get("FilteredReviewStatistics")
+    if not isinstance(statistics, Mapping) or not isinstance(filtered, Mapping):
+        raise SephoraOnboardingCaptureError(
+            "Most Helpful response lacks combined ReviewStatistics and "
+            "FilteredReviewStatistics"
+        )
+    return statistics, filtered
+
+
+def _context_distribution(
+    statistics: Mapping[str, Any],
+    dimension: str,
+) -> list[dict[str, Any]] | None:
+    distribution = statistics.get("ContextDataDistribution")
+    if not isinstance(distribution, Mapping):
+        raise SephoraOnboardingCaptureError(
+            "FilteredReviewStatistics lacks a ContextDataDistribution object"
+        )
+    entry = distribution.get(dimension)
+    if entry is None:
+        return None
+    if not isinstance(entry, Mapping):
+        raise SephoraOnboardingCaptureError(
+            f"ContextDataDistribution.{dimension} must be an object"
+        )
+    values = entry.get("Values")
+    if not isinstance(values, list):
+        raise SephoraOnboardingCaptureError(
+            f"ContextDataDistribution.{dimension}.Values must be an array"
+        )
+    rows: list[dict[str, Any]] = []
+    for index, item in enumerate(values):
+        if not isinstance(item, Mapping):
+            raise SephoraOnboardingCaptureError(
+                f"ContextDataDistribution.{dimension}.Values[{index}] must be an object"
+            )
+        rows.append(
+            {
+                "value": str(item.get("Value")),
+                "count": _mapping_nonnegative_int(
+                    item,
+                    "Count",
+                    f"ContextDataDistribution.{dimension}.Values[{index}]",
+                ),
+            }
+        )
+    return rows
+
+
+_PROMOTED_STATISTIC_FIELDS = (
+    "TotalReviewCount",
+    "AverageOverallRating",
+    "RecommendedCount",
+    "NotRecommendedCount",
+    "RatingDistribution",
+    "HelpfulVoteCount",
+    "FirstSubmissionTime",
+    "LastSubmissionTime",
+)
+
+
+def _promoted_statistics(statistics: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        field: statistics.get(field)
+        for field in _PROMOTED_STATISTIC_FIELDS
+        if field in statistics
+    }
 
 
 def _percentage(numerator: int, denominator: int) -> float | None:
