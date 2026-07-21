@@ -26,7 +26,7 @@ def run_retail_grid_projection(*, packet_directory: Path, output_path: Path) -> 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Build a local, no-network Walmart/Target/Sephora retail-grid projection JSON "
+            "Build a local, no-network Walmart/Target/Sephora/Ulta retail-grid projection JSON "
             "from an existing Source Capture Packet directory."
         )
     )

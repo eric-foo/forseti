@@ -1169,6 +1169,60 @@ def test_cloakbrowser_runner_uses_sephora_grid_profile_load_more_defaults(
     assert seen["pre_capture"].humanize is True
 
 
+def test_cloakbrowser_runner_uses_ulta_grid_profile_load_more_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://www.ulta.com/brand/clinique",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.ulta.com/brand/clinique",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does the profile own bounded grid continuation?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test Ulta grid continuation profile",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile("ulta_grid_aggregate"),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        ulta_market="US",
+        retail_grid_projection_output=Path("unused_projection_on_failure.json"),
+    )
+
+    assert exit_code == 3
+    assert seen["load_more_selector"] == "button.LoadContent__button"
+    assert seen["load_more_clicks"] == 10
+    assert seen["scroll_stop_condition"] is None
+    assert seen["pre_capture"].page_kind == "grid"
+    assert seen["pre_capture"].humanize is False
+
+
 def test_live_engine_runs_early_and_late_site_actions_at_their_owned_stages(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

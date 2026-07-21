@@ -944,7 +944,9 @@ def test_scan_receipt_captured_link_hub_rejects_non_url_evidence() -> None:
     _receipt_raises_code(receipt, "invalid_link_hub_url")
 
 
-def test_lake_writer_appends_register_keyed_to_parent_grid_packet(tmp_path) -> None:
+def test_lake_writer_appends_register_keyed_to_parent_grid_packet(
+    tmp_path, monkeypatch
+) -> None:
     from data_lake.root import DataLakeRoot
     from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
         write_tiktok_creator_discovery_frontier_register,
@@ -962,6 +964,17 @@ def test_lake_writer_appends_register_keyed_to_parent_grid_packet(tmp_path) -> N
     assert "/derived/" in written_posix
     assert "/01KWYMDCZMSB4S5HBERVBYJQNG/" in written_posix
     assert "/tiktok_creator_discovery_frontier/" in written_posix
+
+    from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+        load_tiktok_creator_discovery_frontier_registers,
+    )
+
+    monkeypatch.setattr(
+        root,
+        "list_committed_packet_ids",
+        lambda: ["01KWYMDCZMSB4S5HBERVBYJQNG"],
+    )
+    assert load_tiktok_creator_discovery_frontier_registers(root) == [register]
 
 
 def test_lake_writer_requires_parent_grid_anchor(tmp_path) -> None:
