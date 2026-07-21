@@ -29,10 +29,11 @@ from source_capture.models import (
     unknown_with_reason,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from source_capture.retail_pdp_projection import _amazon_undoubled
 
 
 AMAZON_REVIEW_ONBOARDING_SOURCE_SURFACE = "amazon_review_onboarding"
-AMAZON_REVIEW_ONBOARDING_PARSER_VERSION = "amazon_pdp_review_onboarding_v1"
+AMAZON_REVIEW_ONBOARDING_PARSER_VERSION = "amazon_pdp_review_onboarding_v2"
 
 _ASIN_RE = re.compile(r"/(?:dp|gp/product)/([A-Z0-9]{10})(?:[/?#]|$)", re.I)
 _RATING_RE = re.compile(r"(\d+(?:\.\d+)?)\s+out of 5 stars", re.I)
@@ -430,7 +431,47 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
     for rank, row in enumerate(parsed_rows, start=1):
         section = row["section"]
         section_ranks[section] = section_ranks.get(section, 0) + 1
-        body = row["body"]
+        # v2 consumes the precise per-row inputs instead of the doubled header
+        # text and chrome-wrapped body the raw hooks carry.  Amazon renders each
+        # review's header markup twice inside one data-hook="review" element and
+        # wraps the body in a11y teaser text plus a Read more/less footer.
+        exact_body = row.get("body_rich_text")
+        body = exact_body if exact_body else row["body"]
+        body_hash_basis = (
+            "review_rich_content_container"
+            if exact_body
+            else "review_body_hook_including_page_chrome"
+        )
+        title = _amazon_undoubled(row["title"])
+        rating_text = _amazon_undoubled(row["rating_text"])
+        source_date_text = _amazon_undoubled(row["source_date_text"])
+        variant_text = _amazon_undoubled(row["variant_text"])
+        badge_labels = sorted(
+            {_amazon_undoubled(label) for label in row["badge_labels"] if label}
+        )
+        incentive_labels = [
+            label
+            for label in badge_labels
+            if re.search(r"(?i)(vine|free product|incentiv)", label)
+        ]
+        # Recompute from the undoubled by-line: _DATE_RE's non-greedy group runs
+        # across both copies on a doubled row and mangles the location.
+        location_match = _DATE_RE.match(source_date_text or "")
+        review_location = (
+            location_match.group(1) if location_match else row["review_location"]
+        )
+        # The reviewer's name lives in the profile widget; data-hook="review-by-line"
+        # now wraps only the date, which is what the v1 author field captured.
+        profile_names = row.get("author_profile_names") or []
+        author = profile_names[0] if len(profile_names) == 1 else None
+        author_resolution = (
+            "one_profile_name"
+            if len(profile_names) == 1
+            else "multiple_profile_names_unresolved"
+            if profile_names
+            else "profile_name_absent"
+        )
+        verified_purchase = True if "Verified Purchase" in badge_labels else None
         inventory.append(
             {
                 "rank": rank,
@@ -438,22 +479,25 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
                 "section": section,
                 "section_label": parsed.section_labels[section],
                 "review_id": row["review_id"],
-                "title": row["title"],
+                "title": title,
                 "body_present": True,
                 "body_character_count": len(body),
                 "body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                "body_hash_basis": body_hash_basis,
                 "rating": row["rating"],
-                "rating_text": row["rating_text"],
+                "rating_text": rating_text,
                 "source_date": row["source_date"],
-                "source_date_text": row["source_date_text"],
-                "author": row["author"],
-                "review_location": row["review_location"],
-                "variant_text": row["variant_text"],
-                "verified_purchase": row["verified_purchase"],
+                "source_date_text": source_date_text,
+                "author": author,
+                "author_profile_names": list(profile_names),
+                "author_resolution": author_resolution,
+                "review_location": review_location,
+                "variant_text": variant_text,
+                "verified_purchase": verified_purchase,
                 "helpful_count": row["helpful_count"],
                 "helpful_text": row["helpful_text"],
-                "badge_labels": row["badge_labels"],
-                "incentive_labels": row["incentive_labels"],
+                "badge_labels": badge_labels,
+                "incentive_labels": incentive_labels,
                 "media_reference_count": len(row["media_references"]),
                 "media_references": row["media_references"],
                 "source_hooks": row["source_hooks"],
@@ -468,7 +512,14 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             }
         )
 
-    incentive_count = sum(bool(row["incentive_labels"]) for row in parsed_rows)
+    # Same basis as verified_purchase_rows: read the corrected inventory so a
+    # doubled badge cannot skew the rollup.
+    incentive_count = sum(bool(item["incentive_labels"]) for item in inventory)
+    ambiguous_author_rows = [
+        item["review_id"]
+        for item in inventory
+        if item["author_resolution"] == "multiple_profile_names_unresolved"
+    ]
     context_keys = sorted(
         {
             hook
@@ -478,7 +529,7 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
         }
     )
     return {
-        "record_kind": "amazon_review_onboarding_summary_v1",
+        "record_kind": "amazon_review_onboarding_summary_v2",
         "parser_version": AMAZON_REVIEW_ONBOARDING_PARSER_VERSION,
         "provider": "amazon_native_rendered_pdp",
         "parent_packet": {
@@ -510,10 +561,16 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
             "captured_review_bodies_in_parent_raw": len(inventory),
             "united_states_rows": section_ranks.get("top_reviews_united_states", 0),
             "other_countries_rows": section_ranks.get("top_reviews_other_countries", 0),
-            "verified_purchase_rows": sum(row["verified_purchase"] is True for row in parsed_rows),
+            # Derived from the corrected inventory, not the raw parser rows: a
+            # doubled "Verified Purchase Verified Purchase" badge fails the raw
+            # equality test and silently undercounted this rollup at v1.
+            "verified_purchase_rows": sum(
+                item["verified_purchase"] is True for item in inventory
+            ),
             "rows_with_helpful_count": sum(row["helpful_count"] is not None for row in parsed_rows),
             "rows_with_media_references": sum(bool(row["media_references"]) for row in parsed_rows),
             "rows_with_incentive_marker": incentive_count,
+            "ambiguous_author_rows": ambiguous_author_rows,
             "context_hook_keys": context_keys,
             "review_inventory": inventory,
         },
@@ -575,6 +632,20 @@ def build_amazon_review_onboarding_summary(parent: AmazonReviewParent) -> dict[s
                 "category": "provider",
                 "detail": "The winning route is Amazon-native rendered PDP content and is not Bazaarvoice.",
             },
+            *(
+                [
+                    {
+                        "category": "author_identity",
+                        "detail": (
+                            "Multiple profile names were exposed inside review row(s) "
+                            + ", ".join(ambiguous_author_rows)
+                            + "; author remains unresolved rather than joining distinct names."
+                        ),
+                    }
+                ]
+                if ambiguous_author_rows
+                else []
+            ),
         ],
         "raw_failure_fallback": {
             "status": "parent_already_preserved",

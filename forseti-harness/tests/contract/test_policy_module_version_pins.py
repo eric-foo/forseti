@@ -212,17 +212,13 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # both yield 14.69, so no committed packet re-surfaces and the shared
         # projection token stays unchanged. Future captures can differ by design
         # — that is the defect being fixed, not a re-surface.
-        # Amazon parser/schema v1 is purely additive: it adds the retailer-owned
-        # canonical content schema, the celwidget module inventory, target-ASIN-
-        # bound offer/merchandising/media extraction, the twister variant state,
-        # exact review rows, and a fail-loud session/CSRF refusal. Verified
-        # rather than assumed: the diff of this module removes or changes zero
-        # existing lines, and neither _amazon_variant_offer_fields nor
-        # _amazon_review_fields — the two functions the legacy raw decoder
-        # reaches for Amazon — is touched. So RETAIL_PDP_PROJECTION_VERSION and
-        # the Sephora/Luckyscent/Nordstrom/Ulta/Target tokens stay unchanged and
-        # no committed packet re-surfaces.
-        "31f09729788bf624733a4ff6cec36ca3e7e604aeca537d4d119290fceb73d328",
+        # Amazon content schema v1 is additive. Parser v2 is output-shaping: it
+        # inventories data-feature modules whose class attribute contains
+        # `celwidget` instead of silently omitting class-list forms, and extends
+        # the no-secret assertion to JSON-carried session/CSRF values. Historical
+        # Amazon parser-v1 content records remain explicitly readable; the
+        # shared Projection token and other retailer parser tokens stay unchanged.
+        "56e5fa1ddbb660307677a89e97c86b3ca3ab68e29924d4caba4948230ebd8e74",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
