@@ -366,10 +366,11 @@ separate acquisition checklist.
 When retail expression is material, acquire this substrate breadth-first. First
 establish the owned category, collection/franchise, parent-product, visible-
 variant, declared-total, and typed-gap census. Then test the qualified US beauty
-ladder -- Sephora, Ulta, Target, and Amazon -- and preserve an exact typed result
-such as `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
-`SURFACE_NOT_EXPOSED` when a retailer does not qualify; never invent a listing or
-completion credit. For every qualified retailer, capture its brand/assortment
+ladder -- Sephora, Ulta, Target, and Amazon -- and preserve each test's exact
+typed result, such as `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
+`SURFACE_NOT_EXPOSED`; never invent a listing or completion credit. A
+surface-level result does not cancel a qualified retailer's grid and baseline
+obligations. For every qualified retailer, capture its brand/assortment
 grid and one full-raw baseline PDP for every exact parent listing found, using a
 common lean fact floor while retaining source-visible retailer-native fields.
 Only after that baseline may expensive review or Q&A depth be selected for the

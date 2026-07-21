@@ -1098,13 +1098,13 @@ why customers buy -> what they experience -> which complaints attack the claim
 whose evidence establishes a named, non-duplicative deepening job after the owned
 census, qualified grids, and exact-parent PDP baseline; one product may resolve
 multiple jobs, and there is no fixed franchise or product count. Do not create
-redundant chain cards or call a franchise a hero until owned prominence and
-independent retailer/customer evidence support that conclusion. Feed each link
-only from sources that can
-observe it; no route observes population rates, switching volume, sell-through,
-or product sales, so no cell may state one. Buy-reason carries reported
-motivation and positioned draws, never measured demand; substitutes are cited
-alternatives and price gaps, never switching.
+redundant chain cards. Do not call a franchise a hero until owned prominence
+and independent retailer/customer evidence support that conclusion. Feed each
+link only from sources that can observe it; no route observes population
+rates, switching volume, sell-through, or product sales, so no cell may state
+one. Buy-reason carries reported motivation and positioned draws, never
+measured demand; substitutes are cited alternatives and price gaps, never
+switching.
 
 When substantive review text has been sampled, record each classified review
 as one row in this block (the only durable structure this section adds), and
