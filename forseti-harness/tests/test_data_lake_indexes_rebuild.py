@@ -7,9 +7,11 @@ weaker semantics, and a prove-rebuildability that fails on tampered bytes
 """
 from __future__ import annotations
 
+import io
 import json
 import hashlib
 import sqlite3
+import sys
 from pathlib import Path
 
 from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION
@@ -271,6 +273,27 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     rebuilt = rebuild_derived_retrieval(
         root,product_mention_policy=_POLICY,full_rebuild=True)
     assert rebuilt["sql_catalogue"]["logical_digest"] == before
+
+
+def test_runner_sql_query_is_safe_on_cp1252_console(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import runners.run_data_lake_indexes_rebuild as runner
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(DataLakeRoot,"resolve",staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(
+        runner,"query_sql_catalogue",
+        lambda *_args,**_kwargs: {"status":"ok","rows":[{"body_text":"broken heart 💔"}]})
+    raw = io.BytesIO()
+    console = io.TextIOWrapper(raw,encoding="cp1252")
+    monkeypatch.setattr(sys,"stdout",console)
+
+    assert runner.main(["--root",str(root.path),"--sql-query"]) == 0
+    console.flush()
+    rendered = raw.getvalue().decode("cp1252")
+    assert "broken heart" in rendered
+    assert r"\ud83d\udc94" in rendered
 
 
 def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
