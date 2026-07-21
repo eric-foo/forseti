@@ -1906,10 +1906,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
-        data_root_requested = args.data_root is not None or (
-            args.output is None
-            and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
-        )
         retail_capture_profile = (
             get_retail_capture_profile(args.retail_capture_profile)
             if args.retail_capture_profile is not None
@@ -1933,13 +1929,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 sephora_market=args.sephora_market,
                 ulta_market=args.ulta_market,
                 target_zip=args.target_zip,
-            )
-            _validate_retail_grid_projection_request(
-                retail_capture_profile=retail_capture_profile,
-                retail_grid_projection_output=args.retail_grid_projection_output,
-                data_root_mode=bool(data_root_requested),
-                sephora_market=args.sephora_market,
-                ulta_market=args.ulta_market
             )
         elif args.retail_grid_projection_output is not None:
             raise ValueError(
@@ -2112,6 +2101,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         # early return sits between the target checks and DataLakeRoot.resolve, so a
         # preflight run must not attempt (or fail on) lake resolution.
         data_root = None
+        data_root_requested = args.data_root is not None or (
+            args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
+        )
         if args.output is not None and args.data_root is not None:
             parser.exit(
                 status=2,
@@ -2121,6 +2113,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.exit(
                 status=2,
                 message="source capture CloakBrowser snapshot failed: exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
+            )
+        if retail_capture_profile is not None:
+            _validate_retail_grid_projection_request(
+                retail_capture_profile=retail_capture_profile,
+                retail_grid_projection_output=args.retail_grid_projection_output,
+                data_root_mode=bool(data_root_requested),
+                sephora_market=args.sephora_market,
+                ulta_market=args.ulta_market,
             )
         if args.preflight_only:
             print(
