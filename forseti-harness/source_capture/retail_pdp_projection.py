@@ -44,6 +44,61 @@ TARGET_PDP_CONTENT_RECORD_KIND = "retail_pdp_target_aggregate_content"
 TARGET_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_target_aggregate_content_v1"
 TARGET_PDP_PARSER_VERSION = "retail_pdp_target_aggregate_parser_v1"
 TARGET_PDP_CONTENT_PROFILE = "target_pdp_aggregate"
+AMAZON_PDP_CONTENT_RECORD_KIND = "retail_pdp_amazon_aggregate_content"
+AMAZON_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_amazon_aggregate_content_v1"
+AMAZON_PDP_PARSER_VERSION = "retail_pdp_amazon_aggregate_parser_v1"
+AMAZON_PDP_CONTENT_PROFILE = "amazon_pdp_aggregate"
+
+# Amazon renders one ``celwidget`` div per declared detail-page feature module
+# and stamps the page's target ASIN on it as ``data-csa-c-asin``.  Server-side
+# rendering leaves most of those modules empty, so Amazon shows the same
+# declared-versus-hydrated split Target shows in its CDUI layout: an empty
+# module body is a declared module the server did not fill.  The attribute is
+# also the only page-native way to prove a merchandising signal belongs to the
+# requested ASIN rather than to a recommendation rail.
+_AMAZON_CELWIDGET_PATTERN = re.compile(
+    r'<div\b(?=[^>]*\bclass="celwidget")(?=[^>]*\bdata-feature-name=)[^>]*>',
+    flags=re.IGNORECASE,
+)
+_AMAZON_PRICE_MODULE_FEATURES = frozenset({"corePrice", "corePriceDisplay_desktop"})
+_AMAZON_BOUGHT_MODULE_FEATURE = "socialProofingAsinFaceout"
+_AMAZON_SHIP_SOLD_MODULE_FEATURE = "shipFromSoldByAbbreviatedODF"
+_AMAZON_AVAILABILITY_MODULE_FEATURE = "availabilityInsideBuyBox"
+_AMAZON_DELIVERY_MODULE_FEATURE = "deliveryBlock"
+_AMAZON_MEDIA_MODULE_FEATURE = "mediaBlock"
+_AMAZON_FEATURE_BULLET_MODULE_FEATURE = "voyagerAccordian"
+_AMAZON_TWISTER_MODULE_FEATURE = "twister"
+_AMAZON_CHOICE_BADGE_MODULE_FEATURE = "acBadge"
+_AMAZON_TWISTER_STATE_KEY = "desktop-twister-sort-filter-data"
+_AMAZON_SOCIAL_PROOFING_STATE_KEY = "social-proofing-page-state"
+_AMAZON_BOUGHT_IN_PAST_MONTH_PATTERN = re.compile(
+    r"([\d.,]+[KMB]?\+?)\s*bought\s+in\s+past\s+month", flags=re.IGNORECASE
+)
+# Amazon PDPs carry live guest-session and bot-defense material (session ids,
+# anti-CSRF tokens, the glow delivery validation token).  As on Target, length
+# alone cannot decide what is secret: only a value carried under a
+# secret-bearing key is collected, so an ordinary short product string cannot
+# refuse a legitimate capture.
+_AMAZON_SECRET_KEY_PATTERN = re.compile(
+    r"token|auth|secret|session|password|passwd|credential|cookie|jwt|apikey"
+    r"|api_key|csrf|nonce|signature",
+    flags=re.IGNORECASE,
+)
+_AMAZON_SECRET_KEYED_MIN_LENGTH = 8
+# Amazon surfaces this parser has no lossless representation for.  Per
+# retailer_information_extraction_standard_v0.md:210,216 a newly exposed
+# surface without a lossless parser fails extraction so the runner keeps the
+# raw inputs, rather than silently dropping the surface.
+_AMAZON_UNSUPPORTED_SURFACE_MARKERS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "amazon_ai_review_summary",
+        ("cr-summarization-attributes-list", 'data-hook="cr-summarization-attribute"'),
+    ),
+    (
+        "amazon_customer_q_and_a",
+        ('id="askATFLink"', "ask_lazy_load_div", 'data-hook="ask-answer"'),
+    ),
+)
 
 # Target's SSR __NEXT_DATA__ carries one dehydrated React Query cache.  The
 # get-cookies query holds live guest session material (access/refresh/id tokens,
@@ -912,6 +967,123 @@ class TargetPdpAggregateContentRecord(StrictModel):
             raise ValueError(
                 "Target content record requires exactly one product, offer, "
                 "review-substrate, and product-module-subtree row"
+            )
+        return self
+
+
+AmazonContentAnchorKind = Literal[
+    "file", "html_selector", "script_index", "text_pattern"
+]
+
+
+class AmazonPdpContentRow(StrictModel):
+    slice_id: str
+    row_id: str
+    row_kind: Literal[
+        "retail_pdp_product",
+        "retail_variant_offer",
+        "retail_review_substrate",
+        "retail_carried_module",
+        "retail_product_module_subtree",
+        "retail_variant_state",
+        "retail_review_row",
+    ]
+    retailer: Literal["amazon"] = "amazon"
+    source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
+    residuals: list[str] = Field(default_factory=list)
+    source_anchor_kind: AmazonContentAnchorKind
+    source_anchor_value: str | None = None
+
+    @field_validator("source_visible_fields")
+    @classmethod
+    def reject_judgment_field_names(
+        cls, value: dict[str, Any | None]
+    ) -> dict[str, Any | None]:
+        forbidden = sorted(key for key in value if _is_forbidden_field_name(key))
+        if forbidden:
+            raise ValueError(
+                "Amazon PDP content source_visible_fields may carry raw facts "
+                f"only; forbidden Judgment field(s): {', '.join(forbidden)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_anchor(self) -> "AmazonPdpContentRow":
+        if self.source_anchor_kind == "file":
+            if self.source_anchor_value is not None:
+                raise ValueError("file anchors must not carry source_anchor_value")
+            return self
+        if not (self.source_anchor_value and self.source_anchor_value.strip()):
+            raise ValueError(
+                f"{self.source_anchor_kind} anchors require source_anchor_value"
+            )
+        return self
+
+
+class AmazonPdpAggregateContentRecord(StrictModel):
+    """Canonical content at full retained depth for one anonymous, US-pinned
+    Amazon PDP capture.
+
+    Amazon has no separate raw review-response companion: the
+    ``amazon_pdp_review_onboarding_v1`` companion holds a control manifest and a
+    deliberately body-free summary, and the exact review bodies exist only in
+    the parent PDP DOM that content mode hashes and discards.  This record
+    therefore **retains the exact review bodies** — the one place Amazon
+    deliberately diverges from Target, whose Bazaarvoice companion owns bodies.
+    """
+
+    record_kind: Literal["retail_pdp_amazon_aggregate_content"] = (
+        AMAZON_PDP_CONTENT_RECORD_KIND
+    )
+    schema_version: Literal["retail_pdp_amazon_aggregate_content_v1"] = (
+        AMAZON_PDP_CONTENT_SCHEMA_VERSION
+    )
+    parser_version: Literal["retail_pdp_amazon_aggregate_parser_v1"] = (
+        AMAZON_PDP_PARSER_VERSION
+    )
+    capture_profile: Literal["amazon_pdp_aggregate"] = AMAZON_PDP_CONTENT_PROFILE
+    review_provider: Literal["amazon_native_rendered_pdp"] = (
+        "amazon_native_rendered_pdp"
+    )
+    review_body_retention: Literal["exact_bodies_retained_in_this_record"] = (
+        "exact_bodies_retained_in_this_record"
+    )
+    source_url: str
+    asin: str
+    offer_module_state: Literal["hydrated_in_rendered_dom", "declared_unhydrated"]
+    variant_module_state: Literal["observed", "not_exposed"]
+    ai_review_summary_state: Literal["not_exposed_on_target_pdp"]
+    customer_q_and_a_state: Literal["not_exposed_on_target_pdp"]
+    rows: list[AmazonPdpContentRow] = Field(default_factory=list)
+    residuals: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_required_rows(self) -> "AmazonPdpAggregateContentRecord":
+        counts = {
+            kind: sum(row.row_kind == kind for row in self.rows)
+            for kind in (
+                "retail_pdp_product",
+                "retail_variant_offer",
+                "retail_review_substrate",
+                "retail_product_module_subtree",
+            )
+        }
+        if any(count != 1 for count in counts.values()):
+            raise ValueError(
+                "Amazon content record requires exactly one product, offer, "
+                "review-substrate, and product-module-subtree row"
+            )
+        if not any(row.row_kind == "retail_review_row" for row in self.rows):
+            raise ValueError(
+                "Amazon content record must retain the exposed review rows; the "
+                "companion summary is body-free and the parent DOM is discarded"
+            )
+        if self.variant_module_state == "not_exposed" and any(
+            row.row_kind == "retail_variant_state" for row in self.rows
+        ):
+            raise ValueError(
+                "Amazon content record carries variant rows without an observed "
+                "variation module"
             )
         return self
 
@@ -3015,6 +3187,1235 @@ def build_target_pdp_aggregate_content_record(
     )
     payload = record.model_dump(mode="json")
     _target_assert_no_session_secrets(payload, session_secret_values)
+    return payload
+
+
+def _amazon_asin_from_source_url(source_url: str) -> str | None:
+    parsed = urlparse(source_url)
+    if parsed.scheme not in {"http", "https"} or parsed.hostname not in {
+        "amazon.com",
+        "www.amazon.com",
+    }:
+        return None
+    asins = re.findall(
+        r"/(?:dp|gp/product)/([A-Z0-9]{10})(?=/|$)", parsed.path, flags=re.IGNORECASE
+    )
+    unique = {value.upper() for value in asins}
+    if len(unique) != 1:
+        return None
+    return unique.pop()
+
+
+def _amazon_declared_modules(html: str) -> list[dict[str, Any]]:
+    """Inventory every declared ``celwidget`` feature module and its render state.
+
+    Amazon declares far more detail-page modules than the server fills.  An
+    empty module body is the Amazon analogue of Target's declared-but-null CDUI
+    datasource, so it is inventoried with its state rather than omitted.
+    """
+    modules: list[dict[str, Any]] = []
+    for order, match in enumerate(_AMAZON_CELWIDGET_PATTERN.finditer(html)):
+        tag = match.group(0)
+        rendered_empty = re.match(r"\s*</div\s*>", html[match.end() :]) is not None
+        modules.append(
+            {
+                "source_order": order,
+                "feature_name": _html_attr_value(tag, "data-feature-name"),
+                "element_id": _html_attr_value(tag, "id"),
+                "content_id": _html_attr_value(tag, "data-csa-c-content-id"),
+                "slot_id": _html_attr_value(tag, "data-csa-c-slot-id"),
+                "initial_active_row": _html_attr_value(
+                    tag, "data-csa-c-is-in-initial-active-row"
+                ),
+                "target_asin_attribute": _html_attr_value(tag, "data-csa-c-asin"),
+                "server_side_render": (
+                    "declared_unhydrated" if rendered_empty else "hydrated"
+                ),
+                "open_tag_start": match.start(),
+            }
+        )
+    return modules
+
+
+def _amazon_module_inventory_fields(
+    modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> dict[str, Any | None]:
+    """One complete, source-ordered inventory of the declared page modules.
+
+    Every declared module is carried with its own render and target-binding
+    state.  Amazon declares hundreds of them, so they stay inside a single
+    inventory row rather than becoming hundreds of scaffolding rows that would
+    swamp the product facts downstream; no module and no field is dropped.
+    """
+    inventory = [
+        {
+            "source_order": module["source_order"],
+            "feature_name": module["feature_name"],
+            "element_id": module["element_id"],
+            "content_id": module["content_id"],
+            "slot_id": module["slot_id"],
+            "initial_active_row": module["initial_active_row"],
+            "target_asin_attribute": module["target_asin_attribute"],
+            "target_asin_bound": module["target_asin_attribute"] == asin,
+            "server_side_render": module["server_side_render"],
+        }
+        for module in modules
+    ]
+    hydrated = [row for row in inventory if row["server_side_render"] == "hydrated"]
+    return {
+        "module_role": "detail_page_module_inventory",
+        "declared_module_count": len(inventory),
+        "hydrated_module_count": len(hydrated),
+        "declared_unhydrated_module_count": len(inventory) - len(hydrated),
+        "target_asin_bound_module_count": sum(
+            row["target_asin_bound"] for row in inventory
+        ),
+        "retained_module_bodies": (
+            "only the named target-bound offer, media, review, variant, "
+            "product-detail, and merchandising modules in this record; other "
+            "hydrated module bodies are hashed with the disposable DOM and are "
+            "not retained as canonical content"
+        ),
+        "declared_modules": inventory,
+    }
+
+
+def _amazon_bound_module_fragments(
+    html: str,
+    modules: Sequence[Mapping[str, Any]],
+    *,
+    feature_name: str,
+    asin: str,
+) -> list[str]:
+    """Hydrated fragments for one feature module, proven bound to the target ASIN.
+
+    A hydrated module stamped with a different or absent ASIN belongs to a
+    recommendation rail or an unrelated product.  Binding its facts to the
+    requested ASIN is exactly what the Retail/PDP contract forbids, so it fails
+    loud rather than being silently used or silently skipped.
+    """
+    return [
+        fragment
+        for _module, fragment in _amazon_bound_modules(
+            html, modules, feature_name=feature_name, asin=asin
+        )
+    ]
+
+
+def _amazon_bound_modules(
+    html: str,
+    modules: Sequence[Mapping[str, Any]],
+    *,
+    feature_name: str,
+    asin: str,
+) -> list[tuple[Mapping[str, Any], str]]:
+    """Hydrated ``(module, fragment)`` pairs for one target-ASIN-bound feature."""
+    bound_modules: list[tuple[Mapping[str, Any], str]] = []
+    for module in modules:
+        if (
+            module["feature_name"] != feature_name
+            or module["server_side_render"] != "hydrated"
+        ):
+            continue
+        bound = module["target_asin_attribute"]
+        if bound != asin:
+            raise ValueError(
+                f"Amazon {feature_name} module renders content bound to {bound!r} "
+                f"rather than the requested ASIN {asin!r}; refusing to bind an "
+                "unrelated-product signal to the target"
+            )
+        fragment = _balanced_div_fragment(html, start=module["open_tag_start"])
+        if fragment is None:
+            raise ValueError(f"Amazon {feature_name} module is not balanced HTML")
+        bound_modules.append((module, fragment))
+    return bound_modules
+
+
+def _amazon_module_text(fragment: str) -> str | None:
+    """Visible text of one module, without its inline style/script payloads."""
+    stripped = re.sub(
+        r"<(script|style)\b[^>]*>[\s\S]*?</\1\s*>", " ", fragment, flags=re.IGNORECASE
+    )
+    return _clean_html_text(stripped)
+
+
+def _amazon_a_state_payloads(fragment: str) -> list[tuple[str, Any]]:
+    """Amazon's own embedded ``a-state`` page state, keyed as the page declares."""
+    payloads: list[tuple[str, Any]] = []
+    for match in re.finditer(
+        r'<script\b[^>]*\btype=["\']a-state["\'][^>]*\bdata-a-state=["\']([^"\']*)["\']'
+        r"[^>]*>([\s\S]*?)</script\s*>",
+        fragment,
+        flags=re.IGNORECASE,
+    ):
+        meta = _safe_json_loads(html_lib.unescape(match.group(1)))
+        key = _string_or_none(as_dict(meta).get("key"))
+        if key is None:
+            continue
+        payloads.append((key, _safe_json_loads(match.group(2))))
+    return payloads
+
+
+def _amazon_module_prices(fragment: str) -> list[str]:
+    """Price-to-pay values a single price module renders for its own offer."""
+    prices: list[str] = re.findall(
+        r'id=["\']apex-pricetopay-accessibility-label["\'][^>]*>\s*\$([\d,]+\.\d{2})',
+        fragment,
+        flags=re.IGNORECASE,
+    )
+    for price_span in re.finditer(
+        r'<span\b(?=[^>]*\bclass=["\'][^"\']*\bpriceToPay\b)[^>]*>',
+        fragment,
+        flags=re.IGNORECASE,
+    ):
+        tail = fragment[price_span.end() : price_span.end() + 400]
+        offscreen = re.search(
+            r'<span class=["\']a-offscreen["\']>\s*\$([\d,]+\.\d{2})\s*</span>',
+            tail,
+            flags=re.IGNORECASE,
+        )
+        if offscreen is not None:
+            prices.append(offscreen.group(1))
+    return prices
+
+
+def _amazon_buying_options(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> tuple[list[dict[str, Any | None]], str | None, list[str]]:
+    """Every target-bound buying option Amazon's buybox renders for this ASIN.
+
+    Amazon's accordion exposes more than one offer for the same ASIN — the
+    one-time purchase row and the Subscribe & Save row carry different prices.
+    They are separate source facts about the target, not a misbinding, so all
+    are retained with their accordion slot identity; the initial active row
+    supplies the headline price.
+    """
+    captions = {
+        module["slot_id"]: _amazon_module_text(fragment)
+        for module, fragment in _amazon_bound_modules(
+            html, modules, feature_name="newAccordionCaption", asin=asin
+        )
+    }
+    options: list[dict[str, Any | None]] = []
+    for module, fragment in _amazon_bound_modules(
+        html, modules, feature_name="corePrice", asin=asin
+    ):
+        prices = sorted(set(_amazon_module_prices(fragment)))
+        if len(prices) > 1:
+            raise ValueError(
+                f"Amazon corePrice module in slot {module['slot_id']!r} exposes "
+                "conflicting prices: " + ", ".join(prices)
+            )
+        option = {
+            "buying_option_slot_id": module["slot_id"],
+            "buying_option_caption": captions.get(module["slot_id"]),
+            "is_initial_active_row": module["initial_active_row"] == "true",
+            "price": prices[0] if prices else None,
+            "price_currency": "USD" if prices else None,
+            "price_binding_source": "amazon_target_bound_corePrice_module",
+        }
+        if option not in options:
+            options.append(option)
+    active = [option for option in options if option["is_initial_active_row"]]
+    if options and len(active) != 1:
+        raise ValueError(
+            "Amazon buybox does not expose exactly one initial active buying "
+            f"option for {asin}; found {len(active)}"
+        )
+    price = active[0]["price"] if active else None
+    apex_prices = sorted(
+        {
+            value
+            for _module, fragment in _amazon_bound_modules(
+                html, modules, feature_name="corePriceDisplay_desktop", asin=asin
+            )
+            for value in _amazon_module_prices(fragment)
+        }
+    )
+    # The apex display renders one block per buying option (one-time and
+    # Subscribe & Save), so more than one value is expected.  A displayed price
+    # that no target-bound buying option carries would be an unbound price and
+    # fails loud rather than being retained against the target.
+    option_prices = {
+        option["price"] for option in options if option["price"] is not None
+    }
+    unbound = sorted(value for value in apex_prices if value not in option_prices)
+    if unbound:
+        raise ValueError(
+            "Amazon apex price display shows price(s) no target-bound buying "
+            "option carries: " + ", ".join(unbound)
+        )
+    return options, price, apex_prices
+
+
+def _amazon_bought_in_past_month(
+    html: str,
+    visible_text: str,
+    modules: Sequence[Mapping[str, Any]],
+    *,
+    asin: str,
+) -> tuple[str | None, str | None]:
+    """The published purchase-rate badge, proven bound to the requested ASIN."""
+    values: list[str] = []
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_BOUGHT_MODULE_FEATURE, asin=asin
+    ):
+        for key, payload in _amazon_a_state_payloads(fragment):
+            if key != _AMAZON_SOCIAL_PROOFING_STATE_KEY:
+                continue
+            state_asin = _string_or_none(as_dict(payload).get("asin"))
+            if state_asin is not None and state_asin != asin:
+                raise ValueError(
+                    "Amazon social-proofing page state names ASIN "
+                    f"{state_asin!r} rather than the requested {asin!r}"
+                )
+        match = _AMAZON_BOUGHT_IN_PAST_MONTH_PATTERN.search(
+            _amazon_module_text(fragment) or ""
+        )
+        if match is not None:
+            values.append(match.group(0))
+    unique = sorted(set(values))
+    if len(unique) > 1:
+        raise ValueError(
+            "Amazon target-bound social-proofing modules disagree: "
+            + ", ".join(unique)
+        )
+    bound = unique[0] if unique else None
+    if bound is None and _AMAZON_BOUGHT_IN_PAST_MONTH_PATTERN.search(visible_text):
+        raise ValueError(
+            "Amazon page shows a bought-in-past-month signal that no "
+            f"target-ASIN-bound module carries for {asin}; refusing to bind a "
+            "page-global merchandising signal to the target"
+        )
+    quick_view = _clean_html_text(
+        _first_regex(
+            html,
+            (r'<p\b[^>]*\bid=["\']pqv-bought-in-last-month["\'][^>]*>([\s\S]{0,200}?)</p>',),
+        )
+        or ""
+    )
+    return bound, quick_view
+
+
+def _amazon_ship_from_sold_by(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> dict[str, Any | None]:
+    fragments = _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_SHIP_SOLD_MODULE_FEATURE, asin=asin
+    )
+    shippers: list[str] = []
+    sellers: list[str] = []
+    for fragment in fragments:
+        text = _amazon_module_text(fragment) or ""
+        match = re.search(
+            r"Ships from:\s*(?P<shipper>.*?)\s*Sold by:\s*(?P<seller>.*?)\s*$", text
+        )
+        if match is None:
+            continue
+        shippers.append(match.group("shipper"))
+        sellers.append(match.group("seller"))
+    if len(set(shippers)) > 1 or len(set(sellers)) > 1:
+        raise ValueError(
+            "Amazon target-bound ship-from/sold-by modules disagree: "
+            f"{sorted(set(shippers))} / {sorted(set(sellers))}"
+        )
+    return {
+        "shipper": shippers[0] if shippers else None,
+        "seller": sellers[0] if sellers else None,
+        "seller_binding_source": (
+            "amazon_target_bound_shipFromSoldByAbbreviatedODF_module"
+            if sellers
+            else "absent"
+        ),
+    }
+
+
+def _amazon_availability(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> str | None:
+    values: list[str] = []
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_AVAILABILITY_MODULE_FEATURE, asin=asin
+    ):
+        if 'id="availability"' not in fragment:
+            continue
+        text = _clean_html_text(
+            _first_regex(
+                fragment,
+                (
+                    r'<span\b[^>]*\bclass=["\'][^"\']*primary-availability-message'
+                    r'[^"\']*["\'][^>]*>([\s\S]{0,200}?)</span>',
+                ),
+            )
+            or ""
+        )
+        if text:
+            values.append(text)
+    unique = sorted(set(values))
+    if len(unique) > 1:
+        raise ValueError(
+            "Amazon target-bound availability modules disagree: " + ", ".join(unique)
+        )
+    return unique[0] if unique else None
+
+
+def _amazon_delivery_fields(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> dict[str, Any | None]:
+    promises: list[dict[str, Any | None]] = []
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_DELIVERY_MODULE_FEATURE, asin=asin
+    ):
+        for span in re.finditer(
+            r"<span\b(?=[^>]*\bdata-csa-c-delivery-type=)[^>]*>", fragment
+        ):
+            tag = span.group(0)
+            promise = {
+                key: _html_attr_value(tag, f"data-csa-c-{key.replace('_', '-')}")
+                for key in (
+                    "delivery_price",
+                    "delivery_type",
+                    "delivery_time",
+                    "delivery_condition",
+                    "delivery_benefit_program_id",
+                    "mir_type",
+                    "mir_sub_type",
+                )
+            }
+            promise["content_id"] = _html_attr_value(tag, "data-csa-c-content-id")
+            if promise not in promises:
+                promises.append(promise)
+    return {
+        "delivery_promise_count": len(promises),
+        "delivery_promises": promises,
+        "delivery_binding_source": (
+            "amazon_target_bound_deliveryBlock_module" if promises else "absent"
+        ),
+    }
+
+
+def _amazon_detail_bullet_fields(html: str, *, asin: str) -> dict[str, Any | None]:
+    """Amazon's own product-details bullet list, proven to name the target ASIN."""
+    index = html.find('<div id="detailBullets_feature_div">')
+    if index < 0:
+        return {"product_details_state": "not_exposed"}
+    fragment = _balanced_div_fragment(html, start=index)
+    if fragment is None:
+        raise ValueError("Amazon detailBullets module is not balanced HTML")
+    details: list[dict[str, str | None]] = []
+    best_sellers_rank: str | None = None
+    for item in re.finditer(
+        r"<li\b[^>]*>([\s\S]*?)</li>", fragment, flags=re.IGNORECASE
+    ):
+        body = item.group(1)
+        label = _clean_html_text(
+            _first_regex(
+                body,
+                (r'<span\b[^>]*\bclass=["\'][^"\']*a-text-bold[^"\']*["\'][^>]*>([\s\S]*?)</span>',),
+            )
+            or ""
+        )
+        if label is None:
+            continue
+        label = label.strip("‏‎: ").strip()
+        value = _clean_html_text(re.sub(r"<span\b[^>]*a-text-bold[\s\S]*?</span>", " ", body, count=1))
+        if label.lower().startswith("best sellers rank"):
+            best_sellers_rank = value
+            continue
+        if label.lower().startswith("customer reviews"):
+            continue
+        if label and value:
+            details.append({"label": label, "value": value})
+    declared_asin = next(
+        (row["value"] for row in details if (row["label"] or "").upper() == "ASIN"),
+        None,
+    )
+    if declared_asin is not None and declared_asin.upper() != asin:
+        raise ValueError(
+            "Amazon product-details bullet list declares ASIN "
+            f"{declared_asin!r} rather than the requested {asin!r}"
+        )
+    return {
+        "product_details_state": "observed",
+        "product_details_declared_asin": declared_asin,
+        "product_detail_count": len(details),
+        "product_details": details,
+        "best_sellers_rank_text": best_sellers_rank,
+        "product_details_binding_source": "amazon_rendered_detail_bullets",
+    }
+
+
+def _amazon_feature_bullets(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> list[str]:
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_FEATURE_BULLET_MODULE_FEATURE, asin=asin
+    ):
+        index = fragment.find('<div id="feature-bullets"')
+        if index < 0:
+            continue
+        bullets_fragment = _balanced_div_fragment(fragment, start=index)
+        if bullets_fragment is None:
+            raise ValueError("Amazon feature-bullets block is not balanced HTML")
+        bullets = [
+            text
+            for text in (
+                _clean_html_text(item.group(1))
+                for item in re.finditer(
+                    r"<li\b[^>]*>([\s\S]*?)</li>", bullets_fragment, flags=re.IGNORECASE
+                )
+            )
+            if text
+        ]
+        if bullets:
+            return bullets
+    return []
+
+
+def _amazon_media_fields(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> dict[str, Any | None]:
+    image_urls: list[str] = []
+    media_entries: list[dict[str, str | None]] = []
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_MEDIA_MODULE_FEATURE, asin=asin
+    ):
+        for match in re.finditer(r'data-a-dynamic-image="([^"]*)"', fragment):
+            parsed = _safe_json_loads(html_lib.unescape(match.group(1)))
+            if isinstance(parsed, Mapping):
+                image_urls.extend(str(key) for key in parsed)
+        for tile in re.finditer(
+            r"<li\b(?=[^>]*\bdata-csa-c-media-type=)[^>]*>", fragment
+        ):
+            tag = tile.group(0)
+            entry = {
+                "media_type": _html_attr_value(tag, "data-csa-c-media-type"),
+                "content_id": _html_attr_value(tag, "data-csa-c-content-id"),
+                "media_block_entity": _html_attr_value(
+                    tag, "data-csa-c-media-block-entity"
+                ),
+                "position": _html_attr_value(tag, "data-csa-c-posx"),
+            }
+            if entry not in media_entries:
+                media_entries.append(entry)
+    return {
+        "media_state": "observed" if (image_urls or media_entries) else "not_exposed",
+        "image_reference_count": len(set(image_urls)),
+        "image_references": sorted(set(image_urls)),
+        "media_tile_count": len(media_entries),
+        "media_tiles": media_entries,
+        "media_bytes_fetched": False,
+        "media_binding_source": "amazon_target_bound_mediaBlock_module",
+    }
+
+
+def _amazon_variant_rows(
+    html: str, modules: Sequence[Mapping[str, Any]], *, asin: str
+) -> tuple[list[dict[str, Any | None]], str]:
+    """Every source-ordered twister variant, from Amazon's own dimension state."""
+    fragments = _amazon_bound_module_fragments(
+        html, modules, feature_name=_AMAZON_TWISTER_MODULE_FEATURE, asin=asin
+    )
+    if not fragments:
+        return [], "not_exposed"
+    state: Mapping[str, Any] | None = None
+    for fragment in fragments:
+        for key, payload in _amazon_a_state_payloads(fragment):
+            if key == _AMAZON_TWISTER_STATE_KEY and isinstance(payload, Mapping):
+                state = payload
+    if state is None:
+        raise ValueError(
+            "Amazon twister module rendered content but exposes no parsable "
+            f"{_AMAZON_TWISTER_STATE_KEY} state; refusing to report variants as "
+            "observed without retaining them"
+        )
+    dimensions = as_dict(state.get("sortedDimValuesForAllDims"))
+    rows: list[dict[str, Any | None]] = []
+    for dimension_name in sorted(dimensions):
+        values = dimensions.get(dimension_name)
+        if not isinstance(values, list):
+            continue
+        for order, entry in enumerate(values):
+            value = as_dict(entry)
+            image = as_dict(value.get("imageAttribute"))
+            slots = value.get("slots") if isinstance(value.get("slots"), list) else []
+            rows.append(
+                {
+                    "dimension_name": dimension_name,
+                    "source_order": order,
+                    "index_in_dimension_list": value.get("indexInDimList"),
+                    "variant_asin": _string_or_none(value.get("defaultAsin")),
+                    "variant_display_text": _string_or_none(
+                        value.get("dimensionValueDisplayText")
+                    ),
+                    "variant_state": _string_or_none(value.get("dimensionValueState")),
+                    "is_selected": value.get("dimensionValueState") == "SELECTED",
+                    "is_requested_target": _string_or_none(value.get("defaultAsin"))
+                    == asin,
+                    "display_sub_type": _string_or_none(
+                        value.get("dimensionDisplaySubType")
+                    ),
+                    "hidden_in_collapse_view": value.get("asinHiddenInCollapseView"),
+                    "slots_fetched": value.get("slotsFetched"),
+                    "slot_count": len(slots),
+                    "slot_metadata_keys": sorted(
+                        {
+                            key
+                            for slot in slots
+                            for key in (
+                                _string_or_none(
+                                    as_dict(as_dict(slot).get("metaData")).get("key")
+                                ),
+                            )
+                            if key
+                        }
+                    ),
+                    "variant_price": None,
+                    "variant_price_posture": "not_exposed_in_twister_state",
+                    "variant_binding_source": "amazon_desktop_twister_dimension_state",
+                }
+            )
+    selected = [row for row in rows if row["is_selected"]]
+    if len(selected) != 1 or selected[0]["variant_asin"] != asin:
+        raise ValueError(
+            "Amazon twister state does not select exactly the requested ASIN "
+            f"{asin!r}; selected={[row['variant_asin'] for row in selected]}"
+        )
+    return rows, "observed"
+
+
+def _amazon_review_substrate_fields(
+    html: str,
+    visible_text: str,
+    modules: Sequence[Mapping[str, Any]],
+    *,
+    asin: str,
+    parsed: Any,
+) -> dict[str, Any | None]:
+    rating: list[str] = []
+    rating_count: list[str] = []
+    for fragment in _amazon_bound_module_fragments(
+        html, modules, feature_name="averageCustomerReviews", asin=asin
+    ):
+        title = _first_regex(
+            fragment,
+            (r'id=["\']acrPopover["\'][^>]*\btitle=["\']([^"\']+)["\']',),
+        )
+        if title:
+            match = re.search(r"(\d+(?:\.\d+)?) out of 5", title)
+            if match:
+                rating.append(match.group(1))
+        text = _clean_html_text(
+            _first_regex(
+                fragment,
+                (r'id=["\']acrCustomerReviewText["\'][^>]*>([\s\S]{0,120}?)</span>',),
+            )
+            or ""
+        )
+        if text:
+            match = re.search(r"([\d,]+)", text)
+            if match:
+                rating_count.append(match.group(1))
+    if len(set(rating)) > 1 or len(set(rating_count)) > 1:
+        raise ValueError(
+            "Amazon target-bound review aggregate modules disagree: "
+            f"{sorted(set(rating))} / {sorted(set(rating_count))}"
+        )
+    histogram_links = re.findall(
+        r'href="[^"]*/customer-reviews/([A-Z0-9]{10})[^"]*filterByStar=', html
+    )
+    off_target = sorted({value for value in histogram_links if value != asin})
+    if off_target:
+        raise ValueError(
+            "Amazon rating histogram links reference non-target ASIN(s) "
+            + ", ".join(off_target)
+        )
+    section_counts: dict[str, int] = {}
+    for row in parsed.rows:
+        section_counts[row["section"]] = section_counts.get(row["section"], 0) + 1
+    return {
+        "review_substrate_source": "amazon_native_rendered_pdp",
+        "review_provider": "amazon_native_rendered_pdp",
+        "rating": rating[0] if rating else None,
+        "rating_count": rating_count[0] if rating_count else None,
+        "review_count": None,
+        "written_review_count": None,
+        "rating_distribution_basis": "percent",
+        "rating_distribution_percent": dict(parsed.rating_distribution_percent),
+        "rating_histogram_binding_source": (
+            f"amazon_rendered_histogram_links_for_{asin}" if histogram_links else "absent"
+        ),
+        "captured_review_rows": len(parsed.rows),
+        "united_states_rows": section_counts.get("top_reviews_united_states", 0),
+        "other_countries_rows": section_counts.get("top_reviews_other_countries", 0),
+        "section_labels": dict(parsed.section_labels),
+        "source_order_claim": "amazon_pdp_top_reviews_section_order",
+        "default_us_market_analysis_window": "top_reviews_united_states",
+        "most_helpful_available": False,
+        "most_recent_available": False,
+        "last_seen_monitoring_anchor_available": False,
+        "review_body_retention": "exact_bodies_retained_in_this_record",
+        "customer_q_and_a_status": "not_exposed_on_target_pdp",
+        "brand_authored_aplus_faq_questions": parsed.aplus_question_count,
+        "ai_review_summary_status": "not_exposed_on_target_pdp",
+        "reviewer_demographics_status": "not_exposed",
+        "bazaarvoice_marker_count": len(re.findall(r"(?i)bazaarvoice", html)),
+        "global_ratings_visible_text": _first_regex(
+            visible_text, (r"([\d,]+)\s+global ratings",)
+        ),
+    }
+
+
+def _amazon_undoubled(value: str | None) -> str | None:
+    """Collapse Amazon's duplicated per-row header text back to one copy.
+
+    Amazon renders each review's title, rating, by-line, badge, and variation
+    markup twice inside the same ``data-hook="review"`` element, so the
+    normalized hook text arrives as an exact ``"X X"`` doubling.  Anything that
+    is not an exact doubling is returned unchanged rather than trimmed.
+    """
+    if not value:
+        return value
+    stripped = value.strip()
+    half, remainder = divmod(len(stripped), 2)
+    if remainder == 1 and stripped[half] == " " and stripped[:half] == stripped[half + 1 :]:
+        return stripped[:half]
+    return stripped
+
+
+def _amazon_review_row_fields(
+    row: Mapping[str, Any],
+    *,
+    rank: int,
+    section_rank: int,
+    section_label: str,
+) -> dict[str, Any | None]:
+    # The exact review body is the reviewer's own rich-content block.  The
+    # surrounding reviewText hook also carries the a11y teaser sentences and the
+    # Read more/less control, which are page chrome, not review text; both are
+    # kept so the difference stays visible.
+    rich_body = _string_or_none(row.get("body_rich_text"))
+    body = rich_body if rich_body is not None else row["body"]
+    date_text = _amazon_undoubled(row["source_date_text"])
+    location = re.match(r"^Reviewed in (.+?) on ", date_text or "")
+    badge_labels = sorted(
+        {
+            label
+            for label in (_amazon_undoubled(value) for value in row["badge_labels"])
+            if label
+        }
+    )
+    profile_names = row.get("author_profile_names") or []
+    return {
+        "rank": rank,
+        "section": row["section"],
+        "section_label": section_label,
+        "section_rank": section_rank,
+        "review_id": row["review_id"],
+        "title": _amazon_undoubled(row["title"]),
+        "body": body,
+        "body_source": (
+            "amazon_review_rich_content_container"
+            if rich_body is not None
+            else "amazon_reviewText_hook_without_rich_content_container"
+        ),
+        "body_character_count": len(body),
+        "body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+        "body_retained_here": True,
+        "body_owner": (
+            "this content record; the Amazon review companion is body-free and "
+            "keeps no raw response bytes of its own"
+        ),
+        "review_text_hook_with_page_chrome": row["body"],
+        "rating": row["rating"],
+        "rating_text": _amazon_undoubled(row["rating_text"]),
+        "source_date": row["source_date"],
+        "source_date_text": date_text,
+        "author": profile_names[0] if profile_names else None,
+        "author_profile_names": list(profile_names),
+        "review_by_line_text": _amazon_undoubled(row["author"]),
+        "review_location": location.group(1) if location else None,
+        "variant_text": _amazon_undoubled(row["variant_text"]),
+        "verified_purchase": "Verified Purchase" in badge_labels,
+        "helpful_count": row["helpful_count"],
+        "helpful_text": row["helpful_text"],
+        "badge_labels": badge_labels,
+        "incentive_labels": [
+            label
+            for label in (
+                _amazon_undoubled(value) for value in row["incentive_labels"]
+            )
+            if label
+        ],
+        "media_reference_count": len(row["media_references"]),
+        "media_references": row["media_references"],
+        "media_reference_scope": (
+            "every media URL in the review row subtree, including reviewer "
+            "avatar and placeholder images"
+        ),
+        "media_bytes_fetched": False,
+        "source_hooks": row["source_hooks"],
+        "source_attribute_names": row["source_attribute_names"],
+        "review_binding_source": "amazon_rendered_top_reviews_section",
+    }
+
+
+def _amazon_session_secret_values(html: str) -> list[str]:
+    """Guest-session and anti-CSRF material the Amazon PDP DOM carries.
+
+    Collected by secret-bearing key name plus a length floor.  Scanning by
+    length alone would match ordinary product copy and refuse legitimate
+    captures, which is the defect class Target's route already proved.
+    """
+    values: list[str] = []
+    for match in re.finditer(r"<input\b[^>]*>", html, flags=re.IGNORECASE):
+        tag = match.group(0)
+        names = [
+            name
+            for name in (
+                _html_attr_value(tag, "id"),
+                _html_attr_value(tag, "name"),
+            )
+            if name
+        ]
+        if not any(_AMAZON_SECRET_KEY_PATTERN.search(name) for name in names):
+            continue
+        value = _html_attr_value(tag, "value")
+        if value and len(value) >= _AMAZON_SECRET_KEYED_MIN_LENGTH:
+            values.append(value)
+    return sorted(set(values))
+
+
+def _amazon_assert_no_session_secrets(
+    payload: Mapping[str, Any], secret_values: Sequence[str]
+) -> None:
+    if not secret_values:
+        return
+    serialized = json.dumps(payload)
+    leaked = sorted({value[:12] for value in secret_values if value in serialized})
+    if leaked:
+        raise ValueError(
+            "Amazon content record would retain guest session or anti-CSRF "
+            f"material ({len(leaked)} value(s), e.g. {leaked[0]!r}...); refusing "
+            "to emit"
+        )
+
+
+def _amazon_assert_no_unsupported_surface(html: str) -> None:
+    exposed = sorted(
+        name
+        for name, markers in _AMAZON_UNSUPPORTED_SURFACE_MARKERS
+        if any(marker in html for marker in markers)
+    )
+    if exposed:
+        raise ValueError(
+            "Amazon PDP exposes surface(s) this parser cannot retain losslessly: "
+            + ", ".join(exposed)
+            + "; preserving raw inputs instead of dropping them"
+        )
+
+
+def build_amazon_pdp_aggregate_content_record(
+    *,
+    rendered_dom: bytes,
+    visible_text: bytes,
+    source_url: str,
+) -> dict[str, Any]:
+    """Retain target-bound Amazon PDP facts, including exact review bodies.
+
+    Amazon's review companion (``amazon_pdp_review_onboarding_v1``) is
+    deliberately body-free and holds no raw response bytes of its own, so the
+    exact review bodies exist only inside the parent PDP DOM that content mode
+    hashes and discards.  Retaining them here is the difference between this
+    route and Target's, whose Bazaarvoice companion owns bodies.
+    """
+    if not isinstance(rendered_dom, bytes) or not isinstance(visible_text, bytes):
+        raise TypeError("rendered_dom and visible_text must be bytes")
+    requested_asin = _amazon_asin_from_source_url(source_url)
+    if requested_asin is None:
+        raise ValueError(
+            "Amazon aggregate content records require an amazon.com PDP URL with "
+            "exactly one /dp/<ASIN> or /gp/product/<ASIN> path segment"
+        )
+
+    from source_capture.amazon_review_onboarding_capture import (
+        parse_amazon_pdp_review_sections,
+    )
+
+    slice_id = "cloakbrowser_snapshot_01"
+    source_fact = SimpleNamespace(status=VisibleFactStatus.KNOWN, value=source_url)
+    source_slice = SimpleNamespace(
+        slice_id=slice_id,
+        locator=source_fact,
+        timing=SimpleNamespace(capture_time=None, cutoff_posture=None),
+        archive_history_posture=None,
+        locale_pin=SimpleNamespace(status=VisibleFactStatus.KNOWN, value="US"),
+        currency_pin=SimpleNamespace(status=VisibleFactStatus.KNOWN, value="USD"),
+        variant_pin=SimpleNamespace(
+            status=VisibleFactStatus.KNOWN, value=f"asin={requested_asin}"
+        ),
+    )
+    packet = SimpleNamespace(
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=source_fact,
+        series_id=None,
+    )
+    raw_ref = RetailProjectionRawRef(
+        packet_id="content_record_unbound",
+        slice_id=slice_id,
+    )
+    dom_anchor = RetailProjectionRawAnchor(
+        file_id="content_input_rendered_dom",
+        relative_packet_path="cloakbrowser_rendered_dom.html",
+        sha256=hashlib.sha256(rendered_dom).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        anchor_kind="file",
+    )
+    visible_text_file = PreservedFile(
+        file_id="content_input_visible_text",
+        original_path="cloakbrowser_visible_text.txt",
+        relative_packet_path="cloakbrowser_visible_text.txt",
+        sha256=hashlib.sha256(visible_text).hexdigest(),
+        hash_basis="raw_stored_bytes",
+        size_bytes=len(visible_text),
+    )
+    html = _decode_text(rendered_dom)
+    text = _decode_text(visible_text)
+    projected = _project_retail_html(
+        html,
+        visible_text_files=[(visible_text_file, text)],
+        visible_text=text,
+        packet=packet,
+        source_slice=source_slice,
+        raw_ref=raw_ref,
+        raw_anchor=dom_anchor,
+        retailer="amazon",
+    )
+    product_rows = [
+        row for row in projected.rows if row.row_kind == "retail_pdp_product"
+    ]
+    offer_rows = [
+        row for row in projected.rows if row.row_kind == "retail_variant_offer"
+    ]
+    review_rows = [
+        row for row in projected.rows if row.row_kind == "retail_review_substrate"
+    ]
+    if not (len(product_rows) == len(offer_rows) == len(review_rows) == 1):
+        raise ValueError(
+            "Amazon aggregate content requires exactly one product, offer, and "
+            "review-substrate row"
+        )
+
+    dom_asins = {
+        value.upper()
+        for value in re.findall(
+            r'<input\b[^>]*\bid=["\']ASIN["\'][^>]*\bvalue=["\']([^"\']+)["\']', html
+        )
+    }
+    if dom_asins and dom_asins != {requested_asin}:
+        raise ValueError(
+            f"Amazon rendered #ASIN input(s) {sorted(dom_asins)} do not match the "
+            f"requested ASIN {requested_asin!r}"
+        )
+    currency = _first_regex(
+        html,
+        (r'name=["\']currencyOfPreference["\'][^>]*\bvalue=["\']([A-Z]{3})["\']',),
+    )
+    if currency != "USD":
+        raise ValueError(
+            "Amazon aggregate content requires the US storefront's exact "
+            f"currencyOfPreference=USD evidence; found {currency!r}"
+        )
+    _amazon_assert_no_unsupported_surface(html)
+
+    modules = _amazon_declared_modules(html)
+    module_inventory = _amazon_module_inventory_fields(modules, asin=requested_asin)
+    parsed = parse_amazon_pdp_review_sections(html)
+
+    buying_options, price, apex_display_prices = _amazon_buying_options(
+        html, modules, asin=requested_asin
+    )
+    bought_in_past_month, quick_view_social_proof = _amazon_bought_in_past_month(
+        html, text, modules, asin=requested_asin
+    )
+    ship_sold = _amazon_ship_from_sold_by(html, modules, asin=requested_asin)
+    availability = _amazon_availability(html, modules, asin=requested_asin)
+    delivery = _amazon_delivery_fields(html, modules, asin=requested_asin)
+    variant_field_rows, variant_module_state = _amazon_variant_rows(
+        html, modules, asin=requested_asin
+    )
+    detail_bullets = _amazon_detail_bullet_fields(html, asin=requested_asin)
+    feature_bullets = _amazon_feature_bullets(html, modules, asin=requested_asin)
+    media = _amazon_media_fields(html, modules, asin=requested_asin)
+    choice_badges = [
+        label
+        for label in (
+            _clean_html_text(
+                _first_regex(
+                    fragment,
+                    (
+                        r"<span[^>]*class=\"[^\"]*mvt-ac-badge[^\"]*\""
+                        r"[^>]*>([\s\S]{0,200}?)</span>",
+                        r"(Amazon's Choice)",
+                    ),
+                )
+                or ""
+            )
+            for fragment in _amazon_bound_module_fragments(
+                html,
+                modules,
+                feature_name=_AMAZON_CHOICE_BADGE_MODULE_FEATURE,
+                asin=requested_asin,
+            )
+        )
+        if label
+    ]
+    breadcrumbs = [
+        {
+            "name": _clean_html_text(item.group("label")),
+            "href": html_lib.unescape(item.group("href")),
+        }
+        for item in re.finditer(
+            r'<a\b[^>]*\bhref="(?P<href>[^"]*/b/ref=dp_bc_[^"]*)"[^>]*>(?P<label>[\s\S]*?)</a>',
+            html,
+        )
+    ]
+
+    product_fields = {
+        "product_id": requested_asin,
+        "asin": requested_asin,
+        "retailer": "amazon",
+        "product_name": _clean_html_text(
+            _first_regex(
+                html,
+                (r'id=["\']productTitle["\'][^>]*>([\s\S]{0,600}?)</span>',),
+            )
+            or ""
+        ),
+        "brand_store_label": _clean_html_text(
+            _first_regex(
+                html,
+                (r'id=["\']visitStoreLink["\'][^>]*>([\s\S]{0,200}?)</a>',),
+            )
+            or ""
+        ),
+        "brand_store_url": _first_regex(
+            html, (r'id=["\']visitStoreLink["\'][^>]*\bhref="([^"]+)"',)
+        ),
+        "brand_logo_title": _first_regex(
+            html, (r'id=["\']logoByLine["\'][^>]*\btitle="([^"]+)"',)
+        ),
+        "category_breadcrumbs": [
+            row["name"] for row in breadcrumbs if row["name"]
+        ],
+        "category_breadcrumb_links": breadcrumbs,
+        "amazons_choice_badge_text": choice_badges[0] if choice_badges else None,
+        "best_sellers_rank_text": detail_bullets.get("best_sellers_rank_text"),
+        "canonical_source_url": source_url,
+        "page_title": _clean_html_text(_title_text(html) or ""),
+        "product_binding_source": "amazon_rendered_pdp_target_asin_bound_modules",
+    }
+    offer = dict(offer_rows[0].source_visible_fields)
+    offer.update(
+        {
+            "product_id": requested_asin,
+            "sku": requested_asin,
+            "price": price,
+            "price_isolation": (
+                "amazon_target_bound_active_buying_option" if price else "absent"
+            ),
+            "price_currency": "USD" if price else None,
+            "apex_display_prices": apex_display_prices,
+            "buying_option_count": len(buying_options),
+            "buying_options": buying_options,
+            "currency_of_preference": currency,
+            "availability": availability,
+            "bought_in_past_month": bought_in_past_month,
+            "bought_in_past_month_binding_source": (
+                "amazon_target_bound_socialProofingAsinFaceout_module"
+                if bought_in_past_month
+                else "absent"
+            ),
+            "quick_view_social_proof_text": quick_view_social_proof,
+            "delivery_destination_text": _clean_html_text(
+                _first_regex(
+                    html,
+                    (r'id=["\']glow-ingress-line2["\'][^>]*>([\s\S]{0,120}?)</span>',),
+                )
+                or ""
+            ),
+            "exact_inventory_quantity": None,
+            "exact_inventory_quantity_posture": "not_observed",
+            "sold_units": None,
+            "sold_units_posture": "not_observed",
+            "variant_binding_source": "amazon_target_bound_buybox_modules",
+            **ship_sold,
+            **delivery,
+        }
+    )
+    subtree_fields = {
+        "feature_bullet_count": len(feature_bullets),
+        "feature_bullets": feature_bullets,
+        "aplus_content_present": 'id="aplus_feature_div"' in html,
+        "aplus_brand_story_present": "aplusBrandStory_feature_div" in html,
+        "subtree_binding_source": "amazon_target_bound_detail_page_modules",
+        **detail_bullets,
+        **media,
+    }
+    review_substrate = dict(review_rows[0].source_visible_fields)
+    review_substrate.update(
+        _amazon_review_substrate_fields(
+            html, text, modules, asin=requested_asin, parsed=parsed
+        )
+    )
+
+    section_ranks: dict[str, int] = {}
+    review_field_rows: list[dict[str, Any | None]] = []
+    for rank, row in enumerate(parsed.rows, start=1):
+        section = row["section"]
+        section_ranks[section] = section_ranks.get(section, 0) + 1
+        review_field_rows.append(
+            _amazon_review_row_fields(
+                row,
+                rank=rank,
+                section_rank=section_ranks[section],
+                section_label=parsed.section_labels[section],
+            )
+        )
+
+    residuals = sorted(
+        {
+            *projected.residuals,
+            "amazon_review_rows_are_labelled_top_reviews_not_most_helpful_or_most_recent",
+            "amazon_no_last_seen_review_monitoring_anchor_is_claimed",
+            "amazon_exposed_review_rows_are_not_the_complete_review_corpus",
+            "amazon_no_age_skin_type_or_skin_concern_demographics_are_exposed",
+            "amazon_no_customer_product_qa_is_exposed_aplus_faq_is_brand_authored",
+            "amazon_linked_review_media_references_retained_bytes_not_fetched",
+            "amazon_route_is_amazon_native_rendered_pdp_and_is_not_bazaarvoice",
+            "amazon_international_review_rows_preserved_but_excluded_from_us_analysis_window",
+            "amazon_declared_unhydrated_detail_page_modules_inventoried_not_retained",
+        }
+    )
+    if price is None:
+        residuals.append("amazon_price_absent_from_target_bound_price_modules")
+    if availability is None:
+        residuals.append("amazon_availability_absent_from_target_bound_buybox")
+    if bought_in_past_month is None:
+        residuals.append("amazon_bought_in_past_month_badge_not_exposed")
+    if quick_view_social_proof and bought_in_past_month and (
+        quick_view_social_proof != bought_in_past_month
+    ):
+        residuals.append(
+            "amazon_quick_view_social_proof_disagrees_with_faceout_badge_both_preserved"
+        )
+    if any(
+        row["variant_price_posture"] == "not_exposed_in_twister_state"
+        for row in variant_field_rows
+    ):
+        residuals.append("amazon_twister_variant_prices_not_exposed_in_page_state")
+    session_secret_values = _amazon_session_secret_values(html)
+    if session_secret_values:
+        residuals.append("amazon_guest_session_and_csrf_material_present_not_retained")
+
+    offer_module_state = (
+        "hydrated_in_rendered_dom" if price or availability else "declared_unhydrated"
+    )
+    content_rows = [
+        AmazonPdpContentRow(
+            slice_id=slice_id,
+            row_id=product_rows[0].row_id,
+            row_kind="retail_pdp_product",
+            source_visible_fields=product_fields,
+            residuals=product_rows[0].residuals,
+            source_anchor_kind="html_selector",
+            source_anchor_value=(
+                f"#productTitle/#visitStoreLink/#wayfinding-breadcrumbs "
+                f"data-csa-c-asin={requested_asin}"
+            ),
+        ),
+        AmazonPdpContentRow(
+            slice_id=slice_id,
+            row_id=offer_rows[0].row_id,
+            row_kind="retail_variant_offer",
+            source_visible_fields=offer,
+            residuals=offer_rows[0].residuals,
+            source_anchor_kind="html_selector",
+            source_anchor_value=(
+                "target-ASIN-bound corePrice/availability/deliveryBlock/"
+                "shipFromSoldByAbbreviatedODF/socialProofingAsinFaceout modules"
+            ),
+        ),
+        AmazonPdpContentRow(
+            slice_id=slice_id,
+            row_id=review_rows[0].row_id,
+            row_kind="retail_review_substrate",
+            source_visible_fields=review_substrate,
+            residuals=review_rows[0].residuals,
+            source_anchor_kind="html_selector",
+            source_anchor_value=(
+                "#averageCustomerReviews + #histogramTable + #customerReviews"
+            ),
+        ),
+        AmazonPdpContentRow(
+            slice_id=slice_id,
+            row_id="amazon_product_module_subtree",
+            row_kind="retail_product_module_subtree",
+            source_visible_fields=subtree_fields,
+            residuals=[],
+            source_anchor_kind="html_selector",
+            source_anchor_value="#feature-bullets + #detailBullets_feature_div + #imageBlock",
+        ),
+        *[
+            AmazonPdpContentRow(
+                slice_id=slice_id,
+                row_id=f"amazon_variant_state_{index:03d}",
+                row_kind="retail_variant_state",
+                source_visible_fields=fields,
+                residuals=[],
+                source_anchor_kind="script_index",
+                source_anchor_value=(
+                    f"a-state {_AMAZON_TWISTER_STATE_KEY} "
+                    f"{fields['dimension_name']}[{fields['source_order']}]"
+                ),
+            )
+            for index, fields in enumerate(variant_field_rows)
+        ],
+        *[
+            AmazonPdpContentRow(
+                slice_id=slice_id,
+                row_id=f"amazon_review_row_{index:03d}",
+                row_kind="retail_review_row",
+                source_visible_fields=fields,
+                residuals=[],
+                source_anchor_kind="html_selector",
+                source_anchor_value=f'#{fields["review_id"]}[data-hook="review"]',
+            )
+            for index, fields in enumerate(review_field_rows)
+        ],
+        AmazonPdpContentRow(
+            slice_id=slice_id,
+            row_id="amazon_declared_module_inventory",
+            row_kind="retail_carried_module",
+            source_visible_fields=module_inventory,
+            residuals=[],
+            source_anchor_kind="html_selector",
+            source_anchor_value='div.celwidget[data-feature-name][data-csa-c-asin]',
+        ),
+    ]
+    record = AmazonPdpAggregateContentRecord(
+        source_url=source_url,
+        asin=requested_asin,
+        offer_module_state=offer_module_state,
+        variant_module_state=variant_module_state,
+        ai_review_summary_state="not_exposed_on_target_pdp",
+        customer_q_and_a_state="not_exposed_on_target_pdp",
+        rows=content_rows,
+        residuals=sorted(set(residuals)),
+    )
+    payload = record.model_dump(mode="json")
+    _amazon_assert_no_session_secrets(payload, session_secret_values)
     return payload
 
 

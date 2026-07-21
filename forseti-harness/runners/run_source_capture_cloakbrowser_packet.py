@@ -72,6 +72,8 @@ from source_capture.retail_capture_profiles import (
 )
 from source_capture.retail_grid_projection import write_retail_grid_projection
 from source_capture.retail_pdp_content import (
+    AMAZON_PDP_CONTENT_PROFILE,
+    AMAZON_PDP_PARSER_VERSION,
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_CONTENT_PROFILE,
@@ -82,6 +84,7 @@ from source_capture.retail_pdp_content import (
     TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_CONTENT_PROFILE,
     ULTA_PDP_PARSER_VERSION,
+    build_amazon_pdp_aggregate_content_record,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
@@ -143,6 +146,10 @@ _NORDSTROM_HOSTS = frozenset({"nordstrom.com", "www.nordstrom.com"})
 AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
 AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE = "amazon_us_vpn_fallback_required"
 _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
+# The owner-approved pre-v3 Amazon information-capture envelope pins one
+# anonymous US delivery destination; content retention is admitted only at
+# that exact pin (amazon_demand_signal_route_candidates_v0.md).
+_AMAZON_CONTENT_DELIVERY_ZIP = "10001"
 _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
@@ -280,6 +287,20 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _target_content_extraction_spec("content")
+        if retail_capture_profile.name == AMAZON_PDP_CONTENT_PROFILE:
+            if content_extraction is None:
+                content_extraction = _amazon_content_extraction_spec("content")
+            # Explicit raw stays available for diagnosis, recovery, and the
+            # existing demand-signal reads at other destinations; only content
+            # retention is bound to the admitted envelope's single US pin.
+            if (
+                content_extraction.requested_retention_mode == "content"
+                and delivery_zip != _AMAZON_CONTENT_DELIVERY_ZIP
+            ):
+                raise ValueError(
+                    "amazon_pdp_aggregate content capture requires "
+                    f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
+                )
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -1203,6 +1224,20 @@ def _ulta_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
     )
 
 
+def _amazon_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=AMAZON_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
+            build_amazon_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            )
+        ),
+    )
+
+
 def _target_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
     return RenderedContentExtractionSpec(
         requested_retention_mode=mode,
@@ -1477,9 +1512,9 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["content", "raw"],
         default=None,
         help=(
-            "Retention mode for the enabled Sephora, Luckyscent, Nordstrom, and "
-            "Ulta aggregate routes. Omitted defaults those routes to content; other "
-            "profiles remain raw."
+            "Retention mode for the enabled Sephora, Luckyscent, Nordstrom, "
+            "Ulta, Target, and Amazon aggregate routes. Omitted defaults those "
+            "routes to content; other profiles remain raw."
         ),
     )
     parser.add_argument("--session-id", default=None)
@@ -1786,6 +1821,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             NORDSTROM_PDP_CONTENT_PROFILE,
             ULTA_PDP_CONTENT_PROFILE,
             TARGET_PDP_CONTENT_PROFILE,
+            AMAZON_PDP_CONTENT_PROFILE,
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -1860,6 +1896,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_extraction = _target_content_extraction_spec(
                 args.retention_mode or "content"
             )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == AMAZON_PDP_CONTENT_PROFILE
+        ):
+            content_extraction = _amazon_content_extraction_spec(
+                args.retention_mode or "content"
+            )
+            if (
+                content_extraction.requested_retention_mode == "content"
+                and args.delivery_zip != _AMAZON_CONTENT_DELIVERY_ZIP
+            ):
+                raise ValueError(
+                    "amazon_pdp_aggregate content capture requires "
+                    f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
+                )
         settle_seconds = (
             args.settle_seconds
             if args.settle_seconds is not None

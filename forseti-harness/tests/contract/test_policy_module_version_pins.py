@@ -162,6 +162,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "NORDSTROM_PDP_PARSER_VERSION",
             "ULTA_PDP_PARSER_VERSION",
             "TARGET_PDP_PARSER_VERSION",
+            "AMAZON_PDP_PARSER_VERSION",
         ),
         # Output-shaping: Sephora v2 adds the full product subtree, rendered UI
         # substrate, and explicit loss/residual fields; the shared projection
@@ -211,7 +212,17 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # both yield 14.69, so no committed packet re-surfaces and the shared
         # projection token stays unchanged. Future captures can differ by design
         # — that is the defect being fixed, not a re-surface.
-        "0bbef4618461c22b0643cbb980063f62851790c60f3d349f100e6d671febd73d",
+        # Amazon parser/schema v1 is purely additive: it adds the retailer-owned
+        # canonical content schema, the celwidget module inventory, target-ASIN-
+        # bound offer/merchandising/media extraction, the twister variant state,
+        # exact review rows, and a fail-loud session/CSRF refusal. Verified
+        # rather than assumed: the diff of this module removes or changes zero
+        # existing lines, and neither _amazon_variant_offer_fields nor
+        # _amazon_review_fields — the two functions the legacy raw decoder
+        # reaches for Amazon — is touched. So RETAIL_PDP_PROJECTION_VERSION and
+        # the Sephora/Luckyscent/Nordstrom/Ulta/Target tokens stay unchanged and
+        # no committed packet re-surfaces.
+        "31f09729788bf624733a4ff6cec36ca3e7e604aeca537d4d119290fceb73d328",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
