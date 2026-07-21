@@ -6,12 +6,19 @@ from typing import Any
 
 import pytest
 
+from data_lake.root import DataLakeRoot
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from source_capture.adapters import target_delivery_location as target_location
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 from source_capture.adapters.target_delivery_location import (
     TargetDeliveryLocationPlugin,
+    TargetGridPlugin,
+    TargetSearchGridPlugin,
     confirm_target_us_delivery_zip,
+)
+from source_capture.retail_capture_profiles import (
+    get_retail_capture_profile,
+    target_bestseller_grid_url,
 )
 
 
@@ -121,9 +128,15 @@ class _Page:
     def locator(self, selector: str) -> _Locator:
         if selector == "#zip-code-id-btn":
             return self.control
-        if selector == 'input[data-test="@web/ZipCodeInput/Input"]:visible':
+        if selector in {
+            'input[data-test="@web/LocationFlyout/FormInput"]:visible',
+            'input[data-test="@web/ZipCodeInput/Input"]:visible',
+        }:
             return self.zip_input
-        if selector == 'button[data-test="@web/ZipCodeInput/SubmitButton"]:visible':
+        if selector in {
+            'button[data-test="@web/LocationFlyout/UpdateLocationButton"]:visible',
+            'button[data-test="@web/ZipCodeInput/SubmitButton"]:visible',
+        }:
             return self.apply
         return _Locator(visible=False)
 
@@ -229,6 +242,185 @@ def test_confirmation_allows_shipping_and_store_zip_separation() -> None:
     assert context["target_server_location_zip"] == "52404"
     assert context["target_primary_store_zip"] == "52404"
     assert context["target_nested_location_country"] == "US"
+
+
+class _GridLocator:
+    def __init__(self, page: "_GridPage", kind: str) -> None:
+        self.page = page
+        self.kind = kind
+
+    def inner_text(self, **_kwargs: Any) -> str:
+        assert self.kind == "body"
+        return f"{self.page.declared_count} results"
+
+    def count(self) -> int:
+        if self.kind == "pager":
+            return 1
+        assert self.kind == "next"
+        return int(self.page.index + 1 < len(self.page.pages))
+
+    def wait_for(self, **_kwargs: Any) -> None:
+        if self.kind == "next" and self.count() == 0:
+            raise TimeoutError("next page is not available")
+
+    def scroll_into_view_if_needed(self, **_kwargs: Any) -> None:
+        return None
+
+    def click(self, **_kwargs: Any) -> None:
+        assert self.count() == 1
+        self.page.index += 1
+
+
+class _GridMouse:
+    def __init__(self, page: "_GridPage") -> None:
+        self.page = page
+
+    def wheel(self, delta_x: int, delta_y: int) -> None:
+        assert delta_x == 0
+        assert delta_y > 0
+        self.page.scroll_steps.append(delta_y)
+
+
+class _GridPage:
+    def __init__(
+        self, pages: list[list[str]], *, declared_count: int | list[int]
+    ) -> None:
+        self.pages = pages
+        self.declared_counts = (
+            [declared_count] * len(pages)
+            if isinstance(declared_count, int)
+            else declared_count
+        )
+        assert len(self.declared_counts) == len(pages)
+        self.index = 0
+        self.locator_selectors: list[str] = []
+        self.scroll_steps: list[int] = []
+        self.mouse = _GridMouse(self)
+
+    @property
+    def declared_count(self) -> int:
+        return self.declared_counts[self.index]
+
+    @property
+    def url(self) -> str:
+        return (
+            "https://www.target.com/s?searchTerm=lip+mask&sortBy=bestselling"
+            f"&moveTo=product-list-grid&Nao={self.index * 24}"
+        )
+
+    def content(self) -> str:
+        cards = "".join(
+            f'<div data-focusid="{product_id}_product_card"></div>'
+            for product_id in self.pages[self.index]
+        )
+        return f"<html><body>{cards}</body></html>"
+
+    def locator(self, selector: str) -> _GridLocator:
+        self.locator_selectors.append(selector)
+        if selector == "body":
+            kind = "body"
+        elif selector == '[data-test="listing-page-pagination"]':
+            kind = "pager"
+        else:
+            kind = "next"
+        return _GridLocator(self, kind)
+
+    def wait_for_timeout(self, _milliseconds: float) -> None:
+        return None
+
+
+def test_target_search_grid_traverses_main_pager_and_reconciles_declared_count() -> None:
+    plugin = TargetSearchGridPlugin(
+        "https://www.target.com/s?searchTerm=lip%20mask",
+        "10001",
+    )
+    page = _GridPage(
+        [["10000001", "10000002"], ["10000002", "10000003"]],
+        declared_count=4,
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert len(plugin.grid_page_doms) == 2
+    assert page.scroll_steps == []
+    assert '[data-test="listing-page-pagination"]' in page.locator_selectors
+    assert any('aria-label="next page"' in value for value in page.locator_selectors)
+    assert plugin.grid_observation == {
+        "target_grid_page_load_count": 2,
+        "target_grid_declared_result_count": 4,
+        "target_grid_declared_result_count_observations": [4, 4],
+        "target_grid_extracted_unique_parent_count": 3,
+        "target_grid_extracted_placement_count": 4,
+        "target_grid_duplicate_placement_count": 1,
+        "target_grid_termination": "retailer_declared_count_reconciled",
+        "target_grid_subject_kind": "search_query",
+        "target_grid_subject": "lip mask",
+        "target_grid_sort_order": "bestselling",
+    }
+
+
+def test_target_grid_uses_current_declared_count_and_preserves_count_drift() -> None:
+    plugin = TargetSearchGridPlugin(
+        "https://www.target.com/s?searchTerm=lip%20mask",
+        "10001",
+    )
+    page = _GridPage(
+        [["10000001", "10000002"], ["10000003"]],
+        declared_count=[4, 3],
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert plugin.grid_observation["target_grid_declared_result_count"] == 3
+    assert plugin.grid_observation[
+        "target_grid_declared_result_count_observations"
+    ] == [4, 3]
+    assert plugin.grid_observation["target_grid_extracted_placement_count"] == 3
+
+
+def test_target_brand_grid_defaults_to_bestseller_and_accepts_next_page_route() -> None:
+    plugin = TargetGridPlugin(
+        "https://www.target.com/b/e-l-f/-/N-5oajg?count=96&sortBy=newest",
+        "10001",
+    )
+
+    assert plugin.target_url == (
+        "https://www.target.com/b/e-l-f/-/N-5oajg?"
+        "sortBy=bestselling&moveTo=product-list-grid"
+    )
+    assert target_bestseller_grid_url(plugin.target_url) == plugin.target_url
+
+
+def test_target_catalog_grid_without_requested_zip_preserves_observed_context() -> None:
+    plugin = TargetGridPlugin(
+        "https://www.target.com/b/e-l-f/-/N-5oajg",
+        require_delivery_pin=False,
+    )
+
+    confirmation = plugin.confirm(_target_dom())
+    description = plugin.describe()
+
+    assert confirmation.confirmed is False
+    assert "no delivery ZIP was requested" in confirmation.detail
+    assert description["delivery_zip_requested"] is None
+    assert description["target_grid_location_binding"] == "unrequested"
+    assert description["target_server_location_zip"] == "52404"
+
+
+def test_target_search_grid_fails_when_pager_ends_before_declared_count() -> None:
+    plugin = TargetSearchGridPlugin(
+        "https://www.target.com/s?searchTerm=lip%20mask",
+        "10001",
+    )
+    page = _GridPage([["10000001", "10000002"]], declared_count=3)
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is False
+    assert outcome.reason == "next_page_control_unavailable"
+    assert plugin.grid_observation["target_grid_termination"] == "unproven"
 
 
 @pytest.mark.parametrize(
@@ -349,6 +541,166 @@ def _run_writer(tmp_path: Path, **overrides: Any) -> tuple[int, str]:
     }
     kwargs.update(overrides)
     return cloak_writer.run_source_capture_cloakbrowser_packet(**kwargs)
+
+
+def _target_grid_dom(
+    products: list[tuple[str, str]], *, declared_count: int = 4
+) -> str:
+    cards = "".join(
+        f"""
+        <div data-focusid="{product_id}_product_card">
+          <a data-test="content" href="/p/product-{product_id}/-/A-{product_id}">
+            <span>$10.99</span><h3>{name}</h3>
+            <div data-test="rating-stars"
+                 aria-label="Average customer rating is 4.6 out of 5 stars with 145 reviews.">
+            </div>
+            <span>Shipping dates may vary</span>
+          </a>
+        </div>
+        """
+        for product_id, name in products
+    )
+    location = json.dumps(
+        {
+            "serverLocationVariables": {
+                "zipCode": "52404",
+                "primaryStore": {"storeName": "Cedar Rapids South", "zipCode": "52404"},
+                "location": {"zipCode": "52404", "country": "US"},
+            }
+        },
+        separators=(",", ":"),
+    )
+    return f"""
+    <html><head><title>"lip mask" : Target</title></head><body>
+      <script>window.__TGT__ = {location}; window.guest = {{"accessToken":"secret"}};</script>
+      <button id="zip-code-id-btn" aria-label="Ship to location: 10001">
+        <span data-test="@web/ZipCodeButton/ZipCodeNumber">Ship to 10001</span>
+      </button>
+      <div>{declared_count} results</div>{cards}
+    </body></html>
+    """
+
+
+def _fake_target_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+    plugin = kwargs["pre_capture"]
+    assert isinstance(plugin, TargetSearchGridPlugin)
+    pages = [
+        _target_grid_dom([("10000001", "First"), ("10000002", "Second")]),
+        _target_grid_dom([("10000002", "Second"), ("10000003", "Third")]),
+    ]
+    plugin._setup_completed = True
+    plugin._grid_page_doms = pages
+    plugin._grid_page_urls = [
+        "https://www.target.com/s?searchTerm=lip+mask&sortBy=bestselling"
+        "&moveTo=product-list-grid",
+        "https://www.target.com/s?searchTerm=lip+mask&sortBy=bestselling"
+        "&moveTo=product-list-grid&Nao=24",
+    ]
+    plugin._grid_observation = {
+        "target_grid_page_load_count": 2,
+        "target_grid_declared_result_count": 4,
+        "target_grid_extracted_unique_parent_count": 3,
+        "target_grid_extracted_placement_count": 4,
+        "target_grid_duplicate_placement_count": 1,
+        "target_grid_termination": "retailer_declared_count_reconciled",
+        "target_grid_subject_kind": "search_query",
+        "target_grid_subject": "lip mask",
+        "target_grid_sort_order": "bestselling",
+    }
+    confirmation = plugin.confirm(pages[-1])
+    return CloakBrowserSnapshotSuccess(
+        requested_url=kwargs["url"],
+        final_url=plugin._grid_page_urls[-1],
+        title='"lip mask" : Target',
+        rendered_dom=pages[-1],
+        visible_text="lip mask 3 results $10.99",
+        screenshot_png=b"\x89PNG\r\n\x1a\n",
+        metadata={
+            "capture_timestamp": "2026-07-22T00:00:00Z",
+            "pin_confirmed": confirmation.confirmed,
+            "before_snapshot_attempted": True,
+            "before_snapshot_steps_completed": True,
+            "before_snapshot_reason": None,
+            **plugin.describe(),
+        },
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+
+def test_target_grid_runner_writes_sanitized_content_and_local_projection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_target_grid_capture
+    )
+    projection_path = tmp_path / "target-grid.json"
+
+    exit_code, message = _run_writer(
+        tmp_path,
+        url="https://www.target.com/s?searchTerm=lip%20mask",
+        retail_capture_profile=get_retail_capture_profile("target_grid_aggregate"),
+        retail_grid_projection_output=projection_path,
+    )
+
+    assert exit_code == 0
+    packet_path = Path(
+        message.split(";", 1)[0].removeprefix("raw packet preserved at ")
+    )
+    manifest = json.loads((packet_path / "manifest.json").read_text())
+    stored_text = "\n".join(
+        path.read_text(errors="ignore")
+        for path in (packet_path / "raw").iterdir()
+        if path.suffix != ".png"
+    )
+    assert "accessToken" not in stored_text
+    assert all(
+        item["relative_packet_path"] != "raw/01_cloakbrowser_rendered_dom.html"
+        for item in manifest["preserved_files"]
+    )
+    projection = json.loads(projection_path.read_text())
+    assert projection["completeness"] == {
+        "duplicate_placement_count": 1,
+        "extracted_placement_count": 4,
+        "extracted_unique_parent_count": 3,
+        "page_declared_result_count": 4,
+        "residuals": [],
+        "status": "complete",
+        "subject_binding_confirmed": True,
+        "termination": "retailer_visible_count_reconciled",
+    }
+
+
+def test_target_grid_runner_files_projection_into_test_lake(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_target_grid_capture
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    exit_code, message = _run_writer(
+        tmp_path,
+        url="https://www.target.com/s?searchTerm=lip%20mask",
+        output_directory=None,
+        data_root=root,
+        retail_capture_profile=get_retail_capture_profile("target_grid_aggregate"),
+        retail_grid_projection_output=None,
+        target_zip=None,
+    )
+
+    assert exit_code == 0
+    packet_path = Path(
+        message.split(";", 1)[0].removeprefix("raw packet preserved at ")
+    )
+    packet_id = json.loads((packet_path / "manifest.json").read_text())["packet_id"]
+    loaded = root.load_raw_packet(packet_id)
+    assert loaded.manifest["packet_id"] == packet_id
+    projection_paths = list(root.path.rglob("projection_retail_grid/*.json"))
+    assert len(projection_paths) == 1
+    assert json.loads(projection_paths[0].read_text())["completeness"]["status"] == (
+        "complete"
+    )
 
 
 def test_writer_builds_target_plugin_and_accepts_exact_target_host(

@@ -9,17 +9,22 @@ import time
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from typing import Any, Iterator
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
     PreCaptureOutcome,
+)
+from source_capture.retail_capture_profiles import (
+    extract_target_grid_subject_from_url,
+    target_bestseller_grid_url,
 )
 
 
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 _ZIP_CONTROL_SELECTOR = "#zip-code-id-btn"
 _ZIP_INPUT_SELECTORS = (
+    'input[data-test="@web/LocationFlyout/FormInput"]:visible',
     'input[data-test="@web/ZipCodeInput/Input"]:visible',
     '[role="dialog"] input[id*="zip" i]:visible',
     '[role="dialog"] input[name*="zip" i]:visible',
@@ -28,16 +33,34 @@ _ZIP_INPUT_SELECTORS = (
     '[data-test*="ZipCode"] input:visible',
 )
 _ZIP_APPLY_SELECTORS = (
+    'button[data-test="@web/LocationFlyout/UpdateLocationButton"]:visible',
     'button[data-test="@web/ZipCodeInput/SubmitButton"]:visible',
+    '[role="dialog"] button[type="submit"]:visible:has-text("Update")',
     '[role="dialog"] button:visible:has-text("Save")',
     '[role="dialog"] button:visible:has-text("Apply")',
     '[data-test*="ZipCode"] button:visible:has-text("Save")',
     '[data-test*="ZipCode"] button:visible:has-text("Apply")',
 )
-_CONTROL_READINESS_TIMEOUT_MS = 10_000
+_CONTROL_READINESS_TIMEOUT_MS = 20_000
 _CONTROL_POLL_MS = 100
 _POST_APPLY_TIMEOUT_MS = 5_000
 _FIVE_DIGIT_ZIP = re.compile(r"^\d{5}$")
+_TARGET_GRID_CARD_RE = re.compile(
+    r'<div[^>]*\bdata-focusid=["\'](?P<product_id>\d+)_product_card["\'][^>]*>',
+    flags=re.IGNORECASE,
+)
+_TARGET_GRID_DECLARED_COUNT_RE = re.compile(
+    r"(?<!\d)(?P<count>\d[\d,]*)\s+results\b", flags=re.IGNORECASE
+)
+_TARGET_GRID_NEXT_SELECTOR = (
+    '[data-test="listing-page-pagination"] '
+    'button[aria-label="next page"]:not([disabled])'
+)
+_TARGET_GRID_PAGER_SELECTOR = '[data-test="listing-page-pagination"]'
+_TARGET_GRID_POLL_MS = 250
+_TARGET_GRID_HYDRATION_SETTLE_MS = 1_000
+_TARGET_GRID_PAGE_CHANGE_TIMEOUT_MS = 10_000
+_TARGET_GRID_MAX_PAGE_LOADS = 20
 
 
 @dataclass
@@ -230,6 +253,324 @@ class TargetDeliveryLocationPlugin:
         )
 
 
+@dataclass
+class TargetGridPlugin(TargetDeliveryLocationPlugin):
+    """Capture consecutive Target search or brand-grid states in bestseller order."""
+
+    delivery_zip: str | None = None
+    traversal_timeout_seconds: float = 240.0
+    max_page_loads: int = _TARGET_GRID_MAX_PAGE_LOADS
+    require_delivery_pin: bool = True
+    _grid_page_doms: list[str] = field(default_factory=list, init=False, repr=False)
+    _grid_page_urls: list[str] = field(default_factory=list, init=False, repr=False)
+    _grid_observation: dict[str, object] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.require_delivery_pin:
+            if self.delivery_zip is None:
+                raise ValueError("Target grid delivery pin requires a requested ZIP")
+            super().__post_init__()
+        else:
+            if self.delivery_zip is not None:
+                raise ValueError(
+                    "Target catalog grid must not carry a ZIP when delivery binding is unrequested"
+                )
+            if self.setup_timeout_seconds <= 0:
+                raise ValueError("Target setup timeout must be greater than zero")
+        self.target_url = target_bestseller_grid_url(self.target_url)
+        if extract_target_grid_subject_from_url(self.target_url) is None:
+            raise ValueError(
+                "Target grid traversal requires a Target search or brand-grid URL"
+            )
+        if self.traversal_timeout_seconds <= 0:
+            raise ValueError("Target grid traversal timeout must be greater than zero")
+        if self.max_page_loads <= 0:
+            raise ValueError("Target grid max page loads must be greater than zero")
+
+    def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
+        if self.require_delivery_pin:
+            return super().before(page, setup_timeout_ms=setup_timeout_ms)
+        try:
+            page.goto(  # type: ignore[union-attr]
+                self.target_url,
+                wait_until="domcontentloaded",
+                timeout=setup_timeout_ms,
+            )
+        except Exception as exc:
+            return _failed_outcome(
+                "navigate_grid_surface",
+                f"Target grid did not reach domcontentloaded ({type(exc).__name__})",
+            )
+        return PreCaptureOutcome(attempted=True, steps_completed=True)
+
+    def confirm(self, rendered_dom: str) -> PinConfirmation:
+        if self.require_delivery_pin:
+            return super().confirm(rendered_dom)
+        self._observed_context = _observed_target_context(
+            list(_iter_server_location_variables(rendered_dom or ""))
+        )
+        return PinConfirmation(
+            confirmed=False,
+            detail=(
+                "no delivery ZIP was requested for this catalog-grid capture; "
+                "visible fulfilment remains bound only to the preserved page state"
+            ),
+        )
+
+    def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
+        if self.require_delivery_pin:
+            return super().note(outcome, confirmation)
+        return (
+            "declared_delivery_zip: NOT REQUESTED for Target catalog-grid capture; "
+            "source-visible fulfilment/store facts are preserved without a requested-ZIP claim"
+        )
+
+    @property
+    def grid_page_doms(self) -> tuple[str, ...]:
+        return tuple(self._grid_page_doms)
+
+    @property
+    def grid_page_urls(self) -> tuple[str, ...]:
+        return tuple(self._grid_page_urls)
+
+    @property
+    def grid_observation(self) -> dict[str, object]:
+        return dict(self._grid_observation)
+
+    def before_snapshot(
+        self, page: object, *, setup_timeout_ms: float
+    ) -> PreCaptureOutcome:
+        del setup_timeout_ms
+        deadline = time.monotonic() + self.traversal_timeout_seconds
+        seen_ids: set[str] = set()
+        placement_count = 0
+        declared_count: int | None = None
+        declared_count_observations: list[int] = []
+        termination = "unproven"
+        subject = extract_target_grid_subject_from_url(self.target_url)
+        assert subject is not None
+        subject_kind, subject_value = subject
+
+        try:
+            for page_number in range(1, self.max_page_loads + 1):
+                pager = page.locator(_TARGET_GRID_PAGER_SELECTOR)  # type: ignore[union-attr]
+                try:
+                    pager.wait_for(
+                        state="visible",
+                        timeout=min(5_000, _required_remaining_ms(deadline)),
+                    )
+                    pager.scroll_into_view_if_needed(
+                        timeout=min(5_000, _required_remaining_ms(deadline))
+                    )
+                    page.wait_for_timeout(  # type: ignore[union-attr]
+                        min(_TARGET_GRID_HYDRATION_SETTLE_MS, _remaining_ms(deadline))
+                    )
+                except Exception:
+                    pass
+                rendered_dom = page.content()  # type: ignore[union-attr]
+                page_ids = _target_grid_product_ids(rendered_dom)
+                page_url = str(page.url)  # type: ignore[union-attr]
+                if _target_grid_sort_order(page_url) != "bestselling":
+                    return self._grid_failed(
+                        reason="bestseller_sort_not_retained",
+                        detail=(
+                            "Target grid page did not retain retailer bestseller order: "
+                            f"page={page_number}, url={page_url!r}"
+                        ),
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+                visible_text = page.locator("body").inner_text(  # type: ignore[union-attr]
+                    timeout=_required_remaining_ms(deadline)
+                )
+                observed_count = _target_grid_declared_count(visible_text)
+                if observed_count is None:
+                    return self._grid_failed(
+                        reason="declared_result_count_absent",
+                        detail="Target grid exposed no retailer-declared result count",
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+                declared_count_observations.append(observed_count)
+                # Target's live assortment can change while a bounded multi-page
+                # traversal is in flight. The count visible on the current page is
+                # authoritative for termination; every observation remains preserved.
+                declared_count = observed_count
+                if not page_ids:
+                    return self._grid_failed(
+                        reason="product_identity_absent",
+                        detail=f"Target grid page {page_number} exposed no product IDs",
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+
+                self._grid_page_doms.append(rendered_dom)
+                self._grid_page_urls.append(page_url)
+                placement_count += len(page_ids)
+                seen_ids.update(page_ids)
+                if placement_count == declared_count:
+                    termination = "retailer_declared_count_reconciled"
+                    break
+                if placement_count > declared_count:
+                    return self._grid_failed(
+                        reason="placement_count_exceeds_declared",
+                        detail=(
+                            "Target grid placement count exceeded the declared count: "
+                            f"declared={declared_count}, placements={placement_count}, "
+                            f"unique_parents={len(seen_ids)}"
+                        ),
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+
+                next_button = page.locator(_TARGET_GRID_NEXT_SELECTOR)  # type: ignore[union-attr]
+                try:
+                    next_button.wait_for(
+                        state="visible",
+                        timeout=min(5_000, _required_remaining_ms(deadline)),
+                    )
+                except Exception:
+                    return self._grid_failed(
+                        reason="next_page_control_unavailable",
+                        detail=(
+                            "Target main listing pager ended before the declared count reconciled: "
+                            f"declared={declared_count}, placements={placement_count}, "
+                            f"unique_parents={len(seen_ids)}"
+                        ),
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+                previous_ids = tuple(page_ids)
+                next_button.scroll_into_view_if_needed(
+                    timeout=min(5_000, _required_remaining_ms(deadline))
+                )
+                next_button.click(
+                    timeout=min(5_000, _required_remaining_ms(deadline))
+                )
+                change_deadline = min(
+                    deadline,
+                    time.monotonic() + _TARGET_GRID_PAGE_CHANGE_TIMEOUT_MS / 1000,
+                )
+                while time.monotonic() < change_deadline:
+                    page.wait_for_timeout(  # type: ignore[union-attr]
+                        min(_TARGET_GRID_POLL_MS, _remaining_ms(change_deadline))
+                    )
+                    current_ids = tuple(
+                        _target_grid_product_ids(page.content())  # type: ignore[union-attr]
+                    )
+                    if current_ids and current_ids != previous_ids:
+                        break
+                else:
+                    if time.monotonic() >= deadline:
+                        return self._grid_failed(
+                            reason="grid_traversal_timeout",
+                            detail=(
+                                "Target grid traversal budget expired while waiting "
+                                f"for page {page_number + 1} product identities after navigation"
+                            ),
+                            declared_count=declared_count,
+                            placement_count=placement_count,
+                            unique_count=len(seen_ids),
+                        )
+                    return self._grid_failed(
+                        reason="next_page_did_not_advance",
+                        detail=f"Target main listing pager did not advance after page {page_number}",
+                        declared_count=declared_count,
+                        placement_count=placement_count,
+                        unique_count=len(seen_ids),
+                    )
+            else:
+                return self._grid_failed(
+                    reason="page_load_ceiling_reached",
+                    detail=(
+                        "Target grid page-load ceiling was reached before the declared "
+                        f"count reconciled: ceiling={self.max_page_loads}, "
+                        f"declared={declared_count}, extracted={len(seen_ids)}"
+                    ),
+                    declared_count=declared_count,
+                    placement_count=placement_count,
+                    unique_count=len(seen_ids),
+                )
+        except Exception as exc:
+            return self._grid_failed(
+                reason="grid_traversal_failed",
+                detail=f"Target grid traversal failed ({type(exc).__name__}: {exc})",
+                declared_count=declared_count,
+                placement_count=placement_count,
+                unique_count=len(seen_ids),
+            )
+
+        self._grid_observation = {
+            "target_grid_page_load_count": len(self._grid_page_doms),
+            "target_grid_declared_result_count": declared_count,
+            "target_grid_declared_result_count_observations": (
+                declared_count_observations
+            ),
+            "target_grid_extracted_unique_parent_count": len(seen_ids),
+            "target_grid_extracted_placement_count": placement_count,
+            "target_grid_duplicate_placement_count": placement_count - len(seen_ids),
+            "target_grid_termination": termination,
+            "target_grid_subject_kind": subject_kind,
+            "target_grid_subject": subject_value,
+            "target_grid_sort_order": "bestselling",
+        }
+        return PreCaptureOutcome(attempted=True, steps_completed=True)
+
+    def describe(self) -> dict[str, object]:
+        location_description = (
+            super().describe()
+            if self.require_delivery_pin
+            else {
+                "pre_capture": "target_catalog_grid",
+                "delivery_zip_requested": None,
+                "target_grid_location_binding": "unrequested",
+                **self._observed_context,
+            }
+        )
+        return {**location_description, **self._grid_observation}
+
+    def _grid_failed(
+        self,
+        *,
+        reason: str,
+        detail: str,
+        declared_count: int | None,
+        placement_count: int,
+        unique_count: int,
+    ) -> PreCaptureOutcome:
+        self._grid_observation = {
+            "target_grid_page_load_count": len(self._grid_page_doms),
+            "target_grid_declared_result_count": declared_count,
+            "target_grid_extracted_unique_parent_count": unique_count,
+            "target_grid_extracted_placement_count": placement_count,
+            "target_grid_duplicate_placement_count": placement_count - unique_count,
+            "target_grid_termination": "unproven",
+            "target_grid_failure": detail,
+        }
+        return PreCaptureOutcome(
+            attempted=True,
+            steps_completed=False,
+            reason=reason,
+            warning_notes=[f"target_grid_traversal: {detail}"],
+        )
+
+
+# Compatibility name for callers that predate Target brand-grid admission.
+TargetSearchGridPlugin = TargetGridPlugin
+
+
+def _target_grid_sort_order(url: str) -> str | None:
+    for key, value in parse_qsl(urlparse(url).query, keep_blank_values=True):
+        if key.casefold() == "sortby":
+            return value.casefold()
+    return None
+
+
 def confirm_target_us_delivery_zip(
     rendered_dom: str,
     *,
@@ -394,6 +735,15 @@ def _observed_target_context(
         if isinstance(store_zip, str):
             context["target_primary_store_zip"] = store_zip
     return context
+
+
+def _target_grid_product_ids(rendered_dom: str) -> list[str]:
+    return [match.group("product_id") for match in _TARGET_GRID_CARD_RE.finditer(rendered_dom)]
+
+
+def _target_grid_declared_count(visible_text: str) -> int | None:
+    match = _TARGET_GRID_DECLARED_COUNT_RE.search(visible_text)
+    return int(match.group("count").replace(",", "")) if match is not None else None
 
 
 def _first_visible_locator(
