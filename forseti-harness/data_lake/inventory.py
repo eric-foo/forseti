@@ -525,6 +525,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "local:select_latest_rollup_per_account",
         "reason": "select_latest_rollup_per_account: run-order primary, fail-closed on computed_at regression and unorderable ties (AR-04)",
     },
+    "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "the actionable TikTok Frontier queue intentionally consumes every validated register from every non-tombstoned committed parent; root identities and Registry accounts are deduplicated after the complete observation history is assembled, never by selecting a latest sibling",
+    },
     "data_lake/consumption.py": {
         "detection": "lane_dir",
         "posture": "infrastructure",

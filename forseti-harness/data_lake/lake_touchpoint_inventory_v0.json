@@ -80,6 +80,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
       "module": "cleaning/basenotes_lake.py"

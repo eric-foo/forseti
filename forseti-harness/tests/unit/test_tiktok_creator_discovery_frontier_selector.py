@@ -10,6 +10,7 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     build_tiktok_creator_discovery_frontier_register,
 )
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
+    apply_tiktok_creator_onboarding_dedupe,
     build_tiktok_creator_promotion_decisions,
     promotion_decision_for_handle,
     rank_tiktok_creator_discovery_targets,
@@ -103,6 +104,39 @@ def test_promotion_policy_excludes_pins_and_routes_middle_to_oldest() -> None:
     assert rows["low"]["reconsider_when_or_none"] == "new_signal_only"
     assert rows["low"]["unpinned_post_count"] == 3
     assert promotion_decision_for_handle(document, "@STRONG")["registry_action"] == "promote_now"
+
+
+def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grids = [
+        {
+            "creator_handle": handle,
+            "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+            "items": [
+                {
+                    "createTime": int(captured.timestamp() - age * 86400),
+                    "pinned_visible": False,
+                    "stats": {"playCount": 30000},
+                }
+                for age in (16, 20, 25)
+            ],
+        }
+        for handle in ("done", "scanned", "known", "fresh")
+    ]
+    document = apply_tiktok_creator_onboarding_dedupe(
+        build_tiktok_creator_promotion_decisions(grids),
+        registry_states={"done": "onboarded", "known": "not_onboarded"},
+        frontier_registers=[_register("scanned", _suggested("other"))],
+    )
+    wrapper = document["tiktok_creator_promotion_decisions"]
+    rows = {row["handle"]: row for row in wrapper["decisions"]}
+
+    assert wrapper["counts"]["promote_now"] == 4
+    assert wrapper["counts"]["actionable_promote_now"] == 2
+    assert wrapper["actionable_promote_now_handles"] == ["fresh", "known"]
+    assert rows["done"]["onboarding_queue_status"] == "already_onboarded"
+    assert rows["scanned"]["onboarding_queue_status"] == "already_scanned_frontier"
+    assert rows["known"]["actionable_promote_now"] is True
 
 
 def test_target_ranker_prioritizes_once_only_expanded_fragrance_over_repeated_hub() -> None:

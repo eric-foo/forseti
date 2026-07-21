@@ -23,6 +23,43 @@ from capture_spine.tiktok_creator_discovery_frontier.validation import (
 FRONTIER_REGISTER_DERIVED_LANE = "tiktok_creator_discovery_frontier"
 
 
+def load_tiktok_creator_discovery_frontier_registers(
+    data_root: Any,
+) -> list[dict[str, Any]]:
+    """Load every validated, non-tombstoned Frontier register from the lake."""
+    if not isinstance(data_root, DataLakeRoot):
+        raise TikTokCreatorDiscoveryFrontierError(
+            "invalid_data_root",
+            "lake read requires a resolved DataLakeRoot",
+        )
+    registers: list[dict[str, Any]] = []
+    for raw_anchor in data_root.list_committed_packet_ids():
+        lane_dir = data_root.lane_dir(
+            subtree="derived",
+            raw_anchor=raw_anchor,
+            lane=FRONTIER_REGISTER_DERIVED_LANE,
+        )
+        if not lane_dir.is_dir():
+            continue
+        for record_path in sorted(lane_dir.glob("*.json"), key=lambda path: path.name):
+            try:
+                register = json.loads(record_path.read_text(encoding="utf-8"))
+                validate_tiktok_creator_discovery_frontier_register(register)
+            except (OSError, ValueError, TikTokCreatorDiscoveryFrontierError) as exc:
+                raise TikTokCreatorDiscoveryFrontierError(
+                    "invalid_lake_register",
+                    f"invalid Frontier register {record_path}: {exc}",
+                ) from exc
+            wrapper = register["tiktok_creator_discovery_frontier_register"]
+            if wrapper["provenance"].get("parent_grid_packet_id_or_none") != raw_anchor:
+                raise TikTokCreatorDiscoveryFrontierError(
+                    "frontier_anchor_mismatch",
+                    f"Frontier register is stored under the wrong raw anchor: {record_path}",
+                )
+            registers.append(register)
+    return registers
+
+
 def write_tiktok_creator_discovery_frontier_register(
     register: Mapping[str, Any],
     data_root: Any,
