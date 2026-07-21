@@ -19,7 +19,6 @@ from capture_spine.creator_profile_current.materialize import (
     load_json,
     verify_audience_judgment_outcomes,
 )
-from data_lake.consumption import reconcile_availability_per_packet
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_creator_profile_current_materialize import main as materialize_main
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
@@ -201,30 +200,13 @@ def prepare_onboarding(
     """Produce packet-scoped Silver and a deterministic cold-Judgment handoff."""
 
     grid_anchor = grid_packet_id or packet_id
-    availability_results = reconcile_availability_per_packet(
-        data_root, scope_packet_ids=list(dict.fromkeys((grid_anchor, packet_id)))
-    )
     grid = _packet_result(
-        [
-            *availability_results,
-            *run_tiktok_grid_observations(
-                data_root=data_root,
-                packet_ids=[grid_anchor],
-                reconcile_availability=False,
-            ),
-        ],
+        run_tiktok_grid_observations(data_root=data_root, packet_ids=[grid_anchor]),
         grid_anchor,
         "TikTok grid observation",
     )
     comments = _packet_result(
-        [
-            *availability_results,
-            *run_comment_attention(
-                data_root=data_root,
-                packet_ids=[packet_id],
-                reconcile_availability=False,
-            ),
-        ],
+        run_comment_attention(data_root=data_root, packet_ids=[packet_id]),
         packet_id,
         "TikTok comment attention",
     )
