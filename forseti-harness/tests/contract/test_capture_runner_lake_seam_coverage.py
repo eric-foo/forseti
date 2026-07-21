@@ -60,7 +60,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_source_capture_antiblock_http_packet.py",
         "run_source_capture_archive_packet.py",
         "run_source_capture_amazon_review_onboarding.py",
-        "run_source_capture_ats_job_posting_packet.py"
+        "run_source_capture_ats_job_posting_packet.py",
         "run_source_capture_authenticated_browser_packet.py",
         "run_source_capture_browser_packet.py",
         "run_source_capture_cloakbrowser_packet.py",
