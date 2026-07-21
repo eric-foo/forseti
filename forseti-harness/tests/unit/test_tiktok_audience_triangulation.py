@@ -74,6 +74,78 @@ RAW_ANCHOR = "01TESTAUDIENCEPACKET"
 _, METHOD_DECK_SHA256 = load_method_deck()
 
 
+def test_prepare_onboarding_scopes_silver_to_requested_packets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def reconcile_stub(root: DataLakeRoot, **kwargs: object) -> list[dict[str, str]]:
+        calls.append(("reconcile", {"data_root": root, **kwargs}))
+        return []
+
+    def grid_stub(**kwargs: object) -> list[dict[str, str]]:
+        calls.append(("grid", kwargs))
+        return [{"packet_id": "grid-packet", "status": "already_current"}]
+
+    def comments_stub(**kwargs: object) -> list[dict[str, str]]:
+        calls.append(("comments", kwargs))
+        return [{"packet_id": "batch-packet", "status": "already_current"}]
+
+    monkeypatch.setattr(
+        onboarding_coordinator,
+        "reconcile_availability_per_packet",
+        reconcile_stub,
+    )
+    monkeypatch.setattr(
+        onboarding_coordinator, "run_tiktok_grid_observations", grid_stub
+    )
+    monkeypatch.setattr(onboarding_coordinator, "run_comment_attention", comments_stub)
+    monkeypatch.setattr(
+        onboarding_coordinator,
+        "prepare_subscription_judgment",
+        lambda **_kwargs: {"status": "SUBSCRIPTION_JUDGMENT_REQUIRED"},
+    )
+
+    coordinated = prepare_onboarding(
+        data_root=data_root,
+        packet_id="batch-packet",
+        grid_packet_id="grid-packet",
+        creator_id="tiktok:@creator",
+        profile_subject_id="platform_account:tiktok:creator",
+        question="Who is the audience?",
+        evidence_cutoff="2026-07-21T00:00:00Z",
+        work_dir=tmp_path / "prepared",
+    )
+
+    assert coordinated["status"] == "awaiting_judgment"
+    assert calls == [
+        (
+            "reconcile",
+            {
+                "data_root": data_root,
+                "scope_packet_ids": ["grid-packet", "batch-packet"],
+            },
+        ),
+        (
+            "grid",
+            {
+                "data_root": data_root,
+                "packet_ids": ["grid-packet"],
+                "reconcile_availability": False,
+            },
+        ),
+        (
+            "comments",
+            {
+                "data_root": data_root,
+                "packet_ids": ["batch-packet"],
+                "reconcile_availability": False,
+            },
+        ),
+    ]
+
+
 def _video(video_id: str, comment_id: str, text: str, likes: int) -> dict:
     return {
         "video_id": video_id,
