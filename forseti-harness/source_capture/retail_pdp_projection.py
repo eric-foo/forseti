@@ -3089,13 +3089,24 @@ def build_target_pdp_aggregate_content_record(
         # absence from the page while that gate passed would be a false record.
         # The unbound case is a disagreement between two source-visible signals;
         # no page-global price is bound to the target from it either way.
-        if re.search(r"\$\d[\d,]*\.\d{2}", _decode_text(visible_text)):
-            residuals.append(
-                "target_price_rendered_in_visible_text_but_not_bound_to_"
-                "product_detail_price_module"
+        # A page showing no price at all is an honest absence. A page that
+        # renders a price the parser cannot bind to the target's
+        # ProductDetailPrice module is not: that is an exposed surface without a
+        # lossless parse, which the owning standard requires to force raw
+        # fallback rather than retain partial content. Failing here also keeps
+        # the rendered DOM, which content mode would otherwise discard -- the
+        # exact evidence missing when this first appeared on packet
+        # 01KY32AAVCG3JMCM08JGPSJS8T.
+        rendered_price = _first_regex(
+            _decode_text(visible_text), (r"\$(\d[\d,]*\.\d{2})",)
+        )
+        if rendered_price:
+            raise ValueError(
+                f"Target rendered price ${rendered_price} is not bound to the "
+                "target's ProductDetailPrice module; refusing to retain content "
+                "with an unbindable offer"
             )
-        else:
-            residuals.append("target_price_absent_from_rendered_dom_and_page_state")
+        residuals.append("target_price_absent_from_rendered_dom_and_page_state")
     if not _string_or_none(offer.get("availability")):
         residuals.append("target_fulfillment_availability_not_observed")
     # The guest review widget is lazy-rendered below the fold and does not paint

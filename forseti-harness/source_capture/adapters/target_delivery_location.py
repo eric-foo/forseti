@@ -34,7 +34,14 @@ _ZIP_APPLY_SELECTORS = (
     '[data-test*="ZipCode"] button:visible:has-text("Save")',
     '[data-test*="ZipCode"] button:visible:has-text("Apply")',
 )
-_CONTROL_READINESS_TIMEOUT_MS = 10_000
+# The public ZIP control is the step that actually fails: packet
+# 01KY32KG4DVVV5AEYW9P4P5S89 returned `wait_for_zip_control` after this inner cap
+# expired while roughly 20s of the operator's 30s setup budget was still unused.
+# The wait stays bounded and still yields to the caller's deadline through the
+# `min(...)` at the call site; it simply stops forfeiting budget the operator
+# granted. This is a readiness wait on the already-open setup surface, not an
+# extra request, navigation, or retry.
+_CONTROL_READINESS_TIMEOUT_MS = 20_000
 _CONTROL_POLL_MS = 100
 _POST_APPLY_TIMEOUT_MS = 5_000
 _FIVE_DIGIT_ZIP = re.compile(r"^\d{5}$")

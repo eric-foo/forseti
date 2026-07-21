@@ -225,8 +225,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # visible price. Residuals reach Cleaning, so committed Target content
         # packets re-surface. Schema stays content_v1: values change, shape does
         # not. Historical parser_v1 packets remain readable via the widened Literal
-        # and the current-extractor exemption.
-        "221b23033a25c8dd9f4f13905f34096b57de216a7c624e61d7b9fccb2f2e7eb6",
+        # and the current-extractor exemption. v2 final behavior: a rendered price
+        # the parser cannot bind to the target's ProductDetailPrice module forces
+        # raw fallback rather than a residual, so the DOM survives for diagnosis.
+        "f799d9e6ff5db8afe73d69ec74eb20e1cbc6c67b2e81260dff6567fc56be37bb",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

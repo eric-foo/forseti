@@ -90,17 +90,25 @@ parent packet measures 500,420 in / 23,800 out (4.76%, 21.0x).
 
 Two intermittency findings, both recorded rather than tuned away:
 
-- **The ZIP-10001 pin is not reliable**: one of three attempts returned
-  `target_delivery_zip_pin_failed`. The route failed correctly — raw preserved,
-  no admitted content — and this matches the registry's note that the Target ZIP
-  control needs a bounded readiness wait. No settle or retry change was made
-  here; that is a capture-envelope decision for the owner.
+- **The ZIP-10001 pin was not reliable**: one of three attempts returned
+  `target_delivery_zip_pin_failed` at the `wait_for_zip_control` step. The route
+  failed correctly — raw preserved, no admitted content. Root cause: the
+  plugin's inner readiness cap was 10s while the operator's setup budget is 30s,
+  so it forfeited roughly 20s it had been granted. The cap is now 20s, still
+  bounded and still yielding to the caller's deadline. This is a readiness wait
+  on the already-open setup surface — no extra request, navigation, or retry.
 - **The price does not always bind to the target's price module.** The content
   packet at `10001` bound no price, while the raw diagnostic captured minutes
   later contains one `data-module-type="ProductDetailPrice"` module carrying
   `$14.69`, and the module-scoped extractor returns `14.69` when run against it.
   The capture profile's own sufficiency gate requires a visible `$n.nn` and
-  passed on the content run, so a price was on that page too.
+  passed on the content run, so a price was on that page too. That case now
+  **fails loud** instead of retaining a priceless offer: a rendered price the
+  parser cannot bind is an exposed surface without a lossless parse, which the
+  owning standard requires to force raw fallback. Failing keeps the rendered
+  DOM — exactly the evidence that was discarded and unavailable when this first
+  appeared. A page that genuinely shows no price is still an honest absence and
+  keeps its residual.
 
 **Live-versus-parent comparison** (4 days apart) shows the route stable and the
 drift real, not parser noise: identical structure (18 rows; 1 product, 1 offer,
