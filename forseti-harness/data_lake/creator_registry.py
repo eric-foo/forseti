@@ -17,6 +17,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from harness_utils import sha256_bytes as _sha256
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.root import DataLakeRoot, DataLakeRootError, _atomic_replace, raw_shard
 from source_capture.models import (
@@ -1104,10 +1105,6 @@ def _text(value: Any, role: str) -> str:
 
 def _normalize_handle(value: Any) -> str:
     return _text(value, "public handle").lstrip("@").casefold()
-
-
-def _sha256(body: bytes) -> str:
-    return hashlib.sha256(body).hexdigest()
 
 
 __all__ = [
