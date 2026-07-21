@@ -11,16 +11,21 @@ scope: >
   silent-pain taxonomy. Executor-agnostic: usable as an external
   deep-research commission or an agent lane.
 use_when:
-  - Dispatching the operator-pain-universe research pass.
-  - Adjudicating its returned candidate classes into the taxonomy.
+  - Tracing the completed pain-universe map and taxonomy back to their original research commission.
+  - Checking the research bounds that governed the completed map.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md # nonresolving: on branch claude/gtm-silent-pain-taxonomy (origin), not yet merged to main
+  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md
   - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
+superseded_by:
+  - docs/research/forseti_beauty_operator_pain_universe_map_v0.md
+  - forseti/product/spines/product_lead/gtm/forseti_gtm_silent_pain_taxonomy_v0.md
 stale_if:
-  - The returned candidates are adjudicated into the taxonomy (packet consumed).
   - The owner re-tiers the taxonomy in a way that changes the prior art below.
 ```
+
+Status: CONSUMED. Do not redispatch this packet. The resulting map and
+adjudicated taxonomy linked above are the current consumers.
 
 ## Load Contract
 
