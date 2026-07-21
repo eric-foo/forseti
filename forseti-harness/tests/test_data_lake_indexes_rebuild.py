@@ -483,6 +483,168 @@ def test_sql_query_reports_true_result_set_truncation(tmp_path: Path) -> None:
     assert truncated["normalized_query"]["limit"] == 1
 
 
+def test_decision_verification_binds_the_queried_snapshot_and_cited_bytes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A query report is decision-grade only against the exact catalogue snapshot
+    and source bytes it cited. Replacing and re-cataloguing the SAME source
+    reference must not let an old report verify against the replacement, and
+    citations laundered into a current-snapshot report must not reproduce. One
+    invariant, both source kinds: raw packet and Silver record."""
+    import data_lake.derived_retrieval_views as retrieval_views
+    from data_lake.derived_retrieval_views import (
+        _incremental_source_lanes, query_sql_catalogue, refresh_sql_catalogue,
+        verify_sql_query_sources, write_evidence_query_audit,
+    )
+
+    root = _sql_catalogue_root(tmp_path, create_time=1784505600)
+    packet_id = root.list_available()[0]
+    silver = json.loads(
+        (Path(__file__).parent / "fixtures" / "silver_compatibility" /
+         "fragrantica_text_v0.json").read_text(encoding="utf-8"))
+    root.append_record(
+        subtree="derived", raw_anchor=packet_id,
+        lane="cleaning_fragrantica_silver", record_id=silver["record_id"],
+        data=canonical_record_bytes(silver))
+    monkeypatch.setattr(
+        retrieval_views, "classify_silver_vault_record_sources",
+        lambda *_args, **_kwargs: SilverSourceAuthority(
+            CURRENT_SOURCE_BACKED_AUTHORITY, "test_current"))
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY)
+
+    stale = query_sql_catalogue(root, limit=100)
+    assert {row["source_kind"] for row in stale["rows"]} == {
+        "raw_packet", "silver_record"}
+    assert verify_sql_query_sources(root, stale)["status"] == "passed"
+
+    container = root.find_packet(packet_id)
+    manifest_path = container / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    preserved = manifest["preserved_files"][0]
+    body_path = container.joinpath(*preserved["relative_packet_path"].split("/"))
+    raw_payload = json.loads(body_path.read_text(encoding="utf-8"))
+    raw_payload["videos"][0]["comments"]["comments"][0]["text"] = "replaced probe"
+    replaced_raw = json.dumps(raw_payload).encode()
+    body_path.chmod(0o600)
+    body_path.write_bytes(replaced_raw)
+    preserved["sha256"] = hashlib.sha256(replaced_raw).hexdigest()
+    preserved["size_bytes"] = len(replaced_raw)
+    manifest_path.chmod(0o600)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    root.rebuild_availability()
+
+    silver_ref = next(row["source_ref"] for row in stale["rows"]
+                      if row["source_kind"] == "silver_record")
+    silver_path = root.path / silver_ref
+    replaced_silver = json.loads(silver_path.read_text(encoding="utf-8"))
+    replaced_silver["payload"]["observation"]["text_value"] = "replaced review body"
+    silver_path.chmod(0o600)
+    silver_path.write_bytes(canonical_record_bytes(replaced_silver))
+
+    with IncrementalSourceInventory(root, reset=True) as inventory:
+        inventory.refresh(
+            derived_lanes=_incremental_source_lanes(),
+            include_acknowledgements=True)
+        refresh_sql_catalogue(root, inventory, full_rebuild=True)
+
+    with pytest.raises(
+        DataLakeRootError, match="changed between query and verification"
+    ):
+        verify_sql_query_sources(root, stale)
+    with pytest.raises(ValueError, match="verified before audit"):
+        write_evidence_query_audit(
+            stale, decision_question_id="creator_comment_coordination",
+            audit_root=tmp_path / "stale-audit")
+    assert not (tmp_path / "stale-audit").exists()
+
+    fresh = query_sql_catalogue(root, limit=100)
+    assert verify_sql_query_sources(root, fresh)["status"] == "passed"
+    laundered = dict(fresh, rows=stale["rows"])
+    with pytest.raises(DataLakeRootError, match="not reproducible"):
+        verify_sql_query_sources(root, laundered)
+
+
+def test_unhealthy_or_unidentified_catalogue_cannot_receive_a_decision_receipt(
+    tmp_path: Path,
+) -> None:
+    """``status`` and ``quick_check`` are health EVIDENCE, not decoration: a
+    decision receipt is refused unless the snapshot is healthy and carries a
+    supported schema/extractor plus inventory and logical-digest identity, and
+    the emitted receipt keeps the health evidence it relied on."""
+    from data_lake.derived_retrieval_views import (
+        query_sql_catalogue, sql_catalogue_path, verify_sql_query_sources,
+        write_evidence_query_audit,
+    )
+
+    root = _sql_catalogue_root(tmp_path, create_time=1784505600)
+    healthy = query_sql_catalogue(root, platform="tiktok")
+    healthy["source_verification"] = verify_sql_query_sources(root, healthy)
+    audit_root = tmp_path / "decision-audit"
+    receipt_path = write_evidence_query_audit(
+        healthy, decision_question_id="creator_comment_coordination",
+        audit_root=audit_root)
+    receipt = json.loads(Path(receipt_path).read_text(encoding="utf-8"))
+    assert receipt["catalogue_snapshot"]["status"] == "ok"
+    assert receipt["catalogue_snapshot"]["quick_check"] == "ok"
+
+    for broken, expected in (
+        ({"status": "failed", "quick_check": "malformed page"}, "healthy"),
+        ({"schema_version": 999}, "catalogue schema"),
+        ({"extractor_profile": "other_profile_v9"}, "extractor profile"),
+        ({"logical_digest": None}, "identity metadata"),
+        ({"source_inventory_sha256": ""}, "identity metadata"),
+    ):
+        report = dict(healthy, catalogue={**healthy["catalogue"], **broken})
+        with pytest.raises(DataLakeRootError, match=expected):
+            write_evidence_query_audit(
+                report, decision_question_id="creator_comment_coordination",
+                audit_root=audit_root)
+    assert len(list(Path(receipt_path).parent.glob("*.json"))) == 1
+
+    connection = sqlite3.connect(sql_catalogue_path(root))
+    try:
+        connection.execute(
+            "UPDATE evidence_metadata SET value='other_profile_v9' "
+            "WHERE key='extractor_profile'")
+        connection.commit()
+    finally:
+        connection.close()
+    tampered = query_sql_catalogue(root, platform="tiktok")
+    with pytest.raises(DataLakeRootError, match="extractor profile"):
+        verify_sql_query_sources(root, tampered)
+
+
+def test_runner_rejects_an_explicitly_blank_decision_question_id(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An empty ``--decision-question-id`` is a SUPPLIED value, not an absent
+    one: it must fail before the query, verifier, audit writer, or normal
+    output rather than silently downgrading to an exploratory query."""
+    import runners.run_data_lake_indexes_rebuild as runner
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(DataLakeRoot,"resolve",staticmethod(lambda **_kwargs: root))
+    monkeypatch.setattr(
+        runner,"query_sql_catalogue",
+        lambda *_args,**_kwargs: pytest.fail("blank decision id reached the query"))
+    monkeypatch.setattr(
+        runner,"verify_sql_query_sources",
+        lambda *_args,**_kwargs: pytest.fail("blank decision id reached the verifier"))
+    monkeypatch.setattr(
+        runner,"write_evidence_query_audit",
+        lambda *_args,**_kwargs: pytest.fail("blank decision id reached the audit"))
+    output = io.StringIO()
+    monkeypatch.setattr(sys,"stdout",output)
+
+    assert runner.main([
+        "--root",str(root.path),"--sql-query","--decision-question-id","",
+    ]) == 2
+    emitted = json.loads(output.getvalue())
+    assert emitted["status"] == "error"
+    assert "nonblank" in emitted["error"]
+    assert "rows" not in emitted
+
+
 def test_failed_full_rebuild_leaves_the_previous_sql_catalogue_intact(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

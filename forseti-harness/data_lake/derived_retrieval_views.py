@@ -1898,12 +1898,49 @@ def query_sql_catalogue(root, *, body_query=None, platform=None, vendor=None,
     finally: connection.close()
 
 
+# The fields that identify WHICH catalogue snapshot a report was answered from.
+# A decision-grade report is verifiable only against that same snapshot.
+_SQL_SNAPSHOT_IDENTITY_FIELDS = (
+    "schema_version", "extractor_profile", "source_inventory_sha256",
+    "logical_digest", "last_successful_refresh_at",
+)
+
+
+def _dr_require_healthy_catalogue(snapshot, label):
+    """Health and identity a snapshot merely RECORDS is not evidence until it is
+    checked. Both the live snapshot behind a verification and the snapshot a
+    receipt is about pass through here before any decision-grade claim."""
+    if snapshot.get("status") != "ok" or snapshot.get("quick_check") != "ok":
+        raise DataLakeRootError(
+            "decision-grade query requires a healthy %s catalogue snapshot: "
+            "status=%r quick_check=%r" %
+            (label,snapshot.get("status"),snapshot.get("quick_check")))
+    if snapshot.get("schema_version") != SQL_CATALOGUE_SCHEMA_VERSION:
+        raise DataLakeRootError(
+            "decision-grade query requires %s catalogue schema %d: %r" %
+            (label,SQL_CATALOGUE_SCHEMA_VERSION,snapshot.get("schema_version")))
+    if snapshot.get("extractor_profile") != SQL_EXTRACTOR_PROFILE:
+        raise DataLakeRootError(
+            "decision-grade query requires %s catalogue extractor profile %s: %r" %
+            (label,SQL_EXTRACTOR_PROFILE,snapshot.get("extractor_profile")))
+    missing = sorted(field for field in _SQL_SNAPSHOT_IDENTITY_FIELDS
+                     if not snapshot.get(field))
+    if missing:
+        raise DataLakeRootError(
+            "decision-grade query %s catalogue snapshot is missing required "
+            "identity metadata: %s" % (label,missing))
+    return snapshot
+
+
 def _dr_catalogued_sources(root, source_refs):
+    """One read transaction: the live catalogue snapshot plus the catalogued row
+    behind every cited source ref, so both describe the same snapshot."""
     refs = sorted(set(source_refs))
-    if not refs: return {}
-    connection = _dr_connect(sql_catalogue_path(root),read_only=True)
+    path = sql_catalogue_path(root)
+    connection = _dr_connect(path,read_only=True)
     try:
         connection.execute("BEGIN")
+        live = _dr_catalogue_status(connection,path)
         sources = {}
         for start in range(0,len(refs),SQL_SOURCE_LOOKUP_CHUNK):
             chunk = refs[start:start+SQL_SOURCE_LOOKUP_CHUNK]
@@ -1916,15 +1953,46 @@ def _dr_catalogued_sources(root, source_refs):
     missing = sorted(set(refs)-set(sources))
     if missing:
         raise DataLakeRootError("query citation source absent from catalogue: %s" % missing[:3])
-    return sources
+    return live, sources
 
 
-def _dr_verified_query_sources(root, rows):
-    refs = sorted({row["source_ref"] for row in rows})
-    sources = _dr_catalogued_sources(root,refs)
-    verified = {}
-    for ref in refs:
+def _dr_hydrate_source_events(source, payload, source_ref):
+    """Every event the VERIFIED bytes of one catalogued source actually produce,
+    re-derived through the same extractor that catalogued them."""
+    if source["source_kind"] == "raw_packet":
+        return _dr_raw_events(payload,source_ref)
+    return _dr_silver_events(json.loads(payload.decode()),source_ref)
+
+
+def _dr_verified_query_sources(root, report):
+    """Bind a query report to the exact catalogue snapshot and source bytes it
+    cited, then prove every citation is reproducible from those bytes.
+
+    Hash-checking source bytes alone accepts a report whose citations came from
+    a REPLACED snapshot: a rebuild that re-catalogues different bytes under the
+    same source ref makes the replacement self-consistent. Snapshot binding plus
+    per-citation reproduction is the one invariant that governs raw packets and
+    Silver records alike, and it holds without blocking incremental refreshes or
+    demanding a rebuild."""
+    rows = report["rows"]
+    live, sources = _dr_catalogued_sources(
+        root,{row["source_ref"] for row in rows})
+    snapshot = report.get("catalogue")
+    if not isinstance(snapshot,dict):
+        raise DataLakeRootError("query report carries no catalogue snapshot")
+    drifted = sorted(field for field in _SQL_SNAPSHOT_IDENTITY_FIELDS
+                     if snapshot.get(field) != live.get(field))
+    if drifted:
+        raise DataLakeRootError(
+            "catalogue snapshot changed between query and verification: %s" % drifted)
+    _dr_require_healthy_catalogue(live,"live")
+    verified = {}; hydrated = {}
+    for ref in sorted(sources):
         source = sources[ref]
+        if source["extractor_profile"] != SQL_EXTRACTOR_PROFILE:
+            raise DataLakeRootError(
+                "query citation extractor profile is unsupported: %s: %s" %
+                (ref,source["extractor_profile"]))
         if source["source_kind"] == "raw_packet":
             loaded = root.load_raw_packet(source["raw_anchor"])
             manifest_path = loaded.container / "manifest.json"
@@ -1950,13 +2018,21 @@ def _dr_verified_query_sources(root, rows):
                 "unsupported query citation source kind: %s: %s" %
                 (ref,source["source_kind"]))
         verified[ref] = (source,payload)
-    return verified
+        hydrated.update({event["event_id"]:event for event
+                         in _dr_hydrate_source_events(source,payload,ref)})
+    for row in rows:
+        event = hydrated.get(row["event_id"])
+        if event is None or event["body_sha256"] != row["body_sha256"]:
+            raise DataLakeRootError(
+                "query citation is not reproducible from the verified source "
+                "bytes: %s" % row["event_id"])
+    return verified, hydrated
 
 
 def verify_sql_query_sources(root, report):
     if report.get("query_profile") != "evidence_search":
         raise ValueError("source verification requires an evidence_search report")
-    verified = _dr_verified_query_sources(root,report["rows"])
+    verified, _hydrated = _dr_verified_query_sources(root,report)
     return {"status":"passed","verified_source_count":len(verified)}
 
 
@@ -1981,14 +2057,7 @@ def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
         raise ValueError(
             "actor candidate set exceeds the bounded result limit; narrow the "
             "time window or add a creator/content anchor")
-    verified = _dr_verified_query_sources(root,report["rows"])
-    hydrated = {}
-    for ref,(source,payload) in verified.items():
-        if source["source_kind"] == "raw_packet":
-            events = _dr_raw_events(payload,ref)
-        else:
-            events = _dr_silver_events(json.loads(payload.decode()),ref)
-        hydrated.update({event["event_id"]:event for event in events})
+    verified, hydrated = _dr_verified_query_sources(root,report)
     needle = actor.strip().lstrip("@").casefold(); rows = []
     for row in report["rows"]:
         event = hydrated.get(row["event_id"])
@@ -2008,7 +2077,9 @@ def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
                       "not a paid/bot/fake/astroturf conclusion"]}
 
 
-def _dr_decision_question_id(value):
+def normalize_decision_question_id(value):
+    """The one validator every SUPPLIED decision-question id passes through.
+    Absence is the caller's to distinguish; a supplied blank is a rejection."""
     text = _dr_text(value)
     if text is None or len(text) > SQL_DECISION_QUESTION_ID_MAX_LENGTH:
         raise ValueError(
@@ -2032,6 +2103,7 @@ def _dr_write_query_audit(report, *, decision_question_id, caller, audit_root,
     catalogue = report.get("catalogue")
     if not isinstance(catalogue,dict):
         raise ValueError("decision query catalogue snapshot is missing")
+    _dr_require_healthy_catalogue(catalogue,"audited")
     citations = _dr_query_citations(report)
     payload = {"audit_schema_version":SQL_QUERY_AUDIT_SCHEMA_VERSION,
         "created_at":datetime.now(timezone.utc).isoformat(),
@@ -2040,10 +2112,11 @@ def _dr_write_query_audit(report, *, decision_question_id, caller, audit_root,
         "profile":report["query_profile"],
         "query_contract_version":report["query_contract_version"],
         "normalized_query":report["normalized_query"],
+        # The health evidence the receipt RELIED on travels with it: a later
+        # reader must not have to assume the snapshot was healthy.
         "catalogue_snapshot":{
-            key:catalogue.get(key) for key in (
-                "schema_version","extractor_profile","source_inventory_sha256",
-                "logical_digest","last_successful_refresh_at")},
+            key:catalogue.get(key) for key in
+            _SQL_SNAPSHOT_IDENTITY_FIELDS + ("status","quick_check")},
         "row_count":report["row_count"],"result_set_complete":True,
         "source_verification":verification,"citations":citations,
         "citation_manifest_sha256":hashlib.sha256(
@@ -2066,7 +2139,7 @@ def write_evidence_query_audit(report, *, decision_question_id, caller=None,
     if report.get("query_profile") != "evidence_search":
         raise ValueError("ordinary evidence audit requires an evidence_search report")
     return _dr_write_query_audit(
-        report,decision_question_id=_dr_decision_question_id(decision_question_id),
+        report,decision_question_id=normalize_decision_question_id(decision_question_id),
         caller=caller,audit_root=audit_root)
 
 
@@ -2116,6 +2189,7 @@ __all__ = [
     "current_generation_root",
     "generation_stamp",
     "load_derived_retrieval_view",
+    "normalize_decision_question_id",
     "prove_incremental_rebuild_equality",
     "prove_derived_retrieval_rebuildability",
     "rebuild_derived_retrieval",
