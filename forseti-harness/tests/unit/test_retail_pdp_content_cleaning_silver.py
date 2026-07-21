@@ -7,6 +7,7 @@ from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
     LUCKYSCENT_PDP_PARSER_VERSION,
+    TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
 )
@@ -19,6 +20,7 @@ _ULTA_URL = (
     "https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225"
     "?sku=2645443"
 )
+_TARGET_URL = "https://www.target.com/p/-/A-80184023"
 
 
 def _json_file(path: Path, value: object) -> Path:
@@ -387,6 +389,151 @@ def test_ulta_content_flows_directly_through_cleaning_to_retail_silver(
         source_locator=known_fact(_ULTA_URL),
         decision_question="What source-visible Ulta product facts are present?",
         capture_context="Direct Ulta content-to-Cleaning Retail Silver proof",
+    )
+
+    result = derive_retail_pdp_silver(
+        data_root=root,
+        packet_id=written.packet.packet_id,
+    )
+
+    assert result.cleaning_basis == "content_record"
+    assert [record["payload_kind"] for record in result.records] == [
+        "ProductEntity",
+        "RetailOfferObservation",
+        "RetailReviewAggregateObservation",
+    ]
+    for record in result.records:
+        for source_ref in record["raw_refs"]:
+            assert source_ref["anchor"]["kind"] == "json_pointer"
+            assert source_ref["anchor"]["value"].startswith("/rows/")
+            assert source_ref["relative_packet_path"].endswith(
+                "content_record.json"
+            )
+
+
+def test_target_content_flows_directly_through_cleaning_to_retail_silver(
+    tmp_path: Path,
+) -> None:
+    content = {
+        "record_kind": "retail_pdp_target_aggregate_content",
+        "schema_version": "retail_pdp_target_aggregate_content_v1",
+        "parser_version": TARGET_PDP_PARSER_VERSION,
+        "capture_profile": "target_pdp_aggregate",
+        "source_url": _TARGET_URL,
+        "tcin": "80184023",
+        "offer_module_state": "hydrated_in_rendered_dom",
+        "variant_module_state": "not_exposed",
+        "rows": [
+            {
+                "slice_id": "slice_01",
+                "row_id": "product",
+                "row_kind": "retail_pdp_product",
+                "retailer": "target",
+                "source_visible_fields": {
+                    "product_id": "80184023",
+                    "tcin": "80184023",
+                    "dpci": "037-14-0466",
+                    "product_name": "Naturium Vitamin C Complex Serum- 1 fl oz",
+                    "brand_name": "Naturium",
+                },
+                "residuals": [],
+                "source_anchor_kind": "script_index",
+                "source_anchor_value": "__NEXT_DATA__ CDUI core tcin=80184023",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "offer",
+                "row_kind": "retail_variant_offer",
+                "retailer": "target",
+                "source_visible_fields": {
+                    "product_id": "80184023",
+                    "sku": "80184023",
+                    "price": "14.69",
+                    "price_currency": "USD",
+                    "availability": "pickup=Ready within 2 hours",
+                    "seller": "Target",
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "rendered PDP price/fulfillment region",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "reviews",
+                "row_kind": "retail_review_substrate",
+                "retailer": "target",
+                "source_visible_fields": {
+                    "rating": "4.45",
+                    "rating_count": "1771",
+                    "review_count": "758",
+                    "structured_review_count": "758",
+                    "filtered_review_count": "757",
+                    "review_body_retention": (
+                        "bodies_not_retained; owned by "
+                        "target_bazaarvoice_onboarding companion"
+                    ),
+                },
+                "residuals": [],
+                "source_anchor_kind": "html_selector",
+                "source_anchor_value": "rendered review widget + page state",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "target_product_module_subtree",
+                "row_kind": "retail_product_module_subtree",
+                "retailer": "target",
+                "source_visible_fields": {
+                    "ingredients": "Water (Aqua), Glycerin",
+                    "alternate_image_count": 11,
+                },
+                "residuals": [],
+                "source_anchor_kind": "script_index",
+                "source_anchor_value": "__NEXT_DATA__ CDUI core product.item",
+            },
+            {
+                "slice_id": "slice_01",
+                "row_id": "target_review_identity_000",
+                "row_kind": "retail_review_identity",
+                "retailer": "target",
+                "source_visible_fields": {
+                    "target_native_review_id": "2e6c916e-2add-4efb-b36c-3cdac72a276b",
+                    "body_present": True,
+                    "body_retained_here": False,
+                },
+                "residuals": [],
+                "source_anchor_kind": "script_index",
+                "source_anchor_value": "__NEXT_DATA__ ratings_and_reviews.most_recent[0]",
+            },
+        ],
+        "residuals": ["target_review_bodies_not_retained_companion_owns_them"],
+    }
+    extraction_metadata = {
+        "extractor_version": TARGET_PDP_PARSER_VERSION,
+        "extraction_status": "succeeded",
+        "retention_outcome": "content",
+    }
+    browser_metadata = {
+        "retail_capture_profile": {"name": "target_pdp_aggregate"},
+        "pin_confirmed": True,
+    }
+    inputs = [
+        _json_file(tmp_path / "content_record.json", content),
+        _json_file(
+            tmp_path / "content_extraction_metadata.json", extraction_metadata
+        ),
+        _json_file(
+            tmp_path / "cloakbrowser_snapshot_metadata.json", browser_metadata
+        ),
+    ]
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    written = write_local_source_capture_packet(
+        data_root=root,
+        input_files=inputs,
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=known_fact(_TARGET_URL),
+        decision_question="What source-visible Target product facts are present?",
+        capture_context="Direct Target content-to-Cleaning Retail Silver proof",
     )
 
     result = derive_retail_pdp_silver(

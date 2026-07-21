@@ -78,11 +78,14 @@ from source_capture.retail_pdp_content import (
     NORDSTROM_PDP_PARSER_VERSION,
     SEPHORA_PDP_CONTENT_PROFILE,
     SEPHORA_PDP_PARSER_VERSION,
+    TARGET_PDP_CONTENT_PROFILE,
+    TARGET_PDP_PARSER_VERSION,
     ULTA_PDP_CONTENT_PROFILE,
     ULTA_PDP_PARSER_VERSION,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
+    build_target_pdp_aggregate_content_record,
     build_ulta_pdp_aggregate_content_record,
 )
 from source_capture.source_detail_sufficiency import (
@@ -270,6 +273,13 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _ulta_content_extraction_spec("content")
+        if retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE:
+            if target_zip is None:
+                raise ValueError(
+                    "target_pdp_aggregate content capture requires --target-zip"
+                )
+            if content_extraction is None:
+                content_extraction = _target_content_extraction_spec("content")
     if nordstrom_review_posture is not None:
         if (
             retail_capture_profile is None
@@ -1193,6 +1203,20 @@ def _ulta_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
     )
 
 
+def _target_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=TARGET_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
+            build_target_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            )
+        ),
+    )
+
+
 def _validate_amazon_delivery_zip_url(url: str) -> None:
     hostname = (urlparse(url).hostname or "").lower()
     if hostname not in _AMAZON_US_HOSTS:
@@ -1761,6 +1785,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             LUCKYSCENT_PDP_CONTENT_PROFILE,
             NORDSTROM_PDP_CONTENT_PROFILE,
             ULTA_PDP_CONTENT_PROFILE,
+            TARGET_PDP_CONTENT_PROFILE,
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -1822,6 +1847,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "ulta_pdp_aggregate content capture requires --ulta-market US"
                 )
             content_extraction = _ulta_content_extraction_spec(
+                args.retention_mode or "content"
+            )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE
+        ):
+            if args.target_zip is None:
+                raise ValueError(
+                    "target_pdp_aggregate content capture requires --target-zip"
+                )
+            content_extraction = _target_content_extraction_spec(
                 args.retention_mode or "content"
             )
         settle_seconds = (
