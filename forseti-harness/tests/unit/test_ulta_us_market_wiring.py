@@ -769,3 +769,21 @@ def test_writer_rejects_invalid_ulta_route_and_site_plugin_overlap(
     kwargs["sephora_market"] = "US"
     with pytest.raises(ValueError, match="only one site-specific pre-capture"):
         cloak_writer.run_source_capture_cloakbrowser_packet(**kwargs)
+
+
+def test_ulta_grid_market_confirms_country_only_and_leaves_currency_unpinned() -> None:
+    grid_url = "https://www.ulta.com/brand/clinique"
+    grid_dom = (
+        '<html lang="en-US"><script>window.__APP_LOCALE__="en-US";'
+        'fetch("/graphql?ultasite=en-us")</script></html>'
+    )
+    plugin = UltaUSMarketPlugin(target_url=grid_url, page_kind="grid")
+
+    confirmation = plugin.confirm(grid_dom)
+
+    assert confirmation.confirmed is True
+    assert "does not expose an independent currency binding" in confirmation.detail
+    assert plugin.confirm(grid_dom.replace("en-us", "en-sg")).confirmed is False
+    assert "currency and delivery location remain un-pinned" in plugin.note(
+        plugin.before(object(), setup_timeout_ms=1), confirmation
+    )

@@ -9,7 +9,7 @@ import shutil
 import sys
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Literal, Sequence
 from urllib.parse import parse_qs, urlparse
 
 if __package__ in {None, ""}:
@@ -250,6 +250,8 @@ def run_source_capture_cloakbrowser_packet(
         _validate_retail_grid_projection_request(
             retail_capture_profile=retail_capture_profile,
             retail_grid_projection_output=retail_grid_projection_output,
+            sephora_market=sephora_market,
+            ulta_market=ulta_market
         )
         if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
             if sephora_market != "US":
@@ -361,11 +363,18 @@ def run_source_capture_cloakbrowser_packet(
             ),
         )
     elif ulta_market is not None:
-        ulta_sku = _validate_ulta_us_market_url(url)
+        ulta_page_kind = (
+            "grid"
+            if retail_capture_profile is not None
+            and retail_capture_profile.name == "ulta_grid_aggregate"
+            else "pdp"
+        )
+        ulta_sku = _validate_ulta_us_market_url(url, page_kind=ulta_page_kind)
         pre_capture = UltaUSMarketPlugin(
             target_url=url,
             sku=ulta_sku,
             country_code=ulta_market,
+            page_kind=ulta_page_kind,
         )
     elif target_zip is not None:
         _validate_target_delivery_zip_url(url)
@@ -1059,8 +1068,21 @@ def _validate_retail_grid_projection_request(
     *,
     retail_capture_profile: RetailCaptureProfile,
     retail_grid_projection_output: Path | None,
+    sephora_market: str | None = None,
+    ulta_market: str | None = None,
 ) -> None:
-    projection_profiles = {"sephora_grid_aggregate", "target_grid_aggregate"}
+    if retail_capture_profile.name == "sephora_grid_aggregate":
+        if sephora_market != "US":
+            raise ValueError("sephora_grid_aggregate requires --sephora-market US")
+    elif retail_capture_profile.name == "ulta_grid_aggregate":
+        if ulta_market != "US":
+            raise ValueError("ulta_grid_aggregate requires --ulta-market US")
+
+    projection_profiles = {
+        "sephora_grid_aggregate",
+        "target_grid_aggregate",
+        "ulta_grid_aggregate",
+    }
     if retail_capture_profile.name in projection_profiles:
         if retail_grid_projection_output is None:
             raise ValueError(
@@ -1070,7 +1092,7 @@ def _validate_retail_grid_projection_request(
     elif retail_grid_projection_output is not None:
         raise ValueError(
             "--retail-grid-projection-output currently requires an admitted "
-            "Sephora or Target grid profile"
+            "Sephora, Target, or Ulta grid profile"
         )
 
 
@@ -1189,9 +1211,20 @@ def _nordstrom_review_posture_failure(
     return "; ".join(reasons) if reasons else None
 
 
-def _validate_ulta_us_market_url(url: str) -> str:
+def _validate_ulta_us_market_url(
+    url: str, *, page_kind: Literal["pdp", "grid"] = "pdp"
+) -> str | None:
     parsed = urlparse(url)
     hostname = (parsed.hostname or "").lower()
+    if page_kind == "grid":
+        if (
+            hostname not in _ULTA_HOSTS
+            or not re.fullmatch(r"/brand/[a-z0-9][a-z0-9-]*", parsed.path.rstrip("/"))
+        ):
+            raise ValueError(
+                "--ulta-market US grid capture requires an exact ulta.com/brand/<slug> URL"
+            )
+        return None
     sku_values = parse_qs(parsed.query).get("sku", [])
     if (
         hostname not in _ULTA_HOSTS
@@ -1596,9 +1629,9 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required for admitted Sephora and Target aggregate grids. Writes the "
-            "hash-verified, view-only typed grid projection sidecar and fails closed "
-            "when evaluated completeness does not reconcile."
+            "Required for admitted Sephora, Target, and Ulta aggregate grids. "
+            "Writes the hash-verified, view-only typed grid projection sidecar and "
+            "fails closed when evaluated completeness does not reconcile."
         ),
     )
     parser.add_argument(
@@ -1770,11 +1803,12 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["US"],
         default=None,
         help=(
-            "Fail-closed assertion for an exact Ulta PDP US/USD storefront. Requires "
-            "consistent html/app/GraphQL en-US site state, one product price node "
-            "binding consumer locale en_US and currency USD, and the requested SKU's "
-            "Product JSON-LD nonempty USD offer. Performs no preference mutation and "
-            "does not claim a delivery location."
+            "Fail-closed assertion for an Ulta rendered storefront. PDP capture "
+            "requires consistent html/app/GraphQL en-US site state, a USD product "
+            "price node, and a SKU-bound Product JSON-LD USD offer. Brand-grid "
+            "capture admits only the consistent US country route; grid currency "
+            "and delivery location remain explicitly un-pinned. Performs no "
+            "preference mutation."
         ),
     )
     parser.add_argument(
@@ -1871,6 +1905,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             _validate_retail_grid_projection_request(
                 retail_capture_profile=retail_capture_profile,
                 retail_grid_projection_output=args.retail_grid_projection_output,
+                sephora_market=args.sephora_market,
+                ulta_market=args.ulta_market
             )
         elif args.retail_grid_projection_output is not None:
             raise ValueError(
@@ -2028,7 +2064,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.sephora_market is not None:
             _validate_sephora_us_market_url(args.url)
         if args.ulta_market is not None:
-            _validate_ulta_us_market_url(args.url)
+            _validate_ulta_us_market_url(
+                args.url,
+                page_kind=(
+                    "grid"
+                    if retail_capture_profile is not None
+                    and retail_capture_profile.name == "ulta_grid_aggregate"
+                    else "pdp"
+                ),
+            )
         if args.target_zip is not None:
             _validate_target_delivery_zip_url(args.url)
         # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only

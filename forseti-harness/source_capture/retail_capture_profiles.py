@@ -498,12 +498,23 @@ _PROFILES = {
             page_kind="grid_aggregate",
             hostname="www.ulta.com",
             source_surface="cloakbrowser_snapshot",
-            ordinary_operation=False,
+            ordinary_operation=True,
             settle_seconds=5.0,
             scroll_passes=1,
+            load_more_selector="button.LoadContent__button",
+            load_more_clicks=10,
+            requirements_define_scroll_stop=False,
             requirements=_requirements(
-                visible_text_contains=("Search Results", "Lip Mask", "Add to bag"),
-                visible_text_regexes=(r"\d+\s+(?:Results|products)", r"\$\d+\.\d{2}"),
+                visible_text_contains=("Add to bag",),
+                visible_text_regexes=(
+                    r"You have viewed\s+\d+\s+of\s+\d+",
+                    r"\$\d+\.\d{2}",
+                ),
+                rendered_dom_contains=(
+                    'data-test="products-list"',
+                    'data-test="products-list-item"',
+                    "window.__APP_LOCALE__",
+                ),
             ),
         ),
         RetailCaptureProfile(

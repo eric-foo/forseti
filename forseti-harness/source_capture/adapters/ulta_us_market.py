@@ -15,7 +15,7 @@ import json
 import re
 from dataclasses import dataclass
 from html.parser import HTMLParser
-from typing import Any, Iterator
+from typing import Any, Iterator, Literal
 from urllib.parse import parse_qs, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
@@ -34,24 +34,28 @@ _ULTASITE_RE = re.compile(r"ultasite=(?P<value>[A-Za-z_-]+)", flags=re.IGNORECAS
 
 @dataclass(frozen=True)
 class UltaUSMarketPlugin:
-    """Confirm an exact Ulta PDP is serving its US/USD storefront."""
+    """Confirm an Ulta PDP or brand grid is serving its US storefront."""
 
     target_url: str
-    sku: str
+    sku: str | None = None
     country_code: str = "US"
     currency_code: str = "USD"
+    page_kind: Literal["pdp", "grid"] = "pdp"
 
     def __post_init__(self) -> None:
         parsed = urlparse(self.target_url)
-        requested_skus = parse_qs(parsed.query).get("sku", [])
         if self.country_code != "US" or self.currency_code != "USD":
             raise ValueError("Ulta market assertion currently supports only US/USD")
-        if (
-            parsed.scheme != "https"
-            or (parsed.hostname or "").lower() not in _ULTA_HOSTS
-            or requested_skus != [self.sku]
-            or not self.sku.isdigit()
-        ):
+        if parsed.scheme != "https" or (parsed.hostname or "").lower() not in _ULTA_HOSTS:
+            raise ValueError("Ulta market assertion requires an HTTPS ulta.com URL")
+        if self.page_kind == "grid":
+            if not re.fullmatch(r"/brand/[a-z0-9][a-z0-9-]*", parsed.path.rstrip("/")):
+                raise ValueError(
+                    "Ulta grid market assertion requires an exact /brand/<slug> URL"
+                )
+            return
+        requested_skus = parse_qs(parsed.query).get("sku", [])
+        if self.sku is None or requested_skus != [self.sku] or not self.sku.isdigit():
             raise ValueError(
                 "Ulta market assertion requires an HTTPS ulta.com PDP with one "
                 "numeric sku query value matching the commissioned SKU"
@@ -71,7 +75,9 @@ class UltaUSMarketPlugin:
         )
 
     def confirm(self, rendered_dom: str) -> PinConfirmation:
-        return confirm_ulta_us_market(rendered_dom, expected_sku=self.sku)
+        return confirm_ulta_us_market(
+            rendered_dom, expected_sku=self.sku, page_kind=self.page_kind
+        )
 
     def describe(self) -> dict[str, object]:
         return {
@@ -79,11 +85,18 @@ class UltaUSMarketPlugin:
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
             "product_sku_requested": self.sku,
+            "page_kind": self.page_kind,
             "market_preference_action": "none_rendered_market_assertion",
         }
 
     def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
         if confirmation.confirmed:
+            if self.page_kind == "grid":
+                return (
+                    "declared_storefront_market: Ulta rendered brand grid CONFIRMED as "
+                    f"US country route ({confirmation.detail}); currency and delivery "
+                    "location remain un-pinned"
+                )
             return (
                 "declared_storefront_market: Ulta rendered PDP CONFIRMED as "
                 f"US/USD ({confirmation.detail}); delivery location remains un-pinned"
@@ -92,8 +105,8 @@ class UltaUSMarketPlugin:
         if not outcome.steps_completed and outcome.reason is not None:
             reason = f"pre-capture assertion setup failed: {outcome.reason}; {reason}"
         return (
-            "declared_storefront_market: Ulta US/USD rendered-market assertion NOT "
-            f"confirmed ({reason}); treat storefront country and currency as un-pinned "
+            "declared_storefront_market: Ulta rendered-market assertion NOT confirmed "
+            f"({reason}); treat storefront country and currency as un-pinned "
             "(honest gap)"
         )
 
@@ -101,7 +114,8 @@ class UltaUSMarketPlugin:
 def confirm_ulta_us_market(
     rendered_dom: str,
     *,
-    expected_sku: str,
+    expected_sku: str | None,
+    page_kind: Literal["pdp", "grid"] = "pdp",
 ) -> PinConfirmation:
     """Require Ulta-owned US site state plus two independent bound USD offers."""
     dom = rendered_dom or ""
@@ -125,6 +139,30 @@ def confirm_ulta_us_market(
         and app_locales == {"en-US"}
         and ulta_sites == {"en-us"}
     )
+
+    if page_kind == "grid":
+        if us_site_state:
+            return PinConfirmation(
+                confirmed=True,
+                detail=(
+                    "root/app/site state consistently bound en-US; the brand grid "
+                    "does not expose an independent currency binding"
+                ),
+            )
+        return PinConfirmation(
+            confirmed=False,
+            detail=(
+                "required Ulta US rendered conjunction absent: consistent html "
+                "lang=en-US, window.__APP_LOCALE__=en-US, and Ulta GraphQL "
+                "ultasite=en-us"
+            ),
+        )
+
+    if expected_sku is None:
+        return PinConfirmation(
+            confirmed=False,
+            detail="required Ulta US/USD rendered conjunction absent: expected PDP SKU",
+        )
 
     product_placements = [
         attributes
