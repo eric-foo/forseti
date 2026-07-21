@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -21,13 +22,14 @@ from data_lake.creator_registry import (
     monitoring_eligible_accounts,
     publish_creator_registry_generation,
 )
-from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
     load_creator_frontier_dispositions,
     write_creator_frontier_dispositions,
 )
 from runners import run_source_capture_tiktok_creator_onboarding as onboarding_runner
+from runners.run_creator_registry_lake import main as registry_main
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -167,6 +169,123 @@ def test_migration_dry_run_does_not_write_and_write_preserves_account_set(tmp_pa
     public = load_current_creator_profiles(root)["creator_profile_public"]
     assert len(index["platform_accounts"]) == dry["parity"]["platform_accounts_total"]
     assert len(public["profiles"]) == dry["parity"]["profiles_total"]
+
+
+def test_existing_v1_generation_does_not_collide_with_v2_rebuild(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    migrated = _migrate(root)
+    registry_root = root.path / "indexes" / "derived_retrieval" / "creator_registry"
+    v2_generation = Path(migrated["generation_root"])
+    v2_manifest = json.loads(
+        (v2_generation / "manifests" / "creator_registry_generation_v2.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    legacy_generation_id = "crg_" + v2_manifest["authority_inventory_sha256"][:24]
+    assert legacy_generation_id != migrated["generation_id"]
+
+    legacy_generation = registry_root / "generations" / legacy_generation_id
+    (legacy_generation / "query_tables").mkdir(parents=True)
+    (legacy_generation / "profiles").mkdir()
+    (legacy_generation / "manifests").mkdir()
+    (legacy_generation / "query_tables" / "creator_registry_index_v1.json").write_bytes(
+        (v2_generation / "query_tables" / "creator_registry_index_v1.json").read_bytes()
+    )
+    (legacy_generation / "profiles" / "creator_profile_public_v1.json").write_bytes(
+        (v2_generation / "profiles" / "creator_profile_public_v1.json").read_bytes()
+    )
+    (legacy_generation / "manifests" / "creator_registry_generation_v1.json").write_bytes(
+        canonical_record_bytes(
+            {
+                "schema_version": "creator_registry_generation_v1",
+                "generation_id": legacy_generation_id,
+                "authority_inventory_sha256": v2_manifest[
+                    "authority_inventory_sha256"
+                ],
+            }
+        )
+    )
+    legacy_before = {
+        path.relative_to(legacy_generation).as_posix(): path.read_bytes()
+        for path in legacy_generation.rglob("*")
+        if path.is_file()
+    }
+    (registry_root / "CURRENT").write_bytes(
+        canonical_record_bytes(
+            {"pointer_schema_version": 1, "generation_id": legacy_generation_id}
+        )
+    )
+    shutil.rmtree(v2_generation)
+
+    dry = publish_creator_registry_generation(root, dry_run=True)
+    assert dry["generation_id"] == migrated["generation_id"]
+    assert dry["would_write_generation"] is True
+    assert dry["would_update_pointer"] is True
+    assert not v2_generation.exists()
+
+    rebuilt = publish_creator_registry_generation(root)
+    assert rebuilt["generation_id"] == migrated["generation_id"]
+    assert v2_generation.is_dir()
+    pointer = json.loads((registry_root / "CURRENT").read_text(encoding="utf-8"))
+    assert pointer == {
+        "pointer_schema_version": 2,
+        "generation_id": migrated["generation_id"],
+    }
+    assert legacy_before == {
+        path.relative_to(legacy_generation).as_posix(): path.read_bytes()
+        for path in legacy_generation.rglob("*")
+        if path.is_file()
+    }
+    assert load_current_creator_registry(root)["creator_registry_index"][
+        "counts"
+    ]["platform_accounts_total"] == migrated["platform_accounts_total"]
+
+
+def test_generation_and_existing_baseline_dry_runs_are_read_only(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    readonly = DataLakeRoot.resolve_readonly(explicit=root.path)
+
+    def snapshot() -> dict[str, tuple[bytes, int]]:
+        return {
+            path.relative_to(root.path).as_posix(): (
+                path.read_bytes(),
+                path.stat().st_mtime_ns,
+            )
+            for path in root.path.rglob("*")
+            if path.is_file()
+        }
+
+    before = snapshot()
+    dry = publish_creator_registry_generation(readonly, dry_run=True)
+    assert dry["would_write_generation"] is False
+    assert dry["would_update_pointer"] is False
+    migrated = migrate_legacy_registry(
+        data_root=readonly,
+        account_ledger_path=LEGACY_ROOT / "creator_public_handle_linkage_ledger_v0.json",
+        registry_index_path=LEGACY_ROOT / "creator_registry_index_v0.json",
+        profile_current_path=LEGACY_ROOT / "creator_profile_current_view_v0.json",
+        dry_run=True,
+    )
+    assert migrated["status"] == "dry_run_passed"
+    assert migrated["would_write_authority"] is False
+    assert snapshot() == before
+
+    assert registry_main(
+        ["rebuild", "--data-root", str(root.path), "--dry-run"]
+    ) == 0
+    cli = json.loads(capsys.readouterr().out)
+    assert cli["status"] == "dry_run_passed"
+    assert cli["would_write_generation"] is False
+    assert cli["would_update_pointer"] is False
+    assert snapshot() == before
+
+    with pytest.raises(SystemExit):
+        registry_main(["rebuild", "--data-root", str(root.path)])
+    with pytest.raises(DataLakeRootError, match="read-only"):
+        publish_creator_registry_generation(readonly)
 
 
 def test_validated_tiktok_admission_is_idempotent_and_client_safe(tmp_path: Path) -> None:

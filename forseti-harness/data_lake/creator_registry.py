@@ -189,8 +189,13 @@ def migrate_legacy_registry(
             raise CreatorRegistryLakeError(
                 "Creator Registry baseline already exists with different source hashes"
             )
-        result = publish_creator_registry_generation(data_root)
-        return {"status": "already_current", "baseline_record_id": baseline["record_id"], **result}
+        result = publish_creator_registry_generation(data_root, dry_run=dry_run)
+        return {
+            "status": "dry_run_passed" if dry_run else "already_current",
+            "baseline_record_id": baseline["record_id"],
+            "would_write_authority": False,
+            **result,
+        }
     parity = _baseline_parity(documents)
     if dry_run:
         return {
@@ -542,15 +547,28 @@ def admit_tiktok_creator_account(
     }
 
 
-def publish_creator_registry_generation(data_root: DataLakeRoot) -> dict[str, Any]:
+def publish_creator_registry_generation(
+    data_root: DataLakeRoot, *, dry_run: bool = False
+) -> dict[str, Any]:
     records = _load_authority_records(data_root)
     authority_digest = records["authority_inventory_sha256"]
-    generation_id = "crg_" + authority_digest[:24]
     generated_at = _generation_time(records)
     index = _build_internal_index(records, generated_at=generated_at)
     public = _build_public_profiles(records, generated_at=generated_at)
     index_bytes = canonical_record_bytes(index)
     public_bytes = canonical_record_bytes(public)
+    file_hashes = {
+        f"query_tables/{INDEX_FILENAME}": _sha256(index_bytes),
+        f"profiles/{PROFILE_FILENAME}": _sha256(public_bytes),
+    }
+    generation_identity = {
+        "schema_version": GENERATION_MANIFEST_SCHEMA_VERSION,
+        "authority_inventory_sha256": authority_digest,
+        "files": file_hashes,
+    }
+    generation_id = "crg_" + _sha256(
+        canonical_record_bytes(generation_identity)
+    )[:24]
     manifest = {
         "schema_version": GENERATION_MANIFEST_SCHEMA_VERSION,
         "generation_id": generation_id,
@@ -558,10 +576,7 @@ def publish_creator_registry_generation(data_root: DataLakeRoot) -> dict[str, An
         "authority_inventory_sha256": authority_digest,
         "authority_record_count": len(records["authority_refs"]),
         "authority_refs": records["authority_refs"],
-        "files": {
-            f"query_tables/{INDEX_FILENAME}": _sha256(index_bytes),
-            f"profiles/{PROFILE_FILENAME}": _sha256(public_bytes),
-        },
+        "files": file_hashes,
     }
     manifest_bytes = canonical_record_bytes(manifest)
     files = {
@@ -571,8 +586,8 @@ def publish_creator_registry_generation(data_root: DataLakeRoot) -> dict[str, An
     }
     root = _registry_root(data_root)
     generations = root / GENERATIONS_DIRNAME
-    generations.mkdir(parents=True, exist_ok=True)
     target = generations / generation_id
+    target_exists = target.exists()
     if target.exists():
         for relative, expected in files.items():
             path = target / relative
@@ -580,7 +595,33 @@ def publish_creator_registry_generation(data_root: DataLakeRoot) -> dict[str, An
                 raise CreatorRegistryLakeError(
                     f"creator registry generation collision with different bytes: {generation_id}"
                 )
-    else:
+    pointer = canonical_record_bytes(
+        {
+            "pointer_schema_version": CURRENT_POINTER_SCHEMA_VERSION,
+            "generation_id": generation_id,
+        }
+    )
+    pointer_path = root / CURRENT_FILENAME
+    pointer_is_current = pointer_path.is_file() and pointer_path.read_bytes() == pointer
+    result = {
+        "generation_id": generation_id,
+        "generation_root": str(target),
+        "authority_record_count": len(records["authority_refs"]),
+        "platform_accounts_total": index["creator_registry_index"]["counts"][
+            "platform_accounts_total"
+        ],
+        "public_profiles_total": len(public["creator_profile_public"]["profiles"]),
+    }
+    if dry_run:
+        return {
+            **result,
+            "would_write_generation": not target_exists,
+            "would_update_pointer": not pointer_is_current,
+        }
+
+    data_root._require_writable("publish Creator Registry generation")
+    generations.mkdir(parents=True, exist_ok=True)
+    if not target_exists:
         staging = generations / f".building-{generation_id}-{uuid.uuid4().hex}"
         try:
             for relative, body in files.items():
@@ -590,21 +631,8 @@ def publish_creator_registry_generation(data_root: DataLakeRoot) -> dict[str, An
             os.rename(staging, target)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
-    pointer = canonical_record_bytes(
-        {
-            "pointer_schema_version": CURRENT_POINTER_SCHEMA_VERSION,
-            "generation_id": generation_id,
-        }
-    )
-    _atomic_replace(root / CURRENT_FILENAME, pointer)
-    return {
-        "generation_id": generation_id,
-        "generation_root": str(target),
-        "platform_accounts_total": index["creator_registry_index"]["counts"][
-            "platform_accounts_total"
-        ],
-        "public_profiles_total": len(public["creator_profile_public"]["profiles"]),
-    }
+    _atomic_replace(pointer_path, pointer)
+    return result
 
 
 def load_current_creator_registry(data_root: DataLakeRoot) -> dict[str, Any]:
