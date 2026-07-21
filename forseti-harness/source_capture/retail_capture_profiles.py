@@ -11,7 +11,7 @@ from source_capture.source_detail_sufficiency import (
 )
 
 
-RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2
+RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 3
 
 
 _AMAZON_ASIN_IN_PATH = re.compile(r"/(?:dp|gp/product|gp/aw/d)/([A-Za-z0-9]{10})(?:[/?]|$)")
@@ -49,6 +49,9 @@ class RetailCaptureProfile:
     scroll_passes: int = 0
     scroll_step_px: int = 0
     scroll_target_selector: str | None = None
+    load_more_selector: str | None = None
+    load_more_clicks: int = 0
+    requirements_define_scroll_stop: bool = True
     block_heavy_assets: bool = False
     derive_target_asin_from_url: bool = False
     derive_target_query_from_url: bool = False
@@ -107,7 +110,10 @@ class RetailCaptureProfile:
         return self.requirements
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
-        if self.source_surface != "cloakbrowser_snapshot":
+        if (
+            self.source_surface != "cloakbrowser_snapshot"
+            or not self.requirements_define_scroll_stop
+        ):
             return None
         if (
             not self.requirements.visible_text_contains
@@ -135,6 +141,9 @@ class RetailCaptureProfile:
                 "scroll_passes": self.scroll_passes,
                 "scroll_step_px": self.scroll_step_px,
                 "scroll_target_selector": self.scroll_target_selector,
+                "load_more_selector": self.load_more_selector,
+                "load_more_clicks": self.load_more_clicks,
+                "requirements_define_scroll_stop": self.requirements_define_scroll_stop,
                 "block_heavy_assets": self.block_heavy_assets,
             },
         }
@@ -246,7 +255,10 @@ _PROFILES = {
             ordinary_operation=True,
             settle_seconds=5.0,
             scroll_passes=1,
-            scroll_step_px=350,
+            scroll_step_px=0,
+            load_more_selector="text=Show More Products",
+            load_more_clicks=10,
+            requirements_define_scroll_stop=False,
             requirements=_requirements(
                 visible_text_contains=("Quicklook",),
                 visible_text_regexes=(

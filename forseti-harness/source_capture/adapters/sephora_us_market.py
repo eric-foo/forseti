@@ -68,7 +68,7 @@ class SephoraUSMarketPlugin:
 
     @property
     def humanize(self) -> bool:
-        return False
+        return True
 
     def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
         try:
