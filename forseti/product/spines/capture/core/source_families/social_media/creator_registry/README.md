@@ -14,6 +14,7 @@ use_when:
   - Explaining the split between creator registry, public-handle linkage, metric rollups, and the profile-current dashboard view.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_lake_authority_contract_v1.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_gt_roadmap_v0.md
@@ -40,9 +41,10 @@ This folder is the creator-ledger home for social-media creator accounts.
 It is intentionally a folder, not one huge document. The parts update at
 different speeds and carry different authority:
 
-- `creator_registry_index_v0.json` is the current check-before-work list for
-  known public platform accounts and linked creator records, plus the
-  deterministic account-level onboarding projection from committed Bronze.
+- `creator_registry_lake_authority_contract_v1.md` owns the live authority and
+  generated-current boundary. The checked-in `creator_registry_index_v0.json`,
+  linkage ledger, and profile-current JSON are frozen migration inputs, not live
+  operational authority after cutover.
 - `creator_public_handle_linkage_ledger_v0.json` is the identity/linkage ledger:
   public platform accounts, handle evidence, soft links, promoted links, and
   rejected links.
@@ -71,10 +73,10 @@ different speeds and carry different authority:
   may support deterministic current-view rebuilds, but they are not copied into
   the registry index as raw truth.
 
-Run `forseti-harness/runners/run_creator_registry_onboarding_refresh.py` after
-official captures to refresh `not_onboarded` / `onboarded` from exact committed
-packet evidence. The runner reads the lake but never writes it. Then run the
-profile-current materializer, which mirrors the same state for consumers.
+Use `forseti-harness/runners/run_creator_registry_lake.py`. Its one-time
+`migrate` command establishes the baseline; TikTok Judgment completion appends
+one admission and atomically republishes `CURRENT`. Ordinary onboarding does not
+rewrite this folder and therefore does not require a data-only PR.
 
 ## Placement
 
@@ -98,7 +100,7 @@ useful signal. The registry index only prevents duplicate rows and duplicate wor
 ```text
 Discovery observes a handle or URL
 -> normalize platform/account/handle
--> check creator_registry_index_v0.json
+-> load and verify indexes/derived_retrieval/creator_registry/CURRENT
 -> exact known account: attach discovery evidence through the owning source-family observation or capture-refresh handoff, keyed to the stable account/subject ids
 -> possible same creator: create or refresh a candidate link review item
 -> unknown account: create a new candidate stub through the owning source lane

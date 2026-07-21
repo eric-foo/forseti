@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -9,26 +10,16 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from capture_spine.creator_profile_current.registry_match_preflight import (
+    build_creator_registry_match_preflight_receipt,
     build_creator_registry_match_preflight_receipt_from_files,
     dump_creator_registry_match_preflight_receipt,
     has_blocking_preflight_results,
+    load_creator_registry_match_candidates,
 )
+from data_lake.canonical_json import canonical_record_bytes
+from data_lake.creator_registry import load_current_registry_preflight_view
+from data_lake.root import DataLakeRoot
 from harness_utils import utc_now_z
-
-
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_REGISTRY = (
-    ROOT
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "creator_registry"
-    / "creator_profile_current_view_v0.json"
-)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -39,7 +30,13 @@ def _build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument("--candidates", type=Path, required=True, help="Candidate batch JSON.")
-    parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY, help="creator_profile_current view JSON.")
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--data-root", help="Forseti data root; defaults to configured root.")
+    source.add_argument(
+        "--registry",
+        type=Path,
+        help="Test-only creator_profile_current JSON override.",
+    )
     parser.add_argument("--output", type=Path, help="Write receipt JSON. Defaults to stdout.")
     parser.add_argument("--generated-at-utc", help="Receipt timestamp. Defaults to now.")
     return parser
@@ -50,11 +47,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     generated_at = args.generated_at_utc or utc_now_z()
     try:
-        receipt = build_creator_registry_match_preflight_receipt_from_files(
-            candidate_path=args.candidates,
-            registry_path=args.registry,
-            generated_at_utc=generated_at,
-        )
+        if args.registry is not None:
+            receipt = build_creator_registry_match_preflight_receipt_from_files(
+                candidate_path=args.candidates,
+                registry_path=args.registry,
+                generated_at_utc=generated_at,
+            )
+        else:
+            registry = load_current_registry_preflight_view(
+                DataLakeRoot.resolve(explicit=args.data_root)
+            )
+            receipt = build_creator_registry_match_preflight_receipt(
+                candidates=load_creator_registry_match_candidates(args.candidates),
+                registry_document=registry,
+                registry_source_pointer=(
+                    "indexes/derived_retrieval/creator_registry/CURRENT"
+                ),
+                registry_sha256=hashlib.sha256(
+                    canonical_record_bytes(registry)
+                ).hexdigest(),
+                generated_at_utc=generated_at,
+            )
         rendered = dump_creator_registry_match_preflight_receipt(receipt)
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)

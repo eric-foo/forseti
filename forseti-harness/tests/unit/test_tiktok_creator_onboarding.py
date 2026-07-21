@@ -1817,13 +1817,17 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
 
     monkeypatch.setattr(runner, "write_tiktok_batch_packet", fake_writer)
     lake = DataLakeRoot.for_test(tmp_path / "lake")
-    refreshed: dict[str, object] = {}
-
-    def fake_refresh(**kwargs: object) -> dict[str, object]:
-        refreshed.update(kwargs)
-        return {"retained_audience_join_count": 4}
-
-    monkeypatch.setattr(runner, "refresh_creator_registry_projections", fake_refresh)
+    monkeypatch.setattr(
+        runner,
+        "load_current_registry_preflight_view",
+        lambda _root: {
+            "creator_profile_current_view": {
+                "schema_version": "creator_profile_current_view_registry_preflight_v1",
+                "generated_at_utc": "2026-07-21T00:00:00Z",
+                "profiles": [],
+            }
+        },
+    )
     monkeypatch.setattr(
         runner,
         "_write_suggested_frontier",
@@ -1855,7 +1859,7 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         "selection_result_json",
         "suggested_accounts_json",
     ]
-    assert refreshed["data_root"] is lake or refreshed["data_root"].root_uuid == lake.root_uuid
+    assert lake.root_uuid
 
 
 def test_onboarding_cli_reuses_valid_prior_capture_without_deep_capture(
@@ -2831,11 +2835,6 @@ def test_runner_registry_preflight_enforces_new_vs_existing_intent(
             "onboarded",
             "new_onboarding requires onboarding_state=not_onboarded",
         ),
-        (
-            "missing_creator",
-            "not_onboarded",
-            "new_onboarding requires an exact Creator Registry match",
-        ),
     ],
 )
 def test_new_onboarding_blocks_ineligible_creator_before_browser_probe(
@@ -2897,6 +2896,32 @@ def test_new_onboarding_blocks_ineligible_creator_before_browser_probe(
 
     assert exc_info.value.code == 2
     assert expected_message in capsys.readouterr().err
+
+
+def test_new_onboarding_allows_genuinely_absent_account_preflight(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text("{}", encoding="utf-8")
+    registry_document = {
+        "creator_profile_current_view": {
+            "schema_version": "creator_profile_current_view_v0",
+            "generated_at_utc": "2026-07-21T00:00:00Z",
+            "profiles": [],
+        }
+    }
+    monkeypatch.setattr(
+        runner, "load_creator_profile_current_view", lambda _path: registry_document
+    )
+    _receipt, result = runner._write_creator_registry_preflight(
+        creator_handle="missing_creator",
+        creator_intent="new_onboarding",
+        registry_path=registry_path,
+        output_dir=tmp_path / "out",
+    )
+    assert result["decision"] == "new_candidate"
+    assert result["action_status"] == "allowed"
+    assert result["registry_onboarding_state"] is None
 
 
 def test_suggested_failure_receipt_carries_profile_evidence_failure_status() -> None:

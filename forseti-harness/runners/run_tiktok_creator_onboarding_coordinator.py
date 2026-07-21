@@ -19,6 +19,11 @@ from capture_spine.creator_profile_current.materialize import (
     load_json,
     verify_audience_judgment_outcomes,
 )
+from data_lake.creator_registry import (
+    admit_tiktok_creator_account,
+    extract_tiktok_packet_identity,
+    resolve_tiktok_profile_subject_id,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_creator_profile_current_materialize import main as materialize_main
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
@@ -191,8 +196,8 @@ def prepare_onboarding(
     data_root: DataLakeRoot,
     packet_id: str,
     grid_packet_id: str | None = None,
-    creator_id: str,
-    profile_subject_id: str,
+    creator_id: str | None,
+    profile_subject_id: str | None,
     question: str,
     evidence_cutoff: str,
     work_dir: Path,
@@ -200,6 +205,19 @@ def prepare_onboarding(
     """Produce packet-scoped Silver and a deterministic cold-Judgment handoff."""
 
     grid_anchor = grid_packet_id or packet_id
+    if creator_id is None or profile_subject_id is None:
+        identity = extract_tiktok_packet_identity(data_root, packet_id)
+        expected_creator_id = f"tiktok:@{identity['public_handle']}"
+        if creator_id is not None and creator_id != expected_creator_id:
+            raise ValueError(
+                "creator_id conflicts with the stable TikTok identity captured in the packet"
+            )
+        creator_id = creator_id or expected_creator_id
+        profile_subject_id = resolve_tiktok_profile_subject_id(
+            data_root=data_root,
+            packet_id=packet_id,
+            requested_id=profile_subject_id,
+        )
     grid = _packet_result(
         run_tiktok_grid_observations(data_root=data_root, packet_ids=[grid_anchor]),
         grid_anchor,
@@ -401,6 +419,24 @@ def complete_onboarding(
     }
 
 
+def complete_onboarding_to_lake(
+    *, data_root: DataLakeRoot, packet_id: str, outcome_path: Path
+) -> dict[str, Any]:
+    """Promote one validated outcome without writing any repository projection."""
+    result = admit_tiktok_creator_account(
+        data_root=data_root,
+        packet_id=packet_id,
+        judgment_outcome_path=outcome_path,
+    )
+    return {
+        **result,
+        "stage_reached": "lake_registry_admission_published_and_read_back",
+        "registry_authority": "data_lake",
+        "repository_projection_written": False,
+        "model_api_calls": 0,
+    }
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -409,8 +445,8 @@ def _parser() -> argparse.ArgumentParser:
     prepare.add_argument("--data-root", required=True)
     prepare.add_argument("--packet-id", required=True)
     prepare.add_argument("--grid-packet-id")
-    prepare.add_argument("--creator-id", required=True)
-    prepare.add_argument("--profile-subject-id", required=True)
+    prepare.add_argument("--creator-id")
+    prepare.add_argument("--profile-subject-id")
     prepare.add_argument("--question", required=True)
     prepare.add_argument("--evidence-cutoff", required=True)
     prepare.add_argument("--work-dir", type=Path, required=True)
@@ -424,28 +460,9 @@ def _parser() -> argparse.ArgumentParser:
     submit.add_argument("--snapshot-out", type=Path, required=True)
 
     complete = subparsers.add_parser("complete")
-    complete.add_argument("--snapshot", type=Path, required=True)
+    complete.add_argument("--data-root", required=True)
+    complete.add_argument("--packet-id", required=True)
     complete.add_argument("--outcome", type=Path, required=True)
-    complete.add_argument(
-        "--retained-snapshot",
-        type=Path,
-        action="append",
-        default=[],
-        help="Previously validated audience snapshot to preserve; repeat with paired outcomes.",
-    )
-    complete.add_argument(
-        "--retained-outcome",
-        type=Path,
-        action="append",
-        default=[],
-        help="Successful Judgment outcome paired positionally with each retained snapshot.",
-    )
-    complete.add_argument("--output", type=Path, required=True)
-    complete.add_argument("--account-ledger", type=Path, required=True)
-    complete.add_argument("--creator-registry-index", type=Path, required=True)
-    complete.add_argument("--metric-seed", type=Path, action="append", default=[])
-    complete.add_argument("--generated-at-utc")
-    complete.add_argument("--preflight-receipt", type=Path)
     return parser
 
 
@@ -476,17 +493,10 @@ def main(argv: list[str] | None = None) -> int:
                 snapshot_out=args.snapshot_out,
             )
         else:
-            result = complete_onboarding(
-                snapshot_path=args.snapshot,
+            result = complete_onboarding_to_lake(
+                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                packet_id=args.packet_id,
                 outcome_path=args.outcome,
-                retained_snapshot_paths=args.retained_snapshot,
-                retained_outcome_paths=args.retained_outcome,
-                output_path=args.output,
-                account_ledger_path=args.account_ledger,
-                creator_registry_index_path=args.creator_registry_index,
-                metric_seed_paths=args.metric_seed,
-                generated_at_utc=args.generated_at_utc,
-                preflight_receipt_path=args.preflight_receipt,
             )
     except (DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
