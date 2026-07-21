@@ -325,6 +325,11 @@ def _assert_content_failure_preserved_raw(packet_dir) -> None:
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     assert metadata["requested_retention_mode"] == "content"
     assert metadata["retention_outcome"] == "raw_failure"
+    # Extraction succeeded here -- admission is what failed -- and the record is
+    # still withheld, so a failed packet never carries a canonical-content-shaped
+    # artifact. The preserved inputs below re-derive it if a diagnosis needs it.
+    assert metadata["extraction_status"] == "succeeded"
+    assert not any(name.endswith("content_record.json") for name in raw_files)
     preservation = {
         item["role"]: item["preserved"] for item in metadata["inputs"]
     }

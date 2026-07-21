@@ -753,7 +753,16 @@ def run_source_capture_cloakbrowser_packet(
         for role, filename, body in input_artifacts
         if preserved_by_role[role]
     ]
-    if content_record_bytes is not None:
+    # The canonical content record ships only when the packet actually retained
+    # canonical content. Extraction runs before admission is decided, so a pin,
+    # sufficiency, or access failure can leave a successfully parsed record in
+    # hand; retaining it would put a canonical-content-shaped artifact inside a
+    # packet that MUST NOT be admitted. Discard it the way an extraction failure
+    # never produces one -- the preserved rendered DOM and visible text re-derive
+    # it at this extractor_version whenever a diagnosis needs it.
+    content_record_retained = retention_outcome == "content"
+    if content_record_retained:
+        assert content_record_bytes is not None
         artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
     if content_extraction is not None:
         content_extraction_metadata = {
@@ -796,8 +805,8 @@ def run_source_capture_cloakbrowser_packet(
             )
         elif content_extraction.requested_retention_mode == "content":
             packet_limitations.append(
-                "content-retention admission failed; rendered DOM and visible text preserved "
-                "for diagnosis"
+                "content-retention admission failed; the extracted content record was "
+                "discarded and rendered DOM and visible text preserved for diagnosis"
             )
         packet_visible_mode_changes.append(
             f"requested retention mode: {content_extraction.requested_retention_mode}"
@@ -807,7 +816,7 @@ def run_source_capture_cloakbrowser_packet(
                 "rendered DOM and visible text hashed then discarded after successful "
                 "capture-time extraction"
             )
-        if content_record_bytes is not None:
+        if content_record_retained:
             packet_visible_mode_changes.append(
                 "capture-time rendered content record preserved"
             )
