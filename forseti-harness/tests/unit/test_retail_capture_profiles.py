@@ -728,7 +728,7 @@ def test_shallow_ladder_profiles_require_their_exact_us_pin(
     )
 
 
-def test_target_grid_requires_projection_but_amazon_search_grid_cannot_fake_one(
+def test_target_grid_projection_output_is_local_only_and_amazon_cannot_fake_one(
     tmp_path: Path,
 ) -> None:
     target = get_retail_capture_profile("target_grid_aggregate")
@@ -740,6 +740,17 @@ def test_target_grid_requires_projection_but_amazon_search_grid_cannot_fake_one(
         retail_capture_profile=target,
         retail_grid_projection_output=tmp_path / "target-grid.json",
     )
+    cloakbrowser_runner._validate_retail_grid_projection_request(
+        retail_capture_profile=target,
+        retail_grid_projection_output=None,
+        data_root_mode=True,
+    )
+    with pytest.raises(ValueError, match="forbidden in --data-root mode"):
+        cloakbrowser_runner._validate_retail_grid_projection_request(
+            retail_capture_profile=target,
+            retail_grid_projection_output=tmp_path / "target-grid.json",
+            data_root_mode=True,
+        )
     with pytest.raises(ValueError, match="Sephora, Target, or Ulta"):
         cloakbrowser_runner._validate_retail_grid_projection_request(
             retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),

@@ -96,6 +96,7 @@ LANE_ROLES: dict[str, LaneRole] = {
     # --- analytical projections (aggregation/observation, not capture retention)
     "projection_ig": LaneRole.PROJECTION,
     "projection_ig_reels_grid": LaneRole.PROJECTION,
+    "projection_retail_grid": LaneRole.PROJECTION,
     # --- ECR source-side epistemic postures (+ completion marker)
     "ecr_timing": LaneRole.ECR,
     "ecr_inspectability": LaneRole.ECR,

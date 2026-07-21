@@ -5,11 +5,12 @@ import html as html_module
 import json
 import re
 from pathlib import Path
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
 from urllib.parse import urljoin, urlparse, urlunparse
 
 from pydantic import Field, field_validator, model_validator
 
+from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 from source_capture.projection_shared import is_forbidden_field_token_match
@@ -20,10 +21,14 @@ from source_capture.sephora_brand_grid import (
     load_sephora_brand_grid_state,
 )
 
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 
 RETAIL_GRID_PROJECTION_METHOD = "retail_grid_mechanical_projection"
 RETAIL_GRID_PROJECTION_VERSION = "v0"
 RETAIL_GRID_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
+PROJECTION_RETAIL_GRID_LANE = "projection_retail_grid"
 
 RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta"]
 
@@ -190,6 +195,30 @@ def write_retail_grid_projection(
         encoding="utf-8",
     )
     return projection
+
+
+def project_retail_grid_into_lake(
+    *,
+    data_root: "DataLakeRoot",
+    packet_id: str,
+    record_id: str | None = None,
+) -> tuple[RetailGridProjectionPacket, Path]:
+    """Project one hash-verified raw packet into an append-only derived record."""
+    loaded = data_root.load_raw_packet(packet_id)
+    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    projection = build_retail_grid_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=loaded.bodies,
+    )
+    record = record_id if record_id is not None else generate_ulid()
+    derived_path = data_root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_RETAIL_GRID_LANE,
+        record_id=f"{record}.json",
+        data=_projection_json_text(projection).encode("utf-8"),
+    )
+    return projection, derived_path
 
 
 def build_retail_grid_projection(
@@ -994,10 +1023,15 @@ def _is_forbidden_field_name(key: str) -> bool:
     return is_forbidden_field_token_match(key, _FORBIDDEN_FIELD_TOKENS)
 
 
+def _projection_json_text(projection: RetailGridProjectionPacket) -> str:
+    return f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
+
+
 __all__ = [
     "RETAIL_GRID_PROJECTION_CERTIFICATION",
     "RETAIL_GRID_PROJECTION_METHOD",
     "RETAIL_GRID_PROJECTION_VERSION",
+    "PROJECTION_RETAIL_GRID_LANE",
     "RetailGridCompletenessReconciliation",
     "RetailGridProjectionInputError",
     "RetailGridProjectionLossLedger",
@@ -1008,5 +1042,6 @@ __all__ = [
     "build_retail_grid_projection_from_packet_directory",
     "detect_retail_grid_retailer",
     "load_verified_source_capture_packet_directory",
+    "project_retail_grid_into_lake",
     "write_retail_grid_projection",
 ]
