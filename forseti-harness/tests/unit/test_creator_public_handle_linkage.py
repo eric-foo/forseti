@@ -99,10 +99,18 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
     assert all(account["platform_public_account_id_or_none"] is None for account in ig_accounts)
 
     tiktok_accounts = [account for account in wrapper["platform_accounts"] if account["platform"] == "tiktok"]
-    assert {"ak.fragrances1", "calcologne"}.issubset(
+    assert {"ak.fragrances1", "calcologne", "mcnastyfragrance"}.issubset(
         {account["public_handle"] for account in tiktok_accounts}
     )
-    assert all(account["platform_public_account_id_or_none"] is None for account in tiktok_accounts)
+    assert all(
+        account["platform_public_account_id_or_none"] is None
+        for account in tiktok_accounts
+        if account["public_handle"] != "mcnastyfragrance"
+    )
+    mcnasty = next(
+        account for account in tiktok_accounts if account["public_handle"] == "mcnastyfragrance"
+    )
+    assert mcnasty["platform_public_account_id_or_none"] == "7488536133574018094"
 
     creator_record = wrapper["creator_records"][0]
     assert creator_record["creator_record_id"] == "creator_fragranceknowledge_001"
