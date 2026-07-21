@@ -28,7 +28,7 @@ from source_capture.tiktok.admission import (
     json_dumps_sanitized,
 )
 
-TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION = "tiktok_batch_capture_admission_v1"
+TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION = "tiktok_batch_capture_admission_v2"
 TIKTOK_BATCH_CAPTURE_SURFACE = "tiktok_creator_batch_comment_subtitle_admission"
 TIKTOK_BATCH_CAPTURE_JSON_NAME = "tiktok_batch_capture.json"
 TIKTOK_BATCH_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
@@ -104,7 +104,10 @@ def write_tiktok_batch_packet(
         admitted_video_ids=[str(video["video_id"]) for video in payload["videos"]],
     )
     if onboarding_evidence is not None:
+        earliest = onboarding_evidence.pop("earliest_public_post_observation", None)
         payload["onboarding_evidence"] = onboarding_evidence
+        if earliest is not None:
+            payload["earliest_public_post_observation"] = earliest
     suggested_accounts_evidence = _validate_suggested_accounts_evidence(
         creator_handle=handle,
         suggested_accounts_json=suggested_accounts_json,
@@ -287,6 +290,10 @@ def _validate_onboarding_evidence(
         raise ValueError("grid_window_json must contain at least one item")
     if _first_int(grid.get("window_size")) != len(grid_items):
         raise ValueError("grid_window_json window_size does not match items length")
+    earliest_public_post_observation = _validate_earliest_public_post_observation(
+        grid.get("earliest_public_post_observation"),
+        creator_handle=creator_handle,
+    )
 
     grid_ids: list[str] = []
     for index, raw_item in enumerate(grid_items):
@@ -391,7 +398,7 @@ def _validate_onboarding_evidence(
             "selection_result_json selected ids do not match admitted cadence results"
         )
 
-    return {
+    result = {
         "grid_window_file": TIKTOK_BATCH_GRID_WINDOW_JSON_NAME,
         "grid_window_sha256": grid_sha256,
         "grid_window_schema_version": _first_str(grid.get("schema_version")),
@@ -403,6 +410,60 @@ def _validate_onboarding_evidence(
         "selection_grid_window_binding_verified": True,
         "selected_deep_capture_coverage_verified": True,
     }
+    if earliest_public_post_observation is not None:
+        result["earliest_public_post_observation"] = earliest_public_post_observation
+    return result
+
+
+def _validate_earliest_public_post_observation(
+    value: Any, *, creator_handle: str
+) -> JsonObject | None:
+    if value is None:
+        return None
+    observation = as_dict(value)
+    status = _first_str(observation.get("status"))
+    if status not in {"observed", "no_public_posts", "oldest_sort_not_exposed"}:
+        raise ValueError("earliest_public_post_observation status is unsupported")
+    if _first_str(observation.get("selection_method")) != (
+        "tiktok_profile_oldest_sort_first_batch_min_exact_create_time_v1"
+    ):
+        raise ValueError("earliest_public_post_observation selection_method is unsupported")
+    if _first_str(observation.get("observed_at_utc")) is None:
+        raise ValueError("earliest_public_post_observation observed_at_utc is required")
+    if status == "observed":
+        video_id = _first_str(observation.get("source_video_id"))
+        video_url = _first_str(observation.get("source_video_url"))
+        published_at = _first_str(observation.get("published_at_utc"))
+        if video_id is None or video_url is None or published_at is None:
+            raise ValueError("observed earliest_public_post_observation is incomplete")
+        if not _is_creator_video_url(
+            video_url=video_url,
+            creator_handle=creator_handle,
+            video_id=video_id,
+        ):
+            raise ValueError("earliest_public_post_observation creator/video binding is invalid")
+        if _first_str(observation.get("timestamp_precision")) != "exact_source_create_time":
+            raise ValueError("observed earliest_public_post_observation must use exact source time")
+    elif any(
+        observation.get(key) is not None
+        for key in ("published_at_utc", "source_video_id", "source_video_url", "timestamp_precision")
+    ):
+        raise ValueError("unavailable earliest_public_post_observation must not carry a date or video")
+    canonical = {
+        key: observation.get(key)
+        for key in (
+            "status",
+            "published_at_utc",
+            "source_video_id",
+            "source_video_url",
+            "observed_at_utc",
+            "selection_method",
+            "timestamp_precision",
+            "limitations",
+        )
+    }
+    assert_no_sensitive_tiktok_material(canonical)
+    return canonical
 
 
 def _build_payload(

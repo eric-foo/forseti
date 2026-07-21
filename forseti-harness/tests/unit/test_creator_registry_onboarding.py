@@ -103,6 +103,8 @@ def test_rss_and_staging_do_not_onboard_but_committed_watch_packet_does(tmp_path
         "evidence_packet_id_or_none": None,
         "evidence_source_family_or_none": None,
         "evidence_source_surface_or_none": None,
+        "earliest_public_post_at_or_none": None,
+        "earliest_public_post_evidence_packet_id_or_none": None,
         "policy_version": ONBOARDING_POLICY_VERSION,
     }
 
@@ -137,6 +139,38 @@ def test_tiktok_grid_matches_exact_same_platform_handle(tmp_path: Path) -> None:
     state = derive_onboarding_by_account(data_root=lake, platform_accounts=[account])["acct_tt"]
     assert state["onboarding_state"] == "onboarded"
     assert state["evidence_packet_id_or_none"] == result.packet.packet_id
+
+
+def test_tiktok_batch_projects_earliest_public_post_with_exact_packet_lineage(
+    tmp_path: Path,
+) -> None:
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    account = _account("acct_tt", platform="tiktok", handle="fragrancecreator")
+    result = _write_packet(
+        tmp_path,
+        lake,
+        family="tiktok",
+        surface="tiktok_creator_batch_comment_subtitle_admission",
+        filename="tiktok_batch_capture.json",
+        payload={
+            "capture_schema_version": "tiktok_batch_capture_admission_v2",
+            "creator_handle": "fragrancecreator",
+            "earliest_public_post_observation": {
+                "status": "observed",
+                "published_at_utc": "2021-04-03T12:34:56Z",
+            },
+        },
+    )
+
+    state = derive_onboarding_by_account(
+        data_root=lake, platform_accounts=[account]
+    )["acct_tt"]
+
+    assert state["earliest_public_post_at_or_none"] == "2021-04-03T12:34:56Z"
+    assert (
+        state["earliest_public_post_evidence_packet_id_or_none"]
+        == result.packet.packet_id
+    )
 
 
 def test_tombstoned_packet_is_excluded_from_onboarding_evidence(tmp_path: Path) -> None:

@@ -308,6 +308,8 @@ creator_profile_current:
     evidence_packet_id_or_none: required committed Bronze packet id only when onboarded
     evidence_source_family_or_none: required only when onboarded
     evidence_source_surface_or_none: required only when onboarded
+    earliest_public_post_at_or_none: optional exact source-visible public-post timestamp; null for legacy or unavailable observations and never account creation time
+    earliest_public_post_evidence_packet_id_or_none: required with earliest_public_post_at_or_none and points to the committed TikTok batch carrying its source video binding
     policy_version: required version
   current_metric_rollups: required list; may be empty for identity-only platform_account rows with no source-backed metric rollup yet
   audience_triangulation: nullable latest validated audience-triangulation snapshot

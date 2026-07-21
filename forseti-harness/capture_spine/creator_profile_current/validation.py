@@ -149,6 +149,8 @@ _ALLOWED_ONBOARDING_KEYS = frozenset(
         "evidence_packet_id_or_none",
         "evidence_source_family_or_none",
         "evidence_source_surface_or_none",
+        "earliest_public_post_at_or_none",
+        "earliest_public_post_evidence_packet_id_or_none",
         "policy_version",
     }
 )
@@ -357,7 +359,18 @@ def _validate_onboarding(value: Any) -> None:
     if not isinstance(value, Mapping):
         _fail("invalid_onboarding", "onboarding must be a mapping")
     _reject_unknown_keys(value, _ALLOWED_ONBOARDING_KEYS, "onboarding")
-    _require(value, tuple(_ALLOWED_ONBOARDING_KEYS), "onboarding")
+    _require(
+        value,
+        (
+            "onboarding_state",
+            "onboarded_at_or_none",
+            "evidence_packet_id_or_none",
+            "evidence_source_family_or_none",
+            "evidence_source_surface_or_none",
+            "policy_version",
+        ),
+        "onboarding",
+    )
     state = value["onboarding_state"]
     if state not in {"not_onboarded", "onboarded"}:
         _fail("invalid_onboarding_state", "onboarding_state must be not_onboarded or onboarded")
@@ -375,6 +388,22 @@ def _validate_onboarding(value: Any) -> None:
         _fail(
             "not_onboarded_has_evidence",
             "not_onboarded profiles must not carry onboarding evidence",
+        )
+    earliest_post_values = (
+        value.get("earliest_public_post_at_or_none"),
+        value.get("earliest_public_post_evidence_packet_id_or_none"),
+    )
+    if any(item is None for item in earliest_post_values) and any(
+        item is not None for item in earliest_post_values
+    ):
+        _fail(
+            "incomplete_earliest_public_post_evidence",
+            "earliest public post date and evidence packet id must be present together",
+        )
+    if state == "not_onboarded" and any(item is not None for item in earliest_post_values):
+        _fail(
+            "not_onboarded_has_earliest_public_post_evidence",
+            "not_onboarded profiles must not carry earliest public post evidence",
         )
 
 
