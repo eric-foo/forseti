@@ -207,7 +207,8 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     import data_lake.derived_retrieval_views as retrieval_views
     from data_lake.derived_retrieval_views import (
         query_exact_actor_context, query_sql_catalogue, sql_catalogue_path,
-        sql_catalogue_status, write_actor_query_audit,
+        sql_catalogue_status, verify_sql_query_sources, write_actor_query_audit,
+        write_evidence_query_audit,
     )
     payload = {
         "platform": "tiktok",
@@ -247,6 +248,10 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     assert second["sql_catalogue"]["status"] == "current"
     found = query_sql_catalogue(root,body_query='"wear test"',platform="tiktok")
     assert found["row_count"] == 1
+    assert found["query_contract_version"] == 1
+    assert found["result_set_complete"] is True
+    assert found["truncated"] is False
+    assert found["normalized_query"]["platform"] == "tiktok"
     assert "actor-1" not in json.dumps(found)
     assert query_sql_catalogue(
         root,surface="tiktok_creator_batch_comment_subtitle_admission"
@@ -255,6 +260,42 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     silver_found = query_sql_catalogue(
         root,body_query='"Synthetic fixture"',vendor="fragrantica")
     assert silver_found["row_count"] == 1
+    decision = query_sql_catalogue(root,limit=10)
+    decision["source_verification"] = verify_sql_query_sources(root,decision)
+    assert decision["source_verification"] == {
+        "status":"passed","verified_source_count":2}
+    decision_audit = write_evidence_query_audit(
+        decision,decision_question_id="creator_comment_coordination",
+        audit_root=tmp_path / "general-audit")
+    decision_receipt = json.loads(Path(decision_audit).read_text(encoding="utf-8"))
+    assert decision_receipt["audit_schema_version"] == 2
+    assert decision_receipt["result_set_complete"] is True
+    assert len(decision_receipt["citations"]) == 2
+    assert decision_receipt["catalogue_snapshot"]["logical_digest"]
+    assert decision_receipt["citation_manifest_sha256"]
+    assert "body_text" not in json.dumps(decision_receipt)
+    with pytest.raises(ValueError,match="nonblank"):
+        write_evidence_query_audit(decision,decision_question_id="")
+    with pytest.raises(ValueError,match="at most 128"):
+        write_evidence_query_audit(decision,decision_question_id="x" * 129)
+
+    raw_manifest = root.find_packet(receipt.packet.packet_id) / "manifest.json"
+    raw_manifest_bytes = raw_manifest.read_bytes()
+    try:
+        raw_manifest.write_bytes(raw_manifest_bytes + b" ")
+        with pytest.raises(DataLakeRootError, match="manifest hash mismatch"):
+            verify_sql_query_sources(root,found)
+    finally:
+        raw_manifest.write_bytes(raw_manifest_bytes)
+    silver_path = root.path / silver_found["rows"][0]["source_ref"]
+    silver_bytes = silver_path.read_bytes()
+    try:
+        silver_path.write_bytes(silver_bytes + b" ")
+        with pytest.raises(DataLakeRootError, match="Silver hash mismatch"):
+            verify_sql_query_sources(root,silver_found)
+    finally:
+        silver_path.write_bytes(silver_bytes)
+
     actor = query_exact_actor_context(
         root,platform="tiktok",actor="actor-1",
         from_utc="2026-07-01T00:00:00Z",to_utc="2026-07-31T00:00:00Z",
@@ -272,7 +313,12 @@ def test_sql_catalogue_incremental_search_actor_audit_and_cold_rebuild(
     audit = write_actor_query_audit(
         actor,decision_question_id="bounded_public_actor_context")
     assert Path(audit).is_file()
-    assert "bounded_public_actor_context" in Path(audit).read_text(encoding="utf-8")
+    actor_receipt = json.loads(Path(audit).read_text(encoding="utf-8"))
+    assert actor_receipt["audit_schema_version"] == 2
+    assert actor_receipt["decision_question_id"] == "bounded_public_actor_context"
+    assert actor_receipt["source_verification"]["status"] == "passed"
+    assert len(actor_receipt["citations"]) == 1
+    assert "body_text" not in json.dumps(actor_receipt)
     before = sql_catalogue_status(root)["logical_digest"]
     rebuilt = rebuild_derived_retrieval(
         root,product_mention_policy=_POLICY,full_rebuild=True)
@@ -293,6 +339,12 @@ def test_runner_sql_query_is_safe_on_cp1252_console(
         return {"status":"ok","rows":[{"body_text":"broken heart 💔"}]}
 
     monkeypatch.setattr(runner,"query_sql_catalogue",_query)
+    monkeypatch.setattr(
+        runner,"verify_sql_query_sources",
+        lambda *_args,**_kwargs: pytest.fail("exploratory query verified sources"))
+    monkeypatch.setattr(
+        runner,"write_evidence_query_audit",
+        lambda *_args,**_kwargs: pytest.fail("exploratory query wrote receipt"))
     raw = io.BytesIO()
     console = io.TextIOWrapper(raw,encoding="cp1252")
     monkeypatch.setattr(sys,"stdout",console)
@@ -308,7 +360,52 @@ def test_runner_sql_query_is_safe_on_cp1252_console(
     assert r"\ud83d\udc94" in rendered
 
 
-def _sql_catalogue_root(tmp_path: Path, *, create_time: int) -> DataLakeRoot:
+def test_runner_decision_query_verifies_and_audits_before_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import runners.run_data_lake_indexes_rebuild as runner
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(DataLakeRoot,"resolve",staticmethod(lambda **_kwargs: root))
+    report = {"query_profile":"evidence_search","query_contract_version":1,
+        "normalized_query":{},"catalogue":{},"row_count":0,
+        "result_set_complete":True,"truncated":False,"rows":[],"non_claims":[]}
+    order = []
+    monkeypatch.setattr(runner,"query_sql_catalogue",lambda *_args,**_kwargs: dict(report))
+    monkeypatch.setattr(
+        runner,"verify_sql_query_sources",
+        lambda *_args,**_kwargs: order.append("verified") or {
+            "status":"passed","verified_source_count":0})
+    monkeypatch.setattr(
+        runner,"write_evidence_query_audit",
+        lambda *_args,**_kwargs: order.append("audited") or "receipt.json")
+    output = io.StringIO()
+    monkeypatch.setattr(sys,"stdout",output)
+    assert runner.main([
+        "--root",str(root.path),"--sql-query",
+        "--decision-question-id","creator_comment_coordination",
+    ]) == 0
+    assert order == ["verified","audited"]
+    assert json.loads(output.getvalue())["audit_path"] == "receipt.json"
+
+    truncated = dict(report,result_set_complete=False,truncated=True)
+    monkeypatch.setattr(runner,"query_sql_catalogue",lambda *_args,**_kwargs: truncated)
+    monkeypatch.setattr(
+        runner,"verify_sql_query_sources",
+        lambda *_args,**_kwargs: pytest.fail("truncated query verified sources"))
+    output = io.StringIO()
+    monkeypatch.setattr(sys,"stdout",output)
+    assert runner.main([
+        "--root",str(root.path),"--sql-query",
+        "--decision-question-id","creator_comment_coordination",
+    ]) == 2
+    assert "truncated" in json.loads(output.getvalue())["error"]
+
+
+def _sql_catalogue_root(
+    tmp_path: Path, *, create_time: int, comment_count: int = 1
+) -> DataLakeRoot:
+    tmp_path.mkdir(parents=True, exist_ok=True)
     """One committed TikTok comment packet catalogued through the real raw path."""
     payload = {
         "platform": "tiktok",
@@ -318,10 +415,10 @@ def _sql_catalogue_root(tmp_path: Path, *, create_time: int) -> DataLakeRoot:
         "videos": [{
             "video_id": "7000000000000000001", "create_time": create_time,
             "comments": {"posture": "captured_page_owned_response", "comments": [{
-                "cid": "c1", "text": "boundary window probe",
+                "cid": "c%d" % index, "text": "boundary window probe",
                 "create_time": create_time,
                 "user": {"uid": "actor-1", "unique_id": "same_name"}
-            }]}
+            } for index in range(comment_count)]}
         }]
     }
     source = tmp_path / "tiktok_batch_capture.json"
@@ -351,6 +448,8 @@ def test_sql_time_window_bounds_are_normalized_before_filtering(
         root, platform="tiktok",
         from_utc="2026-07-20T00:00:00Z", to_utc="2026-07-20T00:00:00Z")
     assert boundary["row_count"] == 1
+    assert boundary["normalized_query"]["from_utc"] == "2026-07-20T00:00:00+00:00"
+    assert boundary["normalized_query"]["to_utc"] == "2026-07-20T00:00:00+00:00"
     offset_window = query_exact_actor_context(
         root, platform="tiktok", actor="actor-1",
         from_utc="2026-07-20T09:00:00+09:00", to_utc="2026-07-21T09:00:00+09:00",
@@ -366,6 +465,22 @@ def test_sql_time_window_bounds_are_normalized_before_filtering(
     assert outside["row_count"] == 0
     with pytest.raises(ValueError, match="from_utc"):
         query_sql_catalogue(root, from_utc="not-a-timestamp")
+
+
+def test_sql_query_reports_true_result_set_truncation(tmp_path: Path) -> None:
+    from data_lake.derived_retrieval_views import query_sql_catalogue
+
+    root = _sql_catalogue_root(
+        tmp_path,create_time=1784505600,comment_count=2)
+    complete = query_sql_catalogue(root,platform="tiktok",limit=2)
+    assert complete["row_count"] == 2
+    assert complete["result_set_complete"] is True
+    assert complete["truncated"] is False
+    truncated = query_sql_catalogue(root,platform="tiktok",limit=1)
+    assert truncated["row_count"] == 1
+    assert truncated["result_set_complete"] is False
+    assert truncated["truncated"] is True
+    assert truncated["normalized_query"]["limit"] == 1
 
 
 def test_failed_full_rebuild_leaves_the_previous_sql_catalogue_intact(
@@ -404,12 +519,19 @@ def test_exact_actor_saturated_candidate_set_fails_loud(
     import data_lake.derived_retrieval_views as retrieval_views
     from data_lake.derived_retrieval_views import query_exact_actor_context
 
-    root = _sql_catalogue_root(tmp_path, create_time=1784505600)
-    monkeypatch.setattr(retrieval_views, "SQL_ACTOR_CANDIDATE_LIMIT", 1)
-    with pytest.raises(ValueError, match="candidate set"):
+    root = _sql_catalogue_root(
+        tmp_path,create_time=1784505600,comment_count=2)
+    monkeypatch.setattr(retrieval_views,"SQL_ACTOR_CANDIDATE_LIMIT",2)
+    complete = query_exact_actor_context(
+        root,platform="tiktok",actor="actor-1",
+        from_utc="2026-07-19T00:00:00Z",to_utc="2026-07-21T00:00:00Z",
+        creator_id="creator")
+    assert complete["row_count"] == 2
+    monkeypatch.setattr(retrieval_views,"SQL_ACTOR_CANDIDATE_LIMIT",1)
+    with pytest.raises(ValueError,match="exceeds"):
         query_exact_actor_context(
-            root, platform="tiktok", actor="actor-1",
-            from_utc="2026-07-19T00:00:00Z", to_utc="2026-07-21T00:00:00Z",
+            root,platform="tiktok",actor="actor-1",
+            from_utc="2026-07-19T00:00:00Z",to_utc="2026-07-21T00:00:00Z",
             creator_id="creator")
 
 

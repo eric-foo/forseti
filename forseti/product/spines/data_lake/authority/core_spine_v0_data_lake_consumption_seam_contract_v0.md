@@ -376,9 +376,14 @@ accept an implicit current/latest policy.
 - The `by_creator` build classifies every active Silver record per rebuild
   (deterministic but whole-lake). The fired SQL query-lens trigger is satisfied
   by an incrementally maintained, rebuildable SQLite catalogue for evidence
-  bodies and structured filters. It is not pickup authority or a capture write
-  dependency. Upgrade trigger: measured refresh/query latency or multi-machine
-  writing proves the single-local-writer design insufficient.
+  bodies and structured filters. Results disclose their normalized filter and
+  bounded-result completeness. An explicit decision-question id additionally
+  requires complete results, re-verifies cited lake sources, and writes a
+  body-free citation receipt through the existing audit lifecycle before
+  output; exploratory searches pay neither cost. The catalogue is not pickup
+  authority or a capture write dependency. Upgrade trigger: measured
+  refresh/query latency or multi-machine writing proves the single-local-writer
+  design insufficient.
 
 ## Non-Claims
 

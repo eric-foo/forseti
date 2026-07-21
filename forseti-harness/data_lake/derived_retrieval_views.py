@@ -1413,6 +1413,10 @@ SQL_RAW_SURFACES = frozenset({
 # Bound on the candidate window an exact-actor rehydration may scan. Reaching it
 # means the window was truncated, which is a loud failure, never a short answer.
 SQL_ACTOR_CANDIDATE_LIMIT = 10000
+SQL_QUERY_CONTRACT_VERSION = 1
+SQL_QUERY_AUDIT_SCHEMA_VERSION = 2
+SQL_DECISION_QUESTION_ID_MAX_LENGTH = 128
+SQL_SOURCE_LOOKUP_CHUNK = 500
 SQL_DECISION_QUESTIONS = frozenset({
     "creator_comment_coordination", "content_comment_coordination",
     "bounded_public_actor_context",
@@ -1821,23 +1825,28 @@ def refresh_sql_catalogue(root, source_inventory, *, full_rebuild=False, path=No
         connection.close()
 
 
+def _dr_catalogue_status(connection, path):
+    meta = {row[0]:row[1] for row in connection.execute(
+        "SELECT key,value FROM evidence_metadata")}
+    check = connection.execute("PRAGMA quick_check").fetchone()[0]
+    return {"status":"ok" if check=="ok" else "failed","path":str(path),
+        "schema_version":int(meta.get("schema_version","0")),
+        "extractor_profile":meta.get("extractor_profile"),
+        "source_inventory_sha256":meta.get("source_inventory_sha256"),
+        "logical_digest":meta.get("logical_digest"),
+        "last_successful_refresh_at":meta.get("last_successful_refresh_at"),
+        "source_count":connection.execute("SELECT count(*) FROM evidence_sources").fetchone()[0],
+        "event_count":connection.execute("SELECT count(*) FROM evidence_events").fetchone()[0],
+        "quick_check":check}
+
+
 def sql_catalogue_status(root, *, path=None):
     path = path or sql_catalogue_path(root)
     if not path.is_file(): raise DataLakeRootError("SQL catalogue has not been built: %s" % path)
     connection = _dr_connect(path, read_only=True)
     try:
-        meta = {row[0]:row[1] for row in connection.execute(
-            "SELECT key,value FROM evidence_metadata")}
-        check = connection.execute("PRAGMA quick_check").fetchone()[0]
-        return {"status":"ok" if check=="ok" else "failed","path":str(path),
-            "schema_version":int(meta.get("schema_version","0")),
-            "extractor_profile":meta.get("extractor_profile"),
-            "source_inventory_sha256":meta.get("source_inventory_sha256"),
-            "logical_digest":meta.get("logical_digest"),
-            "last_successful_refresh_at":meta.get("last_successful_refresh_at"),
-            "source_count":connection.execute("SELECT count(*) FROM evidence_sources").fetchone()[0],
-            "event_count":connection.execute("SELECT count(*) FROM evidence_events").fetchone()[0],
-            "quick_check":check}
+        connection.execute("BEGIN")
+        return _dr_catalogue_status(connection,path)
     finally: connection.close()
 
 
@@ -1845,35 +1854,110 @@ def query_sql_catalogue(root, *, body_query=None, platform=None, vendor=None,
                         surface=None, creator_id=None, content_id=None, product_id=None,
                         from_utc=None, to_utc=None, limit=1000):
     if limit < 1 or limit > 10000: raise ValueError("limit must be 1..10000")
-    connection = _dr_connect(sql_catalogue_path(root), read_only=True)
+    path = sql_catalogue_path(root)
+    connection = _dr_connect(path,read_only=True)
     try:
+        connection.execute("BEGIN")
         join = ""; clauses = []; values = []
+        normalized_from = _dr_window_bound(from_utc,"from_utc") if from_utc else None
+        normalized_to = _dr_window_bound(to_utc,"to_utc") if to_utc else None
         if body_query:
             join = " JOIN evidence_fts ON evidence_fts.rowid=e.row_id"
             clauses.append("evidence_fts MATCH ?"); values.append(body_query)
         for column,value in (("platform",platform),("vendor",vendor),
             ("source_surface",surface),("creator_native_id",creator_id),
-            ("content_native_id",content_id),
-            ("product_native_id",product_id)):
+            ("content_native_id",content_id),("product_native_id",product_id)):
             if value is not None: clauses.append("e.%s=?" % column); values.append(value)
-        if from_utc:
+        if normalized_from:
             clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)>=?")
-            values.append(_dr_window_bound(from_utc, "from_utc"))
-        if to_utc:
+            values.append(normalized_from)
+        if normalized_to:
             clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)<=?")
-            values.append(_dr_window_bound(to_utc, "to_utc"))
+            values.append(normalized_to)
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
-        rows = [dict(row) for row in connection.execute(
+        fetched = [dict(row) for row in connection.execute(
             "SELECT e.* FROM evidence_events e" + join + where +
             " ORDER BY coalesce(e.event_time_utc,e.capture_time_utc),e.event_id LIMIT ?",
-            (*values,limit))]
+            (*values,limit+1))]
+        truncated = len(fetched) > limit
+        rows = fetched[:limit]
         for row in rows:
             row.pop("row_id",None); row["limitations"]=json.loads(row.pop("limitations_json"))
-        return {"query_profile":"evidence_search","catalogue":sql_catalogue_status(root),
-            "row_count":len(rows),"rows":rows,
+        normalized_query = {"body_query":body_query if body_query else None,
+            "platform":platform,"vendor":vendor,"surface":surface,
+            "creator_id":creator_id,"content_id":content_id,"product_id":product_id,
+            "from_utc":normalized_from,"to_utc":normalized_to,"limit":limit}
+        return {"query_profile":"evidence_search",
+            "query_contract_version":SQL_QUERY_CONTRACT_VERSION,
+            "normalized_query":normalized_query,
+            "catalogue":_dr_catalogue_status(connection,path),
+            "row_count":len(rows),"result_set_complete":not truncated,
+            "truncated":truncated,"rows":rows,
             "non_claims":["captured evidence only","not a complete platform census",
              "not cross-platform identity","not a paid/bot/fake/astroturf conclusion"]}
     finally: connection.close()
+
+
+def _dr_catalogued_sources(root, source_refs):
+    refs = sorted(set(source_refs))
+    if not refs: return {}
+    connection = _dr_connect(sql_catalogue_path(root),read_only=True)
+    try:
+        connection.execute("BEGIN")
+        sources = {}
+        for start in range(0,len(refs),SQL_SOURCE_LOOKUP_CHUNK):
+            chunk = refs[start:start+SQL_SOURCE_LOOKUP_CHUNK]
+            placeholders = ",".join("?" for _ in chunk)
+            for row in connection.execute(
+                    "SELECT * FROM evidence_sources WHERE source_ref IN (%s)" % placeholders,
+                    chunk):
+                sources[row["source_ref"]] = dict(row)
+    finally: connection.close()
+    missing = sorted(set(refs)-set(sources))
+    if missing:
+        raise DataLakeRootError("query citation source absent from catalogue: %s" % missing[:3])
+    return sources
+
+
+def _dr_verified_query_sources(root, rows):
+    refs = sorted({row["source_ref"] for row in rows})
+    sources = _dr_catalogued_sources(root,refs)
+    verified = {}
+    for ref in refs:
+        source = sources[ref]
+        if source["source_kind"] == "raw_packet":
+            loaded = root.load_raw_packet(source["raw_anchor"])
+            manifest_path = loaded.container / "manifest.json"
+            try:
+                manifest_bytes = manifest_path.read_bytes()
+            except OSError as exc:
+                raise DataLakeRootError(
+                    "unreadable query citation manifest: %s: %s" % (ref,exc)) from exc
+            if hashlib.sha256(manifest_bytes).hexdigest() != source["source_sha256"]:
+                raise DataLakeRootError("query citation manifest hash mismatch: %s" % ref)
+            payload = loaded
+        elif source["source_kind"] == "silver_record":
+            path = root.path / ref
+            try:
+                payload = path.read_bytes()
+            except OSError as exc:
+                raise DataLakeRootError(
+                    "unreadable query citation Silver record: %s: %s" % (ref,exc)) from exc
+            if hashlib.sha256(payload).hexdigest() != source["source_sha256"]:
+                raise DataLakeRootError("query citation Silver hash mismatch: %s" % ref)
+        else:
+            raise DataLakeRootError(
+                "unsupported query citation source kind: %s: %s" %
+                (ref,source["source_kind"]))
+        verified[ref] = (source,payload)
+    return verified
+
+
+def verify_sql_query_sources(root, report):
+    if report.get("query_profile") != "evidence_search":
+        raise ValueError("source verification requires an evidence_search report")
+    verified = _dr_verified_query_sources(root,report["rows"])
+    return {"status":"passed","verified_source_count":len(verified)}
 
 
 def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
@@ -1888,35 +1972,22 @@ def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
         raise ValueError("actor window must be greater than zero and at most 90 days")
     if not actor.strip():
         raise ValueError("actor identifier must not be empty")
-    # The enforced window is the normalized one; report and audit it, never the
-    # caller's unnormalized spelling.
     from_utc = start.astimezone(timezone.utc).isoformat()
     to_utc = end.astimezone(timezone.utc).isoformat()
     report = query_sql_catalogue(root,platform=platform,creator_id=creator_id,
         content_id=content_id,from_utc=from_utc,to_utc=to_utc,
         limit=SQL_ACTOR_CANDIDATE_LIMIT)
-    source_refs = sorted({row["source_ref"] for row in report["rows"]})
-    # A saturated window is silently truncated evidence: an anchor does not make
-    # the dropped tail safe, so fail loud instead of returning a short answer.
-    if len(report["rows"]) >= SQL_ACTOR_CANDIDATE_LIMIT:
+    if report["truncated"]:
         raise ValueError(
-            "actor candidate set saturated the bounded window; narrow the time "
-            "window or add a creator/content anchor")
-    connection = _dr_connect(sql_catalogue_path(root),read_only=True)
-    try:
-        sources = {row["source_ref"]:dict(row) for row in connection.execute(
-            "SELECT * FROM evidence_sources")}
-    finally: connection.close()
+            "actor candidate set exceeds the bounded result limit; narrow the "
+            "time window or add a creator/content anchor")
+    verified = _dr_verified_query_sources(root,report["rows"])
     hydrated = {}
-    for ref in source_refs:
-        source = sources[ref]
+    for ref,(source,payload) in verified.items():
         if source["source_kind"] == "raw_packet":
-            events = _dr_raw_events(root.load_raw_packet(source["raw_anchor"]),ref)
+            events = _dr_raw_events(payload,ref)
         else:
-            path = root.path / ref; body = path.read_bytes()
-            if hashlib.sha256(body).hexdigest() != source["source_sha256"]:
-                raise DataLakeRootError("actor hydration hash mismatch: %s" % ref)
-            events = _dr_silver_events(json.loads(body.decode()),ref)
+            events = _dr_silver_events(json.loads(payload.decode()),ref)
         hydrated.update({event["event_id"]:event for event in events})
     needle = actor.strip().lstrip("@").casefold(); rows = []
     for row in report["rows"]:
@@ -1924,32 +1995,93 @@ def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
         observed = _dr_text(event.get("_actor")) if event else None
         if observed and observed.strip().lstrip("@").casefold() == needle:
             row["actor_public_identifier"] = observed; rows.append(row)
-    return {"query_profile":"exact_actor_context","platform_namespace":platform,
-        "identifier_scope":actor,"time_window":{"from_utc":from_utc,"to_utc":to_utc},
-        "candidate_event_count":report["row_count"],"row_count":len(rows),"rows":rows,
+    return {"query_profile":"exact_actor_context",
+        "query_contract_version":report["query_contract_version"],
+        "normalized_query":report["normalized_query"],"catalogue":report["catalogue"],
+        "platform_namespace":platform,"identifier_scope":actor,
+        "time_window":{"from_utc":from_utc,"to_utc":to_utc},
+        "candidate_event_count":report["row_count"],"row_count":len(rows),
+        "result_set_complete":True,"truncated":False,"rows":rows,
+        "source_verification":{"status":"passed",
+                               "verified_source_count":len(verified)},
         "non_claims":["no durable actor index","no cross-platform identity merge",
                       "not a paid/bot/fake/astroturf conclusion"]}
 
 
-def write_actor_query_audit(report, *, decision_question_id, caller=None, audit_root=None):
-    if decision_question_id not in SQL_DECISION_QUESTIONS:
-        raise ValueError("unregistered actor decision question")
+def _dr_decision_question_id(value):
+    text = _dr_text(value)
+    if text is None or len(text) > SQL_DECISION_QUESTION_ID_MAX_LENGTH:
+        raise ValueError(
+            "decision_question_id must be nonblank and at most %d characters" %
+            SQL_DECISION_QUESTION_ID_MAX_LENGTH)
+    return text
+
+
+def _dr_query_citations(report):
+    return [{"event_id":row["event_id"],"source_ref":row["source_ref"],
+             "body_sha256":row["body_sha256"]} for row in report["rows"]]
+
+
+def _dr_write_query_audit(report, *, decision_question_id, caller, audit_root,
+                          profile_fields=None):
+    if report.get("result_set_complete") is not True or report.get("truncated"):
+        raise ValueError("decision query result set is truncated; narrow the query")
+    verification = report.get("source_verification")
+    if not isinstance(verification,dict) or verification.get("status") != "passed":
+        raise ValueError("decision query sources must be verified before audit")
+    catalogue = report.get("catalogue")
+    if not isinstance(catalogue,dict):
+        raise ValueError("decision query catalogue snapshot is missing")
+    citations = _dr_query_citations(report)
+    payload = {"audit_schema_version":SQL_QUERY_AUDIT_SCHEMA_VERSION,
+        "created_at":datetime.now(timezone.utc).isoformat(),
+        "caller":caller or os.environ.get("USERNAME") or "unknown",
+        "decision_question_id":decision_question_id,
+        "profile":report["query_profile"],
+        "query_contract_version":report["query_contract_version"],
+        "normalized_query":report["normalized_query"],
+        "catalogue_snapshot":{
+            key:catalogue.get(key) for key in (
+                "schema_version","extractor_profile","source_inventory_sha256",
+                "logical_digest","last_successful_refresh_at")},
+        "row_count":report["row_count"],"result_set_complete":True,
+        "source_verification":verification,"citations":citations,
+        "citation_manifest_sha256":hashlib.sha256(
+            canonical_record_bytes(citations)).hexdigest(),
+        "non_claims":report["non_claims"],"cache_hit":False,
+        "elevated_volume":report["row_count"]>=1000}
+    if profile_fields: payload.update(profile_fields)
     root = Path(audit_root or os.environ.get("LOCALAPPDATA") or Path.home()) / "Forseti" / "audit" / "derived-retrieval"
     root.mkdir(parents=True,exist_ok=True)
     cutoff = datetime.now(timezone.utc).timestamp() - 365*24*60*60
     for path in root.glob("*.json"):
         if path.stat().st_mtime < cutoff: path.unlink()
-    payload = {"audit_schema_version":1,
-        "created_at":datetime.now(timezone.utc).isoformat(),
-        "caller":caller or os.environ.get("USERNAME") or "unknown",
-        "decision_question_id":decision_question_id,
-        "profile":report["query_profile"],"identifier_scope":report["identifier_scope"],
-        "platform_namespace":report["platform_namespace"],
-        "time_window":report["time_window"],"row_count":report["row_count"],
-        "cache_hit":False,"elevated_volume":report["row_count"]>=1000}
     target = root / ("%s.json" % uuid.uuid4().hex)
     _atomic_create(target,canonical_record_bytes(payload))
     return str(target)
+
+
+def write_evidence_query_audit(report, *, decision_question_id, caller=None,
+                               audit_root=None):
+    if report.get("query_profile") != "evidence_search":
+        raise ValueError("ordinary evidence audit requires an evidence_search report")
+    return _dr_write_query_audit(
+        report,decision_question_id=_dr_decision_question_id(decision_question_id),
+        caller=caller,audit_root=audit_root)
+
+
+def write_actor_query_audit(report, *, decision_question_id, caller=None, audit_root=None):
+    if decision_question_id not in SQL_DECISION_QUESTIONS:
+        raise ValueError("unregistered actor decision question")
+    if report.get("query_profile") != "exact_actor_context":
+        raise ValueError("actor audit requires an exact_actor_context report")
+    return _dr_write_query_audit(
+        report,decision_question_id=decision_question_id,caller=caller,
+        audit_root=audit_root,profile_fields={
+            "identifier_scope":report["identifier_scope"],
+            "platform_namespace":report["platform_namespace"],
+            "time_window":report["time_window"],
+            "candidate_event_count":report["candidate_event_count"]})
 
 
 def prove_sql_catalogue_rebuildability(root):
@@ -1992,5 +2124,7 @@ __all__ = [
     "query_sql_catalogue",
     "refresh_sql_catalogue",
     "sql_catalogue_status",
+    "verify_sql_query_sources",
     "write_actor_query_audit",
+    "write_evidence_query_audit",
 ]
