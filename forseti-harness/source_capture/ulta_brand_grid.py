@@ -17,6 +17,10 @@ _PRODUCT_ID_RE = re.compile(r"-([A-Za-z][A-Za-z0-9]*\d+)$")
 _VOID_TAGS = frozenset(
     {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 )
+# Ulta serializes stale continuation state (for example an earlier
+# `productsViewedLabel`) inside `<script id="apollo_state">`. That CDATA is not
+# rendered text, so it must never reach the visible-text or card captures.
+_NON_RENDERED_TEXT_TAGS = frozenset({"script", "style"})
 
 
 class UltaBrandGridStateError(ValueError):
@@ -126,6 +130,8 @@ class _UltaBrandGridParser(HTMLParser):
         self.handle_starttag(tag, attrs)
 
     def handle_data(self, data: str) -> None:
+        if self.stack and self.stack[-1] in _NON_RENDERED_TEXT_TAGS:
+            return
         text = " ".join(data.split())
         if not text:
             return

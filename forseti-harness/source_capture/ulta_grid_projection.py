@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Any, Mapping
 from urllib.parse import urlparse, urlunparse
 
@@ -19,6 +20,7 @@ _PRIMARY_PRICE_RE = re.compile(
     r"^\s*\$(?P<price>\d+(?:\.\d+)?)(?:\s*\([^)]*value\))?\s*$",
     re.IGNORECASE,
 )
+_PLACEMENT_SCOPED_FIELDS = frozenset({"grid_position"})
 
 
 def build_ulta_grid_projection(
@@ -127,8 +129,14 @@ def build_ulta_grid_projection(
                 ]
                 if currency_code is None:
                     row_residuals.append("ulta_grid_explicit_currency_code_not_observed")
-                if card.price_display is not None and price is None and price_range is None:
+                if card.price_display is None:
+                    row_residuals.append("ulta_grid_price_display_not_observed")
+                elif price is None and price_range is None:
                     row_residuals.append("ulta_grid_price_display_not_mechanically_parsed")
+                if card.average_rating is None or card.review_count is None:
+                    row_residuals.append("ulta_grid_average_rating_not_observed")
+                if not card.badges:
+                    row_residuals.append("ulta_grid_badge_tags_not_observed")
                 rows.append(
                     RetailGridProjectionRow(
                         row_id=f"{source_slice.slice_id}:grid:ulta:{card.source_product_id}",
@@ -233,13 +241,20 @@ def _merge_parent_rows(rows):
         placements = [*existing.placements, *row.placements]
         marker = f"ulta_grid_duplicate_parent_placement:{product_id}:{len(placements)}"
         row_residuals = [*existing.residuals, marker]
-        if existing.source_visible_fields != row.source_visible_fields:
+        if _parent_scoped_fields(existing.source_visible_fields) != _parent_scoped_fields(
+            row.source_visible_fields
+        ):
             row_residuals.append(f"ulta_grid_duplicate_parent_fields_differ:{product_id}")
         by_product_id[product_id] = existing.model_copy(
             update={"placements": placements, "residuals": list(dict.fromkeys(row_residuals))}
         )
         residuals.append(marker)
     return list(by_product_id.values()), residuals
+
+
+def _parent_scoped_fields(fields: Mapping[str, Any]) -> dict[str, Any]:
+    """Parent-product facts only; a duplicate tile legitimately occupies another slot."""
+    return {key: value for key, value in fields.items() if key not in _PLACEMENT_SCOPED_FIELDS}
 
 
 def _price_fields(value: str | None):
@@ -271,7 +286,19 @@ def _fact_value(fact: object | None) -> str | None:
 
 
 def _slugify(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    """Fold the rendered brand heading the way Ulta folds it into a `/brand/<slug>` path.
+
+    Ulta brand slugs are ASCII and drop diacritics and apostrophes rather than
+    replacing them with a separator, so a raw ASCII-only substitution would make
+    every accented or possessive brand heading fail subject binding.
+    """
+    decomposed = unicodedata.normalize("NFKD", value.lower())
+    folded = "".join(
+        character
+        for character in decomposed
+        if not unicodedata.combining(character) and character not in "'’"
+    )
+    return re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
 
 
 def _canonical_url(value: str) -> str:

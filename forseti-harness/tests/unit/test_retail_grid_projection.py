@@ -696,7 +696,104 @@ def test_ulta_grid_projection_fails_closed_while_load_more_remains() -> None:
     assert any("viewed_count_stale" in value for value in projection.residuals)
 
 
-def _ulta_grid_html(*, viewed: int = 3, load_more: bool = False) -> str:
+def test_ulta_grid_projection_reads_the_rendered_viewed_label_not_serialized_state() -> None:
+    body = _ulta_grid_html(stale_serialized_viewed=1).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.source_visible_grid_facts["viewed_product_placement_count"] == 3
+    assert not any("viewed_count_stale" in value for value in projection.residuals)
+    assert projection.completeness.status == "complete"
+
+
+def test_ulta_grid_projection_marks_duplicate_slots_without_claiming_field_drift() -> None:
+    body = _ulta_grid_html().encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    duplicate = next(
+        row
+        for row in projection.rows
+        if row.source_visible_fields["source_product_id"] == "pimprod2056072"
+    )
+    assert any("duplicate_parent_placement" in value for value in duplicate.residuals)
+    assert not any("duplicate_parent_fields_differ" in value for value in duplicate.residuals)
+
+
+def test_ulta_grid_projection_marks_absent_tile_fields_instead_of_asserting_them() -> None:
+    body = _ulta_grid_html(bare_tile=True).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    bare = next(
+        row
+        for row in projection.rows
+        if row.source_visible_fields["source_product_id"] == "gwp8589071995"
+    )
+    assert "ulta_grid_price_display_not_observed" in bare.residuals
+    assert "ulta_grid_average_rating_not_observed" in bare.residuals
+    assert "ulta_grid_badge_tags_not_observed" in bare.residuals
+
+
+@pytest.mark.parametrize(
+    ("brand_heading", "brand_slug"),
+    [("Lancôme", "lancome"), ("Kiehl's", "kiehls"), ("L’Oréal", "loreal")],
+)
+def test_ulta_grid_subject_binding_folds_accents_and_apostrophes(
+    brand_heading: str, brand_slug: str
+) -> None:
+    body = _ulta_grid_html(brand_heading=brand_heading).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator=f"https://www.ulta.com/brand/{brand_slug}",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.subject_binding_confirmed is True
+    assert "ulta_grid_subject_binding_unconfirmed" not in projection.completeness.residuals
+
+
+def _ulta_grid_html(
+    *,
+    viewed: int | None = None,
+    load_more: bool = False,
+    stale_serialized_viewed: int | None = None,
+    bare_tile: bool = False,
+    brand_heading: str = "Clinique",
+) -> str:
     def card(
         *, sku: str, href: str, name: str, price: str, rating: str, variant: str
     ) -> str:
@@ -737,12 +834,31 @@ def _ulta_grid_html(*, viewed: int = 3, load_more: bool = False) -> str:
             variant="5 sizes",
         ),
     ]
+    if bare_tile:
+        cards.append(
+            '<li data-test="products-list-item" data-sku-id="2645498">'
+            '<a href="/p/free-gift-with-purchase-gwp8589071995?sku=2645498">'
+            '<span class="pal-c-ProductCardBody--brandName">Clinique</span>'
+            '<span class="pal-c-ProductCardBody--title">Free gift with purchase</span>'
+            "</a></li>"
+        )
+    declared = len(cards)
     button = '<button class="LoadContent__button">Load More</button>' if load_more else ""
+    # Ulta's Apollo cache keeps the pre-continuation label; it is script CDATA, not
+    # rendered text, and it is serialized after the rendered label.
+    stale_state = (
+        '<script id="apollo_state">'
+        f'{{"productsViewedLabel":"You have viewed {stale_serialized_viewed} of {declared}"}}'
+        "</script>"
+        if stale_serialized_viewed is not None
+        else ""
+    )
     return (
         '<html lang="en-US"><head><script>window.__APP_LOCALE__="en-US";'
         'fetch("/graphql?ultasite=en-us")</script></head><body>'
-        '<h1>Clinique</h1><ul data-test="products-list">'
+        f"<h1>{brand_heading}</h1><ul data-test=\"products-list\">"
         + "".join(cards)
         + "</ul>"
-        + f"<p>You have viewed {viewed} of 3</p>{button}</body></html>"
+        + f"<p>You have viewed {declared if viewed is None else viewed} of {declared}</p>"
+        + f"{button}{stale_state}</body></html>"
     )
