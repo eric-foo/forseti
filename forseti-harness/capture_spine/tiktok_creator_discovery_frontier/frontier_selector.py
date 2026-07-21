@@ -7,6 +7,8 @@ mutate registers, authorize next runs, or infer creator quality.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from datetime import datetime, timezone
+from statistics import median
 from typing import Any
 
 
@@ -26,6 +28,219 @@ _FRAGRANCE_TOKENS = (
     "nose",
     "oud",
 )
+
+
+TIKTOK_CREATOR_PROMOTION_SCHEMA = "tiktok_creator_promotion_decisions_v1"
+_PROMOTION_POLICY = {
+    "version": "tiktok_fragrance_creator_promotion_policy_v1",
+    "calibration_report_sha256": "449c4781dd71c530bb3d62fc6d58a6d1efd24c5d666b7c5ccd28fdbb5acf38e4",
+    "calibration_source_set_sha256": "ef9ff8a3175b34d4f9f8f7df0949c6e79c9fdddc229c26e91b49aa0ca2c5da77",
+    "cohort_medians": {"0-2d": 5383.25, "3-7d": 6636.0, "8-14d": 7662.0, "15-30d": 11481.5, "31d+": 28600.0},
+    "multipliers": {"0-2d": 2.132819, "3-7d": 1.730184, "8-14d": 1.498499, "15-30d": 1.0, "31d+": 0.401451},
+    "quality_p25": 0.34425675, "quality_median": 0.907743, "quality_p75": 2.3942015,
+    "weekly_reach_p75": 89258.649442, "cadence_cap": 10.629303,
+}
+_OWNER_ONBOARDING_DISPOSITIONS = {
+    "eddeparfum": {
+        "action": "defer",
+        "reason": "owner_observed_non_us",
+        "recorded_on": "2026-07-22",
+    },
+}
+
+
+def build_tiktok_creator_promotion_decisions(
+    grids: Sequence[Mapping[str, Any]], *, sources: Sequence[Mapping[str, Any]] = ()
+) -> dict[str, Any]:
+    """Return deterministic pre-registry decisions from raw TikTok grids."""
+    if not grids or (sources and len(sources) != len(grids)):
+        raise ValueError("grids are required and sources must align one-to-one")
+    rows, seen = [], set()
+    for index, grid in enumerate(grids):
+        handle = _clean_handle(grid.get("creator_handle"))
+        key = _handle_key(handle)
+        if not handle or not key or key in seen:
+            raise ValueError(f"invalid or duplicate creator_handle: {handle!r}")
+        seen.add(key)
+        captured = _utc(_mapping_value(grid, "collection_receipt").get("capture_timestamp"))
+        posts = []
+        for item in _sequence_value(grid, "items"):
+            if not isinstance(item, Mapping) or item.get("pinned_visible") is True:
+                continue
+            created, stats = item.get("createTime"), item.get("stats")
+            if isinstance(created, bool) or not isinstance(created, (int, float)) or not isinstance(stats, Mapping):
+                raise ValueError(f"{handle}: unpinned item lacks createTime/stats")
+            age = (captured.timestamp() - float(created)) / 86400
+            plays = stats.get("playCount")
+            if age < 0 or isinstance(plays, bool) or not isinstance(plays, int) or plays < 0:
+                raise ValueError(f"{handle}: invalid age/playCount")
+            posts.append((float(created), _age_cohort(age), plays))
+        if len(posts) < 2:
+            raise ValueError(f"{handle}: at least two unpinned posts required")
+        ratios = []
+        for cohort, baseline in _PROMOTION_POLICY["cohort_medians"].items():
+            plays = [post[2] for post in posts if post[1] == cohort]
+            if len(plays) >= 3:
+                ratios.append(float(median(plays)) / baseline)
+        quality = float(median(ratios)) if ratios else None
+        normalized = [play * _PROMOTION_POLICY["multipliers"][cohort] for _, cohort, play in posts]
+        p25 = _percentile(normalized, .25)
+        span = (max(post[0] for post in posts) - min(post[0] for post in posts)) / 86400
+        cadence = ((len(posts) - 1) * 7 / span) if span > 0 else 0.0
+        weekly = p25 * min(cadence, _PROMOTION_POLICY["cadence_cap"])
+        promote = (quality is not None and quality >= _PROMOTION_POLICY["quality_p75"]) or weekly >= _PROMOTION_POLICY["weekly_reach_p75"]
+        reconsider = None if promote else (
+            "next_grid" if quality is not None and quality >= _PROMOTION_POLICY["quality_median"]
+            else "oldest_result" if quality is not None and quality >= _PROMOTION_POLICY["quality_p25"]
+            else "new_signal_only"
+        )
+        followers = _followers(grid)
+        rows.append({
+            "handle": handle, "registry_action": "promote_now" if promote else "do_not_promote",
+            "reconsider_when_or_none": reconsider,
+            "age_normalized_quality_index_or_none": round(quality, 6) if quality is not None else None,
+            "reliable_weekly_reach": round(weekly, 6), "observed_posts_per_week": round(cadence, 6),
+            "age_normalized_median_reach_per_follower_or_none": round(float(median(normalized)) / followers, 6) if followers else None,
+            "oldest_available_grid_post_utc": datetime.fromtimestamp(min(post[0] for post in posts), tz=timezone.utc).isoformat().replace("+00:00", "Z"),
+            "oldest_evidence_status": "bounded_grid_proxy_not_oldest_filter",
+            "unpinned_post_count": len(posts), "eligible_quality_cohort_count": len(ratios),
+            "capture_timestamp_utc": captured.isoformat().replace("+00:00", "Z"),
+            "source": dict(sources[index]) if sources else {},
+        })
+    rows.sort(key=lambda row: (row["registry_action"] != "promote_now", -float(row["age_normalized_quality_index_or_none"] or -1), -row["reliable_weekly_reach"], row["handle"].lower()))
+    for rank, row in enumerate(rows, 1):
+        row["priority_rank"] = rank
+    return {"tiktok_creator_promotion_decisions": {
+        "schema_version": TIKTOK_CREATOR_PROMOTION_SCHEMA, "policy": dict(_PROMOTION_POLICY),
+        "decisions": rows, "counts": {"creators": len(rows), "promote_now": sum(row["registry_action"] == "promote_now" for row in rows)},
+        "non_claims": ["not Creator Registry or onboarding proof", "reach is play count, not unique people", "bounded oldest grid post is not account-age proof"],
+    }}
+
+
+def promotion_decision_for_handle(document: Mapping[str, Any], handle: str) -> Mapping[str, Any] | None:
+    wrapper = document.get("tiktok_creator_promotion_decisions")
+    if not isinstance(wrapper, Mapping) or wrapper.get("schema_version") != TIKTOK_CREATOR_PROMOTION_SCHEMA:
+        raise ValueError("unsupported TikTok promotion decisions")
+    matches = [row for row in wrapper.get("decisions", []) if isinstance(row, Mapping) and _handle_key(row.get("handle")) == _handle_key(handle)]
+    if len(matches) > 1:
+        raise ValueError(f"duplicate promotion decision for {handle}")
+    return matches[0] if matches else None
+
+
+def apply_tiktok_creator_onboarding_dedupe(
+    document: Mapping[str, Any],
+    *,
+    registry_states: Mapping[str, str],
+    frontier_registers: Sequence[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    """Annotate promotion results with the live Registry/Frontier action gate.
+
+    Performance decisions remain unchanged. The actionable queue excludes an
+    owner-deferred account, an onboarded Registry account, and any creator
+    already scanned as a Frontier root, while a known not-onboarded Registry
+    account remains actionable.
+    """
+    wrapper = document.get("tiktok_creator_promotion_decisions")
+    if not isinstance(wrapper, Mapping) or wrapper.get("schema_version") != TIKTOK_CREATOR_PROMOTION_SCHEMA:
+        raise ValueError("unsupported TikTok promotion decisions")
+    normalized_states = {
+        key: state
+        for handle, state in registry_states.items()
+        if (key := _handle_key(handle)) is not None
+    }
+    invalid_states = sorted(
+        {state for state in normalized_states.values() if state not in {"onboarded", "not_onboarded"}}
+    )
+    if invalid_states:
+        raise ValueError(f"invalid Creator Registry onboarding states: {invalid_states}")
+    _, scanned_root_keys = _collect_candidate_records(frontier_registers)
+
+    result = {"tiktok_creator_promotion_decisions": dict(wrapper)}
+    result_wrapper = result["tiktok_creator_promotion_decisions"]
+    rows: list[dict[str, Any]] = []
+    actionable_handles: list[str] = []
+    for source_row in wrapper.get("decisions", []):
+        if not isinstance(source_row, Mapping):
+            raise ValueError("promotion decision rows must be objects")
+        row = dict(source_row)
+        handle = _clean_handle(row.get("handle"))
+        handle_key = _handle_key(handle)
+        if not handle or not handle_key:
+            raise ValueError("promotion decision handle is required")
+        registry_state = normalized_states.get(handle_key)
+        owner_disposition = _OWNER_ONBOARDING_DISPOSITIONS.get(handle_key)
+        if owner_disposition is not None:
+            queue_status = "owner_deferred"
+        elif registry_state == "onboarded":
+            queue_status = "already_onboarded"
+        elif handle_key in scanned_root_keys:
+            queue_status = "already_scanned_frontier"
+        elif registry_state == "not_onboarded":
+            queue_status = "known_not_onboarded"
+        else:
+            queue_status = "new_candidate"
+        actionable = (
+            row.get("registry_action") == "promote_now"
+            and queue_status in {"known_not_onboarded", "new_candidate"}
+        )
+        row["onboarding_queue_status"] = queue_status
+        row["owner_onboarding_disposition_or_none"] = (
+            dict(owner_disposition) if owner_disposition is not None else None
+        )
+        row["actionable_promote_now"] = actionable
+        rows.append(row)
+        if actionable:
+            actionable_handles.append(handle)
+
+    result_wrapper["decisions"] = rows
+    original_counts = wrapper.get("counts")
+    counts = dict(original_counts) if isinstance(original_counts, Mapping) else {}
+    counts["actionable_promote_now"] = len(actionable_handles)
+    counts["owner_deferred_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "owner_deferred"
+        for row in rows
+    )
+    counts["already_onboarded_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "already_onboarded"
+        for row in rows
+    )
+    counts["already_scanned_frontier_promote_now"] = sum(
+        row.get("registry_action") == "promote_now"
+        and row["onboarding_queue_status"] == "already_scanned_frontier"
+        for row in rows
+    )
+    result_wrapper["counts"] = counts
+    result_wrapper["actionable_promote_now_handles"] = actionable_handles
+    return result
+
+
+def _utc(value: Any) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("capture_timestamp must be ISO-8601 text")
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("capture_timestamp requires timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def _age_cohort(age: float) -> str:
+    return "0-2d" if age < 3 else "3-7d" if age < 8 else "8-14d" if age < 15 else "15-30d" if age < 31 else "31d+"
+
+
+def _percentile(values: Sequence[float], q: float) -> float:
+    ordered, position = sorted(float(value) for value in values), (len(values) - 1) * q
+    low, fraction = int(position), position - int(position)
+    high = min(low + 1, len(ordered) - 1)
+    return ordered[low] + (ordered[high] - ordered[low]) * fraction
+
+
+def _followers(grid: Mapping[str, Any]) -> int | None:
+    metrics = grid.get("profile_metrics")
+    follower = metrics.get("follower_count") if isinstance(metrics, Mapping) else None
+    value = follower.get("exact_value_or_none") if isinstance(follower, Mapping) else None
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
 
 
 def rank_tiktok_creator_discovery_targets(

@@ -145,12 +145,20 @@ Every onboarding packet requires:
 
 Legacy sampled-raw packets may describe the same historical evidence as
 `parser-fit` or `projection equivalence`. Current Retail/PDP content routes do
-not create a Projection packet: canonical content is retained at capture,
+not create a PDP Projection packet: canonical content is retained at capture,
 in-packet summaries stay capture evidence, and Cleaning owns downstream
-adaptation. The Sephora brand-grid route is a narrow exception: it writes a
-separate mechanical parent-product projection from the preserved raw packet,
-certified `view_only; not_cleaned; not_normalized; not_judgment_ready`. That
-grid projection is not PDP content, Cleaning, or Silver.
+adaptation. Grid projections are separate retailer-specific mechanical views,
+not PDP content, Cleaning, or Silver.
+
+For the qualified ladder, Sephora and Target have admitted projected grid
+paths; only Sephora currently reconciles a retailer-declared complete parent
+count. Amazon search-grid capture remains query-bound raw, not a complete or
+authorized-only brand denominator. Ulta's grid profile remains non-ordinary.
+Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
+decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
+ordinary shallow profile derives its target from the commissioned URL and
+requires its exact US pin. A capability gap is never replaced with snippets,
+another market, a canary product, or an inferred list.
 
 Success means the declared capture bound is proven. It does not mean source
 completeness, demographic representativeness, ranking-algorithm validation,

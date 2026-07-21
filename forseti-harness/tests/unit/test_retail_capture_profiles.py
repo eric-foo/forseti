@@ -9,6 +9,10 @@ from source_capture.retail_capture_profiles import (
     extract_amazon_asin_from_url,
     extract_amazon_search_query_from_url,
     extract_nordstrom_product_id_from_url,
+    extract_sephora_product_id_from_url,
+    extract_target_product_id_from_url,
+    extract_target_search_query_from_url,
+    extract_ulta_product_id_from_url,
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
@@ -67,6 +71,10 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert get_retail_capture_profile("amazon_pdp_distribution").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_pdp_aggregate").derive_target_asin_from_url is True
     assert get_retail_capture_profile("amazon_grid_aggregate").derive_target_query_from_url is True
+    assert get_retail_capture_profile("sephora_pdp_aggregate").derive_target_sephora_product_id_from_url is True
+    assert get_retail_capture_profile("ulta_pdp_aggregate").derive_target_ulta_product_id_from_url is True
+    assert get_retail_capture_profile("target_pdp_aggregate").derive_target_target_product_id_from_url is True
+    assert get_retail_capture_profile("target_grid_aggregate").derive_target_target_search_query_from_url is True
     nordstrom = get_retail_capture_profile("nordstrom_pdp_aggregate")
     assert nordstrom.wait_until == "domcontentloaded"
     assert nordstrom.scroll_passes == 1
@@ -101,6 +109,200 @@ def test_sephora_grid_profile_is_subject_agnostic_and_requires_grid_structure() 
     )
 
     assert result.passed is True
+
+
+@pytest.mark.parametrize(
+    ("extractor", "url", "expected"),
+    (
+        (extract_sephora_product_id_from_url, "https://www.sephora.com/product/example-P123456", "P123456"),
+        (extract_ulta_product_id_from_url, "https://www.ulta.com/p/example-pimprod2046225?sku=2645443", "pimprod2046225"),
+        (extract_target_product_id_from_url, "https://www.target.com/p/example/-/A-80184023", "80184023"),
+        (extract_target_search_query_from_url, "https://www.target.com/s?searchTerm=Summer%20Fridays", "Summer Fridays"),
+    ),
+)
+def test_shallow_profiles_derive_the_commissioned_target_from_the_url(
+    extractor, url: str, expected: str
+) -> None:
+    assert extractor(url) == expected
+
+
+def test_target_grid_profile_binds_the_requested_search_query() -> None:
+    profile = get_retail_capture_profile("target_grid_aggregate")
+    visible_text = "Summer Fridays 12 results Guest Rating $24.00"
+    admitted = evaluate_source_detail_sufficiency(
+        requirements=profile.requirements_for_capture(
+            url="https://www.target.com/s?searchTerm=Summer%20Fridays"
+        ),
+        access_block_reason=None,
+        visible_text=visible_text,
+        rendered_dom="<html>target product cards</html>",
+    )
+    mismatched = evaluate_source_detail_sufficiency(
+        requirements=profile.requirements_for_capture(
+            url="https://www.target.com/s?searchTerm=Another%20Brand"
+        ),
+        access_block_reason=None,
+        visible_text=visible_text,
+        rendered_dom="<html>target product cards</html>",
+    )
+    assert admitted.passed is True
+    assert mismatched.passed is False
+
+
+_SHALLOW_PDP_IDENTITY_CASES = (
+    (
+        "sephora_pdp_aggregate",
+        "https://www.sephora.com/product/example-P420652",
+        "https://www.sephora.com/product/other-P999999",
+        "https://www.sephora.com/product/other-P42065",
+        "Ratings & Reviews (1,234)\n$24.00\n",
+        '<div id="linkStore">{"product":{"productId":"P420652"}}</div>',
+    ),
+    (
+        "ulta_pdp_aggregate",
+        "https://www.ulta.com/p/example-pimprod2046225?sku=2645443",
+        "https://www.ulta.com/p/other-pimprod9999999?sku=2645443",
+        "https://www.ulta.com/p/other-pimprod204622?sku=2645443",
+        "Reviews\n1,204 Reviews\n$24.00\n",
+        '<script>window.__APOLLO_STATE__={"aggregateRating":4.5,'
+        '"availability":"InStock","id":"pimprod2046225"}</script>',
+    ),
+    (
+        "target_pdp_aggregate",
+        "https://www.target.com/p/example/-/A-80184023",
+        "https://www.target.com/p/other/-/A-99999999",
+        "https://www.target.com/p/other/-/A-16801840",
+        "Pickup\nShipping\n4.5 out of 5 stars with 12 reviews\n$24.00\n",
+        '<script id="__NEXT_DATA__">{"tcin":"80184023","ts":1680184023456}</script>',
+    ),
+)
+
+
+@pytest.mark.parametrize(
+    (
+        "profile_name",
+        "captured_url",
+        "wrong_product_url",
+        "contained_id_url",
+        "visible_text",
+        "rendered_dom",
+    ),
+    _SHALLOW_PDP_IDENTITY_CASES,
+)
+def test_shallow_pdp_profiles_bind_the_captured_products_own_id(
+    profile_name: str,
+    captured_url: str,
+    wrong_product_url: str,
+    contained_id_url: str,
+    visible_text: str,
+    rendered_dom: str,
+) -> None:
+    profile = get_retail_capture_profile(profile_name)
+
+    def evaluate(url: str):
+        return evaluate_source_detail_sufficiency(
+            requirements=profile.requirements_for_capture(url=url),
+            access_block_reason=None,
+            visible_text=visible_text,
+            rendered_dom=rendered_dom,
+        )
+
+    assert evaluate(captured_url).passed is True
+    assert evaluate(wrong_product_url).passed is False
+    # A requested id that merely occurs inside a longer id or numeric run on the
+    # page is a different product, not the commissioned one.
+    assert evaluate(contained_id_url).passed is False
+
+
+@pytest.mark.parametrize(
+    ("profile_name", "url", "message"),
+    (
+        (
+            "sephora_pdp_aggregate",
+            "https://www.sephora.com/product/example",
+            "requires a Sephora product id",
+        ),
+        (
+            "ulta_pdp_aggregate",
+            "https://www.ulta.com/p/example",
+            "requires an Ulta product id",
+        ),
+        (
+            "target_pdp_aggregate",
+            "https://www.target.com/p/example",
+            "requires a Target TCIN",
+        ),
+        (
+            "target_grid_aggregate",
+            "https://www.target.com/s?searchTerm=%20",
+            "requires a non-empty Target search query",
+        ),
+    ),
+)
+def test_shallow_profiles_refuse_a_url_without_a_derivable_target(
+    profile_name: str, url: str, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        get_retail_capture_profile(profile_name).requirements_for_capture(url=url)
+
+
+@pytest.mark.parametrize(
+    ("profile_name", "requested_url", "same_product_final_url", "wrong_product_final_url"),
+    (
+        (
+            "amazon_pdp_aggregate",
+            "https://www.amazon.com/dp/B012345678",
+            "https://www.amazon.com/example/dp/B012345678?th=1",
+            "https://www.amazon.com/dp/B987654321",
+        ),
+        (
+            "nordstrom_pdp_aggregate",
+            "https://www.nordstrom.com/s/example/1234567",
+            "https://www.nordstrom.com/s/canonical-name/1234567?color=Black",
+            "https://www.nordstrom.com/s/example/7654321",
+        ),
+        (
+            "sephora_pdp_aggregate",
+            "https://www.sephora.com/product/example-P420652",
+            "https://www.sephora.com/product/canonical-name-P420652?skuId=1",
+            "https://www.sephora.com/product/example-P999999",
+        ),
+        (
+            "ulta_pdp_aggregate",
+            "https://www.ulta.com/p/example-pimprod2046225?sku=2645443",
+            "https://www.ulta.com/p/canonical-name-pimprod2046225?sku=2645443",
+            "https://www.ulta.com/p/example-pimprod9999999?sku=2645443",
+        ),
+        (
+            "target_pdp_aggregate",
+            "https://www.target.com/p/example/-/A-80184023",
+            "https://www.target.com/p/canonical-name/-/A-80184023?preselect=1",
+            "https://www.target.com/p/example/-/A-99999999",
+        ),
+    ),
+)
+def test_pdp_profiles_require_the_final_route_to_retain_the_requested_product(
+    profile_name: str,
+    requested_url: str,
+    same_product_final_url: str,
+    wrong_product_final_url: str,
+) -> None:
+    profile = get_retail_capture_profile(profile_name)
+    assert (
+        cloakbrowser_runner._retail_target_identity_failure(
+            retail_capture_profile=profile,
+            requested_url=requested_url,
+            final_url=same_product_final_url,
+        )
+        is None
+    )
+    failure = cloakbrowser_runner._retail_target_identity_failure(
+        retail_capture_profile=profile,
+        requested_url=requested_url,
+        final_url=wrong_product_final_url,
+    )
+    assert failure is not None
+    assert "final browser route encoded" in failure
 
 
 def test_nordstrom_profile_binds_the_requested_product_id() -> None:
@@ -498,6 +700,53 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
         )
 
 
+@pytest.mark.parametrize(
+    ("profile_name", "pin_field", "pin_value"),
+    (
+        ("amazon_grid_aggregate", "delivery_zip", "10001"),
+        ("amazon_pdp_aggregate", "delivery_zip", "10001"),
+        ("sephora_grid_aggregate", "sephora_market", "US"),
+        ("sephora_pdp_aggregate", "sephora_market", "US"),
+        ("ulta_grid_aggregate", "ulta_market", "US"),
+        ("ulta_pdp_aggregate", "ulta_market", "US"),
+        ("target_grid_aggregate", "target_zip", "10001"),
+        ("target_pdp_aggregate", "target_zip", "10001"),
+    ),
+)
+def test_shallow_ladder_profiles_require_their_exact_us_pin(
+    profile_name: str, pin_field: str, pin_value: str
+) -> None:
+    kwargs = {"delivery_zip": None, "sephora_market": None, "ulta_market": None, "target_zip": None}
+    profile = get_retail_capture_profile(profile_name)
+    with pytest.raises(ValueError, match="shallow baseline requires"):
+        cloakbrowser_runner._validate_retail_baseline_profile_request(
+            retail_capture_profile=profile, **kwargs
+        )
+    kwargs[pin_field] = pin_value
+    cloakbrowser_runner._validate_retail_baseline_profile_request(
+        retail_capture_profile=profile, **kwargs
+    )
+
+
+def test_target_grid_requires_projection_but_amazon_search_grid_cannot_fake_one(
+    tmp_path: Path,
+) -> None:
+    target = get_retail_capture_profile("target_grid_aggregate")
+    with pytest.raises(ValueError, match="target_grid_aggregate requires"):
+        cloakbrowser_runner._validate_retail_grid_projection_request(
+            retail_capture_profile=target, retail_grid_projection_output=None
+        )
+    cloakbrowser_runner._validate_retail_grid_projection_request(
+        retail_capture_profile=target,
+        retail_grid_projection_output=tmp_path / "target-grid.json",
+    )
+    with pytest.raises(ValueError, match="Sephora, Target, or Ulta"):
+        cloakbrowser_runner._validate_retail_grid_projection_request(
+            retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),
+            retail_grid_projection_output=tmp_path / "amazon-grid.json",
+        )
+
+
 def test_profile_requirements_merge_with_explicit_requirements_without_weakening_either() -> None:
     explicit = SourceDetailSufficiencyRequirements(
         min_visible_text_bytes=100,
@@ -512,9 +761,7 @@ def test_profile_requirements_merge_with_explicit_requirements_without_weakening
     assert merged.min_visible_text_bytes == 100
     assert merged.visible_text_contains == (
         "operator marker",
-        "Lip Sleeping Mask",
         "Ratings & Reviews",
-        "Color",
     )
 
 

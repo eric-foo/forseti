@@ -148,6 +148,7 @@ TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
+RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
 
 
 def run_source_capture_cloakbrowser_packet(
@@ -233,6 +234,13 @@ def run_source_capture_cloakbrowser_packet(
             source_family=source_family,
             source_surface=source_surface,
         )
+        _validate_retail_baseline_profile_request(
+            retail_capture_profile=retail_capture_profile,
+            delivery_zip=delivery_zip,
+            sephora_market=sephora_market,
+            ulta_market=ulta_market,
+            target_zip=target_zip,
+        )
         source_detail_sufficiency_requirements = (
             merge_source_detail_sufficiency_requirements(
                 source_detail_sufficiency_requirements,
@@ -243,7 +251,7 @@ def run_source_capture_cloakbrowser_packet(
             retail_capture_profile=retail_capture_profile,
             retail_grid_projection_output=retail_grid_projection_output,
             sephora_market=sephora_market,
-            ulta_market=ulta_market,
+            ulta_market=ulta_market
         )
         if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
             if sephora_market != "US":
@@ -414,6 +422,17 @@ def run_source_capture_cloakbrowser_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    retail_target_identity_failure = _retail_target_identity_failure(
+        retail_capture_profile=retail_capture_profile,
+        requested_url=url,
+        final_url=capture_result.final_url,
+    )
+    if retail_target_identity_failure is not None:
+        packet_limitations.append(
+            f"{RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE}: "
+            f"{retail_target_identity_failure}; packet preserved but MUST NOT be "
+            "admitted as evidence for the commissioned product"
+        )
     sephora_pin_failure = _sephora_market_pin_failure(
         sephora_market=sephora_market,
         final_url=capture_result.final_url,
@@ -552,6 +571,10 @@ def run_source_capture_cloakbrowser_packet(
     if sufficiency_limitation is not None:
         packet_limitations.append(sufficiency_limitation)
     packet_visible_mode_changes = list(visible_mode_changes)
+    if retail_target_identity_failure is not None:
+        packet_visible_mode_changes.append(
+            RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE
+        )
     if sephora_pin_failure is not None:
         packet_visible_mode_changes.append(SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE)
     if nordstrom_pin_failure is not None:
@@ -892,6 +915,12 @@ def run_source_capture_cloakbrowser_packet(
                 "retail_grid_projection_failed: "
                 f"{type(exc).__name__}: {exc}"
             )
+    if retail_target_identity_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{result.output_directory}; {retail_target_identity_failure}",
+        )
     if sephora_pin_failure is not None:
         projection_detail = (
             f"; projection preserved at {grid_projection_path}"
@@ -983,31 +1012,87 @@ def _validate_sephora_us_market_url(url: str) -> None:
         )
 
 
+def _retail_target_identity_failure(
+    *,
+    retail_capture_profile: RetailCaptureProfile | None,
+    requested_url: str,
+    final_url: str,
+) -> str | None:
+    if retail_capture_profile is None:
+        return None
+    expected = retail_capture_profile.target_product_identity_from_url(
+        url=requested_url
+    )
+    if expected is None:
+        return None
+    observed = retail_capture_profile.target_product_identity_from_url(url=final_url)
+    if observed is not None and observed.casefold() == expected.casefold():
+        return None
+    return (
+        f"{retail_capture_profile.name} requested product {expected!r}, but the "
+        f"final browser route encoded {observed!r}"
+    )
+
+
+def _validate_retail_baseline_profile_request(
+    *,
+    retail_capture_profile: RetailCaptureProfile,
+    delivery_zip: str | None,
+    sephora_market: str | None,
+    ulta_market: str | None,
+    target_zip: str | None,
+) -> None:
+    if retail_capture_profile.page_kind not in {"grid_aggregate", "pdp_aggregate"}:
+        return
+    if not retail_capture_profile.ordinary_operation:
+        raise ValueError(
+            f"retail capture profile {retail_capture_profile.name} is not admitted "
+            "for ordinary operation; preserve the capability gap instead"
+        )
+    required_pin = {
+        "amazon": (delivery_zip, "10001", "--delivery-zip 10001"),
+        "sephora": (sephora_market, "US", "--sephora-market US"),
+        "ulta": (ulta_market, "US", "--ulta-market US"),
+        "target": (target_zip, "10001", "--target-zip 10001"),
+    }.get(retail_capture_profile.retailer)
+    if required_pin is None:
+        return
+    actual, expected, flag = required_pin
+    if actual != expected:
+        raise ValueError(
+            f"{retail_capture_profile.name} shallow baseline requires {flag}"
+        )
+
+
 def _validate_retail_grid_projection_request(
     *,
     retail_capture_profile: RetailCaptureProfile,
     retail_grid_projection_output: Path | None,
-    sephora_market: str | None,
-    ulta_market: str | None,
+    sephora_market: str | None = None,
+    ulta_market: str | None = None,
 ) -> None:
     if retail_capture_profile.name == "sephora_grid_aggregate":
         if sephora_market != "US":
             raise ValueError("sephora_grid_aggregate requires --sephora-market US")
-        if retail_grid_projection_output is None:
-            raise ValueError(
-                "sephora_grid_aggregate requires --retail-grid-projection-output"
-            )
     elif retail_capture_profile.name == "ulta_grid_aggregate":
         if ulta_market != "US":
             raise ValueError("ulta_grid_aggregate requires --ulta-market US")
+
+    projection_profiles = {
+        "sephora_grid_aggregate",
+        "target_grid_aggregate",
+        "ulta_grid_aggregate",
+    }
+    if retail_capture_profile.name in projection_profiles:
         if retail_grid_projection_output is None:
             raise ValueError(
-                "ulta_grid_aggregate requires --retail-grid-projection-output"
+                f"{retail_capture_profile.name} requires "
+                "--retail-grid-projection-output"
             )
     elif retail_grid_projection_output is not None:
         raise ValueError(
-            "--retail-grid-projection-output requires sephora_grid_aggregate "
-            "or ulta_grid_aggregate"
+            "--retail-grid-projection-output currently requires an admitted "
+            "Sephora, Target, or Ulta grid profile"
         )
 
 
@@ -1544,9 +1629,9 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required for sephora_grid_aggregate and ulta_grid_aggregate. Writes "
-            "the hash-verified, view-only typed grid projection sidecar and fails "
-            "closed when completeness does not reconcile."
+            "Required for admitted Sephora, Target, and Ulta aggregate grids. "
+            "Writes the hash-verified, view-only typed grid projection sidecar and "
+            "fails closed when evaluated completeness does not reconcile."
         ),
     )
     parser.add_argument(
@@ -1810,11 +1895,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 source_family=args.source_family,
                 source_surface=args.source_surface,
             )
+            _validate_retail_baseline_profile_request(
+                retail_capture_profile=retail_capture_profile,
+                delivery_zip=args.delivery_zip,
+                sephora_market=args.sephora_market,
+                ulta_market=args.ulta_market,
+                target_zip=args.target_zip,
+            )
             _validate_retail_grid_projection_request(
                 retail_capture_profile=retail_capture_profile,
                 retail_grid_projection_output=args.retail_grid_projection_output,
                 sephora_market=args.sephora_market,
-                ulta_market=args.ulta_market,
+                ulta_market=args.ulta_market
             )
         elif args.retail_grid_projection_output is not None:
             raise ValueError(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
     RefreshOutcome,
@@ -8,6 +10,9 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     build_tiktok_creator_discovery_frontier_register,
 )
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
+    apply_tiktok_creator_onboarding_dedupe,
+    build_tiktok_creator_promotion_decisions,
+    promotion_decision_for_handle,
     rank_tiktok_creator_discovery_targets,
     summarize_tiktok_creator_discovery_overlap,
 )
@@ -82,6 +87,64 @@ def _suggested(
         display_name_or_none=display_name,
         observed_sections=observed_sections,
     )
+
+
+
+def test_promotion_policy_excludes_pins_and_routes_middle_to_oldest() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    def grid(handle: str, plays: int, pinned: int | None = None) -> dict:
+        items = [{"createTime": int(captured.timestamp() - age * 86400), "pinned_visible": False, "stats": {"playCount": plays}} for age in (16, 20, 25)]
+        if pinned:
+            items.append({"createTime": int(captured.timestamp() - 18 * 86400), "pinned_visible": True, "stats": {"playCount": pinned}})
+        return {"creator_handle": handle, "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"}, "items": items}
+    document = build_tiktok_creator_promotion_decisions([grid("strong", 30000), grid("middle", 6000), grid("low", 1000, 9000000)])
+    rows = {row["handle"]: row for row in document["tiktok_creator_promotion_decisions"]["decisions"]}
+    assert rows["strong"]["registry_action"] == "promote_now"
+    assert rows["middle"]["reconsider_when_or_none"] == "oldest_result"
+    assert rows["low"]["reconsider_when_or_none"] == "new_signal_only"
+    assert rows["low"]["unpinned_post_count"] == 3
+    assert promotion_decision_for_handle(document, "@STRONG")["registry_action"] == "promote_now"
+
+
+def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grids = [
+        {
+            "creator_handle": handle,
+            "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+            "items": [
+                {
+                    "createTime": int(captured.timestamp() - age * 86400),
+                    "pinned_visible": False,
+                    "stats": {"playCount": 30000},
+                }
+                for age in (16, 20, 25)
+            ],
+        }
+        for handle in ("done", "scanned", "known", "fresh", "eddeparfum")
+    ]
+    document = apply_tiktok_creator_onboarding_dedupe(
+        build_tiktok_creator_promotion_decisions(grids),
+        registry_states={"done": "onboarded", "known": "not_onboarded"},
+        frontier_registers=[_register("scanned", _suggested("other"))],
+    )
+    wrapper = document["tiktok_creator_promotion_decisions"]
+    rows = {row["handle"]: row for row in wrapper["decisions"]}
+
+    assert wrapper["counts"]["promote_now"] == 5
+    assert wrapper["counts"]["actionable_promote_now"] == 2
+    assert wrapper["counts"]["owner_deferred_promote_now"] == 1
+    assert wrapper["actionable_promote_now_handles"] == ["fresh", "known"]
+    assert rows["done"]["onboarding_queue_status"] == "already_onboarded"
+    assert rows["scanned"]["onboarding_queue_status"] == "already_scanned_frontier"
+    assert rows["known"]["actionable_promote_now"] is True
+    assert rows["eddeparfum"]["onboarding_queue_status"] == "owner_deferred"
+    assert rows["eddeparfum"]["owner_onboarding_disposition_or_none"] == {
+        "action": "defer",
+        "reason": "owner_observed_non_us",
+        "recorded_on": "2026-07-22",
+    }
+    assert rows["eddeparfum"]["actionable_promote_now"] is False
 
 
 def test_target_ranker_prioritizes_once_only_expanded_fragrance_over_repeated_hub() -> None:

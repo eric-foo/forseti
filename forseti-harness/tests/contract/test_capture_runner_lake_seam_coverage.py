@@ -112,6 +112,10 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
             "append_record",
         ): 1,
         (
+            "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py",
+            "lane_dir",
+        ): 1,
+        (
             "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py",
             "append_silver_record",
         ): 1,

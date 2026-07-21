@@ -1833,6 +1833,53 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
     ) in capsys.readouterr().out.splitlines()
 
 
+
+def test_frontier_selection_skips_onboarded_and_absent_requires_promote() -> None:
+    decisions = {"tiktok_creator_promotion_decisions": {"schema_version": "tiktok_creator_promotion_decisions_v1", "decisions": [
+        {"handle": "done", "registry_action": "promote_now", "priority_rank": 1},
+        {"handle": "next", "registry_action": "promote_now", "priority_rank": 2},
+    ]}}
+    registry = {"creator_profile_current_view": {"profiles": [{"onboarding": {"onboarding_state": "onboarded"}, "platform_accounts": [{"platform": "tiktok", "public_handle": "done"}]}]}}
+    handle, selected = runner._select_promoted_creator(decisions, registry)
+    assert handle == "next"
+    assert selected["selection_source"] == "promotion_frontier"
+    with pytest.raises(TikTokCreatorOnboardingError, match="requires a promote_now"):
+        runner._require_promoted(None, "unknown")
+    deferred = {"tiktok_creator_promotion_decisions": {
+        "schema_version": "tiktok_creator_promotion_decisions_v1",
+        "decisions": [{
+            "handle": "eddeparfum",
+            "registry_action": "promote_now",
+            "onboarding_queue_status": "owner_deferred",
+        }],
+    }}
+    with pytest.raises(TikTokCreatorOnboardingError, match="owner-deferred"):
+        runner._require_promoted(deferred, "eddeparfum")
+
+
+def test_frontier_selection_skips_already_scanned_frontier_root() -> None:
+    decisions = {"tiktok_creator_promotion_decisions": {"schema_version": "tiktok_creator_promotion_decisions_v1", "decisions": [
+        {"handle": "scanned", "registry_action": "promote_now", "priority_rank": 1},
+        {"handle": "next", "registry_action": "promote_now", "priority_rank": 2},
+    ]}}
+    registry = {"creator_profile_current_view": {"profiles": []}}
+    frontier = {
+        "tiktok_creator_discovery_frontier_register": {
+            "root_seed": {"handle": "scanned"},
+            "nodes": [],
+            "edges": [],
+        }
+    }
+
+    handle, _ = runner._select_promoted_creator(
+        decisions,
+        registry,
+        frontier_registers=(frontier,),
+    )
+
+    assert handle == "next"
+
+
 def test_onboarding_cli_defaults_to_fixed_top_eight_and_seven_fourteen_range() -> None:
     args = runner.build_parser().parse_args(
         [
