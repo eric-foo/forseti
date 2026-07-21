@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Mapping
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
 
 from pydantic import Field, field_validator, model_validator
 
@@ -14,6 +14,7 @@ from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 from source_capture.projection_shared import is_forbidden_field_token_match
+from source_capture.retail_capture_profiles import extract_target_grid_subject_from_url
 from source_capture.retail_pdp_projection import RetailProjectionRawAnchor, RetailProjectionRawRef
 from source_capture.sephora_brand_grid import (
     SephoraBrandGridState,
@@ -29,6 +30,10 @@ RETAIL_GRID_PROJECTION_METHOD = "retail_grid_mechanical_projection"
 RETAIL_GRID_PROJECTION_VERSION = "v0"
 RETAIL_GRID_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 PROJECTION_RETAIL_GRID_LANE = "projection_retail_grid"
+TARGET_GRID_CONTENT_RECORD_VERSION = "target_grid_content_v2"
+_SUPPORTED_TARGET_GRID_CONTENT_RECORD_VERSIONS = frozenset(
+    {"target_grid_content_v1", TARGET_GRID_CONTENT_RECORD_VERSION}
+)
 
 RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta"]
 
@@ -103,6 +108,8 @@ class RetailGridProjectionRow(StrictModel):
 
 class RetailGridProjectionPlacement(StrictModel):
     grid_position: int = Field(ge=1)
+    page: int | None = Field(default=None, ge=1)
+    page_position: int | None = Field(default=None, ge=1)
     raw_anchor: RetailProjectionRawAnchor
 
 
@@ -221,6 +228,134 @@ def project_retail_grid_into_lake(
     return projection, derived_path
 
 
+def build_target_grid_aggregate_content_record(
+    *,
+    rendered_pages: tuple[str, ...],
+    requested_url: str,
+    page_urls: tuple[str, ...],
+    traversal_observation: Mapping[str, object],
+) -> dict[str, object]:
+    """Extract a token-free Target multi-page search or brand-grid evidence record."""
+    if not rendered_pages:
+        raise RetailGridProjectionInputError(
+            "Target grid content extraction requires at least one rendered page"
+        )
+    if len(rendered_pages) != len(page_urls):
+        raise RetailGridProjectionInputError(
+            "Target grid rendered page and URL counts must match"
+        )
+
+    requested_subject = extract_target_grid_subject_from_url(requested_url)
+    requested_subject_kind = requested_subject[0] if requested_subject else None
+    requested_subject_value = requested_subject[1] if requested_subject else None
+    pages: list[dict[str, object]] = []
+    record_residuals: list[str] = []
+    declared_counts: list[int] = []
+    observed_queries: list[str] = []
+    observed_subjects: list[str] = []
+    observed_delivery_zips: list[str] = []
+    for page_index, (rendered_dom, page_url) in enumerate(
+        zip(rendered_pages, page_urls, strict=True), start=1
+    ):
+        page = _parse_target_grid_page(
+            rendered_dom,
+            page_number=page_index,
+            subject_kind=requested_subject_kind,
+        )
+        page["url"] = page_url
+        pages.append(page)
+        record_residuals.extend(str(value) for value in page["residuals"])
+        declared = page.get("declared_result_count")
+        if isinstance(declared, int):
+            declared_counts.append(declared)
+        observed_query = page.get("observed_query")
+        if isinstance(observed_query, str):
+            observed_queries.append(observed_query)
+        observed_subject = page.get("observed_subject")
+        if isinstance(observed_subject, str):
+            observed_subjects.append(observed_subject)
+        delivery_zip = page.get("delivery_zip")
+        if isinstance(delivery_zip, str):
+            observed_delivery_zips.append(delivery_zip)
+
+    requested_query = (
+        requested_subject_value
+        if requested_subject_kind == "search_query"
+        else None
+    )
+    placement_count = sum(len(page["products"]) for page in pages)
+    product_ids = [
+        str(product["product_id"])
+        for page in pages
+        for product in page["products"]
+        if isinstance(product, dict) and isinstance(product.get("product_id"), str)
+    ]
+    unique_parent_count = len(set(product_ids))
+    duplicate_count = placement_count - unique_parent_count
+    declared_count = declared_counts[-1] if declared_counts else None
+    if not declared_counts:
+        record_residuals.append("target_grid_page_declared_count_absent")
+    if requested_subject is None:
+        record_residuals.append("target_grid_requested_subject_absent")
+    if not observed_subjects or any(
+        _normalize_target_subject(value, kind=requested_subject_kind)
+        != _normalize_target_subject(
+            requested_subject_value, kind=requested_subject_kind
+        )
+        for value in observed_subjects
+        if requested_subject_value is not None
+    ):
+        record_residuals.append("target_grid_subject_binding_unconfirmed")
+    observed_sort_orders = [
+        value
+        for page_url in page_urls
+        if (value := _target_grid_sort_order(page_url)) is not None
+    ]
+    if len(observed_sort_orders) != len(page_urls) or any(
+        value != "bestselling" for value in observed_sort_orders
+    ):
+        record_residuals.append("target_grid_bestseller_sort_unconfirmed")
+    if not observed_delivery_zips or len(set(observed_delivery_zips)) != 1:
+        record_residuals.append("target_grid_delivery_zip_unconfirmed_in_page_states")
+
+    return {
+        "content_record_version": TARGET_GRID_CONTENT_RECORD_VERSION,
+        "retailer": "target",
+        "page_kind": (
+            "brand_grid" if requested_subject_kind == "brand" else "search_grid"
+        ),
+        "requested_url": requested_url,
+        "requested_subject_kind": requested_subject_kind,
+        "requested_subject": requested_subject_value,
+        "observed_subjects": _dedupe(observed_subjects),
+        "requested_query": requested_query,
+        "observed_queries": _dedupe(observed_queries),
+        "sort_order": (
+            "bestselling"
+            if observed_sort_orders
+            and len(observed_sort_orders) == len(page_urls)
+            and all(value == "bestselling" for value in observed_sort_orders)
+            else None
+        ),
+        "delivery_zip": (
+            observed_delivery_zips[0]
+            if observed_delivery_zips and len(set(observed_delivery_zips)) == 1
+            else None
+        ),
+        "declared_result_count": declared_count,
+        "declared_result_count_observations": declared_counts,
+        "page_load_count": len(pages),
+        "extracted_placement_count": placement_count,
+        "extracted_unique_parent_count": unique_parent_count,
+        "duplicate_placement_count": duplicate_count,
+        "traversal_termination": traversal_observation.get(
+            "target_grid_termination", "unproven"
+        ),
+        "pages": pages,
+        "residuals": _dedupe(record_residuals),
+    }
+
+
 def build_retail_grid_projection(
     *, packet: SourceCapturePacket, raw_file_bytes_by_file_id: Mapping[str, bytes]
 ) -> RetailGridProjectionPacket:
@@ -235,6 +370,16 @@ def build_retail_grid_projection(
     rows: list[RetailGridProjectionRow] = []
     residuals: list[str] = []
     sephora_states: list[SephoraBrandGridState] = []
+    target_states: list[dict[str, Any]] = []
+    target_content_file_ids: set[str] = set()
+    if retailer == "target":
+        for source_slice in packet.source_slices:
+            for file_id in source_slice.preserved_file_ids:
+                body = raw_file_bytes_by_file_id.get(file_id)
+                if body is not None and _load_target_grid_content_record(
+                    body.decode("utf-8", errors="replace")
+                ) is not None:
+                    target_content_file_ids.add(file_id)
 
     for source_slice in packet.source_slices:
         raw_ref = RetailProjectionRawRef(
@@ -242,6 +387,12 @@ def build_retail_grid_projection(
         )
         slice_row_count = 0
         for file_id in source_slice.preserved_file_ids:
+            if (
+                retailer == "target"
+                and target_content_file_ids
+                and file_id not in target_content_file_ids
+            ):
+                continue
             preserved_file = preserved_files[file_id]
             body = raw_file_bytes_by_file_id.get(file_id)
             if body is None:
@@ -257,13 +408,15 @@ def build_retail_grid_projection(
                     raw_anchor=raw_anchor,
                 )
             elif retailer == "target":
-                projected, file_residuals = _project_target_cards(
+                projected, file_residuals, target_state = _project_target_cards(
                     text,
                     packet=packet,
                     source_slice=source_slice,
                     raw_ref=raw_ref,
                     raw_anchor=raw_anchor,
                 )
+                if target_state is not None:
+                    target_states.append(target_state)
             else:
                 projected, file_residuals, sephora_state = _project_sephora_linkstore(
                     text,
@@ -287,6 +440,15 @@ def build_retail_grid_projection(
             packet=packet,
             rows=rows,
             states=sephora_states,
+            residuals=residuals,
+        )
+    elif retailer == "target":
+        rows, merge_residuals = _merge_target_parent_rows(rows)
+        residuals.extend(merge_residuals)
+        grid_facts, completeness = _target_grid_reconciliation(
+            packet=packet,
+            rows=rows,
+            states=target_states,
             residuals=residuals,
         )
     else:
@@ -627,6 +789,292 @@ def _project_walmart_next_data(
     return rows, residuals
 
 
+def _load_target_grid_content_record(text: str) -> dict[str, Any] | None:
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if (
+        not isinstance(value, dict)
+        or value.get("content_record_version")
+        not in _SUPPORTED_TARGET_GRID_CONTENT_RECORD_VERSIONS
+    ):
+        return None
+    if not isinstance(value.get("pages"), list):
+        raise RetailGridProjectionInputError("Target grid content record pages are absent")
+    return value
+
+
+def _parse_target_grid_page(
+    rendered_dom: str,
+    *,
+    page_number: int,
+    subject_kind: str | None = None,
+) -> dict[str, object]:
+    matches = list(_TARGET_CARD_RE.finditer(rendered_dom))
+    products: list[dict[str, object | None]] = []
+    residuals: list[str] = []
+    occurrences_by_product_id: dict[str, int] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(rendered_dom)
+        card = rendered_dom[match.start() : end]
+        product_id = match.group("product_id")
+        occurrence = occurrences_by_product_id.get(product_id, 0) + 1
+        occurrences_by_product_id[product_id] = occurrence
+        content_anchor = next(
+            (
+                anchor
+                for anchor in re.finditer(
+                    r"<a\b(?P<attrs>[^>]*)>(?P<body>.*?)</a>",
+                    card,
+                    flags=re.IGNORECASE | re.DOTALL,
+                )
+                if re.search(
+                    r"\bdata-test=[\"']content[\"']",
+                    anchor.group("attrs"),
+                    flags=re.IGNORECASE,
+                )
+            ),
+            None,
+        )
+        content_href = (
+            _first_regex(
+                content_anchor.group("attrs"),
+                (r"\bhref=[\"']([^\"']*/p/[^\"']+)[\"']",),
+            )
+            if content_anchor is not None
+            else None
+        )
+        product_url = _absolute_url(
+            "https://www.target.com",
+            content_href
+            or _first_regex(card, (r"href=[\"']([^\"']*/p/[^\"']+)[\"']",)),
+        )
+        legacy_name = _first_regex(
+            card,
+            (
+                r"<a[^>]+aria-label=[\"']([^\"']+)[\"'][^>]+data-test=[\"']@web/ProductCard/title[\"']",
+                r"data-test=[\"']@web/ProductCard/title[\"'][^>]+aria-label=[\"']([^\"']+)[\"']",
+            ),
+        )
+        heading_match = re.search(
+            r"<h3\b[^>]*>(?P<body>.*?)</h3>",
+            content_anchor.group("body") if content_anchor is not None else card,
+            re.I | re.S,
+        )
+        name = (
+            html_module.unescape(legacy_name)
+            if legacy_name is not None
+            else _html_text(heading_match.group("body"))
+            if heading_match is not None
+            else None
+        )
+        identity_residual = product_url is None or name is None
+        if identity_residual:
+            residuals.append(
+                f"target_grid_card_identity_incomplete:{page_number}:{index + 1}:{product_id}"
+            )
+
+        price_display = _first_regex(
+            card,
+            (r"data-test=[\"']current-price[\"'][^>]*>\s*<span>\s*([^<]+)",),
+        )
+        if price_display is None:
+            heading_region = (
+                content_anchor.group("body") if content_anchor is not None else card
+            )
+            price_region = (
+                heading_region[: heading_match.start()]
+                if heading_match is not None
+                else heading_region
+            )
+            price_display = _first_regex(price_region, (r"(\$\d+(?:\.\d{2})?)",))
+        price_display = html_module.unescape(price_display) if price_display else None
+
+        rating_match = re.search(
+            r"aria-label=[\"'](?:Average customer rating is\s+)?([0-9.]+)"
+            r"(?:\s+out of 5)?\s+stars?\s+with\s+([0-9,]+)\s+"
+            r"(?:ratings?|reviews?)\.??[\"']",
+            card,
+            flags=re.IGNORECASE,
+        )
+        pickup = _target_channel_text(card, "Pickup")
+        delivery = _target_channel_text(card, "Delivery")
+        shipping = _target_channel_text(card, "Shipping")
+        overall_availability = _first_regex(
+            card,
+            (
+                r"data-test=[\"']lowStockMessaging[\"'][^>]*>.*?"
+                r"<span[^>]*>([^<]+)</span>",
+            ),
+        )
+        plain_text = _html_text(card) or ""
+        merchandising_labels = _dedupe(
+            label
+            for label in (
+                "Bestseller",
+                "Highly rated",
+                "Rarely returned",
+                "New at Target",
+            )
+            if label.casefold() in plain_text.casefold()
+        )
+        bought_recently_text = _first_regex(
+            plain_text,
+            (r"(\d+(?:\.\d+)?[kKmM]?\+\s+bought in last month)",),
+        )
+        visible_fulfilment = _dedupe(
+            value
+            for value in (
+                pickup,
+                delivery,
+                shipping,
+                "Shipping dates may vary" if "Shipping dates may vary" in plain_text else None,
+                "Free 2-Day Shipping" if "Free 2-Day Shipping" in plain_text else None,
+            )
+            if value
+        )
+        products.append(
+            {
+                "product_id": product_id,
+                "product_url": product_url,
+                "name": name,
+                "page": page_number,
+                "page_position": index + 1,
+                "page_occurrence": occurrence,
+                "price_display": price_display,
+                "price": price_display.lstrip("$").strip() if price_display else None,
+                "currency_symbol": (
+                    "$" if price_display is not None and price_display.startswith("$") else None
+                ),
+                "average_rating": rating_match.group(1) if rating_match else None,
+                "rating_count": (
+                    rating_match.group(2).replace(",", "")
+                    if rating_match
+                    else None
+                ),
+                "availability_summary": (
+                    html_module.unescape(overall_availability)
+                    if overall_availability
+                    else None
+                ),
+                "shipping_availability": shipping,
+                "pickup_availability": pickup,
+                "delivery_availability": delivery,
+                "visible_fulfilment_text": visible_fulfilment,
+                "sponsored_posture": "sponsored" if "Sponsored" in plain_text else None,
+                "retailer_merchandising_labels": merchandising_labels,
+                "bought_recently_text": bought_recently_text,
+            }
+        )
+
+    page_text = _html_text(rendered_dom) or ""
+    declared_match = re.search(
+        r"(?<!\d)(?P<count>\d[\d,]*)\s+results\b", page_text, re.IGNORECASE
+    )
+    title_match = re.search(r"<title\b[^>]*>(?P<title>.*?)</title>", rendered_dom, re.I | re.S)
+    title_text = _html_text(title_match.group("title")) if title_match is not None else None
+    observed_query: str | None = None
+    if title_text is not None:
+        query_match = re.fullmatch(
+            r'\s*"?(?P<query>.+?)"?\s*(?:\:\s*Page\s+\d+)?\s*:\s*Target\s*',
+            title_text,
+            flags=re.IGNORECASE,
+        )
+        if query_match is not None:
+            observed_query = query_match.group("query").strip().strip('"')
+    page_heading_match = re.search(
+        r"<h1\b[^>]*>(?P<heading>.*?)</h1>",
+        rendered_dom,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    observed_brand = (
+        _html_text(page_heading_match.group("heading"))
+        if page_heading_match is not None
+        else None
+    )
+    observed_subject = observed_brand if subject_kind == "brand" else observed_query
+    zip_match = re.search(
+        r"aria-label=[\"']Ship to location:\s*(?P<zip>\d{5})[\"']",
+        rendered_dom,
+        re.IGNORECASE,
+    )
+    return {
+        "page": page_number,
+        "declared_result_count": (
+            int(declared_match.group("count").replace(",", ""))
+            if declared_match is not None
+            else None
+        ),
+        "observed_query": observed_query,
+        "observed_brand": observed_brand,
+        "observed_subject": observed_subject,
+        "delivery_zip": zip_match.group("zip") if zip_match is not None else None,
+        "products": products,
+        "residuals": _dedupe(residuals),
+    }
+
+
+def _html_text(value: str) -> str | None:
+    text = re.sub(r"<[^>]+>", " ", value)
+    normalized = " ".join(html_module.unescape(text).split())
+    return normalized or None
+
+
+def _target_requested_query(url: str) -> str | None:
+    values = parse_qs(urlparse(url).query).get("searchTerm")
+    if not values or not values[0].strip():
+        return None
+    return values[0].strip()
+
+
+def _target_requested_query_from_packet(packet: SourceCapturePacket) -> str | None:
+    locators = [_fact_value(packet.source_locator)] + [
+        _fact_value(source_slice.locator) for source_slice in packet.source_slices
+    ]
+    for locator in locators:
+        if locator is None:
+            continue
+        query = _target_requested_query(locator)
+        if query is not None:
+            return query
+    return None
+
+
+def _target_requested_subject_from_packet(
+    packet: SourceCapturePacket,
+) -> tuple[str, str] | None:
+    locators = [_fact_value(packet.source_locator)] + [
+        _fact_value(source_slice.locator) for source_slice in packet.source_slices
+    ]
+    for locator in locators:
+        if locator is None:
+            continue
+        subject = extract_target_grid_subject_from_url(locator)
+        if subject is not None:
+            return subject
+    return None
+
+
+def _normalize_query(value: str) -> str:
+    return " ".join(value.casefold().split())
+
+
+def _normalize_target_subject(value: str | None, *, kind: str | None) -> str:
+    if value is None:
+        return ""
+    if kind == "brand":
+        return re.sub(r"[^a-z0-9]+", "", value.casefold())
+    return _normalize_query(value)
+
+
+def _target_grid_sort_order(url: str) -> str | None:
+    for key, values in parse_qs(urlparse(url).query).items():
+        if key.casefold() == "sortby" and values:
+            return values[0].casefold()
+    return None
+
+
 def _project_target_cards(
     text: str,
     *,
@@ -634,92 +1082,276 @@ def _project_target_cards(
     source_slice: SourceCaptureSlice,
     raw_ref: RetailProjectionRawRef,
     raw_anchor: RetailProjectionRawAnchor,
-) -> tuple[list[RetailGridProjectionRow], list[str]]:
-    matches = list(_TARGET_CARD_RE.finditer(text))
+) -> tuple[list[RetailGridProjectionRow], list[str], dict[str, Any] | None]:
+    content_record = _load_target_grid_content_record(text)
+    if content_record is not None:
+        placements = [
+            (page_index, product_index, product)
+            for page_index, page in enumerate(content_record["pages"])
+            if isinstance(page, dict) and isinstance(page.get("products"), list)
+            for product_index, product in enumerate(page["products"])
+            if isinstance(product, dict)
+        ]
+    else:
+        page = _parse_target_grid_page(text, page_number=1)
+        placements = [
+            (0, product_index, product)
+            for product_index, product in enumerate(page["products"])
+            if isinstance(product, dict)
+        ]
+
     rows: list[RetailGridProjectionRow] = []
     residuals: list[str] = []
-    occurrences_by_product_id: dict[str, int] = {}
-    for index, match in enumerate(matches):
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
-        card = text[match.start() : end]
-        product_id = match.group("product_id")
-        occurrence = occurrences_by_product_id.get(product_id, 0) + 1
-        occurrences_by_product_id[product_id] = occurrence
-        product_url = _absolute_url(
-            "https://www.target.com",
-            _first_regex(
-                card,
-                (
-                    r"href=[\"']([^\"']*/p/[^\"']+)[\"']",
-                ),
-            ),
-        )
-        name = _first_regex(
-            card,
-            (
-                r"<a[^>]+aria-label=[\"']([^\"']+)[\"'][^>]+data-test=[\"']@web/ProductCard/title[\"']",
-                r"data-test=[\"']@web/ProductCard/title[\"'][^>]+aria-label=[\"']([^\"']+)[\"']",
-            ),
-        )
-        if product_url is None or name is None:
+    for global_index, (page_index, product_index, product) in enumerate(placements):
+        product_id = _text(product.get("product_id"))
+        product_url = _text(product.get("product_url"))
+        name = _text(product.get("name"))
+        if product_id is None or product_url is None or name is None:
             residuals.append(
-                f"{source_slice.slice_id}:target:grid_card_identity_incomplete:{product_id}"
+                f"{source_slice.slice_id}:target:grid_card_identity_incomplete:"
+                f"{page_index + 1}:{product_index + 1}"
             )
             continue
-        rating_match = re.search(
-            r"aria-label=[\"']([0-9.]+)\s+stars?\s+with\s+([0-9,]+)\s+ratings?[\"']",
-            card,
-            flags=re.IGNORECASE,
-        )
-        price_text = _first_regex(
-            card,
-            (r"data-test=[\"']current-price[\"'][^>]*>\s*<span>\s*([^<]+)",),
-        )
-        pickup = _target_channel_text(card, "Pickup")
-        delivery = _target_channel_text(card, "Delivery")
-        shipping = _target_channel_text(card, "Shipping")
-        overall_availability = _first_regex(
-            card,
-            (r"data-test=[\"']lowStockMessaging[\"'][^>]*>.*?<span[^>]*>([^<]+)</span>",),
-        )
+        if content_record is not None:
+            anchor = _with_anchor(
+                raw_anchor,
+                "json_pointer",
+                f"/pages/{page_index}/products/{product_index}",
+            )
+        else:
+            anchor = _with_anchor(
+                raw_anchor,
+                "html_selector",
+                f':nth-match([data-focusid="{product_id}_product_card"], '
+                f'{product.get("page_occurrence", 1)})',
+            )
+        page_number = _integer(product.get("page")) or page_index + 1
+        page_position = _integer(product.get("page_position")) or product_index + 1
         fields = _base_fields(packet=packet, source_slice=source_slice, retailer="target")
         fields.update(
             {
                 "source_product_id": product_id,
                 "product_url": product_url,
-                "name": html_module.unescape(name) if name else None,
+                "canonical_product_url": _canonical_url(product_url),
+                "name": name,
                 "selected_variant": None,
-                "price": price_text.lstrip("$").strip() if price_text else None,
-                "price_currency": _fact_value(source_slice.currency_pin),
-                "currency_symbol": "$" if price_text and price_text.startswith("$") else None,
-                "average_rating": rating_match.group(1) if rating_match else None,
-                "rating_count": rating_match.group(2).replace(",", "") if rating_match else None,
+                "price": _text(product.get("price")),
+                "price_display": _text(product.get("price_display")),
+                "price_currency": None,
+                "currency_symbol": product.get("currency_symbol"),
+                "average_rating": _text(product.get("average_rating")),
+                "rating_count": _text(product.get("rating_count")),
                 "written_review_count": None,
-                "availability_summary": html_module.unescape(overall_availability) if overall_availability else None,
-                "shipping_availability": shipping,
-                "pickup_availability": pickup,
-                "delivery_availability": delivery,
+                "availability_summary": _text(product.get("availability_summary")),
+                "shipping_availability": _text(product.get("shipping_availability")),
+                "pickup_availability": _text(product.get("pickup_availability")),
+                "delivery_availability": _text(product.get("delivery_availability")),
+                "visible_fulfilment_text": product.get("visible_fulfilment_text", []),
+                "sponsored_posture": _text(product.get("sponsored_posture")),
+                "retailer_merchandising_labels": product.get(
+                    "retailer_merchandising_labels", []
+                ),
+                "bought_recently_text": _text(product.get("bought_recently_text")),
+                "location_pin": (
+                    content_record.get("delivery_zip")
+                    if content_record is not None
+                    else None
+                ),
                 "location_ids": [],
                 "seller": None,
             }
         )
+        placement = RetailGridProjectionPlacement(
+            grid_position=global_index + 1,
+            page=page_number,
+            page_position=page_position,
+            raw_anchor=anchor,
+        )
         rows.append(
             RetailGridProjectionRow(
-                row_id=f"{source_slice.slice_id}:grid:target:{index}:{product_id}",
+                row_id=(
+                    f"{source_slice.slice_id}:grid:target:{page_number}:"
+                    f"{page_position}:{product_id}"
+                ),
                 retailer="target",
                 raw_ref=raw_ref,
-                raw_anchor=_with_anchor(
-                    raw_anchor,
-                    "html_selector",
-                    f':nth-match([data-focusid="{product_id}_product_card"], {occurrence})',
-                ),
+                raw_anchor=anchor,
+                placements=[placement],
                 source_visible_fields=fields,
                 residuals=_row_residuals(
-                    retailer="target", selected_variant=None, location_observed=False
+                    retailer="target",
+                    selected_variant=None,
+                    location_observed=fields["location_pin"] is not None,
                 ),
             )
         )
-    return rows, residuals
+    state = content_record
+    if state is None and rows:
+        state = {
+            "content_record_version": "target_grid_rendered_dom_v0",
+            "requested_subject_kind": None,
+            "requested_subject": None,
+            "observed_subjects": [],
+            "requested_query": None,
+            "observed_queries": [],
+            "sort_order": None,
+            "delivery_zip": None,
+            "declared_result_count": None,
+            "page_load_count": 1,
+            "traversal_termination": "unproven",
+            "residuals": list(page["residuals"]),
+        }
+    return rows, residuals, state
+
+
+def _merge_target_parent_rows(
+    rows: list[RetailGridProjectionRow],
+) -> tuple[list[RetailGridProjectionRow], list[str]]:
+    by_product_id: dict[str, RetailGridProjectionRow] = {}
+    residuals: list[str] = []
+    placement_fields = {"location_pin"}
+    for row in rows:
+        product_id = str(row.source_visible_fields["source_product_id"])
+        existing = by_product_id.get(product_id)
+        if existing is None:
+            by_product_id[product_id] = row
+            continue
+        placements = [*existing.placements, *row.placements]
+        row_residuals = [
+            *existing.residuals,
+            f"target_grid_duplicate_parent_placement:{product_id}:{len(placements)}",
+        ]
+        comparable_existing = {
+            key: value
+            for key, value in existing.source_visible_fields.items()
+            if key not in placement_fields
+        }
+        comparable_row = {
+            key: value
+            for key, value in row.source_visible_fields.items()
+            if key not in placement_fields
+        }
+        if comparable_existing != comparable_row:
+            row_residuals.append(
+                f"target_grid_duplicate_parent_fields_differ:{product_id}"
+            )
+        by_product_id[product_id] = existing.model_copy(
+            update={"placements": placements, "residuals": _dedupe(row_residuals)}
+        )
+        residuals.append(
+            f"target_grid_duplicate_parent_placement:{product_id}:{len(placements)}"
+        )
+    return list(by_product_id.values()), residuals
+
+
+def _target_grid_reconciliation(
+    *,
+    packet: SourceCapturePacket,
+    rows: list[RetailGridProjectionRow],
+    states: list[dict[str, Any]],
+    residuals: list[str],
+) -> tuple[dict[str, Any | None], RetailGridCompletenessReconciliation]:
+    reconciliation_residuals: list[str] = []
+    state = states[0] if len(states) == 1 else None
+    if not states:
+        reconciliation_residuals.append("target_grid_content_record_absent")
+    elif len(states) != 1:
+        reconciliation_residuals.append(
+            f"target_grid_content_record_count:{len(states)}"
+        )
+    requested_subject = _target_requested_subject_from_packet(packet)
+    requested_subject_kind = requested_subject[0] if requested_subject else None
+    requested_subject_value = requested_subject[1] if requested_subject else None
+    requested_query = (
+        requested_subject_value
+        if requested_subject_kind == "search_query"
+        else None
+    )
+    observed_subjects = (
+        state.get("observed_subjects", []) if state is not None else []
+    )
+    if (
+        not observed_subjects
+        and requested_subject_kind == "search_query"
+        and state is not None
+    ):
+        observed_subjects = state.get("observed_queries", [])
+    subject_confirmed = bool(
+        requested_subject_value
+        and isinstance(observed_subjects, list)
+        and observed_subjects
+        and all(
+            isinstance(value, str)
+            and _normalize_target_subject(value, kind=requested_subject_kind)
+            == _normalize_target_subject(
+                requested_subject_value, kind=requested_subject_kind
+            )
+            for value in observed_subjects
+        )
+    )
+    if not subject_confirmed:
+        reconciliation_residuals.append("target_grid_subject_binding_unconfirmed")
+    placement_count = sum(max(1, len(row.placements)) for row in rows)
+    duplicate_count = placement_count - len(rows)
+    declared_count = (
+        state.get("declared_result_count") if state is not None else None
+    )
+    if not isinstance(declared_count, int):
+        declared_count = None
+        reconciliation_residuals.append("target_grid_page_declared_count_absent")
+    elif declared_count != placement_count:
+        reconciliation_residuals.append(
+            "target_grid_declared_placement_count_mismatch:"
+            f"declared={declared_count}:placements={placement_count}"
+        )
+    termination = state.get("traversal_termination") if state is not None else None
+    if termination != "retailer_declared_count_reconciled":
+        reconciliation_residuals.append("target_grid_termination_unproven")
+    if any("identity_incomplete" in item for item in residuals):
+        reconciliation_residuals.append("target_grid_incomplete_product_identity_present")
+    if state is not None:
+        reconciliation_residuals.extend(
+            str(value) for value in state.get("residuals", []) if isinstance(value, str)
+        )
+    sort_order = state.get("sort_order") if state is not None else None
+    if sort_order != "bestselling":
+        reconciliation_residuals.append("target_grid_bestseller_sort_unconfirmed")
+    complete = not reconciliation_residuals
+    grid_facts: dict[str, Any | None] = {
+        "retailer": "target",
+        "page_kind": (
+            "brand_grid" if requested_subject_kind == "brand" else "search_grid"
+        ),
+        "requested_subject_kind": requested_subject_kind,
+        "requested_subject": requested_subject_value,
+        "observed_subjects": observed_subjects,
+        "requested_query": requested_query,
+        "observed_queries": (
+            state.get("observed_queries", []) if state is not None else []
+        ),
+        "sort_order": sort_order,
+        "delivery_zip": state.get("delivery_zip") if state is not None else None,
+        "page_load_count": state.get("page_load_count") if state is not None else None,
+        "page_declared_result_count": declared_count,
+        "declared_result_count_observations": (
+            state.get("declared_result_count_observations", [])
+            if state is not None
+            else []
+        ),
+        "extracted_placement_count": placement_count,
+        "duplicate_placement_count": duplicate_count,
+        "subject_binding_confirmed": subject_confirmed,
+    }
+    return grid_facts, RetailGridCompletenessReconciliation(
+        status="complete" if complete else "incomplete",
+        page_declared_result_count=declared_count,
+        extracted_unique_parent_count=len(rows),
+        extracted_placement_count=placement_count,
+        duplicate_placement_count=duplicate_count,
+        subject_binding_confirmed=subject_confirmed,
+        termination="retailer_visible_count_reconciled" if complete else "unproven",
+        residuals=_dedupe(reconciliation_residuals),
+    )
 
 
 def _base_fields(
@@ -824,7 +1456,10 @@ def detect_retail_grid_retailer(packet: SourceCapturePacket) -> RetailGridRetail
         path = parsed.path.rstrip("/").lower()
         if _hostname_matches(hostname, "walmart.com") and path == "/search":
             return "walmart"
-        if _hostname_matches(hostname, "target.com") and path == "/s":
+        if (
+            _hostname_matches(hostname, "target.com")
+            and extract_target_grid_subject_from_url(locator) is not None
+        ):
             return "target"
         if _hostname_matches(hostname, "sephora.com") and path.startswith("/brand/"):
             return "sephora"
@@ -832,7 +1467,7 @@ def detect_retail_grid_retailer(packet: SourceCapturePacket) -> RetailGridRetail
             return "ulta"
     raise RetailGridProjectionInputError(
         "retail grid projection requires an admitted source-visible Walmart search, "
-        "Target search, Sephora brand, or Ulta brand locator"
+        "Target search/brand, Sephora brand, or Ulta brand locator"
     )
 
 

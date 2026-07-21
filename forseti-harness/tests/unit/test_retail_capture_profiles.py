@@ -10,12 +10,14 @@ from source_capture.retail_capture_profiles import (
     extract_amazon_search_query_from_url,
     extract_nordstrom_product_id_from_url,
     extract_sephora_product_id_from_url,
+    extract_target_grid_subject_from_url,
     extract_target_product_id_from_url,
     extract_target_search_query_from_url,
     extract_ulta_product_id_from_url,
     get_retail_capture_profile,
     merge_source_detail_sufficiency_requirements,
     retail_capture_profile_names,
+    target_bestseller_grid_url,
     validate_retail_capture_profile_route,
 )
 from source_capture.source_detail_sufficiency import (
@@ -74,7 +76,9 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert get_retail_capture_profile("sephora_pdp_aggregate").derive_target_sephora_product_id_from_url is True
     assert get_retail_capture_profile("ulta_pdp_aggregate").derive_target_ulta_product_id_from_url is True
     assert get_retail_capture_profile("target_pdp_aggregate").derive_target_target_product_id_from_url is True
-    assert get_retail_capture_profile("target_grid_aggregate").derive_target_target_search_query_from_url is True
+    assert get_retail_capture_profile(
+        "target_grid_aggregate"
+    ).derive_target_target_grid_subject_from_url is True
     nordstrom = get_retail_capture_profile("nordstrom_pdp_aggregate")
     assert nordstrom.wait_until == "domcontentloaded"
     assert nordstrom.scroll_passes == 1
@@ -147,6 +151,25 @@ def test_target_grid_profile_binds_the_requested_search_query() -> None:
     )
     assert admitted.passed is True
     assert mismatched.passed is False
+
+
+def test_target_grid_profile_binds_brand_and_normalizes_bestseller_start() -> None:
+    profile = get_retail_capture_profile("target_grid_aggregate")
+    url = "https://www.target.com/b/e-l-f/-/N-5oajg?sortBy=newest&count=96&Nao=24"
+    requirements = profile.requirements_for_capture(url=url)
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text="e.l.f. 244 results Guest Rating $10.00",
+        rendered_dom="<html>target product cards</html>",
+    )
+
+    assert result.passed is True
+    assert extract_target_grid_subject_from_url(url) == ("brand", "e-l-f")
+    assert target_bestseller_grid_url(url) == (
+        "https://www.target.com/b/e-l-f/-/N-5oajg?"
+        "sortBy=bestselling&moveTo=product-list-grid"
+    )
 
 
 _SHALLOW_PDP_IDENTITY_CASES = (
@@ -709,7 +732,6 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
         ("sephora_pdp_aggregate", "sephora_market", "US"),
         ("ulta_grid_aggregate", "ulta_market", "US"),
         ("ulta_pdp_aggregate", "ulta_market", "US"),
-        ("target_grid_aggregate", "target_zip", "10001"),
         ("target_pdp_aggregate", "target_zip", "10001"),
     ),
 )
@@ -725,6 +747,16 @@ def test_shallow_ladder_profiles_require_their_exact_us_pin(
     kwargs[pin_field] = pin_value
     cloakbrowser_runner._validate_retail_baseline_profile_request(
         retail_capture_profile=profile, **kwargs
+    )
+
+
+def test_target_catalog_grid_does_not_require_a_requested_delivery_zip() -> None:
+    cloakbrowser_runner._validate_retail_baseline_profile_request(
+        retail_capture_profile=get_retail_capture_profile("target_grid_aggregate"),
+        delivery_zip=None,
+        sephora_market=None,
+        ulta_market=None,
+        target_zip=None,
     )
 
 
