@@ -151,9 +151,12 @@ adaptation. Grid projections are separate retailer-specific mechanical views,
 not PDP content, Cleaning, or Silver.
 
 For the qualified ladder, Sephora, Ulta, and Target have admitted projected
-grid paths; Sephora and Ulta reconcile a retailer-declared complete parent
-count. Amazon search-grid capture remains query-bound raw, not a complete or
-authorized-only brand denominator.
+grid paths. Sephora reconciles its retailer-declared count against unique
+parent rows; Ulta reconciles its retailer-declared and viewed counts against
+anchored placements, so a complete Ulta grid may hold more placements than
+unique parents. Target has no retailer-declared count and stays
+`not_evaluated`. Amazon search-grid capture remains query-bound raw, not a
+complete or authorized-only brand denominator.
 Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
 decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
 ordinary shallow profile derives its target from the commissioned URL and

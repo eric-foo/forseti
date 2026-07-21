@@ -109,6 +109,77 @@ def test_baseline_raw_hash_mismatch_fails_closed(tmp_path: Path) -> None:
         )
 
 
+def test_bundle_listing_does_not_cover_a_missing_material_variant(
+    tmp_path: Path,
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    bundle = next(
+        item
+        for item in payload["listing_reconciliations"]
+        if item["listing_kind"] == "BUNDLE_SET"
+    )
+    bundle["owned_parent_ids"] = ["p1"]
+    bundle["material_variant_ids"] = ["p1-v2"]
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = build_retail_portfolio_onboarding(
+        commission=load_portfolio_commission(commission_path),
+        base_directory=tmp_path,
+    )
+
+    assert "MISSING_MATERIAL_VARIANT:target:p1:p1-v2" in result["coverage_residuals"]
+
+
+def test_grid_outcome_bound_to_another_retailer_packet_fails_closed(
+    tmp_path: Path,
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    target_pdp_directory = next(
+        item["packet_directory"]
+        for item in payload["pdp_baselines"]
+        if item["retailer"] == "target"
+    )
+    sephora = next(
+        item for item in payload["retailer_outcomes"] if item["retailer"] == "sephora"
+    )
+    sephora["status"] = "GRID_CAPTURED_INCOMPLETE"
+    sephora["grid_packet_directory"] = target_pdp_directory
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RetailPortfolioOnboardingError, match="sephora outcome points"):
+        build_retail_portfolio_onboarding(
+            commission=load_portfolio_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+def test_grid_outcome_rejects_same_retailer_pdp_surface(tmp_path: Path) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    sephora_pdp_directory, _ = _packet(
+        tmp_path,
+        name="sephora-pdp",
+        body=b"full raw Sephora PDP",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        locator="https://www.sephora.com/product/example-P123",
+    )
+    sephora = next(
+        item for item in payload["retailer_outcomes"] if item["retailer"] == "sephora"
+    )
+    sephora["status"] = "GRID_CAPTURED_INCOMPLETE"
+    sephora["grid_packet_directory"] = str(sephora_pdp_directory)
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RetailPortfolioOnboardingError, match="sephora outcome points"):
+        build_retail_portfolio_onboarding(
+            commission=load_portfolio_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
 def test_acquisition_judgment_key_is_rejected(tmp_path: Path) -> None:
     commission_path, _ = _fixture(tmp_path)
     payload = json.loads(commission_path.read_text(encoding="utf-8"))

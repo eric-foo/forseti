@@ -8,7 +8,9 @@ from pydantic import Field, model_validator
 from schemas.case_models import StrictModel
 from source_capture.models import VisibleFactStatus
 from source_capture.retail_grid_projection import (
-    build_retail_grid_projection_from_packet_directory,
+    RetailGridProjectionInputError,
+    build_retail_grid_projection,
+    detect_retail_grid_retailer,
     load_verified_source_capture_packet_directory,
 )
 
@@ -113,11 +115,19 @@ def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_d
             "evidence_refs": outcome.evidence_refs, "grid_packet_id": None,
             "grid_completeness": None, "grid_row_count": 0}
         if outcome.grid_packet_directory is not None:
-            projection = build_retail_grid_projection_from_packet_directory(
-                packet_directory=_resolve(base_directory, outcome.grid_packet_directory))
-            row_retailers = {row.retailer for row in projection.rows}
-            if row_retailers and row_retailers != {retailer}:
-                raise RetailPortfolioOnboardingError(f"{retailer} outcome points to {sorted(row_retailers)}")
+            packet, raw_file_bytes_by_file_id = load_verified_source_capture_packet_directory(
+                _resolve(base_directory, outcome.grid_packet_directory))
+            try:
+                packet_retailer = detect_retail_grid_retailer(packet)
+            except RetailGridProjectionInputError as exc:
+                raise RetailPortfolioOnboardingError(
+                    f"{retailer} outcome points to a packet without an admitted grid retailer locator"
+                ) from exc
+            if packet_retailer != retailer:
+                raise RetailPortfolioOnboardingError(
+                    f"{retailer} outcome points to a {packet_retailer} packet")
+            projection = build_retail_grid_projection(
+                packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id)
             complete = projection.completeness.status == "complete"
             if (outcome.status == "GRID_CAPTURED_COMPLETE") != complete:
                 raise RetailPortfolioOnboardingError(f"{retailer} status contradicts projection completeness")
@@ -221,7 +231,7 @@ def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_d
                 residuals.append(f"PARENT_NOT_LISTED:{retailer}:{parent_id}")
             observed: dict[str, set[str]] = {}
             for row in rows:
-                if row.match_status == "EXACT":
+                if row.match_status == "EXACT" and row.listing_kind != "BUNDLE_SET":
                     for parent_id in row.owned_parent_ids:
                         observed.setdefault(parent_id, set()).update(row.material_variant_ids)
             for parent_id in covered:
