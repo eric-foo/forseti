@@ -70,7 +70,11 @@ Compactness never authorizes dropping valuable rows.
 - `amazon_pdp_aggregate`
 
 Content schema versions are retailer-local revisions, not a shared maturity
-scale. The current acquisition census is:
+scale. Amazon remains explicitly raw-unflipped: its ASIN-bound aggregate PDP is
+preserved as raw and enters this same Cleaning/Silver floor through the
+read-only historical decoder. That compatibility path is not canonical content,
+does not hide route maturity, and does not authorize a separate Amazon lake.
+The current canonical-content acquisition census is:
 
 | Profile | Content schema | Parser | Current mark |
 | --- | --- | --- | --- |
@@ -81,7 +85,7 @@ scale. The current acquisition census is:
 | `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 | `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v2` | Current canonical content; schema `v1` does not mean legacy. Parser v2 inventories `celwidget` class lists without rewriting historical parser-v1 packets. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
 
-`RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 3` versions the shared profile-registry
+`RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
 record to `v2` without a real schema or retention change would be a misleading
 label and is not allowed.

@@ -25,7 +25,7 @@ RETAIL_GRID_PROJECTION_METHOD = "retail_grid_mechanical_projection"
 RETAIL_GRID_PROJECTION_VERSION = "v0"
 RETAIL_GRID_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 
-RetailGridRetailer = Literal["walmart", "target", "sephora"]
+RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta"]
 
 _FORBIDDEN_FIELD_TOKENS = frozenset(
     {
@@ -110,6 +110,7 @@ class RetailGridCompletenessReconciliation(StrictModel):
     subject_binding_confirmed: bool | None = None
     termination: Literal[
         "retailer_serialized_count_reconciled",
+        "retailer_visible_count_reconciled",
         "unproven",
         "not_evaluated",
     ]
@@ -195,6 +196,12 @@ def build_retail_grid_projection(
     *, packet: SourceCapturePacket, raw_file_bytes_by_file_id: Mapping[str, bytes]
 ) -> RetailGridProjectionPacket:
     retailer = _detect_retailer(packet)
+    if retailer == "ulta":
+        from source_capture.ulta_grid_projection import build_ulta_grid_projection
+
+        return build_ulta_grid_projection(
+            packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id
+        )
     preserved_files = {item.file_id: item for item in packet.preserved_files}
     rows: list[RetailGridProjectionRow] = []
     residuals: list[str] = []
@@ -786,8 +793,10 @@ def _detect_retailer(packet: SourceCapturePacket) -> RetailGridRetailer:
         return "target"
     if "sephora." in joined:
         return "sephora"
+    if "ulta." in joined:
+        return "ulta"
     raise RetailGridProjectionInputError(
-        "retail grid projection supports only source-visible Walmart, Target, or Sephora locators"
+        "retail grid projection supports only source-visible Walmart, Target, Sephora, or Ulta locators"
     )
 
 

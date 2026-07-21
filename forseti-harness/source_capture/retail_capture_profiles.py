@@ -11,11 +11,17 @@ from source_capture.source_detail_sufficiency import (
 )
 
 
-RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 3
+RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4
 
 
 _AMAZON_ASIN_IN_PATH = re.compile(r"/(?:dp|gp/product|gp/aw/d)/([A-Za-z0-9]{10})(?:[/?]|$)")
 _NORDSTROM_PRODUCT_ID_IN_PATH = re.compile(r"/s/[^/?]+/(\d+)(?:[/?]|$)")
+_SEPHORA_PRODUCT_ID_IN_PATH = re.compile(r"-(P\d+)(?:[/?]|$)", flags=re.IGNORECASE)
+_ULTA_PRODUCT_ID_IN_PATH = re.compile(
+    r"/p/[A-Za-z0-9%.~-]*?-((?:xlsImpprod|pimprod|prod)[A-Za-z0-9]+)(?:[/?]|$)",
+    flags=re.IGNORECASE,
+)
+_TARGET_PRODUCT_ID_IN_PATH = re.compile(r"/-/A-(\d+)(?:[/?]|$)", flags=re.IGNORECASE)
 
 
 def extract_amazon_asin_from_url(url: str) -> str | None:
@@ -33,6 +39,40 @@ def extract_amazon_search_query_from_url(url: str) -> str | None:
 def extract_nordstrom_product_id_from_url(url: str) -> str | None:
     match = _NORDSTROM_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
     return match.group(1) if match else None
+
+
+def extract_sephora_product_id_from_url(url: str) -> str | None:
+    match = _SEPHORA_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
+    return match.group(1).upper() if match else None
+
+
+def extract_ulta_product_id_from_url(url: str) -> str | None:
+    match = _ULTA_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
+    return match.group(1) if match else None
+
+
+def extract_target_product_id_from_url(url: str) -> str | None:
+    match = _TARGET_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
+    return match.group(1) if match else None
+
+
+def extract_target_search_query_from_url(url: str) -> str | None:
+    values = parse_qs(urlparse(url).query).get("searchTerm")
+    if not values or not values[0].strip():
+        return None
+    return values[0].strip()
+
+
+def _exact_identity_regex(product_id: str) -> str:
+    """Bind ``product_id`` as a whole token in the rendered DOM.
+
+    A bare ``re.escape(product_id)`` also matches inside any longer alphanumeric
+    run, so a shorter requested id, or an unrelated numeric blob such as an epoch
+    timestamp, satisfies the gate on a page for a different product. The Nordstrom
+    derivation avoids this by anchoring its id inside a URL shape; retailer ids
+    captured without such a shape use token boundaries instead.
+    """
+    return rf"(?<![A-Za-z0-9]){re.escape(product_id)}(?![A-Za-z0-9])"
 
 
 @dataclass(frozen=True)
@@ -56,6 +96,10 @@ class RetailCaptureProfile:
     derive_target_asin_from_url: bool = False
     derive_target_query_from_url: bool = False
     derive_target_nordstrom_product_id_from_url: bool = False
+    derive_target_sephora_product_id_from_url: bool = False
+    derive_target_ulta_product_id_from_url: bool = False
+    derive_target_target_product_id_from_url: bool = False
+    derive_target_target_search_query_from_url: bool = False
 
     def requirements_for_capture(self, *, url: str) -> SourceDetailSufficiencyRequirements:
         """Sufficiency requirements for one capture, with any per-target identity resolved.
@@ -71,6 +115,12 @@ class RetailCaptureProfile:
           "1-N of M results for '<query>'" banner echoes it back), proving the grid
           rendered real results for the query actually searched rather than a block page
           or unrelated content.
+        - the Nordstrom, Sephora, Ulta, and Target product-id flags: the retailer id in
+          ``url`` must appear in the rendered DOM, anchored (URL shape for Nordstrom,
+          token boundaries elsewhere) so a longer id or an unrelated numeric run that
+          merely contains it cannot satisfy the gate.
+        - ``derive_target_target_search_query_from_url``: the Target search-grid analogue
+          of the Amazon ``k`` check, reading the ``searchTerm`` query parameter.
         """
         if self.derive_target_asin_from_url:
             asin = extract_amazon_asin_from_url(url)
@@ -107,7 +157,73 @@ class RetailCaptureProfile:
             return merge_source_detail_sufficiency_requirements(
                 self.requirements, target_identity
             )
+        if self.derive_target_sephora_product_id_from_url:
+            product_id = extract_sephora_product_id_from_url(url)
+            if product_id is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a Sephora product id in "
+                    f"--url (expected ...-P<digits>); got {url!r}"
+                )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
+            )
+        if self.derive_target_ulta_product_id_from_url:
+            product_id = extract_ulta_product_id_from_url(url)
+            if product_id is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires an Ulta product id in "
+                    f"--url (expected ...-pimprod<digits> or another admitted Ulta id); got {url!r}"
+                )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
+            )
+        if self.derive_target_target_product_id_from_url:
+            product_id = extract_target_product_id_from_url(url)
+            if product_id is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a Target TCIN in "
+                    f"--url (expected .../-/A-<digits>); got {url!r}"
+                )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(product_id),)
+                ),
+            )
+        if self.derive_target_target_search_query_from_url:
+            query = extract_target_search_query_from_url(url)
+            if query is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a non-empty Target search "
+                    f"query in --url (expected .../s?searchTerm=<query>); got {url!r}"
+                )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    visible_text_regexes=(f"(?i){re.escape(query)}",),
+                ),
+            )
         return self.requirements
+
+    def target_product_identity_from_url(self, *, url: str) -> str | None:
+        """Return the profile-bound PDP identity encoded by the URL, if any."""
+        if self.derive_target_asin_from_url:
+            return extract_amazon_asin_from_url(url)
+        if self.derive_target_nordstrom_product_id_from_url:
+            return extract_nordstrom_product_id_from_url(url)
+        if self.derive_target_sephora_product_id_from_url:
+            return extract_sephora_product_id_from_url(url)
+        if self.derive_target_ulta_product_id_from_url:
+            return extract_ulta_product_id_from_url(url)
+        if self.derive_target_target_product_id_from_url:
+            return extract_target_product_id_from_url(url)
+        return None
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
         if (
@@ -283,9 +399,11 @@ _PROFILES = {
             settle_seconds=5.0,
             scroll_passes=1,
             scroll_step_px=350,
+            derive_target_sephora_product_id_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("Lip Sleeping Mask", "Ratings & Reviews", "Color"),
+                visible_text_contains=("Ratings & Reviews",),
                 visible_text_regexes=(r"Ratings & Reviews \([^)]+\)", r"\$\d+\.\d{2}"),
+                rendered_dom_contains=('id="linkStore"', '"product"'),
             ),
         ),
         RetailCaptureProfile(
@@ -380,12 +498,23 @@ _PROFILES = {
             page_kind="grid_aggregate",
             hostname="www.ulta.com",
             source_surface="cloakbrowser_snapshot",
-            ordinary_operation=False,
+            ordinary_operation=True,
             settle_seconds=5.0,
             scroll_passes=1,
+            load_more_selector="button.LoadContent__button",
+            load_more_clicks=10,
+            requirements_define_scroll_stop=False,
             requirements=_requirements(
-                visible_text_contains=("Search Results", "Lip Mask", "Add to bag"),
-                visible_text_regexes=(r"\d+\s+(?:Results|products)", r"\$\d+\.\d{2}"),
+                visible_text_contains=("Add to bag",),
+                visible_text_regexes=(
+                    r"You have viewed\s+\d+\s+of\s+\d+",
+                    r"\$\d+\.\d{2}",
+                ),
+                rendered_dom_contains=(
+                    'data-test="products-list"',
+                    'data-test="products-list-item"',
+                    "window.__APP_LOCALE__",
+                ),
             ),
         ),
         RetailCaptureProfile(
@@ -396,15 +525,12 @@ _PROFILES = {
             source_surface="cloakbrowser_snapshot",
             ordinary_operation=True,
             settle_seconds=5.0,
+            derive_target_ulta_product_id_from_url=True,
             requirements=_requirements(
-                visible_text_contains=(
-                    "Night Shift Overnight Lip Mask",
-                    "Reviews",
-                    "In stock and ready to ship",
-                ),
+                visible_text_contains=("Reviews",),
                 visible_text_regexes=(r"\d+(?:,\d+)* Reviews", r"\$\d+\.\d{2}"),
                 rendered_dom_contains=("__APOLLO_STATE__",),
-                rendered_dom_regexes=(r'"aggregateRating"',),
+                rendered_dom_regexes=(r'"aggregateRating"', r'"availability"'),
             ),
         ),
         RetailCaptureProfile(
@@ -481,8 +607,9 @@ _PROFILES = {
             ordinary_operation=True,
             settle_seconds=6.0,
             scroll_passes=1,
+            derive_target_target_search_query_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("results", "Guest Rating", "BYOMA Liptide Lip Mask"),
+                visible_text_contains=("results", "Guest Rating"),
                 visible_text_regexes=(r"\d+\s+results", r"\$\d+\.\d{2}"),
             ),
         ),
@@ -494,13 +621,9 @@ _PROFILES = {
             source_surface="cloakbrowser_snapshot",
             ordinary_operation=True,
             settle_seconds=6.0,
+            derive_target_target_product_id_from_url=True,
             requirements=_requirements(
-                # Pins this profile's own PDP proof product, as the Sephora,
-                # Ulta, and Nordstrom PDP profiles do. The prior literal named
-                # the brand-grid fixture product, which never appears on a
-                # Target PDP, so the profile could not qualify any PDP capture.
                 visible_text_contains=(
-                    "Naturium Vitamin C Complex Serum",
                     "reviews",
                     "Pickup",
                     "Shipping",

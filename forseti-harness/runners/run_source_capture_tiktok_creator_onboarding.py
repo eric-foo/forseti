@@ -27,8 +27,13 @@ from data_lake.canonical_json import canonical_record_bytes
 from data_lake.creator_registry import load_current_registry_preflight_view
 from data_lake.root import DataLakeRoot
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
+    apply_tiktok_creator_onboarding_dedupe,
     build_tiktok_creator_promotion_decisions,
     promotion_decision_for_handle,
+    rank_tiktok_creator_discovery_targets,
+)
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_tiktok_creator_discovery_frontier_registers,
 )
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
@@ -208,17 +213,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     capture_scope = "full_deep_capture"
     prior_coverage: dict[str, object] | None = None
     promotion_decisions = None
+    frontier_registers: list[dict[str, object]] = []
+    frontier_queue: dict[str, object] | None = None
     try:
         if args.promotion_only and args.promotion_grid_dir is None:
             raise ValueError("--promotion-only requires --promotion-grid-dir")
-        if args.promotion_grid_dir is not None:
-            promotion_path, promotion_decisions = _write_promotion_decisions(args.promotion_grid_dir, args.output_dir)
-            _emit_progress("promotion_decisions_complete", {"path": str(promotion_path), "counts": promotion_decisions["tiktok_creator_promotion_decisions"]["counts"]})
-        if args.promotion_only:
-            return 0
         if args.data_root is not None:
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
             registry_document = load_current_registry_preflight_view(data_root)
+            frontier_registers = load_tiktok_creator_discovery_frontier_registers(data_root)
             registry_source_pointer = (
                 "indexes/derived_retrieval/creator_registry/CURRENT"
             )
@@ -229,11 +232,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             registry_document = load_creator_profile_current_view(args.creator_registry)
             registry_source_pointer = str(args.creator_registry)
             registry_sha256 = hashlib.sha256(args.creator_registry.read_bytes()).hexdigest()
+        if args.promotion_grid_dir is not None:
+            promotion_path, promotion_decisions = _write_promotion_decisions(
+                args.promotion_grid_dir,
+                args.output_dir,
+                registry_document=registry_document,
+                frontier_registers=frontier_registers,
+            )
+            _emit_progress("promotion_decisions_complete", {"path": str(promotion_path), "counts": promotion_decisions["tiktok_creator_promotion_decisions"]["counts"]})
+        if args.promotion_only:
+            return 0
         args.creator_handle, selected_candidate = _resolve_creator_handle(
             creator_handle=args.creator_handle,
             creator_intent=args.creator_intent,
             registry_document=registry_document,
             promotion_decisions=promotion_decisions,
+            frontier_registers=frontier_registers,
         )
         if selected_candidate is not None:
             _emit_progress("creator_selected_from_registry", selected_candidate)
@@ -452,6 +466,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     admitted_path=Path(admitted_path),
                     data_root=data_root,
                 )
+                frontier_queue = _build_frontier_queue(
+                    data_root=data_root,
+                    registry_document=registry_document,
+                )
             except Exception as exc:
                 _emit_blocker("SUGGESTED_FRONTIER_WRITE_FAILED", "admission")
                 parser.exit(
@@ -525,6 +543,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     admitted_path if capture_scope == "profile_refresh" else None
                 ),
                 "suggested_frontier_path_or_none": frontier_path,
+                "suggested_frontier_queue_or_none": frontier_queue,
                 "registry_projection_refresh_or_none": registry_projection_refresh,
             },
             sort_keys=True,
@@ -540,6 +559,7 @@ def _resolve_creator_handle(
     registry_document: dict[str, object] | None = None,
     registry_path: Path | None = None,
     promotion_decisions: dict[str, object] | None = None,
+    frontier_registers: Sequence[dict[str, object]] = (),
 ) -> tuple[str, dict[str, str] | None]:
     if creator_handle is not None and creator_handle.strip():
         return creator_handle, None
@@ -552,7 +572,11 @@ def _resolve_creator_handle(
             raise ValueError("registry_document or registry_path is required")
         registry_document = load_creator_profile_current_view(registry_path)
     if promotion_decisions is not None:
-        return _select_promoted_creator(promotion_decisions, registry_document)
+        return _select_promoted_creator(
+            promotion_decisions,
+            registry_document,
+            frontier_registers=frontier_registers,
+        )
     candidate = select_creator_onboarding_candidate(
         registry_document,
         platform="tiktok",
@@ -561,7 +585,13 @@ def _resolve_creator_handle(
 
 
 
-def _write_promotion_decisions(grid_dir: Path, output_dir: Path) -> tuple[Path, dict[str, object]]:
+def _write_promotion_decisions(
+    grid_dir: Path,
+    output_dir: Path,
+    *,
+    registry_document: dict[str, object],
+    frontier_registers: Sequence[dict[str, object]] = (),
+) -> tuple[Path, dict[str, object]]:
     paths = sorted(grid_dir.glob("*.grid.json"), key=lambda path: path.name.lower())
     if not paths:
         raise ValueError(f"no *.grid.json files in {grid_dir}")
@@ -573,7 +603,11 @@ def _write_promotion_decisions(grid_dir: Path, output_dir: Path) -> tuple[Path, 
             raise ValueError(f"grid must be an object: {path}")
         grids.append(grid)
         sources.append({"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()})
-    document = build_tiktok_creator_promotion_decisions(grids, sources=sources)
+    document = apply_tiktok_creator_onboarding_dedupe(
+        build_tiktok_creator_promotion_decisions(grids, sources=sources),
+        registry_states=_registry_tiktok_states(registry_document),
+        frontier_registers=frontier_registers,
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / PROMOTION_DECISIONS_JSON_NAME
     output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
@@ -601,21 +635,32 @@ def _registry_tiktok_states(registry: dict[str, object]) -> dict[str, str]:
     return states
 
 
-def _select_promoted_creator(document: dict[str, object], registry: dict[str, object]) -> tuple[str, dict[str, str]]:
-    wrapper = document.get("tiktok_creator_promotion_decisions")
-    if not isinstance(wrapper, dict):
-        raise ValueError("promotion decisions wrapper required")
-    states = _registry_tiktok_states(registry)
+def _select_promoted_creator(
+    document: dict[str, object],
+    registry: dict[str, object],
+    *,
+    frontier_registers: Sequence[dict[str, object]] = (),
+) -> tuple[str, dict[str, str]]:
+    gated = apply_tiktok_creator_onboarding_dedupe(
+        document,
+        registry_states=_registry_tiktok_states(registry),
+        frontier_registers=frontier_registers,
+    )
+    wrapper = gated["tiktok_creator_promotion_decisions"]
     rows = sorted((row for row in wrapper.get("decisions", []) if isinstance(row, dict) and row.get("registry_action") == "promote_now"), key=lambda row: int(row["priority_rank"]))
     for row in rows:
         handle = str(row["handle"]).strip().lstrip("@").lower()
-        if states.get(handle) != "onboarded":
+        if row.get("actionable_promote_now") is True:
             return handle, {"public_handle": handle, "selection_source": "promotion_frontier"}
-    raise ValueError("no promote_now creator remains outside onboarded Registry rows")
+    raise ValueError("no promote_now creator remains after Registry and Frontier dedupe")
 
 
 def _require_promoted(document: dict[str, object] | None, handle: str) -> None:
     row = promotion_decision_for_handle(document, handle) if document is not None else None
+    if row is not None and row.get("onboarding_queue_status") == "owner_deferred":
+        raise TikTokCreatorOnboardingError(
+            "owner-deferred creator is not actionable for onboarding"
+        )
     if row is None or row.get("registry_action") != "promote_now":
         raise TikTokCreatorOnboardingError("genuinely absent new_onboarding creator requires a promote_now Discovery Frontier decision")
 
@@ -919,6 +964,23 @@ def _write_suggested_frontier(
             f"suggested frontier writer returned a missing artifact: {written_path}"
         )
     return str(written_path)
+
+
+def _build_frontier_queue(
+    *,
+    data_root: object,
+    registry_document: dict[str, object],
+) -> dict[str, object]:
+    registers = load_tiktok_creator_discovery_frontier_registers(data_root)
+    ranked = rank_tiktok_creator_discovery_targets(
+        registers,
+        already_scanned_handles=tuple(_registry_tiktok_states(registry_document)),
+    )
+    return {
+        "register_count": len(registers),
+        "actionable_candidate_count": len(ranked),
+        "actionable_handles": [str(row["handle"]) for row in ranked],
+    }
 
 
 if __name__ == "__main__":
