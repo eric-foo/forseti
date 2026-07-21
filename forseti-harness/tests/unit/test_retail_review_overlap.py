@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -306,8 +307,14 @@ def test_linkage_is_deterministic_preserves_occurrences_and_queues_conflicts(
     metrics = first["metrics_by_product"][0]
     assert metrics["captured_native_occurrence_total"] == 6
     assert metrics["unique_captured_review_total"] == 3
+    assert metrics["unique_captured_review_total_semantics"] == "UPPER_BOUND"
     assert metrics["overlap_occurrence_total"] == 3
     assert metrics["captured_window_overlap_rate"] == "0.500000"
+    assert metrics["captured_window_overlap_rate_semantics"] == "LOWER_BOUND"
+    assert any(
+        "unique_captured_review_total is an upper bound" in item
+        for item in first["non_claims"]
+    )
 
 
 def test_linkage_reverifies_raw_hash_and_refuses_overwrite(tmp_path: Path) -> None:
@@ -557,6 +564,15 @@ def test_linkage_still_merges_one_syndicated_review_across_retailers(
         item["occurrence_ids"] for item in result["unique_review_groups"]
     ] == [["o1", "o2"]]
     assert result["ambiguous_queue"] == []
+    metrics = result["metrics_by_product"][0]
+    assert (
+        metrics["unique_captured_review_total_semantics"]
+        == "EXACT_FOR_CAPTURED_WINDOW"
+    )
+    assert (
+        metrics["captured_window_overlap_rate_semantics"]
+        == "EXACT_FOR_CAPTURED_WINDOW"
+    )
 
 
 def test_linkage_rejects_a_retailer_without_a_selected_reviews_job(
@@ -591,8 +607,147 @@ def test_linkage_rejects_a_retailer_without_a_selected_reviews_job(
 
     with pytest.raises(
         RetailReviewOverlapError,
-        match="no selected REVIEWS companion job",
+        match="does not exactly match",
     ):
+        build_review_linkage(
+            commission=load_review_linkage_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+def test_linkage_rejects_wrong_capture_job_id(tmp_path: Path) -> None:
+    selection_path = _selection_output(tmp_path)
+    commission_path = tmp_path / "wrong-capture-job-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "bounded onboarding window",
+            "occurrences": [
+                _occurrence(
+                    "o1",
+                    "sephora",
+                    _review_packet(tmp_path, "sephora"),
+                    provider="Bazaarvoice",
+                    native_id="r1",
+                    origin_id=None,
+                    rating=5,
+                    date="2026-01-01",
+                    author="Alex",
+                    title="Great",
+                    body="Wrong capture job.",
+                    capture_job_id="depth_not_emitted",
+                )
+            ],
+            "native_review_totals": [],
+        },
+    )
+    with pytest.raises(RetailReviewOverlapError, match="does not exactly match"):
+        build_review_linkage(
+            commission=load_review_linkage_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+def test_linkage_rejects_wrong_source_product_id_on_native_total(
+    tmp_path: Path,
+) -> None:
+    selection_path = _selection_output(tmp_path)
+    raw_ref = _review_packet(tmp_path, "sephora")
+    correct_product_id = "sephora-complaint-product"
+    commission_path = tmp_path / "wrong-source-product-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "bounded onboarding window",
+            "occurrences": [
+                _occurrence(
+                    "o1",
+                    "sephora",
+                    raw_ref,
+                    provider="Bazaarvoice",
+                    native_id="r1",
+                    origin_id=None,
+                    rating=5,
+                    date="2026-01-01",
+                    author="Alex",
+                    title="Great",
+                    body="Correct occurrence.",
+                )
+            ],
+            "native_review_totals": [
+                _native_total(
+                    "sephora",
+                    1000,
+                    raw_ref,
+                    capture_job_id=_capture_job_id(
+                        "sephora", correct_product_id
+                    ),
+                    source_product_id="sephora-other-product",
+                )
+            ],
+        },
+    )
+    with pytest.raises(RetailReviewOverlapError, match="does not exactly match"):
+        build_review_linkage(
+            commission=load_review_linkage_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "match"),
+    (
+        ("missing", "malformed companion job binding"),
+        ("duplicate", "duplicate capture_job_id"),
+        ("malformed", "malformed companion job binding"),
+    ),
+)
+def test_linkage_rejects_invalid_selection_job_bindings(
+    tmp_path: Path,
+    mutation: str,
+    match: str,
+) -> None:
+    selection_path = _selection_output(tmp_path)
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    jobs = selection["companion_onboarding_jobs"]
+    review_job = next(item for item in jobs if item["surface"] == "REVIEWS")
+    if mutation == "missing":
+        review_job.pop("capture_job_id")
+    elif mutation == "duplicate":
+        jobs.append(dict(review_job))
+    else:
+        review_job["source_product_id"] = " "
+    _write_json(selection_path, selection)
+    commission_path = tmp_path / f"{mutation}-job-binding-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "bounded onboarding window",
+            "occurrences": [
+                _occurrence(
+                    "o1",
+                    "sephora",
+                    _review_packet(tmp_path, "sephora"),
+                    provider="Bazaarvoice",
+                    native_id="r1",
+                    origin_id=None,
+                    rating=5,
+                    date="2026-01-01",
+                    author="Alex",
+                    title="Great",
+                    body="Selection binding validation.",
+                )
+            ],
+            "native_review_totals": [],
+        },
+    )
+    with pytest.raises(RetailReviewOverlapError, match=match):
         build_review_linkage(
             commission=load_review_linkage_commission(commission_path),
             base_directory=tmp_path,
@@ -645,6 +800,102 @@ def test_linkage_rejects_one_raw_row_backing_two_occurrences(
             commission=load_review_linkage_commission(commission_path),
             base_directory=tmp_path,
         )
+
+
+@pytest.mark.parametrize(
+    "rating",
+    (
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+        "NaN",
+        "sNaN",
+        "Infinity",
+        "-Infinity",
+        "+Infinity",
+    ),
+)
+def test_linkage_rejects_non_finite_ratings(
+    tmp_path: Path,
+    rating: object,
+) -> None:
+    selection_path = _selection_output(tmp_path)
+    commission_path = tmp_path / "non-finite-rating-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "bounded onboarding window",
+            "occurrences": [
+                _occurrence(
+                    "o1",
+                    "sephora",
+                    _review_packet(tmp_path, "sephora"),
+                    provider="Bazaarvoice",
+                    native_id="r1",
+                    origin_id=None,
+                    rating=rating,
+                    date="2026-01-01",
+                    author="Alex",
+                    title="Great",
+                    body="Finite ratings only.",
+                )
+            ],
+            "native_review_totals": [],
+        },
+    )
+    with pytest.raises(ValueError, match="rating_value must be finite"):
+        load_review_linkage_commission(commission_path)
+
+
+def test_numeric_and_string_ratings_normalize_deterministically(
+    tmp_path: Path,
+) -> None:
+    selection_path = _selection_output(tmp_path)
+    raw_ref = _review_packet(tmp_path, "sephora")
+    commission_path = tmp_path / "finite-rating-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "bounded onboarding window",
+            "occurrences": [
+                _occurrence(
+                    occurrence_id,
+                    "sephora",
+                    raw_ref,
+                    provider="Bazaarvoice",
+                    native_id=None,
+                    origin_id=None,
+                    rating=rating,
+                    date="2026-01-01",
+                    author="Alex",
+                    title="Great",
+                    body="Equivalent finite rating.",
+                )
+                for occurrence_id, rating in (("o1", 5), ("o2", "5.0"))
+            ],
+            "native_review_totals": [],
+        },
+    )
+    result = build_review_linkage(
+        commission=load_review_linkage_commission(commission_path),
+        base_directory=tmp_path,
+    )
+    assert [
+        item["occurrence_ids"] for item in result["unique_review_groups"]
+    ] == [["o1", "o2"]]
+    metrics = result["metrics_by_product"][0]
+    assert (
+        metrics["unique_captured_review_total_semantics"]
+        == "EXACT_FOR_CAPTURED_WINDOW"
+    )
+    assert (
+        metrics["captured_window_overlap_rate_semantics"]
+        == "EXACT_FOR_CAPTURED_WINDOW"
+    )
 
 
 def test_selection_rejects_a_baseline_without_a_verified_packet_binding(
@@ -917,15 +1168,22 @@ def _occurrence(
     title: str,
     body: str,
     syndication_key: str | None = None,
+    capture_job_id: str | None = None,
+    source_product_id: str | None = None,
 ) -> dict[str, object]:
     row_ref = dict(raw_ref)
     # One raw review row backs at most one occurrence, so fixture anchors are
     # row-precise rather than file-level.
     row_ref["raw_row_anchor"] = f"{row_ref['raw_row_anchor']}:{occurrence_id}"
+    source_product_id = source_product_id or f"{retailer}-complaint-product"
     return {
         "occurrence_id": occurrence_id,
         "owned_parent_id": "complaint-product",
         "retailer": retailer,
+        "capture_job_id": (
+            capture_job_id or _capture_job_id(retailer, source_product_id)
+        ),
+        "source_product_id": source_product_id,
         "provider": provider,
         "source_native_review_id": native_id,
         "origin_review_id": origin_id,
@@ -943,15 +1201,37 @@ def _native_total(
     retailer: str,
     total: int,
     raw_ref: dict[str, str],
+    *,
+    capture_job_id: str | None = None,
+    source_product_id: str | None = None,
 ) -> dict[str, object]:
+    source_product_id = source_product_id or f"{retailer}-complaint-product"
     return {
         "owned_parent_id": "complaint-product",
         "retailer": retailer,
+        "capture_job_id": (
+            capture_job_id or _capture_job_id(retailer, source_product_id)
+        ),
+        "source_product_id": source_product_id,
         "native_total": total,
         "corpus_window": "retailer-visible fixture aggregate",
         "observed_at": "2026-01-01T00:00:00Z",
         "raw_refs": [dict(raw_ref)],
     }
+
+
+def _capture_job_id(retailer: str, source_product_id: str) -> str:
+    basis = "|".join(
+        (
+            "example-company",
+            "complaint-product",
+            "review-linkage",
+            retailer,
+            source_product_id,
+            "REVIEWS",
+        )
+    )
+    return "depth_" + hashlib.sha256(basis.encode("utf-8")).hexdigest()[:24]
 
 
 def _write_json(path: Path, payload: object) -> None:

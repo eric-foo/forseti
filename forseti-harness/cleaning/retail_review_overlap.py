@@ -142,6 +142,8 @@ class ReviewOccurrence(StrictModel):
     occurrence_id: str
     owned_parent_id: str
     retailer: Retailer
+    capture_job_id: str
+    source_product_id: str
     provider: str
     source_native_review_id: str | None = None
     origin_review_id: str | None = None
@@ -156,7 +158,14 @@ class ReviewOccurrence(StrictModel):
     per_field_residuals: list[str] = Field(default_factory=list)
     row_scope_residuals: list[str] = Field(default_factory=list)
 
-    @field_validator("occurrence_id", "owned_parent_id", "provider", "review_body_verbatim")
+    @field_validator(
+        "occurrence_id",
+        "owned_parent_id",
+        "capture_job_id",
+        "source_product_id",
+        "provider",
+        "review_body_verbatim",
+    )
     @classmethod
     def reject_blank_occurrence_fields(cls, value: str) -> str:
         if not value.strip():
@@ -178,16 +187,39 @@ class ReviewOccurrence(StrictModel):
             raise ValueError("optional review text must be absent rather than blank")
         return value
 
+    @field_validator("rating_value")
+    @classmethod
+    def reject_non_finite_rating(
+        cls, value: str | int | float | None
+    ) -> str | int | float | None:
+        if value is None:
+            return value
+        try:
+            numeric = Decimal(str(value))
+        except InvalidOperation:
+            return value
+        if not numeric.is_finite():
+            raise ValueError("rating_value must be finite")
+        return value
+
 
 class NativeReviewTotal(StrictModel):
     owned_parent_id: str
     retailer: Retailer
+    capture_job_id: str
+    source_product_id: str
     native_total: int = Field(ge=0)
     corpus_window: str
     observed_at: str
     raw_refs: list[ReviewRawRef] = Field(min_length=1)
 
-    @field_validator("owned_parent_id", "corpus_window", "observed_at")
+    @field_validator(
+        "owned_parent_id",
+        "capture_job_id",
+        "source_product_id",
+        "corpus_window",
+        "observed_at",
+    )
     @classmethod
     def reject_blank_total_fields(cls, value: str) -> str:
         if not value.strip():
@@ -425,29 +457,70 @@ def build_review_linkage(
         raise RetailReviewOverlapError(
             f"linkage rows name products not selected for depth: {outside}"
         )
-    review_job_bindings = {
-        (str(item.get("owned_parent_id")), str(item.get("retailer")))
-        for item in _object_list(selection, "companion_onboarding_jobs")
-        if item.get("surface") == "REVIEWS"
-    }
-    unbound = sorted(
-        (
-            {
-                (item.owned_parent_id, item.retailer)
-                for item in commission.occurrences
-            }
-            | {
-                (item.owned_parent_id, item.retailer)
-                for item in commission.native_review_totals
-            }
+    review_job_bindings: dict[str, tuple[str, str, str, str]] = {}
+    seen_capture_job_ids: set[str] = set()
+    for item in _object_list(selection, "companion_onboarding_jobs"):
+        capture_job_id = item.get("capture_job_id")
+        owned_parent_id = item.get("owned_parent_id")
+        retailer = item.get("retailer")
+        source_product_id = item.get("source_product_id")
+        surface = item.get("surface")
+        if not all(
+            _non_blank_text(value)
+            for value in (
+                capture_job_id,
+                owned_parent_id,
+                retailer,
+                source_product_id,
+                surface,
+            )
+        ):
+            raise RetailReviewOverlapError(
+                "selection has a malformed companion job binding"
+            )
+        if retailer not in {"sephora", "ulta", "target", "amazon"} or surface not in {
+            "REVIEWS",
+            "QA",
+        }:
+            raise RetailReviewOverlapError(
+                "selection has a malformed companion job binding"
+            )
+        if owned_parent_id not in selected_ids:
+            raise RetailReviewOverlapError(
+                "selection companion job names an unselected owned parent"
+            )
+        if capture_job_id in seen_capture_job_ids:
+            raise RetailReviewOverlapError(
+                f"selection has duplicate capture_job_id: {capture_job_id}"
+            )
+        seen_capture_job_ids.add(capture_job_id)
+        if surface == "REVIEWS":
+            review_job_bindings[capture_job_id] = (
+                owned_parent_id,
+                retailer,
+                source_product_id,
+                surface,
+            )
+
+    def require_exact_review_job(
+        item: ReviewOccurrence | NativeReviewTotal,
+    ) -> None:
+        expected = (
+            item.owned_parent_id,
+            item.retailer,
+            item.source_product_id,
+            "REVIEWS",
         )
-        - review_job_bindings
-    )
-    if unbound:
-        raise RetailReviewOverlapError(
-            "linkage rows name product/retailer pairs with no selected REVIEWS "
-            f"companion job: {unbound}"
-        )
+        if review_job_bindings.get(item.capture_job_id) != expected:
+            raise RetailReviewOverlapError(
+                "linkage row does not exactly match its selected REVIEWS "
+                f"companion job: {item.capture_job_id}"
+            )
+
+    for occurrence in commission.occurrences:
+        require_exact_review_job(occurrence)
+    for total in commission.native_review_totals:
+        require_exact_review_job(total)
 
     verified_refs: set[
         tuple[str, str, str, str, str, str, str]
@@ -619,22 +692,33 @@ def build_review_linkage(
             for retailer in ("sephora", "ulta", "target", "amazon")
             if any(item.retailer == retailer for item in product_occurrences)
         ]
+        ambiguous_candidate_count = sum(
+            1
+            for item in ambiguous
+            if any(
+                occurrence_by_id[occurrence_id].owned_parent_id
+                == owned_parent_id
+                for occurrence_id in item["occurrence_ids"]
+            )
+        )
         metrics.append(
             {
                 "owned_parent_id": owned_parent_id,
                 "captured_native_occurrence_total": native_occurrence_total,
                 "unique_captured_review_total": unique_total,
+                "unique_captured_review_total_semantics": (
+                    "EXACT_FOR_CAPTURED_WINDOW"
+                    if ambiguous_candidate_count == 0
+                    else "UPPER_BOUND"
+                ),
                 "overlap_occurrence_total": native_occurrence_total - unique_total,
                 "captured_window_overlap_rate": f"{overlap_rate:.6f}",
-                "ambiguous_candidate_count": sum(
-                    1
-                    for item in ambiguous
-                    if any(
-                        occurrence_by_id[occurrence_id].owned_parent_id
-                        == owned_parent_id
-                        for occurrence_id in item["occurrence_ids"]
-                    )
+                "captured_window_overlap_rate_semantics": (
+                    "EXACT_FOR_CAPTURED_WINDOW"
+                    if ambiguous_candidate_count == 0
+                    else "LOWER_BOUND"
                 ),
+                "ambiguous_candidate_count": ambiguous_candidate_count,
                 "native_occurrences_by_retailer": by_retailer,
             }
         )
@@ -673,6 +757,7 @@ def build_review_linkage(
             "native retailer totals are retained as separate source series and are never summed",
             "unique counts and overlap rates describe only the captured occurrence window",
             "ambiguous candidates are not merged",
+            "when ambiguity remains, unique_captured_review_total is an upper bound and captured_window_overlap_rate is a lower bound; without ambiguity both are exact for the captured window",
             "not sales, demand, reviewer identity, authenticity, or portfolio-role judgment",
         ],
     }
@@ -929,6 +1014,8 @@ def _normalize_rating(value: object) -> str:
         normalized = Decimal(str(value)).normalize()
     except InvalidOperation:
         return _normalize_text(value)
+    if not normalized.is_finite():
+        raise RetailReviewOverlapError("rating_value must be finite")
     return format(normalized, "f")
 
 
