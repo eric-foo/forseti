@@ -639,3 +639,110 @@ def _write_smoke_manifest(
 
 def _load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_ulta_grid_projection_reconciles_visible_placements_and_duplicates() -> None:
+    body = _ulta_grid_html().encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.termination == "retailer_visible_count_reconciled"
+    assert projection.completeness.extracted_unique_parent_count == 2
+    assert projection.completeness.extracted_placement_count == 3
+    assert projection.completeness.duplicate_placement_count == 1
+    first = next(
+        row
+        for row in projection.rows
+        if row.source_visible_fields["source_product_id"] == "pimprod2056072"
+    )
+    assert len(first.placements) == 2
+    assert first.source_visible_fields["selected_sku_id"] == "2639131"
+    assert first.source_visible_fields["price_range"] == {
+        "minimum": "18.00",
+        "maximum": "89.00",
+    }
+    assert first.source_visible_fields["average_rating"] == "4.6"
+    assert first.source_visible_fields["review_count"] == 4253
+    assert first.source_visible_fields["price_currency"] is None
+
+
+def test_ulta_grid_projection_fails_closed_while_load_more_remains() -> None:
+    body = _ulta_grid_html(viewed=2, load_more=True).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert "ulta_grid_load_more_control_still_present" in projection.completeness.residuals
+    assert any("viewed_count_stale" in value for value in projection.residuals)
+
+
+def _ulta_grid_html(*, viewed: int = 3, load_more: bool = False) -> str:
+    def card(
+        *, sku: str, href: str, name: str, price: str, rating: str, variant: str
+    ) -> str:
+        return (
+            f'<li data-test="products-list-item" data-sku-id="{sku}">'
+            f'<a href="{href}">'
+            '<span class="pal-c-ProductCardBody--brandName">Clinique</span>'
+            f'<span class="pal-c-ProductCardBody--title">{name}</span></a>'
+            f'<span class="pal-c-ProductCardBody--price">{price}</span>'
+            f'<span class="pal-c-Ratings"><span class="sr-only">{rating}</span></span>'
+            f'<span class="pal-c-ProductCardHeader__variant">{variant}</span>'
+            "<button>Add to bag</button></li>"
+        )
+
+    cards = [
+        card(
+            sku="2639131",
+            href="/p/moisture-surge-100h-auto-replenishing-hydrator-pimprod2056072?sku=2639131",
+            name="Moisture Surge 100H Auto-Replenishing Hydrator",
+            price="$18.00 - $89.00",
+            rating="4.6 out of 5 stars ; 4,253 reviews",
+            variant="5 sizes",
+        ),
+        card(
+            sku="2253011",
+            href="https://www.ulta.com/p/almost-lipstick-VP11111?sku=2253011",
+            name="Almost Lipstick",
+            price="$25.00",
+            rating="4.5 out of 5 stars ; 2,100 reviews",
+            variant="2 colors",
+        ),
+        card(
+            sku="2639131",
+            href="/p/moisture-surge-100h-auto-replenishing-hydrator-pimprod2056072?sku=2639131",
+            name="Moisture Surge 100H Auto-Replenishing Hydrator",
+            price="$18.00 - $89.00",
+            rating="4.6 out of 5 stars ; 4,253 reviews",
+            variant="5 sizes",
+        ),
+    ]
+    button = '<button class="LoadContent__button">Load More</button>' if load_more else ""
+    return (
+        '<html lang="en-US"><head><script>window.__APP_LOCALE__="en-US";'
+        'fetch("/graphql?ultasite=en-us")</script></head><body>'
+        '<h1>Clinique</h1><ul data-test="products-list">'
+        + "".join(cards)
+        + "</ul>"
+        + f"<p>You have viewed {viewed} of 3</p>{button}</body></html>"
+    )

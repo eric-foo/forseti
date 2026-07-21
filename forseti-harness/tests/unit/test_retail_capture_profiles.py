@@ -41,7 +41,7 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
         "cloakbrowser_snapshot",
         "direct_http",
     }
-    assert get_retail_capture_profile("ulta_grid_aggregate").ordinary_operation is False
+    assert get_retail_capture_profile("ulta_grid_aggregate").ordinary_operation is True
     assert get_retail_capture_profile("walmart_grid_aggregate").source_surface == "direct_http"
     assert (
         get_retail_capture_profile("target_grid_aggregate").source_surface
@@ -516,3 +516,27 @@ def test_profile_requirements_merge_with_explicit_requirements_without_weakening
         "Ratings & Reviews",
         "Color",
     )
+
+
+def test_ulta_grid_profile_is_subject_agnostic_and_owns_bounded_continuation() -> None:
+    profile = get_retail_capture_profile("ulta_grid_aggregate")
+    requirements = profile.requirements_for_capture(
+        url="https://www.ulta.com/brand/clinique"
+    )
+
+    assert profile.ordinary_operation is True
+    assert profile.load_more_selector == "button.LoadContent__button"
+    assert profile.load_more_clicks == 10
+    assert profile.scroll_stop_condition() is None
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text="Clinique Add to bag $18.00 You have viewed 3 of 3",
+        rendered_dom=(
+            '<html><script>window.__APP_LOCALE__="en-US"</script>'
+            '<ul data-test="products-list">'
+            '<li data-test="products-list-item">Clinique</li></ul></html>'
+        ),
+    )
+
+    assert result.passed is True
