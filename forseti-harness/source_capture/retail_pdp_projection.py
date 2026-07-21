@@ -37,9 +37,32 @@ NORDSTROM_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_nordstrom_aggregate_content_v
 NORDSTROM_PDP_PARSER_VERSION = "retail_pdp_nordstrom_aggregate_parser_v5"
 NORDSTROM_PDP_CONTENT_PROFILE = "nordstrom_pdp_aggregate"
 ULTA_PDP_CONTENT_RECORD_KIND = "retail_pdp_ulta_aggregate_content"
-ULTA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_ulta_aggregate_content_v1"
-ULTA_PDP_PARSER_VERSION = "retail_pdp_ulta_aggregate_parser_v1"
+ULTA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_ulta_aggregate_content_v2"
+ULTA_PDP_PARSER_VERSION = "retail_pdp_ulta_aggregate_parser_v2"
 ULTA_PDP_CONTENT_PROFILE = "ulta_pdp_aggregate"
+
+# Apollo module names that carry other products (recommendation/ad rails).
+# They frequently embed the target product too, so target binding alone cannot
+# retain-or-drop them; they are inventoried, never retained.
+_ULTA_NON_TARGET_RAIL_MODULE_NAMES = frozenset(
+    {
+        "BoughtTogether",
+        "CriteoProductRail",
+        "DynamicPrompts",
+        "ExternalBrandContent",
+        "GamBanner",
+        "PersonalizationContent",
+        "RecommendationProductRail",
+        "Spotlight",
+    }
+)
+# Product-context modules retained even without a product/SKU identifier.
+_ULTA_CONTEXT_MODULE_NAMES = frozenset({"Breadcrumbs"})
+_ULTA_TARGET_BINDING_KEYS = frozenset(
+    {"productId", "product_id", "skuId", "sku", "productSku"}
+)
+_ULTA_PUBLIC_DISPLAY_KEY_NAMES = frozenset({"prapikey", "apikey", "api_key"})
+_ULTA_REDACTED_KEY_MARKER = "[REDACTED_PAGE_DECLARED_PUBLIC_DISPLAY_KEY]"
 
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
@@ -687,6 +710,8 @@ class UltaPdpContentRow(StrictModel):
         "retail_variant_offer",
         "retail_review_substrate",
         "retail_carried_module",
+        "retail_variant_state",
+        "retail_product_module_subtree",
     ]
     retailer: Literal["ulta"] = "ulta"
     source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
@@ -721,19 +746,23 @@ class UltaPdpContentRow(StrictModel):
 
 
 class UltaPdpAggregateContentRecord(StrictModel):
-    """Lean canonical content; loader envelopes remain represented by input hashes."""
+    """Canonical content at full retained depth: target-bound Apollo product
+    module subtree plus every source-ordered variant state. Loader envelopes
+    remain represented by input hashes; non-target rail modules are inventoried,
+    never retained."""
 
     record_kind: Literal["retail_pdp_ulta_aggregate_content"] = (
         ULTA_PDP_CONTENT_RECORD_KIND
     )
-    schema_version: Literal["retail_pdp_ulta_aggregate_content_v1"] = (
+    schema_version: Literal["retail_pdp_ulta_aggregate_content_v2"] = (
         ULTA_PDP_CONTENT_SCHEMA_VERSION
     )
-    parser_version: Literal["retail_pdp_ulta_aggregate_parser_v1"] = (
+    parser_version: Literal["retail_pdp_ulta_aggregate_parser_v2"] = (
         ULTA_PDP_PARSER_VERSION
     )
     capture_profile: Literal["ulta_pdp_aggregate"] = ULTA_PDP_CONTENT_PROFILE
     source_url: str
+    variant_module_state: Literal["observed", "not_exposed"]
     rows: list[UltaPdpContentRow] = Field(default_factory=list)
     residuals: list[str] = Field(default_factory=list)
 
@@ -745,12 +774,26 @@ class UltaPdpAggregateContentRecord(StrictModel):
                 "retail_pdp_product",
                 "retail_variant_offer",
                 "retail_review_substrate",
+                "retail_product_module_subtree",
             )
         }
         if any(count != 1 for count in counts.values()):
             raise ValueError(
-                "Ulta content record requires exactly one product, offer, and "
-                "review-substrate row"
+                "Ulta content record requires exactly one product, offer, "
+                "review-substrate, and product-module-subtree row"
+            )
+        variant_rows = sum(
+            row.row_kind == "retail_variant_state" for row in self.rows
+        )
+        if self.variant_module_state == "observed" and variant_rows < 1:
+            raise ValueError(
+                "Ulta content record observed a variant module but retained no "
+                "variant-state rows"
+            )
+        if self.variant_module_state == "not_exposed" and variant_rows:
+            raise ValueError(
+                "Ulta content record carries variant-state rows without an "
+                "observed variant module"
             )
         return self
 
@@ -1694,6 +1737,19 @@ def build_ulta_pdp_aggregate_content_record(
         breadcrumb_document=breadcrumb_document,
         source_url=source_url,
     )
+    target_product_id = _string_or_none(product_fields.get("product_id"))
+    if not target_product_id:
+        raise ValueError(
+            "Ulta aggregate content requires a target Product JSON-LD productID"
+        )
+    subtree_fields, variant_field_rows, variant_module_state = (
+        _ulta_apollo_product_depth(
+            _decode_text(rendered_dom),
+            requested_sku=requested_sku,
+            target_product_id=target_product_id,
+            offer_price=_string_or_none(offer.get("price")),
+        )
+    )
     content_rows = [
         UltaPdpContentRow(
             slice_id=slice_id,
@@ -1711,13 +1767,370 @@ def build_ulta_pdp_aggregate_content_record(
             for row in projected.rows
             if row.row_kind == "retail_carried_module"
         ],
+        UltaPdpContentRow(
+            slice_id=slice_id,
+            row_id="ulta_product_module_subtree",
+            row_kind="retail_product_module_subtree",
+            source_visible_fields=subtree_fields,
+            residuals=[],
+            source_anchor_kind="script_index",
+            source_anchor_value="apollo_state Page.content.modules",
+        ),
+        *[
+            UltaPdpContentRow(
+                slice_id=slice_id,
+                row_id=f"ulta_variant_state_{index:03d}",
+                row_kind="retail_variant_state",
+                source_visible_fields=fields,
+                residuals=[],
+                source_anchor_kind="script_index",
+                source_anchor_value=(
+                    f"apollo_state ProductVariant variants[{index}]"
+                ),
+            )
+            for index, fields in enumerate(variant_field_rows)
+        ],
     ]
     record = UltaPdpAggregateContentRecord(
         source_url=source_url,
+        variant_module_state=variant_module_state,
         rows=content_rows,
         residuals=[],
     )
     return record.model_dump(mode="json")
+
+
+def _ulta_apollo_product_depth(
+    html: str,
+    *,
+    requested_sku: str,
+    target_product_id: str,
+    offer_price: str | None,
+) -> tuple[dict[str, Any | None], list[dict[str, Any | None]], str]:
+    """Retain the target-bound Apollo product module subtree and variant states.
+
+    Returns the subtree row fields, one field dict per source-ordered variant,
+    and the variant-module state (``observed`` / ``not_exposed``).
+    """
+    apollo_text = _extract_apollo_state_text(html)
+    if apollo_text is None:
+        raise ValueError("Ulta aggregate content requires window.__APOLLO_STATE__")
+    state = _safe_json_loads(apollo_text)
+    if not isinstance(state, Mapping):
+        raise ValueError("Ulta __APOLLO_STATE__ is not a JSON object")
+    content = _ulta_apollo_page_content(state, requested_sku=requested_sku)
+    module_roots = _ulta_module_roots(content)
+
+    variant_modules = _ulta_find_modules(module_roots, "ProductVariant")
+    variant_field_rows, variant_skus = _ulta_variant_state_rows(
+        variant_modules,
+        requested_sku=requested_sku,
+        target_product_id=target_product_id,
+        offer_price=offer_price,
+    )
+    variant_module_state = "observed" if variant_modules else "not_exposed"
+
+    target_ids = {target_product_id, requested_sku, *variant_skus}
+    retained_roots: list[Any] = []
+    module_inventory: list[dict[str, Any | None]] = []
+    for index, root in enumerate(module_roots):
+        name = root.get("moduleName") if isinstance(root, Mapping) else None
+        bound = _ulta_contains_target_binding(root, target_ids)
+        context = _ulta_contains_module_named(root, _ULTA_CONTEXT_MODULE_NAMES)
+        rail = name in _ULTA_NON_TARGET_RAIL_MODULE_NAMES
+        retained = (bound or context) and not rail
+        exclusion_reason = None
+        if not retained:
+            exclusion_reason = (
+                "non_target_rail_module" if rail else "no_target_binding"
+            )
+        module_inventory.append(
+            {
+                "source_order": index,
+                "module_name": name,
+                "retained": retained,
+                "byte_size": len(json.dumps(root, ensure_ascii=False)),
+                "contains_target_binding": bound,
+                "exclusion_reason": exclusion_reason,
+            }
+        )
+        if retained:
+            retained_roots.append(json.loads(json.dumps(root)))
+
+    if not retained_roots:
+        raise ValueError(
+            "Ulta aggregate content retained no target-bound Apollo product modules"
+        )
+    redaction_count, redaction_paths = _ulta_redact_public_display_keys(
+        retained_roots
+    )
+    retained_names: set[str] = set()
+    for root in retained_roots:
+        _ulta_collect_module_names(root, retained_names)
+    subtree_fields: dict[str, Any | None] = {
+        "module_subtree": retained_roots,
+        "module_inventory": module_inventory,
+        "retained_module_names": sorted(retained_names),
+        "page_data_capture": (
+            content.get("dataCapture")
+            if isinstance(content.get("dataCapture"), Mapping)
+            else None
+        ),
+        "seo": content.get("seo") if isinstance(content.get("seo"), Mapping) else None,
+        "redactions": {
+            "count": redaction_count,
+            "paths": redaction_paths,
+            "marker": _ULTA_REDACTED_KEY_MARKER,
+        },
+        "retention_rule": (
+            "target-bound Apollo product modules retained verbatim; shell "
+            "envelope and non-target rail modules inventoried, never retained; "
+            "page-declared public display keys redacted"
+        ),
+    }
+    return subtree_fields, variant_field_rows, variant_module_state
+
+
+def _ulta_apollo_page_content(
+    state: Mapping[str, Any],
+    *,
+    requested_sku: str,
+) -> Mapping[str, Any]:
+    root_query = state.get("ROOT_QUERY")
+    if not isinstance(root_query, Mapping):
+        raise ValueError("Ulta __APOLLO_STATE__ lacks ROOT_QUERY")
+    page_keys = [key for key in root_query if str(key).startswith("Page(")]
+    if len(page_keys) != 1:
+        raise ValueError(
+            "Ulta __APOLLO_STATE__ must carry exactly one Page(...) response"
+        )
+    page_key = page_keys[0]
+    if '"sku"' in page_key and requested_sku not in page_key:
+        raise ValueError(
+            "Ulta Apollo Page query is not bound to the requested SKU"
+        )
+    page = root_query[page_key]
+    content = page.get("content") if isinstance(page, Mapping) else None
+    if not isinstance(content, Mapping):
+        raise ValueError("Ulta Apollo Page response lacks a content object")
+    return content
+
+
+def _ulta_module_roots(content: Mapping[str, Any]) -> list[Any]:
+    modules = content.get("modules")
+    if not isinstance(modules, list) or not modules:
+        raise ValueError("Ulta Apollo Page content lacks a modules list")
+    wrappers = [
+        module
+        for module in modules
+        if isinstance(module, Mapping) and module.get("moduleName") == "MainWrapper"
+    ]
+    if len(wrappers) == 1:
+        for key in ("modules", "children"):
+            inner = wrappers[0].get(key)
+            if isinstance(inner, list) and inner:
+                return inner
+        raise ValueError("Ulta Apollo MainWrapper carries no inner modules")
+    return modules
+
+
+def _ulta_find_modules(node: Any, module_name: str) -> list[Mapping[str, Any]]:
+    found: list[Mapping[str, Any]] = []
+    if isinstance(node, Mapping):
+        if node.get("moduleName") == module_name:
+            found.append(node)
+        for value in node.values():
+            found.extend(_ulta_find_modules(value, module_name))
+    elif isinstance(node, list):
+        for value in node:
+            found.extend(_ulta_find_modules(value, module_name))
+    return found
+
+
+def _ulta_variant_state_rows(
+    variant_modules: Sequence[Mapping[str, Any]],
+    *,
+    requested_sku: str,
+    target_product_id: str,
+    offer_price: str | None,
+) -> tuple[list[dict[str, Any | None]], set[str]]:
+    rows: list[dict[str, Any | None]] = []
+    skus: set[str] = set()
+    selected_skus: set[str] = set()
+    source_order = 0
+    for module in variant_modules:
+        variants = module.get("variants")
+        if not isinstance(variants, list) or not variants:
+            raise ValueError("Ulta ProductVariant module carries no variants")
+        count_label = _string_or_none(module.get("countLabel"))
+        declared_count = _ulta_leading_int(count_label)
+        if declared_count is not None and declared_count != len(variants):
+            raise ValueError(
+                f"Ulta variant count label {count_label!r} disagrees with "
+                f"{len(variants)} retained variant rows"
+            )
+        module_selected = 0
+        for variant in variants:
+            if not isinstance(variant, Mapping):
+                raise ValueError("Ulta ProductVariant carries a non-object variant")
+            sku_id = _string_or_none(variant.get("skuId"))
+            if not sku_id:
+                raise ValueError("Ulta variant row lacks a skuId")
+            variant_product = _string_or_none(variant.get("productId"))
+            if variant_product and variant_product != target_product_id:
+                raise ValueError(
+                    f"Ulta variant sku {sku_id} is bound to foreign product "
+                    f"{variant_product!r}"
+                )
+            selected = variant.get("selected") is True
+            if selected:
+                module_selected += 1
+                selected_skus.add(sku_id)
+                list_price = _string_or_none(variant.get("listPrice"))
+                if (
+                    sku_id == requested_sku
+                    and list_price is not None
+                    and offer_price is not None
+                    and _ulta_price_numeral(list_price)
+                    != _ulta_price_numeral(offer_price)
+                ):
+                    raise ValueError(
+                        f"Ulta selected variant price {list_price!r} disagrees "
+                        f"with the bound offer price {offer_price!r}"
+                    )
+            skus.add(sku_id)
+            main_image = variant.get("mainImage")
+            swatch_image = variant.get("swatchImage")
+            rows.append(
+                {
+                    "source_order": source_order,
+                    "variant_type": _string_or_none(module.get("variantType")),
+                    "type_label": _string_or_none(module.get("typeLabel")),
+                    "dimensions_label": _string_or_none(
+                        module.get("dimensionsLabel")
+                    ),
+                    "dimensions_value": _string_or_none(
+                        module.get("dimensionsValue")
+                    ),
+                    "count_label": count_label,
+                    "name": _string_or_none(variant.get("name")),
+                    "sku_id": sku_id,
+                    "product_id": variant_product,
+                    "list_price": _string_or_none(variant.get("listPrice")),
+                    "sale_price": _string_or_none(variant.get("salePrice")),
+                    "selected": selected,
+                    "disabled": variant.get("disabled"),
+                    "unavailable": variant.get("unavailable"),
+                    "out_of_stock_label": _string_or_none(
+                        variant.get("outofStockLabel")
+                    ),
+                    "shade_description": _string_or_none(
+                        variant.get("shadeDescription")
+                    ),
+                    "tags": variant.get("tags"),
+                    "main_image_url": (
+                        _string_or_none(main_image.get("imageUrl"))
+                        if isinstance(main_image, Mapping)
+                        else None
+                    ),
+                    "swatch_image_url": (
+                        _string_or_none(swatch_image.get("imageUrl"))
+                        if isinstance(swatch_image, Mapping)
+                        else None
+                    ),
+                }
+            )
+            source_order += 1
+        if module_selected != 1:
+            raise ValueError(
+                "Ulta ProductVariant module must carry exactly one selected variant"
+            )
+    if variant_modules and requested_sku not in selected_skus:
+        raise ValueError(
+            f"Ulta requested sku {requested_sku} is not the selected variant"
+        )
+    return rows, skus
+
+
+def _ulta_contains_target_binding(node: Any, target_ids: set[str]) -> bool:
+    if isinstance(node, Mapping):
+        for key, value in node.items():
+            if (
+                key in _ULTA_TARGET_BINDING_KEYS
+                and isinstance(value, (str, int))
+                and not isinstance(value, bool)
+                and str(value) in target_ids
+            ):
+                return True
+            if _ulta_contains_target_binding(value, target_ids):
+                return True
+    elif isinstance(node, list):
+        for value in node:
+            if _ulta_contains_target_binding(value, target_ids):
+                return True
+    return False
+
+
+def _ulta_contains_module_named(node: Any, names: frozenset[str]) -> bool:
+    if isinstance(node, Mapping):
+        if node.get("moduleName") in names:
+            return True
+        return any(
+            _ulta_contains_module_named(value, names) for value in node.values()
+        )
+    if isinstance(node, list):
+        return any(_ulta_contains_module_named(value, names) for value in node)
+    return False
+
+
+def _ulta_collect_module_names(node: Any, names: set[str]) -> None:
+    if isinstance(node, Mapping):
+        name = node.get("moduleName")
+        if isinstance(name, str) and name:
+            names.add(name)
+        for value in node.values():
+            _ulta_collect_module_names(value, names)
+    elif isinstance(node, list):
+        for value in node:
+            _ulta_collect_module_names(value, names)
+
+
+def _ulta_redact_public_display_keys(node: Any) -> tuple[int, list[str]]:
+    count = 0
+    paths: list[str] = []
+
+    def _walk(current: Any, path: str) -> None:
+        nonlocal count
+        if isinstance(current, dict):
+            for key, value in current.items():
+                if (
+                    str(key).lower() in _ULTA_PUBLIC_DISPLAY_KEY_NAMES
+                    and isinstance(value, str)
+                    and value
+                    and value != _ULTA_REDACTED_KEY_MARKER
+                ):
+                    current[key] = _ULTA_REDACTED_KEY_MARKER
+                    count += 1
+                    paths.append(f"{path}/{key}")
+                else:
+                    _walk(value, f"{path}/{key}")
+        elif isinstance(current, list):
+            for index, value in enumerate(current):
+                _walk(value, f"{path}[{index}]")
+
+    _walk(node, "")
+    return count, paths
+
+
+def _ulta_leading_int(value: str | None) -> int | None:
+    if not value:
+        return None
+    match = re.match(r"\s*(\d+)", value)
+    return int(match.group(1)) if match else None
+
+
+def _ulta_price_numeral(value: str) -> str:
+    return re.sub(r"[^0-9.]", "", value)
 
 
 def _ulta_content_row(row: RetailPdpProjectionRow) -> UltaPdpContentRow:

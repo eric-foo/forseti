@@ -188,7 +188,13 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Output-shaping Sephora v3 stores duplicated product and interaction
         # fields once, proves exact source-state reconstruction, and preserves
         # unknown product-root fields automatically.
-        "2a8b2de286fdd3abf27c994aebaef6de05dde3736eb884eb8faa015c6ba10a05",
+        # Output-shaping Ulta parser/schema v2 retains the target-bound Apollo
+        # product module subtree (page-declared public display keys redacted),
+        # every source-ordered variant state with fail-loud selected/price/
+        # count/product-binding checks, and an explicit module retention
+        # inventory; non-target rails and shell envelopes stay unretained. No
+        # committed v1 Ulta content packets exist, so no re-surface is needed.
+        "918d253a89096f401b3e8375b677d4a4b7cf2252a55a27ed0926187e729b8aa1",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),

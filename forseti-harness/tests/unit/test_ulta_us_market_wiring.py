@@ -527,6 +527,184 @@ def test_ulta_content_ignores_unrelated_recommendation_offer_and_reviews() -> No
     assert "This review belongs to a recommendation." not in json.dumps(record)
 
 
+_SYNTHETIC_DISPLAY_KEY = "00000000-0000-4000-8000-000000000001"
+
+
+def _offer_module() -> dict[str, Any]:
+    return {
+        "skuId": _SKU,
+        "productId": "pimprod2046225",
+        "productName": "Night Shift Overnight Lip Mask",
+        "listPrice": "$12.00",
+        "availability": "InStock",
+        "rating": 4.3,
+        "reviewCount": 671,
+    }
+
+
+def _variant_module(
+    *,
+    count_label: str = "2 scents",
+    selected_sku: str = _SKU,
+    selected_price: str = "$12.00",
+    variant_product_id: str = "pimprod2046225",
+) -> dict[str, Any]:
+    return {
+        "moduleName": "ProductVariant",
+        "variantType": "Scent",
+        "typeLabel": "Scent",
+        "dimensionsLabel": "Size",
+        "dimensionsValue": "0.3 oz",
+        "countLabel": count_label,
+        "variants": [
+            {
+                "name": "Coconut",
+                "skuId": "2647270",
+                "productId": variant_product_id,
+                "selected": False,
+                "listPrice": None,
+                "salePrice": None,
+                "disabled": False,
+                "unavailable": False,
+                "outofStockLabel": None,
+            },
+            {
+                "name": "Watermelon",
+                "skuId": selected_sku,
+                "productId": variant_product_id,
+                "selected": True,
+                "listPrice": selected_price,
+                "salePrice": None,
+                "disabled": False,
+                "unavailable": False,
+                "outofStockLabel": None,
+            },
+        ],
+    }
+
+
+def _deep_apollo_modules(
+    variant_module: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    return [
+        {"moduleName": "TopBar", "links": ["shop"]},
+        {
+            "moduleName": "MainWrapper",
+            "modules": [
+                _offer_module(),
+                variant_module if variant_module is not None else _variant_module(),
+                {
+                    "moduleName": "ProductReviews",
+                    "productSku": _SKU,
+                    "productId": "pimprod2046225",
+                    "prApiKey": _SYNTHETIC_DISPLAY_KEY,
+                    "prMerchantId": "6406",
+                    "rating": 4.3,
+                    "reviewCount": 671,
+                },
+                {
+                    "moduleName": "BoughtTogether",
+                    "items": [{"skuId": _SKU}, {"skuId": "9999999"}],
+                },
+                {"moduleName": "Spacer", "value": 16},
+            ],
+        },
+        {"moduleName": "Footer", "links": ["help"]},
+    ]
+
+
+def _deep_dom(variant_module: dict[str, Any] | None = None) -> bytes:
+    return _dom(apollo_modules=_deep_apollo_modules(variant_module)).encode()
+
+
+_DEEP_VISIBLE_TEXT = (
+    b"Night Shift Overnight Lip Mask Watermelon $12.00 671 Reviews "
+    b"In stock and ready to ship"
+)
+
+
+def test_ulta_content_v2_retains_variant_states_and_redacted_module_subtree() -> None:
+    record = build_ulta_pdp_aggregate_content_record(
+        rendered_dom=_deep_dom(),
+        visible_text=_DEEP_VISIBLE_TEXT,
+        source_url=_URL,
+    )
+
+    assert record["schema_version"] == "retail_pdp_ulta_aggregate_content_v2"
+    assert record["variant_module_state"] == "observed"
+    variant_rows = [
+        row["source_visible_fields"]
+        for row in record["rows"]
+        if row["row_kind"] == "retail_variant_state"
+    ]
+    assert [row["name"] for row in variant_rows] == ["Coconut", "Watermelon"]
+    assert [row["selected"] for row in variant_rows] == [False, True]
+    assert variant_rows[1]["sku_id"] == _SKU
+    assert variant_rows[0]["count_label"] == "2 scents"
+    assert variant_rows[0]["dimensions_value"] == "0.3 oz"
+
+    subtree = next(
+        row["source_visible_fields"]
+        for row in record["rows"]
+        if row["row_kind"] == "retail_product_module_subtree"
+    )
+    encoded = json.dumps(record)
+    assert _SYNTHETIC_DISPLAY_KEY not in encoded
+    assert subtree["redactions"]["count"] == 1
+    assert "ProductReviews" in subtree["retained_module_names"]
+    inventory = {
+        entry["module_name"]: entry for entry in subtree["module_inventory"]
+    }
+    assert inventory["BoughtTogether"]["retained"] is False
+    assert (
+        inventory["BoughtTogether"]["exclusion_reason"]
+        == "non_target_rail_module"
+    )
+    assert inventory["BoughtTogether"]["contains_target_binding"] is True
+    assert inventory["Spacer"]["retained"] is False
+    assert inventory["ProductVariant"]["retained"] is True
+    assert "TopBar" not in inventory  # shell envelope outside MainWrapper
+    assert "9999999" not in encoded  # rail contents stay unretained
+
+
+def test_ulta_content_v2_fails_on_selected_variant_price_disagreement() -> None:
+    with pytest.raises(ValueError, match="disagrees with the bound offer price"):
+        build_ulta_pdp_aggregate_content_record(
+            rendered_dom=_deep_dom(_variant_module(selected_price="$99.00")),
+            visible_text=_DEEP_VISIBLE_TEXT,
+            source_url=_URL,
+        )
+
+
+def test_ulta_content_v2_fails_on_variant_count_label_mismatch() -> None:
+    with pytest.raises(ValueError, match="count label"):
+        build_ulta_pdp_aggregate_content_record(
+            rendered_dom=_deep_dom(_variant_module(count_label="4 scents")),
+            visible_text=_DEEP_VISIBLE_TEXT,
+            source_url=_URL,
+        )
+
+
+def test_ulta_content_v2_fails_on_foreign_variant_product_binding() -> None:
+    with pytest.raises(ValueError, match="foreign product"):
+        build_ulta_pdp_aggregate_content_record(
+            rendered_dom=_deep_dom(
+                _variant_module(variant_product_id="pimprod9999999")
+            ),
+            visible_text=_DEEP_VISIBLE_TEXT,
+            source_url=_URL,
+        )
+
+
+def test_ulta_content_v2_fails_when_requested_sku_is_not_selected() -> None:
+    with pytest.raises(ValueError, match="not the selected variant"):
+        build_ulta_pdp_aggregate_content_record(
+            rendered_dom=_deep_dom(_variant_module(selected_sku="2647271")),
+            visible_text=_DEEP_VISIBLE_TEXT,
+            source_url=_URL,
+        )
+
+
 def test_writer_preserves_typed_packet_and_exits_nonzero_when_pin_fails(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
