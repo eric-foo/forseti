@@ -1,0 +1,253 @@
+{
+  "actual_audience_demographics": "not_estimated",
+  "creator_id": "tiktok:@mcnastyfragrance",
+  "creator_signal_projection": {
+    "briefing_instructions": [
+      {
+        "claim_ids": [
+          "cac_f34f063dee1121a21c76",
+          "cac_cbe309206584c1991d46",
+          "cac_b427bcb1ef2f2640a038",
+          "cac_b10b241ec7fe2a4c8649"
+        ],
+        "statement": "Give him the actual price, intended wearing occasion, and product comparison context; ask for a clear personal verdict and allow tradeoffs to remain visible."
+      }
+    ],
+    "creator_specific_execution": {
+      "claim_ids": [
+        "cac_b10b241ec7fe2a4c8649",
+        "cac_5be6850d122d98f38083"
+      ],
+      "statement": "Use his blunt ranked-list and comparison format to show where the product fits, what it resembles or improves on, and the occasion it is for."
+    },
+    "hire_verdict": {
+      "claim_ids": [
+        "cac_f34f063dee1121a21c76",
+        "cac_cbe309206584c1991d46",
+        "cac_b10b241ec7fe2a4c8649"
+      ],
+      "statement": "Hire mcnastyfragrance when a fragrance brand needs to make a specific scent choice feel worth the spend for a real wearing occasion."
+    },
+    "observed_audience_response": {
+      "claim_ids": [
+        "cac_f34f063dee1121a21c76",
+        "cac_cbe309206584c1991d46",
+        "cac_b427bcb1ef2f2640a038",
+        "cac_5be6850d122d98f38083"
+      ],
+      "statement": "Captured commenters ask for scenario-specific recommendations, prices, comparisons, and collection guidance, while also challenging recommendations they see as untrustworthy or ad-like."
+    },
+    "product_advantage": {
+      "claim_ids": [
+        "cac_b10b241ec7fe2a4c8649",
+        "cac_cbe309206584c1991d46"
+      ],
+      "statement": "He makes a fragrance offer easier to judge by placing it against recognizable alternatives, price, performance, and occasion fit."
+    },
+    "robustness_stamp": null,
+    "strongest_campaign_jobs": [
+      {
+        "claim_ids": [
+          "cac_f34f063dee1121a21c76",
+          "cac_cbe309206584c1991d46",
+          "cac_b10b241ec7fe2a4c8649"
+        ],
+        "statement": "Introduce a fragrance by locating it in a specific occasion and price-to-performance decision."
+      },
+      {
+        "claim_ids": [
+          "cac_b10b241ec7fe2a4c8649",
+          "cac_b427bcb1ef2f2640a038"
+        ],
+        "statement": "Give a crowded or unfamiliar scent a candid comparison against recognizable alternatives."
+      }
+    ],
+    "wrong_hire_boundary": {
+      "claim_ids": [
+        "cac_b427bcb1ef2f2640a038",
+        "cac_b10b241ec7fe2a4c8649",
+        "cac_5be6850d122d98f38083"
+      ],
+      "statement": "Do not hire him for a polished, claim-heavy endorsement that cannot withstand comparison, price scrutiny, or a candid negative judgment."
+    }
+  },
+  "evidence_cutoff": "2026-07-20T21:36:53Z",
+  "generated_at": "2026-07-21T00:00:00+08:00",
+  "input_bundle_hash": "sha256:ffa2b8cee9f19d8559bbe12046c1be0c600cd8491fd01070b0c1a80dabfcd036",
+  "input_bundle_id": "caeb_48f86c960f0aac4b2b09",
+  "judgment_claim_set": {
+    "agreements": [],
+    "claims": [
+      {
+        "all_support_evidence_ids": [
+          "ttce_2630893e766ba1a7661b",
+          "ttce_71ac30fdb7781d737610",
+          "ttce_77db35a1834fced0af59",
+          "ttce_a5695932e94c6d78c59d"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_f34f063dee1121a21c76",
+        "commercial_implication": "A brand can brief this creator around a concrete wearing decision rather than a generic product mention.",
+        "counterevidence_ids": [],
+        "limitation": "These are captured comment requests, not a platform-wide audience census.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_2630893e766ba1a7661b",
+          "ttce_71ac30fdb7781d737610",
+          "ttce_77db35a1834fced0af59",
+          "ttce_a5695932e94c6d78c59d"
+        ],
+        "source_item_ids": [
+          "7511854928583789867",
+          "7543303047175343373",
+          "7635428893037432077"
+        ],
+        "statement": "Captured commenters seek fragrance choices for specific use moments and collection gaps, including summer, office, wedding, and an additional bottle to complete a collection.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_4454de3e4728516a4a11",
+          "ttce_45f1900ae10113de29b0",
+          "ttce_71ac30fdb7781d737610"
+        ],
+        "axis": "price_value_posture",
+        "claim_id": "cac_cbe309206584c1991d46",
+        "commercial_implication": "Value-led briefs should make price and the reason a scent is worth choosing explicit.",
+        "counterevidence_ids": [],
+        "limitation": "The capture does not establish how common any price posture is.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_4454de3e4728516a4a11",
+          "ttce_45f1900ae10113de29b0",
+          "ttce_71ac30fdb7781d737610"
+        ],
+        "source_item_ids": [
+          "7511854928583789867",
+          "7628386046367124750"
+        ],
+        "statement": "Captured commenters engage price as a decision constraint: one asks for prices on a list, another disputes calling $70 cheap, and another asks for an affordable memorable wedding scent.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_5aa20cbcbe7a6eff6252",
+          "ttce_5e41799db2b804eb1bdd",
+          "ttce_915edae8e14dfcb1988e",
+          "ttce_df0fd46fcaf04c20b59f",
+          "ttce_e0f3651059c67b8ff2a3"
+        ],
+        "axis": "objections",
+        "claim_id": "cac_b427bcb1ef2f2640a038",
+        "commercial_implication": "Commercial content needs a clear, candid evaluation rather than unexplained endorsement.",
+        "counterevidence_ids": [
+          "ttce_9c538dc93adbc5f003e0",
+          "ttce_dcce3d46c5d8614be945"
+        ],
+        "limitation": "Comments express individual views and allegations; they do not verify sponsorship or audience-wide trust.",
+        "modality": "observed_comments",
+        "relation": "contradiction",
+        "representative_evidence_ids": [
+          "ttce_5aa20cbcbe7a6eff6252",
+          "ttce_5e41799db2b804eb1bdd",
+          "ttce_915edae8e14dfcb1988e",
+          "ttce_df0fd46fcaf04c20b59f",
+          "ttce_e0f3651059c67b8ff2a3"
+        ],
+        "source_item_ids": [
+          "7543303047175343373",
+          "7630569927337872654"
+        ],
+        "statement": "Trust is contested in the captured discussion: commenters praise honesty and authenticity while others question whether fragrance recommendations are paid or dependable.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_4d522c7b4612f7eb5a6e",
+          "ttte_9a1a7d5e0a0d9111fdc9",
+          "ttte_aee6b2937776ab78599b",
+          "ttte_d19d43396281d555edb0",
+          "ttte_f9f8ddc6e591dd450e81"
+        ],
+        "axis": "category_knowledge",
+        "claim_id": "cac_b10b241ec7fe2a4c8649",
+        "commercial_implication": "He can turn an unfamiliar or crowded fragrance offer into a concrete alternative buyers can evaluate against known options.",
+        "counterevidence_ids": [],
+        "limitation": "This describes the selected captured videos, not all creator output.",
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_4d522c7b4612f7eb5a6e",
+          "ttte_9a1a7d5e0a0d9111fdc9",
+          "ttte_aee6b2937776ab78599b",
+          "ttte_d19d43396281d555edb0",
+          "ttte_f9f8ddc6e591dd450e81"
+        ],
+        "source_item_ids": [
+          "7511854928583789867",
+          "7631229829794450702",
+          "7635428893037432077"
+        ],
+        "statement": "The creator repeatedly frames fragrance choices through rankings, direct comparisons, clone-versus-original distinctions, price, longevity, and suitable occasions.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_139236e04843d2ca785e",
+          "ttce_345d21d6c68516eaae01",
+          "ttce_501317dc21be67641e5f",
+          "ttce_77db35a1834fced0af59",
+          "ttce_8ce8643f0c6e880b48c2"
+        ],
+        "axis": "language_community_norms",
+        "claim_id": "cac_5be6850d122d98f38083",
+        "commercial_implication": "A brief can invite a specific comparison or ranking stance, provided it leaves room for disagreement.",
+        "counterevidence_ids": [
+          "ttce_7b0243c28338f6a41172",
+          "ttce_94b3ab545d489f3db8e4"
+        ],
+        "limitation": "Participation and disagreement in captured comments do not establish prevalence or sentiment across the account.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_139236e04843d2ca785e",
+          "ttce_345d21d6c68516eaae01",
+          "ttce_501317dc21be67641e5f",
+          "ttce_77db35a1834fced0af59",
+          "ttce_8ce8643f0c6e880b48c2"
+        ],
+        "source_item_ids": [
+          "7511854928583789867",
+          "7543303047175343373",
+          "7546364950046870798",
+          "7635428893037432077"
+        ],
+        "statement": "Captured commenters actively debate rankings, correct product classifications, request category lists, and share their own comparisons and collection experience.",
+        "support_scope": "multi_item"
+      }
+    ],
+    "contradictions": [
+      "Trust is contested in the captured discussion: commenters praise honesty and authenticity while others question whether fragrance recommendations are paid or dependable."
+    ],
+    "missing_evidence": []
+  },
+  "limitations": [
+    "Evidence covers eight selected TikTok videos and captured top-level comments, not a platform-wide comment census or reply-thread analysis.",
+    "Captured video selection may be ranked or truncated.",
+    "The evidence does not establish actual audience demographics, prevalence, conversion, sales, or campaign performance."
+  ],
+  "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+  "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+  "non_claims": [
+    "No claim is made about audience-wide trust, purchasing behavior, demographic composition, or sales outcomes.",
+    "Comments alleging paid promotion or questioning trust are not treated as verification of sponsorship status."
+  ],
+  "platform_account_id": "acct_tiktok_fragrance_009",
+  "platform_scope": "tiktok",
+  "profile_subject_id": "acct_tiktok_fragrance_009",
+  "profile_subject_kind": "platform_account",
+  "schema_version": "creator_audience_triangulation_snapshot_v1",
+  "snapshot_id": "cats_54b80e6815f2ade17e5f"
+}

@@ -35,7 +35,7 @@ def _snapshot(index_dir: Path) -> dict[str, bytes]:
     return {
         p.relative_to(index_dir).as_posix(): p.read_bytes()
         for p in sorted(index_dir.rglob("*"))
-        if p.is_file() and "cache" not in p.parts
+        if p.is_file() and "cache" not in p.parts and ".sqlite3" not in p.name
     }
 
 

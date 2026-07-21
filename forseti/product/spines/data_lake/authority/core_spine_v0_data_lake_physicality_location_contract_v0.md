@@ -214,6 +214,13 @@ subslot name (marked rebuildable + non-authoritative), the content-free guarante
 `availability/`, and the rule that these are lane-owned records keyed to raw, not a
 second source of truth.
 
+The selected SQLite evidence catalogue lives by default at
+`indexes/derived_retrieval/silver_vault/core/sql/catalogue.sqlite3`. An operator
+may relocate only this disposable index to a local SSD through
+`FORSETI_DERIVED_RETRIEVAL_SQL_ROOT`; the lake path is hashed beneath that root
+to prevent cross-lake collision. A network share is not an admitted SQLite
+location, and the override does not move or duplicate lake authority.
+
 ## Configuration Contract
 
 - One required primary resolvable pointer: `FORSETI_DATA_ROOT` -> an external absolute path. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback during migration.

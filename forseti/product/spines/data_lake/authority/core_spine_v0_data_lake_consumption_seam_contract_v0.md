@@ -254,8 +254,10 @@ accept an implicit current/latest policy.
   was deferred at gate opening behind the audience-silver lake wiring; that
   wiring has since landed (registered creator-metric, grid, and
   comment-attention Silver lanes, census-reconciled), so the view is built
-  (owner-commissioned 2026-07-17). No SQL engine: the query-lens stays
-  scan/query-latency-gated.
+  (owner-commissioned 2026-07-17). The later-fired Stage 3 trigger adds one
+  disposable SQLite evidence catalogue maintained by this same sanctioned
+  updater. Capture writers never write it; the JSON views remain routing/proof
+  surfaces and by-key discovery remains retrieval authority.
 - `undone` view semantics (weaker than lane-side pickup, by design): per
   adopted ack namespace (a namespace with at least one ack record), the
   committed anchors having **zero** ack records. Lane-side obligation growth
@@ -372,9 +374,16 @@ accept an implicit current/latest policy.
 - No queue/scheduler/event system anywhere in the seam; a future queue may
   only optimize notification over this contract (storage contract residual).
 - The `by_creator` build classifies every active Silver record per rebuild
-  (deterministic but whole-lake); the SQL query-lens stays behind the
-  derived-layout contract's scan/query-latency trigger. Upgrade trigger:
-  rebuild or lookup latency proves insufficient for a governed consumer.
+  (deterministic but whole-lake). The fired SQL query-lens trigger is satisfied
+  by an incrementally maintained, rebuildable SQLite catalogue for evidence
+  bodies and structured filters. Results disclose their normalized filter and
+  bounded-result completeness. An explicit decision-question id additionally
+  requires complete results, re-verifies cited lake sources, and writes a
+  body-free citation receipt through the existing audit lifecycle before
+  output; exploratory searches pay neither cost. The catalogue is not pickup
+  authority or a capture write dependency. Upgrade trigger: measured
+  refresh/query latency or multi-machine writing proves the single-local-writer
+  design insufficient.
 
 ## Non-Claims
 

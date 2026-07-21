@@ -136,6 +136,19 @@ identifiers, filters, or provider identity.
 Beauty Pie remains recon-only. Ulta remains outside this lane because its
 current review route is PowerReviews/Apollo.
 
+
+
+### Owner-directed Amazon side result - completed without changing sequence
+
+The owner redirected one bounded side lane to Amazon on 2026-07-21. Amazon
+yielded an Amazon-native PDP companion, not Bazaarvoice: parent
+`01KY0PHPN10205MKKCK1GB7YH1`, corrected companion
+`01KY0S1ZACF3AG467GV6VA8CJN`. It preserves 13 source-ordered top-review rows
+and exact raw anchors. Deeper anonymous routes redirected to sign-in, so Most
+Helpful, Most Recent, full-corpus, monitoring-anchor, demographic, and
+customer-Q&A coverage remain unavailable. This does not reorder the active
+Kohl's then Nordstrom sequence.
+
 ## Target Completed Result
 
 Target is now admitted as a direct public Bazaarvoice companion:

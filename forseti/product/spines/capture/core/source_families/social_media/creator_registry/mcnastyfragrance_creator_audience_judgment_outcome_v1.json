@@ -1,0 +1,270 @@
+{
+  "bundle_hash": "sha256:ffa2b8cee9f19d8559bbe12046c1be0c600cd8491fd01070b0c1a80dabfcd036",
+  "bundle_id": "caeb_48f86c960f0aac4b2b09",
+  "creator_id": "tiktok:@mcnastyfragrance",
+  "model_api_calls": 0,
+  "profile_subject_id": "acct_tiktok_fragrance_009",
+  "raw_anchor": "01KY0QBRAPT0V71TPWFFDMHFJB",
+  "record_id": "cajo_931bb962e4d4075856b0",
+  "response_bytes_b64": "ewogICJzY2hlbWFfdmVyc2lvbiI6ICJjcmVhdG9yX2F1ZGllbmNlX3NlbWFudGljX3Jlc3BvbnNlX3YxIiwKICAiZ2VuZXJhdGVkX2F0IjogIjIwMjYtMDctMjFUMDA6MDA6MDArMDg6MDAiLAogICJjbGFpbXMiOiBbCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAic2NlbmFyaW8tbGVkLXNlbGVjdGlvbiIsCiAgICAgICJheGlzIjogInB1cmNoYXNlX2RlY2lzaW9uX3N0YWdlIiwKICAgICAgInN0YXRlbWVudCI6ICJDYXB0dXJlZCBjb21tZW50ZXJzIHNlZWsgZnJhZ3JhbmNlIGNob2ljZXMgZm9yIHNwZWNpZmljIHVzZSBtb21lbnRzIGFuZCBjb2xsZWN0aW9uIGdhcHMsIGluY2x1ZGluZyBzdW1tZXIsIG9mZmljZSwgd2VkZGluZywgYW5kIGFuIGFkZGl0aW9uYWwgYm90dGxlIHRvIGNvbXBsZXRlIGEgY29sbGVjdGlvbi4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJBIGJyYW5kIGNhbiBicmllZiB0aGlzIGNyZWF0b3IgYXJvdW5kIGEgY29uY3JldGUgd2VhcmluZyBkZWNpc2lvbiByYXRoZXIgdGhhbiBhIGdlbmVyaWMgcHJvZHVjdCBtZW50aW9uLiIsCiAgICAgICJyZWxhdGlvbiI6ICJhdWRpZW5jZV9lbWVyZ2VudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAyMCIsICJlMDA2MyIsICJlMDA2NyIsICJlMDA5MSJdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwMjAiLCAiZTAwNjMiLCAiZTAwNjciLCAiZTAwOTEiXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJsaW1pdGF0aW9uIjogIlRoZXNlIGFyZSBjYXB0dXJlZCBjb21tZW50IHJlcXVlc3RzLCBub3QgYSBwbGF0Zm9ybS13aWRlIGF1ZGllbmNlIGNlbnN1cy4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJ2YWx1ZS1uZWVkcy1wcm9vZiIsCiAgICAgICJheGlzIjogInByaWNlX3ZhbHVlX3Bvc3R1cmUiLAogICAgICAic3RhdGVtZW50IjogIkNhcHR1cmVkIGNvbW1lbnRlcnMgZW5nYWdlIHByaWNlIGFzIGEgZGVjaXNpb24gY29uc3RyYWludDogb25lIGFza3MgZm9yIHByaWNlcyBvbiBhIGxpc3QsIGFub3RoZXIgZGlzcHV0ZXMgY2FsbGluZyAkNzAgY2hlYXAsIGFuZCBhbm90aGVyIGFza3MgZm9yIGFuIGFmZm9yZGFibGUgbWVtb3JhYmxlIHdlZGRpbmcgc2NlbnQuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiVmFsdWUtbGVkIGJyaWVmcyBzaG91bGQgbWFrZSBwcmljZSBhbmQgdGhlIHJlYXNvbiBhIHNjZW50IGlzIHdvcnRoIGNob29zaW5nIGV4cGxpY2l0LiIsCiAgICAgICJyZWxhdGlvbiI6ICJhdWRpZW5jZV9lbWVyZ2VudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDA0MiIsICJlMDA0MyIsICJlMDA2MyJdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwNDIiLCAiZTAwNDMiLCAiZTAwNjMiXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJsaW1pdGF0aW9uIjogIlRoZSBjYXB0dXJlIGRvZXMgbm90IGVzdGFibGlzaCBob3cgY29tbW9uIGFueSBwcmljZSBwb3N0dXJlIGlzLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInRydXN0LWVhcm5lZC1ieS1wbGFpbnNwb2tlbi1qdWRnbWVudCIsCiAgICAgICJheGlzIjogIm9iamVjdGlvbnMiLAogICAgICAic3RhdGVtZW50IjogIlRydXN0IGlzIGNvbnRlc3RlZCBpbiB0aGUgY2FwdHVyZWQgZGlzY3Vzc2lvbjogY29tbWVudGVycyBwcmFpc2UgaG9uZXN0eSBhbmQgYXV0aGVudGljaXR5IHdoaWxlIG90aGVycyBxdWVzdGlvbiB3aGV0aGVyIGZyYWdyYW5jZSByZWNvbW1lbmRhdGlvbnMgYXJlIHBhaWQgb3IgZGVwZW5kYWJsZS4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJDb21tZXJjaWFsIGNvbnRlbnQgbmVlZHMgYSBjbGVhciwgY2FuZGlkIGV2YWx1YXRpb24gcmF0aGVyIHRoYW4gdW5leHBsYWluZWQgZW5kb3JzZW1lbnQuIiwKICAgICAgInJlbGF0aW9uIjogImNvbnRyYWRpY3Rpb24iLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwNTIiLCAiZTAwNTQiLCAiZTAwODIiLCAiZTAxMzMiLCAiZTAxMzUiXSwKICAgICAgImFsbF9zdXBwb3J0X2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDUyIiwgImUwMDU0IiwgImUwMDgyIiwgImUwMTMzIiwgImUwMTM1Il0sCiAgICAgICJjb3VudGVyZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwODciLCAiZTAxMjciXSwKICAgICAgImxpbWl0YXRpb24iOiAiQ29tbWVudHMgZXhwcmVzcyBpbmRpdmlkdWFsIHZpZXdzIGFuZCBhbGxlZ2F0aW9uczsgdGhleSBkbyBub3QgdmVyaWZ5IHNwb25zb3JzaGlwIG9yIGF1ZGllbmNlLXdpZGUgdHJ1c3QuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0sCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAiY29tcGFyYXRpdmUtZnJhZ3JhbmNlLW5hdmlnYXRpb24iLAogICAgICAiYXhpcyI6ICJjYXRlZ29yeV9rbm93bGVkZ2UiLAogICAgICAic3RhdGVtZW50IjogIlRoZSBjcmVhdG9yIHJlcGVhdGVkbHkgZnJhbWVzIGZyYWdyYW5jZSBjaG9pY2VzIHRocm91Z2ggcmFua2luZ3MsIGRpcmVjdCBjb21wYXJpc29ucywgY2xvbmUtdmVyc3VzLW9yaWdpbmFsIGRpc3RpbmN0aW9ucywgcHJpY2UsIGxvbmdldml0eSwgYW5kIHN1aXRhYmxlIG9jY2FzaW9ucy4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJIZSBjYW4gdHVybiBhbiB1bmZhbWlsaWFyIG9yIGNyb3dkZWQgZnJhZ3JhbmNlIG9mZmVyIGludG8gYSBjb25jcmV0ZSBhbHRlcm5hdGl2ZSBidXllcnMgY2FuIGV2YWx1YXRlIGFnYWluc3Qga25vd24gb3B0aW9ucy4iLAogICAgICAicmVsYXRpb24iOiAiY3JlYXRvcl9vbmx5IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMzU1IiwgImUwNTQzIiwgImUwNTkzIiwgImUwNjc1IiwgImUwNzcyIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDM1NSIsICJlMDU0MyIsICJlMDU5MyIsICJlMDY3NSIsICJlMDc3MiJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhpcyBkZXNjcmliZXMgdGhlIHNlbGVjdGVkIGNhcHR1cmVkIHZpZGVvcywgbm90IGFsbCBjcmVhdG9yIG91dHB1dC4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJvcGluaW9uYXRlZC1yYW5raW5nLWNvbW11bml0eSIsCiAgICAgICJheGlzIjogImxhbmd1YWdlX2NvbW11bml0eV9ub3JtcyIsCiAgICAgICJzdGF0ZW1lbnQiOiAiQ2FwdHVyZWQgY29tbWVudGVycyBhY3RpdmVseSBkZWJhdGUgcmFua2luZ3MsIGNvcnJlY3QgcHJvZHVjdCBjbGFzc2lmaWNhdGlvbnMsIHJlcXVlc3QgY2F0ZWdvcnkgbGlzdHMsIGFuZCBzaGFyZSB0aGVpciBvd24gY29tcGFyaXNvbnMgYW5kIGNvbGxlY3Rpb24gZXhwZXJpZW5jZS4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJBIGJyaWVmIGNhbiBpbnZpdGUgYSBzcGVjaWZpYyBjb21wYXJpc29uIG9yIHJhbmtpbmcgc3RhbmNlLCBwcm92aWRlZCBpdCBsZWF2ZXMgcm9vbSBmb3IgZGlzYWdyZWVtZW50LiIsCiAgICAgICJyZWxhdGlvbiI6ICJhdWRpZW5jZV9lbWVyZ2VudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAxMSIsICJlMDAzMyIsICJlMDA0NiIsICJlMDA2NyIsICJlMDA3OSJdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAwMTEiLCAiZTAwMzMiLCAiZTAwNDYiLCAiZTAwNjciLCAiZTAwNzkiXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogWyJlMDA2OCIsICJlMDA4NSJdLAogICAgICAibGltaXRhdGlvbiI6ICJQYXJ0aWNpcGF0aW9uIGFuZCBkaXNhZ3JlZW1lbnQgaW4gY2FwdHVyZWQgY29tbWVudHMgZG8gbm90IGVzdGFibGlzaCBwcmV2YWxlbmNlIG9yIHNlbnRpbWVudCBhY3Jvc3MgdGhlIGFjY291bnQuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0KICBdLAogICJjcmVhdG9yX3NpZ25hbF9wcm9qZWN0aW9uIjogewogICAgImhpcmVfdmVyZGljdCI6IHsKICAgICAgInN0YXRlbWVudCI6ICJIaXJlIG1jbmFzdHlmcmFncmFuY2Ugd2hlbiBhIGZyYWdyYW5jZSBicmFuZCBuZWVkcyB0byBtYWtlIGEgc3BlY2lmaWMgc2NlbnQgY2hvaWNlIGZlZWwgd29ydGggdGhlIHNwZW5kIGZvciBhIHJlYWwgd2VhcmluZyBvY2Nhc2lvbi4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsic2NlbmFyaW8tbGVkLXNlbGVjdGlvbiIsICJ2YWx1ZS1uZWVkcy1wcm9vZiIsICJjb21wYXJhdGl2ZS1mcmFncmFuY2UtbmF2aWdhdGlvbiJdCiAgICB9LAogICAgInByb2R1Y3RfYWR2YW50YWdlIjogewogICAgICAic3RhdGVtZW50IjogIkhlIG1ha2VzIGEgZnJhZ3JhbmNlIG9mZmVyIGVhc2llciB0byBqdWRnZSBieSBwbGFjaW5nIGl0IGFnYWluc3QgcmVjb2duaXphYmxlIGFsdGVybmF0aXZlcywgcHJpY2UsIHBlcmZvcm1hbmNlLCBhbmQgb2NjYXNpb24gZml0LiIsCiAgICAgICJjbGFpbV9rZXlzIjogWyJjb21wYXJhdGl2ZS1mcmFncmFuY2UtbmF2aWdhdGlvbiIsICJ2YWx1ZS1uZWVkcy1wcm9vZiJdCiAgICB9LAogICAgImNyZWF0b3Jfc3BlY2lmaWNfZXhlY3V0aW9uIjogewogICAgICAic3RhdGVtZW50IjogIlVzZSBoaXMgYmx1bnQgcmFua2VkLWxpc3QgYW5kIGNvbXBhcmlzb24gZm9ybWF0IHRvIHNob3cgd2hlcmUgdGhlIHByb2R1Y3QgZml0cywgd2hhdCBpdCByZXNlbWJsZXMgb3IgaW1wcm92ZXMgb24sIGFuZCB0aGUgb2NjYXNpb24gaXQgaXMgZm9yLiIsCiAgICAgICJjbGFpbV9rZXlzIjogWyJjb21wYXJhdGl2ZS1mcmFncmFuY2UtbmF2aWdhdGlvbiIsICJvcGluaW9uYXRlZC1yYW5raW5nLWNvbW11bml0eSJdCiAgICB9LAogICAgIm9ic2VydmVkX2F1ZGllbmNlX3Jlc3BvbnNlIjogewogICAgICAic3RhdGVtZW50IjogIkNhcHR1cmVkIGNvbW1lbnRlcnMgYXNrIGZvciBzY2VuYXJpby1zcGVjaWZpYyByZWNvbW1lbmRhdGlvbnMsIHByaWNlcywgY29tcGFyaXNvbnMsIGFuZCBjb2xsZWN0aW9uIGd1aWRhbmNlLCB3aGlsZSBhbHNvIGNoYWxsZW5naW5nIHJlY29tbWVuZGF0aW9ucyB0aGV5IHNlZSBhcyB1bnRydXN0d29ydGh5IG9yIGFkLWxpa2UuIiwKICAgICAgImNsYWltX2tleXMiOiBbInNjZW5hcmlvLWxlZC1zZWxlY3Rpb24iLCAidmFsdWUtbmVlZHMtcHJvb2YiLCAidHJ1c3QtZWFybmVkLWJ5LXBsYWluc3Bva2VuLWp1ZGdtZW50IiwgIm9waW5pb25hdGVkLXJhbmtpbmctY29tbXVuaXR5Il0KICAgIH0sCiAgICAic3Ryb25nZXN0X2NhbXBhaWduX2pvYnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkludHJvZHVjZSBhIGZyYWdyYW5jZSBieSBsb2NhdGluZyBpdCBpbiBhIHNwZWNpZmljIG9jY2FzaW9uIGFuZCBwcmljZS10by1wZXJmb3JtYW5jZSBkZWNpc2lvbi4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWyJzY2VuYXJpby1sZWQtc2VsZWN0aW9uIiwgInZhbHVlLW5lZWRzLXByb29mIiwgImNvbXBhcmF0aXZlLWZyYWdyYW5jZS1uYXZpZ2F0aW9uIl0KICAgICAgfSwKICAgICAgewogICAgICAgICJzdGF0ZW1lbnQiOiAiR2l2ZSBhIGNyb3dkZWQgb3IgdW5mYW1pbGlhciBzY2VudCBhIGNhbmRpZCBjb21wYXJpc29uIGFnYWluc3QgcmVjb2duaXphYmxlIGFsdGVybmF0aXZlcy4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWyJjb21wYXJhdGl2ZS1mcmFncmFuY2UtbmF2aWdhdGlvbiIsICJ0cnVzdC1lYXJuZWQtYnktcGxhaW5zcG9rZW4tanVkZ21lbnQiXQogICAgICB9CiAgICBdLAogICAgImJyaWVmaW5nX2luc3RydWN0aW9ucyI6IFsKICAgICAgewogICAgICAgICJzdGF0ZW1lbnQiOiAiR2l2ZSBoaW0gdGhlIGFjdHVhbCBwcmljZSwgaW50ZW5kZWQgd2VhcmluZyBvY2Nhc2lvbiwgYW5kIHByb2R1Y3QgY29tcGFyaXNvbiBjb250ZXh0OyBhc2sgZm9yIGEgY2xlYXIgcGVyc29uYWwgdmVyZGljdCBhbmQgYWxsb3cgdHJhZGVvZmZzIHRvIHJlbWFpbiB2aXNpYmxlLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbInNjZW5hcmlvLWxlZC1zZWxlY3Rpb24iLCAidmFsdWUtbmVlZHMtcHJvb2YiLCAidHJ1c3QtZWFybmVkLWJ5LXBsYWluc3Bva2VuLWp1ZGdtZW50IiwgImNvbXBhcmF0aXZlLWZyYWdyYW5jZS1uYXZpZ2F0aW9uIl0KICAgICAgfQogICAgXSwKICAgICJ3cm9uZ19oaXJlX2JvdW5kYXJ5IjogewogICAgICAic3RhdGVtZW50IjogIkRvIG5vdCBoaXJlIGhpbSBmb3IgYSBwb2xpc2hlZCwgY2xhaW0taGVhdnkgZW5kb3JzZW1lbnQgdGhhdCBjYW5ub3Qgd2l0aHN0YW5kIGNvbXBhcmlzb24sIHByaWNlIHNjcnV0aW55LCBvciBhIGNhbmRpZCBuZWdhdGl2ZSBqdWRnbWVudC4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsidHJ1c3QtZWFybmVkLWJ5LXBsYWluc3Bva2VuLWp1ZGdtZW50IiwgImNvbXBhcmF0aXZlLWZyYWdyYW5jZS1uYXZpZ2F0aW9uIiwgIm9waW5pb25hdGVkLXJhbmtpbmctY29tbXVuaXR5Il0KICAgIH0sCiAgICAicm9idXN0bmVzc19zdGFtcCI6IG51bGwKICB9LAogICJsaW1pdGF0aW9ucyI6IFsKICAgICJFdmlkZW5jZSBjb3ZlcnMgZWlnaHQgc2VsZWN0ZWQgVGlrVG9rIHZpZGVvcyBhbmQgY2FwdHVyZWQgdG9wLWxldmVsIGNvbW1lbnRzLCBub3QgYSBwbGF0Zm9ybS13aWRlIGNvbW1lbnQgY2Vuc3VzIG9yIHJlcGx5LXRocmVhZCBhbmFseXNpcy4iLAogICAgIkNhcHR1cmVkIHZpZGVvIHNlbGVjdGlvbiBtYXkgYmUgcmFua2VkIG9yIHRydW5jYXRlZC4iLAogICAgIlRoZSBldmlkZW5jZSBkb2VzIG5vdCBlc3RhYmxpc2ggYWN0dWFsIGF1ZGllbmNlIGRlbW9ncmFwaGljcywgcHJldmFsZW5jZSwgY29udmVyc2lvbiwgc2FsZXMsIG9yIGNhbXBhaWduIHBlcmZvcm1hbmNlLiIKICBdLAogICJub25fY2xhaW1zIjogWwogICAgIk5vIGNsYWltIGlzIG1hZGUgYWJvdXQgYXVkaWVuY2Utd2lkZSB0cnVzdCwgcHVyY2hhc2luZyBiZWhhdmlvciwgZGVtb2dyYXBoaWMgY29tcG9zaXRpb24sIG9yIHNhbGVzIG91dGNvbWVzLiIsCiAgICAiQ29tbWVudHMgYWxsZWdpbmcgcGFpZCBwcm9tb3Rpb24gb3IgcXVlc3Rpb25pbmcgdHJ1c3QgYXJlIG5vdCB0cmVhdGVkIGFzIHZlcmlmaWNhdGlvbiBvZiBzcG9uc29yc2hpcCBzdGF0dXMuIgogIF0sCiAgImFjdHVhbF9hdWRpZW5jZV9kZW1vZ3JhcGhpY3MiOiAibm90X2VzdGltYXRlZCIKfQo=",
+  "response_sha256": "sha256:642d53dd6d068ccfb686c1cce3074d9f61845c49614034cc2a3e05e9d37d585f",
+  "response_size_bytes": 7442,
+  "schema_version": "creator_audience_judgment_outcome_v1",
+  "snapshot_id_or_none": "cats_54b80e6815f2ade17e5f",
+  "snapshot_or_none": {
+    "actual_audience_demographics": "not_estimated",
+    "creator_id": "tiktok:@mcnastyfragrance",
+    "creator_signal_projection": {
+      "briefing_instructions": [
+        {
+          "claim_ids": [
+            "cac_f34f063dee1121a21c76",
+            "cac_cbe309206584c1991d46",
+            "cac_b427bcb1ef2f2640a038",
+            "cac_b10b241ec7fe2a4c8649"
+          ],
+          "statement": "Give him the actual price, intended wearing occasion, and product comparison context; ask for a clear personal verdict and allow tradeoffs to remain visible."
+        }
+      ],
+      "creator_specific_execution": {
+        "claim_ids": [
+          "cac_b10b241ec7fe2a4c8649",
+          "cac_5be6850d122d98f38083"
+        ],
+        "statement": "Use his blunt ranked-list and comparison format to show where the product fits, what it resembles or improves on, and the occasion it is for."
+      },
+      "hire_verdict": {
+        "claim_ids": [
+          "cac_f34f063dee1121a21c76",
+          "cac_cbe309206584c1991d46",
+          "cac_b10b241ec7fe2a4c8649"
+        ],
+        "statement": "Hire mcnastyfragrance when a fragrance brand needs to make a specific scent choice feel worth the spend for a real wearing occasion."
+      },
+      "observed_audience_response": {
+        "claim_ids": [
+          "cac_f34f063dee1121a21c76",
+          "cac_cbe309206584c1991d46",
+          "cac_b427bcb1ef2f2640a038",
+          "cac_5be6850d122d98f38083"
+        ],
+        "statement": "Captured commenters ask for scenario-specific recommendations, prices, comparisons, and collection guidance, while also challenging recommendations they see as untrustworthy or ad-like."
+      },
+      "product_advantage": {
+        "claim_ids": [
+          "cac_b10b241ec7fe2a4c8649",
+          "cac_cbe309206584c1991d46"
+        ],
+        "statement": "He makes a fragrance offer easier to judge by placing it against recognizable alternatives, price, performance, and occasion fit."
+      },
+      "robustness_stamp": null,
+      "strongest_campaign_jobs": [
+        {
+          "claim_ids": [
+            "cac_f34f063dee1121a21c76",
+            "cac_cbe309206584c1991d46",
+            "cac_b10b241ec7fe2a4c8649"
+          ],
+          "statement": "Introduce a fragrance by locating it in a specific occasion and price-to-performance decision."
+        },
+        {
+          "claim_ids": [
+            "cac_b10b241ec7fe2a4c8649",
+            "cac_b427bcb1ef2f2640a038"
+          ],
+          "statement": "Give a crowded or unfamiliar scent a candid comparison against recognizable alternatives."
+        }
+      ],
+      "wrong_hire_boundary": {
+        "claim_ids": [
+          "cac_b427bcb1ef2f2640a038",
+          "cac_b10b241ec7fe2a4c8649",
+          "cac_5be6850d122d98f38083"
+        ],
+        "statement": "Do not hire him for a polished, claim-heavy endorsement that cannot withstand comparison, price scrutiny, or a candid negative judgment."
+      }
+    },
+    "evidence_cutoff": "2026-07-20T21:36:53Z",
+    "generated_at": "2026-07-21T00:00:00+08:00",
+    "input_bundle_hash": "sha256:ffa2b8cee9f19d8559bbe12046c1be0c600cd8491fd01070b0c1a80dabfcd036",
+    "input_bundle_id": "caeb_48f86c960f0aac4b2b09",
+    "judgment_claim_set": {
+      "agreements": [],
+      "claims": [
+        {
+          "all_support_evidence_ids": [
+            "ttce_2630893e766ba1a7661b",
+            "ttce_71ac30fdb7781d737610",
+            "ttce_77db35a1834fced0af59",
+            "ttce_a5695932e94c6d78c59d"
+          ],
+          "axis": "purchase_decision_stage",
+          "claim_id": "cac_f34f063dee1121a21c76",
+          "commercial_implication": "A brand can brief this creator around a concrete wearing decision rather than a generic product mention.",
+          "counterevidence_ids": [],
+          "limitation": "These are captured comment requests, not a platform-wide audience census.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_2630893e766ba1a7661b",
+            "ttce_71ac30fdb7781d737610",
+            "ttce_77db35a1834fced0af59",
+            "ttce_a5695932e94c6d78c59d"
+          ],
+          "source_item_ids": [
+            "7511854928583789867",
+            "7543303047175343373",
+            "7635428893037432077"
+          ],
+          "statement": "Captured commenters seek fragrance choices for specific use moments and collection gaps, including summer, office, wedding, and an additional bottle to complete a collection.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_4454de3e4728516a4a11",
+            "ttce_45f1900ae10113de29b0",
+            "ttce_71ac30fdb7781d737610"
+          ],
+          "axis": "price_value_posture",
+          "claim_id": "cac_cbe309206584c1991d46",
+          "commercial_implication": "Value-led briefs should make price and the reason a scent is worth choosing explicit.",
+          "counterevidence_ids": [],
+          "limitation": "The capture does not establish how common any price posture is.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_4454de3e4728516a4a11",
+            "ttce_45f1900ae10113de29b0",
+            "ttce_71ac30fdb7781d737610"
+          ],
+          "source_item_ids": [
+            "7511854928583789867",
+            "7628386046367124750"
+          ],
+          "statement": "Captured commenters engage price as a decision constraint: one asks for prices on a list, another disputes calling $70 cheap, and another asks for an affordable memorable wedding scent.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_5aa20cbcbe7a6eff6252",
+            "ttce_5e41799db2b804eb1bdd",
+            "ttce_915edae8e14dfcb1988e",
+            "ttce_df0fd46fcaf04c20b59f",
+            "ttce_e0f3651059c67b8ff2a3"
+          ],
+          "axis": "objections",
+          "claim_id": "cac_b427bcb1ef2f2640a038",
+          "commercial_implication": "Commercial content needs a clear, candid evaluation rather than unexplained endorsement.",
+          "counterevidence_ids": [
+            "ttce_9c538dc93adbc5f003e0",
+            "ttce_dcce3d46c5d8614be945"
+          ],
+          "limitation": "Comments express individual views and allegations; they do not verify sponsorship or audience-wide trust.",
+          "modality": "observed_comments",
+          "relation": "contradiction",
+          "representative_evidence_ids": [
+            "ttce_5aa20cbcbe7a6eff6252",
+            "ttce_5e41799db2b804eb1bdd",
+            "ttce_915edae8e14dfcb1988e",
+            "ttce_df0fd46fcaf04c20b59f",
+            "ttce_e0f3651059c67b8ff2a3"
+          ],
+          "source_item_ids": [
+            "7543303047175343373",
+            "7630569927337872654"
+          ],
+          "statement": "Trust is contested in the captured discussion: commenters praise honesty and authenticity while others question whether fragrance recommendations are paid or dependable.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_4d522c7b4612f7eb5a6e",
+            "ttte_9a1a7d5e0a0d9111fdc9",
+            "ttte_aee6b2937776ab78599b",
+            "ttte_d19d43396281d555edb0",
+            "ttte_f9f8ddc6e591dd450e81"
+          ],
+          "axis": "category_knowledge",
+          "claim_id": "cac_b10b241ec7fe2a4c8649",
+          "commercial_implication": "He can turn an unfamiliar or crowded fragrance offer into a concrete alternative buyers can evaluate against known options.",
+          "counterevidence_ids": [],
+          "limitation": "This describes the selected captured videos, not all creator output.",
+          "modality": "creator_content",
+          "relation": "creator_only",
+          "representative_evidence_ids": [
+            "ttte_4d522c7b4612f7eb5a6e",
+            "ttte_9a1a7d5e0a0d9111fdc9",
+            "ttte_aee6b2937776ab78599b",
+            "ttte_d19d43396281d555edb0",
+            "ttte_f9f8ddc6e591dd450e81"
+          ],
+          "source_item_ids": [
+            "7511854928583789867",
+            "7631229829794450702",
+            "7635428893037432077"
+          ],
+          "statement": "The creator repeatedly frames fragrance choices through rankings, direct comparisons, clone-versus-original distinctions, price, longevity, and suitable occasions.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_139236e04843d2ca785e",
+            "ttce_345d21d6c68516eaae01",
+            "ttce_501317dc21be67641e5f",
+            "ttce_77db35a1834fced0af59",
+            "ttce_8ce8643f0c6e880b48c2"
+          ],
+          "axis": "language_community_norms",
+          "claim_id": "cac_5be6850d122d98f38083",
+          "commercial_implication": "A brief can invite a specific comparison or ranking stance, provided it leaves room for disagreement.",
+          "counterevidence_ids": [
+            "ttce_7b0243c28338f6a41172",
+            "ttce_94b3ab545d489f3db8e4"
+          ],
+          "limitation": "Participation and disagreement in captured comments do not establish prevalence or sentiment across the account.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_139236e04843d2ca785e",
+            "ttce_345d21d6c68516eaae01",
+            "ttce_501317dc21be67641e5f",
+            "ttce_77db35a1834fced0af59",
+            "ttce_8ce8643f0c6e880b48c2"
+          ],
+          "source_item_ids": [
+            "7511854928583789867",
+            "7543303047175343373",
+            "7546364950046870798",
+            "7635428893037432077"
+          ],
+          "statement": "Captured commenters actively debate rankings, correct product classifications, request category lists, and share their own comparisons and collection experience.",
+          "support_scope": "multi_item"
+        }
+      ],
+      "contradictions": [
+        "Trust is contested in the captured discussion: commenters praise honesty and authenticity while others question whether fragrance recommendations are paid or dependable."
+      ],
+      "missing_evidence": []
+    },
+    "limitations": [
+      "Evidence covers eight selected TikTok videos and captured top-level comments, not a platform-wide comment census or reply-thread analysis.",
+      "Captured video selection may be ranked or truncated.",
+      "The evidence does not establish actual audience demographics, prevalence, conversion, sales, or campaign performance."
+    ],
+    "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+    "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+    "non_claims": [
+      "No claim is made about audience-wide trust, purchasing behavior, demographic composition, or sales outcomes.",
+      "Comments alleging paid promotion or questioning trust are not treated as verification of sponsorship status."
+    ],
+    "platform_account_id": "acct_tiktok_fragrance_009",
+    "platform_scope": "tiktok",
+    "profile_subject_id": "acct_tiktok_fragrance_009",
+    "profile_subject_kind": "platform_account",
+    "schema_version": "creator_audience_triangulation_snapshot_v1",
+    "snapshot_id": "cats_54b80e6815f2ade17e5f"
+  },
+  "snapshot_sha256_or_none": "sha256:063f4f255c40a283f4b0132e8cfd4d50b07f8fb120e3c5af028bb37b6a2ea342",
+  "status": "validated",
+  "validation_errors": []
+}

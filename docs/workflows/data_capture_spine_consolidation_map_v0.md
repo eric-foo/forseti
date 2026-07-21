@@ -407,12 +407,14 @@ stale_if:
   export, or a public creator directory.
 - owner: `forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md`
 
-### Retail/PDP Projection Playbook
+### Retail/PDP Content and Cleaning Contract
 
-- summary: Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and
-  Ulta: raw inputs, allowed projected rows, binding map requirements, residual
-  meanings, retailer-specific target-binding limits, and the playbook-first
-  boundary before auto-project wiring or ECR sequencing.
+- summary: Current Retail/PDP capture-to-Cleaning contract: admitted aggregate
+  profiles retain one retailer-owned canonical content record after their gates
+  pass; failures and unflipped routes retain raw evidence; no new sample or
+  Projection packet is admitted; historical raw and Projection-era packets stay
+  readable through legacy compatibility. The Sephora normal deep-page route is
+  `sephora_pdp_aggregate` content v3.
 - owner: `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`
 
 ### Anti-block capture ladder

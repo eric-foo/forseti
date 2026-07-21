@@ -105,6 +105,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
         "live structured Target acquisition consumes a committed parent packet and "
         "requires explicit append-only lake admission"
     ),
+    "run_source_capture_amazon_review_onboarding.py": (
+        "local Amazon review adaptation consumes a committed parent packet and "
+        "requires explicit append-only lake admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -336,6 +340,14 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "URL TCIN to the ProductDetailWebDatasourceCore TCIN and the admitted public "
             "Bazaarvoice deployment; every returned question and review row plus the "
             "included Bazaarvoice product must carry that same TCIN"
+        ),
+    },
+    "run_source_capture_amazon_review_onboarding.py": {
+        "status": "bound",
+        "mechanism": (
+            "a hash-verified parent binds source and served Amazon URLs to one ASIN, "
+            "requires an unblocked US pin plus USD marker, and admits only unique native "
+            "review row ids inside labelled Amazon top-review sections"
         ),
     },
     "run_source_capture_tiktok_batch_packet.py": {

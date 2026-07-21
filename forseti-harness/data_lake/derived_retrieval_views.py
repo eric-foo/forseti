@@ -54,9 +54,10 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import uuid
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -77,6 +78,7 @@ from data_lake.product_mention_selection import (
 )
 from data_lake.root import DataLakeRootError, _atomic_create, _atomic_replace
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
     PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     classify_silver_vault_record_sources,
@@ -1151,6 +1153,9 @@ def rebuild_derived_retrieval(
             derived_lanes=_incremental_source_lanes(),
             include_acknowledgements=True,
         )
+        sql_catalogue = refresh_sql_catalogue(
+            root, source_inventory, full_rebuild=full_rebuild
+        )
         input_fingerprint = _input_fingerprint(
             root,
             source_inventory=source_inventory,
@@ -1178,6 +1183,7 @@ def rebuild_derived_retrieval(
                 "generation_root": str(_current_root),
                 "layout": current_layout,
                 "full_rebuild": False,
+                "sql_catalogue": sql_catalogue,
             }
         files = _generate(
             root,
@@ -1208,6 +1214,7 @@ def rebuild_derived_retrieval(
         "source_inventory": source_inventory_report,
         "generation_root": str(generation_root),
         "full_rebuild": full_rebuild,
+        "sql_catalogue": sql_catalogue,
     }
 
 
@@ -1390,6 +1397,709 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
     }
 
 
+# Disposable SQL reader catalogue. The lake remains authority; actor identifiers
+# are hydrated from cited evidence for one query and never stored in SQL.
+SQL_CATALOGUE_SCHEMA_VERSION = 1
+SQL_EXTRACTOR_PROFILE = "derived_retrieval_evidence_v1"
+SQL_EVENT_LANES = frozenset({
+    "cleaning_basenotes_silver", "cleaning_fragrantica_silver",
+    "cleaning_parfumo_silver", "retail_pdp_silver",
+    "silver__capture__audience_comments",
+})
+SQL_RAW_SURFACES = frozenset({
+    "tiktok_creator_batch_comment_subtitle_admission",
+    "youtube_watch_metadata_comments",
+})
+# Bound on the candidate window an exact-actor rehydration may scan. Reaching it
+# means the window was truncated, which is a loud failure, never a short answer.
+SQL_ACTOR_CANDIDATE_LIMIT = 10000
+SQL_QUERY_CONTRACT_VERSION = 1
+SQL_QUERY_AUDIT_SCHEMA_VERSION = 2
+SQL_DECISION_QUESTION_ID_MAX_LENGTH = 128
+SQL_SOURCE_LOOKUP_CHUNK = 500
+SQL_DECISION_QUESTIONS = frozenset({
+    "creator_comment_coordination", "content_comment_coordination",
+    "bounded_public_actor_context",
+})
+
+
+def sql_catalogue_path(root) -> Path:
+    configured = os.environ.get("FORSETI_DERIVED_RETRIEVAL_SQL_ROOT")
+    if configured:
+        base = Path(configured).expanduser()
+        if not base.is_absolute():
+            raise DataLakeRootError("FORSETI_DERIVED_RETRIEVAL_SQL_ROOT must be absolute")
+        if os.name == "nt" and str(base).startswith(("\\", "//")):
+            raise DataLakeRootError("SQLite catalogue root must be local, not a network share")
+        lake_key = hashlib.sha256(str(root.path.resolve()).encode()).hexdigest()[:16]
+        return base / lake_key / "catalogue.sqlite3"
+    return root._within(*SILVER_VAULT_CORE_PARTS, "sql", "catalogue.sqlite3")
+
+
+def _dr_connect(path: Path, *, read_only: bool = False):
+    if read_only:
+        connection = sqlite3.connect("file:%s?mode=ro" % path, uri=True, timeout=5)
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(str(path), timeout=0, isolation_level=None)
+        connection.execute("PRAGMA journal_mode=WAL")
+        connection.execute("PRAGMA synchronous=FULL")
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys=ON")
+    return connection
+
+
+# Issued one statement at a time inside the caller's IMMEDIATE transaction:
+# executescript() COMMITs any pending transaction first, which would let a
+# --full-rebuild that dies mid-extraction leave the catalogue dropped instead
+# of untouched.
+_DR_RESET_STATEMENTS = (
+    "DROP TRIGGER IF EXISTS dr_ai",
+    "DROP TRIGGER IF EXISTS dr_ad",
+    "DROP TABLE IF EXISTS evidence_fts",
+    "DROP TABLE IF EXISTS evidence_events",
+    "DROP TABLE IF EXISTS evidence_sources",
+    "DROP TABLE IF EXISTS evidence_metadata",
+)
+_DR_SCHEMA_STATEMENTS = (
+    """CREATE TABLE IF NOT EXISTS evidence_metadata(
+      key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT""",
+    """CREATE TABLE IF NOT EXISTS evidence_sources(
+      source_ref TEXT PRIMARY KEY, source_kind TEXT NOT NULL,
+      raw_anchor TEXT NOT NULL, source_sha256 TEXT NOT NULL,
+      extractor_profile TEXT NOT NULL, event_count INTEGER NOT NULL,
+      residuals_json TEXT NOT NULL) STRICT""",
+    """CREATE TABLE IF NOT EXISTS evidence_events(
+      row_id INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,
+      source_ref TEXT NOT NULL REFERENCES evidence_sources(source_ref) ON DELETE CASCADE,
+      source_kind TEXT NOT NULL, event_locator TEXT NOT NULL,
+      event_kind TEXT NOT NULL CHECK(event_kind IN ('comment','review')),
+      raw_anchor TEXT NOT NULL, source_family TEXT, source_surface TEXT,
+      platform TEXT, vendor TEXT, creator_namespace TEXT,
+      creator_native_id TEXT, creator_observed_handle TEXT,
+      content_native_id TEXT, product_namespace TEXT, product_native_id TEXT,
+      event_time_utc TEXT, event_time_precision TEXT, event_time_source_text TEXT,
+      post_time_utc TEXT, capture_time_utc TEXT, body_text TEXT NOT NULL,
+      body_sha256 TEXT NOT NULL, authority_status TEXT NOT NULL,
+      limitations_json TEXT NOT NULL) STRICT""",
+    """CREATE INDEX IF NOT EXISTS dr_creator_time ON evidence_events(
+      creator_namespace,creator_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_content_time ON evidence_events(
+      platform,content_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_product_time ON evidence_events(
+      product_namespace,product_native_id,event_time_utc)""",
+    """CREATE INDEX IF NOT EXISTS dr_surface_time ON evidence_events(
+      source_surface,event_time_utc)""",
+    "CREATE INDEX IF NOT EXISTS dr_body_hash ON evidence_events(body_sha256)",
+    """CREATE VIRTUAL TABLE IF NOT EXISTS evidence_fts USING fts5(
+      body_text,content='evidence_events',content_rowid='row_id',tokenize='unicode61')""",
+    """CREATE TRIGGER IF NOT EXISTS dr_ai AFTER INSERT ON evidence_events BEGIN
+      INSERT INTO evidence_fts(rowid,body_text) VALUES(new.row_id,new.body_text);
+    END""",
+    """CREATE TRIGGER IF NOT EXISTS dr_ad AFTER DELETE ON evidence_events BEGIN
+      INSERT INTO evidence_fts(evidence_fts,rowid,body_text)
+      VALUES('delete',old.row_id,old.body_text);
+    END""",
+)
+
+
+def _dr_schema(connection, *, reset: bool) -> None:
+    if reset:
+        for statement in _DR_RESET_STATEMENTS:
+            connection.execute(statement)
+    for statement in _DR_SCHEMA_STATEMENTS:
+        connection.execute(statement)
+    row = connection.execute(
+        "SELECT value FROM evidence_metadata WHERE key='schema_version'"
+    ).fetchone()
+    if row is None:
+        connection.execute(
+            "INSERT INTO evidence_metadata VALUES('schema_version',?)",
+            (str(SQL_CATALOGUE_SCHEMA_VERSION),),
+        )
+    elif row[0] != str(SQL_CATALOGUE_SCHEMA_VERSION):
+        raise DataLakeRootError("SQL catalogue schema changed; run --full-rebuild")
+
+
+def _dr_text(value):
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def _dr_map(value):
+    return value if isinstance(value, dict) else {}
+
+
+def _dr_list(value):
+    return value if isinstance(value, list) else []
+
+
+def _dr_time(value):
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return datetime.fromtimestamp(value, timezone.utc).isoformat(), "second", None
+    text = _dr_text(value)
+    if text is None:
+        return None, None, None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None, None, text
+    if parsed.tzinfo is None:
+        if len(text) != 10:
+            return None, None, text
+        parsed = parsed.replace(tzinfo=timezone.utc)
+        precision = "day"
+    else:
+        precision = "second"
+    return parsed.astimezone(timezone.utc).isoformat(), precision, text
+
+
+def _dr_window_bound(value, label):
+    """Stored event/capture times are canonical UTC ``+00:00`` isoformat and the
+    window filter compares them as TEXT. A caller bound must be normalized the
+    same way first, or a ``Z``-suffixed or non-UTC-offset bound silently selects
+    a lexicographically shifted window instead of the requested instants."""
+    normalized, _precision, _source_text = _dr_time(value)
+    if normalized is None:
+        raise ValueError("%s must be an ISO-8601 timestamp: %r" % (label, value))
+    return normalized
+
+
+def _dr_event(source_ref, source_kind, locator, kind, raw_anchor, body, *,
+              family=None, surface=None, platform=None, vendor=None,
+              creator_namespace=None, creator_id=None, creator_handle=None,
+              content_id=None, product_namespace=None, product_id=None,
+              event_time=None, post_time=None, capture_time=None,
+              authority="verified", limitations=(), actor=None):
+    event_utc, precision, source_text = _dr_time(event_time)
+    body = body.strip()
+    body_hash = hashlib.sha256(body.encode()).hexdigest()
+    event_id = hashlib.sha256(canonical_record_bytes({
+        "source_ref": source_ref, "locator": locator, "body_sha256": body_hash
+    })).hexdigest()
+    limits = sorted({str(item) for item in limitations if item})
+    if event_utc is None:
+        limits.append("exact_event_time_unavailable")
+    return {
+        "event_id": event_id, "source_ref": source_ref,
+        "source_kind": source_kind, "event_locator": locator,
+        "event_kind": kind, "raw_anchor": raw_anchor,
+        "source_family": family, "source_surface": surface,
+        "platform": platform, "vendor": vendor,
+        "creator_namespace": creator_namespace, "creator_native_id": creator_id,
+        "creator_observed_handle": creator_handle,
+        "content_native_id": content_id,
+        "product_namespace": product_namespace, "product_native_id": product_id,
+        "event_time_utc": event_utc, "event_time_precision": precision,
+        "event_time_source_text": source_text,
+        "post_time_utc": _dr_time(post_time)[0],
+        "capture_time_utc": _dr_time(capture_time)[0], "body_text": body,
+        "body_sha256": body_hash, "authority_status": authority,
+        "limitations_json": json.dumps(limits, sort_keys=True),
+        "_actor": _dr_text(actor),
+    }
+
+
+def _dr_silver_events(record, source_ref):
+    observation = _dr_map(_dr_map(record.get("payload")).get("observation"))
+    subject = _dr_map(_dr_map(observation.get("subject")).get("ref"))
+    kind = _dr_text(record.get("producer_row_kind"))
+    common = {
+        "family": _dr_text(record.get("source_family")),
+        "surface": _dr_text(record.get("source_surface")),
+        "capture_time": record.get("captured_at"),
+        "authority": CURRENT_SOURCE_BACKED_AUTHORITY,
+        "limitations": _dr_list(record.get("non_claims")) + _dr_list(record.get("residuals")),
+    }
+    anchor = _dr_text(record.get("raw_anchor")) or "unknown"
+    events = []
+    if kind in {
+        "basenotes_review_body_text", "fragrantica_review_body_text",
+        "parfumo_review_body_text",
+    }:
+        body = _dr_text(observation.get("text_value"))
+        if body:
+            events.append(_dr_event(
+                source_ref, "silver_record", "payload/observation/text_value",
+                "review", anchor, body, vendor=kind.split("_", 1)[0],
+                event_time=record.get("observed_at"), **common))
+    elif kind == "instagram_audience_comment":
+        content_id = _dr_text(subject.get("native_id"))
+        for index, row in enumerate(_dr_list(observation.get("rows"))):
+            row = _dr_map(row); comment = _dr_map(row.get("comment"))
+            body = _dr_text(row.get("text_value"))
+            if body:
+                events.append(_dr_event(
+                    source_ref, "silver_record",
+                    "payload/observation/rows/%d" % index, "comment", anchor, body,
+                    platform="instagram", content_id=content_id,
+                    event_time=comment.get("created_at_unix"),
+                    actor=comment.get("author_username"), **common))
+    elif observation.get("observation_kind") == "retail_review_aggregate":
+        fields = _dr_map(observation.get("source_visible_fields"))
+        namespace = _dr_text(subject.get("namespace"))
+        product_id = _dr_text(subject.get("native_id"))
+        vendor = namespace.split(":", 1)[1] if namespace and ":" in namespace else None
+        for list_name in ("displayed_reviews", "displayed_review_rows", "reviews"):
+            for index, row in enumerate(_dr_list(fields.get(list_name))):
+                row = _dr_map(row)
+                body = next((_dr_text(row.get(key)) for key in
+                    ("body","review_body","reviewBody","text","text_value")
+                    if _dr_text(row.get(key))), None)
+                if not body:
+                    continue
+                event_time = next((row.get(key) for key in
+                    ("date_published","datePublished","created_at","submitted_at")
+                    if row.get(key) is not None), None)
+                actor = next((_dr_text(row.get(key)) for key in
+                    ("author","username","nickname","user_nickname")
+                    if _dr_text(row.get(key))), None)
+                events.append(_dr_event(
+                    source_ref, "silver_record",
+                    "payload/observation/source_visible_fields/%s/%d" % (list_name,index),
+                    "review", anchor, body, vendor=vendor,
+                    product_namespace=namespace, product_id=product_id,
+                    event_time=event_time, actor=actor, **common))
+    return events
+
+
+def _dr_packet_payload(loaded, suffix):
+    rows = [row for row in _dr_list(loaded.manifest.get("preserved_files"))
+            if isinstance(row, dict)
+            and (_dr_text(row.get("relative_packet_path")) or "").endswith(suffix)]
+    if len(rows) != 1 or rows[0].get("file_id") not in loaded.bodies:
+        raise DataLakeRootError("packet must contain exactly one %s" % suffix)
+    value = json.loads(loaded.bodies[rows[0]["file_id"]].decode())
+    if not isinstance(value, dict):
+        raise DataLakeRootError("packet payload is not an object: %s" % suffix)
+    return value
+
+
+def _dr_raw_events(loaded, source_ref):
+    surface = loaded.manifest.get("source_surface")
+    packet_id = loaded.manifest.get("packet_id")
+    family = loaded.manifest.get("source_family")
+    events = []
+    if surface == "tiktok_creator_batch_comment_subtitle_admission":
+        payload = _dr_packet_payload(loaded, "tiktok_batch_capture.json")
+        creator = _dr_text(payload.get("creator_handle"))
+        for vi, video in enumerate(_dr_list(payload.get("videos"))):
+            video = _dr_map(video); content_id = _dr_text(video.get("video_id") or video.get("id"))
+            comments = _dr_map(video.get("comments"))
+            for ci, comment in enumerate(_dr_list(comments.get("comments"))):
+                comment = _dr_map(comment); user = _dr_map(comment.get("user"))
+                body = _dr_text(comment.get("text"))
+                if body:
+                    actor = _dr_text(user.get("uid")) or _dr_text(user.get("unique_id"))
+                    events.append(_dr_event(
+                        source_ref, "raw_packet", "videos/%d/comments/%d" % (vi,ci),
+                        "comment", packet_id, body, family=family, surface=surface,
+                        platform="tiktok", creator_namespace="tiktok",
+                        creator_id=creator, creator_handle=creator, content_id=content_id,
+                        event_time=comment.get("create_time"), post_time=video.get("create_time"),
+                        capture_time=payload.get("capture_timestamp"), actor=actor,
+                        limitations=("not_full_comment_census",)))
+    elif surface == "youtube_watch_metadata_comments":
+        payload = _dr_packet_payload(loaded, "youtube_watch_capture.json")
+        packet = _dr_map(payload.get("packet")); channel = _dr_map(packet.get("channel"))
+        metadata = _dr_map(packet.get("metadata"))
+        content_id = _dr_text(payload.get("platform_video_id") or packet.get("video_id"))
+        for ci, comment in enumerate(_dr_list(packet.get("comments"))):
+            comment = _dr_map(comment); body = _dr_text(comment.get("text"))
+            if body:
+                events.append(_dr_event(
+                    source_ref, "raw_packet", "packet/comments/%d" % ci,
+                    "comment", packet_id, body, family=family, surface=surface,
+                    platform="youtube", creator_namespace="youtube",
+                    creator_id=_dr_text(channel.get("channel_id")),
+                    creator_handle=_dr_text(channel.get("author")), content_id=content_id,
+                    event_time=comment.get("published_time"),
+                    post_time=metadata.get("publish_date"),
+                    capture_time=payload.get("capture_timestamp"),
+                    actor=comment.get("author"),
+                    limitations=("not_full_comment_graph",)))
+    return events
+
+
+
+def _dr_insert_events(connection, events):
+    columns = (
+        "event_id","source_ref","source_kind","event_locator","event_kind",
+        "raw_anchor","source_family","source_surface","platform","vendor",
+        "creator_namespace","creator_native_id","creator_observed_handle",
+        "content_native_id","product_namespace","product_native_id",
+        "event_time_utc","event_time_precision","event_time_source_text",
+        "post_time_utc","capture_time_utc","body_text","body_sha256",
+        "authority_status","limitations_json",
+    )
+    connection.executemany(
+        "INSERT INTO evidence_events(%s) VALUES(%s)" %
+        (",".join(columns), ",".join("?" for _ in columns)),
+        [tuple(event.get(column) for column in columns) for event in events],
+    )
+
+
+def refresh_sql_catalogue(root, source_inventory, *, full_rebuild=False, path=None):
+    path = path or sql_catalogue_path(root)
+    connection = _dr_connect(path)
+    changed = 0; seen = set(); verification_cache = {}
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        _dr_schema(connection, reset=full_rebuild)
+        candidates = []
+        for stored in source_inventory.records(subtree="derived", lanes=SQL_EVENT_LANES):
+            candidates.append((stored.relative_path, "silver_record", stored.raw_anchor,
+                               stored.sha256, stored))
+        for entry in root.snapshot_public_availability():
+            if entry.get("source_surface") in SQL_RAW_SURFACES:
+                candidates.append(("raw_packet:%s" % entry["packet_id"], "raw_packet",
+                    entry["packet_id"], entry["manifest_sha256"], entry))
+        for source_ref, source_kind, anchor, source_sha, source in candidates:
+            seen.add(source_ref)
+            old = connection.execute(
+                "SELECT source_sha256,extractor_profile FROM evidence_sources WHERE source_ref=?",
+                (source_ref,)).fetchone()
+            if old:
+                if old[0] != source_sha:
+                    raise DataLakeRootError("catalogued write-once source changed: %s" % source_ref)
+                if old[1] != SQL_EXTRACTOR_PROFILE:
+                    raise DataLakeRootError("SQL extractor changed; run --full-rebuild")
+                continue
+            residuals = []
+            if source_kind == "raw_packet":
+                events = _dr_raw_events(root.load_raw_packet(anchor), source_ref)
+            else:
+                try:
+                    record = json.loads(source.body.decode())
+                    authority = classify_silver_vault_record_sources(
+                        root, record, record_path=root.path / source.relative_path,
+                        verification_cache=verification_cache)
+                except (OSError, TypeError, ValueError, DataLakeRootError) as exc:
+                    events = []; residuals = ["silver_source_error:%s" % type(exc).__name__]
+                else:
+                    if authority.status == CURRENT_SOURCE_BACKED_AUTHORITY:
+                        events = _dr_silver_events(record, source_ref)
+                    else:
+                        events = []; residuals = [
+                            "silver_authority:%s:%s" % (authority.status,authority.reason_code)]
+            connection.execute("INSERT INTO evidence_sources VALUES(?,?,?,?,?,?,?)",
+                (source_ref,source_kind,anchor,source_sha,SQL_EXTRACTOR_PROFILE,
+                 len(events),json.dumps(residuals,sort_keys=True)))
+            _dr_insert_events(connection, events); changed += 1
+        missing = sorted({row[0] for row in connection.execute(
+            "SELECT source_ref FROM evidence_sources")} - seen)
+        if missing:
+            raise DataLakeRootError("catalogued evidence source disappeared: %s" % missing[:3])
+        source_rows = [dict(row) for row in connection.execute(
+            "SELECT source_ref,source_sha256,extractor_profile FROM evidence_sources ORDER BY source_ref")]
+        source_digest = hashlib.sha256(canonical_record_bytes(source_rows)).hexdigest()
+        event_count = connection.execute("SELECT count(*) FROM evidence_events").fetchone()[0]
+        prior_digest = connection.execute(
+            "SELECT value FROM evidence_metadata WHERE key='logical_digest'").fetchone()
+        if changed or full_rebuild or not prior_digest:
+            logical_rows = [dict(row) for row in connection.execute(
+                "SELECT * FROM evidence_events ORDER BY event_id")]
+            for row in logical_rows: row.pop("row_id", None)
+            logical_digest = hashlib.sha256(canonical_record_bytes(logical_rows)).hexdigest()
+        else:
+            logical_digest = prior_digest[0]
+        refreshed = datetime.now(timezone.utc).isoformat()
+        connection.executemany(
+            "INSERT INTO evidence_metadata(key,value) VALUES(?,?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (("extractor_profile",SQL_EXTRACTOR_PROFILE),
+             ("source_inventory_sha256",source_digest),
+             ("logical_digest",logical_digest),
+             ("last_successful_refresh_at",refreshed)))
+        connection.execute("COMMIT")
+        check = connection.execute("PRAGMA quick_check").fetchone()[0]
+        if check != "ok": raise DataLakeRootError("SQL quick_check failed: %s" % check)
+        return {"status":"rebuilt" if changed or full_rebuild else "current",
+            "path":str(path),"changed_sources":changed,
+            "source_count":len(source_rows),"event_count":event_count,
+            "source_inventory_sha256":source_digest,"logical_digest":logical_digest,
+            "last_successful_refresh_at":refreshed,"quick_check":check}
+    except Exception:
+        if connection.in_transaction: connection.execute("ROLLBACK")
+        raise
+    finally:
+        connection.close()
+
+
+def _dr_catalogue_status(connection, path):
+    meta = {row[0]:row[1] for row in connection.execute(
+        "SELECT key,value FROM evidence_metadata")}
+    check = connection.execute("PRAGMA quick_check").fetchone()[0]
+    return {"status":"ok" if check=="ok" else "failed","path":str(path),
+        "schema_version":int(meta.get("schema_version","0")),
+        "extractor_profile":meta.get("extractor_profile"),
+        "source_inventory_sha256":meta.get("source_inventory_sha256"),
+        "logical_digest":meta.get("logical_digest"),
+        "last_successful_refresh_at":meta.get("last_successful_refresh_at"),
+        "source_count":connection.execute("SELECT count(*) FROM evidence_sources").fetchone()[0],
+        "event_count":connection.execute("SELECT count(*) FROM evidence_events").fetchone()[0],
+        "quick_check":check}
+
+
+def sql_catalogue_status(root, *, path=None):
+    path = path or sql_catalogue_path(root)
+    if not path.is_file(): raise DataLakeRootError("SQL catalogue has not been built: %s" % path)
+    connection = _dr_connect(path, read_only=True)
+    try:
+        connection.execute("BEGIN")
+        return _dr_catalogue_status(connection,path)
+    finally: connection.close()
+
+
+def query_sql_catalogue(root, *, body_query=None, platform=None, vendor=None,
+                        surface=None, creator_id=None, content_id=None, product_id=None,
+                        from_utc=None, to_utc=None, limit=1000):
+    if limit < 1 or limit > 10000: raise ValueError("limit must be 1..10000")
+    path = sql_catalogue_path(root)
+    connection = _dr_connect(path,read_only=True)
+    try:
+        connection.execute("BEGIN")
+        join = ""; clauses = []; values = []
+        normalized_from = _dr_window_bound(from_utc,"from_utc") if from_utc else None
+        normalized_to = _dr_window_bound(to_utc,"to_utc") if to_utc else None
+        if body_query:
+            join = " JOIN evidence_fts ON evidence_fts.rowid=e.row_id"
+            clauses.append("evidence_fts MATCH ?"); values.append(body_query)
+        for column,value in (("platform",platform),("vendor",vendor),
+            ("source_surface",surface),("creator_native_id",creator_id),
+            ("content_native_id",content_id),("product_native_id",product_id)):
+            if value is not None: clauses.append("e.%s=?" % column); values.append(value)
+        if normalized_from:
+            clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)>=?")
+            values.append(normalized_from)
+        if normalized_to:
+            clauses.append("coalesce(e.event_time_utc,e.capture_time_utc)<=?")
+            values.append(normalized_to)
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
+        fetched = [dict(row) for row in connection.execute(
+            "SELECT e.* FROM evidence_events e" + join + where +
+            " ORDER BY coalesce(e.event_time_utc,e.capture_time_utc),e.event_id LIMIT ?",
+            (*values,limit+1))]
+        truncated = len(fetched) > limit
+        rows = fetched[:limit]
+        for row in rows:
+            row.pop("row_id",None); row["limitations"]=json.loads(row.pop("limitations_json"))
+        normalized_query = {"body_query":body_query if body_query else None,
+            "platform":platform,"vendor":vendor,"surface":surface,
+            "creator_id":creator_id,"content_id":content_id,"product_id":product_id,
+            "from_utc":normalized_from,"to_utc":normalized_to,"limit":limit}
+        return {"query_profile":"evidence_search",
+            "query_contract_version":SQL_QUERY_CONTRACT_VERSION,
+            "normalized_query":normalized_query,
+            "catalogue":_dr_catalogue_status(connection,path),
+            "row_count":len(rows),"result_set_complete":not truncated,
+            "truncated":truncated,"rows":rows,
+            "non_claims":["captured evidence only","not a complete platform census",
+             "not cross-platform identity","not a paid/bot/fake/astroturf conclusion"]}
+    finally: connection.close()
+
+
+def _dr_catalogued_sources(root, source_refs):
+    refs = sorted(set(source_refs))
+    if not refs: return {}
+    connection = _dr_connect(sql_catalogue_path(root),read_only=True)
+    try:
+        connection.execute("BEGIN")
+        sources = {}
+        for start in range(0,len(refs),SQL_SOURCE_LOOKUP_CHUNK):
+            chunk = refs[start:start+SQL_SOURCE_LOOKUP_CHUNK]
+            placeholders = ",".join("?" for _ in chunk)
+            for row in connection.execute(
+                    "SELECT * FROM evidence_sources WHERE source_ref IN (%s)" % placeholders,
+                    chunk):
+                sources[row["source_ref"]] = dict(row)
+    finally: connection.close()
+    missing = sorted(set(refs)-set(sources))
+    if missing:
+        raise DataLakeRootError("query citation source absent from catalogue: %s" % missing[:3])
+    return sources
+
+
+def _dr_verified_query_sources(root, rows):
+    refs = sorted({row["source_ref"] for row in rows})
+    sources = _dr_catalogued_sources(root,refs)
+    verified = {}
+    for ref in refs:
+        source = sources[ref]
+        if source["source_kind"] == "raw_packet":
+            loaded = root.load_raw_packet(source["raw_anchor"])
+            manifest_path = loaded.container / "manifest.json"
+            try:
+                manifest_bytes = manifest_path.read_bytes()
+            except OSError as exc:
+                raise DataLakeRootError(
+                    "unreadable query citation manifest: %s: %s" % (ref,exc)) from exc
+            if hashlib.sha256(manifest_bytes).hexdigest() != source["source_sha256"]:
+                raise DataLakeRootError("query citation manifest hash mismatch: %s" % ref)
+            payload = loaded
+        elif source["source_kind"] == "silver_record":
+            path = root.path / ref
+            try:
+                payload = path.read_bytes()
+            except OSError as exc:
+                raise DataLakeRootError(
+                    "unreadable query citation Silver record: %s: %s" % (ref,exc)) from exc
+            if hashlib.sha256(payload).hexdigest() != source["source_sha256"]:
+                raise DataLakeRootError("query citation Silver hash mismatch: %s" % ref)
+        else:
+            raise DataLakeRootError(
+                "unsupported query citation source kind: %s: %s" %
+                (ref,source["source_kind"]))
+        verified[ref] = (source,payload)
+    return verified
+
+
+def verify_sql_query_sources(root, report):
+    if report.get("query_profile") != "evidence_search":
+        raise ValueError("source verification requires an evidence_search report")
+    verified = _dr_verified_query_sources(root,report["rows"])
+    return {"status":"passed","verified_source_count":len(verified)}
+
+
+def query_exact_actor_context(root, *, platform, actor, from_utc, to_utc,
+                              creator_id=None, content_id=None):
+    if platform not in {"instagram","tiktok","youtube"}:
+        raise ValueError("one admitted platform namespace is required")
+    start = datetime.fromisoformat(from_utc.replace("Z","+00:00"))
+    end = datetime.fromisoformat(to_utc.replace("Z","+00:00"))
+    if start.tzinfo is None or end.tzinfo is None:
+        raise ValueError("actor window timestamps must include UTC offsets")
+    if end <= start or end-start > timedelta(days=90):
+        raise ValueError("actor window must be greater than zero and at most 90 days")
+    if not actor.strip():
+        raise ValueError("actor identifier must not be empty")
+    from_utc = start.astimezone(timezone.utc).isoformat()
+    to_utc = end.astimezone(timezone.utc).isoformat()
+    report = query_sql_catalogue(root,platform=platform,creator_id=creator_id,
+        content_id=content_id,from_utc=from_utc,to_utc=to_utc,
+        limit=SQL_ACTOR_CANDIDATE_LIMIT)
+    if report["truncated"]:
+        raise ValueError(
+            "actor candidate set exceeds the bounded result limit; narrow the "
+            "time window or add a creator/content anchor")
+    verified = _dr_verified_query_sources(root,report["rows"])
+    hydrated = {}
+    for ref,(source,payload) in verified.items():
+        if source["source_kind"] == "raw_packet":
+            events = _dr_raw_events(payload,ref)
+        else:
+            events = _dr_silver_events(json.loads(payload.decode()),ref)
+        hydrated.update({event["event_id"]:event for event in events})
+    needle = actor.strip().lstrip("@").casefold(); rows = []
+    for row in report["rows"]:
+        event = hydrated.get(row["event_id"])
+        observed = _dr_text(event.get("_actor")) if event else None
+        if observed and observed.strip().lstrip("@").casefold() == needle:
+            row["actor_public_identifier"] = observed; rows.append(row)
+    return {"query_profile":"exact_actor_context",
+        "query_contract_version":report["query_contract_version"],
+        "normalized_query":report["normalized_query"],"catalogue":report["catalogue"],
+        "platform_namespace":platform,"identifier_scope":actor,
+        "time_window":{"from_utc":from_utc,"to_utc":to_utc},
+        "candidate_event_count":report["row_count"],"row_count":len(rows),
+        "result_set_complete":True,"truncated":False,"rows":rows,
+        "source_verification":{"status":"passed",
+                               "verified_source_count":len(verified)},
+        "non_claims":["no durable actor index","no cross-platform identity merge",
+                      "not a paid/bot/fake/astroturf conclusion"]}
+
+
+def _dr_decision_question_id(value):
+    text = _dr_text(value)
+    if text is None or len(text) > SQL_DECISION_QUESTION_ID_MAX_LENGTH:
+        raise ValueError(
+            "decision_question_id must be nonblank and at most %d characters" %
+            SQL_DECISION_QUESTION_ID_MAX_LENGTH)
+    return text
+
+
+def _dr_query_citations(report):
+    return [{"event_id":row["event_id"],"source_ref":row["source_ref"],
+             "body_sha256":row["body_sha256"]} for row in report["rows"]]
+
+
+def _dr_write_query_audit(report, *, decision_question_id, caller, audit_root,
+                          profile_fields=None):
+    if report.get("result_set_complete") is not True or report.get("truncated"):
+        raise ValueError("decision query result set is truncated; narrow the query")
+    verification = report.get("source_verification")
+    if not isinstance(verification,dict) or verification.get("status") != "passed":
+        raise ValueError("decision query sources must be verified before audit")
+    catalogue = report.get("catalogue")
+    if not isinstance(catalogue,dict):
+        raise ValueError("decision query catalogue snapshot is missing")
+    citations = _dr_query_citations(report)
+    payload = {"audit_schema_version":SQL_QUERY_AUDIT_SCHEMA_VERSION,
+        "created_at":datetime.now(timezone.utc).isoformat(),
+        "caller":caller or os.environ.get("USERNAME") or "unknown",
+        "decision_question_id":decision_question_id,
+        "profile":report["query_profile"],
+        "query_contract_version":report["query_contract_version"],
+        "normalized_query":report["normalized_query"],
+        "catalogue_snapshot":{
+            key:catalogue.get(key) for key in (
+                "schema_version","extractor_profile","source_inventory_sha256",
+                "logical_digest","last_successful_refresh_at")},
+        "row_count":report["row_count"],"result_set_complete":True,
+        "source_verification":verification,"citations":citations,
+        "citation_manifest_sha256":hashlib.sha256(
+            canonical_record_bytes(citations)).hexdigest(),
+        "non_claims":report["non_claims"],"cache_hit":False,
+        "elevated_volume":report["row_count"]>=1000}
+    if profile_fields: payload.update(profile_fields)
+    root = Path(audit_root or os.environ.get("LOCALAPPDATA") or Path.home()) / "Forseti" / "audit" / "derived-retrieval"
+    root.mkdir(parents=True,exist_ok=True)
+    cutoff = datetime.now(timezone.utc).timestamp() - 365*24*60*60
+    for path in root.glob("*.json"):
+        if path.stat().st_mtime < cutoff: path.unlink()
+    target = root / ("%s.json" % uuid.uuid4().hex)
+    _atomic_create(target,canonical_record_bytes(payload))
+    return str(target)
+
+
+def write_evidence_query_audit(report, *, decision_question_id, caller=None,
+                               audit_root=None):
+    if report.get("query_profile") != "evidence_search":
+        raise ValueError("ordinary evidence audit requires an evidence_search report")
+    return _dr_write_query_audit(
+        report,decision_question_id=_dr_decision_question_id(decision_question_id),
+        caller=caller,audit_root=audit_root)
+
+
+def write_actor_query_audit(report, *, decision_question_id, caller=None, audit_root=None):
+    if decision_question_id not in SQL_DECISION_QUESTIONS:
+        raise ValueError("unregistered actor decision question")
+    if report.get("query_profile") != "exact_actor_context":
+        raise ValueError("actor audit requires an exact_actor_context report")
+    return _dr_write_query_audit(
+        report,decision_question_id=decision_question_id,caller=caller,
+        audit_root=audit_root,profile_fields={
+            "identifier_scope":report["identifier_scope"],
+            "platform_namespace":report["platform_namespace"],
+            "time_window":report["time_window"],
+            "candidate_event_count":report["candidate_event_count"]})
+
+
+def prove_sql_catalogue_rebuildability(root):
+    import tempfile
+    live = sql_catalogue_status(root)
+    with tempfile.TemporaryDirectory(prefix="forseti-sql-proof-") as temp:
+        with IncrementalSourceInventory(root,persistent=False) as inventory:
+            inventory.refresh(derived_lanes=_incremental_source_lanes(),include_acknowledgements=True)
+            cold = refresh_sql_catalogue(root,inventory,full_rebuild=True,
+                                         path=Path(temp)/"catalogue.sqlite3")
+    matched = (live["logical_digest"]==cold["logical_digest"] and
+               live["source_inventory_sha256"]==cold["source_inventory_sha256"])
+    return {"status":"proven" if matched else "failed",
+            "live_logical_digest":live["logical_digest"],
+            "cold_logical_digest":cold["logical_digest"],
+            "source_inventory_matches":live["source_inventory_sha256"]==cold["source_inventory_sha256"]}
+
+
 __all__ = [
     "BUILT_VIEWS",
     "BY_CREATOR_VIEW_SCHEMA_VERSION",
@@ -1409,4 +2119,12 @@ __all__ = [
     "prove_incremental_rebuild_equality",
     "prove_derived_retrieval_rebuildability",
     "rebuild_derived_retrieval",
+    "prove_sql_catalogue_rebuildability",
+    "query_exact_actor_context",
+    "query_sql_catalogue",
+    "refresh_sql_catalogue",
+    "sql_catalogue_status",
+    "verify_sql_query_sources",
+    "write_actor_query_audit",
+    "write_evidence_query_audit",
 ]

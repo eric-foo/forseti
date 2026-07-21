@@ -94,6 +94,62 @@ Ulta:
 - JSON-LD exposes compact per-review records with title, text, published date, author display, location, and rating.
 - Rendered PowerReviews DOM exposes additional review UI, helpful controls, recommendation text, and numeric headline IDs. These IDs are likely the path to native review identity but need one verification pass before code treats them as native review IDs.
 
+
+
+## 2026-07-21 Amazon compatibility implementation addendum
+
+Owner-directed work after the historical recon tested Amazon against the proven
+Sephora extraction inventory. This supersedes the report's
+`RECON_COMPLETE_BUILD_NOT_READY` recommendation for the bounded Amazon PDP
+top-review surface only; it does not change the Kohl's-first sequence.
+
+- Parent packet `01KY0PHPN10205MKKCK1GB7YH1` exposes 13 Amazon-native rows:
+  8 US and 5 other-country top reviews.
+- Corrected companion `01KY0S1ZACF3AG467GV6VA8CJN` preserves IDs, ratings,
+  titles, authors, dates/locations, variants, verified-purchase badges,
+  helpfulness, incentive badges, media references, and exact raw anchors. It
+  records aggregate rating `4.6`, count `37,045`, and five-to-one-star
+  percentages `81/11/5/1/2`. Bodies remain only in the immutable parent DOM.
+- Packet `01KY0S0MYDZQ2CSTF7HE1DD63S` is retained but superseded because its
+  first parser pass misread nested accessibility text as `81%` in every star
+  bucket.
+- No Bazaarvoice marker was found. The provider is
+  `amazon_native_rendered_pdp`. Five brand-authored A+ FAQ questions were
+  excluded from customer product Q&A.
+- Anonymous Amazon review portal `01KY0PDWK6NXH4H24X74P6BVVV` and direct
+  HTTP all-review probe `01KY0PFAXN1SBA86S49JKREBXQ` resolved to sign-in.
+  Page-declared fragment probe `01KY0R6YVRHNBWF3DPJ826WFSC` returned 404.
+  Stricter PDP attempt `01KY0P6N06XWTYAPWS2DR5JGHQ` preserved raw content but
+  failed an unrelated distribution-chip criterion.
+
+Explicit losses: no Most Helpful, Most Recent, last-seen anchor, complete
+corpus, reviewer age/skin/concern distributions, customer product Q&A, or
+independent linked-media-byte capture.
+
+### Authenticated cookie-session result and stopping decision (2026-07-21)
+
+The owner-authorized client-provided session changed access posture but did not
+increase the review evidence window:
+
+- `01KY1TD9VM70YWSKK72KM0P8A3`: authenticated legacy
+  `product-reviews` page, access-unblocked.
+- `01KY1TGCKSA3JREVGSC00VMZ8Y`: slugged authenticated portal route,
+  preserved `Page Not Found`.
+- `01KY1THNQ7ZXQ3Y0F13X203WNS`: non-slugged authenticated portal,
+  access-unblocked and hash-verified.
+
+The two successful authenticated pages exposed the same eight US review IDs in
+the same order as the anonymous PDP companion. Their source dates were not
+chronological despite `sortBy=recent`; no page-two link, customer Q&A,
+demographics, or Bazaarvoice marker appeared. The visible continuation control
+was not load-more: it declared an account-level POST that sends Amazon a
+request and promises an email within five business days. It was not activated.
+
+Owner decision: ordinary Amazon information capture stops at the anonymous,
+US-pinned PDP. Preserve international rows separately but exclude them from
+default US-market analysis. Do not implement authenticated review capture or
+customer-review portal entry before the v3 content-structure change.
+
 ## Recommended Minimal Next Scope
 
 Do not start a full adapter build yet. The next smallest complete step is a selector-level design patch that:

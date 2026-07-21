@@ -12,14 +12,21 @@ from source_capture.retail_grid_projection import write_retail_grid_projection
 
 
 def run_retail_grid_projection(*, packet_directory: Path, output_path: Path) -> Path:
-    write_retail_grid_projection(packet_directory=packet_directory, output_path=output_path)
+    projection = write_retail_grid_projection(
+        packet_directory=packet_directory, output_path=output_path
+    )
+    if projection.completeness.status == "incomplete":
+        raise ValueError(
+            "retail grid completeness reconciliation failed closed: "
+            + "; ".join(projection.completeness.residuals)
+        )
     return output_path
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Build a local, no-network Walmart/Target retail-grid projection JSON "
+            "Build a local, no-network Walmart/Target/Sephora retail-grid projection JSON "
             "from an existing Source Capture Packet directory."
         )
     )

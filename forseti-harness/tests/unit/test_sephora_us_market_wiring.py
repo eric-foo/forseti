@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,7 @@ from source_capture.adapters.sephora_us_market import (
     SephoraUSMarketPlugin,
     confirm_sephora_us_market,
 )
+from source_capture.retail_capture_profiles import get_retail_capture_profile
 
 
 def _sephora_dom(
@@ -55,12 +57,81 @@ def _sephora_dom(
     )
 
 
+def _sephora_grid_dom(*, currency_code: str | None = "USD") -> str:
+    render_query = json.dumps(
+        {
+            "channel": "rwd",
+            "country": "US",
+            "language": "en",
+            "urlPath": "/brand/summer-fridays",
+        },
+        separators=(",", ":"),
+    )
+    nth_brand: dict[str, object] = {
+        "brandId": "6247",
+        "displayName": "Summer Fridays",
+        "shortName": "Summer Fridays",
+        "resultId": "test-result",
+        "targetUrl": "/brand/summer-fridays",
+        "seoCanonicalUrl": "/brand/summer-fridays",
+        "pageSize": 60,
+        "totalProducts": 2,
+        "products": [
+            {
+                "brandName": "Summer Fridays",
+                "currentSku": {
+                    "isNew": True,
+                    "listPrice": "$24.00",
+                    "skuId": "2968907",
+                },
+                "displayName": "Lip Butter Balm",
+                "moreColors": 11,
+                "pickupEligible": False,
+                "productId": "P455936",
+                "rating": 4.29,
+                "reviews": 17635,
+                "sameDayEligible": False,
+                "targetUrl": "/product/lip-butter-balm-P455936?skuId=2968907",
+            },
+            {
+                "brandName": "Summer Fridays",
+                "currentSku": {
+                    "listPrice": "$49.00",
+                    "skuId": "2473361",
+                },
+                "displayName": "Jet Lag Mask",
+                "moreColors": 0,
+                "pickupEligible": False,
+                "productId": "P429952",
+                "rating": 4.2,
+                "reviews": 6700,
+                "sameDayEligible": False,
+                "targetUrl": "/product/jet-lag-mask-P429952?skuId=2473361",
+            },
+        ],
+    }
+    if currency_code is not None:
+        nth_brand["currencyCode"] = currency_code
+    page_json = json.dumps(
+        {"page": {"nthBrand": nth_brand}}, separators=(",", ":")
+    )
+    return (
+        "<html><body><script>"
+        f"Sephora.renderQueryParams = {render_query};Sephora.isSPA = true;"
+        '</script><script id="linkStore" type="text/json">'
+        f"{page_json}</script></body></html>"
+    )
+
+
 _US_DOM = _sephora_dom()
 _COUNTRY_DIALOG_TEXT = "This site does not ship to your country."
 _SEPHORA_URL = (
     "https://www.sephora.com/product/"
     "tower-28-lipsoftie-hydrating-tinted-lip-treatment-balm-P509397"
     "?country_switch=us&lang=en"
+)
+_SEPHORA_GRID_URL = (
+    "https://www.sephora.com/brand/summer-fridays?country_switch=us"
 )
 
 
@@ -81,6 +152,33 @@ def _fake_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
         screenshot_png=b"\x89PNG\r\n\x1a\n",
         metadata={
             "capture_timestamp": "2026-07-18T00:00:00Z",
+            "requested_url": kwargs["url"],
+            **pre_capture.describe(),
+            "pin_confirmed": confirmation.confirmed,
+        },
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+
+def _fake_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+    pre_capture = kwargs["pre_capture"]
+    assert isinstance(pre_capture, SephoraUSMarketPlugin)
+    assert pre_capture.page_kind == "grid"
+    dom = _sephora_grid_dom()
+    confirmation = pre_capture.confirm(dom)
+    return CloakBrowserSnapshotSuccess(
+        requested_url=kwargs["url"],
+        final_url=kwargs["url"],
+        title="Summer Fridays | Sephora",
+        rendered_dom=dom,
+        visible_text=(
+            "Summer Fridays 2 Results Quicklook Lip Butter Balm $24.00 "
+            "Quicklook Jet Lag Mask $49.00 1-2 of 2 Results"
+        ),
+        screenshot_png=b"\x89PNG\r\n\x1a\n",
+        metadata={
+            "capture_timestamp": "2026-07-21T00:00:00Z",
             "requested_url": kwargs["url"],
             **pre_capture.describe(),
             "pin_confirmed": confirmation.confirmed,
@@ -138,6 +236,34 @@ def test_confirmation_rejects_country_dialog_over_valid_usd_page() -> None:
 
     assert confirmation.confirmed is False
     assert "country-routing dialog absent" in confirmation.detail
+
+
+def test_grid_confirmation_requires_exact_pagejson_currency_code() -> None:
+    confirmation = confirm_sephora_us_market(
+        _sephora_grid_dom(), page_kind="grid"
+    )
+
+    assert confirmation.confirmed is True
+    assert "currency code USD" in confirmation.detail
+    assert (
+        confirm_sephora_us_market(
+            _sephora_grid_dom(currency_code=None), page_kind="grid"
+        ).confirmed
+        is False
+    )
+    assert (
+        confirm_sephora_us_market(
+            _sephora_grid_dom(currency_code="CAD"), page_kind="grid"
+        ).confirmed
+        is False
+    )
+    assert (
+        confirm_sephora_us_market(
+            _sephora_grid_dom() + f"<div>{_COUNTRY_DIALOG_TEXT}</div>",
+            page_kind="grid",
+        ).confirmed
+        is False
+    )
 
 
 @pytest.mark.parametrize(
@@ -266,6 +392,43 @@ def test_writer_builds_sephora_market_plugin(
 
     assert exit_code == 0
     assert output == str(tmp_path / "packet")
+
+
+def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_grid_capture
+    )
+    profile = get_retail_capture_profile("sephora_grid_aggregate")
+
+    with pytest.raises(ValueError, match="retail-grid-projection-output"):
+        _run_writer(
+            tmp_path,
+            url=_SEPHORA_GRID_URL,
+            decision_question="What is the Summer Fridays grid?",
+            retail_capture_profile=profile,
+        )
+
+    projection_path = tmp_path / "projection" / "retail_grid_projection.json"
+    exit_code, output = _run_writer(
+        tmp_path,
+        url=_SEPHORA_GRID_URL,
+        decision_question="What is the Summer Fridays grid?",
+        retail_capture_profile=profile,
+        retail_grid_projection_output=projection_path,
+    )
+
+    assert exit_code == 0
+    assert output == str(tmp_path / "packet")
+    projection = json.loads(projection_path.read_text(encoding="utf-8"))
+    assert projection["completeness"]["status"] == "complete"
+    assert projection["completeness"]["page_declared_result_count"] == 2
+    assert projection["completeness"]["extracted_unique_parent_count"] == 2
+    assert projection["source_visible_grid_facts"]["subject_binding_confirmed"] is True
+    assert projection["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
+        _sephora_grid_dom().encode("utf-8")
+    ).hexdigest()
 
 
 def test_writer_requires_sephora_us_request_route(tmp_path: Path) -> None:

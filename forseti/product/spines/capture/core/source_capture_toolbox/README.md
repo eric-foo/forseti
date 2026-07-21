@@ -183,26 +183,22 @@ It must not own ECR fields, Cleaning transforms, Judgment scoring, credibility,
 inclusion, exclusion, discounting, Signal Use, Decision Strength, Action
 Ceiling, buyer proof, or commercial meaning.
 
-### Retail/PDP Projection Contract
+### Retail/PDP Content and Cleaning Contract
 
-Purpose: stabilize how captured retailer PDP packets are mechanically projected
-into source-visible product, variant/offer, review substrate, embedded JSON, and
-carried-module rows, including the bounded opt-in capture sidecar, before any
-ECR sequencing.
+Purpose: route agents to the current Retail/PDP capture-retention, Cleaning,
+source-binding, residual, and Silver-handoff boundary.
 
 The contract is at
 `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
-It covers Amazon, Sephora, and Ulta binding postures; unsafe fallback residuals;
-Sephora target `ProductPage` DOM price binding versus structured-JSON fallback;
-Ulta requested-SKU versus projected-SKU residuals; Amazon DOM target price and
-storefront pin limits; `structure_preserved` semantics; and explicit
-no-Cleaning/no-ECR/no-Judgment boundaries.
 
 Implemented capture-side wiring admits either a family content record or a raw
 packet. Current content records are validated and adapted under Cleaning; no
 separate persisted Retail/PDP Projection sidecar is written. Scratch
 qualification may compare disposable DOM/text with the derived content record,
 but qualification output is not a lake packet and cannot admit sample mode.
+For new Sephora deep-page packets, `sephora_pdp_aggregate` content v3 is the
+sole normal route; older sampled-raw/full-derived and Projection-era methods are
+legacy-read-only, while explicit raw remains diagnosis/recovery posture.
 For retailer pins, sufficiency failures, content ownership, legacy raw
 compatibility, and the Silver handoff, use
 `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
@@ -419,22 +415,6 @@ It is planning context only. It is not validation, readiness, live Reddit
 capture authorization, CloakBrowser installation proof, parser correctness
 proof, storage authorization, production-runtime authorization, ECR, Cleaning,
 Judgment, or commercial Reddit authority.
-
-### Retail/PDP Projection Playbook
-
-Purpose: give agents and owners one current contract for projecting bounded
-Amazon, Sephora, and Ulta PDP packets into source-visible product, offer,
-review-substrate, embedded-JSON, and carried-module rows.
-
-The playbook is at
-`forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md`.
-It names the raw packet inputs, allowed projection rows, binding map requirements,
-loss and residual rules, retailer-specific target-binding posture, and next-move
-selector for playbook versus wiring versus ECR sequencing.
-
-It is product/source-capture guidance only. It is not validation, readiness,
-live capture authorization, auto-project wiring, ECR, Cleaning, Judgment,
-source-quality scoring, fixture admission, or buyer proof.
 
 ### IG Creator Roster And Frontier Ledger Spec
 

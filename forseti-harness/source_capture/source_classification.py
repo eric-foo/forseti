@@ -337,6 +337,14 @@ SOURCE_CLASSIFICATION_DEFINITIONS: tuple[SourceClassificationDefinition, ...] = 
         shapes=(EvidenceShape.REVIEW,),
         source="forseti-harness/source_capture/target_onboarding_capture.py",
     ),
+    _definition(
+        "retail_pdp",
+        "amazon_review_onboarding",
+        operator="amazon",
+        roles=(VenueRole.RETAILER,),
+        shapes=(EvidenceShape.REVIEW,),
+        source="forseti-harness/source_capture/amazon_review_onboarding_capture.py",
+    ),
     *(
         _definition(
             "social_media",

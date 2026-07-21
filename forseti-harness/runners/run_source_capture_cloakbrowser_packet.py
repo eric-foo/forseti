@@ -70,6 +70,7 @@ from source_capture.retail_capture_profiles import (
     retail_capture_profile_names,
     validate_retail_capture_profile_route,
 )
+from source_capture.retail_grid_projection import write_retail_grid_projection
 from source_capture.retail_pdp_content import (
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_PARSER_VERSION,
@@ -204,6 +205,7 @@ def run_source_capture_cloakbrowser_packet(
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
     content_extraction: RenderedContentExtractionSpec | None = None,
+    retail_grid_projection_output: Path | None = None,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
@@ -233,6 +235,11 @@ def run_source_capture_cloakbrowser_packet(
                 source_detail_sufficiency_requirements,
                 retail_capture_profile.requirements_for_capture(url=url),
             )
+        )
+        _validate_retail_grid_projection_request(
+            retail_capture_profile=retail_capture_profile,
+            retail_grid_projection_output=retail_grid_projection_output,
+            sephora_market=sephora_market,
         )
         if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
             if sephora_market != "US":
@@ -320,6 +327,12 @@ def run_source_capture_cloakbrowser_packet(
         pre_capture = SephoraUSMarketPlugin(
             target_url=url,
             country_code=sephora_market,
+            page_kind=(
+                "grid"
+                if retail_capture_profile is not None
+                and retail_capture_profile.name == "sephora_grid_aggregate"
+                else "pdp"
+            ),
         )
     elif ulta_market is not None:
         ulta_sku = _validate_ulta_us_market_url(url)
@@ -590,8 +603,16 @@ def run_source_capture_cloakbrowser_packet(
                     "rendered content extractor must return a JSON object, "
                     f"got {type(record).__name__}"
                 )
+            serialization_options: dict[str, object] = {
+                "sort_keys": True,
+                "ensure_ascii": False,
+            }
+            if content_extraction.json_indent is None:
+                serialization_options["separators"] = (",", ":")
+            else:
+                serialization_options["indent"] = content_extraction.json_indent
             content_record_bytes = (
-                json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+                json.dumps(record, **serialization_options) + "\n"
             ).encode("utf-8")
             extraction_status = "succeeded"
         except Exception as exc:
@@ -825,11 +846,43 @@ def run_source_capture_cloakbrowser_packet(
                 pass
         if staging_root is not None:
             shutil.rmtree(staging_root, ignore_errors=True)
+    grid_projection_path: Path | None = None
+    grid_projection_failure: str | None = None
+    if retail_grid_projection_output is not None:
+        try:
+            projection = write_retail_grid_projection(
+                packet_directory=Path(result.output_directory),
+                output_path=retail_grid_projection_output,
+            )
+            grid_projection_path = retail_grid_projection_output
+            if projection.completeness.status == "incomplete":
+                grid_projection_failure = (
+                    "retail_grid_completeness_failed: "
+                    + "; ".join(projection.completeness.residuals)
+                )
+        except Exception as exc:
+            grid_projection_failure = (
+                "retail_grid_projection_failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
     if sephora_pin_failure is not None:
+        projection_detail = (
+            f"; projection preserved at {grid_projection_path}"
+            if grid_projection_path is not None
+            else f"; {grid_projection_failure}"
+            if grid_projection_failure is not None
+            else ""
+        )
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {sephora_pin_failure}",
+            f"{result.output_directory}; {sephora_pin_failure}{projection_detail}",
+        )
+    if grid_projection_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{grid_projection_failure}: packet preserved at {result.output_directory}; "
+            f"projection={grid_projection_path or 'not_written'}",
         )
     if nordstrom_pin_failure is not None:
         return (
@@ -903,6 +956,28 @@ def _validate_sephora_us_market_url(url: str) -> None:
         )
 
 
+def _validate_retail_grid_projection_request(
+    *,
+    retail_capture_profile: RetailCaptureProfile,
+    retail_grid_projection_output: Path | None,
+    sephora_market: str | None,
+) -> None:
+    if retail_capture_profile.name == "sephora_grid_aggregate":
+        if sephora_market != "US":
+            raise ValueError(
+                "sephora_grid_aggregate requires --sephora-market US"
+            )
+        if retail_grid_projection_output is None:
+            raise ValueError(
+                "sephora_grid_aggregate requires --retail-grid-projection-output"
+            )
+    elif retail_grid_projection_output is not None:
+        raise ValueError(
+            "--retail-grid-projection-output currently requires "
+            "sephora_grid_aggregate"
+        )
+
+
 def _sephora_market_pin_failure(
     *,
     sephora_market: str | None,
@@ -926,6 +1001,7 @@ def _sephora_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec
     return RenderedContentExtractionSpec(
         requested_retention_mode=mode,
         extractor_version=SEPHORA_PDP_PARSER_VERSION,
+        json_indent=None,
         extractor=lambda rendered_dom, visible_text, final_url: (
             build_sephora_pdp_aggregate_content_record(
                 rendered_dom=rendered_dom,
@@ -1406,6 +1482,16 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--retail-grid-projection-output",
+        type=Path,
+        default=None,
+        help=(
+            "Required for sephora_grid_aggregate. Writes the hash-verified, view-only "
+            "typed grid projection sidecar and fails closed when completeness does not "
+            "reconcile."
+        ),
+    )
+    parser.add_argument(
         "--settle-seconds",
         type=float,
         default=None,
@@ -1660,6 +1746,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 url=args.url,
                 source_family=args.source_family,
                 source_surface=args.source_surface,
+            )
+            _validate_retail_grid_projection_request(
+                retail_capture_profile=retail_capture_profile,
+                retail_grid_projection_output=args.retail_grid_projection_output,
+                sephora_market=args.sephora_market,
+            )
+        elif args.retail_grid_projection_output is not None:
+            raise ValueError(
+                "--retail-grid-projection-output requires a retail capture profile"
             )
         content_profiles = {
             SEPHORA_PDP_CONTENT_PROFILE,
@@ -1952,6 +2047,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             intended_cadence=build_intended_cadence(args),
             content_extraction=content_extraction,
+            retail_grid_projection_output=args.retail_grid_projection_output,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
