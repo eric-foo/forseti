@@ -70,7 +70,10 @@ from source_capture.retail_capture_profiles import (
     retail_capture_profile_names,
     validate_retail_capture_profile_route,
 )
-from source_capture.retail_grid_projection import write_retail_grid_projection
+from source_capture.retail_grid_projection import (
+    project_retail_grid_into_lake,
+    write_retail_grid_projection,
+)
 from source_capture.retail_pdp_content import (
     LUCKYSCENT_PDP_CONTENT_PROFILE,
     LUCKYSCENT_PDP_PARSER_VERSION,
@@ -149,6 +152,13 @@ _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
 RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
+_RETAIL_GRID_PROJECTION_PROFILES = frozenset(
+    {
+        "sephora_grid_aggregate",
+        "target_grid_aggregate",
+        "ulta_grid_aggregate",
+    }
+)
 
 
 def run_source_capture_cloakbrowser_packet(
@@ -250,6 +260,7 @@ def run_source_capture_cloakbrowser_packet(
         _validate_retail_grid_projection_request(
             retail_capture_profile=retail_capture_profile,
             retail_grid_projection_output=retail_grid_projection_output,
+            data_root_mode=data_root is not None,
             sephora_market=sephora_market,
             ulta_market=ulta_market
         )
@@ -898,13 +909,23 @@ def run_source_capture_cloakbrowser_packet(
             shutil.rmtree(staging_root, ignore_errors=True)
     grid_projection_path: Path | None = None
     grid_projection_failure: str | None = None
-    if retail_grid_projection_output is not None:
+    if (
+        retail_capture_profile is not None
+        and retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES
+    ):
         try:
-            projection = write_retail_grid_projection(
-                packet_directory=Path(result.output_directory),
-                output_path=retail_grid_projection_output,
-            )
-            grid_projection_path = retail_grid_projection_output
+            if data_root is not None:
+                projection, grid_projection_path = project_retail_grid_into_lake(
+                    data_root=data_root,
+                    packet_id=result.packet.packet_id,
+                )
+            else:
+                assert retail_grid_projection_output is not None
+                projection = write_retail_grid_projection(
+                    packet_directory=Path(result.output_directory),
+                    output_path=retail_grid_projection_output,
+                )
+                grid_projection_path = retail_grid_projection_output
             if projection.completeness.status == "incomplete":
                 grid_projection_failure = (
                     "retail_grid_completeness_failed: "
@@ -993,6 +1014,12 @@ def run_source_capture_cloakbrowser_packet(
         )
     if extraction_failure is not None:
         return CONTENT_EXTRACTION_FAILED_EXIT_CODE, result.output_directory
+    if grid_projection_path is not None:
+        return (
+            0,
+            f"raw packet preserved at {result.output_directory}; "
+            f"projection preserved at {grid_projection_path}",
+        )
     return 0, result.output_directory
 
 
@@ -1068,6 +1095,7 @@ def _validate_retail_grid_projection_request(
     *,
     retail_capture_profile: RetailCaptureProfile,
     retail_grid_projection_output: Path | None,
+    data_root_mode: bool = False,
     sephora_market: str | None = None,
     ulta_market: str | None = None,
 ) -> None:
@@ -1078,13 +1106,13 @@ def _validate_retail_grid_projection_request(
         if ulta_market != "US":
             raise ValueError("ulta_grid_aggregate requires --ulta-market US")
 
-    projection_profiles = {
-        "sephora_grid_aggregate",
-        "target_grid_aggregate",
-        "ulta_grid_aggregate",
-    }
-    if retail_capture_profile.name in projection_profiles:
-        if retail_grid_projection_output is None:
+    if retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES:
+        if data_root_mode and retail_grid_projection_output is not None:
+            raise ValueError(
+                "--retail-grid-projection-output is forbidden in --data-root mode; "
+                "retail-grid projection filing is automatic"
+            )
+        if not data_root_mode and retail_grid_projection_output is None:
             raise ValueError(
                 f"{retail_capture_profile.name} requires "
                 "--retail-grid-projection-output"
@@ -1629,9 +1657,9 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required for admitted Sephora, Target, and Ulta aggregate grids. "
-            "Writes the hash-verified, view-only typed grid projection sidecar and "
-            "fails closed when evaluated completeness does not reconcile."
+            "Required in local --output mode for admitted Sephora, Target, and Ulta "
+            "aggregate grids. Forbidden in --data-root mode, where the hash-verified, "
+            "view-only projection is filed automatically."
         ),
     )
     parser.add_argument(
@@ -1878,6 +1906,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
+        data_root_requested = args.data_root is not None or (
+            args.output is None
+            and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
+        )
         retail_capture_profile = (
             get_retail_capture_profile(args.retail_capture_profile)
             if args.retail_capture_profile is not None
@@ -1905,6 +1937,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             _validate_retail_grid_projection_request(
                 retail_capture_profile=retail_capture_profile,
                 retail_grid_projection_output=args.retail_grid_projection_output,
+                data_root_mode=bool(data_root_requested),
                 sephora_market=args.sephora_market,
                 ulta_market=args.ulta_market
             )
@@ -2079,7 +2112,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         # early return sits between the target checks and DataLakeRoot.resolve, so a
         # preflight run must not attempt (or fail on) lake resolution.
         data_root = None
-        data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
         if args.output is not None and args.data_root is not None:
             parser.exit(
                 status=2,

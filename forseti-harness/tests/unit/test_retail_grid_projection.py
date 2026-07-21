@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from data_lake.root import DataLakeRoot
 from runners import run_retail_grid_projection as grid_projection_runner
 from runners.run_capture_ecr_cleaning_smoke import run_capture_ecr_cleaning_smoke
 from source_capture.models import (
@@ -25,8 +26,10 @@ from source_capture.retail_grid_projection import (
     RetailGridProjectionInputError,
     build_retail_grid_projection,
     build_retail_grid_projection_from_packet_directory,
+    project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
+from source_capture.writer import write_local_source_capture_packet
 
 
 def test_walmart_next_data_projection_preserves_one_row_per_product_tile() -> None:
@@ -313,6 +316,46 @@ def test_grid_projection_runner_writes_hash_verified_sidecar(
     assert payload["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
         (packet_dir / "raw/01_http_response_body.bin").read_bytes()
     ).hexdigest()
+
+
+def test_retail_grid_lake_projection_loads_verified_raw_and_appends_derived(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    capture_path = tmp_path / "target_grid.html"
+    capture_path.write_text(_target_html(), encoding="utf-8")
+    written = write_local_source_capture_packet(
+        data_root=root,
+        input_files=[capture_path],
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=known_fact(
+            "https://www.target.com/s?searchTerm=lip%20mask"
+        ),
+        decision_question="What products are visible in the Target grid?",
+        capture_context="offline unit fixture",
+    )
+
+    projection, derived_path = project_retail_grid_into_lake(
+        data_root=root,
+        packet_id=written.packet.packet_id,
+        record_id="retail_grid_fixture",
+    )
+
+    loaded = root.load_raw_packet(written.packet.packet_id)
+    assert loaded.manifest["packet_id"] == written.packet.packet_id
+    assert projection.packet_id == written.packet.packet_id
+    assert projection.rows
+    assert derived_path.relative_to(root.path).parts == (
+        "derived",
+        hashlib.sha256(written.packet.packet_id.encode("utf-8")).hexdigest()[:3],
+        written.packet.packet_id,
+        "projection_retail_grid",
+        "retail_grid_fixture.json",
+    )
+    assert json.loads(derived_path.read_text(encoding="utf-8"))["packet_id"] == (
+        written.packet.packet_id
+    )
 
 
 def test_grid_projection_packet_directory_blocks_hash_mismatch(tmp_path: Path) -> None:
