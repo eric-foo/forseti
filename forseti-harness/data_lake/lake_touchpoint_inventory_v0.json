@@ -170,6 +170,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 3,
+      "module": "data_lake/reddit_subreddit_registry.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "data_lake/reddit_subreddit_registry.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "is_record_set_complete",
       "count": 1,
       "module": "data_lake/silver_census.py"
