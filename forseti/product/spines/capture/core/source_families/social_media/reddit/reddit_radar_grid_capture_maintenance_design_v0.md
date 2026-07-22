@@ -138,6 +138,29 @@ Projection lane.
    subreddit listing surfaces for generic agents" — still true, now materially
    understated.
 
+   **Diagnosed, not assumed.** Three alternative explanations were tested and
+   all fail:
+
+   - *Intermittent?* No. Five consecutive fetches returned the identical
+     538-byte body.
+   - *Our egress being served a punitive file?* No. The egress is residential
+     (AS9506 Singtel, SG) with no proxy, and the Internet Archive's independent
+     crawl of `reddit.com/robots.txt` on 2026-04-14 is **byte-identical** to
+     what we receive.
+   - *A recent change we could wait out?* No. Across 2026 the archive shows
+     Reddit alternating between exactly two variants — `User-agent: * /
+     Disallow: /` (what we get) and `User-Agent: * / Allow: /$ / Disallow: /`.
+     The second permits only the bare homepage. **Neither variant permits a
+     subreddit listing path.**
+
+   **Consequence for the prior record:** the granular per-surface disallow list
+   was last served in 2025. The 2026-06-08 observation carried by
+   `data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` therefore
+   described a file Reddit had already stopped serving, and this design plus the
+   runner receipt inherited that basis. The measured-risk track was accepted
+   against a robots posture that was not current at acceptance time. That is an
+   owner-facing correction, not a mechanical one.
+
    This fires this artifact's own `stale_if` #2. The accepted measured-risk
    bounded-public-capture track was designed against a granular disallow;
    whether it survives a blanket disallow is an owner call, not an
