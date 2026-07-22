@@ -59,9 +59,12 @@ DEFAULT_MAX_BYTES = 5_000_000
 DEFAULT_RETENTION_MODE = "content"
 
 SOURCE_POLICY_POSTURE_RECEIPT = (
-    "source-policy posture: reddit robots.txt disallows subreddit listing surfaces for "
-    "generic agents; this bounded single-page grid pass runs under the owner-accepted "
-    "measured-risk dual-track posture (Reddit lane README, 2026-07-16); not ToS sufficiency"
+    "source-policy posture: reddit robots.txt disallows ALL paths for generic agents "
+    "('User-agent: * / Disallow: /', re-checked 2026-07-22 and matched against an "
+    "independent archive crawl; a variant allowing only '/$' is served interchangeably "
+    "and likewise disallows listings); this bounded single-page grid pass runs under the "
+    "owner-accepted measured-risk dual-track posture (Reddit lane README, 2026-07-16); "
+    "not ToS sufficiency"
 )
 
 

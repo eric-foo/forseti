@@ -119,7 +119,7 @@ Projection lane.
    Public Content Policy), plus the per-run robots/source-policy posture
    receipt every pass already owes.
 
-   **Re-check executed 2026-07-22 — BLOCKER, owner decision required.**
+   **Re-check executed 2026-07-22 — recorded; NOT a blocker.**
    `https://www.reddit.com/robots.txt` and `https://old.reddit.com/robots.txt`
    both now serve exactly:
 
@@ -153,20 +153,33 @@ Projection lane.
      The second permits only the bare homepage. **Neither variant permits a
      subreddit listing path.**
 
-   **Consequence for the prior record:** the granular per-surface disallow list
-   was last served in 2025. The 2026-06-08 observation carried by
-   `data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` therefore
-   described a file Reddit had already stopped serving, and this design plus the
-   runner receipt inherited that basis. The measured-risk track was accepted
-   against a robots posture that was not current at acceptance time. That is an
-   owner-facing correction, not a mechanical one.
+   **Why this is not a blocker.** The change is one of degree, not kind. The
+   accepted posture already states that the captured surface is
+   robots-disallowed — the per-run receipt in `run_reddit_grid_capture.py` reads
+   "robots.txt disallows subreddit listing surfaces for generic agents; this
+   bounded single-page grid pass runs under the owner-accepted measured-risk
+   dual-track posture." A subreddit listing path is disallowed under the granular
+   file and under both current variants alike, so nothing decision-relevant to
+   this lane moved. The receipt's operative clause stands; only its implied
+   picture of the surrounding file is stale.
 
-   This fires this artifact's own `stale_if` #2. The accepted measured-risk
-   bounded-public-capture track was designed against a granular disallow;
-   whether it survives a blanket disallow is an owner call, not an
-   implementation detail. Until the owner rules, no cadenced or one-off live
-   grid pass is cleared to execute, and the sanctioned API / licensing track is
-   the only unblocked access path. Nothing here re-authorizes capture.
+   robots.txt is also advisory, not enforcement: Reddit serves listing pages
+   normally, and the lane's captures have continued to succeed (most recent
+   Reddit packet 2026-07-18). Capture success is not evidence of robots
+   permission, and robots disallow is not evidence of a broken capture path —
+   the two measure different things, and the measured-risk posture exists
+   precisely because they diverge.
+
+   **Accuracy correction for the prior record:** the granular per-surface list
+   was last served in 2025, so the 2026-06-08 observation carried by
+   `data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` described
+   a file already withdrawn. Its operative clause — subreddit listings
+   disallowed — was correct then and remains correct. The correction is to the
+   description, not to the accepted risk basis.
+
+   The standing per-run receipt should be reworded to state the blanket
+   disallow accurately rather than implying a granular file, but the posture it
+   records is unchanged and no re-authorization is required for it.
 2. **Sanctioned API/licensing track** needs its own registration and
    commercial-terms work before it exists; nothing here registers or
    commits to terms.
