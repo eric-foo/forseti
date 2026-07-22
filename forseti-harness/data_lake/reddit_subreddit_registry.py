@@ -581,6 +581,106 @@ def append_grid_observation(
     return {"subreddit": key, "status": "written", "record_id": record_id, "written": True}
 
 
+def append_reach_observation(
+    data_root: DataLakeRoot,
+    *,
+    subreddit: str,
+    observed_at: str,
+    source_surface: str,
+    provenance_pointer: str,
+    subscriber_count_or_none: str | None = None,
+    weekly_visitor_count_or_none: str | None = None,
+    weekly_contribution_count_or_none: str | None = None,
+    absent_reason_or_none: str | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Append one agent-read reach observation (SERP band or community panel).
+
+    Same lane and dedupe rule as grid observations, different evidence class:
+    the value was read off a browser surface by the agent, not projected from a
+    packet.  Counts stay strings so rounded bands like ``"135.3K+"`` are legal.
+    A reach read carries NO row effects -- a third-party band cannot prove
+    liveness and there is no packet to advance ``capture_state``; the fold just
+    gains the observation and its register pointer.
+    """
+    key = normalize_subreddit(subreddit)
+    try:
+        date.fromisoformat(observed_at)
+    except ValueError as exc:
+        raise RedditSubredditRegistryLakeError(
+            "observed_at_invalid", f"observed_at must be an ISO date: {observed_at!r}"
+        ) from exc
+    if not isinstance(source_surface, str) or not source_surface.strip():
+        raise RedditSubredditRegistryLakeError(
+            "source_surface_missing", "reach observation requires a source_surface"
+        )
+    if not isinstance(provenance_pointer, str) or not provenance_pointer.strip():
+        raise RedditSubredditRegistryLakeError(
+            "provenance_missing", "reach observation requires a provenance_pointer"
+        )
+    if all(
+        value is None
+        for value in (
+            subscriber_count_or_none,
+            weekly_visitor_count_or_none,
+            weekly_contribution_count_or_none,
+            absent_reason_or_none,
+        )
+    ):
+        raise RedditSubredditRegistryLakeError(
+            "observation_empty",
+            "reach observation carries no count and no absent reason; refusing to record nothing",
+        )
+
+    row = fold_subreddit(data_root, key)
+    observation = {
+        "observed_at": observed_at,
+        "subscriber_count_or_none": subscriber_count_or_none,
+        "active_user_count_or_none": None,
+        "weekly_visitor_count_or_none": weekly_visitor_count_or_none,
+        "weekly_contribution_count_or_none": weekly_contribution_count_or_none,
+        "source_surface": source_surface,
+        "provenance_pointer": provenance_pointer,
+        "absent_reason_or_none": absent_reason_or_none,
+    }
+    for existing in row.get("observations", []):
+        if existing.get("provenance_pointer") == provenance_pointer:
+            if existing != observation:
+                raise RedditSubredditRegistryLakeError(
+                    "observation_provenance_conflict",
+                    f"provenance pointer {provenance_pointer} is already recorded for "
+                    f"{key} with different values",
+                )
+            return {
+                "subreddit": key,
+                "status": "already_current",
+                "record_id": None,
+                "written": False,
+            }
+
+    record_id = _record_id("rso", {"subreddit": key, "provenance_pointer": provenance_pointer})
+    record = _seal(
+        {
+            "schema_version": OBSERVATION_SCHEMA_VERSION,
+            "record_id": record_id,
+            "subreddit": key,
+            "observation": observation,
+            "row_effects": {"status": None, "capture_state": None},
+            "recorded_at": utc_now_z(),
+        }
+    )
+    if dry_run:
+        return {"subreddit": key, "status": "would_write", "record_id": record_id, "written": False}
+    data_root.append_record(
+        subtree=DERIVED_SUBTREE,
+        raw_anchor=key,
+        lane=REDDIT_OBSERVATION_LANE,
+        record_id=record_id,
+        data=canonical_record_bytes(record),
+    )
+    return {"subreddit": key, "status": "written", "record_id": record_id, "written": True}
+
+
 def append_roster_change(
     data_root: DataLakeRoot,
     *,
