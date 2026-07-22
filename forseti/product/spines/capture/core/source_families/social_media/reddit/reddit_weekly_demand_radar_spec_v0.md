@@ -141,6 +141,55 @@ separate layer; nothing here persists analysis output to the lake.
   unconditionally. The weekly output always states candidates found vs dived —
   no silent truncation.
 
+### F. Roster discovery sweep (SERP), and its pacing contract
+
+Discovery is agent-run in the in-app browser pane, never headless and never
+stealth: the gate below is a real ceiling, and reaching for an anti-detection
+launch profile to pass it is evasion, not capture. CloakBrowser `humanize`
+is additionally not wired for arbitrary URLs (it is coupled to the retail
+pre-capture profiles), so it is not the tool for this surface.
+
+Query shape:
+
+- `r/<anchor> reddit` on a SINGLE anchor. The related-communities block
+  returns 5-8 subreddits with follower bands per query, so **one query is
+  already a batch** — the lever is fewer, denser queries, not more queries.
+- Multi-`r/` queries suppress the block to one card; keyword-only queries
+  usually render no cards at all. Both are wasted requests.
+
+**Pacing contract (measured 2026-07-22):** Google bot-gates on request
+*velocity*, not volume.
+
+- Sweep 1 ran ~30 rapid back-to-back navigations and tripped the
+  "unusual traffic / not a robot" interstitial.
+- Sweep 2 ran 13 navigations with a 4-6 second pause between each and did
+  not re-trip it once.
+- Therefore: **pause 4-6 seconds between navigations**, and prefer ~5-8
+  high-yield anchors per session over many narrow queries.
+- Every extraction checks the page for the interstitial before parsing, so a
+  gated page is never silently read as an empty result.
+- On a gate: STOP the sweep, bank everything already gathered, and ping the
+  owner to clear the challenge. The agent never solves it.
+
+Admission gate per find (adds are effectively permanent — `--roster` captures
+every tracked subreddit forever, and there is no paused capture state yet):
+
+- **Add** on clear beauty-topic fit plus a visible band. No follower floor —
+  the density finding says small subreddits punch above their size.
+- **Park** (report, do not add) on ambiguous fit, employee/worker subreddits,
+  or effectively dead ones (a few hundred members).
+- **Skip** on non-beauty (outside the `NICHE_PATHS` vocabulary) or meme
+  subreddits.
+- **Region:** US/general/product-category only. Country-audience subreddits
+  (India, PH, UK, AU, CA) are excluded by owner decision 2026-07-22. Korean
+  and Asian beauty stay: they are product categories with large US demand,
+  not geographic audiences.
+
+Each find lands as two records: `add` (niche path, venue role,
+`candidate_new_subreddit`) and `observe` (the band, surface
+`agent_browser_serp_read`). New subreddits enter the next weekly pass
+automatically because the runner reads `--roster` from the fold.
+
 ## Explicitly out of scope / deferred, with triggers
 
 - Weekly digest / condensed judgment pack: later layer; trigger is the
@@ -153,9 +202,13 @@ separate layer; nothing here persists analysis output to the lake.
 - New-Reddit capture rungs: closed. www is bot-gated; the sanctioned path for
   commercial-grade needs is the licensing track per the lane README.
 - Reddit Data API: dropped 2026-07-22 (approval-gated, no published timeline).
-- Roster expansion (SERP sweeps toward ~250): starts immediately after this
-  spec is implemented, so bands land through real verbs; it is operator-paced
-  and bounded, never a crawler.
+- Roster expansion beyond 100: the owner set the first target at 100
+  (reached 2026-07-22, 38 -> 100 across two sweeps). Further growth uses
+  section F unchanged; it is owner-paced and bounded, never a crawler.
+- Roster pruning / a paused capture posture: no vocabulary value exists for
+  "tracked but not captured", so a dropped subreddit today means living with
+  its weekly request. Trigger to add one: the first prune pass that wants to
+  keep a subreddit's history while stopping its capture.
 
 ## Verification bound to implementation
 

@@ -236,6 +236,10 @@ def run_reddit_grid_capture(
                 requested_retention_mode=row_retention,
                 extractor_version=GRID_PROJECTION_PARSER_VERSION,
                 extractor=_extract,
+                # The rotating raw sample exists to audit the projection, so it
+                # must itself be checked: without this it is the one packet that
+                # can bank a login wall and still report success.
+                validate_in_raw_mode=True,
             )
         try:
             row["capture_started_at"] = utc_now_z_microseconds()
@@ -418,9 +422,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.roster:
             if data_root is None:
                 raise ValueError("--roster reads the lake registry; --data-root is required")
-            from data_lake.reddit_subreddit_registry import known_subreddits
+            # capture_roster, not known_subreddits: retired rows keep their
+            # history in the fold but must not cost a request per pass.
+            from data_lake.reddit_subreddit_registry import capture_roster
 
-            subreddits = known_subreddits(data_root)
+            subreddits = capture_roster(data_root)
             if not subreddits:
                 raise ValueError("--roster found no tracked subreddits in the lake registry")
         exit_code, message = run_reddit_grid_capture(

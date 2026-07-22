@@ -27,6 +27,14 @@ class ContentExtractionSpec:
     requested_retention_mode: RequestedRetentionMode
     extractor_version: str
     extractor: Callable[[str, str], dict]
+    # Raw retention normally skips extraction entirely, which also skips any
+    # shape check the extractor performs.  A raw sample kept to AUDIT the
+    # projection is then the one packet nobody audits -- it banks whatever the
+    # server returned, including a login wall, and reports success.  Opt in to
+    # run the extractor purely as a validity check: raw is still what gets
+    # preserved, but a raising extractor marks the packet raw_failure instead
+    # of clean.  Default False, so no existing caller changes behavior.
+    validate_in_raw_mode: bool = False
 
     def __post_init__(self) -> None:
         if self.requested_retention_mode not in CAPTURE_RETENTION_MODES:

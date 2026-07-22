@@ -67,7 +67,13 @@ VENUE_ROLES = frozenset(
         "specialist",
     }
 )
-DISCOVERY_STATES = frozenset({"known_subreddit", "candidate_new_subreddit"})
+# ``retired`` is the stop-tracking state: the lake is append-only, so a
+# subreddit's history is never deleted, but a retired row is excluded from the
+# capture roster so it stops costing a request per pass.  It is a roster
+# decision, not a judgement about the subreddit and not a Reddit-side status
+# (a banned or private venue is ``status``, not this).
+DISCOVERY_STATES = frozenset({"known_subreddit", "candidate_new_subreddit", "retired"})
+RETIRED_DISCOVERY_STATE = "retired"
 STATUS_VALUES = frozenset({"active", "unverified", "private", "banned", "quarantined"})
 CAPTURE_STATE_RANK = {
     "no_packet_recorded": 0,
@@ -223,6 +229,22 @@ def known_subreddits(data_root: DataLakeRoot) -> list[str]:
                 if shard.name == anchor_shard(anchor.name):
                     found.add(anchor.name)
     return sorted(found)
+
+
+def capture_roster(data_root: DataLakeRoot) -> list[str]:
+    """The subreddits a capture pass should actually visit.
+
+    ``known_subreddits`` is the anchor census and stays exhaustive -- the fold,
+    parity, and any history read must still see retired rows.  This is the
+    narrower question a runner asks: retired rows are excluded so they stop
+    costing one request per pass, without deleting anything.
+    """
+    roster: list[str] = []
+    for name in known_subreddits(data_root):
+        row = fold_subreddit(data_root, name)
+        if row.get("discovery_state") != RETIRED_DISCOVERY_STATE:
+            roster.append(name)
+    return roster
 
 
 def _validate_field_values(field: str, value: Any) -> Any:

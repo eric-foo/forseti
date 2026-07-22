@@ -26,7 +26,7 @@ from capture_spine.reddit_subreddit_grid.materializer import (
     read_grid_packet,
 )
 from capture_spine.reddit_subreddit_grid.grid_projection import grid_view_projection_anomaly
-from data_lake.reddit_subreddit_registry import known_subreddits
+from data_lake.reddit_subreddit_registry import capture_roster
 from data_lake.root import DataLakeRoot
 from runners._scaffold import exit_on_failure
 
@@ -101,7 +101,9 @@ def run_weekly_demand_read(
     smooth_k: int = DEFAULT_SMOOTH_K,
 ) -> dict[str, Any]:
     window_start = as_of - _dt.timedelta(days=6)
-    roster = known_subreddits(data_root)
+    # capture_roster: a retired subreddit is not "missing a weekly packet", it
+    # is deliberately not captured, and must not inflate the coverage gap.
+    roster = capture_roster(data_root)
 
     # Newest qualifying packet per subreddit; a re-run within the week
     # supersedes rather than double-counts.

@@ -18,6 +18,7 @@ from data_lake.reddit_subreddit_registry import (
     append_grid_observation,
     append_reach_observation,
     append_roster_change,
+    capture_roster,
     fold_subreddit,
     known_subreddits,
     load_current_registry,
@@ -720,3 +721,59 @@ def test_rdr03_old_shape_observation_replay_is_not_a_conflict(
             subscriber_count_or_none="999",
         )
     assert excinfo.value.code == "observation_provenance_conflict"
+
+
+# --------------------------------------------------------------------------
+# Retire: stop capturing without deleting history
+# --------------------------------------------------------------------------
+
+
+def test_retired_row_leaves_census_intact_but_exits_capture_roster(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    legacy = _legacy(tmp_path, [_row("alpha"), _row("beta")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    _observe(lake, "alpha", pointer="F:/lake/raw/aaa/manifest.json", observed_at="2026-07-20")
+
+    append_roster_change(
+        lake, subreddit="alpha", change_kind="update",
+        changes={"discovery_state": "retired"}, actor="operator",
+        note_or_none="pruned: professional sub, low consumer demand signal",
+    )
+
+    # Census keeps it; capture roster drops it.
+    assert known_subreddits(lake) == ["alpha", "beta"]
+    assert capture_roster(lake) == ["beta"]
+
+    # History survives the retirement -- the whole point of append-only.
+    row = fold_subreddit(lake, "alpha")
+    assert row["discovery_state"] == "retired"
+    assert len(row["observations"]) == 1
+    assert row["capture_state"] == "grid_packets_recorded"
+
+
+def test_retirement_is_reversible(lake: DataLakeRoot) -> None:
+    append_roster_change(lake, subreddit="gamma", change_kind="add", actor="operator")
+    append_roster_change(
+        lake, subreddit="gamma", change_kind="update",
+        changes={"discovery_state": "retired"}, actor="operator",
+    )
+    assert capture_roster(lake) == []
+    append_roster_change(
+        lake, subreddit="gamma", change_kind="update",
+        changes={"discovery_state": "known_subreddit"}, actor="operator",
+    )
+    assert capture_roster(lake) == ["gamma"]
+
+
+def test_retired_is_a_roster_state_not_a_reddit_status(lake: DataLakeRoot) -> None:
+    """`retired` (chosen) and `status` (observed) are independent axes: a
+    retired subreddit stays 'active' on Reddit unless observed otherwise."""
+    append_roster_change(lake, subreddit="delta", change_kind="add", actor="operator")
+    append_roster_change(
+        lake, subreddit="delta", change_kind="update",
+        changes={"discovery_state": "retired", "status": "active"}, actor="operator",
+    )
+    row = fold_subreddit(lake, "delta")
+    assert row["discovery_state"] == "retired"
+    assert row["status"] == "active"
