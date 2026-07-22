@@ -25,6 +25,7 @@ from capture_spine.reddit_subreddit_grid.materializer import (
     RegistryRefreshError,
     read_grid_packet,
 )
+from capture_spine.reddit_subreddit_grid.grid_projection import grid_view_projection_anomaly
 from data_lake.reddit_subreddit_registry import known_subreddits
 from data_lake.root import DataLakeRoot
 from runners._scaffold import exit_on_failure
@@ -59,6 +60,35 @@ def _is_top_week(listing_url: str) -> bool:
     return bool(parts) and parts[-1] == "top" and "t=week" in (parsed.query or "").split("&")
 
 
+_BOUNDED_ID_SAMPLE = 20
+
+
+def _bounded_ids(ids: list[str]) -> dict[str, Any]:
+    ordered = sorted(ids)
+    return {"count": len(ordered), "sample": ordered[:_BOUNDED_ID_SAMPLE]}
+
+
+def _packet_capture_time(manifest_path: str) -> _dt.datetime:
+    """Read the exact validated source-slice time; packet IDs are opaque."""
+    document = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    values = [
+        source_slice.get("timing", {}).get("capture_time", {}).get("value")
+        for source_slice in document.get("source_slices", [])
+        if isinstance(source_slice, dict)
+    ]
+    timestamps: list[_dt.datetime] = []
+    for value in values:
+        if not isinstance(value, str) or not value:
+            continue
+        parsed = _dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            raise ValueError(f"capture_time is timezone-naive: {value!r}")
+        timestamps.append(parsed.astimezone(_dt.timezone.utc))
+    if not timestamps:
+        raise ValueError("manifest carries no known source-slice capture_time")
+    return max(timestamps)
+
+
 def run_weekly_demand_read(
     *,
     data_root: DataLakeRoot,
@@ -74,6 +104,11 @@ def run_weekly_demand_read(
     # supersedes rather than double-counts.
     per_sub: dict[str, Any] = {}
     unreadable: list[dict[str, str]] = []
+    skipped_non_top_week: list[str] = []
+    skipped_outside_window: list[str] = []
+    skipped_non_roster: list[dict[str, str]] = []
+    projection_anomalies: list[dict[str, str]] = []
+    superseded_packets: list[str] = []
     for packet_id in data_root.list_available(source_family=GRID_SOURCE_FAMILY):
         container = data_root.find_packet(packet_id)
         if container is None:
@@ -84,22 +119,38 @@ def run_weekly_demand_read(
             unreadable.append({"packet_id": packet_id, "error": f"[{exc.code}] {exc.message}"})
             continue
         if not _is_top_week(read.grid_view.listing_url):
+            skipped_non_top_week.append(packet_id)
             continue
         observed = _dt.date.fromisoformat(read.observed_at)
         if not window_start <= observed <= as_of:
+            skipped_outside_window.append(packet_id)
             continue
         key = read.subreddit
         if key not in roster:
+            skipped_non_roster.append({"packet_id": packet_id, "subreddit": key})
+            continue
+        anomaly = grid_view_projection_anomaly(read.grid_view)
+        if anomaly is not None:
+            projection_anomalies.append({"packet_id": packet_id, "anomaly": anomaly})
+            continue
+        try:
+            capture_time = _packet_capture_time(read.manifest_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            unreadable.append({"packet_id": packet_id, "error": f"capture_time: {exc}"})
             continue
         current = per_sub.get(key)
-        if current is None or (read.observed_at, packet_id) > (current[0].observed_at, current[1]):
-            per_sub[key] = (read, packet_id)
+        if current is None or (capture_time, packet_id) > (current[2], current[1]):
+            if current is not None:
+                superseded_packets.append(current[1])
+            per_sub[key] = (read, packet_id, capture_time)
+        else:
+            superseded_packets.append(packet_id)
 
     sub_health: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
     floor_tripwire: list[str] = []
     for name in sorted(per_sub):
-        read, packet_id = per_sub[name]
+        read, packet_id, _capture_time = per_sub[name]
         rows = [
             row
             for row in read.grid_view.thread_rows
@@ -160,6 +211,19 @@ def run_weekly_demand_read(
         "subs_read": len(per_sub),
         "subs_missing_weekly_packet": sorted(set(roster) - set(per_sub)),
         "unreadable_packets": unreadable,
+        # These three classes grow with the whole packet corpus (every past
+        # week lands outside the window forever), so they report count+sample
+        # rather than exhaustive IDs. Non-roster and anomaly dispositions stay
+        # exhaustive: they are small and each one is an operator signal.
+        "packets_skipped_non_top_week": _bounded_ids(skipped_non_top_week),
+        "packets_skipped_outside_window": _bounded_ids(skipped_outside_window),
+        "packets_skipped_non_roster": sorted(
+            skipped_non_roster, key=lambda item: (item["subreddit"], item["packet_id"])
+        ),
+        "projection_anomaly_packets": sorted(
+            projection_anomalies, key=lambda item: item["packet_id"]
+        ),
+        "superseded_weekly_packets": _bounded_ids(superseded_packets),
         "sub_health": sub_health,
         "candidates_found": len(candidates),
         "candidates": candidates,

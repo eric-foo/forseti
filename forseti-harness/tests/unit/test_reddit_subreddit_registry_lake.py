@@ -682,3 +682,41 @@ def test_reach_and_grid_observations_coexist_in_one_fold(
     reach = next(o for o in row["observations"] if o["source_surface"] == "agent_browser_serp_read")
     assert "weekly_visitor_count_or_none" not in grid
     assert reach["weekly_visitor_count_or_none"] is None
+
+
+def test_rdr03_old_shape_observation_replay_is_not_a_conflict(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    """The weekly fields were added nullable with no migration: a grid
+    observation recorded without them must compare equal to a reach replay of
+    the same pointer carrying explicit nulls, not raise a false conflict."""
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    pointer = "F:/lake/raw/fff/manifest.json"
+    _observe(
+        lake, "alpha", pointer=pointer, observed_at="2026-07-21", subscribers="123"
+    )
+
+    replay = append_reach_observation(
+        lake,
+        subreddit="alpha",
+        observed_at="2026-07-21",
+        source_surface="old_reddit_grid_packet",
+        provenance_pointer=pointer,
+        subscriber_count_or_none="123",
+        weekly_visitor_count_or_none=None,
+        weekly_contribution_count_or_none=None,
+    )
+    assert replay["status"] == "already_current"
+    assert replay["written"] is False
+    # And a genuinely different value on the same pointer still conflicts.
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        append_reach_observation(
+            lake,
+            subreddit="alpha",
+            observed_at="2026-07-21",
+            source_surface="old_reddit_grid_packet",
+            provenance_pointer=pointer,
+            subscriber_count_or_none="999",
+        )
+    assert excinfo.value.code == "observation_provenance_conflict"

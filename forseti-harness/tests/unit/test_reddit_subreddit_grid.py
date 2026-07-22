@@ -599,6 +599,7 @@ def _lake_grid_packet(
     *,
     url: str,
     html: str = WEEKLY_HTML,
+    capture_timestamp: str = "2026-07-17T05:00:00Z",
 ) -> None:
     def fake_fetch(**_: object) -> DirectHttpCaptureSuccess:
         return DirectHttpCaptureSuccess(
@@ -607,7 +608,7 @@ def _lake_grid_packet(
             status=200,
             reason="OK",
             metadata={
-                "capture_timestamp": "2026-07-17T05:00:00Z",
+                "capture_timestamp": capture_timestamp,
                 "requested_url": url,
                 "final_url": url,
                 "status": 200,
@@ -704,3 +705,138 @@ def test_weekly_demand_read_tripwire_fires_on_high_floor(
     )
     payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
     assert payload["page_overflow_tripwire"] == ["makeupaddiction"]
+
+
+# --------------------------------------------------------------------------
+# Delegated review regressions (RDR-01, RDR-02, RDR-04)
+# --------------------------------------------------------------------------
+
+
+def test_rdr01_stray_closer_does_not_corrupt_scopes() -> None:
+    """A stray </div> mid-listing must not close every active scope: rows
+    after it still project with their machine attributes intact."""
+    stray = GRID_HTML.replace(
+        '<div class="thing link" data-subreddit="MakeupAddiction">',
+        '</div></div><div class="thing link" data-subreddit="MakeupAddiction">',
+    )
+    view = project_old_reddit_grid_html(
+        html_text=stray,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/top/?t=day",
+    )
+    assert view.visible_subscriber_count_or_none == "7,491,826"
+    assert len(view.thread_rows) == 3
+    assert view.thread_rows[1].visible_score_or_none == "1,204"
+
+
+def test_rdr01_age_span_outside_titlebox_is_ignored() -> None:
+    """Only the sidebar (titlebox) age element may supply created_utc; an
+    age-classed span in a listing row must not."""
+    leaked = GRID_HTML.replace(
+        '<a class="title" href="/r/makeupaddiction/comments/aaa111/first_post/">First look post</a>',
+        '<span class="age"><time datetime="2001-01-01T00:00:00+00:00">forever</time></span>'
+        '<a class="title" href="/r/makeupaddiction/comments/aaa111/first_post/">First look post</a>',
+    )
+    view = project_old_reddit_grid_html(
+        html_text=leaked,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/top/?t=day",
+    )
+    assert view.created_utc_or_none is None
+
+
+def test_rdr01_listing_diagnostics_feed_anomaly_predicate() -> None:
+    view = project_old_reddit_grid_html(
+        html_text=WEEKLY_HTML,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/top/?t=week",
+    )
+    assert view.listing_thing_count_or_none == 3
+    assert view.listing_permalink_count_or_none == 3
+    from capture_spine.reddit_subreddit_grid.grid_projection import (
+        grid_view_projection_anomaly,
+    )
+    assert grid_view_projection_anomaly(view) is None
+
+
+def test_rdr02_rotation_visits_every_member_at_any_roster_size() -> None:
+    """The pre-review formula ((year*100+week) % size) never reaches members
+    beyond index 52 at roster size 100; the absolute weekly index must visit
+    all members cyclically."""
+    import datetime as dt
+
+    roster = [f"sub{i:03d}" for i in range(100)]
+    seen = {
+        grid_runner._rotating_raw_sample(
+            roster, on_date=dt.date(2026, 1, 5) + dt.timedelta(weeks=week)
+        )
+        for week in range(100)
+    }
+    assert seen == set(roster)
+    # Deterministic within a week regardless of weekday.
+    monday = dt.date(2026, 7, 20)
+    assert grid_runner._rotating_raw_sample(roster, on_date=monday) == (
+        grid_runner._rotating_raw_sample(roster, on_date=monday + dt.timedelta(days=6))
+    )
+
+
+def test_rdr04_same_day_selection_uses_exact_capture_time(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Two weekly packets on the same observed date: the reader must keep the
+    later capture instant, not the larger opaque packet id, and must report
+    the superseded packet instead of dropping it silently."""
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import run_weekly_demand_read
+
+    registry = _registry(tmp_path)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+
+    early = WEEKLY_HTML.replace(">Nothing works, help<", ">EARLY capture<")
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+        html=early,
+        capture_timestamp="2026-07-17T18:00:00Z",
+    )
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+        html=WEEKLY_HTML,
+        capture_timestamp="2026-07-17T05:00:00Z",
+    )
+
+    payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
+    assert payload["subs_read"] == 1
+    (candidate,) = payload["candidates"]
+    # The 18:00Z capture wins even though it was committed first (smaller id).
+    assert candidate["title_or_none"] == "EARLY capture"
+    assert payload["superseded_weekly_packets"]["count"] == 1
+    assert len(payload["superseded_weekly_packets"]["sample"]) == 1
+
+
+def test_rdr04_disposition_reporting_is_bounded_and_visible(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import run_weekly_demand_read
+
+    registry = _registry(tmp_path)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+    )
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/hot/",
+    )
+    payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
+    non_top = payload["packets_skipped_non_top_week"]
+    assert non_top["count"] == 1
+    assert len(non_top["sample"]) == 1
+    assert payload["packets_skipped_outside_window"]["count"] == 0

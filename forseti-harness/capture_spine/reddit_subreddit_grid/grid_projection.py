@@ -23,9 +23,9 @@ from source_capture.projection_shared import canonical_old_reddit_thread_url
 # Bump on ANY behavior change to this projection so content packets written
 # under the old behavior stay distinguishable from re-projections under the
 # new one (qualification compares records only within one version).
-# v2: thread rows gain timestamp_utc_ms / stickied / flair; the venue envelope
-# gains created_utc (sidebar age element).
-GRID_PROJECTION_PARSER_VERSION = "2"
+# v3: scope extraction with an open-tag stack and carry listing diagnostics so
+# retention can detect dropped rows and lost permalink attributes.
+GRID_PROJECTION_PARSER_VERSION = "3"
 
 GRID_CONTENT_RECORD_KIND = "reddit_subreddit_grid_view_v0"
 
@@ -61,6 +61,9 @@ class GridView:
     thread_rows: tuple[GridThreadRow, ...] = field(default_factory=tuple)
     # v2: sidebar "a community for ..." age element, ISO datetime string.
     created_utc_or_none: str | None = None
+    # v3 diagnostics. None means a v1/v2 content record did not carry them.
+    listing_thing_count_or_none: int | None = None
+    listing_permalink_count_or_none: int | None = None
 
 
 def project_old_reddit_grid_html(
@@ -106,6 +109,8 @@ def project_old_reddit_grid_html(
         visible_volume_signal_absent_reason_or_none=absent_reason,
         thread_rows=tuple(rows),
         created_utc_or_none=parser.visible_created_utc,
+        listing_thing_count_or_none=parser.listing_thing_count,
+        listing_permalink_count_or_none=parser.listing_permalink_count,
     )
 
 
@@ -160,12 +165,31 @@ def grid_view_from_record(record: dict) -> GridView:
             thread_rows=rows,
             # v1 records predate this key; absent means unobserved, not empty.
             created_utc_or_none=payload.get("created_utc_or_none"),
+            listing_thing_count_or_none=payload.get("listing_thing_count_or_none"),
+            listing_permalink_count_or_none=payload.get("listing_permalink_count_or_none"),
         )
     except (KeyError, TypeError) as exc:
         raise RedditGridProjectionError(
             "record_shape",
             f"content record grid_view does not match the GridView shape: {exc}",
         ) from exc
+
+
+def grid_view_projection_anomaly(view: GridView) -> str | None:
+    """Return the first retention-worthy projection anomaly, if any."""
+    rows = view.thread_rows
+    if not rows:
+        return "no_thread_rows"
+    if (
+        view.listing_thing_count_or_none is not None
+        and view.listing_thing_count_or_none != len(rows)
+    ):
+        return "thread_row_count_mismatch"
+    if view.listing_permalink_count_or_none == 0:
+        return "no_permalinks"
+    if all(row.timestamp_utc_ms_or_none is None for row in rows):
+        return "no_timestamps"
+    return None
 
 
 class _OldRedditGridParser(HTMLParser):
@@ -189,6 +213,9 @@ class _OldRedditGridParser(HTMLParser):
         self.visible_subscriber_count: str | None = None
         self.visible_active_user_count: str | None = None
         self.visible_created_utc: str | None = None
+        self.listing_thing_count = 0
+        self.listing_permalink_count = 0
+        self._open_tags: list[str] = []
         self._titlebox_depth = 0
         self._users_online_depth = 0
         self._age_span_depth = 0
@@ -204,13 +231,15 @@ class _OldRedditGridParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {key: value or "" for key, value in attrs}
         class_tokens = set(attr_map.get("class", "").split())
+        if tag not in self._VOID_TAGS:
+            self._open_tags.append(tag)
 
         self._advance_titlebox(tag, class_tokens)
         if "users-online" in class_tokens:
             self._users_online_depth += 1
         elif self._users_online_depth and tag not in self._VOID_TAGS:
             self._users_online_depth += 1
-        if "age" in class_tokens and tag == "span":
+        if "age" in class_tokens and tag == "span" and self._titlebox_depth:
             self._age_span_depth += 1
         elif self._age_span_depth and tag not in self._VOID_TAGS:
             self._age_span_depth += 1
@@ -235,6 +264,10 @@ class _OldRedditGridParser(HTMLParser):
                 self._capturing_number_for = target
                 self._capturing_number_depth = self._titlebox_depth
 
+        if "thing" in class_tokens:
+            self.listing_thing_count += 1
+            if attr_map.get("data-permalink"):
+                self.listing_permalink_count += 1
         if "thing" in class_tokens and not self._thing_depth:
             self._open_thing(attr_map, class_tokens)
             self._thing_depth = 1
@@ -309,6 +342,12 @@ class _OldRedditGridParser(HTMLParser):
             )
 
     def handle_endtag(self, tag: str) -> None:
+        if tag in self._VOID_TAGS:
+            return
+        if not self._open_tags or self._open_tags[-1] != tag:
+            # A stray or misnested closer must not corrupt every active scope.
+            return
+        self._open_tags.pop()
         if (
             tag == "span"
             and self._capturing_number_depth is not None

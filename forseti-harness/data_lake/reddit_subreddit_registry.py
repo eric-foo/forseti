@@ -645,7 +645,12 @@ def append_reach_observation(
     }
     for existing in row.get("observations", []):
         if existing.get("provenance_pointer") == provenance_pointer:
-            if existing != observation:
+            # The weekly fields were added as nullable with no migration. A
+            # legacy row that omits them is semantically equal to explicit nulls.
+            comparable_existing = dict(existing)
+            comparable_existing.setdefault("weekly_visitor_count_or_none", None)
+            comparable_existing.setdefault("weekly_contribution_count_or_none", None)
+            if comparable_existing != observation:
                 raise RedditSubredditRegistryLakeError(
                     "observation_provenance_conflict",
                     f"provenance pointer {provenance_pointer} is already recorded for "

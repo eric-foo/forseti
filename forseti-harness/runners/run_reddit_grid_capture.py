@@ -69,9 +69,15 @@ def check_grid_projection_anomaly(content_record: dict) -> str | None:
     2026-07-22), so an all-None timestamp column means the parser broke, not
     the page.
     """
-    rows = content_record.get("grid_view", {}).get("thread_rows", [])
+    grid_view = content_record.get("grid_view", {})
+    rows = grid_view.get("thread_rows", [])
     if not rows:
         return "no_thread_rows"
+    thing_count = grid_view.get("listing_thing_count_or_none")
+    if thing_count is not None and thing_count != len(rows):
+        return "thread_row_count_mismatch"
+    if grid_view.get("listing_permalink_count_or_none") == 0:
+        return "no_permalinks"
     if all(row.get("timestamp_utc_ms_or_none") is None for row in rows):
         return "no_timestamps"
     return None
@@ -79,6 +85,13 @@ def check_grid_projection_anomaly(content_record: dict) -> str | None:
 
 class GridProjectionAnomalyError(ValueError):
     pass
+
+
+def _rotating_raw_sample(names: Sequence[str], *, on_date: _dt.date) -> str:
+    """Select one sample with a +1 weekly index across year boundaries."""
+    ordered = sorted(names)
+    monday = on_date - _dt.timedelta(days=on_date.weekday())
+    return ordered[(monday.toordinal() // 7) % len(ordered)]
 
 
 # States the decision predicate, not a description of the file. A re-check
@@ -163,15 +176,15 @@ def run_reddit_grid_capture(
         for name in names
     ]
 
-    # Retention rule 1 (weekly demand radar spec): on a content-mode multi-sub
+    # Retention rule 1 (weekly demand radar spec): on a content-mode weekly
     # pass, one rotating subreddit keeps raw as the projection audit sample.
-    # ISO week over the sorted roster is deterministic within a week, so a
-    # re-run resumes onto the same sample instead of sampling twice.
+    # The absolute Monday index advances by one across year boundaries.
     raw_sample_subreddit: str | None = None
-    if requested_retention_mode == "content" and len(names) >= 2:
-        iso_week = _dt.datetime.now(_dt.timezone.utc).isocalendar()
-        ordered = sorted(names)
-        raw_sample_subreddit = ordered[(iso_week.year * 100 + iso_week.week) % len(ordered)]
+    if requested_retention_mode == "content" and listing == "top" and time_window == "week":
+        raw_sample_subreddit = _rotating_raw_sample(
+            names,
+            on_date=_dt.datetime.now(_dt.timezone.utc).date(),
+        )
 
     cadence_plan = build_cadence_plan(
         slot_count=len(names),
