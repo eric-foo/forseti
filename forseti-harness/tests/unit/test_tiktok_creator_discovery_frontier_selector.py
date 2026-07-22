@@ -185,6 +185,24 @@ def test_promotion_policy_missing_followers_are_unknown_and_nonblocking() -> Non
 
 
 @pytest.mark.parametrize(
+    ("followers", "band"),
+    [
+        (9_999, "under_10k"),
+        (10_000, "10k_50k"),
+        (49_999, "10k_50k"),
+        (50_000, "50k_250k"),
+        (249_999, "50k_250k"),
+        (250_000, "250k_plus"),
+        (None, "unknown"),
+    ],
+)
+def test_promotion_policy_follower_band_boundaries(
+    followers: int | None, band: str
+) -> None:
+    assert frontier_selector._follower_band(followers) == band
+
+
+@pytest.mark.parametrize(
     ("quality", "weekly", "action", "reason", "cleared"),
     [
         (
@@ -226,7 +244,10 @@ def test_promotion_policy_p25_boundaries_are_inclusive_and_compensatory(
     cleared: list[str],
 ) -> None:
     decision = frontier_selector._promotion_decision_fields(
-        quality=quality, weekly_reach=weekly
+        quality=quality,
+        weekly_reach=weekly,
+        followers=None,
+        weekly_reach_per_1k_followers=None,
     )
 
     assert decision["registry_action"] == action

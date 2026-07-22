@@ -131,8 +131,8 @@ def _promotion_decision_fields(
     *,
     quality: float | None,
     weekly_reach: float,
-    followers: int | None = None,
-    weekly_reach_per_1k_followers: float | None = None,
+    followers: int | None,
+    weekly_reach_per_1k_followers: float | None,
 ) -> dict[str, Any]:
     quality_cleared = (
         quality is not None and quality >= _PROMOTION_POLICY["quality_p25"]
