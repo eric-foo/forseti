@@ -2,20 +2,19 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: implementation_batch_plan_and_cold_handoff
+artifact_role: completed_implementation_batch_record_and_cold_handoff
 scope: >
-  Preserves the owner-accepted tiered-depth retail direction and divides its
-  implementation into independently complete batches. Planning only: no batch,
-  live capture, data-lake write, monitoring activation, or Understanding rerun
-  is authorized or claimed here.
+  Records the landed Steps 1-5 capability and explicitly deferred Step 6 proof.
+  No live capture, new implementation, data-lake write, monitoring activation,
+  or Understanding rerun is authorized or claimed here.
 use_when:
-  - Commissioning one batch at a time.
+  - Recovering the landed architecture or commissioning the deferred proof step.
   - Recovering the accepted decisions after context loss.
 stale_if:
   - A successor changes the direction or batch order.
   - Company-Understanding or Retail/PDP authority materially changes.
 authority_boundary: retrieval_only
-status: READY_FOR_BATCH_1_COMMISSIONING
+status: STEPS_1_TO_5_LANDED_STEP_6_DEFERRED
 ```
 
 ## Load Contract
@@ -28,20 +27,21 @@ status: READY_FOR_BATCH_1_COMMISSIONING
 - `handoff_path`: `docs/workflows/forseti_understanding_tiered_retail_capture_batch_plan_handoff_v0.md`
 - `expected_receiver_state`: fresh branch/worktree from current `origin/main`; no dirty target or authority files.
 - `load_rule`: **confirm-don't-trust**. Re-read `AGENTS.md`, `.agents/workflow-overlay/README.md`, the active batch's named sources and current Git state before strict or actionable claims. If repo access is unavailable, stop and request a pasted source capsule or no-repo handoff.
-- `current_turn_authorization`: this planning artifact only.
+- `current_turn_authorization`: retrieval only; no live capture or deferred proof authorization.
 
 ## Goal Handoff / Active Objective
 
 Complete company **Understanding** with enough public evidence to explain portfolio shape, customer/use-case coverage, retail expression, relative product traction, strong and weak links, strategic motion, and material dependencies with decision-useful confidence—without pretending retail evidence proves internal economics.
 
-The active implementation objective is a tiered-depth US retail layer that:
+The landed implementation provides a tiered-depth US retail layer that:
 
-1. reconstructs owned franchise and parent-product architecture before selecting heroes;
+1. binds canonical owned identity, uses qualified retailer grids for discovery, and reconciles the union back to owned evidence before selecting heroes;
 2. uses Sephora as guarded default retail primary when authorized, US-admissible, and materially complete;
 3. shallowly onboards every exact parent listing across each qualified member of the US beauty ladder—Sephora, Ulta, Target, and Amazon;
 4. preserves retailer-specific signals without paying four times for syndicated reviews;
-5. deepens reviews/Q&A only for evidence-selected products; and
-6. starts retailer-local longitudinal series only after identity and baseline are stable.
+5. deepens reviews/Q&A only for evidence-selected products.
+
+Retailer-local longitudinal proof remains explicitly deferred until identity and baseline are stable.
 
 ### Success signals
 
@@ -59,7 +59,7 @@ A real company run can produce:
 ## Frozen Decisions
 
 1. **Tiered depth.** All exact parent listings get one baseline at qualified retailers; expensive review/Q&A depth is selected, not universal.
-2. **Owned architecture first.** Owned categories, collections/franchises, parents, visible variants, and declared totals establish the denominator. Retailers show channel-local expression.
+2. **Owned identity, grid discovery, owned closure.** Owned evidence binds canonical identity. Qualified grids expand the candidate set; deterministic reconciliation returns to owned evidence to close the denominator. Retailers remain channel-local expression, not identity authority.
 3. **Guarded Sephora primary.** Sephora is default where qualified; override only for a material omission, failed market pin/route, or named non-duplicative job.
 4. **Qualified ladder, not quota.** Test Sephora, Ulta, Target, Amazon. Preserve `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, `SURFACE_NOT_EXPOSED`, or current equivalent. Do not invent listings or completion credit.
 5. **Common lean floor.** Exact identity and parent/variant/listing relation, price/promo, availability, aggregate rating/review state, assortment/exclusive cues, timestamp, and residuals. Preserve full source bytes.
@@ -72,13 +72,18 @@ A real company run can produce:
 12. **US first.** Record encountered international facts, but no global map without a named job.
 13. **Report voice.** Declarative, confident, characterful. Evidence-bind big claims; keep detailed provenance underneath rather than clutter every sentence.
 
-## Open Execution Fork
+## Resolved Capability State
 
-No owner fork blocks Batch 1. In Batch 2, verify whether current Ulta and Amazon brand-grid/assortment routes already produce an admitted parent denominator compatible with the common projection. If yes, Batches 2 and 3 may share a PR if still independently verifiable. If no, Batch 2 must record the gap and close only an admissible route. Do not substitute snippets, another market, or an inferred list.
+All four ladder retailers now have admitted grid projections. Sephora, Ulta, and
+Target project retailer-specific brand or assortment grids. Amazon projects a
+query-bound ranked-search window complete only for its declared query and
+reachable result window, never a guaranteed complete or authorized-only brand
+catalog. Capability does not prove route admission; each run still records the
+US market pin, reachability, surface boundary, and typed failure.
 
 ## Drift Guard
 
-- Land and verify each batch before the next; do not implement all six together.
+- Steps 1-5 landed and were independently verified. Keep Step 6 as a separately commissioned real-world proof.
 - No all-retailer census, source-count completion rule, or universal deep review capture.
 - No summing retailer counts without justified corpus identity/deduplication.
 - No sales claims from review totals; no demand claim from one stockout.
@@ -87,7 +92,7 @@ No owner fork blocks Batch 1. In Batch 2, verify whether current Ulta and Amazon
 - No universal cadence. Every series names decision, fact, baseline, trigger/threshold, cadence, route, and action.
 - No international buildout, supply investigation, competitor Understanding, archive history, creator/ads, or legal/trademark deepening. Those remain named jobs.
 - Do not rewrite historical Clinique/Summer Fridays receipts or research prompts.
-- Code/docs existence does not complete Understanding; Batch 6 real-world proof does.
+- Code/docs existence does not complete Understanding; the deferred Step 6 proof remains required for a company-run completion claim.
 
 ## Why Six Batches
 
@@ -97,7 +102,7 @@ No owner fork blocks Batch 1. In Batch 2, verify whether current Ulta and Amazon
 | 2. Baseline capability | Retailer routes are heterogeneous; current grid projection names Walmart, Target, Sephora, not Ulta/Amazon. | A four-retailer promise backed by missing or unequal surfaces. |
 | 3. Portfolio onboarding | Company orchestration must reconcile parents, listings, variants, and failures before selection. | Hero bias and partial lists masquerading as architecture. |
 | 4. Depth + overlap | Review depth and cross-retailer identity are distinct from listing capture. | Syndicated reviews faking independent support; destructive merges. |
-| 5. Monitoring | Time series require stable identity and a baseline. | Deltas comparing different variants, markets, or semantics. |
+| 5. Understanding integration | Capture capability must become a first-class report contract. | A complete substrate that the report neither exposes nor interprets. |
 | 6. Understanding proof | Capture machinery can still yield weak intelligence. | A substrate that does not change or strengthen decisions. |
 
 ## Batch Route
@@ -227,7 +232,7 @@ truth.
 | STEP-2 | `LANDED` | complete |
 | STEP-3 | `LANDED` | complete |
 | STEP-4 | `LANDED` | complete |
-| STEP-5 | `REVIEW_ADJUDICATED_READY_TO_LAND` | cross-vendor delegated review returned `keep`; one flagged fixture defect self-closed |
+| STEP-5 | `LANDED` | complete |
 | STEP-6 | `DEFERRED_BY_OWNER` | not authorized |
 
 Every batch runs focused tests, current repo-required gates, `git diff --check`, exact diff inspection, and fresh target verification. Live route changes require live proof; fixtures cannot upgrade registry status. A typed live failure is valid evidence, not fake coverage.

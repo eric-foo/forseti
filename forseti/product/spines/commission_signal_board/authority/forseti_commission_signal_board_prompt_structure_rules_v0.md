@@ -239,12 +239,22 @@ response; bounded competitor or substitute context; contradictions; and
 evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
+Before optional deepening, resolve the small high-yield core through the existing
+ledgers: current offering and portfolio architecture; exact current commercial
+and retail expression where material; channel, distribution, and geography
+posture; strategic and operating chronology; and applicable material events.
+This creates no new section, field, or source quota and does not replace another
+material lens. A material unresolved core job blocks the acquisition seal; other
+remainders stay typed gaps and non-claims. Commission archives, supply, ads or
+creators, competitors, search trends, and similar deepening only for a named
+unresolved inference job.
+
 When offerings, retail presentation, or customer experience are material, the
-company route acquires bounded portfolio breadth before product depth. Owned
-surfaces remain canonical for company portfolio and franchise expression. For a material product company, establish the complete publicly exposed current
-category, collection/franchise, parent-product, material-variant, declared-total,
-and typed-gap denominator. Preserve bundles and sets without counting them as
-ordinary parents. This does not require hidden SKUs, immaterial variant
+company route acquires bounded portfolio breadth before product depth. Begin
+with enough owned evidence to bind the subject, categories, franchises, known
+parents, and canonical product identity. Owned surfaces remain canonical for
+company portfolio and franchise expression. Preserve bundles and sets without
+counting them as ordinary parents. This does not require hidden SKUs, immaterial variant
 permutations, an automated identity resolver, or a complete global SKU graph. Capture source-visible target/use-case, price-tier,
 channel, and geography differentiation; owned/retailer prominence, new/launch,
 and distribution state; product/franchise concentration and overlap evidence;
@@ -254,8 +264,7 @@ portfolio roles, positioning, channel posture, and dependencies. They do not
 authorize claims about internal management intent, revenue, margin, cash
 generation, sell-through, or undisclosed operations.
 
-Test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon -- after
-the owned census. A retailer qualifies only when the subject is relevant there
+Then test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon. A retailer qualifies only when the subject is relevant there
 and the authorized route is pinned to the US market and admissible. Use the
 existing coverage-ledger requirement, rationale, status, yield, access, and
 typed-gap fields to preserve each test and its exact result. Current result types
@@ -264,9 +273,12 @@ include `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, and
 failed or unobserved route. This ladder is a named US qualification test, not a
 retailer-count, all-retailer, or source-count quota.
 
-For every qualified retailer, acquire its brand/assortment grid as a channel-
-local denominator. Reconcile every exact parent listing found to the owned parent
-architecture, then acquire one baseline PDP for each exact parent listing with
+For every qualified retailer, acquire its available grid surface,
+deterministically union and reconcile exact listings with the owned candidates,
+then return to owned evidence to close the complete publicly exposed denominator
+and typed gaps. Retailer listings do not become canonical owned identity merely
+by appearing in a grid. Then acquire one baseline PDP for each reconciled exact
+retailer listing with
 exact identity and parent/variant/listing relation, price and promotion,
 availability, aggregate rating/review state, assortment/exclusive cues,
 timestamp, and residuals. Preserve the full raw source. Retain source-visible
@@ -274,6 +286,12 @@ retailer-native extensions such as merchandising, badges, fulfilment,
 seller/authenticity, related products, Q&A availability, review provider, and
 native identifiers or metadata. The common baseline does not require a complete
 global franchise -> parent-product -> variant/SKU -> retailer-listing graph.
+
+Sephora, Ulta, and Target expose brand or assortment grids. Amazon exposes a
+query-bound ranked-search window complete only for its declared query and
+reachable result window, never a guaranteed complete or authorized-only catalog.
+Projection capability is not route admission. Point-in-time retailer metrics are
+traction proxies, never sales, share, or trend.
 
 Only after the qualified-grid and exact-parent PDP baseline may expensive review
 or Q&A depth be selected. Evidence-selected depth may resolve established
