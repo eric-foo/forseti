@@ -1,0 +1,42 @@
+{
+  "manifest_version": "retail_grid_monitor_manifest_v0",
+  "brands": [
+    {
+      "brand_id": "summer-fridays",
+      "name": "Summer Fridays",
+      "retailers": {
+        "sephora": {
+          "url": "https://www.sephora.com/brand/summer-fridays?country_switch=us"
+        }
+      }
+    },
+    {
+      "brand_id": "clinique",
+      "name": "Clinique",
+      "retailers": {
+        "ulta": {
+          "url": "https://www.ulta.com/brand/clinique"
+        }
+      }
+    },
+    {
+      "brand_id": "elf-cosmetics",
+      "name": "e.l.f. Cosmetics",
+      "retailers": {
+        "target": {
+          "url": "https://www.target.com/b/e-l-f/-/N-5oajg"
+        }
+      }
+    },
+    {
+      "brand_id": "tower-28-beauty",
+      "name": "Tower 28 Beauty",
+      "retailers": {
+        "amazon": {
+          "url": "https://www.amazon.com/s?k=Tower+28+Beauty",
+          "page_count": 2
+        }
+      }
+    }
+  ]
+}

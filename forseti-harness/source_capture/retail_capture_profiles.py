@@ -448,6 +448,7 @@ _PROFILES = {
             hostname="www.sephora.com",
             source_surface="cloakbrowser_snapshot",
             ordinary_operation=True,
+            wait_until="domcontentloaded",
             settle_seconds=5.0,
             scroll_passes=1,
             scroll_step_px=0,
