@@ -12,7 +12,7 @@ open_next:
   - AGENTS.md
   - .agents/workflow-overlay/README.md
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-branch_or_commit: b8d343ee433023412202145d93cc37664a788903
+branch_or_commit: c06f2be9e189a02bdad300538966277a075b5bc5
 ```
 
 ## Prompt Preflight
@@ -25,7 +25,7 @@ template_kind: none
 edit_permission: docs-write
 workspace: C:\tmp\forseti-sf-understanding-dogfood-20260723-p02-standalone
 branch: codex/sf-understanding-dogfood-20260723-p02-standalone
-required_revision: b8d343ee433023412202145d93cc37664a788903
+required_revision: c06f2be9e189a02bdad300538966277a075b5bc5
 revision_mode: exact
 dirty_state_allowance: clean at release; no pre-existing in-scope output
 input_prompt_source: docs/prompts/handoffs/summer_fridays_understanding_dogfood_standalone_20260723_v2.md at the couriered authoring commit
@@ -34,7 +34,7 @@ acquisition_record: docs/research/summer_fridays_understanding_dogfood_20260723_
 acquisition_seal: docs/workflows/summer_fridays_understanding_dogfood_20260723_p02/standalone/acquisition_seal.md
 data_root: C:\tmp\forseti-sf-understanding-dogfood-20260723-p02\standalone\data
 common_block_id: sf_understanding_dogfood_20260723_p02_common_v3
-common_block_sha256: b13025e9a2902cc234ef728f877fa474977f7d4f8a5877f0407a53c8c3b30460
+common_block_sha256: fe76bfd1e29b3c243ea34a6c0087a5ab390af1429022af8f56a392573d2fdb42
 common_block_sha256_rule: SHA-256 of UTF-8 bytes of the lines strictly between the COMMON_COMMISSION_BLOCK markers after CRLF/CR-to-LF normalization, LF-joined, with no trailing LF
 doctrine_change: none
 source_pack: custom - paired company Turn A authorities and selected retail capture interfaces
@@ -79,7 +79,7 @@ mode: forward
 phase: understanding
 turn: acquire_and_seal
 time_posture: recency_first
-source_revision: b8d343ee433023412202145d93cc37664a788903
+source_revision: c06f2be9e189a02bdad300538966277a075b5bc5
 target_market: US_first
 as_of_date: supplied_once_in_PAIR_RELEASE_as_the_shared_UTC_release_date
 ```
