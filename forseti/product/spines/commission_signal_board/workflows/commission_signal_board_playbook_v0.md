@@ -76,9 +76,14 @@ Each phase normally consumes two completed operator/model turns:
    silently substitute generic browsing or rediscovery.
    For a company Understanding commission where offerings, retail presentation,
    or customer experience are material, preserve the prompt's bounded sequence:
-   complete publicly exposed current owned category/franchise/parent and
-   material-variant denominator -> qualified US ladder tests and retailer grids -> every exact-parent listing's baseline PDP at each qualified
-   retailer -> evidence-selected review/Q&A depth. Test Sephora, Ulta, Target,
+   owned identity seed binding subject, categories, franchises, and known
+   parents -> qualified US ladder tests and each retailer's available grid
+   surface -> deterministic union and reconciliation of exact listings with the
+   owned candidates -> return to owned surfaces to close the complete publicly
+   exposed denominator and typed gaps -> one baseline PDP for every reconciled
+   exact retailer listing at each qualified retailer -> evidence-selected
+   review/Q&A depth. Owned evidence remains canonical identity authority;
+   retailer grids are discovery and channel-expression evidence. Test Sephora, Ulta, Target,
    and Amazon; preserve exact typed failure instead of inventing a listing or
    completion credit. Use the common lean baseline, preserve full raw material,
    and retain source-visible retailer-native extensions. Apply the guarded

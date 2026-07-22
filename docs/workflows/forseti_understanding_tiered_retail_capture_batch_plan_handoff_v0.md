@@ -99,7 +99,7 @@ US market pin, reachability, surface boundary, and typed failure.
 | Batch | Why separate | Failure isolated |
 | --- | --- | --- |
 | 1. Contract | Current authority permits one primary, one conditional secondary, exception-only tertiary. | Runtime implementing behavior the active contract forbids. |
-| 2. Baseline capability | Retailer routes are heterogeneous; current grid projection names Walmart, Target, Sephora, not Ulta/Amazon. | A four-retailer promise backed by missing or unequal surfaces. |
+| 2. Baseline capability | Retailer routes are heterogeneous; at plan time grid projection named Walmart, Target, Sephora, not Ulta/Amazon. | A four-retailer promise backed by missing or unequal surfaces. |
 | 3. Portfolio onboarding | Company orchestration must reconcile parents, listings, variants, and failures before selection. | Hero bias and partial lists masquerading as architecture. |
 | 4. Depth + overlap | Review depth and cross-retailer identity are distinct from listing capture. | Syndicated reviews faking independent support; destructive merges. |
 | 5. Understanding integration | Capture capability must become a first-class report contract. | A complete substrate that the report neither exposes nor interprets. |
@@ -274,9 +274,9 @@ Resolve shorthand paths through the Retail/PDP README and repo map; hashes are c
 
 - `plan_intake`: complete
 - `acceptance_basis`: explicit owner acceptance of tiered depth
-- `implementation_profile`: standard; STEP-5 contract upgrade active, STEP-6 deferred
-- `implementation_start_readiness`: `STEP_5_AUTHORIZED`
-- `current_turn_authorization`: implement STEP-5 only; delegated patch before merge
-- `next_authorized_step`: land adjudicated STEP-5; do not start STEP-6
+- `implementation_profile`: standard; STEPS 1-5 landed, STEP-6 deferred
+- `implementation_start_readiness`: none active; STEP-6 needs its own owner commission
+- `current_turn_authorization`: retrieval only
+- `next_authorized_step`: none authorized here; the separately commissioned STEP-6 proof is the remaining unit
 
 Recommended Implementation Model: judgment_lane — multi-domain contracts require sequencing judgment

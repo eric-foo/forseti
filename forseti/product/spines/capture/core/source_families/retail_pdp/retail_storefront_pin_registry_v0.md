@@ -75,10 +75,13 @@ ZIP unrequested when the claim is limited to corpus and rank; source-visible
 fulfilment and store facts then remain bound only to the preserved page state.
 PDP and search targets are derived from the commissioned URL rather than a
 historical proof product.
-Sephora and Target grid captures require the existing mechanical projection
-sidecar. Amazon search-grid capture remains raw-only and does not establish a
-complete brand denominator; Ulta's grid profile remains non-ordinary. Those two
-grid limits are capability gaps, not permission to infer absence or completion.
+Sephora, Ulta, Target, and Amazon grid captures each require the existing
+mechanical projection sidecar. Amazon's admitted projection covers a query-bound
+ranked-search window and still does not establish a complete brand denominator.
+That surface bound is a real limit, not permission to infer absence or
+completion. Projection capability admits no route by itself: each capture still
+has to prove its own market pin, reachability, surface boundary, and typed
+failure.
 
 The prior Target catalog-grid attempt is packet `01KY3ASRSQ35KPDPBWE0BS40S9`
 and automatic projection `01KY3ASRVNR18ZK2J10BYKZKRD` under the scratch v4.1 root
