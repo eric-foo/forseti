@@ -213,6 +213,31 @@ Projection lane.
    surface (the API adapter needs a small `about` mode once credentials
    exist).
 
+   **Subscriber absence diagnosed 2026-07-22 (bounded qualification run, raw
+   retained to scratch, nothing admitted).** The extractor is correct, not
+   stale. In 284 KB of served old-Reddit listing HTML the `titlebox` element is
+   present but its volume block is gone: zero occurrences of `subscribers`,
+   `users-online`, `readers`, or `span class="number"`. The count is not hidden
+   elsewhere either — no `"subscribers": N` JSON field, no `accounts_active`,
+   and **no comma-formatted six-digit number anywhere on the page.** The
+   titlebox now holds the subreddit name, the join/leave toggle, and the sidebar
+   text, with the reader and users-here-now lines removed outright.
+
+   One variable remains untested: the payload reports `"logged": false`, so
+   whether an authenticated old-Reddit render still carries the block is
+   unknown. That is the cheapest next probe (there is already a
+   `run_source_capture_reddit_credential_bootstrap.py`), and it would decide
+   between "removed for everyone" and "removed for logged-out views". Either way
+   `about.json` remains the working path — the 2026-07-16 observations that do
+   carry counts came from exactly that surface.
+
+   **Enumeration note.** `indexes/derived_retrieval/bronze_catalog` is a
+   rebuildable derived projection and lags until rebuilt; it did not list the
+   2026-07-22 packet that `DataLakeRoot.list_available` did. Enumerate committed
+   packets from `list_available`, not the catalog. Enumerating from a lagging
+   index is the same failure family as the 2026-07-22 backfill gap, where 35
+   subreddits had committed packets but only 7 were recorded.
+
 ## Direction Change Propagation
 
 ```yaml
