@@ -790,6 +790,15 @@ def test_commission_scout_status_requires_commission_boundary() -> None:
     assert "commission_scout_status_outside_commission_stage" in _company_codes(text)
 
 
+def test_bad_commission_scout_fixture_uses_current_company_report_contract() -> None:
+    text = (FIXTURE_DIR / "bad_company_commission_scout_status_output.txt").read_text(encoding="utf-8")
+    codes = _company_codes(text)
+    assert "commission_scout_status_outside_commission_stage" in codes
+    assert "invalid_company_section_contract" not in codes
+    assert "invalid_portfolio_retail_subsection_contract" not in codes
+    assert "invalid_required_lens_coverage" not in codes
+
+
 def test_commission_boundary_requires_open_coverage() -> None:
     text = _valid_company_text().replace(
         "  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",

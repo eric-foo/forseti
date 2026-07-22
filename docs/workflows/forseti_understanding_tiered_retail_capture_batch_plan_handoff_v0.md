@@ -227,7 +227,7 @@ truth.
 | STEP-2 | `LANDED` | complete |
 | STEP-3 | `LANDED` | complete |
 | STEP-4 | `LANDED` | complete |
-| STEP-5 | `IMPLEMENTED_AWAITING_DELEGATED_REVIEW` | implementation verified; delegated patch return pending |
+| STEP-5 | `REVIEW_ADJUDICATED_READY_TO_LAND` | cross-vendor delegated review returned `keep`; one flagged fixture defect self-closed |
 | STEP-6 | `DEFERRED_BY_OWNER` | not authorized |
 
 Every batch runs focused tests, current repo-required gates, `git diff --check`, exact diff inspection, and fresh target verification. Live route changes require live proof; fixtures cannot upgrade registry status. A typed live failure is valid evidence, not fake coverage.
@@ -272,6 +272,6 @@ Resolve shorthand paths through the Retail/PDP README and repo map; hashes are c
 - `implementation_profile`: standard; STEP-5 contract upgrade active, STEP-6 deferred
 - `implementation_start_readiness`: `STEP_5_AUTHORIZED`
 - `current_turn_authorization`: implement STEP-5 only; delegated patch before merge
-- `next_authorized_step`: complete and land STEP-5 after delegated review-and-patch adjudication; do not start STEP-6
+- `next_authorized_step`: land adjudicated STEP-5; do not start STEP-6
 
 Recommended Implementation Model: judgment_lane — multi-domain contracts require sequencing judgment

@@ -776,6 +776,7 @@ direction_change_propagation:
     - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
     - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_competitive_intelligence_output.txt
     - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_commission_stage_output.txt
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/bad_company_commission_scout_status_output.txt
     - docs/workflows/forseti_understanding_tiered_retail_capture_batch_plan_handoff_v0.md
   intentionally_not_updated:
     - path: Capture and durability-series contracts
