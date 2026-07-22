@@ -15,7 +15,6 @@ import json
 import pytest
 
 from runners.run_content_qualification import _ROUTES
-from source_capture.retail_pdp_content import load_retail_pdp_content_record  # noqa: F401
 from source_capture.retail_pdp_projection import (
     AMAZON_PDP_CONTENT_SCHEMA_VERSION,
     AMAZON_PDP_PARSER_VERSION,
@@ -912,7 +911,7 @@ def test_extraction_failure_preserves_the_raw_packet_and_exits_nonzero(
 
 
 def test_content_capture_accepts_us_surface_without_delivery_pin() -> None:
-    """Fulfillment context is optional when the US/USD content surface passes."""
+    """Profile validation does not require local fulfillment context."""
     from runners.run_source_capture_cloakbrowser_packet import main
 
     assert main(
@@ -935,6 +934,37 @@ def test_content_capture_accepts_us_surface_without_delivery_pin() -> None:
             "multimodal",
             "--retail-capture-profile",
             "amazon_pdp_aggregate",
+            "--preflight-only",
+        ]
+    ) == 0
+
+
+def test_content_capture_accepts_noncanonical_delivery_zip() -> None:
+    """No fixed ZIP value is an Amazon content-admission requirement."""
+    from runners.run_source_capture_cloakbrowser_packet import main
+
+    assert main(
+        [
+            "--url",
+            _SOURCE_URL,
+            "--source-family",
+            "retail_pdp",
+            "--source-surface",
+            "cloakbrowser_snapshot",
+            "--decision-question",
+            "envelope gate",
+            "--output",
+            "unused",
+            "--capture-context",
+            "envelope gate",
+            "--operator-category",
+            "cloakbrowser_snapshot_cli_operator",
+            "--capture-mode",
+            "multimodal",
+            "--retail-capture-profile",
+            "amazon_pdp_aggregate",
+            "--delivery-zip",
+            "90210",
             "--preflight-only",
         ]
     ) == 0

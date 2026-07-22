@@ -819,7 +819,8 @@ def run_source_capture_cloakbrowser_packet(
     # instead of shipping a canonical-content-shaped record inside a packet that
     # MUST NOT be admitted. Amazon/Target fulfillment-pin failures are excluded:
     # they invalidate only local fulfillment claims, not otherwise sufficient
-    # US-facing catalog or PDP content.
+    # US-facing catalog or PDP content. Their raw inputs still survive alongside
+    # the content record so the unresolved location is diagnosable.
     grid_traversal_failed = (
         retail_capture_profile is not None
         and retail_capture_profile.name
@@ -843,18 +844,29 @@ def run_source_capture_cloakbrowser_packet(
         and not retention_admission_failed
         and extraction_failure is None
     )
+    fulfillment_pin_failure_with_content = (
+        (amazon_pin_failure is not None or target_pin_failure is not None)
+        and content_record_bytes is not None
+        and extraction_failure is None
+        and not retention_admission_failed
+    )
     raw_extraction_inputs_preserved = (
         content_extraction is None
         or content_extraction.requested_retention_mode == "raw"
         or extraction_failure is not None
         or retention_admission_failed
         or retail_grid_raw_sample
+        or fulfillment_pin_failure_with_content
     )
     retention_outcome = (
         "raw_sample"
         if retail_grid_raw_sample
         else "content"
-        if content_record_bytes is not None and not raw_extraction_inputs_preserved
+        if content_record_bytes is not None
+        and (
+            not raw_extraction_inputs_preserved
+            or fulfillment_pin_failure_with_content
+        )
         else "raw_failure"
         if extraction_failure is not None or retention_admission_failed
         else "raw"
@@ -940,6 +952,13 @@ def run_source_capture_cloakbrowser_packet(
             packet_limitations.append(
                 "explicit retail-grid QA sample: source bodies and the capture-time "
                 "content record preserved; this does not make raw retention routine"
+            )
+        elif fulfillment_pin_failure_with_content:
+            packet_limitations.append(
+                "requested local fulfillment pin was not confirmed; canonical PDP "
+                "content and raw inputs were both preserved for diagnosis, the run "
+                "exited nonzero, and Cleaning must not admit the packet as pinned "
+                "fulfillment evidence"
             )
         elif (
             content_extraction.requested_retention_mode == "content"
