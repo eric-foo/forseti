@@ -33,8 +33,9 @@ commission_board: docs/research/summer_fridays_understanding_dogfood_20260722_p0
 acquisition_record: docs/research/summer_fridays_understanding_dogfood_20260722_p01/standalone/turn_a_acquisition_record.md
 acquisition_seal: docs/workflows/summer_fridays_understanding_dogfood_20260722_p01/standalone/acquisition_seal.md
 data_root: C:\tmp\forseti-sf-understanding-dogfood-20260722-p01\standalone\data
-common_block_id: sf_understanding_dogfood_20260722_p01_common_v1
-common_block_sha256: 2469d300b283f3ca97809a889f653c54993d7c70043042d5e2f6b9a53fca9bb2
+common_block_id: sf_understanding_dogfood_20260722_p01_common_v2
+common_block_sha256: 66728f441eec025e0e8a3c13315648d31486bef11d76955713a2d398dc46a4d7
+common_block_sha256_rule: SHA-256 of UTF-8 bytes of the lines strictly between the COMMON_COMMISSION_BLOCK markers after CRLF/CR-to-LF normalization, LF-joined, with no trailing LF
 doctrine_change: none
 ```
 
@@ -43,6 +44,8 @@ doctrine_change: none
 This artifact is execution-inert when authored. It authorizes no task creation, live web access, acquisition, output write, commit, push, PR, merge, Deliver, or adjudication. Proceed only after a later visible owner instruction authorizes this exact paired run and a mechanical dispatcher supplies a valid `PAIR_RELEASE`. Otherwise return `BLOCKED_EXECUTION_AUTHORIZATION_MISSING` before source-heavy work.
 
 The dispatcher verifies bindings and releases both arms; it cannot research, interpret evidence, choose routes/follow-ups, or contribute to a seal.
+
+Before source-heavy work, the arm seal owner recomputes the common-block digest from its couriered copy under `common_block_sha256_rule` and compares it with both the preflight value and the `PAIR_RELEASE` value. A mismatch or inability to recompute returns `BLOCKED_EXECUTION_AUTHORIZATION_MISSING`; never proceed on or report a hash merely copied from this prompt.
 
 <!-- COMMON_COMMISSION_BLOCK_START -->
 ## Frozen Common Commission
@@ -53,7 +56,7 @@ Produce a decision-neutral, evidence-accountable Summer Fridays company Understa
 
 ```yaml
 pair_id: sf_understanding_dogfood_20260722_p01
-common_commission_id: sf_understanding_dogfood_20260722_p01_common_v1
+common_commission_id: sf_understanding_dogfood_20260722_p01_common_v2
 subject: Summer Fridays
 subject_type: Brand_or_Org_identity_to_verify
 commission_profile: company_competitive_intelligence
@@ -139,7 +142,7 @@ Use the corresponding retailer PDP aggregate profile with the same local-market 
 
 ### Failures, stopping, and seal
 
-Retailer outcomes are exactly `GRID_CAPTURED_COMPLETE`, `GRID_CAPTURED_INCOMPLETE`, `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or `SURFACE_NOT_EXPOSED`. Use `NOT_LISTED` only after an admitted sufficient surface. Incomplete grids receive no closure credit.
+Retailer outcomes are exactly `GRID_CAPTURED_COMPLETE`, `GRID_CAPTURED_INCOMPLETE`, `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or `SURFACE_NOT_EXPOSED`. Use `NOT_LISTED` only after an admitted sufficient surface and only for that admitted surface under its pinned market or local fulfillment context; it never supports a nationwide absence or distribution-gap claim. Incomplete grids receive no closure credit.
 
 Keep identity ambiguity, unmatched rows, missing variants/baselines, provider ambiguity, insufficient customer evidence, and unresolved seams visible. Syndicated reviews never become independent corroboration.
 
@@ -188,6 +191,6 @@ seal_owner: SA0
 
 ## Return
 
-Fresh-read durable targets, then return: arm/actor, revision, common hash, board path and validation exit, acquisition-record path, seal path/state/gate/deliver flag, material failures, unblock status, contamination/topology status, and `turn_b_started: false`.
+Fresh-read durable targets, then return: arm/actor, revision, the recomputed common hash, board path and validation exit, acquisition-record path, seal path/state/gate/deliver flag, material failures, unblock status, contamination/topology status, and the observed `turn_b_started` value. Every field is reported as observed, never copied from this prompt; `turn_b_started: true` is a reportable phase failure, never a silent pass.
 
-Do not commit, push, open a PR, merge, or run repository hygiene unless a later visible owner instruction separately grants those lifecycle actions.
+Lifecycle actions remain governed by the `lifecycle_hard_stop` constant in `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; this commission grants none of them.
