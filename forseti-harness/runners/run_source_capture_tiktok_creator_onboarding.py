@@ -451,7 +451,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         _emit_blocker(
             "CANDIDATE_MARKET_DEFERRED",
             "market_gate",
-            recovery="reconsider only after new affirmative US-market evidence",
+            recovery="reconsider after the explicit non-US profile signal changes",
         )
         parser.exit(status=2, message=f"{exc}\n")
         return 2
@@ -829,24 +829,18 @@ def _market_defer_action(
     country_flag_codes = (
         evidence.get("country_flag_codes") if isinstance(evidence, dict) else None
     )
-    us_location_cues = (
-        evidence.get("us_location_cues") if isinstance(evidence, dict) else None
-    )
     if (
-        reason_code not in {"non_us_market", "us_market_unverified"}
+        reason_code != "non_us_market"
         or reconsideration != "new_signal"
         or not isinstance(evidence, dict)
         or not isinstance(country_flag_codes, list)
         or any(not isinstance(value, str) for value in country_flag_codes)
-        or not isinstance(us_location_cues, list)
-        or any(not isinstance(value, str) for value in us_location_cues)
     ):
         raise ValueError("market defer assessment is not a canonical deferred decision")
     note = (
         "standing owner US-market gate applied to same-read TikTok profile bio; "
         f"bio_status={evidence.get('profile_bio_status')}; "
-        f"country_flags={','.join(country_flag_codes) or 'none'}; "
-        f"us_location_cues={','.join(us_location_cues) or 'none'}"
+        f"non_us_country_flags={','.join(code for code in country_flag_codes if code != 'US') or 'none'}"
     )
     return {
         "platform": "tiktok",

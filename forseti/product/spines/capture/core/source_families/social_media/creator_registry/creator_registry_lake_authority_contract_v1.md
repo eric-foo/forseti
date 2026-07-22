@@ -83,14 +83,16 @@ The allowed action vocabulary is:
 For `new_capture` and full `new_onboarding`, the runner applies the owner's
 standing US-market rule to the profile bio already captured with the suggested
 surface, closes that surface, and stops before grid acquisition when the result
-is deferred. An explicit non-US country flag records `non_us_market`; missing or
-conflicting affirmative US evidence records `us_market_unverified`. An explicit
-US flag or a bounded high-confidence US location cue (including NYC, New York,
-or Dallas) permits grid processing but does not itself make the candidate
-`eligible`. English language and TikTok `webapp.app-context.region` are never
-creator-market evidence. The defer is written through the existing append-only
-owner-action mechanism with `reconsideration=new_signal` and can be superseded
-when new evidence appears.
+is deferred. An explicit non-US country flag records `non_us_market`. In the
+absence of an explicit non-US flag, processing continues; that pass means only
+that the profile did not disprove the standing market constraint, not that the
+creator or audience is proven US-market and not that the candidate is
+`eligible`. Profile language and TikTok `webapp.app-context.region` are never
+creator-market evidence. Historic `us_market_unverified` dispositions remain
+valid operational records but the gate no longer emits that reason. A defer is
+written through the existing append-only owner-action mechanism with
+`reconsideration=new_signal` and can be superseded when the profile signal
+changes.
 
 The writer validates the complete batch before creating a packet or derived
 record. An exact semantic replay is `already_current`; a changed action

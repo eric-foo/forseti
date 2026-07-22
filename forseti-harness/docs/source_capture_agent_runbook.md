@@ -161,11 +161,12 @@ supplement provenance, or an existing-creator regression.
 
 `new_capture` and full `new_onboarding` apply the standing owner US-market gate
 to the bio returned by the existing suggested/profile observation. The runner
-closes that surface and, for explicit non-US or unverified/conflicting market
-evidence, appends the corresponding Frontier defer when `--data-root` is
-supplied and stops before grid acquisition. This adds no browser read. A US
-market pass permits grid processing only; it is not an eligibility decision.
-Do not use TikTok `webapp.app-context.region` as creator evidence.
+closes that surface and, for an explicit non-US country flag, appends the
+corresponding Frontier defer when `--data-root` is supplied and stops before
+grid acquisition. This adds no browser read. With no explicit non-US flag the
+runner continues; that is not proof of a US creator or audience and is not an
+eligibility decision. Do not infer geography from profile language or TikTok
+`webapp.app-context.region`.
 
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
