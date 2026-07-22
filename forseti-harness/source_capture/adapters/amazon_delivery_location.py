@@ -18,9 +18,9 @@ from __future__ import annotations
 import re
 import time
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from html.parser import HTMLParser
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
@@ -59,6 +59,32 @@ _US_MARKETPLACE_MARKERS = (
     "ue_sn = 'www.amazon.com'",
     "retail:prod:www.amazon.com",
     "assoc_handle=usflex",
+)
+
+_AMAZON_GRID_NEXT_SELECTOR = "a.s-pagination-next"
+_AMAZON_GRID_PAGE_CHANGE_POLL_MS = 150
+_AMAZON_GRID_PAGE_CHANGE_TIMEOUT_MS = 10_000
+_AMAZON_GRID_PAGE_POPULATION_POLL_MS = 250
+_AMAZON_GRID_PAGE_POPULATION_TIMEOUT_MS = 10_000
+_AMAZON_GRID_STABLE_POPULATION_POLLS = 3
+_AMAZON_GRID_CARD_OPEN_RE = re.compile(
+    r"<div\b(?=[^>]*\bdata-component-type=[\"']s-search-result[\"'])"
+    r"(?P<attrs>[^>]*)>",
+    flags=re.IGNORECASE,
+)
+_AMAZON_GRID_TERMINAL_RE = re.compile(
+    r"<(?:span|a)\b(?=[^>]*\bs-pagination-next\b)"
+    r"(?=[^>]*\bs-pagination-disabled\b)[^>]*>",
+    flags=re.IGNORECASE,
+)
+_AMAZON_GRID_RANGE_RE = re.compile(
+    r"(?<!\d)(?P<start>\d[\d,]*)\s*[-\u2013]\s*(?P<end>\d[\d,]*)"
+    r"\s+of\s+(?:over\s+)?(?P<total>\d[\d,]*)\s+results?\s+for\b",
+    flags=re.IGNORECASE,
+)
+_AMAZON_GRID_SCRIPT_OR_STYLE_RE = re.compile(
+    r"<(?P<tag>script|style)\b[^>]*>.*?</(?P=tag)\s*>",
+    flags=re.IGNORECASE | re.DOTALL,
 )
 
 
@@ -277,6 +303,479 @@ class AmazonDeliveryLocationPlugin:
             f"{self.delivery_zip!r} but NOT confirmed ({reason}); storefront may be the "
             "origin-IP locale -- treat as un-pinned (honest gap)"
         )
+
+
+@dataclass
+class AmazonSearchGridPlugin:
+    """Capture a caller-sized consecutive Amazon search-result window in one tab."""
+
+    target_url: str
+    page_count: int = 2
+    delivery_zip: str | None = None
+    setup_timeout_seconds: float = 30.0
+    traversal_timeout_seconds: float = 60.0
+    _grid_page_doms: list[str] = field(default_factory=list, init=False, repr=False)
+    _grid_page_urls: list[str] = field(default_factory=list, init=False, repr=False)
+    _grid_observation: dict[str, object] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.page_count <= 0:
+            raise ValueError("amazon_grid_page_count must be greater than zero")
+        if self.setup_timeout_seconds <= 0:
+            raise ValueError("delivery_zip_setup_timeout_seconds must be greater than zero")
+        if self.traversal_timeout_seconds <= 0:
+            raise ValueError("Amazon grid traversal timeout must be greater than zero")
+        requested_query = _amazon_grid_query(self.target_url)
+        if requested_query is None:
+            raise ValueError("Amazon search-grid capture requires a non-empty /s?k= query")
+
+    @property
+    def humanize(self) -> bool:
+        return True
+
+    @property
+    def setup_timeout_ms(self) -> float:
+        return self.setup_timeout_seconds * 1000
+
+    @property
+    def grid_page_doms(self) -> tuple[str, ...]:
+        return tuple(self._grid_page_doms)
+
+    @property
+    def grid_page_urls(self) -> tuple[str, ...]:
+        return tuple(self._grid_page_urls)
+
+    @property
+    def grid_observation(self) -> dict[str, object]:
+        return dict(self._grid_observation)
+
+    def _delivery_plugin(self) -> AmazonDeliveryLocationPlugin | None:
+        if self.delivery_zip is None:
+            return None
+        return AmazonDeliveryLocationPlugin(
+            delivery_zip=self.delivery_zip,
+            setup_timeout_seconds=self.setup_timeout_seconds,
+        )
+
+    def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
+        delivery_plugin = self._delivery_plugin()
+        if delivery_plugin is None:
+            return PreCaptureOutcome(attempted=False, steps_completed=True)
+        return delivery_plugin.before(page, setup_timeout_ms=setup_timeout_ms)
+
+    def confirm(self, rendered_dom: str) -> PinConfirmation:
+        delivery_plugin = self._delivery_plugin()
+        if delivery_plugin is not None:
+            return delivery_plugin.confirm(rendered_dom)
+        confirmed = _amazon_us_marketplace_observed(rendered_dom)
+        return PinConfirmation(
+            confirmed=confirmed,
+            detail=(
+                "amazon.com US-marketplace marker observed; no delivery ZIP was requested"
+                if confirmed
+                else "amazon.com US-marketplace marker was not observed"
+            ),
+        )
+
+    def note(self, outcome: PreCaptureOutcome, confirmation: PinConfirmation) -> str:
+        delivery_plugin = self._delivery_plugin()
+        if delivery_plugin is not None:
+            return delivery_plugin.note(outcome, confirmation)
+        return (
+            "amazon_grid_location_binding: US marketplace observed; delivery ZIP NOT REQUESTED; "
+            "price and fulfilment remain bound only to the preserved page state"
+            if confirmation.confirmed
+            else "amazon_grid_location_binding: US marketplace NOT CONFIRMED; delivery ZIP NOT REQUESTED"
+        )
+
+    def describe(self) -> dict[str, object]:
+        delivery_plugin = self._delivery_plugin()
+        location = (
+            delivery_plugin.describe()
+            if delivery_plugin is not None
+            else {
+                "pre_capture": "amazon_search_grid",
+                "delivery_zip_requested": None,
+                "amazon_grid_location_binding": "us_marketplace_only",
+            }
+        )
+        return {
+            **location,
+            "amazon_grid_requested_page_count": self.page_count,
+            **self._grid_observation,
+        }
+
+    def before_snapshot(
+        self, page: object, *, setup_timeout_ms: float
+    ) -> PreCaptureOutcome:
+        del setup_timeout_ms
+        deadline = time.monotonic() + self.traversal_timeout_seconds
+        requested_query = _amazon_grid_query(self.target_url)
+        assert requested_query is not None
+        seen_asins: set[str] = set()
+        placement_count = 0
+        range_observations: list[dict[str, int]] = []
+        termination = "unproven"
+
+        try:
+            for expected_page in range(1, self.page_count + 1):
+                rendered_dom = page.content()  # type: ignore[union-attr]
+                page_url = str(page.url)  # type: ignore[union-attr]
+                if _amazon_error_shell_observed(rendered_dom):
+                    return self._grid_failed(
+                        reason="amazon_error_shell",
+                        detail=(
+                            f"Amazon grid page {expected_page} returned the retailer's "
+                            "Sorry/500/503 error shell"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                hostname = (urlparse(page_url).hostname or "").lower()
+                if hostname not in _AMAZON_US_HOSTS:
+                    return self._grid_failed(
+                        reason="wrong_marketplace_host",
+                        detail=f"Amazon grid page {expected_page} landed on {hostname or 'unknown'!r}",
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                if not _amazon_us_marketplace_observed(rendered_dom):
+                    return self._grid_failed(
+                        reason="us_marketplace_unconfirmed",
+                        detail=f"Amazon grid page {expected_page} exposed no US-marketplace marker",
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                observed_query = _amazon_grid_query(page_url)
+                if _normalize_query(observed_query) != _normalize_query(requested_query):
+                    return self._grid_failed(
+                        reason="query_binding_mismatch",
+                        detail=(
+                            f"Amazon grid page {expected_page} query {observed_query!r} did not "
+                            f"match requested query {requested_query!r}"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                observed_page = _amazon_grid_page_number(page_url)
+                if observed_page != expected_page:
+                    return self._grid_failed(
+                        reason="page_discontinuity",
+                        detail=(
+                            f"Amazon grid expected page {expected_page} but URL encoded "
+                            f"page {observed_page}"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+
+                rendered_dom, card_count, page_asins, page_range = (
+                    _wait_for_amazon_grid_page_population(
+                        page,
+                        initial_dom=rendered_dom,
+                        traversal_deadline=deadline,
+                    )
+                )
+                settled_page_url = str(page.url)  # type: ignore[union-attr]
+                settled_hostname = (urlparse(settled_page_url).hostname or "").lower()
+                if (
+                    settled_hostname not in _AMAZON_US_HOSTS
+                    or _normalize_query(_amazon_grid_query(settled_page_url))
+                    != _normalize_query(requested_query)
+                    or _amazon_grid_page_number(settled_page_url) != expected_page
+                ):
+                    return self._grid_failed(
+                        reason="page_binding_changed_during_population_wait",
+                        detail=(
+                            f"Amazon grid page {expected_page} changed host, query, or page "
+                            "binding while its displayed result range populated"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                page_url = settled_page_url
+                if not page_asins or len(page_asins) != card_count:
+                    return self._grid_failed(
+                        reason="product_identity_absent",
+                        detail=(
+                            f"Amazon grid page {expected_page} exposed {card_count} ranked cards "
+                            f"but {len(page_asins)} valid ASIN identities"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                if page_range is None:
+                    return self._grid_failed(
+                        reason="result_range_absent",
+                        detail=f"Amazon grid page {expected_page} exposed no ranked result range",
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                expected_ranked_count = page_range["end"] - page_range["start"] + 1
+                if card_count < expected_ranked_count:
+                    return self._grid_failed(
+                        reason="result_window_underfilled",
+                        detail=(
+                            f"Amazon grid page {expected_page} exposed {card_count} ranked "
+                            f"cards for retailer range {page_range['start']}-{page_range['end']} "
+                            f"({expected_ranked_count} expected)"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                if range_observations and (
+                    page_range["start"] <= range_observations[-1]["start"]
+                    or page_range["end"] <= range_observations[-1]["end"]
+                ):
+                    return self._grid_failed(
+                        reason="result_range_discontinuity",
+                        detail=(
+                            f"Amazon grid page {expected_page} range did not advance: "
+                            f"previous={range_observations[-1]}, current={page_range}"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+
+                self._grid_page_doms.append(rendered_dom)
+                self._grid_page_urls.append(page_url)
+                range_observations.append(page_range)
+                placement_count += len(page_asins)
+                seen_asins.update(page_asins)
+                if expected_page == self.page_count:
+                    termination = "requested_page_window_reconciled"
+                    break
+
+                next_link = page.locator(_AMAZON_GRID_NEXT_SELECTOR).first  # type: ignore[union-attr]
+                try:
+                    next_link.wait_for(
+                        state="visible",
+                        timeout=min(5_000, _grid_required_remaining_ms(deadline)),
+                    )
+                except Exception:
+                    if _AMAZON_GRID_TERMINAL_RE.search(rendered_dom):
+                        termination = "retailer_terminal_reconciled"
+                        break
+                    return self._grid_failed(
+                        reason="next_page_control_unavailable",
+                        detail=(
+                            f"Amazon grid page {expected_page} ended before the requested "
+                            f"{self.page_count}-page window and exposed no terminal control"
+                        ),
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+                previous_asins = tuple(page_asins)
+                next_link.scroll_into_view_if_needed(
+                    timeout=min(5_000, _grid_required_remaining_ms(deadline))
+                )
+                next_link.click(timeout=min(5_000, _grid_required_remaining_ms(deadline)))
+                change_deadline = min(
+                    deadline,
+                    time.monotonic() + _AMAZON_GRID_PAGE_CHANGE_TIMEOUT_MS / 1000,
+                )
+                while time.monotonic() < change_deadline:
+                    page.wait_for_timeout(  # type: ignore[union-attr]
+                        min(_AMAZON_GRID_PAGE_CHANGE_POLL_MS, _grid_remaining_ms(change_deadline))
+                    )
+                    current_url = str(page.url)  # type: ignore[union-attr]
+                    _, current_asins = _amazon_grid_card_asins(
+                        page.content()  # type: ignore[union-attr]
+                    )
+                    if (
+                        _amazon_grid_page_number(current_url) == expected_page + 1
+                        and current_asins
+                        and tuple(current_asins) != previous_asins
+                    ):
+                        break
+                else:
+                    return self._grid_failed(
+                        reason="next_page_did_not_advance",
+                        detail=f"Amazon grid did not advance after page {expected_page}",
+                        placement_count=placement_count,
+                        unique_count=len(seen_asins),
+                        range_observations=range_observations,
+                    )
+        except Exception as exc:
+            return self._grid_failed(
+                reason="grid_traversal_failed",
+                detail=f"Amazon grid traversal failed ({type(exc).__name__}: {exc})",
+                placement_count=placement_count,
+                unique_count=len(seen_asins),
+                range_observations=range_observations,
+            )
+
+        self._grid_observation = {
+            "amazon_grid_requested_page_count": self.page_count,
+            "amazon_grid_captured_page_count": len(self._grid_page_doms),
+            "amazon_grid_extracted_unique_parent_count": len(seen_asins),
+            "amazon_grid_extracted_placement_count": placement_count,
+            "amazon_grid_duplicate_placement_count": placement_count - len(seen_asins),
+            "amazon_grid_result_range_observations": range_observations,
+            "amazon_grid_termination": termination,
+            "amazon_grid_requested_query": requested_query,
+        }
+        return PreCaptureOutcome(attempted=True, steps_completed=True)
+
+    def _grid_failed(
+        self,
+        *,
+        reason: str,
+        detail: str,
+        placement_count: int,
+        unique_count: int,
+        range_observations: list[dict[str, int]],
+    ) -> PreCaptureOutcome:
+        self._grid_observation = {
+            "amazon_grid_requested_page_count": self.page_count,
+            "amazon_grid_captured_page_count": len(self._grid_page_doms),
+            "amazon_grid_extracted_unique_parent_count": unique_count,
+            "amazon_grid_extracted_placement_count": placement_count,
+            "amazon_grid_duplicate_placement_count": placement_count - unique_count,
+            "amazon_grid_result_range_observations": list(range_observations),
+            "amazon_grid_termination": "unproven",
+            "amazon_grid_failure": detail,
+        }
+        return PreCaptureOutcome(
+            attempted=True,
+            steps_completed=False,
+            reason=reason,
+            warning_notes=[f"amazon_grid_traversal: {detail}"],
+        )
+
+
+def _amazon_us_marketplace_observed(rendered_dom: str) -> bool:
+    return any(marker in rendered_dom for marker in _US_MARKETPLACE_MARKERS)
+
+
+def _amazon_error_shell_observed(rendered_dom: str) -> bool:
+    folded = rendered_dom.casefold()
+    return (
+        "sorry! something went wrong!" in folded
+        and ("cs_503" in folded or "500_503.png" in folded)
+    )
+
+
+def _amazon_grid_query(url: str) -> str | None:
+    values = parse_qs(urlparse(url).query).get("k", [])
+    value = values[0].strip() if values else ""
+    return value or None
+
+
+def _normalize_query(value: str | None) -> str:
+    return " ".join((value or "").casefold().split())
+
+
+def _amazon_grid_page_number(url: str) -> int | None:
+    values = parse_qs(urlparse(url).query).get("page", [])
+    if not values:
+        return 1
+    try:
+        page = int(values[0])
+    except (TypeError, ValueError):
+        return None
+    return page if page > 0 else None
+
+
+def _amazon_grid_card_asins(rendered_dom: str) -> tuple[int, list[str]]:
+    matches = list(_AMAZON_GRID_CARD_OPEN_RE.finditer(rendered_dom))
+    asins: list[str] = []
+    for match in matches:
+        asin = re.search(
+            r"\bdata-asin=[\"']([A-Z0-9]{10})[\"']",
+            match.group("attrs"),
+        )
+        if asin is not None:
+            asins.append(asin.group(1).upper())
+    return len(matches), asins
+
+
+def _amazon_grid_range(rendered_dom: str) -> dict[str, int] | None:
+    # Script and style bodies survive tag stripping as ordinary text. The projection
+    # reads the displayed range from script-free text, so stripping them here keeps
+    # the traversal gate and the admitted record reading the same retailer fact
+    # instead of letting serialized page state decide when the window is filled.
+    visible_text = re.sub(
+        r"<[^>]+>", " ", _AMAZON_GRID_SCRIPT_OR_STYLE_RE.sub(" ", rendered_dom)
+    )
+    match = _AMAZON_GRID_RANGE_RE.search(visible_text)
+    if match is None:
+        return None
+    return {
+        key: int(match.group(key).replace(",", ""))
+        for key in ("start", "end", "total")
+    }
+
+
+def _wait_for_amazon_grid_page_population(
+    page: object,
+    *,
+    initial_dom: str,
+    traversal_deadline: float,
+) -> tuple[str, int, list[str], dict[str, int] | None]:
+    """Wait briefly for the displayed ranked range to hydrate in the current tab."""
+
+    population_deadline = min(
+        traversal_deadline,
+        time.monotonic() + _AMAZON_GRID_PAGE_POPULATION_TIMEOUT_MS / 1000,
+    )
+    rendered_dom = initial_dom
+    stable_population_polls = 0
+    previous_asins: tuple[str, ...] | None = None
+    while True:
+        card_count, page_asins = _amazon_grid_card_asins(rendered_dom)
+        page_range = _amazon_grid_range(rendered_dom)
+        expected_ranked_count = (
+            page_range["end"] - page_range["start"] + 1
+            if page_range is not None
+            else None
+        )
+        population_complete = (
+            expected_ranked_count is not None
+            and len(page_asins) == card_count
+            and card_count >= expected_ranked_count
+        )
+        current_asins = tuple(page_asins)
+        if population_complete and current_asins == previous_asins:
+            stable_population_polls += 1
+        elif population_complete:
+            stable_population_polls = 1
+        else:
+            stable_population_polls = 0
+        if stable_population_polls >= _AMAZON_GRID_STABLE_POPULATION_POLLS:
+            return rendered_dom, card_count, page_asins, page_range
+        if time.monotonic() >= population_deadline:
+            return rendered_dom, card_count, page_asins, page_range
+        previous_asins = current_asins
+        page.wait_for_timeout(  # type: ignore[union-attr]
+            min(
+                _AMAZON_GRID_PAGE_POPULATION_POLL_MS,
+                _grid_remaining_ms(population_deadline),
+            )
+        )
+        rendered_dom = page.content()  # type: ignore[union-attr]
+
+
+def _grid_remaining_ms(deadline: float) -> int:
+    return max(0, int((deadline - time.monotonic()) * 1000))
+
+
+def _grid_required_remaining_ms(deadline: float) -> int:
+    remaining = _grid_remaining_ms(deadline)
+    if remaining <= 0:
+        raise TimeoutError("Amazon grid traversal window exhausted")
+    return remaining
 
 
 def confirm_us_storefront_with_zip(
