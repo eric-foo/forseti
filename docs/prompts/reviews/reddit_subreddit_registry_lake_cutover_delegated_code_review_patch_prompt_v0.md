@@ -18,9 +18,26 @@ open_next:
 
 ## Status
 
-`COMMISSIONED — NOT RUN`. Preparation-only until a different-vendor controller
-with direct repository access binds and verifies it. This artifact is the
-commission, not a review result; it asserts no verdict, validation, or readiness.
+`COMMISSIONED — RETURNED, ADJUDICATED`. The first run returned
+`BLOCKED_CONCURRENT_WRITER` (see *Return log*); its four findings were
+adjudicated and patched. This artifact is the commission, not a review result;
+it asserts no verdict, validation, or readiness.
+
+Output mode: `paste-ready-chat` — this file is the courier body. The
+controller's return goes to chat or the lane PR comment and writes no durable
+report under `docs/review-outputs/` unless separately commissioned.
+
+## Return log
+
+- **2026-07-22, controller `gpt-5` (OpenAI), reviewed `82e00a77`:**
+  `BLOCKED_CONCURRENT_WRITER`. The commissioning lane kept committing after the
+  freeze at `bdbb04a7`, so the worktree moved under the controller. No
+  commissioned file was patched and validation was not run — correct fail-closed
+  behavior, and a process fault on the commissioning side, not the controller's.
+  Four findings (RSR-01..RSR-04) were still returned from the read; all four
+  were verified against source, accepted, and patched in `55e9b01b`.
+  **Freeze discipline for any re-run: the commissioning lane must not commit
+  between the freeze revision and the controller's return.**
 
 ## Why this was commissioned
 
