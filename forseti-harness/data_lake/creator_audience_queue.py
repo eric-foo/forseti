@@ -17,6 +17,7 @@ from typing import Any, Mapping
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from harness_utils import sha256_bytes
 
 
 JOB_LANE = "creator_audience_onboarding_job"
@@ -74,8 +75,8 @@ def enqueue_creator_audience_job(
         ),
         "bundle_id": _text(bundle.get("bundle_id"), "bundle_id"),
         "bundle_hash": bundle_hash,
-        "bundle_sha256": _sha256(bundle_bytes),
-        "prompt_sha256": _sha256(prompt_bytes),
+        "bundle_sha256": "sha256:" + sha256_bytes(bundle_bytes),
+        "prompt_sha256": "sha256:" + sha256_bytes(prompt_bytes),
         "bundle_bytes_b64": base64.b64encode(bundle_bytes).decode("ascii"),
         "prompt_bytes_b64": base64.b64encode(prompt_bytes).decode("ascii"),
     }
@@ -523,7 +524,7 @@ def _decoded_bytes(record: Mapping[str, Any], body_key: str, hash_key: str) -> b
         payload = base64.b64decode(_text(record.get(body_key), body_key), validate=True)
     except (ValueError, binascii.Error) as exc:
         raise CreatorAudienceQueueError(f"invalid {body_key}") from exc
-    if _sha256(payload) != record.get(hash_key):
+    if "sha256:" + sha256_bytes(payload) != record.get(hash_key):
         raise CreatorAudienceQueueError(f"{body_key} does not match {hash_key}")
     return payload
 
@@ -542,10 +543,6 @@ def _text(value: Any, role: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise CreatorAudienceQueueError(f"{role} must be nonblank text")
     return value.strip()
-
-
-def _sha256(payload: bytes) -> str:
-    return "sha256:" + hashlib.sha256(payload).hexdigest()
 
 
 def _timestamp(value: str | None) -> str:
