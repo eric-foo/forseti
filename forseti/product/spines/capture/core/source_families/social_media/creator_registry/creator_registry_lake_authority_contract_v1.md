@@ -98,18 +98,18 @@ The allowed action vocabulary is:
   `deferred`.
 
 For `new_capture` and full `new_onboarding`, the runner applies the owner's
-standing US-market rule to the profile bio already captured with the suggested
-surface, closes that surface, and stops before grid acquisition when the result
-is deferred. An explicit non-US country flag records `non_us_market`. In the
-absence of an explicit non-US flag, processing continues; that pass means only
-that the profile did not disprove the standing market constraint, not that the
-creator or audience is proven US-market and not that the candidate is
-`eligible`. Profile language and TikTok `webapp.app-context.region` are never
-creator-market evidence. Historic `us_market_unverified` dispositions remain
-valid operational records but the gate no longer emits that reason. A defer is
-written through the existing append-only owner-action mechanism with
-`reconsideration=new_signal` and can be superseded when the profile signal
-changes.
+standing US-market rule to the captured profile bio. `new_capture` is bounded to
+profile/grid assessment: it never deep-captures videos or enqueues audience work,
+and an explicit non-US country flag defers after that assessment. Full
+`new_onboarding` retains its pre-grid defer. In the absence of an explicit non-US
+flag, processing continues; that pass means only that the profile did not
+disprove the standing market constraint, not that the creator or audience is
+proven US-market and not that the candidate is `eligible`. Profile language and
+TikTok `webapp.app-context.region` are never creator-market evidence. Historic
+`us_market_unverified` dispositions remain valid operational records but the
+gate no longer emits that reason. A defer is written through the existing
+append-only owner-action mechanism with `reconsideration=new_signal` and can be
+superseded when the profile signal changes.
 
 TikTok fragrance promotion policy v2 excludes only creators below the calibrated
 lower quartile on both compensating performance dimensions. Promotion occurs

@@ -71,6 +71,7 @@ from source_capture.tiktok.creator_onboarding import (
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TikTokCreatorMarketDeferred,
     TikTokCreatorOnboardingError,
+    assess_tiktok_creator_market,
     run_tiktok_creator_onboarding,
     run_tiktok_creator_profile_refresh,
 )
@@ -125,9 +126,8 @@ def _onboarding_window_size(value: str) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Attempt suggested-account capture, freeze a bounded TikTok creator grid, "
-            "select the reach-proven top eight, and deep-capture every selection through "
-            "a visible grid-tile overlay on the already-running dedicated Chrome CDP session."
+            "Assess a new TikTok creator from current profile/grid evidence, or fully "
+            "capture a Registry-admitted creator through the retained Chrome CDP session."
         ),
         epilog=(
             "Cold-agent default session alias: chowdakr_sg_tiktok. "
@@ -139,9 +139,9 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "TikTok handle. When omitted for new_onboarding, auto-select the sole "
             "actionable not_onboarded TikTok platform account in the Creator "
-            "Registry. An explicit handle must also already be a Registry "
-            "not_onboarded account; a genuinely absent account is rejected "
-            "before any browser probe and must be candidate-admitted first."
+            "Registry. An explicit new_onboarding handle must already be a Registry "
+            "not_onboarded account; new_capture instead requires an absent account "
+            "and performs assessment only."
         ),
     )
     parser.add_argument(
@@ -151,8 +151,9 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "New onboarding requires an exact Creator Registry match with "
             "onboarding_state=not_onboarded and no current deferred/rejected "
-            "Frontier disposition; new capture blocks exact matches; "
-            "update existing requires an exact match."
+            "Frontier disposition; new capture blocks exact matches and captures only "
+            "current profile/grid assessment evidence; update existing requires an "
+            "exact match."
         ),
     )
     parser.add_argument(
@@ -243,7 +244,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     data_root = None
-    capture_scope = "full_deep_capture"
+    capture_scope = (
+        "candidate_assessment"
+        if args.creator_intent == "new_capture"
+        else "full_deep_capture"
+    )
     prior_coverage: dict[str, object] | None = None
     promotion_decisions = None
     frontier_registers: list[dict[str, object]] = []
@@ -351,6 +356,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 "--force-deep-recapture requires --prior-capture-pointer"
             )
+        if args.creator_intent == "new_capture" and args.force_deep_recapture:
+            raise ValueError(
+                "new_capture is assessment-only and does not permit deep recapture"
+            )
         if args.prior_capture_pointer and not args.force_deep_recapture:
             prior_coverage = _validate_reusable_prior_capture(
                 prior_capture_pointer=args.prior_capture_pointer,
@@ -398,7 +407,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "cdp_session_available",
             {"endpoint": "http://127.0.0.1:9222"},
         )
-        if capture_scope == "profile_refresh":
+        if capture_scope in {"candidate_assessment", "profile_refresh"}:
             paths = run_tiktok_creator_profile_refresh(
                 creator_handle=args.creator_handle,
                 session_profile=session_profile,
@@ -430,6 +439,23 @@ def main(argv: Sequence[str] | None = None) -> int:
                     args.creator_intent in {"new_capture", "new_onboarding"}
                 ),
             )
+        if capture_scope == "candidate_assessment":
+            grid = json.loads(paths.grid_window_json_path.read_text(encoding="utf-8"))
+            assessment = assess_tiktok_creator_market(
+                creator_handle=args.creator_handle,
+                profile_bio_text_or_none=grid.get("profile_bio_text_or_none"),
+                profile_bio_status=str(grid.get("profile_bio_status") or ""),
+                source_artifact=paths.grid_window_json_path.name,
+            )
+            _emit_progress(
+                "market_gate",
+                {
+                    "decision": assessment["decision"],
+                    "reason_code_or_none": assessment["reason_code_or_none"],
+                },
+            )
+            if assessment["decision"] != "passed_no_non_us_evidence":
+                raise TikTokCreatorMarketDeferred(assessment)
     except TikTokCreatorMarketDeferred as exc:
         assessment = exc.assessment
         if data_root is not None:
@@ -508,7 +534,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.admit_output is not None or args.data_root is not None:
         _emit_progress("admission_started", {})
         try:
-            if capture_scope == "profile_refresh":
+            if capture_scope in {"candidate_assessment", "profile_refresh"}:
                 exit_code, output = write_tiktok_grid_packet(
                     grid_window_json=paths.grid_window_json_path.read_bytes(),
                     output_directory=args.admit_output if data_root is None else None,
