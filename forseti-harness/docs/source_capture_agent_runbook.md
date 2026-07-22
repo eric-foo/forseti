@@ -155,18 +155,19 @@ Routine TikTok onboarding must use the default
 `creator_intent=new_onboarding` for an exact Creator Registry match whose
 `onboarding.onboarding_state` is `not_onboarded`. A missing or ambiguous match,
 an invalid onboarding marker, or `onboarding_state=onboarded` blocks before the
-browser phase. Use `new_capture` only for explicit discovery/capture work on an
-identity absent from the registry, and use `update_existing` only for recapture,
-supplement provenance, or an existing-creator regression.
+browser phase. Use `new_capture` only to capture profile/grid assessment evidence
+for an identity absent from the registry; it never deep-captures videos or
+enqueues audience work. Use `update_existing` only for recapture, supplement
+provenance, or an existing-creator regression.
 
 `new_capture` and full `new_onboarding` apply the standing owner US-market gate
-to the bio returned by the existing suggested/profile observation. The runner
-closes that surface and, for an explicit non-US country flag, appends the
-corresponding Frontier defer when `--data-root` is supplied and stops before
-grid acquisition. This adds no browser read. With no explicit non-US flag the
-runner continues; that is not proof of a US creator or audience and is not an
-eligibility decision. Do not infer geography from profile language or TikTok
-`webapp.app-context.region`.
+to the captured profile bio. For `new_capture`, the runner writes the bounded
+profile/grid assessment and stops before any deep capture; an explicit non-US
+country flag appends the corresponding Frontier defer when `--data-root` is
+supplied. Full `new_onboarding` retains its earlier pre-grid gate. With no
+explicit non-US flag the runner continues; that is not proof of a US creator or
+audience and is not an eligibility decision. Do not infer geography from
+profile language or TikTok `webapp.app-context.region`.
 
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 

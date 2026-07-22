@@ -3632,6 +3632,7 @@ def assess_tiktok_creator_market(
     creator_handle: str,
     profile_bio_text_or_none: object,
     profile_bio_status: str,
+    source_artifact: str = TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME,
 ) -> dict[str, Any]:
     """Classify only explicit, same-read profile-bio market evidence.
 
@@ -3671,7 +3672,7 @@ def assess_tiktok_creator_market(
         "reason_code_or_none": reason_code,
         "reconsideration_or_none": reconsideration,
         "evidence": {
-            "source_artifact": TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME,
+            "source_artifact": source_artifact,
             "source_route": "tiktok_profile_bio_dom_same_read",
             "profile_bio_status": profile_bio_status,
             "country_flag_codes": flag_codes,
