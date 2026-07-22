@@ -840,3 +840,78 @@ def test_rdr04_disposition_reporting_is_bounded_and_visible(
     assert non_top["count"] == 1
     assert len(non_top["sample"]) == 1
     assert payload["packets_skipped_outside_window"]["count"] == 0
+
+
+LOGIN_WALL_HTML = """
+<html><head><title>Welcome to Reddit</title></head><body>
+<p>Log in or sign up to personalize your feed, join conversations, vote.</p>
+</body></html>
+"""
+
+
+def test_raw_sample_still_validates_the_projection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression for the 2026-07-22 full-roster pass: Reddit redirected every
+    request to a login wall. Content-mode captures failed loud via the anomaly
+    guard, but the rotating RAW sample skipped extraction entirely and banked
+    the login page reporting exit 0 -- the one packet kept to audit the
+    projection was the one packet nobody audited."""
+    url = "https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100"
+
+    def fake_fetch(**_: object) -> DirectHttpCaptureSuccess:
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url="https://old.reddit.com/login/?reason=lor2&dest=" + url,
+            status=200,
+            reason="OK",
+            metadata={"capture_timestamp": "2026-07-22T19:58:32Z", "requested_url": url,
+                      "final_url": url, "status": 200},
+            body=LOGIN_WALL_HTML.encode(),
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(http_packet_runner, "fetch_direct_http_capture", fake_fetch)
+
+    def run(validate: bool) -> tuple[int, dict]:
+        out = tmp_path / f"packet_validate_{validate}"
+        code, _ = http_packet_runner.run_source_capture_http_packet(
+            url=url, source_family="reddit_subreddit_grid",
+            source_surface="old_reddit_direct_http",
+            decision_question="raw sample validation", output_directory=out,
+            capture_context="test", operator_category="test_operator",
+            capture_mode=http_packet_runner.CaptureModeCategory.STRUCTURED_ACCESS,
+            session_id=None, actor_audience_context=None, visible_mode_changes=[],
+            source_publication_or_event=None, source_edit_or_version=None,
+            cutoff_posture=None, recapture_time=None, re_capture_relationship=None,
+            warnings=[], limitations=[], timeout_seconds=5, max_bytes=1_000_000,
+            content_extraction=ContentExtractionSpec(
+                requested_retention_mode="raw",
+                extractor_version=GRID_PROJECTION_PARSER_VERSION,
+                extractor=lambda html_text, _u: (_ for _ in ()).throw(
+                    grid_runner.GridProjectionAnomalyError("no_thread_rows")
+                ) if grid_runner.check_grid_projection_anomaly(
+                    build_grid_content_record(
+                        html_text=html_text, subreddit="makeupaddiction", listing_url=url)
+                ) else build_grid_content_record(
+                    html_text=html_text, subreddit="makeupaddiction", listing_url=url),
+                validate_in_raw_mode=validate,
+            ),
+        )
+        meta = json.loads(
+            (out / "raw" / "02_http_response_metadata.json").read_text(encoding="utf-8")
+        )
+        return code, meta["content_extraction"]
+
+    # Old behavior: raw mode skipped extraction, so a login wall passed clean.
+    code_off, ce_off = run(validate=False)
+    assert code_off == 0
+    assert ce_off["extraction_status"] == "not_attempted: raw retention requested"
+
+    # Fixed: the projection is checked even though raw is what gets kept.
+    code_on, ce_on = run(validate=True)
+    assert code_on == 4, "a login wall must not report a clean raw capture"
+    assert ce_on["retention_outcome"] == "raw_failure"
+    assert "no_thread_rows" in ce_on["extraction_status"]
+    assert ce_on["raw_preserved"] is True, "raw must still be preserved for audit"

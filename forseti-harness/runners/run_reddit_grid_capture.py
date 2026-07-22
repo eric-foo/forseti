@@ -236,6 +236,10 @@ def run_reddit_grid_capture(
                 requested_retention_mode=row_retention,
                 extractor_version=GRID_PROJECTION_PARSER_VERSION,
                 extractor=_extract,
+                # The rotating raw sample exists to audit the projection, so it
+                # must itself be checked: without this it is the one packet that
+                # can bank a login wall and still report success.
+                validate_in_raw_mode=True,
             )
         try:
             row["capture_started_at"] = utc_now_z_microseconds()

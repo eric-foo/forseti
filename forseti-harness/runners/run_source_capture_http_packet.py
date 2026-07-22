@@ -272,7 +272,21 @@ def run_source_capture_http_packet(
                 extraction_failure = f"{type(exc).__name__}: {exc}"
                 extraction_status = f"failed: {extraction_failure}"
         elif content_extraction.requested_retention_mode == "raw":
-            extraction_status = "not_attempted: raw retention requested"
+            if (
+                content_extraction.validate_in_raw_mode
+                and 200 <= capture_result.status < 300
+            ):
+                # Validity check only: raw stays the preserved artifact either
+                # way, but a raising extractor must not be reported as a clean
+                # capture (see ContentExtractionSpec.validate_in_raw_mode).
+                try:
+                    content_extraction.extractor(decoded_body, capture_result.final_url)
+                    extraction_status = "not_retained: raw retention requested; projection validated"
+                except Exception as exc:
+                    extraction_failure = f"{type(exc).__name__}: {exc}"
+                    extraction_status = f"failed: {extraction_failure}"
+            else:
+                extraction_status = "not_attempted: raw retention requested"
         else:
             extraction_status = (
                 f"not_attempted: HTTP {capture_result.status} response; raw preserved"
