@@ -9,6 +9,10 @@ from pathlib import Path
 import pytest
 
 import source_capture.tiktok.creator_onboarding as onboarding
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    load_creator_frontier_dispositions,
+    write_creator_frontier_dispositions,
+)
 from data_lake.root import DataLakeRoot
 from runners import run_source_capture_tiktok_creator_onboarding as runner
 from source_capture.adapters.browser_snapshot import (
@@ -335,6 +339,180 @@ def test_runner_builds_inspectable_market_defer_action() -> None:
     assert action["reason_code"] == "non_us_market"
     assert action["reconsideration"] == "new_signal"
     assert "country_flags=TR" in action["note"]
+
+
+def _promotion_document(
+    *,
+    handle: str,
+    registry_action: str,
+    decision_reason_code: str,
+    decision_note: str,
+) -> dict[str, object]:
+    return {
+        "tiktok_creator_promotion_decisions": {
+            "schema_version": "tiktok_creator_promotion_decisions_v1",
+            "decisions": [
+                {
+                    "handle": handle,
+                    "registry_action": registry_action,
+                    "decision_reason_code": decision_reason_code,
+                    "decision_note": decision_note,
+                }
+            ],
+        }
+    }
+
+
+def test_explicit_promotion_persists_frontier_and_replays_idempotently(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    note = (
+        "policy=tiktok_fragrance_creator_promotion_policy_v2; "
+        "decision=promote_now; quality=0.500000; quality_p25=0.34425675; "
+        "reliable_weekly_reach=10000.000000; weekly_reach_p25=15213.659348; "
+        "cleared=quality_p25; reconsider=none"
+    )
+    document = _promotion_document(
+        handle="swole_fragrance",
+        registry_action="promote_now",
+        decision_reason_code="cleared_quality_p25",
+        decision_note=note,
+    )
+
+    first = runner._write_promotion_frontier_disposition(
+        data_root=root,
+        document=document,
+        creator_handle="@SWOLE_FRAGRANCE",
+    )
+    second = runner._write_promotion_frontier_disposition(
+        data_root=root,
+        document=document,
+        creator_handle="swole_fragrance",
+    )
+
+    assert first["status"] == "written"
+    assert second["status"] == "already_current"
+    current = load_creator_frontier_dispositions(root)[
+        "creator_frontier_disposition_current"
+    ]["dispositions"]
+    assert len(current) == 1
+    assert current[0]["status"] == "eligible"
+    assert current[0]["priority_or_none"] == "normal"
+    assert current[0]["note_or_none"] == note
+
+
+@pytest.mark.parametrize(
+    ("reason", "frontier_reason"),
+    [
+        ("below_both_p25", "low_potential"),
+        ("quality_unavailable_weekly_below_p25", "other"),
+    ],
+)
+def test_nonpromotion_reason_maps_to_inspectable_frontier_defer(
+    reason: str, frontier_reason: str
+) -> None:
+    action = runner._promotion_frontier_action(
+        {
+            "handle": "weakcreator",
+            "registry_action": "do_not_promote",
+            "decision_reason_code": reason,
+            "decision_note": "policy=v2; decision=do_not_promote",
+        }
+    )
+
+    assert action["status"] == "deferred"
+    assert action["reason_code"] == frontier_reason
+    assert action["reconsideration"] == "new_signal"
+    assert action["note"] == "policy=v2; decision=do_not_promote"
+
+
+def test_batch_promotion_without_explicit_handle_does_not_mutate_frontier(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    grid_dir = tmp_path / "grids"
+    grid_dir.mkdir()
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grid = {
+        "creator_handle": "batchcreator",
+        "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+        "items": [
+            {
+                "createTime": int(captured.timestamp() - age * 86400),
+                "pinned_visible": False,
+                "stats": {"playCount": 30000},
+            }
+            for age in (16, 20, 25)
+        ],
+    }
+    (grid_dir / "batchcreator.grid.json").write_text(
+        json.dumps(grid), encoding="utf-8"
+    )
+
+    output, _document = runner._write_promotion_decisions(
+        grid_dir,
+        tmp_path / "output",
+        registry_document={"creator_profile_current_view": {"profiles": []}},
+        frontier_dispositions=load_creator_frontier_dispositions(root),
+        data_root=root,
+        explicit_creator_handle=None,
+    )
+
+    assert output.is_file()
+    assert load_creator_frontier_dispositions(root)[
+        "creator_frontier_disposition_current"
+    ]["dispositions"] == []
+
+
+@pytest.mark.parametrize(
+    ("status", "reason_code", "reconsideration"),
+    [
+        ("deferred", "owner_choice", "owner_reopen"),
+        ("deferred", "non_us_market", "new_signal"),
+        ("rejected", "owner_choice", None),
+    ],
+)
+def test_promotion_refuses_to_supersede_owner_nonperformance_disposition(
+    tmp_path: Path,
+    status: str,
+    reason_code: str,
+    reconsideration: str | None,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    action: dict[str, object] = {
+        "platform": "tiktok",
+        "handle": "ownerheld",
+        "status": status,
+        "reason_code": reason_code,
+        "note": "owner decision",
+    }
+    if reconsideration is not None:
+        action["reconsideration"] = reconsideration
+    write_creator_frontier_dispositions(data_root=root, actions=[action])
+    document = _promotion_document(
+        handle="ownerheld",
+        registry_action="promote_now",
+        decision_reason_code="cleared_both_p25",
+        decision_note=(
+            "policy=tiktok_fragrance_creator_promotion_policy_v2; "
+            "decision=promote_now"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="refusing to supersede non-performance"):
+        runner._write_promotion_frontier_disposition(
+            data_root=root,
+            document=document,
+            creator_handle="ownerheld",
+        )
+
+    current = load_creator_frontier_dispositions(root)[
+        "creator_frontier_disposition_current"
+    ]["dispositions"]
+    assert len(current) == 1
+    assert current[0]["status"] == status
+    assert current[0]["reason_code"] == reason_code
 
 
 def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
