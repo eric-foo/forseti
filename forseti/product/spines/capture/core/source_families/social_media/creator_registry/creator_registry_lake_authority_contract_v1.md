@@ -94,6 +94,29 @@ written through the existing append-only owner-action mechanism with
 `reconsideration=new_signal` and can be superseded when the profile signal
 changes.
 
+TikTok fragrance promotion policy v2 excludes only creators below the calibrated
+lower quartile on both compensating performance dimensions. Promotion occurs
+when age-normalized quality is at least `0.34425675` **or** reliable weekly
+reach is at least `15213.659348`; equality clears the gate. The calculations
+continue to exclude pinned posts, use the existing age cohorts and cadence cap,
+and retain the calibration report and source-set hashes in the decision output.
+That calibration covers 31 preselected normal/low fragrance creators and 846
+unpinned posts, so it is a selective operating cohort rather than a universal
+TikTok benchmark.
+
+Every promotion result carries a stable reason code, the thresholds it cleared,
+and an exact note containing the policy version, observed values, thresholds,
+decision, and reconsideration basis. An explicit single-handle promotion run
+with `--data-root` writes the same note to append-only Frontier state:
+`eligible/normal/other` when either dimension clears, `deferred/low_potential`
+when both measured dimensions miss, or `deferred/other` when quality is
+unavailable and weekly reach misses. Deferred results use
+`reconsideration=new_signal`. A batch run without an explicit handle remains
+read-only. The promotion runner may supersede only an exact replay, a prior
+performance disposition (`low_potential` or `low_reach`), or its own
+policy-marked disposition; rejection and non-performance owner dispositions
+fail closed.
+
 The writer validates the complete batch before creating a packet or derived
 record. An exact semantic replay is `already_current`; a changed action
 supersedes every current head for that candidate. Invalid supersession,
