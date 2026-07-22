@@ -27,6 +27,12 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from harness_utils import hash_file
+from data_lake.reddit_subreddit_registry import (
+    append_grid_observation,
+    known_subreddits,
+    normalize_subreddit,
+)
+from data_lake.root import DataLakeRoot
 from capture_spine.reddit_subreddit_grid.grid_projection import (
     GridView,
     RedditGridProjectionError,
@@ -38,6 +44,20 @@ from source_capture.packet_inspection import read_packet_leniently
 from source_capture.source_quality import resolve_manifest_path
 
 GRID_SOURCE_FAMILY = "reddit_subreddit_grid"
+# The committed registry is frozen at the stage-3 writer cut-over; the superseded
+# Git-mutating refresh below refuses to touch it.
+FROZEN_COMMITTED_REGISTRY_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "reddit"
+    / "reddit_subreddit_registry_v0.json"
+)
 GRID_OBSERVATION_SOURCE_SURFACE = "old_reddit_grid_packet"
 
 
@@ -88,6 +108,20 @@ def refresh_registry_from_grid_packets(
     packet_paths: list[Path],
     dry_run: bool = False,
 ) -> RegistryRefreshOutcome:
+    """SUPERSEDED by ``refresh_lake_registry_from_grid_packets``; do not re-wire.
+
+    Registry authority moved to the lake, and the checked-in JSON is frozen
+    for rollback and audit.  This Git-mutating path is retained only as the
+    two-speed-rule oracle its tests exercise, and is removed in the same later
+    work unit that removes the frozen file.  Pointing it at the frozen committed
+    registry fails closed rather than relying on a docstring to be read.
+    """
+    if registry_path.resolve() == FROZEN_COMMITTED_REGISTRY_PATH:
+        raise RegistryRefreshError(
+            "frozen_registry_write_refused",
+            "the committed registry is frozen for rollback and audit; grid evidence "
+            "goes to lake authority via refresh_lake_registry_from_grid_packets",
+        )
     if not packet_paths:
         raise RegistryRefreshError("no_packets", "at least one grid packet path is required")
 
@@ -121,6 +155,81 @@ def refresh_registry_from_grid_packets(
             json.dump(document, handle, indent=2, ensure_ascii=False)
             handle.write("\n")
         outcome.registry_written = True
+    return outcome
+
+
+@dataclass
+class LakeRefreshOutcome:
+    """Lake-mode counterpart of ``RegistryRefreshOutcome``."""
+
+    data_root: str
+    refreshed_subreddits: list[str] = field(default_factory=list)
+    duplicate_observation_skips: list[str] = field(default_factory=list)
+    unknown_subreddits: list[str] = field(default_factory=list)
+    record_ids: list[str] = field(default_factory=list)
+    records_written: int = 0
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "data_root": self.data_root,
+            "authority": "lake",
+            "refreshed_subreddits": self.refreshed_subreddits,
+            "duplicate_observation_skips": self.duplicate_observation_skips,
+            "unknown_subreddits": self.unknown_subreddits,
+            "record_ids": self.record_ids,
+            "records_written": self.records_written,
+            "non_claims": [
+                "not metric authority",
+                "not demand proof",
+                "not venue quality or fit scoring",
+                "not capture authorization",
+            ],
+        }
+
+
+def refresh_lake_registry_from_grid_packets(
+    *,
+    data_root: DataLakeRoot,
+    packet_paths: list[Path],
+    dry_run: bool = False,
+) -> LakeRefreshOutcome:
+    """Append one observation record per committed grid packet.
+
+    The lake fold supplies the roster, so an unknown subreddit is still
+    reported and never silently added: a grid pass starts FROM a registry
+    filter, so an unknown target is an operator signal, not new-row authority.
+    """
+    if not packet_paths:
+        raise RegistryRefreshError("no_packets", "at least one grid packet path is required")
+
+    reads = [read_grid_packet(packet_or_manifest_path=path) for path in packet_paths]
+    roster = set(known_subreddits(data_root))
+    outcome = LakeRefreshOutcome(data_root=str(data_root.path))
+
+    for read in reads:
+        key = normalize_subreddit(read.subreddit)
+        if key not in roster:
+            outcome.unknown_subreddits.append(key)
+            continue
+        view = read.grid_view
+        result = append_grid_observation(
+            data_root,
+            subreddit=key,
+            observed_at=read.observed_at,
+            subscriber_count_or_none=_normalized_count(view.visible_subscriber_count_or_none),
+            active_user_count_or_none=_normalized_count(view.visible_active_user_count_or_none),
+            source_surface=GRID_OBSERVATION_SOURCE_SURFACE,
+            provenance_pointer=read.manifest_path,
+            absent_reason_or_none=view.visible_volume_signal_absent_reason_or_none,
+            dry_run=dry_run,
+        )
+        if result["status"] == "already_current":
+            outcome.duplicate_observation_skips.append(key)
+            continue
+        outcome.refreshed_subreddits.append(key)
+        outcome.record_ids.append(result["record_id"])
+        if result["written"]:
+            outcome.records_written += 1
     return outcome
 
 

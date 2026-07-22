@@ -58,10 +58,19 @@ DEFAULT_MAX_BYTES = 5_000_000
 # Raw remains the explicit operator-selected evidence posture.
 DEFAULT_RETENTION_MODE = "content"
 
+# States the decision predicate, not a description of the file. A re-check
+# compared against a description escalates on any scope or wording drift; against
+# the predicate it escalates only when the decision could change. Halt routing is
+# owned by the radar design's policy gate.
 SOURCE_POLICY_POSTURE_RECEIPT = (
-    "source-policy posture: reddit robots.txt disallows subreddit listing surfaces for "
-    "generic agents; this bounded single-page grid pass runs under the owner-accepted "
-    "measured-risk dual-track posture (Reddit lane README, 2026-07-16); not ToS sufficiency"
+    "source-policy posture: the subreddit listing surface this runner captures is "
+    "robots-disallowed for us, and the owner accepted capturing it anyway as a bounded "
+    "single-page pass under the measured-risk dual-track posture (Reddit lane README, "
+    "2026-07-16). A broader or reworded disallow does not re-open that; halt only if the "
+    "surface becomes allowed, a hard access gate appears, or the accepted bound is "
+    "exceeded. Observed 2026-07-22: 'User-agent: * / Disallow: /' on www and old.reddit, "
+    "user-agent-independent and byte-identical to an independent archive crawl. "
+    "Not ToS sufficiency, not legal advice"
 )
 
 

@@ -136,7 +136,7 @@ The lake is strict about where bytes land. It is not smart about what they mean.
 <FORSETI_DATA_ROOT>/
   raw/                       # Raw Packet Store      — immutable, write-once
   attachments/               # Attachment Record     — immutable, hash-checkable*
-  derived/                   # Derived Result Store  — append-only, keyed to raw
+  derived/                   # Derived Result Store  — append-only, keyed to a typed source anchor
   acknowledgements/          # Acknowledgement Log   — append-only, keyed to raw
   indexes/
     availability/            # Availability Index    — content-free committed/
@@ -160,10 +160,10 @@ decisions; it is not locked here.
 | --- | --- | --- |
 | `raw/` | Raw Packet Store: immutable `SourceCapturePacket` bundles, stable packet/slice/file handles, `sha256`, `hash_basis`. | Cleaned truth, canonical identity, mutable packet history. |
 | `attachments/` | RESERVED (Gate 1 body-layout ADR, 2026-07-02): no default occupant — Attachment Record bodies land as packet members under `raw/`. The slot opens only through a future ADR on the sidecar reopen trigger; any future occupant stays immutable/hash-checkable and keyed to packet/slice/file. | Cleaned values, dedupe/credibility/Judgment labels, downstream-use strength, or a second default body home without a ratified ADR. |
-| `derived/` | Derived Result Store: append-only lane-owned derived records keyed to raw; each epistemic kind a sibling. | Second raw source of truth, merged cross-kind blob, rewritten/deleted history. |
+| `derived/` | Derived Result Store: append-only lane-owned derived records keyed to a typed source anchor; normally raw, or an explicitly admitted capture event for a derived-first lane. | Second raw source of truth, fake raw receipts, merged cross-kind blob, rewritten/deleted history. |
 | `acknowledgements/` | Acknowledgement Log: append-only lane-owned completion/ack facts keyed to raw. | Lake-consumed control flow for scheduling, gating, retry, or calling a lane. |
 | `indexes/availability/` | Availability Index: content-free committed/readable-by-key state with checkable refs; rebuildable. | Analytical reverse index, event bus, scheduler, router, retry gate, priority/success tracker. |
-| `indexes/derived_retrieval/` | Rebuildable, non-authoritative lane-owned retrieval aids (e.g., timing/cadence views), always reconstructible from `derived/` + raw. | Source of truth, persistent actor history, dossier, or lake authority. |
+| `indexes/derived_retrieval/` | Rebuildable, non-authoritative lane-owned retrieval aids (e.g., timing/cadence views), always reconstructible from `derived/` and any raw packets those records actually reference. | Source of truth, persistent actor history, dossier, or lake authority. |
 
 ## Stored Record Vocabulary
 
@@ -211,7 +211,7 @@ Rules:
 
 What keeps derived retrieval from becoming authority: the `derived_retrieval`
 subslot name (marked rebuildable + non-authoritative), the content-free guarantee on
-`availability/`, and the rule that these are lane-owned records keyed to raw, not a
+`availability/`, and the rule that these are lane-owned records keyed to typed source anchors, not a
 second source of truth.
 
 The selected SQLite evidence catalogue lives by default at

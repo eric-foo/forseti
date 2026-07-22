@@ -67,6 +67,7 @@ from source_capture.source_quality import (
 from source_capture.writer import (
     NON_CLAIMS,
     DuplicateCapturePacketError,
+    publish_completed_source_capture_packet,
     render_receipt,
     write_local_source_capture_packet,
 )
@@ -128,6 +129,7 @@ __all__ = [
     "known_fact",
     "not_applicable",
     "not_attempted",
+    "publish_completed_source_capture_packet",
     "render_receipt",
     "unknown_with_reason",
     "write_local_source_capture_packet",

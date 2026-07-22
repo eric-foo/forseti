@@ -49,7 +49,7 @@ operator action.
 Owner shard decision recorded 2026-06-28: v4.1 uses lowercase, unsalted,
 three-character SHA-256 hex prefix sharding for raw and derived anchors:
 `packet_shard = sha256(packet_id).hexdigest()[:3]` and
-`anchor_shard = sha256(raw_anchor).hexdigest()[:3]`.
+`anchor_shard = sha256(source_anchor).hexdigest()[:3]`.
 
 ## Decision In One Screen
 
@@ -104,8 +104,8 @@ Forward v4.1 roots use this grammar:
   attachments/
 
   derived/
-    <anchor_shard>/<raw_anchor>/<lane_namespace>/<record_id>.json
-    <anchor_shard>/<raw_anchor>/<lane_namespace>/<record_set_id>.json
+    <anchor_shard>/<source_anchor>/<lane_namespace>/<record_id>.json
+    <anchor_shard>/<source_anchor>/<lane_namespace>/<record_set_id>.json
 
   acknowledgements/
 
@@ -129,9 +129,12 @@ Shard rules:
   `sha256(packet_id)`. It is physical fanout only, carries no semantic meaning,
   and by-key readers recompute it from `packet_id`.
 - `<anchor_shard>` is the first three lowercase hex characters of
-  `sha256(raw_anchor)`. For packet-depth anchors this is the same basis as the
-  raw packet id; a future lane that narrows a raw anchor below packet depth must
-  preserve a stable `raw_anchor` string before writing.
+  `sha256(source_anchor)`. Existing lanes use a raw packet id or a stable anchor
+  below packet depth. An explicitly admitted derived-first capture lane may use
+  its stable capture-event id when routine raw bodies are intentionally not
+  retained. Such a record must declare `anchor_kind: capture_event`, carry the
+  capture URL/time/profile/parser provenance in its body, and use an optional
+  raw-sample packet reference rather than implying that raw evidence exists.
 - Shards are lowercase hex, unsalted, fixed-width, and not stored as authority.
   Availability refs must include the shard-bearing raw path.
 
@@ -139,6 +142,9 @@ Folder rules:
 
 - `raw/` is raw evidence only. It is not organized by creator, product,
   platform account, reel, short, SKU, or review subject.
+- A source-body-free receipt is not raw evidence and must not be created merely
+  to satisfy derived addressing. Raw packets remain appropriate for admitted
+  samples and failure diagnosis.
 - `derived/` is append-only Silver authority when the record body is a v4.1
   Silver Vault record. Meaning lives in the record body, not in the path.
 - `indexes/availability/` is content-free committed/readable-by-key state.
@@ -245,7 +251,7 @@ Judgment-owned output                   Medallion label: Gold
 Silver Vault v4.1 authority lives under:
 
 ```text
-derived/<anchor_shard>/<raw_anchor>/<lane_namespace>/<record_id>.json
+derived/<anchor_shard>/<source_anchor>/<lane_namespace>/<record_id>.json
 ```
 
 Creator Vault and query read models live under:

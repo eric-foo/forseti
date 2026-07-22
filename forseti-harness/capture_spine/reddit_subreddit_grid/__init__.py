@@ -20,9 +20,11 @@ from capture_spine.reddit_subreddit_grid.grid_projection import (
     project_old_reddit_grid_html,
 )
 from capture_spine.reddit_subreddit_grid.materializer import (
+    LakeRefreshOutcome,
     RegistryRefreshOutcome,
     RegistryRefreshError,
     read_grid_packet,
+    refresh_lake_registry_from_grid_packets,
     refresh_registry_from_grid_packets,
 )
 
@@ -32,7 +34,9 @@ __all__ = [
     "RedditGridProjectionError",
     "RegistryRefreshError",
     "RegistryRefreshOutcome",
+    "LakeRefreshOutcome",
     "project_old_reddit_grid_html",
     "read_grid_packet",
+    "refresh_lake_registry_from_grid_packets",
     "refresh_registry_from_grid_packets",
 ]
