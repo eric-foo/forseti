@@ -616,13 +616,65 @@ def build_amazon_grid_aggregate_content_record(
     }
 
 
+def _is_grid_content_record(text: str, *, retailer: RetailGridRetailer) -> bool:
+    """Return whether text is this retailer's compact grid content record."""
+    if retailer == "target":
+        return _load_target_grid_content_record(text) is not None
+    if retailer == "amazon":
+        return _load_amazon_grid_content_record(text) is not None
+    if retailer not in {"sephora", "ulta"}:
+        return False
+    stripped = text.lstrip()
+    if not stripped.startswith("{"):
+        return False
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return False
+    return (
+        isinstance(payload, dict)
+        and "content_record_version" in payload
+        and payload.get("retailer") == retailer
+    )
+
+
 def build_retail_grid_projection(
     *, packet: SourceCapturePacket, raw_file_bytes_by_file_id: Mapping[str, bytes]
 ) -> RetailGridProjectionPacket:
     retailer = detect_retail_grid_retailer(packet)
+    content_record_file_ids = {
+        file_id
+        for source_slice in packet.source_slices
+        for file_id in source_slice.preserved_file_ids
+        if (body := raw_file_bytes_by_file_id.get(file_id)) is not None
+        and _is_grid_content_record(
+            body.decode("utf-8", errors="replace"), retailer=retailer
+        )
+    }
     if retailer == "ulta":
         from source_capture.ulta_grid_projection import build_ulta_grid_projection
 
+        if content_record_file_ids:
+            packet = packet.model_copy(
+                update={
+                    "source_slices": [
+                        source_slice.model_copy(
+                            update={
+                                "preserved_file_ids": [
+                                    file_id
+                                    for file_id in source_slice.preserved_file_ids
+                                    if file_id in content_record_file_ids
+                                ]
+                            }
+                        )
+                        for source_slice in packet.source_slices
+                        if any(
+                            file_id in content_record_file_ids
+                            for file_id in source_slice.preserved_file_ids
+                        )
+                    ]
+                }
+            )
         return build_ulta_grid_projection(
             packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id
         )
@@ -632,37 +684,13 @@ def build_retail_grid_projection(
     sephora_states: list[SephoraBrandGridState] = []
     target_states: list[dict[str, Any]] = []
     amazon_states: list[dict[str, Any]] = []
-    target_content_file_ids: set[str] = set()
-    amazon_content_file_ids: set[str] = set()
-    if retailer in {"target", "amazon"}:
-        for source_slice in packet.source_slices:
-            for file_id in source_slice.preserved_file_ids:
-                body = raw_file_bytes_by_file_id.get(file_id)
-                if body is None:
-                    continue
-                text = body.decode("utf-8", errors="replace")
-                if retailer == "target" and _load_target_grid_content_record(text) is not None:
-                    target_content_file_ids.add(file_id)
-                if retailer == "amazon" and _load_amazon_grid_content_record(text) is not None:
-                    amazon_content_file_ids.add(file_id)
-
     for source_slice in packet.source_slices:
         raw_ref = RetailProjectionRawRef(
             packet_id=packet.packet_id, slice_id=source_slice.slice_id
         )
         slice_row_count = 0
         for file_id in source_slice.preserved_file_ids:
-            if (
-                retailer == "target"
-                and target_content_file_ids
-                and file_id not in target_content_file_ids
-            ):
-                continue
-            if (
-                retailer == "amazon"
-                and amazon_content_file_ids
-                and file_id not in amazon_content_file_ids
-            ):
+            if content_record_file_ids and file_id not in content_record_file_ids:
                 continue
             preserved_file = preserved_files[file_id]
             body = raw_file_bytes_by_file_id.get(file_id)

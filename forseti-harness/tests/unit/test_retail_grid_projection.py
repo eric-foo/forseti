@@ -1546,6 +1546,24 @@ def _write_smoke_manifest(
     return path
 
 
+def _with_second_preserved_file(
+    packet: SourceCapturePacket, *, relative_path: str, body: bytes
+) -> SourceCapturePacket:
+    manifest = packet.model_dump(mode="json")
+    manifest["preserved_files"].append(
+        PreservedFile(
+            file_id="file_02",
+            original_path=Path(relative_path).name,
+            relative_packet_path=relative_path,
+            sha256=hashlib.sha256(body).hexdigest(),
+            hash_basis="raw_stored_bytes",
+            size_bytes=len(body),
+        ).model_dump(mode="json")
+    )
+    manifest["source_slices"][0]["preserved_file_ids"] = ["file_01", "file_02"]
+    return SourceCapturePacket.model_validate(manifest)
+
+
 def _load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -1619,6 +1637,44 @@ def test_ulta_grid_compact_content_record_preserves_projection_and_anchor() -> N
         "/cards/2",
     ]
     assert b"apollo_state" not in body
+
+
+def test_ulta_grid_sample_packet_projects_content_record_not_both_copies() -> None:
+    dom_body = _ulta_grid_html().encode()
+    record_body = json.dumps(
+        build_ulta_brand_grid_content_record(
+            rendered_dom=_ulta_grid_html(),
+            final_url="https://www.ulta.com/brand/clinique",
+        ),
+        separators=(",", ":"),
+    ).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/01_cloakbrowser_rendered_dom.html",
+        body=dom_body,
+        surface="cloakbrowser_snapshot",
+    )
+    packet = _with_second_preserved_file(
+        packet, relative_path="raw/02_content_record.json", body=record_body
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id={"file_01": dom_body, "file_02": record_body},
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.termination == "retailer_visible_count_reconciled"
+    assert projection.completeness.extracted_unique_parent_count == 2
+    assert projection.completeness.extracted_placement_count == 3
+    assert projection.completeness.duplicate_placement_count == 1
+    assert all(
+        placement.raw_anchor is not None
+        and placement.raw_anchor.file_id == "file_02"
+        for row in projection.rows
+        for placement in row.placements
+    )
 
 
 def test_ulta_grid_projection_fails_closed_while_load_more_remains() -> None:
