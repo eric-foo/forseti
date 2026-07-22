@@ -29,9 +29,9 @@ from harness_utils import utc_now_z
 from data_lake.canonical_json import canonical_compact_json_bytes, canonical_record_bytes
 from data_lake.root import DataLakeRoot, anchor_shard
 
-BASELINE_LANE = "reddit_subreddit_registry_baseline"
-OBSERVATION_LANE = "reddit_subreddit_observation"
-ROSTER_CHANGE_LANE = "reddit_subreddit_roster_change"
+REDDIT_BASELINE_LANE = "reddit_subreddit_registry_baseline"
+REDDIT_OBSERVATION_LANE = "reddit_subreddit_observation"
+REDDIT_ROSTER_CHANGE_LANE = "reddit_subreddit_roster_change"
 
 BASELINE_SCHEMA_VERSION = "reddit_subreddit_registry_baseline_v1"
 OBSERVATION_SCHEMA_VERSION = "reddit_subreddit_observation_v1"
@@ -202,7 +202,7 @@ def known_subreddits(data_root: DataLakeRoot) -> list[str]:
     derived = data_root.path / DERIVED_SUBTREE
     if not derived.is_dir():
         return []
-    lanes = (BASELINE_LANE, OBSERVATION_LANE, ROSTER_CHANGE_LANE)
+    lanes = (REDDIT_BASELINE_LANE, REDDIT_OBSERVATION_LANE, REDDIT_ROSTER_CHANGE_LANE)
     found: set[str] = set()
     for shard in derived.iterdir():
         if not shard.is_dir():
@@ -285,8 +285,8 @@ def should_apply_status_observation(*, row: Mapping[str, Any], observed_at: str)
 
 
 def _genesis_row(data_root: DataLakeRoot, subreddit: str) -> tuple[dict[str, Any], str | None]:
-    baselines = _lane_records(data_root, subreddit=subreddit, lane=BASELINE_LANE)
-    roster = _lane_records(data_root, subreddit=subreddit, lane=ROSTER_CHANGE_LANE)
+    baselines = _lane_records(data_root, subreddit=subreddit, lane=REDDIT_BASELINE_LANE)
+    roster = _lane_records(data_root, subreddit=subreddit, lane=REDDIT_ROSTER_CHANGE_LANE)
     adds = [record for record in roster if record.get("change_kind") == "add"]
 
     if len(baselines) > 1:
@@ -419,10 +419,10 @@ def fold_subreddit(data_root: DataLakeRoot, subreddit: str) -> dict[str, Any]:
     """Fold one subreddit's authority records into its registry row."""
     key = normalize_subreddit(subreddit)
     row, _legacy_hash = _genesis_row(data_root, key)
-    roster = _lane_records(data_root, subreddit=key, lane=ROSTER_CHANGE_LANE)
+    roster = _lane_records(data_root, subreddit=key, lane=REDDIT_ROSTER_CHANGE_LANE)
     for record in _ordered_roster_chain(key, roster):
         _apply_roster_change(row, record)
-    observations = _lane_records(data_root, subreddit=key, lane=OBSERVATION_LANE)
+    observations = _lane_records(data_root, subreddit=key, lane=REDDIT_OBSERVATION_LANE)
     for record in sorted(
         observations,
         key=lambda item: (
@@ -542,7 +542,7 @@ def append_grid_observation(
     data_root.append_record(
         subtree=DERIVED_SUBTREE,
         raw_anchor=key,
-        lane=OBSERVATION_LANE,
+        lane=REDDIT_OBSERVATION_LANE,
         record_id=record_id,
         data=canonical_record_bytes(record),
     )
@@ -579,8 +579,8 @@ def append_roster_change(
             )
         payload[field] = _validate_field_values(field, value)
 
-    existing = _lane_records(data_root, subreddit=key, lane=ROSTER_CHANGE_LANE)
-    baselines = _lane_records(data_root, subreddit=key, lane=BASELINE_LANE)
+    existing = _lane_records(data_root, subreddit=key, lane=REDDIT_ROSTER_CHANGE_LANE)
+    baselines = _lane_records(data_root, subreddit=key, lane=REDDIT_BASELINE_LANE)
     if change_kind == "add":
         if baselines or any(record.get("change_kind") == "add" for record in existing):
             raise RedditSubredditRegistryLakeError(
@@ -624,7 +624,7 @@ def append_roster_change(
     data_root.append_record(
         subtree=DERIVED_SUBTREE,
         raw_anchor=key,
-        lane=ROSTER_CHANGE_LANE,
+        lane=REDDIT_ROSTER_CHANGE_LANE,
         record_id=record_id,
         data=canonical_record_bytes(record),
     )
@@ -689,7 +689,7 @@ def migrate_legacy_registry(
         planned.append((key, record_id, record))
 
     existing = {
-        name: _lane_records(data_root, subreddit=name, lane=BASELINE_LANE)
+        name: _lane_records(data_root, subreddit=name, lane=REDDIT_BASELINE_LANE)
         for name in known_subreddits(data_root)
     }
     already = {name for name, records in existing.items() if records}
@@ -737,7 +737,7 @@ def migrate_legacy_registry(
         data_root.append_record(
             subtree=DERIVED_SUBTREE,
             raw_anchor=key,
-            lane=BASELINE_LANE,
+            lane=REDDIT_BASELINE_LANE,
             record_id=record_id,
             data=canonical_record_bytes(record),
         )
@@ -785,9 +785,9 @@ def semantic_parity(*, legacy_registry_path: Path, folded: Mapping[str, Any]) ->
 
 
 __all__ = [
-    "BASELINE_LANE",
-    "OBSERVATION_LANE",
-    "ROSTER_CHANGE_LANE",
+    "REDDIT_BASELINE_LANE",
+    "REDDIT_OBSERVATION_LANE",
+    "REDDIT_ROSTER_CHANGE_LANE",
     "NICHE_PATHS",
     "VENUE_ROLES",
     "DISCOVERY_STATES",

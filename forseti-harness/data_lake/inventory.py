@@ -561,6 +561,18 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "local:tombstoned_packet_ids",
         "reason": "public-read filtering walks only the exact raw_packet_tombstone_silver lane under each derived anchor, validates every current Silver envelope and both raw packet refs, and excludes only the explicitly targeted packet ids; malformed or unresolved records fail closed",
     },
+    "data_lake/reddit_subreddit_registry.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": (
+            "the registry row is a fold over every sibling, never a latest-sibling pick: "
+            "exactly one genesis (migrated baseline or add roster change) is required, "
+            "roster deltas apply in predecessor-chain order with a forked or dangling "
+            "chain failing closed, and observations apply in (observed_at, "
+            "provenance_pointer, record_id) order deduped by provenance pointer. Every "
+            "record contributes; ambiguity raises rather than resolving to a guess"
+        ),
+    },
     "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",

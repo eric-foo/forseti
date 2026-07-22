@@ -7,11 +7,11 @@ from pathlib import Path
 import pytest
 
 from data_lake.reddit_subreddit_registry import (
-    BASELINE_LANE,
+    REDDIT_BASELINE_LANE,
     CAPTURE_STATE_RANK,
     NICHE_PATHS,
-    OBSERVATION_LANE,
-    ROSTER_CHANGE_LANE,
+    REDDIT_OBSERVATION_LANE,
+    REDDIT_ROSTER_CHANGE_LANE,
     VENUE_ROLES,
     RedditSubredditRegistryLakeError,
     append_grid_observation,
@@ -343,7 +343,7 @@ def test_ambiguous_roster_head_fails_closed(lake: DataLakeRoot) -> None:
     append_roster_change(lake, subreddit="newsub", changes={"venue_roles": ["hub"]}, actor="a")
     # A second delta sharing the first delta's predecessor forks the chain, so
     # no single head decides current state.
-    lane = lake.lane_dir(subtree="derived", raw_anchor="newsub", lane=ROSTER_CHANGE_LANE)
+    lane = lake.lane_dir(subtree="derived", raw_anchor="newsub", lane=REDDIT_ROSTER_CHANGE_LANE)
     _fork_record(
         lane,
         predicate=lambda record: record.get("change_kind") != "add",
@@ -358,7 +358,7 @@ def test_ambiguous_roster_head_fails_closed(lake: DataLakeRoot) -> None:
 def test_duplicate_genesis_on_disk_fails_closed_at_fold(lake: DataLakeRoot) -> None:
     """The writer refuses a second add; the fold must refuse one that got there."""
     append_roster_change(lake, subreddit="newsub", change_kind="add", actor="operator")
-    lane = lake.lane_dir(subtree="derived", raw_anchor="newsub", lane=ROSTER_CHANGE_LANE)
+    lane = lake.lane_dir(subtree="derived", raw_anchor="newsub", lane=REDDIT_ROSTER_CHANGE_LANE)
     _fork_record(
         lane,
         predicate=lambda record: record.get("change_kind") == "add",
@@ -413,7 +413,7 @@ def test_roster_change_may_upgrade_capture_state_but_not_downgrade(lake: DataLak
 def test_tampered_record_fails_closed(lake: DataLakeRoot, tmp_path: Path) -> None:
     legacy = _legacy(tmp_path, [_row("alpha")])
     migrate_legacy_registry(lake, registry_path=legacy)
-    lane = lake.lane_dir(subtree="derived", raw_anchor="alpha", lane=BASELINE_LANE)
+    lane = lake.lane_dir(subtree="derived", raw_anchor="alpha", lane=REDDIT_BASELINE_LANE)
     record_path = next(iter(lane.iterdir()))
     record = json.loads(record_path.read_text(encoding="utf-8"))
     record["row"]["status"] = "banned"
@@ -429,13 +429,13 @@ def test_observation_anchored_under_another_subreddit_fails_closed(
     legacy = _legacy(tmp_path, [_row("alpha"), _row("beta")])
     migrate_legacy_registry(lake, registry_path=legacy)
     _observe(lake, "beta", pointer="F:/lake/raw/fff/manifest.json", observed_at="2026-07-17")
-    lane = lake.lane_dir(subtree="derived", raw_anchor="beta", lane=OBSERVATION_LANE)
+    lane = lake.lane_dir(subtree="derived", raw_anchor="beta", lane=REDDIT_OBSERVATION_LANE)
     record = json.loads(next(iter(lane.iterdir())).read_text(encoding="utf-8"))
     record["subreddit"] = "alpha"
     from data_lake.reddit_subreddit_registry import _content_hash
 
     record["content_hash"] = _content_hash(record)
-    target = lake.lane_dir(subtree="derived", raw_anchor="beta", lane=OBSERVATION_LANE)
+    target = lake.lane_dir(subtree="derived", raw_anchor="beta", lane=REDDIT_OBSERVATION_LANE)
     (target / record["record_id"]).write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
         fold_subreddit(lake, "beta")
