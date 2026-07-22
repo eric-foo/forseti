@@ -161,8 +161,11 @@ source-visible main-grid placement, advance only through Target's same-tab
 unique TCIN parents, placements, duplicates, and proven termination. Every
 page's count observation remains preserved because the live assortment can
 change during traversal. An unsupported larger `count` hint is never a
-completeness dependency. Amazon search-grid capture remains a query-bound
-ranked observation window, not a complete or authorized-only brand denominator.
+completeness dependency. Amazon has an admitted query-bound ranked-search
+projection complete only for its declared query and reachable result window,
+never as a guaranteed complete or authorized-only brand denominator. Projection
+capability does not admit a live route; each acquisition still records market
+pin, reachability, surface boundary, and typed failure.
 Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
 decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
 ordinary shallow profile derives its target from the commissioned URL and
