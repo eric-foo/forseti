@@ -342,6 +342,17 @@ def admit_tiktok_creator_candidate(
                 "a Registry account cannot receive a new candidate admission"
             )
         records = _load_authority_records(data_root)
+        active_ids = {row["record_id"] for row in records["active_candidate_admissions"]}
+        if any(
+            row["platform_account"]["platform_account_id"] == account_id
+            for row in records["candidate_admissions"]
+            if row["record_id"] not in active_ids
+        ):
+            # A retracted account is absent from the current index, so the generic
+            # duplicate-admission conflict below would misreport why it is blocked.
+            raise CreatorRegistryLakeError(
+                "a retracted candidate account cannot be re-admitted"
+            )
         _validate_authority_admission_set(
             records["baselines"][0],
             [*records["candidate_admissions"], candidate],
@@ -392,6 +403,7 @@ def retract_tiktok_creator_candidate(
     public_handle: str,
 ) -> dict[str, Any]:
     """Remove one candidate-only account from current Registry authority."""
+    _require_current_retraction_epoch(data_root)
     handle = _normalize_handle(public_handle)
     records = _load_authority_records(data_root)
     candidates = [
@@ -1790,6 +1802,27 @@ def _assert_client_safe(value: Any, path: str = "$") -> None:
 
 def _registry_root(data_root: DataLakeRoot) -> Path:
     return data_root.path.joinpath(*REGISTRY_ROOT_PARTS)
+
+
+def _require_current_retraction_epoch(data_root: DataLakeRoot) -> None:
+    """Keep epoch adoption explicit while allowing stale-authority recovery."""
+    data_root._reverify()
+    pointer = _registry_root(data_root) / CURRENT_FILENAME
+    if not pointer.is_file():
+        raise CreatorRegistryLakeError(
+            "Creator Registry has not been migrated into the data lake"
+        )
+    try:
+        pointer_doc = json.loads(pointer.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise CreatorRegistryLakeError(
+            f"Creator Registry CURRENT pointer is unreadable: {exc}"
+        ) from exc
+    if pointer_doc.get("pointer_schema_version") != CURRENT_POINTER_SCHEMA_VERSION:
+        raise CreatorRegistryLakeError(
+            "Creator Registry CURRENT pointer epoch must be upgraded with "
+            "`run_creator_registry_lake.py rebuild --write` before candidate retraction"
+        )
 
 
 def _relative_to_root(data_root: DataLakeRoot, path: Path) -> str:
