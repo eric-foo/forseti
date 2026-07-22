@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 RETAIL_GRID_PROJECTION_METHOD = "retail_grid_mechanical_projection"
 RETAIL_GRID_PROJECTION_VERSION = "v0"
+RETAIL_GRID_OBSERVATION_VERSION = "v1"
 RETAIL_GRID_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 PROJECTION_RETAIL_GRID_LANE = "projection_retail_grid"
 TARGET_GRID_CONTENT_RECORD_VERSION = "target_grid_content_v2"
@@ -95,8 +96,8 @@ class RetailGridProjectionRow(StrictModel):
     row_id: str
     row_kind: Literal["retail_grid_product"] = "retail_grid_product"
     retailer: RetailGridRetailer
-    raw_ref: RetailProjectionRawRef
-    raw_anchor: RetailProjectionRawAnchor
+    raw_ref: RetailProjectionRawRef | None = None
+    raw_anchor: RetailProjectionRawAnchor | None = None
     placements: list["RetailGridProjectionPlacement"] = Field(default_factory=list)
     source_visible_fields: dict[str, Any | None]
     residuals: list[str] = Field(default_factory=list)
@@ -129,7 +130,19 @@ class RetailGridProjectionPlacement(StrictModel):
     grid_position: int = Field(ge=1)
     page: int | None = Field(default=None, ge=1)
     page_position: int | None = Field(default=None, ge=1)
-    raw_anchor: RetailProjectionRawAnchor
+    raw_anchor: RetailProjectionRawAnchor | None = None
+
+
+class RetailGridCaptureEvent(StrictModel):
+    capture_event_id: str
+    anchor_kind: Literal["capture_event"] = "capture_event"
+    captured_at: str
+    requested_url: str
+    final_url: str
+    capture_profile: str
+    parser_version: str
+    series_id: str | None = None
+    raw_sample_packet_id: str | None = None
 
 
 class RetailGridCompletenessReconciliation(StrictModel):
@@ -162,11 +175,12 @@ class RetailGridProjectionLossLedger(StrictModel):
 
 class RetailGridProjectionPacket(StrictModel):
     projection_method: Literal["retail_grid_mechanical_projection"] = RETAIL_GRID_PROJECTION_METHOD
-    projection_version: Literal["v0"] = RETAIL_GRID_PROJECTION_VERSION
+    projection_version: Literal["v0", "v1"] = RETAIL_GRID_PROJECTION_VERSION
     certification: Literal[
         "view_only; not_cleaned; not_normalized; not_judgment_ready"
     ] = RETAIL_GRID_PROJECTION_CERTIFICATION
-    packet_id: str
+    packet_id: str | None = None
+    capture_event: RetailGridCaptureEvent | None = None
     rows: list[RetailGridProjectionRow] = Field(default_factory=list)
     source_visible_grid_facts: dict[str, Any | None] = Field(default_factory=dict)
     completeness: RetailGridCompletenessReconciliation
@@ -175,6 +189,41 @@ class RetailGridProjectionPacket(StrictModel):
 
     @model_validator(mode="after")
     def validate_counts(self) -> "RetailGridProjectionPacket":
+        if self.projection_version == "v0":
+            if not self.packet_id or self.capture_event is not None:
+                raise ValueError("retail grid projection v0 requires packet_id only")
+            if any(row.raw_ref is None or row.raw_anchor is None for row in self.rows):
+                raise ValueError("retail grid projection v0 rows require raw references")
+            if any(
+                placement.raw_anchor is None
+                for row in self.rows
+                for placement in row.placements
+            ):
+                raise ValueError("retail grid projection v0 placements require raw anchors")
+        else:
+            if self.packet_id is not None or self.capture_event is None:
+                raise ValueError("retail grid observation v1 requires capture_event only")
+            sample_packet_id = self.capture_event.raw_sample_packet_id
+            for row in self.rows:
+                if sample_packet_id is None:
+                    if row.raw_ref is not None or row.raw_anchor is not None:
+                        raise ValueError(
+                            "derived-only retail grid observation rows must not claim raw evidence"
+                        )
+                    if any(item.raw_anchor is not None for item in row.placements):
+                        raise ValueError(
+                            "derived-only retail grid observation placements must not claim raw evidence"
+                        )
+                elif row.raw_ref is None or row.raw_ref.packet_id != sample_packet_id:
+                    raise ValueError(
+                        "sample-backed retail grid rows must reference raw_sample_packet_id"
+                    )
+                elif row.raw_anchor is None or any(
+                    item.raw_anchor is None for item in row.placements
+                ):
+                    raise ValueError(
+                        "sample-backed retail grid rows and placements require raw anchors"
+                    )
         if self.loss_ledger.preserved_evidence_rows != len(self.rows):
             raise ValueError("loss_ledger.preserved_evidence_rows must match rows length")
         if self.loss_ledger.structure_preserved != bool(self.rows):
@@ -239,14 +288,103 @@ def project_retail_grid_into_lake(
         raw_file_bytes_by_file_id=loaded.bodies,
     )
     record = record_id if record_id is not None else generate_ulid()
-    derived_path = data_root.append_record(
-        subtree="derived",
-        raw_anchor=packet_id,
-        lane=PROJECTION_RETAIL_GRID_LANE,
-        record_id=f"{record}.json",
-        data=_projection_json_text(projection).encode("utf-8"),
+    derived_path = _append_projection_record(
+        data_root=data_root,
+        source_anchor=packet_id,
+        record_id=record,
+        projection=projection,
     )
     return projection, derived_path
+
+
+def build_retail_grid_observation(
+    *,
+    packet: SourceCapturePacket,
+    raw_file_bytes_by_file_id: Mapping[str, bytes],
+    captured_at: str,
+    requested_url: str,
+    final_url: str,
+    capture_profile: str,
+    parser_version: str,
+    series_id: str | None,
+    retain_raw_sample: bool,
+) -> RetailGridProjectionPacket:
+    """Build a v1 derived observation from transient capture material.
+
+    The packet-shaped input is an in-flight parsing envelope. It becomes durable
+    raw evidence only when ``retain_raw_sample`` is true.
+    """
+
+    projected = build_retail_grid_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+    )
+    sample_packet_id = packet.packet_id if retain_raw_sample else None
+    rows: list[dict[str, Any]] = []
+    for row in projected.rows:
+        value = row.model_dump(mode="json")
+        if sample_packet_id is None:
+            value["raw_ref"] = None
+            value["raw_anchor"] = None
+            for placement in value["placements"]:
+                placement["raw_anchor"] = None
+        rows.append(value)
+    return RetailGridProjectionPacket.model_validate(
+        {
+            **projected.model_dump(mode="json"),
+            "projection_version": RETAIL_GRID_OBSERVATION_VERSION,
+            "packet_id": None,
+            "capture_event": {
+                "capture_event_id": packet.packet_id,
+                "captured_at": captured_at,
+                "requested_url": requested_url,
+                "final_url": final_url,
+                "capture_profile": capture_profile,
+                "parser_version": parser_version,
+                "series_id": series_id,
+                "raw_sample_packet_id": sample_packet_id,
+            },
+            "rows": rows,
+        }
+    )
+
+
+def append_retail_grid_observation_into_lake(
+    *,
+    data_root: "DataLakeRoot",
+    observation: RetailGridProjectionPacket,
+    record_id: str | None = None,
+) -> Path:
+    """Append one v1 observation under its capture-event source anchor."""
+
+    if observation.projection_version != RETAIL_GRID_OBSERVATION_VERSION:
+        raise RetailGridProjectionInputError("only v1 observations use capture-event filing")
+    assert observation.capture_event is not None
+    record = record_id if record_id is not None else generate_ulid()
+    return _append_projection_record(
+        data_root=data_root,
+        source_anchor=observation.capture_event.capture_event_id,
+        record_id=record,
+        projection=observation,
+    )
+
+
+def _append_projection_record(
+    *,
+    data_root: "DataLakeRoot",
+    source_anchor: str,
+    record_id: str,
+    projection: RetailGridProjectionPacket,
+) -> Path:
+    return data_root.append_record(
+        subtree="derived",
+        # ``raw_anchor`` is the v4.1 API's compatibility name; the forward
+        # contract now permits a capture-event source anchor for this lane.
+        raw_anchor=source_anchor,
+        lane=PROJECTION_RETAIL_GRID_LANE,
+        record_id=f"{record_id}.json",
+        data=_projection_json_text(projection).encode("utf-8"),
+    )
 
 
 def build_target_grid_aggregate_content_record(

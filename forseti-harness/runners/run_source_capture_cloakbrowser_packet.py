@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import os
@@ -23,6 +24,7 @@ from source_capture import (
     known_fact,
     not_applicable,
     not_attempted,
+    publish_completed_source_capture_packet,
     unknown_with_reason,
     write_local_source_capture_packet,
 )
@@ -80,9 +82,10 @@ from source_capture.retail_capture_profiles import (
 from source_capture.retail_grid_projection import (
     AMAZON_GRID_CONTENT_RECORD_VERSION,
     TARGET_GRID_CONTENT_RECORD_VERSION,
+    append_retail_grid_observation_into_lake,
     build_amazon_grid_aggregate_content_record,
+    build_retail_grid_observation,
     build_target_grid_aggregate_content_record,
-    project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
 from source_capture.sephora_brand_grid import (
@@ -250,6 +253,7 @@ def run_source_capture_cloakbrowser_packet(
     intended_cadence: dict[str, object] | None = None,
     content_extraction: RenderedContentExtractionSpec | None = None,
     retail_grid_projection_output: Path | None = None,
+    retain_retail_grid_raw_sample: bool = False,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
@@ -260,6 +264,14 @@ def run_source_capture_cloakbrowser_packet(
             "browser_user_data_dir requires browser_user_data_label and browser_user_data_session_mode "
             "so the packet's visible-mode-change and non-claims provenance reflects the persistent "
             "profile load; a caller must not load a stored profile without disclosing it in the packet"
+        )
+    if retain_retail_grid_raw_sample and (
+        data_root is None
+        or retail_capture_profile is None
+        or retail_capture_profile.name not in _RETAIL_GRID_PROJECTION_PROFILES
+    ):
+        raise ValueError(
+            "retain_retail_grid_raw_sample requires --data-root and a retail grid profile"
         )
 
     if retail_capture_profile is not None:
@@ -841,14 +853,23 @@ def run_source_capture_cloakbrowser_packet(
         or target_pin_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
     )
+    retail_grid_raw_sample = (
+        retain_retail_grid_raw_sample
+        and content_record_bytes is not None
+        and not retention_admission_failed
+        and extraction_failure is None
+    )
     raw_extraction_inputs_preserved = (
         content_extraction is None
         or content_extraction.requested_retention_mode == "raw"
         or extraction_failure is not None
         or retention_admission_failed
+        or retail_grid_raw_sample
     )
     retention_outcome = (
-        "content"
+        "raw_sample"
+        if retail_grid_raw_sample
+        else "content"
         if content_record_bytes is not None and not raw_extraction_inputs_preserved
         else "raw_failure"
         if extraction_failure is not None or retention_admission_failed
@@ -872,10 +893,34 @@ def run_source_capture_cloakbrowser_packet(
     # packet that MUST NOT be admitted. Discard it the way an extraction failure
     # never produces one -- the preserved rendered DOM and visible text re-derive
     # it at this extractor_version whenever a diagnosis needs it.
-    content_record_retained = retention_outcome == "content"
+    content_record_retained = retention_outcome in {"content", "raw_sample"}
     if content_record_retained:
         assert content_record_bytes is not None
         artifacts.append((CONTENT_RECORD_FILENAME, content_record_bytes))
+    if retail_grid_raw_sample:
+        grid_pages = tuple(getattr(pre_capture, "grid_page_doms", ()) or ())
+        if not grid_pages:
+            grid_pages = (capture_result.rendered_dom,)
+        sample_record = {
+            "sample_version": "retail_grid_raw_sample_v1",
+            "requested_url": capture_result.requested_url,
+            "final_url": capture_result.final_url,
+            "pages": [
+                {
+                    "page": index,
+                    "rendered_dom_without_scripts": _strip_script_elements(page),
+                }
+                for index, page in enumerate(grid_pages, start=1)
+            ],
+        }
+        sample_json_bytes = (
+            json.dumps(sample_record, ensure_ascii=False, sort_keys=True) + "\n"
+        ).encode("utf-8")
+        _assert_no_browser_secret_bytes(
+            [("retail_grid_raw_sample", sample_json_bytes)]
+        )
+        sample_bytes = gzip.compress(sample_json_bytes, mtime=0)
+        artifacts.append(("retail_grid_raw_sample_pages.json.gz", sample_bytes))
     if content_extraction is not None:
         content_extraction_metadata = {
             "requested_retention_mode": content_extraction.requested_retention_mode,
@@ -907,13 +952,22 @@ def run_source_capture_cloakbrowser_packet(
                 "content extraction failed in flight; rendered DOM, visible text, "
                 f"browser metadata, and screenshot preserved as fallback: {extraction_failure}"
             )
+        elif retail_grid_raw_sample:
+            packet_limitations.append(
+                "explicit retail-grid QA sample: source bodies and the capture-time "
+                "content record preserved; this does not make raw retention routine"
+            )
         elif (
             content_extraction.requested_retention_mode == "content"
             and not raw_extraction_inputs_preserved
         ):
             packet_limitations.append(
-                "content-retention packet: rendered DOM and visible text discarded after hashing; "
-                "content record, browser metadata, and screenshot preserved"
+                "derived-only retail-grid capture: transient source bodies discarded after "
+                "successful projection filing"
+                if retail_capture_profile is not None
+                and retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES
+                else "content-retention packet: rendered DOM and visible text discarded after "
+                "hashing; content record, browser metadata, and screenshot preserved"
             )
         elif content_extraction.requested_retention_mode == "content":
             packet_limitations.append(
@@ -932,7 +986,22 @@ def run_source_capture_cloakbrowser_packet(
             packet_visible_mode_changes.append(
                 "capture-time rendered content record preserved"
             )
+        if retail_grid_raw_sample:
+            packet_visible_mode_changes.append(
+                "explicit retail-grid raw sample retained with script-stripped traversed pages"
+            )
 
+    is_retail_grid = (
+        retail_capture_profile is not None
+        and retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES
+    )
+    derived_only_grid_run = (
+        data_root is not None and is_retail_grid and not raw_extraction_inputs_preserved
+    )
+    persist_raw_packet = not derived_only_grid_run
+    grid_projection_path: Path | None = None
+    grid_projection_failure: str | None = None
+    raw_packet_path: Path | None = None
     staging_root: Path | None = None
     if data_root is not None:
         staging_parent = data_root.stage_raw_packet(generate_ulid())
@@ -979,9 +1048,18 @@ def run_source_capture_cloakbrowser_packet(
             "no prior source capture packet was supplied for this CloakBrowser snapshot capture"
         )
 
+        ephemeral_packet_directory = (
+            staging_parent / "ephemeral_retail_grid_packet"
+            if derived_only_grid_run
+            else None
+        )
         result = write_local_source_capture_packet(
-            output_directory=output_directory,
-            data_root=data_root,
+            output_directory=(
+                ephemeral_packet_directory
+                if derived_only_grid_run
+                else output_directory
+            ),
+            data_root=(data_root if persist_raw_packet else None),
             input_files=written_paths,
             source_family=source_family,
             source_surface=source_surface,
@@ -1053,6 +1131,62 @@ def run_source_capture_cloakbrowser_packet(
                 browser_user_data_session_mode=browser_user_data_session_mode,
             ),
         )
+        if persist_raw_packet:
+            raw_packet_path = Path(result.output_directory)
+
+        if (
+            is_retail_grid
+            and data_root is not None
+            and not retention_admission_failed
+            and extraction_failure is None
+        ):
+            try:
+                body_by_file_id = {
+                    preserved.file_id: body
+                    for preserved, (_filename, body) in zip(
+                        result.packet.preserved_files, artifacts, strict=True
+                    )
+                }
+                assert content_extraction is not None
+                observation = build_retail_grid_observation(
+                    packet=result.packet,
+                    raw_file_bytes_by_file_id=body_by_file_id,
+                    captured_at=str(capture_result.metadata["capture_timestamp"]),
+                    requested_url=capture_result.requested_url,
+                    final_url=capture_result.final_url,
+                    capture_profile=retail_capture_profile.name,
+                    parser_version=content_extraction.extractor_version,
+                    series_id=series_id,
+                    retain_raw_sample=retail_grid_raw_sample,
+                )
+                if observation.completeness.status != "complete":
+                    grid_projection_failure = (
+                        "retail_grid_completeness_failed: "
+                        f"status={observation.completeness.status}; "
+                        + "; ".join(observation.completeness.residuals)
+                    )
+                    if derived_only_grid_run:
+                        raw_packet_path = publish_completed_source_capture_packet(
+                            data_root=data_root,
+                            packet_directory=Path(result.output_directory),
+                            packet_id=result.packet.packet_id,
+                        )
+                else:
+                    grid_projection_path = append_retail_grid_observation_into_lake(
+                        data_root=data_root,
+                        observation=observation,
+                    )
+            except Exception as exc:
+                grid_projection_failure = (
+                    "retail_grid_projection_failed: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+                if derived_only_grid_run:
+                    raw_packet_path = publish_completed_source_capture_packet(
+                        data_root=data_root,
+                        packet_directory=Path(result.output_directory),
+                        packet_id=result.packet.packet_id,
+                    )
     finally:
         for staging_path in written_paths:
             try:
@@ -1061,25 +1195,14 @@ def run_source_capture_cloakbrowser_packet(
                 pass
         if staging_root is not None:
             shutil.rmtree(staging_root, ignore_errors=True)
-    grid_projection_path: Path | None = None
-    grid_projection_failure: str | None = None
-    if (
-        retail_capture_profile is not None
-        and retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES
-    ):
+    if is_retail_grid and data_root is None:
         try:
-            if data_root is not None:
-                projection, grid_projection_path = project_retail_grid_into_lake(
-                    data_root=data_root,
-                    packet_id=result.packet.packet_id,
-                )
-            else:
-                assert retail_grid_projection_output is not None
-                projection = write_retail_grid_projection(
-                    packet_directory=Path(result.output_directory),
-                    output_path=retail_grid_projection_output,
-                )
-                grid_projection_path = retail_grid_projection_output
+            assert retail_grid_projection_output is not None
+            projection = write_retail_grid_projection(
+                packet_directory=Path(result.output_directory),
+                output_path=retail_grid_projection_output,
+            )
+            grid_projection_path = retail_grid_projection_output
             if projection.completeness.status == "incomplete":
                 grid_projection_failure = (
                     "retail_grid_completeness_failed: "
@@ -1090,11 +1213,12 @@ def run_source_capture_cloakbrowser_packet(
                 "retail_grid_projection_failed: "
                 f"{type(exc).__name__}: {exc}"
             )
+    diagnostic_packet_path = raw_packet_path or Path(result.output_directory)
     if retail_target_identity_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {retail_target_identity_failure}",
+            f"{diagnostic_packet_path}; {retail_target_identity_failure}",
         )
     if sephora_pin_failure is not None:
         projection_detail = (
@@ -1107,43 +1231,43 @@ def run_source_capture_cloakbrowser_packet(
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{SEPHORA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {sephora_pin_failure}{projection_detail}",
+            f"{diagnostic_packet_path}; {sephora_pin_failure}{projection_detail}",
         )
     if grid_projection_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
-            f"{grid_projection_failure}: packet preserved at {result.output_directory}; "
+            f"{grid_projection_failure}: packet preserved at {diagnostic_packet_path}; "
             f"projection={grid_projection_path or 'not_written'}",
         )
     if nordstrom_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{NORDSTROM_COUNTRY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {nordstrom_pin_failure}",
+            f"{diagnostic_packet_path}; {nordstrom_pin_failure}",
         )
     if nordstrom_review_posture_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{NORDSTROM_REVIEW_POSTURE_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {nordstrom_review_posture_failure}",
+            f"{diagnostic_packet_path}; {nordstrom_review_posture_failure}",
         )
     if ulta_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{ULTA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {ulta_pin_failure}",
+            f"{diagnostic_packet_path}; {ulta_pin_failure}",
         )
     if luckyscent_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {luckyscent_pin_failure}",
+            f"{diagnostic_packet_path}; {luckyscent_pin_failure}",
         )
     if luckyscent_overlay_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{LUCKYSCENT_OVERLAY_DISMISSAL_FAILURE_MODE_CHANGE}: packet "
-            f"preserved at {result.output_directory}; "
+            f"preserved at {diagnostic_packet_path}; "
             f"{luckyscent_overlay_failure}",
         )
     if amazon_pin_failure is not None:
@@ -1153,22 +1277,32 @@ def run_source_capture_cloakbrowser_packet(
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{'+'.join(failure_tokens)}: packet preserved at "
-            f"{result.output_directory}; {amazon_pin_failure}",
+            f"{diagnostic_packet_path}; {amazon_pin_failure}",
         )
     if target_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
             f"{TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
-            f"{result.output_directory}; {target_pin_failure}",
+            f"{diagnostic_packet_path}; {target_pin_failure}",
         )
     if sufficiency_result.enabled and not sufficiency_result.passed:
         return SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE, source_detail_sufficiency_failure_message(
-            output_directory=result.output_directory,
+            output_directory=str(diagnostic_packet_path),
             result=sufficiency_result,
         )
     if extraction_failure is not None:
-        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, result.output_directory
+        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, str(diagnostic_packet_path)
     if grid_projection_path is not None:
+        if data_root is not None:
+            sample_detail = (
+                f"raw sample preserved at {raw_packet_path}; "
+                if retail_grid_raw_sample
+                else "raw sample not retained; "
+            )
+            return (
+                0,
+                f"{sample_detail}derived observation preserved at {grid_projection_path}",
+            )
         return (
             0,
             f"raw packet preserved at {result.output_directory}; "
@@ -1905,6 +2039,15 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--retain-retail-grid-raw-sample",
+        action="store_true",
+        help=(
+            "With --data-root and a retail grid profile, retain this successful capture "
+            "as an explicit raw QA sample. Routine successful grid captures keep only "
+            "their derived observation; failures retain diagnostic raw evidence."
+        ),
+    )
+    parser.add_argument(
         "--settle-seconds",
         type=float,
         default=None,
@@ -2564,6 +2707,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             intended_cadence=build_intended_cadence(args),
             content_extraction=content_extraction,
             retail_grid_projection_output=args.retail_grid_projection_output,
+            retain_retail_grid_raw_sample=args.retain_retail_grid_raw_sample,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")

@@ -24,10 +24,12 @@ from source_capture.models import (
 )
 from source_capture.retail_grid_projection import (
     RetailGridProjectionInputError,
+    append_retail_grid_observation_into_lake,
     build_amazon_grid_aggregate_content_record,
-    build_target_grid_aggregate_content_record,
     build_retail_grid_projection,
+    build_retail_grid_observation,
     build_retail_grid_projection_from_packet_directory,
+    build_target_grid_aggregate_content_record,
     project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
@@ -1077,6 +1079,79 @@ def test_retail_grid_lake_projection_loads_verified_raw_and_appends_derived(
     assert json.loads(derived_path.read_text(encoding="utf-8"))["packet_id"] == (
         written.packet.packet_id
     )
+
+
+def test_v1_retail_grid_observation_uses_capture_event_without_claiming_raw(
+    tmp_path: Path,
+) -> None:
+    packet_dir = _write_walmart_packet(tmp_path)
+    packet = SourceCapturePacket.model_validate(
+        json.loads((packet_dir / "manifest.json").read_text(encoding="utf-8"))
+    )
+    bodies = {
+        item.file_id: (packet_dir / item.relative_packet_path).read_bytes()
+        for item in packet.preserved_files
+    }
+
+    observation = build_retail_grid_observation(
+        packet=packet,
+        raw_file_bytes_by_file_id=bodies,
+        captured_at="2026-07-22T00:00:00Z",
+        requested_url="https://www.walmart.com/search?q=clinique",
+        final_url="https://www.walmart.com/search?q=clinique",
+        capture_profile="walmart_grid_fixture",
+        parser_version="fixture_v1",
+        series_id="walmart-clinique-us",
+        retain_raw_sample=False,
+    )
+
+    assert observation.projection_version == "v1"
+    assert observation.packet_id is None
+    assert observation.capture_event is not None
+    assert observation.capture_event.capture_event_id == packet.packet_id
+    assert observation.capture_event.raw_sample_packet_id is None
+    assert all(row.raw_ref is None and row.raw_anchor is None for row in observation.rows)
+    assert all(
+        placement.raw_anchor is None
+        for row in observation.rows
+        for placement in row.placements
+    )
+
+    root = DataLakeRoot.for_test(tmp_path / "derived_only_lake")
+    path = append_retail_grid_observation_into_lake(
+        data_root=root, observation=observation, record_id="observation_fixture"
+    )
+    assert path.is_file()
+    assert root.list_committed_packet_ids() == []
+    assert packet.packet_id in path.parts
+
+
+def test_v1_sample_backed_observation_keeps_exact_raw_references(tmp_path: Path) -> None:
+    packet_dir = _write_walmart_packet(tmp_path)
+    packet = SourceCapturePacket.model_validate(
+        json.loads((packet_dir / "manifest.json").read_text(encoding="utf-8"))
+    )
+    bodies = {
+        item.file_id: (packet_dir / item.relative_packet_path).read_bytes()
+        for item in packet.preserved_files
+    }
+
+    observation = build_retail_grid_observation(
+        packet=packet,
+        raw_file_bytes_by_file_id=bodies,
+        captured_at="2026-07-22T00:00:00Z",
+        requested_url="https://www.walmart.com/search?q=clinique",
+        final_url="https://www.walmart.com/search?q=clinique",
+        capture_profile="walmart_grid_fixture",
+        parser_version="fixture_v1",
+        series_id=None,
+        retain_raw_sample=True,
+    )
+
+    assert observation.capture_event is not None
+    assert observation.capture_event.raw_sample_packet_id == packet.packet_id
+    assert all(row.raw_ref is not None for row in observation.rows)
+    assert all(row.raw_ref.packet_id == packet.packet_id for row in observation.rows if row.raw_ref)
 
 
 def test_grid_projection_packet_directory_blocks_hash_mismatch(tmp_path: Path) -> None:
