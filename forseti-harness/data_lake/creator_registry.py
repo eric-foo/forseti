@@ -1,9 +1,9 @@
-"""Lake-native Creator Registry authority and generated current views.
+"""Lake-native Creator Registry authority and current views.
 
-Git owns this code and the schemas around it.  Operational registry state is
-append-only under ``derived/``; ``indexes/derived_retrieval/creator_registry``
-is a rebuildable, atomic current view.  Readers verify the current generation
-against the complete authority inventory and fail closed when it is stale.
+The legacy v3 epoch folds append-only JSON authority into generated current
+views.  The v4 cutover imports that verified state once into lane-specific
+SQLite authority; routine Registry mutations then touch only the affected row
+and its public projection in one transaction.
 """
 from __future__ import annotations
 
@@ -20,6 +20,17 @@ from typing import Any, Mapping, Sequence
 from harness_utils import sha256_bytes as _sha256
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.root import DataLakeRoot, DataLakeRootError, _atomic_replace, raw_shard
+from data_lake.creator_registry_sqlite import (
+    CreatorRegistrySqliteError,
+    SQLITE_POINTER_SCHEMA_VERSION,
+    SQLITE_SCHEMA,
+    bootstrap_database as bootstrap_sqlite_database,
+    database_ref as sqlite_database_ref,
+    delete_candidate as sqlite_delete_candidate,
+    insert_candidate as sqlite_insert_candidate,
+    load_documents as load_sqlite_documents,
+    upgrade_validated_account as sqlite_upgrade_validated_account,
+)
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -323,6 +334,45 @@ def admit_tiktok_creator_candidate(
     }
     record_id = "crc_" + _sha256(canonical_record_bytes(payload))[:24]
     candidate = {"record_id": record_id, **payload}
+    if _uses_sqlite_registry(data_root):
+        try:
+            write_status = sqlite_insert_candidate(
+                data_root=data_root,
+                row=_candidate_index_row(candidate),
+                revision_id=record_id,
+                generated_at=identity["observed_at"],
+            )
+        except CreatorRegistrySqliteError as exc:
+            raise CreatorRegistryLakeError(str(exc)) from exc
+        index = load_current_creator_registry(data_root)
+        public = load_current_creator_profiles(data_root)
+        index_matches = [
+            row
+            for row in index["creator_registry_index"]["platform_accounts"]
+            if row.get("platform_account_id") == account_id
+        ]
+        public_matches = [
+            row
+            for row in public["creator_profile_public"]["profiles"]
+            if row.get("profile_subject_id") == account_id
+        ]
+        if (
+            len(index_matches) != 1
+            or index_matches[0].get("onboarding", {}).get("onboarding_state")
+            != "not_onboarded"
+            or index_matches[0].get("monitoring_eligibility", {}).get("eligible") is not False
+            or public_matches
+        ):
+            raise CreatorRegistryLakeError(
+                "candidate Registry SQL readback must be internal not_onboarded, unmonitored, and non-public"
+            )
+        return {
+            "status": write_status,
+            "record_id": record_id,
+            "platform_account_id": account_id,
+            "public_handle": identity["public_handle"],
+            **_sqlite_registry_summary(index, public),
+        }
     target = (
         data_root.path
         / "derived"
@@ -403,8 +453,59 @@ def retract_tiktok_creator_candidate(
     public_handle: str,
 ) -> dict[str, Any]:
     """Remove one candidate-only account from current Registry authority."""
-    _require_current_retraction_epoch(data_root)
     handle = _normalize_handle(public_handle)
+    pointer = _load_registry_pointer(data_root)
+    if pointer.get("pointer_schema_version") == SQLITE_POINTER_SCHEMA_VERSION:
+        # Removal is physical and keeps no tombstone, so bind CURRENT to the
+        # database before deleting.  Every read path already refuses an unbound
+        # pointer/database pair; the destructive path must refuse it first, not
+        # discover it on the readback after the row is already gone.
+        _load_sqlite_current(data_root, pointer)
+        frontier = load_creator_frontier_dispositions(data_root)[
+            "creator_frontier_disposition_current"
+        ]
+        matches = [
+            row
+            for row in frontier["dispositions"]
+            if row.get("candidate_key") == f"tiktok:@{handle}"
+        ]
+        if len(matches) != 1 or matches[0].get("status") not in {
+            "deferred",
+            "rejected",
+        }:
+            raise CreatorRegistryLakeError(
+                "candidate removal requires one current deferred or rejected Frontier disposition"
+            )
+        try:
+            removed = sqlite_delete_candidate(
+                data_root=data_root,
+                normalized_public_handle=handle,
+                generated_at=_text(matches[0].get("recorded_at"), "Frontier recorded_at"),
+            )
+        except CreatorRegistrySqliteError as exc:
+            raise CreatorRegistryLakeError(str(exc)) from exc
+        index = load_current_creator_registry(data_root)
+        public = load_current_creator_profiles(data_root)
+        account_id = removed["platform_account_id"]
+        if any(
+            row.get("platform_account_id") == account_id
+            for row in index["creator_registry_index"]["platform_accounts"]
+        ) or any(
+            row.get("profile_subject_id") == account_id
+            for row in public["creator_profile_public"]["profiles"]
+        ):
+            raise CreatorRegistryLakeError(
+                "candidate removal SQL readback remains present in current Registry"
+            )
+        return {
+            "status": "removed",
+            "record_id": removed["source_revision_id"],
+            "platform_account_id": account_id,
+            "public_handle": handle,
+            **_sqlite_registry_summary(index, public),
+        }
+
+    _require_current_retraction_epoch(data_root)
     records = _load_authority_records(data_root)
     candidates = [
         row
@@ -633,6 +734,48 @@ def admit_tiktok_creator_account(
     }
     record_id = "cra_" + _sha256(canonical_record_bytes(admission_payload))[:24]
     admission = {"record_id": record_id, **admission_payload}
+    if _uses_sqlite_registry(data_root):
+        upgraded_row = _validated_index_row(current_matches[0], admission)
+        public_profile = _new_public_profile(admission, generated_at=admission_payload["admitted_at"])
+        try:
+            write_status = sqlite_upgrade_validated_account(
+                data_root=data_root,
+                account_row=upgraded_row,
+                public_profile=public_profile,
+                revision_id=record_id,
+                generated_at=admission_payload["admitted_at"],
+            )
+        except CreatorRegistrySqliteError as exc:
+            raise CreatorRegistryLakeError(str(exc)) from exc
+        index = load_current_creator_registry(data_root)
+        public = load_current_creator_profiles(data_root)
+        index_matches = [
+            row
+            for row in index["creator_registry_index"]["platform_accounts"]
+            if row.get("platform_account_id") == profile_subject_id
+        ]
+        public_matches = [
+            row
+            for row in public["creator_profile_public"]["profiles"]
+            if row.get("profile_subject_id") == profile_subject_id
+        ]
+        if len(index_matches) != 1 or len(public_matches) != 1:
+            raise CreatorRegistryLakeError(
+                "SQLite Registry readback did not contain exactly one account/profile"
+            )
+        if public_matches[0].get("audience_triangulation", {}).get(
+            "snapshot_id"
+        ) != outcome.get("snapshot_id_or_none"):
+            raise CreatorRegistryLakeError(
+                "SQLite public profile did not join the exact Judgment snapshot"
+            )
+        return {
+            "status": write_status,
+            "record_id": record_id,
+            "platform_account_id": profile_subject_id,
+            "public_handle": identity["public_handle"],
+            **_sqlite_registry_summary(index, public),
+        }
     target = (
         data_root.path
         / "derived"
@@ -684,9 +827,87 @@ def admit_tiktok_creator_account(
     }
 
 
+def cutover_creator_registry_sqlite(
+    data_root: DataLakeRoot, *, dry_run: bool = False
+) -> dict[str, Any]:
+    """Import the verified v3 current view into SQLite and atomically switch readers."""
+    pointer = _load_registry_pointer(data_root)
+    pointer_version = pointer.get("pointer_schema_version")
+    if pointer_version == SQLITE_POINTER_SCHEMA_VERSION:
+        index, public = _load_sqlite_current(data_root, pointer)
+        return {
+            "status": "dry_run_passed" if dry_run else "already_current",
+            "database_ref": pointer.get("database_ref"),
+            "database_schema_version": pointer.get("database_schema_version"),
+            "platform_accounts_total": index["creator_registry_index"]["counts"][
+                "platform_accounts_total"
+            ],
+            "public_profiles_total": len(public["creator_profile_public"]["profiles"]),
+            "would_write_database": False,
+            "would_update_pointer": False,
+        }
+    if pointer_version != CURRENT_POINTER_SCHEMA_VERSION:
+        raise CreatorRegistryLakeError(
+            "Creator Registry must have a verified v3 CURRENT generation before SQLite cutover"
+        )
+    index, public, manifest = _load_current_generation(data_root)
+    try:
+        result = bootstrap_sqlite_database(
+            data_root=data_root,
+            internal_document=index,
+            public_document=public,
+            authority_refs=manifest["authority_refs"],
+            authority_inventory_sha256=manifest["authority_inventory_sha256"],
+            dry_run=dry_run,
+        )
+    except CreatorRegistrySqliteError as exc:
+        raise CreatorRegistryLakeError(str(exc)) from exc
+    sql_pointer = canonical_record_bytes(
+        {
+            "pointer_schema_version": SQLITE_POINTER_SCHEMA_VERSION,
+            "backend": "sqlite",
+            "database_ref": sqlite_database_ref(),
+            "database_schema_version": SQLITE_SCHEMA,
+            "migration_authority_inventory_sha256": manifest[
+                "authority_inventory_sha256"
+            ],
+        }
+    )
+    pointer_path = _registry_root(data_root) / CURRENT_FILENAME
+    if dry_run:
+        return {
+            "status": "dry_run_passed",
+            **result,
+            "would_update_pointer": pointer_path.read_bytes() != sql_pointer,
+        }
+    data_root._require_writable("switch Creator Registry CURRENT to SQLite")
+    _atomic_replace(pointer_path, sql_pointer)
+    loaded_index = load_current_creator_registry(data_root)
+    loaded_public = load_current_creator_profiles(data_root)
+    if (
+        loaded_index["creator_registry_index"]["platform_accounts"]
+        != index["creator_registry_index"]["platform_accounts"]
+        or loaded_public["creator_profile_public"]["profiles"]
+        != public["creator_profile_public"]["profiles"]
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry SQLite cutover readback differs from verified v3 current state"
+        )
+    return {
+        "status": "cutover",
+        **result,
+        "would_update_pointer": True,
+    }
+
+
 def publish_creator_registry_generation(
     data_root: DataLakeRoot, *, dry_run: bool = False
 ) -> dict[str, Any]:
+    pointer = _load_registry_pointer(data_root, allow_missing=True)
+    if pointer.get("pointer_schema_version") == SQLITE_POINTER_SCHEMA_VERSION:
+        raise CreatorRegistryLakeError(
+            "Creator Registry uses SQLite current authority; routine rebuild is disabled"
+        )
     records = _load_authority_records(data_root)
     authority_digest = records["authority_inventory_sha256"]
     generated_at = _generation_time(records)
@@ -773,11 +994,19 @@ def publish_creator_registry_generation(
 
 
 def load_current_creator_registry(data_root: DataLakeRoot) -> dict[str, Any]:
+    pointer = _load_registry_pointer(data_root)
+    if pointer.get("pointer_schema_version") == SQLITE_POINTER_SCHEMA_VERSION:
+        index, _public = _load_sqlite_current(data_root, pointer)
+        return index
     index, _public, _manifest = _load_current_generation(data_root)
     return index
 
 
 def load_current_creator_profiles(data_root: DataLakeRoot) -> dict[str, Any]:
+    pointer = _load_registry_pointer(data_root)
+    if pointer.get("pointer_schema_version") == SQLITE_POINTER_SCHEMA_VERSION:
+        _index, public = _load_sqlite_current(data_root, pointer)
+        return public
     _index, public, _manifest = _load_current_generation(data_root)
     return public
 
@@ -953,6 +1182,135 @@ def _load_authority_records(
         "authority_refs": authority_refs,
         "authority_inventory_sha256": _sha256(canonical_record_bytes(authority_refs)),
     }
+
+
+def _candidate_index_row(candidate: Mapping[str, Any]) -> dict[str, Any]:
+    account = candidate["platform_account"]
+    row = {
+        "platform_account_id": account["platform_account_id"],
+        "creator_record_id_or_none": None,
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_grid_packet_available",
+        "routing_decision": "onboard_only_after_explicit_full_onboarding",
+        "source_pointers": [
+            candidate["frontier_disposition"]["record_ref"],
+            account["handle_source_pointer"],
+        ],
+        "non_claims": [
+            "not onboarded",
+            "not monitoring eligible",
+            "not public profile admission",
+            "not final cross-platform identity",
+            "not contact or outreach authorization",
+        ],
+        "platform": account["platform"],
+        "platform_public_account_id_or_none": account[
+            "platform_public_account_id_or_none"
+        ],
+        "public_handle": account["public_handle"],
+        "normalized_public_handle": _normalize_handle(account["public_handle"]),
+        "public_profile_url": account["public_profile_url"],
+        "public_display_name_or_none": account["public_display_name_or_none"],
+        "onboarding": deepcopy(candidate["onboarding"]),
+        "monitoring_eligibility": {
+            "eligible": False,
+            "reason": "not_onboarded",
+            "scheduled": False,
+        },
+        "freshness": {
+            "identity_observed_at": account["handle_observed_at"],
+            "last_capture_observed_at_or_none": account["handle_observed_at"],
+        },
+    }
+    row["lookup_keys"] = _lookup_keys(account)
+    return row
+
+
+def _validated_index_row(
+    current_row: Mapping[str, Any], admission: Mapping[str, Any]
+) -> dict[str, Any]:
+    row = deepcopy(dict(current_row))
+    account = admission["platform_account"]
+    row.update(
+        {
+            "capture_state": "identity_observed_content_packet_available",
+            "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+            "source_pointers": [admission["judgment"]["record_ref"]],
+            "non_claims": [
+                "not current handle guarantee",
+                "not final cross-platform identity",
+                "not metric authority",
+                "not audience authority",
+                "not contact or outreach authorization",
+            ],
+            "platform": account["platform"],
+            "platform_public_account_id_or_none": account[
+                "platform_public_account_id_or_none"
+            ],
+            "public_handle": account["public_handle"],
+            "normalized_public_handle": _normalize_handle(account["public_handle"]),
+            "public_profile_url": account["public_profile_url"],
+            "public_display_name_or_none": account["public_display_name_or_none"],
+            "onboarding": deepcopy(admission["onboarding"]),
+            "monitoring_eligibility": {
+                "eligible": True,
+                "reason": "validated_onboarding_admission",
+                "scheduled": False,
+            },
+            "freshness": {
+                **deepcopy(row.get("freshness") or {}),
+                "identity_observed_at": account["handle_observed_at"],
+                "last_capture_observed_at_or_none": admission["onboarding"][
+                    "onboarded_at_or_none"
+                ],
+            },
+        }
+    )
+    row["lookup_keys"] = _lookup_keys(account)
+    return row
+
+
+def _new_public_profile(
+    admission: Mapping[str, Any], *, generated_at: str
+) -> dict[str, Any]:
+    account = deepcopy(admission["platform_account"])
+    profile = {
+        "profile_subject_kind": "platform_account",
+        "profile_subject_id": account["platform_account_id"],
+        "platform_account_id_or_none": account["platform_account_id"],
+        "creator_record_id_or_none": None,
+        "identity_state": "single_platform_observed",
+        "link_state_or_none": None,
+        "review_state_or_none": None,
+        "platform_accounts": [account],
+        "current_metric_rollups": [],
+        "audience_triangulation": deepcopy(admission["snapshot"]),
+        "wind_calling_summary": None,
+        "freshness": {
+            "identity_updated_at": account["handle_observed_at"],
+            "audience_computed_at_or_none": admission["snapshot"].get("generated_at"),
+            "profile_view_computed_at": generated_at,
+            "metrics_computed_at_or_none": None,
+        },
+        "limitations": [
+            "Profile is account-scoped to one TikTok platform account; it is not a linked creator record.",
+            "No creator metric rollup is joined yet; do not infer channel-wide influence or engagement.",
+            "Audience triangulation covers the admitted evidence window only.",
+        ],
+        "non_claims": [
+            "not channel-wide creator influence",
+            "not platform-wide engagement rate",
+            "not buyer proof",
+            "not public person-level identity",
+            "not contact or outreach authorization",
+            "not cross-platform rollup",
+        ],
+    }
+    public = _public_profile(profile)
+    _assert_client_safe(public)
+    return public
 
 
 def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> dict[str, Any]:
@@ -1804,6 +2162,80 @@ def _registry_root(data_root: DataLakeRoot) -> Path:
     return data_root.path.joinpath(*REGISTRY_ROOT_PARTS)
 
 
+def _load_registry_pointer(
+    data_root: DataLakeRoot, *, allow_missing: bool = False
+) -> dict[str, Any]:
+    data_root._reverify()
+    pointer = _registry_root(data_root) / CURRENT_FILENAME
+    if not pointer.is_file():
+        if allow_missing:
+            return {}
+        raise CreatorRegistryLakeError(
+            "Creator Registry has not been migrated into the data lake"
+        )
+    try:
+        value = json.loads(pointer.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise CreatorRegistryLakeError(
+            f"Creator Registry CURRENT pointer is unreadable: {exc}"
+        ) from exc
+    return _object(value, "Creator Registry CURRENT pointer")
+
+
+def _uses_sqlite_registry(data_root: DataLakeRoot) -> bool:
+    pointer = _load_registry_pointer(data_root)
+    version = pointer.get("pointer_schema_version")
+    if version == SQLITE_POINTER_SCHEMA_VERSION:
+        return True
+    if version == CURRENT_POINTER_SCHEMA_VERSION:
+        return False
+    raise CreatorRegistryLakeError("Creator Registry CURRENT pointer schema is unsupported")
+
+
+def _load_sqlite_current(
+    data_root: DataLakeRoot, pointer: Mapping[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    expected = {
+        "pointer_schema_version",
+        "backend",
+        "database_ref",
+        "database_schema_version",
+        "migration_authority_inventory_sha256",
+    }
+    if (
+        set(pointer) != expected
+        or pointer.get("pointer_schema_version") != SQLITE_POINTER_SCHEMA_VERSION
+        or pointer.get("backend") != "sqlite"
+        or pointer.get("database_ref") != sqlite_database_ref()
+        or pointer.get("database_schema_version") != SQLITE_SCHEMA
+    ):
+        raise CreatorRegistryLakeError("Creator Registry SQLite CURRENT pointer is unsupported")
+    try:
+        index, public = load_sqlite_documents(
+            data_root,
+            expected_migration_authority_inventory_sha256=pointer[
+                "migration_authority_inventory_sha256"
+            ],
+        )
+    except CreatorRegistrySqliteError as exc:
+        raise CreatorRegistryLakeError(str(exc)) from exc
+    _assert_client_safe(public)
+    return index, public
+
+
+def _sqlite_registry_summary(
+    index: Mapping[str, Any], public: Mapping[str, Any]
+) -> dict[str, Any]:
+    return {
+        "database_ref": sqlite_database_ref(),
+        "database_schema_version": SQLITE_SCHEMA,
+        "platform_accounts_total": index["creator_registry_index"]["counts"][
+            "platform_accounts_total"
+        ],
+        "public_profiles_total": len(public["creator_profile_public"]["profiles"]),
+    }
+
+
 def _require_current_retraction_epoch(data_root: DataLakeRoot) -> None:
     """Keep epoch adoption explicit while allowing stale-authority recovery."""
     data_root._reverify()
@@ -1858,6 +2290,7 @@ __all__ = [
     "CreatorRegistryLakeError",
     "admit_tiktok_creator_account",
     "admit_tiktok_creator_candidate",
+    "cutover_creator_registry_sqlite",
     "deterministic_platform_account_id",
     "extract_tiktok_packet_identity",
     "load_current_creator_profiles",
