@@ -737,12 +737,10 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
 @pytest.mark.parametrize(
     ("profile_name", "pin_field", "pin_value"),
     (
-        ("amazon_pdp_aggregate", "delivery_zip", "10001"),
         ("sephora_grid_aggregate", "sephora_market", "US"),
         ("sephora_pdp_aggregate", "sephora_market", "US"),
         ("ulta_grid_aggregate", "ulta_market", "US"),
         ("ulta_pdp_aggregate", "ulta_market", "US"),
-        ("target_pdp_aggregate", "target_zip", "10001"),
     ),
 )
 def test_shallow_ladder_profiles_require_their_exact_us_pin(
@@ -770,30 +768,31 @@ def test_target_catalog_grid_does_not_require_a_requested_delivery_zip() -> None
     )
 
 
-def test_amazon_grid_allows_us_marketplace_only_or_the_bound_optional_zip() -> None:
-    profile = get_retail_capture_profile("amazon_grid_aggregate")
+@pytest.mark.parametrize(
+    ("profile_name", "delivery_zip", "target_zip"),
+    (
+        ("amazon_grid_aggregate", None, None),
+        ("amazon_grid_aggregate", "90210", None),
+        ("amazon_pdp_aggregate", None, None),
+        ("amazon_pdp_aggregate", "90210", None),
+        ("target_grid_aggregate", None, None),
+        ("target_grid_aggregate", None, "90210"),
+        ("target_pdp_aggregate", None, None),
+        ("target_pdp_aggregate", None, "90210"),
+    ),
+)
+def test_fulfillment_zip_is_optional_local_context_not_surface_admission(
+    profile_name: str,
+    delivery_zip: str | None,
+    target_zip: str | None,
+) -> None:
     cloakbrowser_runner._validate_retail_baseline_profile_request(
-        retail_capture_profile=profile,
-        delivery_zip=None,
+        retail_capture_profile=get_retail_capture_profile(profile_name),
+        delivery_zip=delivery_zip,
         sephora_market=None,
         ulta_market=None,
-        target_zip=None,
+        target_zip=target_zip,
     )
-    cloakbrowser_runner._validate_retail_baseline_profile_request(
-        retail_capture_profile=profile,
-        delivery_zip="10001",
-        sephora_market=None,
-        ulta_market=None,
-        target_zip=None,
-    )
-    with pytest.raises(ValueError, match="either no delivery ZIP"):
-        cloakbrowser_runner._validate_retail_baseline_profile_request(
-            retail_capture_profile=profile,
-            delivery_zip="90210",
-            sephora_market=None,
-            ulta_market=None,
-            target_zip=None,
-        )
 
 
 def test_admitted_grid_projection_output_is_required_locally_and_automatic_in_lake_mode(

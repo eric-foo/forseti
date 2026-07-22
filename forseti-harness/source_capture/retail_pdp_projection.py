@@ -25,8 +25,8 @@ RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
 RETAIL_PDP_PROJECTION_VERSION = "v1"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
-SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v3"
-SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v3"
+SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v4"
+SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v4"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
 LUCKYSCENT_PDP_CONTENT_RECORD_KIND = "retail_pdp_luckyscent_aggregate_content"
 LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content_v1"
@@ -430,6 +430,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         "retail_pdp_sephora_aggregate_content_v1",
         "retail_pdp_sephora_aggregate_content_v2",
         "retail_pdp_sephora_aggregate_content_v3",
+        "retail_pdp_sephora_aggregate_content_v4",
     ] = (
         SEPHORA_PDP_CONTENT_SCHEMA_VERSION
     )
@@ -437,6 +438,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         "retail_pdp_sephora_aggregate_parser_v1",
         "retail_pdp_sephora_aggregate_parser_v2",
         "retail_pdp_sephora_aggregate_parser_v3",
+        "retail_pdp_sephora_aggregate_parser_v4",
     ] = (
         SEPHORA_PDP_PARSER_VERSION
     )
@@ -453,6 +455,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
             "retail_pdp_sephora_aggregate_content_v1": "retail_pdp_sephora_aggregate_parser_v1",
             "retail_pdp_sephora_aggregate_content_v2": "retail_pdp_sephora_aggregate_parser_v2",
             "retail_pdp_sephora_aggregate_content_v3": "retail_pdp_sephora_aggregate_parser_v3",
+            "retail_pdp_sephora_aggregate_content_v4": "retail_pdp_sephora_aggregate_parser_v4",
         }
         if expected_pair[self.schema_version] != self.parser_version:
             raise ValueError("Sephora content schema and parser versions must match")
@@ -1826,6 +1829,8 @@ def _validate_sephora_content_packet_metadata(
         metadata_is_current = False
     if expected_parser_version not in {
         "retail_pdp_sephora_aggregate_parser_v1",
+        "retail_pdp_sephora_aggregate_parser_v2",
+        "retail_pdp_sephora_aggregate_parser_v3",
         SEPHORA_PDP_PARSER_VERSION,
     }:
         raise ValueError("Sephora content packet parser version is unknown")
@@ -5334,6 +5339,9 @@ def _compact_sephora_content_rows(
         fields = row.source_visible_fields
         structured_kind = fields.get("structured_json_kind")
         if structured_kind == "sephora_link_store_product":
+            deduplicated_canonical_fields = [
+                key for key in _SEPHORA_CANONICAL_PRODUCT_FIELDS if key in product_state
+            ]
             additional_source_fields = {
                 key: value
                 for key, value in product_state.items()
@@ -5350,7 +5358,7 @@ def _compact_sephora_content_rows(
                         | {
                             "additional_source_fields": additional_source_fields,
                             "deduplicated_canonical_fields": sorted(
-                                _SEPHORA_CANONICAL_PRODUCT_FIELDS
+                                deduplicated_canonical_fields
                             ),
                         }
                     }
@@ -5428,11 +5436,19 @@ def _assert_sephora_product_state_reconstructs(
         raise ValueError(
             "Sephora compact content is missing additional product source fields"
         )
+    deduplicated = structured_row.source_visible_fields.get(
+        "deduplicated_canonical_fields"
+    )
+    if not isinstance(deduplicated, list) or any(
+        key not in _SEPHORA_CANONICAL_PRODUCT_FIELDS for key in deduplicated
+    ):
+        raise ValueError(
+            "Sephora compact content has an invalid canonical-field presence map"
+        )
 
     reconstructed = dict(additional)
-    for product_key, (row_kind, field_name) in (
-        _SEPHORA_CANONICAL_PRODUCT_FIELDS.items()
-    ):
+    for product_key in deduplicated:
+        row_kind, field_name = _SEPHORA_CANONICAL_PRODUCT_FIELDS[product_key]
         canonical_row = next(
             (row for row in rows if row.row_kind == row_kind),
             None,

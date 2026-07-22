@@ -171,10 +171,9 @@ _NORDSTROM_HOSTS = frozenset({"nordstrom.com", "www.nordstrom.com"})
 AMAZON_DELIVERY_PIN_FAILURE_MODE_CHANGE = "amazon_delivery_zip_pin_failed"
 AMAZON_US_VPN_FALLBACK_REQUIRED_MODE_CHANGE = "amazon_us_vpn_fallback_required"
 _AMAZON_US_HOSTS = frozenset({"amazon.com", "www.amazon.com"})
-# The owner-approved pre-v3 Amazon information-capture envelope pins one
-# anonymous US delivery destination; content retention is admitted only at
-# that exact pin (amazon_demand_signal_route_candidates_v0.md).
-_AMAZON_CONTENT_DELIVERY_ZIP = "10001"
+# Amazon and Target ZIP requests are optional local fulfillment context.
+# US-facing catalog/PDP admission remains bound to the retailer profile's
+# hostname, currency, identity, and content-sufficiency checks.
 _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 TARGET_GRID_CONTENT_PROFILE = "target_grid_aggregate"
@@ -344,26 +343,11 @@ def run_source_capture_cloakbrowser_packet(
             if content_extraction is None:
                 content_extraction = _ulta_grid_content_extraction_spec()
         if retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE:
-            if target_zip is None:
-                raise ValueError(
-                    "target_pdp_aggregate content capture requires --target-zip"
-                )
             if content_extraction is None:
                 content_extraction = _target_content_extraction_spec("content")
         if retail_capture_profile.name == AMAZON_PDP_CONTENT_PROFILE:
             if content_extraction is None:
                 content_extraction = _amazon_content_extraction_spec("content")
-            # Explicit raw stays available for diagnosis, recovery, and the
-            # existing demand-signal reads at other destinations; only content
-            # retention is bound to the admitted envelope's single US pin.
-            if (
-                content_extraction.requested_retention_mode == "content"
-                and delivery_zip != _AMAZON_CONTENT_DELIVERY_ZIP
-            ):
-                raise ValueError(
-                    "amazon_pdp_aggregate content capture requires "
-                    f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
-                )
     if (
         retail_capture_profile is not None
         and load_more_selector is None
@@ -833,7 +817,9 @@ def run_source_capture_cloakbrowser_packet(
     # hand, so content extraction can succeed over a partial corpus. That is an
     # admission failure like any other: preserve the raw inputs for diagnosis
     # instead of shipping a canonical-content-shaped record inside a packet that
-    # MUST NOT be admitted.
+    # MUST NOT be admitted. Amazon/Target fulfillment-pin failures are excluded:
+    # they invalidate only local fulfillment claims, not otherwise sufficient
+    # US-facing catalog or PDP content.
     grid_traversal_failed = (
         retail_capture_profile is not None
         and retail_capture_profile.name
@@ -849,8 +835,6 @@ def run_source_capture_cloakbrowser_packet(
         or ulta_pin_failure is not None
         or luckyscent_pin_failure is not None
         or luckyscent_overlay_failure is not None
-        or amazon_pin_failure is not None
-        or target_pin_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
     )
     retail_grid_raw_sample = (
@@ -1364,20 +1348,13 @@ def _validate_retail_baseline_profile_request(
             f"retail capture profile {retail_capture_profile.name} is not admitted "
             "for ordinary operation; preserve the capability gap instead"
         )
-    if retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE:
-        return
-    if retail_capture_profile.name == AMAZON_GRID_CONTENT_PROFILE:
-        if delivery_zip not in {None, _AMAZON_CONTENT_DELIVERY_ZIP}:
-            raise ValueError(
-                "amazon_grid_aggregate accepts either no delivery ZIP or "
-                f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
-            )
+    if retail_capture_profile.retailer in {"amazon", "target"}:
+        # A ZIP is optional local fulfillment context. It is neither a US-surface
+        # admission requirement nor restricted to a single commissioned value.
         return
     required_pin = {
-        "amazon": (delivery_zip, "10001", "--delivery-zip 10001"),
         "sephora": (sephora_market, "US", "--sephora-market US"),
         "ulta": (ulta_market, "US", "--ulta-market US"),
-        "target": (target_zip, "10001", "--target-zip 10001"),
     }.get(retail_capture_profile.retailer)
     if required_pin is None:
         return
@@ -2442,10 +2419,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             retail_capture_profile is not None
             and retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE
         ):
-            if args.target_zip is None:
-                raise ValueError(
-                    "target_pdp_aggregate content capture requires --target-zip"
-                )
             content_extraction = _target_content_extraction_spec(
                 args.retention_mode or "content"
             )
@@ -2456,14 +2429,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_extraction = _amazon_content_extraction_spec(
                 args.retention_mode or "content"
             )
-            if (
-                content_extraction.requested_retention_mode == "content"
-                and args.delivery_zip != _AMAZON_CONTENT_DELIVERY_ZIP
-            ):
-                raise ValueError(
-                    "amazon_pdp_aggregate content capture requires "
-                    f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
-                )
         settle_seconds = (
             args.settle_seconds
             if args.settle_seconds is not None
