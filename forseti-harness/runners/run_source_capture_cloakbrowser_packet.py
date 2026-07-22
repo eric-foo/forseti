@@ -85,6 +85,14 @@ from source_capture.retail_grid_projection import (
     project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
+from source_capture.sephora_brand_grid import (
+    SEPHORA_GRID_CONTENT_RECORD_VERSION,
+    build_sephora_brand_grid_content_record,
+)
+from source_capture.ulta_brand_grid import (
+    ULTA_GRID_CONTENT_RECORD_VERSION,
+    build_ulta_brand_grid_content_record,
+)
 from source_capture.retail_pdp_content import (
     AMAZON_PDP_CONTENT_PROFILE,
     AMAZON_PDP_PARSER_VERSION,
@@ -295,6 +303,9 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _sephora_content_extraction_spec("content")
+        if retail_capture_profile.name == "sephora_grid_aggregate":
+            if content_extraction is None:
+                content_extraction = _sephora_grid_content_extraction_spec()
         if retail_capture_profile.name == LUCKYSCENT_PDP_CONTENT_PROFILE:
             if luckyscent_market != "US":
                 raise ValueError(
@@ -317,6 +328,9 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _ulta_content_extraction_spec("content")
+        if retail_capture_profile.name == "ulta_grid_aggregate":
+            if content_extraction is None:
+                content_extraction = _ulta_grid_content_extraction_spec()
         if retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE:
             if target_zip is None:
                 raise ValueError(
@@ -447,6 +461,11 @@ def run_source_capture_cloakbrowser_packet(
                 else "pdp"
             ),
         )
+        if (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "sephora_grid_aggregate"
+        ):
+            content_extraction = _sephora_grid_content_extraction_spec()
     elif ulta_market is not None:
         ulta_page_kind = (
             "grid"
@@ -461,6 +480,8 @@ def run_source_capture_cloakbrowser_packet(
             country_code=ulta_market,
             page_kind=ulta_page_kind,
         )
+        if ulta_page_kind == "grid":
+            content_extraction = _ulta_grid_content_extraction_spec()
     elif (
         retail_capture_profile is not None
         and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
@@ -1300,6 +1321,20 @@ def _sephora_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec
     )
 
 
+def _sephora_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=SEPHORA_GRID_CONTENT_RECORD_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_sephora_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
+            )
+        ),
+    )
+
+
 def _nordstrom_country_pin_failure(
     *,
     nordstrom_country: str | None,
@@ -1487,6 +1522,20 @@ def _ulta_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
                 source_url=final_url,
+            )
+        ),
+    )
+
+
+def _ulta_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=ULTA_GRID_CONTENT_RECORD_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_ulta_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
             )
         ),
     )
@@ -2145,6 +2194,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             TARGET_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
             TARGET_GRID_CONTENT_PROFILE,
+            "sephora_grid_aggregate",
+            "ulta_grid_aggregate",
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -2208,6 +2259,24 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_extraction = _ulta_content_extraction_spec(
                 args.retention_mode or "content"
             )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "sephora_grid_aggregate"
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "sephora_grid_aggregate requires compact content retention"
+                )
+            content_extraction = _sephora_grid_content_extraction_spec()
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "ulta_grid_aggregate"
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "ulta_grid_aggregate requires compact content retention"
+                )
+            content_extraction = _ulta_grid_content_extraction_spec()
         elif (
             retail_capture_profile is not None
             and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE

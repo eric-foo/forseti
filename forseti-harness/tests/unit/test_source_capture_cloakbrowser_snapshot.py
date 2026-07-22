@@ -1167,6 +1167,9 @@ def test_cloakbrowser_runner_uses_sephora_grid_profile_load_more_defaults(
     assert seen["load_more_clicks"] == 10
     assert seen["scroll_stop_condition"] is None
     assert seen["pre_capture"].humanize is True
+    content_extraction = cloakbrowser_runner._sephora_grid_content_extraction_spec()
+    assert content_extraction.requested_retention_mode == "content"
+    assert content_extraction.extractor_version == "sephora_grid_content_v1"
 
 
 def test_cloakbrowser_runner_uses_ulta_grid_profile_load_more_defaults(
@@ -1221,6 +1224,9 @@ def test_cloakbrowser_runner_uses_ulta_grid_profile_load_more_defaults(
     assert seen["scroll_stop_condition"] is None
     assert seen["pre_capture"].page_kind == "grid"
     assert seen["pre_capture"].humanize is False
+    content_extraction = cloakbrowser_runner._ulta_grid_content_extraction_spec()
+    assert content_extraction.requested_retention_mode == "content"
+    assert content_extraction.extractor_version == "ulta_grid_content_v1"
 
 
 def test_live_engine_runs_early_and_late_site_actions_at_their_owned_stages(
@@ -2541,6 +2547,52 @@ def test_cloakbrowser_snapshot_cli_preflight_validates_without_capture(
     assert "SUPER_SECRET_PROXY_VALUE" not in captured.out
     assert "proxy.example" not in captured.out
     assert not (scratch_dir / "packet").exists()
+
+
+@pytest.mark.parametrize(
+    ("profile", "url", "market_flag"),
+    [
+        (
+            "sephora_grid_aggregate",
+            "https://www.sephora.com/brand/summer-fridays?country_switch=us",
+            "--sephora-market",
+        ),
+        (
+            "ulta_grid_aggregate",
+            "https://www.ulta.com/brand/clinique",
+            "--ulta-market",
+        ),
+    ],
+)
+def test_compact_grid_profiles_accept_explicit_content_retention_preflight(
+    scratch_dir: Path,
+    capsys: pytest.CaptureFixture[str],
+    profile: str,
+    url: str,
+    market_flag: str,
+) -> None:
+    assert cloakbrowser_runner.main(
+        [
+            "--url",
+            url,
+            "--source-family",
+            "retail_pdp",
+            "--decision-question",
+            "Can compact grid retention preflight validate locally?",
+            "--output",
+            str(scratch_dir / profile),
+            "--retail-grid-projection-output",
+            str(scratch_dir / f"{profile}.json"),
+            "--retail-capture-profile",
+            profile,
+            market_flag,
+            "US",
+            "--retention-mode",
+            "content",
+            "--preflight-only",
+        ]
+    ) == 0
+    assert "preflight passed" in capsys.readouterr().out
 
 
 def test_cloakbrowser_snapshot_cli_preflight_rejects_proxy_with_browser_profile(
