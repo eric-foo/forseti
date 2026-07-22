@@ -29,10 +29,26 @@ stale_if:
 
 ## Status
 
-`PROPOSAL` — pre-ratification, planning only. Owner accepted the direction to
-move the registry out of Git (2026-07-22) and chose the plan-artifact-first
-route. Nothing here authorizes implementation, capture, live Reddit access, or
-a lake write. No code has been written against this proposal.
+`IMPLEMENTED — NOT RATIFIED`. The architecture below is unchanged from the
+owner-accepted direction (2026-07-22) and has not been separately ratified;
+what follows records only which stages executed.
+
+| Stage | State | Evidence |
+|---|---|---|
+| 1 module, fold, CLI, gates | done | 44 unit tests; both lake touchpoint gates cleared |
+| 2 baseline migration | done | 35 baselines, 106 observations, legacy sha256 `3e51ba47`, migration packet `01KY4FSZV3EB8GMJ305Z5KAWGB`, parity true / zero mismatches |
+| 3a writer cut-over | done | 44 committed packets replay to zero writes, zero unknown |
+| 3b live readback | done | packet `01KY4N5117KS4CB0EZNYJS3VAY`; fold advanced 4→5 observations, `status_observed_at` 2026-07-17→2026-07-22, `register_pointers` 2→3; re-run deduped to zero; committed JSON byte-unchanged |
+| 4 move readers | satisfied by absence | no operational reader of the committed JSON remained: stage 3a moved the only consumer, and the fold is now its roster source |
+
+Stage 4 required no edit. The surviving references to the committed file are the
+migration input (`migrate` / `parity`) and the freeze guard that refuses to write
+it — both of which this contract keeps. Removing the frozen file remains a later
+work unit, unchanged.
+
+A cross-vendor delegated code review returned four findings against the
+implementation (RSR-01..RSR-04); all were verified against source, accepted, and
+patched. This artifact asserts no validation, readiness, or ratification.
 
 ## Problem
 
