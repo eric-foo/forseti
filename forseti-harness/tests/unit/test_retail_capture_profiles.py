@@ -164,7 +164,15 @@ def test_target_grid_profile_binds_brand_and_normalizes_bestseller_start() -> No
         rendered_dom="<html>target product cards</html>",
     )
 
+    unrelated_word = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text="Bookshelf organizers 244 results Guest Rating $10.00",
+        rendered_dom="<html>target product cards</html>",
+    )
+
     assert result.passed is True
+    assert unrelated_word.passed is False
     assert extract_target_grid_subject_from_url(url) == ("brand", "e-l-f")
     assert target_bestseller_grid_url(url) == (
         "https://www.target.com/b/e-l-f/-/N-5oajg?"

@@ -63,6 +63,11 @@ _TARGET_CARD_RE = re.compile(
     r"<div[^>]*\bdata-focusid=[\"'](?P<product_id>\d+)_product_card[\"'][^>]*>",
     flags=re.IGNORECASE,
 )
+_SCRIPT_OR_STYLE_RE = re.compile(
+    r"<(?P<tag>script|style)\b[^>]*>.*?</(?P=tag)\s*>",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+_DIV_BOUNDARY_RE = re.compile(r"<(?P<closing>/?)div\b[^>]*>", re.IGNORECASE)
 _PRICE_RANGE_RE = re.compile(
     r"^\s*\$?(?P<minimum>\d+(?:\.\d+)?)\s*[-\u2013]\s*\$?(?P<maximum>\d+(?:\.\d+)?)\s*$"
 )
@@ -812,11 +817,20 @@ def _parse_target_grid_page(
     subject_kind: str | None = None,
 ) -> dict[str, object]:
     matches = list(_TARGET_CARD_RE.finditer(rendered_dom))
+    boundary_source = _SCRIPT_OR_STYLE_RE.sub(
+        lambda match: " " * (match.end() - match.start()), rendered_dom
+    )
     products: list[dict[str, object | None]] = []
     residuals: list[str] = []
     occurrences_by_product_id: dict[str, int] = {}
     for index, match in enumerate(matches):
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(rendered_dom)
+        end = _target_card_end(boundary_source, match.start())
+        if end is None:
+            residuals.append(
+                f"target_grid_card_boundary_unproven:{page_number}:{index + 1}:"
+                f"{match.group('product_id')}"
+            )
+            end = matches[index + 1].start() if index + 1 < len(matches) else match.end()
         card = rendered_dom[match.start() : end]
         product_id = match.group("product_id")
         occurrence = occurrences_by_product_id.get(product_id, 0) + 1
@@ -1015,10 +1029,31 @@ def _parse_target_grid_page(
     }
 
 
+def _target_card_end(rendered_dom: str, start: int) -> int | None:
+    depth = 0
+    for boundary in _DIV_BOUNDARY_RE.finditer(rendered_dom, start):
+        if boundary.group("closing"):
+            depth -= 1
+            if depth == 0:
+                return boundary.end()
+            if depth < 0:
+                return None
+        else:
+            depth += 1
+    return None
+
+
 def _html_text(value: str) -> str | None:
-    text = re.sub(r"<[^>]+>", " ", value)
+    # Script and style bodies survive tag stripping as ordinary text, so
+    # serialized page state would otherwise be read as retailer-rendered text.
+    text = re.sub(r"<[^>]+>", " ", _SCRIPT_OR_STYLE_RE.sub(" ", value))
     normalized = " ".join(html_module.unescape(text).split())
     return normalized or None
+
+
+def _observation_list(state: dict[str, Any] | None, key: str) -> list[Any]:
+    value = state.get(key) if state is not None else None
+    return list(value) if isinstance(value, list) else []
 
 
 def _target_requested_query(url: str) -> str | None:
@@ -1303,6 +1338,21 @@ def _target_grid_reconciliation(
             "target_grid_declared_placement_count_mismatch:"
             f"declared={declared_count}:placements={placement_count}"
         )
+    # Traversal terminates against the count visible on the current page, so a
+    # live assortment change during the multi-page walk still reconciles. The
+    # earlier pages were then drawn from a different corpus than the one the
+    # final count declares, which is not a proven complete corpus.
+    declared_observations = [
+        value
+        for value in _observation_list(state, "declared_result_count_observations")
+        if isinstance(value, int) and not isinstance(value, bool)
+    ]
+    if len(set(declared_observations)) > 1:
+        reconciliation_residuals.append(
+            "target_grid_declared_count_changed_during_traversal:"
+            f"minimum={min(declared_observations)}:"
+            f"maximum={max(declared_observations)}"
+        )
     termination = state.get("traversal_termination") if state is not None else None
     if termination != "retailer_declared_count_reconciled":
         reconciliation_residuals.append("target_grid_termination_unproven")
@@ -1332,10 +1382,8 @@ def _target_grid_reconciliation(
         "delivery_zip": state.get("delivery_zip") if state is not None else None,
         "page_load_count": state.get("page_load_count") if state is not None else None,
         "page_declared_result_count": declared_count,
-        "declared_result_count_observations": (
-            state.get("declared_result_count_observations", [])
-            if state is not None
-            else []
+        "declared_result_count_observations": _observation_list(
+            state, "declared_result_count_observations"
         ),
         "extracted_placement_count": placement_count,
         "duplicate_placement_count": duplicate_count,

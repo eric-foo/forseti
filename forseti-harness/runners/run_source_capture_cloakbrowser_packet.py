@@ -764,8 +764,19 @@ def run_source_capture_cloakbrowser_packet(
     else:
         extraction_status = "not_configured"
 
+    # A failed Target grid traversal still leaves whatever pages it reached in
+    # hand, so content extraction can succeed over a partial corpus. That is an
+    # admission failure like any other: preserve the raw inputs for diagnosis
+    # instead of shipping a canonical-content-shaped record inside a packet that
+    # MUST NOT be admitted.
+    target_grid_traversal_failed = (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
+        and capture_result.metadata.get("before_snapshot_steps_completed") is not True
+    )
     retention_admission_failed = (
         capture_result.access_block_reason is not None
+        or target_grid_traversal_failed
         or sephora_pin_failure is not None
         or nordstrom_pin_failure is not None
         or nordstrom_review_posture_failure is not None

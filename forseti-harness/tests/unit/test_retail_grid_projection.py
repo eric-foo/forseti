@@ -391,6 +391,117 @@ def test_target_content_record_fails_closed_on_count_or_identity_gap() -> None:
     )
 
 
+def test_target_grid_declared_count_drift_is_not_reconciled_as_complete() -> None:
+    rendered_pages = (
+        _target_grid_page_html(
+            products=[
+                ("10000001", "First Target Product", "$10.99"),
+                ("10000002", "Second Target Product", "$8.00"),
+            ],
+            declared=4,
+        ),
+        _target_grid_page_html(
+            products=[("10000003", "Third Target Product", "$6.50")],
+            declared=3,
+        ),
+    )
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=rendered_pages,
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(
+            _TARGET_SEARCH_GRID_URL,
+            _TARGET_SEARCH_GRID_URL + "&Nao=24",
+        ),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+    body = (json.dumps(record, sort_keys=True) + "\n").encode()
+    packet = _packet(
+        retailer="target",
+        locator=_TARGET_SEARCH_GRID_URL,
+        relative_path="raw/01_rendered_content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.extracted_placement_count == 3
+    assert projection.completeness.page_declared_result_count == 3
+    assert projection.source_visible_grid_facts[
+        "declared_result_count_observations"
+    ] == [4, 3]
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert (
+        "target_grid_declared_count_changed_during_traversal:minimum=3:maximum=4"
+        in projection.completeness.residuals
+    )
+
+
+def test_target_grid_reads_rendered_text_not_serialized_page_state() -> None:
+    rendered = (
+        _target_grid_page_html(
+            products=[("10000001", "Only Target Product", "$10.99")],
+            declared=1,
+        )
+        .replace(
+            "<body>",
+            '<body><script>window.__TGT__={"copy":"99 results"};</script>',
+            1,
+        )
+        .replace(
+            "</body>",
+            '<script>window.__RAIL__={"label":"Bestseller","tag":"Sponsored"};'
+            "</script></body>",
+            1,
+        )
+    )
+
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(_TARGET_SEARCH_GRID_URL,),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+
+    page = record["pages"][0]
+    assert page["declared_result_count"] == 1
+    assert page["products"][0]["retailer_merchandising_labels"] == []
+    assert page["products"][0]["sponsored_posture"] is None
+
+
+def test_target_grid_final_card_excludes_trailing_page_content() -> None:
+    rendered = _target_grid_page_html(
+        products=[("10000001", "Only Target Product", "$10.99")],
+        declared=1,
+    ).replace(
+        "</body>",
+        "<footer>Bestseller Highly rated Sponsored Free 2-Day Shipping</footer>"
+        "</body>",
+        1,
+    )
+
+    record = build_target_grid_aggregate_content_record(
+        rendered_pages=(rendered,),
+        requested_url=_TARGET_SEARCH_GRID_URL,
+        page_urls=(_TARGET_SEARCH_GRID_URL,),
+        traversal_observation={
+            "target_grid_termination": "retailer_declared_count_reconciled"
+        },
+    )
+
+    product = record["pages"][0]["products"][0]
+    assert product["retailer_merchandising_labels"] == []
+    assert product["sponsored_posture"] is None
+    assert product["visible_fulfilment_text"] == ["Shipping dates may vary"]
+
+
 def test_target_content_record_binds_name_to_current_content_anchor() -> None:
     rendered = _target_grid_page_html(
         products=[("10000001", "Actual Product Name", "$10.99")],
