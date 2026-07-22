@@ -5334,6 +5334,9 @@ def _compact_sephora_content_rows(
         fields = row.source_visible_fields
         structured_kind = fields.get("structured_json_kind")
         if structured_kind == "sephora_link_store_product":
+            deduplicated_canonical_fields = [
+                key for key in _SEPHORA_CANONICAL_PRODUCT_FIELDS if key in product_state
+            ]
             additional_source_fields = {
                 key: value
                 for key, value in product_state.items()
@@ -5350,7 +5353,7 @@ def _compact_sephora_content_rows(
                         | {
                             "additional_source_fields": additional_source_fields,
                             "deduplicated_canonical_fields": sorted(
-                                _SEPHORA_CANONICAL_PRODUCT_FIELDS
+                                deduplicated_canonical_fields
                             ),
                         }
                     }
@@ -5428,11 +5431,19 @@ def _assert_sephora_product_state_reconstructs(
         raise ValueError(
             "Sephora compact content is missing additional product source fields"
         )
+    deduplicated = structured_row.source_visible_fields.get(
+        "deduplicated_canonical_fields"
+    )
+    if not isinstance(deduplicated, list) or any(
+        key not in _SEPHORA_CANONICAL_PRODUCT_FIELDS for key in deduplicated
+    ):
+        raise ValueError(
+            "Sephora compact content has an invalid canonical-field presence map"
+        )
 
     reconstructed = dict(additional)
-    for product_key, (row_kind, field_name) in (
-        _SEPHORA_CANONICAL_PRODUCT_FIELDS.items()
-    ):
+    for product_key in deduplicated:
+        row_kind, field_name = _SEPHORA_CANONICAL_PRODUCT_FIELDS[product_key]
         canonical_row = next(
             (row for row in rows if row.row_kind == row_kind),
             None,

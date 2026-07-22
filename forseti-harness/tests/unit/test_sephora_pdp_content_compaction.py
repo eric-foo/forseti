@@ -51,8 +51,8 @@ def _synthetic_product() -> dict:
     }
 
 
-def _synthetic_sephora_html() -> bytes:
-    product = _synthetic_product()
+def _synthetic_sephora_html(product: dict | None = None) -> bytes:
+    product = _synthetic_product() if product is None else product
     product_ld = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -146,6 +146,26 @@ def test_sephora_v3_deduplicates_without_losing_source_fields() -> None:
         }
     )
     assert reconstructed == _synthetic_product()
+
+
+@pytest.mark.parametrize("absent_field", ["regularChildSkus", "reviewImages"])
+def test_sephora_v3_preserves_absent_canonical_field_semantics(
+    absent_field: str,
+) -> None:
+    product = _synthetic_product()
+    product.pop(absent_field)
+
+    record = build_sephora_pdp_aggregate_content_record(
+        rendered_dom=_synthetic_sephora_html(product),
+        visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
+        source_url=SOURCE_URL,
+    )
+
+    product_source = _row(
+        record,
+        structured="sephora_link_store_product",
+    )["source_visible_fields"]
+    assert absent_field not in product_source["deduplicated_canonical_fields"]
 
 
 def test_sephora_content_route_writes_compact_json_only_for_sephora() -> None:
