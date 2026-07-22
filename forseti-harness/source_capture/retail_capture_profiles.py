@@ -375,12 +375,14 @@ _PROFILES = {
             settle_seconds=0.0,
             derive_target_query_from_url=True,
             requirements=_requirements(
-                visible_text_contains=("New York 10001",),
                 visible_text_regexes=(
-                    r"1-\d+ of \d+ results",
+                    r"\d[\d,]*-\d[\d,]* of (?:over )?\d[\d,]* results",
                     r"\d(?:\.\d)? out of 5 stars\s+\([\d.]+[KM]?\)",
                     r"\$\d+(?:\.\d{2})?",
                     r"\d+(?:\.\d+)?[KM]?\+ bought in past month",
+                ),
+                rendered_dom_regexes=(
+                    r"(?:ue_sn\s*=\s*'www\.amazon\.com'|retail:prod:www\.amazon\.com|assoc_handle=usflex)",
                 ),
             ),
         ),

@@ -24,6 +24,7 @@ from source_capture.models import (
 )
 from source_capture.retail_grid_projection import (
     RetailGridProjectionInputError,
+    build_amazon_grid_aggregate_content_record,
     build_target_grid_aggregate_content_record,
     build_retail_grid_projection,
     build_retail_grid_projection_from_packet_directory,
@@ -41,6 +42,283 @@ _TARGET_BRAND_GRID_URL = (
     "https://www.target.com/b/e-l-f/-/N-5oajg?sortBy=bestselling"
     "&moveTo=product-list-grid"
 )
+_AMAZON_GRID_URL = "https://www.amazon.com/s?k=Tower+28+Beauty"
+
+
+def test_amazon_ranked_window_projects_fields_duplicates_and_count_drift() -> None:
+    pages = (
+        _amazon_grid_page_html(
+            products=[
+                ("B000000001", "SOS Daily Rescue Facial Spray", "$16.00", True),
+                ("B000000002", "ShineOn Lip Jelly", "$16.00", False),
+            ],
+            start=1,
+            end=2,
+            total=214,
+        ),
+        _amazon_grid_page_html(
+            products=[
+                ("B000000002", "ShineOn Lip Jelly", "$16.00", True),
+            ],
+            start=3,
+            end=3,
+            total=219,
+        ),
+    )
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=pages,
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(_AMAZON_GRID_URL, f"{_AMAZON_GRID_URL}&page=2"),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 2,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.termination == "requested_page_window_reconciled"
+    assert projection.completeness.page_declared_result_count == 219
+    assert projection.completeness.extracted_unique_parent_count == 2
+    assert projection.completeness.extracted_placement_count == 3
+    assert projection.completeness.duplicate_placement_count == 1
+    assert projection.source_visible_grid_facts["requested_page_count"] == 2
+    assert projection.source_visible_grid_facts["captured_page_count"] == 2
+    assert projection.source_visible_grid_facts[
+        "displayed_result_total_observations"
+    ] == [214, 219]
+    duplicate = next(
+        row for row in projection.rows if row.source_visible_fields["source_product_id"] == "B000000002"
+    )
+    assert [(item.page, item.page_position) for item in duplicate.placements] == [
+        (1, 2),
+        (2, 1),
+    ]
+    assert duplicate.source_visible_fields["price_display"] == "$16.00"
+    assert duplicate.source_visible_fields["average_rating"] == "4.6"
+    assert duplicate.source_visible_fields["rating_count"] == "1234"
+    assert duplicate.source_visible_fields["bought_recently_text"] == "1K+ bought in past month"
+    assert duplicate.source_visible_fields["location_binding"] == "us_marketplace_only"
+    # No single posture describes both placements. Preserve each observed value
+    # in placement order and clear the parent-level scalar rather than letting the
+    # first placement silently stand in for the second.
+    assert duplicate.source_visible_fields["sponsored_posture"] is None
+    assert [
+        item["sponsored_posture"]
+        for item in duplicate.source_visible_fields["placement_source_visible_fields"]
+    ] == ["organic", "sponsored"]
+    assert (
+        "amazon_grid_duplicate_parent_placement_field_differs:B000000002:sponsored_posture"
+        in duplicate.residuals
+    )
+    assert (
+        "amazon_grid_duplicate_parent_placement_field_differs:B000000002:sponsored_posture"
+        in projection.residuals
+    )
+
+
+def test_amazon_ranked_window_fails_closed_when_displayed_ranges_are_not_consecutive() -> None:
+    pages = (
+        _amazon_grid_page_html(
+            products=[
+                ("B000000001", "SOS Daily Rescue Facial Spray", "$16.00", False),
+                ("B000000002", "ShineOn Lip Jelly", "$16.00", False),
+            ],
+            start=1,
+            end=2,
+            total=214,
+        ),
+        _amazon_grid_page_html(
+            products=[
+                ("B000000003", "LipSoftie Lip Treatment", "$18.00", False),
+                ("B000000004", "SunnyDays Sunscreen Foundation", "$26.00", False),
+            ],
+            start=5,
+            end=6,
+            total=214,
+        ),
+    )
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=pages,
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(_AMAZON_GRID_URL, f"{_AMAZON_GRID_URL}&page=2"),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 2,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert (
+        "amazon_grid_result_range_not_consecutive:2:2:5"
+        in projection.completeness.residuals
+    )
+
+
+def test_amazon_ranked_window_fails_closed_when_requested_pages_do_not_reconcile() -> None:
+    page = _amazon_grid_page_html(
+        products=[("B000000001", "SOS Daily Rescue Facial Spray", "$16.00", False)],
+        start=1,
+        end=1,
+        total=214,
+    )
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=(page,),
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(_AMAZON_GRID_URL,),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 3,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "incomplete"
+    assert projection.completeness.termination == "unproven"
+    assert any(
+        value.startswith("amazon_grid_requested_window_page_count_mismatch:")
+        for value in projection.completeness.residuals
+    )
+
+
+def test_amazon_ranked_window_preserves_sponsored_redirect_url() -> None:
+    page = _amazon_grid_page_html(
+        products=[("B000000001", "Sponsored Serum", "$24.00", True)],
+        start=1,
+        end=1,
+        total=1,
+    ).replace(
+        "/Sponsored-Serum/dp/B000000001/ref=sr_1_1",
+        "/sspa/click?spc=abc&amp;url=%2FSponsored-Serum%2Fdp%2FB000000001",
+    )
+
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=(page,),
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(_AMAZON_GRID_URL,),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 1,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+
+    product = record["pages"][0]["products"][0]
+    assert product["product_url"] == (
+        "https://www.amazon.com/sspa/click?spc=abc&"
+        "url=%2FSponsored-Serum%2Fdp%2FB000000001"
+    )
+    assert record["residuals"] == []
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+    assert projection.rows[0].source_visible_fields["product_url"] == product["product_url"]
+    assert projection.rows[0].source_visible_fields["canonical_product_url"] is None
+
+
+def test_amazon_ranked_window_names_placements_beyond_displayed_range_span() -> None:
+    page = _amazon_grid_page_html(
+        products=[
+            ("B000000001", "First Ranked Product", "$16.00", False),
+            ("B000000002", "Second Ranked Product", "$18.00", False),
+            ("B000000003", "Additional Sponsored Product", "$20.00", True),
+        ],
+        start=1,
+        end=2,
+        total=115,
+    )
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=(page,),
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(_AMAZON_GRID_URL,),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 1,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert projection.source_visible_grid_facts["displayed_result_range_slot_count"] == 2
+    assert (
+        projection.source_visible_grid_facts[
+            "source_visible_placements_beyond_displayed_range_span"
+        ]
+        == 1
+    )
+
+
+def test_amazon_ranked_window_fails_closed_when_displayed_range_is_underfilled() -> None:
+    page = _amazon_grid_page_html(
+        products=[("B000000001", "Only Loaded Product", "$16.00", False)],
+        start=49,
+        end=96,
+        total=115,
+    )
+    record = build_amazon_grid_aggregate_content_record(
+        rendered_pages=(page,),
+        requested_url=_AMAZON_GRID_URL,
+        page_urls=(f"{_AMAZON_GRID_URL}&page=2",),
+        traversal_observation={
+            "amazon_grid_requested_page_count": 1,
+            "amazon_grid_termination": "requested_page_window_reconciled",
+        },
+    )
+
+    assert "amazon_grid_result_range_underfilled:1:1:48" in record["residuals"]
 
 
 def test_walmart_next_data_projection_preserves_one_row_per_product_tile() -> None:
@@ -891,6 +1169,40 @@ def _target_html() -> str:
         <div aria-label="4.2 stars with 12 ratings"></div>
       </div>
     </div></body></html>
+    """
+
+
+def _amazon_grid_page_html(
+    *,
+    products: list[tuple[str, str, str, bool]],
+    start: int,
+    end: int,
+    total: int,
+) -> str:
+    cards = []
+    for position, (asin, name, price, sponsored) in enumerate(products, start=1):
+        cards.append(
+            f"""
+            <div data-index="{position}" data-asin="{asin}"
+                 data-component-type="s-search-result">
+              {'<span>Sponsored</span>' if sponsored else ''}
+              <a href="/{name.replace(' ', '-')}/dp/{asin}/ref=sr_1_{position}">
+                <h2 aria-label="{name}"><span>{name}</span></h2>
+              </a>
+              <span aria-label="4.6 out of 5 stars, rating details"></span>
+              <a aria-label="1,234 ratings"><span>(1,234)</span></a>
+              <span class="a-price"><span class="a-offscreen">{price}</span></span>
+              <span>1K+ bought in past month</span>
+              <div data-cy="delivery-block">FREE delivery Tomorrow</div>
+            </div>
+            """
+        )
+    return f"""
+    <html><script>ue_sn = 'www.amazon.com'</script><body>
+      <span>{start}-{end} of {total} results for</span>
+      <span class="a-color-state">"Tower 28 Beauty"</span>
+      {''.join(cards)}
+    </body></html>
     """
 
 
