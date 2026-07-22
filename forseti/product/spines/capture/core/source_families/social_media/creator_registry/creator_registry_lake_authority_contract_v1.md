@@ -74,11 +74,23 @@ The allowed action vocabulary is:
 
 - `status`: `eligible`, `deferred`, or `rejected`;
 - `priority`: `super`, `high`, `normal`, or `low`, required only for `eligible`;
-- `reason_code`: `non_us_market`, `low_reach`, `low_potential`,
+- `reason_code`: `non_us_market`, `us_market_unverified`, `low_reach`, `low_potential`,
   `duplicate_or_backup`, `profile_unavailable`, `self_brand_only`,
   `owner_choice`, or `other`; `other` requires a note; and
 - `reconsideration`: `owner_reopen` or `new_signal`, required only for
   `deferred`.
+
+For `new_capture` and full `new_onboarding`, the runner applies the owner's
+standing US-market rule to the profile bio already captured with the suggested
+surface, closes that surface, and stops before grid acquisition when the result
+is deferred. An explicit non-US country flag records `non_us_market`; missing or
+conflicting affirmative US evidence records `us_market_unverified`. An explicit
+US flag or a bounded high-confidence US location cue (including NYC, New York,
+or Dallas) permits grid processing but does not itself make the candidate
+`eligible`. English language and TikTok `webapp.app-context.region` are never
+creator-market evidence. The defer is written through the existing append-only
+owner-action mechanism with `reconsideration=new_signal` and can be superseded
+when new evidence appears.
 
 The writer validates the complete batch before creating a packet or derived
 record. An exact semantic replay is `already_current`; a changed action

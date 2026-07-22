@@ -84,7 +84,7 @@ def _parser() -> argparse.ArgumentParser:
     disposition.add_argument(
         "--reason-code",
         choices=(
-            "non_us_market", "low_reach", "low_potential", "duplicate_or_backup",
+            "non_us_market", "us_market_unverified", "low_reach", "low_potential", "duplicate_or_backup",
             "profile_unavailable", "self_brand_only", "owner_choice", "other",
         ),
         required=True,

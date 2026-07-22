@@ -40,6 +40,7 @@ from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
     load_creator_frontier_dispositions,
     load_tiktok_creator_discovery_frontier_registers,
+    write_creator_frontier_dispositions,
 )
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
@@ -67,6 +68,7 @@ from source_capture.tiktok.creator_onboarding import (
     GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+    TikTokCreatorMarketDeferred,
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
     run_tiktok_creator_profile_refresh,
@@ -409,7 +411,50 @@ def main(argv: Sequence[str] | None = None) -> int:
                 cadence_window_seconds=args.cadence_window_seconds,
                 random_seed=args.random_seed,
                 progress_fn=_emit_progress,
+                enforce_us_market_gate=(
+                    args.creator_intent in {"new_capture", "new_onboarding"}
+                ),
             )
+    except TikTokCreatorMarketDeferred as exc:
+        assessment = exc.assessment
+        if data_root is not None:
+            try:
+                result = write_creator_frontier_dispositions(
+                    data_root=data_root,
+                    actions=[
+                        _market_defer_action(
+                            creator_handle=args.creator_handle,
+                            assessment=assessment,
+                        )
+                    ],
+                )
+            except Exception as write_exc:
+                _emit_blocker("MARKET_DEFER_WRITE_FAILED", "market_gate")
+                parser.exit(
+                    status=3,
+                    message=(
+                        "source capture tiktok market defer write failed: "
+                        f"{type(write_exc).__name__}: {write_exc}\n"
+                    ),
+                )
+                return 3
+            _emit_progress(
+                "market_defer_recorded",
+                {
+                    "creator_handle": args.creator_handle.strip().lstrip("@").lower(),
+                    "reason_code": assessment["reason_code_or_none"],
+                    "write_status": result["status"],
+                    "raw_anchor_or_none": result.get("raw_anchor"),
+                    "record_id_or_none": result.get("record_id"),
+                },
+            )
+        _emit_blocker(
+            "CANDIDATE_MARKET_DEFERRED",
+            "market_gate",
+            recovery="reconsider only after new affirmative US-market evidence",
+        )
+        parser.exit(status=2, message=f"{exc}\n")
+        return 2
     except (OSError, ValueError, TikTokCreatorOnboardingError) as exc:
         if isinstance(exc, CdpSessionUnavailable):
             _emit_blocker(
@@ -773,6 +818,44 @@ def _emit_blocker(code: str, phase: str, *, recovery: str | None = None) -> None
         + json.dumps(payload, sort_keys=True),
         flush=True,
     )
+
+
+def _market_defer_action(
+    *, creator_handle: str, assessment: dict[str, object]
+) -> dict[str, object]:
+    reason_code = assessment.get("reason_code_or_none")
+    reconsideration = assessment.get("reconsideration_or_none")
+    evidence = assessment.get("evidence")
+    country_flag_codes = (
+        evidence.get("country_flag_codes") if isinstance(evidence, dict) else None
+    )
+    us_location_cues = (
+        evidence.get("us_location_cues") if isinstance(evidence, dict) else None
+    )
+    if (
+        reason_code not in {"non_us_market", "us_market_unverified"}
+        or reconsideration != "new_signal"
+        or not isinstance(evidence, dict)
+        or not isinstance(country_flag_codes, list)
+        or any(not isinstance(value, str) for value in country_flag_codes)
+        or not isinstance(us_location_cues, list)
+        or any(not isinstance(value, str) for value in us_location_cues)
+    ):
+        raise ValueError("market defer assessment is not a canonical deferred decision")
+    note = (
+        "standing owner US-market gate applied to same-read TikTok profile bio; "
+        f"bio_status={evidence.get('profile_bio_status')}; "
+        f"country_flags={','.join(country_flag_codes) or 'none'}; "
+        f"us_location_cues={','.join(us_location_cues) or 'none'}"
+    )
+    return {
+        "platform": "tiktok",
+        "handle": creator_handle,
+        "status": "deferred",
+        "reason_code": reason_code,
+        "note": note,
+        "reconsideration": reconsideration,
+    }
 
 
 def _validate_reusable_prior_capture(

@@ -28,7 +28,9 @@ from source_capture.tiktok.creator_onboarding import (
     TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
     TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
     TIKTOK_ONBOARDING_SELECTION_JSON_NAME,
+    TikTokCreatorMarketDeferred,
     TikTokCreatorOnboardingError,
+    assess_tiktok_creator_market,
     build_tiktok_grid_window,
     is_tiktok_profile_item_list_url,
     run_tiktok_creator_onboarding,
@@ -281,6 +283,58 @@ def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: 
     )
 
     assert args.session_profile == "chowdakr_sg_tiktok"
+
+
+@pytest.mark.parametrize(
+    ("bio", "decision", "reason", "flags", "cues"),
+    [
+        (
+            "Addicted to scents 🇹🇷",
+            "deferred_non_us_market",
+            "non_us_market",
+            ["TR"],
+            [],
+        ),
+        ("NYC fragrance reviews", "supported_us_market", None, [], ["nyc"]),
+        ("Dallas - Perfume - Beauty", "supported_us_market", None, [], ["dallas"]),
+        ("Fragrance reviews in English", "deferred_us_market_unverified", "us_market_unverified", [], []),
+        ("NYC 🇹🇷", "deferred_us_market_unverified", "us_market_unverified", ["TR"], ["nyc"]),
+    ],
+)
+def test_market_assessment_uses_only_explicit_profile_bio_evidence(
+    bio: str,
+    decision: str,
+    reason: str | None,
+    flags: list[str],
+    cues: list[str],
+) -> None:
+    result = assess_tiktok_creator_market(
+        creator_handle="Creator",
+        profile_bio_text_or_none=bio,
+        profile_bio_status="captured",
+    )
+
+    assert result["decision"] == decision
+    assert result["reason_code_or_none"] == reason
+    assert result["evidence"]["country_flag_codes"] == flags
+    assert result["evidence"]["us_location_cues"] == cues
+
+
+def test_runner_builds_inspectable_market_defer_action() -> None:
+    assessment = assess_tiktok_creator_market(
+        creator_handle="arda.scents",
+        profile_bio_text_or_none="Addicted to scents 🇹🇷",
+        profile_bio_status="captured",
+    )
+
+    action = runner._market_defer_action(
+        creator_handle="arda.scents", assessment=assessment
+    )
+
+    assert action["status"] == "deferred"
+    assert action["reason_code"] == "non_us_market"
+    assert action["reconsideration"] == "new_signal"
+    assert "country_flags=TR" in action["note"]
 
 
 def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
@@ -894,6 +948,65 @@ def test_grid_window_does_not_count_nested_item_list_metric_node() -> None:
             capture=capture,
             window_size=2,
         )
+
+
+def test_market_gate_defers_after_same_read_and_before_grid_capture(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state_path = tmp_path / "state.json"
+    state_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        onboarding,
+        "validate_auth_state_provenance_requirement",
+        lambda *_args, **_kwargs: state_path,
+    )
+    suggested = _capture(
+        suggested=[
+            {
+                "handle": "adjacent",
+                "profile_url": "https://www.tiktok.com/@adjacent",
+                "display_text_or_none": "Adjacent",
+            }
+        ]
+    )
+    suggested.dom_observation.update(
+        {
+            "profile_bio_text_or_none": "Addicted to scents 🇹🇷",
+            "profile_bio_element_detected": True,
+        }
+    )
+    engine = _FakeEngine([suggested, _suggested_surface_closed_capture()])
+    progress_events: list[tuple[str, dict[str, object]]] = []
+
+    with pytest.raises(TikTokCreatorMarketDeferred) as exc_info:
+        _run_onboarding(
+            tmp_path,
+            engine,
+            enforce_us_market_gate=True,
+            progress_fn=lambda event, fields: progress_events.append((event, fields)),
+        )
+
+    assert exc_info.value.assessment["reason_code_or_none"] == "non_us_market"
+    assert len(engine.calls) == 2
+    assert [event for event, _fields in progress_events] == [
+        "collect_suggested_accounts",
+        "close_suggested_surface",
+        "market_gate",
+    ]
+    assert not (tmp_path / TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME).exists()
+    assert not (tmp_path / TIKTOK_ONBOARDING_SELECTION_JSON_NAME).exists()
+    receipt = json.loads(
+        (tmp_path / TIKTOK_ONBOARDING_RECEIPT_JSON_NAME).read_text(encoding="utf-8")
+    )
+    assert receipt["status"] == "deferred"
+    assert receipt["terminal_stage"] == "market_gate"
+    assert receipt["window_size"] == 0
+    assert receipt["selected_count"] == 0
+    assert receipt["completed_deep_capture_count"] == 0
+    assert receipt["market_assessment_or_none"]["evidence"][
+        "country_flag_codes"
+    ] == ["TR"]
 
 
 def test_onboarding_writes_selection_before_same_engine_deep_capture(
@@ -1910,6 +2023,69 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
     assert exc_info.value.code == 2
     assert runner.BLOCKER_PREFIX + (
         '{"code": "ACCOUNT_SAFETY_STOP", "phase": "deep_capture"}'
+    ) in capsys.readouterr().out.splitlines()
+
+
+def test_onboarding_cli_enforces_market_gate_for_new_capture(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {
+                "action_status": "allowed",
+                "decision": "new_candidate",
+                "registry_onboarding_state": None,
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
+    assessment = assess_tiktok_creator_market(
+        creator_handle="arda.scents",
+        profile_bio_text_or_none="Addicted to scents 🇹🇷",
+        profile_bio_status="captured",
+    )
+
+    def defer_capture(**kwargs: object) -> object:
+        assert kwargs["enforce_us_market_gate"] is True
+        raise TikTokCreatorMarketDeferred(assessment)
+
+    monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", defer_capture)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "arda.scents",
+                "--creator-intent",
+                "new_capture",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert runner.BLOCKER_PREFIX + json.dumps(
+        {
+            "code": "CANDIDATE_MARKET_DEFERRED",
+            "phase": "market_gate",
+            "recovery": "reconsider only after new affirmative US-market evidence",
+        },
+        sort_keys=True,
     ) in capsys.readouterr().out.splitlines()
 
 
