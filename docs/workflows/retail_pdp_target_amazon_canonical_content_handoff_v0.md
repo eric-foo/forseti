@@ -134,8 +134,8 @@ lack what another exposes.
 
 ### Sephora
 
-- Content: `retail_pdp_sephora_aggregate_content_v3` /
-  `retail_pdp_sephora_aggregate_parser_v3` (`retail_pdp_projection.py:28-29`).
+- Content: `retail_pdp_sephora_aggregate_content_v4` /
+  `retail_pdp_sephora_aggregate_parser_v4` (`retail_pdp_projection.py:28-29`).
 - Companion: `sephora_bazaarvoice_onboarding_v4` — three response roles
   (bounded Most-Answers Q&A; non-incentivized Most Helpful carrying combined
   `Stats`/`FilteredStats`; non-incentivized Most Recent with the bounded 30-day

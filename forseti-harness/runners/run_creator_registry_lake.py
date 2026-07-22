@@ -13,6 +13,7 @@ from data_lake.creator_registry import (
     CreatorRegistryLakeError,
     admit_tiktok_creator_account,
     admit_tiktok_creator_candidate,
+    cutover_creator_registry_sqlite,
     load_current_creator_profiles,
     load_current_creator_registry,
     migrate_legacy_registry,
@@ -62,6 +63,12 @@ def _parser() -> argparse.ArgumentParser:
     rebuild_mode = rebuild.add_mutually_exclusive_group(required=True)
     rebuild_mode.add_argument("--dry-run", action="store_true")
     rebuild_mode.add_argument("--write", action="store_true")
+
+    cutover = commands.add_parser("cutover-sqlite")
+    cutover.add_argument("--data-root", required=True)
+    cutover_mode = cutover.add_mutually_exclusive_group(required=True)
+    cutover_mode.add_argument("--dry-run", action="store_true")
+    cutover_mode.add_argument("--write", action="store_true")
 
     show = commands.add_parser("show")
     show.add_argument("--data-root", required=True)
@@ -116,7 +123,7 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        dry_run = args.command in {"migrate", "rebuild"} and args.dry_run
+        dry_run = args.command in {"migrate", "rebuild", "cutover-sqlite"} and args.dry_run
         root = (
             DataLakeRoot.resolve_readonly(explicit=args.data_root)
             if dry_run
@@ -136,6 +143,8 @@ def main(argv: list[str] | None = None) -> int:
                 "status": "dry_run_passed" if args.dry_run else "rebuilt",
                 **result,
             }
+        elif args.command == "cutover-sqlite":
+            result = cutover_creator_registry_sqlite(root, dry_run=args.dry_run)
         elif args.command == "show":
             result = (
                 load_current_creator_registry(root)

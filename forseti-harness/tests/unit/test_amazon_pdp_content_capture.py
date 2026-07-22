@@ -15,7 +15,6 @@ import json
 import pytest
 
 from runners.run_content_qualification import _ROUTES
-from source_capture.retail_pdp_content import load_retail_pdp_content_record  # noqa: F401
 from source_capture.retail_pdp_projection import (
     AMAZON_PDP_CONTENT_SCHEMA_VERSION,
     AMAZON_PDP_PARSER_VERSION,
@@ -911,41 +910,61 @@ def test_extraction_failure_preserves_the_raw_packet_and_exits_nonzero(
     assert metadata["extraction_status"].startswith("failed:")
 
 
-def test_content_capture_requires_the_admitted_us_delivery_pin(capsys) -> None:
-    """The pre-v3 envelope admits exactly one anonymous US destination."""
+def test_content_capture_accepts_us_surface_without_delivery_pin() -> None:
+    """Profile validation does not require local fulfillment context."""
     from runners.run_source_capture_cloakbrowser_packet import main
 
-    with pytest.raises(SystemExit) as excinfo:
-        main(
-            [
-                "--url",
-                _SOURCE_URL,
-                "--source-family",
-                "retail_pdp",
-                "--source-surface",
-                "cloakbrowser_snapshot",
-                "--decision-question",
-                "envelope gate",
-                "--output",
-                "unused",
-                "--capture-context",
-                "envelope gate",
-                "--operator-category",
-                "cloakbrowser_snapshot_cli_operator",
-                "--capture-mode",
-                "multimodal",
-                "--retail-capture-profile",
-                "amazon_pdp_aggregate",
-                "--delivery-zip",
-                "94105",
-            ]
-        )
+    assert main(
+        [
+            "--url",
+            _SOURCE_URL,
+            "--source-family",
+            "retail_pdp",
+            "--source-surface",
+            "cloakbrowser_snapshot",
+            "--decision-question",
+            "envelope gate",
+            "--output",
+            "unused",
+            "--capture-context",
+            "envelope gate",
+            "--operator-category",
+            "cloakbrowser_snapshot_cli_operator",
+            "--capture-mode",
+            "multimodal",
+            "--retail-capture-profile",
+            "amazon_pdp_aggregate",
+            "--preflight-only",
+        ]
+    ) == 0
 
-    assert excinfo.value.code == 2
-    # Assert the actionable requirement, not one gate's prose: origin/main's
-    # shared retailer-baseline pin check now rejects this earlier than the
-    # Amazon content dispatch did, and is strictly stronger (it also covers
-    # raw captures). Either gate must name the one admitted destination.
-    error = capsys.readouterr().err
-    assert "amazon_pdp_aggregate" in error
-    assert "--delivery-zip 10001" in error
+
+def test_content_capture_accepts_noncanonical_delivery_zip() -> None:
+    """No fixed ZIP value is an Amazon content-admission requirement."""
+    from runners.run_source_capture_cloakbrowser_packet import main
+
+    assert main(
+        [
+            "--url",
+            _SOURCE_URL,
+            "--source-family",
+            "retail_pdp",
+            "--source-surface",
+            "cloakbrowser_snapshot",
+            "--decision-question",
+            "envelope gate",
+            "--output",
+            "unused",
+            "--capture-context",
+            "envelope gate",
+            "--operator-category",
+            "cloakbrowser_snapshot_cli_operator",
+            "--capture-mode",
+            "multimodal",
+            "--retail-capture-profile",
+            "amazon_pdp_aggregate",
+            "--delivery-zip",
+            "90210",
+            "--preflight-only",
+        ]
+    ) == 0

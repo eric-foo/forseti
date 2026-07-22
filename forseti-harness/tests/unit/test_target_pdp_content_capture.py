@@ -15,7 +15,7 @@ import json
 import pytest
 
 from runners.run_content_qualification import _ROUTES
-from source_capture.retail_pdp_content import load_retail_pdp_content_record  # noqa: F401
+from source_capture.retail_pdp_content import load_retail_pdp_content_record
 from source_capture.retail_pdp_projection import (
     TARGET_PDP_CONTENT_PROFILE,
     TARGET_PDP_CONTENT_RECORD_KIND,
@@ -723,18 +723,11 @@ def test_extraction_failure_preserves_the_raw_packet_and_exits_nonzero(
     assert metadata["extraction_status"].startswith("failed:")
 
 
-def test_admission_failure_suppresses_the_content_record_and_exits_nonzero(
+def test_unconfirmed_fulfillment_pin_retains_content_and_exits_nonzero(
     tmp_path,
     monkeypatch,
 ) -> None:
-    """An unconfirmed delivery pin must not leave a canonical record behind.
-
-    Extraction runs before admission is decided, so a pin failure can hold a
-    perfectly parsed record. Retaining it would put a canonical-content-shaped
-    artifact inside a packet that MUST NOT be admitted -- observed on packet
-    01KY32KG4DVVV5AEYW9P4P5S89, whose ZIP 10001 pin failed. The parse itself is
-    not lost: this asserts the preserved raw inputs still re-derive the record.
-    """
+    """A failed ZIP request limits fulfillment claims, not captured PDP content."""
     import runners.run_source_capture_cloakbrowser_packet as cloakbrowser_runner
     from runners.run_source_capture_cloakbrowser_packet import (
         SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -777,6 +770,8 @@ def test_admission_failure_suppresses_the_content_record_and_exits_nonzero(
                 "proxy_used": False,
                 "geoip_used": False,
                 "extension_paths_loaded": False,
+                "retail_capture_profile": {"name": "target_pdp_aggregate"},
+                "pre_capture_attempted": True,
                 "pin_confirmed": False,
                 "rendered_dom_byte_count": len(rendered_dom.encode("utf-8")),
                 "visible_text_byte_count": len(_VISIBLE_TEXT.encode("utf-8")),
@@ -831,35 +826,43 @@ def test_admission_failure_suppresses_the_content_record_and_exits_nonzero(
     assert TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE in message
     manifest = json.loads((output / "manifest.json").read_text())
     paths = {row["relative_packet_path"] for row in manifest["preserved_files"]}
-    # Every acquired raw input survives the failed admission.
-    assert {
-        "raw/01_cloakbrowser_rendered_dom.html",
-        "raw/02_cloakbrowser_visible_text.txt",
-        "raw/03_cloakbrowser_viewport_screenshot.png",
-        "raw/04_cloakbrowser_snapshot_metadata.json",
-        "raw/05_content_extraction_metadata.json",
-    }.issubset(paths)
-    # The extraction succeeded; admission is what failed. The record is still
-    # withheld, exactly as the extraction-failure path withholds it.
-    assert not any(path.endswith("content_record.json") for path in paths)
-    metadata = json.loads(
-        (output / "raw" / "05_content_extraction_metadata.json").read_text()
+    assert any(path.endswith("content_record.json") for path in paths)
+    assert any(path.endswith("cloakbrowser_rendered_dom.html") for path in paths)
+    assert any(path.endswith("cloakbrowser_visible_text.txt") for path in paths)
+    metadata_path = next(
+        output / path
+        for path in paths
+        if path.endswith("content_extraction_metadata.json")
     )
-    assert metadata["retention_outcome"] == "raw_failure"
+    metadata = json.loads(metadata_path.read_text())
+    assert metadata["retention_outcome"] == "content"
     assert metadata["extraction_status"] == "succeeded"
-    assert all(item["preserved"] for item in metadata["inputs"])
-    # The packet must not claim a content record it does not carry.
-    assert "capture-time rendered content record preserved" not in json.dumps(
-        manifest
+    preserved = {item["role"]: item["preserved"] for item in metadata["inputs"]}
+    assert preserved == {
+        "rendered_dom": True,
+        "visible_text": True,
+        "screenshot": True,
+        "browser_metadata": True,
+    }
+    assert "capture-time rendered content record preserved" in json.dumps(manifest)
+    content_path = next(
+        output / path for path in paths if path.endswith("content_record.json")
     )
-    # Nothing is lost: the preserved raw inputs re-derive the discarded record.
-    rederived = build_target_pdp_aggregate_content_record(
-        rendered_dom=(output / "raw" / "01_cloakbrowser_rendered_dom.html").read_bytes(),
-        visible_text=(output / "raw" / "02_cloakbrowser_visible_text.txt").read_bytes(),
-        source_url=_SOURCE_URL,
-    )
-    assert rederived["record_kind"] == TARGET_PDP_CONTENT_RECORD_KIND
-    assert rederived["parser_version"] == metadata["extractor_version"]
+    content = json.loads(content_path.read_text())
+    assert content["record_kind"] == TARGET_PDP_CONTENT_RECORD_KIND
+    assert content["parser_version"] == metadata["extractor_version"]
+    from source_capture.models import SourceCapturePacket
+
+    packet = SourceCapturePacket.model_validate(manifest)
+    bodies = {
+        item["file_id"]: (output / item["relative_packet_path"]).read_bytes()
+        for item in manifest["preserved_files"]
+    }
+    with pytest.raises(ValueError, match="no confirmed storefront pin"):
+        load_retail_pdp_content_record(
+            packet=packet,
+            file_bytes_by_file_id=bodies,
+        )
 
 
 def test_unpainted_review_widget_is_recorded_not_inferred() -> None:

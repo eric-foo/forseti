@@ -2294,6 +2294,40 @@ def test_onboarding_cli_enforces_market_gate_for_new_capture(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+    paths = onboarding.TikTokCreatorProfileRefreshOutputPaths(
+        grid_window_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
+        onboarding_receipt_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+    )
+    paths.grid_window_json_path.write_text(
+        json.dumps(
+            {
+                "creator_handle": "arda.scents",
+                "profile_bio_status": "observed",
+                "profile_bio_text_or_none": "Addicted to scents 🇹🇷",
+            }
+        ),
+        encoding="utf-8",
+    )
+    paths.onboarding_receipt_json_path.write_text(
+        json.dumps(
+            {
+                "status": "complete",
+                "capture_scope": "profile_refresh",
+                "creator_handle": "arda.scents",
+                "session_profile": "chowdakr_sg_tiktok",
+                "window_size": 1,
+                "selection_count": 0,
+                "window_cap": 30,
+                "selected_count": 0,
+                "completed_deep_capture_count": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setattr(
         runner,
         "_write_creator_registry_preflight",
@@ -2317,17 +2351,14 @@ def test_onboarding_cli_enforces_market_gate_for_new_capture(
         "probe_local_cdp_endpoints",
         lambda *_args, **_kwargs: {"browser_available": True},
     )
-    assessment = assess_tiktok_creator_market(
-        creator_handle="arda.scents",
-        profile_bio_text_or_none="Addicted to scents 🇹🇷",
-        profile_bio_status="captured",
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_onboarding",
+        lambda **_kwargs: pytest.fail("new_capture must not invoke deep capture"),
     )
-
-    def defer_capture(**kwargs: object) -> object:
-        assert kwargs["enforce_us_market_gate"] is True
-        raise TikTokCreatorMarketDeferred(assessment)
-
-    monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", defer_capture)
+    monkeypatch.setattr(
+        runner, "run_tiktok_creator_profile_refresh", lambda **_kwargs: paths
+    )
 
     with pytest.raises(SystemExit) as exc_info:
         runner.main(
@@ -2337,7 +2368,7 @@ def test_onboarding_cli_enforces_market_gate_for_new_capture(
                 "--creator-intent",
                 "new_capture",
                 "--output-dir",
-                str(tmp_path / "out"),
+                str(output_dir),
             ]
         )
 
@@ -2350,6 +2381,175 @@ def test_onboarding_cli_enforces_market_gate_for_new_capture(
         },
         sort_keys=True,
     ) in capsys.readouterr().out.splitlines()
+
+
+def test_new_capture_is_assessment_only_and_admits_grid_packet(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+    paths = onboarding.TikTokCreatorProfileRefreshOutputPaths(
+        grid_window_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
+        onboarding_receipt_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+    )
+    grid_bytes = json.dumps(
+        {
+            "creator_handle": "new_creator",
+            "profile_bio_status": "observed",
+            "profile_bio_text_or_none": "Fragrance reviews",
+        }
+    ).encode()
+    paths.grid_window_json_path.write_bytes(grid_bytes)
+    paths.onboarding_receipt_json_path.write_text(
+        json.dumps(
+            {
+                "status": "complete",
+                "capture_scope": "profile_refresh",
+                "creator_handle": "new_creator",
+                "session_profile": "chowdakr_sg_tiktok",
+                "window_size": 12,
+                "selection_count": 0,
+                "window_cap": 30,
+                "selected_count": 0,
+                "completed_deep_capture_count": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            output_dir / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {
+                "action_status": "allowed",
+                "decision": "new_candidate",
+                "registry_onboarding_state": None,
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_onboarding",
+        lambda **_kwargs: pytest.fail("new_capture must not invoke deep capture"),
+    )
+    monkeypatch.setattr(
+        runner, "run_tiktok_creator_profile_refresh", lambda **_kwargs: paths
+    )
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_batch_packet",
+        lambda **_kwargs: pytest.fail("new_capture must not write a deep batch packet"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "prepare_onboarding",
+        lambda **_kwargs: pytest.fail("new_capture must not prepare audience work"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "enqueue_creator_audience_job",
+        lambda **_kwargs: pytest.fail("new_capture must not enqueue audience work"),
+    )
+    admitted: dict[str, object] = {}
+
+    def fake_grid_writer(**kwargs: object) -> tuple[int, str]:
+        admitted.update(kwargs)
+        return 0, str(tmp_path / "grid-packet")
+
+    monkeypatch.setattr(runner, "write_tiktok_grid_packet", fake_grid_writer)
+
+    assert (
+        runner.main(
+            [
+                "--creator-handle",
+                "new_creator",
+                "--creator-intent",
+                "new_capture",
+                "--output-dir",
+                str(output_dir),
+                "--admit-output",
+                str(tmp_path / "grid-packet"),
+            ]
+        )
+        == 0
+    )
+    assert admitted["grid_window_json"] == grid_bytes
+    assert admitted["decision_question"] == runner.PROFILE_REFRESH_DECISION_QUESTION
+    summary_line = next(
+        line
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith(runner.SUMMARY_PREFIX)
+    )
+    summary = json.loads(summary_line.removeprefix(runner.SUMMARY_PREFIX))
+    assert summary["capture_scope"] == "candidate_assessment"
+    assert summary["completed_deep_capture_count"] == 0
+    assert summary["audience_queue_job_or_none"] is None
+
+
+def test_new_capture_rejects_force_deep_recapture_before_browser_probe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {
+                "action_status": "allowed",
+                "decision": "new_candidate",
+                "registry_onboarding_state": None,
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: pytest.fail("browser must not be probed"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_tiktok_creator_onboarding",
+        lambda **_kwargs: pytest.fail("deep capture must not run"),
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "new_creator",
+                "--creator-intent",
+                "new_capture",
+                "--output-dir",
+                str(tmp_path / "out"),
+                "--prior-capture-pointer",
+                "01PRIOR",
+                "--force-deep-recapture",
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert (
+        "new_capture is assessment-only and does not permit deep recapture"
+        in capsys.readouterr().err
+    )
 
 
 

@@ -38,7 +38,12 @@ Ephemeral qualification compares operator scratch DOM/text with a retained
 content record. It does not create or admit a packet.
 
 Cleaning validates the retained record, checks retailer/profile/source URL and
-pin metadata, and binds every row to the real packet plus an honest JSON pointer.
+storefront metadata, and binds every row to the real packet plus an honest JSON
+pointer. Amazon and Target may omit a local fulfillment ZIP for a US-facing PDP:
+that admits product content but makes displayed destination and fulfillment
+page-context only, never delivery proof. A requested but unconfirmed ZIP remains
+Cleaning-ineligible; its content record and raw inputs are retained for diagnosis
+and the capture exits nonzero.
 Historical raw and Projection-era packets remain readable through the isolated
 legacy decoder. Retail Silver consumes this Cleaning result and carries source
 anchors, not a persisted Projection record.
@@ -78,12 +83,12 @@ The current canonical-content acquisition census is:
 
 | Profile | Content schema | Parser | Current mark |
 | --- | --- | --- | --- |
-| `sephora_pdp_aggregate` | `retail_pdp_sephora_aggregate_content_v3` | `retail_pdp_sephora_aggregate_parser_v3` | Current canonical content. |
+| `sephora_pdp_aggregate` | `retail_pdp_sephora_aggregate_content_v4` | `retail_pdp_sephora_aggregate_parser_v4` | Current canonical content; v1-v3 remain historical-readable. |
 | `luckyscent_pdp_aggregate` | `retail_pdp_luckyscent_aggregate_content_v1` | `retail_pdp_luckyscent_aggregate_parser_v1` | Current canonical content; `v1` does not mean legacy. |
 | `nordstrom_pdp_aggregate` | `retail_pdp_nordstrom_aggregate_content_v2` | `retail_pdp_nordstrom_aggregate_parser_v5` | Current canonical content. |
 | `ulta_pdp_aggregate` | `retail_pdp_ulta_aggregate_content_v2` | `retail_pdp_ulta_aggregate_parser_v2` | Current canonical content. |
 | `target_pdp_aggregate` | `retail_pdp_target_aggregate_content_v1` | `retail_pdp_target_aggregate_parser_v2` | Current canonical content; `v1` does not mean legacy. |
-| `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v2` | Current canonical content; schema `v1` does not mean legacy. Parser v2 inventories `celwidget` class lists without rewriting historical parser-v1 packets. Content retention is admitted only at the pre-v3 envelope's single US pin (ZIP `10001`). |
+| `amazon_pdp_aggregate` | `retail_pdp_amazon_aggregate_content_v1` | `retail_pdp_amazon_aggregate_parser_v2` | Current canonical content; schema `v1` does not mean legacy. Parser v2 inventories `celwidget` class lists without rewriting historical parser-v1 packets. A local fulfillment ZIP is optional and no fixed ZIP value is an admission requirement. |
 
 `RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 4` versions the shared profile-registry
 metadata only; it is not a retailer content version. Renaming a current `v1`
@@ -92,8 +97,8 @@ label and is not allowed.
 
 For Sephora, `sephora_pdp_aggregate` is the sole normal deep-page capture route
 for new packets. It defaults to `content` retention and writes
-`retail_pdp_sephora_aggregate_content_v3` with
-`retail_pdp_sephora_aggregate_parser_v3`. Sampled-raw/full-derived v2 and
+`retail_pdp_sephora_aggregate_content_v4` with
+`retail_pdp_sephora_aggregate_parser_v4`. Versions v1-v3 and
 Projection-era methods are superseded for new acquisition but remain readable
 through legacy compatibility. Explicit `raw` is diagnosis/recovery posture, not
 a second normal deep-capture route. Bazaarvoice review and Q&A evidence remains
@@ -196,3 +201,40 @@ delivery proof when the destination is unpinned, demand proof, sentiment
 judgment, or commercial readiness. It does not authorize generic clicking,
 challenge automation, cookie/storage export, or treating screenshots as access
 proof.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Amazon and Target PDP content may be cleaned without a requested local ZIP,
+    while a requested but unconfirmed ZIP remains fail-closed and retains raw
+    diagnostics alongside the extracted content record.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_content_cleaning_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/retail_pdp/retailer_information_extraction_standard_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/workflows/retail_pdp_target_amazon_canonical_content_handoff_v0.md
+    - docs/prompts/handoffs/summer_fridays_understanding_dogfood_standalone_20260723_v2.md
+    - docs/prompts/handoffs/summer_fridays_understanding_dogfood_coordinated_20260723_v2.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: Project-wide implementation and capture routing authority is unchanged.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Source-loading policy is unchanged.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: No source owner or retrieval route changed.
+    - path: docs/prompts/handoffs/summer_fridays_understanding_dogfood_standalone_20260723_v2.md
+      reason: The prompt already states ZIP is optional local context and not a nationwide claim basis.
+    - path: docs/prompts/handoffs/summer_fridays_understanding_dogfood_coordinated_20260723_v2.md
+      reason: The paired prompt already carries the same correct common-block rule.
+  stale_language_search: >
+    rg -n "sephora_aggregate_(content|parser)_v3|single US pin|ZIP 10001|raw-unflipped"
+    forseti/product/spines/capture/core/source_families/retail_pdp
+    docs/workflows/retail_pdp_target_amazon_canonical_content_handoff_v0.md
+  non_claims: [not validation, not readiness]
+```

@@ -5,15 +5,19 @@ import json
 import pytest
 
 import source_capture.retail_pdp_projection as retail_pdp_projection
+from data_lake.root import DataLakeRoot
 from runners.run_source_capture_cloakbrowser_packet import (
     _sephora_content_extraction_spec,
 )
 from source_capture.content_extraction import RenderedContentExtractionSpec
+from source_capture.models import SourceCapturePacket, known_fact
+from source_capture.retail_pdp_content import load_retail_pdp_content_record
 from source_capture.retail_pdp_projection import (
     SEPHORA_PDP_CONTENT_SCHEMA_VERSION,
     SEPHORA_PDP_PARSER_VERSION,
     build_sephora_pdp_aggregate_content_record,
 )
+from source_capture.writer import write_local_source_capture_packet
 
 
 SOURCE_URL = (
@@ -51,8 +55,8 @@ def _synthetic_product() -> dict:
     }
 
 
-def _synthetic_sephora_html() -> bytes:
-    product = _synthetic_product()
+def _synthetic_sephora_html(product: dict | None = None) -> bytes:
+    product = _synthetic_product() if product is None else product
     product_ld = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -93,7 +97,7 @@ def _row(record: dict, *, kind: str | None = None, structured: str | None = None
     )
 
 
-def test_sephora_v3_deduplicates_without_losing_source_fields() -> None:
+def test_sephora_v4_deduplicates_without_losing_source_fields() -> None:
     record = build_sephora_pdp_aggregate_content_record(
         rendered_dom=_synthetic_sephora_html(),
         visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
@@ -148,6 +152,26 @@ def test_sephora_v3_deduplicates_without_losing_source_fields() -> None:
     assert reconstructed == _synthetic_product()
 
 
+@pytest.mark.parametrize("absent_field", ["regularChildSkus", "reviewImages"])
+def test_sephora_v4_preserves_absent_canonical_field_semantics(
+    absent_field: str,
+) -> None:
+    product = _synthetic_product()
+    product.pop(absent_field)
+
+    record = build_sephora_pdp_aggregate_content_record(
+        rendered_dom=_synthetic_sephora_html(product),
+        visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
+        source_url=SOURCE_URL,
+    )
+
+    product_source = _row(
+        record,
+        structured="sephora_link_store_product",
+    )["source_visible_fields"]
+    assert absent_field not in product_source["deduplicated_canonical_fields"]
+
+
 def test_sephora_content_route_writes_compact_json_only_for_sephora() -> None:
     spec = _sephora_content_extraction_spec("content")
     assert spec.json_indent is None
@@ -183,7 +207,7 @@ def test_sephora_content_route_writes_compact_json_only_for_sephora() -> None:
         ),
     ),
 )
-def test_sephora_v3_fails_loud_when_canonical_rows_cannot_reconstruct(
+def test_sephora_v4_fails_loud_when_canonical_rows_cannot_reconstruct(
     monkeypatch: pytest.MonkeyPatch,
     broken_row_kind: str,
     broken_field: str,
@@ -218,3 +242,51 @@ def test_sephora_v3_fails_loud_when_canonical_rows_cannot_reconstruct(
             visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
             source_url=SOURCE_URL,
         )
+
+
+def test_historical_sephora_v3_content_remains_loader_readable(tmp_path) -> None:
+    record = build_sephora_pdp_aggregate_content_record(
+        rendered_dom=_synthetic_sephora_html(),
+        visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
+        source_url=SOURCE_URL,
+    )
+    record["schema_version"] = "retail_pdp_sephora_aggregate_content_v3"
+    record["parser_version"] = "retail_pdp_sephora_aggregate_parser_v3"
+    extraction_metadata = {
+        "extractor_version": record["parser_version"],
+        "extraction_status": "succeeded",
+        "retention_outcome": "content",
+    }
+    browser_metadata = {
+        "retail_capture_profile": {"name": "sephora_pdp_aggregate"},
+        "pin_confirmed": True,
+        "pre_capture_attempted": True,
+    }
+
+    def write_json(name: str, value: object):
+        path = tmp_path / name
+        path.write_text(json.dumps(value), encoding="utf-8")
+        return path
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    written = write_local_source_capture_packet(
+        data_root=root,
+        input_files=[
+            write_json("content_record.json", record),
+            write_json("content_extraction_metadata.json", extraction_metadata),
+            write_json("cloakbrowser_snapshot_metadata.json", browser_metadata),
+        ],
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        source_locator=known_fact(SOURCE_URL),
+        decision_question="Can historical Sephora content still load?",
+        capture_context="historical Sephora v3 loader regression",
+    )
+    loaded = root.load_raw_packet(written.packet.packet_id)
+
+    content_file, loaded_record = load_retail_pdp_content_record(
+        packet=SourceCapturePacket.model_validate(loaded.manifest),
+        file_bytes_by_file_id=loaded.bodies,
+    )
+    assert content_file.original_path.endswith("content_record.json")
+    assert loaded_record.parser_version == "retail_pdp_sephora_aggregate_parser_v3"

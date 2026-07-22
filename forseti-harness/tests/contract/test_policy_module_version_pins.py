@@ -228,7 +228,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # and the current-extractor exemption. v2 final behavior: a rendered price
         # the parser cannot bind to the target's ProductDetailPrice module forces
         # raw fallback rather than a residual, so the DOM survives for diagnosis.
-        "f799d9e6ff5db8afe73d69ec74eb20e1cbc6c67b2e81260dff6567fc56be37bb",
+        # Output-shaping Sephora v4 preserves absent canonical fields as absent
+        # during compaction instead of re-surfacing them as explicit null/empty
+        # values. Existing v1-v3 content records remain loader-readable.
+        "6008a88d86695f7f39ff828fe9d06d9be1ccc159fb3af0102675736d27ed7353",
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
