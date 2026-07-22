@@ -340,7 +340,8 @@ A decision-neutral one-company report can reduce repeated reconstruction. Its
 common substrate should be limited to reusable observed company reality:
 
 - Brand/Org identity and ownership state;
-- product, SKU, variant, formula, package, and claim versions;
+- owned category, collection/franchise, parent-product, material-variant,
+  bundle/set, formula, package, and claim architecture;
 - price, promotion, availability, and assortment states;
 - channel and distribution footprint;
 - launches, discontinuations, partnerships, and official commitments;
@@ -355,17 +356,22 @@ The current CSB one-company competitive-intelligence profile may produce this
 decision-neutral substrate. It must not be mistaken for the later
 decision-specific adjudication run.
 
-### Public portfolio-role inference
+### Portfolio and retail architecture
 
-Retailer grids, exact parent PDPs, and their longitudinal observations may
-support an outside-in product-role interpretation without pretending to expose
-internal revenue, margin, or management reporting. This interpretation consumes
-the company substrate already captured for Understanding; it does not create a
-separate acquisition checklist.
+Completed company Understanding makes the owned portfolio denominator, its
+retailer expression, the evidence-selected depth set, and the resulting
+outside-in interpretation visible as one first-class report section. Retailer
+grids, exact parent PDPs, dated public moves, and reproducibly bounded review
+corpora may support that interpretation without pretending to expose internal
+revenue, margin, or management reporting. This section consumes the company
+substrate already captured for Understanding; it does not create a parallel
+acquisition checklist or data store.
 
 When retail expression is material, acquire this substrate breadth-first. First
-establish the owned category, collection/franchise, parent-product, visible-
-variant, declared-total, and typed-gap census. Then test the qualified US beauty
+establish the complete publicly exposed current category,
+collection/franchise, parent-product, material-variant, declared-total, and
+typed-gap census. Keep bundles and sets visible without counting them as
+ordinary parents. Then test the qualified US beauty
 ladder -- Sephora, Ulta, Target, and Amazon -- and preserve each test's exact
 typed result, such as `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
 `SURFACE_NOT_EXPOSED`; never invent a listing or completion credit. A
@@ -412,9 +418,12 @@ Apply the table with four rules:
    `retail_review_overlap_linkage_v0`, re-verifies raw packet references,
    preserves native review occurrences and retailer totals, and leaves ambiguous
    conflicts unmerged. It is not raw Capture or portfolio-role/sales Judgment.
-3. A directional role such as growth investment or weak link requires review
-   movement plus at least one independent public behavior such as assortment,
-   variants, placement, pricing, promotion, availability, or channel breadth.
+3. A point-in-time directional role such as visible growth investment or a
+   plausible weak link requires age-aware review accumulation or review recency
+   inside a reproducibly bounded corpus plus at least one independent public
+   behavior such as dated launch activity, assortment, variants, placement,
+   pricing, promotion, availability, or channel breadth. Acceleration, slowing,
+   or decline still requires a declared longitudinal observation window.
 4. Use the named target market as the default evidence frame. For a US decision,
    do not build an international map unless geography, expansion, price,
    channel dependence, supply exposure, or the later decision gives it a named
@@ -744,4 +753,47 @@ direction_change_propagation:
     - not proof that a particular acquisition should continue or close
     - not a schema consolidation
     - not validator enforcement of semantic judgment
+```
+
+## Direction Change Propagation — Portfolio And Retail Architecture
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Completed company Understanding now carries a first-class Portfolio And
+    Retail Architecture section that makes the owned denominator, qualified
+    retailer corpus, evidence-selected depth, and outside-in interpretation
+    visible and mechanically present.
+  trigger: output_authority
+  related_triggers: [architecture_doctrine, validation_philosophy]
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_intelligence_information_architecture_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_competitive_intelligence_output.txt
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_commission_stage_output.txt
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/bad_company_commission_scout_status_output.txt
+    - docs/workflows/forseti_understanding_tiered_retail_capture_batch_plan_handoff_v0.md
+  intentionally_not_updated:
+    - path: Capture and durability-series contracts
+      reason: >
+        STEP-5 changes the Understanding output contract only; longitudinal
+        monitoring remains explicitly deferred.
+    - path: historical company reports and receipts
+      reason: >
+        Sealed historical runs remain immutable; the new contract governs future
+        runs.
+  stale_language_search: >
+    rg -n "Positioning, Offerings, Markets, And Channels|eight company-report
+    lenses|complete every-SKU architecture" across the changed live authority,
+    validator, fixture, and handoff surfaces.
+  non_claims:
+    - not validation
+    - not readiness
+    - not Summer Fridays acquisition or Deliver
+    - not longitudinal monitoring
 ```

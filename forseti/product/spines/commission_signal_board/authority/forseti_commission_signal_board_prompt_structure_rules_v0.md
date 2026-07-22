@@ -232,24 +232,27 @@ alignment, not `co-movement`; `co-movement` is reserved for a future
 longitudinal product, requires at least two observation dates, and is not
 emitted by this contract.
 
-The one-company report is decision-neutral. Its required lenses are observable
-positioning; offerings and claims; markets and channels; recent strategic and
-operating moves; customer and community response; bounded competitor or
-substitute context; contradictions; and evidence gaps. It must not infer pain,
+The one-company report is decision-neutral. Its required lenses are portfolio
+and retail architecture; observable positioning; offerings and claims; markets
+and channels; recent strategic and operating moves; customer and community
+response; bounded competitor or substitute context; contradictions; and
+evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
 When offerings, retail presentation, or customer experience are material, the
 company route acquires bounded portfolio breadth before product depth. Owned
-surfaces remain canonical for company portfolio and franchise expression. Use
-their public categories, collections/franchises, visible parent products,
-declared totals when exposed, bestseller/new/owned-prominence signals, and typed
-coverage gaps to establish the owned census; a complete every-SKU architecture
-is not required by default. Capture source-visible target/use-case, price-tier,
+surfaces remain canonical for company portfolio and franchise expression. For a material product company, establish the complete publicly exposed current
+category, collection/franchise, parent-product, material-variant, declared-total,
+and typed-gap denominator. Preserve bundles and sets without counting them as
+ordinary parents. This does not require hidden SKUs, immaterial variant
+permutations, an automated identity resolver, or a complete global SKU graph. Capture source-visible target/use-case, price-tier,
 channel, and geography differentiation; owned/retailer prominence, new/launch,
 and distribution state; product/franchise concentration and overlap evidence;
 explicit strategic statements or moves; and shared capability or dependency
-evidence where exposed. These are analysis-enablement inputs, not permission for
-Understanding to infer portfolio roles or competitive strategy.
+evidence where exposed. These inputs authorize an evidence-bounded outside-in interpretation of visible
+portfolio roles, positioning, channel posture, and dependencies. They do not
+authorize claims about internal management intent, revenue, margin, cash
+generation, sell-through, or undisclosed operations.
 
 Test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon -- after
 the owned census. A retailer qualifies only when the subject is relevant there
@@ -315,7 +318,16 @@ product conclusions; and a full global SKU graph and automated identity resolver
 remain out of scope. Upgrade when unresolved breadth, identity, syndication, or
 comparability could materially change the selected set. Assortment and review
 evidence alone cannot establish sales, cash generation, growth, cannibalization,
-intent, control, competitive strategy, or operational leverage.
+internal intent, control, competitive strategy, or operational leverage.
+
+A completed report carries this substrate in a first-class
+`Portfolio And Retail Architecture` section. It exposes, in order: the owned
+portfolio denominator; product, claim, and price architecture; the qualified
+retailer corpus; evidence-selected product depth; outside-in portfolio
+interpretation; and strategic positioning, markets, and channels. Compact
+matrices summarize the denominator, retailer ladder, selected depth, and
+portfolio roles with observation IDs and typed gaps. Headings do not establish
+completion: the evidence and coverage ledgers remain the audit floor.
 
 When a decision-material retailer-review corpus has row-level ratings,
 source-visible incentive posture, and a reproducible boundary, the company

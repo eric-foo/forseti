@@ -51,6 +51,33 @@ def _company_codes(text: str) -> set[str]:
     return {finding.code for finding in validator.validate_text(text)}
 
 
+def test_company_report_requires_portfolio_and_retail_architecture_section() -> None:
+    text = _valid_company_text().replace(
+        "### 5. Portfolio And Retail Architecture",
+        "### 5. Positioning, Offerings, Markets, And Channels",
+        1,
+    )
+    assert "invalid_company_section_contract" in _company_codes(text)
+
+
+def test_company_report_requires_ordered_portfolio_retail_subsections() -> None:
+    text = _valid_company_text().replace(
+        "#### Qualified Retailer Corpus",
+        "#### Retail Evidence",
+        1,
+    )
+    assert "invalid_portfolio_retail_subsection_contract" in _company_codes(text)
+
+
+def test_company_report_requires_portfolio_retail_completion_lens() -> None:
+    text = _valid_company_text().replace(
+        "    portfolio_and_retail_architecture: {status: complete, observation_ids: [OBS-001, OBS-003], rationale: owned and retailer architecture is visible}\n",
+        "",
+        1,
+    )
+    assert "invalid_required_lens_coverage" in _company_codes(text)
+
+
 def _with_retailer_review_signal(text: str, block: str) -> str:
     anchor = "    consumed_by_sections: [5, 6, 8]\n"
     assert anchor in text
@@ -412,8 +439,8 @@ def test_company_report_rejects_engagement_overclaim() -> None:
 
 def test_company_report_rejects_dangling_observation_reference() -> None:
     text = _valid_company_text().replace(
-        "presents Product One as the flagship (OBS-001)",
-        "presents Product One as the flagship (OBS-099)",
+        "Example Labs presents Product One as its current flagship.",
+        "Example Labs presents Product One as its current flagship (OBS-099).",
         1,
     )
     assert "dangling_observation_reference" in _company_codes(text)
@@ -761,6 +788,15 @@ def test_commission_scout_status_requires_commission_boundary() -> None:
         1,
     )
     assert "commission_scout_status_outside_commission_stage" in _company_codes(text)
+
+
+def test_bad_commission_scout_fixture_uses_current_company_report_contract() -> None:
+    text = (FIXTURE_DIR / "bad_company_commission_scout_status_output.txt").read_text(encoding="utf-8")
+    codes = _company_codes(text)
+    assert "commission_scout_status_outside_commission_stage" in codes
+    assert "invalid_company_section_contract" not in codes
+    assert "invalid_portfolio_retail_subsection_contract" not in codes
+    assert "invalid_required_lens_coverage" not in codes
 
 
 def test_commission_boundary_requires_open_coverage() -> None:

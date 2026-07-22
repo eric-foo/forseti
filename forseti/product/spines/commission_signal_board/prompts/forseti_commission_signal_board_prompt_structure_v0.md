@@ -782,15 +782,18 @@ remain the audit floor behind the narrative, never the front door.
 When offerings, retail presentation, or customer experience are material to a
 company commission, acquire bounded portfolio breadth before product depth.
 Owned surfaces remain canonical for company portfolio and franchise expression.
-Use public categories, collections/franchises, visible parent products, declared
-totals when exposed, bestseller/new/owned-prominence signals, and typed coverage
-gaps to establish the owned census; do not require a complete every-SKU
-architecture. Capture source-visible target/use-case, price-tier, channel, and
+For a material product company, establish the complete publicly exposed current
+category, collection/franchise, parent-product, material-variant, declared-total,
+and typed-gap denominator. Preserve bundles and sets without counting them as
+ordinary parents. This does not require hidden SKUs, immaterial variant
+permutations, an automated identity resolver, or a complete global SKU graph. Capture source-visible target/use-case, price-tier, channel, and
 geography differentiation; owned/retailer prominence, new/launch, and
 distribution state; product/franchise concentration and overlap evidence;
 explicit strategic statements or moves; and shared capability or dependency
-evidence where exposed. These inputs position later analysis but do not authorize
-Understanding to infer portfolio roles, competitive strategy, or leverage.
+evidence where exposed. These inputs authorize an evidence-bounded outside-in interpretation of visible
+portfolio roles, positioning, channel posture, and dependencies. They do not
+authorize claims about internal management intent, revenue, margin, cash
+generation, sell-through, or undisclosed operations.
 
 Then test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon. A
 retailer qualifies only when the subject is relevant there and the authorized
@@ -1010,14 +1013,76 @@ one origin, not independent corroboration. Community rows use
 `fact_domain: external_customer_evidence` and cannot establish representative
 demand or internal company fact.
 
-### 5. Positioning, Offerings, Markets, And Channels
+### 5. Portfolio And Retail Architecture
 
-Summarize observable positioning, offerings/claims, markets, and channels.
-Cite the supporting observation IDs and name contradictions and evidence gaps.
-Where the substrate supports it, state publicly visible concentration — which
-franchises, retailers, and surfaces observable value concentrates in — always
-as visible concentration, never revenue concentration, share, or dependence
-claims.
+Open with the decisive outside-in portfolio conclusion, then use the six
+subsections below in order. Cite supporting observation IDs and keep gaps where
+they affect interpretation. These compact matrices summarize sealed evidence;
+they do not replace the coverage or observation ledgers.
+
+#### Owned Portfolio Denominator
+
+Summarize the complete publicly exposed current category -> franchise/collection
+-> parent-product -> material-variant architecture. Keep bundles and sets visible
+without inflating ordinary parent counts. Reconcile declared totals and record
+denominator-changing gaps.
+
+| Category / franchise | Current parent products | Material variants | Bundles / sets | Coverage state | Gap IDs | Observation IDs |
+| --- | ---: | --- | --- | --- | --- | --- |
+
+#### Product, Claim, And Price Architecture
+
+Show formats, use cases, routines, price tiers, pack sizes, central claims,
+substantiation posture, ingredients/formula families, suitability, and material
+cross-sell or overlap relationships.
+
+| Product / franchise | Format and use case | Price tier | Claims / proof posture | Ingredient or formula family | Relationship | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+
+#### Qualified Retailer Corpus
+
+Report the exact Sephora, Ulta, Target, and Amazon qualification outcome. For
+each qualified retailer, summarize the complete exposed brand-grid denominator,
+owned-parent reconciliation, exact-listing PDP baseline coverage, and
+retailer-native information. A typed failure is an outcome, never a listing or
+completion credit.
+
+| Retailer | Qualification and typed outcome | Grid denominator | Reconciled exact listings | PDP baseline coverage | Distinct retailer facts | Gap IDs | Observation IDs |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+
+#### Evidence-Selected Product Depth
+
+Show that breadth selected depth. Cover materially distinct prominence,
+founding/flagship, new investment, entry/premium, complaint, plausible weak-link,
+contradiction, incident, and franchise jobs. When reviews are used, report
+native, captured, deduplicated, ambiguous, and truncated corpus states. Do not
+impose a universal review-count cap.
+
+| Product | Named evidence job | Selection evidence | Deep surfaces | Corpus boundary / overlap state | Limitations | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+
+#### Outside-In Portfolio Interpretation
+
+State visible roles, relative traction, concentration, gaps, overlaps, channel
+exposure, dependencies, and weak-link candidates at the strongest level the
+evidence supports. Require age-aware review accumulation or review recency inside
+a reproducibly bounded corpus plus another independent public behavior before a
+directional role. Without a declared longitudinal window, do not claim
+acceleration, slowing, decline, or monitored change.
+
+| Product / franchise | Visible role | Decisive observed pattern | Evidence boundary | Confidence | Invalidation condition | Observation IDs |
+| --- | --- | --- | --- | --- | --- | --- |
+
+#### Strategic Positioning, Markets, And Channels
+
+State which customer segments, use cases, price tiers, categories, routines,
+geographies, and channels the company is visibly pursuing or attempting to
+control. Distinguish public posture from internal intent. State publicly visible
+concentration as visible concentration, never revenue share or undisclosed
+dependence.
+
+| Arena | Visible company move | Evidence | Strongest bounded interpretation | Gap / contradiction | Observation IDs |
+| --- | --- | --- | --- | --- | --- |
 
 ### 6. Strategic And Operating Chronology
 
@@ -1220,6 +1285,7 @@ completion_ledger:
   deep_competitor_treatment: separate_named_follow_up_required
   classifier_handoff: omitted
   required_lens_coverage:
+    portfolio_and_retail_architecture: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
     positioning: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
     offerings_and_claims: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
     markets_and_channels: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
