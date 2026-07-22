@@ -36,21 +36,23 @@ from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import
 
 BASELINE_LANE = "creator_registry_baseline"
 CANDIDATE_ADMISSION_LANE = "creator_registry_candidate_admission"
+CANDIDATE_RETRACTION_LANE = "creator_registry_candidate_retraction"
 ADMISSION_LANE = "creator_registry_account_admission"
 JUDGMENT_LANE = "creator_audience_judgment_outcome"
 BASELINE_SCHEMA_VERSION = "creator_registry_baseline_v1"
 CANDIDATE_ADMISSION_SCHEMA_VERSION = "creator_registry_candidate_admission_v1"
+CANDIDATE_RETRACTION_SCHEMA_VERSION = "creator_registry_candidate_retraction_v1"
 ADMISSION_SCHEMA_VERSION = "creator_registry_account_admission_v1"
 INDEX_SCHEMA_VERSION = "creator_registry_index_v1"
 PUBLIC_PROFILE_SCHEMA_VERSION = "creator_profile_public_v1"
-GENERATION_MANIFEST_SCHEMA_VERSION = "creator_registry_generation_v2"
-CURRENT_POINTER_SCHEMA_VERSION = 2
+GENERATION_MANIFEST_SCHEMA_VERSION = "creator_registry_generation_v3"
+CURRENT_POINTER_SCHEMA_VERSION = 3
 REGISTRY_ROOT_PARTS = ("indexes", "derived_retrieval", "creator_registry")
 CURRENT_FILENAME = "CURRENT"
 GENERATIONS_DIRNAME = "generations"
 INDEX_FILENAME = "creator_registry_index_v1.json"
 PROFILE_FILENAME = "creator_profile_public_v1.json"
-MANIFEST_FILENAME = "creator_registry_generation_v2.json"
+MANIFEST_FILENAME = "creator_registry_generation_v3.json"
 LEGACY_BASELINE_SURFACE = "creator_registry_legacy_baseline"
 _WINDOWS_ABSOLUTE = re.compile(r"^[A-Za-z]:[\\/]")
 
@@ -340,6 +342,17 @@ def admit_tiktok_creator_candidate(
                 "a Registry account cannot receive a new candidate admission"
             )
         records = _load_authority_records(data_root)
+        active_ids = {row["record_id"] for row in records["active_candidate_admissions"]}
+        if any(
+            row["platform_account"]["platform_account_id"] == account_id
+            for row in records["candidate_admissions"]
+            if row["record_id"] not in active_ids
+        ):
+            # A retracted account is absent from the current index, so the generic
+            # duplicate-admission conflict below would misreport why it is blocked.
+            raise CreatorRegistryLakeError(
+                "a retracted candidate account cannot be re-admitted"
+            )
         _validate_authority_admission_set(
             records["baselines"][0],
             [*records["candidate_admissions"], candidate],
@@ -380,6 +393,130 @@ def admit_tiktok_creator_candidate(
         "record_id": record_id,
         "platform_account_id": account_id,
         "public_handle": identity["public_handle"],
+        **published,
+    }
+
+
+def retract_tiktok_creator_candidate(
+    *,
+    data_root: DataLakeRoot,
+    public_handle: str,
+) -> dict[str, Any]:
+    """Remove one candidate-only account from current Registry authority."""
+    _require_current_retraction_epoch(data_root)
+    handle = _normalize_handle(public_handle)
+    records = _load_authority_records(data_root)
+    candidates = [
+        row
+        for row in records["candidate_admissions"]
+        if _normalize_handle(row["platform_account"]["public_handle"]) == handle
+    ]
+    if len(candidates) != 1:
+        raise CreatorRegistryLakeError(
+            "candidate retraction requires exactly one candidate admission"
+        )
+    candidate = candidates[0]
+    account_id = candidate["platform_account"]["platform_account_id"]
+    if any(
+        row["platform_account"]["platform_account_id"] == account_id
+        for row in records["admissions"]
+    ):
+        raise CreatorRegistryLakeError(
+            "validated or onboarded Registry accounts cannot be candidate-retracted"
+        )
+    existing = [
+        row
+        for row in records["candidate_retractions"]
+        if row["candidate_admission"]["record_id"] == candidate["record_id"]
+    ]
+    if len(existing) > 1:
+        raise CreatorRegistryLakeError(
+            "multiple retractions target the same candidate admission"
+        )
+    if existing:
+        write_status = "already_current"
+        retraction = existing[0]
+    else:
+        frontier = load_creator_frontier_dispositions(data_root)[
+            "creator_frontier_disposition_current"
+        ]
+        matches = [
+            row
+            for row in frontier["dispositions"]
+            if row.get("candidate_key") == f"tiktok:@{handle}"
+        ]
+        if len(matches) != 1 or matches[0].get("status") not in {
+            "deferred",
+            "rejected",
+        }:
+            raise CreatorRegistryLakeError(
+                "candidate retraction requires one current deferred or rejected Frontier disposition"
+            )
+        disposition = matches[0]
+        candidate_ref = next(
+            ref
+            for ref in records["authority_refs"]
+            if ref["record_ref"].endswith(f"/{candidate['record_id']}")
+        )
+        payload = {
+            "schema_version": CANDIDATE_RETRACTION_SCHEMA_VERSION,
+            "raw_anchor": candidate["raw_anchor"],
+            "retracted_at": disposition["recorded_at"],
+            "platform_account_id": account_id,
+            "public_handle": handle,
+            "candidate_admission": {
+                "record_id": candidate["record_id"],
+                "record_ref": candidate_ref["record_ref"],
+                "record_sha256": candidate_ref["sha256"],
+            },
+            "frontier_disposition": {
+                "disposition_id": disposition["disposition_id"],
+                "candidate_key": disposition["candidate_key"],
+                "record_ref": disposition["authority_record_ref"],
+                "record_sha256": disposition["authority_record_sha256"],
+            },
+        }
+        record_id = "crr_" + _sha256(canonical_record_bytes(payload))[:24]
+        retraction = {"record_id": record_id, **payload}
+        prospective = [*records["candidate_retractions"], retraction]
+        _validate_candidate_retraction_set(
+            records["baselines"][0],
+            records["candidate_admissions"],
+            prospective,
+            records["admissions"],
+        )
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=candidate["raw_anchor"],
+            lane=CANDIDATE_RETRACTION_LANE,
+            record_id=record_id,
+            data=canonical_record_bytes(retraction),
+        )
+        write_status = "retracted"
+    published = publish_creator_registry_generation(data_root)
+    remaining = [
+        row
+        for row in load_current_creator_registry(data_root)["creator_registry_index"][
+            "platform_accounts"
+        ]
+        if row.get("platform_account_id") == account_id
+    ]
+    public_matches = [
+        row
+        for row in load_current_creator_profiles(data_root)["creator_profile_public"][
+            "profiles"
+        ]
+        if row.get("profile_subject_id") == account_id
+    ]
+    if remaining or public_matches:
+        raise CreatorRegistryLakeError(
+            "candidate retraction readback remains present in current Registry"
+        )
+    return {
+        "status": write_status,
+        "record_id": retraction["record_id"],
+        "platform_account_id": account_id,
+        "public_handle": handle,
         **published,
     }
 
@@ -735,7 +872,12 @@ def _load_authority_records(
 ) -> dict[str, Any]:
     data_root._reverify()
     records: list[tuple[str, bytes, dict[str, Any]]] = []
-    for lane in (BASELINE_LANE, CANDIDATE_ADMISSION_LANE, ADMISSION_LANE):
+    for lane in (
+        BASELINE_LANE,
+        CANDIDATE_ADMISSION_LANE,
+        CANDIDATE_RETRACTION_LANE,
+        ADMISSION_LANE,
+    ):
         for path in sorted((data_root.path / "derived").glob(f"*/*/{lane}/*")):
             if not path.is_file():
                 continue
@@ -749,6 +891,7 @@ def _load_authority_records(
             expected_schema = {
                 BASELINE_LANE: BASELINE_SCHEMA_VERSION,
                 CANDIDATE_ADMISSION_LANE: CANDIDATE_ADMISSION_SCHEMA_VERSION,
+                CANDIDATE_RETRACTION_LANE: CANDIDATE_RETRACTION_SCHEMA_VERSION,
                 ADMISSION_LANE: ADMISSION_SCHEMA_VERSION,
             }[lane]
             if record.get("schema_version") != expected_schema or record.get("record_id") != path.name:
@@ -760,6 +903,11 @@ def _load_authority_records(
         for ref, body, record in records
         if record["schema_version"] == CANDIDATE_ADMISSION_SCHEMA_VERSION
     ]
+    candidate_retractions = [
+        record
+        for ref, body, record in records
+        if record["schema_version"] == CANDIDATE_RETRACTION_SCHEMA_VERSION
+    ]
     admissions = [record for ref, body, record in records if record["schema_version"] == ADMISSION_SCHEMA_VERSION]
     if len(baselines) > 1:
         raise CreatorRegistryLakeError("multiple Creator Registry baselines are not allowed")
@@ -769,10 +917,15 @@ def _load_authority_records(
         _verify_baseline(data_root, baselines[0])
     for candidate in candidate_admissions:
         _verify_candidate_admission(data_root, candidate)
+    for retraction in candidate_retractions:
+        _verify_candidate_retraction(data_root, retraction)
     for admission in admissions:
         _verify_admission(data_root, admission)
     if baselines:
         _validate_authority_admission_set(baselines[0], candidate_admissions, admissions)
+        _validate_candidate_retraction_set(
+            baselines[0], candidate_admissions, candidate_retractions, admissions
+        )
     authority_refs = [
         {"record_ref": ref, "sha256": _sha256(body)} for ref, body, _record in sorted(records)
     ]
@@ -780,6 +933,21 @@ def _load_authority_records(
         "baselines": baselines,
         "candidate_admissions": sorted(
             candidate_admissions, key=lambda row: row["record_id"]
+        ),
+        "candidate_retractions": sorted(
+            candidate_retractions, key=lambda row: row["record_id"]
+        ),
+        "active_candidate_admissions": sorted(
+            [
+                row
+                for row in candidate_admissions
+                if row["record_id"]
+                not in {
+                    retraction["candidate_admission"]["record_id"]
+                    for retraction in candidate_retractions
+                }
+            ],
+            key=lambda row: row["record_id"],
         ),
         "admissions": sorted(admissions, key=lambda row: row["record_id"]),
         "authority_refs": authority_refs,
@@ -795,7 +963,7 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
     rows = [deepcopy(_object(row, "Creator Registry row")) for row in wrapper.get("platform_accounts", [])]
     by_id = {row["platform_account_id"]: row for row in rows}
     candidate_created_ids: set[str] = set()
-    for candidate in records["candidate_admissions"]:
+    for candidate in records["active_candidate_admissions"]:
         account = candidate["platform_account"]
         account_id = account["platform_account_id"]
         row = by_id.get(account_id)
@@ -918,7 +1086,7 @@ def _build_internal_index(records: Mapping[str, Any], *, generated_at: str) -> d
             "platform_accounts": rows,
             "source_inputs": deepcopy(records["authority_refs"]),
             "source_policy_posture": (
-                "Generated from one immutable legacy baseline plus append-only candidate and validated account admissions; "
+                "Generated from one immutable legacy baseline plus append-only candidate admissions, candidate retractions, and validated account admissions; "
                 "the generation is a rebuildable current view, not authority."
             ),
             "accepted_residuals": [
@@ -1190,6 +1358,101 @@ def _verify_candidate_admission(
         )
 
 
+def _verify_candidate_retraction(
+    data_root: DataLakeRoot, retraction: Mapping[str, Any]
+) -> None:
+    if set(retraction) != {
+        "record_id",
+        "schema_version",
+        "raw_anchor",
+        "retracted_at",
+        "platform_account_id",
+        "public_handle",
+        "candidate_admission",
+        "frontier_disposition",
+    }:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction fields do not match v1"
+        )
+    payload = {key: value for key, value in retraction.items() if key != "record_id"}
+    expected_record_id = "crr_" + _sha256(canonical_record_bytes(payload))[:24]
+    if retraction.get("record_id") != expected_record_id:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction content id mismatch"
+        )
+    candidate_ref = _object(
+        retraction.get("candidate_admission"), "retracted candidate admission"
+    )
+    if set(candidate_ref) != {"record_id", "record_ref", "record_sha256"}:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction has invalid admission reference"
+        )
+    candidate_path = data_root.path.joinpath(
+        *_text(candidate_ref.get("record_ref"), "candidate admission record ref").split("/")
+    )
+    if (
+        not candidate_path.is_file()
+        or candidate_path.name != candidate_ref.get("record_id")
+        or _sha256(candidate_path.read_bytes()) != candidate_ref.get("record_sha256")
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry retracted candidate admission is missing or changed"
+        )
+    candidate = _load_json(candidate_path)
+    account = _object(candidate.get("platform_account"), "retracted candidate account")
+    if (
+        candidate.get("schema_version") != CANDIDATE_ADMISSION_SCHEMA_VERSION
+        or candidate.get("raw_anchor") != retraction.get("raw_anchor")
+        or account.get("platform_account_id") != retraction.get("platform_account_id")
+        or _normalize_handle(account.get("public_handle"))
+        != _normalize_handle(retraction.get("public_handle"))
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction does not bind its admission identity"
+        )
+    disposition_ref = _object(
+        retraction.get("frontier_disposition"), "retraction Frontier disposition"
+    )
+    if set(disposition_ref) != {
+        "disposition_id",
+        "candidate_key",
+        "record_ref",
+        "record_sha256",
+    }:
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction has invalid Frontier reference"
+        )
+    disposition_path = data_root.path.joinpath(
+        *_text(disposition_ref.get("record_ref"), "Frontier record ref").split("/")
+    )
+    if (
+        not disposition_path.is_file()
+        or _sha256(disposition_path.read_bytes()) != disposition_ref.get("record_sha256")
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction Frontier record is missing or changed"
+        )
+    history = load_creator_frontier_dispositions(data_root)[
+        "creator_frontier_disposition_current"
+    ]["history"]
+    matches = [
+        row
+        for row in history
+        if row.get("disposition_id") == disposition_ref.get("disposition_id")
+    ]
+    if (
+        len(matches) != 1
+        or matches[0].get("status") not in {"deferred", "rejected"}
+        or matches[0].get("candidate_key") != disposition_ref.get("candidate_key")
+        or disposition_ref.get("candidate_key")
+        != f"tiktok:@{_normalize_handle(retraction.get('public_handle'))}"
+        or retraction.get("retracted_at") != matches[0].get("recorded_at")
+    ):
+        raise CreatorRegistryLakeError(
+            "Creator Registry candidate retraction lacks one deferred or rejected Frontier disposition"
+        )
+
+
 def _verify_admission(data_root: DataLakeRoot, admission: Mapping[str, Any]) -> None:
     if set(admission) != {
         "record_id",
@@ -1309,6 +1572,48 @@ def _validate_authority_admission_set(
             handle[handle_key] = account_id
 
 
+def _validate_candidate_retraction_set(
+    baseline: Mapping[str, Any],
+    candidate_admissions: Sequence[Mapping[str, Any]],
+    candidate_retractions: Sequence[Mapping[str, Any]],
+    admissions: Sequence[Mapping[str, Any]],
+) -> None:
+    candidates = {row["record_id"]: row for row in candidate_admissions}
+    if len(candidates) != len(candidate_admissions):
+        raise CreatorRegistryLakeError("duplicate candidate admission record ids")
+    baseline_ids = {
+        str(row["platform_account_id"])
+        for row in baseline["account_ledger"]["creator_public_handle_linkage_ledger"][
+            "platform_accounts"
+        ]
+    }
+    validated_ids = {
+        str(row["platform_account"]["platform_account_id"]) for row in admissions
+    }
+    targeted: set[str] = set()
+    for retraction in candidate_retractions:
+        target_id = retraction["candidate_admission"]["record_id"]
+        candidate = candidates.get(target_id)
+        if candidate is None:
+            raise CreatorRegistryLakeError(
+                "candidate retraction targets a missing candidate admission"
+            )
+        if target_id in targeted:
+            raise CreatorRegistryLakeError(
+                "multiple retractions target the same candidate admission"
+            )
+        targeted.add(target_id)
+        account_id = str(candidate["platform_account"]["platform_account_id"])
+        if account_id in baseline_ids:
+            raise CreatorRegistryLakeError(
+                "candidate retraction cannot remove a baseline Registry account"
+            )
+        if account_id in validated_ids:
+            raise CreatorRegistryLakeError(
+                "candidate retraction cannot remove a validated Registry account"
+            )
+
+
 def _write_baseline_source_packet(
     *,
     data_root: DataLakeRoot,
@@ -1418,6 +1723,10 @@ def _generation_time(records: Mapping[str, Any]) -> str:
         _text(row.get("admitted_at"), "candidate admitted_at")
         for row in records["candidate_admissions"]
     )
+    values.extend(
+        _text(row.get("retracted_at"), "candidate retracted_at")
+        for row in records["candidate_retractions"]
+    )
     values.extend(_text(row.get("admitted_at"), "admission admitted_at") for row in records["admissions"])
     return max(values)
 
@@ -1495,6 +1804,27 @@ def _registry_root(data_root: DataLakeRoot) -> Path:
     return data_root.path.joinpath(*REGISTRY_ROOT_PARTS)
 
 
+def _require_current_retraction_epoch(data_root: DataLakeRoot) -> None:
+    """Keep epoch adoption explicit while allowing stale-authority recovery."""
+    data_root._reverify()
+    pointer = _registry_root(data_root) / CURRENT_FILENAME
+    if not pointer.is_file():
+        raise CreatorRegistryLakeError(
+            "Creator Registry has not been migrated into the data lake"
+        )
+    try:
+        pointer_doc = json.loads(pointer.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise CreatorRegistryLakeError(
+            f"Creator Registry CURRENT pointer is unreadable: {exc}"
+        ) from exc
+    if pointer_doc.get("pointer_schema_version") != CURRENT_POINTER_SCHEMA_VERSION:
+        raise CreatorRegistryLakeError(
+            "Creator Registry CURRENT pointer epoch must be upgraded with "
+            "`run_creator_registry_lake.py rebuild --write` before candidate retraction"
+        )
+
+
 def _relative_to_root(data_root: DataLakeRoot, path: Path) -> str:
     return path.resolve().relative_to(data_root.path.resolve()).as_posix()
 
@@ -1524,6 +1854,7 @@ __all__ = [
     "ADMISSION_LANE",
     "BASELINE_LANE",
     "CANDIDATE_ADMISSION_LANE",
+    "CANDIDATE_RETRACTION_LANE",
     "CreatorRegistryLakeError",
     "admit_tiktok_creator_account",
     "admit_tiktok_creator_candidate",
@@ -1535,5 +1866,6 @@ __all__ = [
     "migrate_legacy_registry",
     "monitoring_eligible_accounts",
     "publish_creator_registry_generation",
+    "retract_tiktok_creator_candidate",
     "resolve_tiktok_profile_subject_id",
 ]
