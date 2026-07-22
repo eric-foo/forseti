@@ -246,6 +246,20 @@ def _write_epoch_marker(root: Path, *, legacy_roots: list[str] | None) -> None:
     )
 
 
+def is_inflight_record_temp(name: str) -> bool:
+    """True for the sibling temp files ``_atomic_create`` writes mid-publish.
+
+    ``_atomic_create`` stages every record as ``.<name>.<ulid>.tmp`` beside its
+    target before the atomic link, so a concurrent reader enumerating a lane
+    directory can observe one. Every record reader must skip these: both
+    ``Path.glob`` and ``Path.iterdir`` return dot-prefixed names (unlike
+    ``glob.glob``, which hides them), so a reader that does not filter will read
+    a partially-written record and fail on shape, hash, or id/path mismatch --
+    a spurious failure that only appears under concurrency.
+    """
+    return name.startswith(".") and name.endswith(".tmp")
+
+
 def _atomic_create(target: Path, data: bytes) -> None:
     """Create-only, no-overwrite, crash-tolerant publish of a single record.
 

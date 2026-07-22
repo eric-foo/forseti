@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from data_lake.creator_audience_queue import (
+    JOB_LANE,
     CreatorAudienceQueueError,
     assert_creator_audience_capacity,
     claim_creator_audience_job,
@@ -252,3 +253,32 @@ def test_corrupt_stored_transport_fails_closed_on_queue_read(tmp_path: Path) -> 
 
     with pytest.raises(CreatorAudienceQueueError, match="prompt_bytes_b64 does not match"):
         load_creator_audience_queue(root)
+
+
+def test_inflight_write_temp_is_skipped_by_the_reader(tmp_path: Path) -> None:
+    """A concurrent writer's staged temp must not be read as a queue record.
+
+    ``DataLakeRoot._atomic_create`` stages every record as ``.<name>.<ulid>.tmp``
+    beside its target before the atomic link, and ``Path.glob`` returns
+    dot-prefixed names (unlike ``glob.glob``). Without a skip the reader loads a
+    half-written record and fails on id/path mismatch -- the concurrency-only
+    failure seen in CI.
+    """
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle_path, prompt_path, bundle = _transport(tmp_path)
+    enqueue_creator_audience_job(
+        data_root=root,
+        bundle_path=bundle_path,
+        prompt_path=prompt_path,
+        enqueued_at="2026-07-22T00:00:00Z",
+    )
+
+    lane = root.lane_dir(
+        subtree="derived", raw_anchor=bundle["raw_anchor"], lane=JOB_LANE
+    )
+    staged = lane / ".cajq_deadbeef_job_0001.01KYINFLIGHTULID000000000.tmp"
+    staged.write_bytes(b'{"schema_version": "creator_audience_onboarding_job_v1", "part')
+
+    queue = load_creator_audience_queue(root)
+    assert len(queue["jobs"]) == 1
+    assert staged.exists(), "the reader must skip the temp, not delete it"
