@@ -35,6 +35,7 @@ The authority and read-model split is:
 derived/.../creator_frontier_disposition/<record-id>       Frontier authority, append-only
 derived/.../creator_registry_baseline/<record-id>          Registry authority, one migration
 derived/.../creator_registry_candidate_admission/<record-id> Registry authority, append-only
+derived/.../creator_registry_candidate_retraction/<record-id> Registry authority, append-only
 derived/.../creator_registry_account_admission/<record-id> Registry authority, append-only
 derived/.../creator_audience_onboarding_job/<record-id>    Audience work authority, append-only
 derived/.../creator_audience_onboarding_claim/<record-id>  Recoverable work lease, append-only
@@ -46,7 +47,7 @@ indexes/derived_retrieval/creator_registry/
   generations/<generation-id>/
     query_tables/creator_registry_index_v1.json            internal current view
     profiles/creator_profile_public_v1.json                 client-safe current view
-    manifests/creator_registry_generation_v2.json           hashes and authority inventory
+    manifests/creator_registry_generation_v3.json           hashes and authority inventory
 ```
 
 The generated files under `indexes/` carry no authority. A reader verifies the
@@ -55,6 +56,15 @@ An authority record newer than `CURRENT`, an older pointer/generation epoch, a
 missing member, or a hash mismatch fails closed and requires a rebuild. Epoch v2
 inventories the baseline, candidate admissions, and validated admissions; a v1
 reader cannot silently omit candidate authority.
+
+Epoch v3 additionally inventories candidate retractions; an older reader cannot
+silently retain a retracted candidate in current Registry state.
+
+A lake still carrying an epoch v2 `CURRENT` fails every Registry read closed with
+`Creator Registry CURRENT pointer schema is unsupported` until the epoch is
+republished. Epoch adoption is therefore an explicit operator step: run
+`run_creator_registry_lake.py rebuild --write` once against the lake before any
+read, admission, or retraction. Prior-epoch generations are left intact.
 
 A generation id is content-derived from the generation-manifest schema, authority
 inventory digest, and generated index/profile file hashes. A new projection epoch
@@ -134,6 +144,7 @@ run_creator_registry_lake.py frontier-disposition ...
 run_creator_registry_lake.py frontier-import --input <json-list> ...
 run_creator_registry_lake.py frontier-show ...
 run_creator_registry_lake.py admit-tiktok-candidate ...
+run_creator_registry_lake.py retract-tiktok-candidate --handle <handle> ...
 ```
 
 ## Baseline and admission
@@ -151,6 +162,21 @@ and conflict-free identity against the baseline plus candidate and validated
 admissions. It publishes `onboarding_state=not_onboarded`,
 `monitoring_eligible=false`, and no public profile. A second candidate admission
 for the same stage fails closed; an exact replay is idempotent.
+
+`creator_registry_candidate_retraction_v1` removes a mistaken candidate-only
+admission from the generated current Registry while retaining its audit trail.
+Retraction requires the account's one current `deferred` or `rejected` Frontier
+disposition, targets one exact candidate-admission record, and is idempotent.
+It cannot remove a migrated baseline account or an account with a validated
+admission. The retracted account is absent—not merely hidden—from the internal
+current Registry, onboarding candidates, monitoring eligibility, and public
+profiles; its Frontier disposition continues to deduplicate future suggestions.
+
+Retraction is terminal for that account under v1. Reopening the Frontier
+disposition to `eligible` does not restore it: the retraction keeps verifying
+against disposition history, so a later candidate admission and a later
+validated admission both fail closed. v1 has no un-retraction writer; restoring
+a retracted account is a separate contract change, not an operator action.
 
 `creator_registry_account_admission_v1` is the validated admission contract.
 Its v1 writer supports TikTok and requires:

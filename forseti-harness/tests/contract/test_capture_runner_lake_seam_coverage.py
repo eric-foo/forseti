@@ -157,7 +157,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/consumption.py", "lane_dir"): 1,
         ("data_lake/creator_audience_queue.py", "append_record"): 3,
         ("data_lake/creator_audience_queue.py", "record_path"): 3,
-        ("data_lake/creator_registry.py", "append_record"): 3,
+        ("data_lake/creator_registry.py", "append_record"): 4,
         ("data_lake/derived_retrieval_cache.py", "record_path"): 1,
         ("data_lake/product_mention_selection.py", "lane_dir"): 1,
         # Reddit Subreddit Registry lake cut-over: three append-only derived
