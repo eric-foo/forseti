@@ -280,6 +280,17 @@ def claim_creator_audience_job(
                 data=canonical_record_bytes(claim),
             )
         except DataLakeRootError:
+            # Only a competing writer that already published this exact claim is
+            # retryable.  Every other lake failure -- a read-only root, changed
+            # root identity, an unusable path -- must stay visible instead of
+            # being retried into a phantom concurrency report.
+            if not data_root.record_path(
+                subtree="derived",
+                raw_anchor=raw_anchor,
+                lane=CLAIM_LANE,
+                record_id=record_id,
+            ).is_file():
+                raise
             continue
         prompt_bytes = _decoded_bytes(
             row["_job_record"], "prompt_bytes_b64", "prompt_sha256"
@@ -515,7 +526,6 @@ def _enqueue_result(record: Mapping[str, Any], status: str) -> dict[str, Any]:
         "bundle_id": record["bundle_id"],
         "bundle_hash": record["bundle_hash"],
         "prompt_sha256": record["prompt_sha256"],
-        "queue_state": "queued",
     }
 
 

@@ -177,9 +177,10 @@ run_tiktok_creator_onboarding_coordinator.py queue-block ...
 
 A controller follows `.agents/skills/creator-audience-triangulation/SKILL.md`,
 claims one job, and gives a cold worker only the exact emitted prompt. The
-repository does not launch or host a model worker. Invalid Judgment output is
-not a terminal queue block: the same leased context may receive the returned
-validation defects and resubmit. Explicit `queue-block` is terminal. Success
+repository does not launch or host a model worker. Invalid Judgment output
+returns `status=correction_required`, `judgment_status=blocked`, and
+`queue_state=running`; it is not a terminal queue block. The same leased context
+may receive the returned validation defects and resubmit. Explicit `queue-block` is terminal. Success
 still requires the exact validated snapshot/outcome pair and upgrades the same
 Registry `not_onboarded` account; queue state alone never completes onboarding.
 

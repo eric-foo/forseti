@@ -359,6 +359,8 @@ def submit_onboarding_job(
     if result.get("status") != "validated":
         return {
             **result,
+            "judgment_status": result.get("status"),
+            "status": "correction_required",
             "queue_state": "running",
             "job_id": job_id,
             "lease_id": lease_id,
@@ -761,7 +763,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 2 if result.get("status") == "blocked" else 0
+    return 2 if result.get("status") in {"blocked", "correction_required"} else 0
 
 
 if __name__ == "__main__":

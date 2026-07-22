@@ -752,7 +752,8 @@ def test_browser_free_queue_dogfood_corrects_then_upgrades_registry_candidate(
         lease_id=claimed["lease_id"],
         response_bytes=json.dumps(invalid_response).encode("utf-8"),
     )
-    assert invalid["status"] == "blocked"
+    assert invalid["status"] == "correction_required"
+    assert invalid["judgment_status"] == "blocked"
     assert invalid["queue_state"] == "running"
     assert public_queue_view(data_root)["counts"]["running"] == 1
 

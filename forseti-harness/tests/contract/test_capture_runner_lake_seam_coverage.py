@@ -155,7 +155,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/consumption.py", "append_record"): 1,
         ("data_lake/consumption.py", "lane_dir"): 1,
         ("data_lake/creator_audience_queue.py", "append_record"): 3,
-        ("data_lake/creator_audience_queue.py", "record_path"): 2,
+        ("data_lake/creator_audience_queue.py", "record_path"): 3,
         ("data_lake/creator_registry.py", "append_record"): 3,
         ("data_lake/derived_retrieval_cache.py", "record_path"): 1,
         ("data_lake/product_mention_selection.py", "lane_dir"): 1,

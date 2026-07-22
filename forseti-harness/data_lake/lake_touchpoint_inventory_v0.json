@@ -159,7 +159,7 @@
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 2,
+      "count": 3,
       "module": "data_lake/creator_audience_queue.py"
     },
     {

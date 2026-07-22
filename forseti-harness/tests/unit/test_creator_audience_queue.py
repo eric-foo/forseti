@@ -16,7 +16,7 @@ from data_lake.creator_audience_queue import (
     unfinished_profile_subject_ids,
     write_creator_audience_terminal,
 )
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootError
 
 
 def _transport(tmp_path: Path, suffix: str = "a") -> tuple[Path, Path, dict]:
@@ -178,6 +178,30 @@ def test_capacity_counts_queued_and_running_and_pending_subjects(tmp_path: Path)
         assert_creator_audience_capacity(root, now="2026-07-22T00:01:01Z")
     pending = unfinished_profile_subject_ids(root, now="2026-07-22T00:01:01Z")
     assert pending == {f"acct_tiktok_{index}" for index in range(10)}
+
+
+def test_non_conflict_lake_failure_is_not_retried_as_a_claim_race(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle_path, prompt_path, _bundle = _transport(tmp_path)
+    enqueue_creator_audience_job(
+        data_root=root, bundle_path=bundle_path, prompt_path=prompt_path
+    )
+
+    def refuse(**_kwargs: object) -> None:
+        raise DataLakeRootError("data root identity changed since resolution: /gone")
+
+    monkeypatch.setattr(root, "append_record", refuse)
+
+    with pytest.raises(DataLakeRootError, match="identity changed since resolution"):
+        claim_creator_audience_job(
+            data_root=root,
+            worker_id="worker-one",
+            prompt_out=tmp_path / "unreachable.txt",
+            now="2026-07-22T00:01:00Z",
+        )
+    assert not (tmp_path / "unreachable.txt").exists()
 
 
 def test_malformed_noncontiguous_claim_chain_fails_closed(tmp_path: Path) -> None:
