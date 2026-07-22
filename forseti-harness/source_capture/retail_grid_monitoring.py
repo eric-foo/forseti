@@ -408,6 +408,8 @@ def compare_observations(
         "placement_changes": placement_changes,
         "price_display_changes": price_changes,
         "completeness_changes": completeness_changes,
+        "previous_completeness_residuals": list(previous.completeness.residuals),
+        "current_completeness_residuals": list(current.completeness.residuals),
     }
 
 
@@ -468,15 +470,36 @@ def run_monitor_round(
 
         raw_sample_requested = not successful or force_sample
         attempted_at = utc_now_z()
-        attempt = capture_route(route, raw_sample_requested)
+        try:
+            attempt = capture_route(route, raw_sample_requested)
+        except Exception as exc:  # noqa: BLE001 - convert a capture crash into a visible gap
+            # One route's crash must stay one route's failure receipt; it must not
+            # abandon the remaining routes or the round report that makes the gap
+            # visible. Route-history errors raised above deliberately still abort.
+            attempt = RetailGridCaptureAttempt(
+                exit_code=3,
+                message=f"monitor_capture_raised: {type(exc).__name__}: {exc}",
+            )
         receipt_id = generate_ulid()
         completed_at = utc_now_z()
         status: Literal["success", "failure"] = "failure"
         projection_path: str | None = None
-        raw_packet_path = str(attempt.raw_packet_path) if attempt.raw_packet_path else None
+        raw_packet_path: str | None = None
         comparison: dict[str, object] | None = None
         message = attempt.message
         exit_code = attempt.exit_code
+        if attempt.raw_packet_path is not None:
+            try:
+                verified_raw_path = _validate_raw_path(
+                    data_root,
+                    attempt.raw_packet_path,
+                    attempt.raw_packet_path.name,
+                )
+                raw_packet_path = str(verified_raw_path)
+            except ValueError as exc:
+                message = f"{message}; monitor_raw_path_validation_failed: {exc}"
+                if exit_code == 0:
+                    exit_code = 4
 
         if exit_code == 0 and attempt.projection_path is not None:
             try:
@@ -523,13 +546,15 @@ def run_monitor_round(
                         "comparison_status": "baseline",
                         "current_capture_event_id": observation.capture_event.capture_event_id,
                         "intervening_failure_rounds": 0,
+                        "current_completeness_residuals": list(
+                            observation.completeness.residuals
+                        ),
                     }
                 status = "success"
                 projection_path = str(verified_projection_path)
             except ValueError as exc:
                 exit_code = 4
                 message = f"monitor_projection_validation_failed: {exc}; runner={attempt.message}"
-                raw_packet_path = None
 
         receipt = RetailGridMonitorReceipt(
             receipt_id=receipt_id,

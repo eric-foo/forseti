@@ -14,6 +14,7 @@ from source_capture.retail_grid_monitoring import (
     MonitorRoute,
     RetailGridCaptureAttempt,
     RetailGridMonitorManifest,
+    compare_observations,
     load_monitor_manifest,
     monitor_routes,
     run_monitor_round,
@@ -60,6 +61,7 @@ def _observation(
     raw_sample: bool,
     products: list[dict[str, Any]],
     series_id: str | None = None,
+    completeness_residuals: list[str] | None = None,
 ) -> tuple[Path, Path | None]:
     event_id = generate_ulid()
     raw_path = root.allocate_raw_packet_dir(event_id) if raw_sample else None
@@ -127,7 +129,7 @@ def _observation(
                 "duplicate_placement_count": placement_count - len(rows),
                 "subject_binding_confirmed": True,
                 "termination": "requested_page_window_reconciled",
-                "residuals": [],
+                "residuals": completeness_residuals or [],
             },
             "loss_ledger": {
                 "preserved_evidence_rows": len(rows),
@@ -261,6 +263,7 @@ def test_first_success_samples_raw_then_next_round_compares_derived_only(
     first_result = first_report["results"][0]
     assert first_result["comparison"]["comparison_status"] == "baseline"
     assert first_result["raw_packet_path"] is not None
+    assert first_result["comparison"]["current_completeness_residuals"] == []
     second_result = second_report["results"][0]
     assert second_result["raw_packet_path"] is None
     comparison = second_result["comparison"]
@@ -272,6 +275,8 @@ def test_first_success_samples_raw_then_next_round_compares_derived_only(
         "before": "$24.00",
         "after": "$26.00",
     }
+    assert comparison["previous_completeness_residuals"] == []
+    assert comparison["current_completeness_residuals"] == []
     assert first_report_path.is_file()
     assert second_report_path.is_file()
     assert len(list((state_dir / "series").rglob("*.json"))) == 2
@@ -556,6 +561,150 @@ def test_projection_series_mismatch_fails_without_advancing_success(tmp_path: Pa
     assert report["results"][0]["comparison"] is None
 
 
+def test_capture_crash_is_one_visible_gap_not_a_lost_round(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    state_dir = tmp_path / "monitor"
+    manifest = RetailGridMonitorManifest.model_validate(
+        {
+            "brands": [
+                {
+                    "brand_id": "summer-fridays",
+                    "name": "Summer Fridays",
+                    "retailers": {
+                        "sephora": {
+                            "url": (
+                                "https://www.sephora.com/brand/summer-fridays"
+                                "?country_switch=us"
+                            )
+                        }
+                    },
+                },
+                {
+                    "brand_id": "tower-28-beauty",
+                    "name": "Tower 28 Beauty",
+                    "retailers": {
+                        "amazon": {
+                            "url": "https://www.amazon.com/s?k=Tower+28+Beauty",
+                            "page_count": 2,
+                        }
+                    },
+                },
+            ]
+        }
+    )
+
+    def capture(route: MonitorRoute, retain_raw: bool) -> RetailGridCaptureAttempt:
+        if route.retailer == "sephora":
+            raise RuntimeError("browser driver exploded")
+        projection, raw = _observation(
+            root=root,
+            route=route,
+            raw_sample=retain_raw,
+            products=[{"id": "amazon-A", "price": "$20.00"}],
+        )
+        return RetailGridCaptureAttempt(0, "ok", projection, raw)
+
+    code, report_path, report = run_monitor_round(
+        manifest=manifest,
+        data_root=root,
+        state_dir=state_dir,
+        round_id="2026-07-22",
+        qa_samples=set(),
+        capture_route=capture,
+    )
+
+    assert code == 4
+    assert report_path.is_file()
+    assert [item["status"] for item in report["results"]] == ["failure", "success"]
+    assert "monitor_capture_raised: RuntimeError: browser driver exploded" in (
+        report["results"][0]["runner_message"]
+    )
+    assert report["results"][0]["comparison"] is None
+
+
+def test_comparison_always_surfaces_current_completeness_advisories(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    route = monitor_routes(_manifest())[0]
+    previous_path, _ = _observation(
+        root=root,
+        route=route,
+        raw_sample=False,
+        products=[{"id": "A"}],
+    )
+    current_path, _ = _observation(
+        root=root,
+        route=route,
+        raw_sample=False,
+        products=[{"id": "A"}],
+        completeness_residuals=[
+            "target_grid_declared_count_changed_during_traversal:minimum=240:maximum=247"
+        ],
+    )
+    previous = RetailGridProjectionPacket.model_validate_json(
+        previous_path.read_text(encoding="utf-8")
+    )
+    current = RetailGridProjectionPacket.model_validate_json(
+        current_path.read_text(encoding="utf-8")
+    )
+
+    comparison = compare_observations(
+        previous, current, intervening_failure_rounds=0
+    )
+
+    assert comparison["current_completeness_residuals"] == [
+        "target_grid_declared_count_changed_during_traversal:minimum=240:maximum=247"
+    ]
+    assert comparison["completeness_changes"]["residuals"]["after"] == (
+        comparison["current_completeness_residuals"]
+    )
+
+
+def test_projection_validation_failure_keeps_only_a_verified_raw_pointer(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    state_dir = tmp_path / "monitor"
+    raw_path = root.allocate_raw_packet_dir(generate_ulid())
+    outside_raw = tmp_path / "not-the-lake" / "packet"
+    outside_raw.mkdir(parents=True)
+    invalid_projection = tmp_path / "outside-derived.json"
+    invalid_projection.write_text("{}", encoding="utf-8")
+    attempts = iter(
+        (
+            RetailGridCaptureAttempt(0, "bad projection", invalid_projection, raw_path),
+            RetailGridCaptureAttempt(4, "failed packet", None, outside_raw),
+        )
+    )
+
+    def capture(_route: MonitorRoute, _retain_raw: bool) -> RetailGridCaptureAttempt:
+        return next(attempts)
+
+    _, _, first_report = run_monitor_round(
+        manifest=_manifest(),
+        data_root=root,
+        state_dir=state_dir,
+        round_id="2026-07-22",
+        qa_samples=set(),
+        capture_route=capture,
+    )
+    _, _, second_report = run_monitor_round(
+        manifest=_manifest(),
+        data_root=root,
+        state_dir=state_dir,
+        round_id="2026-07-23",
+        qa_samples=set(),
+        capture_route=capture,
+    )
+
+    assert first_report["results"][0]["raw_packet_path"] == str(raw_path.resolve())
+    assert second_report["results"][0]["raw_packet_path"] is None
+    assert "monitor_raw_path_validation_failed" in (
+        second_report["results"][0]["runner_message"]
+    )
+
+
 def test_runner_builds_retailer_owned_pins_and_parses_structured_paths(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -572,6 +721,7 @@ def test_runner_builds_retailer_owned_pins_and_parses_structured_paths(
             f"raw sample preserved at {raw_path}; "
             f"derived observation preserved at {projection_path}"
         )
+        print("post-capture diagnostic")
         return 0
 
     monkeypatch.setattr(monitor_runner, "cloakbrowser_main", fake_main)
@@ -610,6 +760,9 @@ def test_runner_derives_all_retailer_profiles_and_pins_from_manifest(tmp_path: P
     assert argv_by_retailer["ulta"][
         argv_by_retailer["ulta"].index("--ulta-market") + 1
     ] == "US"
+    assert argv_by_retailer["ulta"][
+        argv_by_retailer["ulta"].index("--timeout-seconds") + 1
+    ] == "90"
     assert "--target-zip" not in argv_by_retailer["target"]
     assert argv_by_retailer["target"][
         argv_by_retailer["target"].index("--timeout-seconds") + 1
@@ -617,6 +770,17 @@ def test_runner_derives_all_retailer_profiles_and_pins_from_manifest(tmp_path: P
     assert argv_by_retailer["amazon"][
         argv_by_retailer["amazon"].index("--delivery-zip") + 1
     ] == "10001"
+    amazon_route = next(
+        route for route in monitor_routes(manifest) if route.retailer == "amazon"
+    )
+    assert amazon_route.page_count == 2
+    # AmazonSearchGridPlugin bounds its whole multi-page walk with this value and
+    # defaults to 60s on its own; the monitor must never hand it a smaller budget.
+    assert float(
+        argv_by_retailer["amazon"][
+            argv_by_retailer["amazon"].index("--timeout-seconds") + 1
+        ]
+    ) >= 60.0 * amazon_route.page_count
     for route in monitor_routes(manifest):
         argv = argv_by_retailer[route.retailer]
         assert argv[argv.index("--retail-capture-profile") + 1] == _PROFILE[route.retailer]

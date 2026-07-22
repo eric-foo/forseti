@@ -27,7 +27,17 @@ DEFAULT_MANIFEST = (
 )
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-_PROJECTION_RE = re.compile(r"derived observation preserved at (?P<path>.+)$")
+# Grid captures that walk or expand a page set need more than the capture CLI's
+# 20s ``--timeout-seconds`` default. Sephora and Ulta run the same shape (5s
+# settle plus up to ten load-more expansions), so they share one budget; Amazon's
+# traversal bound is this value times the manifest page count, keeping it at or
+# above ``AmazonSearchGridPlugin.traversal_timeout_seconds``'s own 60s default.
+_GRID_EXPANSION_TIMEOUT_SECONDS = 90
+_AMAZON_GRID_TIMEOUT_SECONDS_PER_PAGE = 60
+
+_PROJECTION_RE = re.compile(
+    r"derived observation preserved at (?P<path>.+)$", re.MULTILINE
+)
 _RAW_SAMPLE_RE = re.compile(
     r"raw sample preserved at (?P<path>.+?); derived observation preserved at "
 )
@@ -58,9 +68,23 @@ def _capture_argv(
         "--block-heavy-assets",
     ]
     if route.retailer == "sephora":
-        argv.extend(("--sephora-market", "US", "--timeout-seconds", "90"))
+        argv.extend(
+            (
+                "--sephora-market",
+                "US",
+                "--timeout-seconds",
+                str(_GRID_EXPANSION_TIMEOUT_SECONDS),
+            )
+        )
     elif route.retailer == "ulta":
-        argv.extend(("--ulta-market", "US"))
+        argv.extend(
+            (
+                "--ulta-market",
+                "US",
+                "--timeout-seconds",
+                str(_GRID_EXPANSION_TIMEOUT_SECONDS),
+            )
+        )
     elif route.retailer == "target":
         argv.extend(("--timeout-seconds", "240"))
     elif route.retailer == "amazon":
@@ -71,6 +95,8 @@ def _capture_argv(
                 "10001",
                 "--amazon-grid-page-count",
                 str(route.page_count),
+                "--timeout-seconds",
+                str(_AMAZON_GRID_TIMEOUT_SECONDS_PER_PAGE * route.page_count),
             )
         )
     if retain_raw_sample:
