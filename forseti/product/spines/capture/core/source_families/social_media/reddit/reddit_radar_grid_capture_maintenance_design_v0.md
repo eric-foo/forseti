@@ -118,6 +118,32 @@ Projection lane.
 1. **Fresh policy re-check at build time** (robots.txt, Data API terms,
    Public Content Policy), plus the per-run robots/source-policy posture
    receipt every pass already owes.
+
+   **Re-check executed 2026-07-22 — BLOCKER, owner decision required.**
+   `https://www.reddit.com/robots.txt` and `https://old.reddit.com/robots.txt`
+   both now serve exactly:
+
+   ```text
+   User-agent: *
+   Disallow: /
+   ```
+
+   Verified across three probes (generic agent string, plain browser string,
+   and no `User-Agent` header) on both hosts; the response is
+   user-agent-independent and the file cites Reddit's Public Content Policy as
+   the governing access restriction. This is a **blanket** disallow for every
+   generic agent, not the granular per-surface disallow list recorded on
+   2026-06-08, and it is broader than the standing per-run receipt in
+   `run_reddit_grid_capture.py`, which states only that "robots.txt disallows
+   subreddit listing surfaces for generic agents" — still true, now materially
+   understated.
+
+   This fires this artifact's own `stale_if` #2. The accepted measured-risk
+   bounded-public-capture track was designed against a granular disallow;
+   whether it survives a blanket disallow is an owner call, not an
+   implementation detail. Until the owner rules, no cadenced or one-off live
+   grid pass is cleared to execute, and the sanctioned API / licensing track is
+   the only unblocked access path. Nothing here re-authorizes capture.
 2. **Sanctioned API/licensing track** needs its own registration and
    commercial-terms work before it exists; nothing here registers or
    commits to terms.
