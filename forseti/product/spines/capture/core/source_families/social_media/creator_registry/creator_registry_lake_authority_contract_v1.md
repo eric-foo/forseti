@@ -106,7 +106,10 @@ TikTok benchmark.
 
 Every promotion result carries a stable reason code, the thresholds it cleared,
 and an exact note containing the policy version, observed values, thresholds,
-decision, and reconsideration basis. An explicit single-handle promotion run
+decision, follower-context diagnostics, and reconsideration basis. Follower
+diagnostics include the observed follower count when present, a coarse follower
+band, and reliable weekly reach per 1,000 followers; they are observability
+fields only and do not change the v2 promotion gate. An explicit single-handle promotion run
 with `--data-root` writes the same note to append-only Frontier state:
 `eligible/normal/other` when either dimension clears, `deferred/low_potential`
 when both measured dimensions miss, or `deferred/other` when quality is

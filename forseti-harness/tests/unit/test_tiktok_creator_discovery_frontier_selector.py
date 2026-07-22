@@ -115,6 +115,75 @@ def test_promotion_policy_excludes_pins_and_routes_middle_to_oldest() -> None:
     assert promotion_decision_for_handle(document, "@STRONG")["registry_action"] == "promote_now"
 
 
+def test_promotion_policy_emits_follower_observability_without_changing_action() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grid = {
+        "creator_handle": "reachy",
+        "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+        "profile_metrics": {
+            "follower_count": {
+                "exact_value_or_none": 50_000,
+                "posture": "observed",
+            },
+        },
+        "items": [
+            {
+                "createTime": int(captured.timestamp() - age * 86400),
+                "pinned_visible": False,
+                "stats": {"playCount": 30_000},
+            }
+            for age in (16, 20, 25)
+        ],
+    }
+
+    document = build_tiktok_creator_promotion_decisions([grid])
+    row = document["tiktok_creator_promotion_decisions"]["decisions"][0]
+
+    assert row["registry_action"] == "promote_now"
+    assert row["decision_reason_code"] == "cleared_both_p25"
+    assert row["follower_count_or_none"] == 50_000
+    assert row["follower_band"] == "50k_250k"
+    assert row["reliable_weekly_reach_per_1k_followers_or_none"] == 933.333333
+    assert row["age_normalized_median_reach_per_follower_or_none"] == 0.6
+    assert "followers=50000" in row["decision_note"]
+    assert "follower_band=50k_250k" in row["decision_note"]
+    assert "weekly_reach_per_1k_followers=933.333333" in row["decision_note"]
+
+
+def test_promotion_policy_missing_followers_are_unknown_and_nonblocking() -> None:
+    captured = datetime(2026, 7, 21, 12, tzinfo=UTC)
+    grid = {
+        "creator_handle": "unknownfollowers",
+        "collection_receipt": {"capture_timestamp": "2026-07-21T12:00:00Z"},
+        "profile_metrics": {
+            "follower_count": {
+                "exact_value_or_none": 0,
+                "posture": "observed",
+            },
+        },
+        "items": [
+            {
+                "createTime": int(captured.timestamp() - age * 86400),
+                "pinned_visible": False,
+                "stats": {"playCount": 30_000},
+            }
+            for age in (16, 20, 25)
+        ],
+    }
+
+    document = build_tiktok_creator_promotion_decisions([grid])
+    row = document["tiktok_creator_promotion_decisions"]["decisions"][0]
+
+    assert row["registry_action"] == "promote_now"
+    assert row["follower_count_or_none"] is None
+    assert row["follower_band"] == "unknown"
+    assert row["reliable_weekly_reach_per_1k_followers_or_none"] is None
+    assert row["age_normalized_median_reach_per_follower_or_none"] is None
+    assert "followers=unavailable" in row["decision_note"]
+    assert "follower_band=unknown" in row["decision_note"]
+    assert "weekly_reach_per_1k_followers=unavailable" in row["decision_note"]
+
+
 @pytest.mark.parametrize(
     ("quality", "weekly", "action", "reason", "cleared"),
     [
