@@ -18,6 +18,7 @@ its source-policy posture receipt in the packet limitations.
 from __future__ import annotations
 
 import argparse
+import datetime as _dt
 import json
 import sys
 import time
@@ -58,6 +59,28 @@ DEFAULT_MAX_BYTES = 5_000_000
 # Raw remains the explicit operator-selected evidence posture.
 DEFAULT_RETENTION_MODE = "content"
 
+def check_grid_projection_anomaly(content_record: dict) -> str | None:
+    """Name the projection anomaly this page exhibits, or None.
+
+    An anomalous projection must not silently become the retained evidence:
+    the caller raises, the capture falls back to raw preservation
+    (``retention_outcome=raw_failure``), and the raw bytes stay auditable.
+    Real listing pages carry data-timestamp on every row (measured 100/100,
+    2026-07-22), so an all-None timestamp column means the parser broke, not
+    the page.
+    """
+    rows = content_record.get("grid_view", {}).get("thread_rows", [])
+    if not rows:
+        return "no_thread_rows"
+    if all(row.get("timestamp_utc_ms_or_none") is None for row in rows):
+        return "no_timestamps"
+    return None
+
+
+class GridProjectionAnomalyError(ValueError):
+    pass
+
+
 # States the decision predicate, not a description of the file. A re-check
 # compared against a description escalates on any scope or wording drift; against
 # the predicate it escalates only when the decision could change. Halt routing is
@@ -74,18 +97,28 @@ SOURCE_POLICY_POSTURE_RECEIPT = (
 )
 
 
-def build_grid_listing_url(*, subreddit: str, listing: str, time_window: str | None) -> str:
+def build_grid_listing_url(
+    *, subreddit: str, listing: str, time_window: str | None, limit: int | None = None
+) -> str:
     name = _validate_subreddit(subreddit)
     if listing not in ALLOWED_LISTINGS:
         raise ValueError(f"listing must be one of {ALLOWED_LISTINGS}, got {listing!r}")
     url = f"https://old.reddit.com/r/{name}/{listing}/"
+    query: list[str] = []
     if listing == "top":
         window = time_window or "day"
         if window not in ALLOWED_TIME_WINDOWS:
             raise ValueError(f"time window must be one of {ALLOWED_TIME_WINDOWS}, got {window!r}")
-        url += f"?t={window}"
+        query.append(f"t={window}")
     elif time_window is not None:
         raise ValueError("time window applies only to the top listing")
+    if limit is not None:
+        # Old Reddit serves at most 100 rows per page; still one page per sub.
+        if not 1 <= limit <= 100:
+            raise ValueError(f"limit must be between 1 and 100, got {limit!r}")
+        query.append(f"limit={limit}")
+    if query:
+        url += "?" + "&".join(query)
     return url
 
 
@@ -96,6 +129,7 @@ def run_reddit_grid_capture(
     time_window: str | None,
     output_root: Path,
     decision_question: str,
+    limit: int | None = None,
     data_root: "DataLakeRoot | None" = None,
     max_subreddits: int = DEFAULT_MAX_SUBREDDITS,
     delay_seconds: float = DEFAULT_DELAY_SECONDS,
@@ -124,7 +158,20 @@ def run_reddit_grid_capture(
     duplicates = sorted({name for name in names if names.count(name) > 1})
     if duplicates:
         raise ValueError(f"duplicate subreddit value(s): {duplicates}")
-    urls = [build_grid_listing_url(subreddit=name, listing=listing, time_window=time_window) for name in names]
+    urls = [
+        build_grid_listing_url(subreddit=name, listing=listing, time_window=time_window, limit=limit)
+        for name in names
+    ]
+
+    # Retention rule 1 (weekly demand radar spec): on a content-mode multi-sub
+    # pass, one rotating subreddit keeps raw as the projection audit sample.
+    # ISO week over the sorted roster is deterministic within a week, so a
+    # re-run resumes onto the same sample instead of sampling twice.
+    raw_sample_subreddit: str | None = None
+    if requested_retention_mode == "content" and len(names) >= 2:
+        iso_week = _dt.datetime.now(_dt.timezone.utc).isocalendar()
+        ordered = sorted(names)
+        raw_sample_subreddit = ordered[(iso_week.year * 100 + iso_week.week) % len(ordered)]
 
     cadence_plan = build_cadence_plan(
         slot_count=len(names),
@@ -153,16 +200,29 @@ def run_reddit_grid_capture(
             "capture_finished_at": None,
             "content_extraction_failed": False,
         }
+        # Retention rule 2: an anomalous projection raises, so the capture
+        # falls back to raw preservation instead of retaining broken evidence.
+        def _extract(html_text: str, _final_url: str, _name: str = name, _url: str = url) -> dict:
+            record = build_grid_content_record(
+                html_text=html_text,
+                subreddit=_name,
+                listing_url=_url,
+            )
+            anomaly = check_grid_projection_anomaly(record)
+            if anomaly is not None:
+                raise GridProjectionAnomalyError(
+                    f"grid projection anomaly [{anomaly}]: keeping raw for audit"
+                )
+            return record
+
+        row_retention = (
+            "raw" if name == raw_sample_subreddit else requested_retention_mode
+        )
+        row["retention_mode"] = row_retention
         extraction_spec = ContentExtractionSpec(
-                requested_retention_mode=requested_retention_mode,
+                requested_retention_mode=row_retention,
                 extractor_version=GRID_PROJECTION_PARSER_VERSION,
-                extractor=(
-                    lambda html_text, _final_url, _name=name, _url=url: build_grid_content_record(
-                        html_text=html_text,
-                        subreddit=_name,
-                        listing_url=_url,
-                    )
-                ),
+                extractor=_extract,
             )
         try:
             row["capture_started_at"] = utc_now_z_microseconds()
@@ -222,7 +282,9 @@ def run_reddit_grid_capture(
         "method": GRID_SOURCE_SURFACE,
         "listing": listing,
         "time_window": time_window,
+        "limit": limit,
         "requested_retention_mode": requested_retention_mode,
+        "raw_sample_subreddit": raw_sample_subreddit,
         "content_extraction_failure_count": sum(
             1 for row in results if row["content_extraction_failed"]
         ),
@@ -290,9 +352,18 @@ def _build_parser() -> argparse.ArgumentParser:
             "reddit_subreddit_grid Source Capture Packet, locally or into the data lake."
         )
     )
-    parser.add_argument("--subreddit", action="append", required=True, dest="subreddits")
+    parser.add_argument("--subreddit", action="append", dest="subreddits", default=None)
+    parser.add_argument(
+        "--roster",
+        action="store_true",
+        help="Capture every subreddit the lake registry tracks (requires --data-root).",
+    )
     parser.add_argument("--listing", choices=ALLOWED_LISTINGS, default="top")
     parser.add_argument("--time-window", choices=ALLOWED_TIME_WINDOWS, default=None)
+    parser.add_argument(
+        "--limit", type=int, default=None,
+        help="Rows per listing page (1-100); still one page per subreddit.",
+    )
     parser.add_argument("--output-root", type=Path, required=True,
                         help="Local root for the grid batch summary (and packets when --data-root is not used).")
     parser.add_argument("--data-root", default=None,
@@ -328,10 +399,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             from data_lake.root import DataLakeRoot
 
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
+        if args.roster == bool(args.subreddits):
+            raise ValueError("provide exactly one of --roster or --subreddit")
+        subreddits = args.subreddits
+        if args.roster:
+            if data_root is None:
+                raise ValueError("--roster reads the lake registry; --data-root is required")
+            from data_lake.reddit_subreddit_registry import known_subreddits
+
+            subreddits = known_subreddits(data_root)
+            if not subreddits:
+                raise ValueError("--roster found no tracked subreddits in the lake registry")
         exit_code, message = run_reddit_grid_capture(
-            subreddits=args.subreddits,
+            subreddits=subreddits,
             listing=args.listing,
             time_window=args.time_window,
+            limit=args.limit,
             output_root=args.output_root,
             data_root=data_root,
             decision_question=args.decision_question,

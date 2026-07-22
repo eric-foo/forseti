@@ -59,6 +59,17 @@ FROZEN_COMMITTED_REGISTRY_PATH = (
     / "reddit_subreddit_registry_v0.json"
 )
 GRID_OBSERVATION_SOURCE_SURFACE = "old_reddit_grid_packet"
+# Weekly demand-radar listing (top/?t=week): same grid family, distinguishable
+# ledger line so readers can tell a weekly consolidated pass from a live pass.
+TOP_WEEK_OBSERVATION_SOURCE_SURFACE = "old_reddit_top_week_packet"
+
+
+def _observation_surface_for(listing_url: str) -> str:
+    parsed = urlparse(listing_url)
+    parts = [part for part in parsed.path.split("/") if part]
+    if parts and parts[-1] == "top" and "t=week" in (parsed.query or "").split("&"):
+        return TOP_WEEK_OBSERVATION_SOURCE_SURFACE
+    return GRID_OBSERVATION_SOURCE_SURFACE
 
 
 class RegistryRefreshError(ValueError):
@@ -218,7 +229,7 @@ def refresh_lake_registry_from_grid_packets(
             observed_at=read.observed_at,
             subscriber_count_or_none=_normalized_count(view.visible_subscriber_count_or_none),
             active_user_count_or_none=_normalized_count(view.visible_active_user_count_or_none),
-            source_surface=GRID_OBSERVATION_SOURCE_SURFACE,
+            source_surface=_observation_surface_for(view.listing_url),
             provenance_pointer=read.manifest_path,
             absent_reason_or_none=view.visible_volume_signal_absent_reason_or_none,
             dry_run=dry_run,

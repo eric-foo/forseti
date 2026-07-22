@@ -100,8 +100,8 @@ def _raw_grid_packet(
     monkeypatch: pytest.MonkeyPatch,
     *,
     status: int = 200,
+    url: str = "https://old.reddit.com/r/makeupaddiction/top/?t=day",
 ) -> Path:
-    url = "https://old.reddit.com/r/makeupaddiction/top/?t=day"
 
     def fake_fetch(**_: object) -> DirectHttpCaptureSuccess:
         return DirectHttpCaptureSuccess(
@@ -360,3 +360,347 @@ def test_lake_materializer_dry_run_writes_nothing(
     assert outcome.refreshed_subreddits == ["makeupaddiction"]
     assert outcome.records_written == 0
     assert fold_subreddit(lake, "makeupaddiction")["observations"] == []
+
+
+# --------------------------------------------------------------------------
+# Projection v2: timestamp / stickied / flair / venue created (real markup)
+# --------------------------------------------------------------------------
+
+V2_FIXTURE = (
+    Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "reddit_subreddit_grid"
+    / "skincareaddiction_top_week_v2.html"
+)
+
+
+def test_projection_v2_extracts_new_fields_from_real_markup() -> None:
+    """Fixture is cut verbatim from a SkincareAddiction top/week page where
+    flairs are confirmed present -- zero-flair extraction fails here instead of
+    passing silently (the spec's flair caveat)."""
+    view = project_old_reddit_grid_html(
+        html_text=V2_FIXTURE.read_text(encoding="utf-8"),
+        subreddit="SkincareAddiction",
+        listing_url="https://old.reddit.com/r/SkincareAddiction/top/?sort=top&t=week&limit=100",
+    )
+    assert view.created_utc_or_none == "2012-01-05T03:08:14+00:00"
+    rows = view.thread_rows
+    assert len(rows) == 3
+    assert all(row.timestamp_utc_ms_or_none for row in rows)
+    assert all(row.timestamp_utc_ms_or_none.isdigit() for row in rows)
+    flairs = [row.flair_or_none for row in rows]
+    assert flairs.count(None) == 0, "flaired page must yield flairs, not silent nulls"
+    assert "Acne" in flairs and "PSA" in flairs
+    assert [row.stickied for row in rows] == [True, False, False]
+    # v2 keeps the v1 fields working on the same real markup.
+    assert rows[1].visible_score_or_none == "748"
+    assert rows[1].visible_comment_count_or_none == "189"
+
+
+def test_projection_v2_synthetic_page_defaults_new_fields() -> None:
+    """A page without timestamps/flairs/age still projects; the new fields
+    default rather than fail (30PlusSkinCare genuinely carries no flairs)."""
+    view = project_old_reddit_grid_html(
+        html_text=GRID_HTML,
+        subreddit="makeupaddiction",
+        listing_url="https://old.reddit.com/r/makeupaddiction/",
+    )
+    assert view.created_utc_or_none is None
+    assert all(row.timestamp_utc_ms_or_none is None for row in view.thread_rows)
+    assert all(row.flair_or_none is None for row in view.thread_rows)
+    assert all(row.stickied is False for row in view.thread_rows)
+
+
+def test_v1_content_record_still_reconstructs_without_v2_keys() -> None:
+    """Content packets written under parser v1 lack the v2 keys; the read path
+    must default them, not crash the materializer on old packets."""
+    record = {
+        "record_kind": "reddit_subreddit_grid_view_v0",
+        "parser_version": "1",
+        "grid_view": {
+            "subreddit": "alpha",
+            "listing_url": "https://old.reddit.com/r/alpha/",
+            "visible_subscriber_count_or_none": None,
+            "visible_active_user_count_or_none": None,
+            "visible_volume_signal_absent_reason_or_none": "visible_volume_not_present_on_declared_surface",
+            "thread_rows": [
+                {
+                    "thread_url": "https://old.reddit.com/r/alpha/comments/x1/post/",
+                    "subreddit": "alpha",
+                    "visible_title_or_none": "post",
+                    "visible_score_or_none": "5",
+                    "visible_comment_count_or_none": "2",
+                    "promoted": False,
+                }
+            ],
+        },
+    }
+    view = grid_view_from_record(record)
+    assert view.created_utc_or_none is None
+    (row,) = view.thread_rows
+    assert row.timestamp_utc_ms_or_none is None
+    assert row.stickied is False
+    assert row.flair_or_none is None
+
+
+# --------------------------------------------------------------------------
+# Weekly demand radar: listing limit, retention rules, surface stamping
+# --------------------------------------------------------------------------
+
+
+def test_listing_url_supports_limit_and_validates_range() -> None:
+    assert build_grid_listing_url(
+        subreddit="alpha", listing="top", time_window="week", limit=100
+    ) == "https://old.reddit.com/r/alpha/top/?t=week&limit=100"
+    assert build_grid_listing_url(
+        subreddit="alpha", listing="rising", time_window=None, limit=50
+    ) == "https://old.reddit.com/r/alpha/rising/?limit=50"
+    with pytest.raises(ValueError, match="between 1 and 100"):
+        build_grid_listing_url(subreddit="alpha", listing="top", time_window="week", limit=101)
+
+
+def test_projection_anomaly_predicate() -> None:
+    def record(rows: list[dict]) -> dict:
+        return {"grid_view": {"thread_rows": rows}}
+
+    assert grid_runner.check_grid_projection_anomaly(record([])) == "no_thread_rows"
+    assert (
+        grid_runner.check_grid_projection_anomaly(
+            record([{"timestamp_utc_ms_or_none": None}, {"timestamp_utc_ms_or_none": None}])
+        )
+        == "no_timestamps"
+    )
+    assert (
+        grid_runner.check_grid_projection_anomaly(
+            record([{"timestamp_utc_ms_or_none": "1784658368000"}, {"timestamp_utc_ms_or_none": None}])
+        )
+        is None
+    )
+
+
+def test_rotating_raw_sample_is_deterministic_within_a_week(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Content-mode multi-sub passes send exactly one rotating sub as raw; a
+    re-run in the same ISO week picks the same sub (resume-safe)."""
+    calls: list[dict[str, object]] = []
+
+    def fake_capture(**kwargs: object) -> tuple[int, str]:
+        calls.append(kwargs)
+        return 0, "packet"
+
+    monkeypatch.setattr(grid_runner, "run_source_capture_http_packet", fake_capture)
+    monkeypatch.setattr(grid_runner.time, "sleep", lambda _: None)
+
+    def run(root: Path) -> dict[str, str]:
+        calls.clear()
+        code, summary_path = run_reddit_grid_capture(
+            subreddits=["alpha", "beta", "gamma"],
+            listing="top",
+            time_window="week",
+            limit=100,
+            output_root=root,
+            decision_question="test",
+            delay_seconds=0,
+        )
+        assert code == 0
+        summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+        modes = {
+            call["url"]: call["content_extraction"].requested_retention_mode
+            for call in calls
+        }
+        return {"sample": summary["raw_sample_subreddit"], "modes": modes}
+
+    first = run(tmp_path / "one")
+    second = run(tmp_path / "two")
+    assert first["sample"] in {"alpha", "beta", "gamma"}
+    assert first["sample"] == second["sample"]
+    raw_modes = [mode for mode in first["modes"].values() if mode == "raw"]
+    assert len(raw_modes) == 1
+
+
+def test_single_sub_content_pass_keeps_no_rotating_sample(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[dict[str, object]] = []
+    monkeypatch.setattr(
+        grid_runner, "run_source_capture_http_packet",
+        lambda **kwargs: (calls.append(kwargs), (0, "packet"))[1],
+    )
+    monkeypatch.setattr(grid_runner.time, "sleep", lambda _: None)
+    code, summary_path = run_reddit_grid_capture(
+        subreddits=["alpha"],
+        listing="hot",
+        time_window=None,
+        output_root=tmp_path / "run",
+        decision_question="test",
+        delay_seconds=0,
+    )
+    assert code == 0
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    assert summary["raw_sample_subreddit"] is None
+    assert calls[0]["content_extraction"].requested_retention_mode == "content"
+
+
+def test_lake_refresh_stamps_top_week_surface(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A top/?t=week grid packet ledgers as old_reddit_top_week_packet so the
+    weekly consolidated pass stays distinguishable from a live grid pass."""
+    registry = _registry(tmp_path)
+    packet = _raw_grid_packet(
+        tmp_path,
+        monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+    )
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+
+    outcome = refresh_lake_registry_from_grid_packets(data_root=lake, packet_paths=[packet])
+    assert outcome.refreshed_subreddits == ["makeupaddiction"]
+    row = fold_subreddit(lake, "makeupaddiction")
+    (observation,) = row["observations"]
+    assert observation["source_surface"] == "old_reddit_top_week_packet"
+    assert row["capture_state"] == "grid_packets_recorded"
+
+
+# --------------------------------------------------------------------------
+# Weekly demand read (spec section E)
+# --------------------------------------------------------------------------
+
+WEEKLY_HTML = """
+<html><body>
+<div class="titlebox">
+  <div class="bottom"><span class="age">a community for
+    <time datetime="2015-03-03T19:26:01+00:00">11 years</time></span></div>
+</div>
+<div id="siteTable">
+  <div class="thing link stickied" data-permalink="/r/makeupaddiction/comments/st1/pinned/"
+       data-score="5" data-comments-count="80" data-timestamp="1751000000000">
+    <a class="title" href="/r/makeupaddiction/comments/st1/pinned/">Pinned megathread</a>
+  </div>
+  <div class="thing link" data-permalink="/r/makeupaddiction/comments/pr1/problem/"
+       data-score="10" data-comments-count="100" data-timestamp="1784600000000">
+    <a class="title" href="/r/makeupaddiction/comments/pr1/problem/">Nothing works, help</a>
+    <span class="linkflairlabel " title="Help">Help</span>
+  </div>
+  <div class="thing link" data-permalink="/r/makeupaddiction/comments/br1/broadcast/"
+       data-score="900" data-comments-count="40" data-timestamp="1784610000000">
+    <a class="title" href="/r/makeupaddiction/comments/br1/broadcast/">Look at my result</a>
+  </div>
+</div>
+</body></html>
+"""
+
+
+def _lake_grid_packet(
+    lake: DataLakeRoot,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    url: str,
+    html: str = WEEKLY_HTML,
+) -> None:
+    def fake_fetch(**_: object) -> DirectHttpCaptureSuccess:
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=200,
+            reason="OK",
+            metadata={
+                "capture_timestamp": "2026-07-17T05:00:00Z",
+                "requested_url": url,
+                "final_url": url,
+                "status": 200,
+            },
+            body=html.encode(),
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(http_packet_runner, "fetch_direct_http_capture", fake_fetch)
+    exit_code, _ = http_packet_runner.run_source_capture_http_packet(
+        url=url,
+        source_family="reddit_subreddit_grid",
+        source_surface="old_reddit_direct_http",
+        decision_question="test weekly packet",
+        output_directory=None,
+        data_root=lake,
+        capture_context="test",
+        operator_category="test_operator",
+        capture_mode=http_packet_runner.CaptureModeCategory.STRUCTURED_ACCESS,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=5,
+        max_bytes=1_000_000,
+    )
+    assert exit_code == 0
+
+
+def test_weekly_demand_read_gates_and_reports(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import run_weekly_demand_read
+
+    registry = _registry(tmp_path)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+    )
+    # A same-family hot packet must not enter the weekly read.
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/hot/",
+    )
+
+    payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
+
+    assert payload["subs_read"] == 1
+    assert payload["subs_missing_weekly_packet"] == []
+    (health,) = payload["sub_health"]
+    # Sticky excluded: totals cover the two live rows only.
+    assert health["posts"] == 2
+    assert health["weekly_score"] == 910
+    assert health["weekly_comments"] == 140
+    assert health["page1_score_floor"] == 10
+    assert health["created_utc_or_none"] == "2015-03-03T19:26:01+00:00"
+    assert payload["page_overflow_tripwire"] == []
+
+    # Gate: the 10-score/100-comment thread is a candidate; the 900-score
+    # broadcast and the stickied megathread are not.
+    (candidate,) = payload["candidates"]
+    assert candidate["title_or_none"] == "Nothing works, help"
+    assert candidate["flair_or_none"] == "Help"
+    assert candidate["density"] == 5.0
+    assert payload["candidates_found"] == 1
+
+
+def test_weekly_demand_read_tripwire_fires_on_high_floor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import run_weekly_demand_read
+
+    registry = _registry(tmp_path)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+    overflowing = WEEKLY_HTML.replace('data-score="10"', 'data-score="60"')
+    _lake_grid_packet(
+        lake, monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+        html=overflowing,
+    )
+    payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
+    assert payload["page_overflow_tripwire"] == ["makeupaddiction"]
