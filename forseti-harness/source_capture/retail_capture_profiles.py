@@ -104,8 +104,13 @@ def target_bestseller_grid_url(url: str) -> str:
 
 
 def _target_brand_visible_text_regex(slug: str) -> str:
+    # Separator-tolerant so ``e-l-f`` matches the rendered ``e.l.f.``, but token
+    # bounded for the reason ``_exact_identity_regex`` documents below: an
+    # unbounded short brand pattern is also satisfied by an unrelated word that
+    # merely contains it (``e-l-f`` inside ``bookshelf``).
     parts = [part for part in re.split(r"[-_]+", slug) if part]
-    return "(?i)" + r"[\s.\-_]*".join(re.escape(part) for part in parts)
+    joined = r"[\s.\-_]*".join(re.escape(part) for part in parts)
+    return rf"(?i)(?<![A-Za-z0-9]){joined}(?![A-Za-z0-9])"
 
 
 def _exact_identity_regex(product_id: str) -> str:

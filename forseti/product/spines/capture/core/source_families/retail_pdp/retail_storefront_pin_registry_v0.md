@@ -80,16 +80,33 @@ sidecar. Amazon search-grid capture remains raw-only and does not establish a
 complete brand denominator; Ulta's grid profile remains non-ordinary. Those two
 grid limits are capability gaps, not permission to infer absence or completion.
 
-Current Target catalog-grid proof is packet `01KY3ASRSQ35KPDPBWE0BS40S9` and
-automatic projection `01KY3ASRVNR18ZK2J10BYKZKRD` under the scratch v4.1 root
+The prior Target catalog-grid attempt is packet `01KY3ASRSQ35KPDPBWE0BS40S9`
+and automatic projection `01KY3ASRVNR18ZK2J10BYKZKRD` under the scratch v4.1 root
 `C:\tmp\forseti-target-elf-bestseller-v41-20260722-04`. The 2026-07-22
 humanized, no-VPN capture normalized the e.l.f. brand route to retailer-owned
 `bestselling` order, used 11 same-tab Next page loads, and reconciled the final
 visible count of 244 to 244 anchored placements, 236 unique TCIN parents, and
 eight duplicate placements. All page count observations
 (`244,247,244,244,244,241,241,241,244,241,244`) remain in the packet. The
-projection is complete with no residuals. No delivery ZIP was requested;
-fulfilment reflects the preserved source state (`52404`) and is not 10001 proof.
+historical projection was emitted as complete with no residuals, but later
+reconciliation hardening invalidated that success claim because the declared
+count changed during traversal; final-card field extraction also extended into
+trailing page content. The packet remains preserved failure evidence, not the
+current success proof. No delivery ZIP was requested; fulfilment reflects the
+preserved source state (`52404`) and is not 10001 proof.
+
+The 2026-07-22 hardening dogfood is packet `01KY4AVGYNBKFSQ0TVHMRN000G`
+and automatic projection `01KY4AVH0N6MJ0M5HZHH19CP2X` under
+`C:\tmp\forseti-target-elf-bestseller-hardening-v41-20260722-01`. The direct,
+no-VPN, humanized capture used 11 same-tab page loads and preserved 244
+placements, 233 unique TCIN parents, and 11 duplicate placements. Its declared
+count observations (`244,244,241,241,244,241,244,241,241,244,244`) changed
+during traversal, so the projection correctly remains incomplete with
+`target_grid_declared_count_changed_during_traversal:minimum=241:maximum=244`.
+All four raw bodies fresh-read through `DataLakeRoot` matched their recorded
+sizes and SHA-256 hashes. Structural card bounding also prevented each page's
+final product from inheriting trailing footer or merchandising-rail text. This
+is current preserved failure evidence, not a complete Target corpus proof.
 
 ## Non-claims
 

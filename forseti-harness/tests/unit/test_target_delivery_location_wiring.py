@@ -671,6 +671,78 @@ def test_target_grid_runner_writes_sanitized_content_and_local_projection(
     }
 
 
+def _fake_failed_target_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
+    plugin = kwargs["pre_capture"]
+    assert isinstance(plugin, TargetSearchGridPlugin)
+    pages = [_target_grid_dom([("10000001", "First"), ("10000002", "Second")])]
+    plugin._setup_completed = True
+    plugin._grid_page_doms = pages
+    plugin._grid_page_urls = [
+        "https://www.target.com/s?searchTerm=lip+mask&sortBy=bestselling"
+        "&moveTo=product-list-grid"
+    ]
+    plugin._grid_observation = {
+        "target_grid_page_load_count": 1,
+        "target_grid_declared_result_count": 4,
+        "target_grid_extracted_unique_parent_count": 2,
+        "target_grid_extracted_placement_count": 2,
+        "target_grid_duplicate_placement_count": 0,
+        "target_grid_termination": "unproven",
+        "target_grid_failure": "Target main listing pager ended before reconciliation",
+    }
+    confirmation = plugin.confirm(pages[-1])
+    return CloakBrowserSnapshotSuccess(
+        requested_url=kwargs["url"],
+        final_url=plugin._grid_page_urls[-1],
+        title='"lip mask" : Target',
+        rendered_dom=pages[-1],
+        visible_text="lip mask 4 results $10.99",
+        screenshot_png=b"\x89PNG\r\n\x1a\n",
+        metadata={
+            "capture_timestamp": "2026-07-22T00:00:00Z",
+            "pin_confirmed": confirmation.confirmed,
+            "before_snapshot_attempted": True,
+            "before_snapshot_steps_completed": False,
+            "before_snapshot_reason": "next_page_control_unavailable",
+            **plugin.describe(),
+        },
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+
+def test_failed_target_grid_traversal_keeps_raw_and_ships_no_content_record(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer,
+        "fetch_cloakbrowser_snapshot_capture",
+        _fake_failed_target_grid_capture,
+    )
+
+    exit_code, message = _run_writer(
+        tmp_path,
+        url="https://www.target.com/s?searchTerm=lip%20mask",
+        retail_capture_profile=get_retail_capture_profile("target_grid_aggregate"),
+        retail_grid_projection_output=tmp_path / "target-grid.json",
+    )
+
+    assert exit_code != 0
+    assert "retail_grid_completeness_failed" in message
+    packet_path = tmp_path / "packet"
+    preserved = {
+        item["relative_packet_path"]
+        for item in json.loads((packet_path / "manifest.json").read_text())[
+            "preserved_files"
+        ]
+    }
+    assert not any(path.endswith("content_record.json") for path in preserved)
+    assert any(
+        path.endswith("cloakbrowser_rendered_dom.html") for path in preserved
+    )
+    assert any(path.endswith("cloakbrowser_visible_text.txt") for path in preserved)
+
+
 def test_target_grid_runner_files_projection_into_test_lake(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
