@@ -59,7 +59,7 @@ TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
 TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION = (
-    "tiktok_creator_market_assessment_v1"
+    "tiktok_creator_market_assessment_v2"
 )
 TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION = "tiktok_profile_metric_capture_v0"
 TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS = (
@@ -1093,7 +1093,7 @@ def _run_suggested_grid_and_selection_phase(
             decision=state.market_assessment["decision"],
             reason_code_or_none=state.market_assessment["reason_code_or_none"],
         )
-        if state.market_assessment["decision"] != "supported_us_market":
+        if state.market_assessment["decision"] != "passed_no_non_us_evidence":
             raise TikTokCreatorMarketDeferred(state.market_assessment)
 
     state.stage = "collect_grid"
@@ -3622,21 +3622,6 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_bytes(json_dumps_sanitized(payload))
 
 
-_US_MARKET_BIO_CUES: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("united_states", re.compile(r"\bunited\s+states\b", re.IGNORECASE)),
-    ("usa", re.compile(r"\bu\.?s\.?a\.?\b", re.IGNORECASE)),
-    ("nyc", re.compile(r"\bnyc\b", re.IGNORECASE)),
-    ("new_york", re.compile(r"\bnew\s+york(?:\s+city)?\b", re.IGNORECASE)),
-    ("los_angeles", re.compile(r"\blos\s+angeles\b", re.IGNORECASE)),
-    ("dallas", re.compile(r"\bdallas\b", re.IGNORECASE)),
-    ("miami", re.compile(r"\bmiami\b", re.IGNORECASE)),
-    ("chicago", re.compile(r"\bchicago\b", re.IGNORECASE)),
-    ("houston", re.compile(r"\bhouston\b", re.IGNORECASE)),
-    ("atlanta", re.compile(r"\batlanta\b", re.IGNORECASE)),
-    ("boston", re.compile(r"\bboston\b", re.IGNORECASE)),
-    ("seattle", re.compile(r"\bseattle\b", re.IGNORECASE)),
-    ("san_francisco", re.compile(r"\bsan\s+francisco\b", re.IGNORECASE)),
-)
 _REGIONAL_INDICATOR_PAIR = re.compile(
     r"[\U0001F1E6-\U0001F1FF]{2}"
 )
@@ -3668,24 +3653,16 @@ def assess_tiktok_creator_market(
             for flag in _REGIONAL_INDICATOR_PAIR.findall(bio)
         }
     )
-    us_location_cues = [
-        cue_name for cue_name, pattern in _US_MARKET_BIO_CUES if pattern.search(bio)
-    ]
-    us_supported = "US" in flag_codes or bool(us_location_cues)
     non_us_flag_codes = [code for code in flag_codes if code != "US"]
 
-    if us_supported and not non_us_flag_codes:
-        decision = "supported_us_market"
-        reason_code = None
-        reconsideration = None
-    elif non_us_flag_codes and not us_supported:
+    if non_us_flag_codes:
         decision = "deferred_non_us_market"
         reason_code = "non_us_market"
         reconsideration = "new_signal"
     else:
-        decision = "deferred_us_market_unverified"
-        reason_code = "us_market_unverified"
-        reconsideration = "new_signal"
+        decision = "passed_no_non_us_evidence"
+        reason_code = None
+        reconsideration = None
 
     return {
         "schema_version": TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION,
@@ -3698,12 +3675,12 @@ def assess_tiktok_creator_market(
             "source_route": "tiktok_profile_bio_dom_same_read",
             "profile_bio_status": profile_bio_status,
             "country_flag_codes": flag_codes,
-            "us_location_cues": us_location_cues,
         },
         "non_claims": [
             "not proof of creator residence",
             "not audience-geography evidence",
-            "English language alone is not US-market evidence",
+            "no affirmative non-US flag evidence is not proof of a US market",
+            "profile language is not geographic evidence",
             "TikTok app-context region is not creator evidence",
         ],
     }

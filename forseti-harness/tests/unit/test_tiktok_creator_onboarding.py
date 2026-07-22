@@ -286,19 +286,20 @@ def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: 
 
 
 @pytest.mark.parametrize(
-    ("bio", "decision", "reason", "flags", "cues"),
+    ("bio", "decision", "reason", "flags"),
     [
         (
             "Addicted to scents 🇹🇷",
             "deferred_non_us_market",
             "non_us_market",
             ["TR"],
-            [],
         ),
-        ("NYC fragrance reviews", "supported_us_market", None, [], ["nyc"]),
-        ("Dallas - Perfume - Beauty", "supported_us_market", None, [], ["dallas"]),
-        ("Fragrance reviews in English", "deferred_us_market_unverified", "us_market_unverified", [], []),
-        ("NYC 🇹🇷", "deferred_us_market_unverified", "us_market_unverified", ["TR"], ["nyc"]),
+        ("NYC fragrance reviews", "passed_no_non_us_evidence", None, []),
+        ("Dallas - Perfume - Beauty", "passed_no_non_us_evidence", None, []),
+        ("Fragrance reviews in English", "passed_no_non_us_evidence", None, []),
+        ("", "passed_no_non_us_evidence", None, []),
+        ("NYC 🇹🇷", "deferred_non_us_market", "non_us_market", ["TR"]),
+        ("Fragrance reviews 🇺🇸", "passed_no_non_us_evidence", None, ["US"]),
     ],
 )
 def test_market_assessment_uses_only_explicit_profile_bio_evidence(
@@ -306,7 +307,6 @@ def test_market_assessment_uses_only_explicit_profile_bio_evidence(
     decision: str,
     reason: str | None,
     flags: list[str],
-    cues: list[str],
 ) -> None:
     result = assess_tiktok_creator_market(
         creator_handle="Creator",
@@ -317,7 +317,7 @@ def test_market_assessment_uses_only_explicit_profile_bio_evidence(
     assert result["decision"] == decision
     assert result["reason_code_or_none"] == reason
     assert result["evidence"]["country_flag_codes"] == flags
-    assert result["evidence"]["us_location_cues"] == cues
+    assert "us_location_cues" not in result["evidence"]
 
 
 def test_runner_builds_inspectable_market_defer_action() -> None:
@@ -1007,6 +1007,48 @@ def test_market_gate_defers_after_same_read_and_before_grid_capture(
     assert receipt["market_assessment_or_none"]["evidence"][
         "country_flag_codes"
     ] == ["TR"]
+
+
+def test_market_gate_reaches_grid_without_affirmative_us_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state_path = tmp_path / "state.json"
+    state_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        onboarding,
+        "validate_auth_state_provenance_requirement",
+        lambda *_args, **_kwargs: state_path,
+    )
+    suggested = _capture(suggested=[])
+    suggested.dom_observation.update(
+        {
+            "profile_bio_text_or_none": "Fragrance reviews in English",
+            "profile_bio_element_detected": True,
+        }
+    )
+    engine = _FakeEngine([suggested, _suggested_surface_closed_capture()])
+    progress_events: list[tuple[str, dict[str, object]]] = []
+
+    def reached_grid(**_kwargs: object) -> object:
+        raise RuntimeError("grid capture reached")
+
+    monkeypatch.setattr(onboarding, "capture_tiktok_creator_grid", reached_grid)
+
+    with pytest.raises(RuntimeError, match="grid capture reached"):
+        _run_onboarding(
+            tmp_path,
+            engine,
+            enforce_us_market_gate=True,
+            progress_fn=lambda event, fields: progress_events.append((event, fields)),
+        )
+
+    assert [event for event, _fields in progress_events] == [
+        "collect_suggested_accounts",
+        "close_suggested_surface",
+        "market_gate",
+        "collect_grid",
+    ]
 
 
 def test_onboarding_writes_selection_before_same_engine_deep_capture(
@@ -2083,7 +2125,7 @@ def test_onboarding_cli_enforces_market_gate_for_new_capture(
         {
             "code": "CANDIDATE_MARKET_DEFERRED",
             "phase": "market_gate",
-            "recovery": "reconsider only after new affirmative US-market evidence",
+            "recovery": "reconsider after the explicit non-US profile signal changes",
         },
         sort_keys=True,
     ) in capsys.readouterr().out.splitlines()
