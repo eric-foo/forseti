@@ -44,6 +44,20 @@ from source_capture.packet_inspection import read_packet_leniently
 from source_capture.source_quality import resolve_manifest_path
 
 GRID_SOURCE_FAMILY = "reddit_subreddit_grid"
+# The committed registry is frozen at the stage-3 writer cut-over; the superseded
+# Git-mutating refresh below refuses to touch it.
+FROZEN_COMMITTED_REGISTRY_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "reddit"
+    / "reddit_subreddit_registry_v0.json"
+)
 GRID_OBSERVATION_SOURCE_SURFACE = "old_reddit_grid_packet"
 
 
@@ -99,8 +113,15 @@ def refresh_registry_from_grid_packets(
     Registry authority moved to the lake, and the checked-in JSON is frozen
     for rollback and audit.  This Git-mutating path is retained only as the
     two-speed-rule oracle its tests exercise, and is removed in the same later
-    work unit that removes the frozen file.
+    work unit that removes the frozen file.  Pointing it at the frozen committed
+    registry fails closed rather than relying on a docstring to be read.
     """
+    if registry_path.resolve() == FROZEN_COMMITTED_REGISTRY_PATH:
+        raise RegistryRefreshError(
+            "frozen_registry_write_refused",
+            "the committed registry is frozen for rollback and audit; grid evidence "
+            "goes to lake authority via refresh_lake_registry_from_grid_packets",
+        )
     if not packet_paths:
         raise RegistryRefreshError("no_packets", "at least one grid packet path is required")
 

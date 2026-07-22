@@ -12,6 +12,7 @@ from data_lake.reddit_subreddit_registry import (
     NICHE_PATHS,
     REDDIT_OBSERVATION_LANE,
     REDDIT_ROSTER_CHANGE_LANE,
+    STATUS_VALUES,
     VENUE_ROLES,
     RedditSubredditRegistryLakeError,
     append_grid_observation,
@@ -464,3 +465,111 @@ def test_live_committed_registry_folds_with_exact_parity(lake: DataLakeRoot) -> 
         for row in document["reddit_subreddit_registry"]["subreddits"]
     )
     assert result["observations_total"] == legacy_observations
+
+
+# --------------------------------------------------------------------------
+# Delegated review findings RSR-01..RSR-04
+# --------------------------------------------------------------------------
+
+
+def test_rsr01_first_update_chains_to_the_add_genesis(lake: DataLakeRoot) -> None:
+    """The chain is self-anchoring: it roots at the add, not at an implicit None."""
+    added = append_roster_change(lake, subreddit="newsub", change_kind="add", actor="operator")
+    first = append_roster_change(
+        lake, subreddit="newsub", changes={"venue_roles": ["hub"]}, actor="operator"
+    )
+    assert first["predecessor_record_id"] == added["record_id"]
+    assert fold_subreddit(lake, "newsub")["venue_roles"] == ["hub"]
+
+
+def test_rsr01_baseline_genesis_chain_still_roots_at_none(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    """A migrated subreddit has no roster genesis record, so its root stays None."""
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    first = append_roster_change(
+        lake, subreddit="alpha", changes={"venue_roles": ["deal"]}, actor="operator"
+    )
+    assert first["predecessor_record_id"] is None
+    assert fold_subreddit(lake, "alpha")["venue_roles"] == ["deal"]
+
+
+def test_rsr02_same_pointer_different_values_fails_closed(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    """The writer must not be laxer than the fold that has to reconcile it."""
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    pointer = "F:/lake/raw/ggg/manifest.json"
+    _observe(lake, "alpha", pointer=pointer, observed_at="2026-07-17", subscribers="100")
+
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        _observe(lake, "alpha", pointer=pointer, observed_at="2026-07-17", subscribers="999")
+    assert excinfo.value.code == "observation_provenance_conflict"
+    assert len(fold_subreddit(lake, "alpha")["observations"]) == 1
+
+
+def test_rsr02_exact_replay_is_still_idempotent(lake: DataLakeRoot, tmp_path: Path) -> None:
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    pointer = "F:/lake/raw/hhh/manifest.json"
+    kwargs = dict(pointer=pointer, observed_at="2026-07-17", subscribers="100")
+    _observe(lake, "alpha", **kwargs)
+    replay = _observe(lake, "alpha", **kwargs)
+    assert replay["status"] == "already_current" and replay["written"] is False
+
+
+@pytest.mark.parametrize("bad_status", ["banana", "ACTIVE", "deleted", ""])
+def test_rsr03_invalid_status_fails_closed(lake: DataLakeRoot, bad_status: str) -> None:
+    append_roster_change(lake, subreddit="newsub", change_kind="add", actor="operator")
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        append_roster_change(
+            lake, subreddit="newsub", changes={"status": bad_status}, actor="operator"
+        )
+    assert excinfo.value.code == "status_unknown"
+
+
+def test_rsr03_spec_status_values_are_accepted(lake: DataLakeRoot) -> None:
+    spec = REGISTRY_SPEC.read_text(encoding="utf-8")
+    block = spec.split("Identity and liveness")[1].split("`status_observed_at`")[0]
+    assert set(re.findall(r"`([a-z]+)`", block)) >= set(STATUS_VALUES)
+    append_roster_change(lake, subreddit="newsub", change_kind="add", actor="operator")
+    for value in sorted(STATUS_VALUES):
+        append_roster_change(
+            lake, subreddit="newsub", changes={"status": value}, actor="operator"
+        )
+    assert fold_subreddit(lake, "newsub")["status"] in STATUS_VALUES
+
+
+def test_rsr03_url_is_derived_and_not_roster_writable(lake: DataLakeRoot) -> None:
+    """URL follows subreddit identity; letting a roster change override it drifts identity."""
+    append_roster_change(lake, subreddit="newsub", change_kind="add", actor="operator")
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        append_roster_change(
+            lake,
+            subreddit="newsub",
+            changes={"url": "https://www.reddit.com/r/somewhere_else/"},
+            actor="operator",
+        )
+    assert excinfo.value.code == "roster_field_forbidden"
+    assert fold_subreddit(lake, "newsub")["url"] == "https://www.reddit.com/r/newsub/"
+
+
+def test_rsr04_superseded_writer_refuses_the_frozen_registry(tmp_path: Path) -> None:
+    """A docstring is not a guard: the Git-mutating path must fail closed."""
+    from capture_spine.reddit_subreddit_grid.materializer import (
+        FROZEN_COMMITTED_REGISTRY_PATH,
+        RegistryRefreshError,
+        refresh_registry_from_grid_packets,
+    )
+
+    assert FROZEN_COMMITTED_REGISTRY_PATH.is_file(), "guard must point at the real committed file"
+    frozen_before = FROZEN_COMMITTED_REGISTRY_PATH.read_bytes()
+    with pytest.raises(RegistryRefreshError) as excinfo:
+        refresh_registry_from_grid_packets(
+            registry_path=FROZEN_COMMITTED_REGISTRY_PATH,
+            packet_paths=[tmp_path / "irrelevant"],
+        )
+    assert excinfo.value.code == "frozen_registry_write_refused"
+    assert FROZEN_COMMITTED_REGISTRY_PATH.read_bytes() == frozen_before

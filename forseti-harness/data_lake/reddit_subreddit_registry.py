@@ -68,6 +68,7 @@ VENUE_ROLES = frozenset(
     }
 )
 DISCOVERY_STATES = frozenset({"known_subreddit", "candidate_new_subreddit"})
+STATUS_VALUES = frozenset({"active", "unverified", "private", "banned", "quarantined"})
 CAPTURE_STATE_RANK = {
     "no_packet_recorded": 0,
     "grid_packets_recorded": 1,
@@ -79,7 +80,6 @@ CAPTURE_STATE_RANK = {
 # to the observation record and are refused here.
 ROSTER_CHANGE_FIELDS = frozenset(
     {
-        "url",
         "created_utc_or_none",
         "title_or_none",
         "public_description_or_none",
@@ -238,6 +238,10 @@ def _validate_field_values(field: str, value: Any) -> Any:
         raise RedditSubredditRegistryLakeError(
             "discovery_state_unknown", f"discovery_state is not a contract value: {value!r}"
         )
+    if field == "status" and value not in STATUS_VALUES:
+        raise RedditSubredditRegistryLakeError(
+            "status_unknown", f"status is not a contract value: {value!r}"
+        )
     if field == "capture_state" and value not in CAPTURE_STATE_RANK:
         raise RedditSubredditRegistryLakeError(
             "capture_state_unknown", f"capture_state is not a contract value: {value!r}"
@@ -325,11 +329,24 @@ def _genesis_row(data_root: DataLakeRoot, subreddit: str) -> tuple[dict[str, Any
     )
 
 
+def _chain_root_id(records: list[dict[str, Any]]) -> str | None:
+    """The id every chain hangs from: the ``add`` genesis, or ``None``.
+
+    A baseline-migrated subreddit has no roster genesis record, so its chain
+    roots at ``None``.  An ``add`` genesis roots at its own record id, which
+    keeps the chain self-anchoring rather than sharing an implicit root with
+    the baseline case.
+    """
+    adds = [record for record in records if record.get("change_kind") == "add"]
+    return adds[0]["record_id"] if adds else None
+
+
 def _ordered_roster_chain(subreddit: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Order roster deltas by their predecessor chain; ambiguity fails closed."""
     deltas = [record for record in records if record.get("change_kind") != "add"]
     if not deltas:
         return []
+    root = _chain_root_id(records)
     by_predecessor: dict[str | None, list[dict[str, Any]]] = {}
     for record in deltas:
         by_predecessor.setdefault(record.get("predecessor_record_id"), []).append(record)
@@ -342,7 +359,7 @@ def _ordered_roster_chain(subreddit: str, records: list[dict[str, Any]]) -> list
             )
     known = {record["record_id"] for record in records}
     chain: list[dict[str, Any]] = []
-    cursor: str | None = None
+    cursor: str | None = root
     seen: set[str | None] = set()
     while cursor in by_predecessor:
         if cursor in seen:
@@ -513,6 +530,16 @@ def append_grid_observation(
     }
     for existing in row.get("observations", []):
         if existing.get("provenance_pointer") == provenance_pointer:
+            # Same rule as the fold: an exact replay is idempotent, but the same
+            # packet yielding different values is a conflict, not a duplicate.
+            # Returning already_current here would silently drop the new values
+            # and leave the writer laxer than the reader that has to fold them.
+            if existing != observation:
+                raise RedditSubredditRegistryLakeError(
+                    "observation_provenance_conflict",
+                    f"provenance pointer {provenance_pointer} is already recorded for "
+                    f"{key} with different values",
+                )
             return {
                 "subreddit": key,
                 "status": "already_current",
@@ -593,7 +620,7 @@ def append_roster_change(
                 "genesis_missing", f"{key}: no genesis record; add the subreddit before updating it"
             )
         chain = _ordered_roster_chain(key, existing)
-        predecessor = chain[-1]["record_id"] if chain else None
+        predecessor = chain[-1]["record_id"] if chain else _chain_root_id(existing)
 
     changed_at = utc_now_z()
     basis = {
