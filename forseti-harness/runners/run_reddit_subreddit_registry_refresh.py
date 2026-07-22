@@ -70,7 +70,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         unexpected_status=2,
     ):
         data_root = (
-            DataLakeRoot.resolve(args.data_root)
+            # resolve() is keyword-only; positional raised TypeError and made
+            # --data-root unusable (same defect #1299 fixed in the lake runner).
+            DataLakeRoot.resolve(explicit=args.data_root)
             if args.data_root is not None
             else DataLakeRoot.resolve()
         )
