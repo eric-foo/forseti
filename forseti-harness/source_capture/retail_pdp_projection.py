@@ -25,8 +25,8 @@ RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
 RETAIL_PDP_PROJECTION_VERSION = "v1"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 SEPHORA_PDP_CONTENT_RECORD_KIND = "retail_pdp_sephora_aggregate_content"
-SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v3"
-SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v3"
+SEPHORA_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_sephora_aggregate_content_v4"
+SEPHORA_PDP_PARSER_VERSION = "retail_pdp_sephora_aggregate_parser_v4"
 SEPHORA_PDP_CONTENT_PROFILE = "sephora_pdp_aggregate"
 LUCKYSCENT_PDP_CONTENT_RECORD_KIND = "retail_pdp_luckyscent_aggregate_content"
 LUCKYSCENT_PDP_CONTENT_SCHEMA_VERSION = "retail_pdp_luckyscent_aggregate_content_v1"
@@ -430,6 +430,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         "retail_pdp_sephora_aggregate_content_v1",
         "retail_pdp_sephora_aggregate_content_v2",
         "retail_pdp_sephora_aggregate_content_v3",
+        "retail_pdp_sephora_aggregate_content_v4",
     ] = (
         SEPHORA_PDP_CONTENT_SCHEMA_VERSION
     )
@@ -437,6 +438,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
         "retail_pdp_sephora_aggregate_parser_v1",
         "retail_pdp_sephora_aggregate_parser_v2",
         "retail_pdp_sephora_aggregate_parser_v3",
+        "retail_pdp_sephora_aggregate_parser_v4",
     ] = (
         SEPHORA_PDP_PARSER_VERSION
     )
@@ -453,6 +455,7 @@ class SephoraPdpAggregateContentRecord(StrictModel):
             "retail_pdp_sephora_aggregate_content_v1": "retail_pdp_sephora_aggregate_parser_v1",
             "retail_pdp_sephora_aggregate_content_v2": "retail_pdp_sephora_aggregate_parser_v2",
             "retail_pdp_sephora_aggregate_content_v3": "retail_pdp_sephora_aggregate_parser_v3",
+            "retail_pdp_sephora_aggregate_content_v4": "retail_pdp_sephora_aggregate_parser_v4",
         }
         if expected_pair[self.schema_version] != self.parser_version:
             raise ValueError("Sephora content schema and parser versions must match")
@@ -1826,6 +1829,8 @@ def _validate_sephora_content_packet_metadata(
         metadata_is_current = False
     if expected_parser_version not in {
         "retail_pdp_sephora_aggregate_parser_v1",
+        "retail_pdp_sephora_aggregate_parser_v2",
+        "retail_pdp_sephora_aggregate_parser_v3",
         SEPHORA_PDP_PARSER_VERSION,
     }:
         raise ValueError("Sephora content packet parser version is unknown")

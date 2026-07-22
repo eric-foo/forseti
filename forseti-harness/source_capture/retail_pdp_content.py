@@ -103,10 +103,11 @@ def load_retail_pdp_content_record(
         )
         if metadata.get("extractor_version") != record.parser_version:
             raise ValueError("Retail/PDP extractor version does not match content record")
-        # Nordstrom and Amazon both retain explicitly modelled historical
-        # parser revisions. Amazon v1 packets remain append-only readable after
-        # v2 fixes class-list module inventory without changing schema shape.
+        # These profiles retain explicitly modelled historical parser
+        # revisions. Sephora v3 remains append-only readable after v4 repairs
+        # absent-field compaction semantics without changing schema shape.
         if record.parser_version != expected_version and profile not in {
+            SEPHORA_PDP_CONTENT_PROFILE,
             NORDSTROM_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
             TARGET_PDP_CONTENT_PROFILE,

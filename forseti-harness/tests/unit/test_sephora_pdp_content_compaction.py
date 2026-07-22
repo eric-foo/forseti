@@ -93,7 +93,7 @@ def _row(record: dict, *, kind: str | None = None, structured: str | None = None
     )
 
 
-def test_sephora_v3_deduplicates_without_losing_source_fields() -> None:
+def test_sephora_v4_deduplicates_without_losing_source_fields() -> None:
     record = build_sephora_pdp_aggregate_content_record(
         rendered_dom=_synthetic_sephora_html(),
         visible_text=b"Lip Sleeping Mask\nBerry\n$24.00\nFive stars.",
@@ -149,7 +149,7 @@ def test_sephora_v3_deduplicates_without_losing_source_fields() -> None:
 
 
 @pytest.mark.parametrize("absent_field", ["regularChildSkus", "reviewImages"])
-def test_sephora_v3_preserves_absent_canonical_field_semantics(
+def test_sephora_v4_preserves_absent_canonical_field_semantics(
     absent_field: str,
 ) -> None:
     product = _synthetic_product()
