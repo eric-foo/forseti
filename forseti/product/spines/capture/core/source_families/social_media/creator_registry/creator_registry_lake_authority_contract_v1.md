@@ -12,6 +12,7 @@ use_when:
   - Adding a newly validated creator without a data-only pull request.
   - Recording or inspecting a TikTok Creator Frontier disposition.
   - Candidate-admitting a grid-identified TikTok account before onboarding.
+  - Inspecting or working the TikTok creator-audience onboarding queue.
   - Reading monitoring-eligible accounts or a client-safe creator profile.
   - Migrating or rebuilding Creator Registry state.
 open_next:
@@ -35,6 +36,9 @@ derived/.../creator_frontier_disposition/<record-id>       Frontier authority, a
 derived/.../creator_registry_baseline/<record-id>          Registry authority, one migration
 derived/.../creator_registry_candidate_admission/<record-id> Registry authority, append-only
 derived/.../creator_registry_account_admission/<record-id> Registry authority, append-only
+derived/.../creator_audience_onboarding_job/<record-id>    Audience work authority, append-only
+derived/.../creator_audience_onboarding_claim/<record-id>  Recoverable work lease, append-only
+derived/.../creator_audience_onboarding_terminal/<record-id> Terminal work state, append-only
 derived/.../creator_audience_judgment_outcome/<record-id>  Judgment authority
 
 indexes/derived_retrieval/creator_registry/
@@ -70,11 +74,25 @@ The allowed action vocabulary is:
 
 - `status`: `eligible`, `deferred`, or `rejected`;
 - `priority`: `super`, `high`, `normal`, or `low`, required only for `eligible`;
-- `reason_code`: `non_us_market`, `low_reach`, `low_potential`,
+- `reason_code`: `non_us_market`, `us_market_unverified`, `low_reach`, `low_potential`,
   `duplicate_or_backup`, `profile_unavailable`, `self_brand_only`,
   `owner_choice`, or `other`; `other` requires a note; and
 - `reconsideration`: `owner_reopen` or `new_signal`, required only for
   `deferred`.
+
+For `new_capture` and full `new_onboarding`, the runner applies the owner's
+standing US-market rule to the profile bio already captured with the suggested
+surface, closes that surface, and stops before grid acquisition when the result
+is deferred. An explicit non-US country flag records `non_us_market`. In the
+absence of an explicit non-US flag, processing continues; that pass means only
+that the profile did not disprove the standing market constraint, not that the
+creator or audience is proven US-market and not that the candidate is
+`eligible`. Profile language and TikTok `webapp.app-context.region` are never
+creator-market evidence. Historic `us_market_unverified` dispositions remain
+valid operational records but the gate no longer emits that reason. A defer is
+written through the existing append-only owner-action mechanism with
+`reconsideration=new_signal` and can be superseded when the profile signal
+changes.
 
 The writer validates the complete batch before creating a packet or derived
 record. An exact semantic replay is `already_current`; a changed action
@@ -138,6 +156,48 @@ Judgment validation, when the coordinator appends the validated admission,
 publishes one complete generation, and freshly reads back exactly one internal
 account and one public profile.
 
+## Creator-audience onboarding queue
+
+The TikTok capture runner prepares the existing audience evidence bundle and
+cold-context prompt after a successful new-onboarding capture, then enqueues the
+exact bytes in the lake. The content-derived `bundle_hash` is the idempotency
+key. An exact enqueue replay is already current; different bytes for the same
+bundle hash fail closed.
+
+Queue state is folded from the three append-only lanes above. Jobs are
+`queued`, `running` under one 30-minute recoverable lease, or terminal
+`succeeded` / `blocked`. Expired leases return to effective `queued` state.
+Non-contiguous claims, conflicting ownership, multiple terminal heads, or a
+terminal outside its named active lease fail closed. No generated `CURRENT`
+projection is authoritative for this queue.
+
+The capture producer counts queued plus active-running jobs and refuses new
+browser work when the count reaches 10; it resumes below 10. Automatic Registry
+selection also excludes every account with queued or active-running audience
+work, so an unfinished account is not captured again. This v1 assumes the
+single existing onboarding capture producer; it does not introduce a generic
+scheduler or distributed capacity reservation.
+
+The coordinator is the operational front door:
+
+```text
+run_tiktok_creator_onboarding_coordinator.py prepare ... --enqueue
+run_tiktok_creator_onboarding_coordinator.py queue-enqueue ...
+run_tiktok_creator_onboarding_coordinator.py queue-show ...
+run_tiktok_creator_onboarding_coordinator.py queue-claim ...
+run_tiktok_creator_onboarding_coordinator.py queue-submit ...
+run_tiktok_creator_onboarding_coordinator.py queue-block ...
+```
+
+A controller follows `.agents/skills/creator-audience-triangulation/SKILL.md`,
+claims one job, and gives a cold worker only the exact emitted prompt. The
+repository does not launch or host a model worker. Invalid Judgment output
+returns `status=correction_required`, `judgment_status=blocked`, and
+`queue_state=running`; it is not a terminal queue block. The same leased context
+may receive the returned validation defects and resubmit. Explicit `queue-block` is terminal. Success
+still requires the exact validated snapshot/outcome pair and upgrades the same
+Registry `not_onboarded` account; queue state alone never completes onboarding.
+
 ## Consumers
 
 `creator_registry_index_v1` is the internal exact-match and operational view. It
@@ -152,7 +212,8 @@ onboarded -> monitoring eligible
 monitoring eligible != scheduled
 ```
 
-No cadence, queue, or scheduler is created by this contract.
+No monitoring cadence or monitoring scheduler is created by this contract. The
+creator-audience queue above transports only already-prepared onboarding work.
 
 `creator_profile_public_v1` is an allowlisted, future-delivery-ready full profile:
 public platform accounts, metric rollups, audience triangulation, freshness,
@@ -209,6 +270,6 @@ onboarding PR requires semantic parity and exact-once readback through this path
 - The current hardcoded `eddeparfum` owner disposition remains a temporary
   compatibility fallback until a later live migration removes it.
 - This contract creates no database, general event framework, scheduler, or
-  standing timing system.
+  model-execution daemon.
 - Not buyer proof, contact authorization, legal-name identity proof, or guaranteed
   campaign performance.

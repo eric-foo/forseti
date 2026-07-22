@@ -58,6 +58,9 @@ TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
+TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION = (
+    "tiktok_creator_market_assessment_v2"
+)
 TIKTOK_PROFILE_METRIC_CAPTURE_POLICY_VERSION = "tiktok_profile_metric_capture_v0"
 TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS = (
     "playCount",
@@ -608,6 +611,17 @@ class TikTokCreatorOnboardingError(RuntimeError):
     """Raised when supervised onboarding cannot produce trustworthy completion."""
 
 
+class TikTokCreatorMarketDeferred(TikTokCreatorOnboardingError):
+    """Raised after the same-read profile market gate records a reversible defer."""
+
+    def __init__(self, assessment: dict[str, Any]) -> None:
+        self.assessment = assessment
+        super().__init__(
+            "TikTok creator market gate deferred capture: "
+            f"reason_code={assessment['reason_code_or_none']}"
+        )
+
+
 @dataclass(frozen=True)
 class TikTokCreatorOnboardingOutputPaths:
     suggested_accounts_json_path: Path
@@ -655,6 +669,7 @@ def run_tiktok_creator_onboarding(
     sleep_fn: SleepFn = time.sleep,
     monotonic_fn: MonotonicFn = time.monotonic,
     utc_now_fn: UtcNowFn = _utc_now,
+    enforce_us_market_gate: bool = False,
 ) -> TikTokCreatorOnboardingOutputPaths:
     """Run suggested -> grid -> select -> deep-capture in one browser context."""
 
@@ -712,6 +727,7 @@ def run_tiktok_creator_onboarding(
             run_started_monotonic=run_started_monotonic,
             monotonic_fn=monotonic_fn,
             utc_now_fn=utc_now_fn,
+            enforce_us_market_gate=enforce_us_market_gate,
         )
         _run_grid_overlay_deep_capture_phase(
             state,
@@ -752,6 +768,10 @@ def run_tiktok_creator_onboarding(
         )
         state.stage = "close"
         _notify_progress(progress_fn, state.stage, completed_count=state.completed_count)
+    except TikTokCreatorMarketDeferred:
+        state.status = "deferred"
+        state.error = None
+        raise
     except Exception as exc:
         state.status = "failed"
         state.error = f"{type(exc).__name__}: {exc}"
@@ -933,6 +953,7 @@ class _OnboardingRunState:
     window_by_id: dict[str, Any] | None = None
     captured_video_ids: list[str] | None = None
     deep_capture: dict[str, Any] | None = None
+    market_assessment: dict[str, Any] | None = None
 
 
 def _validate_onboarding_inputs(
@@ -1017,6 +1038,7 @@ def _run_suggested_grid_and_selection_phase(
     run_started_monotonic: float,
     monotonic_fn: MonotonicFn,
     utc_now_fn: UtcNowFn,
+    enforce_us_market_gate: bool,
 ) -> None:
     state.stage = "collect_suggested_accounts"
     _notify_progress(progress_fn, state.stage)
@@ -1039,6 +1061,17 @@ def _run_suggested_grid_and_selection_phase(
     if state.suggested_status == "failed":
         raise TikTokCreatorOnboardingError("suggested-account observation failed")
 
+    if enforce_us_market_gate:
+        state.market_assessment = assess_tiktok_creator_market(
+            creator_handle=creator_handle,
+            profile_bio_text_or_none=suggested_receipt.get(
+                "profile_bio_text_or_none"
+            ),
+            profile_bio_status=str(
+                suggested_receipt.get("profile_bio_status") or ""
+            ),
+        )
+
     state.stage = "close_suggested_surface"
     _notify_progress(progress_fn, state.stage)
     state.suggested_surface_close = _close_suggested_surface_before_grid(
@@ -1051,6 +1084,17 @@ def _run_suggested_grid_and_selection_phase(
         settle_seconds=settle_seconds,
         engine=engine,
     )
+
+    if state.market_assessment is not None:
+        state.stage = "market_gate"
+        _notify_progress(
+            progress_fn,
+            state.stage,
+            decision=state.market_assessment["decision"],
+            reason_code_or_none=state.market_assessment["reason_code_or_none"],
+        )
+        if state.market_assessment["decision"] != "passed_no_non_us_evidence":
+            raise TikTokCreatorMarketDeferred(state.market_assessment)
 
     state.stage = "collect_grid"
     _notify_progress(progress_fn, state.stage)
@@ -1571,6 +1615,7 @@ def _build_onboarding_receipt(
         "earliest_public_post_observation_or_none": (
             state.earliest_public_post_observation
         ),
+        "market_assessment_or_none": state.market_assessment,
         "phase_chronology": state.phase_chronology,
         "artifacts_written": state.artifacts_written,
         "browser_lifecycle": (
@@ -3577,6 +3622,70 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_bytes(json_dumps_sanitized(payload))
 
 
+_REGIONAL_INDICATOR_PAIR = re.compile(
+    r"[\U0001F1E6-\U0001F1FF]{2}"
+)
+
+
+def assess_tiktok_creator_market(
+    *,
+    creator_handle: str,
+    profile_bio_text_or_none: object,
+    profile_bio_status: str,
+) -> dict[str, Any]:
+    """Classify only explicit, same-read profile-bio market evidence.
+
+    The function deliberately ignores TikTok's generic app-context ``region``:
+    historical captures show that value identifies the viewing session, not the
+    creator. English-language text is likewise not geographic evidence.
+    """
+
+    normalized_handle = _normalize_handle(creator_handle)
+    bio = (
+        profile_bio_text_or_none.strip()
+        if isinstance(profile_bio_text_or_none, str)
+        and profile_bio_text_or_none.strip()
+        else ""
+    )
+    flag_codes = sorted(
+        {
+            "".join(chr(ord(char) - 0x1F1E6 + ord("A")) for char in flag)
+            for flag in _REGIONAL_INDICATOR_PAIR.findall(bio)
+        }
+    )
+    non_us_flag_codes = [code for code in flag_codes if code != "US"]
+
+    if non_us_flag_codes:
+        decision = "deferred_non_us_market"
+        reason_code = "non_us_market"
+        reconsideration = "new_signal"
+    else:
+        decision = "passed_no_non_us_evidence"
+        reason_code = None
+        reconsideration = None
+
+    return {
+        "schema_version": TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION,
+        "creator_handle": normalized_handle,
+        "decision": decision,
+        "reason_code_or_none": reason_code,
+        "reconsideration_or_none": reconsideration,
+        "evidence": {
+            "source_artifact": TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME,
+            "source_route": "tiktok_profile_bio_dom_same_read",
+            "profile_bio_status": profile_bio_status,
+            "country_flag_codes": flag_codes,
+        },
+        "non_claims": [
+            "not proof of creator residence",
+            "not audience-geography evidence",
+            "no affirmative non-US flag evidence is not proof of a US market",
+            "profile language is not geographic evidence",
+            "TikTok app-context region is not creator evidence",
+        ],
+    }
+
+
 def _normalize_handle(handle: str) -> str:
     normalized = handle.strip().lstrip("@")
     if not normalized or "/" in normalized or "\\" in normalized:
@@ -3595,6 +3704,9 @@ __all__ = [
     "TIKTOK_ONBOARDING_RECEIPT_JSON_NAME",
     "TIKTOK_ONBOARDING_SELECTION_JSON_NAME",
     "TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME",
+    "TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION",
+    "TikTokCreatorMarketDeferred",
+    "assess_tiktok_creator_market",
     "TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS",
     "TikTokCreatorOnboardingError",
     "TikTokCreatorOnboardingOutputPaths",

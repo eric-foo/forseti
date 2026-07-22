@@ -607,7 +607,10 @@ $16.00
         requirements=requirements,
         access_block_reason=None,
         visible_text=tower28_visible_text,
-        rendered_dom="<html><body>ordinary grid markup</body></html>",
+        rendered_dom=(
+            "<html><script>ue_sn = 'www.amazon.com'</script>"
+            "<body>ordinary grid markup</body></html>"
+        ),
     )
     assert result.passed is True
 
@@ -734,7 +737,6 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
 @pytest.mark.parametrize(
     ("profile_name", "pin_field", "pin_value"),
     (
-        ("amazon_grid_aggregate", "delivery_zip", "10001"),
         ("amazon_pdp_aggregate", "delivery_zip", "10001"),
         ("sephora_grid_aggregate", "sephora_market", "US"),
         ("sephora_pdp_aggregate", "sephora_market", "US"),
@@ -768,7 +770,33 @@ def test_target_catalog_grid_does_not_require_a_requested_delivery_zip() -> None
     )
 
 
-def test_target_grid_projection_output_is_local_only_and_amazon_cannot_fake_one(
+def test_amazon_grid_allows_us_marketplace_only_or_the_bound_optional_zip() -> None:
+    profile = get_retail_capture_profile("amazon_grid_aggregate")
+    cloakbrowser_runner._validate_retail_baseline_profile_request(
+        retail_capture_profile=profile,
+        delivery_zip=None,
+        sephora_market=None,
+        ulta_market=None,
+        target_zip=None,
+    )
+    cloakbrowser_runner._validate_retail_baseline_profile_request(
+        retail_capture_profile=profile,
+        delivery_zip="10001",
+        sephora_market=None,
+        ulta_market=None,
+        target_zip=None,
+    )
+    with pytest.raises(ValueError, match="either no delivery ZIP"):
+        cloakbrowser_runner._validate_retail_baseline_profile_request(
+            retail_capture_profile=profile,
+            delivery_zip="90210",
+            sephora_market=None,
+            ulta_market=None,
+            target_zip=None,
+        )
+
+
+def test_admitted_grid_projection_output_is_required_locally_and_automatic_in_lake_mode(
     tmp_path: Path,
 ) -> None:
     target = get_retail_capture_profile("target_grid_aggregate")
@@ -791,11 +819,21 @@ def test_target_grid_projection_output_is_local_only_and_amazon_cannot_fake_one(
             retail_grid_projection_output=tmp_path / "target-grid.json",
             data_root_mode=True,
         )
-    with pytest.raises(ValueError, match="Sephora, Target, or Ulta"):
+    amazon = get_retail_capture_profile("amazon_grid_aggregate")
+    with pytest.raises(ValueError, match="amazon_grid_aggregate requires"):
         cloakbrowser_runner._validate_retail_grid_projection_request(
-            retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),
-            retail_grid_projection_output=tmp_path / "amazon-grid.json",
+            retail_capture_profile=amazon,
+            retail_grid_projection_output=None,
         )
+    cloakbrowser_runner._validate_retail_grid_projection_request(
+        retail_capture_profile=amazon,
+        retail_grid_projection_output=tmp_path / "amazon-grid.json",
+    )
+    cloakbrowser_runner._validate_retail_grid_projection_request(
+        retail_capture_profile=amazon,
+        retail_grid_projection_output=None,
+        data_root_mode=True,
+    )
 
 
 def test_profile_requirements_merge_with_explicit_requirements_without_weakening_either() -> None:

@@ -24,6 +24,12 @@ from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
 )
 from data_lake.canonical_json import canonical_record_bytes
+from data_lake.creator_audience_queue import (
+    CreatorAudienceQueueError,
+    assert_creator_audience_capacity,
+    enqueue_creator_audience_job,
+    unfinished_profile_subject_ids,
+)
 from data_lake.creator_registry import load_current_registry_preflight_view
 from data_lake.root import DataLakeRoot
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
@@ -34,6 +40,7 @@ from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
     load_creator_frontier_dispositions,
     load_tiktok_creator_discovery_frontier_registers,
+    write_creator_frontier_dispositions,
 )
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
@@ -61,11 +68,13 @@ from source_capture.tiktok.creator_onboarding import (
     GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+    TikTokCreatorMarketDeferred,
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
     run_tiktok_creator_profile_refresh,
 )
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
+from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
 PROGRESS_PREFIX = "tiktok_creator_onboarding_progress_json="
 BLOCKER_PREFIX = "tiktok_creator_onboarding_blocker_json="
@@ -85,10 +94,18 @@ PROFILE_REFRESH_DECISION_QUESTION = (
     "Admit the current TikTok profile bio, exact profile metrics, and grid identifiers."
 )
 CDP_RECOVERY = "launch Desktop shortcut Forseti TikTok Capture and retry"
+DEFAULT_AUDIENCE_QUESTION = (
+    "What is this creator's ideal audience and commercial fit based only on "
+    "the admitted evidence?"
+)
 
 
 class CdpSessionUnavailable(TikTokCreatorOnboardingError):
     """Raised when the dedicated local TikTok CDP endpoint is not reachable."""
+
+
+class AudienceQueueCapacityReached(TikTokCreatorOnboardingError):
+    """Raised before browser work when creator-audience WIP is at its cap."""
 
 
 def _onboarding_window_size(value: str) -> int:
@@ -219,6 +236,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     frontier_registers: list[dict[str, object]] = []
     frontier_dispositions: dict[str, object] | None = None
     frontier_queue: dict[str, object] | None = None
+    pending_audience_subject_ids: set[str] = set()
+    audience_queue_result: dict[str, object] | None = None
     try:
         if args.promotion_only and args.promotion_grid_dir is None:
             raise ValueError("--promotion-only requires --promotion-grid-dir")
@@ -227,6 +246,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             registry_document = load_current_registry_preflight_view(data_root)
             frontier_registers = load_tiktok_creator_discovery_frontier_registers(data_root)
             frontier_dispositions = load_creator_frontier_dispositions(data_root)
+            pending_audience_subject_ids = unfinished_profile_subject_ids(data_root)
             registry_source_pointer = (
                 "indexes/derived_retrieval/creator_registry/CURRENT"
             )
@@ -253,6 +273,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             creator_intent=args.creator_intent,
             registry_document=registry_document,
             frontier_dispositions=frontier_dispositions,
+            pending_profile_subject_ids=pending_audience_subject_ids,
         )
         if selected_candidate is not None:
             _emit_progress("creator_selected_from_registry", selected_candidate)
@@ -284,6 +305,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "new_onboarding requires onboarding_state=not_onboarded; "
                     f"found onboarding_state={onboarding_state!r}"
                 )
+            if pending_audience_subject_ids:
+                matched = preflight_result.get("matched_registry_profiles")
+                if not isinstance(matched, list) or len(matched) != 1:
+                    raise TikTokCreatorOnboardingError(
+                        "new_onboarding requires one exact Registry profile match"
+                    )
+                matched_subject = (
+                    matched[0].get("profile_subject_id")
+                    if isinstance(matched[0], dict)
+                    else None
+                )
+                if matched_subject in pending_audience_subject_ids:
+                    raise TikTokCreatorOnboardingError(
+                        "creator already has a queued or running audience onboarding job"
+                    )
             disposition = _frontier_disposition_for_handle(
                 frontier_dispositions, args.creator_handle
             )
@@ -319,6 +355,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                     ],
                 },
             )
+        if data_root is not None and args.creator_intent == "new_onboarding":
+            try:
+                queue_counts = assert_creator_audience_capacity(data_root)
+            except CreatorAudienceQueueError as exc:
+                if str(exc).startswith("AUDIENCE_QUEUE_CAPACITY_REACHED:"):
+                    raise AudienceQueueCapacityReached(str(exc)) from exc
+                raise
+            _emit_progress("audience_queue_capacity_available", queue_counts)
         auth_state_root = args.auth_state_root or default_session_profile_auth_state_root()
         _emit_progress("registry_preflight_complete", {"status": "allowed"})
         session_profile = resolve_session_profile(
@@ -367,13 +411,62 @@ def main(argv: Sequence[str] | None = None) -> int:
                 cadence_window_seconds=args.cadence_window_seconds,
                 random_seed=args.random_seed,
                 progress_fn=_emit_progress,
+                enforce_us_market_gate=(
+                    args.creator_intent in {"new_capture", "new_onboarding"}
+                ),
             )
+    except TikTokCreatorMarketDeferred as exc:
+        assessment = exc.assessment
+        if data_root is not None:
+            try:
+                result = write_creator_frontier_dispositions(
+                    data_root=data_root,
+                    actions=[
+                        _market_defer_action(
+                            creator_handle=args.creator_handle,
+                            assessment=assessment,
+                        )
+                    ],
+                )
+            except Exception as write_exc:
+                _emit_blocker("MARKET_DEFER_WRITE_FAILED", "market_gate")
+                parser.exit(
+                    status=3,
+                    message=(
+                        "source capture tiktok market defer write failed: "
+                        f"{type(write_exc).__name__}: {write_exc}\n"
+                    ),
+                )
+                return 3
+            _emit_progress(
+                "market_defer_recorded",
+                {
+                    "creator_handle": args.creator_handle.strip().lstrip("@").lower(),
+                    "reason_code": assessment["reason_code_or_none"],
+                    "write_status": result["status"],
+                    "raw_anchor_or_none": result.get("raw_anchor"),
+                    "record_id_or_none": result.get("record_id"),
+                },
+            )
+        _emit_blocker(
+            "CANDIDATE_MARKET_DEFERRED",
+            "market_gate",
+            recovery="reconsider after the explicit non-US profile signal changes",
+        )
+        parser.exit(status=2, message=f"{exc}\n")
+        return 2
     except (OSError, ValueError, TikTokCreatorOnboardingError) as exc:
         if isinstance(exc, CdpSessionUnavailable):
             _emit_blocker(
                 "CDP_SESSION_UNAVAILABLE",
                 "browser_preflight",
                 recovery=CDP_RECOVERY,
+            )
+        elif isinstance(exc, AudienceQueueCapacityReached):
+            _emit_blocker(
+                "AUDIENCE_QUEUE_CAPACITY_REACHED",
+                "browser_preflight",
+                recovery="finish or explicitly block an audience queue job, then retry",
             )
         elif str(exc) == "account_safety_stop":
             _emit_blocker("ACCOUNT_SAFETY_STOP", "deep_capture")
@@ -493,6 +586,55 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
                 return 3
 
+        if data_root is not None and args.creator_intent == "new_onboarding":
+            try:
+                grid_packet_id = Path(str(admitted_path)).name
+                content_packet_id = (
+                    str(prior_coverage["packet_id"])
+                    if capture_scope == "profile_refresh" and prior_coverage is not None
+                    else grid_packet_id
+                )
+                prepared = prepare_onboarding(
+                    data_root=data_root,
+                    packet_id=content_packet_id,
+                    grid_packet_id=(
+                        grid_packet_id if grid_packet_id != content_packet_id else None
+                    ),
+                    creator_id=None,
+                    profile_subject_id=None,
+                    question=DEFAULT_AUDIENCE_QUESTION,
+                    evidence_cutoff=_packet_capture_time(data_root, grid_packet_id),
+                    work_dir=(
+                        args.output_dir
+                        / "creator_audience_queue"
+                        / content_packet_id
+                    ),
+                )
+                audience_queue_result = enqueue_creator_audience_job(
+                    data_root=data_root,
+                    bundle_path=Path(str(prepared["bundle_out"])),
+                    prompt_path=Path(str(prepared["prompt_out"])),
+                )
+                _emit_progress("audience_job_enqueued", audience_queue_result)
+            except Exception as exc:
+                _emit_blocker(
+                    "AUDIENCE_QUEUE_ENQUEUE_FAILED",
+                    "post_capture_audience_handoff",
+                    recovery=(
+                        "reuse the admitted packet with the TikTok onboarding "
+                        "coordinator prepare --enqueue command; do not recapture"
+                    ),
+                )
+                parser.exit(
+                    status=3,
+                    message=(
+                        "source capture tiktok audience queue enqueue failed; "
+                        "capture remains reusable: "
+                        f"{type(exc).__name__}: {exc}\n"
+                    ),
+                )
+                return 3
+
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     browser_lifecycle = receipt.get("browser_lifecycle")
     if not isinstance(browser_lifecycle, dict):
@@ -556,6 +698,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ),
                 "suggested_frontier_path_or_none": frontier_path,
                 "suggested_frontier_queue_or_none": frontier_queue,
+                "audience_queue_job_or_none": audience_queue_result,
                 "registry_projection_refresh_or_none": registry_projection_refresh,
             },
             sort_keys=True,
@@ -571,6 +714,7 @@ def _resolve_creator_handle(
     registry_document: dict[str, object] | None = None,
     registry_path: Path | None = None,
     frontier_dispositions: dict[str, object] | None = None,
+    pending_profile_subject_ids: set[str] | None = None,
 ) -> tuple[str, dict[str, str] | None]:
     if creator_handle is not None and creator_handle.strip():
         return creator_handle, None
@@ -583,6 +727,7 @@ def _resolve_creator_handle(
             raise ValueError("registry_document or registry_path is required")
         registry_document = load_creator_profile_current_view(registry_path)
     candidates = eligible_creator_onboarding_candidates(registry_document, platform="tiktok")
+    pending = pending_profile_subject_ids or set()
     candidates = [
         candidate
         for candidate in candidates
@@ -590,6 +735,7 @@ def _resolve_creator_handle(
             (_frontier_disposition_for_handle(frontier_dispositions, candidate["public_handle"]) or {}).get("status")
             not in {"deferred", "rejected"}
         )
+        and candidate["platform_account_id"] not in pending
     ]
     if not candidates:
         raise ValueError("Creator Registry has no actionable not_onboarded tiktok account")
@@ -674,6 +820,38 @@ def _emit_blocker(code: str, phase: str, *, recovery: str | None = None) -> None
     )
 
 
+def _market_defer_action(
+    *, creator_handle: str, assessment: dict[str, object]
+) -> dict[str, object]:
+    reason_code = assessment.get("reason_code_or_none")
+    reconsideration = assessment.get("reconsideration_or_none")
+    evidence = assessment.get("evidence")
+    country_flag_codes = (
+        evidence.get("country_flag_codes") if isinstance(evidence, dict) else None
+    )
+    if (
+        reason_code != "non_us_market"
+        or reconsideration != "new_signal"
+        or not isinstance(evidence, dict)
+        or not isinstance(country_flag_codes, list)
+        or any(not isinstance(value, str) for value in country_flag_codes)
+    ):
+        raise ValueError("market defer assessment is not a canonical deferred decision")
+    note = (
+        "standing owner US-market gate applied to same-read TikTok profile bio; "
+        f"bio_status={evidence.get('profile_bio_status')}; "
+        f"non_us_country_flags={','.join(code for code in country_flag_codes if code != 'US') or 'none'}"
+    )
+    return {
+        "platform": "tiktok",
+        "handle": creator_handle,
+        "status": "deferred",
+        "reason_code": reason_code,
+        "note": note,
+        "reconsideration": reconsideration,
+    }
+
+
 def _validate_reusable_prior_capture(
     *,
     prior_capture_pointer: str,
@@ -717,6 +895,16 @@ def _validate_reusable_prior_capture(
         "nonblank_top_level_comment_count": captured_comment_count,
         "nonblank_transcript_cue_count": subtitle_cue_count,
     }
+
+
+def _packet_capture_time(data_root: DataLakeRoot, packet_id: str) -> str:
+    manifest = data_root.load_raw_packet(packet_id).manifest
+    timing = manifest.get("timing")
+    capture_time = timing.get("capture_time") if isinstance(timing, dict) else None
+    value = capture_time.get("value") if isinstance(capture_time, dict) else None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"packet has no exact capture timestamp: {packet_id}")
+    return value.strip()
 
 
 def _write_creator_registry_preflight(

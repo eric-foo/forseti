@@ -69,6 +69,34 @@ def test_disposition_replay_is_idempotent_and_change_supersedes_current(tmp_path
     assert len(current["history"]) == 2
 
 
+def test_unverified_us_market_defer_is_valid_and_idempotent(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    action = {
+        "platform": "tiktok",
+        "handle": "unknown.market",
+        "status": "deferred",
+        "reason_code": "us_market_unverified",
+        "note": "same-read bio had no affirmative US-market cue",
+        "reconsideration": "new_signal",
+    }
+
+    first = write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[action],
+        recorded_at="2026-07-22T01:00:00Z",
+    )
+    replay = write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[action],
+        recorded_at="2026-07-22T02:00:00Z",
+    )
+
+    row = first["current"]["creator_frontier_disposition_current"]["dispositions"][0]
+    assert row["reason_code"] == "us_market_unverified"
+    assert replay["status"] == "already_current"
+    assert replay["written"] == 0
+
+
 def test_invalid_batch_fails_before_any_packet_write(tmp_path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
 
@@ -148,3 +176,31 @@ def test_registry_cli_writes_and_shows_frontier_state(tmp_path, capsys) -> None:
     row = shown["creator_frontier_disposition_current"]["dispositions"][0]
     assert row["candidate_key"] == "tiktok:@scent.creator"
     assert row["status"] == "eligible"
+
+
+def test_registry_cli_accepts_unverified_us_market_reason(tmp_path, capsys) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    assert registry_main(
+        [
+            "frontier-disposition",
+            "--data-root",
+            str(root.path),
+            "--handle",
+            "unknown.market",
+            "--status",
+            "deferred",
+            "--reason-code",
+            "us_market_unverified",
+            "--reconsideration",
+            "new_signal",
+            "--recorded-at",
+            "2026-07-22T01:00:00Z",
+        ]
+    ) == 0
+    written = json.loads(capsys.readouterr().out)
+
+    row = written["current"]["creator_frontier_disposition_current"][
+        "dispositions"
+    ][0]
+    assert row["reason_code"] == "us_market_unverified"

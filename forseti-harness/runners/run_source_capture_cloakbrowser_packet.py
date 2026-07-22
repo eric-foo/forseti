@@ -31,7 +31,10 @@ if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
 
 from source_capture.adapters import CloakBrowserSnapshotFailure, fetch_cloakbrowser_snapshot_capture
-from source_capture.adapters.amazon_delivery_location import AmazonDeliveryLocationPlugin
+from source_capture.adapters.amazon_delivery_location import (
+    AmazonDeliveryLocationPlugin,
+    AmazonSearchGridPlugin,
+)
 from source_capture.adapters.cloakbrowser_snapshot import (
     ALLOWED_WAIT_UNTIL,
     DEFAULT_MAX_ARTIFACT_BYTES,
@@ -75,10 +78,20 @@ from source_capture.retail_capture_profiles import (
     validate_retail_capture_profile_route,
 )
 from source_capture.retail_grid_projection import (
+    AMAZON_GRID_CONTENT_RECORD_VERSION,
     TARGET_GRID_CONTENT_RECORD_VERSION,
+    build_amazon_grid_aggregate_content_record,
     build_target_grid_aggregate_content_record,
     project_retail_grid_into_lake,
     write_retail_grid_projection,
+)
+from source_capture.sephora_brand_grid import (
+    SEPHORA_GRID_CONTENT_RECORD_VERSION,
+    build_sephora_brand_grid_content_record,
+)
+from source_capture.ulta_brand_grid import (
+    ULTA_GRID_CONTENT_RECORD_VERSION,
+    build_ulta_brand_grid_content_record,
 )
 from source_capture.retail_pdp_content import (
     AMAZON_PDP_CONTENT_PROFILE,
@@ -162,6 +175,7 @@ _AMAZON_CONTENT_DELIVERY_ZIP = "10001"
 _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 TARGET_GRID_CONTENT_PROFILE = "target_grid_aggregate"
+AMAZON_GRID_CONTENT_PROFILE = "amazon_grid_aggregate"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
@@ -169,6 +183,7 @@ RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
 _RETAIL_GRID_PROJECTION_PROFILES = frozenset(
     {
         "sephora_grid_aggregate",
+        "amazon_grid_aggregate",
         "target_grid_aggregate",
         "ulta_grid_aggregate",
     }
@@ -216,6 +231,7 @@ def run_source_capture_cloakbrowser_packet(
     scroll_target_selector: str | None = None,
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
+    amazon_grid_page_count: int = 2,
     nordstrom_country: str | None = None,
     nordstrom_country_setup_timeout_seconds: float = 45.0,
     nordstrom_review_posture: str | None = None,
@@ -287,6 +303,9 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _sephora_content_extraction_spec("content")
+        if retail_capture_profile.name == "sephora_grid_aggregate":
+            if content_extraction is None:
+                content_extraction = _sephora_grid_content_extraction_spec()
         if retail_capture_profile.name == LUCKYSCENT_PDP_CONTENT_PROFILE:
             if luckyscent_market != "US":
                 raise ValueError(
@@ -309,6 +328,9 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _ulta_content_extraction_spec("content")
+        if retail_capture_profile.name == "ulta_grid_aggregate":
+            if content_extraction is None:
+                content_extraction = _ulta_grid_content_extraction_spec()
         if retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE:
             if target_zip is None:
                 raise ValueError(
@@ -388,7 +410,31 @@ def run_source_capture_cloakbrowser_packet(
             "--delivery-zip, --nordstrom-country, --luckyscent-market, or "
             "--sephora-market, --ulta-market, or --target-zip"
         )
-    if delivery_zip is not None:
+    if (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == AMAZON_GRID_CONTENT_PROFILE
+    ):
+        _validate_amazon_delivery_zip_url(url)
+        pre_capture = AmazonSearchGridPlugin(
+            target_url=url,
+            page_count=amazon_grid_page_count,
+            delivery_zip=delivery_zip,
+            setup_timeout_seconds=delivery_zip_setup_timeout_seconds,
+            traversal_timeout_seconds=timeout_seconds,
+        )
+        content_extraction = RenderedContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version=AMAZON_GRID_CONTENT_RECORD_VERSION,
+            extractor=lambda _rendered_dom, _visible_text, _final_url: (
+                build_amazon_grid_aggregate_content_record(
+                    rendered_pages=pre_capture.grid_page_doms,
+                    requested_url=url,
+                    page_urls=pre_capture.grid_page_urls,
+                    traversal_observation=pre_capture.grid_observation,
+                )
+            ),
+        )
+    elif delivery_zip is not None:
         _validate_amazon_delivery_zip_url(url)
         pre_capture = AmazonDeliveryLocationPlugin(
             delivery_zip=delivery_zip,
@@ -415,6 +461,11 @@ def run_source_capture_cloakbrowser_packet(
                 else "pdp"
             ),
         )
+        if (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "sephora_grid_aggregate"
+        ):
+            content_extraction = _sephora_grid_content_extraction_spec()
     elif ulta_market is not None:
         ulta_page_kind = (
             "grid"
@@ -429,6 +480,8 @@ def run_source_capture_cloakbrowser_packet(
             country_code=ulta_market,
             page_kind=ulta_page_kind,
         )
+        if ulta_page_kind == "grid":
+            content_extraction = _ulta_grid_content_extraction_spec()
     elif (
         retail_capture_profile is not None
         and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
@@ -769,14 +822,15 @@ def run_source_capture_cloakbrowser_packet(
     # admission failure like any other: preserve the raw inputs for diagnosis
     # instead of shipping a canonical-content-shaped record inside a packet that
     # MUST NOT be admitted.
-    target_grid_traversal_failed = (
+    grid_traversal_failed = (
         retail_capture_profile is not None
-        and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
+        and retail_capture_profile.name
+        in {TARGET_GRID_CONTENT_PROFILE, AMAZON_GRID_CONTENT_PROFILE}
         and capture_result.metadata.get("before_snapshot_steps_completed") is not True
     )
     retention_admission_failed = (
         capture_result.access_block_reason is not None
-        or target_grid_traversal_failed
+        or grid_traversal_failed
         or sephora_pin_failure is not None
         or nordstrom_pin_failure is not None
         or nordstrom_review_posture_failure is not None
@@ -1178,6 +1232,13 @@ def _validate_retail_baseline_profile_request(
         )
     if retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE:
         return
+    if retail_capture_profile.name == AMAZON_GRID_CONTENT_PROFILE:
+        if delivery_zip not in {None, _AMAZON_CONTENT_DELIVERY_ZIP}:
+            raise ValueError(
+                "amazon_grid_aggregate accepts either no delivery ZIP or "
+                f"--delivery-zip {_AMAZON_CONTENT_DELIVERY_ZIP}"
+            )
+        return
     required_pin = {
         "amazon": (delivery_zip, "10001", "--delivery-zip 10001"),
         "sephora": (sephora_market, "US", "--sephora-market US"),
@@ -1222,7 +1283,7 @@ def _validate_retail_grid_projection_request(
     elif retail_grid_projection_output is not None:
         raise ValueError(
             "--retail-grid-projection-output currently requires an admitted "
-            "Sephora, Target, or Ulta grid profile"
+            "Amazon, Sephora, Target, or Ulta grid profile"
         )
 
 
@@ -1255,6 +1316,20 @@ def _sephora_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
                 source_url=final_url,
+            )
+        ),
+    )
+
+
+def _sephora_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=SEPHORA_GRID_CONTENT_RECORD_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_sephora_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
             )
         ),
     )
@@ -1447,6 +1522,20 @@ def _ulta_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
                 rendered_dom=rendered_dom,
                 visible_text=visible_text,
                 source_url=final_url,
+            )
+        ),
+    )
+
+
+def _ulta_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=ULTA_GRID_CONTENT_RECORD_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_ulta_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
             )
         ),
     )
@@ -1810,7 +1899,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required in local --output mode for admitted Sephora, Target, and Ulta "
+            "Required in local --output mode for admitted Amazon, Sephora, Target, and Ulta "
             "aggregate grids. Forbidden in --data-root mode, where the hash-verified, "
             "view-only projection is filed automatically."
         ),
@@ -1918,6 +2007,16 @@ def _build_parser() -> argparse.ArgumentParser:
             "Bounds the pre-capture delivery-location widget flow (homepage navigation + "
             "widget steps) SEPARATELY from the main capture --timeout-seconds. Default 30.0. "
             "Only used when --delivery-zip is set."
+        ),
+    )
+    parser.add_argument(
+        "--amazon-grid-page-count",
+        type=int,
+        default=2,
+        help=(
+            "Consecutive ranked Amazon search-result pages to capture with "
+            "amazon_grid_aggregate. Default 2. The projection certifies this requested "
+            "window, or an earlier retailer-visible terminal page, never the marketplace corpus."
         ),
     )
     parser.add_argument(
@@ -2095,6 +2194,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             TARGET_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
             TARGET_GRID_CONTENT_PROFILE,
+            "sephora_grid_aggregate",
+            "ulta_grid_aggregate",
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -2160,12 +2261,39 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         elif (
             retail_capture_profile is not None
+            and retail_capture_profile.name == "sephora_grid_aggregate"
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "sephora_grid_aggregate requires compact content retention"
+                )
+            content_extraction = _sephora_grid_content_extraction_spec()
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "ulta_grid_aggregate"
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "ulta_grid_aggregate requires compact content retention"
+                )
+            content_extraction = _ulta_grid_content_extraction_spec()
+        elif (
+            retail_capture_profile is not None
             and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
         ):
             if args.retention_mode not in {None, "content"}:
                 raise ValueError(
                     "target_grid_aggregate requires content retention because Target "
                     "embeds ephemeral guest-session material in rendered scripts"
+                )
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == AMAZON_GRID_CONTENT_PROFILE
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "amazon_grid_aggregate requires content retention for its "
+                    "multi-page ranked-window record"
                 )
         elif (
             retail_capture_profile is not None
@@ -2381,6 +2509,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             scroll_target_selector=scroll_target_selector,
             delivery_zip=args.delivery_zip,
             delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
+            amazon_grid_page_count=args.amazon_grid_page_count,
             nordstrom_country=args.nordstrom_country,
             nordstrom_country_setup_timeout_seconds=(
                 args.nordstrom_country_setup_timeout_seconds

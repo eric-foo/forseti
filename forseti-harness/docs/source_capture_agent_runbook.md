@@ -159,6 +159,15 @@ browser phase. Use `new_capture` only for explicit discovery/capture work on an
 identity absent from the registry, and use `update_existing` only for recapture,
 supplement provenance, or an existing-creator regression.
 
+`new_capture` and full `new_onboarding` apply the standing owner US-market gate
+to the bio returned by the existing suggested/profile observation. The runner
+closes that surface and, for an explicit non-US country flag, appends the
+corresponding Frontier defer when `--data-root` is supplied and stops before
+grid acquisition. This adds no browser read. With no explicit non-US flag the
+runner continues; that is not proof of a US creator or audience and is not an
+eligibility decision. Do not infer geography from profile language or TikTok
+`webapp.app-context.region`.
+
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
 - `free_account_created_session`

@@ -154,6 +154,18 @@
       "a2_fork_impact": "none",
       "call": "append_record",
       "count": 3,
+      "module": "data_lake/creator_audience_queue.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 3,
+      "module": "data_lake/creator_audience_queue.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 3,
       "module": "data_lake/creator_registry.py"
     },
     {
@@ -323,6 +335,12 @@
       "call": "record_path",
       "count": 3,
       "module": "runners/run_tiktok_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_tiktok_creator_onboarding_coordinator.py"
     },
     {
       "a2_fork_impact": "none",

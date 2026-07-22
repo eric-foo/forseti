@@ -42,6 +42,7 @@ _DISPOSITION_STATUSES = {"eligible", "deferred", "rejected"}
 _DISPOSITION_PRIORITIES = {"super", "high", "normal", "low"}
 _DISPOSITION_REASONS = {
     "non_us_market",
+    "us_market_unverified",
     "low_reach",
     "low_potential",
     "duplicate_or_backup",

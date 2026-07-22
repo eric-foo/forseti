@@ -14,7 +14,10 @@ from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
 from source_capture.projection_shared import is_forbidden_field_token_match
-from source_capture.retail_capture_profiles import extract_target_grid_subject_from_url
+from source_capture.retail_capture_profiles import (
+    extract_amazon_search_query_from_url,
+    extract_target_grid_subject_from_url,
+)
 from source_capture.retail_pdp_projection import RetailProjectionRawAnchor, RetailProjectionRawRef
 from source_capture.sephora_brand_grid import (
     SephoraBrandGridState,
@@ -34,8 +37,9 @@ TARGET_GRID_CONTENT_RECORD_VERSION = "target_grid_content_v2"
 _SUPPORTED_TARGET_GRID_CONTENT_RECORD_VERSIONS = frozenset(
     {"target_grid_content_v1", TARGET_GRID_CONTENT_RECORD_VERSION}
 )
+AMAZON_GRID_CONTENT_RECORD_VERSION = "amazon_grid_content_v1"
 
-RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta"]
+RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta", "amazon"]
 
 _FORBIDDEN_FIELD_TOKENS = frozenset(
     {
@@ -62,6 +66,16 @@ _NEXT_DATA_RE = re.compile(
 _TARGET_CARD_RE = re.compile(
     r"<div[^>]*\bdata-focusid=[\"'](?P<product_id>\d+)_product_card[\"'][^>]*>",
     flags=re.IGNORECASE,
+)
+_AMAZON_CARD_RE = re.compile(
+    r"<div\b(?=[^>]*\bdata-component-type=[\"']s-search-result[\"'])"
+    r"(?=[^>]*\bdata-asin=[\"'](?P<asin>[A-Z0-9]{10})[\"'])[^>]*>",
+    flags=re.IGNORECASE,
+)
+_AMAZON_US_MARKETPLACE_MARKERS = (
+    "ue_sn = 'www.amazon.com'",
+    "retail:prod:www.amazon.com",
+    "assoc_handle=usflex",
 )
 _SCRIPT_OR_STYLE_RE = re.compile(
     r"<(?P<tag>script|style)\b[^>]*>.*?</(?P=tag)\s*>",
@@ -128,6 +142,8 @@ class RetailGridCompletenessReconciliation(StrictModel):
     termination: Literal[
         "retailer_serialized_count_reconciled",
         "retailer_visible_count_reconciled",
+        "requested_page_window_reconciled",
+        "retailer_terminal_reconciled",
         "unproven",
         "not_evaluated",
     ]
@@ -361,6 +377,107 @@ def build_target_grid_aggregate_content_record(
     }
 
 
+def build_amazon_grid_aggregate_content_record(
+    *,
+    rendered_pages: tuple[str, ...],
+    requested_url: str,
+    page_urls: tuple[str, ...],
+    traversal_observation: Mapping[str, object],
+) -> dict[str, object]:
+    """Extract a token-free Amazon ranked-search window content record."""
+    if not rendered_pages:
+        raise RetailGridProjectionInputError(
+            "Amazon grid content extraction requires at least one rendered page"
+        )
+    if len(rendered_pages) != len(page_urls):
+        raise RetailGridProjectionInputError(
+            "Amazon grid rendered page and URL counts must match"
+        )
+    requested_query = extract_amazon_search_query_from_url(requested_url)
+    pages: list[dict[str, object]] = []
+    residuals: list[str] = []
+    observed_queries: list[str] = []
+    range_observations: list[dict[str, int]] = []
+    observed_delivery_zips: list[str] = []
+    for page_number, (rendered_dom, page_url) in enumerate(
+        zip(rendered_pages, page_urls, strict=True), start=1
+    ):
+        page = _parse_amazon_grid_page(
+            rendered_dom,
+            page_number=page_number,
+            page_url=page_url,
+        )
+        pages.append(page)
+        residuals.extend(str(value) for value in page["residuals"])
+        observed_query = page.get("observed_query")
+        if isinstance(observed_query, str):
+            observed_queries.append(observed_query)
+        result_range = page.get("result_range")
+        if isinstance(result_range, dict):
+            range_observations.append(result_range)
+        delivery_zip = page.get("delivery_zip")
+        if isinstance(delivery_zip, str):
+            observed_delivery_zips.append(delivery_zip)
+
+    placement_count = sum(len(page["products"]) for page in pages)
+    product_ids = [
+        str(product["product_id"])
+        for page in pages
+        for product in page["products"]
+        if isinstance(product, dict) and isinstance(product.get("product_id"), str)
+    ]
+    if requested_query is None:
+        residuals.append("amazon_grid_requested_query_absent")
+    if len(observed_queries) != len(pages) or any(
+        _normalize_query(query) != _normalize_query(requested_query or "")
+        for query in observed_queries
+    ):
+        residuals.append("amazon_grid_query_binding_unconfirmed")
+    if len(range_observations) != len(pages):
+        residuals.append("amazon_grid_result_range_absent")
+    if any(page.get("us_marketplace_confirmed") is not True for page in pages):
+        residuals.append("amazon_grid_us_marketplace_unconfirmed")
+
+    requested_page_count = traversal_observation.get(
+        "amazon_grid_requested_page_count", len(pages)
+    )
+    return {
+        "content_record_version": AMAZON_GRID_CONTENT_RECORD_VERSION,
+        "retailer": "amazon",
+        "page_kind": "ranked_search_window",
+        "requested_url": requested_url,
+        "requested_query": requested_query,
+        "observed_queries": _dedupe(observed_queries),
+        "delivery_zip": (
+            observed_delivery_zips[0]
+            if observed_delivery_zips and len(set(observed_delivery_zips)) == 1
+            else None
+        ),
+        "location_binding": (
+            "delivery_zip"
+            if observed_delivery_zips
+            else "us_marketplace_only"
+        ),
+        "requested_page_count": requested_page_count,
+        "captured_page_count": len(pages),
+        "result_range_observations": range_observations,
+        "population_observations": traversal_observation.get(
+            "amazon_grid_population_observations", []
+        ),
+        "displayed_result_total_observations": [
+            value["total"] for value in range_observations if "total" in value
+        ],
+        "extracted_placement_count": placement_count,
+        "extracted_unique_parent_count": len(set(product_ids)),
+        "duplicate_placement_count": placement_count - len(set(product_ids)),
+        "traversal_termination": traversal_observation.get(
+            "amazon_grid_termination", "unproven"
+        ),
+        "pages": pages,
+        "residuals": _dedupe(residuals),
+    }
+
+
 def build_retail_grid_projection(
     *, packet: SourceCapturePacket, raw_file_bytes_by_file_id: Mapping[str, bytes]
 ) -> RetailGridProjectionPacket:
@@ -376,15 +493,20 @@ def build_retail_grid_projection(
     residuals: list[str] = []
     sephora_states: list[SephoraBrandGridState] = []
     target_states: list[dict[str, Any]] = []
+    amazon_states: list[dict[str, Any]] = []
     target_content_file_ids: set[str] = set()
-    if retailer == "target":
+    amazon_content_file_ids: set[str] = set()
+    if retailer in {"target", "amazon"}:
         for source_slice in packet.source_slices:
             for file_id in source_slice.preserved_file_ids:
                 body = raw_file_bytes_by_file_id.get(file_id)
-                if body is not None and _load_target_grid_content_record(
-                    body.decode("utf-8", errors="replace")
-                ) is not None:
+                if body is None:
+                    continue
+                text = body.decode("utf-8", errors="replace")
+                if retailer == "target" and _load_target_grid_content_record(text) is not None:
                     target_content_file_ids.add(file_id)
+                if retailer == "amazon" and _load_amazon_grid_content_record(text) is not None:
+                    amazon_content_file_ids.add(file_id)
 
     for source_slice in packet.source_slices:
         raw_ref = RetailProjectionRawRef(
@@ -396,6 +518,12 @@ def build_retail_grid_projection(
                 retailer == "target"
                 and target_content_file_ids
                 and file_id not in target_content_file_ids
+            ):
+                continue
+            if (
+                retailer == "amazon"
+                and amazon_content_file_ids
+                and file_id not in amazon_content_file_ids
             ):
                 continue
             preserved_file = preserved_files[file_id]
@@ -422,6 +550,16 @@ def build_retail_grid_projection(
                 )
                 if target_state is not None:
                     target_states.append(target_state)
+            elif retailer == "amazon":
+                projected, file_residuals, amazon_state = _project_amazon_cards(
+                    text,
+                    packet=packet,
+                    source_slice=source_slice,
+                    raw_ref=raw_ref,
+                    raw_anchor=raw_anchor,
+                )
+                if amazon_state is not None:
+                    amazon_states.append(amazon_state)
             else:
                 projected, file_residuals, sephora_state = _project_sephora_linkstore(
                     text,
@@ -454,6 +592,15 @@ def build_retail_grid_projection(
             packet=packet,
             rows=rows,
             states=target_states,
+            residuals=residuals,
+        )
+    elif retailer == "amazon":
+        rows, merge_residuals = _merge_amazon_parent_rows(rows)
+        residuals.extend(merge_residuals)
+        grid_facts, completeness = _amazon_grid_reconciliation(
+            packet=packet,
+            rows=rows,
+            states=amazon_states,
             residuals=residuals,
         )
     else:
@@ -808,6 +955,197 @@ def _load_target_grid_content_record(text: str) -> dict[str, Any] | None:
     if not isinstance(value.get("pages"), list):
         raise RetailGridProjectionInputError("Target grid content record pages are absent")
     return value
+
+
+def _load_amazon_grid_content_record(text: str) -> dict[str, Any] | None:
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if (
+        not isinstance(value, dict)
+        or value.get("content_record_version") != AMAZON_GRID_CONTENT_RECORD_VERSION
+    ):
+        return None
+    if not isinstance(value.get("pages"), list):
+        raise RetailGridProjectionInputError("Amazon grid content record pages are absent")
+    return value
+
+
+def _parse_amazon_grid_page(
+    rendered_dom: str,
+    *,
+    page_number: int,
+    page_url: str,
+) -> dict[str, object]:
+    matches = list(_AMAZON_CARD_RE.finditer(rendered_dom))
+    boundary_source = _SCRIPT_OR_STYLE_RE.sub(
+        lambda match: " " * (match.end() - match.start()), rendered_dom
+    )
+    products: list[dict[str, object | None]] = []
+    residuals: list[str] = []
+    occurrences_by_asin: dict[str, int] = {}
+    for position, match in enumerate(matches, start=1):
+        asin = match.group("asin").upper()
+        end = _target_card_end(boundary_source, match.start())
+        if end is None:
+            residuals.append(
+                f"amazon_grid_card_boundary_unproven:{page_number}:{position}:{asin}"
+            )
+            end = (
+                matches[position].start()
+                if position < len(matches)
+                else match.end()
+            )
+        card = rendered_dom[match.start() : end]
+        occurrence = occurrences_by_asin.get(asin, 0) + 1
+        occurrences_by_asin[asin] = occurrence
+        href = _first_regex(
+            card,
+            (
+                rf"\bhref=[\"']([^\"']*/dp/{re.escape(asin)}(?:[/?][^\"']*)?)[\"']",
+                rf"\bhref=[\"']([^\"']*/gp/product/{re.escape(asin)}(?:[/?][^\"']*)?)[\"']",
+                r"<a\b(?=[^>]*\bhref=[\"']([^\"']+)[\"'])[^>]*>"
+                r"(?:(?!</a>).)*?<h2\b",
+                r"<h2\b[^>]*>(?:(?!</h2>).)*?<a\b"
+                r"(?=[^>]*\bhref=[\"']([^\"']+)[\"'])",
+            ),
+        )
+        product_url = _absolute_url(
+            "https://www.amazon.com",
+            html_module.unescape(href) if href is not None else None,
+        )
+        heading_candidates: list[tuple[str | None, str | None]] = []
+        for heading in re.finditer(
+            r"<h2\b(?P<attrs>[^>]*)>(?P<body>.*?)</h2>",
+            card,
+            flags=re.IGNORECASE | re.DOTALL,
+        ):
+            aria_label = _first_regex(
+                heading.group("attrs"), (r"\baria-label=[\"']([^\"']+)[\"']",)
+            )
+            heading_candidates.append((aria_label, _html_text(heading.group("body"))))
+        name = next(
+            (html_module.unescape(label) for label, _ in heading_candidates if label),
+            None,
+        )
+        if name is None:
+            texts = [text for _, text in heading_candidates if text]
+            name = max(texts, key=len) if texts else None
+        if product_url is None or name is None:
+            residuals.append(
+                f"amazon_grid_card_identity_incomplete:{page_number}:{position}:{asin}"
+            )
+
+        price_display = _first_regex(
+            card,
+            (
+                r"<span\b[^>]*class=[\"'][^\"']*a-offscreen[^\"']*[\"'][^>]*>\s*(\$\d[\d,]*(?:\.\d{2})?)",
+            ),
+        )
+        rating_match = re.search(
+            r"aria-label=[\"'](?P<rating>[0-9.]+)\s+out of 5 stars(?:, rating details)?[\"']",
+            card,
+            flags=re.IGNORECASE,
+        )
+        rating_count = _first_regex(
+            card,
+            (
+                r"aria-label=[\"']([0-9][0-9,]*)\s+ratings?[\"']",
+                r">\s*\(([0-9][0-9,]*)\)\s*<",
+            ),
+        )
+        plain_text = _html_text(card) or ""
+        bought_recently = _first_regex(
+            plain_text,
+            (r"([0-9][0-9,.]*[KMB]?\+?\s+bought in past month)",),
+        )
+        delivery_text = _amazon_delivery_block_text(card)
+        source_index = _first_regex(match.group(0), (r"\bdata-index=[\"'](\d+)[\"']",))
+        products.append(
+            {
+                "product_id": asin,
+                "product_url": product_url,
+                "name": name,
+                "page": page_number,
+                "page_position": position,
+                "page_occurrence": occurrence,
+                "source_index": int(source_index) if source_index is not None else None,
+                "price_display": price_display,
+                "price": (
+                    price_display.lstrip("$").replace(",", "")
+                    if price_display is not None
+                    else None
+                ),
+                "currency_symbol": "$" if price_display is not None else None,
+                "average_rating": rating_match.group("rating") if rating_match else None,
+                "rating_count": (
+                    rating_count.replace(",", "") if rating_count is not None else None
+                ),
+                "availability_summary": delivery_text,
+                "shipping_availability": None,
+                "pickup_availability": None,
+                "delivery_availability": delivery_text,
+                "visible_fulfilment_text": [delivery_text] if delivery_text else [],
+                "sponsored_posture": (
+                    "sponsored"
+                    if re.search(r"\bSponsored\b", plain_text, re.IGNORECASE)
+                    else "organic"
+                ),
+                "retailer_merchandising_labels": [],
+                "bought_recently_text": bought_recently,
+            }
+        )
+
+    page_text = _html_text(rendered_dom) or ""
+    range_match = re.search(
+        r"(?<!\d)(?P<start>\d[\d,]*)\s*[-\u2013]\s*(?P<end>\d[\d,]*)"
+        r"\s+of\s+(?:over\s+)?(?P<total>\d[\d,]*)\s+results?\s+for\b",
+        page_text,
+        flags=re.IGNORECASE,
+    )
+    result_range = (
+        {
+            key: int(range_match.group(key).replace(",", ""))
+            for key in ("start", "end", "total")
+        }
+        if range_match is not None
+        else None
+    )
+    if not products:
+        residuals.append(f"amazon_grid_product_cards_absent:{page_number}")
+    if result_range is None:
+        residuals.append(f"amazon_grid_result_range_absent:{page_number}")
+    requested_query = extract_amazon_search_query_from_url(page_url)
+    zip_match = re.search(
+        r"(?:Deliver to|delivery location)[^<\d]{0,80}(?P<zip>\d{5})(?!\d)",
+        rendered_dom,
+        flags=re.IGNORECASE,
+    )
+    return {
+        "page": page_number,
+        "url": page_url,
+        "observed_query": requested_query,
+        "result_range": result_range,
+        "delivery_zip": zip_match.group("zip") if zip_match else None,
+        "us_marketplace_confirmed": any(
+            marker in rendered_dom for marker in _AMAZON_US_MARKETPLACE_MARKERS
+        ),
+        "products": products,
+        "residuals": _dedupe(residuals),
+    }
+
+
+def _amazon_delivery_block_text(card: str) -> str | None:
+    match = re.search(
+        r"<div\b(?=[^>]*\bdata-cy=[\"']delivery-block[\"'])[^>]*>",
+        card,
+        flags=re.IGNORECASE,
+    )
+    if match is None:
+        return None
+    end = _target_card_end(card, match.start())
+    return _html_text(card[match.start() : end]) if end is not None else None
 
 
 def _parse_target_grid_page(
@@ -1401,6 +1739,353 @@ def _target_grid_reconciliation(
     )
 
 
+def _project_amazon_cards(
+    text: str,
+    *,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+    raw_ref: RetailProjectionRawRef,
+    raw_anchor: RetailProjectionRawAnchor,
+) -> tuple[list[RetailGridProjectionRow], list[str], dict[str, Any] | None]:
+    content_record = _load_amazon_grid_content_record(text)
+    if content_record is None:
+        return [], [], None
+    placements = [
+        (page_index, product_index, product)
+        for page_index, page in enumerate(content_record["pages"])
+        if isinstance(page, dict) and isinstance(page.get("products"), list)
+        for product_index, product in enumerate(page["products"])
+        if isinstance(product, dict)
+    ]
+    rows: list[RetailGridProjectionRow] = []
+    residuals: list[str] = []
+    for global_index, (page_index, product_index, product) in enumerate(placements):
+        asin = _text(product.get("product_id"))
+        product_url = _text(product.get("product_url"))
+        name = _text(product.get("name"))
+        if asin is None or product_url is None or name is None:
+            residuals.append(
+                f"{source_slice.slice_id}:amazon:grid_card_identity_incomplete:"
+                f"{page_index + 1}:{product_index + 1}"
+            )
+            continue
+        anchor = _with_anchor(
+            raw_anchor,
+            "json_pointer",
+            f"/pages/{page_index}/products/{product_index}",
+        )
+        page_number = _integer(product.get("page")) or page_index + 1
+        page_position = _integer(product.get("page_position")) or product_index + 1
+        placement_source_visible_fields = {
+            "page": page_number,
+            "page_position": page_position,
+            "source_result_index": product.get("source_index"),
+            "product_url": product_url,
+            "availability_summary": _text(product.get("availability_summary")),
+            "delivery_availability": _text(product.get("delivery_availability")),
+            "visible_fulfilment_text": product.get("visible_fulfilment_text", []),
+            "sponsored_posture": _text(product.get("sponsored_posture")),
+        }
+        fields = _base_fields(packet=packet, source_slice=source_slice, retailer="amazon")
+        fields.update(
+            {
+                "source_product_id": asin,
+                "product_url": product_url,
+                "canonical_product_url": _amazon_canonical_product_url(product_url),
+                "name": name,
+                "selected_variant": None,
+                "price": _text(product.get("price")),
+                "price_display": _text(product.get("price_display")),
+                "price_currency": None,
+                "currency_symbol": product.get("currency_symbol"),
+                "average_rating": _text(product.get("average_rating")),
+                "rating_count": _text(product.get("rating_count")),
+                "written_review_count": None,
+                "availability_summary": _text(product.get("availability_summary")),
+                "shipping_availability": _text(product.get("shipping_availability")),
+                "pickup_availability": _text(product.get("pickup_availability")),
+                "delivery_availability": _text(product.get("delivery_availability")),
+                "visible_fulfilment_text": product.get("visible_fulfilment_text", []),
+                "sponsored_posture": _text(product.get("sponsored_posture")),
+                "retailer_merchandising_labels": product.get(
+                    "retailer_merchandising_labels", []
+                ),
+                "bought_recently_text": _text(product.get("bought_recently_text")),
+                "location_pin": content_record.get("delivery_zip"),
+                "location_binding": content_record.get("location_binding"),
+                "source_result_index": product.get("source_index"),
+                "placement_source_visible_fields": [placement_source_visible_fields],
+                "location_ids": [],
+                "seller": None,
+            }
+        )
+        placement = RetailGridProjectionPlacement(
+            grid_position=global_index + 1,
+            page=page_number,
+            page_position=page_position,
+            raw_anchor=anchor,
+        )
+        rows.append(
+            RetailGridProjectionRow(
+                row_id=f"{source_slice.slice_id}:grid:amazon:{global_index}:{asin}",
+                retailer="amazon",
+                raw_ref=raw_ref,
+                raw_anchor=anchor,
+                placements=[placement],
+                source_visible_fields=fields,
+                residuals=_row_residuals(
+                    retailer="amazon",
+                    selected_variant=None,
+                    location_observed=content_record.get("location_binding") is not None,
+                ),
+            )
+        )
+    return rows, residuals, content_record
+
+
+def _merge_amazon_parent_rows(
+    rows: list[RetailGridProjectionRow],
+) -> tuple[list[RetailGridProjectionRow], list[str]]:
+    by_asin: dict[str, RetailGridProjectionRow] = {}
+    residuals: list[str] = []
+    placement_fields = {
+        "availability_summary",
+        "delivery_availability",
+        "visible_fulfilment_text",
+        "sponsored_posture",
+        "source_result_index",
+        "placement_source_visible_fields",
+    }
+    for row in rows:
+        asin = str(row.source_visible_fields["source_product_id"])
+        existing = by_asin.get(asin)
+        if existing is None:
+            by_asin[asin] = row
+            continue
+        placements = [*existing.placements, *row.placements]
+        row_residuals = [
+            *existing.residuals,
+            f"amazon_grid_duplicate_parent_placement:{asin}:{len(placements)}",
+        ]
+        comparable_existing = {
+            key: value
+            for key, value in existing.source_visible_fields.items()
+            if key not in placement_fields
+        }
+        comparable_row = {
+            key: value
+            for key, value in row.source_visible_fields.items()
+            if key not in placement_fields
+        }
+        if comparable_existing != comparable_row:
+            row_residuals.append(f"amazon_grid_duplicate_parent_fields_differ:{asin}")
+        # The merged parent keeps the first placement's per-placement fields, so a
+        # value that genuinely varies between placements (Amazon routinely repeats an
+        # organic ASIN as a later sponsored card) would otherwise be silently dropped
+        # and the surviving value would misdescribe the discarded placement. Name the
+        # divergence per field so the record states what varied instead of asserting
+        # one placement's fact for every placement.
+        merged_fields = dict(existing.source_visible_fields)
+        existing_placement_facts = existing.source_visible_fields.get(
+            "placement_source_visible_fields", []
+        )
+        row_placement_facts = row.source_visible_fields.get(
+            "placement_source_visible_fields", []
+        )
+        merged_fields["placement_source_visible_fields"] = [
+            *(existing_placement_facts if isinstance(existing_placement_facts, list) else []),
+            *(row_placement_facts if isinstance(row_placement_facts, list) else []),
+        ]
+        for key in sorted(placement_fields - {"placement_source_visible_fields"}):
+            if existing.source_visible_fields.get(key) != row.source_visible_fields.get(key):
+                divergence = f"amazon_grid_duplicate_parent_placement_field_differs:{asin}:{key}"
+                row_residuals.append(divergence)
+                residuals.append(divergence)
+                merged_fields[key] = None
+        by_asin[asin] = existing.model_copy(
+            update={
+                "placements": placements,
+                "source_visible_fields": merged_fields,
+                "residuals": _dedupe(row_residuals),
+            }
+        )
+        residuals.append(
+            f"amazon_grid_duplicate_parent_placement:{asin}:{len(placements)}"
+        )
+    return list(by_asin.values()), residuals
+
+
+def _amazon_requested_query_from_packet(packet: SourceCapturePacket) -> str | None:
+    locators = [_fact_value(packet.source_locator)] + [
+        _fact_value(source_slice.locator) for source_slice in packet.source_slices
+    ]
+    for locator in locators:
+        if locator is None:
+            continue
+        query = extract_amazon_search_query_from_url(locator)
+        if query is not None:
+            return query
+    return None
+
+
+def _amazon_grid_reconciliation(
+    *,
+    packet: SourceCapturePacket,
+    rows: list[RetailGridProjectionRow],
+    states: list[dict[str, Any]],
+    residuals: list[str],
+) -> tuple[dict[str, Any | None], RetailGridCompletenessReconciliation]:
+    reconciliation_residuals: list[str] = []
+    state = states[0] if len(states) == 1 else None
+    if not states:
+        reconciliation_residuals.append("amazon_grid_content_record_absent")
+    elif len(states) != 1:
+        reconciliation_residuals.append(f"amazon_grid_content_record_count:{len(states)}")
+    requested_query = _amazon_requested_query_from_packet(packet)
+    observed_queries = state.get("observed_queries", []) if state is not None else []
+    subject_confirmed = bool(
+        requested_query
+        and isinstance(observed_queries, list)
+        and observed_queries
+        and all(
+            isinstance(value, str)
+            and _normalize_query(value) == _normalize_query(requested_query)
+            for value in observed_queries
+        )
+    )
+    if not subject_confirmed:
+        reconciliation_residuals.append("amazon_grid_query_binding_unconfirmed")
+    placement_count = sum(max(1, len(row.placements)) for row in rows)
+    duplicate_count = placement_count - len(rows)
+    requested_page_count = state.get("requested_page_count") if state is not None else None
+    captured_page_count = state.get("captured_page_count") if state is not None else None
+    termination = state.get("traversal_termination") if state is not None else None
+    if not isinstance(requested_page_count, int) or requested_page_count <= 0:
+        reconciliation_residuals.append("amazon_grid_requested_page_count_invalid")
+    if not isinstance(captured_page_count, int) or captured_page_count <= 0:
+        reconciliation_residuals.append("amazon_grid_captured_page_count_invalid")
+    if termination == "requested_page_window_reconciled":
+        if captured_page_count != requested_page_count:
+            reconciliation_residuals.append(
+                "amazon_grid_requested_window_page_count_mismatch:"
+                f"requested={requested_page_count}:captured={captured_page_count}"
+            )
+    elif termination == "retailer_terminal_reconciled":
+        if (
+            isinstance(requested_page_count, int)
+            and isinstance(captured_page_count, int)
+            and captured_page_count > requested_page_count
+        ):
+            reconciliation_residuals.append("amazon_grid_terminal_exceeded_requested_window")
+    else:
+        reconciliation_residuals.append("amazon_grid_termination_unproven")
+    ranges = state.get("result_range_observations", []) if state is not None else []
+    population_observations = (
+        state.get("population_observations", []) if state is not None else []
+    )
+    if not isinstance(ranges, list) or len(ranges) != captured_page_count:
+        reconciliation_residuals.append("amazon_grid_result_range_count_mismatch")
+    # A "requested_page_window_reconciled" termination claims a CONSECUTIVE ranked
+    # window. Page-number continuity is checked during traversal against the URL, but
+    # nothing here checked the retailer-displayed ranges themselves, so a gapped,
+    # repeated, or reversed displayed window would still be reported complete.
+    if isinstance(ranges, list):
+        previous_end: int | None = None
+        for index, observation in enumerate(ranges, start=1):
+            start = observation.get("start") if isinstance(observation, dict) else None
+            end = observation.get("end") if isinstance(observation, dict) else None
+            if not isinstance(start, int) or not isinstance(end, int) or start > end:
+                reconciliation_residuals.append(
+                    f"amazon_grid_result_range_invalid:{index}"
+                )
+                previous_end = None
+                continue
+            if previous_end is not None and start != previous_end + 1:
+                reconciliation_residuals.append(
+                    "amazon_grid_result_range_not_consecutive:"
+                    f"{index}:{previous_end}:{start}"
+                )
+            previous_end = end
+    if any("identity_incomplete" in item for item in residuals):
+        reconciliation_residuals.append("amazon_grid_incomplete_product_identity_present")
+    if state is not None:
+        reconciliation_residuals.extend(
+            str(value) for value in state.get("residuals", []) if isinstance(value, str)
+        )
+    complete = not reconciliation_residuals
+    displayed_totals = (
+        state.get("displayed_result_total_observations", []) if state is not None else []
+    )
+    declared_total = (
+        displayed_totals[-1]
+        if isinstance(displayed_totals, list)
+        and displayed_totals
+        and isinstance(displayed_totals[-1], int)
+        else None
+    )
+    valid_range_spans = (
+        [
+            observation["end"] - observation["start"] + 1
+            for observation in ranges
+            if isinstance(observation, dict)
+            and isinstance(observation.get("start"), int)
+            and isinstance(observation.get("end"), int)
+            and observation["start"] <= observation["end"]
+        ]
+        if isinstance(ranges, list)
+        else []
+    )
+    displayed_range_slot_count = (
+        sum(valid_range_spans)
+        if isinstance(ranges, list) and len(valid_range_spans) == len(ranges)
+        else None
+    )
+    grid_facts: dict[str, Any | None] = {
+        "retailer": "amazon",
+        "page_kind": "ranked_search_window",
+        "requested_query": requested_query,
+        "observed_queries": observed_queries,
+        "requested_page_count": requested_page_count,
+        "captured_page_count": captured_page_count,
+        "result_range_observations": ranges,
+        "displayed_result_total_observations": displayed_totals,
+        "population_observations": population_observations,
+        "delivery_zip": state.get("delivery_zip") if state is not None else None,
+        "location_binding": state.get("location_binding") if state is not None else None,
+        "extracted_placement_count": placement_count,
+        "displayed_result_range_slot_count": displayed_range_slot_count,
+        "source_visible_placements_beyond_displayed_range_span": (
+            max(0, placement_count - displayed_range_slot_count)
+            if displayed_range_slot_count is not None
+            else None
+        ),
+        "displayed_range_slots_without_source_visible_product_card": (
+            max(0, displayed_range_slot_count - placement_count)
+            if displayed_range_slot_count is not None
+            else None
+        ),
+        "duplicate_placement_count": duplicate_count,
+        "subject_binding_confirmed": subject_confirmed,
+    }
+    completeness_termination = (
+        termination
+        if complete
+        and termination
+        in {"requested_page_window_reconciled", "retailer_terminal_reconciled"}
+        else "unproven"
+    )
+    return grid_facts, RetailGridCompletenessReconciliation(
+        status="complete" if complete else "incomplete",
+        page_declared_result_count=declared_total,
+        extracted_unique_parent_count=len(rows),
+        extracted_placement_count=placement_count,
+        duplicate_placement_count=duplicate_count,
+        subject_binding_confirmed=subject_confirmed,
+        termination=completeness_termination,
+        residuals=_dedupe(reconciliation_residuals),
+    )
+
+
 def _base_fields(
     *, packet: SourceCapturePacket, source_slice: SourceCaptureSlice, retailer: RetailGridRetailer
 ) -> dict[str, Any | None]:
@@ -1512,9 +2197,15 @@ def detect_retail_grid_retailer(packet: SourceCapturePacket) -> RetailGridRetail
             return "sephora"
         if _hostname_matches(hostname, "ulta.com") and path.startswith("/brand/"):
             return "ulta"
+        if (
+            _hostname_matches(hostname, "amazon.com")
+            and path == "/s"
+            and extract_amazon_search_query_from_url(locator) is not None
+        ):
+            return "amazon"
     raise RetailGridProjectionInputError(
         "retail grid projection requires an admitted source-visible Walmart search, "
-        "Target search/brand, Sephora brand, or Ulta brand locator"
+        "Target search/brand, Sephora brand, Ulta brand, or Amazon search locator"
     )
 
 
@@ -1626,6 +2317,13 @@ def _canonical_url(value: str) -> str:
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
 
 
+def _amazon_canonical_product_url(value: str) -> str | None:
+    parsed = urlparse(value)
+    if parsed.path.rstrip("/").casefold() == "/sspa/click":
+        return None
+    return _canonical_url(value)
+
+
 def _price_fields(
     value: str | None,
 ) -> tuple[str | None, dict[str, str] | None]:
@@ -1720,6 +2418,7 @@ __all__ = [
     "RetailGridProjectionPacket",
     "RetailGridProjectionPlacement",
     "RetailGridProjectionRow",
+    "build_amazon_grid_aggregate_content_record",
     "build_retail_grid_projection",
     "build_retail_grid_projection_from_packet_directory",
     "detect_retail_grid_retailer",

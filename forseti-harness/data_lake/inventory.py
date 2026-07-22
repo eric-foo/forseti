@@ -555,6 +555,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
     },
+    "data_lake/creator_audience_queue.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "the creator-audience queue fold consumes every committed job, claim, and terminal record; duplicate jobs, non-contiguous claim generations, conflicting leases, and multiple terminal heads fail closed rather than selecting a latest sibling",
+    },
     "data_lake/root.py": {
         "detection": "declared_free_walk",
         "posture": "selection_rule",
@@ -626,6 +631,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "selection_rule",
         "mechanism": "local:select_current_audience_silver_records",
         "reason": "selects physically resolved source-backed grid-observation and comment-attention records under the current exact policy, names unresolved refs and policy mismatches as residuals, and fails closed on ambiguous current evidence",
+    },
+    "runners/run_tiktok_creator_onboarding_coordinator.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "mechanism": "local:_validated_outcomes_for_job",
+        "reason": "queue recovery enumerates the named job anchor's Judgment outcomes and accepts only the single validated outcome whose bundle id and hash exactly match the queued bundle; ambiguity fails closed",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",
