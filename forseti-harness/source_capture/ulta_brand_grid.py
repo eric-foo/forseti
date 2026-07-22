@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
@@ -21,6 +22,7 @@ _VOID_TAGS = frozenset(
 # `productsViewedLabel`) inside `<script id="apollo_state">`. That CDATA is not
 # rendered text, so it must never reach the visible-text or card captures.
 _NON_RENDERED_TEXT_TAGS = frozenset({"script", "style"})
+ULTA_GRID_CONTENT_RECORD_VERSION = "ulta_grid_content_v1"
 
 
 class UltaBrandGridStateError(ValueError):
@@ -51,6 +53,7 @@ class UltaBrandGridState:
     cards: tuple[UltaBrandGridCard, ...]
     load_more_control_present: bool
     explicit_currency_codes: tuple[str, ...]
+    content_record_version: str | None = None
 
 
 @dataclass
@@ -175,6 +178,10 @@ class _UltaBrandGridParser(HTMLParser):
 
 
 def load_ulta_brand_grid_state(rendered_dom: str) -> UltaBrandGridState | None:
+    compact_state = _load_compact_state(rendered_dom)
+    if compact_state is not None:
+        return compact_state
+
     parser = _UltaBrandGridParser()
     try:
         parser.feed(rendered_dom or "")
@@ -198,6 +205,159 @@ def load_ulta_brand_grid_state(rendered_dom: str) -> UltaBrandGridState | None:
         cards=tuple(parser.cards),
         load_more_control_present=parser.load_more_control_present,
         explicit_currency_codes=tuple(dict.fromkeys(parser.explicit_currency_codes)),
+    )
+
+
+def build_ulta_brand_grid_content_record(
+    *, rendered_dom: str, final_url: str
+) -> dict[str, object]:
+    """Retain parsed grid facts while discarding the rendered browser envelope."""
+
+    state = load_ulta_brand_grid_state(rendered_dom)
+    if state is None:
+        raise UltaBrandGridStateError(
+            "Ulta brand-grid state is absent from the rendered DOM"
+        )
+    return {
+        "content_record_version": ULTA_GRID_CONTENT_RECORD_VERSION,
+        "retailer": "ulta",
+        "final_url": final_url,
+        "brand_name": state.brand_name,
+        "viewed_count": state.viewed_count,
+        "declared_count": state.declared_count,
+        "load_more_control_present": state.load_more_control_present,
+        "explicit_currency_codes": list(state.explicit_currency_codes),
+        "cards": [
+            {
+                "grid_position": card.grid_position,
+                "source_product_id": card.source_product_id,
+                "selected_sku_id": card.selected_sku_id,
+                "product_url": card.product_url,
+                "brand_name": card.brand_name,
+                "name": card.name,
+                "price_display": card.price_display,
+                "average_rating": card.average_rating,
+                "review_count": card.review_count,
+                "visible_variant_count": card.visible_variant_count,
+                "visible_variant_label": card.visible_variant_label,
+                "badges": list(card.badges),
+            }
+            for card in state.cards
+        ],
+    }
+
+
+def _load_compact_state(value: str) -> UltaBrandGridState | None:
+    stripped = (value or "").lstrip()
+    if not stripped.startswith("{"):
+        return None
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict) or "content_record_version" not in payload:
+        return None
+    if payload.get("content_record_version") != ULTA_GRID_CONTENT_RECORD_VERSION:
+        raise UltaBrandGridStateError("Ulta grid content record version is unsupported")
+    if payload.get("retailer") != "ulta":
+        raise UltaBrandGridStateError(
+            "Ulta grid content record retailer binding is invalid"
+        )
+    cards_value = payload.get("cards")
+    if not isinstance(cards_value, list) or not cards_value:
+        raise UltaBrandGridStateError(
+            "Ulta grid content record cards must be a non-empty array"
+        )
+    cards: list[UltaBrandGridCard] = []
+    for index, value in enumerate(cards_value):
+        if not isinstance(value, dict):
+            raise UltaBrandGridStateError(
+                "Ulta grid content record cards contains a non-object row"
+            )
+        grid_position = value.get("grid_position")
+        if (
+            not isinstance(grid_position, int)
+            or isinstance(grid_position, bool)
+            or grid_position < 1
+        ):
+            raise UltaBrandGridStateError(
+                f"Ulta grid content record card {index} has an invalid grid position"
+            )
+        badges = value.get("badges")
+        if not isinstance(badges, list) or not all(
+            isinstance(badge, str) for badge in badges
+        ):
+            raise UltaBrandGridStateError(
+                f"Ulta grid content record card {index} has invalid badges"
+            )
+        cards.append(
+            UltaBrandGridCard(
+                grid_position=grid_position,
+                source_product_id=_optional_text_field(value, "source_product_id", index),
+                selected_sku_id=_optional_text_field(value, "selected_sku_id", index),
+                product_url=_optional_text_field(value, "product_url", index),
+                brand_name=_optional_text_field(value, "brand_name", index),
+                name=_optional_text_field(value, "name", index),
+                price_display=_optional_text_field(value, "price_display", index),
+                average_rating=_optional_text_field(value, "average_rating", index),
+                review_count=_optional_integer_field(value, "review_count", index),
+                visible_variant_count=_optional_integer_field(
+                    value, "visible_variant_count", index
+                ),
+                visible_variant_label=_optional_text_field(
+                    value, "visible_variant_label", index
+                ),
+                badges=tuple(badges),
+            )
+        )
+    currency_codes = payload.get("explicit_currency_codes")
+    if not isinstance(currency_codes, list) or not all(
+        isinstance(code, str) for code in currency_codes
+    ):
+        raise UltaBrandGridStateError(
+            "Ulta grid content record explicit currency codes are invalid"
+        )
+    load_more = payload.get("load_more_control_present")
+    if not isinstance(load_more, bool):
+        raise UltaBrandGridStateError(
+            "Ulta grid content record load-more posture is invalid"
+        )
+    return UltaBrandGridState(
+        brand_name=_optional_text_field(payload, "brand_name", -1),
+        viewed_count=_optional_integer_field(payload, "viewed_count", -1),
+        declared_count=_optional_integer_field(payload, "declared_count", -1),
+        cards=tuple(cards),
+        load_more_control_present=load_more,
+        explicit_currency_codes=tuple(currency_codes),
+        content_record_version=ULTA_GRID_CONTENT_RECORD_VERSION,
+    )
+
+
+def _optional_text_field(
+    value: dict[str, object], field_name: str, card_index: int
+) -> str | None:
+    field_value = value.get(field_name)
+    if field_value is None or isinstance(field_value, str):
+        return field_value
+    context = "record" if card_index < 0 else f"card {card_index}"
+    raise UltaBrandGridStateError(
+        f"Ulta grid content record {context} has invalid {field_name}"
+    )
+
+
+def _optional_integer_field(
+    value: dict[str, object], field_name: str, card_index: int
+) -> int | None:
+    field_value = value.get(field_name)
+    if field_value is None or (
+        isinstance(field_value, int)
+        and not isinstance(field_value, bool)
+        and field_value >= 0
+    ):
+        return field_value
+    context = "record" if card_index < 0 else f"card {card_index}"
+    raise UltaBrandGridStateError(
+        f"Ulta grid content record {context} has invalid {field_name}"
     )
 
 
@@ -252,8 +412,10 @@ def _class_tokens(value: str) -> frozenset[str]:
 
 
 __all__ = [
+    "ULTA_GRID_CONTENT_RECORD_VERSION",
     "UltaBrandGridCard",
     "UltaBrandGridState",
     "UltaBrandGridStateError",
+    "build_ulta_brand_grid_content_record",
     "load_ulta_brand_grid_state",
 ]

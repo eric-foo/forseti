@@ -492,12 +492,25 @@ def test_writer_requires_and_emits_sephora_grid_projection_sidecar(
         f"projection preserved at {projection_path}"
     )
     projection = json.loads(projection_path.read_text(encoding="utf-8"))
+    manifest = json.loads((tmp_path / "packet" / "manifest.json").read_text())
+    preserved_paths = [item["relative_packet_path"] for item in manifest["preserved_files"]]
+    assert any(path.endswith("content_record.json") for path in preserved_paths)
+    assert not any(path.endswith("rendered_dom.html") for path in preserved_paths)
+    assert not any(path.endswith("visible_text.txt") for path in preserved_paths)
+    content_path = next(
+        tmp_path / "packet" / path
+        for path in preserved_paths
+        if path.endswith("content_record.json")
+    )
+    content_body = content_path.read_bytes()
+    content_record = json.loads(content_body)
+    assert content_record["content_record_version"] == "sephora_grid_content_v1"
     assert projection["completeness"]["status"] == "complete"
     assert projection["completeness"]["page_declared_result_count"] == 2
     assert projection["completeness"]["extracted_unique_parent_count"] == 2
     assert projection["source_visible_grid_facts"]["subject_binding_confirmed"] is True
     assert projection["rows"][0]["raw_anchor"]["sha256"] == hashlib.sha256(
-        _sephora_grid_dom(currency_code=None).encode("utf-8")
+        content_body
     ).hexdigest()
 
 

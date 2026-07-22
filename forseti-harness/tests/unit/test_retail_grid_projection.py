@@ -31,6 +31,14 @@ from source_capture.retail_grid_projection import (
     project_retail_grid_into_lake,
     write_retail_grid_projection,
 )
+from source_capture.sephora_brand_grid import (
+    SEPHORA_GRID_CONTENT_RECORD_VERSION,
+    build_sephora_brand_grid_content_record,
+)
+from source_capture.ulta_brand_grid import (
+    ULTA_GRID_CONTENT_RECORD_VERSION,
+    build_ulta_brand_grid_content_record,
+)
 from source_capture.writer import write_local_source_capture_packet
 
 
@@ -946,6 +954,36 @@ def test_sephora_linkstore_projection_deduplicates_parent_products_and_reconcile
     }
 
 
+def test_sephora_grid_compact_content_record_preserves_projection_and_anchor() -> None:
+    rendered = _sephora_grid_html(
+        products=[_sephora_product(product_id="P455936", name="Lip Butter Balm")],
+        total_products=1,
+        currency_code="USD",
+    )
+    record = build_sephora_brand_grid_content_record(
+        rendered_dom=rendered.decode(),
+        final_url="https://www.sephora.com/brand/summer-fridays?country_switch=us",
+    )
+    body = json.dumps(record, separators=(",", ":")).encode()
+    packet = _packet(
+        retailer="sephora",
+        locator="https://www.sephora.com/brand/summer-fridays?country_switch=us",
+        relative_path="raw/content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert record["content_record_version"] == SEPHORA_GRID_CONTENT_RECORD_VERSION
+    assert projection.completeness.status == "complete"
+    assert projection.rows[0].raw_anchor.anchor_kind == "json_pointer"
+    assert projection.rows[0].raw_anchor.anchor_value == "/page/nthBrand/products/0"
+    assert b"<html" not in body
+
+
 def test_sephora_projection_preserves_partial_tile_and_fails_count_reconciliation() -> None:
     incomplete = _sephora_product(product_id="P000002", name="Missing URL")
     incomplete["targetUrl"] = None
@@ -1470,6 +1508,42 @@ def test_ulta_grid_projection_reconciles_visible_placements_and_duplicates() -> 
     assert first.source_visible_fields["average_rating"] == "4.6"
     assert first.source_visible_fields["review_count"] == 4253
     assert first.source_visible_fields["price_currency"] is None
+
+
+def test_ulta_grid_compact_content_record_preserves_projection_and_anchor() -> None:
+    record = build_ulta_brand_grid_content_record(
+        rendered_dom=_ulta_grid_html(),
+        final_url="https://www.ulta.com/brand/clinique",
+    )
+    body = json.dumps(record, separators=(",", ":")).encode()
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/brand/clinique",
+        relative_path="raw/content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert record["content_record_version"] == ULTA_GRID_CONTENT_RECORD_VERSION
+    assert projection.completeness.status == "complete"
+    first = next(
+        row
+        for row in projection.rows
+        if row.source_visible_fields["source_product_id"] == "pimprod2056072"
+    )
+    assert [placement.raw_anchor.anchor_kind for placement in first.placements] == [
+        "json_pointer",
+        "json_pointer",
+    ]
+    assert [placement.raw_anchor.anchor_value for placement in first.placements] == [
+        "/cards/0",
+        "/cards/2",
+    ]
+    assert b"apollo_state" not in body
 
 
 def test_ulta_grid_projection_fails_closed_while_load_more_remains() -> None:

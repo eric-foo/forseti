@@ -7,6 +7,7 @@ from urllib.parse import urlparse, urlunparse
 
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from source_capture.ulta_brand_grid import (
+    ULTA_GRID_CONTENT_RECORD_VERSION,
     UltaBrandGridState,
     UltaBrandGridStateError,
     load_ulta_brand_grid_state,
@@ -73,10 +74,21 @@ def build_ulta_grid_projection(
                         f"{source_slice.slice_id}:ulta:grid_tile_identity_incomplete:{card.grid_position}"
                     )
                     continue
-                selector = f':nth-match([data-test="products-list-item"], {card.grid_position})'
-                placement_anchor = raw_anchor.model_copy(
-                    update={"anchor_kind": "html_selector", "anchor_value": selector}
-                )
+                if state.content_record_version == ULTA_GRID_CONTENT_RECORD_VERSION:
+                    placement_anchor = raw_anchor.model_copy(
+                        update={
+                            "anchor_kind": "json_pointer",
+                            "anchor_value": f"/cards/{card.grid_position - 1}",
+                        }
+                    )
+                else:
+                    selector = (
+                        f':nth-match([data-test="products-list-item"], '
+                        f"{card.grid_position})"
+                    )
+                    placement_anchor = raw_anchor.model_copy(
+                        update={"anchor_kind": "html_selector", "anchor_value": selector}
+                    )
                 price, price_range = _price_fields(card.price_display)
                 fields: dict[str, Any | None] = {
                     "retailer": "ulta",
