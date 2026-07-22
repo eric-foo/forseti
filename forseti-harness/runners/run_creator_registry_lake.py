@@ -18,6 +18,7 @@ from data_lake.creator_registry import (
     migrate_legacy_registry,
     monitoring_eligible_accounts,
     publish_creator_registry_generation,
+    retract_tiktok_creator_candidate,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
@@ -105,6 +106,10 @@ def _parser() -> argparse.ArgumentParser:
     candidate.add_argument("--data-root", required=True)
     candidate.add_argument("--packet-id", required=True)
     candidate.add_argument("--frontier-disposition-id", required=True)
+
+    retract_candidate = commands.add_parser("retract-tiktok-candidate")
+    retract_candidate.add_argument("--data-root", required=True)
+    retract_candidate.add_argument("--handle", required=True)
     return parser
 
 
@@ -173,11 +178,16 @@ def main(argv: list[str] | None = None) -> int:
             )
         elif args.command == "frontier-show":
             result = load_creator_frontier_dispositions(root)
-        else:
+        elif args.command == "admit-tiktok-candidate":
             result = admit_tiktok_creator_candidate(
                 data_root=root,
                 packet_id=args.packet_id,
                 frontier_disposition_id=args.frontier_disposition_id,
+            )
+        else:
+            result = retract_tiktok_creator_candidate(
+                data_root=root,
+                public_handle=args.handle,
             )
     except (CreatorRegistryLakeError, DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
