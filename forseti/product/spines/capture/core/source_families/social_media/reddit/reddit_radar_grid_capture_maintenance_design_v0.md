@@ -119,6 +119,27 @@ Projection lane.
    Public Content Policy), plus the per-run robots/source-policy posture
    receipt every pass already owes.
 
+   **Evaluate the re-check against the predicate, not the prior description.**
+   The predicate is: *the captured listing surface is robots-disallowed for us,
+   and the owner accepted capturing it anyway as a bounded pass.* A re-check
+   result is routed three ways:
+
+   - **HALT** (owner decision) only if the predicate flips — the surface becomes
+     allowed, so the measured-risk posture is moot and must be re-derived — or a
+     hard gate appears (403, CAPTCHA, legal notice, account action), or the
+     accepted bound or cadence is exceeded, or use becomes commercial-grade.
+   - **REPORT** (proceed, surface it) on a same-direction change: a broader
+     disallow, a reshaped directive list, a differently-served variant. The
+     authorization stands; the observation still informs the next posture review.
+   - **SILENT** (update the observation line) on rewording with no posture
+     significance.
+
+   This split exists because the 2026-07-22 re-check halted an authorized pass on
+   a same-direction change. The prior receipt recorded a *description* of the
+   file, which reads as a scope claim, so a broader reality looked like a change
+   rather than a confirmation. `run_reddit_grid_capture.py` now carries the
+   predicate, its flip conditions, and the dated observation as separate fields.
+
    **Re-check executed 2026-07-22 — recorded; NOT a blocker.**
    `https://www.reddit.com/robots.txt` and `https://old.reddit.com/robots.txt`
    both now serve exactly:

@@ -58,13 +58,42 @@ DEFAULT_MAX_BYTES = 5_000_000
 # Raw remains the explicit operator-selected evidence posture.
 DEFAULT_RETENTION_MODE = "content"
 
+# The receipt carries its own escalation logic on purpose. A re-check that
+# compares an observation against a prior DESCRIPTION escalates on any wording or
+# scope drift; one that compares against the DECISION PREDICATE escalates only
+# when the decision could actually change. The 2026-07-22 re-check halted an
+# authorized pass on a same-direction change because the older receipt read as a
+# scope claim -- hence the split below.
+SOURCE_POLICY_PREDICATE = (
+    "the old-Reddit subreddit listing surface this runner captures is robots-disallowed "
+    "for us, and the owner accepted capturing it anyway as a bounded single-page pass "
+    "under the measured-risk dual-track posture (Reddit lane README, 2026-07-16)"
+)
+SOURCE_POLICY_PREDICATE_STATUS = "TRUE as of 2026-07-22 re-check"
+SOURCE_POLICY_ESCALATE_IF = (
+    "HALT and return to the owner only if: the captured surface becomes ALLOWED (the "
+    "measured-risk posture is then moot and must be re-derived, not silently kept); a "
+    "hard access gate appears (403, CAPTCHA, legal notice, account action); the accepted "
+    "bound is exceeded (more than one listing page per subreddit per pass, or cadence "
+    "beyond the accepted radar rate); or capture becomes commercial-grade, which the "
+    "dual-track posture routes to the sanctioned API path"
+)
+SOURCE_POLICY_DO_NOT_HALT_ON = (
+    "do NOT halt on a same-direction change: a broader disallow, a reworded or reshaped "
+    "directive list, or a differently-served variant. The predicate is unchanged, so the "
+    "authorization stands. Record it, and surface it for the next posture review"
+)
+SOURCE_POLICY_OBSERVED = (
+    "observed 2026-07-22: 'User-agent: * / Disallow: /' on www and old.reddit, "
+    "user-agent-independent across three probes and byte-identical to an independent "
+    "archive crawl of 2026-04-14; a variant allowing only '/$' is served interchangeably "
+    "and likewise disallows listings. The granular per-surface file described by the "
+    "2026-06-08 record was last served in 2025"
+)
 SOURCE_POLICY_POSTURE_RECEIPT = (
-    "source-policy posture: reddit robots.txt disallows ALL paths for generic agents "
-    "('User-agent: * / Disallow: /', re-checked 2026-07-22 and matched against an "
-    "independent archive crawl; a variant allowing only '/$' is served interchangeably "
-    "and likewise disallows listings); this bounded single-page grid pass runs under the "
-    "owner-accepted measured-risk dual-track posture (Reddit lane README, 2026-07-16); "
-    "not ToS sufficiency"
+    f"source-policy posture predicate: {SOURCE_POLICY_PREDICATE} [{SOURCE_POLICY_PREDICATE_STATUS}]. "
+    f"{SOURCE_POLICY_ESCALATE_IF}. {SOURCE_POLICY_DO_NOT_HALT_ON}. {SOURCE_POLICY_OBSERVED}. "
+    "Not ToS sufficiency, not legal advice"
 )
 
 
