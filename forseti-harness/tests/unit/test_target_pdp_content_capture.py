@@ -15,7 +15,7 @@ import json
 import pytest
 
 from runners.run_content_qualification import _ROUTES
-from source_capture.retail_pdp_content import load_retail_pdp_content_record  # noqa: F401
+from source_capture.retail_pdp_content import load_retail_pdp_content_record
 from source_capture.retail_pdp_projection import (
     TARGET_PDP_CONTENT_PROFILE,
     TARGET_PDP_CONTENT_RECORD_KIND,
@@ -770,6 +770,8 @@ def test_unconfirmed_fulfillment_pin_retains_content_and_exits_nonzero(
                 "proxy_used": False,
                 "geoip_used": False,
                 "extension_paths_loaded": False,
+                "retail_capture_profile": {"name": "target_pdp_aggregate"},
+                "pre_capture_attempted": True,
                 "pin_confirmed": False,
                 "rendered_dom_byte_count": len(rendered_dom.encode("utf-8")),
                 "visible_text_byte_count": len(_VISIBLE_TEXT.encode("utf-8")),
@@ -825,8 +827,8 @@ def test_unconfirmed_fulfillment_pin_retains_content_and_exits_nonzero(
     manifest = json.loads((output / "manifest.json").read_text())
     paths = {row["relative_packet_path"] for row in manifest["preserved_files"]}
     assert any(path.endswith("content_record.json") for path in paths)
-    assert not any(path.endswith("cloakbrowser_rendered_dom.html") for path in paths)
-    assert not any(path.endswith("cloakbrowser_visible_text.txt") for path in paths)
+    assert any(path.endswith("cloakbrowser_rendered_dom.html") for path in paths)
+    assert any(path.endswith("cloakbrowser_visible_text.txt") for path in paths)
     metadata_path = next(
         output / path
         for path in paths
@@ -837,8 +839,8 @@ def test_unconfirmed_fulfillment_pin_retains_content_and_exits_nonzero(
     assert metadata["extraction_status"] == "succeeded"
     preserved = {item["role"]: item["preserved"] for item in metadata["inputs"]}
     assert preserved == {
-        "rendered_dom": False,
-        "visible_text": False,
+        "rendered_dom": True,
+        "visible_text": True,
         "screenshot": True,
         "browser_metadata": True,
     }
@@ -849,6 +851,18 @@ def test_unconfirmed_fulfillment_pin_retains_content_and_exits_nonzero(
     content = json.loads(content_path.read_text())
     assert content["record_kind"] == TARGET_PDP_CONTENT_RECORD_KIND
     assert content["parser_version"] == metadata["extractor_version"]
+    from source_capture.models import SourceCapturePacket
+
+    packet = SourceCapturePacket.model_validate(manifest)
+    bodies = {
+        item["file_id"]: (output / item["relative_packet_path"]).read_bytes()
+        for item in manifest["preserved_files"]
+    }
+    with pytest.raises(ValueError, match="no confirmed storefront pin"):
+        load_retail_pdp_content_record(
+            packet=packet,
+            file_bytes_by_file_id=bodies,
+        )
 
 
 def test_unpainted_review_widget_is_recorded_not_inferred() -> None:

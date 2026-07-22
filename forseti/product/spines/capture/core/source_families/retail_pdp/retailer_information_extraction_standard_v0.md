@@ -166,12 +166,15 @@ projection complete only for its declared query and reachable result window,
 never as a guaranteed complete or authorized-only brand denominator. Projection
 capability does not admit a live route; each acquisition still records market
 pin, reachability, surface boundary, and typed failure.
-Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
-decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
-ordinary shallow profile derives its target from the commissioned URL and
-requires its exact US pin, except Target catalog grids, which may remain
-delivery-ZIP-unrequested when catalog corpus and rank are the claim. Their
-source-visible fulfilment facts remain tied only to the preserved page state.
+Amazon, Sephora, Ulta, and Target PDP profiles use retailer-local canonical
+content. Amazon and Target PDP captures may omit a local fulfillment ZIP when
+the claim is the US-facing product surface; displayed destination and
+fulfillment remain page-context only and are not delivery proof. When a ZIP is
+requested but unconfirmed, the content record and raw inputs survive for
+diagnosis, the run exits nonzero, and Cleaning rejects the packet as pinned
+fulfillment evidence. Other ordinary shallow profiles still require their exact
+market pin. Target catalog grids may likewise remain delivery-ZIP-unrequested
+when catalog corpus and rank are the claim.
 A capability gap is never replaced with snippets,
 another market, a canary product, or an inferred list.
 
@@ -203,7 +206,7 @@ Sephora's current proven mechanics are a source-specific benchmark:
 
 | Area | Reference behavior |
 | --- | --- |
-| Canonical deep-page capture | Every new Sephora deep-page capture uses `sephora_pdp_aggregate` with `content` retention; omitting `--retention-mode` defaults this profile to `content`. The retained record is `retail_pdp_sephora_aggregate_content_v3`, produced by `retail_pdp_sephora_aggregate_parser_v3`. This supersedes sampled-raw/full-derived v2 and Projection-era methods for new acquisition. Existing older packets remain append-only, readable historical evidence and are not rewritten. Explicit `raw` is diagnostic/recovery-only; a failed access, pin, sufficiency, target-binding, or extraction gate preserves acquired raw inputs and exits nonzero. |
+| Canonical deep-page capture | Every new Sephora deep-page capture uses `sephora_pdp_aggregate` with `content` retention; omitting `--retention-mode` defaults this profile to `content`. The retained record is `retail_pdp_sephora_aggregate_content_v4`, produced by `retail_pdp_sephora_aggregate_parser_v4`. Versions v1-v3 and Projection-era methods are superseded for new acquisition. Existing older packets remain append-only, readable historical evidence and are not rewritten. Explicit `raw` is diagnostic/recovery-only; a failed access, pin, sufficiency, target-binding, or extraction gate preserves acquired raw inputs and exits nonzero. |
 | Product/variants | The complete `linkStore.page.product` subtree is the broad structured inventory. Preserve every `regularChildSkus` row and exact `isOutOfStock`, `isLimitedEdition`, `isLimitedTimeOffer`, `isNew`, and back-in-stock fields. The content record may store fields once across canonical rows plus `additional_source_fields` only when the extractor proves that those rows reconstruct the complete subtree exactly; unknown root fields must therefore remain captured rather than vanish on a page change. |
 | AI sentiment | Green and red chips are primary facts; polarity, exact label, and count are separate. The verified sample included positive `Softness`, `Scent`, and `Texture`, plus negative `Irritation` and `Scent`. |
 | Helpful reviews | On onboarding, preserve one `Most Helpful` response with `Non-Incentivized Reviews Only`, `TotalPositiveFeedbackCount:desc`, review bodies, and supported filtered review statistics. Preserve exact response order without claiming Sephora's proprietary ranking algorithm. |
@@ -214,7 +217,7 @@ Sephora's current proven mechanics are a source-specific benchmark:
 | Companion role | The accepted low-footprint target has three response roles: Helpful plus combined statistics (`Include=Products&Stats=Reviews&FilteredStats=Reviews`), Recent, and Q&A. Exact bodies remain in raw responses; the summary carries compact body-free facts, promoted age/skin-type/skin-concern distributions from the filtered statistics, the native last-seen review ID, and raw-file references. This target is implemented and packet-proven as `sephora_bazaarvoice_onboarding_v4` (live proof packet `01KY25FZCPVRHF6XEPYDEDATN0`: three response documents replace the prior eight). Historical `_v3` eight-response packets remain append-only readable evidence. |
 | Brand grid | `sephora_grid_aggregate` mechanically projects one row per unique parent product from retailer-owned `linkStore.page.nthBrand.products`; routine success retains the complete derived observation, not the rendered source. Every serialized placement retains its source-order position; exact raw anchors are present only when an explicit QA sample is retained. The market warm-up launches CloakBrowser with humanization enabled, scopes the exact international country dialog when present, activates `Continue to Sephora.com`, and uses that same page object for the main target. For a multi-page grid, one settled bottom scroll plus the retailer-owned `Show More Products` action may advance the visible range and `currentPage` URL while the serialized `linkStore` remains page-local; reconcile each retailer-owned page state and their product-ID union rather than calling one page-local Projection complete from visible `1-N` text. Admission reconciles the page-declared result count, serialized placements, unique parent count, subject slug/target binding, and termination; mismatches preserve diagnostic raw evidence and exit nonzero. The page-kind-specific grid assertion admits the US country route only when the country-routing dialog is absent and every serialized `Sephora.renderQueryParams` object that carries a country binds `US`; because no second retailer-owned conjunct corroborates it, contradictory serialized country values fail closed rather than being outvoted by one US occurrence. Currency remains independently typed: retain any explicit retailer-owned code, otherwise mark it unpinned, and never infer `USD` from a dollar glyph. An unreadable or absent grid state is reported as unreadable or absent, never as an observed absent currency code. PDP admission remains the separate strict US/USD conjunction. |
 
-The main Sephora deep-capture package is the canonical v3 page capture plus the
+The main Sephora deep-capture package is the canonical v4 page capture plus the
 separate Bazaarvoice companion roles when the commissioned bound requires them:
 Helpful plus statistics, Recent, and Q&A for onboarding; Recent only for routine
 monitoring. The page record does not replace or supersede those review and Q&A

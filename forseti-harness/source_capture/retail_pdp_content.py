@@ -61,6 +61,10 @@ _EXPECTED_VERSION_BY_PROFILE = {
     TARGET_PDP_CONTENT_PROFILE: TARGET_PDP_PARSER_VERSION,
     AMAZON_PDP_CONTENT_PROFILE: AMAZON_PDP_PARSER_VERSION,
 }
+_OPTIONAL_LOCAL_FULFILLMENT_PIN_PROFILES = {
+    AMAZON_PDP_CONTENT_PROFILE,
+    TARGET_PDP_CONTENT_PROFILE,
+}
 
 
 def load_retail_pdp_content_record(
@@ -141,7 +145,13 @@ def load_retail_pdp_content_record(
         or captured_profile.get("name") != profile
     ):
         raise ValueError("Retail/PDP capture profile does not match content record")
-    if browser_metadata.get("pin_confirmed") is not True:
+    pin_confirmed = browser_metadata.get("pin_confirmed")
+    no_local_pin_requested = (
+        profile in _OPTIONAL_LOCAL_FULFILLMENT_PIN_PROFILES
+        and pin_confirmed is None
+        and browser_metadata.get("pre_capture_attempted") is False
+    )
+    if pin_confirmed is not True and not no_local_pin_requested:
         raise ValueError("Retail/PDP content packet has no confirmed storefront pin")
     return content_file, record
 

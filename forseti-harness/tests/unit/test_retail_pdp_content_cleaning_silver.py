@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
@@ -413,8 +415,14 @@ def test_ulta_content_flows_directly_through_cleaning_to_retail_silver(
             )
 
 
+@pytest.mark.parametrize(
+    ("pin_confirmed", "pre_capture_attempted"),
+    ((True, True), (None, False)),
+)
 def test_target_content_flows_directly_through_cleaning_to_retail_silver(
     tmp_path: Path,
+    pin_confirmed: bool | None,
+    pre_capture_attempted: bool,
 ) -> None:
     content = {
         "record_kind": "retail_pdp_target_aggregate_content",
@@ -516,7 +524,8 @@ def test_target_content_flows_directly_through_cleaning_to_retail_silver(
     }
     browser_metadata = {
         "retail_capture_profile": {"name": "target_pdp_aggregate"},
-        "pin_confirmed": True,
+        "pin_confirmed": pin_confirmed,
+        "pre_capture_attempted": pre_capture_attempted,
     }
     inputs = [
         _json_file(tmp_path / "content_record.json", content),
@@ -558,8 +567,14 @@ def test_target_content_flows_directly_through_cleaning_to_retail_silver(
             )
 
 
+@pytest.mark.parametrize(
+    ("pin_confirmed", "pre_capture_attempted"),
+    ((True, True), (None, False)),
+)
 def test_amazon_content_flows_directly_through_cleaning_to_retail_silver(
     tmp_path: Path,
+    pin_confirmed: bool | None,
+    pre_capture_attempted: bool,
 ) -> None:
     content = {
         "record_kind": "retail_pdp_amazon_aggregate_content",
@@ -663,7 +678,8 @@ def test_amazon_content_flows_directly_through_cleaning_to_retail_silver(
     }
     browser_metadata = {
         "retail_capture_profile": {"name": "amazon_pdp_aggregate"},
-        "pin_confirmed": True,
+        "pin_confirmed": pin_confirmed,
+        "pre_capture_attempted": pre_capture_attempted,
     }
     inputs = [
         _json_file(tmp_path / "content_record.json", content),
