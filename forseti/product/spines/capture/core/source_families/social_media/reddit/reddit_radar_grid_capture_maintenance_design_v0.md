@@ -118,6 +118,82 @@ Projection lane.
 1. **Fresh policy re-check at build time** (robots.txt, Data API terms,
    Public Content Policy), plus the per-run robots/source-policy posture
    receipt every pass already owes.
+
+   **Evaluate a re-check against the decision predicate, not the prior
+   description.** The predicate is: *the captured listing surface is
+   robots-disallowed for us, and the owner accepted capturing it anyway as a
+   bounded pass.* Halt and return to the owner only when that could change — the
+   surface becomes allowed (the measured-risk posture is then moot and must be
+   re-derived), a hard access gate appears, the accepted bound or cadence is
+   exceeded, or use becomes commercial-grade. Otherwise proceed and record: a
+   broader or reworded disallow leaves the predicate true.
+
+   This exists because the 2026-07-22 re-check halted an authorized pass on a
+   change that could not flip the decision. The receipt recorded a *description*
+   of the file, which reads as a scope claim, so a broader reality looked like a
+   change rather than a confirmation.
+
+   **Re-check executed 2026-07-22 — recorded; NOT a blocker.**
+   `https://www.reddit.com/robots.txt` and `https://old.reddit.com/robots.txt`
+   both now serve exactly:
+
+   ```text
+   User-agent: *
+   Disallow: /
+   ```
+
+   Verified across three probes (generic agent string, plain browser string,
+   and no `User-Agent` header) on both hosts; the response is
+   user-agent-independent and the file cites Reddit's Public Content Policy as
+   the governing access restriction. This is a **blanket** disallow for every
+   generic agent, not the granular per-surface disallow list recorded on
+   2026-06-08, and it is broader than the standing per-run receipt in
+   `run_reddit_grid_capture.py`, which states only that "robots.txt disallows
+   subreddit listing surfaces for generic agents" — still true, now materially
+   understated.
+
+   **Diagnosed, not assumed.** Three alternative explanations were tested and
+   all fail:
+
+   - *Intermittent?* No. Five consecutive fetches returned the identical
+     538-byte body.
+   - *Our egress being served a punitive file?* No. The egress is residential
+     (AS9506 Singtel, SG) with no proxy, and the Internet Archive's independent
+     crawl of `reddit.com/robots.txt` on 2026-04-14 is **byte-identical** to
+     what we receive.
+   - *A recent change we could wait out?* No. Across 2026 the archive shows
+     Reddit alternating between exactly two variants — `User-agent: * /
+     Disallow: /` (what we get) and `User-Agent: * / Allow: /$ / Disallow: /`.
+     The second permits only the bare homepage. **Neither variant permits a
+     subreddit listing path.**
+
+   **Why this is not a blocker.** The change is one of degree, not kind. The
+   accepted posture already states that the captured surface is
+   robots-disallowed — the per-run receipt in `run_reddit_grid_capture.py` reads
+   "robots.txt disallows subreddit listing surfaces for generic agents; this
+   bounded single-page grid pass runs under the owner-accepted measured-risk
+   dual-track posture." A subreddit listing path is disallowed under the granular
+   file and under both current variants alike, so nothing decision-relevant to
+   this lane moved. The receipt's operative clause stands; only its implied
+   picture of the surrounding file is stale.
+
+   robots.txt is also advisory, not enforcement: Reddit serves listing pages
+   normally, and the lane's captures have continued to succeed (most recent
+   Reddit packet 2026-07-18). Capture success is not evidence of robots
+   permission, and robots disallow is not evidence of a broken capture path —
+   the two measure different things, and the measured-risk posture exists
+   precisely because they diverge.
+
+   **Accuracy correction for the prior record:** the granular per-surface list
+   was last served in 2025, so the 2026-06-08 observation carried by
+   `data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` described
+   a file already withdrawn. Its operative clause — subreddit listings
+   disallowed — was correct then and remains correct. The correction is to the
+   description, not to the accepted risk basis.
+
+   The standing per-run receipt should be reworded to state the blanket
+   disallow accurately rather than implying a granular file, but the posture it
+   records is unchanged and no re-authorization is required for it.
 2. **Sanctioned API/licensing track** needs its own registration and
    commercial-terms work before it exists; nothing here registers or
    commits to terms.
@@ -136,6 +212,31 @@ Projection lane.
    the subscriber series continues via the `about.json`/sanctioned-API
    surface (the API adapter needs a small `about` mode once credentials
    exist).
+
+   **Subscriber absence diagnosed 2026-07-22 (bounded qualification run, raw
+   retained to scratch, nothing admitted).** The extractor is correct, not
+   stale. In 284 KB of served old-Reddit listing HTML the `titlebox` element is
+   present but its volume block is gone: zero occurrences of `subscribers`,
+   `users-online`, `readers`, or `span class="number"`. The count is not hidden
+   elsewhere either — no `"subscribers": N` JSON field, no `accounts_active`,
+   and **no comma-formatted six-digit number anywhere on the page.** The
+   titlebox now holds the subreddit name, the join/leave toggle, and the sidebar
+   text, with the reader and users-here-now lines removed outright.
+
+   One variable remains untested: the payload reports `"logged": false`, so
+   whether an authenticated old-Reddit render still carries the block is
+   unknown. That is the cheapest next probe (there is already a
+   `run_source_capture_reddit_credential_bootstrap.py`), and it would decide
+   between "removed for everyone" and "removed for logged-out views". Either way
+   `about.json` remains the working path — the 2026-07-16 observations that do
+   carry counts came from exactly that surface.
+
+   **Enumeration note.** `indexes/derived_retrieval/bronze_catalog` is a
+   rebuildable derived projection and lags until rebuilt; it did not list the
+   2026-07-22 packet that `DataLakeRoot.list_available` did. Enumerate committed
+   packets from `list_available`, not the catalog. Enumerating from a lagging
+   index is the same failure family as the 2026-07-22 backfill gap, where 35
+   subreddits had committed packets but only 7 were recorded.
 
 ## Direction Change Propagation
 

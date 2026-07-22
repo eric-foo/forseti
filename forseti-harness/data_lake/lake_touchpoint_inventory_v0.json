@@ -182,6 +182,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 3,
+      "module": "data_lake/reddit_subreddit_registry.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "data_lake/reddit_subreddit_registry.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "is_record_set_complete",
       "count": 1,
       "module": "data_lake/silver_census.py"
@@ -524,6 +536,15 @@
         },
         "kind": "direct_packet_writer",
         "runner": "run_parfumo_mgt_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "no served content and no remote subject: the one migration packet preserves the exact bytes of the operator-named local registry JSON, and the baseline records bind those bytes by legacy_file_sha256, so the only asserted subject is the local file the operator supplied",
+          "status": "not_applicable"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_reddit_subreddit_registry_lake.py"
       },
       {
         "a2_fork_impact": "manifest_shape",

@@ -2,12 +2,16 @@
 
 The one authorized registry writer for grid evidence: reads explicitly
 supplied ``reddit_subreddit_grid`` Source Capture Packets (hash-verified) and
-applies the registry spec's two-speed rule. Re-running over the same packet
-is a no-op (observations dedupe by provenance pointer). Unknown subreddits
-are reported, never silently added.
+appends one observation record per packet to lake authority. Re-running over
+the same packet is a no-op (observations dedupe by provenance pointer).
+Unknown subreddits are reported, never silently added.
 
-Owner contract:
+Registry authority is the lake, not the checked-in JSON: this runner writes
+append-only records under ``derived/`` and never mutates a tracked file.
+
+Owner contracts:
 - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md
+- forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_lake_cutover_architecture_v0.md
 """
 
 from __future__ import annotations
@@ -23,36 +27,24 @@ if __package__ in {None, ""}:
 
 from capture_spine.reddit_subreddit_grid import (
     RegistryRefreshError,
-    refresh_registry_from_grid_packets,
+    refresh_lake_registry_from_grid_packets,
 )
+from data_lake.reddit_subreddit_registry import RedditSubredditRegistryLakeError
+from data_lake.root import DataLakeRoot
 from runners._scaffold import exit_on_failure
-
-DEFAULT_REGISTRY_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "forseti"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "reddit"
-    / "reddit_subreddit_registry_v0.json"
-)
-
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Apply committed reddit_subreddit_grid packets to the Reddit Subreddit Registry "
+            "Append committed reddit_subreddit_grid packets to lake registry authority "
             "under the two-speed rule (observations append; status updates on change)."
         )
     )
     parser.add_argument(
-        "--registry",
+        "--data-root",
         type=Path,
-        default=DEFAULT_REGISTRY_PATH,
-        help="Path to reddit_subreddit_registry_v0.json (defaults to the repo copy).",
+        default=None,
+        help="Lake root holding registry authority (defaults to FORSETI_DATA_ROOT resolution).",
     )
     parser.add_argument(
         "--packet",
@@ -72,13 +64,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     with exit_on_failure(
         parser,
         runner_name="registry refresh",
-        expected=(RegistryRefreshError,),
+        expected=(RegistryRefreshError, RedditSubredditRegistryLakeError),
         expected_status=3,
         format_expected=lambda exc: f"registry refresh refused [{exc.code}]: {exc.message}",
         unexpected_status=2,
     ):
-        outcome = refresh_registry_from_grid_packets(
-            registry_path=args.registry,
+        data_root = (
+            DataLakeRoot.resolve(args.data_root)
+            if args.data_root is not None
+            else DataLakeRoot.resolve()
+        )
+        outcome = refresh_lake_registry_from_grid_packets(
+            data_root=data_root,
             packet_paths=args.packets,
             dry_run=args.dry_run,
         )

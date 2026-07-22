@@ -10,6 +10,7 @@ from capture_spine.reddit_subreddit_grid import (
     RegistryRefreshError,
     project_old_reddit_grid_html,
     read_grid_packet,
+    refresh_lake_registry_from_grid_packets,
     refresh_registry_from_grid_packets,
 )
 from capture_spine.reddit_subreddit_grid.grid_projection import (
@@ -23,6 +24,12 @@ from runners.run_reddit_grid_capture import (
     build_grid_listing_url,
     run_reddit_grid_capture,
 )
+from data_lake.reddit_subreddit_registry import (
+    fold_subreddit,
+    known_subreddits,
+    migrate_legacy_registry,
+)
+from data_lake.root import DataLakeRoot
 from source_capture.adapters.direct_http import DirectHttpCaptureSuccess
 from source_capture.content_extraction import ContentExtractionSpec
 
@@ -297,3 +304,59 @@ def test_grid_listing_url_and_runner_content_extraction_contract(
     summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
     assert summary["capture_success_count"] == 1
     assert summary["requested_retention_mode"] == "content"
+
+
+def test_lake_materializer_appends_once_and_dedupes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The repointed writer appends to lake authority and never mutates a file."""
+    registry = _registry(tmp_path)
+    packet = _raw_grid_packet(tmp_path, monkeypatch)
+    frozen = registry.read_bytes()
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+
+    first = refresh_lake_registry_from_grid_packets(data_root=lake, packet_paths=[packet])
+    assert first.refreshed_subreddits == ["makeupaddiction"]
+    assert first.records_written == 1
+
+    second = refresh_lake_registry_from_grid_packets(data_root=lake, packet_paths=[packet])
+    assert second.refreshed_subreddits == []
+    assert second.duplicate_observation_skips == ["makeupaddiction"]
+    assert second.records_written == 0
+
+    row = fold_subreddit(lake, "makeupaddiction")
+    assert row["status"] == "active"
+    assert row["capture_state"] == "grid_packets_recorded"
+    assert len(row["observations"]) == 1
+    assert row["observations"][0]["subscriber_count_or_none"] == "7491826"
+    assert row["register_pointers"] == [row["observations"][0]["provenance_pointer"]]
+    assert registry.read_bytes() == frozen
+
+
+def test_lake_materializer_reports_unknown_subreddit_without_adding_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    packet = _raw_grid_packet(tmp_path, monkeypatch)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+
+    outcome = refresh_lake_registry_from_grid_packets(data_root=lake, packet_paths=[packet])
+    assert outcome.unknown_subreddits == ["makeupaddiction"]
+    assert outcome.records_written == 0
+    assert known_subreddits(lake) == []
+
+
+def test_lake_materializer_dry_run_writes_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry = _registry(tmp_path)
+    packet = _raw_grid_packet(tmp_path, monkeypatch)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+
+    outcome = refresh_lake_registry_from_grid_packets(
+        data_root=lake, packet_paths=[packet], dry_run=True
+    )
+    assert outcome.refreshed_subreddits == ["makeupaddiction"]
+    assert outcome.records_written == 0
+    assert fold_subreddit(lake, "makeupaddiction")["observations"] == []
