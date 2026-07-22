@@ -10,7 +10,7 @@ import tempfile
 import sys
 from contextlib import redirect_stderr
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -18,6 +18,15 @@ if __package__ in {None, ""}:
 from capture_spine.creator_profile_current.materialize import (
     load_json,
     verify_audience_judgment_outcomes,
+)
+from data_lake.creator_audience_queue import (
+    CreatorAudienceQueueError,
+    claim_creator_audience_job,
+    enqueue_creator_audience_job,
+    materialize_claim_bundle,
+    public_queue_view,
+    require_active_claim,
+    write_creator_audience_terminal,
 )
 from data_lake.creator_registry import (
     admit_tiktok_creator_account,
@@ -276,6 +285,187 @@ def submit_onboarding(
     )
 
 
+def enqueue_onboarding(
+    *, data_root: DataLakeRoot, bundle_path: Path, prompt_path: Path
+) -> dict[str, Any]:
+    return enqueue_creator_audience_job(
+        data_root=data_root, bundle_path=bundle_path, prompt_path=prompt_path
+    )
+
+
+def claim_onboarding_job(
+    *, data_root: DataLakeRoot, worker_id: str, prompt_out: Path
+) -> dict[str, Any]:
+    claim = claim_creator_audience_job(
+        data_root=data_root, worker_id=worker_id, prompt_out=prompt_out
+    )
+    if claim.get("status") != "claimed":
+        return claim
+    job = require_active_claim(
+        data_root=data_root,
+        job_id=str(claim["job_id"]),
+        lease_id=str(claim["lease_id"]),
+    )
+    outcomes = _validated_outcomes_for_job(data_root, job)
+    if len(outcomes) > 1:
+        raise CreatorAudienceQueueError(
+            "queue recovery found multiple validated outcomes for one bundle"
+        )
+    if not outcomes:
+        return claim
+    outcome_path, outcome = outcomes[0]
+    completed = complete_onboarding_to_lake(
+        data_root=data_root,
+        packet_id=str(job["raw_anchor"]),
+        outcome_path=outcome_path,
+    )
+    terminal = write_creator_audience_terminal(
+        data_root=data_root,
+        job_id=str(job["job_id"]),
+        lease_id=str(claim["lease_id"]),
+        status="succeeded",
+        details=_success_terminal_details(data_root, outcome_path, outcome, completed),
+    )
+    prompt_out.unlink(missing_ok=True)
+    return {
+        "status": "recovered_succeeded",
+        "job_id": job["job_id"],
+        "lease_id": claim["lease_id"],
+        "terminal": terminal,
+        "registry_completion": completed,
+        "model_api_calls": 0,
+    }
+
+
+def submit_onboarding_job(
+    *,
+    data_root: DataLakeRoot,
+    job_id: str,
+    lease_id: str,
+    response_bytes: bytes,
+) -> dict[str, Any]:
+    job = require_active_claim(
+        data_root=data_root, job_id=job_id, lease_id=lease_id
+    )
+    with tempfile.TemporaryDirectory(prefix="forseti-creator-audience-queue-") as work:
+        work_dir = Path(work)
+        bundle_path = materialize_claim_bundle(job, work_dir / "bundle.json")
+        result = submit_onboarding(
+            data_root=data_root,
+            bundle_path=bundle_path,
+            response_bytes=response_bytes,
+            snapshot_out=work_dir / "snapshot.json",
+        )
+    if result.get("status") != "validated":
+        return {
+            **result,
+            "judgment_status": result.get("status"),
+            "status": "correction_required",
+            "queue_state": "running",
+            "job_id": job_id,
+            "lease_id": lease_id,
+            "safe_next_action": (
+                "return only validation_errors to the same cold context and resubmit "
+                "before lease expiry, explicitly block, or allow lease recovery"
+            ),
+        }
+    outcome_path = Path(str(result["judgment_outcome_path"]))
+    outcome = load_json(outcome_path)
+    completed = complete_onboarding_to_lake(
+        data_root=data_root,
+        packet_id=str(job["raw_anchor"]),
+        outcome_path=outcome_path,
+    )
+    terminal = write_creator_audience_terminal(
+        data_root=data_root,
+        job_id=job_id,
+        lease_id=lease_id,
+        status="succeeded",
+        details=_success_terminal_details(data_root, outcome_path, outcome, completed),
+    )
+    return {
+        "status": "succeeded",
+        "job_id": job_id,
+        "lease_id": lease_id,
+        "judgment": result,
+        "registry_completion": completed,
+        "terminal": terminal,
+        "model_api_calls": 0,
+    }
+
+
+def block_onboarding_job(
+    *, data_root: DataLakeRoot, job_id: str, lease_id: str, reason: str
+) -> dict[str, Any]:
+    if not reason.strip():
+        raise CreatorAudienceQueueError("queue block reason must be nonblank")
+    job = require_active_claim(
+        data_root=data_root, job_id=job_id, lease_id=lease_id
+    )
+    if _validated_outcomes_for_job(data_root, job):
+        raise CreatorAudienceQueueError(
+            "cannot block a job that has a validated outcome awaiting completion"
+        )
+    terminal = write_creator_audience_terminal(
+        data_root=data_root,
+        job_id=job_id,
+        lease_id=lease_id,
+        status="blocked",
+        details={"reason": reason.strip()},
+    )
+    return {
+        "status": "blocked",
+        "job_id": job_id,
+        "lease_id": lease_id,
+        "terminal": terminal,
+        "registry_written": False,
+        "model_api_calls": 0,
+    }
+
+
+def _validated_outcomes_for_job(
+    data_root: DataLakeRoot, job: Mapping[str, Any]
+) -> list[tuple[Path, dict[str, Any]]]:
+    lane = data_root.lane_dir(
+        subtree="derived",
+        raw_anchor=str(job["raw_anchor"]),
+        lane="creator_audience_judgment_outcome",
+    )
+    if not lane.is_dir():
+        return []
+    matches: list[tuple[Path, dict[str, Any]]] = []
+    for path in sorted(lane.iterdir(), key=lambda item: item.name):
+        if not path.is_file():
+            continue
+        outcome = load_json(path)
+        if (
+            outcome.get("schema_version") == "creator_audience_judgment_outcome_v1"
+            and outcome.get("status") == "validated"
+            and outcome.get("bundle_hash") == job["bundle_hash"]
+            and outcome.get("profile_subject_id") == job["profile_subject_id"]
+            and outcome.get("raw_anchor") == job["raw_anchor"]
+        ):
+            matches.append((path, outcome))
+    return matches
+
+
+def _success_terminal_details(
+    data_root: DataLakeRoot,
+    outcome_path: Path,
+    outcome: Mapping[str, Any],
+    completed: Mapping[str, Any],
+) -> dict[str, Any]:
+    return {
+        "judgment_outcome_record_id": outcome.get("record_id"),
+        "judgment_outcome_record_ref": outcome_path.resolve()
+        .relative_to(data_root.path.resolve())
+        .as_posix(),
+        "snapshot_id": outcome.get("snapshot_id_or_none"),
+        "registry_admission_record_id": completed.get("record_id"),
+        "profile_subject_id": completed.get("platform_account_id"),
+    }
+
+
 def complete_onboarding(
     *,
     snapshot_path: Path,
@@ -450,6 +640,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare.add_argument("--question", required=True)
     prepare.add_argument("--evidence-cutoff", required=True)
     prepare.add_argument("--work-dir", type=Path, required=True)
+    prepare.add_argument("--enqueue", action="store_true")
 
     submit = subparsers.add_parser("submit")
     submit.add_argument("--data-root", required=True)
@@ -463,15 +654,43 @@ def _parser() -> argparse.ArgumentParser:
     complete.add_argument("--data-root", required=True)
     complete.add_argument("--packet-id", required=True)
     complete.add_argument("--outcome", type=Path, required=True)
+
+    enqueue = subparsers.add_parser("queue-enqueue")
+    enqueue.add_argument("--data-root", required=True)
+    enqueue.add_argument("--bundle", type=Path, required=True)
+    enqueue.add_argument("--prompt", type=Path, required=True)
+
+    show = subparsers.add_parser("queue-show")
+    show.add_argument("--data-root", required=True)
+
+    claim = subparsers.add_parser("queue-claim")
+    claim.add_argument("--data-root", required=True)
+    claim.add_argument("--worker-id", required=True)
+    claim.add_argument("--prompt-out", type=Path, required=True)
+
+    queue_submit = subparsers.add_parser("queue-submit")
+    queue_submit.add_argument("--data-root", required=True)
+    queue_submit.add_argument("--job-id", required=True)
+    queue_submit.add_argument("--lease-id", required=True)
+    queue_response = queue_submit.add_mutually_exclusive_group(required=True)
+    queue_response.add_argument("--response", type=Path)
+    queue_response.add_argument("--response-stdin", action="store_true")
+
+    block = subparsers.add_parser("queue-block")
+    block.add_argument("--data-root", required=True)
+    block.add_argument("--job-id", required=True)
+    block.add_argument("--lease-id", required=True)
+    block.add_argument("--reason", required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
+        data_root = DataLakeRoot.resolve(explicit=args.data_root)
         if args.command == "prepare":
             result = prepare_onboarding(
-                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                data_root=data_root,
                 packet_id=args.packet_id,
                 grid_packet_id=args.grid_packet_id,
                 creator_id=args.creator_id,
@@ -480,6 +699,15 @@ def main(argv: list[str] | None = None) -> int:
                 evidence_cutoff=args.evidence_cutoff,
                 work_dir=args.work_dir,
             )
+            if args.enqueue:
+                result = {
+                    **result,
+                    "queue": enqueue_onboarding(
+                        data_root=data_root,
+                        bundle_path=Path(str(result["bundle_out"])),
+                        prompt_path=Path(str(result["prompt_out"])),
+                    ),
+                }
         elif args.command == "submit":
             response_bytes = (
                 sys.stdin.buffer.read()
@@ -487,22 +715,55 @@ def main(argv: list[str] | None = None) -> int:
                 else args.response.read_bytes()
             )
             result = submit_onboarding(
-                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                data_root=data_root,
                 bundle_path=args.bundle,
                 response_bytes=response_bytes,
                 snapshot_out=args.snapshot_out,
             )
-        else:
+        elif args.command == "complete":
             result = complete_onboarding_to_lake(
-                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                data_root=data_root,
                 packet_id=args.packet_id,
                 outcome_path=args.outcome,
+            )
+        elif args.command == "queue-enqueue":
+            result = enqueue_onboarding(
+                data_root=data_root,
+                bundle_path=args.bundle,
+                prompt_path=args.prompt,
+            )
+        elif args.command == "queue-show":
+            result = public_queue_view(data_root)
+        elif args.command == "queue-claim":
+            result = claim_onboarding_job(
+                data_root=data_root,
+                worker_id=args.worker_id,
+                prompt_out=args.prompt_out,
+            )
+        elif args.command == "queue-submit":
+            response_bytes = (
+                sys.stdin.buffer.read()
+                if args.response_stdin
+                else args.response.read_bytes()
+            )
+            result = submit_onboarding_job(
+                data_root=data_root,
+                job_id=args.job_id,
+                lease_id=args.lease_id,
+                response_bytes=response_bytes,
+            )
+        else:
+            result = block_onboarding_job(
+                data_root=data_root,
+                job_id=args.job_id,
+                lease_id=args.lease_id,
+                reason=args.reason,
             )
     except (DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 2 if result.get("status") == "blocked" else 0
+    return 2 if result.get("status") in {"blocked", "correction_required"} else 0
 
 
 if __name__ == "__main__":

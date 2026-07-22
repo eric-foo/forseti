@@ -17,6 +17,7 @@ Required product sources:
 
 Required runtime contracts:
 
+- `forseti-harness/data_lake/creator_audience_queue.py`
 - `forseti-harness/judgment/creator_audience.py`
 - `forseti-harness/runners/run_tiktok_creator_onboarding_coordinator.py`
 - `forseti-harness/runners/run_tiktok_creator_audience_triangulation.py`
@@ -71,6 +72,9 @@ capture troubleshooting, or browsing creators.
 ## Operating fast path
 
 - When a complete admitted TikTok batch is supplied through `--prior-capture-pointer`, use the default profile-refresh route. It reuses transcript/comment evidence, captures current bio and profile metrics only, and must report `completed_deep_capture_count: 0`. Repeat the eight-video route only with `--force-deep-recapture`.
+- For queued TikTok work, the controller invokes `queue-show`, then `queue-claim --worker-id <stable-controller-id> --prompt-out <new-path>`. If a job is claimed, launch exactly one cold subagent with only those emitted prompt bytes; do not add this skill text, another creator, a second large prompt, or chat history. Submit the worker's exact response bytes with the returned `job_id` and `lease_id` through `queue-submit`.
+- A `queue-submit` result with `status=correction_required` and `queue_state=running` leaves the job leased and non-terminal; `judgment_status=blocked` records the rejected response only. Return only its `validation_errors` to the same cold context and resubmit before the 30-minute lease expires. Use `queue-block` only for an explicit non-recoverable stop; otherwise let an abandoned lease expire for recovery. A claim that reports `recovered_succeeded` already found the exact validated outcome and completed Registry admission without another model call.
+- The capture controller treats queued plus active-running count 10 as a pre-browser stop and resumes capture below 10. Do not recapture a Registry account already represented by queued or active-running work. The repository supplies lake state and CLI operations only; the controlling Codex agent performs claim/launch/submit sequencing.
 - Before a production command that source or prior runs show can exceed 60 seconds, resolve its executable and arguments from runner source or `--help`, then launch it through background-and-poll. Run independent focused checks while the one cold Judgment context is pending; never duplicate capture or validation merely to create overlap.
 - Healthy timing targets are at most 60 seconds for profile refresh, at most 10 minutes for deterministic downstream work excluding the cold Judgment wait, and at most 15 minutes end to end (25 minutes acceptable when live source or cold-context latency is observed). Report the measured blocker rather than filling the budget with more proof.
 
