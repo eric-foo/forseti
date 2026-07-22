@@ -123,7 +123,9 @@ def load_documents(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     data_root._reverify()
     target = database_path(data_root)
-    with _connect(target, readonly=True) as connection:
+    with _read_errors("Creator Registry SQLite read"), _connect(
+        target, readonly=True
+    ) as connection:
         metadata = _metadata(connection)
         if (
             expected_migration_authority_inventory_sha256 is not None
@@ -168,7 +170,9 @@ def load_documents(
 
 
 def inspect_database(target: Path) -> dict[str, Any]:
-    with _connect(target, readonly=True) as connection:
+    with _read_errors("Creator Registry SQLite inspection"), _connect(
+        target, readonly=True
+    ) as connection:
         result = _metadata(connection)
         integrity = connection.execute("PRAGMA quick_check").fetchone()
         if integrity is None or integrity[0] != "ok":
@@ -637,6 +641,19 @@ def _metadata(connection: sqlite3.Connection) -> dict[str, str]:
     if set(values) != required or values.get("schema_version") != SQLITE_SCHEMA:
         raise CreatorRegistrySqliteError("Creator Registry SQLite metadata is unsupported")
     return values
+
+
+@contextmanager
+def _read_errors(role: str) -> Iterator[None]:
+    """Keep a corrupt or unreadable database inside the fail-closed error type.
+
+    The mutating paths already translate ``sqlite3.Error``; without this the read
+    paths leak a raw ``sqlite3.DatabaseError`` past every caller and CLI handler
+    that only expects ``CreatorRegistrySqliteError``."""
+    try:
+        yield
+    except sqlite3.Error as exc:
+        raise CreatorRegistrySqliteError(f"{role} failed: {exc}") from exc
 
 
 @contextmanager

@@ -456,6 +456,11 @@ def retract_tiktok_creator_candidate(
     handle = _normalize_handle(public_handle)
     pointer = _load_registry_pointer(data_root)
     if pointer.get("pointer_schema_version") == SQLITE_POINTER_SCHEMA_VERSION:
+        # Removal is physical and keeps no tombstone, so bind CURRENT to the
+        # database before deleting.  Every read path already refuses an unbound
+        # pointer/database pair; the destructive path must refuse it first, not
+        # discover it on the readback after the row is already gone.
+        _load_sqlite_current(data_root, pointer)
         frontier = load_creator_frontier_dispositions(data_root)[
             "creator_frontier_disposition_current"
         ]

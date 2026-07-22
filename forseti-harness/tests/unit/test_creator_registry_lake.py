@@ -1121,3 +1121,78 @@ def test_sqlite_cli_cutover_and_browser_free_selector(tmp_path: Path, capsys) ->
     )
     assert handle == "new.fragrance"
     assert selected["platform_account_id"] == account_id
+
+
+def _registry_current_path(root: DataLakeRoot) -> Path:
+    return root.path / "indexes" / "derived_retrieval" / "creator_registry" / "CURRENT"
+
+
+def test_sqlite_candidate_removal_refuses_an_unbound_current_pointer(tmp_path: Path) -> None:
+    """Removal is physical and tombstone-free, so it must bind CURRENT first."""
+    root = _root(tmp_path)
+    _migrate(root)
+    cutover_creator_registry_sqlite(root)
+    packet_id, _outcome_path, account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "deferred",
+                "reason_code": "owner_choice",
+                "reconsideration": "owner_reopen",
+            }
+        ],
+        recorded_at="2026-07-21T12:02:00Z",
+    )
+    current_path = _registry_current_path(root)
+    pointer = json.loads(current_path.read_text(encoding="utf-8"))
+
+    def _still_present() -> bool:
+        return any(
+            row["platform_account_id"] == account_id
+            for row in load_current_creator_registry(root)["creator_registry_index"][
+                "platform_accounts"
+            ]
+        )
+
+    for unbound, expected in (
+        (
+            {**pointer, "migration_authority_inventory_sha256": "0" * 64},
+            "does not match the database migration authority inventory",
+        ),
+        ({**pointer, "backend": "postgres"}, "CURRENT pointer is unsupported"),
+        (
+            {**pointer, "database_ref": "derived/elsewhere.sqlite3"},
+            "CURRENT pointer is unsupported",
+        ),
+        ({**pointer, "unexpected_key": "x"}, "CURRENT pointer is unsupported"),
+    ):
+        current_path.write_text(json.dumps(unbound), encoding="utf-8")
+        with pytest.raises(CreatorRegistryLakeError, match=expected):
+            retract_tiktok_creator_candidate(data_root=root, public_handle="new.fragrance")
+        current_path.write_text(json.dumps(pointer), encoding="utf-8")
+        assert _still_present()
+
+    assert (
+        retract_tiktok_creator_candidate(data_root=root, public_handle="new.fragrance")[
+            "status"
+        ]
+        == "removed"
+    )
+    assert not _still_present()
+
+
+def test_sqlite_corrupt_database_fails_closed_as_a_registry_error(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    cutover_creator_registry_sqlite(root)
+    intact = database_path(root).read_bytes()
+    for damaged in (b"not a sqlite database at all" * 40, intact[: len(intact) // 2]):
+        database_path(root).write_bytes(damaged)
+        with pytest.raises(CreatorRegistryLakeError):
+            load_current_creator_registry(root)
+        with pytest.raises(CreatorRegistryLakeError):
+            load_current_creator_profiles(root)

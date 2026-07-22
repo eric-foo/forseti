@@ -315,9 +315,11 @@ counts without creating a generation or replacing `CURRENT`. Migration dry run i
 also non-writing when the matching baseline already exists.
 
 That rebuild behavior is legacy-v3-only. After epoch v4, the rebuild command fails
-closed: routine SQL operations use `BEGIN IMMEDIATE` with foreign keys,
-`synchronous=FULL`, and the rollback journal. A failed multi-row onboarding leaves
-the prior account and public projection intact. Full-state work is limited to an
+closed: routine SQL operations use `BEGIN IMMEDIATE` with declared column checks
+and identity unique indexes, `synchronous=FULL`, and the rollback journal. A
+failed multi-row onboarding leaves the prior account and public projection
+intact. The account-to-public-profile pairing is enforced by the writers and
+their readback, not by a declared foreign key. Full-state work is limited to an
 explicit schema migration or backup recovery, not ordinary admission or removal.
 
 Before the first SQL-only mutation, rollback can restore the v3 pointer because

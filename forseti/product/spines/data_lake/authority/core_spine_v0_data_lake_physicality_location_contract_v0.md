@@ -245,8 +245,9 @@ The exception is narrow:
 - `CURRENT` under `indexes/derived_retrieval/creator_registry/` is only the
   backend/epoch pointer and carries no Registry authority;
 - SQLite must be on a local filesystem. The lane uses one immediate transaction,
-  foreign keys, the rollback journal, and full synchronous durability; it does
-  not admit a network share or multi-machine writer.
+  declared column checks and identity unique indexes, the rollback journal, and
+  full synchronous durability; it does not admit a network share or
+  multi-machine writer.
 
 This exception replaces repeated whole-Registry generation publication. It is
 not a generic permission to store mutable databases under `derived/`.
