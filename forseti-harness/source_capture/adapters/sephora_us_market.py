@@ -75,7 +75,7 @@ class SephoraUSMarketPlugin:
         try:
             page.goto(
                 self.target_url,
-                wait_until="load",
+                wait_until="domcontentloaded",
                 timeout=setup_timeout_ms,
             )
             page.wait_for_timeout(min(_COUNTRY_DIALOG_WAIT_MS, setup_timeout_ms))

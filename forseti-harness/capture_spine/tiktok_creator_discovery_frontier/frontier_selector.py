@@ -89,15 +89,24 @@ def build_tiktok_creator_promotion_decisions(
         span = (max(post[0] for post in posts) - min(post[0] for post in posts)) / 86400
         cadence = ((len(posts) - 1) * 7 / span) if span > 0 else 0.0
         weekly = p25 * min(cadence, _PROMOTION_POLICY["cadence_cap"])
-        decision = _promotion_decision_fields(quality=quality, weekly_reach=weekly)
+        followers = _followers(grid)
+        weekly_per_1k = (weekly / (followers / 1000)) if followers else None
+        decision = _promotion_decision_fields(
+            quality=quality,
+            weekly_reach=weekly,
+            followers=followers,
+            weekly_reach_per_1k_followers=weekly_per_1k,
+        )
         promote = decision["registry_action"] == "promote_now"
         reconsider = None if promote else "new_signal_only"
-        followers = _followers(grid)
         rows.append({
             "handle": handle, "registry_action": "promote_now" if promote else "do_not_promote",
             "reconsider_when_or_none": reconsider,
             "age_normalized_quality_index_or_none": round(quality, 6) if quality is not None else None,
             "reliable_weekly_reach": round(weekly, 6), "observed_posts_per_week": round(cadence, 6),
+            "follower_count_or_none": followers,
+            "follower_band": _follower_band(followers),
+            "reliable_weekly_reach_per_1k_followers_or_none": round(weekly_per_1k, 6) if weekly_per_1k is not None else None,
             "age_normalized_median_reach_per_follower_or_none": round(float(median(normalized)) / followers, 6) if followers else None,
             "oldest_available_grid_post_utc": datetime.fromtimestamp(min(post[0] for post in posts), tz=timezone.utc).isoformat().replace("+00:00", "Z"),
             "oldest_evidence_status": "bounded_grid_proxy_not_oldest_filter",
@@ -119,7 +128,11 @@ def build_tiktok_creator_promotion_decisions(
 
 
 def _promotion_decision_fields(
-    *, quality: float | None, weekly_reach: float
+    *,
+    quality: float | None,
+    weekly_reach: float,
+    followers: int | None,
+    weekly_reach_per_1k_followers: float | None,
 ) -> dict[str, Any]:
     quality_cleared = (
         quality is not None and quality >= _PROMOTION_POLICY["quality_p25"]
@@ -145,11 +158,20 @@ def _promotion_decision_fields(
         reason = "below_both_p25"
     action = "promote_now" if cleared else "do_not_promote"
     quality_text = "unavailable" if quality is None else f"{quality:.6f}"
+    followers_text = "unavailable" if followers is None else str(followers)
+    weekly_per_1k_text = (
+        "unavailable"
+        if weekly_reach_per_1k_followers is None
+        else f"{weekly_reach_per_1k_followers:.6f}"
+    )
     note = (
         f"policy={_PROMOTION_POLICY['version']}; decision={action}; "
         f"quality={quality_text}; quality_p25={_PROMOTION_POLICY['quality_p25']:.8f}; "
         f"reliable_weekly_reach={weekly_reach:.6f}; "
         f"weekly_reach_p25={_PROMOTION_POLICY['weekly_reach_p25']:.6f}; "
+        f"followers={followers_text}; "
+        f"follower_band={_follower_band(followers)}; "
+        f"weekly_reach_per_1k_followers={weekly_per_1k_text}; "
         f"cleared={','.join(cleared) if cleared else 'none'}; "
         f"reconsider={'none' if cleared else 'new_signal'}"
     )
@@ -328,6 +350,18 @@ def _followers(grid: Mapping[str, Any]) -> int | None:
     follower = metrics.get("follower_count") if isinstance(metrics, Mapping) else None
     value = follower.get("exact_value_or_none") if isinstance(follower, Mapping) else None
     return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
+def _follower_band(followers: int | None) -> str:
+    if followers is None:
+        return "unknown"
+    if followers < 10_000:
+        return "under_10k"
+    if followers < 50_000:
+        return "10k_50k"
+    if followers < 250_000:
+        return "50k_250k"
+    return "250k_plus"
 
 
 def rank_tiktok_creator_discovery_targets(
