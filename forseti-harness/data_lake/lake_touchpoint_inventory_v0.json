@@ -183,7 +183,7 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record",
-      "count": 3,
+      "count": 4,
       "module": "data_lake/reddit_subreddit_registry.py"
     },
     {

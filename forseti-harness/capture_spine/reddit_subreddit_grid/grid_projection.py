@@ -23,7 +23,9 @@ from source_capture.projection_shared import canonical_old_reddit_thread_url
 # Bump on ANY behavior change to this projection so content packets written
 # under the old behavior stay distinguishable from re-projections under the
 # new one (qualification compares records only within one version).
-GRID_PROJECTION_PARSER_VERSION = "1"
+# v3: scope extraction with an open-tag stack and carry listing diagnostics so
+# retention can detect dropped rows and lost permalink attributes.
+GRID_PROJECTION_PARSER_VERSION = "3"
 
 GRID_CONTENT_RECORD_KIND = "reddit_subreddit_grid_view_v0"
 
@@ -43,6 +45,10 @@ class GridThreadRow:
     visible_score_or_none: str | None
     visible_comment_count_or_none: str | None
     promoted: bool
+    # v2 fields default so v1 content records still reconstruct via **row.
+    timestamp_utc_ms_or_none: str | None = None
+    stickied: bool = False
+    flair_or_none: str | None = None
 
 
 @dataclass(frozen=True)
@@ -53,6 +59,11 @@ class GridView:
     visible_active_user_count_or_none: str | None
     visible_volume_signal_absent_reason_or_none: str | None
     thread_rows: tuple[GridThreadRow, ...] = field(default_factory=tuple)
+    # v2: sidebar "a community for ..." age element, ISO datetime string.
+    created_utc_or_none: str | None = None
+    # v3 diagnostics. None means a v1/v2 content record did not carry them.
+    listing_thing_count_or_none: int | None = None
+    listing_permalink_count_or_none: int | None = None
 
 
 def project_old_reddit_grid_html(
@@ -97,6 +108,9 @@ def project_old_reddit_grid_html(
         visible_active_user_count_or_none=parser.visible_active_user_count,
         visible_volume_signal_absent_reason_or_none=absent_reason,
         thread_rows=tuple(rows),
+        created_utc_or_none=parser.visible_created_utc,
+        listing_thing_count_or_none=parser.listing_thing_count,
+        listing_permalink_count_or_none=parser.listing_permalink_count,
     )
 
 
@@ -149,12 +163,33 @@ def grid_view_from_record(record: dict) -> GridView:
             visible_active_user_count_or_none=payload["visible_active_user_count_or_none"],
             visible_volume_signal_absent_reason_or_none=payload["visible_volume_signal_absent_reason_or_none"],
             thread_rows=rows,
+            # v1 records predate this key; absent means unobserved, not empty.
+            created_utc_or_none=payload.get("created_utc_or_none"),
+            listing_thing_count_or_none=payload.get("listing_thing_count_or_none"),
+            listing_permalink_count_or_none=payload.get("listing_permalink_count_or_none"),
         )
     except (KeyError, TypeError) as exc:
         raise RedditGridProjectionError(
             "record_shape",
             f"content record grid_view does not match the GridView shape: {exc}",
         ) from exc
+
+
+def grid_view_projection_anomaly(view: GridView) -> str | None:
+    """Return the first retention-worthy projection anomaly, if any."""
+    rows = view.thread_rows
+    if not rows:
+        return "no_thread_rows"
+    if (
+        view.listing_thing_count_or_none is not None
+        and view.listing_thing_count_or_none != len(rows)
+    ):
+        return "thread_row_count_mismatch"
+    if view.listing_permalink_count_or_none == 0:
+        return "no_permalinks"
+    if all(row.timestamp_utc_ms_or_none is None for row in rows):
+        return "no_timestamps"
+    return None
 
 
 class _OldRedditGridParser(HTMLParser):
@@ -177,8 +212,14 @@ class _OldRedditGridParser(HTMLParser):
         self.thread_rows: list[GridThreadRow] = []
         self.visible_subscriber_count: str | None = None
         self.visible_active_user_count: str | None = None
+        self.visible_created_utc: str | None = None
+        self.listing_thing_count = 0
+        self.listing_permalink_count = 0
+        self._open_tags: list[str] = []
         self._titlebox_depth = 0
         self._users_online_depth = 0
+        self._age_span_depth = 0
+        self._capturing_flair_depth: int | None = None
         self._capturing_number_for: str | None = None
         self._capturing_number_depth: int | None = None
         self._thing_depth = 0
@@ -190,12 +231,27 @@ class _OldRedditGridParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {key: value or "" for key, value in attrs}
         class_tokens = set(attr_map.get("class", "").split())
+        if tag not in self._VOID_TAGS:
+            self._open_tags.append(tag)
 
         self._advance_titlebox(tag, class_tokens)
         if "users-online" in class_tokens:
             self._users_online_depth += 1
         elif self._users_online_depth and tag not in self._VOID_TAGS:
             self._users_online_depth += 1
+        if "age" in class_tokens and tag == "span" and self._titlebox_depth:
+            self._age_span_depth += 1
+        elif self._age_span_depth and tag not in self._VOID_TAGS:
+            self._age_span_depth += 1
+        if (
+            tag == "time"
+            and self._age_span_depth
+            and self.visible_created_utc is None
+            and attr_map.get("datetime")
+        ):
+            # Sidebar "a community for N years" element; the datetime attribute
+            # is the venue's exact creation instant.
+            self.visible_created_utc = attr_map["datetime"]
         if tag == "span" and "number" in class_tokens and self._titlebox_depth:
             target = "active_users" if self._users_online_depth else "subscribers"
             already_captured = (
@@ -208,6 +264,10 @@ class _OldRedditGridParser(HTMLParser):
                 self._capturing_number_for = target
                 self._capturing_number_depth = self._titlebox_depth
 
+        if "thing" in class_tokens:
+            self.listing_thing_count += 1
+            if attr_map.get("data-permalink"):
+                self.listing_permalink_count += 1
         if "thing" in class_tokens and not self._thing_depth:
             self._open_thing(attr_map, class_tokens)
             self._thing_depth = 1
@@ -217,6 +277,15 @@ class _OldRedditGridParser(HTMLParser):
 
         if self._current is None:
             return
+        if "linkflairlabel" in class_tokens:
+            # Old Reddit renders flair as <span class="linkflairlabel" title="X">X</span>;
+            # the title attribute is the clean value, text capture is the fallback.
+            if self._current.get("flair") is None:
+                title_attr = attr_map.get("title", "").strip()
+                if title_attr:
+                    self._current["flair"] = title_attr
+                else:
+                    self._capturing_flair_depth = self._thing_depth
         if tag == "a" and _is_title_anchor(class_tokens):
             href = attr_map.get("href", "")
             if self._current.get("thread_url") is None:
@@ -265,8 +334,20 @@ class _OldRedditGridParser(HTMLParser):
                 value,
                 separator=" ",
             )
+        elif self._capturing_flair_depth is not None:
+            self._current["flair"] = _append_fragment(
+                _str_or_none(self._current.get("flair")),
+                value,
+                separator=" ",
+            )
 
     def handle_endtag(self, tag: str) -> None:
+        if tag in self._VOID_TAGS:
+            return
+        if not self._open_tags or self._open_tags[-1] != tag:
+            # A stray or misnested closer must not corrupt every active scope.
+            return
+        self._open_tags.pop()
         if (
             tag == "span"
             and self._capturing_number_depth is not None
@@ -281,10 +362,14 @@ class _OldRedditGridParser(HTMLParser):
                 self._capturing_score_depth = None
             if self._capturing_comments_depth == self._thing_depth:
                 self._capturing_comments_depth = None
+            if self._capturing_flair_depth == self._thing_depth:
+                self._capturing_flair_depth = None
             if self._titlebox_depth:
                 self._titlebox_depth -= 1
             if self._users_online_depth:
                 self._users_online_depth -= 1
+            if self._age_span_depth:
+                self._age_span_depth -= 1
             if self._thing_depth:
                 self._thing_depth -= 1
                 if not self._thing_depth:
@@ -305,6 +390,9 @@ class _OldRedditGridParser(HTMLParser):
             "score": attr_map.get("data-score") or None,
             "comments": attr_map.get("data-comments-count") or None,
             "promoted": "promoted" in class_tokens or attr_map.get("data-promoted", "") == "true",
+            "timestamp": attr_map.get("data-timestamp") or None,
+            "stickied": "stickied" in class_tokens,
+            "flair": None,
         }
 
     def _close_thing(self) -> None:
@@ -313,6 +401,7 @@ class _OldRedditGridParser(HTMLParser):
         self._capturing_title_depth = None
         self._capturing_score_depth = None
         self._capturing_comments_depth = None
+        self._capturing_flair_depth = None
         if current is None:
             return
         thread_url = current.get("thread_url")
@@ -326,6 +415,9 @@ class _OldRedditGridParser(HTMLParser):
                 visible_score_or_none=_str_or_none(current.get("score")),
                 visible_comment_count_or_none=_extract_leading_count(current.get("comments")),
                 promoted=bool(current.get("promoted")),
+                timestamp_utc_ms_or_none=_str_or_none(current.get("timestamp")),
+                stickied=bool(current.get("stickied")),
+                flair_or_none=_str_or_none(current.get("flair")),
             )
         )
 

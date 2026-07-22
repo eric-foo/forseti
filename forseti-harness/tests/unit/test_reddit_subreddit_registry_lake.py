@@ -16,6 +16,7 @@ from data_lake.reddit_subreddit_registry import (
     VENUE_ROLES,
     RedditSubredditRegistryLakeError,
     append_grid_observation,
+    append_reach_observation,
     append_roster_change,
     fold_subreddit,
     known_subreddits,
@@ -590,3 +591,132 @@ def test_inflight_write_temp_is_skipped_by_the_fold(lake: DataLakeRoot) -> None:
     row = fold_subreddit(lake, "probe")
     assert row["subreddit"] == "probe"
     assert staged.exists(), "the fold must skip the temp, not delete it"
+
+
+# --------------------------------------------------------------------------
+# Reach observations (agent-read: SERP bands, community panel)
+# --------------------------------------------------------------------------
+
+
+def _reach(lake: DataLakeRoot, subreddit: str, *, pointer: str, **kwargs):
+    return append_reach_observation(
+        lake,
+        subreddit=subreddit,
+        observed_at=kwargs.get("observed_at", "2026-07-22"),
+        source_surface=kwargs.get("surface", "agent_browser_serp_read"),
+        provenance_pointer=pointer,
+        subscriber_count_or_none=kwargs.get("subscribers"),
+        weekly_visitor_count_or_none=kwargs.get("visitors"),
+        weekly_contribution_count_or_none=kwargs.get("contributions"),
+        absent_reason_or_none=kwargs.get("absent_reason"),
+    )
+
+
+def test_reach_observation_folds_with_band_and_panel_fields(lake: DataLakeRoot) -> None:
+    append_roster_change(lake, subreddit="reachy", change_kind="add", actor="agent")
+    before = fold_subreddit(lake, "reachy")
+
+    result = _reach(
+        lake,
+        "reachy",
+        pointer="agent_browser_session_2026-07-22_serp_q=r/reachy",
+        subscribers="135.3K+",
+        visitors="702000",
+        contributions="7600",
+    )
+    assert result["written"] is True
+
+    row = fold_subreddit(lake, "reachy")
+    (observation,) = row["observations"]
+    assert observation["subscriber_count_or_none"] == "135.3K+"
+    assert observation["weekly_visitor_count_or_none"] == "702000"
+    assert observation["weekly_contribution_count_or_none"] == "7600"
+    assert observation["source_surface"] == "agent_browser_serp_read"
+    # A browser-read band proves nothing about liveness and advances no packet
+    # state: the row keeps its genesis status and capture_state untouched.
+    assert row["status"] == before["status"]
+    assert row["status_observed_at"] == before["status_observed_at"]
+    assert row["capture_state"] == before["capture_state"]
+    assert observation["provenance_pointer"] in row["register_pointers"]
+
+
+def test_reach_observation_refuses_to_record_nothing(lake: DataLakeRoot) -> None:
+    append_roster_change(lake, subreddit="reachy", change_kind="add", actor="agent")
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        _reach(lake, "reachy", pointer="agent_browser_session_x")
+    assert excinfo.value.code == "observation_empty"
+
+
+def test_reach_observation_rejects_non_iso_observed_at(lake: DataLakeRoot) -> None:
+    append_roster_change(lake, subreddit="reachy", change_kind="add", actor="agent")
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        _reach(lake, "reachy", pointer="p", subscribers="1K+", observed_at="July 22")
+    assert excinfo.value.code == "observed_at_invalid"
+
+
+def test_reach_observation_same_pointer_conflicts_or_replays(lake: DataLakeRoot) -> None:
+    append_roster_change(lake, subreddit="reachy", change_kind="add", actor="agent")
+    pointer = "agent_browser_session_2026-07-22_serp_q=r/reachy"
+    first = _reach(lake, "reachy", pointer=pointer, subscribers="1M+")
+    replay = _reach(lake, "reachy", pointer=pointer, subscribers="1M+")
+    assert first["written"] is True
+    assert replay["status"] == "already_current" and replay["written"] is False
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        _reach(lake, "reachy", pointer=pointer, subscribers="2M+")
+    assert excinfo.value.code == "observation_provenance_conflict"
+
+
+def test_reach_and_grid_observations_coexist_in_one_fold(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    """Old-shape grid observations (no weekly keys) and new-shape reach
+    observations fold side by side; the mixed shapes must not collide."""
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    _observe(lake, "alpha", pointer="F:/lake/raw/eee/manifest.json", observed_at="2026-07-21")
+    _reach(lake, "alpha", pointer="agent_browser_session_serp", subscribers="2.4M+")
+
+    row = fold_subreddit(lake, "alpha")
+    assert len(row["observations"]) == 2
+    grid = next(o for o in row["observations"] if o["source_surface"] == "old_reddit_grid_packet")
+    reach = next(o for o in row["observations"] if o["source_surface"] == "agent_browser_serp_read")
+    assert "weekly_visitor_count_or_none" not in grid
+    assert reach["weekly_visitor_count_or_none"] is None
+
+
+def test_rdr03_old_shape_observation_replay_is_not_a_conflict(
+    lake: DataLakeRoot, tmp_path: Path
+) -> None:
+    """The weekly fields were added nullable with no migration: a grid
+    observation recorded without them must compare equal to a reach replay of
+    the same pointer carrying explicit nulls, not raise a false conflict."""
+    legacy = _legacy(tmp_path, [_row("alpha")])
+    migrate_legacy_registry(lake, registry_path=legacy)
+    pointer = "F:/lake/raw/fff/manifest.json"
+    _observe(
+        lake, "alpha", pointer=pointer, observed_at="2026-07-21", subscribers="123"
+    )
+
+    replay = append_reach_observation(
+        lake,
+        subreddit="alpha",
+        observed_at="2026-07-21",
+        source_surface="old_reddit_grid_packet",
+        provenance_pointer=pointer,
+        subscriber_count_or_none="123",
+        weekly_visitor_count_or_none=None,
+        weekly_contribution_count_or_none=None,
+    )
+    assert replay["status"] == "already_current"
+    assert replay["written"] is False
+    # And a genuinely different value on the same pointer still conflicts.
+    with pytest.raises(RedditSubredditRegistryLakeError) as excinfo:
+        append_reach_observation(
+            lake,
+            subreddit="alpha",
+            observed_at="2026-07-21",
+            source_surface="old_reddit_grid_packet",
+            provenance_pointer=pointer,
+            subscriber_count_or_none="999",
+        )
+    assert excinfo.value.code == "observation_provenance_conflict"

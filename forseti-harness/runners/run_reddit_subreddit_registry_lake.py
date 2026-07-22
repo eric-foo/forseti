@@ -2,8 +2,10 @@
 
 The reviewed front door for registry state that used to require a data-only
 pull request: migrate the committed registry once, add or retag a tracked
-subreddit, and read the folded current view.  Grid observations are written by
-``run_reddit_subreddit_registry_refresh.py``, not here.
+subreddit, record an agent-read reach observation, and read the folded current
+view.  Grid observations stay with ``run_reddit_subreddit_registry_refresh.py``;
+``observe`` here covers only browser-read reach numbers (SERP bands, community
+panel), which carry no packet and no row effects.
 
 Owner contract:
 - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_lake_cutover_architecture_v0.md
@@ -22,6 +24,7 @@ if __package__ in {None, ""}:
 
 from data_lake.reddit_subreddit_registry import (
     RedditSubredditRegistryLakeError,
+    append_reach_observation,
     append_roster_change,
     fold_subreddit,
     known_subreddits,
@@ -93,6 +96,20 @@ def _build_parser() -> argparse.ArgumentParser:
     update.add_argument("--actor", required=True)
     update.add_argument("--note", default=None)
     update.add_argument("--dry-run", action="store_true")
+
+    observe = sub.add_parser(
+        "observe",
+        help="Record an agent-read reach observation (SERP band or community panel).",
+    )
+    observe.add_argument("--subreddit", required=True)
+    observe.add_argument("--source-surface", required=True)
+    observe.add_argument("--provenance", required=True)
+    observe.add_argument("--observed-at", default=None, help="ISO date; defaults to today (UTC).")
+    observe.add_argument("--subscriber-count", default=None)
+    observe.add_argument("--weekly-visitors", default=None)
+    observe.add_argument("--weekly-contributions", default=None)
+    observe.add_argument("--absent-reason", default=None)
+    observe.add_argument("--dry-run", action="store_true")
 
     show = sub.add_parser("show", help="Fold and print the current registry (or one subreddit).")
     show.add_argument("--subreddit", default=None)
@@ -239,6 +256,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             payload = semantic_parity(
                 legacy_registry_path=args.registry,
                 folded=load_current_registry(data_root),
+            )
+        elif args.command == "observe":
+            payload = append_reach_observation(
+                data_root,
+                subreddit=args.subreddit,
+                observed_at=args.observed_at or utc_now_z()[:10],
+                source_surface=args.source_surface,
+                provenance_pointer=args.provenance,
+                subscriber_count_or_none=args.subscriber_count,
+                weekly_visitor_count_or_none=args.weekly_visitors,
+                weekly_contribution_count_or_none=args.weekly_contributions,
+                absent_reason_or_none=args.absent_reason,
+                dry_run=args.dry_run,
             )
         elif args.command in {"add", "update"}:
             payload = append_roster_change(
