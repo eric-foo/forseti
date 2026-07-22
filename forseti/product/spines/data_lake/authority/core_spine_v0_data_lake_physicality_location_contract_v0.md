@@ -8,7 +8,7 @@ scope: >
   boundary, the operator-configured external data root (FORSETI_DATA_ROOT, with legacy ORCA_DATA_ROOT compatibility), the v0
   logical directory grammar (raw/ attachments/ derived/ acknowledgements/ and a
   split indexes/availability + indexes/derived_retrieval), the location invariants
-  (raw immutable, derived/ack append-only, indexes rebuildable), durable stored
+  (raw immutable, file-backed derived/ack append-only, indexes rebuildable), durable stored
   record names, fail-closed root resolution, and accepted residuals. This is a
   location and directory-grammar contract, not a storage-engine or backend choice.
 use_when:
@@ -49,8 +49,10 @@ serialization, schema finalization, or migration authority.
 ## v4.1 Forward Epoch Note
 
 This contract records the canonical location boundary and slot semantics. Its
-external-root, fail-closed, raw-immutable, append-only-derived, and rebuildable-
-index rules carry forward into v4.1.
+external-root, fail-closed, raw-immutable, file-backed append-only-derived, and
+rebuildable-index rules carry forward into v4.1. The lane-specific Creator
+Registry SQLite exception below is current-state authority, not a relaxation for
+other derived lanes.
 
 The v4.1 forward-epoch contract changes the epoch policy and record/ref shape; it
 does not replace canonical physical folder names with generic medallion storage
@@ -105,8 +107,9 @@ example manifests, and config templates.
 Real operational data lives under one operator-configured external data root.
 The repo points at the root through configuration (FORSETI_DATA_ROOT; legacy ORCA_DATA_ROOT accepted).
 The root resolves OUTSIDE the repo working tree, or tools fail closed.
-Raw stays immutable; derived and acknowledgement records stay append-only;
-indexes stay rebuildable and carry no authority.
+Raw stays immutable; file-backed derived and acknowledgement records stay
+append-only; indexes stay rebuildable and carry no authority. Creator Registry
+current state uses its explicitly bounded SQLite authority container.
 ```
 
 The lake is strict about where bytes land. It is not smart about what they mean.
@@ -122,9 +125,11 @@ The lake is strict about where bytes land. It is not smart about what they mean.
 - Location invariants bound to the root:
   - **raw is immutable / write-once**; raw bytes, hashes, and packet identity are
     never rewritten by derived lanes;
-  - **derived and acknowledgement records are append-only** — corrected by writing a
-    new record, never by rewriting prior records in place; each epistemic kind stays
-    a sibling, not a merged blob;
+  - **file-backed derived and acknowledgement records are append-only** — corrected
+    by writing a new record, never by rewriting prior records in place; each
+    epistemic kind stays a sibling, not a merged blob. The Creator Registry SQL
+    container is the sole lane-specific current-state exception and does not
+    authorize mutable files for other lanes;
   - **all of `indexes/` is rebuildable** from committed packet/attachment keys and
     hashes, and carries no authority.
 - No semantics in the tree: directory structure encodes no actor/profile/dossier
@@ -136,7 +141,8 @@ The lake is strict about where bytes land. It is not smart about what they mean.
 <FORSETI_DATA_ROOT>/
   raw/                       # Raw Packet Store      — immutable, write-once
   attachments/               # Attachment Record     — immutable, hash-checkable*
-  derived/                   # Derived Result Store  — append-only, keyed to a typed source anchor
+  derived/                   # Derived Result Store  — file records append-only;
+    creator_registry_sql_v1/ # bounded mutable SQL current authority exception
   acknowledgements/          # Acknowledgement Log   — append-only, keyed to raw
   indexes/
     availability/            # Availability Index    — content-free committed/
@@ -160,7 +166,7 @@ decisions; it is not locked here.
 | --- | --- | --- |
 | `raw/` | Raw Packet Store: immutable `SourceCapturePacket` bundles, stable packet/slice/file handles, `sha256`, `hash_basis`. | Cleaned truth, canonical identity, mutable packet history. |
 | `attachments/` | RESERVED (Gate 1 body-layout ADR, 2026-07-02): no default occupant — Attachment Record bodies land as packet members under `raw/`. The slot opens only through a future ADR on the sidecar reopen trigger; any future occupant stays immutable/hash-checkable and keyed to packet/slice/file. | Cleaned values, dedupe/credibility/Judgment labels, downstream-use strength, or a second default body home without a ratified ADR. |
-| `derived/` | Derived Result Store: append-only lane-owned derived records keyed to a typed source anchor; normally raw, or an explicitly admitted capture event for a derived-first lane. | Second raw source of truth, fake raw receipts, merged cross-kind blob, rewritten/deleted history. |
+| `derived/` | Derived Result Store: file-backed lane records stay append-only and keyed to a typed source anchor; normally raw, or an explicitly admitted capture event for a derived-first lane. `derived/creator_registry_sql_v1/creator_registry.sqlite3` is the sole admitted mutable current-state authority container, governed below. | Second raw source of truth, fake raw receipts, merged cross-kind blob, rewritten/deleted file history, or another mutable SQL lane without an explicit contract epoch. |
 | `acknowledgements/` | Acknowledgement Log: append-only lane-owned completion/ack facts keyed to raw. | Lake-consumed control flow for scheduling, gating, retry, or calling a lane. |
 | `indexes/availability/` | Availability Index: content-free committed/readable-by-key state with checkable refs; rebuildable. | Analytical reverse index, event bus, scheduler, router, retry gate, priority/success tracker. |
 | `indexes/derived_retrieval/` | Rebuildable, non-authoritative lane-owned retrieval aids (e.g., timing/cadence views), always reconstructible from `derived/` and any raw packets those records actually reference. | Source of truth, persistent actor history, dossier, or lake authority. |
@@ -221,6 +227,30 @@ may relocate only this disposable index to a local SSD through
 to prevent cross-lake collision. A network share is not an admitted SQLite
 location, and the override does not move or duplicate lake authority.
 
+### Creator Registry SQLite authority exception
+
+The operational Creator Registry is intentionally different from the disposable
+evidence catalogue. Its current authority lives at
+`derived/creator_registry_sql_v1/creator_registry.sqlite3` inside the configured
+lake root and may not be relocated through the derived-retrieval SQL override.
+The exception is narrow:
+
+- the database contains current Registry accounts, their allowlisted public
+  projections, schema metadata, and the exact v3 migration-source refs/hashes;
+- candidate admission is an insert, validated onboarding is a same-account
+  transactional update plus public-profile insert, and candidate-only removal is
+  a guarded delete;
+- raw packets, Frontier dispositions, audience queue state, Judgment outcomes,
+  metrics, and all other derived lanes keep their existing storage authority;
+- `CURRENT` under `indexes/derived_retrieval/creator_registry/` is only the
+  backend/epoch pointer and carries no Registry authority;
+- SQLite must be on a local filesystem. The lane uses one immediate transaction,
+  foreign keys, the rollback journal, and full synchronous durability; it does
+  not admit a network share or multi-machine writer.
+
+This exception replaces repeated whole-Registry generation publication. It is
+not a generic permission to store mutable databases under `derived/`.
+
 ## Configuration Contract
 
 - One required primary resolvable pointer: `FORSETI_DATA_ROOT` -> an external absolute path. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback during migration.
@@ -266,12 +296,14 @@ location, and the override does not move or duplicate lake authority.
 ## Portability And Durability
 
 - **Migration is intended to be painless.** Because the pointer is configuration and
-  the layout is location-independent (raw immutable, derived append-only, indexes
-  rebuildable), moving to a different or fixed drive is: byte-faithful copy of
+  the layout is location-independent (raw immutable, file-backed derived append-only,
+  Creator Registry SQLite self-contained, indexes rebuildable), moving to a
+  different or fixed drive is: a consistent byte-faithful copy of
   `raw/`, `attachments/`, `derived/`, `acknowledgements/` (verify hashes), repoint
   `FORSETI_DATA_ROOT` (or legacy `ORCA_DATA_ROOT` during compatibility), and rebuild `indexes/`. No schema migration, no rewrite.
 - **`raw/` and `derived/` are the irreplaceable subtrees.** `raw/` cannot be rebuilt
-  if lost; `derived/` is append-only history. `indexes/` is fully rebuildable.
+  if lost; `derived/` contains append-only file history plus the authoritative
+  Creator Registry SQLite database. `indexes/` is fully rebuildable.
   Operators deploying on removable or single-drive media must maintain an out-of-band
   backup of `raw/` and `derived/`. The backup mechanism is deployment, not this
   contract.
@@ -372,6 +404,42 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
    Contract physicalization decision explicitly selects or supersedes them.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The owner-approved Creator Registry transition selects one narrow SQLite
+    authority exception under derived/creator_registry_sql_v1. Registry current
+    state becomes row-addressable after a one-time parity-checked cutover; raw,
+    Frontier, Judgment, and other lake families retain their existing physicality.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_lake_authority_contract_v1.md
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/creator_registry.py
+    - forseti-harness/data_lake/creator_registry_sqlite.py
+    - forseti-harness/runners/run_creator_registry_lake.py
+    - forseti-harness/tests/unit/test_creator_registry_lake.py
+  intentionally_not_updated:
+    - path: other lake record-family contracts and implementations
+      reason: >
+        SQLite is selected only for Creator Registry current authority; this
+        change does not establish a generic database backend or alter their
+        append-only authority.
+  stale_language_search: >
+    rg -n "creator_registry_sql_v1|Creator Registry SQLite|full-generation"
+    forseti-harness forseti/product/spines
+  stale_language_search_result: >
+    Executed 2026-07-23 after edits; live Registry surfaces describe the SQLite
+    cutover and routine row mutations, while v3 generation language is retained
+    only as explicit pre-cutover or frozen migration authority.
+  non_claims:
+    - not a generic lake SQL migration
+    - not a database service or scheduler
+    - not a change to raw, Frontier, Judgment, queue, or metric authority
+    - not production-lake cutover evidence
+```
 
 ```yaml
 direction_change_propagation:

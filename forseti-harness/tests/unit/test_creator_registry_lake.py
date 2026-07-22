@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,7 @@ from data_lake.creator_registry import (
     CreatorRegistryLakeError,
     admit_tiktok_creator_account,
     admit_tiktok_creator_candidate,
+    cutover_creator_registry_sqlite,
     deterministic_platform_account_id,
     load_current_creator_profiles,
     load_current_creator_registry,
@@ -24,6 +27,7 @@ from data_lake.creator_registry import (
     publish_creator_registry_generation,
     retract_tiktok_creator_candidate,
 )
+from data_lake.creator_registry_sqlite import database_path
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
@@ -866,3 +870,254 @@ def test_browser_free_temporary_lake_candidate_dogfood(tmp_path: Path) -> None:
             registry_document=load_current_registry_preflight_view(root),
             frontier_dispositions=load_creator_frontier_dispositions(root),
         )
+
+
+def test_sqlite_cutover_is_exact_read_only_on_dry_run_and_idempotent(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    migrated = _migrate(root)
+    before_internal = load_current_creator_registry(root)
+    before_public = load_current_creator_profiles(root)
+    generation = Path(migrated["generation_root"])
+    generation_before = {
+        path.relative_to(generation).as_posix(): path.read_bytes()
+        for path in generation.rglob("*")
+        if path.is_file()
+    }
+
+    readonly = DataLakeRoot.resolve_readonly(explicit=root.path, repo_root=None)
+    dry = cutover_creator_registry_sqlite(readonly, dry_run=True)
+    assert dry["status"] == "dry_run_passed"
+    assert all(dry["parity"].values())
+    assert dry["would_write_database"] is True
+    assert not database_path(root).exists()
+    assert json.loads(
+        (
+            root.path
+            / "indexes"
+            / "derived_retrieval"
+            / "creator_registry"
+            / "CURRENT"
+        ).read_text(encoding="utf-8")
+    )["pointer_schema_version"] == 3
+
+    written = cutover_creator_registry_sqlite(root)
+    assert written["status"] == "cutover"
+    assert database_path(root).is_file()
+    assert load_current_creator_registry(root)["creator_registry_index"][
+        "platform_accounts"
+    ] == before_internal["creator_registry_index"]["platform_accounts"]
+    assert load_current_creator_profiles(root)["creator_profile_public"][
+        "profiles"
+    ] == before_public["creator_profile_public"]["profiles"]
+    assert generation_before == {
+        path.relative_to(generation).as_posix(): path.read_bytes()
+        for path in generation.rglob("*")
+        if path.is_file()
+    }
+    pointer = json.loads(
+        (
+            root.path
+            / "indexes"
+            / "derived_retrieval"
+            / "creator_registry"
+            / "CURRENT"
+        ).read_text(encoding="utf-8")
+    )
+    assert pointer["pointer_schema_version"] == 4
+    assert pointer["backend"] == "sqlite"
+    assert cutover_creator_registry_sqlite(root)["status"] == "already_current"
+    current_path = (
+        root.path
+        / "indexes"
+        / "derived_retrieval"
+        / "creator_registry"
+        / "CURRENT"
+    )
+    mismatched_pointer = dict(pointer)
+    mismatched_pointer["migration_authority_inventory_sha256"] = "0" * 64
+    current_path.write_text(json.dumps(mismatched_pointer), encoding="utf-8")
+    with pytest.raises(
+        CreatorRegistryLakeError,
+        match="CURRENT pointer does not match the database migration authority inventory",
+    ):
+        load_current_creator_registry(root)
+    current_path.write_text(json.dumps(pointer), encoding="utf-8")
+    with pytest.raises(CreatorRegistryLakeError, match="routine rebuild is disabled"):
+        publish_creator_registry_generation(root)
+
+
+def test_sqlite_candidate_admission_and_validation_do_not_publish_generations(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    cutover_creator_registry_sqlite(root)
+    registry_root = root.path / "indexes" / "derived_retrieval" / "creator_registry"
+    generations_before = sorted(path.name for path in (registry_root / "generations").iterdir())
+    packet_id, outcome_path, account_id = _packet_and_outcome(root)
+
+    first_candidate = _candidate_admit(root, packet_id)
+    second_candidate = _candidate_admit(root, packet_id)
+    assert first_candidate["status"] == "admitted"
+    assert second_candidate["status"] == "already_current"
+    assert not list((root.path / "derived").glob(f"*/*/{CANDIDATE_ADMISSION_LANE}/*"))
+    assert sorted(path.name for path in (registry_root / "generations").iterdir()) == generations_before
+
+    first_validated = admit_tiktok_creator_account(
+        data_root=root, packet_id=packet_id, judgment_outcome_path=outcome_path
+    )
+    second_validated = admit_tiktok_creator_account(
+        data_root=root, packet_id=packet_id, judgment_outcome_path=outcome_path
+    )
+    assert first_validated["status"] == "admitted"
+    assert second_validated["status"] == "already_current"
+    assert not list((root.path / "derived").glob(f"*/*/{ADMISSION_LANE}/*"))
+    assert sorted(path.name for path in (registry_root / "generations").iterdir()) == generations_before
+
+    row = next(
+        row
+        for row in load_current_creator_registry(root)["creator_registry_index"][
+            "platform_accounts"
+        ]
+        if row["platform_account_id"] == account_id
+    )
+    assert row["onboarding"]["onboarding_state"] == "onboarded"
+    assert row["monitoring_eligibility"]["eligible"] is True
+    profile = next(
+        row
+        for row in load_current_creator_profiles(root)["creator_profile_public"]["profiles"]
+        if row["profile_subject_id"] == account_id
+    )
+    assert profile["audience_triangulation"]["snapshot_id"] == "cats_test_new_fragrance"
+
+
+def test_sqlite_candidate_removal_is_physical_and_validated_accounts_are_protected(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    cutover_creator_registry_sqlite(root)
+    packet_id, outcome_path, account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "deferred",
+                "reason_code": "owner_choice",
+                "reconsideration": "owner_reopen",
+            }
+        ],
+        recorded_at="2026-07-21T12:02:00Z",
+    )
+    removed = retract_tiktok_creator_candidate(
+        data_root=root, public_handle="@New.Fragrance"
+    )
+    assert removed["status"] == "removed"
+    assert not list((root.path / "derived").glob(f"*/*/{CANDIDATE_RETRACTION_LANE}/*"))
+    assert not any(
+        row["platform_account_id"] == account_id
+        for row in load_current_creator_registry(root)["creator_registry_index"][
+            "platform_accounts"
+        ]
+    )
+    with pytest.raises(CreatorRegistryLakeError, match="exactly one current Registry account"):
+        retract_tiktok_creator_candidate(data_root=root, public_handle="new.fragrance")
+
+    reopened = write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "eligible",
+                "priority": "high",
+                "reason_code": "owner_choice",
+            }
+        ],
+        recorded_at="2026-07-21T13:00:00Z",
+    )
+    disposition = reopened["current"]["creator_frontier_disposition_current"][
+        "dispositions"
+    ][0]
+    assert admit_tiktok_creator_candidate(
+        data_root=root,
+        packet_id=packet_id,
+        frontier_disposition_id=disposition["disposition_id"],
+    )["status"] == "admitted"
+    admit_tiktok_creator_account(
+        data_root=root, packet_id=packet_id, judgment_outcome_path=outcome_path
+    )
+    write_creator_frontier_dispositions(
+        data_root=root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": "new.fragrance",
+                "status": "deferred",
+                "reason_code": "owner_choice",
+                "reconsideration": "owner_reopen",
+            }
+        ],
+        recorded_at="2026-07-21T14:00:00Z",
+    )
+    with pytest.raises(CreatorRegistryLakeError, match="cannot be candidate-removed"):
+        retract_tiktok_creator_candidate(data_root=root, public_handle="new.fragrance")
+    assert any(
+        row["platform_account_id"] == account_id
+        for row in load_current_creator_registry(root)["creator_registry_index"][
+            "platform_accounts"
+        ]
+    )
+
+
+def test_sqlite_validated_transaction_rolls_back_account_upgrade_on_public_conflict(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    cutover_creator_registry_sqlite(root)
+    packet_id, outcome_path, account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        connection.execute(
+            "INSERT INTO registry_public_profiles (profile_subject_id, profile_json) VALUES (?, ?)",
+            (account_id, json.dumps({"profile_subject_id": account_id})),
+        )
+        connection.commit()
+
+    with pytest.raises(CreatorRegistryLakeError, match="UNIQUE constraint failed"):
+        admit_tiktok_creator_account(
+            data_root=root, packet_id=packet_id, judgment_outcome_path=outcome_path
+        )
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        state = connection.execute(
+            "SELECT authority_kind, onboarding_state, monitoring_eligible FROM registry_accounts WHERE platform_account_id = ?",
+            (account_id,),
+        ).fetchone()
+    assert state == ("candidate", "not_onboarded", 0)
+
+
+def test_sqlite_cli_cutover_and_browser_free_selector(tmp_path: Path, capsys) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    assert registry_main(
+        ["cutover-sqlite", "--data-root", str(root.path), "--dry-run"]
+    ) == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "dry_run_passed"
+    assert registry_main(
+        ["cutover-sqlite", "--data-root", str(root.path), "--write"]
+    ) == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "cutover"
+    packet_id, _outcome_path, account_id = _packet_and_outcome(root)
+    _candidate_admit(root, packet_id)
+    handle, selected = onboarding_runner._resolve_creator_handle(
+        creator_handle=None,
+        creator_intent="new_onboarding",
+        registry_document=load_current_registry_preflight_view(root),
+        frontier_dispositions=load_creator_frontier_dispositions(root),
+    )
+    assert handle == "new.fragrance"
+    assert selected["platform_account_id"] == account_id
