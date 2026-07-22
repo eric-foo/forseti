@@ -86,6 +86,23 @@ _AMAZON_GRID_SCRIPT_OR_STYLE_RE = re.compile(
     r"<(?P<tag>script|style)\b[^>]*>.*?</(?P=tag)\s*>",
     flags=re.IGNORECASE | re.DOTALL,
 )
+_AMAZON_GRID_PAGINATION_RE = re.compile(
+    r"<(?:span|a)\b[^>]*\bclass=[\"'][^\"']*\bs-pagination-next\b[^\"']*[\"']",
+    flags=re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True)
+class _AmazonGridPopulation:
+    rendered_dom: str
+    card_count: int
+    page_asins: list[str]
+    result_range: dict[str, int] | None
+    stable: bool
+    stable_polls: int
+    pagination_control_reached: bool
+    observed_card_counts: list[int]
+    observed_valid_asin_counts: list[int]
 
 
 @dataclass(frozen=True)
@@ -316,6 +333,9 @@ class AmazonSearchGridPlugin:
     traversal_timeout_seconds: float = 60.0
     _grid_page_doms: list[str] = field(default_factory=list, init=False, repr=False)
     _grid_page_urls: list[str] = field(default_factory=list, init=False, repr=False)
+    _grid_population_observations: list[dict[str, object]] = field(
+        default_factory=list, init=False, repr=False
+    )
     _grid_observation: dict[str, object] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -474,13 +494,15 @@ class AmazonSearchGridPlugin:
                         range_observations=range_observations,
                     )
 
-                rendered_dom, card_count, page_asins, page_range = (
-                    _wait_for_amazon_grid_page_population(
-                        page,
-                        initial_dom=rendered_dom,
-                        traversal_deadline=deadline,
-                    )
+                population = _wait_for_amazon_grid_page_population(
+                    page,
+                    initial_dom=rendered_dom,
+                    traversal_deadline=deadline,
                 )
+                rendered_dom = population.rendered_dom
+                card_count = population.card_count
+                page_asins = population.page_asins
+                page_range = population.result_range
                 settled_page_url = str(page.url)  # type: ignore[union-attr]
                 settled_hostname = (urlparse(settled_page_url).hostname or "").lower()
                 if (
@@ -519,15 +541,31 @@ class AmazonSearchGridPlugin:
                         unique_count=len(seen_asins),
                         range_observations=range_observations,
                     )
-                expected_ranked_count = page_range["end"] - page_range["start"] + 1
-                if card_count < expected_ranked_count:
-                    return self._grid_failed(
-                        reason="result_window_underfilled",
-                        detail=(
-                            f"Amazon grid page {expected_page} exposed {card_count} ranked "
-                            f"cards for retailer range {page_range['start']}-{page_range['end']} "
-                            f"({expected_ranked_count} expected)"
+                displayed_slot_count = page_range["end"] - page_range["start"] + 1
+                self._grid_population_observations.append(
+                    {
+                        "page": expected_page,
+                        "source_visible_placement_count": card_count,
+                        "displayed_result_range_slot_count": displayed_slot_count,
+                        "stable_population_polls": population.stable_polls,
+                        "population_stable": population.stable,
+                        "pagination_control_reached": population.pagination_control_reached,
+                        "observed_card_counts": population.observed_card_counts,
+                        "observed_valid_asin_counts": (
+                            population.observed_valid_asin_counts
                         ),
+                    }
+                )
+                if not population.stable:
+                    population_gap = (
+                        "did not expose a stable valid-card population after reaching the "
+                        "pagination region"
+                        if population.pagination_control_reached
+                        else "did not expose a reachable pagination region"
+                    )
+                    return self._grid_failed(
+                        reason="page_population_unproven",
+                        detail=f"Amazon grid page {expected_page} {population_gap}",
                         placement_count=placement_count,
                         unique_count=len(seen_asins),
                         range_observations=range_observations,
@@ -623,6 +661,9 @@ class AmazonSearchGridPlugin:
             "amazon_grid_extracted_placement_count": placement_count,
             "amazon_grid_duplicate_placement_count": placement_count - len(seen_asins),
             "amazon_grid_result_range_observations": range_observations,
+            "amazon_grid_population_observations": list(
+                self._grid_population_observations
+            ),
             "amazon_grid_termination": termination,
             "amazon_grid_requested_query": requested_query,
         }
@@ -644,6 +685,9 @@ class AmazonSearchGridPlugin:
             "amazon_grid_extracted_placement_count": placement_count,
             "amazon_grid_duplicate_placement_count": placement_count - unique_count,
             "amazon_grid_result_range_observations": list(range_observations),
+            "amazon_grid_population_observations": list(
+                self._grid_population_observations
+            ),
             "amazon_grid_termination": "unproven",
             "amazon_grid_failure": detail,
         }
@@ -723,41 +767,75 @@ def _wait_for_amazon_grid_page_population(
     *,
     initial_dom: str,
     traversal_deadline: float,
-) -> tuple[str, int, list[str], dict[str, int] | None]:
-    """Wait briefly for the displayed ranked range to hydrate in the current tab."""
+) -> _AmazonGridPopulation:
+    """Reach the page footer, then require a stable valid-card population."""
 
     population_deadline = min(
         traversal_deadline,
         time.monotonic() + _AMAZON_GRID_PAGE_POPULATION_TIMEOUT_MS / 1000,
     )
     rendered_dom = initial_dom
+    pagination_control_reached = False
     stable_population_polls = 0
-    previous_asins: tuple[str, ...] | None = None
+    previous_population: tuple[int, int] | None = None
+    observed_card_counts: list[int] = []
+    observed_valid_asin_counts: list[int] = []
     while True:
+        if not pagination_control_reached:
+            try:
+                page.evaluate(  # type: ignore[union-attr]
+                    "window.scrollTo(0, document.body.scrollHeight)"
+                )
+                rendered_dom = page.content()  # type: ignore[union-attr]
+                pagination_control_reached = bool(
+                    _AMAZON_GRID_PAGINATION_RE.search(rendered_dom)
+                )
+            except Exception:
+                # Retry while the page hydrates. Absence is adjudicated after
+                # population: disabled proves terminal; missing continuation fails.
+                pass
         card_count, page_asins = _amazon_grid_card_asins(rendered_dom)
+        observed_card_counts.append(card_count)
+        observed_valid_asin_counts.append(len(page_asins))
         page_range = _amazon_grid_range(rendered_dom)
-        expected_ranked_count = (
-            page_range["end"] - page_range["start"] + 1
-            if page_range is not None
-            else None
-        )
-        population_complete = (
-            expected_ranked_count is not None
+        population_observed = (
+            pagination_control_reached
+            and page_range is not None
+            and card_count > 0
             and len(page_asins) == card_count
-            and card_count >= expected_ranked_count
         )
-        current_asins = tuple(page_asins)
-        if population_complete and current_asins == previous_asins:
+        current_population = (card_count, len(page_asins))
+        if population_observed and current_population == previous_population:
             stable_population_polls += 1
-        elif population_complete:
+        elif population_observed:
             stable_population_polls = 1
         else:
             stable_population_polls = 0
         if stable_population_polls >= _AMAZON_GRID_STABLE_POPULATION_POLLS:
-            return rendered_dom, card_count, page_asins, page_range
+            return _AmazonGridPopulation(
+                rendered_dom=rendered_dom,
+                card_count=card_count,
+                page_asins=page_asins,
+                result_range=page_range,
+                stable=True,
+                stable_polls=stable_population_polls,
+                pagination_control_reached=pagination_control_reached,
+                observed_card_counts=observed_card_counts,
+                observed_valid_asin_counts=observed_valid_asin_counts,
+            )
         if time.monotonic() >= population_deadline:
-            return rendered_dom, card_count, page_asins, page_range
-        previous_asins = current_asins
+            return _AmazonGridPopulation(
+                rendered_dom=rendered_dom,
+                card_count=card_count,
+                page_asins=page_asins,
+                result_range=page_range,
+                stable=False,
+                stable_polls=stable_population_polls,
+                pagination_control_reached=pagination_control_reached,
+                observed_card_counts=observed_card_counts,
+                observed_valid_asin_counts=observed_valid_asin_counts,
+            )
+        previous_population = current_population
         page.wait_for_timeout(  # type: ignore[union-attr]
             min(
                 _AMAZON_GRID_PAGE_POPULATION_POLL_MS,

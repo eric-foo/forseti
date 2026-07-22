@@ -301,7 +301,7 @@ def test_amazon_ranked_window_names_placements_beyond_displayed_range_span() -> 
     )
 
 
-def test_amazon_ranked_window_fails_closed_when_displayed_range_is_underfilled() -> None:
+def test_amazon_ranked_window_preserves_displayed_range_card_count_difference() -> None:
     page = _amazon_grid_page_html(
         products=[("B000000001", "Only Loaded Product", "$16.00", False)],
         start=49,
@@ -318,7 +318,31 @@ def test_amazon_ranked_window_fails_closed_when_displayed_range_is_underfilled()
         },
     )
 
-    assert "amazon_grid_result_range_underfilled:1:1:48" in record["residuals"]
+    assert record["residuals"] == []
+    assert len(record["pages"][0]["products"]) == 1
+    assert record["result_range_observations"] == [
+        {"start": 49, "end": 96, "total": 115}
+    ]
+    body = (json.dumps(record) + "\n").encode("utf-8")
+    packet = _packet(
+        retailer="amazon",
+        locator=_AMAZON_GRID_URL,
+        relative_path="raw/01_rendered_content.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert projection.completeness.status == "complete"
+    assert (
+        projection.source_visible_grid_facts[
+            "displayed_range_slots_without_source_visible_product_card"
+        ]
+        == 47
+    )
 
 
 def test_walmart_next_data_projection_preserves_one_row_per_product_tile() -> None:

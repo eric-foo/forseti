@@ -49,7 +49,7 @@ class _NextLocator:
             raise TimeoutError("next page absent")
 
     def scroll_into_view_if_needed(self, **_kwargs: Any) -> None:
-        return None
+        self.page.scroll_events.append(self.page.index)
 
     def click(self, **_kwargs: Any) -> None:
         self.page.index += 1
@@ -60,6 +60,7 @@ class _GridPage:
         self.pages = pages
         self.index = 0
         self.url_override: str | None = None
+        self.scroll_events: list[int] = []
 
     @property
     def url(self) -> str:
@@ -80,6 +81,9 @@ class _GridPage:
 
     def locator(self, _selector: str) -> _NextLocator:
         return _NextLocator(self)
+
+    def evaluate(self, _expression: str) -> None:
+        self.scroll_events.append(self.index)
 
     def wait_for_timeout(self, _milliseconds: float) -> None:
         return None
@@ -144,6 +148,107 @@ def test_amazon_grid_waits_for_the_displayed_page_range_to_populate() -> None:
     assert outcome.steps_completed is True
     assert page_two_reads >= 3
     assert plugin.grid_observation["amazon_grid_extracted_placement_count"] == 4
+
+
+def test_amazon_grid_scrolls_to_pagination_then_accepts_stable_visible_cards() -> None:
+    plugin = AmazonSearchGridPlugin(
+        target_url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        page_count=1,
+    )
+    page = _GridPage(
+        [(["B000000001", "B000000002"], 1, 48, 157, True)]
+    )
+    complete_content = page.content
+
+    def lazy_content() -> str:
+        if not page.scroll_events:
+            return _grid_dom(
+                ["B000000001"], start=1, end=48, total=157, terminal=True
+            )
+        return complete_content()
+
+    page.content = lazy_content  # type: ignore[method-assign]
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert page.scroll_events
+    assert plugin.grid_observation["amazon_grid_extracted_placement_count"] == 2
+    assert plugin.grid_observation["amazon_grid_population_observations"] == [
+        {
+            "page": 1,
+            "source_visible_placement_count": 2,
+            "displayed_result_range_slot_count": 48,
+            "stable_population_polls": 3,
+            "population_stable": True,
+            "pagination_control_reached": True,
+            "observed_card_counts": [2, 2, 2],
+            "observed_valid_asin_counts": [2, 2, 2],
+        }
+    ]
+
+
+def test_amazon_grid_fails_when_pagination_region_cannot_be_reached() -> None:
+    plugin = AmazonSearchGridPlugin(
+        target_url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        page_count=1,
+        traversal_timeout_seconds=0.01,
+    )
+    page = _GridPage([(["B000000001"], 1, 48, 157, True)])
+    content = page.content
+    page.content = lambda: content().replace(  # type: ignore[method-assign]
+        "s-pagination-next", "pagination-unavailable"
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is False
+    assert outcome.reason == "page_population_unproven"
+
+
+def test_amazon_grid_retries_pagination_while_page_hydrates() -> None:
+    plugin = AmazonSearchGridPlugin(
+        target_url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        page_count=1,
+    )
+    page = _GridPage([(["B000000001"], 1, 48, 157, True)])
+    content = page.content
+
+    def delayed_pagination() -> str:
+        rendered = content()
+        if len(page.scroll_events) < 3:
+            return rendered.replace("s-pagination-next", "pagination-hydrating")
+        return rendered
+
+    page.content = delayed_pagination  # type: ignore[method-assign]
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert len(page.scroll_events) == 3
+
+
+def test_amazon_grid_accepts_identity_rotation_when_valid_card_count_is_stable() -> None:
+    plugin = AmazonSearchGridPlugin(
+        target_url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        page_count=1,
+    )
+    page = _GridPage([(["B000000001"], 1, 48, 157, True)])
+    content_reads = 0
+
+    def rotating_sponsored_card() -> str:
+        nonlocal content_reads
+        content_reads += 1
+        asin = "B000000001" if content_reads % 2 else "B000000002"
+        return _grid_dom([asin], start=1, end=48, total=157, terminal=True)
+
+    page.content = rotating_sponsored_card  # type: ignore[method-assign]
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert content_reads >= 3
+    assert plugin.grid_observation["amazon_grid_extracted_placement_count"] == 1
 
 
 def test_amazon_grid_reads_the_displayed_range_from_script_free_text() -> None:

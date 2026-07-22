@@ -461,6 +461,9 @@ def build_amazon_grid_aggregate_content_record(
         "requested_page_count": requested_page_count,
         "captured_page_count": len(pages),
         "result_range_observations": range_observations,
+        "population_observations": traversal_observation.get(
+            "amazon_grid_population_observations", []
+        ),
         "displayed_result_total_observations": [
             value["total"] for value in range_observations if "total" in value
         ],
@@ -1113,13 +1116,6 @@ def _parse_amazon_grid_page(
         residuals.append(f"amazon_grid_product_cards_absent:{page_number}")
     if result_range is None:
         residuals.append(f"amazon_grid_result_range_absent:{page_number}")
-    else:
-        expected_ranked_count = result_range["end"] - result_range["start"] + 1
-        if len(products) < expected_ranked_count:
-            residuals.append(
-                f"amazon_grid_result_range_underfilled:{page_number}:"
-                f"{len(products)}:{expected_ranked_count}"
-            )
     requested_query = extract_amazon_search_query_from_url(page_url)
     zip_match = re.search(
         r"(?:Deliver to|delivery location)[^<\d]{0,80}(?P<zip>\d{5})(?!\d)",
@@ -1984,6 +1980,9 @@ def _amazon_grid_reconciliation(
     else:
         reconciliation_residuals.append("amazon_grid_termination_unproven")
     ranges = state.get("result_range_observations", []) if state is not None else []
+    population_observations = (
+        state.get("population_observations", []) if state is not None else []
+    )
     if not isinstance(ranges, list) or len(ranges) != captured_page_count:
         reconciliation_residuals.append("amazon_grid_result_range_count_mismatch")
     # A "requested_page_window_reconciled" termination claims a CONSECUTIVE ranked
@@ -2050,12 +2049,18 @@ def _amazon_grid_reconciliation(
         "captured_page_count": captured_page_count,
         "result_range_observations": ranges,
         "displayed_result_total_observations": displayed_totals,
+        "population_observations": population_observations,
         "delivery_zip": state.get("delivery_zip") if state is not None else None,
         "location_binding": state.get("location_binding") if state is not None else None,
         "extracted_placement_count": placement_count,
         "displayed_result_range_slot_count": displayed_range_slot_count,
         "source_visible_placements_beyond_displayed_range_span": (
             max(0, placement_count - displayed_range_slot_count)
+            if displayed_range_slot_count is not None
+            else None
+        ),
+        "displayed_range_slots_without_source_visible_product_card": (
+            max(0, displayed_range_slot_count - placement_count)
             if displayed_range_slot_count is not None
             else None
         ),
