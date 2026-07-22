@@ -46,6 +46,9 @@ PAGE_OVERFLOW_SCORE_FLOOR = 50
 
 
 def _int_or_none(value: str | None) -> int | None:
+    # helper-delta: unlike harness_utils.int_or_none, this accepts signed
+    # strings -- a downvoted thread's data-score is legitimately negative and
+    # must count, not vanish as unparsed.
     if value is None:
         return None
     digits = value.replace(",", "").strip()
