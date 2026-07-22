@@ -76,9 +76,14 @@ Each phase normally consumes two completed operator/model turns:
    silently substitute generic browsing or rediscovery.
    For a company Understanding commission where offerings, retail presentation,
    or customer experience are material, preserve the prompt's bounded sequence:
-   complete publicly exposed current owned category/franchise/parent and
-   material-variant denominator -> qualified US ladder tests and retailer grids -> every exact-parent listing's baseline PDP at each qualified
-   retailer -> evidence-selected review/Q&A depth. Test Sephora, Ulta, Target,
+   owned identity seed binding subject, categories, franchises, and known
+   parents -> qualified US ladder tests and each retailer's available grid
+   surface -> deterministic union and reconciliation of exact listings with the
+   owned candidates -> return to owned surfaces to close the complete publicly
+   exposed denominator and typed gaps -> one baseline PDP for every reconciled
+   exact retailer listing at each qualified retailer -> evidence-selected
+   review/Q&A depth. Owned evidence remains canonical identity authority;
+   retailer grids are discovery and channel-expression evidence. Test Sephora, Ulta, Target,
    and Amazon; preserve exact typed failure instead of inventing a listing or
    completion credit. Use the common lean baseline, preserve full raw material,
    and retain source-visible retailer-native extensions. Apply the guarded
@@ -320,23 +325,32 @@ gate above controls whether Deliver may begin.
    action ceiling, rival assessment, or hold condition and no equal-or-better
    included item performs that job. Use exclusion or `not_applicable` records
    for dominated routes.
-6. For company commissions, route retail, customer, and claims research first,
-   subject to the same named-job and substitution rules. When retail is material,
-   use the existing coverage-ledger fields to commission the owned census, test
-   and record the exact result for Sephora, Ulta, Target, and Amazon, acquire a
-   grid for every qualified retailer, and acquire one full-raw common-floor
-   baseline PDP for every exact parent listing found there. Apply the prompt's
+6. For company commissions, route retail, customer, and claims research first.
+   Before optional deepening, resolve the prompt's small high-yield core through
+   the existing ledgers. A material unresolved core job blocks the acquisition
+   seal; other remainders stay typed gaps and non-claims. When retail is material,
+   commission an owned identity seed, test Sephora, Ulta, Target, and Amazon,
+   acquire each available grid surface, reconcile its listing union with owned
+   candidates, then return to owned evidence to close the denominator. Owned
+   evidence remains canonical identity authority. Acquire one full-raw common-
+   floor baseline PDP for every reconciled exact retailer listing. Apply the prompt's
    guarded Sephora-primary default, but do not let primary status excuse another
    qualified retailer's baseline. Preserve typed route failures without
    completion credit and retain retailer-native fields when source-visible.
    Only after breadth is sealed, select expensive review/Q&A depth for evidence-
    selected products. Each deepening needs a named non-duplicative job, there is
    no fixed product count, and retailer counts remain separate rather than
-   becoming sales. Preserve analysis-enablement inputs, stop-or-gap rules, review-
+   becoming sales. Treat Amazon as a query-bound ranked-search window, not a
+   guaranteed complete or authorized-only catalog; projection capability never
+   substitutes for route admission. Point-in-time retailer metrics are traction
+   proxies, not sales, share, or trend. Preserve analysis-enablement inputs,
+   stop-or-gap rules, review-
    volume claim guards, accepted residuals, non-claims, and upgrade trigger. This
    orders attention; it is not a source quota, proof hierarchy, universal-deep-
    capture rule, full-SKU-graph requirement, new ledger schema, or Scanning
-   execution instruction.
+   execution instruction. Commission archives, supply, ads/creators,
+   competitors, search trends, and similar deepening only for a named unresolved
+   inference job.
 7. For a recurring or actively radarred source family, put a lake-first
    preflight in the downstream request: relevant Silver/current view, then
    packet or catalog inventory, then raw material when necessary. Treat the

@@ -32,13 +32,14 @@ _FRAGRANCE_TOKENS = (
 
 TIKTOK_CREATOR_PROMOTION_SCHEMA = "tiktok_creator_promotion_decisions_v1"
 _PROMOTION_POLICY = {
-    "version": "tiktok_fragrance_creator_promotion_policy_v1",
+    "version": "tiktok_fragrance_creator_promotion_policy_v2",
     "calibration_report_sha256": "449c4781dd71c530bb3d62fc6d58a6d1efd24c5d666b7c5ccd28fdbb5acf38e4",
     "calibration_source_set_sha256": "ef9ff8a3175b34d4f9f8f7df0949c6e79c9fdddc229c26e91b49aa0ca2c5da77",
     "cohort_medians": {"0-2d": 5383.25, "3-7d": 6636.0, "8-14d": 7662.0, "15-30d": 11481.5, "31d+": 28600.0},
     "multipliers": {"0-2d": 2.132819, "3-7d": 1.730184, "8-14d": 1.498499, "15-30d": 1.0, "31d+": 0.401451},
     "quality_p25": 0.34425675, "quality_median": 0.907743, "quality_p75": 2.3942015,
-    "weekly_reach_p75": 89258.649442, "cadence_cap": 10.629303,
+    "weekly_reach_p25": 15213.659348, "weekly_reach_p75": 89258.649442,
+    "cadence_cap": 10.629303,
 }
 _OWNER_ONBOARDING_DISPOSITIONS = {
     "eddeparfum": {
@@ -88,12 +89,9 @@ def build_tiktok_creator_promotion_decisions(
         span = (max(post[0] for post in posts) - min(post[0] for post in posts)) / 86400
         cadence = ((len(posts) - 1) * 7 / span) if span > 0 else 0.0
         weekly = p25 * min(cadence, _PROMOTION_POLICY["cadence_cap"])
-        promote = (quality is not None and quality >= _PROMOTION_POLICY["quality_p75"]) or weekly >= _PROMOTION_POLICY["weekly_reach_p75"]
-        reconsider = None if promote else (
-            "next_grid" if quality is not None and quality >= _PROMOTION_POLICY["quality_median"]
-            else "oldest_result" if quality is not None and quality >= _PROMOTION_POLICY["quality_p25"]
-            else "new_signal_only"
-        )
+        decision = _promotion_decision_fields(quality=quality, weekly_reach=weekly)
+        promote = decision["registry_action"] == "promote_now"
+        reconsider = None if promote else "new_signal_only"
         followers = _followers(grid)
         rows.append({
             "handle": handle, "registry_action": "promote_now" if promote else "do_not_promote",
@@ -106,6 +104,9 @@ def build_tiktok_creator_promotion_decisions(
             "unpinned_post_count": len(posts), "eligible_quality_cohort_count": len(ratios),
             "capture_timestamp_utc": captured.isoformat().replace("+00:00", "Z"),
             "source": dict(sources[index]) if sources else {},
+            "decision_reason_code": decision["decision_reason_code"],
+            "decision_note": decision["decision_note"],
+            "cleared_thresholds": decision["cleared_thresholds"],
         })
     rows.sort(key=lambda row: (row["registry_action"] != "promote_now", -float(row["age_normalized_quality_index_or_none"] or -1), -row["reliable_weekly_reach"], row["handle"].lower()))
     for rank, row in enumerate(rows, 1):
@@ -115,6 +116,49 @@ def build_tiktok_creator_promotion_decisions(
         "decisions": rows, "counts": {"creators": len(rows), "promote_now": sum(row["registry_action"] == "promote_now" for row in rows)},
         "non_claims": ["not Creator Registry or onboarding proof", "reach is play count, not unique people", "bounded oldest grid post is not account-age proof"],
     }}
+
+
+def _promotion_decision_fields(
+    *, quality: float | None, weekly_reach: float
+) -> dict[str, Any]:
+    quality_cleared = (
+        quality is not None and quality >= _PROMOTION_POLICY["quality_p25"]
+    )
+    weekly_cleared = weekly_reach >= _PROMOTION_POLICY["weekly_reach_p25"]
+    cleared = [
+        name
+        for name, passed in (
+            ("quality_p25", quality_cleared),
+            ("weekly_reach_p25", weekly_cleared),
+        )
+        if passed
+    ]
+    if quality_cleared and weekly_cleared:
+        reason = "cleared_both_p25"
+    elif quality_cleared:
+        reason = "cleared_quality_p25"
+    elif weekly_cleared:
+        reason = "cleared_weekly_reach_p25"
+    elif quality is None:
+        reason = "quality_unavailable_weekly_below_p25"
+    else:
+        reason = "below_both_p25"
+    action = "promote_now" if cleared else "do_not_promote"
+    quality_text = "unavailable" if quality is None else f"{quality:.6f}"
+    note = (
+        f"policy={_PROMOTION_POLICY['version']}; decision={action}; "
+        f"quality={quality_text}; quality_p25={_PROMOTION_POLICY['quality_p25']:.8f}; "
+        f"reliable_weekly_reach={weekly_reach:.6f}; "
+        f"weekly_reach_p25={_PROMOTION_POLICY['weekly_reach_p25']:.6f}; "
+        f"cleared={','.join(cleared) if cleared else 'none'}; "
+        f"reconsider={'none' if cleared else 'new_signal'}"
+    )
+    return {
+        "registry_action": action,
+        "decision_reason_code": reason,
+        "decision_note": note,
+        "cleared_thresholds": cleared,
+    }
 
 
 def promotion_decision_for_handle(document: Mapping[str, Any], handle: str) -> Mapping[str, Any] | None:

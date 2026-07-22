@@ -270,10 +270,13 @@ def write_local_source_capture_packet(
         if data_root is not None:
             # Atomically publish the completed staging dir to raw/<packet_shard>/<packet_id>, then
             # record the content-free availability fact (rebuildable from raw).
-            output_directory = data_root.publish_raw_packet(output_directory, packet_id)
+            output_directory = publish_completed_source_capture_packet(
+                data_root=data_root,
+                packet_directory=output_directory,
+                packet_id=packet_id,
+            )
             manifest_path = output_directory / "manifest.json"
             receipt_path = output_directory / "receipt.md"
-            data_root.record_availability(packet_id)
 
     if final_output_directory is not None:
         output_directory = final_output_directory
@@ -286,6 +289,16 @@ def write_local_source_capture_packet(
         receipt_path=str(receipt_path.resolve()),
         packet=packet,
     )
+
+
+def publish_completed_source_capture_packet(
+    *, data_root: "DataLakeRoot", packet_directory: Path, packet_id: str
+) -> Path:
+    """Publish a writer-built packet and its rebuildable availability entry."""
+
+    output_directory = data_root.publish_raw_packet(packet_directory, packet_id)
+    data_root.record_availability(packet_id)
+    return output_directory
 
 
 def render_receipt(packet: SourceCapturePacket) -> str:

@@ -779,13 +779,22 @@ SKU/item-reception and known/inferred/unknown matrices as plain Markdown tables,
 using explicit gap or unknown cells where evidence is absent. The typed ledgers
 remain the audit floor behind the narrative, never the front door.
 
+Before optional deepening, resolve the small high-yield core through the existing
+ledgers: current offering and portfolio architecture; exact current commercial
+and retail expression where material; channel, distribution, and geography
+posture; strategic and operating chronology; and applicable material events.
+This creates no new section, field, or source quota and does not replace another
+material lens. A material unresolved core job blocks the acquisition seal; other
+remainders stay typed gaps and non-claims. Commission archives, supply, ads or
+creators, competitors, search trends, and similar deepening only for a named
+unresolved inference job.
+
 When offerings, retail presentation, or customer experience are material to a
 company commission, acquire bounded portfolio breadth before product depth.
 Owned surfaces remain canonical for company portfolio and franchise expression.
-For a material product company, establish the complete publicly exposed current
-category, collection/franchise, parent-product, material-variant, declared-total,
-and typed-gap denominator. Preserve bundles and sets without counting them as
-ordinary parents. This does not require hidden SKUs, immaterial variant
+For a material product company, begin with enough owned evidence to bind the
+subject, categories, franchises, known parents, and canonical product identity.
+Preserve bundles and sets without counting them as ordinary parents. This does not require hidden SKUs, immaterial variant
 permutations, an automated identity resolver, or a complete global SKU graph. Capture source-visible target/use-case, price-tier, channel, and
 geography differentiation; owned/retailer prominence, new/launch, and
 distribution state; product/franchise concentration and overlap evidence;
@@ -804,15 +813,23 @@ listing or award completion credit for a failed or unobserved route. This is a
 named US qualification test, not a retailer-count, all-retailer, or source-count
 quota.
 
-For every qualified retailer, acquire its brand/assortment grid, reconcile every
-exact parent listing found to the owned parent architecture, and acquire one
-baseline PDP per exact parent listing. The common lean floor is exact identity
+For every qualified retailer, acquire its available grid surface,
+deterministically union and reconcile exact listings with the owned candidates,
+then return to owned evidence to close the complete publicly exposed denominator
+and typed gaps. Owned evidence remains canonical identity authority. Acquire one
+baseline PDP per reconciled exact retailer listing. The common lean floor is exact identity
 and parent/variant/listing relation, price/promotion, availability, aggregate
 rating/review state, assortment/exclusive cues, timestamp, and residuals.
 Preserve the full raw source and retain source-visible retailer-native fields
 such as merchandising, badges, fulfilment, seller/authenticity, related products,
 Q&A availability, review provider, and native identifiers or metadata. Do not
 require a complete global parent-product -> variant/SKU -> retailer-listing graph.
+
+Treat Sephora, Ulta, and Target as brand or assortment grids. Treat Amazon as a
+query-bound ranked-search window complete only for its declared query and
+reachable result window, never a guaranteed complete or authorized-only catalog.
+Projection capability is not route admission. Point-in-time retailer metrics are
+traction proxies, not sales, share, or trend.
 
 Only after this breadth baseline, select products for expensive review or Q&A
 depth based on evidence. A named non-duplicative job must justify each deepening:
@@ -1042,7 +1059,7 @@ cross-sell or overlap relationships.
 #### Qualified Retailer Corpus
 
 Report the exact Sephora, Ulta, Target, and Amazon qualification outcome. For
-each qualified retailer, summarize the complete exposed brand-grid denominator,
+each qualified retailer, summarize the declared and reached grid-surface boundary,
 owned-parent reconciliation, exact-listing PDP baseline coverage, and
 retailer-native information. A typed failure is an outcome, never a listing or
 completion credit.

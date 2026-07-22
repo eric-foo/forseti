@@ -356,6 +356,19 @@ The current CSB one-company competitive-intelligence profile may produce this
 decision-neutral substrate. It must not be mistaken for the later
 decision-specific adjudication run.
 
+### Small high-yield Understanding core
+
+Before optional deepening, resolve five jobs through the existing ledgers:
+current offering and portfolio architecture; exact current commercial and retail
+expression where material; channel, distribution, and geography posture;
+strategic and operating chronology; and applicable material events. This is an
+acquisition floor and ordering rule, not a new section, schema, source quota, or
+substitute for customer/community evidence or another material required lens. A
+material unresolved core job blocks the acquisition seal. Unavailable or
+immaterial remainders stay typed gaps and non-claims. Commission archives,
+supply investigation, ads or creators, competitors, search trends, and similar
+deepening only for a named unresolved inference job.
+
 ### Portfolio and retail architecture
 
 Completed company Understanding makes the owned portfolio denominator, its
@@ -367,22 +380,28 @@ revenue, margin, or management reporting. This section consumes the company
 substrate already captured for Understanding; it does not create a parallel
 acquisition checklist or data store.
 
-When retail expression is material, acquire this substrate breadth-first. First
-establish the complete publicly exposed current category,
-collection/franchise, parent-product, material-variant, declared-total, and
-typed-gap census. Keep bundles and sets visible without counting them as
-ordinary parents. Then test the qualified US beauty
+When retail expression is material, acquire this substrate breadth-first. Begin
+with enough owned evidence to bind the subject, categories, franchises, known
+parents, and canonical product identity. Then test the qualified US beauty
 ladder -- Sephora, Ulta, Target, and Amazon -- and preserve each test's exact
-typed result, such as `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
-`SURFACE_NOT_EXPOSED`; never invent a listing or completion credit. A
-surface-level result does not cancel a qualified retailer's grid and baseline
-obligations. For every qualified retailer, capture its brand/assortment
-grid and one full-raw baseline PDP for every exact parent listing found, using a
-common lean fact floor while retaining source-visible retailer-native fields.
-Only after that baseline may expensive review or Q&A depth be selected for the
-products whose evidence gives it a named, non-duplicative job. This is a
-qualified-ladder test, not an all-retailer or source-count quota, and it does not
-require universal deep capture or a complete global SKU graph.
+typed result; never invent a listing or completion credit. For every qualified
+retailer, capture its available grid surface, deterministically union and
+reconcile exact listings with the owned candidates, then return to owned
+surfaces to close the complete publicly exposed denominator and typed gaps.
+Owned evidence remains canonical identity authority; retailer grids are
+discovery and channel-expression evidence.
+
+Acquire one full-raw baseline PDP for every reconciled exact retailer listing.
+Only after that baseline may expensive review or Q&A depth be selected for a
+named, non-duplicative job. This is not an all-retailer or source-count quota and
+does not require universal deep capture or a complete global SKU graph.
+
+Sephora, Ulta, and Target expose brand or assortment grids. Amazon exposes a
+query-bound ranked-search window that may be complete for its declared query and
+reachable result window, but not as a guaranteed complete or authorized-only
+brand catalog. Projection capability does not prove route admission; every run
+records market pin, reachability, surface boundary, and typed failure. Point-in-
+time retailer metrics are traction proxies, not sales, share, or trend.
 
 Sephora is the guarded default primary when it is authorized, US-admissible, and
 materially complete; override it when a material omission, failed market

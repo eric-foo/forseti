@@ -143,7 +143,10 @@ is a logical attachment allowance, not an implementation instruction.
 
 ## Result Attachment Contract
 
-Downstream outputs attach as logical append-only derived records keyed to raw.
+Downstream outputs attach as logical append-only derived records keyed to a
+typed source anchor. Raw remains the normal anchor; an explicitly admitted
+derived-first capture lane may use a capture-event anchor and an optional real
+raw-sample reference rather than manufacturing a raw receipt.
 The physical home is deferred, but the logical rule is fixed:
 
 - Derived records point to `packet_id`, `slice_id`, preserved file refs, and
@@ -219,7 +222,8 @@ to become lake core by convenience.
 
 Fragrance-specific facts such as notes, accords, concentration, longevity,
 retailer SKU details, review substrate, or source-specific residuals belong in
-source-family Attachment Records or downstream derived records keyed to raw.
+source-family Attachment Records or downstream derived records keyed to their
+typed source anchor.
 They do not become lake-core fields unless a later owner decision proves a
 cross-family core need under a cited source-family promotion rule or explicitly
 accepted one-off invariant. Convenience, first-consumer pressure, or one source

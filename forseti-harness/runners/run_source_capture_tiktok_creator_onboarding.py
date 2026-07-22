@@ -5,9 +5,9 @@ import argparse
 import hashlib
 import json
 import sys
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -35,6 +35,7 @@ from data_lake.root import DataLakeRoot
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
     apply_tiktok_creator_onboarding_dedupe,
     build_tiktok_creator_promotion_decisions,
+    promotion_decision_for_handle,
     rank_tiktok_creator_discovery_targets,
 )
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
@@ -157,8 +158,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--creator-registry", type=Path, default=DEFAULT_CREATOR_REGISTRY
     )
-    parser.add_argument("--promotion-grid-dir", type=Path, help="Discovery Frontier *.grid.json directory; writes promotion decisions, which never authorize onboarding an absent account")
-    parser.add_argument("--promotion-only", action="store_true", help="write promotion decisions and exit before Registry/browser work")
+    parser.add_argument(
+        "--promotion-grid-dir",
+        type=Path,
+        help=(
+            "Discovery Frontier *.grid.json directory; writes promotion decisions. "
+            "With an explicit --creator-handle and --data-root, also records that "
+            "creator's eligible/deferred Frontier disposition."
+        ),
+    )
+    parser.add_argument(
+        "--promotion-only",
+        action="store_true",
+        help="write promotion decisions and exit before Registry/browser work",
+    )
     parser.add_argument(
         "--session-profile",
         default="chowdakr_sg_tiktok",
@@ -264,6 +277,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 registry_document=registry_document,
                 frontier_registers=frontier_registers,
                 frontier_dispositions=frontier_dispositions,
+                data_root=data_root,
+                explicit_creator_handle=args.creator_handle,
             )
             _emit_progress("promotion_decisions_complete", {"path": str(promotion_path), "counts": promotion_decisions["tiktok_creator_promotion_decisions"]["counts"]})
         if args.promotion_only:
@@ -756,6 +771,8 @@ def _write_promotion_decisions(
     registry_document: dict[str, object],
     frontier_registers: Sequence[dict[str, object]] = (),
     frontier_dispositions: dict[str, object] | None = None,
+    data_root: DataLakeRoot | None = None,
+    explicit_creator_handle: str | None = None,
 ) -> tuple[Path, dict[str, object]]:
     paths = sorted(grid_dir.glob("*.grid.json"), key=lambda path: path.name.lower())
     if not paths:
@@ -774,10 +791,102 @@ def _write_promotion_decisions(
         frontier_registers=frontier_registers,
         frontier_dispositions=frontier_dispositions,
     )
+    if data_root is not None and explicit_creator_handle is not None:
+        _write_promotion_frontier_disposition(
+            data_root=data_root,
+            document=document,
+            creator_handle=explicit_creator_handle,
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / PROMOTION_DECISIONS_JSON_NAME
     output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return output, document
+
+
+def _write_promotion_frontier_disposition(
+    *,
+    data_root: DataLakeRoot,
+    document: dict[str, object],
+    creator_handle: str,
+) -> dict[str, object]:
+    decision = promotion_decision_for_handle(document, creator_handle)
+    if decision is None:
+        raise ValueError(
+            f"promotion grids do not contain explicit creator handle: {creator_handle}"
+        )
+    frontier_dispositions = load_creator_frontier_dispositions(data_root)
+    current = _frontier_disposition_for_handle(frontier_dispositions, creator_handle)
+    compatibility_disposition = decision.get("owner_onboarding_disposition_or_none")
+    if current is None and compatibility_disposition is not None:
+        raise ValueError(
+            "refusing to record a promotion disposition over the non-performance "
+            f"compatibility owner disposition for {creator_handle}: "
+            f"{compatibility_disposition}"
+        )
+    action = _promotion_frontier_action(decision)
+    if current is not None and not _promotion_action_matches_current(
+        action=action, current=current
+    ):
+        current_note = str(current.get("note_or_none") or "")
+        performance_owned = (
+            current.get("status") in {"eligible", "deferred"}
+            and (
+                current.get("reason_code") in {"low_potential", "low_reach"}
+                or current_note.startswith("policy=tiktok_fragrance_creator_promotion_policy_")
+            )
+        )
+        if not performance_owned:
+            raise ValueError(
+                "refusing to supersede non-performance Creator Frontier disposition "
+                f"for {creator_handle}: status={current.get('status')}, "
+                f"reason_code={current.get('reason_code')}"
+            )
+    return write_creator_frontier_dispositions(data_root=data_root, actions=[action])
+
+
+def _promotion_frontier_action(
+    decision: Mapping[str, object],
+) -> dict[str, object]:
+    handle = str(decision.get("handle") or "").strip().lstrip("@")
+    note = str(decision.get("decision_note") or "").strip()
+    reason = decision.get("decision_reason_code")
+    if not handle or not note or not isinstance(reason, str):
+        raise ValueError("promotion decision lacks handle, reason, or note")
+    if decision.get("registry_action") == "promote_now":
+        return {
+            "platform": "tiktok",
+            "handle": handle,
+            "status": "eligible",
+            "priority": "normal",
+            "reason_code": "other",
+            "note": note,
+        }
+    if decision.get("registry_action") != "do_not_promote":
+        raise ValueError("promotion decision has invalid registry_action")
+    return {
+        "platform": "tiktok",
+        "handle": handle,
+        "status": "deferred",
+        "reason_code": (
+            "other"
+            if reason == "quality_unavailable_weekly_below_p25"
+            else "low_potential"
+        ),
+        "note": note,
+        "reconsideration": "new_signal",
+    }
+
+
+def _promotion_action_matches_current(
+    *, action: dict[str, object], current: dict[str, object]
+) -> bool:
+    return (
+        current.get("status") == action.get("status")
+        and current.get("priority_or_none") == action.get("priority")
+        and current.get("reason_code") == action.get("reason_code")
+        and current.get("note_or_none") == action.get("note")
+        and current.get("reconsideration_or_none") == action.get("reconsideration")
+    )
 
 
 def _registry_tiktok_states(registry: dict[str, object]) -> dict[str, str]:

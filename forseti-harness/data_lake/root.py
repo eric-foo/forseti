@@ -680,7 +680,12 @@ class DataLakeRoot:
     ) -> Path:
         """Append-only create of a derived or acknowledgement record at
         ``<subtree>/<anchor_shard>/<raw_anchor>/<lane>/<record_id>`` (the anchor
-        shard is recomputed from ``raw_anchor``). Refuses overwrite."""
+        shard is recomputed from ``raw_anchor``). Refuses overwrite.
+
+        ``raw_anchor`` is the compatibility parameter name. The v4.1 forward
+        contract treats this segment as a typed source anchor and permits an
+        explicitly admitted derived-first lane to supply a capture-event id.
+        """
         if subtree not in _APPENDABLE_SUBTREES:
             raise DataLakeRootError(
                 f"append_record subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"

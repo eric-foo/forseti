@@ -99,8 +99,10 @@ through legacy compatibility. Explicit `raw` is diagnosis/recovery posture, not
 a second normal deep-capture route. Bazaarvoice review and Q&A evidence remains
 a separate companion governed by `retailer_information_extraction_standard_v0.md`.
 
-Every other Retail/PDP or grid profile remains raw until separately proven.
-Direct-HTTP grids remain raw.
+Every other Retail/PDP profile remains raw until separately proven. Admitted
+CloakBrowser retailer-grid profiles follow the separate derived-first monitoring
+posture in `retailer_information_extraction_standard_v0.md`; Direct-HTTP grids
+remain raw.
 
 | Retailer / route | Current deep-PDP mark |
 | --- | --- |

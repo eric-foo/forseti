@@ -150,8 +150,8 @@ in-packet summaries stay capture evidence, and Cleaning owns downstream
 adaptation. Grid projections are separate retailer-specific mechanical views,
 not PDP content, Cleaning, or Silver.
 
-For the qualified ladder, Sephora, Ulta, and Target have admitted projected
-grid paths. Sephora reconciles its retailer-declared count against unique
+For the qualified ladder, Sephora, Ulta, Target, and Amazon have admitted
+retailer-specific projected grid paths. Sephora reconciles its retailer-declared count against unique
 parent rows; Ulta reconciles its retailer-declared and viewed counts against
 anchored placements, so a complete Ulta grid may hold more placements than
 unique parents. Target's admitted search and `/b/<brand>/-/N-...` brand grids
@@ -161,9 +161,11 @@ source-visible main-grid placement, advance only through Target's same-tab
 unique TCIN parents, placements, duplicates, and proven termination. Every
 page's count observation remains preserved because the live assortment can
 change during traversal. An unsupported larger `count` hint is never a
-completeness dependency. Amazon
-search-grid capture remains query-bound raw, not a complete or authorized-only
-brand denominator.
+completeness dependency. Amazon has an admitted query-bound ranked-search
+projection complete only for its declared query and reachable result window,
+never as a guaranteed complete or authorized-only brand denominator. Projection
+capability does not admit a live route; each acquisition still records market
+pin, reachability, surface boundary, and typed failure.
 Amazon PDP remains raw-unflipped through the existing Cleaning compatibility
 decoder; Sephora, Ulta, and Target PDP profiles use canonical content. Every
 ordinary shallow profile derives its target from the commissioned URL and
@@ -173,9 +175,13 @@ source-visible fulfilment facts remain tied only to the preserved page state.
 A capability gap is never replaced with snippets,
 another market, a canary product, or an inferred list.
 
-Before depth selection, compose the owned parent denominator with exactly one
-typed outcome for each ladder retailer. For every captured grid, re-project
-hash-verified raw bytes and require one explicit reconciliation per grid row.
+Routine successful grid monitoring retains the complete reconciled
+`projection_retail_grid` observation under a capture-event source anchor and
+does not retain its transient source bodies. An explicit QA sample retains a
+real raw packet and the observation references that packet; an access,
+extraction, or reconciliation failure preserves diagnostic raw evidence and
+exits nonzero. Raw-sample selection does not gate or alter an otherwise valid
+derived observation. Every grid requires one explicit reconciliation per row.
 Count parent coverage by retailer-native listing identity, not placement:
 duplicate placements, variant URLs, bundles/sets, ambiguous matches, and
 unmatched rows remain separate residuals and cannot inflate the owned-parent
@@ -206,7 +212,7 @@ Sephora's current proven mechanics are a source-specific benchmark:
 | Q&A | On onboarding, preserve one `Most Answers` response using `TotalAnswerCount:desc`, including returned answer bodies, within the commissioned limit. It is a bounded answer-rich window, not the complete Q&A corpus. |
 | Monitoring | Request `Most Recent` only. Stop as soon as the prior last-seen review ID is found; follow source offsets only when the first response does not contain it. Do not routinely refresh `Most Helpful` or Q&A. |
 | Companion role | The accepted low-footprint target has three response roles: Helpful plus combined statistics (`Include=Products&Stats=Reviews&FilteredStats=Reviews`), Recent, and Q&A. Exact bodies remain in raw responses; the summary carries compact body-free facts, promoted age/skin-type/skin-concern distributions from the filtered statistics, the native last-seen review ID, and raw-file references. This target is implemented and packet-proven as `sephora_bazaarvoice_onboarding_v4` (live proof packet `01KY25FZCPVRHF6XEPYDEDATN0`: three response documents replace the prior eight). Historical `_v3` eight-response packets remain append-only readable evidence. |
-| Brand grid | `sephora_grid_aggregate` preserves the rendered raw packet and mechanically projects one row per unique parent product from retailer-owned `linkStore.page.nthBrand.products`. Every serialized placement retains its source-order position and JSON-pointer anchor. The market warm-up launches CloakBrowser with humanization enabled, scopes the exact international country dialog when present, activates `Continue to Sephora.com`, and uses that same page object for the main target. For a multi-page grid, one settled bottom scroll plus the retailer-owned `Show More Products` action may advance the visible range and `currentPage` URL while the serialized `linkStore` remains page-local; preserve each retailer-owned page state and reconcile their product-ID union rather than calling one page-local Projection complete from visible `1-N` text. Admission reconciles the page-declared result count, serialized placements, unique parent count, subject slug/target binding, and termination; mismatches remain explicit and exit nonzero. The page-kind-specific grid assertion admits the US country route only when the country-routing dialog is absent and every serialized `Sephora.renderQueryParams` object that carries a country binds `US`; because no second retailer-owned conjunct corroborates it, contradictory serialized country values fail closed rather than being outvoted by one US occurrence. Currency remains independently typed: retain any explicit retailer-owned code, otherwise mark it unpinned, and never infer `USD` from a dollar glyph. An unreadable or absent grid state is reported as unreadable or absent, never as an observed absent currency code. PDP admission remains the separate strict US/USD conjunction. |
+| Brand grid | `sephora_grid_aggregate` mechanically projects one row per unique parent product from retailer-owned `linkStore.page.nthBrand.products`; routine success retains the complete derived observation, not the rendered source. Every serialized placement retains its source-order position; exact raw anchors are present only when an explicit QA sample is retained. The market warm-up launches CloakBrowser with humanization enabled, scopes the exact international country dialog when present, activates `Continue to Sephora.com`, and uses that same page object for the main target. For a multi-page grid, one settled bottom scroll plus the retailer-owned `Show More Products` action may advance the visible range and `currentPage` URL while the serialized `linkStore` remains page-local; reconcile each retailer-owned page state and their product-ID union rather than calling one page-local Projection complete from visible `1-N` text. Admission reconciles the page-declared result count, serialized placements, unique parent count, subject slug/target binding, and termination; mismatches preserve diagnostic raw evidence and exit nonzero. The page-kind-specific grid assertion admits the US country route only when the country-routing dialog is absent and every serialized `Sephora.renderQueryParams` object that carries a country binds `US`; because no second retailer-owned conjunct corroborates it, contradictory serialized country values fail closed rather than being outvoted by one US occurrence. Currency remains independently typed: retain any explicit retailer-owned code, otherwise mark it unpinned, and never infer `USD` from a dollar glyph. An unreadable or absent grid state is reported as unreadable or absent, never as an observed absent currency code. PDP admission remains the separate strict US/USD conjunction. |
 
 The main Sephora deep-capture package is the canonical v3 page capture plus the
 separate Bazaarvoice companion roles when the commissioned bound requires them:

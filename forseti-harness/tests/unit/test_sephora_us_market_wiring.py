@@ -533,17 +533,55 @@ def test_writer_automatically_files_grid_projection_in_data_root(
     )
 
     assert exit_code == 0
-    raw_text, projection_text = output.split("; ", maxsplit=1)
-    raw_path = Path(raw_text.removeprefix("raw packet preserved at "))
     projection_path = Path(
-        projection_text.removeprefix("projection preserved at ")
+        output.removeprefix(
+            "raw sample not retained; derived observation preserved at "
+        )
     )
-    loaded = root.load_raw_packet(raw_path.name)
     projection = json.loads(projection_path.read_text(encoding="utf-8"))
-    assert loaded.manifest["packet_id"] == raw_path.name
-    assert projection["packet_id"] == raw_path.name
+    assert root.list_committed_packet_ids() == []
+    assert projection["projection_version"] == "v1"
+    assert projection["packet_id"] is None
+    assert projection["capture_event"]["raw_sample_packet_id"] is None
     assert projection["completeness"]["status"] == "complete"
     assert projection_path.parent.name == "projection_retail_grid"
+
+
+def test_sephora_grid_explicit_raw_sample_projects_the_grid_exactly_once(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_grid_capture
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    exit_code, output = _run_writer(
+        tmp_path,
+        url=_SEPHORA_GRID_URL,
+        decision_question="What is the Summer Fridays grid?",
+        output_directory=None,
+        data_root=root,
+        retail_capture_profile=get_retail_capture_profile("sephora_grid_aggregate"),
+        retain_retail_grid_raw_sample=True,
+    )
+
+    assert exit_code == 0
+    raw_text, projection_text = output.split("; derived observation preserved at ", 1)
+    raw_path = Path(raw_text.removeprefix("raw sample preserved at "))
+    projection = json.loads(Path(projection_text).read_text(encoding="utf-8"))
+    loaded = root.load_raw_packet(raw_path.name)
+    assert any(
+        item["relative_packet_path"].endswith("cloakbrowser_rendered_dom.html")
+        for item in loaded.manifest["preserved_files"]
+    )
+    assert projection["capture_event"]["raw_sample_packet_id"] == raw_path.name
+    assert projection["completeness"]["status"] == "complete"
+    assert projection["completeness"]["extracted_unique_parent_count"] == 2
+    assert projection["completeness"]["extracted_placement_count"] == 2
+    assert projection["completeness"]["duplicate_placement_count"] == 0
+    assert all(
+        row["raw_ref"]["packet_id"] == raw_path.name for row in projection["rows"]
+    )
 
 
 def test_writer_requires_sephora_us_request_route(tmp_path: Path) -> None:

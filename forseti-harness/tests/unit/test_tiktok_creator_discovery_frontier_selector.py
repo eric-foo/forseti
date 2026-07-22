@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from capture_spine.tiktok_creator_discovery_frontier import (
     LinkHubOutcome,
     RefreshOutcome,
@@ -9,6 +11,7 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     SuggestedAccountObservation,
     build_tiktok_creator_discovery_frontier_register,
 )
+from capture_spine.tiktok_creator_discovery_frontier import frontier_selector
 from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
     apply_tiktok_creator_onboarding_dedupe,
     build_tiktok_creator_promotion_decisions,
@@ -100,10 +103,69 @@ def test_promotion_policy_excludes_pins_and_routes_middle_to_oldest() -> None:
     document = build_tiktok_creator_promotion_decisions([grid("strong", 30000), grid("middle", 6000), grid("low", 1000, 9000000)])
     rows = {row["handle"]: row for row in document["tiktok_creator_promotion_decisions"]["decisions"]}
     assert rows["strong"]["registry_action"] == "promote_now"
-    assert rows["middle"]["reconsider_when_or_none"] == "oldest_result"
+    assert rows["middle"]["registry_action"] == "promote_now"
+    assert rows["middle"]["decision_reason_code"] == "cleared_quality_p25"
+    assert rows["middle"]["cleared_thresholds"] == ["quality_p25"]
     assert rows["low"]["reconsider_when_or_none"] == "new_signal_only"
+    assert rows["low"]["decision_reason_code"] == "below_both_p25"
+    assert rows["low"]["cleared_thresholds"] == []
+    assert "decision=do_not_promote" in rows["low"]["decision_note"]
+    assert "reconsider=new_signal" in rows["low"]["decision_note"]
     assert rows["low"]["unpinned_post_count"] == 3
     assert promotion_decision_for_handle(document, "@STRONG")["registry_action"] == "promote_now"
+
+
+@pytest.mark.parametrize(
+    ("quality", "weekly", "action", "reason", "cleared"),
+    [
+        (
+            0.34425675,
+            0.0,
+            "promote_now",
+            "cleared_quality_p25",
+            ["quality_p25"],
+        ),
+        (
+            0.0,
+            15213.659348,
+            "promote_now",
+            "cleared_weekly_reach_p25",
+            ["weekly_reach_p25"],
+        ),
+        (
+            0.34425675,
+            15213.659348,
+            "promote_now",
+            "cleared_both_p25",
+            ["quality_p25", "weekly_reach_p25"],
+        ),
+        (0.34425674, 15213.659347, "do_not_promote", "below_both_p25", []),
+        (
+            None,
+            15213.659347,
+            "do_not_promote",
+            "quality_unavailable_weekly_below_p25",
+            [],
+        ),
+    ],
+)
+def test_promotion_policy_p25_boundaries_are_inclusive_and_compensatory(
+    quality: float | None,
+    weekly: float,
+    action: str,
+    reason: str,
+    cleared: list[str],
+) -> None:
+    decision = frontier_selector._promotion_decision_fields(
+        quality=quality, weekly_reach=weekly
+    )
+
+    assert decision["registry_action"] == action
+    assert decision["decision_reason_code"] == reason
+    assert decision["cleared_thresholds"] == cleared
+    assert "policy=tiktok_fragrance_creator_promotion_policy_v2" in decision["decision_note"]
+    assert "quality_p25=0.34425675" in decision["decision_note"]
+    assert "weekly_reach_p25=15213.659348" in decision["decision_note"]
 
 
 def test_onboarding_dedupe_preserves_performance_and_removes_known_or_scanned() -> None:
