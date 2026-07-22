@@ -34,6 +34,16 @@ from judgment.tiktok_audience_triangulation import (
     validate_triangulation_snapshot,
 )
 from data_lake.root import DataLakeRoot
+from data_lake.creator_audience_queue import public_queue_view
+from data_lake.creator_registry import (
+    admit_tiktok_creator_candidate,
+    load_current_creator_profiles,
+    load_current_creator_registry,
+    migrate_legacy_registry,
+)
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    write_creator_frontier_dispositions,
+)
 from data_lake.silver_record import (
     CURRENT_SOURCE_BACKED_AUTHORITY,
     SilverRecordError,
@@ -611,6 +621,161 @@ def test_coordinator_reuses_batch_evidence_with_separate_current_grid_packet(
     assert {
         row["raw_anchor"] for row in bundle["source_refs"]["grid_observation_refs"]
     } == {grid_packet_id}
+
+
+def test_browser_free_queue_dogfood_corrects_then_upgrades_registry_candidate(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    repo_root = Path(__file__).resolve().parents[3]
+    legacy_root = (
+        repo_root
+        / "forseti"
+        / "product"
+        / "spines"
+        / "capture"
+        / "core"
+        / "source_families"
+        / "social_media"
+        / "creator_registry"
+    )
+    migrate_legacy_registry(
+        data_root=data_root,
+        account_ledger_path=legacy_root / "creator_public_handle_linkage_ledger_v0.json",
+        registry_index_path=legacy_root / "creator_registry_index_v0.json",
+        profile_current_path=legacy_root / "creator_profile_current_view_v0.json",
+        dry_run=False,
+    )
+    dogfood_handle = "queue.dogfood"
+    dogfood_profile_url = f"https://www.tiktok.com/@{dogfood_handle}"
+    grid_window, selection = _onboarding_evidence_payloads()
+    identity_grid = json.loads(grid_window)
+    identity_grid["creator_handle"] = dogfood_handle
+    identity_grid["collection_receipt"] = {
+        "capture_timestamp": "2026-06-30T17:02:46Z"
+    }
+    for item in identity_grid["items"]:
+        item["video_url"] = item["video_url"].replace(
+            PROFILE_URL, dogfood_profile_url
+        )
+        item["author"] = {
+            "id": "998877665544",
+            "uniqueId": dogfood_handle,
+            "nickname": "Queue Dogfood",
+        }
+    grid_window = (json.dumps(identity_grid, sort_keys=True) + "\n").encode("utf-8")
+    identity_selection = json.loads(selection)
+    identity_selection["onboarding_binding"]["creator_handle"] = dogfood_handle
+    identity_selection["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_window
+    ).hexdigest()
+    selection = (json.dumps(identity_selection, sort_keys=True) + "\n").encode("utf-8")
+    raw_grid = json.loads(_grid_payload())
+    for item in raw_grid["response_items"]:
+        if item.get("authorUniqueId") == "funmimonet":
+            item["authorUniqueId"] = dogfood_handle
+    code, admitted = write_tiktok_batch_packet(
+        creator_handle=f"@{dogfood_handle}",
+        creator_profile_url=dogfood_profile_url,
+        grid_result_json=json.dumps(raw_grid).encode("utf-8"),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_window,
+        selection_result_json=selection,
+        data_root=data_root,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+    assert code == 0
+    packet_id = Path(admitted).name
+    disposition = write_creator_frontier_dispositions(
+        data_root=data_root,
+        actions=[
+            {
+                "platform": "tiktok",
+                "handle": dogfood_handle,
+                "status": "eligible",
+                "priority": "high",
+                "reason_code": "owner_choice",
+            }
+        ],
+        recorded_at="2026-06-30T17:03:00Z",
+    )["current"]["creator_frontier_disposition_current"]["dispositions"][0]
+    candidate = admit_tiktok_creator_candidate(
+        data_root=data_root,
+        packet_id=packet_id,
+        frontier_disposition_id=disposition["disposition_id"],
+    )
+    profile_subject_id = candidate["platform_account_id"]
+    internal_before = load_current_creator_registry(data_root)["creator_registry_index"]
+    candidate_before = next(
+        row
+        for row in internal_before["platform_accounts"]
+        if row["platform_account_id"] == profile_subject_id
+    )
+    assert candidate_before["onboarding"]["onboarding_state"] == "not_onboarded"
+    assert candidate_before["monitoring_eligibility"]["eligible"] is False
+    assert all(
+        row["profile_subject_id"] != profile_subject_id
+        for row in load_current_creator_profiles(data_root)["creator_profile_public"]["profiles"]
+    )
+
+    prepared = prepare_onboarding(
+        data_root=data_root,
+        packet_id=packet_id,
+        creator_id=None,
+        profile_subject_id=None,
+        question="Who is this creator commercially useful for?",
+        evidence_cutoff="2026-06-30T17:02:46Z",
+        work_dir=tmp_path / "prepared",
+    )
+    enqueued = onboarding_coordinator.enqueue_onboarding(
+        data_root=data_root,
+        bundle_path=Path(prepared["bundle_out"]),
+        prompt_path=Path(prepared["prompt_out"]),
+    )
+    emitted_prompt = tmp_path / "worker" / "prompt.txt"
+    claimed = onboarding_coordinator.claim_onboarding_job(
+        data_root=data_root,
+        worker_id="dogfood-worker",
+        prompt_out=emitted_prompt,
+    )
+    assert claimed["status"] == "claimed"
+    assert emitted_prompt.read_bytes() == Path(prepared["prompt_out"]).read_bytes()
+
+    bundle = json.loads(Path(prepared["bundle_out"]).read_text(encoding="utf-8"))
+    invalid_response = _response(bundle)
+    invalid_response["judgment_claim_set"]["claims"][0][
+        "all_support_evidence_ids"
+    ].append("ttce_absent")
+    invalid = onboarding_coordinator.submit_onboarding_job(
+        data_root=data_root,
+        job_id=enqueued["job_id"],
+        lease_id=claimed["lease_id"],
+        response_bytes=json.dumps(invalid_response).encode("utf-8"),
+    )
+    assert invalid["status"] == "blocked"
+    assert invalid["queue_state"] == "running"
+    assert public_queue_view(data_root)["counts"]["running"] == 1
+
+    succeeded = onboarding_coordinator.submit_onboarding_job(
+        data_root=data_root,
+        job_id=enqueued["job_id"],
+        lease_id=claimed["lease_id"],
+        response_bytes=json.dumps(_response(bundle)).encode("utf-8"),
+    )
+    assert succeeded["status"] == "succeeded"
+    assert public_queue_view(data_root)["counts"]["succeeded"] == 1
+    internal_after = load_current_creator_registry(data_root)["creator_registry_index"]
+    onboarded = next(
+        row
+        for row in internal_after["platform_accounts"]
+        if row["platform_account_id"] == profile_subject_id
+    )
+    assert onboarded["onboarding"]["onboarding_state"] == "onboarded"
+    assert onboarded["monitoring_eligibility"]["eligible"] is True
+    public_after = load_current_creator_profiles(data_root)["creator_profile_public"][
+        "profiles"
+    ]
+    assert any(row["profile_subject_id"] == profile_subject_id for row in public_after)
 
 
 def _foreign_account_grid_window() -> bytes:

@@ -2026,6 +2026,39 @@ def test_new_onboarding_auto_selection_uses_registry_and_skips_frontier_blocked(
     assert candidate["selection_policy"] == "sole_actionable_registry_not_onboarded_account"
 
 
+def test_new_onboarding_auto_selection_skips_pending_audience_job() -> None:
+    registry_document = {
+        "creator_profile_current_view": {
+            "profiles": [
+                {
+                    "profile_subject_id": f"acct_{handle}",
+                    "profile_subject_kind": "platform_account",
+                    "onboarding": {"onboarding_state": "not_onboarded"},
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": f"acct_{handle}",
+                            "public_handle": handle,
+                            "public_profile_url": f"https://www.tiktok.com/@{handle}",
+                        }
+                    ],
+                }
+                for handle in ("pending_creator", "ready_creator")
+            ]
+        }
+    }
+
+    handle, candidate = runner._resolve_creator_handle(
+        creator_handle=None,
+        creator_intent="new_onboarding",
+        registry_document=registry_document,
+        pending_profile_subject_ids={"acct_pending_creator"},
+    )
+
+    assert handle == "ready_creator"
+    assert candidate["platform_account_id"] == "acct_ready_creator"
+
+
 def test_onboarding_cli_rejects_window_below_sufficient_dom_minimum() -> None:
     with pytest.raises(SystemExit):
         runner.build_parser().parse_args(
@@ -2111,6 +2144,23 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         return 0, str((tmp_path / "admitted").resolve())
 
     monkeypatch.setattr(runner, "write_tiktok_batch_packet", fake_writer)
+    bundle_path = tmp_path / "audience_bundle.json"
+    prompt_path = tmp_path / "audience_prompt.txt"
+    bundle_path.write_text("{}", encoding="utf-8")
+    prompt_path.write_text("prompt", encoding="utf-8")
+    audience_queue: dict[str, object] = {}
+
+    def fake_prepare(**kwargs: object) -> dict[str, object]:
+        audience_queue["prepare"] = kwargs
+        return {"bundle_out": str(bundle_path), "prompt_out": str(prompt_path)}
+
+    def fake_enqueue(**kwargs: object) -> dict[str, object]:
+        audience_queue["enqueue"] = kwargs
+        return {"status": "enqueued", "job_id": "audience_job_001"}
+
+    monkeypatch.setattr(runner, "_packet_capture_time", lambda *_args: "2026-07-21T00:00:00Z")
+    monkeypatch.setattr(runner, "prepare_onboarding", fake_prepare)
+    monkeypatch.setattr(runner, "enqueue_creator_audience_job", fake_enqueue)
     lake = DataLakeRoot.for_test(tmp_path / "lake")
     monkeypatch.setattr(
         runner,
@@ -2154,6 +2204,9 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         "selection_result_json",
         "suggested_accounts_json",
     ]
+    assert audience_queue["prepare"]["packet_id"] == "admitted"
+    assert audience_queue["enqueue"]["bundle_path"] == bundle_path
+    assert audience_queue["enqueue"]["prompt_path"] == prompt_path
     assert lake.root_uuid
 
 
@@ -3191,6 +3244,88 @@ def test_new_onboarding_blocks_ineligible_creator_before_browser_probe(
 
     assert exc_info.value.code == 2
     assert expected_message in capsys.readouterr().err
+
+
+def test_new_onboarding_queue_capacity_blocks_before_browser_probe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    registry_document = {
+        "creator_profile_current_view": {
+            "schema_version": "creator_profile_current_view_registry_preflight_v1",
+            "generated_at_utc": "2026-07-21T00:00:00Z",
+            "profiles": [
+                {
+                    "profile_subject_id": "acct_tt_known_001",
+                    "profile_subject_kind": "platform_account",
+                    "onboarding": {"onboarding_state": "not_onboarded"},
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": "acct_tt_known_001",
+                            "public_handle": "known_creator",
+                            "public_profile_url": "https://www.tiktok.com/@known_creator",
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    monkeypatch.setattr(
+        runner, "load_current_registry_preflight_view", lambda _root: registry_document
+    )
+    monkeypatch.setattr(
+        runner, "load_tiktok_creator_discovery_frontier_registers", lambda _root: []
+    )
+    monkeypatch.setattr(
+        runner, "load_creator_frontier_dispositions", lambda _root: None
+    )
+    monkeypatch.setattr(runner, "unfinished_profile_subject_ids", lambda _root: set())
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        runner,
+        "assert_creator_audience_capacity",
+        lambda _root: (_ for _ in ()).throw(
+            runner.CreatorAudienceQueueError(
+                "AUDIENCE_QUEUE_CAPACITY_REACHED: queued_plus_running=10 capacity=10"
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: pytest.fail("browser probe must not run"),
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "known_creator",
+                "--output-dir",
+                str(tmp_path / "out"),
+                "--data-root",
+                str(lake.path),
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "AUDIENCE_QUEUE_CAPACITY_REACHED" in captured.out
+    assert "queued_plus_running=10 capacity=10" in captured.err
 
 
 def test_new_onboarding_rejects_genuinely_absent_account_before_browser_probe(
