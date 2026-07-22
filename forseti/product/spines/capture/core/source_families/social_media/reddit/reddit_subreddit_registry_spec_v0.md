@@ -63,7 +63,7 @@ Each `subreddits[]` row carries:
   `public_description_or_none`, `posting_posture_or_none`,
   `descriptive_observed_at`, `descriptive_changes[]`.
 - Routing: `niche_paths[]`, `venue_roles[]`, `discovery_state`
-  (`known_subreddit` | `candidate_new_subreddit`), `capture_state`
+  (`known_subreddit` | `candidate_new_subreddit` | `retired`), `capture_state`
   (`no_packet_recorded` | `grid_packets_recorded` |
   `thread_packets_recorded`; grid never downgrades thread).
 - Time series (append-only): `observations[]`, each
@@ -104,6 +104,20 @@ observation.
   `counterevidence`, `regional`, `demographic`, `specialist`.
 - Both vocabularies are extended by adding a value here first, then using it
   in rows.
+- `discovery_state`: `known_subreddit` (confirmed tracked),
+  `candidate_new_subreddit` (discovered, not yet confirmed by packet
+  evidence), `retired` (deliberately no longer captured).
+
+  `retired` is a **roster decision, not a judgement and not a Reddit-side
+  status** — a banned, private, or quarantined venue is `status`, which is
+  observed, whereas `retired` is chosen. The lake is append-only, so a retired
+  subreddit keeps its full history and folds normally; it is excluded only
+  from the capture roster, so it stops costing one request per pass.
+  Reversing it is an ordinary roster change back to a tracked state.
+
+  Readers must pick deliberately: `known_subreddits()` is the exhaustive
+  anchor census (fold, parity, history), `capture_roster()` is the
+  retired-excluding list a capture pass or coverage report should use.
 
 ## Feed Contract
 

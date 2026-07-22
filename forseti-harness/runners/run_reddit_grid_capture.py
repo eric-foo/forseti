@@ -418,9 +418,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.roster:
             if data_root is None:
                 raise ValueError("--roster reads the lake registry; --data-root is required")
-            from data_lake.reddit_subreddit_registry import known_subreddits
+            # capture_roster, not known_subreddits: retired rows keep their
+            # history in the fold but must not cost a request per pass.
+            from data_lake.reddit_subreddit_registry import capture_roster
 
-            subreddits = known_subreddits(data_root)
+            subreddits = capture_roster(data_root)
             if not subreddits:
                 raise ValueError("--roster found no tracked subreddits in the lake registry")
         exit_code, message = run_reddit_grid_capture(
