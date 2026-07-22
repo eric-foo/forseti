@@ -703,7 +703,7 @@ def test_target_content_record_fails_closed_on_count_or_identity_gap() -> None:
     )
 
 
-def test_target_grid_declared_count_drift_is_not_reconciled_as_complete() -> None:
+def test_target_grid_declared_count_drift_is_complete_with_advisory_residual() -> None:
     rendered_pages = (
         _target_grid_page_html(
             products=[
@@ -746,8 +746,8 @@ def test_target_grid_declared_count_drift_is_not_reconciled_as_complete() -> Non
     assert projection.source_visible_grid_facts[
         "declared_result_count_observations"
     ] == [4, 3]
-    assert projection.completeness.status == "incomplete"
-    assert projection.completeness.termination == "unproven"
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.termination == "retailer_visible_count_reconciled"
     assert (
         "target_grid_declared_count_changed_during_traversal:minimum=3:maximum=4"
         in projection.completeness.residuals

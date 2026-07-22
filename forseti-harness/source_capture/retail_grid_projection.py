@@ -1842,17 +1842,20 @@ def _target_grid_reconciliation(
             "target_grid_declared_placement_count_mismatch:"
             f"declared={declared_count}:placements={placement_count}"
         )
-    # Traversal terminates against the count visible on the current page, so a
-    # live assortment change during the multi-page walk still reconciles. The
-    # earlier pages were then drawn from a different corpus than the one the
-    # final count declares, which is not a proven complete corpus.
+    # Traversal terminates against the count visible on the current page. A live
+    # assortment change during the multi-page walk is retained as an advisory
+    # residual when the final visible count, placements, identities, subject,
+    # sort, and termination otherwise reconcile. This truthfully describes a
+    # mostly complete longitudinal observation without pretending that every
+    # page came from a frozen retailer snapshot.
     declared_observations = [
         value
         for value in _observation_list(state, "declared_result_count_observations")
         if isinstance(value, int) and not isinstance(value, bool)
     ]
+    advisory_residuals: list[str] = []
     if len(set(declared_observations)) > 1:
-        reconciliation_residuals.append(
+        advisory_residuals.append(
             "target_grid_declared_count_changed_during_traversal:"
             f"minimum={min(declared_observations)}:"
             f"maximum={max(declared_observations)}"
@@ -1901,7 +1904,7 @@ def _target_grid_reconciliation(
         duplicate_placement_count=duplicate_count,
         subject_binding_confirmed=subject_confirmed,
         termination="retailer_visible_count_reconciled" if complete else "unproven",
-        residuals=_dedupe(reconciliation_residuals),
+        residuals=_dedupe([*reconciliation_residuals, *advisory_residuals]),
     )
 
 

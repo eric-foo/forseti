@@ -384,7 +384,7 @@ def test_plugin_preflight_noops_after_target_navigation_when_dialog_absent() -> 
     assert outcome.warning_notes == []
     page.goto.assert_called_once_with(
         _SEPHORA_URL,
-        wait_until="load",
+        wait_until="domcontentloaded",
         timeout=10_000,
     )
     assert SephoraUSMarketPlugin(target_url=_SEPHORA_URL).humanize is True
