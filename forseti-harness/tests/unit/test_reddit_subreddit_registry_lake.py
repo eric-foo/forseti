@@ -573,3 +573,20 @@ def test_rsr04_superseded_writer_refuses_the_frozen_registry(tmp_path: Path) -> 
         )
     assert excinfo.value.code == "frozen_registry_write_refused"
     assert FROZEN_COMMITTED_REGISTRY_PATH.read_bytes() == frozen_before
+
+
+def test_inflight_write_temp_is_skipped_by_the_fold(lake: DataLakeRoot) -> None:
+    """A concurrent writer's staged temp must not be folded as a record.
+
+    DataLakeRoot._atomic_create stages every record as .<name>.<ulid>.tmp beside
+    its target, and iterdir returns dot-prefixed names, so an unfiltered fold
+    reads a half-written record and fails on shape or content hash.
+    """
+    append_roster_change(lake, subreddit="probe", change_kind="add", actor="operator")
+    lane = lake.lane_dir(subtree="derived", raw_anchor="probe", lane=REDDIT_ROSTER_CHANGE_LANE)
+    staged = lane / ".rsr_stagedrecord.01KYINFLIGHTULID00000000.tmp"
+    staged.write_bytes(b'{"schema_version": "reddit_subreddit_roster_change_v1", "par')
+
+    row = fold_subreddit(lake, "probe")
+    assert row["subreddit"] == "probe"
+    assert staged.exists(), "the fold must skip the temp, not delete it"

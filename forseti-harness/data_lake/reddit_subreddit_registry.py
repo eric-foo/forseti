@@ -27,7 +27,7 @@ from typing import Any, Mapping
 
 from harness_utils import utc_now_z
 from data_lake.canonical_json import canonical_compact_json_bytes, canonical_record_bytes
-from data_lake.root import DataLakeRoot, anchor_shard
+from data_lake.root import DataLakeRoot, anchor_shard, is_inflight_record_temp
 
 REDDIT_BASELINE_LANE = "reddit_subreddit_registry_baseline"
 REDDIT_OBSERVATION_LANE = "reddit_subreddit_observation"
@@ -170,6 +170,11 @@ def _lane_records(data_root: DataLakeRoot, *, subreddit: str, lane: str) -> list
         return []
     records: list[dict[str, Any]] = []
     for path in sorted(lane_dir.iterdir()):
+        # A concurrent refresh may have a record staged but not yet linked;
+        # iterdir returns its dot-prefixed temp, and reading one would fail on
+        # JSON shape or content hash rather than on anything real.
+        if is_inflight_record_temp(path.name):
+            continue
         if not path.is_file():
             continue
         try:

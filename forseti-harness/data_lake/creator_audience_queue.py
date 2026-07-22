@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from data_lake.canonical_json import canonical_record_bytes
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, is_inflight_record_temp
 from harness_utils import sha256_bytes
 
 
@@ -410,6 +410,11 @@ def _records(data_root: DataLakeRoot, lane: str, schema: str) -> list[dict[str, 
     paths = sorted(root.glob(f"*/*/{lane}/*")) if root.is_dir() else []
     rows: list[dict[str, Any]] = []
     for path in paths:
+        # A concurrent claim writer may have a record staged but not yet linked;
+        # its sibling temp is dot-prefixed and Path.glob returns dot-prefixed
+        # names, so skip it rather than read a half-written record.
+        if is_inflight_record_temp(path.name):
+            continue
         if not path.is_file():
             continue
         row = _load_object(path)
