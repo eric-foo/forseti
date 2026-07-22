@@ -762,17 +762,16 @@ def test_target_grid_runner_files_projection_into_test_lake(
     )
 
     assert exit_code == 0
-    packet_path = Path(
-        message.split(";", 1)[0].removeprefix("raw packet preserved at ")
+    projection_path = Path(
+        message.removeprefix(
+            "raw sample not retained; derived observation preserved at "
+        )
     )
-    packet_id = json.loads((packet_path / "manifest.json").read_text())["packet_id"]
-    loaded = root.load_raw_packet(packet_id)
-    assert loaded.manifest["packet_id"] == packet_id
-    projection_paths = list(root.path.rglob("projection_retail_grid/*.json"))
-    assert len(projection_paths) == 1
-    assert json.loads(projection_paths[0].read_text())["completeness"]["status"] == (
-        "complete"
-    )
+    assert root.list_committed_packet_ids() == []
+    projection = json.loads(projection_path.read_text())
+    assert projection["projection_version"] == "v1"
+    assert projection["capture_event"]["raw_sample_packet_id"] is None
+    assert projection["completeness"]["status"] == "complete"
 
 
 def test_writer_builds_target_plugin_and_accepts_exact_target_host(

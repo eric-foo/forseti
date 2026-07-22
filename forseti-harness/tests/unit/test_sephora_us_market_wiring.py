@@ -533,15 +533,16 @@ def test_writer_automatically_files_grid_projection_in_data_root(
     )
 
     assert exit_code == 0
-    raw_text, projection_text = output.split("; ", maxsplit=1)
-    raw_path = Path(raw_text.removeprefix("raw packet preserved at "))
     projection_path = Path(
-        projection_text.removeprefix("projection preserved at ")
+        output.removeprefix(
+            "raw sample not retained; derived observation preserved at "
+        )
     )
-    loaded = root.load_raw_packet(raw_path.name)
     projection = json.loads(projection_path.read_text(encoding="utf-8"))
-    assert loaded.manifest["packet_id"] == raw_path.name
-    assert projection["packet_id"] == raw_path.name
+    assert root.list_committed_packet_ids() == []
+    assert projection["projection_version"] == "v1"
+    assert projection["packet_id"] is None
+    assert projection["capture_event"]["raw_sample_packet_id"] is None
     assert projection["completeness"]["status"] == "complete"
     assert projection_path.parent.name == "projection_retail_grid"
 

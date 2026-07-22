@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import json
 from pathlib import Path
 from typing import Any
@@ -458,7 +459,7 @@ def _fake_amazon_grid_capture(**kwargs: Any) -> CloakBrowserSnapshotSuccess:
     )
 
 
-def test_amazon_grid_runner_files_verified_projection_automatically_in_v41_lake(
+def test_amazon_grid_runner_files_derived_only_observation_in_v41_lake(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr(
@@ -497,15 +498,130 @@ def test_amazon_grid_runner_files_verified_projection_automatically_in_v41_lake(
     )
 
     assert exit_code == 0
-    raw_text, derived_text = message.split("; projection preserved at ", 1)
-    raw_path = Path(raw_text.removeprefix("raw packet preserved at "))
-    derived_path = Path(derived_text)
-    manifest = json.loads((raw_path / "manifest.json").read_text(encoding="utf-8"))
-    loaded = root.load_raw_packet(manifest["packet_id"])
-    assert loaded.manifest["packet_id"] == manifest["packet_id"]
+    derived_path = Path(
+        message.removeprefix(
+            "raw sample not retained; derived observation preserved at "
+        )
+    )
+    assert root.list_committed_packet_ids() == []
     projection = json.loads(derived_path.read_text(encoding="utf-8"))
+    assert projection["projection_version"] == "v1"
+    assert projection["packet_id"] is None
+    assert projection["capture_event"]["raw_sample_packet_id"] is None
+    assert projection["capture_event"]["capture_profile"] == "amazon_grid_aggregate"
+    assert projection["rows"][0]["raw_ref"] is None
+    assert projection["rows"][0]["raw_anchor"] is None
     assert projection["completeness"]["status"] == "complete"
     assert projection["completeness"]["termination"] == "requested_page_window_reconciled"
     assert projection["completeness"]["extracted_unique_parent_count"] == 3
     assert projection["completeness"]["extracted_placement_count"] == 4
     assert projection["completeness"]["duplicate_placement_count"] == 1
+
+
+def test_amazon_grid_explicit_raw_sample_preserves_all_traversed_pages(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_amazon_grid_capture
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    exit_code, message = cloak_writer.run_source_capture_cloakbrowser_packet(
+        url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="Which products occupy the requested Amazon ranked window?",
+        data_root=root,
+        capture_context="offline Amazon grid sample test",
+        operator_category="test",
+        capture_mode=cloak_writer.CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=cloak_writer.unknown_with_reason("not needed"),
+        visible_mode_changes=[],
+        source_publication_or_event=cloak_writer.unknown_with_reason("not needed"),
+        source_edit_or_version=cloak_writer.unknown_with_reason("not needed"),
+        cutoff_posture=cloak_writer.unknown_with_reason("not needed"),
+        recapture_time=cloak_writer.not_applicable("not needed"),
+        re_capture_relationship=cloak_writer.not_applicable("not needed"),
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),
+        timeout_seconds=30,
+        wait_until="domcontentloaded",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000_000,
+        block_heavy_assets=False,
+        amazon_grid_page_count=2,
+        retain_retail_grid_raw_sample=True,
+    )
+
+    assert exit_code == 0
+    raw_text, derived_text = message.split(
+        "; derived observation preserved at ", 1
+    )
+    raw_path = Path(raw_text.removeprefix("raw sample preserved at "))
+    derived_path = Path(derived_text)
+    loaded = root.load_raw_packet(raw_path.name)
+    sample_file = next(
+        item
+        for item in loaded.manifest["preserved_files"]
+        if item["original_path"].endswith("retail_grid_raw_sample_pages.json.gz")
+    )
+    sample = json.loads(gzip.decompress(loaded.bodies[sample_file["file_id"]]))
+    assert len(sample["pages"]) == 2
+    projection = json.loads(derived_path.read_text(encoding="utf-8"))
+    assert projection["capture_event"]["raw_sample_packet_id"] == raw_path.name
+    assert projection["rows"][0]["raw_ref"]["packet_id"] == raw_path.name
+
+
+def test_amazon_grid_projection_failure_promotes_transient_packet_to_raw(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cloak_writer, "fetch_cloakbrowser_snapshot_capture", _fake_amazon_grid_capture
+    )
+    monkeypatch.setattr(
+        cloak_writer,
+        "build_retail_grid_observation",
+        lambda **_kwargs: (_ for _ in ()).throw(ValueError("fixture parser drift")),
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    exit_code, message = cloak_writer.run_source_capture_cloakbrowser_packet(
+        url="https://www.amazon.com/s?k=Tower+28+Beauty",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="Which products occupy the requested Amazon ranked window?",
+        data_root=root,
+        capture_context="offline Amazon grid failure test",
+        operator_category="test",
+        capture_mode=cloak_writer.CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=cloak_writer.unknown_with_reason("not needed"),
+        visible_mode_changes=[],
+        source_publication_or_event=cloak_writer.unknown_with_reason("not needed"),
+        source_edit_or_version=cloak_writer.unknown_with_reason("not needed"),
+        cutoff_posture=cloak_writer.unknown_with_reason("not needed"),
+        recapture_time=cloak_writer.not_applicable("not needed"),
+        re_capture_relationship=cloak_writer.not_applicable("not needed"),
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile("amazon_grid_aggregate"),
+        timeout_seconds=30,
+        wait_until="domcontentloaded",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000_000,
+        block_heavy_assets=False,
+        amazon_grid_page_count=2,
+    )
+
+    assert exit_code == cloak_writer.SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert "retail_grid_projection_failed: ValueError: fixture parser drift" in message
+    packet_ids = root.list_committed_packet_ids()
+    assert len(packet_ids) == 1
+    assert str(root.find_packet(packet_ids[0])) in message
+    assert list(root.path.rglob("projection_retail_grid/*.json")) == []
