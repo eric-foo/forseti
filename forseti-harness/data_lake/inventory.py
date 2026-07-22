@@ -187,6 +187,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "but no served-content identity check"
         ),
     },
+    "run_reddit_subreddit_registry_lake.py": {
+        "status": "not_applicable",
+        "reason": (
+            "no served content and no remote subject: the one migration packet preserves "
+            "the exact bytes of the operator-named local registry JSON, and the baseline "
+            "records bind those bytes by legacy_file_sha256, so the only asserted subject "
+            "is the local file the operator supplied"
+        ),
+    },
     "run_source_capture_antiblock_http_packet.py": {
         "status": "not_applicable",
         "reason": (

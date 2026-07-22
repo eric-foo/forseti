@@ -11,6 +11,7 @@ Owner contract:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -29,7 +30,21 @@ from data_lake.reddit_subreddit_registry import (
     semantic_parity,
 )
 from data_lake.root import DataLakeRoot
+from harness_utils import utc_now_z
+from source_capture.models import (
+    CaptureModeCategory,
+    PacketTiming,
+    SourceCaptureSlice,
+    known_fact,
+    not_applicable,
+    not_attempted,
+)
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from runners._scaffold import exit_on_failure
+
+MIGRATION_SOURCE_FAMILY = "reddit_subreddit_registry"
+MIGRATION_SOURCE_SURFACE = "reddit_subreddit_registry_legacy_baseline"
+MIGRATION_LOCATOR = "forseti://reddit-subreddit-registry/legacy-baseline"
 
 DEFAULT_REGISTRY_PATH = (
     Path(__file__).resolve().parents[2]
@@ -98,6 +113,106 @@ def _roster_changes(args: argparse.Namespace) -> dict[str, object]:
     return changes
 
 
+def write_migration_packet(*, data_root: DataLakeRoot, registry_path: Path) -> str:
+    """Preserve the exact committed registry bytes as immutable lake evidence.
+
+    The baseline records are the foldable authority; this packet is what keeps
+    the original input bytes available once the Git copy is eventually removed
+    in a later work unit.
+    """
+    staged = [(registry_path.name, registry_path.read_bytes())]
+    file_ids = staged_file_id_map(staged)
+    generated_at = utc_now_z()
+    source_hash = hashlib.sha256(staged[0][1]).hexdigest()
+    timing = PacketTiming(
+        source_publication_or_event=not_applicable(
+            "migration freezes current repository operational state"
+        ),
+        source_edit_or_version=known_fact(f"registry sha256: {source_hash}"),
+        capture_time=known_fact(generated_at),
+        recapture_time=not_applicable("one baseline migration"),
+        cutoff_posture=not_applicable("not a time-window source"),
+    )
+    access = known_fact("local repository file read for owner-authorized lake migration")
+    archive = not_attempted("migration does not query an archive")
+    media = not_applicable("JSON registry document")
+    relationship = not_applicable("one migration baseline")
+    result = stage_and_write_packet(
+        data_root=data_root,
+        staged_artifacts=staged,
+        source_slices=[
+            SourceCaptureSlice(
+                slice_id="reddit_subreddit_registry_baseline_01",
+                locator=known_fact(MIGRATION_LOCATOR),
+                timing=timing,
+                access_posture=access,
+                archive_history_posture=archive,
+                media_modality_posture=media,
+                re_capture_relationship=relationship,
+                limitations=[
+                    "migration baseline; later observations and roster changes are separate append-only records"
+                ],
+                warning_notes=[],
+                preserved_file_ids=[file_ids[staged[0][0]]],
+                metric_observations=[],
+            )
+        ],
+        source_family=MIGRATION_SOURCE_FAMILY,
+        source_surface=MIGRATION_SOURCE_SURFACE,
+        source_locator=known_fact(MIGRATION_LOCATOR),
+        decision_question="What exact Reddit Subreddit Registry state is being migrated out of Git?",
+        capture_context="Owner-authorized one-time migration of the exact committed registry document.",
+        actor_audience_context=not_applicable("registry migration, not audience capture"),
+        capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
+        operator_category="reddit_subreddit_registry_migration_cli_operator",
+        session_identity=None,
+        visible_mode_changes=["reddit_subreddit_registry_lake_cutover_v0"],
+        source_publication_or_event=timing.source_publication_or_event,
+        source_edit_or_version=timing.source_edit_or_version,
+        cutoff_posture=timing.cutoff_posture,
+        recapture_time=timing.recapture_time,
+        access_posture=access,
+        archive_history_posture=archive,
+        media_modality_posture=media,
+        re_capture_relationship=relationship,
+        warnings=[],
+        limitations=["one-time migration baseline"],
+        receipt_summary="Reddit Subreddit Registry legacy baseline preserved for lake authority cut-over.",
+        receipt_non_claims=[
+            "not capture authorization",
+            "not live Reddit access",
+            "not demand proof",
+        ],
+    )
+    return Path(result.output_directory).name
+
+
+def _migrate(args: argparse.Namespace, data_root: DataLakeRoot) -> dict[str, object]:
+    """Prove the migration before writing, then preserve bytes and write."""
+    plan = migrate_legacy_registry(data_root, registry_path=args.registry, dry_run=True)
+    if plan["status"] == "already_current":
+        plan["parity"] = semantic_parity(
+            legacy_registry_path=args.registry, folded=load_current_registry(data_root)
+        )
+        return plan
+    if args.dry_run:
+        return plan
+
+    packet_id = args.migration_packet_pointer or write_migration_packet(
+        data_root=data_root, registry_path=args.registry
+    )
+    written = migrate_legacy_registry(
+        data_root,
+        registry_path=args.registry,
+        migration_packet_pointer=packet_id,
+    )
+    written["migration_packet_id"] = packet_id
+    written["parity"] = semantic_parity(
+        legacy_registry_path=args.registry, folded=load_current_registry(data_root)
+    )
+    return written
+
+
 def _resolve_root(args: argparse.Namespace) -> DataLakeRoot:
     if args.data_root is not None:
         return DataLakeRoot.resolve(args.data_root)
@@ -117,12 +232,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     ):
         data_root = _resolve_root(args)
         if args.command == "migrate":
-            payload = migrate_legacy_registry(
-                data_root,
-                registry_path=args.registry,
-                migration_packet_pointer=args.migration_packet_pointer,
-                dry_run=args.dry_run,
-            )
+            payload = _migrate(args, data_root)
         elif args.command == "parity":
             payload = semantic_parity(
                 legacy_registry_path=args.registry,

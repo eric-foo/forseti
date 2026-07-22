@@ -57,6 +57,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_ig_reels_lane_orchestrator.py",
         "run_kohls_unattended_capture.py",
         "run_parfumo_mgt_capture.py",
+        "run_reddit_subreddit_registry_lake.py",
         "run_source_capture_antiblock_http_packet.py",
         "run_source_capture_archive_packet.py",
         "run_source_capture_amazon_review_onboarding.py",

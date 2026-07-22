@@ -522,6 +522,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "reason": "no served content and no remote subject: the one migration packet preserves the exact bytes of the operator-named local registry JSON, and the baseline records bind those bytes by legacy_file_sha256, so the only asserted subject is the local file the operator supplied",
+          "status": "not_applicable"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_reddit_subreddit_registry_lake.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "mechanism": "a hash-verified parent binds source and served Amazon URLs to one ASIN, requires an unblocked US pin plus USD marker, and admits only unique native review row ids inside labelled Amazon top-review sections",
           "status": "bound"
         },
