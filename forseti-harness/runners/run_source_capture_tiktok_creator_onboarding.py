@@ -816,6 +816,13 @@ def _write_promotion_frontier_disposition(
         )
     frontier_dispositions = load_creator_frontier_dispositions(data_root)
     current = _frontier_disposition_for_handle(frontier_dispositions, creator_handle)
+    compatibility_disposition = decision.get("owner_onboarding_disposition_or_none")
+    if current is None and compatibility_disposition is not None:
+        raise ValueError(
+            "refusing to record a promotion disposition over the non-performance "
+            f"compatibility owner disposition for {creator_handle}: "
+            f"{compatibility_disposition}"
+        )
     action = _promotion_frontier_action(decision)
     if current is not None and not _promotion_action_matches_current(
         action=action, current=current

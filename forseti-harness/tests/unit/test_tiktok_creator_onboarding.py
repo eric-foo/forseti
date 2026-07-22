@@ -9,6 +9,9 @@ from pathlib import Path
 import pytest
 
 import source_capture.tiktok.creator_onboarding as onboarding
+from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
+    apply_tiktok_creator_onboarding_dedupe,
+)
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
     load_creator_frontier_dispositions,
     write_creator_frontier_dispositions,
@@ -513,6 +516,46 @@ def test_promotion_refuses_to_supersede_owner_nonperformance_disposition(
     assert len(current) == 1
     assert current[0]["status"] == status
     assert current[0]["reason_code"] == reason_code
+
+
+def test_promotion_refuses_to_override_compatibility_owner_disposition(
+    tmp_path: Path,
+) -> None:
+    """The hardcoded owner disposition is live authority with no lake row yet.
+
+    It reaches the decision row only as ``owner_onboarding_disposition_or_none``,
+    so the lake-state guard alone cannot see it.
+    """
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    document = apply_tiktok_creator_onboarding_dedupe(
+        _promotion_document(
+            handle="eddeparfum",
+            registry_action="promote_now",
+            decision_reason_code="cleared_both_p25",
+            decision_note=(
+                "policy=tiktok_fragrance_creator_promotion_policy_v2; "
+                "decision=promote_now"
+            ),
+        ),
+        registry_states={},
+        frontier_dispositions=load_creator_frontier_dispositions(root),
+    )
+    row = document["tiktok_creator_promotion_decisions"]["decisions"][0]
+    assert row["onboarding_queue_status"] == "owner_deferred"
+
+    with pytest.raises(ValueError, match="compatibility owner disposition"):
+        runner._write_promotion_frontier_disposition(
+            data_root=root,
+            document=document,
+            creator_handle="eddeparfum",
+        )
+
+    assert (
+        load_creator_frontier_dispositions(root)[
+            "creator_frontier_disposition_current"
+        ]["dispositions"]
+        == []
+    )
 
 
 def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
