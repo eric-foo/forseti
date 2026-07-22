@@ -22,6 +22,7 @@ from capture_spine.reddit_subreddit_grid.grid_projection import (
 from capture_spine.reddit_subreddit_grid.materializer import (
     RegistryRefreshOutcome,
     RegistryRefreshError,
+    read_grid_packet,
     refresh_registry_from_grid_packets,
 )
 
@@ -32,5 +33,6 @@ __all__ = [
     "RegistryRefreshError",
     "RegistryRefreshOutcome",
     "project_old_reddit_grid_html",
+    "read_grid_packet",
     "refresh_registry_from_grid_packets",
 ]

@@ -9,6 +9,7 @@ import pytest
 from capture_spine.reddit_subreddit_grid import (
     RegistryRefreshError,
     project_old_reddit_grid_html,
+    read_grid_packet,
     refresh_registry_from_grid_packets,
 )
 from capture_spine.reddit_subreddit_grid.grid_projection import (
@@ -213,7 +214,6 @@ def test_materializer_updates_once_and_dedupes_packet(
 def test_materializer_rejects_off_domain_locator(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    registry = _registry(tmp_path)
     packet = _raw_grid_packet(tmp_path, monkeypatch)
     manifest_path = packet / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -221,16 +221,13 @@ def test_materializer_rejects_off_domain_locator(
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     with pytest.raises(RegistryRefreshError) as exc:
-        refresh_registry_from_grid_packets(
-            registry_path=registry, packet_paths=[packet]
-        )
+        read_grid_packet(packet_or_manifest_path=packet)
     assert exc.value.code == "locator_unparseable"
 
 
 def test_materializer_rejects_preserved_body_outside_packet(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    registry = _registry(tmp_path)
     packet = _raw_grid_packet(tmp_path, monkeypatch)
     manifest_path = packet / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -246,21 +243,16 @@ def test_materializer_rejects_preserved_body_outside_packet(
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     with pytest.raises(RegistryRefreshError) as exc:
-        refresh_registry_from_grid_packets(
-            registry_path=registry, packet_paths=[packet]
-        )
+        read_grid_packet(packet_or_manifest_path=packet)
     assert exc.value.code == "preserved_file_unresolved"
 
 
 def test_materializer_rejects_unsuccessful_raw_response(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    registry = _registry(tmp_path)
     packet = _raw_grid_packet(tmp_path, monkeypatch, status=404)
     with pytest.raises(RegistryRefreshError) as exc:
-        refresh_registry_from_grid_packets(
-            registry_path=registry, packet_paths=[packet]
-        )
+        read_grid_packet(packet_or_manifest_path=packet)
     assert exc.value.code == "grid_access_unsuccessful"
 
 
