@@ -215,7 +215,9 @@ def _migrate(args: argparse.Namespace, data_root: DataLakeRoot) -> dict[str, obj
 
 def _resolve_root(args: argparse.Namespace) -> DataLakeRoot:
     if args.data_root is not None:
-        return DataLakeRoot.resolve(args.data_root)
+        # resolve() is keyword-only; a positional here raised TypeError and made
+        # --data-root unusable on every subcommand.
+        return DataLakeRoot.resolve(explicit=args.data_root)
     return DataLakeRoot.resolve()
 
 
