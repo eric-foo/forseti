@@ -790,6 +790,23 @@ def test_weekly_title_signal_classifier_uses_listing_visible_flair() -> None:
     assert "concrete_question_or_request" in reasons
 
 
+def test_weekly_int_or_none_drops_malformed_without_crashing() -> None:
+    """The signed-int parser must count a downvoted (negative) score yet drop
+    any malformed cell to None. A value str.isdigit() accepts but int()
+    rejects -- a double sign or a superscript digit -- must not abort the whole
+    weekly read; it must fall into the unparsed-and-dropped path like any other
+    junk cell."""
+    from runners.run_reddit_weekly_demand_read import _int_or_none
+
+    assert _int_or_none("-5") == -5
+    assert _int_or_none("1,204") == 1204
+    assert _int_or_none(None) is None
+    # Regression: these previously raised ValueError from the unguarded int().
+    assert _int_or_none("--5") is None
+    assert _int_or_none("\N{SUPERSCRIPT TWO}") is None
+    assert _int_or_none("1.2k") is None
+
+
 def test_weekly_demand_read_tripwire_fires_on_high_floor(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -112,7 +112,14 @@ def _int_or_none(value: str | None) -> int | None:
         return None
     digits = value.replace(",", "").strip()
     if digits.lstrip("-").isdigit():
-        return int(digits)
+        # str.isdigit() is broader than int() accepts (multiple leading
+        # minuses, superscripts, and other Unicode digit forms pass isdigit
+        # yet raise in int()), so guard the conversion: a malformed cell must
+        # drop to None and be counted as unparsed, never abort the whole read.
+        try:
+            return int(digits)
+        except ValueError:
+            return None
     return None
 
 
