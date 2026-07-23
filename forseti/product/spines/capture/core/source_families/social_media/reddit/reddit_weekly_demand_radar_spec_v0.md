@@ -130,16 +130,29 @@ separate layer; nothing here persists analysis output to the lake.
 
 ### E. Thread deep-dive gate
 
-- Candidate gate (unchanged from the dogfooded cycle): density
-  `comments / (max(score,0) + 10) >= 0.7` and `comments >= 15`, stickies
-  excluded.
-- Dive-all while the roster is small: every gated candidate is captured via
-  `run_reddit_old_http_batch.py` (raw retention), then mined (entity/brand
-  census over comment bodies).
-- At scale (roster ~250, roughly 500+ candidates/week), the gate tightens to
-  above-median evidence volume within each subreddit plus the global top-20
-  unconditionally. The weekly output always states candidates found vs dived —
-  no silent truncation.
+- The selection pool is every non-stickied, non-promoted listing row with
+  parseable score and comment count. Listing evidence remains preserved whether
+  or not a thread is selected.
+- Within each subreddit, rank by comments descending, then score descending,
+  then thread URL. Select the top half (rounding up) unconditionally.
+- In the lower half, also select listing titles or listing-visible flair that
+  explicitly or suggestively signal pain/failure, praise/success, comparison/
+  choice, a concrete question or constraint, experience/outcome, review/update,
+  routine/collection, or recommendation/discussion. These signals route capture
+  only; they are not proof of pain, praise, causation, prevalence, or entity
+  involvement.
+- From the remaining opaque-title tail in each subreddit, select a deterministic
+  rotating 10% audit sample, rounded up with a minimum of one when that tail is
+  non-empty. The weekly date, subreddit, and thread URL seed the rotation.
+- Emit both the selected rows with their selection reason and a
+  `run_reddit_old_http_batch.py`-compatible capture list. The weekly output
+  always states eligible threads versus selected threads and reason counts; no
+  silent truncation.
+- Once selected, capture the complete exposed thread and analyse all captured
+  comments. Comment points order evidence for presentation; they are not a
+  within-thread stopping rule. Record explicitly named brands, products, and
+  ingredients in their stated context (alleged problem/cause, proposed
+  solution, recommendation, comparison, praise, or neutral mention).
 
 ### F. Roster discovery sweep (SERP), and its pacing contract
 

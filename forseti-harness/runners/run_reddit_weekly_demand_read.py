@@ -12,8 +12,12 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import hashlib
 import json
+import math
+import re
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any, Sequence
 from urllib.parse import urlparse
@@ -31,18 +35,73 @@ from data_lake.root import DataLakeRoot
 from runners._scaffold import exit_on_failure
 
 GRID_SOURCE_FAMILY = "reddit_subreddit_grid"
-# Candidate gate parameters, dogfooded 2026-07-22 (5-sub cycle, one brief):
-# density separates unmet-need threads from broadcast virality; the smoothing
-# constant damps the ratio where score is too small to trust; the comment
-# floor drops threads with nothing to mine.
-DEFAULT_DENSITY_FLOOR = 0.7
-DEFAULT_MIN_COMMENTS = 15
-DEFAULT_SMOOTH_K = 10
+DEFAULT_ENGAGEMENT_HEAD_FRACTION = 0.5
+DEFAULT_OPAQUE_TAIL_AUDIT_FRACTION = 0.1
 # Page-1 score floor above which a subreddit genuinely overflows one page
 # (top-10 carries 65% of weekly score on the measured distribution; a floor
 # past 50 means real traction ran off the page and the next pass should
 # capture page 2 for that subreddit).
 PAGE_OVERFLOW_SCORE_FLOOR = 50
+
+_EXPLICIT_TITLE_SIGNALS = (
+    (
+        "pain_or_failure",
+        re.compile(
+            r"\b(?:allerg|bad|broke me out|breakouts?|burn(?:ed|ing)?|"
+            r"can(?:no|'t|’t)|damag|disappoint|does(?:n|'t|’t)|dry(?:ing|ness)?|"
+            r"fail(?:ed|ing|s)?|hate|hated|hurt|irritat|itch|issue|problem|"
+            r"reaction|ruined|sensitive|struggl|worse|worst)\w*\b"
+        ),
+    ),
+    (
+        "praise_or_success",
+        re.compile(
+            r"\b(?:amazing|best|favorite|favourite|finally|holy grail|impress|"
+            r"love|loved|perfect|recommend|saved|success|worked|works|worth)\w*\b"
+        ),
+    ),
+    (
+        "comparison_or_choice",
+        re.compile(
+            r"(?:\b(?:alternative|better|compare|comparison|dupe|overhyped|"
+            r"underrated|versus|vs)\b|\bwhich\b)"
+        ),
+    ),
+    (
+        "concrete_outcome_or_experience",
+        re.compile(
+            r"(?:\bbefore\s*(?:/|&|and|-)?\s*after\b|"
+            r"\b(?:experience|full pan|lasted|result|started|tried|trying|"
+            r"using|used)\w*\b|\b20\d{2}\s*[-–]\s*20\d{2}\b)"
+        ),
+    ),
+    (
+        "concrete_question_or_request",
+        re.compile(
+            r"(?:\?|\b(?:looking for|need|protective styles? for (?:over|under) \d+)\b|"
+            r"^(?:anyone|are|asking|can|could|do|does|has|have|help|how|is|"
+            r"should|what|when|where|why|would)\b)"
+        ),
+    ),
+)
+
+_SUGGESTIVE_TITLE_SIGNALS = (
+    (
+        "review_or_update",
+        re.compile(r"\b(?:check[- ]?in|progress|review|update)\w*\b"),
+    ),
+    (
+        "routine_or_collection",
+        re.compile(
+            r"\b(?:collection|empties|faves?|favorites?|favourites?|haul|"
+            r"routine|shelfie|showoff)\w*\b"
+        ),
+    ),
+    (
+        "recommendation_or_discussion",
+        re.compile(r"\b(?:advice|discussion|recommendation|suggestion|thoughts)\w*\b"),
+    ),
+)
 
 
 def _int_or_none(value: str | None) -> int | None:
@@ -92,14 +151,101 @@ def _packet_capture_time(manifest_path: str) -> _dt.datetime:
     return max(timestamps)
 
 
+def _classify_title_signal(
+    title_or_none: str | None,
+    flair_or_none: str | None = None,
+) -> tuple[str, list[str]]:
+    visible_parts = [
+        value.strip()
+        for value in (title_or_none, flair_or_none)
+        if isinstance(value, str) and value.strip()
+    ]
+    if not visible_parts:
+        return "opaque", []
+    normalized = " ".join(" ".join(visible_parts).casefold().split())
+    explicit = [
+        reason
+        for reason, pattern in _EXPLICIT_TITLE_SIGNALS
+        if pattern.search(normalized)
+    ]
+    if explicit:
+        return "explicit", explicit
+    suggestive = [
+        reason
+        for reason, pattern in _SUGGESTIVE_TITLE_SIGNALS
+        if pattern.search(normalized)
+    ]
+    if suggestive:
+        return "suggestive", suggestive
+    return "opaque", []
+
+
+def _audit_order_key(*, as_of: _dt.date, subreddit: str, thread_url: str) -> str:
+    return hashlib.sha256(
+        f"{as_of.isoformat()}\0{subreddit}\0{thread_url}".encode("utf-8")
+    ).hexdigest()
+
+
+def _select_deep_dive_rows(
+    *,
+    subreddit: str,
+    rows: list[dict[str, Any]],
+    as_of: _dt.date,
+    opaque_tail_audit_fraction: float,
+) -> list[dict[str, Any]]:
+    if not 0 < opaque_tail_audit_fraction <= 1:
+        raise ValueError("opaque_tail_audit_fraction must be greater than zero and at most one")
+
+    ranked = sorted(
+        rows,
+        key=lambda item: (-item["comments"], -item["score"], item["thread_url"]),
+    )
+    head_size = math.ceil(len(ranked) * DEFAULT_ENGAGEMENT_HEAD_FRACTION)
+    selected: list[dict[str, Any]] = []
+    opaque_tail: list[dict[str, Any]] = []
+    for position, item in enumerate(ranked, start=1):
+        title_class, title_reasons = _classify_title_signal(
+            item["title_or_none"],
+            item["flair_or_none"],
+        )
+        enriched = {
+            **item,
+            "subreddit_rank_by_comments": position,
+            "subreddit_eligible_threads": len(ranked),
+            "title_signal_class": title_class,
+            "title_signal_reasons": title_reasons,
+        }
+        if position <= head_size:
+            selected.append({**enriched, "selection_reason": "engagement_head"})
+        elif title_class in {"explicit", "suggestive"}:
+            selected.append({**enriched, "selection_reason": f"title_{title_class}"})
+        else:
+            opaque_tail.append(enriched)
+
+    if opaque_tail:
+        audit_size = max(1, math.ceil(len(opaque_tail) * opaque_tail_audit_fraction))
+        audited = sorted(
+            opaque_tail,
+            key=lambda item: _audit_order_key(
+                as_of=as_of,
+                subreddit=subreddit,
+                thread_url=item["thread_url"],
+            ),
+        )[:audit_size]
+        selected.extend(
+            {**item, "selection_reason": "opaque_tail_audit"} for item in audited
+        )
+    return selected
+
+
 def run_weekly_demand_read(
     *,
     data_root: DataLakeRoot,
     as_of: _dt.date,
-    density_floor: float = DEFAULT_DENSITY_FLOOR,
-    min_comments: int = DEFAULT_MIN_COMMENTS,
-    smooth_k: int = DEFAULT_SMOOTH_K,
+    opaque_tail_audit_fraction: float = DEFAULT_OPAQUE_TAIL_AUDIT_FRACTION,
 ) -> dict[str, Any]:
+    if not 0 < opaque_tail_audit_fraction <= 1:
+        raise ValueError("opaque_tail_audit_fraction must be greater than zero and at most one")
     window_start = as_of - _dt.timedelta(days=6)
     # capture_roster: a retired subreddit is not "missing a weekly packet", it
     # is deliberately not captured, and must not inflate the coverage gap.
@@ -153,6 +299,8 @@ def run_weekly_demand_read(
 
     sub_health: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
+    eligible_threads_found = 0
+    title_signal_counts: Counter[str] = Counter()
     floor_tripwire: list[str] = []
     for name in sorted(per_sub):
         read, packet_id, _capture_time = per_sub[name]
@@ -183,33 +331,59 @@ def run_weekly_demand_read(
                 "weekly_score": total_score,
                 "weekly_comments": total_comments,
                 "page1_score_floor": score_floor,
+                "deep_dive_head_size": math.ceil(
+                    len(usable) * DEFAULT_ENGAGEMENT_HEAD_FRACTION
+                ),
             }
         )
-        for row, score, comments in usable:
-            density = comments / (max(score, 0) + smooth_k)
-            if density >= density_floor and comments >= min_comments:
-                candidates.append(
-                    {
-                        "subreddit": name,
-                        "thread_url": row.thread_url,
-                        "title_or_none": row.visible_title_or_none,
-                        "flair_or_none": row.flair_or_none,
-                        "timestamp_utc_ms_or_none": row.timestamp_utc_ms_or_none,
-                        "score": score,
-                        "comments": comments,
-                        "density": round(density, 3),
-                    }
-                )
+        eligible = [
+            {
+                "subreddit": name,
+                "thread_url": row.thread_url,
+                "title_or_none": row.visible_title_or_none,
+                "flair_or_none": row.flair_or_none,
+                "timestamp_utc_ms_or_none": row.timestamp_utc_ms_or_none,
+                "score": score,
+                "comments": comments,
+            }
+            for row, score, comments in usable
+        ]
+        eligible_threads_found += len(eligible)
+        for item in eligible:
+            title_class, _reasons = _classify_title_signal(
+                item["title_or_none"],
+                item["flair_or_none"],
+            )
+            title_signal_counts[title_class] += 1
+        candidates.extend(
+            _select_deep_dive_rows(
+                subreddit=name,
+                rows=eligible,
+                as_of=as_of,
+                opaque_tail_audit_fraction=opaque_tail_audit_fraction,
+            )
+        )
 
     candidates.sort(key=lambda item: (-item["comments"], item["thread_url"]))
+    selection_reason_counts = Counter(
+        item["selection_reason"] for item in candidates
+    )
+    capture_slots = [
+        {"slot_id": f"weekly_{index:04d}", "url": item["thread_url"]}
+        for index, item in enumerate(candidates, start=1)
+    ]
     return {
         "reader": "reddit_weekly_demand_read",
         "as_of": as_of.isoformat(),
         "window_start": window_start.isoformat(),
-        "gate": {
-            "density_floor": density_floor,
-            "min_comments": min_comments,
-            "smooth_k": smooth_k,
+        "selection_policy": {
+            "engagement_head_fraction": DEFAULT_ENGAGEMENT_HEAD_FRACTION,
+            "engagement_rank_primary": "comments",
+            "engagement_rank_tiebreakers": ["score", "thread_url"],
+            "tail_title_rescue_classes": ["explicit", "suggestive"],
+            "opaque_tail_audit_fraction": opaque_tail_audit_fraction,
+            "opaque_tail_audit_minimum_per_subreddit": 1,
+            "opaque_tail_audit_rotation": "sha256(as_of, subreddit, thread_url)",
             "page_overflow_score_floor": PAGE_OVERFLOW_SCORE_FLOOR,
         },
         "roster_count": len(roster),
@@ -230,12 +404,17 @@ def run_weekly_demand_read(
         ),
         "superseded_weekly_packets": _bounded_ids(superseded_packets),
         "sub_health": sub_health,
+        "eligible_threads_found": eligible_threads_found,
         "candidates_found": len(candidates),
+        "selection_reason_counts": dict(sorted(selection_reason_counts.items())),
+        "title_signal_counts": dict(sorted(title_signal_counts.items())),
         "candidates": candidates,
+        "capture_slots": capture_slots,
         "page_overflow_tripwire": floor_tripwire,
         "non_claims": [
             "not metric authority",
             "not demand proof or venue scoring",
+            "title signals route capture; they do not establish pain, praise, causation, or prevalence",
             "not a lake write (recompute from packets at will)",
         ],
     }
@@ -250,10 +429,18 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--data-root", default=None, help="Lake root (defaults to resolution).")
     parser.add_argument("--as-of", default=None, help="ISO date closing the 7-day window; defaults to today (UTC).")
-    parser.add_argument("--density-floor", type=float, default=DEFAULT_DENSITY_FLOOR)
-    parser.add_argument("--min-comments", type=int, default=DEFAULT_MIN_COMMENTS)
-    parser.add_argument("--smooth-k", type=int, default=DEFAULT_SMOOTH_K)
+    parser.add_argument(
+        "--opaque-tail-audit-fraction",
+        type=float,
+        default=DEFAULT_OPAQUE_TAIL_AUDIT_FRACTION,
+    )
     parser.add_argument("--output", type=Path, default=None, help="Also write the JSON document here.")
+    parser.add_argument(
+        "--capture-list-output",
+        type=Path,
+        default=None,
+        help="Also write a run_reddit_old_http_batch.py-compatible selected URL list.",
+    )
     return parser
 
 
@@ -273,14 +460,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         payload = run_weekly_demand_read(
             data_root=data_root,
             as_of=as_of,
-            density_floor=args.density_floor,
-            min_comments=args.min_comments,
-            smooth_k=args.smooth_k,
+            opaque_tail_audit_fraction=args.opaque_tail_audit_fraction,
         )
         text = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True)
         if args.output is not None:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(text + "\n", encoding="utf-8")
+        if args.capture_list_output is not None:
+            args.capture_list_output.parent.mkdir(parents=True, exist_ok=True)
+            args.capture_list_output.write_text(
+                json.dumps(
+                    payload["capture_slots"],
+                    indent=2,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
         print(text)
     return 0
 
