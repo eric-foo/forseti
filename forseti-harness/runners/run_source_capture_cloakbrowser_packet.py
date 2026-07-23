@@ -51,6 +51,7 @@ from source_capture.adapters.revolve_us_market import RevolveUSMarketPlugin
 from source_capture.adapters.nordstrom_country_preference import (
     NORDSTROM_REVIEW_POSTURES,
     NordstromCountryPreferencePlugin,
+    observe_nordstrom_deep_review_window,
     observe_nordstrom_review_window,
 )
 from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
@@ -415,8 +416,8 @@ def run_source_capture_cloakbrowser_packet(
             )
         if load_more_clicks != 0:
             raise ValueError(
-                "Nordstrom recent_window_30d posture owns and records its adaptive "
-                "six-row continuation actions; generic load-more clicks are forbidden"
+                "Nordstrom review postures own and record their adaptive six-row "
+                "continuation actions; generic load-more clicks are forbidden"
             )
 
     site_specific_preferences = [
@@ -1580,6 +1581,16 @@ def _nordstrom_review_posture_observation(
 ) -> dict[str, object] | None:
     if requested_posture is None:
         return None
+    if requested_posture in {"most_helpful_100", "most_recent_100"}:
+        return observe_nordstrom_deep_review_window(
+            rendered_dom,
+            requested_sort=(
+                "Most Helpful"
+                if requested_posture == "most_helpful_100"
+                else "Most Recent"
+            ),
+            limit=100,
+        )
     if not isinstance(capture_timestamp, str):
         return {
             "admitted": False,
@@ -1609,10 +1620,10 @@ def _nordstrom_review_posture_failure(
         return None
     reasons: list[str] = []
     if before_snapshot_steps_completed is not True:
-        reasons.append("site-owned Most Recent selection did not complete")
+        reasons.append("site-owned review-order selection did not complete")
     if observation.get("admitted") is not True:
         reasons.append(
-            "bounded onboarding review coverage was not admitted "
+            "bounded requested review coverage was not admitted "
             f"(status={observation.get('status')}, "
             f"review_ids={observation.get('review_ids')})"
         )
@@ -2067,6 +2078,17 @@ def _receipt_summary(
             "pair plus all last-30-day reviews, then up to 30 Most Recent rows when "
             "that cohort has fewer than 12; each continuation activation adds six "
             "rows and is recorded."
+        )
+    elif nordstrom_review_posture in {"most_helpful_100", "most_recent_100"}:
+        label = (
+            "Most Helpful"
+            if nordstrom_review_posture == "most_helpful_100"
+            else "Most Recent"
+        )
+        summary += (
+            f" Nordstrom deep review posture: first up to 100 rows in native {label} "
+            "order; six-row continuation activations and provider batch overrun "
+            "are recorded."
         )
     return summary
 

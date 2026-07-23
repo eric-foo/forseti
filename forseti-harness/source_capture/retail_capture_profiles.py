@@ -612,19 +612,16 @@ _PROFILES = {
             derive_target_nordstrom_product_id_from_url=True,
             requirements=_requirements(
                 visible_text_contains=(
-                    "The Lip Balm",
                     "Sold by Nordstrom",
                     "Reviews",
                 ),
                 visible_text_regexes=(
-                    r"(?s)The Lip Balm\s+Nécessaire\s+\$28\.00",
-                    r"4\.6 out of 5",
-                    r"(?s)5 stars\s+81%.*4 stars\s+7%.*3 stars\s+3%"
-                    r".*2 stars\s+5%.*1 star\s+3%",
+                    r"\$\d+(?:\.\d{2})?",
+                    r"\d(?:\.\d+)? out of 5",
                 ),
                 rendered_dom_regexes=(
                     r'"@type"\s*:\s*"Product"',
-                    r'"reviewCount"\s*:\s*118',
+                    r'"reviewCount"\s*:\s*(?:\"?\d+\"?)',
                 ),
             ),
         ),

@@ -34,12 +34,20 @@ _CONTROL_PROBE_TIMEOUT_MS = 2500
 _POST_SELECTION_POLL_MS = 100
 _HOMEPAGE_RENDER_SETTLE_MS = 5000
 _REVIEW_POSTURE_POLL_MS = 100
-_REVIEW_POSTURE_TIMEOUT_MS = 45000
+_REVIEW_POSTURE_TIMEOUT_MS = 120000
 NORDSTROM_REVIEW_WINDOW_DAYS = RETAIL_REVIEW_WINDOW_DAYS
 NORDSTROM_REVIEW_MINIMUM = RETAIL_REVIEW_WINDOW_MINIMUM
 NORDSTROM_REVIEW_MAXIMUM = RETAIL_REVIEW_CONTEXT_TARGET
-NORDSTROM_REVIEW_POSTURES = ("recent_window_30d",)
-NordstromReviewPosture = Literal["recent_window_30d"]
+NORDSTROM_REVIEW_POSTURES = (
+    "recent_window_30d",
+    "most_helpful_100",
+    "most_recent_100",
+)
+NordstromReviewPosture = Literal[
+    "recent_window_30d",
+    "most_helpful_100",
+    "most_recent_100",
+]
 
 # The first two selectors cover the semantic control observed in earlier recon. The flag
 # selectors cover the current rendered control, whose markup has no stable name/aria-label.
@@ -102,7 +110,7 @@ class NordstromCountryPreferencePlugin:
             and self.review_posture not in NORDSTROM_REVIEW_POSTURES
         ):
             raise ValueError(
-                "Nordstrom review posture currently supports only recent_window_30d"
+                "unsupported Nordstrom review posture"
             )
 
     @property
@@ -226,7 +234,7 @@ class NordstromCountryPreferencePlugin:
     def before_snapshot(
         self, page: object, *, setup_timeout_ms: float
     ) -> PreCaptureOutcome:
-        """Select Most Recent and satisfy the shared retailer onboarding coverage."""
+        """Select the requested native order and satisfy its bounded coverage."""
         if self.review_posture is None:
             return PreCaptureOutcome(attempted=False, steps_completed=True)
         product_id = _product_id_from_url(self.target_url)
@@ -240,6 +248,11 @@ class NordstromCountryPreferencePlugin:
         )
         warning_notes: list[str] = []
         selector = f"#sort-by-filter-{product_id}-anchor"
+        requested_sort = (
+            "Most Helpful"
+            if self.review_posture == "most_helpful_100"
+            else "Most Recent"
+        )
         try:
             sort_control = page.locator(selector)  # type: ignore[union-attr]
             if sort_control.count() != 1:
@@ -247,9 +260,9 @@ class NordstromCountryPreferencePlugin:
                     "sort_control",
                     f"{selector} did not resolve to exactly one element",
                 )
-            if sort_control.inner_text(timeout=_remaining_probe_timeout_ms(deadline)).strip() != (
-                "Sort by Most Recent"
-            ):
+            if sort_control.inner_text(
+                timeout=_remaining_probe_timeout_ms(deadline)
+            ).strip() != f"Sort by {requested_sort}":
                 sort_control.scroll_into_view_if_needed(
                     timeout=_remaining_probe_timeout_ms(deadline)
                 )
@@ -268,34 +281,73 @@ class NordstromCountryPreferencePlugin:
                         f"bounded stability retry ({first_click_error})"
                     )
                 option = page.get_by_role(  # type: ignore[union-attr]
-                    "option", name="Most Recent", exact=True
+                    "option", name=requested_sort, exact=True
                 )
                 if option.count() != 1:
                     return _failed_review_outcome(
-                        "most_recent_option",
-                        "Most Recent did not resolve to exactly one open-menu option",
+                        "sort_option",
+                        f"{requested_sort} did not resolve to exactly one open-menu option",
                     )
                 try:
                     option.click(timeout=_remaining_probe_timeout_ms(deadline))
                 except Exception as first_option_click_error:
                     page.wait_for_timeout(1000)  # type: ignore[union-attr]
                     option = page.get_by_role(  # type: ignore[union-attr]
-                        "option", name="Most Recent", exact=True
+                        "option", name=requested_sort, exact=True
                     )
                     if option.count() != 1:
                         return _failed_review_outcome(
-                            "most_recent_option",
-                            "Most Recent disappeared during its bounded stability retry",
+                            "sort_option",
+                            f"{requested_sort} disappeared during its bounded stability retry",
                         )
                     option.click(timeout=_remaining_probe_timeout_ms(deadline))
                     warning_notes.append(
-                        "nordstrom_review_posture: Most Recent option required one "
+                        f"nordstrom_review_posture: {requested_sort} option required one "
                         f"bounded stability retry ({first_option_click_error})"
                     )
         except Exception as exc:
             return _failed_review_outcome(
-                "select_most_recent",
-                f"Most Recent selection failed ({exc})",
+                "select_review_order",
+                f"{requested_sort} selection failed ({exc})",
+            )
+
+        if self.review_posture in {"most_helpful_100", "most_recent_100"}:
+            while time.monotonic() < deadline:
+                try:
+                    observation = observe_nordstrom_deep_review_window(
+                        page.content(),  # type: ignore[union-attr]
+                        requested_sort=requested_sort,
+                        limit=100,
+                    )
+                    if observation["admitted"]:
+                        return PreCaptureOutcome(
+                            attempted=True,
+                            steps_completed=True,
+                            warning_notes=warning_notes,
+                        )
+                    if observation["continuation_available"]:
+                        continuation = page.locator(  # type: ignore[union-attr]
+                            "#product-page-reviews a:has-text('Load 6 more reviews')"
+                        )
+                        if continuation.count() != 1:
+                            return _failed_review_outcome(
+                                "review_continuation",
+                                "the deep window needs another batch but the target "
+                                "continuation did not resolve exactly once",
+                            )
+                        continuation.click(
+                            timeout=_remaining_probe_timeout_ms(deadline)
+                        )
+                        page.wait_for_timeout(1000)  # type: ignore[union-attr]
+                        continue
+                except Exception:
+                    pass
+                pause_ms = min(_REVIEW_POSTURE_POLL_MS, _remaining_ms(deadline))
+                if pause_ms > 0:
+                    page.wait_for_timeout(pause_ms)  # type: ignore[union-attr]
+            return _failed_review_outcome(
+                "review_postconditions",
+                f"{requested_sort} and the bounded 100-review window were not jointly observed",
             )
 
         reference_date = self.review_window_reference_date or datetime.now(
@@ -339,24 +391,34 @@ class NordstromCountryPreferencePlugin:
         )
 
     def describe(self) -> dict[str, object]:
+        deep_posture = self.review_posture in {
+            "most_helpful_100",
+            "most_recent_100",
+        }
         return {
             "pre_capture": "nordstrom_country_preference",
             "country_code_requested": self.country_code,
             "currency_code_requested": self.currency_code,
             "nordstrom_review_posture_requested": self.review_posture,
             "nordstrom_review_window_days": (
-                NORDSTROM_REVIEW_WINDOW_DAYS
-                if self.review_posture is not None
+                None
+                if deep_posture
+                else NORDSTROM_REVIEW_WINDOW_DAYS
+                if self.review_posture == "recent_window_30d"
                 else None
             ),
             "nordstrom_review_minimum": (
-                NORDSTROM_REVIEW_MINIMUM
-                if self.review_posture is not None
+                100
+                if deep_posture
+                else NORDSTROM_REVIEW_MINIMUM
+                if self.review_posture == "recent_window_30d"
                 else None
             ),
             "nordstrom_review_maximum": (
-                NORDSTROM_REVIEW_MAXIMUM
-                if self.review_posture is not None
+                100
+                if deep_posture
+                else NORDSTROM_REVIEW_MAXIMUM
+                if self.review_posture == "recent_window_30d"
                 else None
             ),
         }
@@ -484,6 +546,82 @@ def observe_nordstrom_review_window(
         ),
         "highlighted_pair_present": highlighted_pair,
         "sort_most_recent": product_id_match is not None,
+        "review_ids": review_ids,
+    }
+
+
+def observe_nordstrom_deep_review_window(
+    rendered_dom: str,
+    *,
+    requested_sort: str,
+    limit: int = 100,
+) -> dict[str, object]:
+    """Confirm one native sort and a source-exhausted or limit-satisfying main-list window."""
+    if requested_sort not in {"Most Helpful", "Most Recent"}:
+        raise ValueError("requested_sort must be Most Helpful or Most Recent")
+    if not 1 <= limit <= 100:
+        raise ValueError("limit must be between 1 and 100")
+    dom = rendered_dom or ""
+    review_start = dom.find('id="product-page-reviews"')
+    review_html = dom[review_start:] if review_start >= 0 else ""
+    sort_match = re.search(
+        r'id=["\']sort-by-filter-(\d+)-anchor["\'][^>]*>'
+        rf"[\s\S]{{0,500}}?Sort by\s*<strong>\s*{re.escape(requested_sort)}\s*</strong>",
+        review_html,
+        flags=re.IGNORECASE,
+    )
+    review_ids = [
+        int(value)
+        for value in re.findall(
+            r'<div\b[^>]*\bid=["\']review-(\d+)["\'][^>]*>',
+            review_html,
+            flags=re.IGNORECASE,
+        )
+    ]
+    continuation = (
+        re.search(
+            r'<a\b[^>]*href=["\']\?page=\d+["\'][^>]*>\s*'
+            r"Load\s+6\s+more reviews\s*</a>",
+            review_html,
+            flags=re.IGNORECASE,
+        )
+        is not None
+    )
+    source_total_count = (
+        _target_product_review_count_from_json_ld(
+            dom, product_id=sort_match.group(1)
+        )
+        if sort_match is not None
+        else None
+    )
+    count = len(review_ids)
+    consecutive = review_ids == list(range(1, count + 1))
+    target_count = (
+        min(limit, source_total_count)
+        if source_total_count is not None
+        else limit
+    )
+    admitted = (
+        sort_match is not None
+        and consecutive
+        and count >= target_count
+        and (count <= limit + 5)
+    )
+    return {
+        "admitted": admitted,
+        "status": (
+            "limit_satisfied"
+            if admitted and source_total_count is not None and source_total_count > limit
+            else "source_exhausted"
+            if admitted
+            else "needs_more_reviews"
+        ),
+        "requested_sort": requested_sort,
+        "captured_review_count": count,
+        "retained_review_count": min(count, limit),
+        "source_total_count": source_total_count,
+        "continuation_available": continuation,
+        "continuation_activations": max(0, (count - 6) // 6),
         "review_ids": review_ids,
     }
 
