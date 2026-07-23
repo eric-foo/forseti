@@ -33,6 +33,8 @@ from source_capture.content_extraction import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
+from source_capture.access_gate import detect_login_gate
+from source_capture.block_shell import CaptureBodyClass, classify_capture_body
 from source_capture.adapters.credo_us_market import (
     confirm_credo_us_market,
     validate_credo_us_market_url,
@@ -168,6 +170,53 @@ def run_source_capture_http_packet(
     if retail_capture_profile is not None:
         capture_result.metadata["retail_capture_profile"] = retail_capture_profile.metadata()
     decoded_body = capture_result.body.decode("utf-8", errors="replace")
+    login_gate = detect_login_gate(
+        final_url=capture_result.final_url,
+        body_text=decoded_body,
+    )
+    classification_headers = {}
+    content_type = capture_result.metadata.get("content_type")
+    if content_type is not None:
+        classification_headers["Content-Type"] = str(content_type)
+    content_encoding = capture_result.metadata.get("content_encoding")
+    if content_encoding is not None:
+        classification_headers["Content-Encoding"] = str(content_encoding)
+    body_classification = classify_capture_body(
+        status=capture_result.status,
+        headers=classification_headers,
+        body=capture_result.body,
+    )
+    capture_result.metadata.update(
+        {
+            "body_classification": body_classification.classification.value,
+            "body_classification_signal": body_classification.signal,
+            "body_classification_detail": body_classification.detail,
+            "login_gate_signal": login_gate.signal if login_gate is not None else None,
+            "login_gate_detail": login_gate.detail if login_gate is not None else None,
+        }
+    )
+    status_ok = 200 <= capture_result.status < 300
+    content_capture_allowed = (
+        status_ok
+        and login_gate is None
+        and body_classification.classification == CaptureBodyClass.CONTENT_UNVERIFIED
+        and body_classification.signal is None
+    )
+    if login_gate is not None:
+        access_block_reason = f"{login_gate.signal}: {login_gate.detail}"
+    elif body_classification.classification == CaptureBodyClass.BLOCK_SHELL:
+        access_block_reason = (
+            f"block_shell: {body_classification.signal or body_classification.detail}"
+        )
+    elif body_classification.classification == CaptureBodyClass.EMPTY:
+        access_block_reason = "empty_body"
+    elif body_classification.signal == "encoded_body_uninspectable":
+        access_block_reason = "encoded_body_uninspectable"
+    elif not status_ok:
+        access_block_reason = f"HTTP {capture_result.status}"
+    else:
+        access_block_reason = None
+
     walmart_pin_failure: str | None = None
     credo_pin_failure: str | None = None
     if walmart_market == "US":
@@ -198,15 +247,36 @@ def run_source_capture_http_packet(
         requirements=(
             retail_capture_profile.requirements if retail_capture_profile is not None else None
         ),
-        access_block_reason=(
-            None if 200 <= capture_result.status < 300 else f"HTTP {capture_result.status}"
-        ),
+        access_block_reason=access_block_reason,
         visible_text=decoded_body,
         rendered_dom=decoded_body,
     )
 
     packet_warnings = list(warnings) + capture_result.warning_notes
-    packet_limitations = list(limitations) + capture_result.limitation_notes
+    posture_limitations: list[str] = []
+    if login_gate is not None:
+        posture_limitations.append(
+            "visible_capture_limitation: direct_http preserved a login/sign-in access shell "
+            f"({login_gate.signal}), not source content"
+        )
+    elif body_classification.classification == CaptureBodyClass.BLOCK_SHELL:
+        posture_limitations.append(
+            "visible_capture_limitation: direct_http preserved a block/challenge shell "
+            f"({body_classification.signal}), not source content"
+        )
+    elif body_classification.classification == CaptureBodyClass.EMPTY:
+        posture_limitations.append(
+            "visible_capture_limitation: direct_http preserved an empty/whitespace-only body, "
+            "not source content"
+        )
+    elif body_classification.signal == "encoded_body_uninspectable":
+        posture_limitations.append(
+            "visible_capture_limitation: direct_http preserved an encoded body; "
+            "access-shell inspection is limited and source content is not certified"
+        )
+    packet_limitations = (
+        list(limitations) + capture_result.limitation_notes + posture_limitations
+    )
     if walmart_market == "US":
         observed_postal = capture_result.metadata.get("observed_location_postal_code")
         if observed_postal is not None:
@@ -236,13 +306,38 @@ def run_source_capture_http_packet(
     if credo_pin_failure is not None:
         packet_visible_mode_changes.append(CREDO_MARKET_PIN_FAILURE_MODE_CHANGE)
 
-    if 200 <= capture_result.status < 300:
+    if login_gate is not None:
         access_posture = known_fact(
-            f"direct_http succeeded with HTTP {capture_result.status} {capture_result.reason or 'without reason'}"
+            f"direct_http access_failed with HTTP {capture_result.status} "
+            f"{capture_result.reason or 'without reason'}: {login_gate.signal}; "
+            "login/sign-in shell preserved, not source content"
+        )
+    elif body_classification.classification == CaptureBodyClass.BLOCK_SHELL:
+        access_posture = known_fact(
+            f"direct_http access_failed with HTTP {capture_result.status} "
+            f"{capture_result.reason or 'without reason'}: block_shell "
+            f"({body_classification.signal}); response shell preserved, not source content"
+        )
+    elif body_classification.classification == CaptureBodyClass.EMPTY:
+        access_posture = known_fact(
+            f"direct_http access_failed with HTTP {capture_result.status}: "
+            "empty/whitespace-only body preserved, not source content"
+        )
+    elif not status_ok:
+        access_posture = known_fact(
+            f"direct_http access_failed with HTTP {capture_result.status} "
+            f"{capture_result.reason or 'without reason'}; response body preserved"
+        )
+    elif body_classification.signal == "encoded_body_uninspectable":
+        access_posture = known_fact(
+            f"direct_http returned HTTP {capture_result.status}; encoded body preserved; "
+            "access-shell inspection limited and source content not certified"
         )
     else:
         access_posture = known_fact(
-            f"direct_http access_failed with HTTP {capture_result.status} {capture_result.reason or 'without reason'}; response body preserved"
+            f"direct_http succeeded with HTTP {capture_result.status} "
+            f"{capture_result.reason or 'without reason'}; body preserved; "
+            "no known access shell detected; source content not certified"
         )
 
     # Extract source-visible content before disposable transport bytes are
@@ -253,7 +348,7 @@ def run_source_capture_http_packet(
         raw_sha256 = hashlib.sha256(capture_result.body).hexdigest()
         if (
             content_extraction.requested_retention_mode == "content"
-            and 200 <= capture_result.status < 300
+            and content_capture_allowed
         ):
             try:
                 record = content_extraction.extractor(
@@ -271,6 +366,12 @@ def run_source_capture_http_packet(
             except Exception as exc:
                 extraction_failure = f"{type(exc).__name__}: {exc}"
                 extraction_status = f"failed: {extraction_failure}"
+        elif content_extraction.requested_retention_mode == "content":
+            extraction_failure = (
+                "access classification prevented content extraction: "
+                f"{access_block_reason or 'source content not inspectable'}"
+            )
+            extraction_status = f"failed: {extraction_failure}"
         elif content_extraction.requested_retention_mode == "raw":
             if (
                 content_extraction.validate_in_raw_mode
@@ -295,7 +396,7 @@ def run_source_capture_http_packet(
             "content"
             if content_record_bytes is not None and extraction_failure is None
             else "raw_failure"
-            if extraction_failure is not None or not 200 <= capture_result.status < 300
+            if extraction_failure is not None or not status_ok
             else "raw"
         )
         raw_preserved = retention_outcome != "content"
