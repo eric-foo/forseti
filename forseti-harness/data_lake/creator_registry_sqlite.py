@@ -249,6 +249,10 @@ def upgrade_validated_account(
     account_id = values["platform_account_id"]
     if profile.get("profile_subject_id") != account_id:
         raise CreatorRegistrySqliteError("public profile subject does not match Registry account")
+    if values["onboarding_state"] != "onboarded" or values["monitoring_eligible"] != 1:
+        raise CreatorRegistrySqliteError(
+            "validated onboarding requires an onboarded monitoring-eligible account"
+        )
     target = database_path(data_root)
     data_root._require_writable("complete Creator Registry onboarding")
     data_root._reverify()
@@ -273,9 +277,51 @@ def upgrade_validated_account(
                 and _json_object(existing_profile[0], "stored public profile") == profile
             ):
                 return "already_current"
-            if stored["authority_kind"] != "candidate" or stored["onboarding_state"] != "not_onboarded":
+            if (
+                stored["onboarding_state"] != "not_onboarded"
+                or stored["monitoring_eligible"] != 0
+            ):
                 raise CreatorRegistrySqliteError(
-                    "validated onboarding requires one current Registry not_onboarded candidate"
+                    "validated onboarding requires one current Registry not_onboarded unmonitored account"
+                )
+            if stored["authority_kind"] == "migrated":
+                if stored["source_revision_id"] != f"migration:{account_id}":
+                    raise CreatorRegistrySqliteError(
+                        "validated onboarding migrated source revision is not the exact cutover account"
+                    )
+                stored_account = _json_object(
+                    stored["account_json"], "stored migrated account"
+                )
+                stored_onboarding = stored_account.get("onboarding")
+                if (
+                    not isinstance(stored_onboarding, Mapping)
+                    or stored_onboarding.get("policy_version")
+                    != "creator_registry_candidate_admission_v1"
+                ):
+                    raise CreatorRegistrySqliteError(
+                        "validated onboarding migrated account does not preserve candidate admission provenance"
+                    )
+                stored_values = _account_columns(stored_account)
+                if (
+                    stored_values["platform_account_id"] != account_id
+                    or stored_values["platform"] != stored["platform"]
+                    or stored_values["platform_public_account_id"]
+                    != stored["platform_public_account_id"]
+                    or stored_values["normalized_public_handle"]
+                    != stored["normalized_public_handle"]
+                    or stored_values["onboarding_state"] != "not_onboarded"
+                    or stored_values["monitoring_eligible"] != 0
+                    or stored["platform"] != values["platform"]
+                    or stored["platform_public_account_id"] is None
+                    or stored["platform_public_account_id"]
+                    != values["platform_public_account_id"]
+                ):
+                    raise CreatorRegistrySqliteError(
+                        "validated onboarding identity conflicts with the migrated Registry account"
+                    )
+            elif stored["authority_kind"] != "candidate":
+                raise CreatorRegistrySqliteError(
+                    "validated onboarding requires one current Registry candidate or migrated cutover account"
                 )
             connection.execute(
                 """

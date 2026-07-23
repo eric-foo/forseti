@@ -27,7 +27,11 @@ from data_lake.creator_registry import (
     publish_creator_registry_generation,
     retract_tiktok_creator_candidate,
 )
-from data_lake.creator_registry_sqlite import database_path
+from data_lake.creator_registry_sqlite import (
+    CreatorRegistrySqliteError,
+    database_path,
+    upgrade_validated_account,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
 from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
@@ -960,6 +964,11 @@ def test_sqlite_candidate_admission_and_validation_do_not_publish_generations(
     second_candidate = _candidate_admit(root, packet_id)
     assert first_candidate["status"] == "admitted"
     assert second_candidate["status"] == "already_current"
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        assert connection.execute(
+            "SELECT authority_kind FROM registry_accounts WHERE platform_account_id = ?",
+            (account_id,),
+        ).fetchone() == ("candidate",)
     assert not list((root.path / "derived").glob(f"*/*/{CANDIDATE_ADMISSION_LANE}/*"))
     assert sorted(path.name for path in (registry_root / "generations").iterdir()) == generations_before
 
@@ -989,6 +998,151 @@ def test_sqlite_candidate_admission_and_validation_do_not_publish_generations(
         if row["profile_subject_id"] == account_id
     )
     assert profile["audience_triangulation"]["snapshot_id"] == "cats_test_new_fragrance"
+
+
+def test_sqlite_cutover_migrated_candidate_upgrades_and_replays(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, outcome_path, account_id = _packet_and_outcome(root)
+    assert _candidate_admit(root, packet_id)["status"] == "admitted"
+    cutover_creator_registry_sqlite(root)
+
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        migrated = connection.execute(
+            """
+            SELECT authority_kind, onboarding_state, monitoring_eligible, source_revision_id
+            FROM registry_accounts
+            WHERE platform_account_id = ?
+            """,
+            (account_id,),
+        ).fetchone()
+    assert migrated == (
+        "migrated",
+        "not_onboarded",
+        0,
+        f"migration:{account_id}",
+    )
+
+    first = admit_tiktok_creator_account(
+        data_root=root,
+        packet_id=packet_id,
+        judgment_outcome_path=outcome_path,
+    )
+    second = admit_tiktok_creator_account(
+        data_root=root,
+        packet_id=packet_id,
+        judgment_outcome_path=outcome_path,
+    )
+    assert first["status"] == "admitted"
+    assert second["status"] == "already_current"
+
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        upgraded = connection.execute(
+            """
+            SELECT authority_kind, onboarding_state, monitoring_eligible
+            FROM registry_accounts
+            WHERE platform_account_id = ?
+            """,
+            (account_id,),
+        ).fetchone()
+    assert upgraded == ("validated", "onboarded", 1)
+
+
+def test_sqlite_migrated_upgrade_rejects_onboarded_state_and_identity_conflict(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    _migrate(root)
+    packet_id, _outcome_path, account_id = _packet_and_outcome(root)
+    assert _candidate_admit(root, packet_id)["status"] == "admitted"
+    cutover_creator_registry_sqlite(root)
+
+    index = load_current_creator_registry(root)["creator_registry_index"]
+    target = next(
+        row
+        for row in index["platform_accounts"]
+        if row["platform_account_id"] == account_id
+    )
+    validated = json.loads(json.dumps(target))
+    validated["onboarding"]["onboarding_state"] = "onboarded"
+    validated["monitoring_eligibility"]["eligible"] = True
+
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        connection.execute(
+            "UPDATE registry_accounts SET source_revision_id = ? WHERE platform_account_id = ?",
+            ("migration:stale-account", account_id),
+        )
+        connection.commit()
+    with pytest.raises(CreatorRegistrySqliteError, match="source revision"):
+        upgrade_validated_account(
+            data_root=root,
+            account_row=validated,
+            public_profile={"profile_subject_id": account_id},
+            revision_id="cra_stale_migration",
+            generated_at="2026-07-21T12:05:00Z",
+        )
+    with closing(sqlite3.connect(database_path(root))) as connection:
+        connection.execute(
+            "UPDATE registry_accounts SET source_revision_id = ? WHERE platform_account_id = ?",
+            (f"migration:{account_id}", account_id),
+        )
+        connection.commit()
+
+    conflicting = json.loads(json.dumps(validated))
+    conflicting["platform_public_account_id_or_none"] = "112233445566"
+    with pytest.raises(CreatorRegistrySqliteError, match="identity conflicts"):
+        upgrade_validated_account(
+            data_root=root,
+            account_row=conflicting,
+            public_profile={"profile_subject_id": account_id},
+            revision_id="cra_identity_conflict",
+            generated_at="2026-07-21T12:05:00Z",
+        )
+
+    migrated_non_candidate = next(
+        row
+        for row in index["platform_accounts"]
+        if row["onboarding"]["onboarding_state"] == "not_onboarded"
+        and row["onboarding"].get("policy_version")
+        != "creator_registry_candidate_admission_v1"
+    )
+    non_candidate_upgrade = json.loads(json.dumps(migrated_non_candidate))
+    non_candidate_upgrade["onboarding"]["onboarding_state"] = "onboarded"
+    non_candidate_upgrade["monitoring_eligibility"]["eligible"] = True
+    with pytest.raises(CreatorRegistrySqliteError, match="candidate admission provenance"):
+        upgrade_validated_account(
+            data_root=root,
+            account_row=non_candidate_upgrade,
+            public_profile={
+                "profile_subject_id": migrated_non_candidate["platform_account_id"]
+            },
+            revision_id="cra_non_candidate_migration",
+            generated_at="2026-07-21T12:05:00Z",
+        )
+
+    onboarded = next(
+        row
+        for row in index["platform_accounts"]
+        if row["onboarding"]["onboarding_state"] == "onboarded"
+        and row["monitoring_eligibility"]["eligible"] is True
+    )
+    onboarded_profile = next(
+        profile
+        for profile in load_current_creator_profiles(root)["creator_profile_public"][
+            "profiles"
+        ]
+        if profile["profile_subject_id"] == onboarded["platform_account_id"]
+    )
+    with pytest.raises(CreatorRegistrySqliteError, match="not_onboarded unmonitored"):
+        upgrade_validated_account(
+            data_root=root,
+            account_row=onboarded,
+            public_profile=onboarded_profile,
+            revision_id="cra_onboarded_rewrite",
+            generated_at="2026-07-21T12:05:00Z",
+        )
 
 
 def test_sqlite_candidate_removal_is_physical_and_validated_accounts_are_protected(
