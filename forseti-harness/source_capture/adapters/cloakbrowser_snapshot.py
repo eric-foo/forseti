@@ -468,6 +468,12 @@ def fetch_cloakbrowser_snapshot_capture(
         "profile_persistence": "local_ignored_profile" if user_data_dir is not None else "none",
         "persistent_profile_loaded": user_data_dir is not None,
         "storage_state_loaded": False,
+        "browser_context_scope": getattr(
+            engine_result, "browser_context_scope", "single_capture"
+        ),
+        "browser_context_reused": bool(
+            getattr(engine_result, "browser_context_reused", False)
+        ),
         "proxy_used": proxy_profile is not None,
         "proxy_category": proxy_profile.proxy_category.value if proxy_profile is not None else None,
         "proxy_disclosure": "category_only" if proxy_profile is not None else "none",
@@ -551,8 +557,31 @@ def fetch_cloakbrowser_snapshot_capture(
 
 
 class _CloakBrowserSnapshotEngine:
-    def __init__(self, *, clock_ns: Callable[[], int] = monotonic_ns) -> None:
+    def __init__(
+        self,
+        *,
+        clock_ns: Callable[[], int] = monotonic_ns,
+        reuse_context: bool = False,
+    ) -> None:
         self._clock_ns = clock_ns
+        self._reuse_context = reuse_context
+        self._shared_browser: object | None = None
+        self._shared_context: object | None = None
+        self._shared_viewport: tuple[int, int] | None = None
+        self._shared_humanize: bool | None = None
+
+    def close(self) -> None:
+        context, browser = self._shared_context, self._shared_browser
+        self._shared_context = None
+        self._shared_browser = None
+        self._shared_viewport = None
+        self._shared_humanize = None
+        try:
+            if context is not None:
+                context.close()  # type: ignore[union-attr]
+        finally:
+            if browser is not None:
+                browser.close()  # type: ignore[union-attr]
 
     def capture(
         self,
@@ -585,6 +614,10 @@ class _CloakBrowserSnapshotEngine:
             return round((clock_ns() - started_ns) / 1_000_000, 3)
 
         humanize = pre_capture.humanize if pre_capture is not None else False
+        if self._reuse_context and (proxy_profile is not None or user_data_dir is not None):
+            raise ValueError(
+                "run-scoped in-memory context reuse cannot load a proxy or stored profile"
+            )
         # The pre-capture flow is bounded by its OWN timeout (the plugin carries it, set from
         # the writer's --delivery-zip-setup-timeout-seconds), separate from the main capture
         # timeout below. Default to the main timeout when a plugin exposes no setup bound.
@@ -602,8 +635,21 @@ class _CloakBrowserSnapshotEngine:
 
         timeout_ms = timeout_seconds * 1000
         browser = None
+        context_reused = False
         try:
-            if user_data_dir is not None:
+            if self._reuse_context and self._shared_context is not None:
+                if (
+                    self._shared_viewport != (viewport_width, viewport_height)
+                    or self._shared_humanize != humanize
+                ):
+                    raise ValueError(
+                        "run-scoped CloakBrowser context parameters changed mid-session"
+                    )
+                context = self._shared_context
+                context_reused = True
+                phase_ms["dependency_import_browser_launch"] = 0.0
+                phase_ms["context_creation"] = 0.0
+            elif user_data_dir is not None:
                 profile_launcher = getattr(cloakbrowser, "launch_" + "persistent_context", None)
                 if not callable(profile_launcher):
                     raise _CloakBrowserSnapshotDependencyUnavailable(
@@ -644,6 +690,12 @@ class _CloakBrowserSnapshotEngine:
                     }
                 )
                 phase_ms["context_creation"] = elapsed_ms(context_started_ns)
+            if self._reuse_context and not context_reused:
+                self._shared_browser = browser
+                self._shared_context = context
+                self._shared_viewport = (viewport_width, viewport_height)
+                self._shared_humanize = humanize
+                browser = None
             if user_data_dir is not None:
                 phase_ms["dependency_import_browser_launch"] = elapsed_ms(launch_started_ns)
                 # A persistent-context launch creates the browser context atomically.
@@ -891,10 +943,20 @@ class _CloakBrowserSnapshotEngine:
                     before_scroll_outcome=before_scroll_outcome,
                     before_snapshot_outcome=before_snapshot_outcome,
                     capture_phase_timing=capture_phase_timing,
+                    browser_context_scope=(
+                        "run_scoped_in_memory"
+                        if self._reuse_context
+                        else "single_capture"
+                    ),
+                    browser_context_reused=context_reused,
                 )
             finally:
                 close_started_ns = clock_ns()
-                context.close()
+                if self._reuse_context:
+                    if "page" in locals():
+                        page.close()
+                else:
+                    context.close()
                 phase_ms["context_browser_close"] = elapsed_ms(close_started_ns)
         finally:
             if browser is not None:
@@ -909,6 +971,19 @@ class _CloakBrowserSnapshotEngine:
                 capture_phase_timing["total_capture_wall_ms"] = elapsed_ms(capture_started_ns)
 
 
+class ReusableCloakBrowserSnapshotEngine(_CloakBrowserSnapshotEngine):
+    """Reuse one anonymous in-memory context; never load or export stored state."""
+
+    def __init__(self, *, clock_ns: Callable[[], int] = monotonic_ns) -> None:
+        super().__init__(clock_ns=clock_ns, reuse_context=True)
+
+    def __enter__(self) -> ReusableCloakBrowserSnapshotEngine:
+        return self
+
+    def __exit__(self, _exc_type, _exc, _traceback) -> None:
+        self.close()
+
+
 @dataclass(frozen=True)
 class _LiveEngineResult:
     final_url: str
@@ -921,6 +996,8 @@ class _LiveEngineResult:
     before_scroll_outcome: PreCaptureOutcome | None = None
     before_snapshot_outcome: PreCaptureOutcome | None = None
     capture_phase_timing: dict[str, object] = field(default_factory=dict)
+    browser_context_scope: str = "single_capture"
+    browser_context_reused: bool = False
 
 
 class _CloakBrowserSnapshotDependencyUnavailable(RuntimeError):

@@ -43,9 +43,11 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     DEFAULT_TIMEOUT_SECONDS,
     DEFAULT_VIEWPORT_HEIGHT,
     DEFAULT_VIEWPORT_WIDTH,
+    CloakBrowserSnapshotEngine,
     CloakBrowserSnapshotFailureKind,
 )
 from source_capture.adapters.luckyscent_us_market import LuckyscentUSMarketPlugin
+from source_capture.adapters.revolve_us_market import RevolveUSMarketPlugin
 from source_capture.adapters.nordstrom_country_preference import (
     NORDSTROM_REVIEW_POSTURES,
     NordstromCountryPreferencePlugin,
@@ -96,6 +98,10 @@ from source_capture.ulta_brand_grid import (
     ULTA_GRID_CONTENT_RECORD_VERSION,
     build_ulta_brand_grid_content_record,
 )
+from source_capture.revolve_brand_grid import (
+    REVOLVE_GRID_PARSER_VERSION,
+    build_revolve_brand_grid_content_record,
+)
 from source_capture.retail_pdp_content import (
     AMAZON_PDP_CONTENT_PROFILE,
     AMAZON_PDP_PARSER_VERSION,
@@ -103,6 +109,8 @@ from source_capture.retail_pdp_content import (
     LUCKYSCENT_PDP_PARSER_VERSION,
     NORDSTROM_PDP_CONTENT_PROFILE,
     NORDSTROM_PDP_PARSER_VERSION,
+    REVOLVE_PDP_CONTENT_PROFILE,
+    REVOLVE_PDP_PARSER_VERSION,
     SEPHORA_PDP_CONTENT_PROFILE,
     SEPHORA_PDP_PARSER_VERSION,
     TARGET_PDP_CONTENT_PROFILE,
@@ -112,6 +120,7 @@ from source_capture.retail_pdp_content import (
     build_amazon_pdp_aggregate_content_record,
     build_luckyscent_pdp_aggregate_content_record,
     build_nordstrom_pdp_aggregate_content_record,
+    build_revolve_pdp_aggregate_content_record,
     build_sephora_pdp_aggregate_content_record,
     build_target_pdp_aggregate_content_record,
     build_ulta_pdp_aggregate_content_record,
@@ -181,6 +190,8 @@ AMAZON_GRID_CONTENT_PROFILE = "amazon_grid_aggregate"
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
+REVOLVE_MARKET_PIN_FAILURE_MODE_CHANGE = "revolve_market_pin_failed"
+_REVOLVE_HOSTS = frozenset({"revolve.com", "www.revolve.com"})
 RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
 _RETAIL_GRID_PROJECTION_PROFILES = frozenset(
     {
@@ -188,6 +199,7 @@ _RETAIL_GRID_PROJECTION_PROFILES = frozenset(
         "amazon_grid_aggregate",
         "target_grid_aggregate",
         "ulta_grid_aggregate",
+        "revolve_grid_aggregate",
     }
 )
 
@@ -240,6 +252,7 @@ def run_source_capture_cloakbrowser_packet(
     luckyscent_market: str | None = None,
     sephora_market: str | None = None,
     ulta_market: str | None = None,
+    revolve_market: str | None = None,
     target_zip: str | None = None,
     target_zip_setup_timeout_seconds: float = 30.0,
     session_visibility_pin=None,
@@ -253,6 +266,7 @@ def run_source_capture_cloakbrowser_packet(
     content_extraction: RenderedContentExtractionSpec | None = None,
     retail_grid_projection_output: Path | None = None,
     retain_retail_grid_raw_sample: bool = False,
+    capture_engine: CloakBrowserSnapshotEngine | None = None,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
@@ -292,6 +306,7 @@ def run_source_capture_cloakbrowser_packet(
             delivery_zip=delivery_zip,
             sephora_market=sephora_market,
             ulta_market=ulta_market,
+            revolve_market=revolve_market,
             target_zip=target_zip,
         )
         source_detail_sufficiency_requirements = (
@@ -305,7 +320,8 @@ def run_source_capture_cloakbrowser_packet(
             retail_grid_projection_output=retail_grid_projection_output,
             data_root_mode=data_root is not None,
             sephora_market=sephora_market,
-            ulta_market=ulta_market
+            ulta_market=ulta_market,
+            revolve_market=revolve_market,
         )
         if retail_capture_profile.name == SEPHORA_PDP_CONTENT_PROFILE:
             if sephora_market != "US":
@@ -342,6 +358,17 @@ def run_source_capture_cloakbrowser_packet(
         if retail_capture_profile.name == "ulta_grid_aggregate":
             if content_extraction is None:
                 content_extraction = _ulta_grid_content_extraction_spec()
+        if retail_capture_profile.name == REVOLVE_PDP_CONTENT_PROFILE:
+            if revolve_market != "US":
+                raise ValueError(
+                    "revolve_pdp_aggregate content capture requires "
+                    "--revolve-market US"
+                )
+            if content_extraction is None:
+                content_extraction = _revolve_content_extraction_spec("content")
+        if retail_capture_profile.name == "revolve_grid_aggregate":
+            if content_extraction is None:
+                content_extraction = _revolve_grid_content_extraction_spec()
         if retail_capture_profile.name == TARGET_PDP_CONTENT_PROFILE:
             if content_extraction is None:
                 content_extraction = _target_content_extraction_spec("content")
@@ -398,13 +425,14 @@ def run_source_capture_cloakbrowser_packet(
         luckyscent_market is not None,
         sephora_market is not None,
         ulta_market is not None,
+        revolve_market is not None,
         target_zip is not None,
     ]
     if sum(site_specific_preferences) > 1:
         raise ValueError(
             "only one site-specific pre-capture preference may be supplied: "
             "--delivery-zip, --nordstrom-country, --luckyscent-market, or "
-            "--sephora-market, --ulta-market, or --target-zip"
+            "--sephora-market, --ulta-market, --revolve-market, or --target-zip"
         )
     if (
         retail_capture_profile is not None
@@ -478,6 +506,24 @@ def run_source_capture_cloakbrowser_packet(
         )
         if ulta_page_kind == "grid":
             content_extraction = _ulta_grid_content_extraction_spec()
+    elif revolve_market is not None:
+        revolve_page_kind = (
+            "grid"
+            if retail_capture_profile is not None
+            and retail_capture_profile.name == "revolve_grid_aggregate"
+            else "pdp"
+        )
+        revolve_style_id = _validate_revolve_us_market_url(
+            url, page_kind=revolve_page_kind
+        )
+        pre_capture = RevolveUSMarketPlugin(
+            target_url=url,
+            style_id=revolve_style_id,
+            country_code=revolve_market,
+            page_kind=revolve_page_kind,
+        )
+        if revolve_page_kind == "grid":
+            content_extraction = _revolve_grid_content_extraction_spec()
     elif (
         retail_capture_profile is not None
         and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
@@ -539,6 +585,7 @@ def run_source_capture_cloakbrowser_packet(
         ),
         pre_capture=pre_capture,
         user_data_dir=browser_user_data_dir,
+        engine=capture_engine,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -613,6 +660,17 @@ def run_source_capture_cloakbrowser_packet(
         packet_limitations.append(
             f"{ULTA_MARKET_PIN_FAILURE_MODE_CHANGE}: {ulta_pin_failure}; packet "
             "preserved but MUST NOT be admitted as Ulta US/USD storefront evidence"
+        )
+    revolve_pin_failure = _revolve_market_pin_failure(
+        revolve_market=revolve_market,
+        final_url=capture_result.final_url,
+        pin_confirmed=capture_result.metadata.get("pin_confirmed"),
+    )
+    if revolve_pin_failure is not None:
+        packet_limitations.append(
+            f"{REVOLVE_MARKET_PIN_FAILURE_MODE_CHANGE}: {revolve_pin_failure}; "
+            "packet preserved but MUST NOT be admitted as REVOLVE US/USD "
+            "storefront evidence"
         )
     luckyscent_pin_failure = _luckyscent_market_pin_failure(
         luckyscent_market=luckyscent_market,
@@ -723,6 +781,8 @@ def run_source_capture_cloakbrowser_packet(
         )
     if ulta_pin_failure is not None:
         packet_visible_mode_changes.append(ULTA_MARKET_PIN_FAILURE_MODE_CHANGE)
+    if revolve_pin_failure is not None:
+        packet_visible_mode_changes.append(REVOLVE_MARKET_PIN_FAILURE_MODE_CHANGE)
     if luckyscent_pin_failure is not None:
         packet_visible_mode_changes.append(
             LUCKYSCENT_MARKET_PIN_FAILURE_MODE_CHANGE
@@ -834,6 +894,7 @@ def run_source_capture_cloakbrowser_packet(
         or nordstrom_pin_failure is not None
         or nordstrom_review_posture_failure is not None
         or ulta_pin_failure is not None
+        or revolve_pin_failure is not None
         or luckyscent_pin_failure is not None
         or luckyscent_overlay_failure is not None
         or (sufficiency_result.enabled and not sufficiency_result.passed)
@@ -1260,6 +1321,12 @@ def run_source_capture_cloakbrowser_packet(
             f"{ULTA_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
             f"{diagnostic_packet_path}; {ulta_pin_failure}",
         )
+    if revolve_pin_failure is not None:
+        return (
+            SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+            f"{REVOLVE_MARKET_PIN_FAILURE_MODE_CHANGE}: packet preserved at "
+            f"{diagnostic_packet_path}; {revolve_pin_failure}",
+        )
     if luckyscent_pin_failure is not None:
         return (
             SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -1359,6 +1426,7 @@ def _validate_retail_baseline_profile_request(
     sephora_market: str | None,
     ulta_market: str | None,
     target_zip: str | None,
+    revolve_market: str | None = None,
 ) -> None:
     if retail_capture_profile.page_kind not in {"grid_aggregate", "pdp_aggregate"}:
         return
@@ -1374,6 +1442,7 @@ def _validate_retail_baseline_profile_request(
     required_pin = {
         "sephora": (sephora_market, "US", "--sephora-market US"),
         "ulta": (ulta_market, "US", "--ulta-market US"),
+        "revolve": (revolve_market, "US", "--revolve-market US"),
     }.get(retail_capture_profile.retailer)
     if required_pin is None:
         return
@@ -1391,6 +1460,7 @@ def _validate_retail_grid_projection_request(
     data_root_mode: bool = False,
     sephora_market: str | None = None,
     ulta_market: str | None = None,
+    revolve_market: str | None = None,
 ) -> None:
     if retail_capture_profile.name == "sephora_grid_aggregate":
         if sephora_market != "US":
@@ -1398,6 +1468,9 @@ def _validate_retail_grid_projection_request(
     elif retail_capture_profile.name == "ulta_grid_aggregate":
         if ulta_market != "US":
             raise ValueError("ulta_grid_aggregate requires --ulta-market US")
+    elif retail_capture_profile.name == "revolve_grid_aggregate":
+        if revolve_market != "US":
+            raise ValueError("revolve_grid_aggregate requires --revolve-market US")
 
     if retail_capture_profile.name in _RETAIL_GRID_PROJECTION_PROFILES:
         if data_root_mode and retail_grid_projection_output is not None:
@@ -1413,7 +1486,7 @@ def _validate_retail_grid_projection_request(
     elif retail_grid_projection_output is not None:
         raise ValueError(
             "--retail-grid-projection-output currently requires an admitted "
-            "Amazon, Sephora, Target, or Ulta grid profile"
+            "Amazon, Sephora, Target, Ulta, or REVOLVE grid profile"
         )
 
 
@@ -1591,6 +1664,56 @@ def _ulta_market_pin_failure(
     return "; ".join(reasons) if reasons else None
 
 
+def _validate_revolve_us_market_url(
+    url: str, *, page_kind: Literal["pdp", "grid"] = "pdp"
+) -> str | None:
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    if hostname not in _REVOLVE_HOSTS or parsed.scheme != "https":
+        raise ValueError("--revolve-market US requires an HTTPS revolve.com URL")
+    if page_kind == "grid":
+        if not re.fullmatch(
+            r"/[a-z0-9][a-z0-9-]*/br/[a-f0-9]{6}",
+            parsed.path.rstrip("/"),
+            flags=re.IGNORECASE,
+        ):
+            raise ValueError(
+                "--revolve-market US grid capture requires "
+                "/<brand>/br/<brand-id>"
+            )
+        return None
+    match = re.search(
+        r"/dp/(?P<style_id>[A-Z0-9]{2,12}-[A-Z]{1,4}\d+)/?$",
+        parsed.path,
+        flags=re.IGNORECASE,
+    )
+    if match is None:
+        raise ValueError(
+            "--revolve-market US PDP capture requires /dp/<REVOLVE-style-id>"
+        )
+    return match.group("style_id").upper()
+
+
+def _revolve_market_pin_failure(
+    *,
+    revolve_market: str | None,
+    final_url: str,
+    pin_confirmed: object,
+) -> str | None:
+    if revolve_market is None:
+        return None
+    final_hostname = (urlparse(final_url).hostname or "").lower()
+    reasons: list[str] = []
+    if final_hostname not in _REVOLVE_HOSTS:
+        reasons.append(
+            f"final storefront host was {final_hostname or 'unknown'!r}, "
+            "not revolve.com"
+        )
+    if pin_confirmed is not True:
+        reasons.append("US/USD rendered-market conjunction was not confirmed")
+    return "; ".join(reasons) if reasons else None
+
+
 def _luckyscent_market_pin_failure(
     *,
     luckyscent_market: str | None,
@@ -1664,6 +1787,34 @@ def _ulta_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
         json_indent=None,
         extractor=lambda rendered_dom, _visible_text, final_url: (
             build_ulta_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
+            )
+        ),
+    )
+
+
+def _revolve_content_extraction_spec(mode: str) -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode=mode,
+        extractor_version=REVOLVE_PDP_PARSER_VERSION,
+        extractor=lambda rendered_dom, visible_text, final_url: (
+            build_revolve_pdp_aggregate_content_record(
+                rendered_dom=rendered_dom,
+                visible_text=visible_text,
+                source_url=final_url,
+            ).model_dump(mode="json")
+        ),
+    )
+
+
+def _revolve_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=REVOLVE_GRID_PARSER_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_revolve_brand_grid_content_record(
                 rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
                 final_url=final_url,
             )
@@ -1997,7 +2148,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Retention mode for the enabled Sephora, Luckyscent, Nordstrom, "
-            "Ulta, Target, and Amazon aggregate routes. Omitted defaults those "
+            "Ulta, Target, Amazon, and REVOLVE aggregate routes. Omitted defaults those "
             "routes to content; other profiles remain raw."
         ),
     )
@@ -2029,7 +2180,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Required in local --output mode for admitted Amazon, Sephora, Target, and Ulta "
+            "Required in local --output mode for admitted Amazon, Sephora, Target, Ulta, and REVOLVE "
             "aggregate grids. Forbidden in --data-root mode, where the hash-verified, "
             "view-only projection is filed automatically."
         ),
@@ -2231,6 +2382,16 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--revolve-market",
+        choices=["US"],
+        default=None,
+        help=(
+            "Use REVOLVE's public country-preference controls to select US and "
+            "USD, then fail closed unless the rendered route independently binds "
+            "US shipping, the US storefront, and exact USD product state."
+        ),
+    )
+    parser.add_argument(
         "--target-zip",
         default=None,
         help=(
@@ -2292,7 +2453,11 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    capture_engine: CloakBrowserSnapshotEngine | None = None,
+) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
@@ -2319,6 +2484,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 delivery_zip=args.delivery_zip,
                 sephora_market=args.sephora_market,
                 ulta_market=args.ulta_market,
+                revolve_market=args.revolve_market,
                 target_zip=args.target_zip,
             )
         elif args.retail_grid_projection_output is not None:
@@ -2330,11 +2496,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             LUCKYSCENT_PDP_CONTENT_PROFILE,
             NORDSTROM_PDP_CONTENT_PROFILE,
             ULTA_PDP_CONTENT_PROFILE,
+            REVOLVE_PDP_CONTENT_PROFILE,
             TARGET_PDP_CONTENT_PROFILE,
             AMAZON_PDP_CONTENT_PROFILE,
             TARGET_GRID_CONTENT_PROFILE,
             "sephora_grid_aggregate",
             "ulta_grid_aggregate",
+            "revolve_grid_aggregate",
         }
         if args.retention_mode is not None and (
             retail_capture_profile is None
@@ -2400,6 +2568,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         elif (
             retail_capture_profile is not None
+            and retail_capture_profile.name == REVOLVE_PDP_CONTENT_PROFILE
+        ):
+            if args.revolve_market != "US":
+                raise ValueError(
+                    "revolve_pdp_aggregate content capture requires "
+                    "--revolve-market US"
+                )
+            content_extraction = _revolve_content_extraction_spec(
+                args.retention_mode or "content"
+            )
+        elif (
+            retail_capture_profile is not None
             and retail_capture_profile.name == "sephora_grid_aggregate"
         ):
             if args.retention_mode not in {None, "content"}:
@@ -2416,6 +2596,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "ulta_grid_aggregate requires compact content retention"
                 )
             content_extraction = _ulta_grid_content_extraction_spec()
+        elif (
+            retail_capture_profile is not None
+            and retail_capture_profile.name == "revolve_grid_aggregate"
+        ):
+            if args.retention_mode not in {None, "content"}:
+                raise ValueError(
+                    "revolve_grid_aggregate requires compact content retention"
+                )
+            content_extraction = _revolve_grid_content_extraction_spec()
         elif (
             retail_capture_profile is not None
             and retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE
@@ -2529,6 +2718,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                     else "pdp"
                 ),
             )
+        if args.revolve_market is not None:
+            _validate_revolve_us_market_url(
+                args.url,
+                page_kind=(
+                    "grid"
+                    if retail_capture_profile is not None
+                    and retail_capture_profile.name == "revolve_grid_aggregate"
+                    else "pdp"
+                ),
+            )
         if args.target_zip is not None:
             _validate_target_delivery_zip_url(args.url)
         # helper-delta: vs runners/_scaffold.resolve_output_root -- the --preflight-only
@@ -2555,6 +2754,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 data_root_mode=bool(data_root_requested),
                 sephora_market=args.sephora_market,
                 ulta_market=args.ulta_market,
+                revolve_market=args.revolve_market,
             )
         if args.preflight_only:
             print(
@@ -2645,6 +2845,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             luckyscent_market=args.luckyscent_market,
             sephora_market=args.sephora_market,
             ulta_market=args.ulta_market,
+            revolve_market=args.revolve_market,
             target_zip=args.target_zip,
             target_zip_setup_timeout_seconds=args.target_zip_setup_timeout_seconds,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
@@ -2692,6 +2893,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_extraction=content_extraction,
             retail_grid_projection_output=args.retail_grid_projection_output,
             retain_retail_grid_raw_sample=args.retain_retail_grid_raw_sample,
+            capture_engine=capture_engine,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")

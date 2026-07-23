@@ -40,7 +40,9 @@ _SUPPORTED_TARGET_GRID_CONTENT_RECORD_VERSIONS = frozenset(
 )
 AMAZON_GRID_CONTENT_RECORD_VERSION = "amazon_grid_content_v1"
 
-RetailGridRetailer = Literal["walmart", "target", "sephora", "ulta", "amazon"]
+RetailGridRetailer = Literal[
+    "walmart", "target", "sephora", "ulta", "amazon", "revolve"
+]
 
 _FORBIDDEN_FIELD_TOKENS = frozenset(
     {
@@ -622,7 +624,7 @@ def _is_grid_content_record(text: str, *, retailer: RetailGridRetailer) -> bool:
         return _load_target_grid_content_record(text) is not None
     if retailer == "amazon":
         return _load_amazon_grid_content_record(text) is not None
-    if retailer not in {"sephora", "ulta"}:
+    if retailer not in {"sephora", "ulta", "revolve"}:
         return False
     stripped = text.lstrip()
     if not stripped.startswith("{"):
@@ -651,6 +653,35 @@ def build_retail_grid_projection(
             body.decode("utf-8", errors="replace"), retailer=retailer
         )
     }
+    if retailer == "revolve":
+        from source_capture.revolve_grid_projection import (
+            build_revolve_grid_projection,
+        )
+
+        if content_record_file_ids:
+            packet = packet.model_copy(
+                update={
+                    "source_slices": [
+                        source_slice.model_copy(
+                            update={
+                                "preserved_file_ids": [
+                                    file_id
+                                    for file_id in source_slice.preserved_file_ids
+                                    if file_id in content_record_file_ids
+                                ]
+                            }
+                        )
+                        for source_slice in packet.source_slices
+                        if any(
+                            file_id in content_record_file_ids
+                            for file_id in source_slice.preserved_file_ids
+                        )
+                    ]
+                }
+            )
+        return build_revolve_grid_projection(
+            packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id
+        )
     if retailer == "ulta":
         from source_capture.ulta_grid_projection import build_ulta_grid_projection
 
@@ -2372,9 +2403,19 @@ def detect_retail_grid_retailer(packet: SourceCapturePacket) -> RetailGridRetail
             and extract_amazon_search_query_from_url(locator) is not None
         ):
             return "amazon"
+        if (
+            _hostname_matches(hostname, "revolve.com")
+            and re.fullmatch(
+                r"/[a-z0-9][a-z0-9-]*/br/[a-f0-9]{6}",
+                path,
+                flags=re.IGNORECASE,
+            )
+        ):
+            return "revolve"
     raise RetailGridProjectionInputError(
         "retail grid projection requires an admitted source-visible Walmart search, "
-        "Target search/brand, Sephora brand, Ulta brand, or Amazon search locator"
+        "Target search/brand, Sephora brand, Ulta brand, Amazon search, or "
+        "REVOLVE brand locator"
     )
 
 
