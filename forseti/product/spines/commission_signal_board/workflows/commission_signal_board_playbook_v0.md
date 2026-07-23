@@ -114,11 +114,13 @@ Run those four actors through this lean execution protocol:
    copy the controller's full conversation or unrelated source pack into every
    actor.
 2. `CO1` resolves the company core and publishes its official-retailer
-   authorization and supporting evidence pointers at the bound terminal path.
-   `CO2` may prepare its locked retailer job set concurrently but does not probe
-   a retailer until that authorization is available. `CO3` begins its mandatory
-   bounded customer/community scout concurrently; its evidence-selected
-   retailer depth waits for `CO2`'s reconciled breadth and selection pointers.
+   authorization outcome and supporting evidence pointers at the bound terminal
+   path; a typed absence or blocked result is a valid published outcome, not a
+   probe blocker. `CO2` may prepare its locked retailer job set concurrently
+   but does not probe a retailer until that published outcome is available.
+   `CO3` begins its mandatory bounded customer/community scout concurrently;
+   its evidence-selected retailer depth waits for `CO2`'s reconciled breadth
+   and selection pointers.
 3. Each specialist plans its bounded work once, locks the deterministic job
    list that follows from the evidence, and runs compatible capture/projection
    jobs as a batch or bounded local loop without a model turn between ordinary
