@@ -34,7 +34,9 @@ def detect_login_gate(*, final_url: str, body_text: str) -> LoginGateDetection |
     Ordinary pages may contain navigation links such as ``Log in``. Those are
     deliberately insufficient: URL-path detection requires an auth-specific
     segment, and body detection requires a login form action or explicit
-    access-gate language.
+    access-gate language. Treating any matching form action as a gate
+    intentionally favors a false refusal over accepting a bare login form as
+    source content.
     """
 
     parsed = urlparse(final_url)

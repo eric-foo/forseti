@@ -178,9 +178,6 @@ def run_source_capture_http_packet(
     content_type = capture_result.metadata.get("content_type")
     if content_type is not None:
         classification_headers["Content-Type"] = str(content_type)
-    content_encoding = capture_result.metadata.get("content_encoding")
-    if content_encoding is not None:
-        classification_headers["Content-Encoding"] = str(content_encoding)
     body_classification = classify_capture_body(
         status=capture_result.status,
         headers=classification_headers,
@@ -210,8 +207,6 @@ def run_source_capture_http_packet(
         )
     elif body_classification.classification == CaptureBodyClass.EMPTY:
         access_block_reason = "empty_body"
-    elif body_classification.signal == "encoded_body_uninspectable":
-        access_block_reason = "encoded_body_uninspectable"
     elif not status_ok:
         access_block_reason = f"HTTP {capture_result.status}"
     else:
@@ -269,11 +264,6 @@ def run_source_capture_http_packet(
             "visible_capture_limitation: direct_http preserved an empty/whitespace-only body, "
             "not source content"
         )
-    elif body_classification.signal == "encoded_body_uninspectable":
-        posture_limitations.append(
-            "visible_capture_limitation: direct_http preserved an encoded body; "
-            "access-shell inspection is limited and source content is not certified"
-        )
     packet_limitations = (
         list(limitations) + capture_result.limitation_notes + posture_limitations
     )
@@ -327,11 +317,6 @@ def run_source_capture_http_packet(
         access_posture = known_fact(
             f"direct_http access_failed with HTTP {capture_result.status} "
             f"{capture_result.reason or 'without reason'}; response body preserved"
-        )
-    elif body_classification.signal == "encoded_body_uninspectable":
-        access_posture = known_fact(
-            f"direct_http returned HTTP {capture_result.status}; encoded body preserved; "
-            "access-shell inspection limited and source content not certified"
         )
     else:
         access_posture = known_fact(
