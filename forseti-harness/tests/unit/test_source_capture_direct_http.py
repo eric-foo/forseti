@@ -24,6 +24,7 @@ from source_capture.adapters.direct_http import (
     fetch_direct_http_capture,
 )
 from source_capture.content_extraction import ContentExtractionSpec
+from source_capture.reddit_consolidation import build_thread_content_record
 from source_capture.retail_capture_profiles import get_retail_capture_profile
 
 
@@ -598,6 +599,89 @@ def test_content_mode_does_not_extract_or_discard_login_shell(
     assert (output_dir / "raw/01_http_response_body.bin").exists()
     assert not (output_dir / "raw/content_record.json").exists()
     assert "access_failed" in manifest["access_posture"]["value"]
+
+
+def test_content_mode_extracts_visible_old_reddit_thread_with_onboarding_login_form(
+    monkeypatch: pytest.MonkeyPatch, scratch_dir: Path
+) -> None:
+    url = "https://old.reddit.com/r/orca_test/comments/abc/visible_thread/"
+    body = b"""\
+<html><body>
+  <form action="https://www.reddit.com/r/orca_test/post/login">Log in</form>
+  <div class="thing link" id="thing_t3_abc" data-fullname="t3_abc"
+       data-subreddit="orca_test" data-author="poster">
+    <a class="title">Visible thread</a>
+    <div class="usertext-body"><p>Visible post body</p></div>
+  </div>
+  <div class="thing comment" data-fullname="t1_comment" data-parent="t3_abc"
+       data-author="commenter">
+    <div class="usertext-body"><p>Visible comment body</p></div>
+  </div>
+</body></html>
+"""
+
+    def fake_capture(**_kwargs: object) -> DirectHttpCaptureSuccess:
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=200,
+            reason="OK",
+            metadata={
+                "requested_url": url,
+                "final_url": url,
+                "capture_timestamp": "2026-07-23T00:00:00Z",
+            },
+            body=body,
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(http_runner, "fetch_direct_http_capture", fake_capture)
+    output_dir = scratch_dir / "reddit_onboarding_form"
+
+    exit_code, _ = http_runner.run_source_capture_http_packet(
+        url=url,
+        source_family="reddit_thread",
+        source_surface="old_reddit_direct_http",
+        decision_question="What source-visible Reddit content is present?",
+        output_directory=output_dir,
+        capture_context="unit test",
+        operator_category="reddit_old_http_batch_operator",
+        capture_mode=CaptureModeCategory.STRUCTURED_ACCESS,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=5,
+        max_bytes=4096,
+        content_extraction=ContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version="test_v1",
+            extractor=lambda html_text, final_url: build_thread_content_record(
+                html_text=html_text,
+                source_url=final_url,
+            ),
+        ),
+    )
+
+    metadata = json.loads(
+        (output_dir / "raw/02_http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    content = json.loads(
+        (output_dir / "raw/01_content_record.json").read_text(encoding="utf-8")
+    )
+
+    assert exit_code == 0
+    assert metadata["login_gate_signal"] is None
+    assert metadata["content_extraction"]["retention_outcome"] == "content"
+    assert content["thread"]["thread_id"] == "abc"
+    assert content["counts"]["comments_parsed"] == 1
 
 
 def test_http_runner_sets_demand_durability_series_fields(http_server: str, scratch_dir: Path) -> None:

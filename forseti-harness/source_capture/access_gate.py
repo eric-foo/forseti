@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import ParseResult, unquote, urlparse
 
 
 LoginGateSignal = Literal["login_redirect", "login_page"]
@@ -26,6 +26,10 @@ _EXPLICIT_LOGIN_PAGE_MARKERS: tuple[str, ...] = (
     "log in to continue",
     "sign in to continue",
 )
+_OLD_REDDIT_THREAD_PATH = re.compile(
+    r"^/r/[^/]+/comments/(?P<thread_id>[a-z0-9]+)/",
+    re.IGNORECASE,
+)
 
 
 def detect_login_gate(*, final_url: str, body_text: str) -> LoginGateDetection | None:
@@ -34,9 +38,10 @@ def detect_login_gate(*, final_url: str, body_text: str) -> LoginGateDetection |
     Ordinary pages may contain navigation links such as ``Log in``. Those are
     deliberately insufficient: URL-path detection requires an auth-specific
     segment, and body detection requires a login form action or explicit
-    access-gate language. Treating any matching form action as a gate
-    intentionally favors a false refusal over accepting a bare login form as
-    source content.
+    access-gate language. Old Reddit thread pages also carry an onboarding
+    login form alongside the public thread; a URL-matched ``t3`` post marker
+    proves that source envelope is present, so that form alone is not a gate.
+    A missing or mismatched marker still fails closed.
     """
 
     parsed = urlparse(final_url)
@@ -55,7 +60,10 @@ def detect_login_gate(*, final_url: str, body_text: str) -> LoginGateDetection |
             ),
         )
 
-    if _LOGIN_FORM_ACTION.search(body_text):
+    if _LOGIN_FORM_ACTION.search(body_text) and not _has_visible_old_reddit_thread(
+        parsed_url=parsed,
+        body_text=body_text,
+    ):
         return LoginGateDetection(
             signal="login_page",
             detail="response body contains a login/sign-in form action",
@@ -69,6 +77,24 @@ def detect_login_gate(*, final_url: str, body_text: str) -> LoginGateDetection |
                 detail=f"response body matched explicit access-gate language {marker!r}",
             )
     return None
+
+
+def _has_visible_old_reddit_thread(*, parsed_url: ParseResult, body_text: str) -> bool:
+    if (parsed_url.hostname or "").lower() != "old.reddit.com":
+        return False
+    match = _OLD_REDDIT_THREAD_PATH.match(parsed_url.path or "")
+    if match is None:
+        return False
+
+    thread_id = re.escape(match.group("thread_id"))
+    return (
+        re.search(
+            rf"""\b(?:id=["']thing_t3_{thread_id}["']|data-fullname=["']t3_{thread_id}["'])""",
+            body_text,
+            re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 __all__ = ["LoginGateDetection", "LoginGateSignal", "detect_login_gate"]

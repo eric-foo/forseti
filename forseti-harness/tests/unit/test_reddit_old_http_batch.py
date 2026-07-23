@@ -42,8 +42,13 @@ def test_batch_extracts_in_flight_without_post_hoc_artifact(
     def capture(**kwargs):
         calls.append(kwargs)
         packet_dir = Path(kwargs["output_directory"])
-        packet_dir.mkdir(parents=True)
-        (packet_dir / "content_record.json").write_text("{}\n", encoding="utf-8")
+        raw_dir = packet_dir / "raw"
+        raw_dir.mkdir(parents=True)
+        # Mirror the packet writer's real on-disk shape: writer._copy_preserved_files
+        # names every preserved file "{index:02d}_{name}" under raw/, for local packet
+        # directories and lake commits alike. Staging a bare content_record.json here
+        # would assert the owner-visible receipt against a shape capture never emits.
+        (raw_dir / "01_content_record.json").write_text("{}\n", encoding="utf-8")
         return 0, str(packet_dir)
 
     monkeypatch.setattr(runner, "run_source_capture_http_packet", capture)
@@ -65,6 +70,30 @@ def test_batch_extracts_in_flight_without_post_hoc_artifact(
     assert summary["capture_success_count"] == 1
     assert "consolidation_success_count" not in summary
     assert summary["results"][0]["content_record_preserved"] is True
+
+
+@pytest.mark.parametrize(
+    ("filenames", "expected"),
+    [
+        # The writer-numbered name is what every real packet carries.
+        (["raw/01_content_record.json"], True),
+        (["content_record.json"], True),
+        # The widened glob must not accept an unrelated same-suffix artifact.
+        (["raw/notes_content_record.json"], False),
+        # Duplicates stay visible instead of being collapsed into a clean receipt.
+        (["raw/01_content_record.json", "raw/02_content_record.json"], False),
+    ],
+)
+def test_packet_content_record_detection_stays_bounded(
+    tmp_path: Path, filenames: list[str], expected: bool
+) -> None:
+    packet_dir = tmp_path / "packet"
+    for name in filenames:
+        path = packet_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n", encoding="utf-8")
+
+    assert runner._packet_preserves_content_record(packet_dir) is expected
 
 
 def test_batch_failure_stays_visible_and_has_no_retry(

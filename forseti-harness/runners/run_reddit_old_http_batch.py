@@ -211,11 +211,17 @@ def run_reddit_old_http_batch(
 
 
 def _packet_preserves_content_record(packet_dir: Path) -> bool:
+    def is_content_record(path: Path) -> bool:
+        if path.name == CONTENT_RECORD_FILENAME:
+            return True
+        prefix, separator, suffix = path.name.partition("_")
+        return bool(separator and prefix.isdigit() and suffix == CONTENT_RECORD_FILENAME)
+
     return (
         sum(
             1
-            for path in packet_dir.rglob(CONTENT_RECORD_FILENAME)
-            if path.is_file() and path.name == CONTENT_RECORD_FILENAME
+            for path in packet_dir.rglob(f"*{CONTENT_RECORD_FILENAME}")
+            if path.is_file() and is_content_record(path)
         )
         == 1
     )
