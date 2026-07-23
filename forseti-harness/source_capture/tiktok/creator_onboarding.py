@@ -2082,7 +2082,7 @@ def _run_grid_overlay_deep_capture_phase(
         "targeted_tile_scroll_performed": False,
         "grid_pagination_allowed": True,
         "grid_pagination_input_method": (
-            "cloakbrowser.locator.scroll_into_view_if_needed"
+            "cloakbrowser.human.scroll_to_element"
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,

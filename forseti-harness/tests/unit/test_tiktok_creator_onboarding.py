@@ -1463,7 +1463,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["grid_deep_entry_or_none"]["status"] == "complete"
     assert receipt["grid_deep_entry_or_none"]["targeted_tile_scroll_performed"] is False
     assert receipt["grid_deep_entry_or_none"]["grid_pagination_input_method"] == (
-        "cloakbrowser.locator.scroll_into_view_if_needed"
+        "cloakbrowser.human.scroll_to_element"
     )
     assert receipt["grid_deep_entry_or_none"]["retry_waits"] == []
     assert receipt["grid_deep_entry_or_none"]["direct_video_navigation_count"] == 0
@@ -1768,7 +1768,7 @@ def test_grid_overlay_sequence_uses_logical_positions_and_targeted_human_scroll(
     ]
     assert receipt["targeted_tile_scroll_performed"] is True
     assert receipt["grid_pagination_input_method"] == (
-        "cloakbrowser.locator.scroll_into_view_if_needed"
+        "cloakbrowser.human.scroll_to_element"
     )
     assert [
         row["target_video_id"] for row in receipt["grid_pagination_passes"]
@@ -3672,7 +3672,7 @@ def _grid_overlay_receipt() -> dict[str, object]:
         "targeted_tile_scroll_performed": False,
         "grid_pagination_allowed": True,
         "grid_pagination_input_method": (
-            "cloakbrowser.locator.scroll_into_view_if_needed"
+            "cloakbrowser.human.scroll_to_element"
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,

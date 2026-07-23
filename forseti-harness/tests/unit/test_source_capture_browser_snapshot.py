@@ -166,7 +166,7 @@ class _FakeObservationLocator:
         return "before scroll"
 
     def scroll_into_view_if_needed(self) -> None:
-        self.event_log.append(f"human_scroll:{self.selector}")
+        self.event_log.append(f"native_locator_scroll:{self.selector}")
         self.page.scroll_y = max(
             0.0,
             self.page.scroll_y + self.page.human_scroll_delta,
@@ -241,7 +241,11 @@ class _FakeObservationPage:
         if humanized:
             self._human_cfg = object()
             self._human_raw_mouse = object()
-            self._human_cursor = object()
+            self._human_cursor = type(
+                "_FakeHumanCursor",
+                (),
+                {"x": 100.0, "y": 100.0},
+            )()
 
     def route(self, pattern: str, handler: object) -> None:
         self.route_bindings.append((pattern, handler))
@@ -420,12 +424,34 @@ class _FakeCloakBrowserModule:
         return _FakeObservationBrowser(self.page)
 
 
+class _FakeCloakBrowserHumanModule:
+    @staticmethod
+    def scroll_to_element(
+        page: _FakeObservationPage,
+        _raw_mouse: object,
+        selector: str,
+        cursor_x: float,
+        cursor_y: float,
+        _config: object,
+    ) -> tuple[dict[str, float], float, float, bool]:
+        page.event_log.append(f"human_scroll:{selector}")
+        page.scroll_y = max(0.0, page.scroll_y + page.human_scroll_delta)
+        return (
+            {"x": 0.0, "y": 0.0, "width": 100.0, "height": 100.0},
+            cursor_x + 5.0,
+            cursor_y + 7.0,
+            True,
+        )
+
+
 def _install_fake_playwright(monkeypatch: pytest.MonkeyPatch, page: _FakeObservationPage) -> None:
     original_import_module = browser_snapshot_module.import_module
 
     def fake_import_module(name: str) -> object:
         if name == "playwright.sync_api":
             return _FakePlaywrightSyncApi(page)
+        if name == "cloakbrowser.human":
+            return _FakeCloakBrowserHumanModule()
         return original_import_module(name)
 
     monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
@@ -1781,15 +1807,17 @@ def test_targeted_grid_scroll_uses_cloakbrowser_human_layer_without_raw_wheel(
     receipt = result.metadata["post_load_wheel_action"]
     assert receipt["completed"] is True
     assert receipt["input_method"] == (
-        "cloakbrowser.locator.scroll_into_view_if_needed"
+        "cloakbrowser.human.scroll_to_element"
     )
     assert receipt["target_selector"] == "a[href*='/video/123']"
     assert receipt["inter_event_pause_policy"] == (
         "cloakbrowser_careful_randomized_quick_succession"
     )
     assert 437 <= receipt["settle_ms"] <= 463
+    assert receipt["humanized_scroll_performed"] is True
     assert page.mouse.wheels == []
     assert "human_scroll:a[href*='/video/123']" in event_log
+    assert "native_locator_scroll:a[href*='/video/123']" not in event_log
 
 
 def test_targeted_grid_scroll_fails_closed_without_cloakbrowser_human_layer(

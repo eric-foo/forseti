@@ -3078,7 +3078,7 @@ def _run_wheel_action(
         "action_name": action.action_name,
         "direction": action.direction,
         "input_method": (
-            "cloakbrowser.locator.scroll_into_view_if_needed"
+            "cloakbrowser.human.scroll_to_element"
             if humanized_targeted
             else "page.mouse.wheel_burst"
         ),
@@ -3117,15 +3117,28 @@ def _run_wheel_action(
         receipt["inter_event_pause_policy"] = (
             "cloakbrowser_careful_randomized_quick_succession"
         )
-        if not (
-            hasattr(page, "_human_cfg")
-            and hasattr(page, "_human_raw_mouse")
-            and hasattr(page, "_human_cursor")
-        ):
+        human_cfg = getattr(page, "_human_cfg", None)
+        human_raw_mouse = getattr(page, "_human_raw_mouse", None)
+        human_cursor = getattr(page, "_human_cursor", None)
+        if human_cfg is None or human_raw_mouse is None or human_cursor is None:
             raise RuntimeError("cloakbrowser human scroll layer unavailable")
         try:
-            locator = page.locator(action.target_selector).first  # type: ignore[attr-defined]
-            locator.scroll_into_view_if_needed()
+            human_module = import_module("cloakbrowser.human")
+            scroll_to_element = getattr(human_module, "scroll_to_element", None)
+            if not callable(scroll_to_element):
+                raise RuntimeError(
+                    "cloakbrowser direct human scroll primitive unavailable"
+                )
+            _, cursor_x, cursor_y, did_scroll = scroll_to_element(
+                page,
+                human_raw_mouse,
+                action.target_selector,
+                human_cursor.x,
+                human_cursor.y,
+                human_cfg,
+            )
+            human_cursor.x = cursor_x
+            human_cursor.y = cursor_y
             settle_ms = rng.randint(action.settle_ms_min, action.settle_ms_max)
             if settle_ms > 0:
                 page.wait_for_timeout(settle_ms)  # type: ignore[attr-defined]
@@ -3142,6 +3155,7 @@ def _run_wheel_action(
             {
                 "completed": True,
                 "settle_ms": settle_ms,
+                "humanized_scroll_performed": bool(did_scroll),
                 "scroll_y_before": round(scroll_y_before, 3),
                 "scroll_y_after": round(scroll_y_after, 3),
                 "actual_scroll_delta_y_px": round(actual_delta, 3),
