@@ -16,6 +16,7 @@ from source_capture.adapters.direct_http import (
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
+from source_capture.access_gate import detect_login_gate
 from source_capture.block_shell import classify_capture_body
 from source_capture.screening_extraction import extract_screening_fields
 from source_capture.screening_reddit_read import (
@@ -435,33 +436,15 @@ def _post_fetch_login_gate(
     body_text: str,
     route: str,
 ) -> ScreeningReadRefused | None:
-    final_lower = final_url.lower()
-    if any(marker in final_lower for marker in ("/login", "/signin", "/register", "/account")):
-        return ScreeningReadRefused(
-            requested_url=requested_url,
-            route=route,
-            reason="login_redirect",
-            message=f"screening read landed on an auth/account URL: {final_url!r}",
-        )
-    body_lower = body_text.lower()
-    if any(
-        marker in body_lower
-        for marker in (
-            'action="/login"',
-            'action="/signin"',
-            "please log in",
-            "please sign in",
-            "log in to continue",
-            "sign in to continue",
-        )
-    ):
-        return ScreeningReadRefused(
-            requested_url=requested_url,
-            route=route,
-            reason="login_redirect",
-            message="screening read received a login/sign-in page; content is access-gated",
-        )
-    return None
+    detection = detect_login_gate(final_url=final_url, body_text=body_text)
+    if detection is None:
+        return None
+    return ScreeningReadRefused(
+        requested_url=requested_url,
+        route=route,
+        reason="login_redirect",
+        message=f"screening read received an access-gated response: {detection.detail}",
+    )
 
 
 def _headers_from_direct_metadata(result: DirectHttpCaptureSuccess) -> dict[str, str]:

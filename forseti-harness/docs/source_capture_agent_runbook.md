@@ -447,6 +447,30 @@ Use the narrowest runner that matches the supplied input.
 | Retail/PDP anti-blocking capture plus local projection | `run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` | One supplied retailer PDP URL needs a Source Capture Packet and a separate no-network Retail/PDP projection JSON. For the current Amazon/Sephora/Ulta smoke commands, use `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`. |
 | Reddit pre-commercial anti-blocking capture | `run_source_capture_cloakbrowser_packet.py` for one supplied old Reddit/thread URL only | The runner can preserve one supplied browser-visible URL through CloakBrowser; it does not discover Reddit targets, monitor threads, parse/consolidate comments, use credentials, or authorize broad crawling. |
 
+### Conditional Page-Owned Response Observation
+
+When the required signal is absent from static HTML and embedded page state but
+the page obtains it through a page-owned JSON, XHR, Fetch, or GraphQL response,
+use an existing source-specific runner that calls
+`fetch_browser_page_observation_capture(...)`. This is a conditional substrate
+route, not a preflight for every capture and not authority to create a generic
+traffic recorder.
+
+The source-specific route must bind one exact page URL and decision question, a
+narrow `response_url_predicate`, bounded load/click/scroll actions, response
+count and byte caps, and a requested-versus-served subject check. Preserve only
+the response bodies and provenance fields required by that route. Do not
+preserve request headers, cookies, tokens, raw signed URLs, or unrelated page
+traffic. A missing, oversized, ambiguous, access-gated, or subject-mismatched
+response stays a visible capture limitation; it is never an empty-source
+success.
+
+Replay the endpoint through Direct HTTP only after a bounded calibration proves
+that the same source-visible fields and subject binding survive without copied
+credentials, session material, browser-generated signatures, or access-control
+bypass. Otherwise keep the request page-issued and observe its matching
+response inside the entitled or public browser context.
+
 If a supplied URL points directly to a source-meaningful asset, prefer Media /
 Asset. If it points to a page or file whose whole response body is the capture
 target, prefer Direct HTTP. If unclear, stop and ask for the operator's intended

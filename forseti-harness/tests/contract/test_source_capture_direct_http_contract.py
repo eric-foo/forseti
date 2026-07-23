@@ -23,6 +23,7 @@ def test_direct_http_adapter_avoids_browser_api_and_scraper_imports() -> None:
     target_paths = [
         project_root / "source_capture" / "adapters" / "__init__.py",
         project_root / "source_capture" / "adapters" / "direct_http.py",
+        project_root / "source_capture" / "access_gate.py",
         project_root / "runners" / "run_source_capture_http_packet.py",
     ]
 

@@ -23,6 +23,7 @@ from source_capture.adapters.direct_http import (
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
+from source_capture.content_extraction import ContentExtractionSpec
 from source_capture.retail_capture_profiles import get_retail_capture_profile
 
 
@@ -84,6 +85,27 @@ def http_server():
             body=b"",
             headers={
                 "Location": "/ok",
+            },
+        ),
+        "/redirect-login": _RouteResponse(
+            status=302,
+            body=b"",
+            headers={
+                "Location": "/login",
+            },
+        ),
+        "/login": _RouteResponse(
+            status=200,
+            body=b'<html><form action="/login">Sign in to continue</form></html>',
+            headers={
+                "Content-Type": "text/html; charset=utf-8",
+            },
+        ),
+        "/block-shell": _RouteResponse(
+            status=200,
+            body=b"<html><body>You have been blocked by network security.</body></html>",
+            headers={
+                "Content-Type": "text/html; charset=utf-8",
             },
         ),
     }
@@ -444,6 +466,138 @@ def test_http_runner_returns_0_and_marks_non_2xx_limitation(http_server: str, sc
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["access_posture"]["value"].startswith("direct_http access_failed with HTTP 404")
     assert any("access_failed" in item for item in manifest["limitations"])
+
+
+def test_http_runner_preserves_login_redirect_but_marks_access_failed(
+    http_server: str, scratch_dir: Path
+) -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    output_dir = scratch_dir / "login_redirect_packet"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "runners/run_source_capture_http_packet.py",
+            "--url",
+            f"{http_server}/redirect-login",
+            "--decision-question",
+            "Did Direct HTTP preserve source content rather than an access shell?",
+            "--output",
+            str(output_dir),
+        ],
+        cwd=project_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    metadata = json.loads(
+        (output_dir / "raw/02_http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    preserved_body = (output_dir / "raw/01_http_response_body.bin").read_bytes()
+
+    assert "access_failed" in manifest["access_posture"]["value"]
+    assert "login_redirect" in manifest["access_posture"]["value"]
+    assert any(
+        "visible_capture_limitation" in item and "login" in item
+        for item in manifest["limitations"]
+    )
+    assert metadata["final_url"] == f"{http_server}/login"
+    assert b'Sign in to continue' in preserved_body
+
+
+def test_http_runner_marks_2xx_block_shell_as_access_failed(
+    http_server: str, scratch_dir: Path
+) -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    output_dir = scratch_dir / "block_shell_packet"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "runners/run_source_capture_http_packet.py",
+            "--url",
+            f"{http_server}/block-shell",
+            "--decision-question",
+            "Did Direct HTTP preserve source content rather than a block shell?",
+            "--output",
+            str(output_dir),
+        ],
+        cwd=project_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    metadata = json.loads(
+        (output_dir / "raw/02_http_response_metadata.json").read_text(encoding="utf-8")
+    )
+
+    assert "access_failed" in manifest["access_posture"]["value"]
+    assert "block_shell" in manifest["access_posture"]["value"]
+    assert any(
+        "visible_capture_limitation" in item and "block/challenge shell" in item
+        for item in manifest["limitations"]
+    )
+    assert metadata["body_classification"] == "block_shell"
+    assert metadata["body_classification_signal"] == "generic_block"
+
+
+def test_content_mode_does_not_extract_or_discard_login_shell(
+    http_server: str, scratch_dir: Path
+) -> None:
+    output_dir = scratch_dir / "login_content_mode_packet"
+    extractor_called = False
+
+    def extractor(_body_text: str, _final_url: str) -> dict:
+        nonlocal extractor_called
+        extractor_called = True
+        return {"incorrectly_promoted": True}
+
+    exit_code, _ = http_runner.run_source_capture_http_packet(
+        url=f"{http_server}/redirect-login",
+        source_family="web_page",
+        source_surface="direct_http",
+        decision_question="Can a login shell enter content retention?",
+        output_directory=output_dir,
+        capture_context="unit test",
+        operator_category="direct_http_cli_operator",
+        capture_mode=CaptureModeCategory.STRUCTURED_ACCESS,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=5,
+        max_bytes=1024,
+        content_extraction=ContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version="test_v1",
+            extractor=extractor,
+        ),
+    )
+
+    metadata = json.loads(
+        (output_dir / "raw/02_http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert exit_code == 4
+    assert extractor_called is False
+    assert metadata["content_extraction"]["retention_outcome"] == "raw_failure"
+    assert metadata["content_extraction"]["raw_preserved"] is True
+    assert (output_dir / "raw/01_http_response_body.bin").exists()
+    assert not (output_dir / "raw/content_record.json").exists()
+    assert "access_failed" in manifest["access_posture"]["value"]
 
 
 def test_http_runner_sets_demand_durability_series_fields(http_server: str, scratch_dir: Path) -> None:

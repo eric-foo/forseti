@@ -14,6 +14,7 @@ from source_capture.adapters.direct_http import (
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
+from source_capture.access_gate import detect_login_gate
 from source_capture.block_shell import classify_capture_body
 from source_capture.screening_extraction import extract_screening_fields
 
@@ -28,15 +29,6 @@ RATE_CEILING_NOTE = (
     "ToS-bounded; treat as direct-HTTP rung at human rate with backoff. "
     "No scheduler, no crawler, no standing service."
 )
-
-_LOGIN_MARKERS = ("reddit.com/login", "reddit.com/register", "reddit.com/account/login")
-_LOGIN_BODY_MARKERS = (
-    'action="/login"',
-    'action="https://www.reddit.com/login"',
-    'href="/login"',
-    "log in to reddit",
-)
-
 
 @dataclass(frozen=True)
 class RedditScreenLight:
@@ -203,27 +195,17 @@ def _post_fetch_entitlement_gate(
     requested_url: str, result: DirectHttpCaptureSuccess, *, body_text: str
 ) -> RedditScreeningReadRefused | None:
     """Detect login redirects after the fetch; refuse if content was gated at the response level."""
-    final = result.final_url.lower()
-    if any(marker in final for marker in _LOGIN_MARKERS):
-        return RedditScreeningReadRefused(
-            url=requested_url,
-            reason="login_redirect",
-            message=(
-                f"Reddit redirected to a login/register page (final_url={result.final_url!r}); "
-                "content is access-gated. Screen-light refused; no body consumed."
-            ),
-        )
-    body_lower = body_text.lower()
-    if any(marker in body_lower for marker in _LOGIN_BODY_MARKERS):
-        return RedditScreeningReadRefused(
-            url=requested_url,
-            reason="login_redirect",
-            message=(
-                "Reddit served a login/register page without a redirect; "
-                "content is access-gated. Screen-light refused."
-            ),
-        )
-    return None
+    detection = detect_login_gate(final_url=result.final_url, body_text=body_text)
+    if detection is None:
+        return None
+    return RedditScreeningReadRefused(
+        url=requested_url,
+        reason="login_redirect",
+        message=(
+            f"Reddit served an access-gated response ({detection.detail}); "
+            "screen-light refused."
+        ),
+    )
 
 
 def _headers_from_direct_metadata(result: DirectHttpCaptureSuccess) -> dict[str, str]:
