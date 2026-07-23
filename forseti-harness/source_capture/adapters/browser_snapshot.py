@@ -41,6 +41,22 @@ _MAX_SCROLL_PASSES = 40
 
 
 @dataclass(frozen=True)
+class BrowserDelayRange:
+    min_ms: int
+    max_ms: int
+
+
+@dataclass(frozen=True)
+class BrowserPagePointerTargetVariant:
+    variant_name: str
+    candidate_selector: str
+    target_fraction_x_min: float = 0.35
+    target_fraction_x_max: float = 0.65
+    target_fraction_y_min: float = 0.35
+    target_fraction_y_max: float = 0.65
+
+
+@dataclass(frozen=True)
 class BrowserPagePointerAction:
     action_name: str
     candidate_selector: str
@@ -48,6 +64,8 @@ class BrowserPagePointerAction:
     page_text_markers: tuple[str, ...] = ()
     exact_text_markers: tuple[str, ...] = ()
     wait_after_ms: int = 2500
+    wait_after_range: BrowserDelayRange | None = None
+    target_variants: tuple[BrowserPagePointerTargetVariant, ...] = ()
     move_steps_min: int = 6
     move_steps_max: int = 12
     target_fraction_min: float = 0.35
@@ -715,6 +733,7 @@ class _PlaywrightBrowserSnapshotEngine:
         pre_action_stop_markers: Sequence[str] = (),
         pre_action_stop_structural_rules: Sequence[BrowserPageStructuralStopRule] = (),
         require_humanized_state_changes: bool = False,
+        protected_settle_delay_range: BrowserDelayRange | None = None,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -730,6 +749,10 @@ class _PlaywrightBrowserSnapshotEngine:
             for rule in pre_action_stop_structural_rules
         )
         self.require_humanized_state_changes = bool(require_humanized_state_changes)
+        self.protected_settle_delay_range = _normalize_delay_range(
+            protected_settle_delay_range,
+            label="protected_settle_delay_range",
+        )
         self.human_challenge_handoff_markers = tuple(human_challenge_handoff_markers)
         self.human_challenge_handoff_after_action_names = tuple(
             human_challenge_handoff_after_action_names
@@ -923,6 +946,40 @@ class _PlaywrightBrowserSnapshotEngine:
                 raise ValueError(
                     "authenticated humanized session forbids scripted lazy-load scrolling"
                 )
+            pointer_actions = tuple(post_load_pointer_actions)
+            if post_load_pointer_action is not None:
+                pointer_actions = (post_load_pointer_action, *pointer_actions)
+            for pointer_action in pointer_actions:
+                if (
+                    pointer_action.wait_after_range is None
+                    and pointer_action.wait_after_ms > 0
+                ):
+                    raise ValueError(
+                        "authenticated humanized session requires a ranged "
+                        f"post-action wait for {pointer_action.action_name}"
+                    )
+                if (
+                    pointer_action.wait_after_range is not None
+                    and pointer_action.wait_after_range.min_ms
+                    == pointer_action.wait_after_range.max_ms
+                    and pointer_action.wait_after_range.max_ms > 0
+                ):
+                    raise ValueError(
+                        "authenticated humanized session forbids a fixed positive "
+                        f"post-action wait for {pointer_action.action_name}"
+                    )
+            if settle_seconds > 0:
+                if self.protected_settle_delay_range is None:
+                    raise ValueError(
+                        "authenticated humanized session requires a ranged page-settle wait"
+                    )
+                if (
+                    self.protected_settle_delay_range.min_ms
+                    == self.protected_settle_delay_range.max_ms
+                ):
+                    raise ValueError(
+                        "authenticated humanized session forbids a fixed positive page-settle wait"
+                    )
         page_observation_runtime = self._open_page_observation_runtime()
 
         timeout_ms = timeout_seconds * 1000
@@ -973,8 +1030,20 @@ class _PlaywrightBrowserSnapshotEngine:
                         else None,
                     )
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                    settle_wait_receipt: dict[str, object] | None = None
                     if settle_seconds > 0:
-                        page.wait_for_timeout(settle_seconds * 1000)
+                        settle_wait_receipt = _run_delay_range(
+                            page,
+                            delay_range=(
+                                self.protected_settle_delay_range
+                                if self.require_humanized_state_changes
+                                else BrowserDelayRange(
+                                    min_ms=round(settle_seconds * 1000),
+                                    max_ms=round(settle_seconds * 1000),
+                                )
+                            ),
+                            requested_fixed_ms=round(settle_seconds * 1000),
+                        )
 
                     warning_notes: list[str] = []
                     if lazy_load_scroll_passes > _MAX_SCROLL_PASSES:
@@ -1155,6 +1224,7 @@ class _PlaywrightBrowserSnapshotEngine:
                         "timeout_seconds": timeout_seconds,
                         "wait_until": wait_until,
                         "settle_seconds": settle_seconds,
+                        "settle_wait": settle_wait_receipt,
                         "dom_observation_stage": (
                             "post_lazy_load_scroll"
                             if dom_extract_after_lazy_load
@@ -1359,6 +1429,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             BrowserPageStructuralStopRule
         ] = (),
         require_humanized_state_changes: bool = False,
+        protected_settle_delay_range: BrowserDelayRange | None = None,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1370,6 +1441,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             pre_action_stop_markers=pre_action_stop_markers,
             pre_action_stop_structural_rules=pre_action_stop_structural_rules,
             require_humanized_state_changes=require_humanized_state_changes,
+            protected_settle_delay_range=protected_settle_delay_range,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -1438,6 +1510,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         pre_action_stop_markers: Sequence[str] = (),
         pre_action_stop_structural_rules: Sequence[BrowserPageStructuralStopRule] = (),
         require_humanized_state_changes: bool = False,
+        protected_settle_delay_range: BrowserDelayRange | None = None,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1450,6 +1523,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             pre_action_stop_markers=pre_action_stop_markers,
             pre_action_stop_structural_rules=pre_action_stop_structural_rules,
             require_humanized_state_changes=require_humanized_state_changes,
+            protected_settle_delay_range=protected_settle_delay_range,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -2442,6 +2516,63 @@ def _normalize_wheel_action(
     return action
 
 
+def _normalize_delay_range(
+    delay_range: BrowserDelayRange | None,
+    *,
+    label: str,
+) -> BrowserDelayRange | None:
+    if delay_range is None:
+        return None
+    min_ms = int(delay_range.min_ms)
+    max_ms = int(delay_range.max_ms)
+    if min_ms < 0 or max_ms < 0:
+        raise ValueError(f"{label} bounds must be zero or greater")
+    if min_ms > max_ms:
+        raise ValueError(f"{label}.min_ms must be <= max_ms")
+    return BrowserDelayRange(min_ms=min_ms, max_ms=max_ms)
+
+
+def _normalize_pointer_target_variant(
+    variant: BrowserPagePointerTargetVariant,
+) -> BrowserPagePointerTargetVariant:
+    variant_name = variant.variant_name.strip()
+    candidate_selector = variant.candidate_selector.strip()
+    if not variant_name:
+        raise ValueError(
+            "post_load_pointer_action target variant name must not be blank"
+        )
+    if not candidate_selector:
+        raise ValueError(
+            "post_load_pointer_action target variant selector must not be blank"
+        )
+    for label, value in (
+        ("target_fraction_x_min", variant.target_fraction_x_min),
+        ("target_fraction_x_max", variant.target_fraction_x_max),
+        ("target_fraction_y_min", variant.target_fraction_y_min),
+        ("target_fraction_y_max", variant.target_fraction_y_max),
+    ):
+        if not 0.0 <= value <= 1.0:
+            raise ValueError(
+                f"post_load_pointer_action target variant {label} must be between 0 and 1"
+            )
+    if variant.target_fraction_x_min > variant.target_fraction_x_max:
+        raise ValueError(
+            "post_load_pointer_action target variant x min must be <= x max"
+        )
+    if variant.target_fraction_y_min > variant.target_fraction_y_max:
+        raise ValueError(
+            "post_load_pointer_action target variant y min must be <= y max"
+        )
+    return BrowserPagePointerTargetVariant(
+        variant_name=variant_name,
+        candidate_selector=candidate_selector,
+        target_fraction_x_min=variant.target_fraction_x_min,
+        target_fraction_x_max=variant.target_fraction_x_max,
+        target_fraction_y_min=variant.target_fraction_y_min,
+        target_fraction_y_max=variant.target_fraction_y_max,
+    )
+
+
 def _normalize_pointer_action(
     action: BrowserPagePointerAction | None,
 ) -> BrowserPagePointerAction | None:
@@ -2460,6 +2591,15 @@ def _normalize_pointer_action(
     exact_text_markers = tuple(
         marker.strip().lower() for marker in action.exact_text_markers if marker.strip()
     )
+    target_variants = tuple(
+        _normalize_pointer_target_variant(variant)
+        for variant in action.target_variants
+    )
+    variant_names = [variant.variant_name for variant in target_variants]
+    if len(set(variant_names)) != len(variant_names):
+        raise ValueError(
+            "post_load_pointer_action target variant names must be unique"
+        )
     post_click_absent_text_markers = tuple(
         marker.strip().lower()
         for marker in action.post_click_absent_text_markers
@@ -2471,6 +2611,10 @@ def _normalize_pointer_action(
         )
     if action.wait_after_ms < 0:
         raise ValueError("post_load_pointer_action.wait_after_ms must be zero or greater")
+    wait_after_range = _normalize_delay_range(
+        action.wait_after_range,
+        label="post_load_pointer_action.wait_after_range",
+    )
     if action.move_steps_min <= 0 or action.move_steps_max <= 0:
         raise ValueError("post_load_pointer_action move steps must be greater than zero")
     if action.move_steps_min > action.move_steps_max:
@@ -2495,6 +2639,8 @@ def _normalize_pointer_action(
         page_text_markers=page_text_markers,
         exact_text_markers=exact_text_markers,
         wait_after_ms=action.wait_after_ms,
+        wait_after_range=wait_after_range,
+        target_variants=target_variants,
         move_steps_min=action.move_steps_min,
         move_steps_max=action.move_steps_max,
         target_fraction_min=action.target_fraction_min,
@@ -3231,6 +3377,39 @@ def _run_wheel_action(
     return receipt
 
 
+def _run_delay_range(
+    page: object,
+    *,
+    delay_range: BrowserDelayRange,
+    requested_fixed_ms: int | None = None,
+) -> dict[str, object]:
+    planned_wait_ms = random.SystemRandom().randint(
+        delay_range.min_ms,
+        delay_range.max_ms,
+    )
+    wait_started = time.monotonic()
+    if planned_wait_ms > 0:
+        page.wait_for_timeout(planned_wait_ms)
+    actual_wait_elapsed_ms = max(
+        0,
+        round((time.monotonic() - wait_started) * 1000),
+    )
+    receipt: dict[str, object] = {
+        "planned_wait_ms": planned_wait_ms,
+        "actual_wait_elapsed_ms": actual_wait_elapsed_ms,
+        "wait_stop_reason": (
+            "planned_delay_elapsed" if planned_wait_ms > 0 else "no_wait"
+        ),
+        "wait_range": {
+            "min_ms": delay_range.min_ms,
+            "max_ms": delay_range.max_ms,
+        },
+    }
+    if requested_fixed_ms is not None:
+        receipt["requested_fixed_ms"] = requested_fixed_ms
+    return receipt
+
+
 def _run_pointer_action(
     page: object,
     action: BrowserPagePointerAction,
@@ -3251,6 +3430,11 @@ def _run_pointer_action(
     }
     if action.visual_top_right_x_fallback:
         receipt["visual_fallback_attempted"] = False
+    rng = (
+        random.Random(action.random_seed)
+        if action.random_seed is not None
+        else random.SystemRandom()
+    )
 
     def current_observed_response_count() -> int | None:
         if observed_response_count is None:
@@ -3263,25 +3447,57 @@ def _run_pointer_action(
     response_count_before = current_observed_response_count()
     if response_count_before is not None:
         receipt["observed_response_count_before"] = response_count_before
-    try:
-        target = page.evaluate(
-            _POINTER_ACTION_TARGET_SCRIPT,
-            {
-                "candidate_selector": action.candidate_selector,
-                "text_markers": list(action.text_markers),
-                "page_text_markers": list(action.page_text_markers),
-                "exact_text_markers": list(action.exact_text_markers),
-                "prefer_top_right": action.prefer_top_right,
-                "prefer_smallest_match": action.prefer_smallest_match,
-            },
-        )
-    except Exception:
+    target_variants = list(action.target_variants)
+    if target_variants:
+        rng.shuffle(target_variants)
+    else:
+        target_variants = [
+            BrowserPagePointerTargetVariant(
+                variant_name="default",
+                candidate_selector=action.candidate_selector,
+                target_fraction_x_min=action.target_fraction_min,
+                target_fraction_x_max=action.target_fraction_max,
+                target_fraction_y_min=action.target_fraction_min,
+                target_fraction_y_max=action.target_fraction_max,
+            )
+        ]
+    receipt["target_variant_count"] = len(target_variants)
+    receipt["target_variant_attempt_order"] = [
+        variant.variant_name for variant in target_variants
+    ]
+    target: dict[str, object] | None = None
+    selected_variant: BrowserPagePointerTargetVariant | None = None
+    lookup_failed_count = 0
+    for variant in target_variants:
+        try:
+            candidate = page.evaluate(
+                _POINTER_ACTION_TARGET_SCRIPT,
+                {
+                    "candidate_selector": variant.candidate_selector,
+                    "text_markers": list(action.text_markers),
+                    "page_text_markers": list(action.page_text_markers),
+                    "exact_text_markers": list(action.exact_text_markers),
+                    "prefer_top_right": action.prefer_top_right,
+                    "prefer_smallest_match": action.prefer_smallest_match,
+                },
+            )
+        except Exception:
+            lookup_failed_count += 1
+            continue
+        if not isinstance(candidate, dict):
+            lookup_failed_count += 1
+            continue
+        target = candidate
+        if bool(candidate.get("target_found")):
+            selected_variant = variant
+            break
+        if candidate.get("page_text_gate_matched") is False:
+            break
+    if target is None:
         receipt["failure"] = "pointer_action_lookup_failed"
+        receipt["target_variant_lookup_failed_count"] = lookup_failed_count
         return receipt
-
-    if not isinstance(target, dict):
-        receipt["failure"] = "pointer_action_lookup_failed"
-        return receipt
+    receipt["target_variant_lookup_failed_count"] = lookup_failed_count
     receipt["candidate_count"] = _safe_int(target.get("candidate_count"), default=0)
     receipt["matched_count"] = _safe_int(target.get("matched_count"), default=0)
     receipt["target_found"] = bool(target.get("target_found"))
@@ -3343,16 +3559,22 @@ def _run_pointer_action(
         receipt["failure"] = "pointer_action_lookup_failed"
         return receipt
 
-    rng = (
-        random.Random(action.random_seed)
-        if action.random_seed is not None
-        else random.SystemRandom()
-    )
+    if selected_variant is None:
+        target_fraction_x_min = action.target_fraction_min
+        target_fraction_x_max = action.target_fraction_max
+        target_fraction_y_min = action.target_fraction_min
+        target_fraction_y_max = action.target_fraction_max
+    else:
+        receipt["target_variant"] = selected_variant.variant_name
+        target_fraction_x_min = selected_variant.target_fraction_x_min
+        target_fraction_x_max = selected_variant.target_fraction_x_max
+        target_fraction_y_min = selected_variant.target_fraction_y_min
+        target_fraction_y_max = selected_variant.target_fraction_y_max
     click_fraction_x = rng.uniform(
-        action.target_fraction_min, action.target_fraction_max
+        target_fraction_x_min, target_fraction_x_max
     )
     click_fraction_y = rng.uniform(
-        action.target_fraction_min, action.target_fraction_max
+        target_fraction_y_min, target_fraction_y_max
     )
     click_x = x + width * click_fraction_x
     click_y = y + height * click_fraction_y
@@ -3361,39 +3583,62 @@ def _run_pointer_action(
         page.mouse.move(click_x, click_y, steps=move_steps)
         page.mouse.click(click_x, click_y)
         wait_ms = 0
-        if action.wait_after_ms > 0:
+        wait_range = action.wait_after_range or BrowserDelayRange(
+            min_ms=action.wait_after_ms,
+            max_ms=action.wait_after_ms,
+        )
+        planned_wait_ms = rng.randint(wait_range.min_ms, wait_range.max_ms)
+        wait_stop_reason = "no_wait"
+        wait_started = time.monotonic()
+        if planned_wait_ms > 0:
             if action.stop_wait_on_observed_response and observed_response_count is not None:
                 poll_ms = max(
                     1,
-                    min(action.observed_response_wait_poll_ms, action.wait_after_ms),
+                    min(action.observed_response_wait_poll_ms, planned_wait_ms),
                 )
-                while wait_ms < action.wait_after_ms:
+                wait_stop_reason = "planned_delay_elapsed"
+                while wait_ms < planned_wait_ms:
                     current_count = current_observed_response_count()
                     if (
                         response_count_before is not None
                         and current_count is not None
                         and current_count > response_count_before
                     ):
+                        wait_stop_reason = "observed_response"
                         break
-                    step_ms = min(poll_ms, action.wait_after_ms - wait_ms)
+                    step_ms = min(poll_ms, planned_wait_ms - wait_ms)
                     page.wait_for_timeout(step_ms)
                     wait_ms += step_ms
             else:
-                page.wait_for_timeout(action.wait_after_ms)
-                wait_ms = action.wait_after_ms
+                page.wait_for_timeout(planned_wait_ms)
+                wait_ms = planned_wait_ms
+                wait_stop_reason = "planned_delay_elapsed"
+        actual_wait_elapsed_ms = max(
+            0,
+            round((time.monotonic() - wait_started) * 1000),
+        )
     except Exception:
         receipt["failure"] = "pointer_action_click_failed"
         return receipt
     receipt["clicked"] = True
     receipt["move_steps"] = move_steps
     receipt["wait_ms"] = wait_ms
+    receipt["planned_wait_ms"] = planned_wait_ms
+    receipt["actual_wait_elapsed_ms"] = actual_wait_elapsed_ms
+    receipt["wait_stop_reason"] = wait_stop_reason
+    receipt["wait_range"] = {
+        "min_ms": wait_range.min_ms,
+        "max_ms": wait_range.max_ms,
+    }
     receipt["target_geometry_freshly_resolved"] = True
     receipt["target_box_width"] = round(width, 3)
     receipt["target_box_height"] = round(height, 3)
     receipt["click_fraction_x"] = round(click_fraction_x, 6)
     receipt["click_fraction_y"] = round(click_fraction_y, 6)
-    receipt["target_fraction_min"] = action.target_fraction_min
-    receipt["target_fraction_max"] = action.target_fraction_max
+    receipt["target_fraction_x_min"] = target_fraction_x_min
+    receipt["target_fraction_x_max"] = target_fraction_x_max
+    receipt["target_fraction_y_min"] = target_fraction_y_min
+    receipt["target_fraction_y_max"] = target_fraction_y_max
     response_count_after = current_observed_response_count()
     if response_count_after is not None:
         receipt["observed_response_count_after"] = response_count_after

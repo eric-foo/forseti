@@ -304,8 +304,14 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert "div,span,p" in pointer_actions[3].candidate_selector
     assert pointer_actions[3].exact_text_markers == ("more like this", "you may like")
     assert pointer_actions[3].prefer_smallest_match is True
-    assert pointer_actions[2].wait_after_ms == 5000
-    assert pointer_actions[4].wait_after_ms == 5000
+    assert (
+        pointer_actions[2].wait_after_range
+        == live_batch_probe.TIKTOK_STATE_WAIT_5000_DELAY_RANGE
+    )
+    assert (
+        pointer_actions[4].wait_after_range
+        == live_batch_probe.TIKTOK_STATE_WAIT_5000_DELAY_RANGE
+    )
     for action in pointer_actions:
         if action.action_name in {
             TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
