@@ -37,7 +37,10 @@ corrections:
 - treat lawfully available open or paid web information as potentially
   acquirable, with purchase effort governed by how badly the decision needs the
   fact;
-- use the **smallest complete** evidence world, not a universal minimum report;
+- make acquisition **decision-usefully complete**, not compact or constrained
+  by a universal minimum report;
+- apply **smallest complete** discipline to the later decision artifact, after
+  the evidence world is honestly acquired and sealed;
 - include a CSB or Scanning item only for a named decision-material job when no
   equal-or-better included item substitutes for it;
 - continue acquisition only while the best remaining move has a credible chance
@@ -135,13 +138,14 @@ changed the decision.
 
 This distinction prevents hindsight from being presented as intelligence.
 
-## Smallest Complete Evidence World
+## Decision-Useful Complete Evidence World
 
 There is no universal minimum company report and no fixed ranking of company
 data that applies to every decision.
 
-For a named decision, the **smallest complete evidence world** contains every
-fact and evidence family necessary to:
+For a named decision, the **decision-usefully complete evidence world** contains
+every fact and evidence family with a material positive expected contribution
+to understanding the decision, including what is necessary to:
 
 - support the strongest defensible action;
 - expose a counter-case that could reverse or materially resize that action;
@@ -149,11 +153,18 @@ fact and evidence family necessary to:
 - distinguish direct evidence from proxy and inference; and
 - leave a truthful hold when the decision cannot be defended.
 
-It excludes material that merely makes the report feel comprehensive.
+Acquisition continues until those material information jobs are supported,
+contradicted, meaningfully bounded, or honestly blocked/gapped. It excludes
+material that merely makes the report feel comprehensive, but compactness,
+source count, actor count, and token minimization are not acquisition success
+criteria.
 
-`Smallest` controls irrelevant breadth. `Complete` prevents an under-researched
-answer. A smallest-complete evidence world may still be large when the decision
-is consequential or the evidence is conflicted.
+`Complete` prevents an under-researched answer. `Decision-useful` excludes
+irrelevant breadth without turning low cost or short output into a competing
+objective. The later decision artifact applies Smallest Complete Intervention:
+it communicates the narrowest package that fully preserves the decisive
+evidence, counter-case, uncertainty, provenance, reversal conditions, and next
+action.
 
 No numeric source, row, observation, venue, or capture target establishes this
 completeness. Collection targets are search hygiene only. Each included item
@@ -555,7 +566,7 @@ It should first choose one beauty decision family and bind:
 - which facts are expected on open web, paid web, authorized internal data, or
   unavailable;
 - which proxies are admissible and their ceilings;
-- the smallest-complete evidence world;
+- the decision-usefully complete evidence world;
 - the sealed backtest or later reveal path; and
 - the hold condition.
 
@@ -565,8 +576,9 @@ Only then should it commission the Research Engine.
 
 This architecture is functioning when:
 
-1. A cold agent can derive a smallest-complete evidence plan from a named
-   decision without using a generic company-report checklist.
+1. A cold agent can derive a decision-usefully complete evidence plan from a
+   named decision without using a generic company-report checklist or treating
+   compactness as an acquisition target.
 2. The agent can explain exactly why each requested fact may change the action.
 3. Paid access is purchased because a critical fact justifies it, not because
    paid data is presumed superior.
