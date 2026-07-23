@@ -494,6 +494,7 @@ def fetch_fragrance_widget_fallback_responses(
     urls: Sequence[str],
     timeout_seconds: float,
     max_response_bytes: int,
+    use_environment_proxies: bool = True,
 ) -> list[BrowserPageResponse]:
     if timeout_seconds <= 0:
         raise FragranceRenderedWidgetCompanionInputError("timeout_seconds must be greater than zero")
@@ -504,6 +505,7 @@ def fetch_fragrance_widget_fallback_responses(
         urls=urls,
         timeout_seconds=timeout_seconds,
         max_response_bytes=max_response_bytes,
+        use_environment_proxies=use_environment_proxies,
     )
 
 def _rendered_companion_from_observation(observation: BrowserPageObservationSuccess) -> FragranceAboveFoldCompanion:

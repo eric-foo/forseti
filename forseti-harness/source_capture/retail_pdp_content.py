@@ -44,6 +44,13 @@ from source_capture.retail_pdp_projection import (
     build_target_pdp_aggregate_content_record,
     build_ulta_pdp_aggregate_content_record,
 )
+from source_capture.revolve_pdp_content import (
+    REVOLVE_PDP_CONTENT_PROFILE,
+    REVOLVE_PDP_CONTENT_RECORD_KIND,
+    REVOLVE_PDP_PARSER_VERSION,
+    RevolvePdpAggregateContentRecord,
+    build_revolve_pdp_aggregate_content_record,
+)
 
 _RECORD_MODEL_BY_KIND = {
     SEPHORA_PDP_CONTENT_RECORD_KIND: SephoraPdpAggregateContentRecord,
@@ -52,6 +59,7 @@ _RECORD_MODEL_BY_KIND = {
     ULTA_PDP_CONTENT_RECORD_KIND: UltaPdpAggregateContentRecord,
     TARGET_PDP_CONTENT_RECORD_KIND: TargetPdpAggregateContentRecord,
     AMAZON_PDP_CONTENT_RECORD_KIND: AmazonPdpAggregateContentRecord,
+    REVOLVE_PDP_CONTENT_RECORD_KIND: RevolvePdpAggregateContentRecord,
 }
 _EXPECTED_VERSION_BY_PROFILE = {
     SEPHORA_PDP_CONTENT_PROFILE: SEPHORA_PDP_PARSER_VERSION,
@@ -60,6 +68,7 @@ _EXPECTED_VERSION_BY_PROFILE = {
     ULTA_PDP_CONTENT_PROFILE: ULTA_PDP_PARSER_VERSION,
     TARGET_PDP_CONTENT_PROFILE: TARGET_PDP_PARSER_VERSION,
     AMAZON_PDP_CONTENT_PROFILE: AMAZON_PDP_PARSER_VERSION,
+    REVOLVE_PDP_CONTENT_PROFILE: REVOLVE_PDP_PARSER_VERSION,
 }
 _OPTIONAL_LOCAL_FULFILLMENT_PIN_PROFILES = {
     AMAZON_PDP_CONTENT_PROFILE,
@@ -193,6 +202,8 @@ __all__ = [
     "LUCKYSCENT_PDP_PARSER_VERSION",
     "NORDSTROM_PDP_CONTENT_PROFILE",
     "NORDSTROM_PDP_PARSER_VERSION",
+    "REVOLVE_PDP_CONTENT_PROFILE",
+    "REVOLVE_PDP_PARSER_VERSION",
     "SEPHORA_PDP_CONTENT_PROFILE",
     "SEPHORA_PDP_PARSER_VERSION",
     "TARGET_PDP_CONTENT_PROFILE",
@@ -202,6 +213,7 @@ __all__ = [
     "build_amazon_pdp_aggregate_content_record",
     "build_luckyscent_pdp_aggregate_content_record",
     "build_nordstrom_pdp_aggregate_content_record",
+    "build_revolve_pdp_aggregate_content_record",
     "build_sephora_pdp_aggregate_content_record",
     "build_target_pdp_aggregate_content_record",
     "build_ulta_pdp_aggregate_content_record",

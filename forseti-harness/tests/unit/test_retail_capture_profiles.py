@@ -33,6 +33,7 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
         "amazon",
         "luckyscent",
         "nordstrom",
+        "revolve",
         "sephora",
         "ulta",
         "walmart",

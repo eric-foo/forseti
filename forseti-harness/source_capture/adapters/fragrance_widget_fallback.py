@@ -15,7 +15,13 @@ def fetch_fragrance_widget_fallback_responses(
     urls: Sequence[str],
     timeout_seconds: float,
     max_response_bytes: int,
+    use_environment_proxies: bool = True,
 ) -> list[BrowserPageResponse]:
+    opener = (
+        None
+        if use_environment_proxies
+        else urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    )
     responses: list[BrowserPageResponse] = []
     for url in urls:
         responses.append(
@@ -23,6 +29,7 @@ def fetch_fragrance_widget_fallback_responses(
                 url,
                 timeout_seconds=timeout_seconds,
                 max_response_bytes=max_response_bytes,
+                opener=opener,
             )
         )
     return responses
@@ -33,6 +40,7 @@ def fetch_fragrance_widget_fallback_response(
     *,
     timeout_seconds: float,
     max_response_bytes: int,
+    opener: Any | None = None,
 ) -> BrowserPageResponse:
     request = urllib.request.Request(
         url,
@@ -41,8 +49,9 @@ def fetch_fragrance_widget_fallback_response(
             "User-Agent": DEFAULT_WIDGET_FALLBACK_USER_AGENT,
         },
     )
+    open_request = opener.open if opener is not None else urllib.request.urlopen
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        with open_request(request, timeout=timeout_seconds) as response:
             body_text, limitation_notes = _read_response_body_with_cap(
                 response,
                 max_response_bytes=max_response_bytes,

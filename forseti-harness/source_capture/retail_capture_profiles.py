@@ -25,6 +25,14 @@ _TARGET_PRODUCT_ID_IN_PATH = re.compile(r"/-/A-(\d+)(?:[/?]|$)", flags=re.IGNORE
 _TARGET_BRAND_GRID_PATH = re.compile(
     r"^/b/(?P<slug>[^/]+)/-/N-[^/]+/?$", flags=re.IGNORECASE
 )
+_REVOLVE_STYLE_ID_IN_PATH = re.compile(
+    r"/dp/(?P<style_id>[A-Z0-9]{2,12}-[A-Z]{1,4}\d+)(?:[/?]|$)",
+    flags=re.IGNORECASE,
+)
+_REVOLVE_BRAND_GRID_PATH = re.compile(
+    r"^/(?P<slug>[a-z0-9][a-z0-9-]*)/br/(?P<brand_id>[a-f0-9]{6})/?$",
+    flags=re.IGNORECASE,
+)
 
 
 def extract_amazon_asin_from_url(url: str) -> str | None:
@@ -57,6 +65,20 @@ def extract_ulta_product_id_from_url(url: str) -> str | None:
 def extract_target_product_id_from_url(url: str) -> str | None:
     match = _TARGET_PRODUCT_ID_IN_PATH.search(urlparse(url).path)
     return match.group(1) if match else None
+
+
+def extract_revolve_style_id_from_url(url: str) -> str | None:
+    match = _REVOLVE_STYLE_ID_IN_PATH.search(urlparse(url).path)
+    return match.group("style_id").upper() if match else None
+
+
+def extract_revolve_grid_subject_from_url(
+    url: str,
+) -> tuple[str, str] | None:
+    match = _REVOLVE_BRAND_GRID_PATH.fullmatch(urlparse(url).path)
+    if match is None:
+        return None
+    return match.group("slug").lower(), match.group("brand_id").lower()
 
 
 def extract_target_search_query_from_url(url: str) -> str | None:
@@ -151,6 +173,8 @@ class RetailCaptureProfile:
     derive_target_target_product_id_from_url: bool = False
     derive_target_target_search_query_from_url: bool = False
     derive_target_target_grid_subject_from_url: bool = False
+    derive_target_revolve_style_id_from_url: bool = False
+    derive_target_revolve_grid_subject_from_url: bool = False
 
     def requirements_for_capture(self, *, url: str) -> SourceDetailSufficiencyRequirements:
         """Sufficiency requirements for one capture, with any per-target identity resolved.
@@ -286,6 +310,36 @@ class RetailCaptureProfile:
                     visible_text_regexes=(visible_pattern,),
                 ),
             )
+        if self.derive_target_revolve_style_id_from_url:
+            style_id = extract_revolve_style_id_from_url(url)
+            if style_id is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a REVOLVE style "
+                    f"id in --url (expected .../dp/<style-id>); got {url!r}"
+                )
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(_exact_identity_regex(style_id),)
+                ),
+            )
+        if self.derive_target_revolve_grid_subject_from_url:
+            subject = extract_revolve_grid_subject_from_url(url)
+            if subject is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires a REVOLVE "
+                    f"/<brand>/br/<brand-id> URL; got {url!r}"
+                )
+            slug, brand_id = subject
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(
+                        _exact_identity_regex(brand_id),
+                        _target_brand_visible_text_regex(slug),
+                    )
+                ),
+            )
         return self.requirements
 
     def target_product_identity_from_url(self, *, url: str) -> str | None:
@@ -300,6 +354,8 @@ class RetailCaptureProfile:
             return extract_ulta_product_id_from_url(url)
         if self.derive_target_target_product_id_from_url:
             return extract_target_product_id_from_url(url)
+        if self.derive_target_revolve_style_id_from_url:
+            return extract_revolve_style_id_from_url(url)
         return None
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
@@ -676,6 +732,62 @@ _PROFILES = {
                     "Shipping",
                 ),
                 visible_text_regexes=(r"(?s)5 stars.*4 stars.*3 stars.*2 stars.*1 star",),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="revolve_grid_aggregate",
+            retailer="revolve",
+            page_kind="grid_aggregate",
+            hostname="www.revolve.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=5.0,
+            scroll_passes=1,
+            scroll_step_px=900,
+            requirements_define_scroll_stop=False,
+            derive_target_revolve_grid_subject_from_url=True,
+            requirements=_requirements(
+                visible_text_regexes=(
+                    r"\$\d+(?:\.\d{2})?",
+                ),
+                rendered_dom_contains=(
+                    "plp__product",
+                    "Country Preference: US",
+                    "$USD",
+                ),
+                rendered_dom_regexes=(
+                    r"\d[\d,]*\s+Items?",
+                    r'data-yotpo-product-id=["\'][A-Za-z0-9_-]+["\']',
+                ),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="revolve_pdp_aggregate",
+            retailer="revolve",
+            page_kind="pdp_aggregate",
+            hostname="www.revolve.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=5.0,
+            scroll_passes=1,
+            scroll_step_px=900,
+            derive_target_revolve_style_id_from_url=True,
+            requirements=_requirements(
+                visible_text_contains=("Revolve Style No.",),
+                visible_text_regexes=(
+                    r"\$\d+(?:\.\d{2})?",
+                ),
+                rendered_dom_contains=(
+                    "Country Preference: US",
+                    "$USD",
+                    "cdn-widgetsrepository.yotpo.com/v1/loader/",
+                ),
+                rendered_dom_regexes=(
+                    r'data-yotpo-currency=["\']USD["\']',
+                    r'"priceCurrency"\s*:\s*"USD"',
+                ),
             ),
         ),
         RetailCaptureProfile(
