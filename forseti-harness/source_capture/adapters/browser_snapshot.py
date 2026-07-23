@@ -80,7 +80,17 @@ class BrowserPageWheelAction:
     settle_ms_max: int = 800
     cursor_fraction_min: float = 0.30
     cursor_fraction_max: float = 0.70
+    target_selector: str | None = None
     random_seed: int | None = None
+
+
+@dataclass(frozen=True)
+class BrowserPageStructuralStopRule:
+    rule_name: str
+    candidate_selector: str
+    exact_text_markers: tuple[str, ...] = ()
+    href_substrings: tuple[str, ...] = ()
+    stop_kind: str = "account_safety_stop"
 
 
 class BrowserSnapshotFailureKind(StrEnum):
@@ -703,6 +713,8 @@ class _PlaywrightBrowserSnapshotEngine:
         browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
         cloakbrowser_humanize: bool = False,
         pre_action_stop_markers: Sequence[str] = (),
+        pre_action_stop_structural_rules: Sequence[BrowserPageStructuralStopRule] = (),
+        require_humanized_state_changes: bool = False,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -713,6 +725,11 @@ class _PlaywrightBrowserSnapshotEngine:
         self.pre_action_stop_markers = tuple(
             marker.strip().lower() for marker in pre_action_stop_markers if marker.strip()
         )
+        self.pre_action_stop_structural_rules = tuple(
+            _normalize_structural_stop_rule(rule)
+            for rule in pre_action_stop_structural_rules
+        )
+        self.require_humanized_state_changes = bool(require_humanized_state_changes)
         self.human_challenge_handoff_markers = tuple(human_challenge_handoff_markers)
         self.human_challenge_handoff_after_action_names = tuple(
             human_challenge_handoff_after_action_names
@@ -890,6 +907,22 @@ class _PlaywrightBrowserSnapshotEngine:
         force_same_url_reload: bool = False,
     ) -> BrowserPageObservationSuccess:
         del force_same_url_reload
+        if self.require_humanized_state_changes:
+            if post_load_action_script is not None:
+                raise ValueError(
+                    "authenticated humanized session forbids post_load_action_script"
+                )
+            if (
+                post_load_wheel_action is not None
+                and post_load_wheel_action.target_selector is None
+            ):
+                raise ValueError(
+                    "authenticated humanized session forbids untargeted raw wheel input"
+                )
+            if lazy_load_scroll_passes > 0:
+                raise ValueError(
+                    "authenticated humanized session forbids scripted lazy-load scrolling"
+                )
         page_observation_runtime = self._open_page_observation_runtime()
 
         timeout_ms = timeout_seconds * 1000
@@ -965,6 +998,7 @@ class _PlaywrightBrowserSnapshotEngine:
                         receipt = _pre_action_stop_marker_receipt(
                             page,
                             markers=self.pre_action_stop_markers,
+                            structural_rules=self.pre_action_stop_structural_rules,
                             after_action_name=after_action_name,
                         )
                         if receipt is None:
@@ -1019,8 +1053,15 @@ class _PlaywrightBrowserSnapshotEngine:
                             wheel_action_receipt = _run_wheel_action(
                                 page, post_load_wheel_action
                             )
+                            if maybe_stop_before_action(
+                                post_load_wheel_action.action_name
+                            ):
+                                pointer_actions_suppressed = True
                         observed_response_count = lambda: len(selected_responses)
-                        if post_load_pointer_action is not None:
+                        if (
+                            not pointer_actions_suppressed
+                            and post_load_pointer_action is not None
+                        ):
                             pointer_action_receipt = _run_pointer_action(
                                 page,
                                 post_load_pointer_action,
@@ -1031,7 +1072,11 @@ class _PlaywrightBrowserSnapshotEngine:
                                 maybe_stop_before_action(post_load_pointer_action.action_name)
                                 or maybe_run_handoff(post_load_pointer_action.action_name)
                             )
-                        for pointer_action in post_load_pointer_actions:
+                        for pointer_action in (
+                            post_load_pointer_actions
+                            if not pointer_actions_suppressed
+                            else ()
+                        ):
                             pointer_action_receipt = _run_pointer_action(
                                 page,
                                 pointer_action,
@@ -1145,6 +1190,9 @@ class _PlaywrightBrowserSnapshotEngine:
                         ),
                         "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
                         "pre_action_stop_marker_count": len(self.pre_action_stop_markers),
+                        "pre_action_stop_structural_rule_count": len(
+                            self.pre_action_stop_structural_rules
+                        ),
                         "pre_action_stop_attempts": pre_action_stop_receipts,
                         "pointer_actions_suppressed_by_pre_action_stop": bool(
                             pre_action_stop_receipts
@@ -1307,6 +1355,10 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         *,
         cloakbrowser_humanize: bool = False,
         pre_action_stop_markers: Sequence[str] = (),
+        pre_action_stop_structural_rules: Sequence[
+            BrowserPageStructuralStopRule
+        ] = (),
+        require_humanized_state_changes: bool = False,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1316,6 +1368,8 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             browser_backend=BROWSER_BACKEND_CLOAKBROWSER,
             cloakbrowser_humanize=cloakbrowser_humanize,
             pre_action_stop_markers=pre_action_stop_markers,
+            pre_action_stop_structural_rules=pre_action_stop_structural_rules,
+            require_humanized_state_changes=require_humanized_state_changes,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -1382,6 +1436,8 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         *,
         cdp_endpoint: str = "http://127.0.0.1:9222",
         pre_action_stop_markers: Sequence[str] = (),
+        pre_action_stop_structural_rules: Sequence[BrowserPageStructuralStopRule] = (),
+        require_humanized_state_changes: bool = False,
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1392,6 +1448,8 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         super().__init__(
             cloakbrowser_humanize=False,
             pre_action_stop_markers=pre_action_stop_markers,
+            pre_action_stop_structural_rules=pre_action_stop_structural_rules,
+            require_humanized_state_changes=require_humanized_state_changes,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -2227,6 +2285,91 @@ _PAGE_TEXT_MARKER_ABSENCE_SCRIPT = r"""
 }
 """.strip()
 
+_STRUCTURAL_STOP_RULE_MATCH_SCRIPT = r"""
+(arg) => {
+  const visible = (node) => {
+    if (!node) return false;
+    const rect = node.getBoundingClientRect();
+    const style = window.getComputedStyle(node);
+    return Boolean(
+      rect &&
+      rect.width > 0 &&
+      rect.height > 0 &&
+      style.visibility !== 'hidden' &&
+      style.display !== 'none'
+    );
+  };
+  const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const exactTextMarkers = Array.isArray(arg.exact_text_markers)
+    ? arg.exact_text_markers.map(normalize).filter(Boolean)
+    : [];
+  const hrefSubstrings = Array.isArray(arg.href_substrings)
+    ? arg.href_substrings.map(normalize).filter(Boolean)
+    : [];
+  for (const node of Array.from(document.querySelectorAll(arg.candidate_selector))) {
+    if (!visible(node)) continue;
+    const text = normalize(node.innerText || node.textContent || node.getAttribute('aria-label'));
+    const href = normalize(node.href || node.getAttribute('href'));
+    const matchedText = exactTextMarkers.find((marker) => text === marker) || null;
+    const matchedHref = hrefSubstrings.find((marker) => href.includes(marker)) || null;
+    if (matchedText || matchedHref) {
+      return {
+        checked: true,
+        matched: true,
+        matched_marker: matchedText || matchedHref,
+        match_source: matchedText ? 'exact_visible_text' : 'visible_href',
+      };
+    }
+  }
+  return {
+    checked: true,
+    matched: false,
+    matched_marker: null,
+    match_source: null,
+  };
+}
+""".strip()
+
+
+def _normalize_structural_stop_rule(
+    rule: BrowserPageStructuralStopRule,
+) -> BrowserPageStructuralStopRule:
+    if not isinstance(rule, BrowserPageStructuralStopRule):
+        raise ValueError(
+            "pre_action_stop_structural_rules must contain "
+            "BrowserPageStructuralStopRule values"
+        )
+    rule_name = rule.rule_name.strip()
+    candidate_selector = rule.candidate_selector.strip()
+    stop_kind = rule.stop_kind.strip()
+    if not rule_name:
+        raise ValueError("structural stop rule_name must not be blank")
+    if not candidate_selector:
+        raise ValueError("structural stop candidate_selector must not be blank")
+    if not stop_kind:
+        raise ValueError("structural stop stop_kind must not be blank")
+    exact_text_markers = tuple(
+        marker.strip().lower()
+        for marker in rule.exact_text_markers
+        if marker.strip()
+    )
+    href_substrings = tuple(
+        marker.strip().lower()
+        for marker in rule.href_substrings
+        if marker.strip()
+    )
+    if not exact_text_markers and not href_substrings:
+        raise ValueError(
+            "structural stop rule requires exact_text_markers or href_substrings"
+        )
+    return BrowserPageStructuralStopRule(
+        rule_name=rule_name,
+        candidate_selector=candidate_selector,
+        exact_text_markers=exact_text_markers,
+        href_substrings=href_substrings,
+        stop_kind=stop_kind,
+    )
+
 
 def _normalize_wheel_action(
     action: BrowserPageWheelAction | None,
@@ -2239,6 +2382,10 @@ def _normalize_wheel_action(
         raise ValueError("post_load_wheel_action.action_name must not be blank")
     if action.direction not in {"up", "down"}:
         raise ValueError("post_load_wheel_action.direction must be up or down")
+    if action.target_selector is not None and not action.target_selector.strip():
+        raise ValueError(
+            "post_load_wheel_action.target_selector must not be blank"
+        )
     for field_name, value in (
         ("viewport_fraction_min", action.viewport_fraction_min),
         ("viewport_fraction_max", action.viewport_fraction_max),
@@ -2789,29 +2936,51 @@ def _pre_action_stop_marker_receipt(
     page: object,
     *,
     markers: Sequence[str],
+    structural_rules: Sequence[BrowserPageStructuralStopRule] = (),
     after_action_name: str,
 ) -> dict[str, object] | None:
     if not markers:
-        return None
-    match = _page_text_marker_match_result(page, markers)
+        match: dict[str, object] = {"matched": False, "marker_count": 0}
+    else:
+        match = _page_text_marker_match_result(page, markers)
+        if match.get("matched") is not True:
+            current_url = str(getattr(page, "url", "")).lower()
+            url_marker = next(
+                (
+                    marker
+                    for marker in markers
+                    if marker.startswith("/") and marker in current_url
+                ),
+                None,
+            )
+            if url_marker is not None:
+                match = {
+                    "matched": True,
+                    "matched_marker": url_marker,
+                    "marker_count": len(markers),
+                    "match_source": "current_url",
+                }
+    matched_rule: BrowserPageStructuralStopRule | None = None
     if match.get("matched") is not True:
-        current_url = str(getattr(page, "url", "")).lower()
-        url_marker = next(
-            (
-                marker
-                for marker in markers
-                if marker.startswith("/") and marker in current_url
-            ),
-            None,
-        )
-        if url_marker is None:
-            return None
-        match = {
-            "matched": True,
-            "matched_marker": url_marker,
-            "marker_count": len(markers),
-        }
-    return {
+        for rule in structural_rules:
+            structural_match = page.evaluate(  # type: ignore[attr-defined]
+                _STRUCTURAL_STOP_RULE_MATCH_SCRIPT,
+                {
+                    "candidate_selector": rule.candidate_selector,
+                    "exact_text_markers": list(rule.exact_text_markers),
+                    "href_substrings": list(rule.href_substrings),
+                },
+            )
+            if (
+                isinstance(structural_match, dict)
+                and structural_match.get("matched") is True
+            ):
+                match = structural_match
+                matched_rule = rule
+                break
+    if match.get("matched") is not True:
+        return None
+    receipt: dict[str, object] = {
         "action_name": "pre_action_terminal_stop_v0",
         "action_mode": "account_safety_circuit_breaker",
         "action_taken": False,
@@ -2821,6 +2990,15 @@ def _pre_action_stop_marker_receipt(
         "scripted_actions_suppressed": True,
         "automatic_retry_allowed": False,
     }
+    match_source = match.get("match_source")
+    if isinstance(match_source, str) and match_source:
+        receipt["match_source"] = match_source
+    if matched_rule is not None:
+        receipt["structural_rule_name"] = matched_rule.rule_name
+        receipt["stop_kind"] = matched_rule.stop_kind
+    elif match.get("matched_marker") in {"log in to comment", "/login"}:
+        receipt["stop_kind"] = "logged_out_session"
+    return receipt
 
 
 def _run_human_challenge_handoff(
@@ -2895,12 +3073,17 @@ def _run_wheel_action(
     page: object,
     action: BrowserPageWheelAction,
 ) -> dict[str, object]:
+    humanized_targeted = action.target_selector is not None
     receipt: dict[str, object] = {
         "action_name": action.action_name,
         "direction": action.direction,
-        "input_method": "page.mouse.wheel_burst",
+        "input_method": (
+            "cloakbrowser.human.scroll_to_element"
+            if humanized_targeted
+            else "page.mouse.wheel_burst"
+        ),
         "cloakbrowser_pointer_layer_applies_to_cursor_move": True,
-        "cloakbrowser_pointer_layer_applies_to_wheel_burst": False,
+        "cloakbrowser_human_scroll_applies": humanized_targeted,
         "completed": False,
     }
     try:
@@ -2928,6 +3111,63 @@ def _run_wheel_action(
     )
     distance_px = max(1, round(viewport_height * viewport_fraction))
     direction_sign = -1 if action.direction == "up" else 1
+    if humanized_targeted:
+        assert action.target_selector is not None
+        receipt["target_selector"] = action.target_selector
+        receipt["inter_event_pause_policy"] = (
+            "cloakbrowser_careful_randomized_quick_succession"
+        )
+        human_cfg = getattr(page, "_human_cfg", None)
+        human_raw_mouse = getattr(page, "_human_raw_mouse", None)
+        human_cursor = getattr(page, "_human_cursor", None)
+        if human_cfg is None or human_raw_mouse is None or human_cursor is None:
+            raise RuntimeError("cloakbrowser human scroll layer unavailable")
+        try:
+            human_module = import_module("cloakbrowser.human")
+            scroll_to_element = getattr(human_module, "scroll_to_element", None)
+            if not callable(scroll_to_element):
+                raise RuntimeError(
+                    "cloakbrowser direct human scroll primitive unavailable"
+                )
+            _, cursor_x, cursor_y, did_scroll = scroll_to_element(
+                page,
+                human_raw_mouse,
+                action.target_selector,
+                human_cursor.x,
+                human_cursor.y,
+                human_cfg,
+            )
+            human_cursor.x = cursor_x
+            human_cursor.y = cursor_y
+            settle_ms = rng.randint(action.settle_ms_min, action.settle_ms_max)
+            if settle_ms > 0:
+                page.wait_for_timeout(settle_ms)  # type: ignore[attr-defined]
+            after = page.evaluate(  # type: ignore[attr-defined]
+                "() => ({scroll_y: Math.max(0, window.scrollY || 0)})"
+            )
+            if not isinstance(after, dict):
+                raise ValueError("humanized scroll post-action observation was not an object")
+            scroll_y_after = max(0.0, float(after["scroll_y"]))
+        except Exception as exc:
+            raise RuntimeError("cloakbrowser human scroll action failed") from exc
+        actual_delta = scroll_y_after - scroll_y_before
+        receipt.update(
+            {
+                "completed": True,
+                "settle_ms": settle_ms,
+                "humanized_scroll_performed": bool(did_scroll),
+                "scroll_y_before": round(scroll_y_before, 3),
+                "scroll_y_after": round(scroll_y_after, 3),
+                "actual_scroll_delta_y_px": round(actual_delta, 3),
+                "direction_matched": (
+                    actual_delta == 0
+                    or (actual_delta > 0 and action.direction == "down")
+                    or (actual_delta < 0 and action.direction == "up")
+                ),
+            }
+        )
+        return receipt
+
     cursor_fraction_x = rng.uniform(
         action.cursor_fraction_min, action.cursor_fraction_max
     )

@@ -35,7 +35,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPageWheelAction,
     BrowserSnapshotFailure,
     ChromeCdpPageObservationSessionEngine,
-    fetch_browser_page_observation_capture,
+    fetch_browser_page_observation_capture as _fetch_browser_page_observation_capture,
 )
 from source_capture.auth_state import validate_auth_state_provenance_requirement
 from source_capture.browser_user_data import browser_user_data_path_for_label
@@ -52,6 +52,7 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TIKTOK_CHALLENGE_TEXT_MARKERS,
     TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+    TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE,
     TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
     TIKTOK_LIVE_BATCH_GRID_JSON_NAME,
     TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
@@ -790,6 +791,23 @@ class TikTokCreatorOnboardingError(RuntimeError):
     """Raised when supervised onboarding cannot produce trustworthy completion."""
 
 
+def fetch_browser_page_observation_capture(
+    **kwargs: object,
+) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
+    capture = _fetch_browser_page_observation_capture(**kwargs)  # type: ignore[arg-type]
+    if isinstance(capture, BrowserPageObservationSuccess):
+        attempts = capture.metadata.get("pre_action_stop_attempts")
+        for attempt in attempts if isinstance(attempts, list) else ():
+            if not isinstance(attempt, dict):
+                continue
+            if (
+                attempt.get("stop_kind") == "logged_out_session"
+                or attempt.get("matched_marker") in {"log in to comment", "/login"}
+            ):
+                raise TikTokCreatorOnboardingError("logged_out_session")
+    return capture
+
+
 class TikTokCreatorMarketDeferred(TikTokCreatorOnboardingError):
     """Raised after the same-read profile market gate records a reversible defer."""
 
@@ -1210,6 +1228,8 @@ def _acquire_or_reuse_observation_engine(
         )
     return ChromeCdpPageObservationSessionEngine(
         pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
+        pre_action_stop_structural_rules=(TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE,),
+        require_humanized_state_changes=True,
         human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         human_challenge_handoff_timeout_seconds=180.0,
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
@@ -2061,7 +2081,9 @@ def _run_grid_overlay_deep_capture_phase(
         "direct_video_navigation_count": 0,
         "targeted_tile_scroll_performed": False,
         "grid_pagination_allowed": True,
-        "grid_pagination_input_method": "mouse_wheel_burst",
+        "grid_pagination_input_method": (
+            "cloakbrowser.human.scroll_to_element"
+        ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
         "tile_click_target_policy": "link_routed_video_count_footer",
@@ -2662,6 +2684,11 @@ class _GridOverlayCaptureSequence:
             ) + 1
             direction = self._pagination_direction(pending_video_ids)
             self.last_pagination_direction = direction
+            target_video_id = self._pagination_target_video_id(
+                pending_video_ids,
+                direction=direction,
+            )
+            self.receipt["targeted_tile_scroll_performed"] = True
             capture = _capture_visible_selected_grid_tiles(
                 profile_url=self.profile_url,
                 creator_handle=self.creator_handle,
@@ -2671,6 +2698,7 @@ class _GridOverlayCaptureSequence:
                 settle_seconds=self.settle_seconds,
                 engine=self.engine,
                 pagination_direction=direction,
+                pagination_target_video_id=target_video_id,
             )
             self.receipt["grid_pagination_passes_executed"] = total_pass_number
             pagination_passes = self.receipt["grid_pagination_passes"]
@@ -2679,6 +2707,7 @@ class _GridOverlayCaptureSequence:
                 "lookup_pass_number": lookup_pass_number,
                 "total_pass_number": total_pass_number,
                 "direction": direction,
+                "target_video_id": target_video_id,
                 "wheel_action_or_none": None,
             }
             if isinstance(capture, BrowserSnapshotFailure):
@@ -2737,7 +2766,8 @@ class _GridOverlayCaptureSequence:
             previous_fingerprint = current_fingerprint
             pass_receipt["consecutive_no_progress_passes"] = consecutive_no_progress
             if consecutive_no_progress >= GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT:
-                # The grid is not advancing under bounded wheel input from its
+                # The grid is not advancing under bounded humanized target scroll
+                # input from its
                 # fresh state; stop rather than spend the rest of the budget on
                 # no-value wheel actions. Fail loud via the empty return; no
                 # wait is taken here (doctrine reserves the 60-second wait for a
@@ -2836,6 +2866,37 @@ class _GridOverlayCaptureSequence:
             if self.last_pagination_direction is not None:
                 return self.last_pagination_direction
         return "up" if float(self.last_grid_view.get("scroll_y") or 0) > 0 else "down"
+
+    def _pagination_target_video_id(
+        self,
+        pending_video_ids: Sequence[str],
+        *,
+        direction: str,
+    ) -> str:
+        positioned = sorted(
+            (
+                int(self.window_by_id[video_id]["grid_position"]),
+                video_id,
+            )
+            for video_id in pending_video_ids
+            if video_id in self.window_by_id
+            and self.window_by_id[video_id].get("grid_position") is not None
+        )
+        if not positioned:
+            raise TikTokCreatorOnboardingError(
+                "pending selected tiles lack frozen logical grid positions"
+            )
+        visible_min = self.last_grid_view.get("visible_grid_position_min_or_none")
+        visible_max = self.last_grid_view.get("visible_grid_position_max_or_none")
+        if direction == "down" and isinstance(visible_max, (int, float)):
+            below = [row for row in positioned if row[0] > visible_max]
+            if below:
+                return str(below[0][1])
+        if direction == "up" and isinstance(visible_min, (int, float)):
+            above = [row for row in positioned if row[0] < visible_min]
+            if above:
+                return str(above[-1][1])
+        return str(positioned[-1 if direction == "down" else 0][1])
 
     def _close_current_overlay(
         self, pending_video_ids: Sequence[str]
@@ -2939,9 +3000,14 @@ def _capture_visible_selected_grid_tiles(
     settle_seconds: float,
     engine: BrowserPageObservationEngine,
     pagination_direction: str | None = None,
+    pagination_target_video_id: str | None = None,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
     if pagination_direction not in {None, "up", "down"}:
         raise ValueError("pagination_direction must be up, down, or None")
+    if (pagination_direction is None) != (pagination_target_video_id is None):
+        raise ValueError(
+            "pagination direction and target video id must be configured together"
+        )
     return fetch_browser_page_observation_capture(
         url=profile_url,
         dom_extract_script=TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT,
@@ -2952,13 +3018,16 @@ def _capture_visible_selected_grid_tiles(
         response_url_predicate=lambda _: False,
         post_load_wheel_action=(
             BrowserPageWheelAction(
-                action_name="tiktok_grid_mouse_wheel_pagination_v0",
+                action_name="tiktok_grid_humanized_target_scroll_v0",
                 direction=pagination_direction,
                 viewport_fraction_min=(
                     GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MIN
                 ),
                 viewport_fraction_max=(
                     GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MAX
+                ),
+                target_selector=(
+                    f"a[href*='/video/{pagination_target_video_id}']"
                 ),
             )
             if pagination_direction is not None
@@ -3194,12 +3263,19 @@ def capture_tiktok_creator_grid(
     wheel_burst_count = 0
     if not initial_window_sufficient or not initial_metrics_sufficient:
         for _ in range(GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP):
+            if not prior_ids:
+                raise TikTokCreatorOnboardingError(
+                    "one grid DOM batch did not produce the minimum usable window; "
+                    "humanized target scroll requires a loaded video anchor"
+                )
+            target_video_id = prior_ids[-1]
             wheel_capture = observe(
                 wheel_action=BrowserPageWheelAction(
-                    action_name="tiktok_grid_one_dom_batch_reveal_v0",
+                    action_name="tiktok_grid_one_dom_batch_humanized_reveal_v0",
                     direction="down",
                     viewport_fraction_min=GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MIN,
                     viewport_fraction_max=GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MAX,
+                    target_selector=f"a[href*='/video/{target_video_id}']",
                 )
             )
             wheel_burst_count += 1
@@ -3232,10 +3308,10 @@ def capture_tiktok_creator_grid(
             if initial_window_sufficient:
                 raise TikTokCreatorOnboardingError(
                     "grid engagement metrics remained incomplete after bounded "
-                    "item-list pagination"
+                    "humanized item-list pagination"
                 )
             raise TikTokCreatorOnboardingError(
-                "no new grid DOM batch appeared within bounded adaptive wheel bursts"
+                "no new grid DOM batch appeared within bounded humanized target scrolls"
             )
 
     stable_poll_count = 0
@@ -3256,7 +3332,7 @@ def capture_tiktok_creator_grid(
             break
     if stable_poll_count < GRID_ACQUISITION_STABILITY_POLL_TARGET:
         raise TikTokCreatorOnboardingError(
-            "grid DOM did not stabilize after one bounded batch-reveal wheel"
+            "grid DOM did not stabilize after one bounded humanized batch reveal"
         )
 
     final = captures[-1]

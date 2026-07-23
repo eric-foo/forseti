@@ -19,6 +19,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextResponsesSuccess,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
+    BrowserPageStructuralStopRule,
     BrowserPageWheelAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
@@ -151,12 +152,25 @@ class _FakeObservationResponse:
 
 
 class _FakeObservationLocator:
-    def __init__(self, event_log: list[str]) -> None:
-        self.event_log = event_log
+    def __init__(self, page: "_FakeObservationPage", selector: str) -> None:
+        self.page = page
+        self.event_log = page.event_log
+        self.selector = selector
+
+    @property
+    def first(self) -> "_FakeObservationLocator":
+        return self
 
     def inner_text(self, *, timeout: float) -> str:
         self.event_log.append("inner_text")
         return "before scroll"
+
+    def scroll_into_view_if_needed(self) -> None:
+        self.event_log.append(f"native_locator_scroll:{self.selector}")
+        self.page.scroll_y = max(
+            0.0,
+            self.page.scroll_y + self.page.human_scroll_delta,
+        )
 
 
 class _FakeObservationMouse:
@@ -193,6 +207,9 @@ class _FakeObservationPage:
         screenshot_pngs: list[bytes] | None = None,
         post_click_absence_result: dict[str, object] | None = None,
         marker_match_results: list[dict[str, object]] | None = None,
+        structural_stop_results: list[dict[str, object]] | None = None,
+        humanized: bool = False,
+        human_scroll_delta: float = 350.0,
         response_url: str = "https://api.example.test/widget",
         response_method: str = "GET",
         response_resource_type: str = "fetch",
@@ -218,7 +235,17 @@ class _FakeObservationPage:
             "matched_marker": None,
         }
         self.marker_match_results = list(marker_match_results or [])
+        self.structural_stop_results = list(structural_stop_results or [])
+        self.human_scroll_delta = human_scroll_delta
         self.mouse = _FakeObservationMouse(self)
+        if humanized:
+            self._human_cfg = object()
+            self._human_raw_mouse = object()
+            self._human_cursor = type(
+                "_FakeHumanCursor",
+                (),
+                {"x": 100.0, "y": 100.0},
+            )()
 
     def route(self, pattern: str, handler: object) -> None:
         self.route_bindings.append((pattern, handler))
@@ -267,10 +294,19 @@ class _FakeObservationPage:
             self.response_emitted = True
 
     def locator(self, selector: str) -> _FakeObservationLocator:
-        assert selector == "body"
-        return _FakeObservationLocator(self.event_log)
+        return _FakeObservationLocator(self, selector)
 
     def evaluate(self, script: str, arg: object | None = None) -> object:
+        if "hrefSubstrings" in script:
+            self.event_log.append("structural_stop_lookup")
+            if self.structural_stop_results:
+                return self.structural_stop_results.pop(0)
+            return {
+                "checked": True,
+                "matched": False,
+                "matched_marker": None,
+                "match_source": None,
+            }
         if "viewport_width" in script and "viewport_height" in script:
             self.event_log.append("wheel_viewport_lookup")
             return {
@@ -388,12 +424,34 @@ class _FakeCloakBrowserModule:
         return _FakeObservationBrowser(self.page)
 
 
+class _FakeCloakBrowserHumanModule:
+    @staticmethod
+    def scroll_to_element(
+        page: _FakeObservationPage,
+        _raw_mouse: object,
+        selector: str,
+        cursor_x: float,
+        cursor_y: float,
+        _config: object,
+    ) -> tuple[dict[str, float], float, float, bool]:
+        page.event_log.append(f"human_scroll:{selector}")
+        page.scroll_y = max(0.0, page.scroll_y + page.human_scroll_delta)
+        return (
+            {"x": 0.0, "y": 0.0, "width": 100.0, "height": 100.0},
+            cursor_x + 5.0,
+            cursor_y + 7.0,
+            True,
+        )
+
+
 def _install_fake_playwright(monkeypatch: pytest.MonkeyPatch, page: _FakeObservationPage) -> None:
     original_import_module = browser_snapshot_module.import_module
 
     def fake_import_module(name: str) -> object:
         if name == "playwright.sync_api":
             return _FakePlaywrightSyncApi(page)
+        if name == "cloakbrowser.human":
+            return _FakeCloakBrowserHumanModule()
         return original_import_module(name)
 
     monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
@@ -1720,6 +1778,143 @@ def test_playwright_page_observation_runs_bounded_wheel_burst_before_dom(
     assert result.metadata["post_load_action_executed"] is True
     assert event_log.index("wheel_viewport_lookup") < event_log.index("mouse_move:1")
     assert event_log.index("mouse_wheel") < event_log.index("dom_extract")
+
+
+def test_targeted_grid_scroll_uses_cloakbrowser_human_layer_without_raw_wheel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log, humanized=True)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        require_humanized_state_changes=True,
+    ).capture_page_observation(
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda _: False,
+        },
+        post_load_wheel_action=BrowserPageWheelAction(
+            action_name="test_humanized_grid_scroll_v0",
+            direction="down",
+            target_selector="a[href*='/video/123']",
+            settle_ms_min=437,
+            settle_ms_max=463,
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_wheel_action"]
+    assert receipt["completed"] is True
+    assert receipt["input_method"] == (
+        "cloakbrowser.human.scroll_to_element"
+    )
+    assert receipt["target_selector"] == "a[href*='/video/123']"
+    assert receipt["inter_event_pause_policy"] == (
+        "cloakbrowser_careful_randomized_quick_succession"
+    )
+    assert 437 <= receipt["settle_ms"] <= 463
+    assert receipt["humanized_scroll_performed"] is True
+    assert page.mouse.wheels == []
+    assert "human_scroll:a[href*='/video/123']" in event_log
+    assert "native_locator_scroll:a[href*='/video/123']" not in event_log
+
+
+def test_targeted_grid_scroll_fails_closed_without_cloakbrowser_human_layer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    with pytest.raises(RuntimeError, match="human scroll layer unavailable"):
+        browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+            require_humanized_state_changes=True,
+        ).capture_page_observation(
+            **{
+                **_PAGE_OBSERVATION_BASE_KWARGS,
+                "response_url_predicate": lambda _: False,
+            },
+            post_load_wheel_action=BrowserPageWheelAction(
+                action_name="test_humanized_grid_scroll_v0",
+                direction="down",
+                target_selector="a[href*='/video/123']",
+            ),
+        )
+
+    assert page.mouse.wheels == []
+
+
+def test_authenticated_humanized_session_rejects_raw_state_changes() -> None:
+    engine = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        require_humanized_state_changes=True,
+    )
+
+    with pytest.raises(ValueError, match="untargeted raw wheel input"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            post_load_wheel_action=BrowserPageWheelAction(
+                action_name="raw_forbidden",
+                direction="down",
+            ),
+        )
+    with pytest.raises(ValueError, match="post_load_action_script"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            post_load_action_script="() => window.scrollTo(0, 500)",
+        )
+    with pytest.raises(ValueError, match="scripted lazy-load scrolling"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            lazy_load_scroll_passes=1,
+            lazy_load_scroll_step_px=500,
+        )
+
+
+def test_logout_detected_after_humanized_scroll_suppresses_follow_on_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        humanized=True,
+        structural_stop_results=[
+            {"checked": True, "matched": False, "matched_marker": None},
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "/login",
+                "match_source": "visible_href",
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    rule = BrowserPageStructuralStopRule(
+        rule_name="logged_out",
+        candidate_selector="a[href*='/login']",
+        href_substrings=("/login",),
+        stop_kind="logged_out_session",
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        pre_action_stop_structural_rules=(rule,),
+        require_humanized_state_changes=True,
+    ).capture_page_observation(
+        **_PAGE_OBSERVATION_BASE_KWARGS,
+        post_load_wheel_action=BrowserPageWheelAction(
+            action_name="humanized_scroll",
+            direction="down",
+            target_selector="a[href*='/video/123']",
+            settle_ms_min=0,
+            settle_ms_max=0,
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    attempt = result.metadata["pre_action_stop_attempts"][0]
+    assert attempt["after_action_name"] == "humanized_scroll"
+    assert attempt["stop_kind"] == "logged_out_session"
+    assert page.mouse.wheels == []
 
 
 
