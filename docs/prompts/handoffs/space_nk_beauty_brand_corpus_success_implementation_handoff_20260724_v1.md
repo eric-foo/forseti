@@ -162,8 +162,8 @@ land the lane through the repository PR workflow.
   `.agents/workflow-overlay/decision-routing.md`,
   `.agents/workflow-overlay/prompt-orchestration.md`,
   `.agents/workflow-overlay/source-loading.md`,
-  `.agents/workflow-overlay/validation.md`,
-  `.agents/workflow-overlay/delegated-review-and-patch.md`, and
+  `.agents/workflow-overlay/validation-gates.md`,
+  `.agents/workflow-overlay/delegated-review-patch.md`, and
   `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`
   - Role: project authority, source loading, receiver isolation, review,
     validation, prompt, and lifecycle rules.
