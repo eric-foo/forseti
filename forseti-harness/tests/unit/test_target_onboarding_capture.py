@@ -41,6 +41,7 @@ _NATIVE_URL = (
     "https://cdui-orchestrations.target.com/cdui_orchestrations/v1/pages/pdp"
     f"?key=public-target-key&tcin={_TCIN}&ratings_reviews_sort_by=most_recent"
 )
+_DEFAULT_DEHYDRATED_STATE = object()
 
 
 def _parent_packet(
@@ -48,6 +49,9 @@ def _parent_packet(
     tmp_path: Path,
     *,
     embedded_tcin: str = _TCIN,
+    preceding_query_data: list[Any] | None = None,
+    dehydrated_state_override: Any = _DEFAULT_DEHYDRATED_STATE,
+    include_valid_query: bool = True,
 ) -> str:
     next_data = {
         "props": {
@@ -86,6 +90,15 @@ def _parent_packet(
             }
         }
     }
+    queries = next_data["props"]["dehydratedState"]["queries"]
+    queries[:0] = [
+        {"state": {"data": query_data}}
+        for query_data in (preceding_query_data or [])
+    ]
+    if not include_valid_query:
+        queries.clear()
+    if dehydrated_state_override is not _DEFAULT_DEHYDRATED_STATE:
+        next_data["props"]["dehydratedState"] = dehydrated_state_override
     html = (
         '<script id="__NEXT_DATA__" type="application/json">'
         + json.dumps(next_data, separators=(",", ":"))
@@ -341,6 +354,51 @@ def _api_fetcher(*, corrupt_recent: bool = False, recent_status: int = 200):
     return fetch
 
 
+def _api_fetcher_with_question_transform(transform):
+    fetch = _api_fetcher()
+
+    def transformed_fetch(
+        spec: ApiRequestSpec,
+        config: BazaarvoiceReadConfig,
+        timeout_seconds: float,
+        max_bytes: int,
+    ) -> ApiResponse:
+        response = fetch(spec, config, timeout_seconds, max_bytes)
+        if spec.config_kind != "questions":
+            return response
+        document = json.loads(response.body)
+        transform(document)
+        return ApiResponse(
+            status=response.status,
+            reason=response.reason,
+            body=json.dumps(document, separators=(",", ":")).encode(),
+            content_type=response.content_type,
+            captured_at=response.captured_at,
+        )
+
+    return transformed_fetch
+
+
+def _empty_question_response(document: dict[str, Any]) -> None:
+    document.clear()
+    document.update(
+        {
+            "Limit": 1,
+            "Offset": 0,
+            "TotalResults": 0,
+            "Locale": "en_US",
+            "Results": [],
+            "Includes": {},
+            "HasErrors": False,
+            "Errors": [],
+        }
+    )
+
+
+def _omit_included_answers(document: dict[str, Any]) -> None:
+    del document["Includes"]["Answers"]
+
+
 def _artifact_json(loaded, suffix: str) -> dict[str, Any]:
     preserved = next(
         item
@@ -369,11 +427,17 @@ def test_success_preserves_three_roles_without_body_or_passkey_duplication(
     assert loaded.manifest["source_surface"] == "target_bazaarvoice_onboarding"
     summary = _artifact_json(loaded, "target_onboarding_summary.json")
     assert summary["provider"] == "bazaarvoice"
+    assert summary["parser_version"] == "target_bazaarvoice_onboarding_v2"
     assert summary["identity"]["target_tcin"] == _TCIN
     assert summary["identity"]["bazaarvoice_product_id"] == _TCIN
     assert summary["identity"]["mapping_equal"] is True
     assert summary["questions"]["captured_question_rows"] == 2
     assert summary["questions"]["captured_included_answer_rows"] == 3
+    extraction_status = {
+        row["information_class"]: row["status"]
+        for row in summary["extraction_target_matrix"]
+    }
+    assert extraction_status["answer_rich_qa"] == "present_in_bazaarvoice"
     assert summary["reviews"]["last_seen_review_id"] == "r1"
     assert summary["reviews"]["source_clients"] == ["naturium", "targetcom"]
     assert summary["reviews"]["context_dimension_keys"] == []
@@ -416,6 +480,141 @@ def test_success_preserves_three_roles_without_body_or_passkey_duplication(
     assert b"Helpful one" in raw_bodies
     assert b"Recent one" in raw_bodies
     assert b"Answer one" in raw_bodies
+
+
+def test_null_and_non_mapping_query_data_are_skipped_before_exact_payload(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(
+        root,
+        tmp_path,
+        preceding_query_data=[None, "not-a-mapping", {}],
+    )
+
+    exit_code, result = capture_target_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        review_limit=2,
+        config_fetcher=_config_fetcher(),
+        api_fetcher=_api_fetcher(),
+    )
+
+    assert exit_code == 0
+    loaded = root.load_raw_packet(result["packet_id"])
+    summary = _artifact_json(loaded, "target_onboarding_summary.json")
+    assert summary["identity"]["target_tcin"] == _TCIN
+    assert summary["retailer_native_observation"]["endpoint"] == (
+        "https://cdui-orchestrations.target.com/"
+        "cdui_orchestrations/v1/pages/pdp"
+    )
+
+
+@pytest.mark.parametrize("dehydrated_state", [None, [], "not-a-mapping"])
+def test_non_mapping_dehydrated_state_fails_with_typed_product_error(
+    tmp_path: Path,
+    dehydrated_state: Any,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(
+        root,
+        tmp_path,
+        dehydrated_state_override=dehydrated_state,
+    )
+
+    with pytest.raises(
+        TargetOnboardingCaptureError,
+        match="requires exactly one ProductDetailWebDatasourceCore product",
+    ):
+        capture_target_onboarding_packet(
+            data_root=root,
+            parent_packet_id=parent_id,
+            config_fetcher=lambda **_kwargs: pytest.fail("config fetch must not run"),
+            api_fetcher=lambda *_args: pytest.fail("API fetch must not run"),
+        )
+
+
+def test_null_queries_without_valid_payload_fail_with_typed_product_error(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(
+        root,
+        tmp_path,
+        preceding_query_data=[None, "not-a-mapping", {}],
+        include_valid_query=False,
+    )
+
+    with pytest.raises(
+        TargetOnboardingCaptureError,
+        match="requires exactly one ProductDetailWebDatasourceCore product",
+    ):
+        capture_target_onboarding_packet(
+            data_root=root,
+            parent_packet_id=parent_id,
+            config_fetcher=lambda **_kwargs: pytest.fail("config fetch must not run"),
+            api_fetcher=lambda *_args: pytest.fail("API fetch must not run"),
+        )
+
+
+def test_empty_question_response_without_answers_adapts_as_zero_answers(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+
+    exit_code, result = capture_target_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        review_limit=2,
+        config_fetcher=_config_fetcher(),
+        api_fetcher=_api_fetcher_with_question_transform(_empty_question_response),
+    )
+
+    assert exit_code == 0
+    loaded = root.load_raw_packet(result["packet_id"])
+    summary = _artifact_json(loaded, "target_onboarding_summary.json")
+    assert summary["questions"]["total_questions"] == 0
+    assert summary["questions"]["captured_question_rows"] == 0
+    assert summary["questions"]["declared_answer_rows"] == 0
+    assert summary["questions"]["captured_included_answer_rows"] == 0
+    assert summary["row_accounting"]["answers_equal"] is True
+    assert summary["content_qualification"]["all_declared_answers_preserved"] is True
+    extraction_status = {
+        row["information_class"]: row["status"]
+        for row in summary["extraction_target_matrix"]
+    }
+    assert extraction_status["answer_rich_qa"] == (
+        "missing_from_observed_target_bazaarvoice_response"
+    )
+
+
+def test_missing_answers_with_declared_ids_preserves_typed_failure(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    parent_id = _parent_packet(root, tmp_path)
+
+    exit_code, result = capture_target_onboarding_packet(
+        data_root=root,
+        parent_packet_id=parent_id,
+        review_limit=2,
+        config_fetcher=_config_fetcher(),
+        api_fetcher=_api_fetcher_with_question_transform(_omit_included_answers),
+    )
+
+    assert exit_code == 5
+    loaded = root.load_raw_packet(result["packet_id"])
+    failure = _artifact_json(loaded, "target_adaptation_failure.json")
+    assert failure["failure"]["error"] == (
+        "questions_most_answers_offset_000.json omitted declared answer IDs: "
+        "['a1', 'a2', 'a3']"
+    )
+    assert failure["raw_failure_fallback"] == {
+        "expected_response_count": 3,
+        "preserved_response_count": 3,
+        "status": "all_responses_preserved",
+    }
 
 
 def test_adaptation_failure_preserves_all_raw_responses(tmp_path: Path) -> None:
@@ -467,7 +666,12 @@ def test_parent_identity_mismatch_fails_before_config_or_api_reads(
     tmp_path: Path,
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
-    parent_id = _parent_packet(root, tmp_path, embedded_tcin="99999999")
+    parent_id = _parent_packet(
+        root,
+        tmp_path,
+        embedded_tcin="99999999",
+        preceding_query_data=[None, "not-a-mapping"],
+    )
 
     with pytest.raises(TargetOnboardingCaptureError, match="parent product mismatch"):
         capture_target_onboarding_packet(

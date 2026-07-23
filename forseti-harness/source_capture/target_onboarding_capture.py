@@ -36,7 +36,7 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 
 
 TARGET_ONBOARDING_SOURCE_SURFACE = "target_bazaarvoice_onboarding"
-TARGET_ONBOARDING_PARSER_VERSION = "target_bazaarvoice_onboarding_v1"
+TARGET_ONBOARDING_PARSER_VERSION = "target_bazaarvoice_onboarding_v2"
 DEFAULT_QUESTION_LIMIT = 100
 DEFAULT_REVIEW_LIMIT = 100
 _TARGET_PRODUCT_PATH = re.compile(r"^/p/(?:[^/]+/)?-/A-(?P<tcin>[0-9]+)/?$")
@@ -253,12 +253,25 @@ def build_target_onboarding_summary(
     _require_unique_ids(helpful_rows, helpful_name)
     _require_unique_ids(recent_rows, recent_name)
 
-    answers = _included_mapping(questions, "Answers", question_name)
     declared_answer_ids = [
         str(answer_id)
         for row in question_rows
         for answer_id in _list_value(row.get("AnswerIds"))
     ]
+    question_includes = questions.get("Includes")
+    if not isinstance(question_includes, Mapping):
+        raise TargetOnboardingCaptureError(
+            f"{question_name}.Includes.Answers must be an object"
+        )
+    answer_values = question_includes.get("Answers")
+    if "Answers" not in question_includes:
+        answers: Mapping[str, Any] = {}
+    elif isinstance(answer_values, Mapping):
+        answers = answer_values
+    else:
+        raise TargetOnboardingCaptureError(
+            f"{question_name}.Includes.Answers must be an object"
+        )
     missing_answer_ids = sorted(set(declared_answer_ids) - set(answers))
     if missing_answer_ids:
         raise TargetOnboardingCaptureError(
@@ -434,7 +447,11 @@ def build_target_onboarding_summary(
             },
             {
                 "information_class": "answer_rich_qa",
-                "status": "present_in_bazaarvoice",
+                "status": (
+                    "present_in_bazaarvoice"
+                    if question_rows and answer_rows
+                    else "missing_from_observed_target_bazaarvoice_response"
+                ),
                 "raw_reference": question_name,
             },
         ],
@@ -597,38 +614,62 @@ def _next_data(html: str) -> Mapping[str, Any]:
     return value
 
 
-def _target_product(next_data: Mapping[str, Any]) -> Mapping[str, Any]:
-    queries = (
-        next_data.get("props", {})
-        .get("dehydratedState", {})
-        .get("queries", [])
+def _target_query_data(
+    next_data: Mapping[str, Any],
+) -> tuple[Mapping[str, Any], ...]:
+    props = next_data.get("props")
+    dehydrated_state = (
+        props.get("dehydratedState") if isinstance(props, Mapping) else None
     )
+    queries = (
+        dehydrated_state.get("queries")
+        if isinstance(dehydrated_state, Mapping)
+        else None
+    )
+    if not isinstance(queries, list):
+        return ()
+
+    query_data: list[Mapping[str, Any]] = []
+    for query in queries:
+        if not isinstance(query, Mapping):
+            continue
+        state = query.get("state")
+        data = state.get("data") if isinstance(state, Mapping) else None
+        if isinstance(data, Mapping):
+            query_data.append(data)
+    return tuple(query_data)
+
+
+def _target_product(next_data: Mapping[str, Any]) -> Mapping[str, Any]:
     products: list[Mapping[str, Any]] = []
-    if isinstance(queries, list):
-        for query in queries:
-            if not isinstance(query, Mapping):
-                continue
-            modules = (
-                query.get("state", {})
-                .get("data", {})
-                .get("data", {})
-                .get("data_source_modules", [])
-            )
-            if not isinstance(modules, list):
-                continue
-            for module in modules:
-                if (
-                    isinstance(module, Mapping)
-                    and module.get("module_type")
-                    == "ProductDetailWebDatasourceCore"
-                ):
-                    product = (
-                        module.get("module_data", {})
-                        .get("data", {})
-                        .get("product")
-                    )
-                    if isinstance(product, Mapping):
-                        products.append(product)
+    for data in _target_query_data(next_data):
+        payload = data.get("data")
+        modules = (
+            payload.get("data_source_modules")
+            if isinstance(payload, Mapping)
+            else None
+        )
+        if not isinstance(modules, list):
+            continue
+        for module in modules:
+            if (
+                isinstance(module, Mapping)
+                and module.get("module_type")
+                == "ProductDetailWebDatasourceCore"
+            ):
+                module_data = module.get("module_data")
+                module_payload = (
+                    module_data.get("data")
+                    if isinstance(module_data, Mapping)
+                    else None
+                )
+                product = (
+                    module_payload.get("product")
+                    if isinstance(module_payload, Mapping)
+                    else None
+                )
+                if isinstance(product, Mapping):
+                    products.append(product)
     if len(products) != 1:
         raise TargetOnboardingCaptureError(
             "Target parent requires exactly one ProductDetailWebDatasourceCore product"
@@ -637,24 +678,16 @@ def _target_product(next_data: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 def _target_native_review_endpoint(next_data: Mapping[str, Any]) -> str:
-    queries = (
-        next_data.get("props", {})
-        .get("dehydratedState", {})
-        .get("queries", [])
-    )
     endpoints: set[str] = set()
-    if isinstance(queries, list):
-        for query in queries:
-            if not isinstance(query, Mapping):
-                continue
-            metadata = query.get("state", {}).get("data", {}).get("metadata", {})
-            url = metadata.get("url") if isinstance(metadata, Mapping) else None
-            if not isinstance(url, str):
-                continue
-            parsed = urlparse(url)
-            endpoint = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-            if endpoint == _RETAILER_NATIVE_REVIEW_ENDPOINT:
-                endpoints.add(endpoint)
+    for data in _target_query_data(next_data):
+        metadata = data.get("metadata")
+        url = metadata.get("url") if isinstance(metadata, Mapping) else None
+        if not isinstance(url, str):
+            continue
+        parsed = urlparse(url)
+        endpoint = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+        if endpoint == _RETAILER_NATIVE_REVIEW_ENDPOINT:
+            endpoints.add(endpoint)
     if endpoints != {_RETAILER_NATIVE_REVIEW_ENDPOINT}:
         raise TargetOnboardingCaptureError(
             "Target parent did not expose the admitted retailer-owned review endpoint"
