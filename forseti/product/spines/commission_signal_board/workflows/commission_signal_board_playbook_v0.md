@@ -104,6 +104,46 @@ authorized independent worktree is genuinely required. They create no further
 actors. Company-owned authorization precedes retailer probing. `CO2` supplies
 the reconciled breadth and selected-product pointers that `CO3` needs for depth.
 
+Run those four actors through this lean execution protocol:
+
+1. `CO0` validates the commission-stage board once, binds the shared roots and
+   terminal output paths, and dispatches `CO1`-`CO3` together with thin
+   role-specific source capsules. A capsule contains the bound question, the
+   role's jobs and claim ceilings, the few owning-source pointers it needs, its
+   upstream artifact dependencies, and its terminal return contract. Do not
+   copy the controller's full conversation or unrelated source pack into every
+   actor.
+2. `CO1` resolves the company core and publishes its official-retailer
+   authorization and supporting evidence pointers at the bound terminal path.
+   `CO2` may prepare its locked retailer job set concurrently but does not probe
+   a retailer until that authorization is available. `CO3` begins its mandatory
+   bounded customer/community scout concurrently; its evidence-selected
+   retailer depth waits for `CO2`'s reconciled breadth and selection pointers.
+3. Each specialist plans its bounded work once, locks the deterministic job
+   list that follows from the evidence, and runs compatible capture/projection
+   jobs as a batch or bounded local loop without a model turn between ordinary
+   items. Per-item raw packets, provenance, typed outcomes, and failures remain
+   distinct. Existing commission producers such as retail portfolio onboarding,
+   depth selection, and review linkage should consume the resulting manifests;
+   this protocol creates no parallel evidence schema or orchestration runtime.
+4. Specialists persist evidence as it is produced, then write one terminal
+   role return that indexes the durable artifacts, completed and unresolved
+   jobs, material failures, and follow-ups. They do not paste raw corpora into
+   chat or send routine progress, readiness, hash, or release handshakes.
+   Notify `CO0` early only when an observed blocker requires a controller or
+   owner decision that would change the locked work.
+5. `CO0` waits on completion or decision-requiring blocker events, not polling
+   dialogue. After the terminal returns exist, `CO0` reads the load-bearing
+   artifacts themselves once for integration, resolves any actor-local
+   correction in the same actor task, and writes the integrated acquisition
+   record and seal. Only `CO0` owns user-facing run progress.
+
+This protocol removes orchestration work, not evidence work. It does not cap
+sources, jobs, tokens, or elapsed time; weaken route-specific failure
+visibility; make a specialist return evidence without dereferencing its durable
+artifacts; or turn a zero-yield customer/community route into permission to omit
+`CO3`.
+
 `CO3` is mandatory even when prior customer/community routes yielded nothing:
 zero yield and blocked access are typed route results, not reasons to omit the
 customer-understanding job. Its depth is adaptive. It always runs the bounded
