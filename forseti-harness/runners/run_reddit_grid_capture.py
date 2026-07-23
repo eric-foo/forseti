@@ -33,6 +33,7 @@ from runners._scaffold import exit_on_failure
 from capture_spine.reddit_subreddit_grid.grid_projection import (
     GRID_PROJECTION_PARSER_VERSION,
     build_grid_content_record,
+    same_grid_listing_url,
 )
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory
@@ -72,6 +73,8 @@ def check_grid_projection_anomaly(content_record: dict) -> str | None:
     grid_view = content_record.get("grid_view", {})
     rows = grid_view.get("thread_rows", [])
     if not rows:
+        if grid_view.get("verified_empty_listing") is True:
+            return None
         return "no_thread_rows"
     thing_count = grid_view.get("listing_thing_count_or_none")
     if thing_count is not None and thing_count != len(rows):
@@ -85,6 +88,35 @@ def check_grid_projection_anomaly(content_record: dict) -> str | None:
 
 class GridProjectionAnomalyError(ValueError):
     pass
+
+
+def build_validated_grid_content_record(
+    *,
+    html_text: str,
+    final_url: str,
+    subreddit: str,
+    listing_url: str,
+) -> dict:
+    """Build one record while preserving zero-row failure visibility."""
+    record = build_grid_content_record(
+        html_text=html_text,
+        subreddit=subreddit,
+        listing_url=listing_url,
+    )
+    if (
+        record.get("grid_view", {}).get("verified_empty_listing") is True
+        and not same_grid_listing_url(final_url, listing_url)
+    ):
+        raise GridProjectionAnomalyError(
+            "grid projection anomaly [empty_listing_final_url_mismatch]: "
+            "keeping raw for audit"
+        )
+    anomaly = check_grid_projection_anomaly(record)
+    if anomaly is not None:
+        raise GridProjectionAnomalyError(
+            f"grid projection anomaly [{anomaly}]: keeping raw for audit"
+        )
+    return record
 
 
 def _rotating_raw_sample(names: Sequence[str], *, on_date: _dt.date) -> str:
@@ -216,17 +248,12 @@ def run_reddit_grid_capture(
         # Retention rule 2: an anomalous projection raises, so the capture
         # falls back to raw preservation instead of retaining broken evidence.
         def _extract(html_text: str, _final_url: str, _name: str = name, _url: str = url) -> dict:
-            record = build_grid_content_record(
+            return build_validated_grid_content_record(
                 html_text=html_text,
+                final_url=_final_url,
                 subreddit=_name,
                 listing_url=_url,
             )
-            anomaly = check_grid_projection_anomaly(record)
-            if anomaly is not None:
-                raise GridProjectionAnomalyError(
-                    f"grid projection anomaly [{anomaly}]: keeping raw for audit"
-                )
-            return record
 
         row_retention = (
             "raw" if name == raw_sample_subreddit else requested_retention_mode
