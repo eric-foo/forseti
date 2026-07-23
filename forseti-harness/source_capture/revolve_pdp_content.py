@@ -334,6 +334,7 @@ def _brand_name(value: object) -> str | None:
     return _string_or_none(value)
 
 
+# helper-delta: unlike harness_utils.string_or_none, retain numeric JSON-LD ratings.
 def _string_or_none(value: object) -> str | None:
     if value is None:
         return None
@@ -341,6 +342,7 @@ def _string_or_none(value: object) -> str | None:
     return text or None
 
 
+# helper-delta: unlike harness_utils.int_or_none, reject negative and float counts.
 def _int_or_none(value: object) -> int | None:
     if isinstance(value, bool):
         return None
