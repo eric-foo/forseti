@@ -224,6 +224,16 @@ Receiver classes remain available where another actor needs a binding:
   root; naming another path cannot expand it; and
 - `receiver_to_bind`: preparation-only until a concrete receiver is authorized.
 
+For `codex_managed_worktree`, creation means invoking the Codex product's
+new-task managed-worktree surface (currently `create_thread` with
+`environment.type: worktree`); `git worktree add` may isolate the current actor
+but cannot create that receiver. Only invoking the bound managed-task surface
+consumes the one authorized receiver-creation attempt. A rejected
+wrong-mechanism operation may be corrected once through the bound surface only
+after a fresh read proves that it created no task, worktree, or Git metadata.
+If either route may have created state, or its outcome is unknown or partial,
+stop without retry.
+
 An independent delegate writing a separate worktree needs its own capable
 receiver. This does not apply when the current actor creates or selects isolation
 for the same commissioned work unit. Stop or reroot only for ambiguous target
@@ -428,3 +438,63 @@ token math.
 Cynefin routing chooses a safe next-move posture. It is not review or proof that
 the route will work, and it does not validate, establish readiness, authorize,
 or promote the underlying work to source-of-truth status.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Codex-managed receiver creation now binds the product-managed task/worktree
+    surface explicitly, distinguishes it from current-actor Git worktree
+    isolation, and counts only a real managed-surface invocation as the single
+    authorized creation attempt while preserving fail-closed handling for any
+    unknown, partial, or state-producing outcome.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/decision-routing.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md and CLAUDE.md
+      reason: >
+        The kernel already routes receiver selection to decision-routing.md,
+        and CLAUDE.md remains its import shim; duplicating mechanism details
+        would create a second authority.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        It already requires the app-created managed worktree, forbids nested
+        worktree substitution, and routes receiver selection to this file.
+    - path: .agents/workflow-overlay/validation-gates.md and .agents/hooks/check_prompt_output_mode.py
+      reason: >
+        They already accept a managed receiver only after app creation and
+        reject positive manual Git-worktree substitution; runtime attempt
+        accounting depends on observed state and remains judgment-based.
+    - path: .agents/workflow-overlay/source-loading.md and docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Their existing pointers already route receiver-mechanism decisions to
+        decision-routing.md; no source pack or owner path changed.
+  stale_language_search: >
+    rg -n -i "codex_managed_worktree|managed[- ]worktree|manual.*worktree|git
+    worktree add|one allowed creation|retry.*receiver|receiver.*retry|app-created"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay/source-loading.md
+    .agents/workflow-overlay/prompt-orchestration.md
+    .agents/workflow-overlay/validation-gates.md
+    .agents/hooks/check_prompt_output_mode.py
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Existing live hits consistently require app-managed creation, accept a new
+    receiver once after creation, or reject positive manual Git-worktree
+    substitution; no checked surface conflicts with the new state-aware
+    attempt-accounting rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not proof that a managed task was created
+```
