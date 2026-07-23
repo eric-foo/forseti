@@ -62,7 +62,59 @@ names and phase labels.
 
 Each phase normally consumes two completed operator/model turns:
 
+### Turn Objectives
+
+The turns optimize different things:
+
+- **Turn A — Acquire & Seal:** maximize decision-useful completeness under the
+  integrity floor. Continue until every material information job is supported,
+  contradicted, meaningfully bounded, or honestly blocked/gapped. Compactness,
+  actor count, and token minimization are not acquisition success criteria.
+- **Turn B — Deliver:** after the acquisition gate passes, apply Smallest
+  Complete Intervention to the human artifact. Preserve decisive evidence,
+  counterevidence, uncertainty, provenance, reversal conditions, and the next
+  action while removing repetition and audit detail that does not belong in the
+  decision surface.
+
+Turn A/Turn B are turns inside each canonical phase; they do not rename
+Understanding and Problem Framing as unqualified Phase A/Phase B.
+
 ### Turn A — Acquire & Seal
+
+#### Default US Consumer-Beauty Understanding Route
+
+The default coordinated route has exactly four evidence actors:
+
+- `CO0`: whole-run Chief Architect, integration, durable-record owner, and
+  acquisition-seal owner;
+- `CO1`: owned company and high-yield core — identity, ownership, leadership,
+  offering/portfolio architecture, official authorization, chronology, and
+  material events;
+- `CO2`: unified Sephora/Ulta/Target/Amazon portfolio and retail corpus —
+  grids, union/reconciliation, exact PDP baselines, retailer-native facts,
+  failures, overlap, and provider identity; never split retailers by actor; and
+- `CO3`: mandatory customer/community and selected depth — retailer reviews and
+  Q&A, bounded Reddit and qualified community routes, customer language, pain
+  points, objections, complaints, usage contexts, workarounds, response
+  patterns, syndication ceilings, and discriminating depth checks.
+
+Any pair/group dispatcher is mechanical and is not another evidence actor.
+`CO1`-`CO3` use same-root collaboration under `CO0` unless a separately
+authorized independent worktree is genuinely required. They create no further
+actors. Company-owned authorization precedes retailer probing. `CO2` supplies
+the reconciled breadth and selected-product pointers that `CO3` needs for depth.
+
+`CO3` is mandatory even when prior customer/community routes yielded nothing:
+zero yield and blocked access are typed route results, not reasons to omit the
+customer-understanding job. Its depth is adaptive. It always runs the bounded
+customer/community scout and then expands only while another route or
+discriminating check has positive expected decision value. Stop on supported,
+contradicted, meaningfully bounded, or honestly blocked/gapped material seams —
+not on a token or compactness target.
+
+This is the default route for the current US consumer-beauty Understanding
+profile. A materially different subject may require an explicit commission-
+specific topology instead of pretending the four-retailer role applies.
 
 1. Bind `cycle_id`, `commission_id`, canonical phase, phase-specific question,
    intended consumer/use, scope, and the six outcome signals below.
