@@ -284,6 +284,14 @@ observed blocker and do not create a second task unless the commission is one
 member of an explicitly user-authorized multi-task group governed by the
 conservation fast path below.
 
+When the created receiver's result will be consumed by the source task, its
+frozen initial prompt also carries the one-shot completion-return contract from
+`decision-routing.md` -> **Created-Task Completion Return**. This is inherited
+behavior, not a new commission field or receipt. Omit it only when the created
+task is intentionally user-owned with no source-task consumer, or when the
+product supplies the native source-task terminal callback named by that
+contract.
+
 The block is commission-local, conditional, and single-use. It grants no
 standing task-creation permission and must not appear in a truly read-only,
 scoping-only, or review-only commission. Planning or scoping inside an

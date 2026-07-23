@@ -282,6 +282,25 @@ new managed task is sufficient. A durable commission may carry the bounded
 `proceed`, ordinary implementation authority, and read-only/scoping/review work
 do not create that authority; a task's mere existence is never authority.
 
+### Created-Task Completion Return
+
+When a user-visible Codex task is created and its result will return to the
+creating source task, completion ownership remains with that source task. The
+created task's initial prompt must name the source task and require exactly one
+terminal return through `send_message_to_thread` after the receiver freshly
+verifies its outcome. The return carries the created task's identity, terminal
+state (`completed`, `blocked`, `failed`, or `needs_attention`), a result pointer
+or concise result, and any user action needed. Do not rely on the owner noticing
+completion in the sidebar.
+
+This is resident task-API behavior, not a repository-state surface. Do not
+create a polling loop, monitor task, automation, registry, repeated progress
+callback, or standing completion surface solely for this return. If the product
+exposes a native source-task terminal callback, use it instead and omit the
+duplicate receiver message. A receiver that terminates before it can send
+remains a product-level notification residual; do not claim the resident rule
+covers that failure.
+
 When a real pre-edit mismatch invalidates the binding, route to an already-
 authorized capable receiver when one exists.
 An already-authorized capable worktree-backed task is such a receiver. A valid
