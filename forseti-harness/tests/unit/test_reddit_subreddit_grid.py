@@ -17,6 +17,7 @@ from capture_spine.reddit_subreddit_grid.grid_projection import (
     GRID_PROJECTION_PARSER_VERSION,
     build_grid_content_record,
     grid_view_from_record,
+    grid_view_projection_anomaly,
 )
 from runners import run_reddit_grid_capture as grid_runner
 from runners import run_source_capture_http_packet as http_packet_runner
@@ -847,6 +848,101 @@ LOGIN_WALL_HTML = """
 <p>Log in or sign up to personalize your feed, join conversations, vote.</p>
 </body></html>
 """
+
+EMPTY_LISTING_HTML = """
+<html>
+<head><title>top scoring links : MakeupAddiction</title></head>
+<body class="listing-page top-page">
+<div id="siteTable" class="sitetable linklisting">
+  <p id="noresults" class="error">there doesn't seem to be anything here</p>
+</div>
+</body>
+</html>
+"""
+
+
+def test_verified_empty_listing_is_valid_but_login_near_misses_fail() -> None:
+    url = "https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100"
+
+    record = grid_runner.build_validated_grid_content_record(
+        html_text=EMPTY_LISTING_HTML,
+        final_url=url,
+        subreddit="makeupaddiction",
+        listing_url=url,
+    )
+    view = grid_view_from_record(record)
+    assert view.verified_empty_listing is True
+    assert view.thread_rows == ()
+    assert grid_view_projection_anomaly(view) is None
+
+    with pytest.raises(
+        grid_runner.GridProjectionAnomalyError,
+        match="empty_listing_final_url_mismatch",
+    ):
+        grid_runner.build_validated_grid_content_record(
+            html_text=EMPTY_LISTING_HTML,
+            final_url="https://old.reddit.com/login/?reason=lor2",
+            subreddit="makeupaddiction",
+            listing_url=url,
+        )
+
+    with pytest.raises(
+        grid_runner.GridProjectionAnomalyError,
+        match="no_thread_rows",
+    ):
+        grid_runner.build_validated_grid_content_record(
+            html_text=LOGIN_WALL_HTML,
+            final_url=url,
+            subreddit="makeupaddiction",
+            listing_url=url,
+        )
+
+    mixed_page = EMPTY_LISTING_HTML.replace(
+        '<p id="noresults"',
+        '<div class="thing promoted"></div><p id="noresults"',
+    )
+    with pytest.raises(
+        grid_runner.GridProjectionAnomalyError,
+        match="no_thread_rows",
+    ):
+        grid_runner.build_validated_grid_content_record(
+            html_text=mixed_page,
+            final_url=url,
+            subreddit="makeupaddiction",
+            listing_url=url,
+        )
+
+
+def test_weekly_reader_counts_verified_empty_listing_as_zero_activity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import run_weekly_demand_read
+
+    registry = _registry(tmp_path)
+    lake = DataLakeRoot.for_test(tmp_path / "lake")
+    migrate_legacy_registry(lake, registry_path=registry)
+    _lake_grid_packet(
+        lake,
+        monkeypatch,
+        url="https://old.reddit.com/r/makeupaddiction/top/?t=week&limit=100",
+        html=EMPTY_LISTING_HTML,
+    )
+
+    payload = run_weekly_demand_read(
+        data_root=lake,
+        as_of=dt.date(2026, 7, 17),
+    )
+
+    assert payload["subs_read"] == 1
+    assert payload["subs_missing_weekly_packet"] == []
+    assert payload["projection_anomaly_packets"] == []
+    assert payload["candidates_found"] == 0
+    (health,) = payload["sub_health"]
+    assert health["posts"] == 0
+    assert health["weekly_score"] == 0
+    assert health["weekly_comments"] == 0
 
 
 def test_raw_sample_still_validates_the_projection(

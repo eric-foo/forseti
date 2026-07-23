@@ -16,16 +16,18 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
+from html import unescape
 from html.parser import HTMLParser
+from urllib.parse import parse_qsl, urlsplit
 
 from source_capture.projection_shared import canonical_old_reddit_thread_url
 
 # Bump on ANY behavior change to this projection so content packets written
 # under the old behavior stay distinguishable from re-projections under the
 # new one (qualification compares records only within one version).
-# v3: scope extraction with an open-tag stack and carry listing diagnostics so
-# retention can detect dropped rows and lost permalink attributes.
-GRID_PROJECTION_PARSER_VERSION = "3"
+# v4: distinguish a verified old-Reddit empty listing from an unparseable
+# zero-row response such as a login wall.
+GRID_PROJECTION_PARSER_VERSION = "4"
 
 GRID_CONTENT_RECORD_KIND = "reddit_subreddit_grid_view_v0"
 
@@ -64,6 +66,9 @@ class GridView:
     # v3 diagnostics. None means a v1/v2 content record did not carry them.
     listing_thing_count_or_none: int | None = None
     listing_permalink_count_or_none: int | None = None
+    # v4: source-visible proof that zero rows means an authentic empty listing,
+    # not a block/login shell or parser failure.
+    verified_empty_listing: bool = False
 
 
 def project_old_reddit_grid_html(
@@ -111,6 +116,11 @@ def project_old_reddit_grid_html(
         created_utc_or_none=parser.visible_created_utc,
         listing_thing_count_or_none=parser.listing_thing_count,
         listing_permalink_count_or_none=parser.listing_permalink_count,
+        verified_empty_listing=(
+            parser.listing_thing_count == 0
+            and parser.listing_permalink_count == 0
+            and _is_verified_empty_listing_html(html_text)
+        ),
     )
 
 
@@ -167,6 +177,7 @@ def grid_view_from_record(record: dict) -> GridView:
             created_utc_or_none=payload.get("created_utc_or_none"),
             listing_thing_count_or_none=payload.get("listing_thing_count_or_none"),
             listing_permalink_count_or_none=payload.get("listing_permalink_count_or_none"),
+            verified_empty_listing=payload.get("verified_empty_listing", False),
         )
     except (KeyError, TypeError) as exc:
         raise RedditGridProjectionError(
@@ -179,6 +190,8 @@ def grid_view_projection_anomaly(view: GridView) -> str | None:
     """Return the first retention-worthy projection anomaly, if any."""
     rows = view.thread_rows
     if not rows:
+        if view.verified_empty_listing:
+            return None
         return "no_thread_rows"
     if (
         view.listing_thing_count_or_none is not None
@@ -190,6 +203,44 @@ def grid_view_projection_anomaly(view: GridView) -> str | None:
     if all(row.timestamp_utc_ms_or_none is None for row in rows):
         return "no_timestamps"
     return None
+
+
+def same_grid_listing_url(actual_url: str, expected_url: str) -> bool:
+    """Compare one final old-Reddit listing URL to its requested locator."""
+    try:
+        actual = urlsplit(actual_url)
+        expected = urlsplit(expected_url)
+    except (TypeError, ValueError):
+        return False
+    return (
+        actual.scheme.lower() == expected.scheme.lower() == "https"
+        and actual.netloc.lower() == expected.netloc.lower() == "old.reddit.com"
+        and actual.path.rstrip("/").casefold() == expected.path.rstrip("/").casefold()
+        and sorted(parse_qsl(actual.query, keep_blank_values=True))
+        == sorted(parse_qsl(expected.query, keep_blank_values=True))
+    )
+
+
+def _is_verified_empty_listing_html(html_text: str) -> bool:
+    """Require the old-Reddit listing shell and its explicit no-results row."""
+    decoded = unescape(html_text)
+    return bool(
+        re.search(
+            r"""<body\b[^>]*\bclass=["'][^"']*\blisting-page\b[^"']*["']""",
+            decoded,
+            flags=re.IGNORECASE,
+        )
+        and re.search(
+            r"""<div\b(?=[^>]*\bid=["']siteTable["'])(?=[^>]*\bclass=["'][^"']*\bsitetable\b)[^>]*>""",
+            decoded,
+            flags=re.IGNORECASE,
+        )
+        and re.search(
+            r"""<p\b(?=[^>]*\bid=["']noresults["'])(?=[^>]*\bclass=["'][^"']*\berror\b)[^>]*>\s*there doesn't seem to be anything here\s*</p>""",
+            decoded,
+            flags=re.IGNORECASE,
+        )
+    )
 
 
 class _OldRedditGridParser(HTMLParser):

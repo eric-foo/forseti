@@ -38,6 +38,7 @@ from capture_spine.reddit_subreddit_grid.grid_projection import (
     RedditGridProjectionError,
     grid_view_from_record,
     project_old_reddit_grid_html,
+    same_grid_listing_url,
 )
 from source_capture.models import SOURCE_CAPTURE_MANIFEST_VERSION
 from source_capture.packet_inspection import read_packet_leniently
@@ -477,6 +478,12 @@ def _verify_successful_grid_response(
             and _subreddit_from_listing_url(locator) == expected_subreddit
             and access_posture.startswith("direct_http succeeded with HTTP 2")
         ):
+            if final_url is not None and not same_grid_listing_url(final_url, locator):
+                raise RegistryRefreshError(
+                    "grid_final_locator_mismatch",
+                    f"grid packet final URL does not match requested listing: "
+                    f"final={final_url!r} requested={locator!r}",
+                )
             return
     raise RegistryRefreshError(
         "grid_access_unsuccessful",
