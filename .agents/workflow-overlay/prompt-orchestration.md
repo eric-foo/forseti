@@ -280,7 +280,9 @@ condition is observed, create and dispatch that one managed-worktree task in the
 same turn with the frozen commission as its initial prompt, then stop repo-
 changing work in the original task. Do not ask for a confirmation phrase. If
 creation fails or the created receiver fails its bound preflight, return the
-observed blocker and do not create a second task.
+observed blocker and do not create a second task unless the commission is one
+member of an explicitly user-authorized multi-task group governed by the
+conservation fast path below.
 
 The block is commission-local, conditional, and single-use. It grants no
 standing task-creation permission and must not appear in a truly read-only,
@@ -291,6 +293,32 @@ status `current_turn_authorization: read_only_scoping_only` is valid only when
 the current user instruction or accepted handoff is actually read-only; it is a
 prompt-quality defect when emitted merely because planning or scoping happened
 before the authorized implementation.
+
+### Multi-Task Commission Fast Path
+
+Apply the group-level conservation rule in `decision-routing.md` whenever one
+visible user instruction authorizes multiple Codex tasks. Each independent
+member still receives its own single-use `receiver_creation_authorization`
+block and complete role-specific commission. Launch the required members as one
+batch before waiting, and assign each a unique title in the form
+`<work unit> — <role>`. Keep the controller's member-to-role mapping transient;
+do not create a registry, manifest, wrapper artifact, or standing coordination
+surface solely to manage the group.
+
+The initial prompt authorizes execution. Do not default to a preparation-only
+turn followed by `READY`, `PAIR_RELEASE`, a mutation probe, per-member
+recomputation of a shared prompt hash, or another controller release. A
+commission may require a separate release or synchronized start only when that
+condition is an explicit, load-bearing controlled variable; name the defect it
+prevents and accept the resulting extra turn for every member.
+
+Recover a member in the existing task, use the product's task-handoff surface to
+move that same task when only its managed root is wrong, and create at most one
+replacement for an unusable member. The replacement uses the same role,
+commission, and group identity; unaffected members continue. Archive the failed
+predecessor after replacement binding, and archive any earlier superseded group
+once the authoritative group is established. Full-group reruns are limited to
+the shared invalidators named in `decision-routing.md`.
 
 **Forseti precedence bridge.** A resolver-loaded generic prompt or
 delegated-review skill supplies task-local method mechanics, not Forseti routing
@@ -839,6 +867,15 @@ Before using a generated Forseti prompt, apply these gates:
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
 4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed receiver fallback; that receiver-class prohibition does not reject an explicitly commissioned manager-prefixed target worktree. A delayed advancing-lane review uses `ancestor`, captures `reviewed_revision` before source review, and keeps that snapshot immutable; an intentionally frozen review remains `exact`. A prompt fails this gate when it invents task-creation authority, infers denial from launch root or target namespace, ignores an observed capability denial, permits concurrent mutation of the reviewed snapshot, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
+   Multi-task commissions also satisfy the conservation rule: same-root actors
+   use collaboration; independent members launch as one role-named group with
+   executable initial prompts; recoverable member failures stay in the same
+   task; only an unusable member may be replaced once; unaffected members
+   continue; and a full-group rerun occurs only for a named shared invalidator.
+   Routine preparation-only members, release turns, mutation probes,
+   shared-prompt hash ceremonies, replacement groups for member-local failures,
+   and duplicate role titles fail this gate unless an explicit load-bearing
+   experimental control requires the extra synchronization.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source capsule remains decision-bounded under

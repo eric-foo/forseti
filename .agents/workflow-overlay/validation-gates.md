@@ -86,6 +86,7 @@ inherit this floor.
   | --- | --- | --- |
   | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
+  | User-authorized multi-task group | `accepted` after all required members launch | Same-root roles use collaboration; each independent role has one uniquely titled managed task with an executable initial prompt. Member-local recovery stays in that task, or replaces only an unusable member once. Unaffected members continue. |
   | External controller targeting another worktree | `accepted` once after verification | Unique commissioned target under exact or explicitly permitted ancestor semantics; demonstrated direct write; target-rooted operation; no concurrent writer. A `.codex`, `.claude`, or other manager-prefixed target path is neutral: the commission supplies authority and observed capability supplies the route. |
   | Delayed delegated review of an advancing clean lane | `accepted` under `ancestor` | Verify `required_revision` is an ancestor of current `HEAD`, then record current `HEAD` as immutable `reviewed_revision` before source review. Return both revisions. If the author continues, review and patch only in a separate clean worktree/branch at the captured revision; never share a moving worktree. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
@@ -110,6 +111,14 @@ inherit this floor.
   for that review run. It never satisfies an existing exact gate. Live
   hook-adoption probing is reserved for a commission whose purpose is that
   adoption test, never routine lane proof.
+- Multi-task conservation is a resident acceptance judgment. A full-group
+  restart is accepted only for cross-member contamination, a changed common
+  contract or controlled variable, a required revision change after evidence or
+  output was produced, or material timing drift under an explicitly timing-
+  controlled commission. Setup, transport, VPN, path, hash, launch-root, and
+  ordinary member-preflight failures recover in the same task; an unusable task
+  may be replaced once without replacing unaffected members. Superseded tasks
+  are archived after the authoritative replacement or group is bound.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -295,6 +304,15 @@ inherit this floor.
   evidence; collaboration remains same-root and unknown couriers preparation-
   only. Reroot only after observed ambiguity, required-tool denial, root-bound
   feature mismatch, or writer conflict leaves no authorized capable path.
+- Multi-task conservation gate: a multi-task commission must choose
+  collaboration for same-root roles and create only the independent
+  worktree/lifecycle members the outcome requires. Those members launch as one
+  uniquely titled group with executable initial prompts. Preparation-only
+  members followed by routine release turns, synthetic mutation probes,
+  per-member shared-prompt hash ceremonies, duplicate role tasks, a new group or
+  attempt ID for a member-local failure, and full-group restart without a named
+  shared invalidator are prompt-quality defects. Replacement is limited to one
+  unusable member while unaffected tasks continue.
 
   The mechanically checkable commission shell is enforced by the existing
   `.agents/hooks/check_prompt_output_mode.py`: changed filed prompts use its
@@ -455,6 +473,14 @@ permitted ancestor semantics, and actual tool or sandbox denial; do not add a
 blanket path-location guard that treats a valid selected worktree as an error.
 An independent external controller still proves direct access to the bound
 target once.
+
+Multi-task conservation is also resident judgment. Repository CI cannot observe
+Codex task identity, titles, handoffs, archive state, or whether a controller
+unnecessarily recreated an unaffected member. Do not add a registry, daemon,
+prompt field, or repository checker to simulate that state. The task API is the
+operating boundary; the controller applies the conservation and archive rules
+there, while ordinary repository gates continue to validate each member's
+durable output.
 
 The Codex live adoption probe remains available only when hook adoption testing
 is itself commissioned. In that test it is a fail-closed runtime assertion:

@@ -145,6 +145,21 @@ Each phase normally uses two completed operator/model turns:
    phase deliverable without making an evidence, route-exhaustion, provenance,
    or coverage claim that the seal does not support.
 
+The two turns optimize differently. Acquire & Seal maximizes decision-useful
+completeness under the integrity floor: every material information job is
+supported, contradicted, meaningfully bounded, or honestly blocked/gapped before
+the seal can pass. Compactness, actor count, and token minimization do not lower
+that acquisition standard. Deliver applies Smallest Complete Intervention to the
+human artifact after the gate passes, preserving the decisive evidence,
+counter-case, uncertainty, provenance, reversal conditions, and next action.
+
+For current US consumer-beauty Understanding, use the playbook's default
+four-evidence-actor route unless the owner explicitly overrides it: `CO0` plus
+exactly `CO1`, `CO2`, and mandatory `CO3`. The dispatcher is mechanical and is
+not a fifth evidence actor. `CO3` always owns customer/community evidence and
+selected depth; adaptive depth controls how far it continues, never whether the
+actor or customer-understanding job exists.
+
 The normal budget is two turns per phase, not a fake-success cap. A blocked,
 skipped, silently substituted, or incompletely captured required route leaves
 Acquire & Seal blocked. It does not manufacture a Deliver turn. Context growth

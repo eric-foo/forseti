@@ -75,6 +75,16 @@ Each phase normally uses two completed operator/model turns:
    acquisition gate, then synthesize and hand off without claiming evidence,
    coverage, provenance, or route exhaustion the seal does not support.
 
+Acquire & Seal optimizes for decision-useful completeness under the integrity
+floor; compactness, actor count, and token minimization are not its success
+criteria. Deliver then applies Smallest Complete Intervention to the human
+artifact without dropping decisive evidence or limitations.
+
+For current US consumer-beauty Understanding, the playbook binds the default
+four-evidence-actor route: `CO0` plus exactly `CO1`, `CO2`, and mandatory `CO3`.
+`CO3` always owns customer/community and selected depth; its depth expands
+adaptively, but the actor and customer-understanding job are not optional.
+
 Two turns are the normal budget, not permission to convert a blocked acquisition
 into apparent completion. The playbook owns the full contract and the six
 non-numeric outcome signals. Historical artifact names containing `phase1` or
