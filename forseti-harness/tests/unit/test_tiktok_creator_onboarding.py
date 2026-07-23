@@ -753,9 +753,10 @@ def test_grid_acquisition_reveals_one_batch_then_requires_two_stable_dom_polls(
     assert calls[0]["post_load_wheel_action"] is None
     wheel = calls[1]["post_load_wheel_action"]
     assert wheel is not None
-    assert wheel.action_name == "tiktok_grid_one_dom_batch_reveal_v0"
+    assert wheel.action_name == "tiktok_grid_one_dom_batch_humanized_reveal_v0"
     assert wheel.viewport_fraction_min == 0.20
     assert wheel.viewport_fraction_max == 0.35
+    assert wheel.target_selector == "a[href*='/video/13']"
     assert calls[2]["post_load_wheel_action"] is None
     assert calls[3]["post_load_wheel_action"] is None
     assert capture.metadata["grid_acquisition_initial_dom_video_count"] == 13
@@ -767,6 +768,27 @@ def test_grid_acquisition_reveals_one_batch_then_requires_two_stable_dom_polls(
     assert capture.metadata["grid_acquisition_passive_polls_executed"] == 2
     assert capture.metadata["grid_acquisition_consecutive_stable_polls"] == 2
     assert capture.metadata["lazy_load_scroll_passes_executed"] == 0
+
+
+def test_browser_capture_structural_logout_is_systemic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture = _capture()
+    capture.metadata["pre_action_stop_attempts"] = [
+        {
+            "matched": True,
+            "structural_rule_name": "tiktok_logged_out_session_v0",
+            "stop_kind": "logged_out_session",
+        }
+    ]
+    monkeypatch.setattr(
+        onboarding,
+        "_fetch_browser_page_observation_capture",
+        lambda **_kwargs: capture,
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="logged_out_session"):
+        onboarding.fetch_browser_page_observation_capture(url="https://example.test")
 
 
 def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
@@ -1376,7 +1398,10 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     ] == ["tiktok_relationship_dialog_close_v0"]
     assert engine.calls[2]["dom_extract_arg"] == {"creator_handle": "creator"}
     assert engine.calls[3]["post_load_wheel_action"].action_name == (
-        "tiktok_grid_one_dom_batch_reveal_v0"
+        "tiktok_grid_one_dom_batch_humanized_reveal_v0"
+    )
+    assert engine.calls[3]["post_load_wheel_action"].target_selector == (
+        "a[href*='/video/26']"
     )
     assert engine.calls[4]["post_load_wheel_action"] is None
     assert engine.calls[5]["post_load_wheel_action"] is None
@@ -1437,6 +1462,9 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     ]
     assert receipt["grid_deep_entry_or_none"]["status"] == "complete"
     assert receipt["grid_deep_entry_or_none"]["targeted_tile_scroll_performed"] is False
+    assert receipt["grid_deep_entry_or_none"]["grid_pagination_input_method"] == (
+        "cloakbrowser.locator.scroll_into_view_if_needed"
+    )
     assert receipt["grid_deep_entry_or_none"]["retry_waits"] == []
     assert receipt["grid_deep_entry_or_none"]["direct_video_navigation_count"] == 0
     assert deep_calls[0]["capture_route"] == "grid_tile_overlay"
@@ -1688,7 +1716,7 @@ def test_grid_overlay_sequence_reuses_grid_observation_returned_by_overlay_close
     )
 
 
-def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination(
+def test_grid_overlay_sequence_uses_logical_positions_and_targeted_human_scroll(
     tmp_path: Path,
 ) -> None:
     engine = _FakeEngine(
@@ -1717,6 +1745,12 @@ def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination
     assert engine.calls[2]["post_load_action_script"] is None
     assert engine.calls[1]["post_load_wheel_action"].direction == "down"
     assert engine.calls[2]["post_load_wheel_action"].direction == "down"
+    assert engine.calls[1]["post_load_wheel_action"].target_selector == (
+        "a[href*='/video/1']"
+    )
+    assert engine.calls[2]["post_load_wheel_action"].target_selector == (
+        "a[href*='/video/1']"
+    )
     assert engine.calls[1]["post_load_wheel_action"].viewport_fraction_min == 0.20
     assert engine.calls[1]["post_load_wheel_action"].viewport_fraction_max == 0.35
     click_action = engine.calls[3]["post_load_pointer_actions"][0]
@@ -1732,7 +1766,13 @@ def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination
         "down",
         "down",
     ]
-    assert receipt["targeted_tile_scroll_performed"] is False
+    assert receipt["targeted_tile_scroll_performed"] is True
+    assert receipt["grid_pagination_input_method"] == (
+        "cloakbrowser.locator.scroll_into_view_if_needed"
+    )
+    assert [
+        row["target_video_id"] for row in receipt["grid_pagination_passes"]
+    ] == ["1", "1"]
     # An advancing grid must not be misread as stalled: every wheel pass showed
     # fresh-state progress, so no no-progress stop is recorded.
     assert receipt["grid_pagination_stop_reason"] is None
@@ -1772,6 +1812,9 @@ def test_grid_overlay_sequence_wheels_up_for_earlier_logical_position(
     sequence(0, ["https://www.tiktok.com/@creator/video/1"])
 
     assert engine.calls[1]["post_load_wheel_action"].direction == "up"
+    assert engine.calls[1]["post_load_wheel_action"].target_selector == (
+        "a[href*='/video/1']"
+    )
     assert receipt["grid_pagination_passes"][0]["direction"] == "up"
 
 
@@ -2302,6 +2345,57 @@ def test_onboarding_cli_emits_dedicated_account_safety_stop(
     assert exc_info.value.code == 2
     assert runner.BLOCKER_PREFIX + (
         '{"code": "ACCOUNT_SAFETY_STOP", "phase": "deep_capture"}'
+    ) in capsys.readouterr().out.splitlines()
+
+
+def test_onboarding_cli_emits_systemic_logged_out_session_blocker(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {
+                "action_status": "allowed",
+                "decision": "existing_match",
+                "registry_onboarding_state": "not_onboarded",
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+    monkeypatch.setattr(
+        runner,
+        "probe_local_cdp_endpoints",
+        lambda *_args, **_kwargs: {"browser_available": True},
+    )
+
+    def logged_out_session(**_kwargs: object) -> object:
+        raise TikTokCreatorOnboardingError("logged_out_session")
+
+    monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", logged_out_session)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert runner.BLOCKER_PREFIX + (
+        '{"code": "LOGGED_OUT_SESSION", '
+        '"phase": "authenticated_browser_session"}'
     ) in capsys.readouterr().out.splitlines()
 
 
@@ -3577,7 +3671,9 @@ def _grid_overlay_receipt() -> dict[str, object]:
         "direct_video_navigation_count": 0,
         "targeted_tile_scroll_performed": False,
         "grid_pagination_allowed": True,
-        "grid_pagination_input_method": "mouse_wheel_burst",
+        "grid_pagination_input_method": (
+            "cloakbrowser.locator.scroll_into_view_if_needed"
+        ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
         "tile_click_target_policy": "link_routed_video_count_footer",

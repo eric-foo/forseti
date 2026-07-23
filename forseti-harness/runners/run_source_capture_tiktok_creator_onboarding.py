@@ -509,6 +509,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "browser_preflight",
                 recovery="finish or explicitly block an audience queue job, then retry",
             )
+        elif str(exc) == "logged_out_session":
+            _emit_blocker("LOGGED_OUT_SESSION", "authenticated_browser_session")
         elif str(exc) == "account_safety_stop":
             _emit_blocker("ACCOUNT_SAFETY_STOP", "deep_capture")
         else:

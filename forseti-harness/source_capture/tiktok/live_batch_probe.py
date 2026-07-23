@@ -16,6 +16,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
     BrowserPageResponse,
+    BrowserPageStructuralStopRule,
     BrowserSnapshotFailure,
     ChromeCdpPageObservationSessionEngine,
     CloakBrowserPageObservationSessionEngine,
@@ -297,6 +298,16 @@ TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS = (
     "account might be at risk",
     "log in to comment",
     "/login",
+)
+TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE = BrowserPageStructuralStopRule(
+    rule_name="tiktok_authenticated_session_logged_out_v0",
+    candidate_selector=(
+        "[data-e2e='top-login-button'],a[href*='/login'],"
+        "button,[role='button']"
+    ),
+    exact_text_markers=("log in", "login"),
+    href_substrings=("/login",),
+    stop_kind="logged_out_session",
 )
 TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
