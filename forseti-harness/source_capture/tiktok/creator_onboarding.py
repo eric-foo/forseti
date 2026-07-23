@@ -15,11 +15,18 @@ from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import UTC, datetime
 from hashlib import sha256
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Callable, Sequence
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
 
 from harness_utils import hash_file
+from source_capture.adapters.direct_http import (
+    DirectHttpCaptureFailure,
+    DirectHttpCaptureResult,
+    DirectHttpCaptureSuccess,
+    fetch_direct_http_capture,
+)
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -58,6 +65,8 @@ TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
+TIKTOK_LINK_HUB_CAPTURE_MAX_BYTES = 1_000_000
+TIKTOK_LINK_HUB_SOCIAL_LINK_CAP = 50
 TIKTOK_CREATOR_MARKET_ASSESSMENT_SCHEMA_VERSION = (
     "tiktok_creator_market_assessment_v2"
 )
@@ -96,6 +105,81 @@ GRID_ACQUISITION_STABILITY_POLL_CAP = 4
 SleepFn = Callable[[float], None]
 MonotonicFn = Callable[[], float]
 UtcNowFn = Callable[[], datetime]
+LinkHubFetchFn = Callable[..., DirectHttpCaptureResult]
+
+_LINK_HUB_HOSTS = frozenset(
+    {
+        "allmylinks.com",
+        "beacons.ai",
+        "bio.site",
+        "campsite.bio",
+        "link.me",
+        "linktr.ee",
+        "lnk.bio",
+        "solo.to",
+        "stan.store",
+    }
+)
+_SOCIAL_HOST_KINDS = {
+    "facebook.com": "facebook",
+    "instagram.com": "instagram",
+    "pinterest.com": "pinterest",
+    "snapchat.com": "snapchat",
+    "threads.net": "threads",
+    "tiktok.com": "tiktok",
+    "twitch.tv": "twitch",
+    "twitter.com": "x",
+    "x.com": "x",
+    "youtu.be": "youtube",
+    "youtube.com": "youtube",
+}
+
+
+class _LinkHubHtmlParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.anchor_hrefs: list[str] = []
+        self.json_ld_texts: list[str] = []
+        self._json_ld_parts: list[str] | None = None
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        attributes = {key.lower(): value for key, value in attrs}
+        if tag.lower() == "a" and attributes.get("href"):
+            self.anchor_hrefs.append(str(attributes["href"]))
+        if (
+            tag.lower() == "script"
+            and str(attributes.get("type") or "").lower() == "application/ld+json"
+        ):
+            self._json_ld_parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self._json_ld_parts is not None:
+            self._json_ld_parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "script" and self._json_ld_parts is not None:
+            self.json_ld_texts.append("".join(self._json_ld_parts))
+            self._json_ld_parts = None
+
+
+class _TemporaryPageObservationEngine:
+    def __init__(self, engine: BrowserPageObservationEngine) -> None:
+        self._engine = engine
+
+    def capture_page_observation(
+        self, **kwargs: object
+    ) -> BrowserPageObservationSuccess:
+        capture = getattr(self._engine, "capture_temporary_page_observation", None)
+        if not callable(capture):
+            raise RuntimeError(
+                "browser engine does not support temporary-page observation"
+            )
+        result = capture(**kwargs)
+        if not isinstance(result, BrowserPageObservationSuccess):
+            raise RuntimeError("temporary-page observation returned an invalid result")
+        return result
 
 TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
 (arg) => {
@@ -150,6 +234,82 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
   const profileBioText = profileBioNode
     ? String(profileBioNode.innerText || profileBioNode.textContent || '').trim()
     : '';
+  const linkHubHosts = [
+    'linktr.ee', 'link.me', 'beacons.ai', 'bio.site', 'lnk.bio', 'stan.store',
+    'allmylinks.com', 'solo.to', 'campsite.bio'
+  ];
+  const absoluteUrl = (raw) => {
+    const value = String(raw || '').trim();
+    if (!value) return '';
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) return value;
+    if (value.startsWith('/')) return new URL(value, location.href).href;
+    return 'https://' + value.replace(/^\/+/, '');
+  };
+  const normalizeHubUrl = (raw) => {
+    try {
+      let parsed = new URL(absoluteUrl(raw));
+      const host = String(parsed.hostname || '').toLowerCase().replace(/^www\./, '');
+      if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) {
+        const params = new URLSearchParams(parsed.search);
+        const target = params.get('target') || params.get('url') || params.get('redirect_url');
+        if (!target) return null;
+        parsed = new URL(absoluteUrl(target));
+      }
+      const normalizedHost = String(parsed.hostname || '').toLowerCase().replace(/^www\./, '');
+      if (
+        !['http:', 'https:'].includes(parsed.protocol) ||
+        !linkHubHosts.some((allowed) =>
+          normalizedHost === allowed || normalizedHost.endsWith('.' + allowed)
+        )
+      ) return null;
+      return {
+        url: parsed.origin + parsed.pathname,
+        host: normalizedHost
+      };
+    } catch (_error) {
+      return null;
+    }
+  };
+  const profileExternalLinks = [];
+  const seenProfileExternalLinks = new Set();
+  const addProfileExternalLink = (raw, source, displayText) => {
+    const normalized = normalizeHubUrl(raw);
+    if (!normalized || seenProfileExternalLinks.has(normalized.url)) return;
+    seenProfileExternalLinks.add(normalized.url);
+    profileExternalLinks.push({
+      url: normalized.url,
+      host: normalized.host,
+      display_text_or_none: String(displayText || '').trim() || null,
+      detection_source: source
+    });
+  };
+  for (const anchor of Array.from(document.querySelectorAll(
+    'a[data-e2e="user-link"][href],[data-e2e="user-link"] a[href],'
+    + '[data-e2e="user-bio"] a[href]'
+  ))) {
+    addProfileExternalLink(
+      anchor.href || anchor.getAttribute('href') || '',
+      'profile_dom',
+      anchor.innerText || anchor.textContent || ''
+    );
+  }
+  if (hydration && hydration.textContent) {
+    try {
+      const hydrated = JSON.parse(hydration.textContent);
+      const user = hydrated && hydrated.__DEFAULT_SCOPE__ &&
+        hydrated.__DEFAULT_SCOPE__['webapp.user-detail'] &&
+        hydrated.__DEFAULT_SCOPE__['webapp.user-detail'].userInfo &&
+        hydrated.__DEFAULT_SCOPE__['webapp.user-detail'].userInfo.user;
+      const bioLink = user && user.bioLink;
+      addProfileExternalLink(
+        bioLink && (bioLink.link || bioLink.url),
+        'profile_hydration',
+        bioLink && (bioLink.displayLink || bioLink.link || bioLink.url)
+      );
+    } catch (_error) {
+      // The raw hydration text is still retained for the existing metric parser.
+    }
+  }
   const profileMetric = (selector) => {
     const node = document.querySelector(selector);
     const rawText = node
@@ -165,6 +325,7 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
     hydration_json_text: hydration ? hydration.textContent : null,
     profile_bio_text_or_none: profileBioText || null,
     profile_bio_element_detected: Boolean(profileBioNode),
+    profile_external_links: profileExternalLinks,
     profile_metric_dom: {
       follower_count: profileMetric('strong[data-e2e="followers-count"]'),
       profile_total_like_count: profileMetric('strong[data-e2e="likes-count"]')
@@ -221,6 +382,24 @@ TIKTOK_OLDEST_POST_DOM_EXTRACT_SCRIPT = r"""
     latest_active: Boolean(latest && latest.getAttribute('data-active') === 'true'),
     ordered_videos: orderedVideos,
     no_public_posts_visible: bodyText.includes('no videos') || bodyText.includes('no posts')
+  };
+}
+""".strip()
+
+TIKTOK_LINK_HUB_DOM_EXTRACT_SCRIPT = r"""
+() => {
+  const anchors = Array.from(document.querySelectorAll('a[href]')).map((anchor) => ({
+    href: String(anchor.href || anchor.getAttribute('href') || ''),
+    display_text_or_none:
+      String(anchor.innerText || anchor.textContent || '').trim() || null
+  }));
+  const jsonLdTexts = Array.from(
+    document.querySelectorAll('script[type="application/ld+json"]')
+  ).map((node) => String(node.textContent || ''));
+  return {
+    anchors,
+    json_ld_texts: jsonLdTexts,
+    document_title_or_none: String(document.title || '').trim() || null
   };
 }
 """.strip()
@@ -666,6 +845,7 @@ def run_tiktok_creator_onboarding(
     engine: BrowserPageObservationEngine | None = None,
     progress_fn: ProgressFn | None = None,
     deep_capture_fn: DeepCaptureFn = run_tiktok_live_batch_probe,
+    link_hub_fetch_fn: LinkHubFetchFn = fetch_direct_http_capture,
     sleep_fn: SleepFn = time.sleep,
     monotonic_fn: MonotonicFn = time.monotonic,
     utc_now_fn: UtcNowFn = _utc_now,
@@ -762,6 +942,19 @@ def run_tiktok_creator_onboarding(
             settle_seconds=settle_seconds,
             engine=observation_engine,
             progress_fn=progress_fn,
+            utc_now_fn=utc_now_fn,
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+        )
+        _run_link_hub_phase(
+            state,
+            storage_state_path=storage_state_path,
+            paths=paths,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            engine=observation_engine,
+            progress_fn=progress_fn,
+            fetch_fn=link_hub_fetch_fn,
             utc_now_fn=utc_now_fn,
             run_started_monotonic=run_started_monotonic,
             monotonic_fn=monotonic_fn,
@@ -941,6 +1134,7 @@ class _OnboardingRunState:
     account_safety_stop: bool = False
     suggested_status: str | None = None
     suggested_outer_ui_route: str | None = None
+    suggested_receipt: dict[str, Any] | None = None
     suggested_surface_close: dict[str, object] | None = None
     initial_deep_capture_wait: dict[str, object] | None = None
     grid_deep_entry: dict[str, object] | None = None
@@ -950,6 +1144,7 @@ class _OnboardingRunState:
     grid_window: dict[str, Any] | None = None
     selection: dict[str, Any] | None = None
     earliest_public_post_observation: dict[str, Any] | None = None
+    link_hub_observation: dict[str, Any] | None = None
     window_by_id: dict[str, Any] | None = None
     captured_video_ids: list[str] | None = None
     deep_capture: dict[str, Any] | None = None
@@ -1056,6 +1251,7 @@ def _run_suggested_grid_and_selection_phase(
     )
     state.suggested_status = str(suggested_receipt["status"])
     state.suggested_outer_ui_route = str(suggested_receipt["outer_ui_route"])
+    state.suggested_receipt = suggested_receipt
     _write_json(paths.suggested_accounts_json_path, suggested_receipt)
     state.artifacts_written.append(paths.suggested_accounts_json_path.name)
     if state.suggested_status == "failed":
@@ -1114,6 +1310,11 @@ def _run_suggested_grid_and_selection_phase(
             f"grid capture failed: {grid_capture.failure_kind.value}"
         )
     state.grid_capture = grid_capture
+    _merge_grid_profile_external_links(
+        suggested_receipt=suggested_receipt,
+        grid_capture=grid_capture,
+    )
+    _write_json(paths.suggested_accounts_json_path, suggested_receipt)
 
     state.stage = "freeze_window"
     _notify_progress(progress_fn, state.stage)
@@ -1207,6 +1408,438 @@ def _run_earliest_public_post_phase(
     )
 
 
+def _run_link_hub_phase(
+    state: _OnboardingRunState,
+    *,
+    storage_state_path: Path,
+    paths: TikTokCreatorOnboardingOutputPaths,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+    progress_fn: ProgressFn | None,
+    fetch_fn: LinkHubFetchFn,
+    utc_now_fn: UtcNowFn,
+    run_started_monotonic: float,
+    monotonic_fn: MonotonicFn,
+) -> None:
+    assert state.suggested_receipt is not None
+    state.stage = "capture_profile_link_hub"
+    _notify_progress(progress_fn, state.stage)
+    link_hub_url = _first_link_hub_url(
+        state.suggested_receipt.get("profile_external_links")
+    )
+    observation = capture_tiktok_profile_link_hub_observation(
+        link_hub_url=link_hub_url,
+        storage_state_path=storage_state_path,
+        timeout_seconds=timeout_seconds,
+        settle_seconds=settle_seconds,
+        engine=engine,
+        fetch_fn=fetch_fn,
+        utc_now_fn=utc_now_fn,
+    )
+    state.link_hub_observation = observation
+    state.suggested_receipt["link_hub_observation"] = observation
+    state.suggested_receipt["link_hub_capture_status"] = observation["status"]
+    state.suggested_receipt["link_hub_url_or_none"] = observation[
+        "link_hub_url_or_none"
+    ]
+    _write_json(paths.suggested_accounts_json_path, state.suggested_receipt)
+    state.phase_chronology.append(
+        _phase_chronology_row(
+            "profile_link_hub_capture_completed",
+            run_started_monotonic=run_started_monotonic,
+            monotonic_fn=monotonic_fn,
+            utc_now_fn=utc_now_fn,
+        )
+    )
+
+
+def capture_tiktok_profile_link_hub_observation(
+    *,
+    link_hub_url: str | None,
+    storage_state_path: Path,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+    fetch_fn: LinkHubFetchFn = fetch_direct_http_capture,
+    utc_now_fn: UtcNowFn = _utc_now,
+) -> dict[str, Any]:
+    observed_at = _utc_iso(utc_now_fn())
+    if link_hub_url is None:
+        return {
+            "schema_version": "tiktok_profile_link_hub_observation_v1",
+            "status": "none_visible",
+            "link_hub_url_or_none": None,
+            "capture_method_or_none": None,
+            "direct_http_attempt_or_none": None,
+            "browser_fallback_attempt_or_none": None,
+            "outbound_social_links": [],
+            "observed_at_utc": observed_at,
+            "limitations": [],
+            "non_claims": [
+                "not proof that no external profile link exists outside the captured surface"
+            ],
+        }
+
+    direct_attempt: dict[str, Any]
+    direct_links: list[dict[str, str]] = []
+    direct_result: DirectHttpCaptureResult | None = None
+    try:
+        direct_result = fetch_fn(
+            url=link_hub_url,
+            timeout_seconds=min(timeout_seconds, 20.0),
+            max_bytes=TIKTOK_LINK_HUB_CAPTURE_MAX_BYTES,
+        )
+    except Exception as exc:
+        direct_attempt = {
+            "status": "failed",
+            "failure_kind_or_none": type(exc).__name__,
+            "http_status_or_none": None,
+            "final_url_or_none": None,
+            "body_sha256_or_none": None,
+            "byte_count_or_none": None,
+        }
+    else:
+        if isinstance(direct_result, DirectHttpCaptureSuccess):
+            safe_final_url = _canonical_public_url(direct_result.final_url)
+            direct_attempt = {
+                "status": (
+                    "captured"
+                    if 200 <= direct_result.status < 300
+                    else "http_error"
+                ),
+                "failure_kind_or_none": None,
+                "http_status_or_none": direct_result.status,
+                "final_url_or_none": safe_final_url,
+                "body_sha256_or_none": f"sha256:{sha256(direct_result.body).hexdigest()}",
+                "byte_count_or_none": len(direct_result.body),
+            }
+            if 200 <= direct_result.status < 300:
+                direct_links = _social_links_from_html(
+                    direct_result.body,
+                    base_url=direct_result.final_url,
+                )
+        else:
+            assert isinstance(direct_result, DirectHttpCaptureFailure)
+            direct_attempt = {
+                "status": "failed",
+                "failure_kind_or_none": direct_result.failure_kind.value,
+                "http_status_or_none": direct_result.status,
+                "final_url_or_none": _canonical_public_url(
+                    direct_result.final_url
+                ),
+                "body_sha256_or_none": None,
+                "byte_count_or_none": None,
+            }
+
+    if direct_links:
+        return _captured_link_hub_observation(
+            link_hub_url=link_hub_url,
+            capture_method="direct_http",
+            direct_attempt=direct_attempt,
+            browser_attempt=None,
+            outbound_social_links=direct_links,
+            observed_at=observed_at,
+        )
+
+    browser_capture = fetch_browser_page_observation_capture(
+        url=link_hub_url,
+        dom_extract_script=TIKTOK_LINK_HUB_DOM_EXTRACT_SCRIPT,
+        dom_extract_arg=None,
+        response_url_predicate=lambda _url: False,
+        timeout_seconds=timeout_seconds,
+        wait_until="domcontentloaded",
+        settle_seconds=settle_seconds,
+        storage_state_path=storage_state_path,
+        headless=False,
+        browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
+        engine=_TemporaryPageObservationEngine(engine),
+    )
+    if isinstance(browser_capture, BrowserSnapshotFailure):
+        return {
+            "schema_version": "tiktok_profile_link_hub_observation_v1",
+            "status": "blocked",
+            "link_hub_url_or_none": link_hub_url,
+            "capture_method_or_none": None,
+            "direct_http_attempt_or_none": direct_attempt,
+            "browser_fallback_attempt_or_none": {
+                "status": "failed",
+                "failure_kind_or_none": browser_capture.failure_kind.value,
+                "final_url_or_none": None,
+            },
+            "outbound_social_links": [],
+            "observed_at_utc": observed_at,
+            "limitations": [
+                "direct HTTP exposed no supported social links and browser fallback failed"
+            ],
+            "non_claims": [
+                "not evidence that the link hub has no public outbound accounts"
+            ],
+        }
+
+    browser_links = _social_links_from_browser_capture(browser_capture)
+    return _captured_link_hub_observation(
+        link_hub_url=link_hub_url,
+        capture_method="browser_temporary_tab",
+        direct_attempt=direct_attempt,
+        browser_attempt={
+            "status": "captured",
+            "failure_kind_or_none": None,
+            "final_url_or_none": _canonical_public_url(browser_capture.final_url),
+        },
+        outbound_social_links=browser_links,
+        observed_at=observed_at,
+    )
+
+
+def _captured_link_hub_observation(
+    *,
+    link_hub_url: str,
+    capture_method: str,
+    direct_attempt: dict[str, Any],
+    browser_attempt: dict[str, Any] | None,
+    outbound_social_links: list[dict[str, str]],
+    observed_at: str,
+) -> dict[str, Any]:
+    limitations = []
+    if not outbound_social_links:
+        limitations.append("captured link hub exposed no supported public social URLs")
+    return {
+        "schema_version": "tiktok_profile_link_hub_observation_v1",
+        "status": "captured",
+        "link_hub_url_or_none": link_hub_url,
+        "capture_method_or_none": capture_method,
+        "direct_http_attempt_or_none": direct_attempt,
+        "browser_fallback_attempt_or_none": browser_attempt,
+        "outbound_social_links": outbound_social_links,
+        "observed_at_utc": observed_at,
+        "limitations": limitations,
+        "non_claims": [
+            "not private identity or contact enrichment",
+            "not proof that every link-hub destination was enumerated",
+            "not Creator Registry linkage mutation",
+        ],
+    }
+
+
+def _social_links_from_html(
+    body: bytes, *, base_url: str
+) -> list[dict[str, str]]:
+    parser = _LinkHubHtmlParser()
+    parser.feed(body.decode("utf-8", errors="replace"))
+    return _canonical_social_link_rows(
+        anchor_urls=parser.anchor_hrefs,
+        json_ld_texts=parser.json_ld_texts,
+        base_url=base_url,
+    )
+
+
+def _social_links_from_browser_capture(
+    capture: BrowserPageObservationSuccess,
+) -> list[dict[str, str]]:
+    dom = capture.dom_observation
+    if not isinstance(dom, dict):
+        return []
+    anchor_urls = [
+        str(row["href"])
+        for row in dom.get("anchors", [])
+        if isinstance(row, dict) and isinstance(row.get("href"), str)
+    ]
+    json_ld_texts = [
+        str(value)
+        for value in dom.get("json_ld_texts", [])
+        if isinstance(value, str)
+    ]
+    return _canonical_social_link_rows(
+        anchor_urls=anchor_urls,
+        json_ld_texts=json_ld_texts,
+        base_url=capture.final_url,
+    )
+
+
+def _canonical_social_link_rows(
+    *,
+    anchor_urls: Sequence[str],
+    json_ld_texts: Sequence[str],
+    base_url: str,
+) -> list[dict[str, str]]:
+    candidates = [(url, "anchor") for url in anchor_urls]
+    for raw_json in json_ld_texts:
+        try:
+            payload = json.loads(raw_json)
+        except json.JSONDecodeError:
+            continue
+        candidates.extend((url, "json_ld_same_as") for url in _same_as_urls(payload))
+    rows: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for raw_url, source in candidates:
+        normalized = _canonical_social_url(raw_url, base_url=base_url)
+        if normalized is None:
+            continue
+        platform, url = normalized
+        if url in seen:
+            continue
+        seen.add(url)
+        rows.append({"platform": platform, "url": url, "source": source})
+        if len(rows) >= TIKTOK_LINK_HUB_SOCIAL_LINK_CAP:
+            break
+    return rows
+
+
+def _same_as_urls(value: object) -> list[str]:
+    urls: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key == "sameAs":
+                if isinstance(child, str):
+                    urls.append(child)
+                elif isinstance(child, list):
+                    urls.extend(item for item in child if isinstance(item, str))
+            else:
+                urls.extend(_same_as_urls(child))
+    elif isinstance(value, list):
+        for child in value:
+            urls.extend(_same_as_urls(child))
+    return urls
+
+
+def _canonical_social_url(
+    raw_url: str, *, base_url: str
+) -> tuple[str, str] | None:
+    candidate_url = raw_url.strip()
+    if candidate_url and "://" not in candidate_url and not candidate_url.startswith("/"):
+        candidate_url = f"https://{candidate_url}"
+    try:
+        parsed = urlparse(urljoin(base_url, candidate_url))
+    except ValueError:
+        return None
+    host = (parsed.hostname or "").lower().removeprefix("www.")
+    if _host_matches(host, _LINK_HUB_HOSTS):
+        query = parse_qs(parsed.query)
+        target = next(
+            (
+                values[0]
+                for key in ("url", "target", "destination", "redirect")
+                if (values := query.get(key))
+            ),
+            None,
+        )
+        if target:
+            return _canonical_social_url(target, base_url=base_url)
+        return None
+    platform = next(
+        (
+            kind
+            for social_host, kind in _SOCIAL_HOST_KINDS.items()
+            if host == social_host or host.endswith(f".{social_host}")
+        ),
+        None,
+    )
+    if (
+        platform is None
+        or parsed.scheme not in {"http", "https"}
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        return None
+    path = parsed.path or "/"
+    return platform, f"https://{host}{path}"
+
+
+def _canonical_public_url(raw_url: str | None) -> str | None:
+    if not raw_url:
+        return None
+    try:
+        parsed = urlparse(raw_url)
+    except ValueError:
+        return None
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        return None
+    host = parsed.hostname.lower().removeprefix("www.")
+    return urlunparse((parsed.scheme, host, parsed.path or "/", "", "", ""))
+
+
+def _first_link_hub_url(value: object) -> str | None:
+    if not isinstance(value, list):
+        return None
+    for row in value:
+        if not isinstance(row, dict):
+            continue
+        normalized = _canonical_link_hub_url(row.get("url"))
+        if normalized is not None:
+            return normalized
+    return None
+
+
+def _canonical_link_hub_url(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    candidate_url = value.strip()
+    if candidate_url and "://" not in candidate_url and not candidate_url.startswith("/"):
+        candidate_url = f"https://{candidate_url}"
+    try:
+        parsed = urlparse(candidate_url)
+    except ValueError:
+        return None
+    host = (parsed.hostname or "").lower().removeprefix("www.")
+    if host == "tiktok.com" or host.endswith(".tiktok.com"):
+        query = parse_qs(parsed.query)
+        target = next(
+            (
+                values[0]
+                for key in ("target", "url", "redirect_url")
+                if (values := query.get(key))
+            ),
+            None,
+        )
+        return _canonical_link_hub_url(target)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not _host_matches(host, _LINK_HUB_HOSTS)
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        return None
+    return f"https://{host}{parsed.path or '/'}"
+
+
+def _host_matches(host: str, allowed_hosts: frozenset[str]) -> bool:
+    return any(host == allowed or host.endswith(f".{allowed}") for allowed in allowed_hosts)
+
+
+def _merge_grid_profile_external_links(
+    *,
+    suggested_receipt: dict[str, Any],
+    grid_capture: BrowserPageObservationSuccess,
+) -> None:
+    existing = suggested_receipt.get("profile_external_links")
+    rows = list(existing) if isinstance(existing, list) else []
+    seen = {
+        str(row.get("url"))
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("url"), str)
+    }
+    dom = grid_capture.dom_observation
+    grid_rows = dom.get("profile_external_links") if isinstance(dom, dict) else None
+    if isinstance(grid_rows, list):
+        for row in grid_rows:
+            if not isinstance(row, dict) or not isinstance(row.get("url"), str):
+                continue
+            if row["url"] in seen:
+                continue
+            rows.append(row)
+            seen.add(row["url"])
+    suggested_receipt["profile_external_links"] = rows
+    suggested_receipt["profile_external_links_status"] = (
+        "captured" if rows else "none_visible"
+    )
+
+
 def capture_tiktok_earliest_public_post_observation(
     *,
     profile_url: str,
@@ -1262,14 +1895,21 @@ def capture_tiktok_earliest_public_post_observation(
             f"Oldest-sort capture failed: {capture.failure_kind.value}"
         )
     dom = capture.dom_observation
+    oldest_receipt = _verified_oldest_sort_action_receipt(capture)
+    selection_attempt_count = 1
     if not isinstance(dom, dict) or dom.get("oldest_active") is not True:
-        raise TikTokCreatorOnboardingError("Oldest sort selection could not be verified")
-    receipts = capture.metadata.get("post_load_pointer_actions")
-    if not isinstance(receipts, list) or not receipts:
-        raise TikTokCreatorOnboardingError("Oldest sort action receipt is missing")
-    oldest_receipt = receipts[-1]
-    if not isinstance(oldest_receipt, dict) or oldest_receipt.get("clicked") is not True:
-        raise TikTokCreatorOnboardingError("Oldest sort control was exposed but not clicked")
+        capture = observe((TIKTOK_PROFILE_OLDEST_SORT_ACTION,))
+        selection_attempt_count = 2
+        if isinstance(capture, BrowserSnapshotFailure):
+            raise TikTokCreatorOnboardingError(
+                f"Oldest-sort verification retry failed: {capture.failure_kind.value}"
+            )
+        dom = capture.dom_observation
+        oldest_receipt = _verified_oldest_sort_action_receipt(capture)
+    if not isinstance(dom, dict) or dom.get("oldest_active") is not True:
+        raise TikTokCreatorOnboardingError(
+            "Oldest sort selection could not be verified after one bounded retry"
+        )
     response_start = oldest_receipt.get("observed_response_count_before")
     if not isinstance(response_start, int) or isinstance(response_start, bool):
         response_start = 0
@@ -1283,7 +1923,6 @@ def capture_tiktok_earliest_public_post_observation(
     if not candidates:
         if dom.get("no_public_posts_visible") is True and not dom.get("ordered_videos"):
             result = _earliest_public_post_unavailable("no_public_posts", utc_now_fn)
-            _restore_tiktok_latest_sort(observe)
             return result
         raise TikTokCreatorOnboardingError(
             "Oldest sort produced no exact creator-owned createTime evidence"
@@ -1306,6 +1945,7 @@ def capture_tiktok_earliest_public_post_observation(
         "source_video_url": video_url,
         "observed_at_utc": _utc_iso(utc_now_fn()),
         "selection_method": "tiktok_profile_oldest_sort_first_batch_min_exact_create_time_v1",
+        "selection_attempt_count": selection_attempt_count,
         "timestamp_precision": "exact_source_create_time",
         "limitations": [
             "not_account_creation_time",
@@ -1313,34 +1953,26 @@ def capture_tiktok_earliest_public_post_observation(
         ],
     }
     assert_no_sensitive_tiktok_material(result)
-    _restore_tiktok_latest_sort(observe)
     return result
 
 
-def _restore_tiktok_latest_sort(
-    observe: Callable[
-        [Sequence[BrowserPagePointerAction]],
-        BrowserPageObservationSuccess | BrowserSnapshotFailure,
-    ],
-) -> None:
-    restored = observe((TIKTOK_PROFILE_LATEST_SORT_ACTION,))
-    if isinstance(restored, BrowserSnapshotFailure):
-        raise TikTokCreatorOnboardingError(
-            f"Latest-sort restoration failed: {restored.failure_kind.value}"
-        )
-    dom = restored.dom_observation
-    if not isinstance(dom, dict) or dom.get("latest_active") is not True:
-        raise TikTokCreatorOnboardingError("Latest sort restoration could not be verified")
-    receipts = restored.metadata.get("post_load_pointer_actions")
+def _verified_oldest_sort_action_receipt(
+    capture: BrowserPageObservationSuccess,
+) -> dict[str, Any]:
+    receipts = capture.metadata.get("post_load_pointer_actions")
     if not isinstance(receipts, list) or not receipts:
-        raise TikTokCreatorOnboardingError("Latest sort restoration receipt is missing")
-    latest_receipt = receipts[-1]
+        raise TikTokCreatorOnboardingError("Oldest sort action receipt is missing")
+    oldest_receipt = receipts[-1]
     if (
-        not isinstance(latest_receipt, dict)
-        or latest_receipt.get("action_name") != TIKTOK_PROFILE_LATEST_SORT_ACTION.action_name
-        or latest_receipt.get("clicked") is not True
+        not isinstance(oldest_receipt, dict)
+        or oldest_receipt.get("action_name")
+        != TIKTOK_PROFILE_OLDEST_SORT_ACTION.action_name
+        or oldest_receipt.get("clicked") is not True
     ):
-        raise TikTokCreatorOnboardingError("Latest sort control was not restored")
+        raise TikTokCreatorOnboardingError(
+            "Oldest sort control was exposed but not clicked"
+        )
+    return oldest_receipt
 
 
 def _earliest_public_post_unavailable(
@@ -1615,6 +2247,7 @@ def _build_onboarding_receipt(
         "earliest_public_post_observation_or_none": (
             state.earliest_public_post_observation
         ),
+        "link_hub_observation_or_none": state.link_hub_observation,
         "market_assessment_or_none": state.market_assessment,
         "phase_chronology": state.phase_chronology,
         "artifacts_written": state.artifacts_written,

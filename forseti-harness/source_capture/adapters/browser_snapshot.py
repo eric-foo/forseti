@@ -1427,6 +1427,8 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._page_navigation_count = 0
         self._page_reload_count = 0
         self._same_url_navigation_suppression_count = 0
+        self._temporary_page_creation_count = 0
+        self._temporary_page_close_count = 0
         self._force_same_url_reload = False
         self._capture_attempt_count = 0
         self._capture_success_count = 0
@@ -1560,6 +1562,36 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         if not isinstance(screenshot, bytes) or not screenshot:
             raise RuntimeError("Chrome CDP viewport screenshot returned no bytes")
         return screenshot
+
+    def capture_temporary_page_observation(
+        self, **kwargs: object
+    ) -> BrowserPageObservationSuccess:
+        """Capture on one temporary page, then restore the retained runner page."""
+
+        if self._closed:
+            raise RuntimeError("Chrome CDP page-observation session is already closed")
+        if self._real_context is None or self._real_page is None:
+            raise RuntimeError(
+                "Chrome CDP retained page must exist before temporary-page capture"
+            )
+        retained_page = self._real_page
+        temporary_page = self._real_context.new_page()  # type: ignore[attr-defined]
+        self._temporary_page_creation_count += 1
+        self._real_page = temporary_page
+        capture_failed = False
+        try:
+            return self.capture_page_observation(**kwargs)
+        except Exception:
+            capture_failed = True
+            raise
+        finally:
+            self._real_page = retained_page
+            try:
+                temporary_page.close()  # type: ignore[attr-defined]
+                self._temporary_page_close_count += 1
+            except Exception:
+                if not capture_failed:
+                    raise
 
     def _launch_page_observation_browser(
         self,
@@ -1701,6 +1733,8 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             "same_url_navigation_suppression_count": (
                 self._same_url_navigation_suppression_count
             ),
+            "temporary_page_creation_count": self._temporary_page_creation_count,
+            "temporary_page_close_count": self._temporary_page_close_count,
             "page_reuse_policy": "reuse_one_runner_page_until_detached",
             "capture_attempt_count": self._capture_attempt_count,
             "capture_success_count": self._capture_success_count,

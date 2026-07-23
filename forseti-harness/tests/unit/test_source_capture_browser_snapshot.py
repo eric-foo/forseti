@@ -3351,3 +3351,82 @@ def test_chrome_cdp_session_can_force_same_target_reload() -> None:
     assert receipt["page_reload_count"] == 1
     assert receipt["same_url_navigation_suppression_count"] == 0
     assert receipt["page_navigation_count"] == 0
+
+
+def test_chrome_cdp_temporary_page_capture_restores_retained_page(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result = _ok_page_observation_engine().result
+    assert isinstance(result, BrowserPageObservationSuccess)
+
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+            self.close_count = 0
+
+        def close(self) -> None:
+            self.close_count += 1
+
+    retained = FakePage("https://www.tiktok.com/@creator")
+    temporary = FakePage("about:blank")
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return temporary
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._real_page = retained
+
+    def fake_capture(**_kwargs: object) -> BrowserPageObservationSuccess:
+        assert engine._real_page is temporary
+        return result
+
+    monkeypatch.setattr(engine, "capture_page_observation", fake_capture)
+
+    assert (
+        engine.capture_temporary_page_observation(url="https://linktr.ee/creator")
+        is result
+    )
+    assert engine._real_page is retained
+    assert retained.close_count == 0
+    assert temporary.close_count == 1
+    assert engine.lifecycle_receipt["temporary_page_creation_count"] == 1
+    assert engine.lifecycle_receipt["temporary_page_close_count"] == 1
+
+
+def test_chrome_cdp_temporary_page_capture_closes_page_after_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+            self.close_count = 0
+
+        def close(self) -> None:
+            self.close_count += 1
+
+    retained = FakePage("https://www.tiktok.com/@creator")
+    temporary = FakePage("about:blank")
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return temporary
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._real_page = retained
+    monkeypatch.setattr(
+        engine,
+        "capture_page_observation",
+        lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("link hub failed")),
+    )
+
+    with pytest.raises(RuntimeError, match="link hub failed"):
+        engine.capture_temporary_page_observation(url="https://linktr.ee/creator")
+
+    assert engine._real_page is retained
+    assert retained.close_count == 0
+    assert temporary.close_count == 1
+    assert engine.lifecycle_receipt["temporary_page_creation_count"] == 1
+    assert engine.lifecycle_receipt["temporary_page_close_count"] == 1

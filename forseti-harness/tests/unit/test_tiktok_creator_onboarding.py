@@ -1335,12 +1335,6 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
                     {**_item("80", 20, 2), "createTime": 1_500_000_000},
                 ],
             ),
-            _oldest_probe_capture(
-                active=False,
-                latest_active=True,
-                clicked=True,
-                action_name="tiktok_profile_latest_sort_reset_v0",
-            ),
         ]
     )
     deep_calls: list[dict[str, object]] = []
@@ -1375,7 +1369,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         sleep_fn=lambda _seconds: None,
     )
 
-    assert len(engine.calls) == 9
+    assert len(engine.calls) == 8
     assert engine.calls[1]["dom_extract_arg"] == {"creator_handle": "creator"}
     assert [
         action.action_name for action in engine.calls[1]["post_load_pointer_actions"]
@@ -1396,9 +1390,10 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "enter_grid_overlay_capture_sequence",
         "deep_capture",
         "observe_earliest_public_post",
+        "capture_profile_link_hub",
         "close",
     ]
-    assert progress_events[-3][1] == {"selected_count": 2}
+    assert progress_events[-4][1] == {"selected_count": 2}
     assert deep_calls[0]["video_urls"] == [
         "https://www.tiktok.com/@creator/video/1",
         "https://www.tiktok.com/@creator/video/2",
@@ -1438,6 +1433,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "grid_overlay_deep_capture_sequence_completed",
         "deep_capture_completed",
         "earliest_public_post_observation_completed",
+        "profile_link_hub_capture_completed",
     ]
     assert receipt["grid_deep_entry_or_none"]["status"] == "complete"
     assert receipt["grid_deep_entry_or_none"]["targeted_tile_scroll_performed"] is False
@@ -1482,12 +1478,6 @@ def test_oldest_probe_chooses_minimum_exact_time_despite_pinned_disorder(
         [
             _oldest_probe_capture(active=False),
             _oldest_probe_capture(active=True, items=[newer, oldest], clicked=True),
-            _oldest_probe_capture(
-                active=False,
-                latest_active=True,
-                clicked=True,
-                action_name="tiktok_profile_latest_sort_reset_v0",
-            ),
         ]
     )
 
@@ -1504,6 +1494,37 @@ def test_oldest_probe_chooses_minimum_exact_time_despite_pinned_disorder(
     assert result["status"] == "observed"
     assert result["source_video_id"] == "80"
     assert result["published_at_utc"] == "2017-07-14T02:40:00Z"
+    assert len(engine.calls) == 2
+
+
+def test_oldest_probe_retries_once_when_clicked_state_does_not_activate(
+    tmp_path: Path,
+) -> None:
+    oldest = {**_item("80", 20, 2), "createTime": 1_500_000_000}
+    engine = _FakeEngine(
+        [
+            _oldest_probe_capture(active=False),
+            _oldest_probe_capture(active=False, clicked=True, items=[oldest]),
+            _oldest_probe_capture(active=True, clicked=True, items=[oldest]),
+        ]
+    )
+
+    result = onboarding.capture_tiktok_earliest_public_post_observation(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=engine,
+    )
+
+    assert result["status"] == "observed"
+    assert result["selection_attempt_count"] == 2
+    assert len(engine.calls) == 3
+    assert [
+        action.action_name
+        for action in engine.calls[-1]["post_load_pointer_actions"]
+    ] == ["tiktok_profile_oldest_sort_v0"]
 
 
 def test_oldest_probe_types_control_absence_without_click(tmp_path: Path) -> None:
@@ -1528,12 +1549,6 @@ def test_oldest_probe_types_verified_empty_profile(tmp_path: Path) -> None:
         [
             _oldest_probe_capture(active=False),
             _oldest_probe_capture(active=True, no_public_posts=True, clicked=True),
-            _oldest_probe_capture(
-                active=False,
-                latest_active=True,
-                clicked=True,
-                action_name="tiktok_profile_latest_sort_reset_v0",
-            ),
         ]
     )
 
@@ -1547,6 +1562,7 @@ def test_oldest_probe_types_verified_empty_profile(tmp_path: Path) -> None:
     )
 
     assert result["status"] == "no_public_posts"
+    assert len(engine.calls) == 2
 
 
 @pytest.mark.parametrize("defect", ["selection", "identity"])
@@ -3235,6 +3251,204 @@ def test_suggested_receipt_preserves_profile_bio_and_clean_external_links() -> N
     assert "internal CloakBrowser humanized pointer path" in receipt[
         "attempt_receipt"
     ]["outer_move_steps_semantics"]
+
+
+def test_grid_profile_contract_finds_dom_hub_and_hydration_bio_link() -> None:
+    script = onboarding.TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT
+
+    assert 'a[data-e2e="user-link"][href]' in script
+    assert "bioLink.link || bioLink.url" in script
+    assert "profile_hydration" in script
+    assert "redirect_url" in script
+    assert "linktr.ee" in script
+    assert "link.me" in script
+
+
+def test_grid_profile_hub_evidence_upgrades_suggested_receipt() -> None:
+    suggested_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator",
+        capture=_capture(suggested=[]),
+    )
+    grid_capture = _capture(ordered_ids=["1"], items=[_item("1", 10, 1)])
+    grid_capture.dom_observation["profile_external_links"] = [
+        {
+            "url": "https://linktr.ee/creator",
+            "host": "linktr.ee",
+            "display_text_or_none": "My links",
+            "detection_source": "profile_hydration",
+        }
+    ]
+
+    onboarding._merge_grid_profile_external_links(
+        suggested_receipt=suggested_receipt,
+        grid_capture=grid_capture,
+    )
+
+    assert suggested_receipt["profile_external_links_status"] == "captured"
+    assert suggested_receipt["profile_external_links"] == [
+        {
+            "url": "https://linktr.ee/creator",
+            "host": "linktr.ee",
+            "display_text_or_none": "My links",
+            "detection_source": "profile_hydration",
+        }
+    ]
+
+
+def test_link_hub_direct_http_captures_json_ld_and_anchor_social_links(
+    tmp_path: Path,
+) -> None:
+    body = b"""
+    <html>
+      <script type="application/ld+json">
+        {"@type":"ProfilePage","sameAs":["https://www.instagram.com/creator/"]}
+      </script>
+      <a href="https://www.youtube.com/@creator?sub_confirmation=1">YouTube</a>
+    </html>
+    """
+
+    def fetch(**kwargs: object) -> onboarding.DirectHttpCaptureSuccess:
+        assert kwargs["url"] == "https://linktr.ee/creator"
+        assert kwargs["max_bytes"] == onboarding.TIKTOK_LINK_HUB_CAPTURE_MAX_BYTES
+        return onboarding.DirectHttpCaptureSuccess(
+            requested_url=str(kwargs["url"]),
+            final_url=str(kwargs["url"]),
+            status=200,
+            reason="OK",
+            metadata={},
+            body=body,
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    observation = onboarding.capture_tiktok_profile_link_hub_observation(
+        link_hub_url="https://linktr.ee/creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=_FakeEngine([]),
+        fetch_fn=fetch,
+        utc_now_fn=lambda: datetime(2026, 7, 23, tzinfo=UTC),
+    )
+
+    assert observation["status"] == "captured"
+    assert observation["capture_method_or_none"] == "direct_http"
+    assert observation["browser_fallback_attempt_or_none"] is None
+    assert observation["outbound_social_links"] == [
+        {
+            "platform": "youtube",
+            "url": "https://youtube.com/@creator",
+            "source": "anchor",
+        },
+        {
+            "platform": "instagram",
+            "url": "https://instagram.com/creator/",
+            "source": "json_ld_same_as",
+        },
+    ]
+    assert observation["direct_http_attempt_or_none"]["body_sha256_or_none"].startswith(
+        "sha256:"
+    )
+
+
+def test_link_hub_uses_temporary_browser_tab_when_http_has_no_social_links(
+    tmp_path: Path,
+) -> None:
+    browser_capture = _capture()
+    browser_capture = replace(
+        browser_capture,
+        requested_url="https://linktr.ee/creator",
+        final_url="https://linktr.ee/creator",
+        dom_observation={
+            "anchors": [
+                {"href": "https://www.tiktok.com/@creator"},
+                {"href": "https://www.instagram.com/creator?igsh=tracking"},
+            ],
+            "json_ld_texts": [],
+        },
+    )
+
+    class TemporaryEngine:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def capture_temporary_page_observation(
+            self, **kwargs: object
+        ) -> BrowserPageObservationSuccess:
+            self.calls.append(dict(kwargs))
+            return browser_capture
+
+    engine = TemporaryEngine()
+
+    observation = onboarding.capture_tiktok_profile_link_hub_observation(
+        link_hub_url="https://linktr.ee/creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=engine,
+        fetch_fn=lambda **_kwargs: onboarding.DirectHttpCaptureSuccess(
+            requested_url="https://linktr.ee/creator",
+            final_url="https://linktr.ee/creator",
+            status=200,
+            reason="OK",
+            metadata={},
+            body=b"<html><body>No server-rendered links</body></html>",
+            warning_notes=[],
+            limitation_notes=[],
+        ),
+    )
+
+    assert observation["status"] == "captured"
+    assert observation["capture_method_or_none"] == "browser_temporary_tab"
+    assert observation["outbound_social_links"] == [
+        {
+            "platform": "tiktok",
+            "url": "https://tiktok.com/@creator",
+            "source": "anchor",
+        },
+        {
+            "platform": "instagram",
+            "url": "https://instagram.com/creator",
+            "source": "anchor",
+        },
+    ]
+    assert len(engine.calls) == 1
+    assert engine.calls[0]["url"] == "https://linktr.ee/creator"
+
+
+def test_link_hub_none_visible_performs_no_fetch(tmp_path: Path) -> None:
+    fetched = False
+
+    def fetch(**_kwargs: object) -> onboarding.DirectHttpCaptureResult:
+        nonlocal fetched
+        fetched = True
+        raise AssertionError("none_visible must not fetch")
+
+    observation = onboarding.capture_tiktok_profile_link_hub_observation(
+        link_hub_url=None,
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10,
+        settle_seconds=0,
+        engine=_FakeEngine([]),
+        fetch_fn=fetch,
+    )
+
+    assert observation["status"] == "none_visible"
+    assert fetched is False
+
+
+def test_tiktok_redirect_wrapper_normalizes_to_link_hub() -> None:
+    wrapped = (
+        "https://www.tiktok.com/link/v2?"
+        "target=https%3A%2F%2Flinktr.ee%2Fcreator%3Futm_source%3Dtiktok"
+    )
+
+    assert onboarding._canonical_link_hub_url(wrapped) == (
+        "https://linktr.ee/creator"
+    )
+    assert onboarding._canonical_link_hub_url("Link.me/SophieSnowScents") == (
+        "https://link.me/SophieSnowScents"
+    )
 
 
 def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
