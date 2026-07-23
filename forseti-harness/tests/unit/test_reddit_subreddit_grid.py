@@ -679,13 +679,115 @@ def test_weekly_demand_read_gates_and_reports(
     assert health["created_utc_or_none"] == "2015-03-03T19:26:01+00:00"
     assert payload["page_overflow_tripwire"] == []
 
-    # Gate: the 10-score/100-comment thread is a candidate; the 900-score
-    # broadcast and the stickied megathread are not.
-    (candidate,) = payload["candidates"]
-    assert candidate["title_or_none"] == "Nothing works, help"
-    assert candidate["flair_or_none"] == "Help"
-    assert candidate["density"] == 5.0
-    assert payload["candidates_found"] == 1
+    # Top half by comments selects the problem; the lower-half concrete outcome
+    # title is rescued. The stickied megathread remains excluded.
+    problem, outcome = payload["candidates"]
+    assert problem["title_or_none"] == "Nothing works, help"
+    assert problem["flair_or_none"] == "Help"
+    assert problem["selection_reason"] == "engagement_head"
+    assert outcome["title_or_none"] == "Look at my result"
+    assert outcome["selection_reason"] == "title_explicit"
+    assert payload["eligible_threads_found"] == 2
+    assert payload["candidates_found"] == 2
+    assert payload["selection_reason_counts"] == {
+        "engagement_head": 1,
+        "title_explicit": 1,
+    }
+    assert payload["capture_slots"] == [
+        {
+            "slot_id": "weekly_0001",
+            "url": "https://old.reddit.com/r/makeupaddiction/comments/pr1/problem/",
+        },
+        {
+            "slot_id": "weekly_0002",
+            "url": "https://old.reddit.com/r/makeupaddiction/comments/br1/broadcast/",
+        },
+    ]
+
+
+def test_weekly_deep_dive_selection_rescues_titles_and_audits_opaque_tail() -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import _select_deep_dive_rows
+
+    rows = [
+        {
+            "subreddit": "example",
+            "thread_url": f"https://old.reddit.com/r/example/comments/id{index}/post/",
+            "title_or_none": title,
+            "flair_or_none": None,
+            "timestamp_utc_ms_or_none": None,
+            "score": score,
+            "comments": comments,
+        }
+        for index, (title, score, comments) in enumerate(
+            [
+                ("Opaque head A", 1, 80),
+                ("Opaque head B", 5, 70),
+                ("Opaque head C", 2, 60),
+                ("Opaque head D", 9, 50),
+                ("This product irritated my skin", 3, 40),
+                ("Routine update", 4, 30),
+                ("Opaque tail A", 6, 20),
+                ("Opaque tail B", 7, 10),
+            ],
+            start=1,
+        )
+    ]
+
+    selected = _select_deep_dive_rows(
+        subreddit="example",
+        rows=rows,
+        as_of=dt.date(2026, 7, 23),
+        opaque_tail_audit_fraction=0.1,
+    )
+
+    assert [row["selection_reason"] for row in selected].count("engagement_head") == 4
+    assert [row["selection_reason"] for row in selected].count("title_explicit") == 1
+    assert [row["selection_reason"] for row in selected].count("title_suggestive") == 1
+    assert [row["selection_reason"] for row in selected].count("opaque_tail_audit") == 1
+    assert len(selected) == 7
+
+
+@pytest.mark.parametrize(
+    ("title", "expected_class", "expected_reason"),
+    [
+        ("This serum burned my face", "explicit", "pain_or_failure"),
+        ("The best sunscreen I have ever used", "explicit", "praise_or_success"),
+        ("Brand A vs Brand B", "explicit", "comparison_or_choice"),
+        ("How do I stop foundation pilling?", "explicit", "concrete_question_or_request"),
+        ("I started oral minoxidil daily", "explicit", "concrete_outcome_or_experience"),
+        ("Protective styles for over 40", "explicit", "concrete_question_or_request"),
+        ("Daily eyeshadow base: 2021-2026", "explicit", "concrete_outcome_or_experience"),
+        ("Six month progress update", "suggestive", "review_or_update"),
+        ("My current skincare routine", "suggestive", "routine_or_collection"),
+        ("Plum inspired nails", "opaque", None),
+    ],
+)
+def test_weekly_title_signal_classifier_covers_pain_praise_and_context(
+    title: str, expected_class: str, expected_reason: str | None
+) -> None:
+    from runners.run_reddit_weekly_demand_read import _classify_title_signal
+
+    title_class, reasons = _classify_title_signal(title)
+
+    assert title_class == expected_class
+    if expected_reason is None:
+        assert reasons == []
+    else:
+        assert expected_reason in reasons
+
+
+def test_weekly_title_signal_classifier_uses_listing_visible_flair() -> None:
+    from runners.run_reddit_weekly_demand_read import _classify_title_signal
+
+    title_class, reasons = _classify_title_signal(
+        "Protective styles for mature hair",
+        "Need Advice",
+    )
+
+    assert title_class == "explicit"
+    assert "concrete_question_or_request" in reasons
 
 
 def test_weekly_demand_read_tripwire_fires_on_high_floor(
@@ -811,7 +913,11 @@ def test_rdr04_same_day_selection_uses_exact_capture_time(
 
     payload = run_weekly_demand_read(data_root=lake, as_of=dt.date(2026, 7, 17))
     assert payload["subs_read"] == 1
-    (candidate,) = payload["candidates"]
+    candidate = next(
+        row
+        for row in payload["candidates"]
+        if row["thread_url"].endswith("/pr1/problem/")
+    )
     # The 18:00Z capture wins even though it was committed first (smaller id).
     assert candidate["title_or_none"] == "EARLY capture"
     assert payload["superseded_weekly_packets"]["count"] == 1
