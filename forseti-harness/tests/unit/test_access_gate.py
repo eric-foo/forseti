@@ -46,6 +46,15 @@ def test_detect_login_gate_does_not_reject_normal_login_navigation() -> None:
     assert detection is None
 
 
+def test_detect_login_gate_does_not_reject_public_auth_documentation_url() -> None:
+    detection = detect_login_gate(
+        final_url="https://example.test/docs/auth/guide",
+        body_text="<html><main><h1>Authentication guide</h1><p>Public documentation.</p></main></html>",
+    )
+
+    assert detection is None
+
+
 def test_detect_login_gate_allows_canonical_content_redirect() -> None:
     detection = detect_login_gate(
         final_url="https://example.test/articles/canonical-source",

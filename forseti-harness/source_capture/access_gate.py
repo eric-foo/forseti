@@ -15,7 +15,7 @@ class LoginGateDetection:
     detail: str
 
 
-_AUTH_PATH_SEGMENTS = frozenset({"auth", "login", "oauth", "register", "sign-in", "signin"})
+_AUTH_PATH_SEGMENTS = frozenset({"login", "register", "sign-in", "signin"})
 _LOGIN_FORM_ACTION = re.compile(
     r"""<form\b[^>]*\baction\s*=\s*["'][^"']*(?:/login|/signin|/sign-in|/register)(?:[/?#][^"']*)?["']""",
     re.IGNORECASE,
