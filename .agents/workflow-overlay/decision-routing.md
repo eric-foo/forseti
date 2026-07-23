@@ -282,6 +282,49 @@ no authorized capable route exists, or the one allowed creation fails. Capable
 means able to perform the required operation against the exact target while the
 state checks hold; it does not require launch-root equality.
 
+### Multi-Task Conservation Fast Path
+
+When one user-authorized work unit needs multiple actors, first separate
+same-root collaboration from independent worktree ownership. Use in-session
+collaboration subagents for actors that can safely share the caller's bound
+root. Create user-visible Codex tasks only for actors that need independent
+worktrees, durable user follow-up, or separate lifecycle ownership.
+
+For `N` required independent receivers, authorize and launch exactly `N`
+role-named tasks as one group. Give every member its complete
+execution-authorized commission in the initial prompt; do not create
+preparation-only members and then add a routine `READY`, `PAIR_RELEASE`, or
+equivalent release turn. Launch all members before waiting on any one member.
+Record observed creation and start timestamps when timing matters, but do not
+require literal simultaneous release unless the commission identifies timing as
+a load-bearing experimental variable.
+
+The task is the conserved recovery unit. Resolve a member-local setup,
+transport, VPN, path, hash, or ordinary preflight failure in this order:
+
+1. continue or correct the existing task;
+2. when its root is wrong but the task remains usable, move that same task to
+   the intended managed worktree through the product handoff surface; then
+3. replace only that member once when the task itself is unusable, preserving
+   the group identity and every unaffected member.
+
+A replacement inherits the failed member's role and frozen commission. Archive
+the predecessor after the replacement is bound. Do not assign a new pair,
+group, or attempt identity merely because one member needed recovery.
+
+Restart the whole group only when a shared invalidator makes the existing
+outputs incomparable or unsafe: cross-member contamination; a changed common
+contract or controlled variable; a required revision change after evidence or
+output was produced; or timing drift that the commission explicitly made
+load-bearing. A member-local blocker, tool stall, route failure, VPN change,
+wrong launch root, or recoverable preflight error is not a group-restart
+condition. Superseded user-visible tasks are archived, and surviving tasks keep
+stable, role-bearing titles so the authoritative set remains obvious.
+
+This fast path conserves already-authorized tasks; it does not grant task-
+creation authority. The authorization rules above still govern initial members
+and the one allowed replacement.
+
 The live-adoption canary remains documented in `.agents/hooks/README.md` only
 for work commissioned to test hook adoption; ordinary work does not run it.
 
