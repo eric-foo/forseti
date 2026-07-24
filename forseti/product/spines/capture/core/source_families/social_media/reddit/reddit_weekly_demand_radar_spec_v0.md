@@ -145,6 +145,11 @@ separate layer; nothing here persists analysis output to the lake.
   require 3 points so a thread with no observed discussion carries both a
   strong signal and concrete context. These signals route capture only; they
   are not proof of pain, praise, causation, prevalence, or entity involvement.
+- In the lower half, after title rescue, also select every remaining thread
+  with at least 5 listing comments or a listing score of at least 25. This
+  absolute engagement rescue preserves the relative head while recovering
+  resonant threads from unusually active subreddits whose titles hide the
+  useful evidence.
 - From every remaining lower-tail row, select one deterministic rotating 10%
   audit sample, rounded up with a minimum of one when that tail is non-empty.
   Preserve `opaque_tail_audit` for genuinely opaque titles and
