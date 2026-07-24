@@ -10,6 +10,10 @@ import pytest
 from data_lake.root import DataLakeRoot, raw_shard
 from runners.run_source_capture_tiktok_batch_packet import main as tiktok_batch_main, run_source_capture_tiktok_batch_packet
 from source_capture.models import SourceCapturePacket
+from source_capture.activity_journal import (
+    SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+    SourceCaptureActivityJournal,
+)
 from source_capture.tiktok import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import _normalize_stats, write_tiktok_batch_packet
 
@@ -416,6 +420,116 @@ def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: P
     assert "X-Bogus" not in payload_text
     assert "msToken" not in payload_text
     assert "tiktokcdn" not in payload_text
+
+
+def test_write_tiktok_batch_packet_attaches_exact_completed_activity_journal(
+    tmp_path: Path,
+) -> None:
+    journal_path = tmp_path / SOURCE_CAPTURE_ACTIVITY_JSONL_NAME
+    journal = SourceCaptureActivityJournal(
+        journal_path,
+        run_kind="creator_onboarding",
+        platform="tiktok",
+    )
+    journal.record("phase", phase_name="deep_capture", details={"selected_count": 8})
+    journal.close(
+        status="complete",
+        terminal_phase="close",
+        error_type_or_none=None,
+    )
+    journal_bytes = journal_path.read_bytes()
+    output = tmp_path / "admission" / "packet"
+
+    code, _message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        activity_journal_jsonl=journal_bytes,
+        output_directory=output,
+        source_file_receipts=[
+            {
+                "role": "source_capture_activity_jsonl",
+                "file_name": SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+                "sha256": hashlib.sha256(journal_bytes).hexdigest(),
+                "size_bytes": len(journal_bytes),
+            }
+        ],
+    )
+
+    assert code == 0
+    attached = next(output.rglob(f"*{SOURCE_CAPTURE_ACTIVITY_JSONL_NAME}"))
+    assert attached.read_bytes() == journal_bytes
+    payload = json.loads(
+        next(output.rglob("*tiktok_batch_capture.json")).read_text(encoding="utf-8")
+    )
+    assert payload["activity_journal"] == {
+        "schema_version": "source_capture_activity_v1",
+        "event_count": 3,
+        "sha256": hashlib.sha256(journal_bytes).hexdigest(),
+        "diagnostic_only": True,
+        "resume_or_checkpoint_authority": False,
+    }
+
+
+def test_write_tiktok_batch_packet_rejects_incomplete_activity_journal(
+    tmp_path: Path,
+) -> None:
+    journal_path = tmp_path / SOURCE_CAPTURE_ACTIVITY_JSONL_NAME
+    journal = SourceCaptureActivityJournal(
+        journal_path,
+        run_kind="creator_onboarding",
+        platform="tiktok",
+    )
+    journal.close(
+        status="failed",
+        terminal_phase="deep_capture",
+        error_type_or_none="RuntimeError",
+    )
+
+    with pytest.raises(ValueError, match="complete status"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            activity_journal_jsonl=journal_path.read_bytes(),
+            output_directory=tmp_path / "packet",
+        )
+
+
+def test_write_tiktok_batch_packet_rejects_mismatched_activity_receipt(
+    tmp_path: Path,
+) -> None:
+    journal_path = tmp_path / SOURCE_CAPTURE_ACTIVITY_JSONL_NAME
+    journal = SourceCaptureActivityJournal(
+        journal_path,
+        run_kind="creator_onboarding",
+        platform="tiktok",
+    )
+    journal.close(
+        status="complete",
+        terminal_phase="close",
+        error_type_or_none=None,
+    )
+
+    with pytest.raises(ValueError, match="does not match"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            activity_journal_jsonl=journal_path.read_bytes(),
+            output_directory=tmp_path / "packet",
+            source_file_receipts=[
+                {
+                    "role": "source_capture_activity_jsonl",
+                    "file_name": SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+                    "sha256": "wrong",
+                    "size_bytes": 1,
+                }
+            ],
+        )
 
 
 def test_write_tiktok_batch_packet_preserves_complete_onboarding_evidence(

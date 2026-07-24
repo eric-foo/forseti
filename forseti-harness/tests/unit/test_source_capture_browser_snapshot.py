@@ -3725,6 +3725,27 @@ def test_chrome_cdp_session_records_per_observation_timings(
 ) -> None:
     result = _ok_page_observation_engine().result
     assert isinstance(result, BrowserPageObservationSuccess)
+    result.metadata.update(
+        {
+            "page_interaction_context_observations": [
+                {
+                    "sequence_index": 0,
+                    "action_kind": "pointer",
+                    "before_action_name": "open_video",
+                    "observation_status": "observed",
+                    "visibility_state_or_none": "visible",
+                    "document_has_focus_or_none": False,
+                }
+            ],
+            "post_load_pointer_actions": [
+                {
+                    "action_name": "open_video",
+                    "target_found": True,
+                    "clicked": True,
+                }
+            ],
+        }
+    )
     monkeypatch.setattr(
         browser_snapshot_module._CloakBrowserPageObservationEngine,
         "capture_page_observation",
@@ -3736,9 +3757,13 @@ def test_chrome_cdp_session_records_per_observation_timings(
         candidate_selector="a",
         text_markers=(),
     )
+    activity_events: list[tuple[str, dict[str, object]]] = []
     engine = ChromeCdpPageObservationSessionEngine(
         humanize_context_fn=lambda _: None,
         monotonic_fn=lambda: next(ticks),
+        activity_event_fn=lambda event, fields: activity_events.append(
+            (event, fields)
+        ),
     )
 
     capture = engine.capture_page_observation(
@@ -3763,6 +3788,22 @@ def test_chrome_cdp_session_records_per_observation_timings(
             "outcome": "success",
         }
     ]
+    assert [event for event, _fields in activity_events] == [
+        "browser_capture_started",
+        "browser_capture_finished",
+    ]
+    assert activity_events[0][1]["action_names"] == ["open_video"]
+    finished = activity_events[1][1]
+    assert finished["capture_elapsed_seconds"] == 2.75
+    assert finished["context_observations"][0]["visibility_state_or_none"] == (
+        "visible"
+    )
+    assert finished["context_observations"][0]["document_has_focus_or_none"] is False
+    assert finished["pointer_outcomes"][0] == {
+        "action_name": "open_video",
+        "target_found": True,
+        "clicked": True,
+    }
 
 
 def test_chrome_cdp_session_adopts_latest_unrelated_tiktok_page() -> None:

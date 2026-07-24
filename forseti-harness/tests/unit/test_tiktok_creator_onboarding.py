@@ -25,6 +25,10 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailureKind,
     BrowserPageResponse,
 )
+from source_capture.activity_journal import (
+    SourceCaptureActivityJournal,
+    validate_source_capture_activity_jsonl,
+)
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.session_profiles import (
     OWNER_HANDOFF_BEFORE_ACTION,
@@ -1546,7 +1550,17 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["challenge_count"] == 0
     assert receipt["human_challenge_handoff_count"] == 0
     assert receipt["account_safety_stop"] is False
-    assert 12.0 <= receipt["initial_deep_capture_wait_or_none"]["planned_seconds"] <= 45.0
+    assert receipt["initial_deep_capture_wait_or_none"]["planned_seconds"] == 0.0
+    assert (
+        receipt["initial_deep_capture_wait_or_none"]["cadence_plan"]["mode"]
+        == "bounded_jitter"
+    )
+    activity_rows = validate_source_capture_activity_jsonl(
+        paths.activity_journal_jsonl_path.read_bytes()
+    )
+    assert activity_rows[0]["event_type"] == "run_started"
+    assert activity_rows[-1]["event_type"] == "terminal"
+    assert activity_rows[-1]["status"] == "complete"
     assert [row["phase"] for row in receipt["phase_chronology"]] == [
         "onboarding_started",
         "grid_and_selection_complete",
@@ -2791,7 +2805,7 @@ def test_new_capture_rejects_force_deep_recapture_before_browser_probe(
 
 
 
-def test_onboarding_cli_defaults_to_fixed_top_eight_and_twelve_forty_five_range() -> None:
+def test_onboarding_cli_defaults_to_long_tail_profile() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -2804,9 +2818,40 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_twelve_forty_five_range(
     assert args.window_size == 30
     assert args.creator_intent == "new_onboarding"
     assert not hasattr(args, "selection_fraction")
-    assert args.cadence_min_gap_seconds == 12.0
-    assert args.cadence_max_gap_seconds == 45.0
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 28.5
+    assert args.cadence_min_gap_seconds is None
+    assert args.cadence_max_gap_seconds is None
+
+
+def test_onboarding_default_cadence_policy_is_five_twenty_with_five_percent_tail() -> None:
+    policy = onboarding._resolve_onboarding_cadence_policy(
+        min_gap_seconds=None,
+        max_gap_seconds=None,
+        window_seconds=None,
+    )
+    plan = policy.build_plan(slot_count=8, random_seed=11)
+
+    assert plan.mode == "weighted_long_tail"
+    assert plan.typical_min_gap_seconds == 5.0
+    assert plan.typical_max_gap_seconds == 20.0
+    assert plan.tail_min_gap_seconds == 20.0
+    assert plan.tail_max_gap_seconds == 60.0
+    assert plan.tail_probability == 0.05
+
+
+def test_onboarding_cli_requires_cadence_override_pair() -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                "out",
+                "--cadence-min-gap-seconds",
+                "5",
+            ]
+        )
+
+    assert exc_info.value.code == 2
 
 
 def test_new_onboarding_without_handle_selects_next_registry_candidate(
@@ -2968,6 +3013,7 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         / onboarding.TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
         onboarding_receipt_json_path=output_dir
         / onboarding.TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+        activity_journal_jsonl_path=output_dir / "source_capture_activity.jsonl",
     )
     paths.suggested_accounts_json_path.write_text("{}", encoding="utf-8")
     paths.grid_window_json_path.write_bytes(b'{"grid":"complete"}')
@@ -2989,6 +3035,16 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
             }
         ),
         encoding="utf-8",
+    )
+    journal = SourceCaptureActivityJournal(
+        paths.activity_journal_jsonl_path,
+        run_kind="creator_onboarding",
+        platform="tiktok",
+    )
+    journal.close(
+        status="complete",
+        terminal_phase="close",
+        error_type_or_none=None,
     )
     preflight_path = output_dir / runner.REGISTRY_PREFLIGHT_JSON_NAME
     captured: dict[str, object] = {}
@@ -3074,12 +3130,17 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
         captured["suggested_accounts_json"]
         == paths.suggested_accounts_json_path.read_bytes()
     )
+    assert (
+        captured["activity_journal_jsonl"]
+        == paths.activity_journal_jsonl_path.read_bytes()
+    )
     assert [row["role"] for row in captured["source_file_receipts"]] == [
         "grid_result_json",
         "cadence_result_json_1",
         "grid_window_json",
         "selection_result_json",
         "suggested_accounts_json",
+        "source_capture_activity_jsonl",
     ]
     assert audience_queue["prepare"]["packet_id"] == "admitted"
     assert audience_queue["enqueue"]["bundle_path"] == bundle_path

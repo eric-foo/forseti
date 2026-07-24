@@ -28,6 +28,7 @@ from source_capture.adapters.direct_http import (
     fetch_direct_http_capture,
 )
 from source_capture.adapters.browser_snapshot import (
+    ActivityEventFn,
     BrowserDelayRange,
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -39,8 +40,13 @@ from source_capture.adapters.browser_snapshot import (
     ChromeCdpPageObservationSessionEngine,
     fetch_browser_page_observation_capture as _fetch_browser_page_observation_capture,
 )
+from source_capture.activity_journal import (
+    SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+    SourceCaptureActivityJournal,
+)
 from source_capture.auth_state import validate_auth_state_provenance_requirement
 from source_capture.browser_user_data import browser_user_data_path_for_label
+from source_capture.cadence import CadenceMode, CadencePlan, build_cadence_plan
 from source_capture.session_profiles import SourceCaptureSessionProfile
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
@@ -50,8 +56,6 @@ from source_capture.tiktok.grid_video_selection import build_tiktok_grid_video_s
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
     TIKTOK_BROWSER_BACKEND_CHROME_CDP,
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TIKTOK_CHALLENGE_TEXT_MARKERS,
     TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
     TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE,
@@ -89,14 +93,11 @@ TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS = (
 DEFAULT_WINDOW_SIZE = 30
 DEFAULT_SELECTION_COUNT = 8
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
-TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS = 12.0
-TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS = 45.0
-INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS = (
-    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS
-)
-INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS = (
-    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS
-)
+TIKTOK_ONBOARDING_LONG_TAIL_TYPICAL_MIN_GAP_SECONDS = 5.0
+TIKTOK_ONBOARDING_LONG_TAIL_TYPICAL_MAX_GAP_SECONDS = 20.0
+TIKTOK_ONBOARDING_LONG_TAIL_TAIL_MIN_GAP_SECONDS = 20.0
+TIKTOK_ONBOARDING_LONG_TAIL_TAIL_MAX_GAP_SECONDS = 60.0
+TIKTOK_ONBOARDING_LONG_TAIL_TAIL_PROBABILITY = 0.05
 GRID_ENTRY_RETRY_DELAY_RANGE = BrowserDelayRange(min_ms=45_000, max_ms=75_000)
 # Consecutive fresh-state-unchanged wheel passes that show the grid is not
 # advancing under bounded wheel input. Reaching this cap stops the wheel bursts
@@ -836,6 +837,7 @@ class TikTokCreatorOnboardingOutputPaths:
     live_grid_json_path: Path
     live_cadence_json_path: Path
     onboarding_receipt_json_path: Path
+    activity_journal_jsonl_path: Path
 
 
 @dataclass(frozen=True)
@@ -853,6 +855,40 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+@dataclass(frozen=True)
+class _OnboardingCadencePolicy:
+    mode: CadenceMode
+    min_gap_seconds: float
+    max_gap_seconds: float
+    window_seconds: float | None = None
+    typical_min_gap_seconds: float | None = None
+    typical_max_gap_seconds: float | None = None
+    tail_min_gap_seconds: float | None = None
+    tail_max_gap_seconds: float | None = None
+    tail_probability: float | None = None
+
+    def build_plan(
+        self, *, slot_count: int, random_seed: int | None
+    ) -> CadencePlan:
+        window_seconds = self.window_seconds
+        if self.mode == "bounded_jitter" and window_seconds is None:
+            window_seconds = self.max_gap_seconds * max(0, slot_count - 1)
+        return build_cadence_plan(
+            slot_count=slot_count,
+            mode=self.mode,
+            delay_seconds=0.0,
+            window_seconds=window_seconds,
+            min_gap_seconds=self.min_gap_seconds,
+            max_gap_seconds=self.max_gap_seconds,
+            typical_min_gap_seconds=self.typical_min_gap_seconds,
+            typical_max_gap_seconds=self.typical_max_gap_seconds,
+            tail_min_gap_seconds=self.tail_min_gap_seconds,
+            tail_max_gap_seconds=self.tail_max_gap_seconds,
+            tail_probability=self.tail_probability,
+            random_seed=random_seed,
+        )
+
+
 def run_tiktok_creator_onboarding(
     *,
     creator_handle: str,
@@ -865,8 +901,8 @@ def run_tiktok_creator_onboarding(
     timeout_seconds: float = 30.0,
     settle_seconds: float = 2.0,
     max_grid_scroll_passes: int = DEFAULT_MAX_GRID_SCROLL_PASSES,
-    cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
-    cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    cadence_min_gap_seconds: float | None = None,
+    cadence_max_gap_seconds: float | None = None,
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     engine: BrowserPageObservationEngine | None = None,
@@ -898,6 +934,15 @@ def run_tiktok_creator_onboarding(
         selection_count=selection_count,
         max_grid_scroll_passes=max_grid_scroll_passes,
     )
+    cadence_policy = _resolve_onboarding_cadence_policy(
+        min_gap_seconds=cadence_min_gap_seconds,
+        max_gap_seconds=cadence_max_gap_seconds,
+        window_seconds=cadence_window_seconds,
+    )
+    cadence_policy.build_plan(
+        slot_count=selection_count,
+        random_seed=random_seed,
+    )
 
     storage_state_path = validate_auth_state_provenance_requirement(
         session_profile.state_label,
@@ -911,13 +956,35 @@ def run_tiktok_creator_onboarding(
     paths = _output_paths(output_dir)
     profile_url = f"https://www.tiktok.com/@{normalized_handle}"
     owned_engine = engine is None
-    observation_engine = _acquire_or_reuse_observation_engine(
-        engine=engine,
-        session_profile=session_profile,
-        browser_user_data_root=browser_user_data_root,
+    journal = SourceCaptureActivityJournal(
+        paths.activity_journal_jsonl_path,
+        run_kind="creator_onboarding",
+        platform="tiktok",
+        monotonic_fn=monotonic_fn,
+        utc_now_fn=utc_now_fn,
     )
+    activity_event_fn: ActivityEventFn = (
+        lambda event_type, fields: journal.record(event_type, **fields)
+    )
+    original_progress_fn = progress_fn
+
+    def journaled_progress(
+        event: str, fields: dict[str, object]
+    ) -> None:
+        journal.record("phase", phase_name=event, details=fields)
+        if original_progress_fn is not None:
+            original_progress_fn(event, fields)
+
+    progress_fn = journaled_progress
+    observation_engine: BrowserPageObservationEngine | None = None
 
     try:
+        observation_engine = _acquire_or_reuse_observation_engine(
+            engine=engine,
+            session_profile=session_profile,
+            browser_user_data_root=browser_user_data_root,
+            activity_event_fn=activity_event_fn,
+        )
         _run_suggested_grid_and_selection_phase(
             state,
             profile_url=profile_url,
@@ -947,9 +1014,7 @@ def run_tiktok_creator_onboarding(
             max_grid_scroll_passes=max_grid_scroll_passes,
             timeout_seconds=timeout_seconds,
             settle_seconds=settle_seconds,
-            cadence_min_gap_seconds=cadence_min_gap_seconds,
-            cadence_max_gap_seconds=cadence_max_gap_seconds,
-            cadence_window_seconds=cadence_window_seconds,
+            cadence_policy=cadence_policy,
             random_seed=random_seed,
             engine=observation_engine,
             progress_fn=progress_fn,
@@ -958,6 +1023,7 @@ def run_tiktok_creator_onboarding(
             monotonic_fn=monotonic_fn,
             utc_now_fn=utc_now_fn,
             run_started_monotonic=run_started_monotonic,
+            activity_event_fn=activity_event_fn,
         )
         _run_earliest_public_post_phase(
             state,
@@ -991,13 +1057,15 @@ def run_tiktok_creator_onboarding(
     except TikTokCreatorMarketDeferred:
         state.status = "deferred"
         state.error = None
+        state.error_type = None
         raise
     except Exception as exc:
         state.status = "failed"
         state.error = f"{type(exc).__name__}: {exc}"
+        state.error_type = type(exc).__name__
         raise
     finally:
-        if owned_engine:
+        if owned_engine and observation_engine is not None:
             close = getattr(observation_engine, "close", None)
             if callable(close):
                 try:
@@ -1011,6 +1079,23 @@ def run_tiktok_creator_onboarding(
                     )
                     state.status = "failed"
                     state.stage = "close"
+                    state.error_type = type(exc).__name__
+        try:
+            journal.close(
+                status=state.status,
+                terminal_phase=state.stage,
+                error_type_or_none=state.error_type,
+            )
+            state.artifacts_written.append(paths.activity_journal_jsonl_path.name)
+        except Exception as exc:
+            state.journal_error = f"{type(exc).__name__}: {exc}"
+            state.error = (
+                f"{state.error}; activity journal close failed: {state.journal_error}"
+                if state.error
+                else f"activity journal close failed: {state.journal_error}"
+            )
+            state.error_type = type(exc).__name__
+            state.status = "failed"
         receipt = _build_onboarding_receipt(
             state,
             observation_engine=observation_engine,
@@ -1025,6 +1110,10 @@ def run_tiktok_creator_onboarding(
     if state.close_error is not None:
         raise TikTokCreatorOnboardingError(
             f"browser session close failed: {state.close_error}"
+        )
+    if state.journal_error is not None:
+        raise TikTokCreatorOnboardingError(
+            f"activity journal close failed: {state.journal_error}"
         )
     return paths
 
@@ -1153,7 +1242,9 @@ class _OnboardingRunState:
     stage: str = "acquire_session"
     status: str = "failed"
     error: str | None = None
+    error_type: str | None = None
     close_error: str | None = None
+    journal_error: str | None = None
     selected_video_ids: list[str] = field(default_factory=list)
     challenge_count: int = 0
     human_challenge_handoff_count: int = 0
@@ -1176,6 +1267,51 @@ class _OnboardingRunState:
     captured_video_ids: list[str] | None = None
     deep_capture: dict[str, Any] | None = None
     market_assessment: dict[str, Any] | None = None
+
+
+def _resolve_onboarding_cadence_policy(
+    *,
+    min_gap_seconds: float | None,
+    max_gap_seconds: float | None,
+    window_seconds: float | None,
+) -> _OnboardingCadencePolicy:
+    if (min_gap_seconds is None) != (max_gap_seconds is None):
+        raise TikTokCreatorOnboardingError(
+            "cadence min and max gap overrides must be supplied together"
+        )
+    if min_gap_seconds is None:
+        if window_seconds is not None:
+            raise TikTokCreatorOnboardingError(
+                "cadence window requires explicit cadence min and max gap overrides"
+            )
+        return _OnboardingCadencePolicy(
+            mode="weighted_long_tail",
+            min_gap_seconds=TIKTOK_ONBOARDING_LONG_TAIL_TYPICAL_MIN_GAP_SECONDS,
+            max_gap_seconds=TIKTOK_ONBOARDING_LONG_TAIL_TAIL_MAX_GAP_SECONDS,
+            typical_min_gap_seconds=(
+                TIKTOK_ONBOARDING_LONG_TAIL_TYPICAL_MIN_GAP_SECONDS
+            ),
+            typical_max_gap_seconds=(
+                TIKTOK_ONBOARDING_LONG_TAIL_TYPICAL_MAX_GAP_SECONDS
+            ),
+            tail_min_gap_seconds=TIKTOK_ONBOARDING_LONG_TAIL_TAIL_MIN_GAP_SECONDS,
+            tail_max_gap_seconds=TIKTOK_ONBOARDING_LONG_TAIL_TAIL_MAX_GAP_SECONDS,
+            tail_probability=TIKTOK_ONBOARDING_LONG_TAIL_TAIL_PROBABILITY,
+        )
+    assert max_gap_seconds is not None
+    return _OnboardingCadencePolicy(
+        mode="bounded_jitter",
+        min_gap_seconds=min_gap_seconds,
+        max_gap_seconds=max_gap_seconds,
+        window_seconds=window_seconds,
+    )
+
+
+def _derived_seed(random_seed: int | None, purpose: str) -> int | None:
+    if random_seed is None:
+        return None
+    material = f"{random_seed}:{purpose}".encode("utf-8")
+    return int(sha256(material).hexdigest()[:16], 16)
 
 
 def _validate_onboarding_inputs(
@@ -1220,6 +1356,7 @@ def _acquire_or_reuse_observation_engine(
     engine: BrowserPageObservationEngine | None,
     session_profile: SourceCaptureSessionProfile,
     browser_user_data_root: Path | None,
+    activity_event_fn: ActivityEventFn | None = None,
 ) -> BrowserPageObservationEngine:
     if engine is not None:
         return engine
@@ -1243,6 +1380,7 @@ def _acquire_or_reuse_observation_engine(
         human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         human_challenge_handoff_timeout_seconds=180.0,
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+        activity_event_fn=activity_event_fn,
     )
 
 
@@ -2037,9 +2175,7 @@ def _run_grid_overlay_deep_capture_phase(
     max_grid_scroll_passes: int,
     timeout_seconds: float,
     settle_seconds: float,
-    cadence_min_gap_seconds: float,
-    cadence_max_gap_seconds: float,
-    cadence_window_seconds: float | None,
+    cadence_policy: _OnboardingCadencePolicy,
     random_seed: int | None,
     engine: BrowserPageObservationEngine,
     progress_fn: ProgressFn | None,
@@ -2048,6 +2184,7 @@ def _run_grid_overlay_deep_capture_phase(
     monotonic_fn: MonotonicFn,
     utc_now_fn: UtcNowFn,
     run_started_monotonic: float,
+    activity_event_fn: ActivityEventFn | None,
 ) -> None:
     assert state.grid_capture is not None
     assert state.window_by_id is not None
@@ -2056,21 +2193,45 @@ def _run_grid_overlay_deep_capture_phase(
         if random_seed is not None
         else random.SystemRandom()
     )
-    planned_wait_seconds = run_rng.uniform(
-        INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
-        INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
+    initial_wait_plan = cadence_policy.build_plan(
+        slot_count=2,
+        random_seed=_derived_seed(random_seed, "initial_deep_capture_wait"),
     )
+    planned_wait_seconds = initial_wait_plan.planned_waits_seconds[0]
     wait_observed_at_utc = _utc_iso(utc_now_fn())
     wait_started_monotonic = monotonic_fn()
+    if activity_event_fn is not None:
+        activity_event_fn(
+            "cadence_wait_started",
+            {
+                "wait_kind": "initial_deep_capture",
+                "policy": "completion_relative_after_grid_selection",
+                "planned_seconds": planned_wait_seconds,
+                "plan": initial_wait_plan.to_dict(),
+            },
+        )
     sleep_fn(planned_wait_seconds)
     wait_finished_monotonic = monotonic_fn()
+    actual_wait_seconds = max(
+        0.0, wait_finished_monotonic - wait_started_monotonic
+    )
+    if activity_event_fn is not None:
+        activity_event_fn(
+            "cadence_wait_finished",
+            {
+                "wait_kind": "initial_deep_capture",
+                "planned_seconds": planned_wait_seconds,
+                "actual_seconds": round(actual_wait_seconds, 6),
+            },
+        )
     state.initial_deep_capture_wait = {
         "policy": "randomized_wait_after_grid_before_first_deep_capture",
-        "minimum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS,
-        "maximum_seconds": INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS,
+        "cadence_plan": initial_wait_plan.to_dict(),
+        "minimum_seconds": cadence_policy.min_gap_seconds,
+        "maximum_seconds": cadence_policy.max_gap_seconds,
         "planned_seconds": round(planned_wait_seconds, 6),
         "actual_seconds": round(
-            max(0.0, wait_finished_monotonic - wait_started_monotonic), 6
+            actual_wait_seconds, 6
         ),
         "observed_at_utc": wait_observed_at_utc,
     }
@@ -2164,9 +2325,15 @@ def _run_grid_overlay_deep_capture_phase(
             session_profile.required_harness_proxy_profile_posture
         ),
         human_challenge_handoff=True,
-        cadence_min_gap_seconds=cadence_min_gap_seconds,
-        cadence_max_gap_seconds=cadence_max_gap_seconds,
-        cadence_window_seconds=cadence_window_seconds,
+        cadence_min_gap_seconds=cadence_policy.min_gap_seconds,
+        cadence_max_gap_seconds=cadence_policy.max_gap_seconds,
+        cadence_window_seconds=cadence_policy.window_seconds,
+        cadence_mode=cadence_policy.mode,
+        cadence_typical_min_gap_seconds=cadence_policy.typical_min_gap_seconds,
+        cadence_typical_max_gap_seconds=cadence_policy.typical_max_gap_seconds,
+        cadence_tail_min_gap_seconds=cadence_policy.tail_min_gap_seconds,
+        cadence_tail_max_gap_seconds=cadence_policy.tail_max_gap_seconds,
+        cadence_tail_probability=cadence_policy.tail_probability,
         random_seed=random_seed,
         engine=engine,
         capture_route="grid_tile_overlay",
@@ -2175,6 +2342,7 @@ def _run_grid_overlay_deep_capture_phase(
         profile_grid_subtitle_sources_by_video_id=(
             selected_profile_grid_subtitle_sources
         ),
+        activity_event_fn=activity_event_fn,
     )
     state.deep_capture = deep_capture
     state.captured_video_ids = [
@@ -2231,7 +2399,7 @@ def _run_grid_overlay_deep_capture_phase(
 def _build_onboarding_receipt(
     state: _OnboardingRunState,
     *,
-    observation_engine: BrowserPageObservationEngine,
+    observation_engine: BrowserPageObservationEngine | None,
     owned_engine: bool,
     creator_handle: str,
     session_profile: SourceCaptureSessionProfile,
@@ -2296,6 +2464,8 @@ def _build_onboarding_receipt(
             }
         ),
         "error_or_none": state.error,
+        "activity_journal_error_or_none": state.journal_error,
+        "activity_journal_role": "diagnostic_only_not_resume_or_checkpoint_state",
         "non_claims": [
             "not a standing scanner or crawler",
             "not Creator Registry mutation",
@@ -4432,6 +4602,7 @@ def _output_paths(output_dir: Path) -> TikTokCreatorOnboardingOutputPaths:
         live_grid_json_path=output_dir / TIKTOK_LIVE_BATCH_GRID_JSON_NAME,
         live_cadence_json_path=output_dir / TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
         onboarding_receipt_json_path=output_dir / TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+        activity_journal_jsonl_path=output_dir / SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
     )
 
 

@@ -22,6 +22,7 @@ def run_source_capture_tiktok_batch_packet(
     cadence_result_json_paths: Sequence[Path],
     grid_window_json_path: Path | None = None,
     selection_result_json_path: Path | None = None,
+    activity_journal_jsonl_path: Path | None = None,
     output_directory: Path | None = None,
     data_root=None,
     decision_question: str,
@@ -36,6 +37,11 @@ def run_source_capture_tiktok_batch_packet(
     cadence_bytes = [path.read_bytes() for path in cadence_result_json_paths]
     grid_window_bytes = grid_window_json_path.read_bytes() if grid_window_json_path else None
     selection_bytes = selection_result_json_path.read_bytes() if selection_result_json_path else None
+    activity_journal_bytes = (
+        activity_journal_jsonl_path.read_bytes()
+        if activity_journal_jsonl_path
+        else None
+    )
     receipts = [_source_receipt(grid_result_json_path, grid_bytes, "grid_result_json")]
     receipts.extend(
         _source_receipt(path, raw, f"cadence_result_json_{index + 1}")
@@ -47,6 +53,17 @@ def run_source_capture_tiktok_batch_packet(
         receipts.append(
             _source_receipt(selection_result_json_path, selection_bytes, "selection_result_json")
         )
+    if (
+        activity_journal_jsonl_path is not None
+        and activity_journal_bytes is not None
+    ):
+        receipts.append(
+            _source_receipt(
+                activity_journal_jsonl_path,
+                activity_journal_bytes,
+                "source_capture_activity_jsonl",
+            )
+        )
 
     return write_tiktok_batch_packet(
         creator_handle=creator_handle,
@@ -56,6 +73,7 @@ def run_source_capture_tiktok_batch_packet(
         output_directory=output_directory,
         grid_window_json=grid_window_bytes,
         selection_result_json=selection_bytes,
+        activity_journal_jsonl=activity_journal_bytes,
         data_root=data_root,
         decision_question=decision_question,
         batch_label=batch_label,
@@ -89,6 +107,14 @@ def _build_parser() -> argparse.ArgumentParser:
         "--selection-result-json",
         type=Path,
         help="Selection receipt bound to --grid-window-json; requires --grid-window-json.",
+    )
+    parser.add_argument(
+        "--activity-journal-jsonl",
+        type=Path,
+        help=(
+            "Optional completed diagnostic source-capture activity journal to "
+            "validate and attach byte-for-byte."
+        ),
     )
     target.add_argument(
         "--data-root",
@@ -127,6 +153,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_result_json_paths=args.cadence_result_json,
             grid_window_json_path=args.grid_window_json,
             selection_result_json_path=args.selection_result_json,
+            activity_journal_jsonl_path=args.activity_journal_jsonl,
             output_directory=args.output if data_root is None else None,
             data_root=data_root,
             decision_question=args.decision_question,
