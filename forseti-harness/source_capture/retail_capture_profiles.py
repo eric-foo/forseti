@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 from source_capture.adapters.cloakbrowser_snapshot import ScrollStopCondition
+from source_capture.sephora_catalog_grid import extract_sephora_catalog_request
 from source_capture.source_detail_sufficiency import (
     SourceDetailSufficiencyRequirements,
     validate_source_detail_sufficiency_requirements,
@@ -168,6 +169,7 @@ class RetailCaptureProfile:
     derive_target_asin_from_url: bool = False
     derive_target_query_from_url: bool = False
     derive_target_nordstrom_product_id_from_url: bool = False
+    derive_target_sephora_catalog_from_url: bool = False
     derive_target_sephora_product_id_from_url: bool = False
     derive_target_ulta_product_id_from_url: bool = False
     derive_target_target_product_id_from_url: bool = False
@@ -194,6 +196,9 @@ class RetailCaptureProfile:
           ``url`` must appear in the rendered DOM, anchored (URL shape for Nordstrom,
           token boundaries elsewhere) so a longer id or an unrelated numeric run that
           merely contains it cannot satisfy the gate.
+        - ``derive_target_sephora_catalog_from_url``: a bounded ``/shop/<category>``
+          request whose exact cumulative page and BEST_SELLING sort are echoed by
+          Sephora's retailer-owned render-query state.
         - ``derive_target_target_search_query_from_url``: the Target search-grid analogue
           of the Amazon ``k`` check, reading the ``searchTerm`` query parameter.
         - ``derive_target_target_grid_subject_from_url``: a Target search query or
@@ -233,6 +238,25 @@ class RetailCaptureProfile:
             )
             return merge_source_detail_sufficiency_requirements(
                 self.requirements, target_identity
+            )
+        if self.derive_target_sephora_catalog_from_url:
+            request = extract_sephora_catalog_request(url)
+            if request is None:
+                raise ValueError(
+                    f"retail capture profile {self.name} requires an HTTPS Sephora "
+                    "/shop/<category> URL with one currentPage in [1,5] and "
+                    f"sortBy=BEST_SELLING; got {url!r}"
+                )
+            slug, page, _sort = request
+            return merge_source_detail_sufficiency_requirements(
+                self.requirements,
+                SourceDetailSufficiencyRequirements(
+                    rendered_dom_regexes=(
+                        rf'"urlPath"\s*:\s*"/shop/{re.escape(slug)}"',
+                        r'"cachedQueryParams"\s*:\s*"[^"]*currentPage=[1-5]',
+                        r'"cachedQueryParams"\s*:\s*"[^"]*sortBy=BEST_SELLING',
+                    )
+                ),
             )
         if self.derive_target_sephora_product_id_from_url:
             product_id = extract_sephora_product_id_from_url(url)
@@ -522,6 +546,39 @@ _PROFILES = {
                 rendered_dom_regexes=(
                     r'"products"\s*:\s*\[',
                     r'"totalProducts"\s*:\s*\d+',
+                ),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="sephora_catalog_grid_aggregate",
+            retailer="sephora",
+            page_kind="grid_aggregate",
+            hostname="www.sephora.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=0.0,
+            scroll_passes=0,
+            scroll_step_px=0,
+            load_more_selector=None,
+            load_more_clicks=0,
+            requirements_define_scroll_stop=False,
+            derive_target_sephora_catalog_from_url=True,
+            requirements=_requirements(
+                visible_text_contains=("Quicklook",),
+                visible_text_regexes=(
+                    r"\d+\s+Results",
+                    r"1-\d+\s+of\s+\d+\s+Results",
+                    r"Sort\s+by:\s*Bestselling",
+                    r"\$\d+\.\d{2}",
+                ),
+                rendered_dom_contains=(
+                    'data-cnstrc-browse="true"',
+                    "Sephora.renderQueryParams",
+                ),
+                rendered_dom_regexes=(
+                    r'data-cnstrc-num-results=["\']\d+["\']',
+                    r'data-cnstrc-item-id=["\']P\d+["\']',
                 ),
             ),
         ),

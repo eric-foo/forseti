@@ -1172,6 +1172,76 @@ def test_cloakbrowser_runner_uses_sephora_grid_profile_load_more_defaults(
     assert content_extraction.extractor_version == "sephora_grid_content_v1"
 
 
+def test_cloakbrowser_runner_uses_sephora_catalog_profile_without_load_more(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, object] = {}
+    url = (
+        "https://www.sephora.com/shop/makeup-cosmetics?country_switch=us"
+        "&lang=en&currentPage=1&sortBy=BEST_SELLING"
+    )
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url=url,
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(
+        cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture
+    )
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url=url,
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does the catalog profile own bounded PageJSON traversal?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test Sephora catalog grid profile",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile(
+            "sephora_catalog_grid_aggregate"
+        ),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        sephora_market="US",
+        retail_grid_projection_output=Path("unused_projection_on_failure.json"),
+        sephora_catalog_page_count=5,
+    )
+
+    assert exit_code == 3
+    assert seen["load_more_selector"] is None
+    assert seen["load_more_clicks"] == 0
+    assert seen["scroll_step_px"] == 0
+    assert seen["scroll_stop_condition"] is None
+    assert seen["pre_capture"].page_count == 5
+    content_extraction = (
+        cloakbrowser_runner._sephora_catalog_grid_content_extraction_spec()
+    )
+    assert content_extraction.requested_retention_mode == "content"
+    assert content_extraction.extractor_version == (
+        "sephora_catalog_grid_content_v1"
+    )
+
+
 def test_cloakbrowser_runner_uses_ulta_grid_profile_load_more_defaults(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
