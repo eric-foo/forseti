@@ -546,7 +546,7 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
       video_url: href,
       grid_position: gridPosition,
       bounding_box: {x: box.x, y: box.y, width: box.width, height: box.height},
-      click_target_kind: 'link_routed_video_count_footer',
+      click_target_kind: 'link_routed_exact_video_semantic_targets',
       click_target_text_or_none: clickTargetText,
       click_target_visible_in_viewport: true
     });
@@ -2257,7 +2257,9 @@ def _run_grid_overlay_deep_capture_phase(
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
-        "tile_click_target_policy": "randomized_link_routed_video_count_footer_zones",
+        "tile_click_target_policy": (
+            "randomized_exact_video_media_link_or_view_count_footer"
+        ),
         "hover_preview_body_click_allowed": False,
         "click_target_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
@@ -3265,31 +3267,24 @@ def _click_visible_selected_grid_tile(
     engine: BrowserPageObservationEngine,
     expected_subtitle_url: str | None,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
-    candidate_selector = f"a[href*='/video/{chosen_video_id}'] .video-count"
+    video_anchor_selector = f"a[href*='/video/{chosen_video_id}']"
+    view_count_selector = f"{video_anchor_selector} .video-count"
     action = BrowserPagePointerAction(
         action_name="tiktok_visible_selected_grid_video_v0",
-        candidate_selector=candidate_selector,
+        candidate_selector=view_count_selector,
         target_variants=(
             BrowserPagePointerTargetVariant(
-                variant_name="footer_left",
-                candidate_selector=candidate_selector,
+                variant_name="media_link_surface",
+                candidate_selector=video_anchor_selector,
+                target_fraction_x_min=0.20,
+                target_fraction_x_max=0.80,
+                target_fraction_y_min=0.25,
+                target_fraction_y_max=0.70,
+            ),
+            BrowserPagePointerTargetVariant(
+                variant_name="view_count_footer",
+                candidate_selector=view_count_selector,
                 target_fraction_x_min=0.15,
-                target_fraction_x_max=0.30,
-                target_fraction_y_min=0.25,
-                target_fraction_y_max=0.75,
-            ),
-            BrowserPagePointerTargetVariant(
-                variant_name="footer_center",
-                candidate_selector=candidate_selector,
-                target_fraction_x_min=0.40,
-                target_fraction_x_max=0.60,
-                target_fraction_y_min=0.25,
-                target_fraction_y_max=0.75,
-            ),
-            BrowserPagePointerTargetVariant(
-                variant_name="footer_right",
-                candidate_selector=candidate_selector,
-                target_fraction_x_min=0.70,
                 target_fraction_x_max=0.85,
                 target_fraction_y_min=0.25,
                 target_fraction_y_max=0.75,

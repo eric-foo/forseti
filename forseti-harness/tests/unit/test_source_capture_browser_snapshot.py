@@ -2116,6 +2116,57 @@ def test_pointer_target_variants_and_ranged_waits_are_selected_and_receipted() -
     assert selected_variants == {"left", "center", "right"}
 
 
+def test_pointer_target_variants_fall_through_to_next_semantic_target() -> None:
+    page = _FakeObservationPage(
+        [],
+        pointer_targets=[
+            {
+                "candidate_count": 0,
+                "matched_count": 0,
+                "target_found": False,
+                "target_kind": None,
+                "box": None,
+            },
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "candidate",
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+        ],
+    )
+
+    receipt = browser_snapshot_module._run_pointer_action(
+        page,
+        BrowserPagePointerAction(
+            action_name="semantic_variant_action",
+            candidate_selector=".video-count",
+            text_markers=("31.8k",),
+            target_variants=(
+                BrowserPagePointerTargetVariant(
+                    variant_name="media_link_surface",
+                    candidate_selector="a[href*='/video/1']",
+                ),
+                BrowserPagePointerTargetVariant(
+                    variant_name="view_count_footer",
+                    candidate_selector="a[href*='/video/1'] .video-count",
+                ),
+            ),
+            wait_after_range=BrowserDelayRange(min_ms=11, max_ms=19),
+            random_seed=0,
+        ),
+    )
+
+    assert receipt["target_variant_attempt_order"] == [
+        "media_link_surface",
+        "view_count_footer",
+    ]
+    assert receipt["target_variant"] == "view_count_footer"
+    assert receipt["target_found"] is True
+    assert receipt["clicked"] is True
+
+
 def test_authenticated_humanized_session_receipts_ranged_settle_and_pointer_wait(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

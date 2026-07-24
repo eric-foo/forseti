@@ -1850,6 +1850,9 @@ def test_grid_overlay_sequence_reuses_grid_observation_returned_by_overlay_close
     assert engine.calls[1]["post_load_pointer_actions"][0].action_name == (
         "tiktok_visible_selected_grid_video_v0"
     )
+    assert receipt["attempts"][0]["click_action_or_none"]["target_variant"] == (
+        "media_link_surface"
+    )
 
 
 def test_grid_overlay_sequence_uses_logical_positions_and_targeted_human_scroll(
@@ -1896,11 +1899,30 @@ def test_grid_overlay_sequence_uses_logical_positions_and_targeted_human_scroll(
     assert click_action.text_markers == ("31.8k",)
     assert {
         variant.variant_name for variant in click_action.target_variants
-    } == {"footer_left", "footer_center", "footer_right"}
-    assert all(
-        variant.candidate_selector == "a[href*='/video/1'] .video-count"
-        for variant in click_action.target_variants
+    } == {"media_link_surface", "view_count_footer"}
+    variants_by_name = {
+        variant.variant_name: variant for variant in click_action.target_variants
+    }
+    assert (
+        variants_by_name["media_link_surface"].candidate_selector
+        == "a[href*='/video/1']"
     )
+    assert (
+        variants_by_name["media_link_surface"].target_fraction_x_min,
+        variants_by_name["media_link_surface"].target_fraction_x_max,
+        variants_by_name["media_link_surface"].target_fraction_y_min,
+        variants_by_name["media_link_surface"].target_fraction_y_max,
+    ) == (0.20, 0.80, 0.25, 0.70)
+    assert (
+        variants_by_name["view_count_footer"].candidate_selector
+        == "a[href*='/video/1'] .video-count"
+    )
+    assert (
+        variants_by_name["view_count_footer"].target_fraction_x_min,
+        variants_by_name["view_count_footer"].target_fraction_x_max,
+        variants_by_name["view_count_footer"].target_fraction_y_min,
+        variants_by_name["view_count_footer"].target_fraction_y_max,
+    ) == (0.15, 0.85, 0.25, 0.75)
     assert click_action.wait_after_range == onboarding.TIKTOK_STATE_WAIT_2500_DELAY_RANGE
     assert receipt["logical_grid_positions_remembered"] is True
     assert receipt["absolute_pixel_positions_cached"] is False
@@ -3834,6 +3856,7 @@ def _clicked_capture(
             "action_name": "tiktok_visible_selected_grid_video_v0",
             "target_found": True,
             "clicked": True,
+            "target_variant": "media_link_surface",
             "move_steps": 8,
         }
     ]
@@ -3865,7 +3888,9 @@ def _grid_overlay_receipt() -> dict[str, object]:
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
-        "tile_click_target_policy": "randomized_link_routed_video_count_footer_zones",
+        "tile_click_target_policy": (
+            "randomized_exact_video_media_link_or_view_count_footer"
+        ),
         "hover_preview_body_click_allowed": False,
         "click_target_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": 2,
@@ -3947,7 +3972,7 @@ def _visible_tiles_capture(
             "video_id": video_id,
             "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
             "grid_position": index,
-            "click_target_kind": "link_routed_video_count_footer",
+            "click_target_kind": "link_routed_exact_video_semantic_targets",
             "click_target_text_or_none": "31.8K",
             "click_target_visible_in_viewport": True,
         }
