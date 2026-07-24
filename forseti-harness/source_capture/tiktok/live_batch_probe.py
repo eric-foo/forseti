@@ -861,7 +861,11 @@ def _capture_video_cadence_rows(
                 url=video_url,
                 dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
                 dom_extract_arg=None,
-                response_url_predicate=is_tiktok_comment_list_url,
+                response_url_predicate=lambda observed_url: (
+                    is_tiktok_comment_list_url(observed_url)
+                    or _is_supported_subtitle_url(observed_url)
+                ),
+                pointer_action_response_url_predicate=is_tiktok_comment_list_url,
                 post_load_pointer_actions=_tiktok_live_pointer_actions(
                     video_id=video_id,
                     random_seed=random_seed,

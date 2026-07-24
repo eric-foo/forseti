@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable
 
@@ -74,6 +74,7 @@ class _FakeObservationEngine:
         dom_extract_script: str,
         dom_extract_arg: object,
         response_url_predicate: Callable[[str], bool],
+        pointer_action_response_url_predicate: Callable[[str], bool] | None = None,
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_wheel_action: BrowserPageWheelAction | None = None,
@@ -105,9 +106,34 @@ class _FakeObservationEngine:
                 "response_predicate_matches_comment_list": response_url_predicate(
                     "https://www.tiktok.com/api/comment/list/?aweme_id=7390000000000000001&cursor=0"
                 ),
+                "response_predicate_matches_subtitle": response_url_predicate(
+                    "https://v16-webapp.tiktok.com/subtitle.webvtt"
+                ),
+                "pointer_stop_predicate_matches_comment_list": (
+                    pointer_action_response_url_predicate(
+                        "https://www.tiktok.com/api/comment/list/?aweme_id=7390000000000000001&cursor=0"
+                    )
+                    if pointer_action_response_url_predicate is not None
+                    else None
+                ),
+                "pointer_stop_predicate_matches_subtitle": (
+                    pointer_action_response_url_predicate(
+                        "https://v16-webapp.tiktok.com/subtitle.webvtt"
+                    )
+                    if pointer_action_response_url_predicate is not None
+                    else None
+                ),
             }
         )
-        return self.outcomes.pop(0)
+        outcome = self.outcomes.pop(0)
+        return replace(
+            outcome,
+            responses=tuple(
+                response
+                for response in outcome.responses
+                if response_url_predicate(response.final_url)
+            ),
+        )
 
 
 def _summary_payloads(output: str) -> list[dict[str, object]]:
@@ -375,6 +401,10 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         engine=engine,
     )
 
+    assert engine.calls[0]["response_predicate_matches_comment_list"] is True
+    assert engine.calls[0]["response_predicate_matches_subtitle"] is True
+    assert engine.calls[0]["pointer_stop_predicate_matches_comment_list"] is True
+    assert engine.calls[0]["pointer_stop_predicate_matches_subtitle"] is False
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     row = cadence["results"][0]
     subtitle = row["subtitle"]

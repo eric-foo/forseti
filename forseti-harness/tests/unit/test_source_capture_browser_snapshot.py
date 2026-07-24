@@ -2193,6 +2193,51 @@ def test_playwright_page_observation_stops_pointer_sequence_on_observed_response
     assert "wait:2000" not in event_log
     assert event_log.count("pointer_target_lookup") == 1
 
+
+def test_playwright_page_observation_retains_response_without_pointer_early_stop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    subtitle_url = "https://v16-webapp.tiktok.com/subtitle.webvtt"
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        response_url=subtitle_url,
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        **{
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            "response_url_predicate": lambda url: "subtitle.webvtt" in url,
+        },
+        pointer_action_response_url_predicate=lambda url: "/api/comment/list" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="open_comments",
+            candidate_selector="button",
+            text_markers=("comments",),
+            wait_after_ms=2000,
+            move_steps_min=3,
+            move_steps_max=3,
+            stop_wait_on_observed_response=True,
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert result.responses[0].final_url == subtitle_url
+    assert receipt["observed_response_delta"] == 0
+    assert receipt["observed_response_seen"] is False
+    assert receipt["wait_ms"] == 2000
+    assert event_log.count("wait:100") == 20
+
+
 def test_playwright_page_observation_can_wait_early_without_stopping_sequence(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
