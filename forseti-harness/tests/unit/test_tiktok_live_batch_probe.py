@@ -220,6 +220,18 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
         outcomes=[
             _success_observation(
                 video_id="7390000000000000001",
+                page_context_observations=[
+                    {
+                        "schema_version": "passive_page_interaction_context_v0",
+                        "sequence_index": 0,
+                        "action_kind": "navigation",
+                        "before_action_name": "page_navigation",
+                        "observed_at_utc": "2026-07-24T10:00:00Z",
+                        "observation_status": "observed",
+                        "visibility_state_or_none": "hidden",
+                        "document_has_focus_or_none": False,
+                    }
+                ],
                 response=BrowserPageResponse(
                     requested_url=response_url,
                     final_url=response_url,
@@ -287,6 +299,18 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
         "action_taken": False,
     }
     receipt = cadence["results"][0]["capture_receipt"]
+    assert receipt["page_interaction_context_observations"] == [
+        {
+            "schema_version": "passive_page_interaction_context_v0",
+            "sequence_index": 0,
+            "action_kind": "navigation",
+            "before_action_name": "page_navigation",
+            "observed_at_utc": "2026-07-24T10:00:00Z",
+            "observation_status": "observed",
+            "visibility_state_or_none": "hidden",
+            "document_has_focus_or_none": False,
+        }
+    ]
     assert receipt["benign_overlay_action"] == _benign_overlay_action_receipt()
     assert receipt["comment_action"] == {
         "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
@@ -2936,6 +2960,7 @@ def _success_observation(
     visible_text: str = "video loaded",
     dom_comment_candidates: list[dict[str, object]] | None = None,
     subtitle_url: str = "https://subtitle.example.invalid/subtitle.webvtt",
+    page_context_observations: list[dict[str, object]] | None = None,
 ) -> BrowserPageObservationSuccess:
     pointer_sequence = pointer_sequence or _live_pointer_action_sequence_receipt()
     dom_observation: dict[str, object] = {
@@ -2953,6 +2978,15 @@ def _success_observation(
         metadata={
             "post_load_pointer_action": pointer_sequence[-1],
             "post_load_pointer_actions": pointer_sequence,
+            **(
+                {
+                    "page_interaction_context_observations": (
+                        page_context_observations
+                    )
+                }
+                if page_context_observations is not None
+                else {}
+            ),
         },
         warning_notes=[],
         limitation_notes=[],
