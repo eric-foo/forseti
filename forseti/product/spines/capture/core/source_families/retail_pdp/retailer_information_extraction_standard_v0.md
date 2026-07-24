@@ -99,13 +99,17 @@ The unfiltered initial review view is retained once so the source's incentive
 mix and default posture remain observable. All analytical review views then
 apply the retailer's exact non-incentivized filter when it exists:
 
-1. Preserve a source-labelled `Most Helpful` snapshot with selected sort/filter
-   evidence and every available review-row field in the inventory above.
-2. Preserve a source-labelled newest/`Most Recent` response with the
-   non-incentivized filter. This response establishes the monitoring anchor.
-   Continue to a 30-day cohort only when that deeper corpus window is
-   commissioned; a bounded onboarding response must otherwise remain labelled
-   as bounded rather than complete.
+1. For Sephora, retain the existing source-specific onboarding policy: Helpful
+   plus statistics, Recent, and Q&A. This rule does not remove or rewrite any
+   Sephora capture role below.
+2. For each selected non-Sephora retailer, request the source-labelled
+   newest/`Most Recent` ordering by default when the source supports it; do not
+   routinely add `Most Helpful` or `Most Relevant` as another customer corpus.
+   Record the requested ordering, actual returned ordering, and an explicit
+   fallback reason when newest ordering is unavailable. Continue to a 30-day
+   cohort only when that deeper corpus window is commissioned; a bounded
+   onboarding response must otherwise remain labelled as bounded rather than
+   complete.
 3. Inventory the live rendered demographic vocabulary rather than promoting a
    generic embedded configuration. Preserve each exact label, request value,
    count, denominator, share of declared-demographic subset, coverage of all
@@ -113,6 +117,17 @@ apply the retailer's exact non-incentivized filter when it exists:
 4. Keep the unfiltered baseline separate from filtered analytical cohorts.
    Never describe either bounded cohort as the complete review corpus or a
    representative sentiment sample.
+5. Bind each captured review window to its retailer collection context,
+   observed provider and provider-evidence reference, provider tenant/store,
+   product/grouping scope, source-native identifiers, actual ordering/fallback,
+   and visible origin/syndication state. Provider names are evidence-bound, not
+   retailer defaults: for example, tag a REVOLVE corpus `Yotpo` only when the
+   preserved source exposes that provider or tenant. Measure overlap between requested sorts and
+   previously captured retailer corpora before granting independent-customer-
+   evidence credit. A different provider is neither necessary nor sufficient
+   for independence. Report captured occurrences and unique source-native rows
+   separately; when sort windows substantially overlap, redirect additional
+   depth to a materially different corpus, category, or product when available.
 
 ## Q&A onboarding depth
 
@@ -150,8 +165,9 @@ in-packet summaries stay capture evidence, and Cleaning owns downstream
 adaptation. Grid projections are separate retailer-specific mechanical views,
 not PDP content, Cleaning, or Silver.
 
-For the qualified ladder, Sephora, Ulta, Target, and Amazon have admitted
-retailer-specific projected grid paths. Sephora reconciles its retailer-declared count against unique
+Current admitted projected grid paths include Sephora, Ulta, Target, Amazon,
+and REVOLVE; future company runs select among officially named,
+route-admissible retailers rather than forcing a quartet. Sephora reconciles its retailer-declared count against unique
 parent rows; Ulta reconciles its retailer-declared and viewed counts against
 anchored placements, so a complete Ulta grid may hold more placements than
 unique parents. Target's admitted search and `/b/<brand>/-/N-...` brand grids

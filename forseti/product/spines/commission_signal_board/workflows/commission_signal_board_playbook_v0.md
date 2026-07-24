@@ -90,13 +90,22 @@ The default coordinated route has exactly four evidence actors:
 - `CO1`: owned company and high-yield core — identity, ownership, leadership,
   offering/portfolio architecture, official authorization, chronology, and
   material events;
-- `CO2`: unified Sephora/Ulta/Target/Amazon portfolio and retail corpus —
-  grids, union/reconciliation, exact PDP baselines, retailer-native facts,
-  failures, overlap, and provider identity; never split retailers by actor; and
+- `CO2`: unified official-first portfolio and selected-retailer corpus —
+  authorization board, grids, union/reconciliation, exact PDP baselines,
+  retailer-native facts, failures, overlap, and provider/corpus identity; never
+  split retailers by actor; and
 - `CO3`: mandatory customer/community and selected depth — retailer reviews and
   Q&A, bounded Reddit and qualified community routes, customer language, pain
   points, objections, complaints, usage contexts, workarounds, response
   patterns, syndication ceilings, and discriminating depth checks.
+
+For review depth, keep Sephora on its existing source-specific capture policy.
+For every selected non-Sephora retailer, default to source-labelled `Most
+Recent`/newest when supported and record the actual ordering plus fallback. Bind
+each corpus to observed provider evidence, tenant/store, and collection context;
+never infer `Yotpo` from REVOLVE alone. Same-corpus sort windows are one corpus,
+not independent customer evidence, and duplicate native IDs collapse to one
+unique review.
 
 Any pair/group dispatcher is mechanical and is not another evidence actor.
 `CO1`-`CO3` use same-root collaboration under `CO0` unless a separately
@@ -156,7 +165,7 @@ not on a token or compactness target.
 
 This is the default route for the current US consumer-beauty Understanding
 profile. A materially different subject may require an explicit commission-
-specific topology instead of pretending the four-retailer role applies.
+specific topology instead of pretending the selected-retailer role applies.
 
 1. Bind `cycle_id`, `commission_id`, canonical phase, phase-specific question,
    intended consumer/use, scope, and the six outcome signals below.
@@ -171,24 +180,28 @@ specific topology instead of pretending the four-retailer role applies.
    For a company Understanding commission where offerings, retail presentation,
    or customer experience are material, preserve the prompt's bounded sequence:
    owned identity seed binding subject, categories, franchises, and known
-   parents -> qualified US ladder tests and each retailer's available grid
-   surface -> deterministic union and reconciliation of exact listings with the
+    parents -> company-owned official retailer board and selected retailers'
+    available grid surfaces -> deterministic union and reconciliation of exact listings with the
    owned candidates -> return to owned surfaces to close the complete publicly
    exposed denominator and typed gaps -> one baseline PDP for every reconciled
    exact retailer listing at each qualified retailer -> evidence-selected
    review/Q&A depth. Owned evidence remains canonical identity authority;
-   retailer grids are discovery and channel-expression evidence. Test Sephora, Ulta, Target,
-   and Amazon; preserve exact typed failure instead of inventing a listing or
-   completion credit. Use the common lean baseline, preserve full raw material,
-   and retain source-visible retailer-native extensions. Apply the guarded
-   Sephora-primary default when it qualifies and is materially complete. A named
+    retailer grids are discovery and channel-expression evidence. Resolve
+    Sephora explicitly, then select any officially named, route-admissible
+    retailers that add material evidence; preserve exact typed failure instead
+    of inventing a listing or completion credit. Use the common lean baseline,
+    preserve full raw material, and retain source-visible retailer-native
+    extensions. When Sephora is officially named and route-complete, include it
+    and make it primary. Keep its typed outcome but use another complete working
+    primary when it is blocked, unpinned, or incomplete. A named
    non-duplicative job must justify each expensive deepening, and there is no
    fixed deep-product count. Do not require a full global SKU graph, universal
    deep capture, or an all-retailer/source-count quota. Preserve calibrated
    review-volume semantics, accepted residuals, non-claims, and upgrade trigger.
    Before selecting depth, run the portfolio breadth compositor (or prove the
    same fields through the existing coverage ledger): one owned-parent
-   denominator, one typed outcome per ladder retailer, one reconciliation per
+    denominator, the company-owned retailer-authorization board, one typed
+    outcome per selected retailer, one reconciliation per
    verified grid row, and one verified raw PDP baseline per exact non-bundle
    listing. Duplicate placements, variant URLs, bundles/sets, ambiguity,
    unmatched rows, missing material variants, and route failures stay distinct.
@@ -294,7 +307,7 @@ phase output before commissioning post-delivery review.
 For company Understanding where offerings or retail are material, Deliver makes
 the breadth-first substrate visible in Section 5, `Portfolio And Retail
 Architecture`. Its ordered subsections and compact matrices show the owned
-denominator, product/claim/price structure, four-retailer corpus,
+denominator, product/claim/price structure, selected-retailer corpus,
 evidence-selected depth, outside-in portfolio interpretation, and strategic
 positioning/markets/channels. The section synthesizes the sealed ledgers; it does
 not replace acquisition accounting or award completion from headings.
@@ -423,18 +436,20 @@ gate above controls whether Deliver may begin.
    Before optional deepening, resolve the prompt's small high-yield core through
    the existing ledgers. A material unresolved core job blocks the acquisition
    seal; other remainders stay typed gaps and non-claims. When retail is material,
-   commission an owned identity seed, test Sephora, Ulta, Target, and Amazon,
-   acquire each available grid surface, reconcile its listing union with owned
-   candidates, then return to owned evidence to close the denominator. Owned
+    commission an owned identity seed, establish the company-owned official
+    retailer board, resolve Sephora explicitly, and select the route-admissible
+    retailers that add material evidence. Acquire each selected grid surface,
+    reconcile its listing union with owned candidates, then return to owned
+    evidence to close the denominator. Owned
    evidence remains canonical identity authority. Acquire one full-raw common-
    floor baseline PDP for every reconciled exact retailer listing. Apply the prompt's
-   guarded Sephora-primary default, but do not let primary status excuse another
-   qualified retailer's baseline. Preserve typed route failures without
+    Sephora-primary rule when it is officially named and route-complete, but do
+    not let primary status excuse another selected retailer's baseline. Preserve typed route failures without
    completion credit and retain retailer-native fields when source-visible.
    Only after breadth is sealed, select expensive review/Q&A depth for evidence-
    selected products. Each deepening needs a named non-duplicative job, there is
    no fixed product count, and retailer counts remain separate rather than
-   becoming sales. Treat Amazon as a query-bound ranked-search window, not a
+    becoming sales. Treat Amazon, when selected, as a query-bound ranked-search window, not a
    guaranteed complete or authorized-only catalog; projection capability never
    substitutes for route admission. Point-in-time retailer metrics are traction
    proxies, not sales, share, or trend. Preserve analysis-enablement inputs,

@@ -190,6 +190,136 @@ def test_acquisition_judgment_key_is_rejected(tmp_path: Path) -> None:
         load_portfolio_commission(commission_path)
 
 
+def test_official_route_complete_sephora_must_be_primary(tmp_path: Path) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    sephora = next(
+        item for item in payload["retailer_outcomes"] if item["retailer"] == "sephora"
+    )
+    sephora["status"] = "GRID_CAPTURED_COMPLETE"
+    sephora["grid_packet_directory"] = next(
+        item["grid_packet_directory"]
+        for item in payload["retailer_outcomes"]
+        if item["retailer"] == "ulta"
+    )
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(
+        ValueError,
+        match="officially named, route-complete sephora must be primary_retailer",
+    ):
+        load_portfolio_commission(commission_path)
+
+
+def test_future_commission_can_use_revolve_without_fixed_quartet(
+    tmp_path: Path,
+) -> None:
+    grid_dir, _ = _packet(
+        tmp_path,
+        name="revolve-grid",
+        body=_revolve_grid_html(),
+        source_family="retail_grid",
+        source_surface="cloakbrowser_snapshot",
+        locator="https://www.revolve.com/summer-fridays/br/95db2c/",
+    )
+    pdp_url = (
+        "https://www.revolve.com/summer-fridays-lip-butter-balm/"
+        "dp/SUMR-WU76/"
+    )
+    pdp_dir, _ = _packet(
+        tmp_path,
+        name="revolve-pdp",
+        body=b"full raw Revolve PDP",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        locator=pdp_url,
+    )
+    commission_path = tmp_path / "revolve-commission.json"
+    commission_path.write_text(
+        json.dumps(
+            {
+                "company_id": "summer-fridays",
+                "owned_census": {
+                    "source_packet_id": "owned-census-packet",
+                    "parents": [
+                        {
+                            "owned_parent_id": "lip-butter-balm",
+                            "name": "Lip Butter Balm",
+                            "owned_url": "https://summerfridays.com/products/lip-butter-balm",
+                            "material_variant_ids": [],
+                        }
+                    ],
+                },
+                "retailer_authorizations": [
+                    {
+                        "retailer": "sephora",
+                        "status": "OFFICIALLY_NAMED",
+                        "evidence_refs": ["owned:stockists:sephora"],
+                    },
+                    {
+                        "retailer": "revolve",
+                        "status": "OFFICIALLY_NAMED",
+                        "evidence_refs": ["owned:stockists:revolve"],
+                    },
+                ],
+                "primary_retailer": "revolve",
+                "retailer_outcomes": [
+                    {
+                        "retailer": "sephora",
+                        "status": "ROUTE_BLOCKED",
+                        "evidence_refs": ["receipt:sephora:route-blocked"],
+                    },
+                    {
+                        "retailer": "revolve",
+                        "status": "GRID_CAPTURED_COMPLETE",
+                        "evidence_refs": ["packet:revolve-grid"],
+                        "grid_packet_directory": str(grid_dir),
+                    }
+                ],
+                "listing_reconciliations": [
+                    {
+                        "retailer": "revolve",
+                        "grid_row_id": (
+                            "slice_01:grid:revolve:SUMR-WU76"
+                        ),
+                        "source_product_id": "SUMR-WU76",
+                        "listing_url": pdp_url,
+                        "listing_kind": "PARENT",
+                        "match_status": "EXACT",
+                        "owned_parent_ids": ["lip-butter-balm"],
+                        "material_variant_ids": [],
+                    }
+                ],
+                "pdp_baselines": [
+                    {
+                        "retailer": "revolve",
+                        "source_product_id": "SUMR-WU76",
+                        "packet_directory": str(pdp_dir),
+                    }
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+    result = build_retail_portfolio_onboarding(
+        commission=load_portfolio_commission(commission_path),
+        base_directory=tmp_path,
+    )
+
+    assert result["schema_version"] == "retail_portfolio_onboarding_v1"
+    assert result["primary_retailer"] == "revolve"
+    assert [item["retailer"] for item in result["retailer_outcomes"]] == [
+        "revolve",
+        "sephora",
+    ]
+    assert result["coverage_by_retailer"][0]["covered_owned_parent_ids"] == [
+        "lip-butter-balm"
+    ]
+
+
 def _all_keys(value: object) -> list[str]:
     if isinstance(value, dict):
         return [str(key) for key in value] + [
@@ -302,6 +432,15 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path]:
                     "material_variant_ids": []},
             ],
         },
+        "retailer_authorizations": [
+            {
+                "retailer": retailer,
+                "status": "OFFICIALLY_NAMED",
+                "evidence_refs": [f"owned:stockists:{retailer}"],
+            }
+            for retailer in ("sephora", "ulta", "target", "amazon")
+        ],
+        "primary_retailer": "ulta",
         "retailer_outcomes": [
             {"retailer": "sephora", "status": "NOT_LISTED",
                 "evidence_refs": ["receipt:sephora:not-listed"]},
@@ -434,3 +573,35 @@ def _target_html() -> bytes:
         'data-test="@web/ProductCard/title"></a></div>'
         for product_id, url, name in cards
     ).encode("utf-8")
+
+
+def _revolve_grid_html() -> bytes:
+    return b"""
+    <html>
+      <head>
+        <link rel="canonical"
+              href="https://www.revolve.com/summer-fridays/br/95db2c/">
+      </head>
+      <body class="US">
+        <button><div>Country Preference: US</div>
+          <span>| <span>EN</span> | <span>$USD</span></span></button>
+        <a href="/shipping?countryCode=US">Shipping</a>
+        <h1>Summer Fridays</h1>
+        <span>1 Items</span>
+        <button>View 100</button>
+        <button>View 500</button>
+        <ul>
+          <li class="plp__product" id="SUMR-WU76">
+            <a class="product-link"
+               href="/summer-fridays-lip-butter-balm/dp/SUMR-WU76/">
+              <span class="js-plp-brand">Summer Fridays</span>
+              <span class="js-plp-name">Lip Butter Balm</span>
+            </a>
+            <div class="js-plp-prices-div">$24</div>
+            <button aria-label="4.9 out of 5 stars rating in total 2,278 reviews"></button>
+            <button data-oos="false">Quick view</button>
+          </li>
+        </ul>
+      </body>
+    </html>
+    """

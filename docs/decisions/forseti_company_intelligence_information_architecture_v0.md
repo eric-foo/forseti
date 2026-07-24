@@ -393,14 +393,19 @@ acquisition checklist or data store.
 
 When retail expression is material, acquire this substrate breadth-first. Begin
 with enough owned evidence to bind the subject, categories, franchises, known
-parents, and canonical product identity. Then test the qualified US beauty
-ladder -- Sephora, Ulta, Target, and Amazon -- and preserve each test's exact
-typed result; never invent a listing or completion credit. For every qualified
-retailer, capture its available grid surface, deterministically union and
-reconcile exact listings with the owned candidates, then return to owned
-surfaces to close the complete publicly exposed denominator and typed gaps.
-Owned evidence remains canonical identity authority; retailer grids are
-discovery and channel-expression evidence.
+parents, and canonical product identity. Use company-owned evidence to establish
+the officially named US retailer board before probing retailer surfaces. Select
+the route-admissible retailers that add material assortment, commercial, or
+customer evidence; there is no fixed retailer quartet or count. Resolve Sephora
+explicitly: when it is officially named and its US grid is route-complete, it
+must be included and is the retail primary. If it is officially named but
+blocked, unpinned, or incomplete, preserve that typed outcome and use the
+strongest complete selected retailer as the working primary rather than
+fabricating Sephora coverage. For every selected retailer, capture its available
+grid surface, deterministically union and reconcile exact listings with the
+owned candidates, then return to owned surfaces to close the complete publicly
+exposed denominator and typed gaps. Owned evidence remains canonical identity
+authority; retailer grids are discovery and channel-expression evidence.
 
 Acquire one full-raw baseline PDP for every reconciled exact retailer listing.
 Only after that baseline may expensive review or Q&A depth be selected for a
@@ -414,9 +419,9 @@ brand catalog. Projection capability does not prove route admission; every run
 records market pin, reachability, surface boundary, and typed failure. Point-in-
 time retailer metrics are traction proxies, not sales, share, or trend.
 
-Sephora is the guarded default primary when it is authorized, US-admissible, and
-materially complete; override it when a material omission, failed market
-pin/route, or named non-duplicative job requires another qualified retailer.
+Officially named, route-complete Sephora must be the retail primary. Otherwise,
+preserve the typed Sephora blocked, unpinned, or incomplete outcome and use
+another complete selected retailer as the working primary.
 Keep retailer counts as separate, traceable series unless exact corpus identity
 and deterministic deduplication justify comparison. Counts show accumulated
 retailer-local attention, never sales.
@@ -445,7 +450,7 @@ Apply the table with four rules:
    The implemented post-Capture selective-depth and linkage producer is
    `cleaning.retail_review_overlap`. It emits
    `retail_review_depth_selection_v0` and
-   `retail_review_overlap_linkage_v0`, re-verifies raw packet references,
+   `retail_review_overlap_linkage_v1`, re-verifies raw packet references,
    preserves native review occurrences and retailer totals, and leaves ambiguous
    conflicts unmerged. It is not raw Capture or portfolio-role/sales Judgment.
 3. A point-in-time directional role such as visible growth investment or a

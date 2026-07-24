@@ -23,9 +23,11 @@ from source_capture.retail_grid_projection import (
 )
 
 DEPTH_SELECTION_SCHEMA_VERSION = "retail_review_depth_selection_v0"
-REVIEW_LINKAGE_SCHEMA_VERSION = "retail_review_overlap_linkage_v0"
-LINKAGE_ALGORITHM_VERSION = "retail_review_overlap_exact_v0"
-PORTFOLIO_SCHEMA_VERSION = "retail_portfolio_onboarding_v0"
+REVIEW_LINKAGE_SCHEMA_VERSION = "retail_review_overlap_linkage_v1"
+LINKAGE_ALGORITHM_VERSION = "retail_review_overlap_exact_v1"
+PORTFOLIO_SCHEMA_VERSIONS = frozenset(
+    {"retail_portfolio_onboarding_v0", "retail_portfolio_onboarding_v1"}
+)
 
 DepthTrigger = Literal[
     "ESTABLISHED_PROMINENCE",
@@ -39,7 +41,11 @@ DepthTrigger = Literal[
 ]
 DepthSurface = Literal["REVIEWS", "QA"]
 ProminenceStatus = Literal["PROMINENT", "NOT_PROMINENT", "UNKNOWN"]
-Retailer = Literal["sephora", "ulta", "target", "amazon"]
+Retailer = str
+ReviewSelectionPolicy = Literal[
+    "SEPHORA_EXISTING_POLICY", "NON_SEPHORA_MOST_RECENT"
+]
+_RETAILER_SLUG = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 
 
 class RetailReviewOverlapError(ValueError):
@@ -145,6 +151,12 @@ class ReviewOccurrence(StrictModel):
     capture_job_id: str
     source_product_id: str
     provider: str
+    provider_tenant_store: str
+    collection_context: str
+    provider_evidence_refs: list[str] = Field(min_length=1)
+    selection_policy: ReviewSelectionPolicy
+    actual_ordering: str
+    ordering_fallback: str | None = None
     source_native_review_id: str | None = None
     origin_review_id: str | None = None
     explicit_syndication_key: str | None = None
@@ -158,12 +170,20 @@ class ReviewOccurrence(StrictModel):
     per_field_residuals: list[str] = Field(default_factory=list)
     row_scope_residuals: list[str] = Field(default_factory=list)
 
+    @field_validator("retailer")
+    @classmethod
+    def validate_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
+
     @field_validator(
         "occurrence_id",
         "owned_parent_id",
         "capture_job_id",
         "source_product_id",
         "provider",
+        "provider_tenant_store",
+        "collection_context",
+        "actual_ordering",
         "review_body_verbatim",
     )
     @classmethod
@@ -180,12 +200,39 @@ class ReviewOccurrence(StrictModel):
         "review_date_source_text",
         "reviewer_display_label",
         "review_title_verbatim",
+        "ordering_fallback",
     )
     @classmethod
     def reject_blank_optional_text(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():
             raise ValueError("optional review text must be absent rather than blank")
         return value
+
+    @field_validator("provider_evidence_refs")
+    @classmethod
+    def reject_blank_provider_evidence_refs(cls, value: list[str]) -> list[str]:
+        if any(not item.strip() for item in value):
+            raise ValueError("provider evidence refs must be non-empty")
+        return value
+
+    @model_validator(mode="after")
+    def validate_selection_policy(self) -> "ReviewOccurrence":
+        expected = (
+            "SEPHORA_EXISTING_POLICY"
+            if self.retailer == "sephora"
+            else "NON_SEPHORA_MOST_RECENT"
+        )
+        if self.selection_policy != expected:
+            raise ValueError("review selection policy contradicts retailer")
+        if (
+            self.retailer != "sephora"
+            and not _is_most_recent_ordering(self.actual_ordering)
+            and self.ordering_fallback is None
+        ):
+            raise ValueError(
+                "non-Sephora ordering fallback is required when Most Recent is unavailable"
+            )
+        return self
 
     @field_validator("rating_value")
     @classmethod
@@ -212,6 +259,11 @@ class NativeReviewTotal(StrictModel):
     corpus_window: str
     observed_at: str
     raw_refs: list[ReviewRawRef] = Field(min_length=1)
+
+    @field_validator("retailer")
+    @classmethod
+    def validate_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
 
     @field_validator(
         "owned_parent_id",
@@ -273,8 +325,10 @@ def build_depth_selection(
     portfolio_path = _resolve(base_directory, commission.portfolio_onboarding_path)
     portfolio_bytes = portfolio_path.read_bytes()
     portfolio = _decode_json_object(portfolio_bytes, "portfolio onboarding")
-    if portfolio.get("schema_version") != PORTFOLIO_SCHEMA_VERSION:
-        raise RetailReviewOverlapError("selection requires retail_portfolio_onboarding_v0")
+    if portfolio.get("schema_version") not in PORTFOLIO_SCHEMA_VERSIONS:
+        raise RetailReviewOverlapError(
+            "selection requires a supported retail_portfolio_onboarding schema"
+        )
     if portfolio.get("company_id") != commission.company_id:
         raise RetailReviewOverlapError("selection and portfolio company_id values differ")
 
@@ -414,7 +468,7 @@ def build_depth_selection(
         "algorithm_version": "evidence_selected_depth_v0",
         "company_id": commission.company_id,
         "portfolio_source": {
-            "schema_version": PORTFOLIO_SCHEMA_VERSION,
+            "schema_version": str(portfolio.get("schema_version")),
             "sha256": hashlib.sha256(portfolio_bytes).hexdigest(),
         },
         "selected_products": selected_products,
@@ -478,7 +532,7 @@ def build_review_linkage(
             raise RetailReviewOverlapError(
                 "selection has a malformed companion job binding"
             )
-        if retailer not in {"sephora", "ulta", "target", "amazon"} or surface not in {
+        if _RETAILER_SLUG.fullmatch(retailer) is None or surface not in {
             "REVIEWS",
             "QA",
         }:
@@ -689,7 +743,9 @@ def build_review_linkage(
                     if item.retailer == retailer
                 ),
             }
-            for retailer in ("sephora", "ulta", "target", "amazon")
+            for retailer in sorted(
+                {item.retailer for item in product_occurrences}
+            )
             if any(item.retailer == retailer for item in product_occurrences)
         ]
         ambiguous_candidate_count = sum(
@@ -875,10 +931,24 @@ def _same_provider_id(
     left: ReviewOccurrence, right: ReviewOccurrence, field: str
 ) -> bool:
     left_id = _normalize_text(getattr(left, field))
+    same_provider = (
+        _normalize_text(left.provider) == _normalize_text(right.provider)
+    )
+    same_native_corpus = (
+        field != "source_native_review_id"
+        or (
+            left.retailer == right.retailer
+            and _normalize_text(left.provider_tenant_store)
+            == _normalize_text(right.provider_tenant_store)
+            and _normalize_text(left.collection_context)
+            == _normalize_text(right.collection_context)
+        )
+    )
     return bool(
         left_id
         and left_id == _normalize_text(getattr(right, field))
-        and _normalize_text(left.provider) == _normalize_text(right.provider)
+        and same_provider
+        and same_native_corpus
     )
 
 
@@ -1019,8 +1089,22 @@ def _normalize_rating(value: object) -> str:
     return format(normalized, "f")
 
 
+def _is_most_recent_ordering(value: str) -> bool:
+    normalized = _normalize_text(value)
+    return any(
+        token in normalized
+        for token in ("most recent", "newest", "date desc", "submissiontime desc")
+    )
+
+
 def _non_blank_text(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
+
+
+def _retailer_slug(value: str) -> str:
+    if _RETAILER_SLUG.fullmatch(value) is None:
+        raise ValueError("retailer must be a lowercase slug")
+    return value
 
 
 def _load_json_object(path: Path, label: str) -> dict[str, Any]:
