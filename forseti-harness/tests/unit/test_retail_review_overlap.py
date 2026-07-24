@@ -99,6 +99,40 @@ def test_selection_requires_a_named_job_and_can_select_a_non_prominent_product(
     )
 
 
+def test_selection_accepts_product_identity_v2_without_changing_parent_jobs(
+    tmp_path: Path,
+) -> None:
+    portfolio_path = _portfolio_output(
+        tmp_path, schema_version="retail_portfolio_onboarding_v2"
+    )
+    commission_path = tmp_path / "selection-v2.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "portfolio_onboarding_path": str(portfolio_path),
+            "candidates": [
+                {
+                    "owned_parent_id": "famous",
+                    "prominence_status": "NOT_PROMINENT",
+                    "jobs": [],
+                }
+            ],
+        },
+    )
+
+    result = build_depth_selection(
+        commission=load_depth_selection_commission(commission_path),
+        base_directory=tmp_path,
+    )
+
+    assert result["not_selected_products"] == [
+        {
+            "owned_parent_id": "famous",
+            "prominence_status": "NOT_PROMINENT",
+            "reason": "NO_NAMED_NON_DUPLICATIVE_JOB",
+        }
+    ]
 def test_selection_write_is_write_once(tmp_path: Path) -> None:
     portfolio_path = _portfolio_output(tmp_path)
     commission_path = tmp_path / "selection-commission.json"
@@ -1110,12 +1144,16 @@ def _qa_only_selection_output(tmp_path: Path) -> Path:
     return output_path
 
 
-def _portfolio_output(tmp_path: Path) -> Path:
+def _portfolio_output(
+    tmp_path: Path,
+    *,
+    schema_version: str = "retail_portfolio_onboarding_v1",
+) -> Path:
     output_path = tmp_path / "portfolio-onboarding.json"
     _write_json(
         output_path,
         {
-            "schema_version": "retail_portfolio_onboarding_v1",
+            "schema_version": schema_version,
             "company_id": "example-company",
             "owned_parents": [
                 {"owned_parent_id": "complaint-product"},

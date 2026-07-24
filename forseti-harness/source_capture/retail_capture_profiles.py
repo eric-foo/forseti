@@ -18,7 +18,7 @@ _AMAZON_ASIN_IN_PATH = re.compile(r"/(?:dp|gp/product|gp/aw/d)/([A-Za-z0-9]{10})
 _NORDSTROM_PRODUCT_ID_IN_PATH = re.compile(r"/s/[^/?]+/(\d+)(?:[/?]|$)")
 _SEPHORA_PRODUCT_ID_IN_PATH = re.compile(r"-(P\d+)(?:[/?]|$)", flags=re.IGNORECASE)
 _ULTA_PRODUCT_ID_IN_PATH = re.compile(
-    r"/p/[A-Za-z0-9%.~-]*?-((?:xlsImpprod|pimprod|prod)[A-Za-z0-9]+)(?:[/?]|$)",
+    r"/p/[A-Za-z0-9%.~-]*?-((?:(?:xlsImpprod|pimprod|prod)[A-Za-z0-9]+|VP\d+))(?:[/?]|$)",
     flags=re.IGNORECASE,
 )
 _TARGET_PRODUCT_ID_IN_PATH = re.compile(r"/-/A-(\d+)(?:[/?]|$)", flags=re.IGNORECASE)
@@ -70,6 +70,39 @@ def extract_target_product_id_from_url(url: str) -> str | None:
 def extract_revolve_style_id_from_url(url: str) -> str | None:
     match = _REVOLVE_STYLE_ID_IN_PATH.search(urlparse(url).path)
     return match.group("style_id").upper() if match else None
+
+
+def extract_retailer_product_identity_from_url(
+    retailer: str, url: str
+) -> str | None:
+    """Return the stable retailer-native PDP identity encoded by ``url``."""
+    extractors = {
+        "amazon": extract_amazon_asin_from_url,
+        "revolve": extract_revolve_style_id_from_url,
+        "sephora": extract_sephora_product_id_from_url,
+        "target": extract_target_product_id_from_url,
+        "ulta": extract_ulta_product_id_from_url,
+    }
+    extractor = extractors.get(retailer)
+    return None if extractor is None else extractor(url)
+
+
+def extract_retailer_variant_identity_from_url(
+    retailer: str, url: str
+) -> str | None:
+    """Return an explicitly selected retailer SKU/variant when the route exposes one."""
+    query_keys = {
+        "sephora": "skuId",
+        "target": "preselect",
+        "ulta": "sku",
+    }
+    key = query_keys.get(retailer)
+    if key is None:
+        return None
+    values = parse_qs(urlparse(url).query).get(key)
+    if not values or not values[0].strip():
+        return None
+    return values[0].strip()
 
 
 def extract_revolve_grid_subject_from_url(

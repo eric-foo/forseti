@@ -26,7 +26,11 @@ DEPTH_SELECTION_SCHEMA_VERSION = "retail_review_depth_selection_v0"
 REVIEW_LINKAGE_SCHEMA_VERSION = "retail_review_overlap_linkage_v1"
 LINKAGE_ALGORITHM_VERSION = "retail_review_overlap_exact_v1"
 PORTFOLIO_SCHEMA_VERSIONS = frozenset(
-    {"retail_portfolio_onboarding_v0", "retail_portfolio_onboarding_v1"}
+    {
+        "retail_portfolio_onboarding_v0",
+        "retail_portfolio_onboarding_v1",
+        "retail_portfolio_onboarding_v2",
+    }
 )
 
 DepthTrigger = Literal[
