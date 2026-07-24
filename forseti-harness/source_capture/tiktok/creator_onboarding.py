@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
 
 from harness_utils import hash_file
@@ -28,6 +28,7 @@ from source_capture.adapters.direct_http import (
     fetch_direct_http_capture,
 )
 from source_capture.adapters.browser_snapshot import (
+    BrowserDelayRange,
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
@@ -62,8 +63,10 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
     TIKTOK_STATE_WAIT_2500_DELAY_RANGE,
     TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
+    is_exact_tiktok_subtitle_response_url,
     is_tiktok_comment_list_url,
     run_tiktok_live_batch_probe,
+    tiktok_subtitle_url_from_source,
 )
 
 
@@ -86,19 +89,19 @@ TIKTOK_GRID_REQUIRED_ENGAGEMENT_METRICS = (
 DEFAULT_WINDOW_SIZE = 30
 DEFAULT_SELECTION_COUNT = 8
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
-TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS = 7.0
-TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS = 14.0
+TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS = 12.0
+TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS = 45.0
 INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS = (
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS
 )
 INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS = (
     TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS
 )
-GRID_ENTRY_RETRY_WAIT_SECONDS = 60.0
+GRID_ENTRY_RETRY_DELAY_RANGE = BrowserDelayRange(min_ms=45_000, max_ms=75_000)
 # Consecutive fresh-state-unchanged wheel passes that show the grid is not
 # advancing under bounded wheel input. Reaching this cap stops the wheel bursts
 # and fails loudly instead of burning the full pagination budget on no-value
-# actions. It never triggers a wait: the only authorized 60-second wait is after
+# actions. It never triggers a wait: the only authorized long retry wait is after
 # a failed matching-overlay materialization (creator discovery enforcement
 # placement doctrine), never in the grid-pagination path.
 GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT = 3
@@ -2139,6 +2142,9 @@ def _run_grid_overlay_deep_capture_phase(
         monotonic_fn=monotonic_fn,
         utc_now_fn=utc_now_fn,
         receipt=grid_deep_entry,
+        profile_grid_subtitle_sources_by_video_id=(
+            selected_profile_grid_subtitle_sources
+        ),
     )
 
     state.stage = "deep_capture"
@@ -2508,6 +2514,9 @@ class _GridOverlayCaptureSequence:
         monotonic_fn: MonotonicFn,
         utc_now_fn: UtcNowFn,
         receipt: dict[str, object],
+        profile_grid_subtitle_sources_by_video_id: (
+            Mapping[str, dict[str, Any]] | None
+        ) = None,
     ) -> None:
         self.profile_url = profile_url
         self.creator_handle = creator_handle
@@ -2523,6 +2532,9 @@ class _GridOverlayCaptureSequence:
         self.monotonic_fn = monotonic_fn
         self.utc_now_fn = utc_now_fn
         self.receipt = receipt
+        self.profile_grid_subtitle_sources_by_video_id = dict(
+            profile_grid_subtitle_sources_by_video_id or {}
+        )
         self.current_overlay_url: str | None = None
         self.capture_order: list[str] = []
         self.last_grid_view: dict[str, object] = {}
@@ -2572,6 +2584,14 @@ class _GridOverlayCaptureSequence:
             chosen = self.rng.choice(visible_rows)
             chosen_video_id = str(chosen["video_id"])
             chosen_url = pending_by_id[chosen_video_id]
+            subtitle_source = self.profile_grid_subtitle_sources_by_video_id.get(
+                chosen_video_id
+            )
+            expected_subtitle_url = (
+                tiktok_subtitle_url_from_source(subtitle_source)
+                if subtitle_source is not None
+                else None
+            )
             click_target_text = str(
                 chosen.get("click_target_text_or_none") or ""
             ).strip()
@@ -2589,6 +2609,7 @@ class _GridOverlayCaptureSequence:
                 timeout_seconds=self.timeout_seconds,
                 settle_seconds=self.settle_seconds,
                 engine=self.engine,
+                expected_subtitle_url=expected_subtitle_url,
             )
             attempt_receipt = self._click_attempt_receipt(
                 index=index,
@@ -2622,13 +2643,21 @@ class _GridOverlayCaptureSequence:
             if retry_number == 0:
                 retry_started = self.monotonic_fn()
                 observed_at = _utc_iso(self.utc_now_fn())
-                self.sleep_fn(GRID_ENTRY_RETRY_WAIT_SECONDS)
+                retry_wait_seconds = _sample_browser_delay_seconds(
+                    GRID_ENTRY_RETRY_DELAY_RANGE,
+                    rng=self.rng,
+                )
+                self.sleep_fn(retry_wait_seconds)
                 retry_waits = self.receipt["retry_waits"]
                 assert isinstance(retry_waits, list)
                 retry_waits.append(
                     {
                         "video_attempt_index": index,
-                        "planned_seconds": GRID_ENTRY_RETRY_WAIT_SECONDS,
+                        "configured_range_seconds": {
+                            "min": GRID_ENTRY_RETRY_DELAY_RANGE.min_ms / 1000,
+                            "max": GRID_ENTRY_RETRY_DELAY_RANGE.max_ms / 1000,
+                        },
+                        "planned_seconds": retry_wait_seconds,
                         "actual_seconds": round(
                             max(0.0, self.monotonic_fn() - retry_started), 6
                         ),
@@ -2658,7 +2687,7 @@ class _GridOverlayCaptureSequence:
 
         self.receipt["status"] = "failed"
         raise TikTokCreatorOnboardingError(
-            "grid tile did not materialize a matching overlay after one 60-second retry"
+            "grid tile did not materialize a matching overlay after one bounded retry"
         )
 
     def _visible_rows(self, pending_video_ids: Sequence[str]) -> list[dict[str, Any]]:
@@ -2777,7 +2806,7 @@ class _GridOverlayCaptureSequence:
                 # input from its
                 # fresh state; stop rather than spend the rest of the budget on
                 # no-value wheel actions. Fail loud via the empty return; no
-                # wait is taken here (doctrine reserves the 60-second wait for a
+                # wait is taken here (doctrine reserves the bounded retry wait for a
                 # failed matching-overlay materialization only).
                 pass_receipt["outcome"] = "no_progress_stall_budget_stopped"
                 self.receipt["grid_pagination_stop_reason"] = "no_progress_stall"
@@ -3064,6 +3093,7 @@ def _click_visible_selected_grid_tile(
     timeout_seconds: float,
     settle_seconds: float,
     engine: BrowserPageObservationEngine,
+    expected_subtitle_url: str | None,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
     candidate_selector = f"a[href*='/video/{chosen_video_id}'] .video-count"
     action = BrowserPagePointerAction(
@@ -3103,7 +3133,14 @@ def _click_visible_selected_grid_tile(
         url=profile_url,
         dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
         dom_extract_arg=None,
-        response_url_predicate=is_tiktok_comment_list_url,
+        response_url_predicate=lambda url: is_tiktok_comment_list_url(url)
+        or (
+            expected_subtitle_url is not None
+            and is_exact_tiktok_subtitle_response_url(
+                url,
+                expected_subtitle_url=expected_subtitle_url,
+            )
+        ),
         post_load_pointer_actions=(action,),
         timeout_seconds=timeout_seconds,
         wait_until="domcontentloaded",
@@ -3116,6 +3153,14 @@ def _click_visible_selected_grid_tile(
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
         engine=engine,
     )
+
+
+def _sample_browser_delay_seconds(
+    delay_range: BrowserDelayRange,
+    *,
+    rng: Any,
+) -> float:
+    return rng.randint(delay_range.min_ms, delay_range.max_ms) / 1000
 
 
 def _first_pointer_action_receipt(

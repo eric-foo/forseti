@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import random
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
@@ -1450,7 +1451,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["challenge_count"] == 0
     assert receipt["human_challenge_handoff_count"] == 0
     assert receipt["account_safety_stop"] is False
-    assert 8.0 <= receipt["initial_deep_capture_wait_or_none"]["planned_seconds"] <= 13.0
+    assert 12.0 <= receipt["initial_deep_capture_wait_or_none"]["planned_seconds"] <= 45.0
     assert [row["phase"] for row in receipt["phase_chronology"]] == [
         "onboarding_started",
         "grid_and_selection_complete",
@@ -1623,7 +1624,7 @@ def test_oldest_probe_fails_closed_on_unverified_selection_or_identity(
         )
 
 
-def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
+def test_grid_overlay_sequence_waits_randomized_bounded_delay_then_retries(
     tmp_path: Path,
 ) -> None:
     not_ready = _clicked_capture("1", overlay_ready=False)
@@ -1638,7 +1639,7 @@ def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
     )
     receipt = _grid_overlay_receipt()
     sleeps: list[float] = []
-    monotonic_values = iter((100.0, 160.0))
+    monotonic_values = iter((100.0, 155.0))
     sequence = _grid_overlay_sequence(
         tmp_path=tmp_path,
         engine=engine,
@@ -1653,12 +1654,13 @@ def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
 
     assert chosen_url.endswith("/video/1")
     assert capture.dom_observation["video_overlay_detected"] is True
-    assert sleeps == [60.0]
+    assert sleeps == [55.0]
     assert receipt["retry_waits"] == [
         {
             "video_attempt_index": 0,
-            "planned_seconds": 60.0,
-            "actual_seconds": 60.0,
+            "configured_range_seconds": {"min": 45.0, "max": 75.0},
+            "planned_seconds": 55.0,
+            "actual_seconds": 55.0,
             "observed_at_utc": "2026-07-14T10:00:00Z",
         }
     ]
@@ -1668,15 +1670,35 @@ def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
     assert receipt["attempts"][1]["outcome"] == "overlay_ready"
 
 
+def test_grid_entry_retry_delay_sampling_is_bounded_and_nondegenerate() -> None:
+    samples = {
+        onboarding._sample_browser_delay_seconds(
+            onboarding.GRID_ENTRY_RETRY_DELAY_RANGE,
+            rng=random.Random(seed),
+        )
+        for seed in range(20)
+    }
+
+    assert len(samples) > 1
+    assert all(45.0 <= sample <= 75.0 for sample in samples)
+
+
 def test_grid_overlay_sequence_accepts_visible_overlay_without_item_struct(
     tmp_path: Path,
 ) -> None:
+    subtitle_url = "https://v16-webapp.tiktok.com/subtitle.webvtt"
     engine = _FakeEngine([_visible_tiles_capture("1"), _clicked_capture("1")])
     receipt = _grid_overlay_receipt()
     sequence = _grid_overlay_sequence(
         tmp_path=tmp_path,
         engine=engine,
         receipt=receipt,
+        profile_grid_subtitle_sources_by_video_id={
+            "1": {
+                "id": "1",
+                "video": {"subtitleInfos": [{"Url": subtitle_url}]},
+            }
+        },
     )
 
     _chosen_url, capture = sequence(
@@ -1687,6 +1709,11 @@ def test_grid_overlay_sequence_accepts_visible_overlay_without_item_struct(
     assert receipt["attempts"][0]["item_struct_required"] is False
     assert receipt["attempts"][0]["outcome"] == "overlay_ready"
     assert receipt["status"] == "complete"
+    response_predicate = engine.calls[1]["response_url_predicate"]
+    assert response_predicate(subtitle_url) is True
+    assert (
+        response_predicate("https://v16-webapp.tiktok.com/other.webvtt") is False
+    )
 
 
 def test_grid_overlay_sequence_reuses_grid_observation_returned_by_overlay_close(
@@ -1841,7 +1868,7 @@ def test_grid_overlay_sequence_fails_after_single_click_retry(tmp_path: Path) ->
         pagination_pass_cap=0,
     )
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="after one 60-second"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="after one bounded retry"):
         sequence(0, ["https://www.tiktok.com/@creator/video/1"])
 
     assert receipt["status"] == "failed"
@@ -2669,7 +2696,7 @@ def test_new_capture_rejects_force_deep_recapture_before_browser_probe(
 
 
 
-def test_onboarding_cli_defaults_to_fixed_top_eight_and_seven_fourteen_range() -> None:
+def test_onboarding_cli_defaults_to_fixed_top_eight_and_twelve_forty_five_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -2682,9 +2709,9 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_seven_fourteen_range() -
     assert args.window_size == 30
     assert args.creator_intent == "new_onboarding"
     assert not hasattr(args, "selection_fraction")
-    assert args.cadence_min_gap_seconds == 7.0
-    assert args.cadence_max_gap_seconds == 14.0
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+    assert args.cadence_min_gap_seconds == 12.0
+    assert args.cadence_max_gap_seconds == 45.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 28.5
 
 
 def test_new_onboarding_without_handle_selects_next_registry_candidate(
@@ -3708,7 +3735,18 @@ def _grid_overlay_sequence(
     monotonic_fn=lambda: 0.0,
     pagination_pass_cap: int = 2,
     selected_grid_position: int = 1,
+    rng: object | None = None,
+    profile_grid_subtitle_sources_by_video_id: dict[str, dict[str, object]] | None = None,
 ) -> object:
+    if rng is None:
+        rng = type(
+            "FirstChoice",
+            (),
+            {
+                "choice": lambda _self, rows: rows[0],
+                "randint": lambda _self, _low, _high: 55_000,
+            },
+        )()
     return onboarding._GridOverlayCaptureSequence(
         profile_url="https://www.tiktok.com/@creator",
         creator_handle="creator",
@@ -3728,11 +3766,14 @@ def _grid_overlay_sequence(
         settle_seconds=0.0,
         pagination_pass_cap=pagination_pass_cap,
         engine=engine,
-        rng=type("FirstChoice", (), {"choice": lambda _self, rows: rows[0]})(),
+        rng=rng,
         sleep_fn=sleep_fn,
         monotonic_fn=monotonic_fn,
         utc_now_fn=lambda: datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
         receipt=receipt,
+        profile_grid_subtitle_sources_by_video_id=(
+            profile_grid_subtitle_sources_by_video_id
+        ),
     )
 
 

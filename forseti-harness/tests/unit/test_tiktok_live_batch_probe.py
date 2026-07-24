@@ -355,12 +355,14 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         b"00:00:01.000 --> 00:00:02.000\n"
         b"Bronze shimmer test\n"
     )
-    fetched_urls: list[str] = []
     engine = _FakeObservationEngine(
         outcomes=[
             _success_observation(
                 video_id=video_id,
-                response=_comment_response(video_id=video_id),
+                responses=[
+                    _comment_response(video_id=video_id),
+                    _subtitle_response(url=subtitle_url, body=subtitle_body),
+                ],
                 subtitle_url=subtitle_url,
             )
         ]
@@ -371,15 +373,14 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
         auth_state_root=auth_root,
         engine=engine,
-        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     row = cadence["results"][0]
     subtitle = row["subtitle"]
-    assert fetched_urls == [subtitle_url]
     assert subtitle["attempted"] is True
     assert subtitle["success"] is True
+    assert subtitle["acquisition_mode"] == "browser_observed_only"
     assert subtitle["subtitle_url_sha256"]
     assert subtitle["subtitle_url_length"] == len(subtitle_url)
     assert subtitle["parsed_webvtt"]["cue_count"] == 2
@@ -408,7 +409,7 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert cadence["capture_contract"]["cleared_human_captcha_continues_batch"] is True
     assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
     assert cadence["capture_contract"]["subtitle_tier"] == (
-        "source_native_webvtt_transcript_live_probe_v0"
+        "source_native_webvtt_transcript_browser_observed_v1"
     )
 
     code, message = write_tiktok_batch_packet(
@@ -430,6 +431,71 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert subtitles["cue_count"] == 2
     assert subtitles["transcript_text"] == "This fragrance is everywhere\nBronze shimmer test"
     assert subtitle_url not in json.dumps(packet_payload)
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected_reason"),
+    [
+        ("missing", "subtitle_body_not_observed_in_browser_v1"),
+        ("mismatched", "subtitle_body_not_observed_in_browser_v1"),
+        ("failed", "subtitle_browser_response_not_successful_v1"),
+        ("empty", "subtitle_body_not_available_from_browser_response_v1"),
+        ("oversized", "subtitle_body_size_cap_exceeded_live_probe_v0"),
+    ],
+)
+def test_live_probe_fails_visibly_without_an_exact_usable_browser_subtitle_response(
+    tmp_path: Path,
+    mode: str,
+    expected_reason: str,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    video_id = "7390000000000000001"
+    subtitle_url = "https://v16-webapp.tiktok.com/subtitle.webvtt"
+    responses = [_comment_response(video_id=video_id)]
+    if mode == "mismatched":
+        responses.append(
+            _subtitle_response(
+                url="https://v16-webapp.tiktok.com/other-subtitle.webvtt",
+                body=b"WEBVTT\n",
+            )
+        )
+    elif mode == "failed":
+        responses.append(
+            _subtitle_response(url=subtitle_url, body=b"", status=503)
+        )
+    elif mode == "empty":
+        responses.append(_subtitle_response(url=subtitle_url, body=b""))
+    elif mode == "oversized":
+        responses.append(
+            _subtitle_response(
+                url=subtitle_url,
+                body=b"x" * (live_batch_probe.TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES + 1),
+            )
+        )
+
+    paths = _write_sessioned_probe(
+        tmp_path,
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        auth_state_root=auth_root,
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id=video_id,
+                    responses=responses,
+                    subtitle_url=subtitle_url,
+                )
+            ]
+        ),
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    subtitle = cadence["results"][0]["subtitle"]
+    assert subtitle["attempted"] is True
+    assert subtitle["success"] is False
+    assert subtitle["acquisition_mode"] == "browser_observed_only"
+    assert subtitle["reason"] == expected_reason
+    assert subtitle_url not in json.dumps(cadence)
+
 
 def test_capture_contract_reports_verified_session_engine_guarantees() -> None:
     contract = live_batch_probe._capture_contract(
@@ -458,7 +524,6 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     auth_root = _auth_state(tmp_path)
     video_id = "7390000000000000001"
     subtitle_url = "https://v16.attacker.example/subtitle.webvtt"
-    fetched_urls: list[str] = []
     engine = _FakeObservationEngine(
         outcomes=[
             _success_observation(
@@ -474,12 +539,10 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
         video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
         auth_state_root=auth_root,
         engine=engine,
-        subtitle_fetcher=lambda url: fetched_urls.append(url) or b"WEBVTT\n",
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     subtitle = cadence["results"][0]["subtitle"]
-    assert fetched_urls == []
     assert subtitle["attempted"] is False
     assert subtitle["success"] is False
     assert subtitle["reason"] == "unsupported_subtitle_url_host_live_probe_v0"
@@ -865,7 +928,6 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
         human_challenge_handoff_timeout_seconds=7.0,
         allow_challenge_close_followthrough=True,
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
     )
 
     assert captured_kwargs["browser_backend"] == "cloakbrowser"
@@ -947,7 +1009,6 @@ def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(
             ]
         ),
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
     )
     captured_kwargs: dict[str, object] = {}
 
@@ -1028,7 +1089,6 @@ def test_live_probe_runner_allows_playwright_with_diagnostic_opt_in(
             ]
         ),
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
     )
     captured_kwargs: dict[str, object] = {}
 
@@ -1235,7 +1295,6 @@ def test_live_probe_required_harness_proxy_posture_allows_matching_auth_state_pr
         required_harness_proxy_profile_posture="no_proxy_profile_loaded",
         engine=engine,
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1978,9 +2037,6 @@ def test_live_probe_counts_cleared_handoff_and_continues_batch(
         human_challenge_handoff=True,
         engine=engine,
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: (
-            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
-        ),
     )
 
     cadence = result["cadence_result"]
@@ -2822,6 +2878,25 @@ def _comment_response(
         resource_type="fetch",
     )
 
+
+def _subtitle_response(
+    *,
+    url: str,
+    body: bytes,
+    status: int = 200,
+) -> BrowserPageResponse:
+    return BrowserPageResponse(
+        requested_url=url,
+        final_url=url,
+        status=status,
+        ok=200 <= status < 300,
+        body_text=body.decode("utf-8"),
+        response_headers={"content-type": "text/vtt"},
+        request_method="GET",
+        resource_type="fetch",
+    )
+
+
 def _success_observation(
     *,
     video_id: str,
@@ -2940,10 +3015,12 @@ def test_overlay_route_uses_exact_profile_grid_subtitle_source() -> None:
         b"00:00:00.000 --> 00:00:01.000\n"
         b"Grid transcript recovered\n"
     )
-    fetched_urls: list[str] = []
     capture = _success_observation(
         video_id=video_id,
-        response=_comment_response(video_id=video_id),
+        responses=[
+            _comment_response(video_id=video_id),
+            _subtitle_response(url=subtitle_url, body=subtitle_body),
+        ],
     )
     capture.dom_observation.update(
         {
@@ -2990,12 +3067,10 @@ def test_overlay_route_uses_exact_profile_grid_subtitle_source() -> None:
                 },
             }
         },
-        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
         sleep_fn=lambda _seconds: None,
     )
 
     row = result["cadence_result"]["results"][0]
-    assert fetched_urls == [subtitle_url]
     assert row["capture_receipt"]["item_struct_present"] is False
     assert (
         row["capture_receipt"]["field_provenance"]["subtitles"]
@@ -3022,10 +3097,12 @@ def test_overlay_route_uses_exact_react_video_subtitle_source() -> None:
         b"00:00:00.000 --> 00:00:01.000\n"
         b"React transcript recovered\n"
     )
-    fetched_urls: list[str] = []
     capture = _success_observation(
         video_id=video_id,
-        response=_comment_response(video_id=video_id),
+        responses=[
+            _comment_response(video_id=video_id),
+            _subtitle_response(url=subtitle_url, body=subtitle_body),
+        ],
     )
     capture.dom_observation.update(
         {
@@ -3070,12 +3147,10 @@ def test_overlay_route_uses_exact_react_video_subtitle_source() -> None:
                 "stats": {"playCount": 1000},
             }
         },
-        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
         sleep_fn=lambda _seconds: None,
     )
 
     row = result["cadence_result"]["results"][0]
-    assert fetched_urls == [subtitle_url]
     assert row["capture_receipt"]["item_struct_present"] is False
     assert (
         row["capture_receipt"]["field_provenance"]["subtitles"]
@@ -3384,37 +3459,87 @@ def _hydration(
     }
 
 
-def test_cadence_wait_sleeps_only_the_remainder_of_browser_work() -> None:
-    monotonic_values = iter((3.0, 10.0))
+def test_cadence_waits_full_dwell_after_completed_browser_work() -> None:
+    monotonic_values = iter((3.0, 13.0))
     sleep_calls: list[float] = []
 
-    capture_started_at = live_batch_probe._wait_for_next_capture_start(
-        planned_interval_seconds=10.0,
-        previous_capture_started_at=0.0,
+    capture_started_at, actual_dwell = (
+        live_batch_probe._wait_for_next_capture_after_completion(
+        planned_dwell_seconds=10.0,
         monotonic_fn=lambda: next(monotonic_values),
         sleep_fn=sleep_calls.append,
     )
+    )
 
-    assert sleep_calls == [7.0]
-    assert capture_started_at == 10.0
+    assert sleep_calls == [10.0]
+    assert capture_started_at == 13.0
+    assert actual_dwell == 10.0
 
 
-def test_cadence_wait_is_zero_when_browser_work_exceeds_target() -> None:
-    monotonic_values = iter((12.0, 12.0))
+def test_completion_relative_cadence_does_not_collapse_after_slow_browser_work() -> None:
+    monotonic_values = iter((12.0, 22.0))
     sleep_calls: list[float] = []
 
-    capture_started_at = live_batch_probe._wait_for_next_capture_start(
-        planned_interval_seconds=10.0,
-        previous_capture_started_at=0.0,
+    capture_started_at, actual_dwell = (
+        live_batch_probe._wait_for_next_capture_after_completion(
+        planned_dwell_seconds=10.0,
         monotonic_fn=lambda: next(monotonic_values),
         sleep_fn=sleep_calls.append,
     )
+    )
 
-    assert sleep_calls == []
-    assert capture_started_at == 12.0
+    assert sleep_calls == [10.0]
+    assert capture_started_at == 22.0
+    assert actual_dwell == 10.0
 
 
-def test_live_probe_cli_defaults_to_seven_thirteen_second_range() -> None:
+def test_cadence_receipts_completion_relative_realized_wait() -> None:
+    sleep_calls: list[float] = []
+    monotonic_values = iter((3.0, 13.0))
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        logged_out=True,
+        cadence_min_gap_seconds=10.0,
+        cadence_max_gap_seconds=10.0,
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id="7390000000000000001",
+                    response=_comment_response(video_id="7390000000000000001"),
+                ),
+                _success_observation(
+                    video_id="7390000000000000002",
+                    response=_comment_response(video_id="7390000000000000002"),
+                ),
+            ]
+        ),
+        sleep_fn=sleep_calls.append,
+        monotonic_fn=lambda: next(monotonic_values),
+    )
+
+    assert sleep_calls == [10.0]
+    assert result["cadence_result"]["realized_inter_video_waits"] == [
+        {
+            "transition_index": 0,
+            "prior_video_id": "7390000000000000001",
+            "configured_range_seconds": {"min": 10.0, "max": 10.0},
+            "planned_seconds": 10.0,
+            "actual_seconds": 10.0,
+            "basis": "prior_capture_complete_to_next_capture_start",
+        }
+    ]
+    assert (
+        result["cadence_result"]["capture_contract"]["inter_video_wait_basis"]
+        == "prior_capture_complete_to_next_capture_start"
+    )
+
+
+def test_live_probe_cli_defaults_to_twelve_forty_five_second_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -3429,9 +3554,9 @@ def test_live_probe_cli_defaults_to_seven_thirteen_second_range() -> None:
         ]
     )
 
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.0
-    assert args.cadence_min_gap_seconds == 7.0
-    assert args.cadence_max_gap_seconds == 13.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 28.5
+    assert args.cadence_min_gap_seconds == 12.0
+    assert args.cadence_max_gap_seconds == 45.0
 
 
 def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:
@@ -3491,9 +3616,6 @@ def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> Non
         cadence_min_gap_seconds=0,
         cadence_max_gap_seconds=0,
         sleep_fn=lambda _seconds: None,
-        subtitle_fetcher=lambda _url: (
-            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
-        ),
     )
 
     assert len(instances) == 1
