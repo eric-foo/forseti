@@ -216,9 +216,34 @@ def run_nordstrom_brand_corpus(
         if resumed_packet is not None and packet_dir == resumed_packet:
             resumed_pdp_count += 1
 
-    candidate = min(
-        grid.cards, key=lambda item: (-item.review_count, item.position, item.product_id)
-    )
+    try:
+        candidate = min(
+            grid.cards,
+            key=lambda item: (-item.review_count, item.position, item.product_id),
+        )
+    except Exception as exc:
+        return _finish(
+            run_receipt_path,
+            _receipt(
+                brand_url,
+                authorization_url,
+                authorization_statement,
+                grid_packet,
+                grid_projection_path,
+                "verified_raw_replay" if resume_grid_packet else "live_capture",
+                requested=len(grid.cards),
+                captured=len(pdps),
+                resumed=resumed_pdp_count,
+                pdp_directories=pdp_directories,
+                pdp_evidence_paths=pdp_evidence_paths,
+                status="partial",
+                failure=(
+                    "nordstrom_deep_candidate_selection_failed:"
+                    f"{type(exc).__name__}:{exc}"
+                ),
+            ),
+            3,
+        )
     order_receipts = {}
     for slug, requested_sort in (
         ("most-helpful", "Most Helpful"),
@@ -255,11 +280,35 @@ def run_nordstrom_brand_corpus(
                 ),
                 deep_exit,
             )
-        order_receipts[slug] = build_nordstrom_review_order_receipt(
-            packet_directory=packet_dir,
-            requested_sort=requested_sort,
-            limit=review_limit,
-        )
+        try:
+            order_receipts[slug] = build_nordstrom_review_order_receipt(
+                packet_directory=packet_dir,
+                requested_sort=requested_sort,
+                limit=review_limit,
+            )
+        except Exception as exc:
+            return _finish(
+                run_receipt_path,
+                _receipt(
+                    brand_url,
+                    authorization_url,
+                    authorization_statement,
+                    grid_packet,
+                    grid_projection_path,
+                    "verified_raw_replay" if resume_grid_packet else "live_capture",
+                    requested=len(grid.cards),
+                    captured=len(pdps),
+                    resumed=resumed_pdp_count,
+                    pdp_directories=pdp_directories,
+                    pdp_evidence_paths=pdp_evidence_paths,
+                    status="partial",
+                    failure=(
+                        f"nordstrom_deep_review_failed:{slug}:"
+                        f"{type(exc).__name__}:{exc}"
+                    ),
+                ),
+                3,
+            )
     deep = NordstromDeepPdpReceipt(
         product_id=candidate.product_id,
         source_url=candidate.product_url,
@@ -271,8 +320,33 @@ def run_nordstrom_brand_corpus(
         status="complete",
     )
     _write_new_json(deep_receipt_path, deep.model_dump(mode="json"))
-    corpus = verify_nordstrom_corpus(grid=grid, pdps=pdps, deep=deep)
-    _write_new_json(corpus_receipt_path, corpus.model_dump(mode="json"))
+    try:
+        corpus = verify_nordstrom_corpus(grid=grid, pdps=pdps, deep=deep)
+        _write_new_json(corpus_receipt_path, corpus.model_dump(mode="json"))
+    except Exception as exc:
+        return _finish(
+            run_receipt_path,
+            _receipt(
+                brand_url,
+                authorization_url,
+                authorization_statement,
+                grid_packet,
+                grid_projection_path,
+                "verified_raw_replay" if resume_grid_packet else "live_capture",
+                requested=len(grid.cards),
+                captured=len(pdps),
+                resumed=resumed_pdp_count,
+                pdp_directories=pdp_directories,
+                pdp_evidence_paths=pdp_evidence_paths,
+                deep_receipt_path=deep_receipt_path,
+                status="partial",
+                failure=(
+                    "nordstrom_corpus_verification_failed:"
+                    f"{type(exc).__name__}:{exc}"
+                ),
+            ),
+            3,
+        )
     receipt = _receipt(
         brand_url,
         authorization_url,

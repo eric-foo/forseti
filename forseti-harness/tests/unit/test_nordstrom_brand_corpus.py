@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
+from types import SimpleNamespace
+
 from source_capture.adapters.nordstrom_country_preference import (
     NORDSTROM_REVIEW_POSTURES,
     NordstromCountryPreferencePlugin,
     observe_nordstrom_deep_review_window,
 )
+from source_capture import nordstrom_brand_corpus as nordstrom_corpus
 from source_capture.nordstrom_brand_corpus import (
     NordstromDeepPdpReceipt,
     NordstromGridCard,
@@ -94,6 +98,106 @@ def test_deep_observation_accepts_provider_batch_overrun_but_caps_retention() ->
     assert observation["captured_review_count"] == 102
     assert observation["retained_review_count"] == 100
     assert observation["continuation_activations"] == 16
+
+
+def test_review_order_admission_is_independent_of_retention_limit(
+    tmp_path, monkeypatch
+) -> None:
+    rows = "".join(
+        f'<div id="review-{index}">review {index}</div>' for index in range(1, 103)
+    )
+    dom = f"""
+    <script type="application/ld+json">
+    {{"@type":"Product","url":"https://www.nordstrom.com/s/x/5583442",
+      "aggregateRating":{{"reviewCount":12794}}}}
+    </script>
+    <section id="product-page-reviews">
+      <button id="sort-by-filter-5583442-anchor">Sort by <strong>Most Helpful</strong></button>
+      {rows}<a href="?page=18">Load 6 more reviews</a>
+    </section>
+    """
+    packet = SimpleNamespace(
+        source_locator=SimpleNamespace(
+            value="https://www.nordstrom.com/s/x/5583442"
+        )
+    )
+    monkeypatch.setattr(
+        nordstrom_corpus,
+        "load_verified_rendered_dom",
+        lambda _: (packet, dom, "a" * 64),
+    )
+
+    receipt = nordstrom_corpus.build_nordstrom_review_order_receipt(
+        packet_directory=tmp_path,
+        requested_sort="Most Helpful",
+        limit=50,
+    )
+
+    assert receipt.observed_row_count == 102
+    assert receipt.retained_row_count == len(receipt.rows) == 50
+    assert receipt.shortfalls == []
+
+
+def test_deep_review_failure_persists_partial_run_receipt(
+    tmp_path, monkeypatch
+) -> None:
+    card = NordstromGridCard(
+        position=1,
+        product_id="5583442",
+        product_url="https://www.nordstrom.com/s/x/5583442",
+        brand_name="ILIA",
+        product_name="Super Serum Skin Tint",
+        review_count=12794,
+    )
+    grid = NordstromGridProjection(
+        source_url="https://www.nordstrom.com/brands/ilia--47014323",
+        brand_name="ILIA",
+        brand_id="47014323",
+        declared_count=1,
+        cards=[card],
+        status="complete",
+    )
+    monkeypatch.setattr(corpus_runner, "load_nordstrom_grid_packet", lambda **_: grid)
+    monkeypatch.setattr(
+        corpus_runner,
+        "build_nordstrom_pdp_evidence",
+        lambda **kwargs: NordstromPdpEvidence(
+            product_id=card.product_id,
+            source_url=card.product_url,
+            final_url=card.product_url,
+            brand_name=card.brand_name,
+            product_name=card.product_name,
+            seller="Nordstrom",
+            packet_directory=str(kwargs["packet_directory"]),
+            manifest_sha256="a" * 64,
+            rendered_dom_sha256="b" * 64,
+        ),
+    )
+    monkeypatch.setattr(
+        corpus_runner,
+        "build_nordstrom_review_order_receipt",
+        lambda **_: (_ for _ in ()).throw(ValueError("invalid deep window")),
+    )
+    output_root = tmp_path / "run"
+
+    exit_code, receipt = corpus_runner.run_nordstrom_brand_corpus(
+        brand_url=grid.source_url,
+        authorization_url="https://iliabeauty.com/official",
+        authorization_statement="official",
+        output_root=output_root,
+        resume_grid_packet=tmp_path / "grid",
+        capture_main=lambda _: 0,
+    )
+
+    persisted = json.loads((output_root / "run-receipt.json").read_text("utf-8"))
+    assert exit_code == 3
+    assert receipt.status == "partial"
+    assert str(receipt.failure).startswith(
+        "nordstrom_deep_review_failed:most-helpful:ValueError:invalid deep window"
+    )
+    assert receipt.captured_pdp_count == 1
+    assert receipt.pdp_evidence_paths.keys() == {card.product_id}
+    assert persisted == receipt.model_dump(mode="json")
 
 
 def test_corpus_verifier_rejects_identity_or_candidate_perturbation() -> None:

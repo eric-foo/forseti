@@ -24,6 +24,7 @@ from source_capture.retail_grid_projection import (
 
 NORDSTROM_GRID_PARSER_VERSION = "nordstrom_brand_grid_v1"
 NORDSTROM_CORPUS_SCHEMA_VERSION = "nordstrom_brand_corpus_v1"
+NORDSTROM_DEEP_CAPTURE_LIMIT = 100
 _PRODUCT_URL = re.compile(r"/s/[^\"'?#]+/(\d{7})(?:[?\"'#]|$)", re.I)
 
 
@@ -258,7 +259,9 @@ def build_nordstrom_review_order_receipt(
 ) -> NordstromReviewOrderReceipt:
     packet, dom, dom_sha256 = load_verified_rendered_dom(packet_directory)
     observation = observe_nordstrom_deep_review_window(
-        dom, requested_sort=requested_sort, limit=limit
+        dom,
+        requested_sort=requested_sort,
+        limit=NORDSTROM_DEEP_CAPTURE_LIMIT,
     )
     if observation["admitted"] is not True:
         raise ValueError(
