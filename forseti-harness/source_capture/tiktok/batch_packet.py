@@ -12,6 +12,10 @@ from typing import Any, Iterable, Sequence
 from urllib.parse import urlparse
 
 from harness_utils import as_dict, utc_now_z
+from source_capture.activity_journal import (
+    SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+    validate_source_capture_activity_jsonl,
+)
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -70,6 +74,7 @@ def write_tiktok_batch_packet(
     grid_window_json: bytes | None = None,
     selection_result_json: bytes | None = None,
     suggested_accounts_json: bytes | None = None,
+    activity_journal_jsonl: bytes | None = None,
     output_directory: str | Path | None = None,
     data_root: str | Path | None = None,
     decision_question: str = "What product, disclosure, comment, and subtitle signals are present in this TikTok creator batch?",
@@ -86,6 +91,48 @@ def write_tiktok_batch_packet(
         raise ValueError("At least one cadence result JSON input is required")
     if prior_capture_pointer is not None and not prior_capture_pointer.strip():
         raise ValueError("prior_capture_pointer must be non-empty when supplied")
+    effective_source_file_receipts = list(source_file_receipts or ())
+    activity_rows: list[dict[str, object]] | None = None
+    if activity_journal_jsonl is not None:
+        activity_rows = validate_source_capture_activity_jsonl(
+            activity_journal_jsonl
+        )
+        if activity_rows[-1].get("status") != "complete":
+            raise ValueError(
+                "attached source-capture activity journal must end in complete status"
+            )
+        activity_sha256 = hashlib.sha256(activity_journal_jsonl).hexdigest()
+        activity_receipts = [
+            receipt
+            for receipt in effective_source_file_receipts
+            if receipt.get("role") == "source_capture_activity_jsonl"
+        ]
+        if len(activity_receipts) > 1:
+            raise ValueError(
+                "source-capture activity journal must have at most one source receipt"
+            )
+        if activity_receipts:
+            activity_receipt = activity_receipts[0]
+            if (
+                activity_receipt.get("file_name")
+                != SOURCE_CAPTURE_ACTIVITY_JSONL_NAME
+                or activity_receipt.get("sha256") != activity_sha256
+                or activity_receipt.get("size_bytes")
+                != len(activity_journal_jsonl)
+            ):
+                raise ValueError(
+                    "source-capture activity journal source receipt does not "
+                    "match the supplied bytes"
+                )
+        else:
+            effective_source_file_receipts.append(
+                {
+                    "role": "source_capture_activity_jsonl",
+                    "file_name": SOURCE_CAPTURE_ACTIVITY_JSONL_NAME,
+                    "sha256": activity_sha256,
+                    "size_bytes": len(activity_journal_jsonl),
+                }
+            )
 
     payload = _build_payload(
         creator_handle=handle,
@@ -94,7 +141,7 @@ def write_tiktok_batch_packet(
         cadence_result_jsons=cadence_result_jsons,
         decision_question=decision_question,
         batch_label=batch_label,
-        source_file_receipts=source_file_receipts or (),
+        source_file_receipts=effective_source_file_receipts,
         capture_timestamp=capture_timestamp,
     )
     onboarding_evidence = _validate_onboarding_evidence(
@@ -118,6 +165,14 @@ def write_tiktok_batch_packet(
             "prior_capture_pointer": prior_capture_pointer,
             "prior_provenance_mutated": False,
         }
+    if activity_rows is not None:
+        payload["activity_journal"] = {
+            "schema_version": activity_rows[0]["schema_version"],
+            "event_count": len(activity_rows),
+            "sha256": hashlib.sha256(activity_journal_jsonl).hexdigest(),
+            "diagnostic_only": True,
+            "resume_or_checkpoint_authority": False,
+        }
     assert_no_sensitive_tiktok_material(payload)
 
     payload_bytes = json_dumps_sanitized(payload)
@@ -132,6 +187,10 @@ def write_tiktok_batch_packet(
     if suggested_accounts_evidence is not None:
         staged_artifacts.append(
             (TIKTOK_BATCH_SUGGESTED_ACCOUNTS_JSON_NAME, suggested_accounts_json)
+        )
+    if activity_journal_jsonl is not None:
+        staged_artifacts.append(
+            (SOURCE_CAPTURE_ACTIVITY_JSONL_NAME, activity_journal_jsonl)
         )
     file_ids = staged_file_id_map(staged_artifacts)
     summary = payload["batch_summary"]

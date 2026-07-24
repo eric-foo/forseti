@@ -11,6 +11,7 @@ from urllib.parse import parse_qsl, urlparse
 
 from harness_utils import sha256_text, utc_now_z
 from source_capture.adapters.browser_snapshot import (
+    ActivityEventFn,
     BrowserDelayRange,
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -29,7 +30,7 @@ from source_capture.auth_state import (
     validate_auth_state_session_mode,
 )
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
-from source_capture.cadence import CadencePlan, build_cadence_plan
+from source_capture.cadence import CadenceMode, CadencePlan, build_cadence_plan
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
     decoded_aweme_id_create_time_utc,
@@ -389,12 +390,19 @@ def write_tiktok_live_batch_probe_outputs(
     cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     cadence_window_seconds: float | None = None,
+    cadence_mode: CadenceMode = "bounded_jitter",
+    cadence_typical_min_gap_seconds: float | None = None,
+    cadence_typical_max_gap_seconds: float | None = None,
+    cadence_tail_min_gap_seconds: float | None = None,
+    cadence_tail_max_gap_seconds: float | None = None,
+    cadence_tail_probability: float | None = None,
     random_seed: int | None = None,
     allow_challenge_close_diagnostic: bool = False,
     allow_challenge_close_followthrough: bool = False,
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
     monotonic_fn: MonotonicFn = time.monotonic,
+    activity_event_fn: ActivityEventFn | None = None,
 ) -> TikTokLiveBatchProbeOutputPaths:
     """Capture sanitized TikTok live staging JSON for one creator.
 
@@ -426,12 +434,19 @@ def write_tiktok_live_batch_probe_outputs(
         cadence_min_gap_seconds=cadence_min_gap_seconds,
         cadence_max_gap_seconds=cadence_max_gap_seconds,
         cadence_window_seconds=cadence_window_seconds,
+        cadence_mode=cadence_mode,
+        cadence_typical_min_gap_seconds=cadence_typical_min_gap_seconds,
+        cadence_typical_max_gap_seconds=cadence_typical_max_gap_seconds,
+        cadence_tail_min_gap_seconds=cadence_tail_min_gap_seconds,
+        cadence_tail_max_gap_seconds=cadence_tail_max_gap_seconds,
+        cadence_tail_probability=cadence_tail_probability,
         random_seed=random_seed,
         allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
         allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         engine=engine,
         sleep_fn=sleep_fn,
         monotonic_fn=monotonic_fn,
+        activity_event_fn=activity_event_fn,
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -470,6 +485,12 @@ def run_tiktok_live_batch_probe(
     cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     cadence_window_seconds: float | None = None,
+    cadence_mode: CadenceMode = "bounded_jitter",
+    cadence_typical_min_gap_seconds: float | None = None,
+    cadence_typical_max_gap_seconds: float | None = None,
+    cadence_tail_min_gap_seconds: float | None = None,
+    cadence_tail_max_gap_seconds: float | None = None,
+    cadence_tail_probability: float | None = None,
     random_seed: int | None = None,
     allow_challenge_close_diagnostic: bool = False,
     allow_challenge_close_followthrough: bool = False,
@@ -480,6 +501,7 @@ def run_tiktok_live_batch_probe(
     page_capture_sequence_fn: PageCaptureSequenceFn | None = None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None = None,
     profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None = None,
+    activity_event_fn: ActivityEventFn | None = None,
 ) -> JsonObject:
     call_kwargs = dict(locals())
     normalized_browser_backend = browser_backend.strip().lower()
@@ -538,6 +560,12 @@ def _run_tiktok_live_batch_probe_with_engine(
     cadence_min_gap_seconds: float,
     cadence_max_gap_seconds: float,
     cadence_window_seconds: float | None,
+    cadence_mode: CadenceMode,
+    cadence_typical_min_gap_seconds: float | None,
+    cadence_typical_max_gap_seconds: float | None,
+    cadence_tail_min_gap_seconds: float | None,
+    cadence_tail_max_gap_seconds: float | None,
+    cadence_tail_probability: float | None,
     random_seed: int | None,
     allow_challenge_close_diagnostic: bool,
     allow_challenge_close_followthrough: bool,
@@ -548,6 +576,7 @@ def _run_tiktok_live_batch_probe_with_engine(
     page_capture_sequence_fn: PageCaptureSequenceFn | None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
     profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None,
+    activity_event_fn: ActivityEventFn | None,
 ) -> JsonObject:
     inputs = _normalize_and_validate_probe_inputs(
         creator_handle=creator_handle,
@@ -563,6 +592,12 @@ def _run_tiktok_live_batch_probe_with_engine(
         cadence_min_gap_seconds=cadence_min_gap_seconds,
         cadence_max_gap_seconds=cadence_max_gap_seconds,
         cadence_window_seconds=cadence_window_seconds,
+        cadence_mode=cadence_mode,
+        cadence_typical_min_gap_seconds=cadence_typical_min_gap_seconds,
+        cadence_typical_max_gap_seconds=cadence_typical_max_gap_seconds,
+        cadence_tail_min_gap_seconds=cadence_tail_min_gap_seconds,
+        cadence_tail_max_gap_seconds=cadence_tail_max_gap_seconds,
+        cadence_tail_probability=cadence_tail_probability,
         random_seed=random_seed,
         allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
         allow_challenge_close_followthrough=allow_challenge_close_followthrough,
@@ -593,6 +628,7 @@ def _run_tiktok_live_batch_probe_with_engine(
         capture_route=capture_route,
         page_capture_sequence_fn=page_capture_sequence_fn,
         grid_candidates_by_video_id=grid_candidates_by_video_id,
+        activity_event_fn=activity_event_fn,
     )
     return _build_probe_result_payload(
         inputs=inputs,
@@ -639,6 +675,12 @@ def _normalize_and_validate_probe_inputs(
     cadence_min_gap_seconds: float,
     cadence_max_gap_seconds: float,
     cadence_window_seconds: float | None,
+    cadence_mode: CadenceMode,
+    cadence_typical_min_gap_seconds: float | None,
+    cadence_typical_max_gap_seconds: float | None,
+    cadence_tail_min_gap_seconds: float | None,
+    cadence_tail_max_gap_seconds: float | None,
+    cadence_tail_probability: float | None,
     random_seed: int | None,
     allow_challenge_close_diagnostic: bool,
     allow_challenge_close_followthrough: bool,
@@ -741,6 +783,12 @@ def _normalize_and_validate_probe_inputs(
         min_gap_seconds=cadence_min_gap_seconds,
         max_gap_seconds=cadence_max_gap_seconds,
         window_seconds=cadence_window_seconds,
+        mode=cadence_mode,
+        typical_min_gap_seconds=cadence_typical_min_gap_seconds,
+        typical_max_gap_seconds=cadence_typical_max_gap_seconds,
+        tail_min_gap_seconds=cadence_tail_min_gap_seconds,
+        tail_max_gap_seconds=cadence_tail_max_gap_seconds,
+        tail_probability=cadence_tail_probability,
         random_seed=random_seed,
     )
     return _NormalizedProbeInputs(
@@ -809,6 +857,7 @@ def _capture_video_cadence_rows(
     capture_route: str,
     page_capture_sequence_fn: PageCaptureSequenceFn | None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
+    activity_event_fn: ActivityEventFn | None,
 ) -> _CadenceCaptureOutcome:
     browser_backend = inputs.browser_backend
     normalized_handle = inputs.creator_handle
@@ -833,6 +882,16 @@ def _capture_video_cadence_rows(
     for index in range(len(normalized_video_urls)):
         if index > 0:
             planned_dwell_seconds = cadence_plan.planned_waits_seconds[index - 1]
+            if activity_event_fn is not None:
+                activity_event_fn(
+                    "cadence_wait_started",
+                    {
+                        "wait_kind": "inter_video",
+                        "policy": "completion_relative",
+                        "planned_seconds": planned_dwell_seconds,
+                        "plan": cadence_plan.to_dict(),
+                    },
+                )
             _next_capture_started_at, actual_dwell_seconds = (
                 _wait_for_next_capture_after_completion(
                     planned_dwell_seconds=planned_dwell_seconds,
@@ -840,6 +899,15 @@ def _capture_video_cadence_rows(
                     sleep_fn=sleep_fn,
                 )
             )
+            if activity_event_fn is not None:
+                activity_event_fn(
+                    "cadence_wait_finished",
+                    {
+                        "wait_kind": "inter_video",
+                        "planned_seconds": planned_dwell_seconds,
+                        "actual_seconds": round(actual_dwell_seconds, 6),
+                    },
+                )
             realized_inter_video_waits.append(
                 {
                     "transition_index": index - 1,
@@ -2008,17 +2076,28 @@ def _build_probe_cadence_plan(
     min_gap_seconds: float,
     max_gap_seconds: float,
     window_seconds: float | None,
-    random_seed: int | None,
+    mode: CadenceMode = "bounded_jitter",
+    typical_min_gap_seconds: float | None = None,
+    typical_max_gap_seconds: float | None = None,
+    tail_min_gap_seconds: float | None = None,
+    tail_max_gap_seconds: float | None = None,
+    tail_probability: float | None = None,
+    random_seed: int | None = None,
 ):
-    if window_seconds is None:
+    if mode == "bounded_jitter" and window_seconds is None:
         window_seconds = max_gap_seconds * max(0, video_count - 1)
     return build_cadence_plan(
         slot_count=video_count,
-        mode="bounded_jitter",
+        mode=mode,
         delay_seconds=0.0,
         window_seconds=window_seconds,
         min_gap_seconds=min_gap_seconds,
         max_gap_seconds=max_gap_seconds,
+        typical_min_gap_seconds=typical_min_gap_seconds,
+        typical_max_gap_seconds=typical_max_gap_seconds,
+        tail_min_gap_seconds=tail_min_gap_seconds,
+        tail_max_gap_seconds=tail_max_gap_seconds,
+        tail_probability=tail_probability,
         random_seed=random_seed,
     )
 

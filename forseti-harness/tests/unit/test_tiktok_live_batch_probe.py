@@ -3559,6 +3559,7 @@ def test_completion_relative_cadence_does_not_collapse_after_slow_browser_work()
 
 def test_cadence_receipts_completion_relative_realized_wait() -> None:
     sleep_calls: list[float] = []
+    activity_events: list[tuple[str, dict[str, object]]] = []
     monotonic_values = iter((3.0, 13.0))
     result = live_batch_probe.run_tiktok_live_batch_probe(
         creator_handle="funmi",
@@ -3584,6 +3585,9 @@ def test_cadence_receipts_completion_relative_realized_wait() -> None:
         ),
         sleep_fn=sleep_calls.append,
         monotonic_fn=lambda: next(monotonic_values),
+        activity_event_fn=lambda event, fields: activity_events.append(
+            (event, fields)
+        ),
     )
 
     assert sleep_calls == [10.0]
@@ -3601,6 +3605,12 @@ def test_cadence_receipts_completion_relative_realized_wait() -> None:
         result["cadence_result"]["capture_contract"]["inter_video_wait_basis"]
         == "prior_capture_complete_to_next_capture_start"
     )
+    assert [event for event, _fields in activity_events] == [
+        "cadence_wait_started",
+        "cadence_wait_finished",
+    ]
+    assert activity_events[0][1]["policy"] == "completion_relative"
+    assert activity_events[1][1]["actual_seconds"] == 10.0
 
 
 def test_live_probe_cli_defaults_to_twelve_forty_five_second_range() -> None:

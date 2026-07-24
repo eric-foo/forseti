@@ -67,8 +67,6 @@ from source_capture.tiktok.creator_onboarding import (
     DEFAULT_SELECTION_COUNT,
     DEFAULT_WINDOW_SIZE,
     GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
-    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
-    TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TikTokCreatorMarketDeferred,
     TikTokCreatorOnboardingError,
     assess_tiktok_creator_market,
@@ -205,12 +203,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cadence-min-gap-seconds",
         type=float,
-        default=TIKTOK_ONBOARDING_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+        default=None,
+        help=(
+            "Optional legacy uniform-cadence minimum; requires "
+            "--cadence-max-gap-seconds. Omit both for the onboarding long-tail profile."
+        ),
     )
     parser.add_argument(
         "--cadence-max-gap-seconds",
         type=float,
-        default=TIKTOK_ONBOARDING_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+        default=None,
+        help=(
+            "Optional legacy uniform-cadence maximum; requires "
+            "--cadence-min-gap-seconds. Omit both for the onboarding long-tail profile."
+        ),
     )
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
@@ -243,6 +249,20 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if (args.cadence_min_gap_seconds is None) != (
+        args.cadence_max_gap_seconds is None
+    ):
+        parser.error(
+            "--cadence-min-gap-seconds and --cadence-max-gap-seconds "
+            "must be supplied together"
+        )
+    if (
+        args.cadence_window_seconds is not None
+        and args.cadence_min_gap_seconds is None
+    ):
+        parser.error(
+            "--cadence-window-seconds requires explicit cadence min and max gaps"
+        )
     data_root = None
     capture_scope = (
         "candidate_assessment"
@@ -560,6 +580,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     grid_window_json=paths.grid_window_json_path.read_bytes(),
                     selection_result_json=paths.selection_json_path.read_bytes(),
                     suggested_accounts_json=paths.suggested_accounts_json_path.read_bytes(),
+                    activity_journal_jsonl=paths.activity_journal_jsonl_path.read_bytes(),
                     output_directory=args.admit_output if data_root is None else None,
                     data_root=data_root,
                     decision_question=args.decision_question,
@@ -578,6 +599,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                         _source_receipt(
                             paths.suggested_accounts_json_path,
                             "suggested_accounts_json",
+                        ),
+                        _source_receipt(
+                            paths.activity_journal_jsonl_path,
+                            "source_capture_activity_jsonl",
                         ),
                     ],
                     prior_capture_pointer=args.prior_capture_pointer,

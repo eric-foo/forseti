@@ -39,6 +39,8 @@ _SCROLL_PASS_SETTLE_MS = 2000
 # loop unbounded even if a caller passes a very large scroll_passes.
 _MAX_SCROLL_PASSES = 40
 
+ActivityEventFn = Callable[[str, dict[str, object]], None]
+
 
 @dataclass(frozen=True)
 class BrowserDelayRange:
@@ -1561,6 +1563,101 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         return cloakbrowser.launch(**launch_kwargs)
 
 
+def _browser_action_names(kwargs: dict[str, object]) -> list[str]:
+    action_names: list[str] = []
+    wheel_action = kwargs.get("post_load_wheel_action")
+    if isinstance(wheel_action, BrowserPageWheelAction):
+        action_names.append(wheel_action.action_name)
+    pointer_action = kwargs.get("post_load_pointer_action")
+    if isinstance(pointer_action, BrowserPagePointerAction):
+        action_names.append(pointer_action.action_name)
+    pointer_actions = kwargs.get("post_load_pointer_actions")
+    if isinstance(pointer_actions, Sequence):
+        action_names.extend(
+            action.action_name
+            for action in pointer_actions
+            if isinstance(action, BrowserPagePointerAction)
+        )
+    if kwargs.get("post_load_action_script") is not None:
+        action_names.append("post_load_action_script")
+    return action_names
+
+
+def _browser_activity_outcome(metadata: dict[str, object]) -> dict[str, object]:
+    context_rows: list[dict[str, object]] = []
+    raw_context = metadata.get("page_interaction_context_observations")
+    if isinstance(raw_context, Sequence) and not isinstance(
+        raw_context, (str, bytes, bytearray)
+    ):
+        for raw_row in raw_context:
+            if not isinstance(raw_row, dict):
+                continue
+            context_rows.append(
+                {
+                    key: raw_row.get(key)
+                    for key in (
+                        "sequence_index",
+                        "observed_at_utc",
+                        "action_kind",
+                        "before_action_name",
+                        "observation_status",
+                        "visibility_state_or_none",
+                        "document_has_focus_or_none",
+                        "unavailable_reason",
+                    )
+                    if key in raw_row
+                }
+            )
+
+    pointer_rows: list[dict[str, object]] = []
+    raw_pointer_rows: list[object] = []
+    single_pointer = metadata.get("post_load_pointer_action")
+    if isinstance(single_pointer, dict):
+        raw_pointer_rows.append(single_pointer)
+    multiple_pointers = metadata.get("post_load_pointer_actions")
+    if isinstance(multiple_pointers, Sequence) and not isinstance(
+        multiple_pointers, (str, bytes, bytearray)
+    ):
+        raw_pointer_rows.extend(multiple_pointers)
+    for raw_row in raw_pointer_rows:
+        if not isinstance(raw_row, dict):
+            continue
+        pointer_rows.append(
+            {
+                key: raw_row.get(key)
+                for key in (
+                    "action_name",
+                    "target_found",
+                    "clicked",
+                    "target_variant",
+                    "post_click_verified",
+                    "observed_response_delta",
+                )
+                if key in raw_row
+            }
+        )
+
+    wheel_outcome: dict[str, object] | None = None
+    raw_wheel = metadata.get("post_load_wheel_action")
+    if isinstance(raw_wheel, dict):
+        wheel_outcome = {
+            key: raw_wheel.get(key)
+            for key in (
+                "action_name",
+                "completed",
+                "input_method",
+                "humanized_scroll_performed",
+                "settle_ms",
+            )
+            if key in raw_wheel
+        }
+    return {
+        "context_observations": context_rows,
+        "pointer_outcomes": pointer_rows,
+        "wheel_outcome_or_none": wheel_outcome,
+    }
+
+
 class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
     """Attach to one operator-owned local Chrome process without closing it."""
 
@@ -1578,6 +1675,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         human_challenge_handoff_prompt: str | None = None,
         humanize_context_fn: Callable[[object], None] | None = None,
         monotonic_fn: Callable[[], float] = time.monotonic,
+        activity_event_fn: ActivityEventFn | None = None,
     ) -> None:
         super().__init__(
             cloakbrowser_humanize=False,
@@ -1629,6 +1727,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._capture_elapsed_seconds_total = 0.0
         self._capture_elapsed_seconds_max = 0.0
         self._capture_timings: list[dict[str, object]] = []
+        self._activity_event_fn = activity_event_fn
 
     def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
         if self._closed:
@@ -1643,16 +1742,44 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._capture_attempt_count += 1
         capture_index = self._capture_attempt_count
         capture_started = self._monotonic_fn()
+        action_names = _browser_action_names(kwargs)
+        self._emit_activity_event(
+            "browser_capture_started",
+            {
+                "capture_index": capture_index,
+                "action_names": action_names,
+                "settle_seconds": kwargs.get("settle_seconds", 0.0),
+                "reload_requested": force_same_url_reload,
+            },
+        )
         try:
             result = super().capture_page_observation(**kwargs)
-        except Exception:
+        except Exception as exc:
+            capture_elapsed_seconds = max(
+                0.0, self._monotonic_fn() - capture_started
+            )
             self._record_capture_timing(
                 capture_index=capture_index,
                 requested_url=requested_url,
                 final_url=None,
                 kwargs=kwargs,
-                elapsed_seconds=max(0.0, self._monotonic_fn() - capture_started),
+                elapsed_seconds=capture_elapsed_seconds,
                 outcome="failed",
+            )
+            self._emit_activity_event(
+                "browser_capture_finished",
+                {
+                    "capture_index": capture_index,
+                    "outcome": "failed",
+                    "capture_elapsed_seconds": round(
+                        capture_elapsed_seconds, 6
+                    ),
+                    "action_names": action_names,
+                    "context_observations": [],
+                    "pointer_outcomes": [],
+                    "wheel_outcome_or_none": None,
+                    "error_type_or_none": type(exc).__name__,
+                },
             )
             raise
         finally:
@@ -1694,7 +1821,24 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
                 ),
             }
         )
+        self._emit_activity_event(
+            "browser_capture_finished",
+            {
+                "capture_index": capture_index,
+                "outcome": "success",
+                "capture_elapsed_seconds": round(capture_elapsed_seconds, 6),
+                "action_names": action_names,
+                **_browser_activity_outcome(result.metadata),
+                "error_type_or_none": None,
+            },
+        )
         return result
+
+    def _emit_activity_event(
+        self, event_type: str, fields: dict[str, object]
+    ) -> None:
+        if self._activity_event_fn is not None:
+            self._activity_event_fn(event_type, fields)
 
     def _record_capture_timing(
         self,
@@ -1710,22 +1854,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._capture_elapsed_seconds_max = max(
             self._capture_elapsed_seconds_max, elapsed_seconds
         )
-        action_names: list[str] = []
-        wheel_action = kwargs.get("post_load_wheel_action")
-        if isinstance(wheel_action, BrowserPageWheelAction):
-            action_names.append(wheel_action.action_name)
-        pointer_action = kwargs.get("post_load_pointer_action")
-        if isinstance(pointer_action, BrowserPagePointerAction):
-            action_names.append(pointer_action.action_name)
-        pointer_actions = kwargs.get("post_load_pointer_actions")
-        if isinstance(pointer_actions, Sequence):
-            action_names.extend(
-                action.action_name
-                for action in pointer_actions
-                if isinstance(action, BrowserPagePointerAction)
-            )
-        if kwargs.get("post_load_action_script") is not None:
-            action_names.append("post_load_action_script")
+        action_names = _browser_action_names(kwargs)
         self._capture_timings.append(
             {
                 "capture_index": capture_index,

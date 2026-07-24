@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-CadenceMode = Literal["fixed", "bounded_jitter"]
+CadenceMode = Literal["fixed", "bounded_jitter", "weighted_long_tail"]
 
 
 @dataclass(frozen=True)
@@ -18,6 +18,11 @@ class CadencePlan:
     window_seconds: float | None = None
     min_gap_seconds: float | None = None
     max_gap_seconds: float | None = None
+    typical_min_gap_seconds: float | None = None
+    typical_max_gap_seconds: float | None = None
+    tail_min_gap_seconds: float | None = None
+    tail_max_gap_seconds: float | None = None
+    tail_probability: float | None = None
     random_seed: int | None = None
 
     def to_dict(self) -> dict[str, object]:
@@ -30,6 +35,11 @@ class CadencePlan:
             "window_seconds": self.window_seconds,
             "min_gap_seconds": self.min_gap_seconds,
             "max_gap_seconds": self.max_gap_seconds,
+            "typical_min_gap_seconds": self.typical_min_gap_seconds,
+            "typical_max_gap_seconds": self.typical_max_gap_seconds,
+            "tail_min_gap_seconds": self.tail_min_gap_seconds,
+            "tail_max_gap_seconds": self.tail_max_gap_seconds,
+            "tail_probability": self.tail_probability,
             "random_seed": self.random_seed,
         }
 
@@ -42,6 +52,11 @@ def build_cadence_plan(
     window_seconds: float | None = None,
     min_gap_seconds: float | None = None,
     max_gap_seconds: float | None = None,
+    typical_min_gap_seconds: float | None = None,
+    typical_max_gap_seconds: float | None = None,
+    tail_min_gap_seconds: float | None = None,
+    tail_max_gap_seconds: float | None = None,
+    tail_probability: float | None = None,
     random_seed: int | None = None,
 ) -> CadencePlan:
     if slot_count <= 0:
@@ -56,7 +71,19 @@ def build_cadence_plan(
             max_gap_seconds=max_gap_seconds,
             random_seed=random_seed,
         )
-    raise ValueError("cadence_mode must be fixed or bounded_jitter")
+    if mode == "weighted_long_tail":
+        return _build_weighted_long_tail_plan(
+            slot_count=slot_count,
+            typical_min_gap_seconds=typical_min_gap_seconds,
+            typical_max_gap_seconds=typical_max_gap_seconds,
+            tail_min_gap_seconds=tail_min_gap_seconds,
+            tail_max_gap_seconds=tail_max_gap_seconds,
+            tail_probability=tail_probability,
+            random_seed=random_seed,
+        )
+    raise ValueError(
+        "cadence_mode must be fixed, bounded_jitter, or weighted_long_tail"
+    )
 
 
 def _build_fixed_plan(*, slot_count: int, delay_seconds: float) -> CadencePlan:
@@ -129,6 +156,80 @@ def _build_bounded_jitter_plan(
         window_seconds=window_seconds,
         min_gap_seconds=min_gap_seconds,
         max_gap_seconds=max_gap_seconds,
+        random_seed=seed,
+    )
+
+
+def _build_weighted_long_tail_plan(
+    *,
+    slot_count: int,
+    typical_min_gap_seconds: float | None,
+    typical_max_gap_seconds: float | None,
+    tail_min_gap_seconds: float | None,
+    tail_max_gap_seconds: float | None,
+    tail_probability: float | None,
+    random_seed: int | None,
+) -> CadencePlan:
+    required = {
+        "typical_min_gap_seconds": typical_min_gap_seconds,
+        "typical_max_gap_seconds": typical_max_gap_seconds,
+        "tail_min_gap_seconds": tail_min_gap_seconds,
+        "tail_max_gap_seconds": tail_max_gap_seconds,
+        "tail_probability": tail_probability,
+    }
+    missing = [name for name, value in required.items() if value is None]
+    if missing:
+        raise ValueError(
+            "weighted_long_tail cadence requires " + ", ".join(missing)
+        )
+    assert typical_min_gap_seconds is not None
+    assert typical_max_gap_seconds is not None
+    assert tail_min_gap_seconds is not None
+    assert tail_max_gap_seconds is not None
+    assert tail_probability is not None
+    if typical_min_gap_seconds < 0:
+        raise ValueError("typical_min_gap_seconds must be zero or greater")
+    if typical_max_gap_seconds < typical_min_gap_seconds:
+        raise ValueError(
+            "typical_max_gap_seconds must be greater than or equal to "
+            "typical_min_gap_seconds"
+        )
+    if tail_min_gap_seconds < typical_max_gap_seconds:
+        raise ValueError(
+            "tail_min_gap_seconds must be greater than or equal to "
+            "typical_max_gap_seconds"
+        )
+    if tail_max_gap_seconds < tail_min_gap_seconds:
+        raise ValueError(
+            "tail_max_gap_seconds must be greater than or equal to "
+            "tail_min_gap_seconds"
+        )
+    if not 0.0 <= tail_probability <= 1.0:
+        raise ValueError("tail_probability must be between zero and one")
+
+    seed = random_seed
+    if seed is None:
+        seed = random.SystemRandom().randrange(1, 2**31)
+    rng = random.Random(seed)
+    planned_waits: list[float] = []
+    for _ in range(max(0, slot_count - 1)):
+        use_tail = rng.random() < tail_probability
+        lower = tail_min_gap_seconds if use_tail else typical_min_gap_seconds
+        upper = tail_max_gap_seconds if use_tail else typical_max_gap_seconds
+        planned_waits.append(round(rng.uniform(lower, upper), 3))
+    waits = tuple(planned_waits)
+    return CadencePlan(
+        mode="weighted_long_tail",
+        slot_count=slot_count,
+        planned_offsets_seconds=_offsets_from_waits(waits),
+        planned_waits_seconds=waits,
+        min_gap_seconds=typical_min_gap_seconds,
+        max_gap_seconds=tail_max_gap_seconds,
+        typical_min_gap_seconds=typical_min_gap_seconds,
+        typical_max_gap_seconds=typical_max_gap_seconds,
+        tail_min_gap_seconds=tail_min_gap_seconds,
+        tail_max_gap_seconds=tail_max_gap_seconds,
+        tail_probability=tail_probability,
         random_seed=seed,
     )
 
