@@ -10,6 +10,7 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     PinConfirmation,
     PreCaptureOutcome,
 )
+from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
 from source_capture.sephora_catalog_grid import (
     SEPHORA_CATALOG_MAX_PAGE,
     extract_sephora_catalog_request,
@@ -19,6 +20,7 @@ from source_capture.sephora_catalog_grid import (
 
 _COUNTRY_DIALOG_SELECTOR = '[role="dialog"][aria-modal="true"][data-at="modal_dialog"]'
 _COUNTRY_DIALOG_DIAGNOSTIC = "This site does not ship to your country."
+_COUNTRY_DIALOG_POST_NAV_WAIT_MS = 2_000
 
 
 @dataclass
@@ -64,53 +66,40 @@ class SephoraCatalogTraversalPlugin:
         return dict(self._grid_observation)
 
     def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
-        """Attempt the explicit continuation without promoting origin/delivery claims."""
+        """Reuse the established same-tab Sephora country-continuation preflight."""
 
-        try:
-            page.wait_for_timeout(min(2_000, setup_timeout_ms))  # type: ignore[union-attr]
-            dialog = page.locator(_COUNTRY_DIALOG_SELECTOR)  # type: ignore[union-attr]
-            if dialog.count() and dialog.is_visible():
-                text = dialog.inner_text(timeout=setup_timeout_ms)
-                if _COUNTRY_DIALOG_DIAGNOSTIC not in text:
-                    return _outcome(
-                        reason="Sephora geo dialog did not carry the expected diagnostic"
-                    )
-                self._geo_dialog_observed = True
-                button = dialog.locator("p").filter(has_text="Continue to").locator("button")
-                if button.count() != 1:
-                    return _outcome(
-                        reason="Sephora geo dialog exposed no unique Continue control"
-                    )
-                button.click(timeout=setup_timeout_ms)
-                try:
-                    dialog.wait_for(state="hidden", timeout=min(2_000, setup_timeout_ms))
-                except Exception:
-                    # The origin-IP shipping warning can persist even while the
-                    # retailer serves country=US PageJSON. That is a delivery
-                    # limitation, not contradictory storefront evidence.
-                    pass
-            return _outcome(
-                warning=(
-                    "Sephora geo/shipping dialog observed; origin country and "
-                    "delivery eligibility remain unpinned"
-                    if self._geo_dialog_observed
-                    else None
-                )
-            )
-        except Exception as exc:
-            return _outcome(
-                reason=f"Sephora catalog preflight failed ({type(exc).__name__}: {exc})"
-            )
+        return SephoraUSMarketPlugin(
+            target_url=self.target_url,
+            page_kind="grid",
+        ).before(
+            page,
+            setup_timeout_ms=min(setup_timeout_ms, 30_000),
+        )
 
     def before_snapshot(
         self, page: object, *, setup_timeout_ms: float
     ) -> PreCaptureOutcome:
-        del setup_timeout_ms
         deadline = time.monotonic() + self.traversal_timeout_seconds
         seen_ids: set[str] = set()
         page_observations: list[dict[str, object]] = []
         total_products: int | None = None
         try:
+            page.wait_for_timeout(  # type: ignore[union-attr]
+                min(
+                    _COUNTRY_DIALOG_POST_NAV_WAIT_MS,
+                    int(setup_timeout_ms),
+                    _remaining_ms(deadline),
+                )
+            )
+            dialog = page.locator(_COUNTRY_DIALOG_SELECTOR).filter(  # type: ignore[union-attr]
+                has_text=_COUNTRY_DIALOG_DIAGNOSTIC
+            )
+            if dialog.count() and dialog.is_visible():
+                self._geo_dialog_observed = True
+                return self._failed(
+                    "Sephora geo dialog reappeared after country-continuation preflight",
+                    page_observations,
+                )
             for expected_page in range(1, self.page_count + 1):
                 requested_page_url = _catalog_page_url(
                     self.target_url, page=expected_page
