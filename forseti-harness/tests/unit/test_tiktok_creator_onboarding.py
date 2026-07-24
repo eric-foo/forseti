@@ -77,6 +77,7 @@ def _capture(
     hydration_payload: dict[str, object] | None = None,
     profile_metric_dom: dict[str, object] | None = None,
     page_context_observations: list[dict[str, object]] | None = None,
+    pointer_action_receipts: list[dict[str, object]] | None = None,
 ) -> BrowserPageObservationSuccess:
     # Immutable-tuple defaults keep the signature safe; convert to fresh lists
     # per call so downstream behavior matches the previous explicit [] kwargs.
@@ -123,7 +124,7 @@ def _capture(
         dom_observation=dom,
         responses=[] if suggested is not None else [_response(items)],
         metadata={
-            "post_load_pointer_actions": [],
+            "post_load_pointer_actions": list(pointer_action_receipts or []),
             "human_challenge_handoff_attempts": [],
             "capture_timestamp": "2026-07-14T10:00:00Z",
             "lazy_load_scroll_passes_executed": 2,
@@ -802,19 +803,41 @@ def test_browser_capture_structural_logout_is_systemic(
         onboarding.fetch_browser_page_observation_capture(url="https://example.test")
 
 
-def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
+@pytest.mark.parametrize("clicked", [False, True])
+def test_grid_acquisition_preserves_pointer_outcome_for_sufficient_initial_window(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    clicked: bool,
 ) -> None:
     ids = [str(index) for index in range(1, 33)]
-    captures = [
-        _capture(
-            ordered_ids=ids,
-            items=[],
-            dom_view_text_by_id={video_id: "1K" for video_id in ids},
-        )
-        for _ in range(3)
-    ]
+    initial = _capture(
+        ordered_ids=ids,
+        items=[],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        page_context_observations=[
+            {
+                "sequence_index": 0,
+                "action_kind": "pointer",
+                "before_action_name": "tiktok_relationship_dialog_close_v0",
+                "observation_status": "observed",
+                "visibility_state_or_none": "hidden",
+                "document_has_focus_or_none": False,
+            }
+        ],
+        pointer_action_receipts=[
+            {
+                "action_name": "tiktok_relationship_dialog_close_v0",
+                "target_found": clicked,
+                "clicked": clicked,
+            }
+        ],
+    )
+    passive = _capture(
+        ordered_ids=ids,
+        items=[],
+        dom_view_text_by_id={video_id: "1K" for video_id in ids},
+    )
+    captures = [initial, passive, passive]
     calls: list[dict[str, object]] = []
 
     def fake_fetch(**kwargs: object) -> BrowserPageObservationSuccess:
@@ -836,6 +859,25 @@ def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
     assert capture.metadata["grid_acquisition_wheel_burst_count"] == 0
     assert capture.metadata["grid_acquisition_stop_reason"] == (
         "initial_sufficient_window_stabilized"
+    )
+    assert capture.metadata["grid_acquisition_pointer_action_receipts"] == [
+        {
+            "capture_index": 0,
+            "action_name": "tiktok_relationship_dialog_close_v0",
+            "target_found": clicked,
+            "clicked": clicked,
+        }
+    ]
+    assert capture.metadata["page_interaction_context_observations"][0][
+        "capture_index"
+    ] == 0
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=30,
+    )
+    assert window["collection_receipt"]["pointer_action_receipts"] == (
+        capture.metadata["grid_acquisition_pointer_action_receipts"]
     )
 
 

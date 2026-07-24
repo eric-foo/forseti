@@ -3431,6 +3431,15 @@ def capture_tiktok_creator_grid(
         for action in [capture.metadata.get("post_load_wheel_action")]
         if isinstance(action, dict)
     ]
+    pointer_action_receipts = [
+        {
+            "capture_index": capture_index,
+            **action,
+        }
+        for capture_index, captured_page in enumerate(interaction_context_captures)
+        for action in captured_page.metadata.get("post_load_pointer_actions", ())
+        if isinstance(action, dict)
+    ]
     page_interaction_context_observations = [
         {
             "capture_index": capture_index,
@@ -3455,6 +3464,7 @@ def capture_tiktok_creator_grid(
             "grid_acquisition_wheel_burst_cap": GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP,
             "grid_acquisition_wheel_burst_count": wheel_burst_count,
             "grid_acquisition_wheel_action_receipts": wheel_action_receipts,
+            "grid_acquisition_pointer_action_receipts": pointer_action_receipts,
             "page_interaction_context_observations": (
                 page_interaction_context_observations
             ),
@@ -3663,6 +3673,9 @@ def build_tiktok_grid_window(
             ),
             "wheel_action_receipts": capture.metadata.get(
                 "grid_acquisition_wheel_action_receipts"
+            ),
+            "pointer_action_receipts": capture.metadata.get(
+                "grid_acquisition_pointer_action_receipts"
             ),
             "page_interaction_context_observations": capture.metadata.get(
                 "page_interaction_context_observations"
