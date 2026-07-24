@@ -21,6 +21,14 @@ from source_capture.sephora_catalog_grid import (
 _COUNTRY_DIALOG_SELECTOR = '[role="dialog"][aria-modal="true"][data-at="modal_dialog"]'
 _COUNTRY_DIALOG_DIAGNOSTIC = "This site does not ship to your country."
 _COUNTRY_DIALOG_POST_NAV_WAIT_MS = 2_000
+_COUNTRY_DIALOG_PERSISTED_REASON = (
+    "Sephora country dialog remained visible after explicit continuation"
+)
+_COUNTRY_DIALOG_PERSISTED_WARNING = (
+    "Sephora geo/shipping dialog persisted after explicit continuation; "
+    "grid admission certifies only the retailer-serialized US country route, "
+    "while origin country and delivery eligibility remain unpinned"
+)
 
 
 @dataclass
@@ -34,6 +42,10 @@ class SephoraCatalogTraversalPlugin:
     _grid_page_urls: list[str] = field(default_factory=list, init=False, repr=False)
     _grid_observation: dict[str, object] = field(default_factory=dict, init=False, repr=False)
     _geo_dialog_observed: bool = field(default=False, init=False, repr=False)
+    _geo_dialog_persisted_after_continue: bool = field(
+        default=False, init=False, repr=False
+    )
+    _geo_dialog_warning_emitted: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
         request = extract_sephora_catalog_request(self.target_url)
@@ -68,13 +80,22 @@ class SephoraCatalogTraversalPlugin:
     def before(self, page: object, *, setup_timeout_ms: float) -> PreCaptureOutcome:
         """Reuse the established same-tab Sephora country-continuation preflight."""
 
-        return SephoraUSMarketPlugin(
+        outcome = SephoraUSMarketPlugin(
             target_url=self.target_url,
             page_kind="grid",
         ).before(
             page,
             setup_timeout_ms=min(setup_timeout_ms, 30_000),
         )
+        if (
+            not outcome.steps_completed
+            and outcome.reason == _COUNTRY_DIALOG_PERSISTED_REASON
+        ):
+            self._geo_dialog_observed = True
+            self._geo_dialog_persisted_after_continue = True
+            self._geo_dialog_warning_emitted = True
+            return _outcome(warning=_COUNTRY_DIALOG_PERSISTED_WARNING)
+        return outcome
 
     def before_snapshot(
         self, page: object, *, setup_timeout_ms: float
@@ -96,10 +117,7 @@ class SephoraCatalogTraversalPlugin:
             )
             if dialog.count() and dialog.is_visible():
                 self._geo_dialog_observed = True
-                return self._failed(
-                    "Sephora geo dialog reappeared after country-continuation preflight",
-                    page_observations,
-                )
+                self._geo_dialog_persisted_after_continue = True
             for expected_page in range(1, self.page_count + 1):
                 requested_page_url = _catalog_page_url(
                     self.target_url, page=expected_page
@@ -182,8 +200,22 @@ class SephoraCatalogTraversalPlugin:
             "pageObservations": page_observations,
             "termination": termination,
             "geoShippingDialogObserved": self._geo_dialog_observed,
+            "geoShippingDialogPersistedAfterContinue": (
+                self._geo_dialog_persisted_after_continue
+            ),
         }
-        return _outcome()
+        warning = (
+            _COUNTRY_DIALOG_PERSISTED_WARNING
+            if (
+                self._geo_dialog_persisted_after_continue
+                and not self._geo_dialog_warning_emitted
+            )
+            else None
+        )
+        self._geo_dialog_warning_emitted = bool(
+            self._geo_dialog_warning_emitted or warning
+        )
+        return _outcome(warning=warning)
 
     def confirm(self, rendered_dom: str) -> PinConfirmation:
         del rendered_dom
@@ -220,7 +252,9 @@ class SephoraCatalogTraversalPlugin:
             "country_code_requested": "US",
             "currency_code_requested": None,
             "market_confirmation_scope": "retailer_serialized_country_route_only",
-            "market_preference_action": "explicit_continue_if_present_then_bounded_navigation",
+            "market_preference_action": (
+                "explicit_continue_attempt_then_serialized_country_validation"
+            ),
             **self._grid_observation,
         }
 
@@ -243,6 +277,9 @@ class SephoraCatalogTraversalPlugin:
             "termination": "unproven",
             "failure": reason,
             "geoShippingDialogObserved": self._geo_dialog_observed,
+            "geoShippingDialogPersistedAfterContinue": (
+                self._geo_dialog_persisted_after_continue
+            ),
         }
         return _outcome(reason=reason)
 
