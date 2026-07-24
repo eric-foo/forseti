@@ -9,6 +9,8 @@ from source_capture.retail_capture_profiles import (
     extract_amazon_asin_from_url,
     extract_amazon_search_query_from_url,
     extract_nordstrom_product_id_from_url,
+    extract_retailer_product_identity_from_url,
+    extract_retailer_variant_identity_from_url,
     extract_sephora_product_id_from_url,
     extract_target_grid_subject_from_url,
     extract_target_product_id_from_url,
@@ -168,6 +170,21 @@ def test_shallow_profiles_derive_the_commissioned_target_from_the_url(
     extractor, url: str, expected: str
 ) -> None:
     assert extractor(url) == expected
+
+
+def test_retailer_identity_helpers_separate_product_from_selected_variant() -> None:
+    sephora = (
+        "https://www.sephora.com/product/cc-me-vitamin-c-serum-P449180"
+        "?skuId=2224061&country_switch=us"
+    )
+    ulta = "https://www.ulta.com/p/almost-lipstick-VP11111?sku=2253011"
+
+    assert extract_retailer_product_identity_from_url("sephora", sephora) == "P449180"
+    assert extract_retailer_variant_identity_from_url("sephora", sephora) == "2224061"
+    assert extract_retailer_product_identity_from_url("ulta", ulta) == "VP11111"
+    assert extract_retailer_variant_identity_from_url("ulta", ulta) == "2253011"
+    assert extract_retailer_product_identity_from_url("unknown", sephora) is None
+    assert extract_retailer_variant_identity_from_url("amazon", sephora) is None
 
 
 def test_target_grid_profile_binds_the_requested_search_query() -> None:

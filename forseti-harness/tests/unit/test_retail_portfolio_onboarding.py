@@ -8,6 +8,7 @@ import pytest
 
 from source_capture.models import known_fact
 from source_capture.retail_portfolio_onboarding import (
+    ListingReconciliation,
     RetailPortfolioOnboardingError,
     build_retail_portfolio_onboarding,
     load_portfolio_commission,
@@ -30,7 +31,15 @@ def test_multi_retailer_composition_preserves_identity_and_typed_residuals(
     )
 
     assert first == second
+    assert first["schema_version"] == "retail_portfolio_onboarding_v2"
     assert first["owned_parent_count"] == 3
+    assert first["product_identity"]["family_denominator_state"] == "PARTIAL"
+    assert first["product_identity"]["normalized_family_count"] is None
+    assert first["product_identity"]["unresolved_owned_parent_ids"] == [
+        "p1",
+        "p2",
+        "p3",
+    ]
     target = next(
         item for item in first["coverage_by_retailer"] if item["retailer"] == "target"
     )
@@ -92,6 +101,194 @@ def test_missing_exact_listing_baseline_fails_closed(tmp_path: Path) -> None:
         build_retail_portfolio_onboarding(
             commission=load_portfolio_commission(commission_path),
             base_directory=tmp_path,
+        )
+
+
+def test_explicit_family_mapping_counts_variants_once_and_separates_bundle(
+    tmp_path: Path,
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    evidence_path = tmp_path / "evidence" / "owned-census.json"
+    evidence_path.parent.mkdir()
+    evidence_path.write_text('{"parents":["p1","p2","p3"]}', encoding="utf-8")
+    evidence = {
+        "artifact_path": "evidence/owned-census.json",
+        "artifact_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+        "locator": "$.parents",
+    }
+    payload["normalized_product_families"] = [
+        {
+            "normalized_family_id": "family-one",
+            "display_name": "Family One",
+            "members": [
+                {
+                    "owned_parent_id": "p1",
+                    "role": "PRIMARY_PARENT",
+                    "evidence_refs": [evidence],
+                },
+                {
+                    "owned_parent_id": "p2",
+                    "role": "VARIANT_AS_PARENT",
+                    "evidence_refs": [evidence],
+                },
+            ],
+        }
+    ]
+    payload["non_family_source_objects"] = [
+        {
+            "owned_parent_id": "p3",
+            "kind": "BUNDLE_SET",
+            "component_family_ids": ["family-one"],
+            "evidence_refs": [evidence],
+        }
+    ]
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = build_retail_portfolio_onboarding(
+        commission=load_portfolio_commission(commission_path),
+        base_directory=tmp_path,
+    )
+
+    identity = result["product_identity"]
+    assert identity["source_parent_count"] == 3
+    assert identity["resolved_family_count"] == 1
+    assert identity["normalized_family_count"] == 1
+    assert identity["family_denominator_state"] == "COMPLETE"
+    assert identity["family_member_parent_count"] == 2
+    assert identity["variant_as_parent_count"] == 1
+    assert identity["material_variant_id_count"] == 3
+    assert identity["bundle_set_parent_count"] == 1
+    assert identity["unresolved_parent_count"] == 0
+
+
+def test_product_identity_evidence_hash_mismatch_fails_closed(
+    tmp_path: Path,
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    evidence_path = tmp_path / "owned-census.json"
+    evidence_path.write_text('{"parents":["p1"]}', encoding="utf-8")
+    payload["normalized_product_families"] = [
+        {
+            "normalized_family_id": "family-one",
+            "display_name": "Family One",
+            "members": [
+                {
+                    "owned_parent_id": "p1",
+                    "role": "PRIMARY_PARENT",
+                    "evidence_refs": [
+                        {
+                            "artifact_path": evidence_path.name,
+                            "artifact_sha256": "0" * 64,
+                            "locator": "$.parents[0]",
+                        }
+                    ],
+                }
+            ],
+        }
+    ]
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(
+        RetailPortfolioOnboardingError,
+        match="product identity evidence hash mismatch",
+    ):
+        build_retail_portfolio_onboarding(
+            commission=load_portfolio_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+def test_duplicate_family_membership_fails_closed(tmp_path: Path) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    evidence = {
+        "artifact_path": "evidence/owned-census.json",
+        "artifact_sha256": "2" * 64,
+        "locator": "$.parents[0]",
+    }
+    payload["normalized_product_families"] = [
+        {
+            "normalized_family_id": family_id,
+            "display_name": family_id,
+            "members": [
+                {
+                    "owned_parent_id": "p1",
+                    "role": "PRIMARY_PARENT",
+                    "evidence_refs": [evidence],
+                }
+            ],
+        }
+        for family_id in ("one", "two")
+    ]
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="only one normalized family"):
+        load_portfolio_commission(commission_path)
+
+
+def test_bound_retailer_variant_mismatch_fails_before_baseline_admission(
+    tmp_path: Path,
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    variant = next(
+        item
+        for item in payload["listing_reconciliations"]
+        if item["source_product_id"] == "200"
+    )
+    variant["retailer_variant_id"] = "wrong-variant"
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RetailPortfolioOnboardingError, match="listing URL mismatch"):
+        build_retail_portfolio_onboarding(
+            commission=load_portfolio_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+@pytest.mark.parametrize(
+    "listing_url",
+    [
+        "https://lookalike.example/p/one/-/A-100",
+        "http://www.target.com/p/one/-/A-100",
+    ],
+)
+def test_stable_identity_rejects_wrong_host_or_non_https_route(
+    tmp_path: Path, listing_url: str
+) -> None:
+    commission_path, _ = _fixture(tmp_path)
+    payload = json.loads(commission_path.read_text(encoding="utf-8"))
+    listing = next(
+        item
+        for item in payload["listing_reconciliations"]
+        if item["grid_row_id"].endswith(":0:100")
+    )
+    listing["listing_url"] = listing_url
+    commission_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RetailPortfolioOnboardingError, match="listing URL mismatch"):
+        build_retail_portfolio_onboarding(
+            commission=load_portfolio_commission(commission_path),
+            base_directory=tmp_path,
+        )
+
+
+@pytest.mark.parametrize("retailer", ["amazon", "revolve", "walmart"])
+def test_unsupported_retailer_variant_binding_is_rejected(retailer: str) -> None:
+    with pytest.raises(ValueError, match="retailer_variant_id is not supported"):
+        ListingReconciliation.model_validate(
+            {
+                "retailer": retailer,
+                "grid_row_id": f"row:{retailer}",
+                "source_product_id": "product-id",
+                "listing_url": f"https://www.{retailer}.com/product-id",
+                "listing_kind": "PARENT",
+                "match_status": "EXACT",
+                "owned_parent_ids": ["owned-parent"],
+                "retailer_variant_id": "variant-id",
+            }
         )
 
 
@@ -309,7 +506,7 @@ def test_future_commission_can_use_revolve_without_fixed_quartet(
         base_directory=tmp_path,
     )
 
-    assert result["schema_version"] == "retail_portfolio_onboarding_v1"
+    assert result["schema_version"] == "retail_portfolio_onboarding_v2"
     assert result["primary_retailer"] == "revolve"
     assert [item["retailer"] for item in result["retailer_outcomes"]] == [
         "revolve",
@@ -355,7 +552,7 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path]:
         body=b"full raw PDP 100",
         source_family="retail_pdp",
         source_surface="cloakbrowser_snapshot",
-        locator=p1_url,
+        locator=f"{p1_url}?lnk=tracking-context",
     )
     p2_dir, _ = _packet(
         tmp_path,
@@ -388,7 +585,18 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path]:
     reconciliations = [
         _reconciliation(0, "100", p1_url, "PARENT", "EXACT", ["p1"], ["p1-v1"]),
         _reconciliation(1, "100", p1_url, "PARENT", "EXACT", ["p1"], ["p1-v1"]),
-        _reconciliation(2, "200", p2_url, "VARIANT_URL", "EXACT", ["p2"], ["p2-v1"]),
+        {
+            **_reconciliation(
+                2,
+                "200",
+                p2_url,
+                "VARIANT_URL",
+                "EXACT",
+                ["p2"],
+                ["p2-v1"],
+            ),
+            "retailer_variant_id": "p2-v1",
+        },
         _reconciliation(3, "300", "https://www.target.com/p/set/-/A-300",
             "BUNDLE_SET", "EXACT", ["p1", "p2"], []),
         _reconciliation(4, "400", "https://www.target.com/p/ambiguous/-/A-400",

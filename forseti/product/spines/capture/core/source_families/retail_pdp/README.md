@@ -46,7 +46,7 @@ cross-pointer here and in the Scanning family entrypoint.
 | Storefront pins | `retail_storefront_pin_registry_v0.md`; `amazon_us_vpn_regression_recovery_playbook_v0.md`; supporting recon and live receipts linked there | Session, storefront-country, currency, and delivery-location state independently; a working route, VPN geography, or observed context is not a confirmed pin. |
 | Retail/PDP packet/content | `run_source_capture_cloakbrowser_packet.py`; `source_capture/retail_pdp_content.py`; `cleaning/retail_pdp.py` | Five admitted profiles default to canonical content after retailer-owned pin/access/sufficiency/extraction gates. Amazon remains an explicit raw-unflipped route consumed through the legacy raw decoder into the same Cleaning/Silver floor. Shallow ladder profiles derive the commissioned PDP/search identity from the URL and require their exact US pin input; historical canary names are not target evidence. |
 | Retail grid packet/projection | `run_source_capture_cloakbrowser_packet.py`; `source_capture/sephora_brand_grid.py`; `source_capture/retail_grid_projection.py`; `docs/research/forseti_sephora_brand_grid_capture_live_proof_v0.md` | Raw remains authoritative. Sephora, Ulta, and Target have admitted brand/assortment-grid projections with retailer-specific bounds; Amazon has an admitted query-bound ranked-search projection complete only for its declared query and reachable result window, never as a guaranteed complete or authorized-only brand denominator. Projection capability does not admit a live route. |
-| Portfolio breadth composition | `run_retail_portfolio_onboarding.py`; `source_capture/retail_portfolio_onboarding.py` | Compose the owned parent census, company-owned official retailer board, selected retailer set and working primary, every verified grid row's explicit parent/listing reconciliation, and one hash-verified raw Retail/PDP packet per exact non-bundle retailer listing. The derived record preserves duplicate placements, variant URLs, bundles/sets, ambiguity, unmatched rows, missing material variants, and route failures without granting false parent coverage. |
+| Portfolio breadth composition | `run_retail_portfolio_onboarding.py`; `source_capture/retail_portfolio_onboarding.py` | Compose the owned source-parent census, company-owned official retailer board, selected retailer set and working primary, every verified grid row's explicit parent/listing reconciliation, and one hash-verified raw Retail/PDP packet per exact non-bundle retailer listing. Optional evidence-backed family mappings distinguish normalized product families, variant-as-parent objects, bundles/sets, and non-products without name/category inference. The derived record preserves duplicate placements, ambiguity, unmatched rows, missing material variants, unresolved family identity, and route failures without granting false parent or family coverage. |
 | Retail/PDP Silver | `retail_pdp_silver_producer_contract_v0.md`; `run_retail_pdp_silver_producer.py`; `source_capture/retail_pdp_silver.py` | Cleaning-owned source anchors, retailer-local identity, and source-visible offer/review observations only. |
 | Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `forseti-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
 | Data Lake authority | `forseti/product/spines/data_lake/README.md` -> `authority/` | Raw admission, path grammar, derived layout, and Silver semantics. The family index does not own them. |
@@ -65,7 +65,19 @@ a typed selected outcome while another route-complete retailer may be the
 working primary. Captured outcomes point to packet
 directories, not trusted projection summaries: the compositor re-hashes raw
 bytes and rebuilds the retailer projection. Baseline packet locators must bind
-the retailer-native listing identity.
+the stable retailer-native product identity and any explicitly commissioned
+retailer variant; fulfillment, market, or tracking parameters are not product
+identity. The HTTPS scheme and matching retailer host remain part of the route
+binding. Retailer-variant binding is currently admitted only where the route
+exposes a stable selected identifier (Sephora, Target, and Ulta); commissions
+that bind it for another retailer fail closed.
+
+Source-parent count is never a normalized product-family count. A commission
+may supply evidence-referenced family members and non-family dispositions for
+the compositor to validate, but the compositor does not infer them from names,
+URLs, or categories. Unmapped parents remain typed unresolved objects. They do
+not block portfolio composition, but they keep the family denominator
+`PARTIAL` and the complete normalized-family count unavailable.
 
 Run `python runners/run_retail_portfolio_onboarding.py --commission <json>
 --output <json>` from `forseti-harness/`. The derived output is

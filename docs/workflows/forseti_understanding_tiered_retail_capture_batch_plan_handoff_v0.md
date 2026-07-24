@@ -152,13 +152,13 @@ All are under `forseti/product/spines/capture/core/source_families/retail_pdp/`.
 
 ### STEP-3 — Compose complete portfolio onboarding
 
-**Outcome:** owned portfolio census -> every qualified grid outcome -> parent/listing reconciliation -> one full-raw PDP baseline for every exact parent listing -> coverage residuals, all before depth selection.
+**Outcome:** owned source-parent census -> every qualified grid outcome -> parent/listing reconciliation -> one full-raw PDP baseline for every exact parent listing -> evidence-backed normalized-family/non-family dispositions with typed unresolved parents -> coverage residuals, all before depth selection.
 
 **Likely docs:** Retail/PDP `README.md`, extraction standard, and only missing operator detail in the CSB playbook.
 
 **Likely runtime:** grid projection; existing retailer onboarding runners; packet/manifest and Cleaning/Silver consumers; one thin company-onboarding compositor only if existing runners cannot enforce parent coverage and retailer outcome accounting. Prefer composition, not new architecture.
 
-**Acceptance:** a multi-retailer fixture yields deterministic coverage and parent/listing identity; absent retailer, missing material variant, ambiguous match, duplicate listing, bundle/set, and variant URL do not collapse together or inflate parent count; rerun does not overwrite raw; acquisition assigns no hero/growth/weak-link label.
+**Acceptance:** a multi-retailer fixture yields deterministic coverage and stable retailer-native parent/listing identity; context-only URL parameters do not break identity, while a changed host, non-HTTPS route, or commissioned retailer-variant mismatch fails closed. Retailer-variant binding is accepted only when the route exposes a stable selected-ID extractor. Source parents, normalized families, variant-as-parent objects, bundles/sets, non-products, and unresolved parents remain distinct; no name/category heuristic or partial denominator inflates a complete family count. Rerun does not overwrite raw; acquisition assigns no hero/growth/weak-link label.
 
 ### STEP-4 — Add evidence-selected depth and review-overlap linkage
 
