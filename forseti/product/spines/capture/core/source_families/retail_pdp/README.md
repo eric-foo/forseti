@@ -47,6 +47,7 @@ cross-pointer here and in the Scanning family entrypoint.
 | Retail/PDP packet/content | `run_source_capture_cloakbrowser_packet.py`; `source_capture/retail_pdp_content.py`; `cleaning/retail_pdp.py` | Five admitted profiles default to canonical content after retailer-owned pin/access/sufficiency/extraction gates. Amazon remains an explicit raw-unflipped route consumed through the legacy raw decoder into the same Cleaning/Silver floor. Shallow ladder profiles derive the commissioned PDP/search identity from the URL and require their exact US pin input; historical canary names are not target evidence. |
 | Retail grid packet/projection | `run_source_capture_cloakbrowser_packet.py`; `source_capture/sephora_brand_grid.py`; `source_capture/retail_grid_projection.py`; `docs/research/forseti_sephora_brand_grid_capture_live_proof_v0.md` | Raw remains authoritative. Sephora, Ulta, and Target have admitted brand/assortment-grid projections with retailer-specific bounds; Amazon has an admitted query-bound ranked-search projection complete only for its declared query and reachable result window, never as a guaranteed complete or authorized-only brand denominator. Projection capability does not admit a live route. |
 | Portfolio breadth composition | `run_retail_portfolio_onboarding.py`; `source_capture/retail_portfolio_onboarding.py` | Compose the owned source-parent census, company-owned official retailer board, selected retailer set and working primary, every verified grid row's explicit parent/listing reconciliation, and one hash-verified raw Retail/PDP packet per exact non-bundle retailer listing. Optional evidence-backed family mappings distinguish normalized product families, variant-as-parent objects, bundles/sets, and non-products without name/category inference. The derived record preserves duplicate placements, ambiguity, unmatched rows, missing material variants, unresolved family identity, and route failures without granting false parent or family coverage. |
+| Review-corpus breadth | `retailer_information_extraction_standard_v0.md`; `run_revolve_review_corpus_completion.py`; `source_capture/revolve_review_corpus_completion.py` | After baseline PDP coverage, bind every listing to provider tenant/store plus collection context, collapse only proven shared corpora, and acquire one bounded onboarding window or typed terminal outcome for every distinct corpus. The REVOLVE implementation uses Yotpo `Most Recent`, the shared 30-day/30-row onboarding bound, native-ID accounting, and no environment proxy. Complete bounded acquisition does not imply a full historical corpus or require interpretation of every row. |
 | Retail/PDP Silver | `retail_pdp_silver_producer_contract_v0.md`; `run_retail_pdp_silver_producer.py`; `source_capture/retail_pdp_silver.py` | Cleaning-owned source anchors, retailer-local identity, and source-visible offer/review observations only. |
 | Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `forseti-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
 | Data Lake authority | `forseti/product/spines/data_lake/README.md` -> `authority/` | Raw admission, path grammar, derived layout, and Silver semantics. The family index does not own them. |
@@ -84,6 +85,31 @@ Run `python runners/run_retail_portfolio_onboarding.py --commission <json>
 write-once and does not alter Raw. It is a coverage-composition record, not a
 new CSB ledger schema, global SKU graph, sales estimate, or product-role
 selection.
+
+## Review-Corpus Breadth
+
+The default evidence-layer unit is a distinct review corpus, not a retailer
+listing and not a hand-selected hero product. After the portfolio compositor
+binds the baseline listings, route-specific adapters inventory provider
+tenant/store and collection context, acquire one bounded onboarding window per
+distinct accessible corpus, and preserve a typed outcome for everything else.
+Interpretation remains category-balanced and evidence-selected.
+
+REVOLVE's admitted implementation consumes a verified PDP packet root and
+writes one `Most Recent` receipt per distinct Yotpo corpus plus a terminal
+listing-to-corpus completion receipt:
+
+```powershell
+python runners/run_revolve_review_corpus_completion.py `
+  --pdp-root <verified-revolve-pdp-root> `
+  --output-root <new-output-root>
+```
+
+The runner never overwrites an output root, uses no environment proxy, limits
+concurrency to an explicit maximum of eight workers, and continues independent
+corpora so one typed failure does not erase completed evidence. Its completion
+claim is bounded onboarding coverage only, not all historical rows, customer
+representativeness, approval, or demand.
 
 ## Non-Claims
 

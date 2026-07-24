@@ -337,12 +337,22 @@ Same-corpus sort windows are not independent. When two requested sort windows
 substantially overlap, dedupe by source-native review identity, report captured occurrences and unique rows
 separately, and redirect further depth to a materially different corpus,
 category, or product when available. Review volume alone must not optimize the
-selected set. If missing grid pages or category totals, identity conflicts, or
-review comparability could change selection, emit a portfolio-coverage or
+selected set. After exact-parent baseline coverage, map every selected-retailer
+listing to its observed provider tenant/store and product/grouping collection
+context. Collapse duplicate listings, variants, sets, or placements only when
+that evidence proves one shared corpus. Acquire one bounded onboarding window
+for every distinct accessible review corpus, or preserve a typed
+`NO_REVIEWS`, `NOT_EXPOSED`, `ROUTE_BLOCKED`, or identity-unresolved outcome.
+This corpus-board completion is a breadth obligation: it prevents hero-product
+or review-volume selection from defining the reusable customer evidence layer.
+It is not a full historical crawl and does not require manual interpretation of
+every captured corpus. Expensive interpretive and Q&A depth remains
+category-balanced and evidence-selected; stop when its named jobs and material
+seams are supported, contradicted, bounded, or typed as gaps. If missing grid
+pages or category totals, identity conflicts, or review comparability could
+change the corpus board or analysis selection, emit a portfolio-coverage or
 selection gap and continue acquisition or block; never silently select from a
-partial list. A selected retailer's grid and exact-parent baseline are breadth
-obligations; deep review/Q&A capture stops when its named jobs and material seams
-are supported, contradicted, bounded, or typed as gaps.
+partial list.
 
 The working primary is chosen from the officially named retailer board,
 target-market relevance, assortment breadth, structured evidence depth, and
@@ -360,13 +370,15 @@ other selected retailer. This official-first rule uses the existing coverage
 ledger and creates no automatic completion credit. Retailer evidence does not
 become internal company fact.
 
-This MGT portfolio-selection method explicitly accepts that unselected long-tail
-variants may remain at parent-PDP baseline rather than review/Q&A depth; review
-volume remains channel/tenure/syndication biased and supports prominence ordering
-only; observed complaint or weak-link candidates are not market-wide worst-
-product conclusions; and a full global SKU graph and automated identity resolver
-remain out of scope. Upgrade when unresolved breadth, identity, syndication, or
-comparability could materially change the selected set. Assortment and review
+This MGT portfolio-selection method explicitly accepts that listings which do
+not expose a distinct review corpus may remain at parent-PDP baseline, while
+every distinct accessible corpus receives a bounded onboarding window or typed
+gap. Review volume remains channel/tenure/syndication biased and supports
+prominence ordering only; observed complaint or weak-link candidates are not
+market-wide worst-product conclusions; and a full historical review crawl,
+global SKU graph, and automated identity resolver remain out of scope. Upgrade
+when unresolved breadth, identity, syndication, or comparability could
+materially change the corpus board or selected analysis. Assortment and review
 evidence alone cannot establish sales, cash generation, growth, cannibalization,
 internal intent, control, competitive strategy, or operational leverage.
 

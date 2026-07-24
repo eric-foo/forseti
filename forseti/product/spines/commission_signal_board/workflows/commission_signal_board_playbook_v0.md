@@ -94,10 +94,11 @@ The default coordinated route has exactly four evidence actors:
   authorization board, grids, union/reconciliation, exact PDP baselines,
   retailer-native facts, failures, overlap, and provider/corpus identity; never
   split retailers by actor; and
-- `CO3`: mandatory customer/community and selected depth — retailer reviews and
-  Q&A, bounded Reddit and qualified community routes, customer language, pain
-  points, objections, complaints, usage contexts, workarounds, response
-  patterns, syndication ceilings, and discriminating depth checks.
+- `CO3`: mandatory customer/community, complete bounded review-corpus
+  acquisition, and selected interpretation — retailer reviews and Q&A, bounded
+  Reddit and qualified community routes, customer language, pain points,
+  objections, complaints, usage contexts, workarounds, response patterns,
+  syndication ceilings, and discriminating depth checks.
 
 For review depth, keep Sephora on its existing source-specific capture policy.
 For every selected non-Sephora retailer, default to source-labelled `Most
@@ -105,7 +106,12 @@ Recent`/newest when supported and record the actual ordering plus fallback. Bind
 each corpus to observed provider evidence, tenant/store, and collection context;
 never infer `Yotpo` from REVOLVE alone. Same-corpus sort windows are one corpus,
 not independent customer evidence, and duplicate native IDs collapse to one
-unique review.
+unique review. After baseline PDP coverage, account for every retailer listing
+on a distinct-corpus board. Acquire one bounded onboarding window for each
+distinct accessible corpus or record its typed no-review, not-exposed, blocked,
+or unresolved identity outcome. Then select category-balanced corpora for
+expensive interpretation; do not make hero selection the boundary of raw
+customer-evidence acquisition.
 
 Any pair/group dispatcher is mechanical and is not another evidence actor.
 `CO1`-`CO3` use same-root collaboration under `CO0` unless a separately
@@ -184,8 +190,9 @@ specific topology instead of pretending the selected-retailer role applies.
     available grid surfaces -> deterministic union and reconciliation of exact listings with the
    owned candidates -> return to owned surfaces to close the complete publicly
    exposed denominator and typed gaps -> one baseline PDP for every reconciled
-   exact retailer listing at each qualified retailer -> evidence-selected
-   review/Q&A depth. Owned evidence remains canonical identity authority;
+   exact retailer listing at each selected retailer -> complete bounded
+   distinct-review-corpus onboarding board -> evidence-selected interpretive and
+   Q&A depth. Owned evidence remains canonical identity authority;
     retailer grids are discovery and channel-expression evidence. Resolve
     Sephora explicitly, then select any officially named, route-admissible
     retailers that add material evidence; preserve exact typed failure instead
@@ -194,9 +201,11 @@ specific topology instead of pretending the selected-retailer role applies.
     extensions. When Sephora is officially named and route-complete, include it
     and make it primary. Keep its typed outcome but use another complete working
     primary when it is blocked, unpinned, or incomplete. A named
-   non-duplicative job must justify each expensive deepening, and there is no
-   fixed deep-product count. Do not require a full global SKU graph, universal
-   deep capture, or an all-retailer/source-count quota. Preserve calibrated
+   non-duplicative job must justify each expensive interpretive deepening, and
+   there is no fixed interpreted-product count. The bounded onboarding board is
+   a breadth obligation, not universal historical review capture. Do not
+   require a full global SKU graph or an all-retailer/source-count quota.
+   Preserve calibrated
    review-volume semantics, accepted residuals, non-claims, and upgrade trigger.
    Before selecting depth, run the portfolio breadth compositor (or prove the
    same fields through the existing coverage ledger): one owned-parent
@@ -446,17 +455,21 @@ gate above controls whether Deliver may begin.
     Sephora-primary rule when it is officially named and route-complete, but do
     not let primary status excuse another selected retailer's baseline. Preserve typed route failures without
    completion credit and retain retailer-native fields when source-visible.
-   Only after breadth is sealed, select expensive review/Q&A depth for evidence-
-   selected products. Each deepening needs a named non-duplicative job, there is
-   no fixed product count, and retailer counts remain separate rather than
+   Only after exact-parent PDP breadth is sealed, bind every selected-retailer
+   listing to its observed review-corpus identity and acquire one bounded
+   onboarding window per distinct accessible corpus, or preserve a typed
+   no-review/not-exposed/blocked/unresolved result. Then select expensive
+   interpretive and Q&A depth for category-balanced evidence jobs. Each
+   interpretive deepening needs a named non-duplicative job, there is no fixed
+   interpreted-product count, and retailer counts remain separate rather than
     becoming sales. Treat Amazon, when selected, as a query-bound ranked-search window, not a
    guaranteed complete or authorized-only catalog; projection capability never
    substitutes for route admission. Point-in-time retailer metrics are traction
    proxies, not sales, share, or trend. Preserve analysis-enablement inputs,
    stop-or-gap rules, review-
    volume claim guards, accepted residuals, non-claims, and upgrade trigger. This
-   orders attention; it is not a source quota, proof hierarchy, universal-deep-
-   capture rule, full-SKU-graph requirement, new ledger schema, or Scanning
+   orders attention; it is not a source quota, proof hierarchy, full historical
+   review crawl, full-SKU-graph requirement, new ledger schema, or Scanning
    execution instruction. Commission archives, supply, ads/creators,
    competitors, search trends, and similar deepening only for a named unresolved
    inference job.
