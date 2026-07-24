@@ -317,6 +317,79 @@ def test_linkage_is_deterministic_preserves_occurrences_and_queues_conflicts(
     )
 
 
+def test_revolve_yotpo_context_and_same_corpus_sorts_dedupe_by_native_id(
+    tmp_path: Path,
+) -> None:
+    selection_path = _selection_output(tmp_path)
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    job = next(
+        item
+        for item in selection["companion_onboarding_jobs"]
+        if item["retailer"] == "target" and item["surface"] == "REVIEWS"
+    )
+    job["retailer"] = "revolve"
+    job["source_product_id"] = "revolve-complaint-product"
+    job["capture_job_id"] = _capture_job_id(
+        "revolve", "revolve-complaint-product"
+    )
+    _write_json(selection_path, selection)
+    raw_ref = _review_packet(tmp_path, "revolve")
+    common = {
+        "provider": "Yotpo",
+        "native_id": "yotpo-review-1",
+        "origin_id": None,
+        "rating": 5,
+        "date": "2026-07-24",
+        "author": "Alex",
+        "title": "Great",
+        "body": "Works all day.",
+        "provider_tenant_store": "revolve:b4k4hv",
+        "collection_context": "REVOLVE PDP SUMR-WU76 reviews",
+        "provider_evidence_refs": ["raw:yotpo-store-id"],
+    }
+    commission_path = tmp_path / "revolve-linkage.json"
+    _write_json(
+        commission_path,
+        {
+            "company_id": "example-company",
+            "selection_output_path": str(selection_path),
+            "corpus_label": "REVOLVE Yotpo bounded sort windows",
+            "occurrences": [
+                _occurrence(
+                    "recent",
+                    "revolve",
+                    raw_ref,
+                    actual_ordering="Most Recent",
+                    **common,
+                ),
+                _occurrence(
+                    "relevant",
+                    "revolve",
+                    raw_ref,
+                    actual_ordering="Most Relevant",
+                    ordering_fallback="historical comparison capture",
+                    **common,
+                ),
+            ],
+        },
+    )
+
+    result = build_review_linkage(
+        commission=load_review_linkage_commission(commission_path),
+        base_directory=tmp_path,
+    )
+
+    assert len(result["unique_review_groups"]) == 1
+    assert result["unique_review_groups"][0]["occurrence_ids"] == [
+        "recent",
+        "relevant",
+    ]
+    assert result["occurrences"][0]["provider"] == "Yotpo"
+    assert result["occurrences"][0]["provider_evidence_refs"] == [
+        "raw:yotpo-store-id"
+    ]
+
+
 def test_linkage_reverifies_raw_hash_and_refuses_overwrite(tmp_path: Path) -> None:
     selection_path = _selection_output(tmp_path)
     raw_ref = _review_packet(tmp_path, "sephora")
@@ -905,7 +978,7 @@ def test_selection_rejects_a_baseline_without_a_verified_packet_binding(
     _write_json(
         portfolio_path,
         {
-            "schema_version": "retail_portfolio_onboarding_v0",
+            "schema_version": "retail_portfolio_onboarding_v1",
             "company_id": "example-company",
             "owned_parents": [{"owned_parent_id": "complaint-product"}],
             "listing_identities": [
@@ -1042,7 +1115,7 @@ def _portfolio_output(tmp_path: Path) -> Path:
     _write_json(
         output_path,
         {
-            "schema_version": "retail_portfolio_onboarding_v0",
+            "schema_version": "retail_portfolio_onboarding_v1",
             "company_id": "example-company",
             "owned_parents": [
                 {"owned_parent_id": "complaint-product"},
@@ -1170,6 +1243,11 @@ def _occurrence(
     syndication_key: str | None = None,
     capture_job_id: str | None = None,
     source_product_id: str | None = None,
+    provider_tenant_store: str | None = None,
+    collection_context: str | None = None,
+    provider_evidence_refs: list[str] | None = None,
+    actual_ordering: str | None = None,
+    ordering_fallback: str | None = None,
 ) -> dict[str, object]:
     row_ref = dict(raw_ref)
     # One raw review row backs at most one occurrence, so fixture anchors are
@@ -1185,6 +1263,25 @@ def _occurrence(
         ),
         "source_product_id": source_product_id,
         "provider": provider,
+        "provider_tenant_store": (
+            provider_tenant_store or f"{provider}:{retailer}-tenant"
+        ),
+        "collection_context": (
+            collection_context or f"{retailer}:{source_product_id}:reviews"
+        ),
+        "provider_evidence_refs": (
+            provider_evidence_refs or ["provider:" + raw_ref["packet_id"]]
+        ),
+        "selection_policy": (
+            "SEPHORA_EXISTING_POLICY"
+            if retailer == "sephora"
+            else "NON_SEPHORA_MOST_RECENT"
+        ),
+        "actual_ordering": (
+            actual_ordering
+            or ("Most Helpful" if retailer == "sephora" else "Most Recent")
+        ),
+        "ordering_fallback": ordering_fallback,
         "source_native_review_id": native_id,
         "origin_review_id": origin_id,
         "explicit_syndication_key": syndication_key,

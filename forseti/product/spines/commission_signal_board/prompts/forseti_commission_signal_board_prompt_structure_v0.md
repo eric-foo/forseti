@@ -804,16 +804,16 @@ portfolio roles, positioning, channel posture, and dependencies. They do not
 authorize claims about internal management intent, revenue, margin, cash
 generation, sell-through, or undisclosed operations.
 
-Then test the qualified US beauty ladder -- Sephora, Ulta, Target, and Amazon. A
-retailer qualifies only when the subject is relevant there and the authorized
-route is pinned to the US market and admissible. Use existing coverage-ledger
-fields to preserve each test and its exact result, including `NOT_LISTED`,
-`ROUTE_BLOCKED`, `MARKET_UNPINNED`, or `SURFACE_NOT_EXPOSED`; never infer a
-listing or award completion credit for a failed or unobserved route. This is a
-named US qualification test, not a retailer-count, all-retailer, or source-count
-quota.
+Use company-owned evidence to establish the officially named US retailer board
+before probing retailer surfaces. Resolve Sephora explicitly and select any
+route-admissible retailers that add material assortment, commercial, or customer
+evidence; there is no fixed retailer quartet or count. Use existing
+coverage-ledger fields to preserve each authorization and route test with its
+exact result, including `NOT_LISTED`, `ROUTE_BLOCKED`, `MARKET_UNPINNED`, or
+`SURFACE_NOT_EXPOSED`; never infer a listing or award completion credit for a
+failed or unobserved route.
 
-For every qualified retailer, acquire its available grid surface,
+For every selected retailer, acquire its available grid surface,
 deterministically union and reconcile exact listings with the owned candidates,
 then return to owned evidence to close the complete publicly exposed denominator
 and typed gaps. Owned evidence remains canonical identity authority. Acquire one
@@ -842,26 +842,39 @@ or label a selection a sales leader, best-performing product, or worst product.
 Review volume is a channel-, tenure-, assortment-, and syndication-sensitive
 prominence prior, not evidence of sales, demand, or commercial performance. Keep
 counts separate by retailer and corpus; do not sum them unless exact corpus
-identity and deduplication justify it. Review volume alone must not optimize the
+identity and deduplication justify it. Sephora retains its existing source-
+specific review capture policy. For each selected non-Sephora retailer, default
+the analytical review window to source-labelled `Most Recent`/newest when
+supported; record requested and actual ordering plus any fallback. Before treating a second retailer review
+capture as independent customer evidence, bind its retailer collection context,
+observed provider plus its evidence reference, provider tenant/store,
+product/grouping scope, origin/syndication identifiers, and measured overlap against already captured rows. Provider difference alone
+does not prove independence, and provider identity is never inferred from the
+retailer alone. Same-corpus sort windows are not independent. When requested
+sort windows substantially overlap, dedupe by source-native review identity, report occurrences and unique rows
+separately, and redirect further depth to a materially different corpus,
+category, or product when available. Review volume alone must not optimize the
 selected set. If missing grid pages or category totals, identity conflicts, or
 review comparability could change selection, record a portfolio-coverage or
 selection gap and continue acquisition or block; never silently choose from a
-partial list. A qualified retailer's grid and exact-parent baseline are breadth
+partial list. A selected retailer's grid and exact-parent baseline are breadth
 obligations; deep review/Q&A capture stops when its named jobs and material seams
 are supported, contradicted, bounded, or typed as gaps.
 
-Choose the primary retailer from subject authorization, target-market relevance,
-assortment breadth, structured evidence depth, and route admissibility. When
-Sephora is authorized for the target market, route-admissible, and materially
-complete for the relevant candidate or franchise, use it as the default retail
-primary for normalized product, assortment, and review controls. Override at
-product or franchise level when Sephora omits a material product or variant, is
-unpinned or blocked, or another qualified retailer is required for the bound
-information job. Primary status selects the richest normalization/reference
-surface; it does not excuse baseline coverage at any other qualified retailer.
-The ladder uses the existing coverage ledger and adds no schema or automatic
-completion credit. Retailer evidence remains retailer evidence, not authority
-for internal company fact.
+Choose the working primary from the officially named retailer board,
+target-market relevance, assortment breadth, structured evidence depth, and
+route admissibility. When Sephora is officially named for the target market and
+its US grid is route-complete, select it and use it as the retail primary for
+normalized product, assortment, and review controls. If it is officially named
+but blocked, unpinned, or incomplete, keep Sephora's typed outcome and use the
+strongest complete selected retailer as the working primary; never fake Sephora
+coverage. Another retailer may supply a product- or franchise-level baseline
+when Sephora omits that material product or variant, or a separate
+non-duplicative information job, without displacing a usable company-level
+Sephora primary. Primary status does not excuse baseline coverage at another
+selected retailer. The official-first board uses the existing coverage ledger
+and adds no automatic completion credit. Retailer evidence remains retailer
+evidence, not authority for internal company fact.
 
 Carry these MGT accepted residuals: unselected long-tail variants may remain at
 parent-PDP baseline rather than review/Q&A depth; review volume remains channel/
@@ -984,10 +997,11 @@ discovery is category-aware. A blocked or missing row needs a typed gap/request;
 `not_applicable` needs a rationale.
 
 When retail is material, use separate coverage rows for the owned architecture,
-each qualified-ladder test and grid, and each exact-parent baseline PDP result.
+each official-retailer authorization and selected-retailer route/grid, and each
+exact-parent baseline PDP result.
 State qualification, retailer role, and any distinct deepening job in
-`relevance_rationale`. Use exact route results and typed gaps; do not turn the
-four-retailer test into completion by count. A deepening route becomes
+`relevance_rationale`. Use exact route results and typed gaps; do not turn a
+retailer count into completion. A deepening route becomes
 load-bearing only when acquired evidence promotes its named job into a material
 seam under the acquisition playbook.
 
@@ -1058,9 +1072,10 @@ cross-sell or overlap relationships.
 
 #### Qualified Retailer Corpus
 
-Report the exact Sephora, Ulta, Target, and Amazon qualification outcome. For
-each qualified retailer, summarize the declared and reached grid-surface boundary,
-owned-parent reconciliation, exact-listing PDP baseline coverage, and
+Report the company-owned official retailer board, Sephora's explicit
+authorization/route outcome, the selected retailers, and the working primary.
+For each selected retailer, summarize the declared and reached grid-surface
+boundary, owned-parent reconciliation, exact-listing PDP baseline coverage, and
 retailer-native information. A typed failure is an outcome, never a listing or
 completion credit.
 

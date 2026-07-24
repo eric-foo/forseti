@@ -2,9 +2,10 @@
 from __future__ import annotations
 import json
 from pathlib import Path
+import re
 from typing import Any, Literal
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from schemas.case_models import StrictModel
 from source_capture.models import VisibleFactStatus
 from source_capture.retail_grid_projection import (
@@ -14,13 +15,16 @@ from source_capture.retail_grid_projection import (
     load_verified_source_capture_packet_directory,
 )
 
-SCHEMA_VERSION = "retail_portfolio_onboarding_v0"
-LADDER = ("sephora", "ulta", "target", "amazon")
-Retailer = Literal["sephora", "ulta", "target", "amazon"]
+SCHEMA_VERSION = "retail_portfolio_onboarding_v1"
+Retailer = str
+AuthorizationStatus = Literal[
+    "OFFICIALLY_NAMED", "NOT_OFFICIALLY_NAMED", "UNKNOWN"
+]
 OutcomeStatus = Literal["GRID_CAPTURED_COMPLETE", "GRID_CAPTURED_INCOMPLETE",
     "NOT_LISTED", "ROUTE_BLOCKED", "MARKET_UNPINNED", "SURFACE_NOT_EXPOSED"]
 ListingKind = Literal["PARENT", "VARIANT_URL", "BUNDLE_SET"]
 MatchStatus = Literal["EXACT", "AMBIGUOUS", "UNMATCHED"]
+_RETAILER_SLUG = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 
 class RetailPortfolioOnboardingError(ValueError):
     """Inputs cannot produce truthful deterministic coverage."""
@@ -37,11 +41,26 @@ class OwnedCensus(StrictModel):
     source_packet_id: str
     parents: list[OwnedParent] = Field(min_length=1)
 
+class RetailerAuthorization(StrictModel):
+    retailer: Retailer
+    status: AuthorizationStatus
+    evidence_refs: list[str] = Field(min_length=1)
+
+    @field_validator("retailer")
+    @classmethod
+    def valid_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
+
 class RetailerOutcome(StrictModel):
     retailer: Retailer
     status: OutcomeStatus
     evidence_refs: list[str] = Field(min_length=1)
     grid_packet_directory: str | None = None
+
+    @field_validator("retailer")
+    @classmethod
+    def valid_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
 
     @model_validator(mode="after")
     def captured_status_has_grid(self) -> "RetailerOutcome":
@@ -59,6 +78,11 @@ class ListingReconciliation(StrictModel):
     match_status: MatchStatus
     owned_parent_ids: list[str] = Field(default_factory=list)
     material_variant_ids: list[str] = Field(default_factory=list)
+
+    @field_validator("retailer")
+    @classmethod
+    def valid_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
 
     @model_validator(mode="after")
     def match_cardinality(self) -> "ListingReconciliation":
@@ -80,18 +104,75 @@ class PdpBaseline(StrictModel):
     source_product_id: str
     packet_directory: str
 
+    @field_validator("retailer")
+    @classmethod
+    def valid_retailer_slug(cls, value: str) -> str:
+        return _retailer_slug(value)
+
 class PortfolioCommission(StrictModel):
     company_id: str
     owned_census: OwnedCensus
-    retailer_outcomes: list[RetailerOutcome]
+    retailer_authorizations: list[RetailerAuthorization] = Field(min_length=1)
+    primary_retailer: Retailer | None = None
+    retailer_outcomes: list[RetailerOutcome] = Field(min_length=1)
     listing_reconciliations: list[ListingReconciliation] = Field(default_factory=list)
     pdp_baselines: list[PdpBaseline] = Field(default_factory=list)
 
+    @field_validator("primary_retailer")
+    @classmethod
+    def valid_primary_retailer_slug(cls, value: str | None) -> str | None:
+        return None if value is None else _retailer_slug(value)
+
     @model_validator(mode="after")
-    def exact_ladder_and_unique_parents(self) -> "PortfolioCommission":
+    def official_first_selection_and_unique_parents(self) -> "PortfolioCommission":
+        authorizations = [item.retailer for item in self.retailer_authorizations]
+        if len(authorizations) != len(set(authorizations)):
+            raise ValueError("retailer_authorizations must name each retailer once")
+        if "sephora" not in authorizations:
+            raise ValueError("retailer_authorizations must explicitly resolve sephora")
+        officially_named = {
+            item.retailer
+            for item in self.retailer_authorizations
+            if item.status == "OFFICIALLY_NAMED"
+        }
         retailers = [item.retailer for item in self.retailer_outcomes]
-        if len(retailers) != len(set(retailers)) or set(retailers) != set(LADDER):
-            raise ValueError("retailer_outcomes must contain the four ladder retailers once")
+        if len(retailers) != len(set(retailers)):
+            raise ValueError("retailer_outcomes must name each selected retailer once")
+        unconfirmed = sorted(set(retailers) - officially_named)
+        if unconfirmed:
+            raise ValueError(
+                "retailer_outcomes require company-owned official evidence: "
+                f"{unconfirmed}"
+            )
+        outcomes = {item.retailer: item for item in self.retailer_outcomes}
+        if "sephora" in officially_named and "sephora" not in outcomes:
+            raise ValueError("officially named sephora must remain in retailer_outcomes")
+        complete = {
+            item.retailer
+            for item in self.retailer_outcomes
+            if item.status == "GRID_CAPTURED_COMPLETE"
+        }
+        if self.primary_retailer is None and complete:
+            raise ValueError("primary_retailer is required when a complete grid exists")
+        if self.primary_retailer is not None and self.primary_retailer not in complete:
+            raise ValueError("primary_retailer must have GRID_CAPTURED_COMPLETE")
+        if (
+            "sephora" in officially_named
+            and outcomes["sephora"].status == "GRID_CAPTURED_COMPLETE"
+            and self.primary_retailer != "sephora"
+        ):
+            raise ValueError(
+                "officially named, route-complete sephora must be primary_retailer"
+            )
+        selected = set(retailers)
+        attached = {
+            item.retailer
+            for item in (*self.listing_reconciliations, *self.pdp_baselines)
+        }
+        if not attached.issubset(selected):
+            raise ValueError(
+                "reconciliations and baselines must use selected retailer_outcomes"
+            )
         ids = [item.owned_parent_id for item in self.owned_census.parents]
         if len(ids) != len(set(ids)):
             raise ValueError("owned_parent_id values must be unique")
@@ -107,9 +188,10 @@ def load_portfolio_commission(path: Path) -> PortfolioCommission:
 def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_directory: Path) -> dict[str, Any]:
     parents = {item.owned_parent_id: item for item in commission.owned_census.parents}
     outcomes = {item.retailer: item for item in commission.retailer_outcomes}
+    retailers = _retailer_order(commission)
     grid_rows: dict[tuple[str, str], Any] = {}
     outcome_rows: list[dict[str, Any]] = []
-    for retailer in LADDER:
+    for retailer in retailers:
         outcome = outcomes[retailer]
         rendered: dict[str, Any] = {"retailer": retailer, "status": outcome.status,
             "evidence_refs": outcome.evidence_refs, "grid_packet_id": None,
@@ -232,7 +314,7 @@ def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_d
             "preserved_file_count": len(packet.preserved_files)})
 
     coverage: list[dict[str, Any]] = []
-    for retailer in LADDER:
+    for retailer in retailers:
         rows = [row for row in commission.listing_reconciliations if row.retailer == retailer]
         covered = sorted({parent for row in rows if row.match_status == "EXACT"
             and row.listing_kind != "BUNDLE_SET" for parent in row.owned_parent_ids})
@@ -257,6 +339,13 @@ def build_retail_portfolio_onboarding(*, commission: PortfolioCommission, base_d
     return {"schema_version": SCHEMA_VERSION,
         "certification": "coverage_composition_only; not_depth_selection; not_judgment",
         "company_id": commission.company_id,
+        "retailer_authorizations": [
+            item.model_dump(mode="json")
+            for item in sorted(
+                commission.retailer_authorizations, key=lambda value: value.retailer
+            )
+        ],
+        "primary_retailer": commission.primary_retailer,
         "owned_census_source_packet_id": commission.owned_census.source_packet_id,
         "owned_parent_count": len(parents),
         "owned_parents": [item.model_dump(mode="json") for item in sorted(
@@ -288,6 +377,19 @@ def _canonical(value: str) -> str:
     parsed=urlparse(value.strip())
     return urlunparse((parsed.scheme.lower(),parsed.netloc.lower(),parsed.path.rstrip("/"),"",
         urlencode(sorted(parse_qsl(parsed.query,keep_blank_values=True))),""))
+
+def _retailer_slug(value: str) -> str:
+    if _RETAILER_SLUG.fullmatch(value) is None:
+        raise ValueError("retailer must be a lowercase slug")
+    return value
+
+def _retailer_order(commission: PortfolioCommission) -> list[str]:
+    retailers = sorted(item.retailer for item in commission.retailer_outcomes)
+    if commission.primary_retailer is None:
+        return retailers
+    return [commission.primary_retailer] + [
+        retailer for retailer in retailers if retailer != commission.primary_retailer
+    ]
 
 def _reject_judgment_keys(value: Any, path: str = "$") -> None:
     if isinstance(value,dict):
