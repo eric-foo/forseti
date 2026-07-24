@@ -1027,7 +1027,10 @@ def test_sephora_projection_preserves_partial_tile_and_fails_count_reconciliatio
     assert any("grid_tile_identity_incomplete:1" in item for item in projection.residuals)
 
 
-@pytest.mark.parametrize(("requested_page", "window_size"), [(2, 120), (5, 300)])
+@pytest.mark.parametrize(
+    ("requested_page", "window_size"),
+    [(2, 120), (5, 300), (12, 720)],
+)
 def test_sephora_catalog_projection_reconciles_bounded_bestseller_window(
     requested_page: int, window_size: int
 ) -> None:

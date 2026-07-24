@@ -25,6 +25,7 @@ from source_capture.sephora_brand_grid import (
     load_sephora_brand_grid_state,
 )
 from source_capture.sephora_catalog_grid import (
+    SEPHORA_CATALOG_MAX_PAGE,
     SEPHORA_CATALOG_PAGE_SIZE,
     SephoraCatalogAggregateState,
     SephoraCatalogGridStateError,
@@ -1230,7 +1231,7 @@ def _sephora_catalog_grid_reconciliation(
         state is None
         or requested_start_page != 1
         or state.requested_page_count < 1
-        or state.requested_page_count > 5
+        or state.requested_page_count > SEPHORA_CATALOG_MAX_PAGE
     ):
         reconciliation_residuals.append(
             "sephora_catalog_grid_requested_window_unconfirmed"

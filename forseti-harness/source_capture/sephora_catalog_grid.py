@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 
 SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION = "sephora_catalog_grid_content_v1"
 SEPHORA_CATALOG_PAGE_SIZE = 60
-SEPHORA_CATALOG_MAX_PAGE = 5
+SEPHORA_CATALOG_MAX_PAGE = 12
 _SEPHORA_HOSTS = frozenset({"sephora.com", "www.sephora.com"})
 _PRODUCT_ANCHOR_RE = re.compile(
     r"<a\b(?P<attrs>(?=[^>]*\bdata-cnstrc-item-id=[\"'][^\"']+[\"'])[^>]*)>",

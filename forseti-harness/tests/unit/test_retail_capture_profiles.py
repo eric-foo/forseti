@@ -149,11 +149,11 @@ def test_sephora_catalog_grid_profile_binds_bounded_page_and_bestseller_sort() -
     assert result.passed is True
     assert profile.scroll_stop_condition() is None
     for invalid_url in (
-        "https://www.sephora.com/shop/makeup-cosmetics?currentPage=6&sortBy=BEST_SELLING",
+        "https://www.sephora.com/shop/makeup-cosmetics?currentPage=13&sortBy=BEST_SELLING",
         "https://www.sephora.com/shop/makeup-cosmetics?currentPage=2&sortBy=NEW",
         "https://www.sephora.com/beauty/beauty-best-sellers?currentPage=2&sortBy=BEST_SELLING",
     ):
-        with pytest.raises(ValueError, match="currentPage in \\[1,5\\]"):
+        with pytest.raises(ValueError, match="currentPage in \\[1,12\\]"):
             profile.requirements_for_capture(url=invalid_url)
 
 
