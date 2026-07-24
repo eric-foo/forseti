@@ -100,8 +100,10 @@ mix and default posture remain observable. All analytical review views then
 apply the retailer's exact non-incentivized filter when it exists:
 
 1. For Sephora, retain the existing source-specific onboarding policy: Helpful
-   plus statistics, Recent, and Q&A. This rule does not remove or rewrite any
-   Sephora capture role below.
+   plus statistics, Recent, and Q&A. Sephora's review volume supports keeping
+   Helpful and Recent as two useful bounded views; they remain views of one
+   retailer corpus and must be deduplicated before overlap or independence
+   claims. This rule does not remove or rewrite any Sephora capture role below.
 2. For each selected non-Sephora retailer, request the source-labelled
    newest/`Most Recent` ordering by default when the source supports it; do not
    routinely add `Most Helpful` or `Most Relevant` as another customer corpus.
