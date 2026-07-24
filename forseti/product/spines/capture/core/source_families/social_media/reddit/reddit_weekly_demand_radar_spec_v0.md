@@ -159,6 +159,29 @@ separate layer; nothing here persists analysis output to the lake.
   within-thread stopping rule. Record explicitly named brands, products, and
   ingredients in their stated context (alleged problem/cause, proposed
   solution, recommendation, comparison, praise, or neutral mention).
+- Selection routes capture; it does not itself qualify a finding. Post-capture
+  qualification binds an explicit decision question and an explicit human
+  judgment for decision relevance, wedge membership, and any comments claimed
+  as corroboration. Missing judgment remains `needs_judgment`.
+- A decision-relevant, low-engagement thread without independent
+  corroboration is a `low_lead`. Multiple low-engagement threads may become a
+  `stacked_emerging_signal` only after independent-source checks.
+- Count repeated observations conservatively. The same author, a near-identical
+  title/body, a crosspost, or the same incident reposted across subreddits
+  cannot inflate independent recurrence. Unknown or deleted authors do not
+  prove independence.
+- A decision-relevant finding with strong audience resonance is a
+  `priority_signal`. Resonance means the thread is in its subreddit's weekly
+  engagement head, has at least 15 listing comments, or contains a substantive
+  comment with at least 5 points. These thresholds prioritize audience
+  response; they are not truth or prevalence claims.
+- `critical_signal` requires all three: explicit decision relevance, resonance,
+  and at least two independent evidence sources after author and
+  near-duplicate deduplication. High-point comments lead presentation while
+  lower-point independent corroboration may still sharpen the wedge.
+- Explicitly off-question evidence is `excluded_not_decision_relevant`.
+  Missing or failed content remains `access_or_processing_gap`; never score an
+  access or processing failure as low value or useless.
 - When direct HTTP returns a body classified as `block_shell`, the bounded batch
   writes a diagnostic PNG and JSON receipt from the exact preserved response
   bytes. The derivation performs no URL re-fetch, browser access, retry, CAPTCHA
