@@ -11,6 +11,7 @@ from urllib.parse import urljoin, urlparse
 
 from pydantic import Field
 
+from harness_utils import hash_file
 from schemas.case_models import StrictModel
 from source_capture.adapters.nordstrom_country_preference import (
     confirm_nordstrom_us_storefront,
@@ -249,7 +250,7 @@ def build_nordstrom_pdp_evidence(
         product_name=product_name,
         seller=seller,
         packet_directory=str(packet_directory.resolve()),
-        manifest_sha256=_sha256_path(manifest_path),
+        manifest_sha256=hash_file(manifest_path),
         rendered_dom_sha256=dom_sha256,
     )
 
@@ -400,7 +401,3 @@ def _text(value: str) -> str:
 def _canonical_url(value: str) -> str:
     parsed = urlparse(value)
     return f"https://www.nordstrom.com{parsed.path.rstrip('/')}"
-
-
-def _sha256_path(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
