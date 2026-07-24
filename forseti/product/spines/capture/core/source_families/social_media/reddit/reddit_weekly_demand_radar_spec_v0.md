@@ -31,9 +31,10 @@ stale_if:
 
 ## Status
 
-`PROPOSAL — AGREED DIRECTION, NOT IMPLEMENTED`. Owner-converged 2026-07-22
-across one dogfooded cycle (5-subreddit test set, one problem brief). Implement
-only after explicit owner go.
+`IMPLEMENTED — DOGFOOD-REFINED 2026-07-24`. The engagement-head plus title-tail
+selection landed in PR #1319. A subsequent 30-slot lower-tail dogfood retained
+the head and rotating audit while tightening title rescue so generic questions,
+routines, hauls, and discussion flairs no longer route capture by themselves.
 
 ## Goal binding
 
@@ -135,15 +136,20 @@ separate layer; nothing here persists analysis output to the lake.
   or not a thread is selected.
 - Within each subreddit, rank by comments descending, then score descending,
   then thread URL. Select the top half (rounding up) unconditionally.
-- In the lower half, also select listing titles or listing-visible flair that
-  explicitly or suggestively signal pain/failure, praise/success, comparison/
-  choice, a concrete question or constraint, experience/outcome, review/update,
-  routine/collection, or recommendation/discussion. These signals route capture
-  only; they are not proof of pain, praise, causation, prevalence, or entity
-  involvement.
-- From the remaining opaque-title tail in each subreddit, select a deterministic
-  rotating 10% audit sample, rounded up with a minimum of one when that tail is
-  non-empty. The weekly date, subreddit, and thread URL seed the rotation.
+- In the lower half, compute a transparent title-rescue score. Pain/failure,
+  praise/success, comparison/choice, experience/outcome, or review/update earns
+  2 points. A generic question, routine, haul, recommendation, or discussion
+  signal earns 1 point. Concrete listing-visible product/ingredient, technique,
+  price/value, or variant/constraint context adds 1 point.
+- At 1+ listing comments, rescue a title scoring at least 2. At zero comments,
+  require 3 points so a thread with no observed discussion carries both a
+  strong signal and concrete context. These signals route capture only; they
+  are not proof of pain, praise, causation, prevalence, or entity involvement.
+- From every remaining lower-tail row, select one deterministic rotating 10%
+  audit sample, rounded up with a minimum of one when that tail is non-empty.
+  Preserve `opaque_tail_audit` for genuinely opaque titles and
+  `weak_signal_tail_audit` for listing-visible signals that did not clear the
+  rescue gate. The weekly date, subreddit, and thread URL seed the rotation.
 - Emit both the selected rows with their selection reason and a
   `run_reddit_old_http_batch.py`-compatible capture list. The weekly output
   always states eligible threads versus selected threads and reason counts; no
@@ -153,6 +159,14 @@ separate layer; nothing here persists analysis output to the lake.
   within-thread stopping rule. Record explicitly named brands, products, and
   ingredients in their stated context (alleged problem/cause, proposed
   solution, recommendation, comparison, praise, or neutral mention).
+- When direct HTTP returns a body classified as `block_shell`, the bounded batch
+  writes a diagnostic PNG and JSON receipt from the exact preserved response
+  bytes. The derivation performs no URL re-fetch, browser access, retry, CAPTCHA
+  interaction, proxy use, or alternate access. It is a readable diagnostic
+  rendering, not a claim of pixel-faithful browser appearance.
+- Bare reCAPTCHA widget markup inside an otherwise visible Reddit login form is
+  not a challenge-page signal. Visible human-verification language and the
+  existing provider-specific block-shell signals continue to fail closed.
 
 ### F. Roster discovery sweep (SERP), and its pacing contract
 

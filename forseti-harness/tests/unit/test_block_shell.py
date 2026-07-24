@@ -63,6 +63,21 @@ def test_captcha_body_is_block_shell():
     assert result.classification is CaptureBodyClass.BLOCK_SHELL
 
 
+def test_embedded_recaptcha_login_widget_is_not_a_challenge_page_signal():
+    body = b"""\
+    <html><body>
+      <article><h1>Visible source content</h1><p>The complete article is here.</p></article>
+      <form action="/login">
+        <div class="g-recaptcha" data-sitekey="public-widget-key"></div>
+        <span class="error bad_captcha" style="display:none"></span>
+      </form>
+    </body></html>
+    """
+    result = classify_capture_body(status=200, headers={}, body=body)
+    assert result.classification is CaptureBodyClass.CONTENT_UNVERIFIED
+    assert result.signal is None
+
+
 def test_encoded_body_is_content_unverified_with_limitation_signal():
     result = classify_capture_body(
         status=200,

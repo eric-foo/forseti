@@ -750,6 +750,92 @@ def test_weekly_deep_dive_selection_rescues_titles_and_audits_opaque_tail() -> N
 
 
 @pytest.mark.parametrize(
+    ("title", "flair", "comments", "expected_score", "expected_eligible"),
+    [
+        ("How should I do this?", None, 12, 1, False),
+        ("My current routine", "Routine", 12, 1, False),
+        ("PBE haul", None, 18, 1, False),
+        ("No one else will appreciate this repair", "Showoff", 8, 2, True),
+        ("Alastin serum shout out", None, 5, 3, True),
+        ("Review: new perfume collection", None, 3, 3, True),
+        ("This burned my face", None, 3, 2, True),
+        ("This burned my face", None, 0, 2, False),
+        ("Review: new perfume collection", None, 0, 3, True),
+    ],
+)
+def test_weekly_tail_rescue_requires_decision_signal_and_low_comment_context(
+    title: str,
+    flair: str | None,
+    comments: int,
+    expected_score: int,
+    expected_eligible: bool,
+) -> None:
+    from runners.run_reddit_weekly_demand_read import (
+        _classify_title_signal,
+        _tail_title_rescue_eligible,
+        _tail_title_rescue_score,
+        _title_context_reasons,
+    )
+
+    _title_class, title_reasons = _classify_title_signal(title, flair)
+    context_reasons = _title_context_reasons(title, flair)
+    score = _tail_title_rescue_score(
+        title_reasons=title_reasons,
+        context_reasons=context_reasons,
+    )
+
+    assert score == expected_score
+    assert _tail_title_rescue_eligible(comments=comments, rescue_score=score) is expected_eligible
+
+
+def test_weekly_audit_names_weak_signal_titles_truthfully() -> None:
+    import datetime as dt
+
+    from runners.run_reddit_weekly_demand_read import _select_deep_dive_rows
+
+    rows = [
+        {
+            "subreddit": "example",
+            "thread_url": f"https://old.reddit.com/r/example/comments/id{index}/post/",
+            "title_or_none": title,
+            "flair_or_none": None,
+            "timestamp_utc_ms_or_none": None,
+            "score": 20 - index,
+            "comments": 20 - index,
+        }
+        for index, title in enumerate(
+            [
+                "Head one",
+                "Head two",
+                "Head three",
+                "How should I do this?",
+                "Opaque tail",
+                "My current routine",
+            ],
+            start=1,
+        )
+    ]
+
+    selected = _select_deep_dive_rows(
+        subreddit="example",
+        rows=rows,
+        as_of=dt.date(2026, 7, 23),
+        opaque_tail_audit_fraction=1.0,
+    )
+
+    audit_reasons = {
+        row["title_or_none"]: row["selection_reason"]
+        for row in selected
+        if row["selection_reason"].endswith("_audit")
+    }
+    assert audit_reasons == {
+        "How should I do this?": "weak_signal_tail_audit",
+        "Opaque tail": "opaque_tail_audit",
+        "My current routine": "weak_signal_tail_audit",
+    }
+
+
+@pytest.mark.parametrize(
     ("title", "expected_class", "expected_reason"),
     [
         ("This serum burned my face", "explicit", "pain_or_failure"),
