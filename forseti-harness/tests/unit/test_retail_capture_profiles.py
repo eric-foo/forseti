@@ -58,6 +58,11 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
     assert get_retail_capture_profile("luckyscent_pdp_aggregate").scroll_step_px == 500
     assert get_retail_capture_profile("luckyscent_pdp_aggregate").scroll_passes == 4
     assert get_retail_capture_profile("sephora_grid_aggregate").scroll_target_selector is None
+    catalog = get_retail_capture_profile("sephora_catalog_grid_aggregate")
+    assert catalog.scroll_step_px == 0
+    assert catalog.scroll_passes == 0
+    assert catalog.load_more_clicks == 0
+    assert catalog.derive_target_sephora_catalog_from_url is True
     assert get_retail_capture_profile("sephora_pdp_aggregate").scroll_target_selector is None
     assert (
         get_retail_capture_profile("sephora_pdp_distribution").scroll_target_selector
@@ -114,6 +119,40 @@ def test_sephora_grid_profile_is_subject_agnostic_and_requires_grid_structure() 
     )
 
     assert result.passed is True
+
+
+def test_sephora_catalog_grid_profile_binds_bounded_page_and_bestseller_sort() -> None:
+    profile = get_retail_capture_profile("sephora_catalog_grid_aggregate")
+    url = (
+        "https://www.sephora.com/shop/makeup-cosmetics?country_switch=us"
+        "&lang=en&currentPage=2&sortBy=BEST_SELLING"
+    )
+    requirements = profile.requirements_for_capture(url=url)
+    result = evaluate_source_detail_sufficiency(
+        requirements=requirements,
+        access_block_reason=None,
+        visible_text=(
+            "Makeup 2391 Results Sort by: Bestselling Quicklook Product $25.00 "
+            "1-120 of 2391 Results"
+        ),
+        rendered_dom=(
+            '<script>Sephora.renderQueryParams={"country":"US",'
+            '"urlPath":"/shop/makeup-cosmetics",'
+            '"cachedQueryParams":"currentPage=2&sortBy=BEST_SELLING"};</script>'
+            '<div data-cnstrc-browse="true" data-cnstrc-num-results="2391">'
+            '<a data-cnstrc-item-id="P000001"></a></div>'
+        ),
+    )
+
+    assert result.passed is True
+    assert profile.scroll_stop_condition() is None
+    for invalid_url in (
+        "https://www.sephora.com/shop/makeup-cosmetics?currentPage=6&sortBy=BEST_SELLING",
+        "https://www.sephora.com/shop/makeup-cosmetics?currentPage=2&sortBy=NEW",
+        "https://www.sephora.com/beauty/beauty-best-sellers?currentPage=2&sortBy=BEST_SELLING",
+    ):
+        with pytest.raises(ValueError, match="currentPage in \\[1,5\\]"):
+            profile.requirements_for_capture(url=invalid_url)
 
 
 @pytest.mark.parametrize(
@@ -739,6 +778,7 @@ def test_profile_route_validation_fails_before_capture_on_wrong_host_or_rung() -
     ("profile_name", "pin_field", "pin_value"),
     (
         ("sephora_grid_aggregate", "sephora_market", "US"),
+        ("sephora_catalog_grid_aggregate", "sephora_market", "US"),
         ("sephora_pdp_aggregate", "sephora_market", "US"),
         ("ulta_grid_aggregate", "ulta_market", "US"),
         ("ulta_pdp_aggregate", "ulta_market", "US"),

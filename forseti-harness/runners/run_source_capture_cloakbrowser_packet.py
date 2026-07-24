@@ -55,6 +55,9 @@ from source_capture.adapters.nordstrom_country_preference import (
     observe_nordstrom_review_window,
 )
 from source_capture.adapters.sephora_us_market import SephoraUSMarketPlugin
+from source_capture.adapters.sephora_catalog_traversal import (
+    SephoraCatalogTraversalPlugin,
+)
 from source_capture.adapters.target_delivery_location import (
     TargetDeliveryLocationPlugin,
     TargetGridPlugin,
@@ -94,6 +97,11 @@ from source_capture.retail_grid_projection import (
 from source_capture.sephora_brand_grid import (
     SEPHORA_GRID_CONTENT_RECORD_VERSION,
     build_sephora_brand_grid_content_record,
+)
+from source_capture.sephora_catalog_grid import (
+    SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION,
+    build_sephora_catalog_grid_aggregate_content_record,
+    build_sephora_catalog_grid_content_record,
 )
 from source_capture.ulta_brand_grid import (
     ULTA_GRID_CONTENT_RECORD_VERSION,
@@ -188,6 +196,10 @@ _AMAZON_SG_HOSTS = frozenset({"amazon.sg", "www.amazon.sg"})
 TARGET_DELIVERY_PIN_FAILURE_MODE_CHANGE = "target_delivery_zip_pin_failed"
 TARGET_GRID_CONTENT_PROFILE = "target_grid_aggregate"
 AMAZON_GRID_CONTENT_PROFILE = "amazon_grid_aggregate"
+SEPHORA_CATALOG_GRID_CONTENT_PROFILE = "sephora_catalog_grid_aggregate"
+_SEPHORA_GRID_CONTENT_PROFILES = frozenset(
+    {"sephora_grid_aggregate", SEPHORA_CATALOG_GRID_CONTENT_PROFILE}
+)
 _TARGET_HOSTS = frozenset({"target.com", "www.target.com"})
 ULTA_MARKET_PIN_FAILURE_MODE_CHANGE = "ulta_market_pin_failed"
 _ULTA_HOSTS = frozenset({"ulta.com", "www.ulta.com"})
@@ -197,6 +209,7 @@ RETAIL_TARGET_IDENTITY_FAILURE_MODE_CHANGE = "retail_target_identity_failed"
 _RETAIL_GRID_PROJECTION_PROFILES = frozenset(
     {
         "sephora_grid_aggregate",
+        SEPHORA_CATALOG_GRID_CONTENT_PROFILE,
         "amazon_grid_aggregate",
         "target_grid_aggregate",
         "ulta_grid_aggregate",
@@ -247,6 +260,7 @@ def run_source_capture_cloakbrowser_packet(
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
     amazon_grid_page_count: int = 2,
+    sephora_catalog_page_count: int = 2,
     nordstrom_country: str | None = None,
     nordstrom_country_setup_timeout_seconds: float = 45.0,
     nordstrom_review_posture: str | None = None,
@@ -291,6 +305,14 @@ def run_source_capture_cloakbrowser_packet(
     if retail_capture_profile is not None:
         if retail_capture_profile.name == TARGET_GRID_CONTENT_PROFILE:
             url = target_bestseller_grid_url(url)
+        if retail_capture_profile.name == SEPHORA_CATALOG_GRID_CONTENT_PROFILE:
+            # Complete category pages come from retailer-owned PageJSON; keep
+            # scrolling and Show More disabled for CLI and direct callers.
+            settle_seconds = retail_capture_profile.settle_seconds
+            scroll_passes = retail_capture_profile.scroll_passes
+            scroll_step_px = retail_capture_profile.scroll_step_px
+            load_more_selector = retail_capture_profile.load_more_selector
+            load_more_clicks = retail_capture_profile.load_more_clicks
         if retail_capture_profile.source_surface != "cloakbrowser_snapshot":
             raise ValueError(
                 f"retail capture profile {retail_capture_profile.name} belongs to "
@@ -331,9 +353,14 @@ def run_source_capture_cloakbrowser_packet(
                 )
             if content_extraction is None:
                 content_extraction = _sephora_content_extraction_spec("content")
-        if retail_capture_profile.name == "sephora_grid_aggregate":
+        if retail_capture_profile.name in _SEPHORA_GRID_CONTENT_PROFILES:
             if content_extraction is None:
-                content_extraction = _sephora_grid_content_extraction_spec()
+                content_extraction = (
+                    _sephora_catalog_grid_content_extraction_spec()
+                    if retail_capture_profile.name
+                    == SEPHORA_CATALOG_GRID_CONTENT_PROFILE
+                    else _sephora_grid_content_extraction_spec()
+                )
         if retail_capture_profile.name == LUCKYSCENT_PDP_CONTENT_PROFILE:
             if luckyscent_market != "US":
                 raise ValueError(
@@ -459,6 +486,31 @@ def run_source_capture_cloakbrowser_packet(
                 )
             ),
         )
+    elif (
+        retail_capture_profile is not None
+        and retail_capture_profile.name == SEPHORA_CATALOG_GRID_CONTENT_PROFILE
+    ):
+        if sephora_market != "US":
+            raise ValueError(
+                "sephora_catalog_grid_aggregate requires --sephora-market US"
+            )
+        pre_capture = SephoraCatalogTraversalPlugin(
+            target_url=url,
+            page_count=sephora_catalog_page_count,
+            traversal_timeout_seconds=timeout_seconds,
+        )
+        content_extraction = RenderedContentExtractionSpec(
+            requested_retention_mode="content",
+            extractor_version=SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION,
+            extractor=lambda _rendered_dom, _visible_text, _final_url: (
+                build_sephora_catalog_grid_aggregate_content_record(
+                    rendered_pages=pre_capture.grid_page_doms,
+                    requested_url=url,
+                    page_urls=pre_capture.grid_page_urls,
+                    traversal_observation=pre_capture.grid_observation,
+                )
+            ),
+        )
     elif delivery_zip is not None:
         _validate_amazon_delivery_zip_url(url)
         pre_capture = AmazonDeliveryLocationPlugin(
@@ -482,15 +534,20 @@ def run_source_capture_cloakbrowser_packet(
             page_kind=(
                 "grid"
                 if retail_capture_profile is not None
-                and retail_capture_profile.name == "sephora_grid_aggregate"
+                and retail_capture_profile.name in _SEPHORA_GRID_CONTENT_PROFILES
                 else "pdp"
             ),
         )
         if (
             retail_capture_profile is not None
-            and retail_capture_profile.name == "sephora_grid_aggregate"
+            and retail_capture_profile.name in _SEPHORA_GRID_CONTENT_PROFILES
         ):
-            content_extraction = _sephora_grid_content_extraction_spec()
+            content_extraction = (
+                _sephora_catalog_grid_content_extraction_spec()
+                if retail_capture_profile.name
+                == SEPHORA_CATALOG_GRID_CONTENT_PROFILE
+                else _sephora_grid_content_extraction_spec()
+            )
     elif ulta_market is not None:
         ulta_page_kind = (
             "grid"
@@ -1463,9 +1520,11 @@ def _validate_retail_grid_projection_request(
     ulta_market: str | None = None,
     revolve_market: str | None = None,
 ) -> None:
-    if retail_capture_profile.name == "sephora_grid_aggregate":
+    if retail_capture_profile.name in _SEPHORA_GRID_CONTENT_PROFILES:
         if sephora_market != "US":
-            raise ValueError("sephora_grid_aggregate requires --sephora-market US")
+            raise ValueError(
+                f"{retail_capture_profile.name} requires --sephora-market US"
+            )
     elif retail_capture_profile.name == "ulta_grid_aggregate":
         if ulta_market != "US":
             raise ValueError("ulta_grid_aggregate requires --ulta-market US")
@@ -1532,6 +1591,20 @@ def _sephora_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
         json_indent=None,
         extractor=lambda rendered_dom, _visible_text, final_url: (
             build_sephora_brand_grid_content_record(
+                rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
+                final_url=final_url,
+            )
+        ),
+    )
+
+
+def _sephora_catalog_grid_content_extraction_spec() -> RenderedContentExtractionSpec:
+    return RenderedContentExtractionSpec(
+        requested_retention_mode="content",
+        extractor_version=SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION,
+        json_indent=None,
+        extractor=lambda rendered_dom, _visible_text, final_url: (
+            build_sephora_catalog_grid_content_record(
                 rendered_dom=rendered_dom.decode("utf-8", errors="replace"),
                 final_url=final_url,
             )
@@ -2332,6 +2405,15 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--sephora-catalog-page-count",
+        type=int,
+        default=2,
+        help=(
+            "Consecutive 60-product Sephora BEST_SELLING PageJSON pages to capture "
+            "with sephora_catalog_grid_aggregate. Bounded to 1-5; default 2."
+        ),
+    )
+    parser.add_argument(
         "--nordstrom-country",
         choices=["US"],
         default=None,
@@ -2523,6 +2605,7 @@ def main(
             AMAZON_PDP_CONTENT_PROFILE,
             TARGET_GRID_CONTENT_PROFILE,
             "sephora_grid_aggregate",
+            SEPHORA_CATALOG_GRID_CONTENT_PROFILE,
             "ulta_grid_aggregate",
             "revolve_grid_aggregate",
         }
@@ -2602,13 +2685,18 @@ def main(
             )
         elif (
             retail_capture_profile is not None
-            and retail_capture_profile.name == "sephora_grid_aggregate"
+            and retail_capture_profile.name in _SEPHORA_GRID_CONTENT_PROFILES
         ):
             if args.retention_mode not in {None, "content"}:
                 raise ValueError(
-                    "sephora_grid_aggregate requires compact content retention"
+                    f"{retail_capture_profile.name} requires compact content retention"
                 )
-            content_extraction = _sephora_grid_content_extraction_spec()
+            content_extraction = (
+                _sephora_catalog_grid_content_extraction_spec()
+                if retail_capture_profile.name
+                == SEPHORA_CATALOG_GRID_CONTENT_PROFILE
+                else _sephora_grid_content_extraction_spec()
+            )
         elif (
             retail_capture_profile is not None
             and retail_capture_profile.name == "ulta_grid_aggregate"
@@ -2859,6 +2947,7 @@ def main(
             delivery_zip=args.delivery_zip,
             delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
             amazon_grid_page_count=args.amazon_grid_page_count,
+            sephora_catalog_page_count=args.sephora_catalog_page_count,
             nordstrom_country=args.nordstrom_country,
             nordstrom_country_setup_timeout_seconds=(
                 args.nordstrom_country_setup_timeout_seconds

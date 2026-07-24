@@ -37,6 +37,11 @@ from source_capture.sephora_brand_grid import (
     SEPHORA_GRID_CONTENT_RECORD_VERSION,
     build_sephora_brand_grid_content_record,
 )
+from source_capture.sephora_catalog_grid import (
+    SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION,
+    SephoraCatalogGridStateError,
+    build_sephora_catalog_grid_aggregate_content_record,
+)
 from source_capture.ulta_brand_grid import (
     ULTA_GRID_CONTENT_RECORD_VERSION,
     build_ulta_brand_grid_content_record,
@@ -1022,6 +1027,116 @@ def test_sephora_projection_preserves_partial_tile_and_fails_count_reconciliatio
     assert any("grid_tile_identity_incomplete:1" in item for item in projection.residuals)
 
 
+@pytest.mark.parametrize(("requested_page", "window_size"), [(2, 120), (5, 300)])
+def test_sephora_catalog_projection_reconciles_bounded_bestseller_window(
+    requested_page: int, window_size: int
+) -> None:
+    locator = (
+        "https://www.sephora.com/shop/makeup-cosmetics?country_switch=us"
+        "&lang=en&currentPage=1&sortBy=BEST_SELLING"
+    )
+    page_urls = [
+        (
+            "https://www.sephora.com/shop/makeup-cosmetics?country_switch=us"
+            f"&lang=en&currentPage={page}&sortBy=BEST_SELLING"
+        )
+        for page in range(1, requested_page + 1)
+    ]
+    rendered_pages = [
+        _sephora_catalog_grid_html(
+            requested_page=page,
+            total_products=2391,
+        ).decode()
+        for page in range(1, requested_page + 1)
+    ]
+    traversal = {
+        "requestedPageCount": requested_page,
+        "capturedPageCount": requested_page,
+        "extractedUniqueParentCount": window_size,
+        "duplicatePlacementCount": 0,
+        "termination": "requested_page_window_reconciled",
+    }
+    record = build_sephora_catalog_grid_aggregate_content_record(
+        rendered_pages=rendered_pages,
+        requested_url=locator,
+        page_urls=page_urls,
+        traversal_observation=traversal,
+    )
+    body = json.dumps(record, separators=(",", ":")).encode()
+    packet = _packet(
+        retailer="sephora",
+        locator=locator,
+        relative_path="raw/content_record.json",
+        body=body,
+        surface="cloakbrowser_snapshot",
+    )
+
+    projection = build_retail_grid_projection(
+        packet=packet, raw_file_bytes_by_file_id={"file_01": body}
+    )
+
+    assert (
+        record["content_record_version"]
+        == SEPHORA_CATALOG_GRID_CONTENT_RECORD_VERSION
+    )
+    assert projection.completeness.status == "complete"
+    assert projection.completeness.termination == "requested_page_window_reconciled"
+    assert projection.completeness.page_declared_result_count == 2391
+    assert projection.completeness.extracted_unique_parent_count == window_size
+    assert projection.completeness.extracted_placement_count == window_size
+    assert projection.completeness.duplicate_placement_count == 0
+    assert projection.source_visible_grid_facts["page_kind"] == "catalog_grid"
+    assert (
+        projection.source_visible_grid_facts["requested_page_count"]
+        == requested_page
+    )
+    assert projection.source_visible_grid_facts["window_end"] == window_size
+    assert projection.source_visible_grid_facts["has_more"] is True
+    assert projection.source_visible_grid_facts["subject_binding_confirmed"] is True
+    assert projection.rows[0].source_visible_fields["source_product_id"] == "P000001"
+    assert projection.rows[-1].source_visible_fields["source_product_id"] == (
+        f"P{window_size:06d}"
+    )
+    assert projection.rows[-1].placements[0].grid_position == window_size
+    assert projection.rows[-1].placements[0].page == requested_page
+    assert projection.rows[-1].placements[0].page_position == 60
+    assert projection.rows[0].raw_anchor.anchor_value == (
+        "/page/catalogAggregate/pages/0/products/0"
+    )
+    assert b"<html" not in body
+
+
+def test_sephora_catalog_projection_fails_closed_on_short_or_duplicate_window() -> None:
+    locator = (
+        "https://www.sephora.com/shop/makeup-cosmetics?country_switch=us"
+        "&lang=en&currentPage=1&sortBy=BEST_SELLING"
+    )
+    page_urls = [
+        locator,
+        locator.replace("currentPage=1", "currentPage=2"),
+    ]
+    rendered_pages = [
+        _sephora_catalog_grid_html(
+            requested_page=1, total_products=2391
+        ).decode(),
+        _sephora_catalog_grid_html(
+            requested_page=2,
+            total_products=2391,
+            duplicate_first_product=60,
+        ).decode(),
+    ]
+
+    with pytest.raises(
+        SephoraCatalogGridStateError, match="duplicate product identities"
+    ):
+        build_sephora_catalog_grid_aggregate_content_record(
+            rendered_pages=rendered_pages,
+            requested_url=locator,
+            page_urls=page_urls,
+            traversal_observation={},
+        )
+
+
 def test_grid_projection_runner_writes_hash_verified_sidecar(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -1426,6 +1541,83 @@ def _sephora_grid_html(
         + json.dumps(payload, separators=(",", ":"))
         + "</script></body></html>"
     ).encode("utf-8")
+
+
+def _sephora_catalog_grid_html(
+    *,
+    requested_page: int,
+    total_products: int,
+    duplicate_first_product: int | None = None,
+) -> bytes:
+    products: list[dict[str, object]] = []
+    page_start = ((requested_page - 1) * 60) + 1
+    for page_position in range(1, 61):
+        product_number = page_start + page_position - 1
+        if page_position == 1 and duplicate_first_product is not None:
+            product_number = duplicate_first_product
+        product_id = f"P{product_number:06d}"
+        products.append(
+            {
+                "productId": product_id,
+                "displayName": f"Product {product_number}",
+                "targetUrl": (
+                    f"/product/product-{product_number}-{product_id}"
+                    f"?skuId={product_number}"
+                ),
+                "brandName": f"Brand {product_number}",
+                "currentSku": {
+                    "skuId": str(product_number),
+                    "listPrice": f"${20 + product_number}.00",
+                },
+                "rating": "4.5",
+                "reviews": str(product_number),
+            }
+        )
+    render_query = json.dumps(
+        {
+            "country": "US",
+            "urlPath": "/shop/makeup-cosmetics",
+            "cachedQueryParams": (
+                f"currentPage={requested_page}&sortBy=BEST_SELLING"
+            ),
+        },
+        separators=(",", ":"),
+    )
+    link_store = json.dumps(
+        {
+            "page": {
+                "nthCategory": {
+                    "categoryId": "cat140006",
+                    "displayName": "Makeup",
+                    "currentPage": requested_page,
+                    "pageSize": 60,
+                    "totalProducts": total_products,
+                    "resultId": f"result-{requested_page}",
+                    "targetUrl": "/shop/makeup-cosmetics",
+                    "sortOptionCode": "BEST_SELLING",
+                    "products": products,
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    return f"""
+    <html><body>
+      <script>Sephora.renderQueryParams = {render_query};</script>
+      <script id="linkStore" type="text/json">{link_store}</script>
+      <h1>Makeup</h1>
+      <span>Sort by: <strong>Bestselling</strong></span>
+      <div data-cnstrc-browse="true"
+           data-cnstrc-num-results="{total_products}"
+           data-cnstrc-result-id="result-1"
+           data-cnstrc-filter-name="group_id"
+           data-cnstrc-filter-value="cat140006">
+        <a data-cnstrc-item-id="{products[0]['productId']}">Quicklook $25.00</a>
+        <p>1-60 of {total_products} Results</p>
+        <button>Show More Products</button>
+      </div>
+    </body></html>
+    """.encode()
 
 
 def _packet(
