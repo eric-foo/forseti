@@ -14,11 +14,13 @@ from runners import run_source_capture_browser_packet as browser_runner
 from runners.run_source_capture_browser_packet import BROWSER_SNAPSHOT_NON_CLAIMS
 from source_capture import CaptureModeCategory
 from source_capture.adapters.browser_snapshot import (
+    BrowserDelayRange,
     BrowserContextRequest,
     BrowserContextResponse,
     BrowserContextResponsesSuccess,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
+    BrowserPagePointerTargetVariant,
     BrowserPageStructuralStopRule,
     BrowserPageWheelAction,
     BrowserPageResponse,
@@ -1869,6 +1871,150 @@ def test_authenticated_humanized_session_rejects_raw_state_changes() -> None:
             lazy_load_scroll_passes=1,
             lazy_load_scroll_step_px=500,
         )
+    with pytest.raises(ValueError, match="requires a ranged post-action wait"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            post_load_pointer_action=BrowserPagePointerAction(
+                action_name="fixed_wait_forbidden",
+                candidate_selector="button",
+                text_markers=("open",),
+                wait_after_ms=1000,
+            ),
+        )
+    with pytest.raises(ValueError, match="fixed positive post-action wait"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            post_load_pointer_action=BrowserPagePointerAction(
+                action_name="degenerate_range_forbidden",
+                candidate_selector="button",
+                text_markers=("open",),
+                wait_after_range=BrowserDelayRange(min_ms=1000, max_ms=1000),
+            ),
+        )
+    with pytest.raises(ValueError, match="requires a ranged page-settle wait"):
+        engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            settle_seconds=1.0,
+        )
+    fixed_settle_engine = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        require_humanized_state_changes=True,
+        protected_settle_delay_range=BrowserDelayRange(min_ms=1000, max_ms=1000),
+    )
+    with pytest.raises(ValueError, match="fixed positive page-settle wait"):
+        fixed_settle_engine.capture_page_observation(
+            **_PAGE_OBSERVATION_BASE_KWARGS,
+            settle_seconds=1.0,
+        )
+
+
+def test_pointer_target_variants_and_ranged_waits_are_selected_and_receipted() -> None:
+    selected_variants: set[str] = set()
+    variants = (
+        BrowserPagePointerTargetVariant(
+            variant_name="left",
+            candidate_selector="button",
+            target_fraction_x_min=0.10,
+            target_fraction_x_max=0.20,
+            target_fraction_y_min=0.30,
+            target_fraction_y_max=0.40,
+        ),
+        BrowserPagePointerTargetVariant(
+            variant_name="center",
+            candidate_selector="button",
+            target_fraction_x_min=0.45,
+            target_fraction_x_max=0.55,
+            target_fraction_y_min=0.30,
+            target_fraction_y_max=0.40,
+        ),
+        BrowserPagePointerTargetVariant(
+            variant_name="right",
+            candidate_selector="button",
+            target_fraction_x_min=0.80,
+            target_fraction_x_max=0.90,
+            target_fraction_y_min=0.30,
+            target_fraction_y_max=0.40,
+        ),
+    )
+    x_bounds = {
+        variant.variant_name: (
+            variant.target_fraction_x_min,
+            variant.target_fraction_x_max,
+        )
+        for variant in variants
+    }
+
+    for seed in range(12):
+        page = _FakeObservationPage(
+            [],
+            pointer_target={
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+        )
+        receipt = browser_snapshot_module._run_pointer_action(
+            page,
+            BrowserPagePointerAction(
+                action_name="variant_action",
+                candidate_selector="button",
+                text_markers=("open",),
+                target_variants=variants,
+                wait_after_range=BrowserDelayRange(min_ms=11, max_ms=19),
+                random_seed=seed,
+            ),
+        )
+        variant_name = receipt["target_variant"]
+        assert isinstance(variant_name, str)
+        selected_variants.add(variant_name)
+        min_x, max_x = x_bounds[variant_name]
+        assert min_x <= receipt["click_fraction_x"] <= max_x
+        assert 11 <= receipt["planned_wait_ms"] <= 19
+        assert receipt["wait_ms"] == receipt["planned_wait_ms"]
+        assert receipt["wait_range"] == {"min_ms": 11, "max_ms": 19}
+        assert receipt["wait_stop_reason"] == "planned_delay_elapsed"
+        assert isinstance(receipt["actual_wait_elapsed_ms"], int)
+
+    assert selected_variants == {"left", "center", "right"}
+
+
+def test_authenticated_humanized_session_receipts_ranged_settle_and_pointer_wait(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    page = _FakeObservationPage(
+        [],
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        require_humanized_state_changes=True,
+        protected_settle_delay_range=BrowserDelayRange(min_ms=11, max_ms=19),
+    ).capture_page_observation(
+        **_PAGE_OBSERVATION_BASE_KWARGS,
+        settle_seconds=2.0,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="ranged_pointer",
+            candidate_selector="button",
+            text_markers=("open",),
+            wait_after_range=BrowserDelayRange(min_ms=21, max_ms=29),
+        ),
+    )
+
+    settle_receipt = result.metadata["settle_wait"]
+    assert 11 <= settle_receipt["planned_wait_ms"] <= 19
+    assert settle_receipt["wait_range"] == {"min_ms": 11, "max_ms": 19}
+    assert settle_receipt["requested_fixed_ms"] == 2000
+    pointer_receipt = result.metadata["post_load_pointer_action"]
+    assert 21 <= pointer_receipt["planned_wait_ms"] <= 29
+    assert pointer_receipt["wait_range"] == {"min_ms": 21, "max_ms": 29}
 
 
 def test_logout_detected_after_humanized_scroll_suppresses_follow_on_action(

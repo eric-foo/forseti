@@ -12,6 +12,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from harness_utils import sha256_text, utc_now_z
 from source_capture.adapters.browser_snapshot import (
+    BrowserDelayRange,
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
@@ -50,6 +51,12 @@ TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME = "tiktok_live_cadence_result.json"
 TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS = 7.0
 TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS = 13.0
 TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS = 10.0
+TIKTOK_PAGE_SETTLE_DELAY_RANGE = BrowserDelayRange(min_ms=1200, max_ms=2800)
+TIKTOK_STATE_WAIT_1000_DELAY_RANGE = BrowserDelayRange(min_ms=600, max_ms=1400)
+TIKTOK_STATE_WAIT_1500_DELAY_RANGE = BrowserDelayRange(min_ms=900, max_ms=2100)
+TIKTOK_STATE_WAIT_2000_DELAY_RANGE = BrowserDelayRange(min_ms=1200, max_ms=2800)
+TIKTOK_STATE_WAIT_2500_DELAY_RANGE = BrowserDelayRange(min_ms=1500, max_ms=3500)
+TIKTOK_STATE_WAIT_5000_DELAY_RANGE = BrowserDelayRange(min_ms=3200, max_ms=6800)
 
 TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
@@ -1696,7 +1703,7 @@ def _tiktok_comment_route_pointer_actions(
             video_id=video_id,
             random_seed=random_seed,
             action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_after_ms=5000,
+            wait_after_range=TIKTOK_STATE_WAIT_5000_DELAY_RANGE,
         ),
         _tiktok_open_more_like_this_pointer_action(
             video_id=video_id,
@@ -1706,7 +1713,7 @@ def _tiktok_comment_route_pointer_actions(
             video_id=video_id,
             random_seed=random_seed,
             action_name=TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_after_ms=5000,
+            wait_after_range=TIKTOK_STATE_WAIT_5000_DELAY_RANGE,
         ),
     )
 
@@ -1734,7 +1741,7 @@ def _tiktok_dismiss_benign_overlay_pointer_action(
             "open app",
         ),
         exact_text_markers=("ok", "okay"),
-        wait_after_ms=1500,
+        wait_after_range=TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
@@ -1769,7 +1776,7 @@ def _tiktok_retry_visible_error_pointer_action(
             "could not load",
             "failed to load",
         ),
-        wait_after_ms=2500,
+        wait_after_range=TIKTOK_STATE_WAIT_2500_DELAY_RANGE,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
@@ -1821,7 +1828,7 @@ def _tiktok_challenge_close_pointer_action(
         text_markers=("close", "dismiss"),
         page_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         exact_text_markers=("x", "×"),
-        wait_after_ms=2000,
+        wait_after_range=TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
@@ -1885,7 +1892,7 @@ def _tiktok_challenge_visual_close_pointer_action(
             TIKTOK_CHALLENGE_TEXT_MARKERS if require_visible_challenge_text else ()
         ),
         exact_text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
-        wait_after_ms=2000,
+        wait_after_range=TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
@@ -1912,7 +1919,7 @@ def _tiktok_open_comments_pointer_action(
     video_id: str,
     random_seed: int | None,
     action_name: str,
-    wait_after_ms: int,
+    wait_after_range: BrowserDelayRange,
 ) -> BrowserPagePointerAction:
     return BrowserPagePointerAction(
         action_name=action_name,
@@ -1920,7 +1927,7 @@ def _tiktok_open_comments_pointer_action(
             '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
         ),
         text_markers=("comment", "comments"),
-        wait_after_ms=wait_after_ms,
+        wait_after_range=wait_after_range,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
@@ -1960,7 +1967,7 @@ def _tiktok_open_more_like_this_pointer_action(
             "you_may_like",
         ),
         exact_text_markers=("more like this", "you may like"),
-        wait_after_ms=2000,
+        wait_after_range=TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,

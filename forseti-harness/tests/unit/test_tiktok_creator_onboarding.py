@@ -1758,8 +1758,14 @@ def test_grid_overlay_sequence_uses_logical_positions_and_targeted_human_scroll(
         "a[href*='/video/1'] .video-count"
     )
     assert click_action.text_markers == ("31.8k",)
-    assert click_action.target_fraction_min == 0.15
-    assert click_action.target_fraction_max == 0.85
+    assert {
+        variant.variant_name for variant in click_action.target_variants
+    } == {"footer_left", "footer_center", "footer_right"}
+    assert all(
+        variant.candidate_selector == "a[href*='/video/1'] .video-count"
+        for variant in click_action.target_variants
+    )
+    assert click_action.wait_after_range == onboarding.TIKTOK_STATE_WAIT_2500_DELAY_RANGE
     assert receipt["logical_grid_positions_remembered"] is True
     assert receipt["absolute_pixel_positions_cached"] is False
     assert [row["direction"] for row in receipt["grid_pagination_passes"]] == [
@@ -3676,7 +3682,7 @@ def _grid_overlay_receipt() -> dict[str, object]:
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
-        "tile_click_target_policy": "link_routed_video_count_footer",
+        "tile_click_target_policy": "randomized_link_routed_video_count_footer_zones",
         "hover_preview_body_click_allowed": False,
         "click_target_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": 2,

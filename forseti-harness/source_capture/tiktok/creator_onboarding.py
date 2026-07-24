@@ -31,6 +31,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
+    BrowserPagePointerTargetVariant,
     BrowserPageResponse,
     BrowserPageWheelAction,
     BrowserSnapshotFailure,
@@ -55,6 +56,11 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE,
     TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
     TIKTOK_LIVE_BATCH_GRID_JSON_NAME,
+    TIKTOK_PAGE_SETTLE_DELAY_RANGE,
+    TIKTOK_STATE_WAIT_1000_DELAY_RANGE,
+    TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
+    TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
+    TIKTOK_STATE_WAIT_2500_DELAY_RANGE,
     TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
     is_tiktok_comment_list_url,
     run_tiktok_live_batch_probe,
@@ -564,7 +570,7 @@ TIKTOK_FOLLOWERS_ACTION = BrowserPagePointerAction(
         "[role='link']"
     ),
     text_markers=("followers",),
-    wait_after_ms=1500,
+    wait_after_range=TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -576,7 +582,7 @@ TIKTOK_PROFILE_LATEST_SORT_ACTION = BrowserPagePointerAction(
     ),
     text_markers=(),
     exact_text_markers=("latest",),
-    wait_after_ms=1500,
+    wait_after_range=TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -588,7 +594,7 @@ TIKTOK_PROFILE_OLDEST_SORT_ACTION = BrowserPagePointerAction(
     ),
     text_markers=(),
     exact_text_markers=("oldest",),
-    wait_after_ms=2500,
+    wait_after_range=TIKTOK_STATE_WAIT_2500_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -597,7 +603,7 @@ TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION = BrowserPagePointerAction(
     candidate_selector="[role='dialog'] *,[aria-modal='true'] *",
     text_markers=(),
     exact_text_markers=("suggested",),
-    wait_after_ms=2000,
+    wait_after_range=TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -737,7 +743,7 @@ TIKTOK_SUGGESTED_VIEW_ALL_ACTION = BrowserPagePointerAction(
     text_markers=("view all",),
     exact_text_markers=("view all",),
     page_text_markers=("suggested accounts",),
-    wait_after_ms=2000,
+    wait_after_range=TIKTOK_STATE_WAIT_2000_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -752,7 +758,7 @@ TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION = BrowserPagePointerAction(
     text_markers=("close",),
     exact_text_markers=("close", "x", "×"),
     page_text_markers=("followers", "suggested"),
-    wait_after_ms=1500,
+    wait_after_range=TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
     prefer_smallest_match=True,
     visual_top_right_x_fallback=False,
     visual_x_geometric_fallback=False,
@@ -767,7 +773,7 @@ TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION = BrowserPagePointerAction(
     text_markers=(),
     exact_text_markers=("suggested accounts",),
     page_text_markers=("suggested accounts",),
-    wait_after_ms=1000,
+    wait_after_range=TIKTOK_STATE_WAIT_1000_DELAY_RANGE,
     prefer_smallest_match=True,
     visual_top_right_x_fallback=False,
     visual_x_geometric_fallback=False,
@@ -782,7 +788,7 @@ TIKTOK_VIDEO_OVERLAY_CLOSE_ACTION = BrowserPagePointerAction(
     text_markers=(),
     exact_text_markers=("close", "x", "×"),
     page_text_markers=("comments", "creator videos"),
-    wait_after_ms=1500,
+    wait_after_range=TIKTOK_STATE_WAIT_1500_DELAY_RANGE,
     prefer_smallest_match=True,
 )
 
@@ -1230,6 +1236,7 @@ def _acquire_or_reuse_observation_engine(
         pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
         pre_action_stop_structural_rules=(TIKTOK_LOGGED_OUT_STRUCTURAL_STOP_RULE,),
         require_humanized_state_changes=True,
+        protected_settle_delay_range=TIKTOK_PAGE_SETTLE_DELAY_RANGE,
         human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         human_challenge_handoff_timeout_seconds=180.0,
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
@@ -2086,7 +2093,7 @@ def _run_grid_overlay_deep_capture_phase(
         ),
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
-        "tile_click_target_policy": "link_routed_video_count_footer",
+        "tile_click_target_policy": "randomized_link_routed_video_count_footer_zones",
         "hover_preview_body_click_allowed": False,
         "click_target_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
@@ -3058,16 +3065,39 @@ def _click_visible_selected_grid_tile(
     settle_seconds: float,
     engine: BrowserPageObservationEngine,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
+    candidate_selector = f"a[href*='/video/{chosen_video_id}'] .video-count"
     action = BrowserPagePointerAction(
         action_name="tiktok_visible_selected_grid_video_v0",
-        candidate_selector=(
-            f"a[href*='/video/{chosen_video_id}'] .video-count"
+        candidate_selector=candidate_selector,
+        target_variants=(
+            BrowserPagePointerTargetVariant(
+                variant_name="footer_left",
+                candidate_selector=candidate_selector,
+                target_fraction_x_min=0.15,
+                target_fraction_x_max=0.30,
+                target_fraction_y_min=0.25,
+                target_fraction_y_max=0.75,
+            ),
+            BrowserPagePointerTargetVariant(
+                variant_name="footer_center",
+                candidate_selector=candidate_selector,
+                target_fraction_x_min=0.40,
+                target_fraction_x_max=0.60,
+                target_fraction_y_min=0.25,
+                target_fraction_y_max=0.75,
+            ),
+            BrowserPagePointerTargetVariant(
+                variant_name="footer_right",
+                candidate_selector=candidate_selector,
+                target_fraction_x_min=0.70,
+                target_fraction_x_max=0.85,
+                target_fraction_y_min=0.25,
+                target_fraction_y_max=0.75,
+            ),
         ),
         text_markers=(click_target_text,),
-        wait_after_ms=2500,
+        wait_after_range=TIKTOK_STATE_WAIT_2500_DELAY_RANGE,
         prefer_smallest_match=True,
-        target_fraction_min=0.15,
-        target_fraction_max=0.85,
     )
     return fetch_browser_page_observation_capture(
         url=profile_url,
