@@ -9,12 +9,37 @@ import re
 from typing import Any
 
 
-QUALIFICATION_SCHEMA_VERSION = "reddit_thread_qualification_v0"
+QUALIFICATION_SCHEMA_VERSION = "reddit_thread_qualification_v1"
 RELATIVE_ENGAGEMENT_HEAD_FRACTION = 0.5
 ABSOLUTE_COMMENT_RESONANCE_FLOOR = 15
 ABSOLUTE_POST_SCORE_RESONANCE_FLOOR = 25
-SUBSTANTIVE_COMMENT_POINT_FLOOR = 5
+EVIDENCE_COMMENT_POINT_FLOOR = 5
 NEAR_DUPLICATE_JACCARD_FLOOR = 0.9
+SIGNAL_KINDS = {
+    "pain_failure",
+    "praise_success",
+    "outcome_experience",
+    "comparison_choice",
+    "unmet_need",
+}
+CONTEXT_KINDS = {
+    "brand",
+    "product",
+    "ingredient",
+    "technique",
+    "service",
+    "retailer",
+    "price_value",
+    "variant_constraint",
+    "use_condition",
+}
+EXCLUSION_REASONS = {
+    "no_claim",
+    "appearance_only",
+    "transaction_only",
+    "entertainment_only",
+    "outside_bound_question",
+}
 
 NON_CLAIMS = [
     "not semantic problem discovery",
@@ -109,7 +134,7 @@ def build_reddit_thread_qualification(
                 "relative_engagement_head_fraction": RELATIVE_ENGAGEMENT_HEAD_FRACTION,
                 "absolute_comment_resonance_floor": ABSOLUTE_COMMENT_RESONANCE_FLOOR,
                 "absolute_post_score_resonance_floor": ABSOLUTE_POST_SCORE_RESONANCE_FLOOR,
-                "substantive_comment_point_floor": SUBSTANTIVE_COMMENT_POINT_FLOOR,
+                "evidence_comment_point_floor": EVIDENCE_COMMENT_POINT_FLOOR,
                 "near_duplicate_jaccard_floor": NEAR_DUPLICATE_JACCARD_FLOOR,
                 "qualification_order": [
                     "excluded_not_decision_relevant",
@@ -121,9 +146,12 @@ def build_reddit_thread_qualification(
                 ],
                 "critical_contract": [
                     "explicit decision_relevant=true",
-                    "resonance from relative/absolute engagement or a substantive high-point comment",
+                    "resonance belongs to the declared evidence source",
                     "at least two independent evidence sources after excluding question-only posts and applying author and near-duplicate deduplication",
                 ],
+                "signal_kinds": sorted(SIGNAL_KINDS),
+                "context_kinds": sorted(CONTEXT_KINDS),
+                "exclusion_reasons": sorted(EXCLUSION_REASONS),
             },
             "counts": counts,
             "threads": rows,
@@ -237,12 +265,15 @@ def _prepare_row(
             "qualification_tier": "access_or_processing_gap",
             "qualification_reasons": ["content_record_unavailable"],
             "decision_relevant": None,
+            "signal_kinds": None,
+            "context_kinds": None,
+            "exclusion_reason": None,
             "post_evidence": None,
             "wedge_key": None,
             "post_author_key": None,
             "content_fingerprint": None,
             "resonance": None,
-            "corroboration": None,
+            "evidence_comments": None,
         }
 
     parsed_label = _validated_label(slot_id=slot_id, label=label, content=content)
@@ -253,31 +284,37 @@ def _prepare_row(
         for comment in content.get("comments", [])
         if isinstance(comment, dict)
     ]
-    substantive = [comment for comment in comments if _is_substantive_comment(comment)]
-    max_comment_points = max(
+    evidence_ids = set(parsed_label.get("evidence_comment_ids", []))
+    evidence_comments = [
+        comment
+        for comment in comments
+        if comment.get("comment_id") in evidence_ids
+        and _is_evidence_comment(comment)
+    ]
+    max_evidence_comment_points = max(
         (
             parsed
-            for comment in substantive
+            for comment in evidence_comments
             if (parsed := _points(comment.get("score_state"))) is not None
         ),
         default=None,
     )
-    corroborating_ids = set(parsed_label.get("corroborating_comment_ids", []))
-    corroborating_comments = [
-        comment for comment in substantive if comment.get("comment_id") in corroborating_ids
-    ]
     relative_head_size = math.ceil(
         selection_row["subreddit_eligible_threads"] * RELATIVE_ENGAGEMENT_HEAD_FRACTION
     )
     resonance_reasons: list[str] = []
-    if selection_row["subreddit_rank_by_comments"] <= relative_head_size:
-        resonance_reasons.append("relative_engagement_head")
-    if selection_row["comments"] >= ABSOLUTE_COMMENT_RESONANCE_FLOOR:
-        resonance_reasons.append("absolute_comment_floor")
-    if selection_row["score"] >= ABSOLUTE_POST_SCORE_RESONANCE_FLOOR:
-        resonance_reasons.append("absolute_post_score_floor")
-    if max_comment_points is not None and max_comment_points >= SUBSTANTIVE_COMMENT_POINT_FLOOR:
-        resonance_reasons.append("substantive_high_point_comment")
+    if parsed_label.get("post_evidence") is True:
+        if selection_row["subreddit_rank_by_comments"] <= relative_head_size:
+            resonance_reasons.append("post_relative_engagement_head")
+        if selection_row["comments"] >= ABSOLUTE_COMMENT_RESONANCE_FLOOR:
+            resonance_reasons.append("post_absolute_comment_floor")
+        if selection_row["score"] >= ABSOLUTE_POST_SCORE_RESONANCE_FLOOR:
+            resonance_reasons.append("post_absolute_score_floor")
+    if (
+        max_evidence_comment_points is not None
+        and max_evidence_comment_points >= EVIDENCE_COMMENT_POINT_FLOOR
+    ):
+        resonance_reasons.append("evidence_comment_point_floor")
 
     title = selection_row.get("title_or_none")
     post_body = post.get("body_text")
@@ -285,6 +322,9 @@ def _prepare_row(
         **selection_row,
         "capture_status": "content",
         "decision_relevant": parsed_label.get("decision_relevant"),
+        "signal_kinds": parsed_label.get("signal_kinds"),
+        "context_kinds": parsed_label.get("context_kinds"),
+        "exclusion_reason": parsed_label.get("exclusion_reason"),
         "post_evidence": parsed_label.get("post_evidence"),
         "wedge_key": parsed_label.get("wedge_key"),
         "post_author_key": _author_key(post_author),
@@ -294,14 +334,28 @@ def _prepare_row(
             "reasons": resonance_reasons,
             "listing_comments": selection_row["comments"],
             "listing_score": selection_row["score"],
-            "max_substantive_comment_points": max_comment_points,
+            "max_evidence_comment_points": max_evidence_comment_points,
         },
-        "corroboration": {
-            "declared_comment_ids": sorted(corroborating_ids),
+        "evidence_comments": {
+            "declared_comment_ids": sorted(evidence_ids),
+            "ids_by_points": [
+                str(comment["comment_id"])
+                for comment in sorted(
+                    evidence_comments,
+                    key=lambda item: (
+                        -(
+                            _points(item.get("score_state"))
+                            if _points(item.get("score_state")) is not None
+                            else -1_000_000
+                        ),
+                        str(item.get("comment_id")),
+                    ),
+                )
+            ],
             "declared_comment_author_keys": sorted(
                 {
                     key
-                    for comment in corroborating_comments
+                    for comment in evidence_comments
                     if (key := _author_key(_normalized_author(comment.get("author_state"))))
                     is not None
                 }
@@ -343,11 +397,55 @@ def _validated_label(
                 "post_evidence_invalid",
                 f"decision-relevant label for {slot_id} must set post_evidence true or false",
             )
-    ids = label.get("corroborating_comment_ids", [])
+        signal_kinds = _validated_enum_list(
+            slot_id=slot_id,
+            field="signal_kinds",
+            value=label.get("signal_kinds"),
+            allowed=SIGNAL_KINDS,
+            allow_empty=False,
+        )
+        context_kinds = _validated_enum_list(
+            slot_id=slot_id,
+            field="context_kinds",
+            value=label.get("context_kinds"),
+            allowed=CONTEXT_KINDS,
+            allow_empty=True,
+        )
+        exclusion_reason = label.get("exclusion_reason")
+        if exclusion_reason is not None:
+            raise RedditThreadQualificationFailure(
+                "exclusion_reason_conflict",
+                f"decision-relevant label for {slot_id} cannot set exclusion_reason",
+            )
+    else:
+        signal_kinds = []
+        context_kinds = []
+        exclusion_reason = label.get("exclusion_reason")
+        if exclusion_reason not in EXCLUSION_REASONS:
+            raise RedditThreadQualificationFailure(
+                "exclusion_reason_invalid",
+                f"excluded label for {slot_id} must set one accepted exclusion_reason",
+            )
+        if label.get("post_evidence") is not None or label.get("wedge_key") is not None:
+            raise RedditThreadQualificationFailure(
+                "excluded_evidence_conflict",
+                f"excluded label for {slot_id} cannot declare post evidence or a wedge",
+            )
+    ids = label.get("evidence_comment_ids", [])
     if not isinstance(ids, list) or not all(isinstance(item, str) for item in ids):
         raise RedditThreadQualificationFailure(
-            "corroborating_comment_ids_invalid",
-            f"corroborating_comment_ids for {slot_id} must be a string array",
+            "evidence_comment_ids_invalid",
+            f"evidence_comment_ids for {slot_id} must be a string array",
+        )
+    if not decision_relevant and ids:
+        raise RedditThreadQualificationFailure(
+            "excluded_evidence_conflict",
+            f"excluded label for {slot_id} cannot declare evidence comments",
+        )
+    if decision_relevant and label.get("post_evidence") is False and not ids:
+        raise RedditThreadQualificationFailure(
+            "evidence_source_missing",
+            f"decision-relevant label for {slot_id} must identify post or comment evidence",
         )
     comments = {
         comment.get("comment_id"): comment
@@ -356,17 +454,48 @@ def _validated_label(
     }
     for comment_id in ids:
         comment = comments.get(comment_id)
-        if comment is None or not _is_substantive_comment(comment):
+        if comment is None or not _is_evidence_comment(comment):
             raise RedditThreadQualificationFailure(
-                "corroborating_comment_invalid",
-                f"{slot_id} declares missing or non-substantive comment {comment_id}",
+                "evidence_comment_invalid",
+                f"{slot_id} declares missing or ineligible evidence comment {comment_id}",
             )
     return {
         "decision_relevant": decision_relevant,
+        "signal_kinds": signal_kinds,
+        "context_kinds": context_kinds,
+        "exclusion_reason": exclusion_reason,
         "post_evidence": label.get("post_evidence") if decision_relevant else None,
         "wedge_key": label.get("wedge_key").strip() if decision_relevant else None,
-        "corroborating_comment_ids": ids,
+        "evidence_comment_ids": ids,
     }
+
+
+def _validated_enum_list(
+    *,
+    slot_id: str,
+    field: str,
+    value: object,
+    allowed: set[str],
+    allow_empty: bool,
+) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise RedditThreadQualificationFailure(
+            f"{field}_invalid",
+            f"{field} for {slot_id} must be a string array",
+        )
+    normalized = list(dict.fromkeys(value))
+    if not allow_empty and not normalized:
+        raise RedditThreadQualificationFailure(
+            f"{field}_invalid",
+            f"{field} for {slot_id} must not be empty",
+        )
+    unknown = sorted(set(normalized) - allowed)
+    if unknown:
+        raise RedditThreadQualificationFailure(
+            f"{field}_invalid",
+            f"{field} for {slot_id} contains unsupported values: {unknown}",
+        )
+    return normalized
 
 
 def _apply_wedge_qualification(rows: list[dict[str, Any]]) -> None:
@@ -390,7 +519,7 @@ def _apply_wedge_qualification(rows: list[dict[str, Any]]) -> None:
         comment_authors = {
             author_key
             for row in wedge_rows
-            for author_key in row["corroboration"]["declared_comment_author_keys"]
+            for author_key in row["evidence_comments"]["declared_comment_author_keys"]
             if author_key not in known_post_authors
         }
         independent_sources = independent_thread_sources + len(comment_authors)
@@ -400,7 +529,7 @@ def _apply_wedge_qualification(rows: list[dict[str, Any]]) -> None:
             "unique_post_author_count": len(known_post_authors),
             "near_duplicate_content_cluster_count": len(clusters),
             "independent_thread_source_count": independent_thread_sources,
-            "independent_corroborating_commenter_count": len(comment_authors),
+            "independent_evidence_commenter_count": len(comment_authors),
             "independent_evidence_source_count": independent_sources,
             "is_resonant": any(row["resonance"]["is_resonant"] for row in wedge_rows),
         }
@@ -474,12 +603,12 @@ def _jaccard(left: set[str], right: set[str]) -> float:
     return len(left & right) / len(union) if union else 0.0
 
 
-def _is_substantive_comment(comment: dict[str, Any]) -> bool:
+def _is_evidence_comment(comment: dict[str, Any]) -> bool:
     body = comment.get("body_text")
     if not isinstance(body, str):
         return False
     normalized = " ".join(body.split())
-    if len(normalized) < 20 or normalized in {"[removed]", "[deleted]"}:
+    if not normalized or normalized in {"[removed]", "[deleted]"}:
         return False
     return "I am a bot" not in normalized
 

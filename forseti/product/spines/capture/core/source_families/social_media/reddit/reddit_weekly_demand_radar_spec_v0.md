@@ -31,10 +31,12 @@ stale_if:
 
 ## Status
 
-`IMPLEMENTED — DOGFOOD-REFINED 2026-07-24`. The engagement-head plus title-tail
-selection landed in PR #1319. A subsequent 30-slot lower-tail dogfood retained
-the head and rotating audit while tightening title rescue so generic questions,
-routines, hauls, and discussion flairs no longer route capture by themselves.
+`IMPLEMENTED — DOGFOOD-REFINED 2026-07-25`. The engagement-head plus title-tail
+selection landed in PR #1319. Subsequent lower-tail dogfoods retained the head
+and rotating audit, added the absolute engagement rescue, and bound
+post-capture resonance to the post or comments that actually carry the claim.
+Generic thread archetypes neither route capture nor justify exclusion by
+themselves.
 
 ## Goal binding
 
@@ -166,10 +168,17 @@ separate layer; nothing here persists analysis output to the lake.
   solution, recommendation, comparison, praise, or neutral mention).
 - Selection routes capture; it does not itself qualify a finding. Post-capture
   qualification binds an explicit decision question and an explicit human
-  judgment for decision relevance, whether the post itself contains evidence,
-  wedge membership, and any comments claimed as corroboration. A question-only
+  judgment for decision relevance, signal kind, context kind, whether the post
+  itself contains evidence, wedge membership, and any comments that contain
+  evidence. Thread archetypes such as showcase, haul, collection, meme, or
+  appearance request are not exclusion reasons by themselves. A question-only
   post can route discovery but does not count as an independent observation.
   Missing judgment remains `needs_judgment`.
+- Exclusion requires one explicit reason: no transferable claim, appearance
+  reaction only, transaction only, entertainment only, or outside the bound
+  decision question. A concrete but weakly engaged claim is a `low_lead`, not
+  an exclusion. When the decision question does not settle scope, preserve
+  `needs_judgment` rather than inventing an off-question decision.
 - A decision-relevant, low-engagement thread without independent
   corroboration is a `low_lead`. Multiple low-engagement threads may become a
   `stacked_emerging_signal` only after independent-source checks.
@@ -178,11 +187,13 @@ separate layer; nothing here persists analysis output to the lake.
   cannot inflate independent recurrence. Unknown or deleted authors do not
   prove independence.
 - A decision-relevant finding with strong audience resonance is a
-  `priority_signal`. Resonance means the thread is in its subreddit's weekly
-  engagement head, has at least 15 listing comments, has a listing score of at
-  least 25, or contains a substantive comment with at least 5 points. These
-  thresholds prioritize audience response; they are not truth or prevalence
-  claims.
+  `priority_signal`. Resonance belongs to the declared evidence source. The
+  thread's relative rank, listing comments, and listing score count only when
+  the post itself carries the claim. Comment points count only for comments
+  explicitly identified as evidence; an unrelated high-point joke or visual
+  reaction cannot promote a buried claim. A declared evidence comment with at
+  least 5 points is resonant. These thresholds prioritize audience response;
+  they are not truth or prevalence claims.
 - `critical_signal` requires all three: explicit decision relevance, resonance,
   and at least two independent evidence sources after author and
   near-duplicate deduplication. High-point comments lead presentation while
