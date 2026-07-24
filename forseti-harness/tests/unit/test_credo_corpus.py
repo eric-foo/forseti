@@ -4,8 +4,13 @@ import json
 
 import pytest
 
+from runners import run_credo_brand_corpus as credo_runner
 from source_capture.adapters.browser_snapshot import BrowserPageResponse
-from source_capture.credo_brand_grid import load_credo_brand_grid_state
+from source_capture.credo_brand_grid import (
+    CredoBrandGridCard,
+    CredoBrandGridState,
+    load_credo_brand_grid_state,
+)
 from source_capture.credo_yotpo_deep_capture import (
     capture_credo_yotpo_deep,
     parse_credo_yotpo_binding,
@@ -153,3 +158,75 @@ def test_wrong_cause_mutations_reject_provider_and_product_before_fetch() -> Non
             _pdp_html().replace('data-yotpo-product-id="1000"', 'data-yotpo-product-id="9999"'),
             source_url=_PDP_URL,
         )
+
+
+def test_runner_persists_partial_receipt_when_pdp_verification_fails(
+    tmp_path, monkeypatch
+) -> None:
+    cards = (
+        CredoBrandGridCard(0, "1000", "alpha", _PDP_URL, "Tower 28"),
+        CredoBrandGridCard(
+            1,
+            "2000",
+            "beta",
+            "https://credobeauty.com/products/beta",
+            "Tower 28",
+        ),
+    )
+    grid_state = CredoBrandGridState(
+        source_url=_GRID_URL,
+        collection_id="42",
+        collection_title="Tower 28 Beauty",
+        country_code="US",
+        currency_code="USD",
+        cards=cards,
+        pagination_next_url=None,
+    )
+    monkeypatch.setattr(credo_runner, "_load_grid_packet", lambda *_args: grid_state)
+    monkeypatch.setattr(
+        credo_runner,
+        "_capture_packet",
+        lambda **_kwargs: (0, "captured"),
+    )
+
+    def load_pdp(packet_directory, *, expected_handle):
+        if expected_handle == "beta":
+            raise ValueError("canonical product mismatch")
+        return (
+            credo_runner.CredoPdpReceipt(
+                handle=expected_handle,
+                product_url=_PDP_URL,
+                canonical_url=_PDP_URL,
+                product_name="Alpha",
+                brand_name="Tower 28",
+                product_sku="ALPHA",
+                packet_directory=str(packet_directory.resolve()),
+                response_sha256="a" * 64,
+                review_count=0,
+                review_store_id=None,
+                review_product_id=None,
+            ),
+            None,
+        )
+
+    monkeypatch.setattr(credo_runner, "_load_pdp_packet", load_pdp)
+    output_root = tmp_path / "credo-run"
+
+    exit_code, receipt = credo_runner.run_credo_brand_corpus(
+        brand_url=_GRID_URL,
+        output_root=output_root,
+        authorization_url="https://www.tower28beauty.com/pages/stores",
+        authorization_evidence="Authorized partner: CredoBeauty.com",
+        authorization_observed_date="2026-07-24",
+    )
+
+    assert exit_code == 3
+    assert receipt.status == "partial"
+    assert receipt.requested_pdp_count == 2
+    assert receipt.captured_pdp_count == 1
+    assert list(receipt.pdp_packet_directories) == ["alpha"]
+    assert receipt.failure == (
+        "credo_pdp_verify_failed:beta:ValueError:canonical product mismatch"
+    )
+    persisted = json.loads((output_root / "run-receipt.json").read_text(encoding="utf-8"))
+    assert persisted == receipt.model_dump(mode="json")

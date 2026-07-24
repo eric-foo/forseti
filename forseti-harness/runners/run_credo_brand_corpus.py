@@ -172,7 +172,25 @@ def run_credo_brand_corpus(
             )
             _write_new_json(run_receipt_path, receipt.model_dump(mode="json"))
             return exit_code, receipt
-        pdp, binding = _load_pdp_packet(packet_directory, expected_handle=card.handle)
+        try:
+            pdp, binding = _load_pdp_packet(packet_directory, expected_handle=card.handle)
+        except Exception as exc:
+            receipt = _run_receipt(
+                brand_url=canonical_brand_url,
+                authorization_url=authorization_url,
+                authorization_evidence=authorization_evidence,
+                authorization_observed_date=authorization_observed_date,
+                grid_packet=grid_packet,
+                grid_receipt_path=grid_receipt_path,
+                resumed=resume_grid_packet is not None,
+                requested_pdp_count=len(grid_state.cards),
+                captured_pdp_count=len(pdps),
+                pdp_packet_directories=packet_directories,
+                status="partial",
+                failure=f"credo_pdp_verify_failed:{card.handle}:{type(exc).__name__}:{exc}",
+            )
+            _write_new_json(run_receipt_path, receipt.model_dump(mode="json"))
+            return 3, receipt
         pdps.append(pdp)
         packet_directories[card.handle] = str(packet_directory.resolve())
         if binding is not None:
