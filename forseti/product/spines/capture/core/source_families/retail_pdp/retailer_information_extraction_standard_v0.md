@@ -108,10 +108,11 @@ apply the retailer's exact non-incentivized filter when it exists:
    newest/`Most Recent` ordering by default when the source supports it; do not
    routinely add `Most Helpful` or `Most Relevant` as another customer corpus.
    Record the requested ordering, actual returned ordering, and an explicit
-   fallback reason when newest ordering is unavailable. Continue to a 30-day
-   cohort only when that deeper corpus window is commissioned; a bounded
-   onboarding response must otherwise remain labelled as bounded rather than
-   complete.
+   fallback reason when newest ordering is unavailable. Continue under the
+   shared bounded onboarding policy: the complete source-ordered 30-day cohort
+   when it is reachable within the cap, otherwise the 30 most recent rows or
+   source exhaustion. Label a capped 30-day window as truncated rather than a
+   complete historical corpus.
 3. Inventory the live rendered demographic vocabulary rather than promoting a
    generic embedded configuration. Preserve each exact label, request value,
    count, denominator, share of declared-demographic subset, coverage of all
@@ -130,6 +131,29 @@ apply the retailer's exact non-incentivized filter when it exists:
    for independence. Report captured occurrences and unique source-native rows
    separately; when sort windows substantially overlap, redirect additional
    depth to a materially different corpus, category, or product when available.
+
+## Review corpus-board completion
+
+Once selected-retailer grids and exact-parent PDP baselines are complete, map
+every listing to its observed provider tenant/store and product/grouping
+collection context. Collapse listings, variants, sets, or placements only when
+those bindings prove they expose one shared review corpus.
+
+Acquire the bounded onboarding views above for every distinct accessible
+review corpus. A board is complete when every baseline listing resolves to one
+corpus identity or a typed identity gap, and every distinct corpus resolves to
+captured, source-declared no reviews, not exposed, route blocked, or another
+source-evidenced terminal outcome. Completeness describes this bounded corpus
+board, never all historical reviews.
+
+Raw acquisition and interpretation have different stopping rules. The corpus
+board is a reusable breadth obligation. Human or model interpretation remains
+selective: cover each material category, then choose hero/prominent, newest or
+strategic, complaint-heavy, positive outlier, and ordinary middle cases where
+available. Review-volume or top/bottom-quartile selection alone is insufficient
+because it can omit smaller categories and new low-volume products. Preserve
+the full captured board so later decision-specific work can select a different
+analysis subset without reacquiring ordinary rows.
 
 ## Q&A onboarding depth
 

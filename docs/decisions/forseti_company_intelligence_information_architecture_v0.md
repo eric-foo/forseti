@@ -383,13 +383,16 @@ deepening only for a named unresolved inference job.
 ### Portfolio and retail architecture
 
 Completed company Understanding makes the owned portfolio denominator, its
-retailer expression, the evidence-selected depth set, and the resulting
-outside-in interpretation visible as one first-class report section. Retailer
-grids, exact parent PDPs, dated public moves, and reproducibly bounded review
-corpora may support that interpretation without pretending to expose internal
-revenue, margin, or management reporting. This section consumes the company
-substrate already captured for Understanding; it does not create a parallel
-acquisition checklist or data store.
+retailer expression, complete bounded review-corpus board, evidence-selected
+interpretive depth set, and resulting outside-in interpretation visible as one
+first-class report section. Retailer grids, exact parent PDPs, dated public
+moves, and reproducibly bounded review corpora may support that interpretation
+without pretending to expose internal revenue, margin, or management reporting.
+The corpus board accounts for every selected-retailer listing and distinct
+review corpus before category-balanced interpretation is selected; it is not a
+full historical crawl or a requirement to interpret every row. This section
+consumes the company substrate already captured for Understanding; it does not
+create a parallel acquisition checklist or data store.
 
 When retail expression is material, acquire this substrate breadth-first. Begin
 with enough owned evidence to bind the subject, categories, franchises, known
@@ -408,9 +411,14 @@ exposed denominator and typed gaps. Owned evidence remains canonical identity
 authority; retailer grids are discovery and channel-expression evidence.
 
 Acquire one full-raw baseline PDP for every reconciled exact retailer listing.
-Only after that baseline may expensive review or Q&A depth be selected for a
-named, non-duplicative job. This is not an all-retailer or source-count quota and
-does not require universal deep capture or a complete global SKU graph.
+Then bind every listing to provider tenant/store plus product/grouping
+collection context and acquire one bounded onboarding window for every distinct
+accessible review corpus, or preserve its typed no-review, not-exposed,
+blocked, or unresolved outcome. Only after that complete bounded corpus board
+may expensive interpretation or Q&A depth be selected for a named,
+non-duplicative and category-balanced job. This is not an all-retailer or
+source-count quota and does not require a full historical review crawl or
+complete global SKU graph.
 
 Sephora, Ulta, and Target expose brand or assortment grids. Amazon exposes a
 query-bound ranked-search window that may be complete for its declared query and

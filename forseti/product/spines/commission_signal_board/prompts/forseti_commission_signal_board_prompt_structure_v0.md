@@ -854,12 +854,20 @@ retailer alone. Same-corpus sort windows are not independent. When requested
 sort windows substantially overlap, dedupe by source-native review identity, report occurrences and unique rows
 separately, and redirect further depth to a materially different corpus,
 category, or product when available. Review volume alone must not optimize the
-selected set. If missing grid pages or category totals, identity conflicts, or
-review comparability could change selection, record a portfolio-coverage or
-selection gap and continue acquisition or block; never silently choose from a
-partial list. A selected retailer's grid and exact-parent baseline are breadth
-obligations; deep review/Q&A capture stops when its named jobs and material seams
-are supported, contradicted, bounded, or typed as gaps.
+selected set. After exact-parent baseline coverage, map every selected-retailer
+listing to its observed provider tenant/store and product/grouping collection
+context. Collapse duplicate listings, variants, sets, or placements only when
+evidence proves one shared corpus. Acquire one bounded onboarding window for
+every distinct accessible review corpus, or preserve a typed `NO_REVIEWS`,
+`NOT_EXPOSED`, `ROUTE_BLOCKED`, or identity-unresolved outcome. This complete
+corpus board is the reusable customer-evidence breadth layer, not a full
+historical crawl or an instruction to interpret every row. Expensive
+interpretive and Q&A depth remains category-balanced and evidence-selected;
+stop when its named jobs and material seams are supported, contradicted,
+bounded, or typed as gaps. If missing grid pages or category totals, identity
+conflicts, or review comparability could change the corpus board or analysis
+selection, record a portfolio-coverage or selection gap and continue
+acquisition or block; never silently choose from a partial list.
 
 Choose the working primary from the officially named retailer board,
 target-market relevance, assortment breadth, structured evidence depth, and
@@ -876,15 +884,17 @@ selected retailer. The official-first board uses the existing coverage ledger
 and adds no automatic completion credit. Retailer evidence remains retailer
 evidence, not authority for internal company fact.
 
-Carry these MGT accepted residuals: unselected long-tail variants may remain at
-parent-PDP baseline rather than review/Q&A depth; review volume remains channel/
-tenure/syndication biased and supports prominence ordering only; observed
-complaint or weak-link candidates are not market-wide worst-product conclusions;
-and a full global SKU graph and automated identity resolver remain out of scope.
-Upgrade when unresolved breadth, identity, syndication, or comparability could
-materially change the selected set. Assortment and review evidence alone cannot
-establish sales, cash generation, growth, cannibalization, intent, control,
-competitive strategy, or operational leverage.
+Carry these MGT accepted residuals: listings without a distinct review corpus
+may remain at parent-PDP baseline, while every distinct accessible corpus gets
+a bounded onboarding window or typed gap; review volume remains channel/tenure/
+syndication biased and supports prominence ordering only; observed complaint or
+weak-link candidates are not market-wide worst-product conclusions; and a full
+historical review crawl, global SKU graph, and automated identity resolver
+remain out of scope. Upgrade when unresolved breadth, identity, syndication, or
+comparability could materially change the corpus board or selected analysis.
+Assortment and review evidence alone cannot establish sales, cash generation,
+growth, cannibalization, intent, control, competitive strategy, or operational
+leverage.
 
 ### Executive Intelligence Brief (completed reports only)
 
