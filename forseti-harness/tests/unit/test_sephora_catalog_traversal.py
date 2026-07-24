@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
+import pytest
+
 from source_capture.adapters.sephora_catalog_traversal import (
     SephoraCatalogTraversalPlugin,
 )
@@ -51,6 +53,29 @@ def test_catalog_traversal_fails_before_retaining_duplicate_second_page() -> Non
     assert "duplicate product identities" in outcome.reason
     assert len(plugin.grid_page_doms) == 1
     assert plugin.grid_observation["termination"] == "unproven"
+
+
+def test_catalog_traversal_collects_twelve_complete_consecutive_pages() -> None:
+    page = MagicMock()
+    page.url = _URL
+    page.content.side_effect = [_page_dom(page_number) for page_number in range(1, 13)]
+    plugin = SephoraCatalogTraversalPlugin(
+        target_url=_URL, page_count=12, traversal_timeout_seconds=30
+    )
+
+    outcome = plugin.before_snapshot(page, setup_timeout_ms=1_000)
+
+    assert outcome.steps_completed is True
+    assert len(plugin.grid_page_doms) == 12
+    assert plugin.grid_observation["capturedPageCount"] == 12
+    assert plugin.grid_observation["extractedUniqueParentCount"] == 720
+    assert page.goto.call_count == 11
+    assert "currentPage=12" in page.goto.call_args.args[0]
+
+
+def test_catalog_traversal_rejects_more_than_twelve_pages() -> None:
+    with pytest.raises(ValueError, match=r"must be in \[1,12\]"):
+        SephoraCatalogTraversalPlugin(target_url=_URL, page_count=13)
 
 
 def _page_dom(page: int, *, duplicate_first: int | None = None) -> str:

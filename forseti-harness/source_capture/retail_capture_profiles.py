@@ -5,7 +5,10 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 from source_capture.adapters.cloakbrowser_snapshot import ScrollStopCondition
-from source_capture.sephora_catalog_grid import extract_sephora_catalog_request
+from source_capture.sephora_catalog_grid import (
+    SEPHORA_CATALOG_MAX_PAGE,
+    extract_sephora_catalog_request,
+)
 from source_capture.source_detail_sufficiency import (
     SourceDetailSufficiencyRequirements,
     validate_source_detail_sufficiency_requirements,
@@ -277,7 +280,8 @@ class RetailCaptureProfile:
             if request is None:
                 raise ValueError(
                     f"retail capture profile {self.name} requires an HTTPS Sephora "
-                    "/shop/<category> URL with one currentPage in [1,5] and "
+                    f"/shop/<category> URL with one currentPage in "
+                    f"[1,{SEPHORA_CATALOG_MAX_PAGE}] and "
                     f"sortBy=BEST_SELLING; got {url!r}"
                 )
             slug, page, _sort = request

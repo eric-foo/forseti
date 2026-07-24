@@ -2410,7 +2410,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=2,
         help=(
             "Consecutive 60-product Sephora BEST_SELLING PageJSON pages to capture "
-            "with sephora_catalog_grid_aggregate. Bounded to 1-5; default 2."
+            "with sephora_catalog_grid_aggregate. Bounded to 1-12; default 2."
         ),
     )
     parser.add_argument(
