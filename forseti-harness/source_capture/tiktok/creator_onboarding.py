@@ -3291,6 +3291,7 @@ def capture_tiktok_creator_grid(
     initial = observe(pointer_actions=(TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,))
     if isinstance(initial, BrowserSnapshotFailure):
         return initial
+    interaction_context_captures = [initial]
     metric_reload_attempted = False
     metric_reload_recovered = False
     if (
@@ -3304,6 +3305,7 @@ def capture_tiktok_creator_grid(
         refreshed = observe(force_same_url_reload=True)
         if isinstance(refreshed, BrowserSnapshotFailure):
             return refreshed
+        interaction_context_captures.append(refreshed)
         initial = refreshed
         metric_reload_recovered = bool(
             _metric_items_from_capture(initial, creator_handle)
@@ -3357,6 +3359,7 @@ def capture_tiktok_creator_grid(
             if isinstance(wheel_capture, BrowserSnapshotFailure):
                 return wheel_capture
             captures.append(wheel_capture)
+            interaction_context_captures.append(wheel_capture)
             prior_ids = _ordered_grid_video_ids(
                 wheel_capture,
                 creator_handle=creator_handle,
@@ -3397,6 +3400,7 @@ def capture_tiktok_creator_grid(
         if isinstance(poll, BrowserSnapshotFailure):
             return poll
         captures.append(poll)
+        interaction_context_captures.append(poll)
         poll_ids = _ordered_grid_video_ids(poll, creator_handle=creator_handle)
         if poll_ids == prior_ids:
             stable_poll_count += 1
@@ -3427,6 +3431,17 @@ def capture_tiktok_creator_grid(
         for action in [capture.metadata.get("post_load_wheel_action")]
         if isinstance(action, dict)
     ]
+    page_interaction_context_observations = [
+        {
+            "capture_index": capture_index,
+            **observation,
+        }
+        for capture_index, captured_page in enumerate(interaction_context_captures)
+        for observation in captured_page.metadata.get(
+            "page_interaction_context_observations", ()
+        )
+        if isinstance(observation, dict)
+    ]
     metadata = dict(final.metadata)
     metadata.update(
         {
@@ -3440,6 +3455,9 @@ def capture_tiktok_creator_grid(
             "grid_acquisition_wheel_burst_cap": GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP,
             "grid_acquisition_wheel_burst_count": wheel_burst_count,
             "grid_acquisition_wheel_action_receipts": wheel_action_receipts,
+            "page_interaction_context_observations": (
+                page_interaction_context_observations
+            ),
             "grid_acquisition_initial_dom_video_count": len(initial_ids),
             "grid_acquisition_final_dom_video_count": len(prior_ids),
             "grid_acquisition_new_dom_video_count": len(final_id_set - initial_id_set),
@@ -3645,6 +3663,9 @@ def build_tiktok_grid_window(
             ),
             "wheel_action_receipts": capture.metadata.get(
                 "grid_acquisition_wheel_action_receipts"
+            ),
+            "page_interaction_context_observations": capture.metadata.get(
+                "page_interaction_context_observations"
             ),
             "passive_polls_executed": capture.metadata.get(
                 "grid_acquisition_passive_polls_executed"

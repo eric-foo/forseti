@@ -1559,6 +1559,9 @@ def _with_comment_route_observation(
     receipt["dom_visible_comment_candidate_count"] = len(
         _dom_visible_comment_candidates(capture_result)
     )
+    page_context_observations = _page_interaction_context_observations(capture_result)
+    if page_context_observations:
+        receipt["page_interaction_context_observations"] = page_context_observations
     pointer_chronology = _pointer_action_chronology(capture_result)
     if pointer_chronology:
         receipt["pointer_action_chronology"] = pointer_chronology
@@ -2125,6 +2128,11 @@ def _cadence_row_from_capture(
         "warning_count": len(capture_result.warning_notes),
         "limitation_count": len(capture_result.limitation_notes),
     }
+    page_context_observations = _page_interaction_context_observations(capture_result)
+    if page_context_observations:
+        capture_receipt["page_interaction_context_observations"] = (
+            page_context_observations
+        )
     pointer_chronology = _pointer_action_chronology(capture_result)
     if pointer_chronology:
         capture_receipt["pointer_action_chronology"] = pointer_chronology
@@ -2290,6 +2298,19 @@ def _pointer_action_chronology(
     action = _as_dict(metadata.get("post_load_pointer_action"))
     summary = _pointer_action_summary(action) if action else {}
     return [summary] if summary else []
+
+
+def _page_interaction_context_observations(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    metadata = _as_dict(capture_result.metadata)
+    return [
+        _as_dict(observation)
+        for observation in _as_list(
+            metadata.get("page_interaction_context_observations")
+        )
+        if _as_dict(observation)
+    ]
 
 
 def _human_challenge_handoff_attempts(

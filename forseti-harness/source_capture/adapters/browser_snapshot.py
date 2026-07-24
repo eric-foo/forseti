@@ -1029,6 +1029,26 @@ class _PlaywrightBrowserSnapshotEngine:
                 context = browser.new_context(**context_kwargs)
                 try:
                     page = context.new_page()
+                    page_interaction_context_observations: list[
+                        dict[str, object]
+                    ] = []
+
+                    def observe_page_interaction_context(
+                        *,
+                        action_kind: str,
+                        before_action_name: str,
+                    ) -> None:
+                        page_interaction_context_observations.append(
+                            _page_interaction_context_observation(
+                                page,
+                                sequence_index=len(
+                                    page_interaction_context_observations
+                                ),
+                                action_kind=action_kind,
+                                before_action_name=before_action_name,
+                            )
+                        )
+
                     if blocked_resource_types:
                         page.route(
                             "**/*",
@@ -1049,6 +1069,10 @@ class _PlaywrightBrowserSnapshotEngine:
                             pointer_action_responses.append(response)
 
                     page.on("response", observe_response)
+                    observe_page_interaction_context(
+                        action_kind="navigation",
+                        before_action_name="page_navigation",
+                    )
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                     settle_wait_receipt: dict[str, object] | None = None
                     if settle_seconds > 0:
@@ -1139,6 +1163,10 @@ class _PlaywrightBrowserSnapshotEngine:
                         if post_load_action_script is not None:
                             page.evaluate(post_load_action_script, post_load_action_arg)
                         if post_load_wheel_action is not None:
+                            observe_page_interaction_context(
+                                action_kind="wheel",
+                                before_action_name=post_load_wheel_action.action_name,
+                            )
                             wheel_action_receipt = _run_wheel_action(
                                 page, post_load_wheel_action
                             )
@@ -1153,6 +1181,10 @@ class _PlaywrightBrowserSnapshotEngine:
                             not pointer_actions_suppressed
                             and post_load_pointer_action is not None
                         ):
+                            observe_page_interaction_context(
+                                action_kind="pointer",
+                                before_action_name=post_load_pointer_action.action_name,
+                            )
                             pointer_action_receipt = _run_pointer_action(
                                 page,
                                 post_load_pointer_action,
@@ -1168,6 +1200,10 @@ class _PlaywrightBrowserSnapshotEngine:
                             if not pointer_actions_suppressed
                             else ()
                         ):
+                            observe_page_interaction_context(
+                                action_kind="pointer",
+                                before_action_name=pointer_action.action_name,
+                            )
                             pointer_action_receipt = _run_pointer_action(
                                 page,
                                 pointer_action,
@@ -1258,6 +1294,9 @@ class _PlaywrightBrowserSnapshotEngine:
                         "post_load_wheel_action": wheel_action_receipt,
                         "post_load_pointer_action": pointer_action_receipt,
                         "post_load_pointer_actions": pointer_action_receipts,
+                        "page_interaction_context_observations": (
+                            page_interaction_context_observations
+                        ),
                         "lazy_load_scroll_passes": lazy_load_scroll_passes,
                         "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                         "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
@@ -3235,6 +3274,64 @@ def _show_human_challenge_prompt(prompt: str) -> str:
     except Exception:
         print(prompt, flush=True)
         return "stdout"
+
+
+def _page_interaction_context_observation(
+    page: object,
+    *,
+    sequence_index: int,
+    action_kind: str,
+    before_action_name: str,
+) -> dict[str, object]:
+    receipt: dict[str, object] = {
+        "schema_version": "passive_page_interaction_context_v0",
+        "sequence_index": sequence_index,
+        "action_kind": action_kind,
+        "before_action_name": before_action_name,
+        "observed_at_utc": utc_now_z(),
+        "observation_status": "unavailable",
+        "visibility_state_or_none": None,
+        "document_has_focus_or_none": None,
+    }
+    try:
+        observation = page.evaluate(  # type: ignore[attr-defined]
+            """() => ({
+                observation_version: "passive_page_interaction_context_v0",
+                visibility_state: (
+                    typeof document.visibilityState === "string"
+                        ? document.visibilityState
+                        : null
+                ),
+                document_has_focus: (
+                    typeof document.hasFocus === "function"
+                        ? document.hasFocus()
+                        : null
+                ),
+            })"""
+        )
+    except Exception:
+        receipt["unavailable_reason"] = "page_evaluation_failed"
+        return receipt
+    if not isinstance(observation, dict):
+        receipt["unavailable_reason"] = "invalid_observation"
+        return receipt
+    visibility_state = observation.get("visibility_state")
+    document_has_focus = observation.get("document_has_focus")
+    if (
+        not isinstance(visibility_state, str)
+        or not visibility_state
+        or not isinstance(document_has_focus, bool)
+    ):
+        receipt["unavailable_reason"] = "invalid_observation"
+        return receipt
+    receipt.update(
+        {
+            "observation_status": "observed",
+            "visibility_state_or_none": visibility_state,
+            "document_has_focus_or_none": document_has_focus,
+        }
+    )
+    return receipt
 
 
 def _run_wheel_action(

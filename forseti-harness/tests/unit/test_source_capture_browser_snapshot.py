@@ -215,6 +215,7 @@ class _FakeObservationPage:
         response_url: str = "https://api.example.test/widget",
         response_method: str = "GET",
         response_resource_type: str = "fetch",
+        page_context_observations: list[object] | None = None,
     ) -> None:
         self.event_log = event_log
         self.height = height
@@ -230,6 +231,7 @@ class _FakeObservationPage:
         self.response_url = response_url
         self.response_method = response_method
         self.response_resource_type = response_resource_type
+        self.page_context_observations = list(page_context_observations or [])
         self.post_click_absence_result = post_click_absence_result or {
             "checked": True,
             "marker_count": 0,
@@ -299,6 +301,17 @@ class _FakeObservationPage:
         return _FakeObservationLocator(self, selector)
 
     def evaluate(self, script: str, arg: object | None = None) -> object:
+        if "passive_page_interaction_context_v0" in script:
+            self.event_log.append("page_context_observation")
+            if self.page_context_observations:
+                observation = self.page_context_observations.pop(0)
+                if isinstance(observation, Exception):
+                    raise observation
+                return observation
+            return {
+                "visibility_state": "visible",
+                "document_has_focus": True,
+            }
         if "hrefSubstrings" in script:
             self.event_log.append("structural_stop_lookup")
             if self.structural_stop_results:
@@ -1308,6 +1321,10 @@ def test_page_load_account_safety_stop_suppresses_actions_without_handoff(
     assert result.metadata["human_challenge_handoff_attempts"] == []
     assert result.metadata["post_load_pointer_actions"] == []
     assert result.metadata["pre_action_stop_attempts"][0]["automatic_retry_allowed"] is False
+    assert [
+        observation["before_action_name"]
+        for observation in result.metadata["page_interaction_context_observations"]
+    ] == ["page_navigation"]
     assert "pointer_target_lookup" not in event_log
     assert "mouse_click" not in event_log
 
@@ -1740,6 +1757,126 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert event_log.index("mouse_click") < event_log.index("wait:2500")
     assert event_log.index("wait:2500") < event_log.index("inner_text")
     assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_records_passive_context_before_browser_actions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        page_context_observations=[
+            {"visibility_state": "visible", "document_has_focus": True},
+            {"visibility_state": "hidden", "document_has_focus": False},
+            {"visibility_state": "visible", "document_has_focus": False},
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        **_PAGE_OBSERVATION_BASE_KWARGS,
+        post_load_wheel_action=BrowserPageWheelAction(
+            action_name="test_wheel",
+            direction="down",
+            viewport_fraction_min=0.1,
+            viewport_fraction_max=0.1,
+            wheel_chunk_px_min=100,
+            wheel_chunk_px_max=100,
+            wheel_pause_ms_min=0,
+            wheel_pause_ms_max=0,
+            settle_ms_min=0,
+            settle_ms_max=0,
+            random_seed=1,
+        ),
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="test_pointer",
+            candidate_selector="button",
+            text_markers=("open",),
+            wait_after_ms=0,
+            move_steps_min=1,
+            move_steps_max=1,
+            random_seed=1,
+        ),
+    )
+
+    observations = result.metadata["page_interaction_context_observations"]
+    assert [
+        (
+            observation["sequence_index"],
+            observation["action_kind"],
+            observation["before_action_name"],
+            observation["observation_status"],
+            observation["visibility_state_or_none"],
+            observation["document_has_focus_or_none"],
+        )
+        for observation in observations
+    ] == [
+        (0, "navigation", "page_navigation", "observed", "visible", True),
+        (1, "wheel", "test_wheel", "observed", "hidden", False),
+        (2, "pointer", "test_pointer", "observed", "visible", False),
+    ]
+    assert all(observation["observed_at_utc"] for observation in observations)
+    assert event_log.index("page_context_observation") < event_log.index("goto")
+    wheel_observation_index = event_log.index(
+        "page_context_observation",
+        event_log.index("goto") + 1,
+    )
+    assert wheel_observation_index < event_log.index("wheel_viewport_lookup")
+    pointer_observation_index = event_log.index(
+        "page_context_observation",
+        wheel_observation_index + 1,
+    )
+    assert pointer_observation_index < event_log.index("pointer_target_lookup")
+
+
+def test_page_context_observation_failure_does_not_suppress_pointer_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        page_context_observations=[
+            {"visibility_state": "visible", "document_has_focus": True},
+            RuntimeError("diagnostic read unavailable"),
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        **_PAGE_OBSERVATION_BASE_KWARGS,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="still_runs",
+            candidate_selector="button",
+            text_markers=("open",),
+            wait_after_ms=0,
+            move_steps_min=1,
+            move_steps_max=1,
+            random_seed=1,
+        ),
+    )
+
+    pointer_observation = result.metadata["page_interaction_context_observations"][1]
+    assert pointer_observation["before_action_name"] == "still_runs"
+    assert pointer_observation["observation_status"] == "unavailable"
+    assert pointer_observation["visibility_state_or_none"] is None
+    assert pointer_observation["document_has_focus_or_none"] is None
+    assert pointer_observation["unavailable_reason"] == "page_evaluation_failed"
+    assert result.metadata["post_load_pointer_action"]["clicked"] is True
+    assert "mouse_click" in event_log
 
 
 def test_playwright_page_observation_runs_bounded_wheel_burst_before_dom(

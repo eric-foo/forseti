@@ -76,6 +76,7 @@ def _capture(
     dom_view_text_by_id: dict[str, str] | None = None,
     hydration_payload: dict[str, object] | None = None,
     profile_metric_dom: dict[str, object] | None = None,
+    page_context_observations: list[dict[str, object]] | None = None,
 ) -> BrowserPageObservationSuccess:
     # Immutable-tuple defaults keep the signature safe; convert to fresh lists
     # per call so downstream behavior matches the previous explicit [] kwargs.
@@ -128,6 +129,15 @@ def _capture(
             "lazy_load_scroll_passes_executed": 2,
             "lazy_load_scroll_stop_reason": "response_target_reached",
             "lazy_load_response_stop_condition_configured": True,
+            **(
+                {
+                    "page_interaction_context_observations": (
+                        page_context_observations
+                    )
+                }
+                if page_context_observations is not None
+                else {}
+            ),
         },
         warning_notes=[],
         limitation_notes=[],
@@ -838,6 +848,16 @@ def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
         ordered_ids=ids,
         items=[],
         dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        page_context_observations=[
+            {
+                "sequence_index": 0,
+                "action_kind": "navigation",
+                "before_action_name": "page_navigation",
+                "observation_status": "observed",
+                "visibility_state_or_none": "visible",
+                "document_has_focus_or_none": True,
+            }
+        ],
     )
     initial.metadata["same_url_navigation_suppression_count"] = 1
     exact_items = [
@@ -856,6 +876,16 @@ def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
         ordered_ids=ids,
         items=exact_items[:19],
         dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        page_context_observations=[
+            {
+                "sequence_index": 0,
+                "action_kind": "navigation",
+                "before_action_name": "page_navigation",
+                "observation_status": "observed",
+                "visibility_state_or_none": "hidden",
+                "document_has_focus_or_none": False,
+            }
+        ],
     )
     paginated = _capture(
         ordered_ids=ids,
@@ -915,6 +945,26 @@ def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
     assert capture.metadata["grid_acquisition_wheel_burst_count"] == 2
     assert capture.metadata["grid_acquisition_initial_metrics_sufficient"] is False
     assert capture.metadata["grid_acquisition_final_metrics_sufficient"] is True
+    assert capture.metadata["page_interaction_context_observations"] == [
+        {
+            "capture_index": 0,
+            "sequence_index": 0,
+            "action_kind": "navigation",
+            "before_action_name": "page_navigation",
+            "observation_status": "observed",
+            "visibility_state_or_none": "visible",
+            "document_has_focus_or_none": True,
+        },
+        {
+            "capture_index": 1,
+            "sequence_index": 0,
+            "action_kind": "navigation",
+            "before_action_name": "page_navigation",
+            "observation_status": "observed",
+            "visibility_state_or_none": "hidden",
+            "document_has_focus_or_none": False,
+        },
+    ]
     window = build_tiktok_grid_window(
         creator_handle="creator",
         capture=capture,
@@ -928,6 +978,9 @@ def test_grid_acquisition_reloads_same_profile_once_to_recover_metrics(
     )
     assert window["collection_receipt"]["metric_reload_attempted"] is True
     assert window["collection_receipt"]["metric_reload_recovered"] is True
+    assert window["collection_receipt"]["page_interaction_context_observations"] == (
+        capture.metadata["page_interaction_context_observations"]
+    )
 
 
 def test_grid_acquisition_rejects_a_new_batch_below_the_minimum_window(
