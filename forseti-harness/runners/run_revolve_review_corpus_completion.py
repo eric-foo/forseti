@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -11,6 +10,7 @@ from typing import Sequence
 
 from pydantic import Field
 
+from harness_utils import hash_file
 from schemas.case_models import StrictModel
 from source_capture.retail_grid_projection import (
     load_verified_source_capture_packet_directory,
@@ -295,7 +295,7 @@ def _capture_and_write(
         declared_review_count=receipt.declared_review_count,
         status=receipt.status,
         receipt_path=str(receipt_path.resolve()),
-        receipt_sha256=_sha256(receipt_path),
+        receipt_sha256=hash_file(receipt_path),
         captured_review_count=len(receipt.captured_review_ids),
         failure=(
             None
@@ -318,10 +318,6 @@ def _load_revolve_pdp_record(
             f"packet did not retain a REVOLVE PDP content record: {packet_directory}"
         )
     return loaded[1]
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _write_new_json(path: Path, value: object) -> None:
