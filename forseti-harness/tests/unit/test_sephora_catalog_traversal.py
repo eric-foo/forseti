@@ -85,6 +85,7 @@ def test_catalog_traversal_reuses_established_market_preflight() -> None:
     page = MagicMock()
     plugin = SephoraCatalogTraversalPlugin(target_url=_URL, page_count=1)
     expected = MagicMock()
+    expected.steps_completed = True
 
     with patch(
         "source_capture.adapters.sephora_catalog_traversal.SephoraUSMarketPlugin"
@@ -99,25 +100,60 @@ def test_catalog_traversal_reuses_established_market_preflight() -> None:
     )
 
 
-def test_catalog_traversal_fails_if_geo_dialog_reappears_after_preflight() -> None:
+def test_catalog_traversal_downgrades_persisted_shipping_shell_to_warning() -> None:
+    page = MagicMock()
+    plugin = SephoraCatalogTraversalPlugin(target_url=_URL, page_count=1)
+    persisted = MagicMock()
+    persisted.steps_completed = False
+    persisted.reason = (
+        "Sephora country dialog remained visible after explicit continuation"
+    )
+
+    with patch(
+        "source_capture.adapters.sephora_catalog_traversal.SephoraUSMarketPlugin"
+    ) as market_plugin:
+        market_plugin.return_value.before.return_value = persisted
+        outcome = plugin.before(page, setup_timeout_ms=60_000)
+
+    assert outcome.steps_completed is True
+    assert outcome.reason is None
+    assert len(outcome.warning_notes) == 1
+    assert "delivery eligibility remain unpinned" in outcome.warning_notes[0]
+    page.url = _URL
+    dialog = page.locator.return_value.filter.return_value
+    dialog.count.return_value = 1
+    dialog.is_visible.return_value = True
+    page.content.return_value = _page_dom(1)
+
+    snapshot_outcome = plugin.before_snapshot(page, setup_timeout_ms=1_000)
+
+    assert snapshot_outcome.steps_completed is True
+    assert snapshot_outcome.warning_notes == []
+
+
+def test_catalog_traversal_retains_us_pagejson_under_persisted_shipping_shell() -> None:
     page = MagicMock()
     page.url = _URL
     dialog = page.locator.return_value.filter.return_value
     dialog.count.return_value = 1
     dialog.is_visible.return_value = True
+    page.content.return_value = _page_dom(1)
     plugin = SephoraCatalogTraversalPlugin(
         target_url=_URL, page_count=1, traversal_timeout_seconds=10
     )
 
     outcome = plugin.before_snapshot(page, setup_timeout_ms=1_000)
 
-    assert outcome.steps_completed is False
-    assert outcome.reason == (
-        "Sephora geo dialog reappeared after country-continuation preflight"
-    )
-    page.content.assert_not_called()
+    assert outcome.steps_completed is True
+    page.content.assert_called_once()
     assert plugin.grid_observation["geoShippingDialogObserved"] is True
-    assert plugin.grid_observation["capturedPageCount"] == 0
+    assert (
+        plugin.grid_observation["geoShippingDialogPersistedAfterContinue"]
+        is True
+    )
+    assert plugin.grid_observation["capturedPageCount"] == 1
+    assert plugin.grid_observation["extractedUniqueParentCount"] == 60
+    assert "delivery eligibility remain unpinned" in outcome.warning_notes[0]
 
 
 def _configure_no_country_dialog(page: MagicMock) -> None:
