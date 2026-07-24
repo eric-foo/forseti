@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import time
 from dataclasses import dataclass
+from html.parser import HTMLParser
 from pathlib import Path
+from textwrap import wrap
 from typing import TYPE_CHECKING, Any, Sequence
 from urllib.parse import urlparse
 
@@ -35,6 +38,8 @@ DEFAULT_DELAY_SECONDS = 30.0
 DEFAULT_MAX_URLS = 10
 DEFAULT_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_BYTES = 5_000_000
+ACCESS_DIAGNOSTIC_SCHEMA_VERSION = "reddit_block_shell_diagnostic_v1"
+ACCESS_DIAGNOSTIC_DIRECTORY = "access_diagnostics"
 # Content retention is the standard fleet posture: the thread record is
 # extracted in flight and preserved in the packet; raw is hashed then
 # discarded. Raw remains the explicit operator-selected evidence posture.
@@ -112,6 +117,10 @@ def run_reddit_old_http_batch(
             "capture_finished_at": None,
             "content_extraction_failed": False,
             "content_record_preserved": False,
+            "access_diagnostic_status": "not_applicable",
+            "access_diagnostic_screenshot": None,
+            "access_diagnostic_receipt": None,
+            "access_diagnostic_error": None,
         }
 
         extraction_spec = ContentExtractionSpec(
@@ -166,6 +175,23 @@ def run_reddit_old_http_batch(
                 row["packet_dir"] = str(packet_dir)
             if packet_dir is not None:
                 row["content_record_preserved"] = _packet_preserves_content_record(packet_dir)
+            if capture_exit == CONTENT_EXTRACTION_FAILED_EXIT_CODE and packet_dir is not None:
+                try:
+                    diagnostic = _preserve_block_shell_diagnostic(
+                        packet_dir=packet_dir,
+                        diagnostic_root=output_root / ACCESS_DIAGNOSTIC_DIRECTORY,
+                        slot=slot,
+                    )
+                    if diagnostic is not None:
+                        row["access_diagnostic_status"] = "preserved"
+                        row["access_diagnostic_screenshot"] = diagnostic["screenshot_path"]
+                        row["access_diagnostic_receipt"] = diagnostic["receipt_path"]
+                except Exception as exc:
+                    # The access failure remains the primary outcome. A failed
+                    # derived diagnostic is separately visible and never turns
+                    # the capture into success or triggers another request.
+                    row["access_diagnostic_status"] = "failed"
+                    row["access_diagnostic_error"] = f"{type(exc).__name__}: {exc}"
         except Exception as exc:
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
@@ -200,6 +226,12 @@ def run_reddit_old_http_batch(
         "max_urls": max_urls,
         "url_count": len(slots),
         "capture_success_count": sum(1 for row in results if row["capture_exit"] == 0),
+        "access_diagnostic_count": sum(
+            1 for row in results if row["access_diagnostic_status"] == "preserved"
+        ),
+        "access_diagnostic_failure_count": sum(
+            1 for row in results if row["access_diagnostic_status"] == "failed"
+        ),
         "results": results,
     }
     summary_path.write_text(
@@ -225,6 +257,155 @@ def _packet_preserves_content_record(packet_dir: Path) -> bool:
         )
         == 1
     )
+
+
+def _packet_artifact(packet_dir: Path, filename: str) -> Path:
+    matches = []
+    for path in packet_dir.rglob(f"*{filename}"):
+        if not path.is_file():
+            continue
+        prefix, separator, suffix = path.name.partition("_")
+        if path.name == filename or (
+            separator and prefix.isdigit() and suffix == filename
+        ):
+            matches.append(path)
+    if len(matches) != 1:
+        raise ValueError(
+            f"packet must preserve exactly one {filename}, found {len(matches)}: "
+            f"{packet_dir}"
+        )
+    return matches[0]
+
+
+class _VisibleTextParser(HTMLParser):
+    _IGNORED = frozenset({"script", "style", "noscript", "template"})
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._ignored_depth = 0
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.casefold() in self._IGNORED:
+            self._ignored_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() in self._IGNORED and self._ignored_depth:
+            self._ignored_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._ignored_depth == 0 and data.strip():
+            self.parts.append(data.strip())
+
+
+def _visible_text(html_text: str) -> str:
+    parser = _VisibleTextParser()
+    parser.feed(html_text)
+    parser.close()
+    return " ".join(" ".join(parser.parts).split())
+
+
+def _diagnostic_png(*, lines: list[str], output_path: Path) -> None:
+    from PIL import Image, ImageDraw, ImageFont
+
+    width = 1400
+    margin = 48
+    line_height = 28
+    rendered_lines: list[str] = []
+    for line in lines:
+        rendered_lines.extend(wrap(line, width=100) or [""])
+    height = max(520, min(1800, margin * 2 + line_height * (len(rendered_lines) + 1)))
+    image = Image.new("RGB", (width, height), color=(248, 249, 251))
+    draw = ImageDraw.Draw(image)
+    try:
+        font = ImageFont.load_default(size=22)
+    except TypeError:  # Pillow < 10 compatibility for downstream operators.
+        font = ImageFont.load_default()
+    y = margin
+    for line in rendered_lines:
+        if y + line_height > height - margin:
+            draw.text(
+                (margin, y),
+                "[diagnostic excerpt truncated]",
+                fill=(145, 35, 35),
+                font=font,
+            )
+            break
+        draw.text((margin, y), line, fill=(24, 28, 36), font=font)
+        y += line_height
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(output_path, format="PNG")
+
+
+def _preserve_block_shell_diagnostic(
+    *,
+    packet_dir: Path,
+    diagnostic_root: Path,
+    slot: BatchSlot,
+) -> dict[str, str] | None:
+    metadata_path = _packet_artifact(packet_dir, "http_response_metadata.json")
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if metadata.get("body_classification") != "block_shell":
+        return None
+
+    body_path = _packet_artifact(packet_dir, "http_response_body.bin")
+    body = body_path.read_bytes()
+    body_sha256 = hashlib.sha256(body).hexdigest()
+    html_text = body.decode("utf-8", errors="replace")
+    visible_text = _visible_text(html_text)
+    excerpt = visible_text[:8_000]
+
+    screenshot_path = diagnostic_root / f"{slot.slot_id}_blocked_response.png"
+    receipt_path = diagnostic_root / f"{slot.slot_id}_blocked_response.json"
+    _diagnostic_png(
+        lines=[
+            "BLOCKED RESPONSE DIAGNOSTIC",
+            "Derived from the exact preserved HTTP response bytes. No URL refetch, browser access, proxy, retry, or CAPTCHA interaction occurred.",
+            f"slot: {slot.slot_id}",
+            f"requested URL: {slot.url}",
+            f"HTTP status: {metadata.get('status')}",
+            f"classification: {metadata.get('body_classification')}",
+            f"signal: {metadata.get('body_classification_signal')}",
+            f"detail: {metadata.get('body_classification_detail')}",
+            f"response SHA-256: {body_sha256}",
+            "",
+            "VISIBLE RESPONSE TEXT:",
+            excerpt or "[no visible text extracted]",
+        ],
+        output_path=screenshot_path,
+    )
+    screenshot_sha256 = hashlib.sha256(screenshot_path.read_bytes()).hexdigest()
+    receipt = {
+        "schema_version": ACCESS_DIAGNOSTIC_SCHEMA_VERSION,
+        "slot_id": slot.slot_id,
+        "requested_url": slot.url,
+        "packet_dir": str(packet_dir),
+        "source_body_path": str(body_path),
+        "source_body_sha256": body_sha256,
+        "http_status": metadata.get("status"),
+        "body_classification": metadata.get("body_classification"),
+        "body_classification_signal": metadata.get("body_classification_signal"),
+        "body_classification_detail": metadata.get("body_classification_detail"),
+        "visible_text_excerpt": excerpt,
+        "screenshot_path": str(screenshot_path),
+        "screenshot_sha256": screenshot_sha256,
+        "derivation": "exact_preserved_response_body_no_network_refetch",
+        "non_claims": [
+            "not a second Reddit request",
+            "not browser access",
+            "not CAPTCHA solving",
+            "not a pixel-faithful browser rendering",
+        ],
+    }
+    receipt_path.write_text(
+        f"{json.dumps(receipt, indent=2, sort_keys=True, ensure_ascii=False)}\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return {
+        "screenshot_path": str(screenshot_path),
+        "receipt_path": str(receipt_path),
+    }
 
 
 def load_slots(path: Path) -> list[BatchSlot]:

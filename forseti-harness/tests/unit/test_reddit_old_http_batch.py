@@ -7,7 +7,10 @@ import pytest
 
 from runners import run_reddit_old_http_batch as runner
 from runners.run_reddit_old_http_batch import BatchSlot, load_slots, run_reddit_old_http_batch
-from source_capture.content_extraction import ContentExtractionSpec
+from source_capture.content_extraction import (
+    CONTENT_EXTRACTION_FAILED_EXIT_CODE,
+    ContentExtractionSpec,
+)
 
 
 def test_load_slots_accepts_only_exact_old_reddit_threads(tmp_path: Path) -> None:
@@ -118,6 +121,93 @@ def test_batch_failure_stays_visible_and_has_no_retry(
     row = json.loads(Path(message).read_text(encoding="utf-8"))["results"][0]
     assert row["capture_exit"] == 3
     assert row["retry_count"] == 0
+
+
+def test_block_shell_failure_preserves_no_refetch_diagnostic(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def capture(**kwargs):
+        packet_dir = Path(kwargs["output_directory"])
+        raw_dir = packet_dir / "raw"
+        raw_dir.mkdir(parents=True)
+        body = b"""<html><head><title>Access check</title></head>
+        <body><h1>Not a robot?</h1><p>Complete the reCAPTCHA to continue.</p></body></html>"""
+        (raw_dir / "01_http_response_body.bin").write_bytes(body)
+        (raw_dir / "02_http_response_metadata.json").write_text(
+            json.dumps(
+                {
+                    "status": 200,
+                    "body_classification": "block_shell",
+                    "body_classification_signal": "recaptcha",
+                    "body_classification_detail": "matched recaptcha signature",
+                }
+            ),
+            encoding="utf-8",
+        )
+        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, str(packet_dir)
+
+    monkeypatch.setattr(runner, "run_source_capture_http_packet", capture)
+    exit_code, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://old.reddit.com/r/SaaS/comments/abc/example/")],
+        output_root=tmp_path / "out",
+        decision_question="What source-visible content was present?",
+        delay_seconds=0,
+    )
+
+    assert exit_code == 0
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    row = summary["results"][0]
+    assert row["capture_exit"] == CONTENT_EXTRACTION_FAILED_EXIT_CODE
+    assert row["content_record_preserved"] is False
+    assert row["access_diagnostic_status"] == "preserved"
+    assert summary["access_diagnostic_count"] == 1
+    screenshot = Path(row["access_diagnostic_screenshot"])
+    receipt = json.loads(Path(row["access_diagnostic_receipt"]).read_text(encoding="utf-8"))
+    assert screenshot.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert receipt["body_classification_signal"] == "recaptcha"
+    assert "Not a robot?" in receipt["visible_text_excerpt"]
+    assert receipt["derivation"] == "exact_preserved_response_body_no_network_refetch"
+    assert receipt["non_claims"] == [
+        "not a second Reddit request",
+        "not browser access",
+        "not CAPTCHA solving",
+        "not a pixel-faithful browser rendering",
+    ]
+
+
+def test_non_block_shell_extraction_failure_does_not_fake_diagnostic(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def capture(**kwargs):
+        packet_dir = Path(kwargs["output_directory"])
+        raw_dir = packet_dir / "raw"
+        raw_dir.mkdir(parents=True)
+        (raw_dir / "01_http_response_body.bin").write_bytes(b"<html>thread body</html>")
+        (raw_dir / "02_http_response_metadata.json").write_text(
+            json.dumps(
+                {
+                    "status": 200,
+                    "body_classification": "content_unverified",
+                    "body_classification_signal": None,
+                }
+            ),
+            encoding="utf-8",
+        )
+        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, str(packet_dir)
+
+    monkeypatch.setattr(runner, "run_source_capture_http_packet", capture)
+    _exit_code, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://old.reddit.com/r/SaaS/comments/abc/example/")],
+        output_root=tmp_path / "out",
+        decision_question="What source-visible content was present?",
+        delay_seconds=0,
+    )
+
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    row = summary["results"][0]
+    assert row["access_diagnostic_status"] == "not_applicable"
+    assert row["access_diagnostic_screenshot"] is None
+    assert summary["access_diagnostic_count"] == 0
 
 
 @pytest.mark.parametrize(

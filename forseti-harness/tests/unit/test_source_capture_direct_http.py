@@ -607,7 +607,11 @@ def test_content_mode_extracts_visible_old_reddit_thread_with_onboarding_login_f
     url = "https://old.reddit.com/r/orca_test/comments/abc/visible_thread/"
     body = b"""\
 <html><body>
-  <form action="https://www.reddit.com/r/orca_test/post/login">Log in</form>
+  <form action="https://www.reddit.com/r/orca_test/post/login">
+    Log in
+    <div class="g-recaptcha" data-sitekey="public-widget-key"></div>
+    <span class="error bad_captcha" style="display:none"></span>
+  </form>
   <div class="thing link" id="thing_t3_abc" data-fullname="t3_abc"
        data-subreddit="orca_test" data-author="poster">
     <a class="title">Visible thread</a>
@@ -679,6 +683,8 @@ def test_content_mode_extracts_visible_old_reddit_thread_with_onboarding_login_f
 
     assert exit_code == 0
     assert metadata["login_gate_signal"] is None
+    assert metadata["body_classification"] == "content_unverified"
+    assert metadata["body_classification_signal"] is None
     assert metadata["content_extraction"]["retention_outcome"] == "content"
     assert content["thread"]["thread_id"] == "abc"
     assert content["counts"]["comments_parsed"] == 1
