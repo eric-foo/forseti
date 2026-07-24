@@ -272,6 +272,7 @@ class BrowserPageObservationEngine(Protocol):
         dom_extract_script: str,
         dom_extract_arg: object,
         response_url_predicate: Callable[[str], bool],
+        pointer_action_response_url_predicate: Callable[[str], bool] | None = None,
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_wheel_action: BrowserPageWheelAction | None = None,
@@ -471,6 +472,7 @@ def fetch_browser_page_observation_capture(
     dom_extract_script: str,
     dom_extract_arg: object,
     response_url_predicate: Callable[[str], bool],
+    pointer_action_response_url_predicate: Callable[[str], bool] | None = None,
     post_load_action_script: str | None = None,
     post_load_action_arg: object = None,
     post_load_wheel_action: BrowserPageWheelAction | None = None,
@@ -502,7 +504,13 @@ def fetch_browser_page_observation_capture(
     human_challenge_handoff_prompt: str | None = None,
     engine: BrowserPageObservationEngine | None = None,
 ) -> BrowserPageObservationResult:
-    """Capture a rendered page observation plus selected same-load responses."""
+    """Capture a rendered page observation plus selected same-load responses.
+
+    ``response_url_predicate`` selects retained responses. By default those
+    same responses also signal pointer-action early-stop behavior; callers may
+    narrow that signal independently with
+    ``pointer_action_response_url_predicate``.
+    """
     normalized_url = _validate_http_url(url)
     normalized_browser_channel = _normalize_browser_channel(browser_channel)
     normalized_browser_backend = _normalize_browser_backend(browser_backend)
@@ -594,6 +602,9 @@ def fetch_browser_page_observation_capture(
             dom_extract_script=dom_extract_script,
             dom_extract_arg=dom_extract_arg,
             response_url_predicate=response_url_predicate,
+            pointer_action_response_url_predicate=(
+                pointer_action_response_url_predicate
+            ),
             post_load_action_script=post_load_action_script,
             post_load_action_arg=post_load_action_arg,
             post_load_wheel_action=normalized_wheel_action,
@@ -909,6 +920,7 @@ class _PlaywrightBrowserSnapshotEngine:
         dom_extract_script: str,
         dom_extract_arg: object,
         response_url_predicate: Callable[[str], bool],
+        pointer_action_response_url_predicate: Callable[[str], bool] | None = None,
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_wheel_action: BrowserPageWheelAction | None = None,
@@ -986,6 +998,7 @@ class _PlaywrightBrowserSnapshotEngine:
         selector_timeout_ms = selector_timeout_seconds * 1000
         blocked_resource_types = set(block_resource_types)
         selected_responses: list[object] = []
+        pointer_action_responses: list[object] = []
         with page_observation_runtime as playwright:
             try:
                 browser = self._launch_page_observation_browser(
@@ -1023,12 +1036,19 @@ class _PlaywrightBrowserSnapshotEngine:
                             if route.request.resource_type in blocked_resource_types
                             else route.continue_(),
                         )
-                    page.on(
-                        "response",
-                        lambda response: selected_responses.append(response)
-                        if response_url_predicate(str(response.url))
-                        else None,
-                    )
+                    def observe_response(response: object) -> None:
+                        response_url = str(getattr(response, "url", ""))
+                        retained = response_url_predicate(response_url)
+                        if retained:
+                            selected_responses.append(response)
+                        if (
+                            retained
+                            if pointer_action_response_url_predicate is None
+                            else pointer_action_response_url_predicate(response_url)
+                        ):
+                            pointer_action_responses.append(response)
+
+                    page.on("response", observe_response)
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                     settle_wait_receipt: dict[str, object] | None = None
                     if settle_seconds > 0:
@@ -1126,7 +1146,9 @@ class _PlaywrightBrowserSnapshotEngine:
                                 post_load_wheel_action.action_name
                             ):
                                 pointer_actions_suppressed = True
-                        observed_response_count = lambda: len(selected_responses)
+                        observed_response_count = lambda: len(
+                            pointer_action_responses
+                        )
                         if (
                             not pointer_actions_suppressed
                             and post_load_pointer_action is not None

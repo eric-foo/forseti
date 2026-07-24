@@ -8,7 +8,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import parse_qsl, urlparse
-from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from harness_utils import sha256_text, utc_now_z
 from source_capture.adapters.browser_snapshot import (
@@ -48,9 +47,9 @@ from source_capture.tiktok.blocker_triage import (
 TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION = "tiktok_live_batch_probe_v0"
 TIKTOK_LIVE_BATCH_GRID_JSON_NAME = "tiktok_live_grid_result.json"
 TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME = "tiktok_live_cadence_result.json"
-TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS = 7.0
-TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS = 13.0
-TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS = 10.0
+TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS = 12.0
+TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS = 45.0
+TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS = 28.5
 TIKTOK_PAGE_SETTLE_DELAY_RANGE = BrowserDelayRange(min_ms=1200, max_ms=2800)
 TIKTOK_STATE_WAIT_1000_DELAY_RANGE = BrowserDelayRange(min_ms=600, max_ms=1400)
 TIKTOK_STATE_WAIT_1500_DELAY_RANGE = BrowserDelayRange(min_ms=900, max_ms=2100)
@@ -334,7 +333,6 @@ TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
 TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
 TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS = 500
 TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES = 1_000_000
-TIKTOK_SUBTITLE_FETCH_TIMEOUT_SECONDS = 5.0
 TIKTOK_SUBTITLE_ALLOWED_EXACT_HOSTS = (
     "v16-webapp.tiktok.com",
 )
@@ -353,7 +351,6 @@ _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)
 JsonObject = dict[str, Any]
 SleepFn = Callable[[float], None]
 MonotonicFn = Callable[[], float]
-SubtitleFetchFn = Callable[[str], bytes]
 PageCaptureSequenceFn = Callable[
     [int, Sequence[str]],
     tuple[str, BrowserPageObservationSuccess | BrowserSnapshotFailure],
@@ -398,7 +395,6 @@ def write_tiktok_live_batch_probe_outputs(
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
     monotonic_fn: MonotonicFn = time.monotonic,
-    subtitle_fetcher: SubtitleFetchFn | None = None,
 ) -> TikTokLiveBatchProbeOutputPaths:
     """Capture sanitized TikTok live staging JSON for one creator.
 
@@ -436,7 +432,6 @@ def write_tiktok_live_batch_probe_outputs(
         engine=engine,
         sleep_fn=sleep_fn,
         monotonic_fn=monotonic_fn,
-        subtitle_fetcher=subtitle_fetcher,
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -481,7 +476,6 @@ def run_tiktok_live_batch_probe(
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
     monotonic_fn: MonotonicFn = time.monotonic,
-    subtitle_fetcher: SubtitleFetchFn | None = None,
     capture_route: str = "direct_video_url",
     page_capture_sequence_fn: PageCaptureSequenceFn | None = None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None = None,
@@ -550,7 +544,6 @@ def _run_tiktok_live_batch_probe_with_engine(
     engine: BrowserPageObservationEngine | None,
     sleep_fn: SleepFn,
     monotonic_fn: MonotonicFn,
-    subtitle_fetcher: SubtitleFetchFn | None,
     capture_route: str,
     page_capture_sequence_fn: PageCaptureSequenceFn | None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
@@ -573,7 +566,6 @@ def _run_tiktok_live_batch_probe_with_engine(
         random_seed=random_seed,
         allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
         allow_challenge_close_followthrough=allow_challenge_close_followthrough,
-        subtitle_fetcher=subtitle_fetcher,
         capture_route=capture_route,
         page_capture_sequence_fn=page_capture_sequence_fn,
         grid_candidates_by_video_id=grid_candidates_by_video_id,
@@ -626,7 +618,6 @@ class _NormalizedProbeInputs:
     creator_handle: str
     creator_profile_url: str
     video_urls: list[str]
-    subtitle_fetcher: SubtitleFetchFn
     profile_grid_subtitle_sources: dict[str, JsonObject]
     storage_state_path: Path | None
     comment_response_cap: int
@@ -651,7 +642,6 @@ def _normalize_and_validate_probe_inputs(
     random_seed: int | None,
     allow_challenge_close_diagnostic: bool,
     allow_challenge_close_followthrough: bool,
-    subtitle_fetcher: SubtitleFetchFn | None,
     capture_route: str,
     page_capture_sequence_fn: PageCaptureSequenceFn | None,
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
@@ -665,7 +655,6 @@ def _normalize_and_validate_probe_inputs(
     ]
     if not normalized_video_urls:
         raise ValueError("at least one TikTok video URL is required")
-    subtitle_fetcher = subtitle_fetcher or _fetch_subtitle_webvtt
     if capture_route not in {"direct_video_url", "grid_tile_overlay"}:
         raise ValueError(
             "capture_route must be 'direct_video_url' or 'grid_tile_overlay'"
@@ -759,7 +748,6 @@ def _normalize_and_validate_probe_inputs(
         creator_handle=normalized_handle,
         creator_profile_url=normalized_profile_url,
         video_urls=normalized_video_urls,
-        subtitle_fetcher=subtitle_fetcher,
         profile_grid_subtitle_sources=normalized_profile_grid_subtitle_sources,
         storage_state_path=storage_state_path,
         comment_response_cap=comment_response_cap,
@@ -779,22 +767,23 @@ class _CadenceCaptureOutcome:
     results: list[JsonObject]
     failures: list[JsonObject]
     grid_items: list[JsonObject]
+    realized_inter_video_waits: list[JsonObject]
 
 
-def _wait_for_next_capture_start(
+def _wait_for_next_capture_after_completion(
     *,
-    planned_interval_seconds: float,
-    previous_capture_started_at: float,
+    planned_dwell_seconds: float,
     monotonic_fn: MonotonicFn,
     sleep_fn: SleepFn,
-) -> float:
-    elapsed_since_previous_start = max(
-        0.0, monotonic_fn() - previous_capture_started_at
+) -> tuple[float, float]:
+    wait_started_at = monotonic_fn()
+    if planned_dwell_seconds > 0:
+        sleep_fn(planned_dwell_seconds)
+    next_capture_started_at = monotonic_fn()
+    return (
+        next_capture_started_at,
+        max(0.0, next_capture_started_at - wait_started_at),
     )
-    remaining_wait = max(0.0, planned_interval_seconds - elapsed_since_previous_start)
-    if remaining_wait > 0:
-        sleep_fn(remaining_wait)
-    return monotonic_fn()
 
 
 def _capture_video_cadence_rows(
@@ -824,7 +813,6 @@ def _capture_video_cadence_rows(
     browser_backend = inputs.browser_backend
     normalized_handle = inputs.creator_handle
     normalized_video_urls = inputs.video_urls
-    subtitle_fetcher = inputs.subtitle_fetcher
     normalized_profile_grid_subtitle_sources = inputs.profile_grid_subtitle_sources
     storage_state_path = inputs.storage_state_path
     comment_response_cap = inputs.comment_response_cap
@@ -838,18 +826,32 @@ def _capture_video_cadence_rows(
     failures: list[JsonObject] = []
     results: list[JsonObject] = []
     grid_items: list[JsonObject] = []
+    realized_inter_video_waits: list[JsonObject] = []
 
     pending_video_urls = list(normalized_video_urls)
-    previous_capture_started_at: float | None = None
+    previous_capture_video_id: str | None = None
     for index in range(len(normalized_video_urls)):
-        if previous_capture_started_at is None:
-            previous_capture_started_at = monotonic_fn()
-        else:
-            previous_capture_started_at = _wait_for_next_capture_start(
-                planned_interval_seconds=cadence_plan.planned_waits_seconds[index - 1],
-                previous_capture_started_at=previous_capture_started_at,
-                monotonic_fn=monotonic_fn,
-                sleep_fn=sleep_fn,
+        if index > 0:
+            planned_dwell_seconds = cadence_plan.planned_waits_seconds[index - 1]
+            _next_capture_started_at, actual_dwell_seconds = (
+                _wait_for_next_capture_after_completion(
+                    planned_dwell_seconds=planned_dwell_seconds,
+                    monotonic_fn=monotonic_fn,
+                    sleep_fn=sleep_fn,
+                )
+            )
+            realized_inter_video_waits.append(
+                {
+                    "transition_index": index - 1,
+                    "prior_video_id": previous_capture_video_id,
+                    "configured_range_seconds": {
+                        "min": cadence_plan.min_gap_seconds,
+                        "max": cadence_plan.max_gap_seconds,
+                    },
+                    "planned_seconds": planned_dwell_seconds,
+                    "actual_seconds": round(actual_dwell_seconds, 6),
+                    "basis": "prior_capture_complete_to_next_capture_start",
+                }
             )
 
         if page_capture_sequence_fn is None:
@@ -859,7 +861,11 @@ def _capture_video_cadence_rows(
                 url=video_url,
                 dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
                 dom_extract_arg=None,
-                response_url_predicate=is_tiktok_comment_list_url,
+                response_url_predicate=lambda observed_url: (
+                    is_tiktok_comment_list_url(observed_url)
+                    or _is_supported_subtitle_url(observed_url)
+                ),
+                pointer_action_response_url_predicate=is_tiktok_comment_list_url,
                 post_load_pointer_actions=_tiktok_live_pointer_actions(
                     video_id=video_id,
                     random_seed=random_seed,
@@ -903,6 +909,7 @@ def _capture_video_cadence_rows(
                 )
             pending_video_urls.remove(video_url)
             video_id = _video_id_from_tiktok_url(video_url)
+        previous_capture_video_id = video_id
 
         attempts += 1
         observed_utc = utc_now_z()
@@ -1182,7 +1189,6 @@ def _capture_video_cadence_rows(
             comment_response_cap=comment_response_cap,
             challenge_close_action=challenge_close_action,
             challenge_close_followthrough_allowed=allow_challenge_close_followthrough,
-            subtitle_fetcher=subtitle_fetcher,
             capture_route=capture_route,
             overlay_evidence=overlay_evidence,
         )
@@ -1239,6 +1245,7 @@ def _capture_video_cadence_rows(
         results=results,
         failures=failures,
         grid_items=grid_items,
+        realized_inter_video_waits=realized_inter_video_waits,
     )
 
 
@@ -1265,6 +1272,7 @@ def _build_probe_result_payload(
     results = outcome.results
     failures = outcome.failures
     grid_items = outcome.grid_items
+    realized_inter_video_waits = outcome.realized_inter_video_waits
     attempts = outcome.attempts
     challenge_count = outcome.challenge_count
     human_challenge_handoff_count = outcome.human_challenge_handoff_count
@@ -1335,6 +1343,7 @@ def _build_probe_result_payload(
             capture_route=capture_route,
         ),
         "cadence_plan": cadence_plan.to_dict(),
+        "realized_inter_video_waits": realized_inter_video_waits,
         "results": results,
         "failures": failures,
         "run_complete_utc": run_complete_utc,
@@ -2025,7 +2034,6 @@ def _cadence_row_from_capture(
     comment_response_cap: int = TIKTOK_COMMENT_LIST_RESPONSE_CAP,
     challenge_close_action: JsonObject | None = None,
     challenge_close_followthrough_allowed: bool = False,
-    subtitle_fetcher: SubtitleFetchFn | None = None,
     capture_route: str = "direct_video_url",
     overlay_evidence: JsonObject | None = None,
 ) -> JsonObject:
@@ -2055,7 +2063,7 @@ def _cadence_row_from_capture(
     )
     subtitle_capture = _subtitle_capture_from_item_struct(
         subtitle_source,
-        subtitle_fetcher=subtitle_fetcher or _fetch_subtitle_webvtt,
+        observed_responses=capture_result.responses,
     )
     matched_comment_response_count = sum(
         1
@@ -2844,7 +2852,7 @@ def _subtitle_infos_from_item_struct(item_struct: JsonObject) -> Sequence[Any]:
 def _subtitle_capture_from_item_struct(
     item_struct: JsonObject,
     *,
-    subtitle_fetcher: SubtitleFetchFn,
+    observed_responses: Sequence[BrowserPageResponse],
 ) -> JsonObject:
     subtitle_url = _subtitle_url_from_item_struct(item_struct)
     if subtitle_url is None:
@@ -2859,6 +2867,7 @@ def _subtitle_capture_from_item_struct(
     base: JsonObject = {
         "attempted": False,
         "success": False,
+        "acquisition_mode": "browser_observed_only",
         "subtitle_url_host": subtitle_url_host or None,
         "subtitle_url_host_supported": subtitle_url_host_supported,
         "subtitle_url_sha256": url_sha256,
@@ -2870,16 +2879,28 @@ def _subtitle_capture_from_item_struct(
         return base
 
     base["attempted"] = True
-    try:
-        body = subtitle_fetcher(subtitle_url)
-    except Exception:
-        base["reason"] = "subtitle_body_fetch_failed_live_probe_v0"
+    response = _exact_observed_subtitle_response(
+        observed_responses,
+        expected_subtitle_url=subtitle_url,
+    )
+    if response is None:
+        base["reason"] = "subtitle_body_not_observed_in_browser_v1"
         assert_no_sensitive_tiktok_material(base)
         return base
 
-    body = body[: TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES + 1]
+    if not response.ok:
+        base["reason"] = "subtitle_browser_response_not_successful_v1"
+        base["response_status"] = response.status
+        assert_no_sensitive_tiktok_material(base)
+        return base
+
+    body = response.body_text.encode("utf-8")
     base["body_sha256"] = sha256(body).hexdigest()
     base["body_byte_count"] = len(body)
+    if not body:
+        base["reason"] = "subtitle_body_not_available_from_browser_response_v1"
+        assert_no_sensitive_tiktok_material(base)
+        return base
     if len(body) > TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES:
         base["reason"] = "subtitle_body_size_cap_exceeded_live_probe_v0"
         assert_no_sensitive_tiktok_material(base)
@@ -2896,7 +2917,7 @@ def _subtitle_capture_from_item_struct(
     result = {
         **base,
         "success": True,
-        "reason": "source_native_webvtt_captured_live_probe_v0",
+        "reason": "source_native_webvtt_captured_from_browser_response_v1",
         "parsed_webvtt": {
             "cue_count": len(cues),
             "transcript_char_count": len(transcript_text),
@@ -2916,6 +2937,54 @@ def _subtitle_capture_from_item_struct(
     }
     assert_no_sensitive_tiktok_material(result)
     return result
+
+
+def _exact_observed_subtitle_response(
+    responses: Sequence[BrowserPageResponse],
+    *,
+    expected_subtitle_url: str,
+) -> BrowserPageResponse | None:
+    matches = [
+        response
+        for response in responses
+        if is_exact_tiktok_subtitle_response_url(
+            response.requested_url,
+            expected_subtitle_url=expected_subtitle_url,
+        )
+        or is_exact_tiktok_subtitle_response_url(
+            response.final_url,
+            expected_subtitle_url=expected_subtitle_url,
+        )
+    ]
+    if not matches:
+        return None
+    return next(
+        (response for response in matches if response.ok and response.body_text),
+        matches[0],
+    )
+
+
+def is_exact_tiktok_subtitle_response_url(
+    observed_url: str,
+    *,
+    expected_subtitle_url: str,
+) -> bool:
+    if not _is_supported_subtitle_url(expected_subtitle_url):
+        return False
+    return _url_without_fragment(observed_url) == _url_without_fragment(
+        expected_subtitle_url
+    )
+
+
+def _url_without_fragment(url: str) -> str:
+    parsed = urlparse(url)
+    return parsed._replace(fragment="").geturl()
+
+
+def tiktok_subtitle_url_from_source(source: JsonObject) -> str | None:
+    """Return an in-memory subtitle URL for exact browser-response binding."""
+
+    return _subtitle_url_from_item_struct(source)
 
 
 def _subtitle_url_from_item_struct(item_struct: JsonObject) -> str | None:
@@ -2949,35 +3018,6 @@ def _host_matches_suffix(host: str, suffix: str) -> bool:
     return normalized_host == normalized_suffix or normalized_host.endswith(
         f".{normalized_suffix}"
     )
-
-
-class _TikTokSubtitleRedirectHandler(HTTPRedirectHandler):
-    def redirect_request(
-        self,
-        req: object,
-        fp: object,
-        code: int,
-        msg: str,
-        headers: object,
-        newurl: str,
-    ) -> object:
-        if not _is_supported_subtitle_url(newurl):
-            raise ValueError("unsupported subtitle redirect host")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-
-def _fetch_subtitle_webvtt(url: str) -> bytes:
-    request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    opener = build_opener(_TikTokSubtitleRedirectHandler)
-    with opener.open(request, timeout=TIKTOK_SUBTITLE_FETCH_TIMEOUT_SECONDS) as response:
-        final_url = ""
-        try:
-            final_url = str(response.geturl())
-        except Exception:
-            final_url = ""
-        if final_url and not _is_supported_subtitle_url(final_url):
-            raise ValueError("unsupported subtitle final host")
-        return response.read(TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES + 1)
 
 
 def _format_webvtt_timestamp_ms(value: int) -> str:
@@ -3130,11 +3170,15 @@ def _capture_contract(
         "raw_endpoint_urls_persisted": False,
         "raw_subtitle_bodies_persisted": False,
         "raw_subtitle_urls_persisted": False,
+        "subtitle_acquisition_mode": "browser_observed_only",
+        "inter_video_wait_basis": (
+            "prior_capture_complete_to_next_capture_start"
+        ),
         "session_mode": session_mode_value,
         "logged_out_public": logged_out,
         "staging_only": True,
         "stop_on_challenge": True,
-        "subtitle_tier": "source_native_webvtt_transcript_live_probe_v0",
+        "subtitle_tier": "source_native_webvtt_transcript_browser_observed_v1",
     }
 
 
@@ -3288,7 +3332,9 @@ __all__ = [
     "tiktok_video_dom_has_item_struct",
     "TikTokLiveBatchProbeOutputPaths",
     "detect_tiktok_challenge",
+    "is_exact_tiktok_subtitle_response_url",
     "is_tiktok_comment_list_url",
     "run_tiktok_live_batch_probe",
+    "tiktok_subtitle_url_from_source",
     "write_tiktok_live_batch_probe_outputs",
 ]
