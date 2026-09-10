@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -1138,6 +1139,161 @@ def _retain_advance_artifact(path: Path, value: Any, *, raw: bool = False) -> bo
     return True
 
 
+def _load_judgment_job(job_path: Path, expected_sha256: str) -> tuple[dict[str, Any], dict[str, bytes]]:
+    """Read each pinned input once; callers consume the bytes that were verified."""
+    raw = job_path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError("judgment job hash mismatch")
+    job = json.loads(raw, object_pairs_hook=unique_json_object)
+    if job.get("schema_version") != "semantic_judgment_job_v1":
+        raise ValueError("unsupported judgment job")
+    inputs = {}
+    for name, binding in job["inputs"].items():
+        data = Path(binding["path"]).read_bytes()
+        if hashlib.sha256(data).hexdigest() != binding["sha256"]:
+            raise ValueError(f"judgment job input hash mismatch: {name}")
+        inputs[name] = data
+    return job, inputs
+
+
+def intake_judgment_job(*, job_path: Path, expected_sha256: str) -> dict[str, Any]:
+    """Deliver the complete semantic input in one operation, without clipping."""
+    job, inputs = _load_judgment_job(job_path, expected_sha256)
+    content = {name: inputs[name].decode("utf-8-sig") for name in
+               ["agents", "overlay", "preflight_defaults", "claim_support", "prompt", "response_schema"]}
+    return {
+        "status": "SEMANTIC_JUDGMENT_INTAKE_COMPLETE", "job_sha256": expected_sha256,
+        "phase": job["phase"], "batch_id": job["batch_id"],
+        "response_path": job["response_path"],
+        "instructions": (
+            "This is one independent judgment in a fresh context. Read all content below. "
+            "Return one complete JSON response matching the supplied schema and exact identities. "
+            "Preserve all evidence and uncertainty; do not use prior-job conversations or answers. "
+            "Write the raw response to a new file, then invoke submit-judgment-job with this job "
+            "and hash. Code owns validation and publication: do not write validation scripts. "
+            "Additional reasoning or source inspection is allowed when genuinely required. "
+            "If the tool output is truncated or the final intake_end marker is absent, "
+            "do not judge from partial content; retrieve the complete intake first. "
+            "A failed submit is a preserved failure, never permission for a semantic retry."
+        ),
+        "content_bytes": {name: len(inputs[name]) for name in content},
+        "content": content, "model_api_calls": 0,
+        "intake_end": expected_sha256,
+    }
+
+
+def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
+    """The controller forwards this executable intake, including both output bounds."""
+    runner = Path(__file__).resolve()
+    raw_path = job_path.with_suffix(".raw.json")
+    def command(operation: str, *extra: str) -> str:
+        return " ".join("'" + part.replace("'", "''") + "'" for part in
+            ["python", str(runner), operation, "--job", str(job_path),
+             "--job-sha256", job_sha256, *extra])
+    intake = command("intake-judgment-job")
+    # PowerShell's call operator is required when the executable itself is quoted.
+    execution = {"cmd": "& " + intake, "workdir": str(runner.parents[2]), "max_output_tokens": 60000}
+    return (
+        "One independent semantic judgment; launch in a fresh context at high effort, "
+        "without prior-job history. Output mode file-write. Repository read-only; "
+        f"runtime writes only to {raw_path}, the job's response destination and receipt. "
+        "This dispatch is run-authoritative. The intake contains AGENTS, overlay, preflight "
+        "defaults, claim-support authority, the complete prompt and schema. Consume them "
+        "before judgment. Do not inspect old answers or author validation scripts.\n"
+        "First execute exactly this complete intake with both wrapper output allowances. "
+        "Emit every content byte via separate notify outputs within this SAME tool invocation; "
+        "accumulated text items can be truncated as one result despite a high allowance:\n"
+        "// @exec: {\"max_output_tokens\": 60000}\n"
+        f"const result = await tools.exec_command({json.dumps(execution)});\n"
+        "if (result.exit_code !== 0) { text(result); exit(); }\n"
+        "const intake = JSON.parse(result.output);\n"
+        "store(\"judgment_intake\", intake);\n"
+        "notify({status: intake.status, content_bytes: intake.content_bytes, instructions: intake.instructions});\n"
+        "for (const [name, content] of Object.entries(intake.content)) {\n"
+        "  for (let offset = 0; offset < content.length;) {\n"
+        "    let end = Math.min(offset + 8000, content.length);\n"
+        "    if (end < content.length && content.charCodeAt(end - 1) >= 0xD800 && content.charCodeAt(end - 1) <= 0xDBFF) end--;\n"
+        "    notify(JSON.stringify({section: name, from_character: offset, to_character: end, total_characters: content.length}) + '\\n' + content.slice(offset, end) + '\\nEND_SECTION_BLOCK ' + name + ' ' + end);\n"
+        "    offset = end;\n"
+        "  }\n"
+        "}\n"
+        "notify({intake_end: intake.intake_end});\n"
+        "Check exit status and both tools' truncation warnings/metadata as well as the final "
+        "intake_end marker. A marker can survive middle truncation: any truncation means "
+        "incomplete intake and must be resolved before judging. Check contiguous section "
+        "offsets through each total; never clip evidence or re-fetch already complete input.\n"
+        f"Perform the full judgment. In ONE functions.exec invocation, await tools.apply_patch "
+        f"to write the complete raw JSON to {raw_path}, then await tools.exec_command "
+        "to submit it with the command below. Sequential tool calls within that invocation "
+        "need no intervening model turn. Do not embed a large response in a shell command "
+        "(Windows command length limits apply). Submit once:\n"
+        "& " + command("submit-judgment-job", "--response", str(raw_path)) + "\n"
+        "Use the same explicit workdir. Code owns native validation, exact identity and "
+        "immutable publication plus fresh durable-target readback; its receipt supplies the "
+        "persistence evidence, so no additional hash/check command is needed. "
+        "Additional reasoning is allowed when genuinely required. "
+        "Preserve a failed submit and stop; no semantic retry. Return only the compact receipt "
+        "or exact failure with paths."
+    )
+
+
+def submit_judgment_job(*, job_path: Path, expected_sha256: str,
+                        response_path: Path) -> dict[str, Any]:
+    """Validate exactly one raw answer and publish without replacing accepted work."""
+    job, inputs = _load_judgment_job(job_path, expected_sha256)
+    target = Path(job["response_path"])
+    staged = target.with_name(target.name + ".tmp")
+    raw = response_path.read_bytes()
+    # Preserve invalid raw bytes at the normal advance-visible staging boundary.
+    # Identical accepted submissions can recover a lost receipt without re-answering.
+    if target.exists():
+        if target.read_bytes() != raw:
+            raise ValueError(f"refusing to overwrite existing response: {target}")
+        disposition = "reused"
+    else:
+        if response_path.resolve() != staged.resolve():
+            _write_new(staged, raw)
+        disposition = "published"
+    response = json.loads(raw.decode("utf-8-sig"), object_pairs_hook=unique_json_object)
+    if not isinstance(response, dict) or response.get("batch_id") != job["batch_id"]:
+        raise ValueError("judgment response batch identity differs from assigned job")
+    objects = {name: json.loads(inputs[name], object_pairs_hook=unique_json_object)
+               for name in ["bundle", "binding"]}
+    if job["phase"] == "extraction":
+        validation = validate_one_batch_response(objects["bundle"], response)
+    elif job["phase"] == "verification":
+        compiled = json.loads(inputs["batch_compilation"], object_pairs_hook=unique_json_object)
+        validation = apply_row_verification(objects["bundle"], compiled,
+            objects["binding"], [response], require_all=False)
+    elif job["phase"] == "reconciliation":
+        validation = validate_one_reconciliation_response(objects["bundle"], objects["binding"], response)
+    else:
+        raise ValueError("unsupported judgment job phase")
+    if validation["validated_batch_ids"] != [job["batch_id"]]:
+        raise ValueError("judgment submission must validate exactly the assigned batch")
+    if disposition == "published":
+        try:
+            os.link(staged, target)
+            staged.unlink()
+        except OSError as exc:
+            raise ValueError(f"no-replace judgment publication/cleanup failed: {target}: {exc}") from exc
+    elif staged.exists():
+        raise ValueError(f"accepted response has staged work requiring explicit recovery: {staged}")
+    published_raw = target.read_bytes()
+    if published_raw != raw:
+        raise ValueError(f"published response readback mismatch: {target}")
+    receipt = {
+        "status": "SEMANTIC_JUDGMENT_SUBMITTED", "job_sha256": expected_sha256,
+        "phase": job["phase"], "batch_id": job["batch_id"],
+        "response_path": str(target), "response_sha256": hashlib.sha256(published_raw).hexdigest(),
+        "validated_batch_ids": validation["validated_batch_ids"], "model_api_calls": 0,
+    }
+    _retain_advance_artifact(job_path.with_suffix(".receipt.json"), receipt)
+    if _load_object(job_path.with_suffix(".receipt.json")) != receipt:
+        raise ValueError("judgment receipt readback mismatch")
+    return {**receipt, "disposition": disposition}
+
+
 def advance_semantic_run(
     *, source_path: Path, run_dir: Path,
     max_batch_chars: int = 80_000, max_prompt_bytes: int | None = None,
@@ -1183,6 +1339,26 @@ def advance_semantic_run(
                 expected_files.add(schema_path)
                 _retain_advance_artifact(schema_path, prompt["response_schema"])
                 request.update(response_schema_path=str(schema_path), response_schema_sha256=hash_file(schema_path))
+            if "response_schema" not in prompt:
+                raise ValueError(f"judgment job requires a complete response schema: {batch_id}")
+            input_paths = {"bundle": run_dir / "bundle.json", "binding": binding_path,
+                "prompt": path, "response_schema": schema_path,
+                "claim_support": Path(__file__).resolve().parents[2] / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+                "agents": Path(__file__).resolve().parents[2] / "AGENTS.md",
+                "overlay": Path(__file__).resolve().parents[2] / ".agents/workflow-overlay/README.md",
+                "preflight_defaults": Path(__file__).resolve().parents[2] / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"}
+            if phase == "verification":
+                input_paths["batch_compilation"] = run_dir / "extraction/compilation.json"
+            job = {"schema_version": "semantic_judgment_job_v1", "phase": phase,
+                "batch_id": batch_id, "response_path": request["response_path"],
+                "inputs": {name: {"path": str(p.resolve()), "sha256": hash_file(p)}
+                           for name, p in input_paths.items()}}
+            job_path = directory / "jobs" / f"{batch_id}.json"
+            _retain_advance_artifact(job_path, job)
+            request.update(job_path=str(job_path), job_sha256=hash_file(job_path),
+                worker_context="fresh_per_request", max_concurrent_workers=3,
+                intake_command="intake-judgment-job", submit_command="submit-judgment-job")
+            request["worker_prompt"] = judgment_worker_prompt(job_path, request["job_sha256"])
             requests.append(request)
         prompt_dir = directory / "prompts"
         if prompt_dir.exists() and set(prompt_dir.iterdir()) != expected_files:
@@ -1250,7 +1426,7 @@ def advance_semantic_run(
             state.update(status="SEMANTIC_ADVANCE_BLOCKED", action="Resolve the named invalid/staged artifacts explicitly; do not retry or replace accepted answers.")
             return True
         if pending:
-            state.update(status="SEMANTIC_JUDGMENT_REQUIRED", action="Dispatch the complete ready request set with independent judgment boundaries, then advance again.")
+            state.update(status="SEMANTIC_JUDGMENT_REQUIRED", action="Dispatch each ready request in a fresh context, at most three concurrently. Each worker uses intake-judgment-job then submit-judgment-job; advance again after results. Never reuse prior-job conversations.")
             return True
         return False
 
@@ -2846,6 +3022,13 @@ def _parser() -> argparse.ArgumentParser:
     advance.add_argument("--max-prompt-bytes", type=int)
     advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
 
+    for command in ("intake-judgment-job", "submit-judgment-job"):
+        job = sub.add_parser(command, help="Complete hash-bound worker intake or validated immutable submission.")
+        job.add_argument("--job", type=Path, required=True)
+        job.add_argument("--job-sha256", required=True)
+        if command == "submit-judgment-job":
+            job.add_argument("--response", type=Path, required=True)
+
     materialize = sub.add_parser("materialize-v3")
     materialize.add_argument("--source", type=Path, required=True)
     materialize.add_argument("--repo-root", type=Path, required=True)
@@ -3415,6 +3598,11 @@ def main(argv: list[str] | None = None) -> int:
                 run_dir=args.run_dir, max_batch_chars=args.max_batch_chars,
                 max_prompt_bytes=args.max_prompt_bytes,
                 max_evidence_per_work_unit=args.max_evidence_per_work_unit)
+        elif args.command == "intake-judgment-job":
+            result = intake_judgment_job(job_path=args.job, expected_sha256=args.job_sha256)
+        elif args.command == "submit-judgment-job":
+            result = submit_judgment_job(job_path=args.job, expected_sha256=args.job_sha256,
+                response_path=args.response)
         elif args.command == "materialize-v3":
             result = materialize_v3(
                 source_path=args.source,
@@ -3905,7 +4093,7 @@ def main(argv: list[str] | None = None) -> int:
     ) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
-    print(json.dumps(result, indent=2, sort_keys=True))
+    print(json.dumps(result, indent=2, sort_keys=args.command != "intake-judgment-job"))
     if args.command == "advance" and result.get("status") == "SEMANTIC_ADVANCE_BLOCKED":
         return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":
