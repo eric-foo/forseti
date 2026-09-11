@@ -10824,9 +10824,10 @@ def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
     from runners.run_semantic_evidence_integration import judgment_worker_prompt
     prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
     script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    content = {"prompt": "x" * 7999 + "🙂" + "y" * 40000,
+        "schema": '{"complete":true}', "guidance": "Ω" * 18001}
     intake = {"status": "test", "instructions": "read all", "intake_end": "a" * 64,
-        "content_bytes": {}, "content": {"prompt": "x" * 7999 + "🙂" + "y" * 40000,
-            "schema": '{"complete":true}', "guidance": "Ω" * 18001}}
+        "content_bytes": {k: len(v.encode("utf-8")) for k, v in content.items()}, "content": content}
     harness = (
         "const intake = " + json.dumps(intake) + ";\n"
         "const calls=[]; const notify=x=>calls.push(x); const store=()=>{};\n"
@@ -10851,6 +10852,58 @@ def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
     result = subprocess.run(["node", str(path)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["complete"] is True
+
+
+def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path):
+    import subprocess
+    from runners.run_semantic_evidence_integration import judgment_worker_prompt
+    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
+    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    evidence = "".join(f"evidence row {i}\n" for i in range(4000))
+    full = json.dumps({"status": "test", "instructions": "read all", "intake_end": "a" * 64,
+        "content_bytes": {"prompt": len(evidence.encode())}, "content": {"prompt": evidence}})
+    # A head/tail cut inside one string still parses and keeps the end marker.
+    output = full[:full.index("evidence row 1000")] + "... tokens truncated ..." + full[full.index("evidence row 3000"):]
+    assert json.loads(output)["intake_end"] == "a" * 64
+    harness = (
+        "const calls=[]; const notify=x=>calls.push(x); const store=()=>{};\n"
+        "const text=x=>calls.push({stopped:x}); const exit=()=>{throw 'EXIT'};\n"
+        "const tools={exec_command:async()=>({exit_code:0,output:" + json.dumps(output) + "})};\n"
+        "(async()=>{\n" + script + "\n})().catch(e=>{if(e!=='EXIT')throw e;})"
+        ".then(()=>process.stdout.write(JSON.stringify(calls)));"
+    )
+    path = tmp_path / "delivery.cjs"
+    path.write_text(harness, encoding="utf-8")
+    result = subprocess.run(["node", str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    calls = json.loads(result.stdout)
+    assert len(calls) == 1 and calls[0]["stopped"]["status"] == "INCOMPLETE_INTAKE"
+
+
+def test_advance_resume_issues_jobs_only_for_dispatchable_requests(tmp_path, capsys, monkeypatch):
+    import runners.run_semantic_evidence_integration as runner
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    _advance_cli(source, run_dir, capsys)
+    _publish_advance_replay(run_dir, "extraction", replay["extraction"])
+    extraction_jobs = sorted((run_dir / "extraction" / "jobs").iterdir())
+    _, original = _advance_cli(source, run_dir, capsys)
+    # Resume from another checkout whose pinned guidance has since changed.
+    repo, checkout = Path(runner.__file__).resolve().parents[2], tmp_path / "checkout"
+    for name in ["AGENTS.md", ".agents/workflow-overlay/README.md",
+                 "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+                 "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"]:
+        (checkout / name).parent.mkdir(parents=True, exist_ok=True)
+        (checkout / name).write_bytes((repo / name).read_bytes() + b" ")
+    monkeypatch.setattr(runner, "__file__", str(checkout / "forseti-harness/runners/run_semantic_evidence_integration.py"))
+    code, moved = _advance_cli(source, run_dir, capsys)
+    assert code == 0 and moved["status"] == "SEMANTIC_JUDGMENT_REQUIRED" and moved["phase"] == "verification"
+    assert sorted((run_dir / "extraction" / "jobs").iterdir()) == extraction_jobs
+    old, new = original["judgment_requests"][0], moved["judgment_requests"][0]
+    assert old["job_sha256"] != new["job_sha256"] and Path(old["job_path"]).exists()
+    intake = runner.intake_judgment_job(job_path=Path(new["job_path"]), expected_sha256=new["job_sha256"])
+    assert intake["content"]["agents"].endswith(" ")
+    assert _advance_cli(source, run_dir, capsys)[1]["judgment_requests"][0]["job_path"] == new["job_path"]
 
 
 @pytest.mark.parametrize("input_name", ["job", "prompt", "response_schema", "binding", "bundle", "claim_support"])

@@ -1176,7 +1176,8 @@ def intake_judgment_job(*, job_path: Path, expected_sha256: str) -> dict[str, An
             "do not judge from partial content; retrieve the complete intake first. "
             "A failed submit is a preserved failure, never permission for a semantic retry."
         ),
-        "content_bytes": {name: len(inputs[name]) for name in content},
+        # Delivered UTF-8 sizes; generated delivery rejects any parsed section that differs.
+        "content_bytes": {name: len(value.encode("utf-8")) for name, value in content.items()},
         "content": content, "model_api_calls": 0,
         "intake_end": expected_sha256,
     }
@@ -1208,7 +1209,11 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
         "if (result.exit_code !== 0) { text(result); exit(); }\n"
         "const intake = JSON.parse(result.output);\n"
         "store(\"judgment_intake\", intake);\n"
-        "notify({status: intake.status, content_bytes: intake.content_bytes, instructions: intake.instructions});\n"
+        "const { output: _output, ...exec_metadata } = result;\n"
+        "const utf8 = s => { let n = 0; for (const ch of s) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; } return n; };\n"
+        "const received = Object.fromEntries(Object.entries(intake.content || {}).map(([name, content]) => [name, utf8(content)]));\n"
+        "if (JSON.stringify(received) !== JSON.stringify(intake.content_bytes)) { text({status: \"INCOMPLETE_INTAKE\", expected_bytes: intake.content_bytes, received_bytes: received, exec_metadata}); exit(); }\n"
+        "notify({status: intake.status, content_bytes: intake.content_bytes, exec_metadata, instructions: intake.instructions});\n"
         "for (const [name, content] of Object.entries(intake.content)) {\n"
         "  for (let offset = 0; offset < content.length;) {\n"
         "    let end = Math.min(offset + 8000, content.length);\n"
@@ -1219,7 +1224,8 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
         "}\n"
         "notify({intake_end: intake.intake_end});\n"
         "Check exit status and both tools' truncation warnings/metadata as well as the final "
-        "intake_end marker. A marker can survive middle truncation: any truncation means "
+        "intake_end marker. INCOMPLETE_INTAKE means parsed section bytes differ from the "
+        "intake counts. A marker can survive middle truncation: any truncation means "
         "incomplete intake and must be resolved before judging. Check contiguous section "
         "offsets through each total; never clip evidence or re-fetch already complete input.\n"
         f"Perform the full judgment. In ONE functions.exec invocation, await tools.apply_patch "
@@ -1339,31 +1345,39 @@ def advance_semantic_run(
                 expected_files.add(schema_path)
                 _retain_advance_artifact(schema_path, prompt["response_schema"])
                 request.update(response_schema_path=str(schema_path), response_schema_sha256=hash_file(schema_path))
-            if "response_schema" not in prompt:
-                raise ValueError(f"judgment job requires a complete response schema: {batch_id}")
-            input_paths = {"bundle": run_dir / "bundle.json", "binding": binding_path,
-                "prompt": path, "response_schema": schema_path,
-                "claim_support": Path(__file__).resolve().parents[2] / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
-                "agents": Path(__file__).resolve().parents[2] / "AGENTS.md",
-                "overlay": Path(__file__).resolve().parents[2] / ".agents/workflow-overlay/README.md",
-                "preflight_defaults": Path(__file__).resolve().parents[2] / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"}
-            if phase == "verification":
-                input_paths["batch_compilation"] = run_dir / "extraction/compilation.json"
-            job = {"schema_version": "semantic_judgment_job_v1", "phase": phase,
-                "batch_id": batch_id, "response_path": request["response_path"],
-                "inputs": {name: {"path": str(p.resolve()), "sha256": hash_file(p)}
-                           for name, p in input_paths.items()}}
-            job_path = directory / "jobs" / f"{batch_id}.json"
-            _retain_advance_artifact(job_path, job)
-            request.update(job_path=str(job_path), job_sha256=hash_file(job_path),
-                worker_context="fresh_per_request", max_concurrent_workers=3,
-                intake_command="intake-judgment-job", submit_command="submit-judgment-job")
-            request["worker_prompt"] = judgment_worker_prompt(job_path, request["job_sha256"])
             requests.append(request)
         prompt_dir = directory / "prompts"
         if prompt_dir.exists() and set(prompt_dir.iterdir()) != expected_files:
             raise ValueError(f"unexpected or staged prompt artifact: {prompt_dir}")
         return requests
+
+    def attach_job(request: dict[str, Any]) -> None:
+        # Only dispatchable requests carry a job, named by its hash: accepted
+        # phases resume from any checkout, and changed guidance issues a new
+        # descriptor instead of conflicting with an unconsumed one.
+        if "response_schema_path" not in request:
+            raise ValueError(f"judgment job requires a complete response schema: {request['batch_id']}")
+        repo = Path(__file__).resolve().parents[2]
+        input_paths = {"bundle": run_dir / "bundle.json", "binding": Path(request["binding_path"]),
+            "prompt": Path(request["prompt_path"]), "response_schema": Path(request["response_schema_path"]),
+            "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+            "agents": repo / "AGENTS.md",
+            "overlay": repo / ".agents/workflow-overlay/README.md",
+            "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"}
+        if request["phase"] == "verification":
+            input_paths["batch_compilation"] = run_dir / "extraction/compilation.json"
+        job = {"schema_version": "semantic_judgment_job_v1", "phase": request["phase"],
+            "batch_id": request["batch_id"], "response_path": request["response_path"],
+            "inputs": {name: {"path": str(p.resolve()), "sha256": hash_file(p)}
+                       for name, p in input_paths.items()}}
+        data = json.dumps(job, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        job_path = (Path(request["prompt_path"]).parent.parent / "jobs"
+                    / f"{request['batch_id']}.{hashlib.sha256(data).hexdigest()[:16]}.json")
+        _retain_advance_artifact(job_path, data, raw=True)
+        request.update(job_path=str(job_path), job_sha256=hash_file(job_path),
+            worker_context="fresh_per_request", max_concurrent_workers=3,
+            intake_command="intake-judgment-job", submit_command="submit-judgment-job")
+        request["worker_prompt"] = judgment_worker_prompt(job_path, request["job_sha256"])
 
     def read_responses(directory: Path, requests: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         expected = {row["batch_id"] for row in requests}
@@ -1422,6 +1436,8 @@ def advance_semantic_run(
             state.update(status="SEMANTIC_ADVANCE_BLOCKED", judgment_requests=[],
                 action=f"Restore the response artifacts bound by the accepted compilation {compilation_path}; do not re-answer or replace accepted work.")
             return True
+        for row in state["judgment_requests"]:
+            attach_job(row)
         if problems:
             state.update(status="SEMANTIC_ADVANCE_BLOCKED", action="Resolve the named invalid/staged artifacts explicitly; do not retry or replace accepted answers.")
             return True

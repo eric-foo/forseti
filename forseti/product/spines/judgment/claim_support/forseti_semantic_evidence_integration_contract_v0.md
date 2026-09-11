@@ -2266,7 +2266,11 @@ new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
 
 Each ready request also binds a `semantic_judgment_job_v1` descriptor by raw
-SHA-256. `intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` verifies
+SHA-256. Only dispatchable requests receive a descriptor, named by that hash, so
+accepted phases resume from any checkout and changed guidance issues a new
+descriptor. An older descriptor remains usable only while all of its pinned
+inputs remain unchanged; issuing a newer descriptor does not revoke it.
+`intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` verifies
 the descriptor and every input, then returns the entire prompt, schema and
 necessary role guidance with byte counts and a final `intake_end` marker. A
 controller forwards the generated `worker_prompt`, which binds both nested
@@ -2276,7 +2280,9 @@ pieces. Accumulated `text` items can share an aggregate truncation limit;
 separate outputs preserve complete delivery without clipping evidence.
 The worker checks truncation
 warnings and metadata at both layers; a marker alone can survive middle
-truncation and does not establish complete intake. A
+truncation and does not establish complete intake. Before emitting content, the
+generated delivery compares each parsed section's UTF-8 bytes with the intake
+counts and stops with `INCOMPLETE_INTAKE` on any difference. A
 truncated tool return is incomplete intake; the worker must retrieve the whole
 input before judging. `submit-judgment-job` with the same binding and
 `--response <raw-answer.json>` preserves exact raw bytes, checks the assigned
