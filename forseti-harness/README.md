@@ -34,8 +34,22 @@ The provider-free command carries extraction compilation, mandatory independent
 row verification, policy-v2 reconciliation/convergence and finalization through
 their native gates in one invocation wherever accepted responses permit it.
 The active agent dispatches the complete compatible `judgment_requests` set
-together, preserves independent judgment boundaries, publishes at the exact
-returned response paths, and advances again. Avoid a controller return for each
+together in fresh contexts (one per request, at most three concurrent), preserves
+independent judgment boundaries, and advances again. Each worker uses
+the returned `worker_prompt` (both output allowances, separate bounded `notify`
+outputs within one tool invocation,
+and truncation-metadata checks) rather than a hand-reconstructed intake wrapper.
+Each worker uses
+`intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` for complete
+hash-verified prompt/schema/guidance, checks its final `intake_end` marker, then
+`submit-judgment-job --job <job_path> --job-sha256 <job_sha256> --response <raw.json>`
+for native validation, immutable publication and a compact receipt. Allow the
+complete intake through the tool output boundary; never judge truncated input.
+Desktop accumulated output can truncate despite larger allowances; use the
+separate `notify` outputs in the generated prompt. Stop before judgment when
+complete visibility cannot be obtained, even if the native log is intact.
+Do not reuse previous job conversations or author per-worker validation scripts.
+Avoid a controller return for each
 preparation/submit/check seam. Use returned prompt/schema paths and hashes;
 native validation remains required. Accepted files are immutable restart state;
 same-input reruns preserve their bytes, and invalid/staged work blocks explicitly

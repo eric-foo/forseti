@@ -2265,6 +2265,44 @@ credits a missing answer. No semantic retry, response selection, identity reset,
 new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
 
+Each ready request also binds a `semantic_judgment_job_v1` descriptor by raw
+SHA-256. Only dispatchable requests receive a descriptor, named by that hash, so
+accepted phases resume from any checkout and changed guidance issues a new
+descriptor. An older descriptor remains usable only while all of its pinned
+inputs remain unchanged; issuing a newer descriptor does not revoke it.
+`intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` verifies
+the descriptor and every input, then returns the entire prompt, schema and
+necessary role guidance with byte counts and a final `intake_end` marker. A
+controller forwards the generated `worker_prompt`, which binds both nested
+tool output budgets and emits all content as separate bounded `notify` outputs
+within one tool invocation, with contiguous offsets and no model turn between
+pieces. Accumulated `text` items can share an aggregate truncation limit;
+separate outputs preserve complete delivery without clipping evidence.
+The worker checks truncation
+warnings and metadata at both layers; a marker alone can survive middle
+truncation and does not establish complete intake. Before emitting content, the
+generated delivery compares each parsed section's UTF-8 bytes with the intake
+counts and stops with `INCOMPLETE_INTAKE` on any difference. A
+truncated tool return is incomplete intake; the worker must retrieve the whole
+input before judging. `submit-judgment-job` with the same binding and
+`--response <raw-answer.json>` preserves exact raw bytes, checks the assigned
+batch identity, applies the native phase validator and atomically publishes
+without replacement. Its compact durable receipt identifies the job, accepted
+response hash and validated batch. Identical accepted bytes may be revalidated
+to recover a missing receipt; different bytes never replace accepted work.
+Invalid raw answers remain visible at the normal staged-response boundary.
+Publication or cleanup failure remains a blocker, including a crash after the
+final link was created. These operations do not change accepted response
+versions, semantic validation, reconciliation meaning or termination policy.
+
+Desktop transport boundary: accumulated `text` output can omit items and
+truncate a block despite larger requested allowances. Native logs can preserve
+complete bytes while the model-visible return is incomplete. Use the separate
+`notify` outputs in the generated dispatch, and check their contiguous coverage
+and end markers. Stop before judgment when the complete input cannot be made
+visible; a successful CLI return or intact native log does not clear this
+consumer boundary. A changed transport still requires observed complete delivery.
+
 If verification leaves no active claim-bearing rows, `advance` returns the
 actionable `NO_CLAIM_BEARING_EVIDENCE` blocker before creating reconciliation
 levels. Inspect the verified dispositions and obtain an explicit disposition
@@ -2460,15 +2498,22 @@ sample, a deterministic semantic verdict, or a license to relax the
 pre-authored cases after seeing output.
 
 The controller is the active agent task. It calls `advance`, dispatches compatible
-ready requests together to at most three no-API semantic subagents, and advances
+ready requests to at most three no-API semantic subagents concurrently, each
+with a fresh context for exactly one independent request, and advances
 again when results arrive. Extraction and its independent verification remain
 separate judgments; reconciliation levels respect their input dependencies.
+Previous jobs' conversations are not current-job input. Current evidence,
+prompt, schema and role guidance supply the sufficient context. Workers use
+the complete intake and deterministic submit operations above; code owns
+mechanical validation and publication, not worker-authored validation scripts.
+Additional reasoning remains allowed when new evidence genuinely requires it;
+there is no fixed reasoning-turn quota or evidence clipping.
 It treats accepted response artifacts as the durable resume surface. It does not
 narrate or return for each deterministic preparation, submit, or check operation.
 Repository code prepares, validates, and reports work;
 it does not invoke a model through an API or headless CLI. A worker writes a
-temporary response and publishes it only after completing the file.
-`publish-batch-response` enforces this boundary: it accepts only a validated
+complete raw response and submits it through the job operation.
+The lower-level `publish-batch-response` recovery seam accepts only a validated
 sibling `.json.tmp`, atomically creates a no-replace final hard link, and then
 removes the temporary name. An existing final response and a filesystem that
 cannot provide the no-replace link both fail closed. Missing batches may be

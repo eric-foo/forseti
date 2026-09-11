@@ -10784,6 +10784,214 @@ def _advance_cli(source_path, run_dir, capsys, *, rows_per_batch=2):
     return code, json.loads(capsys.readouterr().out)
 
 
+def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, capsys):
+    from runners.run_semantic_evidence_integration import intake_judgment_job, submit_judgment_job
+    source, replay, expected = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    for phase, responses in replay.items():
+        code, result = _advance_cli(source, run_dir, capsys)
+        assert code == 0 and len(result["judgment_requests"]) == len(responses)
+        for request, response in zip(result["judgment_requests"], responses):
+            kwargs = dict(job_path=Path(request["job_path"]), expected_sha256=request["job_sha256"])
+            intake = intake_judgment_job(**kwargs)
+            assert intake["intake_end"] == request["job_sha256"]
+            assert intake["content"]["prompt"] == Path(request["prompt_path"]).read_text(encoding="utf-8")
+            assert json.loads(intake["content"]["response_schema"]) == json.loads(Path(request["response_schema_path"]).read_text())
+            assert "Causal and motivational boundary" in intake["content"]["claim_support"]
+            assert request["worker_context"] == "fresh_per_request" and request["max_concurrent_workers"] == 3
+            worker = request["worker_prompt"]
+            assert '\n// @exec: {"max_output_tokens": 60000}\n' in worker
+            assert '"max_output_tokens": 60000' in worker and 'JSON.parse(result.output)' in worker
+            assert 'Object.entries(intake.content)' in worker and 'offset + 8000' in worker
+            assert 'notify(JSON.stringify' in worker and 'content.slice(offset, end)' in worker
+            assert 'END_SECTION_BLOCK' in worker and 'notify({intake_end:' in worker
+            assert "truncation warnings/metadata" in worker and "ONE functions.exec invocation" in worker
+            raw = tmp_path / "raw.json"
+            raw.write_text(json.dumps(response), encoding="utf-8")
+            receipt = submit_judgment_job(**kwargs, response_path=raw)
+            assert receipt["validated_batch_ids"] == [response["batch_id"]]
+            assert Path(request["response_path"]).read_bytes() == raw.read_bytes()
+            assert submit_judgment_job(**kwargs, response_path=raw)["disposition"] == "reused"
+            raw.write_text(json.dumps(response) + " ", encoding="utf-8")
+            with pytest.raises(ValueError, match="refusing to overwrite"):
+                submit_judgment_job(**kwargs, response_path=raw)
+    code, result = _advance_cli(source, run_dir, capsys)
+    assert code == 0 and result["view_sha256"] == expected["view_sha256"]
+
+
+def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
+    import subprocess
+    from runners.run_semantic_evidence_integration import judgment_worker_prompt
+    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
+    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    content = {"prompt": "x" * 7999 + "🙂" + "y" * 40000,
+        "schema": '{"complete":true}', "guidance": "Ω" * 18001}
+    intake = {"status": "test", "instructions": "read all", "intake_end": "a" * 64,
+        "content_bytes": {k: len(v.encode("utf-8")) for k, v in content.items()}, "content": content}
+    harness = (
+        "const intake = " + json.dumps(intake) + ";\n"
+        "const calls=[]; const notify=x=>calls.push(x); const store=()=>{};\n"
+        "const text=()=>{throw Error('accumulated output would truncate')};\n"
+        "const tools={exec_command:async()=>({exit_code:0,output:JSON.stringify(intake)})};\n"
+        "(async()=>{\n" + script + "\n"
+        "const rebuilt={}; const offsets={};\n"
+        "for(const block of calls.filter(x=>typeof x==='string')) {\n"
+        "const newline=block.indexOf('\\n'); const meta=JSON.parse(block.slice(0,newline));\n"
+        "if((offsets[meta.section]||0)!==meta.from_character) throw Error('gap');\n"
+        "const body=block.slice(newline+1,block.lastIndexOf('\\nEND_SECTION_BLOCK '));\n"
+        "if(body.length>8000 || /[\\uD800-\\uDBFF]$/.test(body)) throw Error('broken block');\n"
+        "rebuilt[meta.section]=(rebuilt[meta.section]||'')+body; offsets[meta.section]=meta.to_character;\n"
+        "}\n"
+        "if(JSON.stringify(rebuilt)!==JSON.stringify(intake.content)) throw Error('content loss');\n"
+        "if(calls.at(-1).intake_end!==intake.intake_end) throw Error('missing end');\n"
+        "process.stdout.write(JSON.stringify({complete:true,blocks:calls.length}));\n"
+        "})().catch(e=>{console.error(e);process.exitCode=1});"
+    )
+    path = tmp_path / "delivery.cjs"
+    path.write_text(harness, encoding="utf-8")
+    result = subprocess.run(["node", str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["complete"] is True
+
+
+def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path):
+    import subprocess
+    from runners.run_semantic_evidence_integration import judgment_worker_prompt
+    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
+    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    evidence = "".join(f"evidence row {i}\n" for i in range(4000))
+    full = json.dumps({"status": "test", "instructions": "read all", "intake_end": "a" * 64,
+        "content_bytes": {"prompt": len(evidence.encode())}, "content": {"prompt": evidence}})
+    # A head/tail cut inside one string still parses and keeps the end marker.
+    output = full[:full.index("evidence row 1000")] + "... tokens truncated ..." + full[full.index("evidence row 3000"):]
+    assert json.loads(output)["intake_end"] == "a" * 64
+    harness = (
+        "const calls=[]; const notify=x=>calls.push(x); const store=()=>{};\n"
+        "const text=x=>calls.push({stopped:x}); const exit=()=>{throw 'EXIT'};\n"
+        "const tools={exec_command:async()=>({exit_code:0,output:" + json.dumps(output) + "})};\n"
+        "(async()=>{\n" + script + "\n})().catch(e=>{if(e!=='EXIT')throw e;})"
+        ".then(()=>process.stdout.write(JSON.stringify(calls)));"
+    )
+    path = tmp_path / "delivery.cjs"
+    path.write_text(harness, encoding="utf-8")
+    result = subprocess.run(["node", str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    calls = json.loads(result.stdout)
+    assert len(calls) == 1 and calls[0]["stopped"]["status"] == "INCOMPLETE_INTAKE"
+
+
+def test_advance_resume_issues_jobs_only_for_dispatchable_requests(tmp_path, capsys, monkeypatch):
+    import runners.run_semantic_evidence_integration as runner
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    _advance_cli(source, run_dir, capsys)
+    _publish_advance_replay(run_dir, "extraction", replay["extraction"])
+    extraction_jobs = sorted((run_dir / "extraction" / "jobs").iterdir())
+    _, original = _advance_cli(source, run_dir, capsys)
+    # Resume from another checkout whose pinned guidance has since changed.
+    repo, checkout = Path(runner.__file__).resolve().parents[2], tmp_path / "checkout"
+    for name in ["AGENTS.md", ".agents/workflow-overlay/README.md",
+                 "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+                 "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"]:
+        (checkout / name).parent.mkdir(parents=True, exist_ok=True)
+        (checkout / name).write_bytes((repo / name).read_bytes() + b" ")
+    monkeypatch.setattr(runner, "__file__", str(checkout / "forseti-harness/runners/run_semantic_evidence_integration.py"))
+    code, moved = _advance_cli(source, run_dir, capsys)
+    assert code == 0 and moved["status"] == "SEMANTIC_JUDGMENT_REQUIRED" and moved["phase"] == "verification"
+    assert sorted((run_dir / "extraction" / "jobs").iterdir()) == extraction_jobs
+    old, new = original["judgment_requests"][0], moved["judgment_requests"][0]
+    assert old["job_sha256"] != new["job_sha256"] and Path(old["job_path"]).exists()
+    intake = runner.intake_judgment_job(job_path=Path(new["job_path"]), expected_sha256=new["job_sha256"])
+    assert intake["content"]["agents"].endswith(" ")
+    assert _advance_cli(source, run_dir, capsys)[1]["judgment_requests"][0]["job_path"] == new["job_path"]
+
+
+@pytest.mark.parametrize("input_name", ["job", "prompt", "response_schema", "binding", "bundle", "claim_support"])
+def test_judgment_job_rejects_changed_pinned_bytes(tmp_path, capsys, input_name):
+    from runners.run_semantic_evidence_integration import intake_judgment_job
+    source, _, _ = _advance_replay_fixture(tmp_path)
+    _, result = _advance_cli(source, tmp_path / "run", capsys)
+    request = result["judgment_requests"][0]
+    job_path = Path(request["job_path"])
+    job = json.loads(job_path.read_text())
+    if input_name == "job":
+        job_path.write_bytes(job_path.read_bytes() + b" ")
+        expected_hash = request["job_sha256"]
+    else:
+        # Redirect to a local copy first; never mutate shared repo guidance.
+        original = Path(job["inputs"][input_name]["path"])
+        changed = tmp_path / f"{input_name}.changed"
+        changed.write_bytes(original.read_bytes() + b" ")
+        job["inputs"][input_name]["path"] = str(changed)
+        job_path.write_text(json.dumps(job))
+        expected_hash = _digest(job_path.read_bytes())
+    with pytest.raises(ValueError, match="hash mismatch"):
+        intake_judgment_job(job_path=job_path, expected_sha256=expected_hash)
+
+
+@pytest.mark.parametrize("phase", ["extraction", "verification", "reconciliation/level-0001"])
+def test_judgment_job_retains_native_validation_failure(tmp_path, capsys, phase):
+    from runners.run_semantic_evidence_integration import submit_judgment_job
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    for prior in replay:
+        if prior == phase:
+            break
+        _publish_advance_replay(run_dir, prior, replay[prior])
+    _, result = _advance_cli(source, run_dir, capsys)
+    request = result["judgment_requests"][0]
+    invalid = deepcopy(replay[phase][0])
+    if phase == "extraction":
+        invalid["decisions_by_evidence_id"].pop(next(iter(invalid["decisions_by_evidence_id"])))
+        error = "every keyed evidence id"
+    elif phase == "verification":
+        invalid["decisions_by_evidence_id"].pop(next(iter(invalid["decisions_by_evidence_id"])))
+        error = "every assigned row"
+    else:
+        invalid["semantic_nodes"][0]["child_relations"][0]["child_ref"] = "foreign-ref"
+        error = "unknown, duplicate, or invalid child"
+    raw = tmp_path / "raw.json"
+    raw.write_text(json.dumps(invalid), encoding="utf-8")
+    with pytest.raises((ValueError, SemanticIntegrationError), match=error):
+        submit_judgment_job(job_path=Path(request["job_path"]), expected_sha256=request["job_sha256"], response_path=raw)
+    assert not Path(request["response_path"]).exists()
+    assert Path(request["response_path"] + ".tmp").read_bytes() == raw.read_bytes()
+    code, result = _advance_cli(source, run_dir, capsys)
+    assert code == 2 and result["response_state"]["problems"][0]["kind"] == "staged"
+
+
+@pytest.mark.parametrize("failure", ["wrong_batch", "malformed", "before_link", "after_link"])
+def test_judgment_job_identity_and_publication_failures(tmp_path, capsys, monkeypatch, failure):
+    import runners.run_semantic_evidence_integration as runner
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    _, result = _advance_cli(source, run_dir, capsys)
+    request = result["judgment_requests"][0]
+    target, raw_path = Path(request["response_path"]), tmp_path / "raw.json"
+    response = deepcopy(replay["extraction"][0])
+    if failure == "wrong_batch":
+        response["batch_id"] = replay["extraction"][1]["batch_id"]
+    raw = b"unfinished {" if failure == "malformed" else json.dumps(response).encode()
+    raw_path.write_bytes(raw)
+    if failure == "before_link":
+        monkeypatch.setattr(runner.os, "link", lambda *_: (_ for _ in ()).throw(OSError("injected link failure")))
+    elif failure == "after_link":
+        original = Path.unlink
+        def fail_cleanup(path, *args, **kwargs):
+            if path == target.with_suffix(".json.tmp"):
+                raise OSError("injected cleanup failure")
+            return original(path, *args, **kwargs)
+        monkeypatch.setattr(Path, "unlink", fail_cleanup)
+    error = {"wrong_batch": "batch identity", "malformed": "Expecting", "before_link": "publication/cleanup", "after_link": "publication/cleanup"}[failure]
+    with pytest.raises(ValueError, match=error):
+        runner.submit_judgment_job(job_path=Path(request["job_path"]), expected_sha256=request["job_sha256"], response_path=raw_path)
+    assert target.with_suffix(".json.tmp").read_bytes() == raw
+    assert target.exists() == (failure == "after_link")
+    if target.exists():
+        assert target.read_bytes() == raw
+    assert not Path(request["job_path"]).with_suffix(".receipt.json").exists()
+
+
 @pytest.mark.parametrize("count,rows_per_batch,alternate", [(4, 2, False), (7, 3, True)])
 def test_advance_public_route_complete_requests_terminal_and_resume(tmp_path, capsys, count, rows_per_batch, alternate):
     source, replay, expected = _advance_replay_fixture(tmp_path, count=count,

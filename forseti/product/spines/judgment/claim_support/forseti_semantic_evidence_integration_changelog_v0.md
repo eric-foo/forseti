@@ -24,6 +24,17 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- `v125` / 2026-09-10 — added hash-bound complete judgment intake and deterministic
+  native validation/publication at the `advance` request boundary. Ordinary
+  workers use one fresh context per independent request, at most three
+  concurrently. Exact evidence, response versions, independent verification,
+  accepted-artifact immutability and reconciliation/termination semantics remain
+  unchanged. Intake exposes byte counts, checked by the generated delivery before
+  it emits content, and a completion marker; transport truncation remains
+  incomplete input. Descriptors are issued only for dispatchable requests and
+  named by hash, so resume does not depend on the checkout or later guidance
+  edits. No provider service or semantic retry is
+  added. Current operation details belong to the contract and completion path.
 - `v124` / 2026-09-10 — made `advance` the normal provider-free execution and
   resume entrypoint for supported consolidation. It carries deterministic
   compilation, verification preparation/application, policy-v2 hierarchy and

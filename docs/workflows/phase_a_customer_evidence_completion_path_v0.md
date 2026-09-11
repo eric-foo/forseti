@@ -687,8 +687,26 @@ python forseti-harness/runners/run_semantic_evidence_integration.py advance --so
 
 Keep the same source and packing options on resume (`--max-prompt-bytes` and
 `--max-evidence-per-work-unit` when explicitly selected). Dispatch the complete
-compatible `judgment_requests` set together through the existing active-agent
-lane, preserving independent extraction/verifier judgments, then call `advance`
+compatible `judgment_requests` set through the existing active-agent lane, one
+fresh context per independent request and at most three concurrently. Do not
+reconstruct the mechanics in a new wrapper: forward the returned `worker_prompt`,
+which binds both tool output allowances and emits all content as separate
+bounded `notify` outputs within one tool invocation (no model turn between
+pieces). Accumulated `text` items can share one truncation limit. Inspect
+both tool layers' truncation metadata/warnings; an end marker alone can survive
+middle truncation. Do not
+carry previous jobs' conversations into a new extraction, verifier, or
+reconciliation request. Each worker calls `intake-judgment-job --job <job_path>
+--job-sha256 <job_sha256>` using the returned binding: this returns the complete
+hash-verified prompt, schema and role guidance together. Read all content and
+the final `intake_end` marker; a truncated tool return is incomplete intake,
+not permission to judge clipped evidence. Allow sufficient tool output for the
+complete payload. The worker writes one complete raw JSON answer and calls
+`submit-judgment-job --job <job_path> --job-sha256 <job_sha256> --response
+<raw-answer.json>`. Code checks identity, runs the existing phase validator,
+publishes exact bytes without replacement, and retains a compact receipt.
+Workers do not author mechanical validation scripts. Preserve independent
+extraction/verifier judgments, then call `advance`
 again on the published results. Do not split preparation, submission, validation,
 normal reconciliation levels/convergence, and final compilation into trivial
 controller turns. The operation carries those deterministic steps through their
@@ -696,6 +714,11 @@ native gates, reports exact prompt/schema/response and accepted-artifact binding
 and stops at required meaning judgment, an actionable failure, or `view.json`.
 There is no fixed model-call quota. Existing per-stage commands are recovery and
 historical replay seams, not the normal execution sequence.
+
+Desktop accumulated tool output can truncate despite larger allowances; use
+the separate `notify` outputs in the generated prompt. Stop before judgment
+when complete visibility cannot be obtained. The native log retaining all bytes
+does not prove that the worker saw them; the semantic contract owns this boundary.
 
 Accepted artifacts under `extraction/`, `verification/`, and
 `reconciliation/level-NNNN/` are revalidated and reused on restart. Invalid or
