@@ -2542,5 +2542,613 @@
       "Additional standing workflow rules or a second fresh sample are not part of this bounded confirmation."
     ],
     "lifecycle": "Measured source frozen at 6474ea817c9890f4601431b3250e30506810c847; publication/check status is carried by the ensuing PR, not inferred from this pre-publication record."
+  },
+  "instruction_intake_v2": {
+    "date": "2026-09-13",
+    "authorization": "Owner requested success implementation and testing with before-change, after-change and v2.0 comparisons.",
+    "decision": "Bounded report-helper instruction routing meets its frozen acceptance criteria after the recorded correction; overall coordinator optimality remains unproven.",
+    "branch": "codex/coordinator-instruction-intake-v2-20260913",
+    "base_revision": "e3ec6c38f331ec623b61c7282b4162e09a60d8bc",
+    "scope": "Consolidate the existing reading owner, scope report-helper intake to its responsibility, and split existing sample preparation instructions from execution. No runner, collector, fixture, model or reading-budget change.",
+    "instruction_sources": {
+      ".agents/workflow-overlay/source-loading.md": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\.agents\\workflow-overlay\\source-loading.md",
+        "sha256": "5f1f2432a4c25a6061efc8f4c3b273cd79e34ceea84138c7a0573f6699e9f70b"
+      },
+      ".agents/workflow-overlay/validation-gates.md": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\.agents\\workflow-overlay\\validation-gates.md",
+        "sha256": "2c91eb4f28d134cd54cd2f7386bcb2ca998bba1095ef4e604b3f3a15b91d45fb"
+      },
+      "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+        "sha256": "12d4d03bab1cabd11b7e20963ce7894f2ad86f1238801f6090961ee393a3f400"
+      }
+    },
+    "first_attempt": {
+      "decision": "failed_zero_source_read_retry_criterion",
+      "measured_revision": "95cb3061e96aaa9a200b88b7e073cd96ff5bed9f",
+      "thread_id": "01a096af-d86a-79b1-b8c3-a37e3986ee54",
+      "turn_id": "01a096af-d990-7ba0-abbe-940ad4a71118",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T01-35-01-01a096af-d86a-79b1-b8c3-a37e3986ee54.jsonl",
+        "sha256": "eba94653554c02279b6cc6a467e03b73c63f2648d2e9d5a58827bc77fc8e0b80"
+      },
+      "native_observation": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\native-observation.json",
+        "sha256": "2ee065021ff999cfb929abbdcd56cf671d4438ac9a3c0fa9fd3723e5ae291678"
+      },
+      "public_events": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\public-events.json",
+        "sha256": "2916c5ef4fb07049f802c16dcd91f5697e90a11fef7c0a578df4cbf0d1c1a23c"
+      },
+      "command_capsule": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\commands.json",
+        "sha256": "750548083621f8dd1fdb3f793bb15a36631e17e4bc7a2674f8d0ebbc4a8a97ef"
+      },
+      "checkouts": {
+        "baseline": {
+          "root": "C:\\tmp\\forseti-coordinator-baseline-c9dc5d4",
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3",
+          "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "candidate": {
+          "root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+          "revision": "95cb3061e96aaa9a200b88b7e073cd96ff5bed9f",
+          "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      },
+      "preparation": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\preparation.json",
+        "sha256": "905ed8694e4fd91b1dcaa56549fabf62854c322f4adb1ce921828f6199dbbb54"
+      },
+      "fixture_sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667",
+      "accounting": {
+        "coverage": "complete",
+        "issues": [],
+        "root_started_at": "2026-09-12T17:35:02.763Z",
+        "root_completed_at": "2026-09-12T17:36:15.805Z",
+        "workunit_completed_at": "2026-09-12T17:36:15.805000+00:00",
+        "elapsed_seconds": 73.042,
+        "child_thread_ids": [],
+        "child_coverage": "session_metadata_and_root_turn_attribution",
+        "selected_turns": {
+          "01a096af-d86a-79b1-b8c3-a37e3986ee54": [
+            "01a096af-d990-7ba0-abbe-940ad4a71118"
+          ]
+        },
+        "observed_settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "cli_versions": [
+          "0.154.0-alpha.6.2"
+        ]
+      },
+      "model_responses": 8,
+      "response_ids": [
+        "resp_08d2124cbaa6f984016aa58d49118887d0b30b3b2e9db43600",
+        "resp_08d2124cbaa6f984016aa58d5446d087d0bb2df8b26e9e3059",
+        "resp_08d2124cbaa6f984016aa58d59541087d0a3a7294eb524e22e",
+        "resp_08d2124cbaa6f984016aa58d61b1bc87d0919a956d06cc7736",
+        "resp_08d2124cbaa6f984016aa58d6a0fb087d080efd84c26d33e2b",
+        "resp_08d2124cbaa6f984016aa58d71db0887d08c2c6458b8a5a475",
+        "resp_08d2124cbaa6f984016aa58d7ed24087d0a408d44b67845270",
+        "resp_08d2124cbaa6f984016aa58d86998c87d0818fdbec47db6441"
+      ],
+      "total_usage": {
+        "coverage": "complete",
+        "input_tokens": 334110,
+        "cached_input_tokens": 297984,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1488,
+        "reasoning_output_tokens": 186,
+        "total_tokens": 335598,
+        "observed_totals": {
+          "input_tokens": 334110,
+          "cached_input_tokens": 297984,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1488,
+          "reasoning_output_tokens": 186,
+          "total_tokens": 335598
+        },
+        "issues": []
+      },
+      "public_behavior": {
+        "intake_tool_rounds": 5,
+        "work_tool_rounds": 2,
+        "parallel_execution_batches": 1,
+        "parallel_commands": 6,
+        "command_exits": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          7
+        ],
+        "source_read_failures": [
+          {
+            "call_id": "call_FQw4Fdy3267Fd38spwy3RVTC",
+            "exit_code": 1,
+            "status": "not_read",
+            "reason": "output_budget_exceeded",
+            "max_output_bytes": 8192,
+            "requested_output_bytes": 8503,
+            "next": "Select an exact heading or inclusive from/to lines; source bodies were not emitted.",
+            "sources": [
+              {
+                "path": ".agents/workflow-overlay/source-loading.md",
+                "status": "not_read",
+                "file_bytes": 35705,
+                "total_lines": 663,
+                "from": 20,
+                "to": 40,
+                "headings": [
+                  {
+                    "line": 20,
+                    "level": 2,
+                    "title": "Rule"
+                  }
+                ],
+                "selected_bytes": 1073,
+                "heading_count": 1,
+                "headings_omitted": 0
+              },
+              {
+                "path": ".agents/workflow-overlay/source-loading.md",
+                "status": "not_read",
+                "file_bytes": 35705,
+                "total_lines": 663,
+                "from": 55,
+                "to": 135,
+                "headings": [
+                  {
+                    "line": 55,
+                    "level": 2,
+                    "title": "Forseti Start Preflight"
+                  },
+                  {
+                    "line": 113,
+                    "level": 3,
+                    "title": "Ordinary Interactive Path"
+                  }
+                ],
+                "selected_bytes": 4064,
+                "heading_count": 2,
+                "headings_omitted": 0
+              },
+              {
+                "path": ".agents/workflow-overlay/source-loading.md",
+                "status": "not_read",
+                "file_bytes": 35705,
+                "total_lines": 663,
+                "from": 172,
+                "to": 212,
+                "headings": [
+                  {
+                    "line": 172,
+                    "level": 3,
+                    "title": "Routine Read Shapes (overlay high-traffic files)"
+                  }
+                ],
+                "selected_bytes": 2767,
+                "heading_count": 1,
+                "headings_omitted": 0
+              }
+            ]
+          }
+        ],
+        "instruction_read_retries": 1,
+        "setup_errors": 0,
+        "setup_repairs": 0,
+        "command_retries": 0,
+        "baseline_only_record_read_rounds": 1,
+        "baseline_records_read": [
+          "case-b"
+        ],
+        "candidate_record_read_rounds": 0,
+        "candidate_record_readback_matches": 3,
+        "verification_basis": "Decoded nested native public exec outputs, all six saved-record hashes and returned results. Generic tool-output nonzero counts do not decode these nested envelopes and are not used as the failure count."
+      },
+      "observations": [
+        {
+          "arm": "baseline",
+          "case": "case-a",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\baseline\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "d16d7b8eb5f4e01d2075eab9e88ab44bbdcf1409c4bf1f4d936caade8b22921b"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "baseline",
+          "case": "case-b",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\baseline\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "1bd12efb69d121b04f9d4264c91b7647b629d6a34f4ed9ff5fe8908832b56df1"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "unknown",
+          "synthetic_total_tokens": 23,
+          "usage_issues": [
+            "turn_cumulative_reconciliation_failed"
+          ],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "baseline",
+          "case": "case-c",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\baseline\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "83b2a8d8e4ffd80a4bacf39e8fabf5d4ef5ae5a53147308f55896733fb7d903e"
+          },
+          "outcome": "failed",
+          "quality": "failed",
+          "quality_return_code": 7,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-a",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\candidate\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "bf9359acb581a769f7cf65862c74ff1ffcb0addc2c4c3910f2e5968e8220992d"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "95cb3061e96aaa9a200b88b7e073cd96ff5bed9f"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-b",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\candidate\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "487b5f1a1cc115b2a8733fde9b6fbaf2b79730de00a2f6e2c1fcc7c3d131ca52"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "unknown",
+          "synthetic_total_tokens": 23,
+          "usage_issues": [
+            "turn_cumulative_reconciliation_failed"
+          ],
+          "revision": "95cb3061e96aaa9a200b88b7e073cd96ff5bed9f"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-c",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\live\\worker-records\\candidate\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "ca4b20d4db24a1c56db8c8cfce1f27732ff5e4ec0b303737f39366c824ae8cbc"
+          },
+          "outcome": "failed",
+          "quality": "failed",
+          "quality_return_code": 7,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "95cb3061e96aaa9a200b88b7e073cd96ff5bed9f"
+        }
+      ],
+      "inputs_identical_to_historical_sample": true,
+      "report_boundary": "Reported six case outcomes and both named defects; no implementation approval, model-quality comparison or subscription-saving claim."
+    },
+    "final_attempt": {
+      "decision": "accepted",
+      "measured_revision": "57d26e48f188ddbaace9b8aa308f88742645f41d",
+      "thread_id": "01a096b6-37c7-7a60-a3a4-3988f3299868",
+      "turn_id": "01a096b6-391e-7a33-90e3-23ae998e7de8",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T01-41-59-01a096b6-37c7-7a60-a3a4-3988f3299868.jsonl",
+        "sha256": "863d08f855fb1384da330bd848e1227047af3f32b30252ac22f78c246546189a"
+      },
+      "native_observation": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\native-observation.json",
+        "sha256": "dad39f8b4e4395ec9430a3b8137ad54d86bd7a081b98aaac04a6b4d557d7e539"
+      },
+      "public_events": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\public-events.json",
+        "sha256": "947414697fc1ca8a58e76dcaa6d31f59a47e6ea2f7c0b0db0e9b2bab4ead7a35"
+      },
+      "command_capsule": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\commands.json",
+        "sha256": "d0a4eb1d084491ff562d5edab381a75918520225e1acd0daab860c8bb459225c"
+      },
+      "checkouts": {
+        "baseline": {
+          "root": "C:\\tmp\\forseti-coordinator-baseline-c9dc5d4",
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3",
+          "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "candidate": {
+          "root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+          "revision": "57d26e48f188ddbaace9b8aa308f88742645f41d",
+          "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      },
+      "preparation": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\preparation.json",
+        "sha256": "f9226ff27ce7bdc60d6bed72612f1be096f228209945c85e03c178a171fa19d5"
+      },
+      "fixture_sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667",
+      "accounting": {
+        "coverage": "complete",
+        "issues": [],
+        "root_started_at": "2026-09-12T17:42:00.128Z",
+        "root_completed_at": "2026-09-12T17:43:09.775Z",
+        "workunit_completed_at": "2026-09-12T17:43:09.775000+00:00",
+        "elapsed_seconds": 69.647,
+        "child_thread_ids": [],
+        "child_coverage": "session_metadata_and_root_turn_attribution",
+        "selected_turns": {
+          "01a096b6-37c7-7a60-a3a4-3988f3299868": [
+            "01a096b6-391e-7a33-90e3-23ae998e7de8"
+          ]
+        },
+        "observed_settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "cli_versions": [
+          "0.154.0-alpha.6.2"
+        ]
+      },
+      "model_responses": 7,
+      "response_ids": [
+        "resp_0b806c875ebfb4d5016aa58eea394087d0832c28a555e32b31",
+        "resp_0b806c875ebfb4d5016aa58ef594d487d082c474a1c7e2bee2",
+        "resp_0b806c875ebfb4d5016aa58efa8c2c87d099e655cca9dec648",
+        "resp_0b806c875ebfb4d5016aa58f03240887d0b30e860cb05f6924",
+        "resp_0b806c875ebfb4d5016aa58f0acca887d0b35f0f525e7006b7",
+        "resp_0b806c875ebfb4d5016aa58f1c30c487d0bf6b02c7f359da18",
+        "resp_0b806c875ebfb4d5016aa58f2423e087d08ae8aad15f5cbcde"
+      ],
+      "total_usage": {
+        "coverage": "complete",
+        "input_tokens": 290982,
+        "cached_input_tokens": 273536,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1282,
+        "reasoning_output_tokens": 150,
+        "total_tokens": 292264,
+        "observed_totals": {
+          "input_tokens": 290982,
+          "cached_input_tokens": 273536,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1282,
+          "reasoning_output_tokens": 150,
+          "total_tokens": 292264
+        },
+        "issues": []
+      },
+      "public_behavior": {
+        "intake_tool_rounds": 4,
+        "work_tool_rounds": 2,
+        "parallel_execution_batches": 1,
+        "parallel_commands": 6,
+        "command_exits": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          7
+        ],
+        "source_read_failures": [],
+        "instruction_read_retries": 0,
+        "setup_errors": 0,
+        "setup_repairs": 0,
+        "command_retries": 0,
+        "baseline_only_record_read_rounds": 1,
+        "baseline_records_read": [
+          "case-b"
+        ],
+        "candidate_record_read_rounds": 0,
+        "candidate_record_readback_matches": 3,
+        "verification_basis": "Decoded nested native public exec outputs, all six saved-record hashes and returned results. Generic tool-output nonzero counts do not decode these nested envelopes and are not used as the failure count."
+      },
+      "observations": [
+        {
+          "arm": "baseline",
+          "case": "case-a",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\baseline\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "0f4b6bccae7c0fc4f1012e9c41103ead8cc094a2c8a94afde0801dbf43e8d4db"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "baseline",
+          "case": "case-b",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\baseline\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "8d960311fd5363dacef292f8a18037d2c43f8616b17b4269a106b999b06dd224"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "unknown",
+          "synthetic_total_tokens": 23,
+          "usage_issues": [
+            "turn_cumulative_reconciliation_failed"
+          ],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "baseline",
+          "case": "case-c",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\baseline\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "9e9be4244ca855598cb0a5a327724a174993d501ca56e6a511db26a432313949"
+          },
+          "outcome": "failed",
+          "quality": "failed",
+          "quality_return_code": 7,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-a",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\candidate\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "8de1b4adc0c4ce59fd9069ae8e8597b1bcc8073fdcc8c42f92cc4d630b9ea03a"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "57d26e48f188ddbaace9b8aa308f88742645f41d"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-b",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\candidate\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "7fcfc39f5aee7233f7d38380bfede7bc5212d1c12c17a41d1ba5467e6e0aa731"
+          },
+          "outcome": "success",
+          "quality": "passed",
+          "quality_return_code": 0,
+          "usage_coverage": "unknown",
+          "synthetic_total_tokens": 23,
+          "usage_issues": [
+            "turn_cumulative_reconciliation_failed"
+          ],
+          "revision": "57d26e48f188ddbaace9b8aa308f88742645f41d"
+        },
+        {
+          "arm": "candidate",
+          "case": "case-c",
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\final\\live\\worker-records\\candidate\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "f0236000d718e6decda8d815076389c6c61c997a46634ad08c7f4984e49a585b"
+          },
+          "outcome": "failed",
+          "quality": "failed",
+          "quality_return_code": 7,
+          "usage_coverage": "complete",
+          "synthetic_total_tokens": 36,
+          "usage_issues": [],
+          "revision": "57d26e48f188ddbaace9b8aa308f88742645f41d"
+        }
+      ],
+      "inputs_identical_to_historical_sample": true,
+      "report_boundary": "Reported six case outcomes and both named defects; no implementation approval, model-quality comparison or subscription-saving claim."
+    },
+    "startup_correction": {
+      "rejected_read": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\startup-read-red.json",
+        "sha256": "cdab7d84a78521625296cfd90f5e88d02c59bad43a0691860235025d8b40929a"
+      },
+      "corrected_exact_read": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-intake-v2-20260913\\startup-read-final-green.json",
+        "sha256": "62e1545b1ebc770fb41b34ce4b52b05ccbe3f2f20a5e309ef707db24c0c2579c"
+      },
+      "before_bytes": 8503,
+      "after_bytes": 8012,
+      "unchanged_max_output_bytes": 8192,
+      "wrapper_exit_note": "Native PowerShell exposed exit 1 and direct subprocess exit 2 for the same refusal. The initial host assertion incorrectly expected exactly 1; raw failure was preserved and nonzero refusal correctly classified."
+    },
+    "three_versions": [
+      {
+        "label": "before_change",
+        "pointer": "setup_followup.fresh_coordinator",
+        "total_tokens": 197899,
+        "input_tokens": 196592,
+        "cached_input_tokens": 169984,
+        "output_tokens": 1307,
+        "model_responses": 5,
+        "intake_tool_rounds": 3,
+        "work_tool_rounds": 1
+      },
+      {
+        "label": "after_change",
+        "pointer": "post_review_confirmation.fresh_coordinator",
+        "total_tokens": 402161,
+        "input_tokens": 400469,
+        "cached_input_tokens": 362112,
+        "output_tokens": 1692,
+        "model_responses": 9,
+        "intake_tool_rounds": 6,
+        "work_tool_rounds": 2
+      },
+      {
+        "label": "v2_0_corrected",
+        "pointer": "instruction_intake_v2.final_attempt",
+        "total_tokens": 292264,
+        "input_tokens": 290982,
+        "cached_input_tokens": 273536,
+        "output_tokens": 1282,
+        "model_responses": 7,
+        "intake_tool_rounds": 4,
+        "work_tool_rounds": 2
+      }
+    ],
+    "comparison": {
+      "v2_vs_after_total_token_delta": -109897,
+      "v2_vs_after_change_percent": -27.33,
+      "v2_vs_before_total_token_delta": 94365,
+      "v2_vs_before_change_percent": 47.68,
+      "v2_attempts_total_tokens": 627862,
+      "interpretation": "Final observation uses two fewer intake rounds than after-change, avoids the gate catalogue and reading retry, and opens only baseline case-b. It still uses one additional common-verification intake round and one baseline diagnostic round relative to before-change."
+    },
+    "checks": {
+      "six_outcomes_and_coverage_per_attempt": "passed",
+      "final_zero_source_read_failures": "passed",
+      "final_zero_setup_repairs_and_command_retries": "passed",
+      "final_candidate_readback_matches": 3,
+      "validation_bodies_unchanged_from_base": true,
+      "runtime_and_fixture_unchanged_from_after_change": true,
+      "all_native_and_saved_record_hashes_verified": true,
+      "native_response_sums_reconciled": true,
+      "reader_unit_tests": "17 passed at 95cb3061; reader code unchanged by the subsequent wording correction",
+      "preparation": "Both exercises passed six local checks before release; preparation made zero model calls."
+    },
+    "review_routing_status": "not_needed",
+    "review_routing_basis": "Affected behavior is report-helper source selection and bounded reporting. A completed fresh actor independently took the reduced reading route, preserved all six contrasted results and declined broader approval claims. Direct comparison preserves every validation body against the pre-edit baseline; the harness and checker are unchanged. No material boundary in this scoped change remains supported only by a prose assertion.",
+    "limits": [
+      "Three historical version observations, with both v2 attempts disclosed; not randomized repeated samples or a causal estimate of general savings.",
+      "Same Astra/high setting and byte-identical six saved inputs; source base and injected session context differ across historical runs. Pre-existing upstream AGENTS/source-loading/validation changes are not attributed to this patch.",
+      "After-change and v2 use the same assignment template with revision, branch, exercise-root and frozen baseline-location substitutions. The original sample did not separately resolve the old baseline accounting issue.",
+      "Each native boundary includes its completed task turn and discovered descendants (none). Active parent, CI helper and earlier work are excluded; 627862 covers only the two v2 sample actors.",
+      "Cached input is a subset of input; reasoning output is a subset of output. Imported synthetic counts 36/23 observed/36 are separate from native actor cost.",
+      "No subscription-percentage measurement, API-cost conversion, general semantic-quality proof, whole-intelligence-cycle guarantee or model-downgrade recommendation."
+    ],
+    "lifecycle": "Final sample source frozen at 57d26e48f188ddbaace9b8aa308f88742645f41d. Subsequent commits record evidence only; publication and merge require fresh PR readback."
   }
 }
