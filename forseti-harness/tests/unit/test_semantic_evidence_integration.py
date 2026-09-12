@@ -2938,6 +2938,69 @@ def test_reconciliation_diagnostic_keeps_valid_response_clean_and_public_output_
         )
 
 
+def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4():
+    source = _source_v10(count=2)
+    source["semantic_method_version"] = semantic_module.METHOD_VERSION_V13
+    bundle = build_bundle(source, max_prompt_bytes=30_000)
+    responses = _keyed_responses(bundle)
+    for response in responses:
+        for eid in response["decisions_by_evidence_id"]:
+            row = _claim_row(eid)
+            row.pop("evidence_id")
+            unit = row["semantic_units"][0]
+            unit["subject_product_ids"] = ["summer-fridays-lip-butter-balm"]
+            row["semantic_units"].append({**deepcopy(unit), "semantic_unit_key": "second-claim"})
+            response["decisions_by_evidence_id"][eid] = row
+    compiled = validate_batch_responses(bundle, responses)
+    verification, _ = prepare_row_verification(bundle, compiled)
+    verified = apply_row_verification(bundle, compiled, verification, _row_verification_responses(verification))
+    first, _ = prepare_reconciliation_stage(bundle, verified,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2)
+    nodes = validate_reconciliation_stage(bundle, first, _singleton_reconciliation_responses(first))
+    stage, _ = prepare_reconciliation_stage(bundle, nodes)
+    assert stage["reconciliation_mode"] == "convergence"
+    old = semantic_module.prepare_reconciliation_prompts(bundle, stage,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+    new = semantic_module.prepare_reconciliation_prompts(bundle, stage,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    assert "CONVERGENCE_SOURCE_ROWS" not in old[0]["prompt"]
+    assert new[0]["response_schema"] == old[0]["response_schema"]
+    rows = json.loads(new[0]["prompt"].split("CONVERGENCE_SOURCE_ROWS\n")[1].split("\n", 1)[1])
+    by_source = {}
+    for candidate in stage["candidates"]:
+        eid = candidate["leaf_relations"][0]["semantic_unit_ref"].rsplit("::", 1)[0]
+        by_source.setdefault(eid, []).append(rows[candidate["candidate_ref"]]["support"])
+    assert len(by_source) == 2
+    assert all(len(group) == 2 and group[0] == group[1] for group in by_source.values())
+    assert len({group[0][0] for group in by_source.values()}) == 2
+    assert semantic_module.prepare_reconciliation_prompts(bundle, stage,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4) == old
+    with pytest.raises(SemanticIntegrationError, match="lacks repeated source-row support"):
+        validate_reconciliation_stage(bundle, stage, _singleton_reconciliation_responses(stage))
+
+
+@pytest.mark.parametrize("revision", [
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V6,
+])
+def test_advance_authoring_is_opt_in_and_immutable_on_resume(tmp_path, revision):
+    from runners.run_semantic_evidence_integration import advance_semantic_run
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run = tmp_path / "run"
+    for phase in ("extraction", "verification"):
+        _publish_advance_replay(run, phase, replay[phase])
+    kwargs = dict(source_path=source, run_dir=run, max_prompt_bytes=30_000,
+                  max_evidence_per_work_unit=2)
+    result = advance_semantic_run(**kwargs, reconciliation_authoring_revision=revision)
+    assert result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
+    prompt = Path(result["judgment_requests"][0]["prompt_path"])
+    frozen = prompt.read_bytes()
+    assert revision.encode() in frozen
+    assert advance_semantic_run(**kwargs, reconciliation_authoring_revision=revision)["judgment_requests"] == result["judgment_requests"]
+    assert advance_semantic_run(**kwargs)["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert prompt.read_bytes() == frozen
+
+
 def test_reconciliation_diagnostic_covers_convergence_repeated_support_failure():
     bundle, _, stage, _, response = _decision_reconciliation_fixture()
     stage["reconciliation_mode"] = "convergence"
@@ -4029,6 +4092,36 @@ def test_local_repair_public_consumer_is_exact_bounded_and_repeatable(tmp_path):
     paths[2].write_bytes(paths[2].read_bytes() + b"\n")
     with pytest.raises(ValueError, match="source file bytes changed"):
         submit_reconciliation_local_repair(**submitted)
+
+
+def test_local_repair_generated_job_delivers_and_submits_exact_repair(tmp_path):
+    from runners.run_semantic_evidence_integration import (
+        prepare_reconciliation_local_repair, intake_judgment_job, submit_judgment_job,
+        judgment_worker_prompt, _write_json, _load_object)
+    bundle, stage, response, request, patch = _local_repair_fixture()
+    paths = [tmp_path / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json", "patch.json")]
+    for path, value in zip(paths, (bundle, stage, response, request["nomination"], patch), strict=True):
+        _write_json(path, value)
+    prepared = prepare_reconciliation_local_repair(bundle_path=paths[0], stage_path=paths[1],
+        failed_response_path=paths[2], nomination_path=paths[3], output_dir=tmp_path / "repair")
+    args = {"job_path": Path(prepared["job_path"]), "expected_sha256": prepared["job_sha256"]}
+    assert prepared["worker_prompt"] == judgment_worker_prompt(args["job_path"], args["expected_sha256"])
+    intake = intake_judgment_job(**args)
+    assert intake["content"]["prompt"] == request["prompt"] + "\n"
+    assert json.loads(intake["content"]["response_schema"]) == request["response_schema"]
+    assert intake["content_bytes"] == {k: len(v.encode("utf-8")) for k, v in intake["content"].items()}
+    receipt = submit_judgment_job(**args, response_path=paths[4])
+    successor = _load_object(tmp_path / "repair/successor/response.json")
+    assert _load_object(Path(receipt["response_path"])) == successor
+    assert _load_object(Path(receipt["receipt_path"]))["successor_sha256"] == receipt["successor_sha256"]
+    assert receipt["validation"] == validate_reconciliation_stage(bundle, stage, [successor], require_all=False)
+    assert submit_judgment_job(**args, response_path=paths[4]) == receipt
+    # A generated launch pins the exact evidence, including before intake.
+    paths[2].write_bytes(paths[2].read_bytes() + b"\n")
+    for operation in (lambda: intake_judgment_job(**args),
+                      lambda: submit_judgment_job(**args, response_path=paths[4])):
+        with pytest.raises(ValueError, match="input hash mismatch: failed_response"):
+            operation()
 
 
 def test_local_repair_can_prepare_exact_chained_missing_definitions(tmp_path):
@@ -10765,6 +10858,80 @@ def _advance_replay_fixture(tmp_path, *, count=4, rows_per_batch=2, alternate=Fa
     assert is_terminal_reconciliation_compilation(nodes)
     expected = finalize_v3_view(bundle, verified, nodes)
     return source_path, replay, expected
+
+
+def test_group_aware_order_preserves_discriminating_candidates():
+    def candidate(ref, statement, **changes):
+        row = dict(candidate_ref=ref, statement=statement, subject_product_ids=["balm"],
+            comparator_product_ids=[], product_version_ids=[], axis_ids=["value"],
+            conditions=[], polarity="affirmed", leaf_relations=[{"semantic_unit_ref": ref,
+            "relation": "support"}], condition_lineage=[])
+        return {**row, **changes}
+
+    anchor = candidate("a", "The tube quantity justifies its price.",
+        leaf_relations=[{"semantic_unit_ref": "a1", "relation": "support"},
+                        {"semantic_unit_ref": "a2", "relation": "counter"}],
+        condition_lineage=[{"semantic_unit_ref": "a2", "conditions": ["only on sale"]}])
+    paraphrase = candidate("z", "Given the quantity in the tube, the price feels justified.")
+    distinct = candidate("b", "The fragrance makes this product worth buying.")
+    conditional = candidate("c", "The tube quantity does not justify its price unless on sale.",
+                            polarity="negated", conditions=["only on sale"])
+    other_product = candidate("d", anchor["statement"], subject_product_ids=["other"])
+    comparator = candidate("e", anchor["statement"], comparator_product_ids=["other"])
+    version = candidate("f", anchor["statement"], product_version_ids=["old"])
+    rows = [anchor, distinct, other_product, comparator, version, paraphrase, conditional]
+    before = deepcopy(rows)
+    result = semantic_module._group_aware_candidate_order(rows)
+    assert rows == before
+    assert {r["candidate_ref"]: r for r in result} == {r["candidate_ref"]: r for r in before}
+    assert result[0] is anchor  # Even an imperfect group's counter/condition lineage survives.
+    assert {r["candidate_ref"] for r in result[:3]} == {"a", "c", "z"}
+    assert result[3] is distinct  # Same axis alone is a weaker hint than shared predicate wording.
+    assert semantic_module._group_aware_candidate_order(list(reversed(rows))) == result
+
+
+def test_group_aware_packing_coverage_fit_and_default_replay(tmp_path, monkeypatch):
+    source_path, replay, _ = _advance_replay_fixture(tmp_path, count=6)
+    bundle = build_bundle(json.loads(source_path.read_text()), max_prompt_bytes=30_000,
+                          max_evidence_per_work_unit=2)
+    compiled = validate_batch_responses(bundle, replay["extraction"])
+    verification, _ = prepare_row_verification(bundle, compiled)
+    verified = apply_row_verification(bundle, compiled, verification, replay["verification"])
+    monkeypatch.setattr(semantic_module, "RECONCILIATION_IDENTITY_V2_MAX_BATCH_CANDIDATES", 2)
+    kwargs = dict(reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+                  authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+    default = prepare_reconciliation_stage(bundle, verified, **kwargs)
+    assert prepare_reconciliation_stage(bundle, verified, packing_strategy="input_order", **kwargs) == default
+    stage, prompts = prepare_reconciliation_stage(bundle, verified, packing_strategy="group_aware_v1", **kwargs)
+    assert stage["candidates"] == default[0]["candidates"]
+    refs = [ref for batch in stage["batches"] for ref in batch["candidate_refs"]]
+    assert sorted(refs) == sorted(row["candidate_ref"] for row in stage["candidates"])
+    assert len(stage["batches"]) > 1
+    assert all(len(batch["candidate_refs"]) <= 2 for batch in stage["batches"])
+    assert all(len(row["prompt"].encode("utf-8")) <= bundle["max_prompt_bytes"] for row in prompts)
+    assert "packing_strategy" not in default[0]
+    with pytest.raises(SemanticIntegrationError, match="unsupported.*packing"):
+        prepare_reconciliation_stage(bundle, verified, packing_strategy="unknown", **kwargs)
+
+
+def test_advance_group_aware_option_is_bound_on_resume(tmp_path):
+    from runners.run_semantic_evidence_integration import advance_semantic_run
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run = tmp_path / "run"
+    for phase in ("extraction", "verification"):
+        _publish_advance_replay(run, phase, replay[phase])
+    kwargs = dict(source_path=source, run_dir=run, max_prompt_bytes=30_000,
+                  max_evidence_per_work_unit=2)
+    result = advance_semantic_run(**kwargs, reconciliation_packing="group_aware_v1")
+    assert result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
+    stage_path = run / "reconciliation/level-0001/stage.json"
+    frozen = stage_path.read_bytes()
+    assert json.loads(frozen)["packing_strategy"] == "group_aware_v1"
+    resumed = advance_semantic_run(**kwargs, reconciliation_packing="group_aware_v1")
+    assert resumed["judgment_requests"] == result["judgment_requests"]
+    wrong = advance_semantic_run(**kwargs)
+    assert wrong["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert stage_path.read_bytes() == frozen
 
 
 def _publish_advance_replay(run_dir, phase, responses):

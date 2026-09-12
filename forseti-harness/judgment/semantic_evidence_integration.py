@@ -15,6 +15,8 @@ from __future__ import annotations
 from copy import deepcopy
 import hashlib
 import json
+import math
+import re
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -85,6 +87,8 @@ RECONCILIATION_AUTHORING_IDENTITY_V1 = "exact_identity_namespaces_v1"
 RECONCILIATION_AUTHORING_IDENTITY_V2 = "exact_identity_namespaces_v2"
 RECONCILIATION_AUTHORING_IDENTITY_V3 = "exact_identity_namespaces_v3"
 RECONCILIATION_AUTHORING_IDENTITY_V4 = "exact_identity_namespaces_v4"
+RECONCILIATION_AUTHORING_IDENTITY_V5 = "exact_identity_namespaces_v5"
+RECONCILIATION_AUTHORING_IDENTITY_V6 = "exact_identity_namespaces_v6"
 RECONCILIATION_IDENTITY_V2_MAX_BATCH_CANDIDATES = 96
 RELATION_CLOSURE_STAGE_VERSION = "semantic_evidence_relation_closure_stage_v1"
 RELATION_CLOSURE_RESPONSE_VERSION = "semantic_evidence_relation_closure_response_v1"
@@ -6363,6 +6367,8 @@ def _identity_authoring_enabled(decision_only, authoring_revision):
         RECONCILIATION_AUTHORING_IDENTITY_V2,
         RECONCILIATION_AUTHORING_IDENTITY_V3,
         RECONCILIATION_AUTHORING_IDENTITY_V4,
+        RECONCILIATION_AUTHORING_IDENTITY_V5,
+        RECONCILIATION_AUTHORING_IDENTITY_V6,
     } and decision_only:
         return True
     raise SemanticIntegrationError("unsupported reconciliation normal-authoring revision for response version")
@@ -6388,7 +6394,7 @@ def _render_normal_reconciliation_prompt(
     prompt = _render_v3_reconciliation_prompt(**kwargs)
     # Current v4 authoring carries its role-specific shared formation guidance;
     # prior v13 authoring revisions retain their original full-method preamble.
-    if meaning_boundary and authoring_revision != RECONCILIATION_AUTHORING_IDENTITY_V4:
+    if meaning_boundary and authoring_revision not in {RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}:
         prompt = MEANING_BOUNDARY_GUIDANCE + "\n\n" + prompt
     if not identity_namespaces:
         return prompt
@@ -6407,7 +6413,7 @@ def _render_normal_reconciliation_prompt(
             "The same original leaf may enter one node through only one attached child. If two children share a leaf, "
             "keep them out of the same node or split the node without dropping either candidate.\n"
         )
-    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4}:
+    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}:
         instruction += (
             "Code has checked the original source links for the supplied candidates. "
             "SOURCE_OVERLAP_GROUPS below lists exact candidate_ref groups sharing an original piece of evidence. "
@@ -6424,14 +6430,104 @@ def _render_normal_reconciliation_prompt(
         ensure_ascii=False,
         separators=(",", ":"),
     ) + "\n"
-    if revision == RECONCILIATION_AUTHORING_IDENTITY_V4:
+    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}:
         result += "\nCLAIM_FORMATION\n" + CLAIM_FORMATION_GUIDANCE + "\n"
-    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4}:
+    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}:
         result += "\nSOURCE_OVERLAP_GROUPS\n" + json.dumps(
             _reconciliation_source_overlap_groups(kwargs["candidates"]),
             ensure_ascii=False, separators=(",", ":"),
         ) + "\n"
+    if revision in {RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6} and kwargs.get("reconciliation_mode") == "convergence":
+        evidence_index = kwargs["evidence_index"]
+        row_aliases = {ref: f"r{i}" for i, ref in enumerate(sorted(evidence_index))}
+        source_rows = {
+            candidate["candidate_ref"]: {
+                relation: sorted({
+                    row_aliases[_leaf_evidence_id(leaf["semantic_unit_ref"], evidence_index,
+                        node_key=candidate["candidate_ref"])]
+                    for leaf in candidate["leaf_relations"] if leaf["relation"] == relation
+                })
+                for relation in sorted(RELATIONS)
+                if any(leaf["relation"] == relation for leaf in candidate["leaf_relations"])
+            }
+            for candidate in kwargs["candidates"]
+        }
+        result += (
+            "\nCONVERGENCE_SOURCE_ROWS\n"
+            "Compiler-assigned row aliases below are shared across candidates in this batch. "
+            "Different claims may come from the SAME row: union the effective supporting row "
+            "aliases; never add candidate counts. A node needs at least two distinct supporting "
+            "rows after child relations are applied. These aliases identify source rows, not "
+            "independent people, semantic equivalence or corroboration. They are distinct from "
+            "SOURCE_OVERLAP_GROUPS, which restrict duplicate original semantic units. "
+            "If all effective support is one alias, leave the candidates unmerged unless other "
+            "meaning-equivalent support adds a different row. Do not broaden meaning to meet the floor.\n"
+            + json.dumps(source_rows, ensure_ascii=False, separators=(",", ":")) + "\n"
+        )
+    if revision == RECONCILIATION_AUTHORING_IDENTITY_V6:
+        result += (
+            "\nUNCERTAINTY_AND_COMPLETION\n"
+            "Lack of support is not opposition. Undecided, unknown, not yet tried, or missing "
+            "information does not by itself oppose an affirmative claim. Use counter only "
+            "when the evidence establishes a contrary meaning within materially comparable "
+            "scope; retain genuine negative experiences and explicit objections as counter. "
+            "Keep a supported undecided state as its own finding, or use adjacent when it "
+            "actually qualifies another finding. Never invent either intent or rejection. "
+            "A finding is finished when its meaning and evidence relations are settled, "
+            "not when every uncertainty in its source is resolved. An explicitly bounded "
+            "finding may be terminal while preserving an unknown target, outcome or cause; "
+            "do not leave it nonterminal solely for that source uncertainty. This does not "
+            "authorize unsupported claims, invented resolutions, skipped opposition checks, "
+            "or relaxing source-role and retention rules.\n"
+        )
     return result
+
+
+def _group_aware_candidate_order(candidates):
+    """Experimental routing only: reorder intact candidates, never infer a merge.
+
+    Exact scope buckets keep unknown version/comparator scope distinct. Within
+    each bucket, start with the richest existing group and visit nearby wording.
+    Axis/condition overlap is a weak routing hint; polarity is deliberately not
+    a partition so opposition can be read together. This lexical approximation
+    can miss paraphrases and cannot correct an imperfect summarized group.
+    """
+    buckets = defaultdict(list)
+    for candidate in candidates:
+        scope = tuple(tuple(sorted(candidate[field])) for field in (
+            "subject_product_ids", "comparator_product_ids", "product_version_ids"))
+        buckets[scope].append(candidate)
+    ordered = []
+    for scope in sorted(buckets):
+        rows = buckets[scope]
+        tokens = [set(re.findall(r"\w+", row["statement"].casefold())) for row in rows]
+        frequency = defaultdict(int)
+        for words in tokens:
+            for word in words:
+                frequency[word] += 1
+        weights = {word: math.log((1 + len(rows)) / (1 + count)) + 1
+                   for word, count in frequency.items()}
+        norms = [math.sqrt(sum(weights[word] ** 2 for word in words)) for words in tokens]
+
+        def overlap(left, right):
+            union = left | right
+            return len(left & right) / len(union) if union else 0.0
+
+        def proximity(left, right):
+            lexical = (sum(weights[word] ** 2 for word in tokens[left] & tokens[right])
+                       / (norms[left] * norms[right]) if norms[left] and norms[right] else 0.0)
+            return (lexical
+                    + 0.15 * overlap(set(rows[left]["axis_ids"]), set(rows[right]["axis_ids"]))
+                    + 0.10 * overlap(set(rows[left]["conditions"]), set(rows[right]["conditions"])))
+
+        remaining = set(range(len(rows)))
+        current = min(remaining, key=lambda i: (-len(rows[i]["leaf_relations"]), rows[i]["candidate_ref"]))
+        while remaining:
+            ordered.append(rows[current])
+            remaining.remove(current)
+            if remaining:
+                current = min(remaining, key=lambda i: (-proximity(current, i), rows[i]["candidate_ref"]))
+    return ordered
 
 
 def prepare_reconciliation_stage(
@@ -6441,8 +6537,11 @@ def prepare_reconciliation_stage(
     reconciliation_policy_version: str | None = None,
     response_version: str | None = None,
     authoring_revision: str | None = None,
+    packing_strategy: str = "input_order",
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare one prompt-bounded Route 1.6 reconciliation level."""
+    if packing_strategy not in {"input_order", "group_aware_v1"}:
+        raise SemanticIntegrationError("unsupported reconciliation packing strategy")
     _verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
     _validate_projection(bundle)
     if not _is_current_bundle(bundle):
@@ -6641,7 +6740,7 @@ def prepare_reconciliation_stage(
     identity_namespaces = _identity_authoring_enabled(decision_only, authoring_revision)
     max_batch_candidates = (
         RECONCILIATION_IDENTITY_V2_MAX_BATCH_CANDIDATES
-        if authoring_revision in {RECONCILIATION_AUTHORING_IDENTITY_V2, RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4}
+        if authoring_revision in {RECONCILIATION_AUTHORING_IDENTITY_V2, RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}
         else None
     )
     current_emerging_labels = sorted(
@@ -6659,7 +6758,9 @@ def prepare_reconciliation_stage(
     batches: list[dict[str, Any]] = []
     current: list[dict[str, Any]] = []
     placeholder_hash = "0" * 64
-    for candidate in candidates:
+    packing_candidates = (_group_aware_candidate_order(candidates)
+                          if packing_strategy == "group_aware_v1" else candidates)
+    for candidate in packing_candidates:
         proposed = [*current, candidate]
         if (
             max_batch_candidates is not None
@@ -6750,6 +6851,8 @@ def prepare_reconciliation_stage(
         "carried_emerging_axis_consolidations": carried_consolidations,
         "max_prompt_bytes": max_bytes,
     }
+    if packing_strategy != "input_order":
+        stage["packing_strategy"] = packing_strategy
     if compact_lineage:
         stage["emerging_axis_owner_batch_id"] = (
             batches[0]["batch_id"] if batches else None

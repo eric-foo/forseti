@@ -24,6 +24,113 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-12 delegated review adjudicated — accepted the different-vendor
+  review's placement of supported repair transport in Local reconciliation
+  correction and its correction of the launcher evidence citation. No runtime
+  defect was found. Preserved the cited reports, accounting and bounded
+  source/claim assessments in
+  `docs/research/judgment-spine/harness/worker-efficiency-20260912/`; full
+  replayable runtime archives remain host-local. Experimental defaults remain
+  unpromoted and whole-cycle savings remain unproven.
+
+- 2026-09-12 generated repair launches — repair preparation now emits the shared
+  complete-intake worker prompt and hash-pinned job; shared submit reuses the
+  existing repair consumer. Three fresh Sol/high cases preserved complete
+  delivery and unrelated scope: neutral-as-counter and excess ownership wording
+  corrected; genuine price opposition retained. Exact saved paths are returned
+  after one worker guessed the receipt location incorrectly. That return-field
+  correction was checked by native replay and regression tests, without another
+  semantic call. No semantic prompt, schema or default model changed.
+
+- 2026-09-12 repair intake correction — prescribed the existing normal-worker
+  complete-delivery pattern for local repairs, with both output allowances and
+  separate bounded notifications. A fresh Sol/high judgment on the identical
+  repair request preserved the correct two-findings/three-sources result and
+  unchanged unrelated scope, with no truncation or rereads. Total worker tokens
+  fell 55.4% and estimated cost fell 43.5% versus the earlier repair. No semantic
+  instruction, schema, runtime validator or model default changed; the workflow
+  now carries the tested delivery instruction, and the current contract links
+  the full measurement and limitations.
+
+- 2026-09-12 targeted Sol/high repair dogfood — existing local repair corrected
+  the original ownership/purchase error, preserving three sources and leaving
+  89 other decisions and 39 findings unchanged. Native durable successor and
+  idempotent submission passed. Two truncated input reads increased tokens;
+  $0.3219392 estimated cost was 31.5% below the prior full batch, but only 2.3%
+  lower at equal cache reuse. This is one successful nominated repair, not
+  efficient-dispatch or full-run qualification. No implementation or default
+  changed; the current contract links the corrected successor and evidence.
+
+- 2026-09-12 Astra/low same-batch probe — explicit owner-authorized low effort
+  on the unchanged 92-candidate v6 batch preserved ownership versus purchase.
+  All 45 returned findings were inspected; a smaller unsupported ownership
+  qualifier remained in general approval. Native acceptance and fewer tokens
+  did not establish a clean full-run result or a cheaper worker: frozen-rate
+  estimates were $0.976506 versus prior Sol/high $0.4697448. No model default,
+  automatic reviewer or repair workflow changed. The existing nominated local
+  repair route remains available for identified defects; the current contract
+  links the exact evidence.
+
+- 2026-09-12 larger v5/v6 comparison (not qualified) — reused all 323 verified
+  statements from 121 comments with fresh Sol/high reconciliation in both arms.
+  Stopped in round one after v6 attached two ownership reports as purchase
+  support; v5 separated ownership and purchase for those same candidates.
+  Native batch acceptance did not establish semantic quality. No full consumer
+  output, completed-run savings, default promotion or delegated patch commission
+  followed. This exposes a broader support-assignment error, not proof that the
+  new wording caused it. See the current contract and the stopped-run evidence
+  at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-neutral-scale-121-20260912-v1/RESULT.md`).
+
+- 2026-09-12 neutral-evidence/completion experiment (unpromoted) — added opt-in
+  authoring v6 to distinguish lack of support from opposition and source
+  uncertainty from unfinished analysis. It inherits v5 without changing native
+  schemas, validation, retention or completion. Historical v5 prompt replay and
+  opt-in resume checks preserve prior runs. Both fresh v5/v6 frontier judgments
+  passed the target distinctions and completion, so that comparison is a tie.
+  The fresh 45-row v6 run completed in two rounds/three workers with all 117
+  statements accounted for and no material meaning error found in controller
+  inspection of 65 final findings. Its $1.4446 worker estimate is 49.8% below
+  the historical v5 grouping run, not a fresh paired full-run gain. The initial
+  batch split changed with the extra instruction bytes. The narrow test passed;
+  no default promotion, scale run, delegated review or freezing of findings
+  followed. Tests: 106 affected and 18 contract checks passed.
+
+- 2026-09-11 convergence qualification (unpromoted) — added opt-in authoring v5
+  with deterministic source-row aliases by candidate/relation. The preceding
+  failed convergence worker merged distinct claims from one comment as repeated
+  support; per-candidate row counts could not expose that shared row. V5 supplies
+  the missing identity while preserving native validation, response schema,
+  retention rules and historical v4 bytes. Default authoring stays v4. Model and
+  completion qualification are separate from the existence of this change.
+  A fresh Sol/high judgment on the previously failed convergence frontier passed
+  native validation and retained the same-row intentions as unmerged evidence.
+  The subsequent fresh 45-row control reached native completion after six normal
+  levels. The initial controller rejected an unchanged unresolved agreement solely
+  because it became terminal. That assessment was corrected: the finding preserves
+  the unknown target and does not claim either parent statement. Source-backed
+  assessment of all 36 final meanings found no material unsupported change;
+  117 statements and their conditions remain accounted for. The accepted matched
+  treatment completed in five levels/six workers versus six levels/seven workers.
+  It saved 11.8% at fixed prices (12.7% with cache reuse normalized), below the
+  15% requirement. Source-backed inspection also found undecided repurchase
+  incorrectly attached as counterevidence to another source's repurchase intention,
+  making the consumer finding mixed. Both views preserve all 117 statements and
+  conditions and repeat identically. Candidate appearances totaled 355 versus 345;
+  fewer rounds do not establish better grouping. No scale confirmation, delegated
+  patch review or default promotion followed this failed adoption test.
+
+- 2026-09-11 experiment (unpromoted) — added opt-in `group_aware_v1`
+  reconciliation preparation under the owner's managed-worktree commission.
+  It reorders intact candidates using local scope and proximity hints before
+  the existing packer. Default replay, worker judgments and completion semantics
+  remain unchanged. No efficiency or semantic-quality improvement is asserted
+  by this implementation entry; the matched run result governs that assessment.
+  The first 45-row/117-candidate bounded comparison ended without final views:
+  treatment's convergence answer failed the distinct-source-row support floor;
+  control reached the six-round stop while still requiring normal reconciliation.
+  Both stopped without repair/retry. The experiment does not establish savings
+  through completion, and the default remains unchanged.
+
 - `v125` / 2026-09-10 — added hash-bound complete judgment intake and deterministic
   native validation/publication at the `advance` request boundary. Ordinary
   workers use one fresh context per independent request, at most three

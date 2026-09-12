@@ -21,6 +21,8 @@ from judgment.semantic_evidence_integration import (  # noqa: E402
     RECONCILIATION_AUTHORING_IDENTITY_V2,
     RECONCILIATION_AUTHORING_IDENTITY_V3,
     RECONCILIATION_AUTHORING_IDENTITY_V4,
+    RECONCILIATION_AUTHORING_IDENTITY_V5,
+    RECONCILIATION_AUTHORING_IDENTITY_V6,
     RECONCILIATION_POLICY_VERSION_V2,
     SOURCE_VERSION_V3,
     SEMANTIC_METHODS_V7_PLUS,
@@ -1247,6 +1249,17 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
                         response_path: Path) -> dict[str, Any]:
     """Validate exactly one raw answer and publish without replacing accepted work."""
     job, inputs = _load_judgment_job(job_path, expected_sha256)
+    if job["phase"] == "reconciliation_repair":
+        # The repair schema has request identity, not a normal batch envelope.
+        # Keep the existing repair consumer responsible for composition and readback.
+        receipt = submit_reconciliation_local_repair(
+            bundle_path=Path(job["inputs"]["bundle"]["path"]),
+            stage_path=Path(job["inputs"]["binding"]["path"]),
+            failed_response_path=Path(job["inputs"]["failed_response"]["path"]),
+            request_path=Path(job["inputs"]["repair_request"]["path"]),
+            patch_path=response_path, output_dir=Path(job["response_path"]).parent)
+        return {**receipt, "response_path": job["response_path"],
+                "receipt_path": str(Path(job["response_path"]).with_name("receipt.json"))}
     target = Path(job["response_path"])
     staged = target.with_name(target.name + ".tmp")
     raw = response_path.read_bytes()
@@ -1304,6 +1317,8 @@ def advance_semantic_run(
     *, source_path: Path, run_dir: Path,
     max_batch_chars: int = 80_000, max_prompt_bytes: int | None = None,
     max_evidence_per_work_unit: int = 120,
+    reconciliation_packing: str = "input_order",
+    reconciliation_authoring_revision: str = RECONCILIATION_AUTHORING_IDENTITY_V4,
 ) -> dict[str, Any]:
     """Carry the supported provider-free route to its next real judgment boundary.
 
@@ -1507,7 +1522,8 @@ def advance_semantic_run(
             directory = run_dir / "reconciliation" / f"level-{level:04d}"
             stage, prompts = prepare_reconciliation_stage(bundle, nodes,
                 reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
-                authoring_revision=(RECONCILIATION_AUTHORING_IDENTITY_V4
+                packing_strategy=reconciliation_packing,
+                authoring_revision=(reconciliation_authoring_revision
                     if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
                     else RECONCILIATION_AUTHORING_LEGACY))
             stage_path = directory / "stage.json"
@@ -1993,9 +2009,28 @@ def prepare_reconciliation_local_repair(
     _write_json(output_dir / "request.json", record)
     _write_new(output_dir / "prompt.md", request["prompt"].encode("utf-8") + b"\n")
     _write_json(output_dir / "response.schema.json", request["response_schema"])
+    repo = Path(__file__).resolve().parents[2]
+    input_paths = {
+        "bundle": bundle_path, "binding": stage_path, "failed_response": failed_response_path,
+        "repair_request": output_dir / "request.json", "prompt": output_dir / "prompt.md",
+        "response_schema": output_dir / "response.schema.json",
+        "agents": repo / "AGENTS.md", "overlay": repo / ".agents/workflow-overlay/README.md",
+        "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+        "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"}
+    job = {"schema_version": "semantic_judgment_job_v1", "phase": "reconciliation_repair",
+        "batch_id": request["batch_id"],
+        "response_path": str((output_dir / "successor/response.json").resolve()),
+        "inputs": {name: {"path": str(path.resolve()), "sha256": hash_file(path)}
+                   for name, path in input_paths.items()}}
+    job_path = (output_dir / "job.json").resolve()
+    _write_json(job_path, job)
+    job_sha256 = hash_file(job_path)
     return {"status": "LOCAL_REPAIR_JUDGMENT_REQUIRED", "candidate_count": len(request["candidate_refs"]),
             "node_count": len(request["node_keys"]), "prompt_utf8_bytes": request["prompt_utf8_bytes"],
             "output_dir": str(output_dir), "model_api_calls": 0,
+            "job_path": str(job_path), "job_sha256": job_sha256,
+            "worker_prompt": judgment_worker_prompt(job_path, job_sha256),
+            "worker_context": "fresh_per_request", "max_concurrent_workers": 3,
             **({"diagnostic_source_sha256": hash_file(diagnostic_path),
                 "repair_rendering_mode": request["repair_rendering_mode"]}
                if diagnostic_path is not None else {})}
@@ -3037,6 +3072,12 @@ def _parser() -> argparse.ArgumentParser:
     advance.add_argument("--max-batch-chars", type=int, default=80_000)
     advance.add_argument("--max-prompt-bytes", type=int)
     advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
+    advance.add_argument("--reconciliation-packing", choices=["input_order", "group_aware_v1"],
+        default="input_order", help="Experimental preparation only; keep the same option on every resume.")
+    advance.add_argument("--reconciliation-authoring-revision",
+        choices=[RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6],
+        default=RECONCILIATION_AUTHORING_IDENTITY_V4,
+        help="Opt-in v5 adds source-row aliases; v6 clarifies uncertainty and completion. Keep the same revision on resume.")
 
     for command in ("intake-judgment-job", "submit-judgment-job"):
         job = sub.add_parser(command, help="Complete hash-bound worker intake or validated immutable submission.")
@@ -3226,6 +3267,8 @@ def _parser() -> argparse.ArgumentParser:
             RECONCILIATION_AUTHORING_IDENTITY_V2,
             RECONCILIATION_AUTHORING_IDENTITY_V3,
             RECONCILIATION_AUTHORING_IDENTITY_V4,
+            RECONCILIATION_AUTHORING_IDENTITY_V5,
+            RECONCILIATION_AUTHORING_IDENTITY_V6,
         ],
         help="Normal requests only: defaults to exact identity namespaces for method-v12 response-v3; legacy reproduces historical requests.")
     reconcile_level.add_argument(
@@ -3613,7 +3656,9 @@ def main(argv: list[str] | None = None) -> int:
             result = advance_semantic_run(source_path=args.source,
                 run_dir=args.run_dir, max_batch_chars=args.max_batch_chars,
                 max_prompt_bytes=args.max_prompt_bytes,
-                max_evidence_per_work_unit=args.max_evidence_per_work_unit)
+                max_evidence_per_work_unit=args.max_evidence_per_work_unit,
+                reconciliation_packing=args.reconciliation_packing,
+                reconciliation_authoring_revision=args.reconciliation_authoring_revision)
         elif args.command == "intake-judgment-job":
             result = intake_judgment_job(job_path=args.job, expected_sha256=args.job_sha256)
         elif args.command == "submit-judgment-job":

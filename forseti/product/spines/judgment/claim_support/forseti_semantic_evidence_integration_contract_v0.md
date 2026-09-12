@@ -249,6 +249,18 @@ fails without truncation. Missing definitions alone retain the narrower existing
 definition-recovery route. No standing census, retry loop, prose classifier,
 additional count renderer, or independent review ceremony is installed.
 
+`prepare-reconciliation-repair` also writes a hash-pinned
+`semantic_judgment_job_v1` descriptor with phase `reconciliation_repair` and
+returns its generated `worker_prompt`, `job_path` and `job_sha256`. A controller
+forwards that prompt unchanged rather than handwriting a delivery wrapper; it
+reuses the shared `intake-judgment-job` complete delivery. `submit-judgment-job`
+routes such a job to this same repair consumer, which writes
+`successor/response.json` and `successor/receipt.json` inside the request
+directory, and returns both exact paths. Changed pinned bytes fail before intake
+and before submission. This binds transport only: repair scope, semantic
+instructions, response schema, the one-attempt rule, and the absence of any
+error detector all remain unchanged.
+
 After a current response-v3 validation failure, the read-only
 `diagnose-reconciliation-response` command may inventory every independently
 observable defect in its declared mechanical scope before a repair is nominated.
@@ -2054,6 +2066,168 @@ responses they do not prove semantic truth or detect a coherently forged whole
 artifact.
 
 ### Supported operating route and owner-only reopen boundary
+
+#### Experimental reconciliation packing (unpromoted)
+
+The 2026-09-12 narrow continuation adds opt-in authoring
+`exact_identity_namespaces_v6`. It inherits v5 and explicitly distinguishes
+lack of support from opposition: undecided, unknown, untried or missing
+information alone does not establish a contrary claim. Counterevidence must
+express a contrary meaning in materially comparable scope; genuine objections
+remain counterevidence. A supported undecided state may stand as its own finding
+or qualify another as adjacent evidence when warranted. It must not become
+invented intent or rejection. A finished finding may preserve source uncertainty
+when its meaning and evidence relationships are settled; source uncertainty
+alone is not unfinished analysis. Unsupported claims, invented resolutions,
+source-role changes and retention relaxation remain forbidden.
+V6 changes prompt guidance only. Schemas, validators, completion predicates,
+normal/convergence routing and historical authoring bytes remain unchanged.
+Use the same explicit revision on resume; default authoring remains v4.
+The fresh matched 44-candidate frontier test passed with both v5 and v6:
+undecided repurchase stayed separate, unknown agreement target remained explicit
+in a terminal finding, and a genuine value objection remained counterevidence.
+This is a tie, not evidence of a reliability gain. A fresh v6 45-row run using
+all 117 preserved verified statements completed in two normal rounds with three
+workers, versus the historical v5 grouping run's five rounds/six workers.
+All 65 final meanings and relations passed controller source-backed inspection;
+113 statements were represented and four remained explicitly retrievable,
+with exact conditions and repeat-identical final output. This is not independent
+blinded certification. Estimated worker cost was $1.4446 versus historical
+$2.8765688 (49.8% lower; 47.8% with cache reuse normalized), not a fresh paired
+full-run comparison. Added instruction bytes changed initial packing from
+93/24 to 91/26. Historical v5 prompts replayed byte-for-byte across 13 jobs;
+106 affected and 18 contract checks passed. The narrow test passed; default
+promotion, 121-row scale qualification and delegated patch review did not occur.
+
+The subsequent matched 121-row qualification on 2026-09-12 stopped in its
+first round on a material v6 relation error. Both arms reused the same 323
+verified statements and used Sol/high with group-aware packing. V6 attached
+two Brown Sugar ownership statements as support to a purchase finding alongside
+one explicit purchase; v5 kept those same statements as ownership and purchase
+separately. Native batch validation accepted the response, but source-backed
+inspection rejected the unsupported purchase support. No full consumer output
+or completed-run savings was established. This does not establish that v6
+wording caused the error; the existing shared formation rule already forbids
+it. V6 remains unpromoted; this failed scale test alone did not qualify delegated patch review. Exact
+evidence and stopped-run accounting are in
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-neutral-scale-121-20260912-v1/RESULT.md`).
+
+A subsequent owner-authorized Astra/low judgment reused the exact failed
+92-candidate v6 prompt, schema and stage bytes. It separated ownership from
+purchase, but controller inspection of all 45 returned findings found a smaller
+unsupported `owned` qualifier in a general approval finding. Native batch
+validation passed; this is a target-case improvement, not a clean full-run or
+model-default qualification. Estimated worker cost under the frozen comparison
+rates was $0.976506 versus $0.4697448 for the earlier Sol/high judgment.
+Evidence: `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-astra-low-batch-20260912-v1/RESULT.md`).
+Known errors may use the existing nominated local-repair route described above;
+this observation introduces no per-turn reviewer or automatic error detector.
+
+The subsequent one-worker Sol/high local-repair dogfood corrected the original
+ownership/purchase group using the existing route: all three sources survived,
+89 unrelated decisions and 39 unrelated findings stayed exactly unchanged, and
+native durable successor validation plus repeat submission passed. Estimated
+worker cost was $0.3219392 versus the earlier full-batch $0.4697448. Two truncated
+intake attempts caused rereads and 311,304 total tokens; at equal cache reuse the
+estimated saving is only 2.3%. This proves the nominated correction, not lean
+dispatch, automatic detection or completion of the stopped run. Future repair
+dispatches should reuse the existing complete-intake output pattern rather than
+introducing a new semantic stage. Exact successor and limitations:
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-targeted-repair-dogfood-20260912-v1/RESULT.md`).
+
+The matched delivery-only continuation reused that exact repair request with
+one fresh Sol/high worker and the normal complete-intake pattern. All 63,321
+input-content bytes arrived in one read with no truncation. The correction and
+unchanged-scope checks passed again. Worker usage fell from 311,304 to 138,951
+tokens (55.4% lower), and the frozen-rate estimate fell from $0.3219392 to
+$0.1819992 (43.5% lower; 49.8% lower at the old repair's cache rate). This is one
+successful matched repair-delivery test, not full-run or automatic-detection
+qualification. The workflow's local-repair instructions now name the same
+complete-intake pattern. Evidence and corrected successor:
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-intake-fix-20260912-v1/RESULT.md`).
+
+The generated repair launch is specified under **Local reconciliation
+correction** above, which owns that supported transport; it is not part of this
+experimental packing boundary. Its observed evidence is recorded here. No repair
+semantic prompt or schema changed. Three fresh Sol/high cases corrected
+neutral-as-counter and unsupported ownership in approval, while preserving
+correct positive/negative price evidence.
+All delivered complete input in one read, with three model responses per case;
+unrelated work was unchanged. These are bounded repair successes, not full-run
+qualification or automatic error detection. Evidence, costs and the observed
+closing-message receipt-path defect:
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
+
+The subsequent convergence qualification separately exposes opt-in
+`exact_identity_namespaces_v5` via `advance --reconciliation-authoring-revision`
+and explicit reconciliation prompt preparation. V4 remains the default.
+V5 retains v4 formation/identity guidance and adds `CONVERGENCE_SOURCE_ROWS`
+only in convergence mode: deterministic, batch-consistent aliases for original
+source rows by candidate and leaf relation. Workers union effective supporting
+row aliases rather than adding candidate counts. Two claims in one row remain
+one row. Aliases grant no semantic equivalence, corroboration or independent
+person count; repeated-support validation still traces original leaves.
+This table is distinct from semantic-unit overlap restrictions. The rendered
+table counts toward the existing byte ceiling. Use a new run root and retain
+the authoring revision on resume; prompt immutability rejects a changed revision.
+Historical authoring bytes and response schemas remain replayable. This option
+is an unpromoted experiment, not worker-model or scale qualification.
+The 2026-09-11 Sol/high qualification passed the isolated same-row convergence
+case. The fresh 45-row control then reached native completion after six normal
+levels. An initial controller assessment rejected its explicitly unresolved
+agreement merely because it became terminal; that assessment was corrected.
+A finished finding may preserve uncertainty without inventing its resolution.
+Inspection of all 36 final meanings against their attached verified statements
+found no material unsupported change; all 117 statements and literal conditions
+remain accounted for. This is controller assessment, not independent blinded
+certification. The accepted matched treatment completed in five normal levels,
+using six Sol/high workers versus seven. Fixed-price worker estimates were
+$2.8765688 versus $3.2612808: 11.8% lower, below the required 15% saving;
+normalizing both arms to the control's cache reuse gives 12.7%. Both native views
+retain 113 represented statements plus four unmerged statements and exact
+conditions, and repeat finalization reproduces their respective bytes.
+Source-backed treatment assessment found a material relation error: undecided
+future repurchase following Cherry/Poppy acquisition became counterevidence to
+Vanilla/Vanilla Beige repurchase intention, producing a mixed consumer finding.
+Uncertainty is not an opposite intention. Across normal rounds the treatment
+processed 355 candidate appearances versus 345; the sole unfinished finding
+until the last round was the unchanged ambiguous agreement in both arms.
+This one comparison does not establish that packing caused earlier completion.
+The experiment fails its adoption signals. At that checkpoint the 121-row confirmation and
+conditional delegated patch review had not been commissioned. Subsequent scale
+and repair experiments and the bounded code review are recorded above; defaults
+remain unchanged. Native completion alone does not establish semantic correctness.
+
+The 2026-09-11 owner-commissioned experiment exposes `group_aware_v1` through
+`advance --reconciliation-packing`; `input_order` remains the default and
+retains historical stage/prompt identities. The experimental stage hash binds
+its packing strategy. Resume with a different strategy fails on existing stage
+identity instead of replacing accepted work. A new run root is required to
+compare conditions.
+
+Preparation orders intact candidates within exact subject-product, comparator
+and version-set buckets, preserving unknown scope separately. Each bucket starts
+with the largest existing leaf group, then follows deterministic weighted lexical
+proximity with weak axis/condition overlap hints. Polarity is not a partition,
+so contrary claims can remain nearby. This is a local lexical approximation:
+different wording can be near without being identical, but vocabulary-disjoint
+paraphrases can be missed. Same-axis membership and existing groups grant no
+semantic authority. The ordering uses no model, service or persistent index.
+
+Only batch membership/order changes. Candidate payloads, condition lineage,
+opposition, byte/count ceilings, worker transport, validators, retention rules
+and native finalization remain unchanged. Earlier groups may be imperfect;
+normal workers retain their existing ability to split meanings, and later
+reconciliation of summarized nodes is not an automatic repair guarantee.
+Runtime preparation has quadratic worst-case local comparison work within a
+scope bucket; record it alongside worker cost in experiments. Adoption requires
+a matched completed comparison of total worker work and semantic outcomes plus
+the required review/adjudication. Unit tests or fewer first-wave batches alone
+do not establish improvement. This exception authorizes the commissioned
+preparation experiment only; the deferred architecture directions below remain
+unpromoted.
+
+#### Supported completion
 
 The supported completed semantic route for normal Forseti intelligence cycles
 is full-corpus extraction, mandatory row verification, policy-v2 normal

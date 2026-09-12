@@ -565,6 +565,20 @@ or semantic defects can still remain, so this is not a complete error census.
 Current optional retention schemas disallow simultaneous attachments and an
 unmerged reason before submission, while native guards remain unchanged.
 
+Preparation returns `worker_prompt`, `job_path` and `job_sha256`. Forward that
+generated prompt unchanged to the fresh corrective worker. It uses the same
+`intake-judgment-job` delivery as normal judgments: both output allowances,
+separate bounded notifications, byte counts and contiguous offsets. The job
+pins the request, evidence and authority files; changed bytes fail before intake
+or submission. `submit-judgment-job` routes this repair to the existing repair
+consumer, writing `successor/response.json` and its receipt within the request
+directory. Do not handwrite a separate delivery wrapper. This changes transport
+only, not repair scope, semantic instructions or the one-attempt rule.
+The three-case test of this generated launcher, including each exact executed
+wrapper, is recorded at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
+The earlier hand-prescribed delivery test it supersedes is at
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-intake-fix-20260912-v1/RESULT.md`).
+
 When that freshly written diagnostic is invalid and its complete issue set is
 exclusively cross-child `duplicate_leaf`, pass the same file as
 `--diagnostic <diagnostic.json>` to `prepare-reconciliation-repair`. This selects
@@ -678,6 +692,29 @@ timeline is only a calendar ordering index: consumers dereference each selected
 ID through `source_groups` and preserve its truth-support or influence layer.
 
 ## Operating path
+
+The default reconciliation packing remains `input_order`. The opt-in
+`advance --reconciliation-packing group_aware_v1` is an unpromoted experiment:
+use an isolated run root and keep the option on every resume. Existing groups
+guide candidate proximity only; workers still judge the complete candidates
+under the same normal/convergence rules and native finalization. This option
+does not authorize using selected-group checks as completion.
+
+For the separately commissioned convergence qualification, `advance` accepts
+`--reconciliation-authoring-revision exact_identity_namespaces_v5` in a fresh run
+root. It exposes source-row aliases by original relation in convergence prompts;
+workers must union effective supporting rows, not add per-candidate counts.
+Aliases identify rows, not independent people or semantic corroboration. Keep
+the revision on every resume. Default v4, validation and retention remain unchanged.
+
+Opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v6`
+inherits v5 and clarifies that lack of support is not opposition, and a
+finished finding may preserve source uncertainty. It changes prompt guidance
+only; defaults and native validation remain unchanged. Keep the same revision
+on resume. See the owning semantic integration contract for test status.
+The subsequent 121-row comparison stopped on a first-round v6 error that
+promoted ownership evidence into purchase support. It did not reach a final
+consumer view or qualify adoption; the contract links the preserved evidence.
 
 For authorized Evidence Consolidation, use the public composed entrypoint:
 

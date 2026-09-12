@@ -28,6 +28,25 @@ Cleaning, or Judgment behavior.
 
 ## Unattended Model Attempts
 
+For explicitly commissioned packing experiments, `advance` accepts
+`--reconciliation-packing group_aware_v1`; the default remains `input_order`.
+Use separate run roots and the same option on every resume. This changes only
+whole-candidate ordering before the existing byte/count packer; it makes no
+merge decision. See the semantic integration contract's experimental packing
+boundary for limitations and promotion requirements.
+
+The separately opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v5`
+adds compiler-assigned source-row aliases to convergence prompts so workers can
+distinguish multiple claims in one row from support spanning different rows.
+The default stays v4. Use a fresh run root and the same revision on every resume;
+this experiment changes neither validation nor the repeated-support floor.
+
+Opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v6`
+inherits v5 and clarifies that lack of support is not opposition, and a
+finished finding may preserve source uncertainty. It changes prompt guidance
+only; defaults and native validation remain unchanged. Keep the same revision
+on resume. See the owning semantic integration contract for test status.
+
 Normal semantic consolidation starts and resumes with
 `python runners/run_semantic_evidence_integration.py advance --source <materialized-source.json> --run-dir <run-root>`.
 The provider-free command carries extraction compilation, mandatory independent
@@ -83,6 +102,10 @@ legacy responses keep their original replay. Explicit v3 also defaults to
 The local reconciliation repair route also accepts these verified method-v7
 response-v3 answers, preserving the original method and stage. Historical
 response-v2 answers retain their existing replay and are not admitted as v3 repairs.
+`prepare-reconciliation-repair` also returns the normal generated `worker_prompt`
+and a hash-bound judgment job. Forward the prompt unchanged; the shared intake
+delivers complete inputs and the shared submit routes to the existing repair
+consumer. Its response and receipt are saved under the request's `successor/`.
 Normal method-v12 response-v3 requests default to
 `--authoring-revision exact_identity_namespaces_v3`: opaque node-key prefixes
 separate exact subject/comparator/version identity classes without choosing
