@@ -475,3 +475,49 @@ their frozen acceptance conditions; proceed with the bounded PR if required
 checks are green. The total-cost regression remains explicit. This work unit
 does not expand into another instruction-policy fix or launch another sample.
 Publication and merge state belong to the PR's fresh remote readback.
+
+## V2.0 instruction intake: success contract (2026-09-13)
+
+The owner authorized implementing the accepted instruction-scoping change and
+testing it, retaining three observations: before change, after change, and
+v2.0. The first two labels refer to the completed setup samples above (197,899
+and 402,161 native tokens); neither is replaced by a new or selected baseline.
+
+Goal: a helper running prepared commands obtains the instructions needed for
+its own report without inheriting experiment-design, code-review or publication
+responsibilities. Authority: the owner's implementation request, AGENTS.md and
+the source-loading/validation overlay. Change the existing reading route,
+validation entrypoint and coordinator-sample guide; preserve all validation
+requirements and the actual runner/checker. No model downgrade, new checklist,
+runtime mechanism or general subscription-saving claim is in scope.
+
+Signals: on the same six saved cases, one fresh Astra/high helper must preserve
+0/0/7 exits and complete/unknown/complete accounting in both arms, report missing
+usage and damaged content, and avoid source-read budget failures and command
+retries. Its instruction-intake rounds should fall below the after-change
+sample's six, while candidate results require no separate record read. Count
+all completed native responses and any descendants, with cached input included
+in input. Lower tokens without correct cases or with a broader unearned
+completion claim fail acceptance. Compare instructions and preserved validation
+bodies against the pre-edit source to reject the wrong cause of deleting checks.
+
+Use the previous assignment text with only branch, revision and exercise-root
+substitutions. Keep fixture source/expected results outside the tested actor.
+Preparation remains local and must pass all six checks before launch. The
+original old-importer checkout revision is frozen separately because the main
+working checkout has advanced. The v2.0 implementation base is
+`e3ec6c38f331ec623b61c7282b4162e09a60d8bc`; intervening AGENTS/source-loading/
+validation edits and injected session context limit historical comparability.
+The harness, guide and saved inputs are checked for relevant identity rather
+than assuming that three observations establish a controlled causal estimate.
+Budget estimate: one fresh actor, roughly five to seven native responses,
+200–320k aggregate input and 1–2k output tokens. Stop after the bound observation;
+an unexpected setup or quality failure is preserved and diagnosed rather than
+silently replacing the sample.
+
+Review checkpoint: apply the existing conditional `success-implement` predicate
+in `delegated-review-patch.md` after validation. Independent completed behavior,
+preserved baseline and direct validation-body checks can support `not_needed`;
+any material role/claim boundary left supported only by the author's assumption
+requires a bounded operator-courier review before landing. This adds no new
+standing review requirement.
