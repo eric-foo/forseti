@@ -22,7 +22,7 @@ open_next:
   - .agents/workflow-overlay/source-loading.md       # source-pack and capture-method load owner
 stale_if:
   - Claude Code changes the subagent model-resolution order or the agent-definition `model` field.
-  - Codex changes the `multi_agent_v1.spawn_agent` model override names or semantics.
+  - Codex changes subagent launch parameters, role model pins, or inheritance semantics.
   - Codex adds repo/project-level automatic source loading for spawned agents.
   - The tier mapping is re-decided by the owner.
 ```
@@ -34,16 +34,16 @@ to the parent's model. When the parent (main loop) is Opus, ordinary delegated
 work — captures, builds, rote edits — silently runs on **Opus**, which is
 expensive overkill. The failure is an expensive *default*, not a missing gate.
 
-Codex has the same class of failure in a different shape. The
-`multi_agent_v1.spawn_agent` tool inherits the parent model when `model` is
-omitted, but it also exposes explicit model overrides. If the chief architect
-does not classify the delegated task before spawning, mechanical work can run
-on a judgment tier or judgment work can be accidentally underpowered.
+Codex has the same class of failure when a launch inherits or selects a model
+without accounting for the task and any role-level model pin. If the chief
+architect does not classify the delegated task before spawning, mechanical work
+can run on a judgment tier or judgment work can be accidentally underpowered.
 
 ## Assumption gate (Codex, observed 2026-06-16)
 
-Before applying any Codex model override, check the actual spawn surface
-available in the current session:
+Current dispatch follows **Enforcement: Codex dispatch payloads, not hooks**
+below. The availability and inheritance observations here describe the
+2026-06-16 surface only:
 
 - **Subagent spawning available:** yes, via `multi_agent_v1.spawn_agent`.
 - **Model override available:** yes, `model` is an optional override; omission
@@ -53,10 +53,8 @@ available in the current session:
 - **Reasoning/service overrides:** the owner's 2026-08-30 high-only launch rule
   below governs all new agents and provider attempts, including in-session
   subagents. Omit service-tier overrides.
-- **Stop condition:** if the tool schema no longer exposes these exact model
-  names, do not invent replacements. Omit the model override or stop for an
-  owner/tooling decision. The dated list above is a dispatch aid, not a durable
-  availability claim.
+- **Current availability:** use the active tool schema and role definitions;
+  this dated list does not select or establish available models today.
 
 ## Decision
 
@@ -135,21 +133,18 @@ which would re-introduce the over-restraint this doctrine avoids.
 
 ## Enforcement: Codex dispatch payloads, not hooks
 
-In Codex, tiering is applied at the `spawn_agent` call boundary when delegation
-is actually authorized. The chief architect classifies the subtask first, checks
-the current tool surface, then sets the `model` override only when the selected
-override is available and the classification intentionally differs from
-inheriting the parent model.
+In Codex, tiering is applied at the current subagent launch boundary when
+delegation is authorized. Classify the task as mechanical, ordinary, or judgment,
+then use the current tool schema and role definitions to resolve supported
+role/model choices, inheritance, and parameter names. A role may pin its model;
+omitting a model override does not necessarily inherit the parent when a role
+is selected. Set an explicit model override only when available and needed for
+the selected tier.
 
-Codex `agent_type` is role selection (`default`, `explorer`, `worker`), not the
-model tier. Do not set `agent_type` to `default`, `null`, empty, or same-as-parent
-to express model inheritance. Use `agent_type` only when the role matters:
-`explorer` for specific read-only codebase questions, `worker` for bounded
-repo-changing execution, and omit it otherwise.
-
-This preserves `.agents/workflow-overlay/decision-routing.md` Subagent Runtime
-Payload Safety: inherited runtime defaults are omitted fields; explicit
-runtime fields are used only for a real override, never as decorative defaults.
+Omit inherited placeholders under `.agents/workflow-overlay/decision-routing.md`
+-> **Subagent Runtime Payload Safety**. Preserve the high-only launch and full-history-fork rules in
+**Session-lane tier defaults** below. A dated example payload or model roster
+does not override the current tool contract.
 
 ## Source context is explicit, not implied by tier
 
@@ -161,16 +156,15 @@ sources the prompt instructs it to read.
 Therefore, the spawning chief architect must bind source readiness at dispatch
 time whenever the subagent's output will be acted on. Do one of these:
 
-- use `fork_context: true` only when the parent thread already loaded the
-  controlling sources and the task can safely inherit that context;
+- use a full-history fork supported by the current tool only when the parent
+  already loaded the controlling sources, the task can safely inherit that
+  context, and the high-only launch rule can be satisfied;
 - provide a compact source capsule with the controlling excerpts and paths; or
 - require the subagent to read named sources first and report
   `SOURCE_CONTEXT_READY` before analysis, patching, or verdicts.
 
-The source-loading rule is harness-neutral. In Codex it is especially important
-because `agent_type: explorer` / `worker` is only a role selector and the
-`model` override is only a runtime tier; neither one carries lane playbooks,
-repo maps, or overlay files by itself.
+The source-loading rule is harness-neutral. Role or model selection does not
+by itself establish that lane playbooks, repo maps, or overlay files were loaded.
 
 For capture-spine activity, the dispatch must name the capture read pack instead
 of relying on "capture lane" as a magic role. Start with:
@@ -253,10 +247,12 @@ operator when opening the lane:
   construction, so the home-side lane's model never carries the discovery bar.
   Home-side review lanes — verification and post-patch rechecks,
   closure-of-findings, receipt/shape/inventory checks, and same-vendor
-  sanity-tier code review — default to the Sonnet workhorse. This matches the
-  `no_repo` post-patch recheck who-constraint in
-  `.agents/workflow-overlay/delegated-review-patch.md` (same-family,
-  lower/mechanical tier), extended to repo-mode verification lanes.
+  sanity-tier code review — default to the Sonnet workhorse under the ordinary
+  review lanes in `.agents/workflow-overlay/review-lanes.md`. A commissioned
+  delegated review-and-patch pass, including independent closure review, keeps
+  the different-vendor and direct-repo requirements owned by
+  `.agents/workflow-overlay/delegated-review-patch.md`; these ordinary
+  verification defaults do not supply a fallback for that commission.
 - **Escalate to the judgment tier** when the lane authors or adjudicates
   doctrine or contract-bearing surfaces, or the commission explicitly requires
   top-tier judgment. Escalation stays an easy conscious choice, never blocked.
