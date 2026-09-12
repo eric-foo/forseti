@@ -505,7 +505,13 @@ for hundreds of times.
 
 Dispatch, do not inline, any mechanical work loop expected to take more than a
 few (~4+) tool round-trips whose success is verifiable by exit code, diff, or
-test count — test-fix loops, batch normalizations, CI polling, bulk file edits.
+test count — test-fix loops, batch normalizations, bulk file edits. For mechanical
+CI observation, code owns waiting: from `forseti-harness`, run
+`python -m runners.run_ci_watch --repo OWNER/REPO --pr NUMBER --head SHA --output-dir _scratch/ci-watch`.
+The GitHub CLI watches checks inside that process; resume at completion, failure,
+or the runtime's required responsiveness interval. Do not commission a model
+monitor and then monitor that monitor. Use completion/attention waits for
+delegated judgment. The watch result does not replace the fresh merge guard.
 Keep read-only work read-only. Before an editing actor starts, establish its
 target working copy, revision, existing changes, permitted edits, and actual
 access. Use an isolated worktree for a dirty base or independent or concurrent
@@ -520,7 +526,8 @@ receiver; only a compact summary returns to the orchestrator context. This is a
 heuristic for context economy, not a mechanical gate.
 
 When completed Codex work needs an efficiency comparison, use the existing
-`run_efficiency import-codex` route with its workload checker in one invocation
+`run_efficiency report-codex` route for the explicit selected batch, or
+`import-codex` for one task, with the workload checker in one invocation
 (usage: `docs/workflows/efficiency/forseti_efficiency_measurement_v0.md`). Its
 return carries the collected verification/accounting facts; reopen records only
 for unresolved diagnostics or judgment. This replaces separate metric scans

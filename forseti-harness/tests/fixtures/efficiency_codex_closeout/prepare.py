@@ -143,7 +143,10 @@ def _exercise(command, output):
             raise ValueError("saved record does not carry its own checkout revision")
         if case == "case-b" and "turn_cumulative_reconciliation_failed" not in record["usage"]["issues"]:
             raise ValueError("missing usage failed for the wrong reason")
-        if case == "case-c" and "saved_content_mismatch" not in process.stdout:
+        checker_output = process.stdout
+        if record.get("validation_logs"):
+            checker_output += Path(record["validation_logs"]["stdout"]).read_text(encoding="utf-8")
+        if case == "case-c" and "saved_content_mismatch" not in checker_output:
             raise ValueError("damaged content failed for the wrong reason")
         return {"arm": arm, "case": case, "exit_code": process.returncode,
                 "record_path": str(record_path), "observed": list(observed)}

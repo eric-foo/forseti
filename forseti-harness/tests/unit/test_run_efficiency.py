@@ -214,7 +214,9 @@ def test_desktop_import_does_not_invent_missing_elapsed(tmp_path, monkeypatch, c
     assert cli.main(["import-codex", "--sessions-dir", "explicit-sessions", "--thread-id", "root",
                      "--turn-id", "turn", "--workflow", "desktop", "--workload-id", "sha",
                      "--output-dir", str(tmp_path / "records")]) == 2
-    assert not (tmp_path / "records").exists()
+    assert not list((tmp_path / "records").glob("*.json"))  # No manufactured completed run.
+    diagnostic = next((tmp_path / "records" / "diagnostics").glob("*.json"))
+    assert json.loads(diagnostic.read_text())["elapsed_seconds"] is None
     assert "root_incomplete" in capsys.readouterr().out
 
 
@@ -491,11 +493,23 @@ def test_closeout_example_rejects_checker_that_accepts_damaged_content(tmp_path,
         closeout_example.prepare(root, root, output)
     process = json.loads((output / "baseline-case-c-process.json").read_text())
     assert process["exit_code"] == 0  # Intended wrong-success path, not an earlier refusal.
-    assert "permissive checker" in process["stdout"]
+    returned = json.loads(process["stdout"].strip().splitlines()[-1])
+    assert "permissive checker" in Path(returned["validation_logs"]["stdout"]).read_text()
     failure = json.loads((output / "failure.json").read_text())
     assert len(failure["completed_checks"]) == 2
     assert "observed (0, 'success', 'passed', 'complete', 36)" in failure["error"]
     assert not (output / "commands.json").exists()
+
+
+def test_desktop_large_failed_checker_stays_on_disk(tmp_path, monkeypatch, capfd):
+    monkeypatch.setattr(cli, "collect_desktop_task", lambda *args: desktop_summary())
+    oracle = checker(tmp_path, "print('failure detail' * 10000); raise SystemExit(7)")
+    assert cli.main(desktop_options(tmp_path) + ["--quality-command", str(oracle)]) == 7
+    captured = capfd.readouterr()
+    assert len(captured.out.encode("utf-8")) <= 8192
+    returned = json.loads(captured.out)
+    assert returned["quality"] == "failed" and returned["quality_return_code"] == 7
+    assert len(Path(returned["validation_logs"]["stdout"]).read_bytes()) > 100000
 
 
 def test_closeout_example_checks_complete_unicode_bytes(tmp_path, closeout_example):

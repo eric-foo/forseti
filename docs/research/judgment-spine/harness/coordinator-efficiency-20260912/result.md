@@ -1,5 +1,42 @@
 # Coordinator efficiency samples — 2026-09-12
 
+## Execution efficiency: success contract (2026-09-13)
+
+Authorized outcome: implement the four coordinator fixes sequentially, retaining
+the prior instruction simplification. Worktree `f8e7/forseti`, branch
+`codex/coordinator-execution-efficiency-20260913`, starts clean at
+`d5e564e6a6b1ce65cd75d8f199f73e983b628ef1`; the coordinator is the sole source
+writer. This section owns this work unit's evidence; earlier samples retain
+their original boundaries.
+
+1. Code owns mechanical CI waiting, pinned to the requested PR revision. Fast
+   completion, failed checks, absent checks, timeout and changed head remain
+   distinguishable. No model monitor is commissioned and no merge is hidden in
+   the watcher. The existing fresh merge guard and 60-second responsiveness
+   requirement remain.
+2. CI and measurement returns have a combined UTF-8 byte budget, complete saved
+   records and an explicit detail reference when the summary cannot fit. Large
+   failures cannot become success or silently disappear through truncation.
+3. The actual CI routing names one observation owner and uses the code watcher;
+   judgment delegation keeps event-driven completion/attention waiting.
+4. The existing efficiency command accepts an explicit set of completed runs,
+   reconciles identities and accounting once, retains failed/unknown attempts,
+   verifies saved output and returns a compact result. Overlapping actor usage
+   is counted once; incompatible duplicates fail visibly. Existing minimum-pair
+   and quality conditions still govern comparison claims.
+
+Validate each step before the next: deterministic positive, negative and
+recovery cases, followed by one bounded fresh sample and real PR CI observation.
+Report the completed sample's whole selected actor boundary separately from the
+still-running implementation task; never present fixture counters or a partial
+parent prefix as its completed cost. The sample proves use and correctness,
+not subscription-percentage savings. Review need is evaluated after validation
+against the repository's conditional independent-evidence predicate.
+
+Non-goals: global tool interception, model downgrades, new standing checklists,
+new measurement obligations, changing comparison thresholds, or claiming all
+historical coordinator tokens are waste.
+
 ```yaml
 retrieval_header_version: 1
 artifact_role: Bounded implementation and dogfood record
@@ -611,3 +648,64 @@ No additional review is required by the existing conditional predicate on this
 evidence. This disposition does not approve unrelated work or lower its gates.
 The bounded change is eligible for publication and landing when required PR
 checks pass; the sample alone does not establish publication or merge.
+
+## Execution efficiency: observed result (2026-09-13)
+
+The sequential implementation uses two execution paths. `run_ci_watch` lets the
+GitHub CLI own polling for one PR at its expected revision and retains command
+output on disk. The owning coordinator rule now selects that code path, removes
+the model-monitor job, and retains completion/attention waits for judgment work
+and the fresh merge guard. `import-codex`, `compare` and the watcher bound the
+whole return before printing. `report-codex` batches selected native runs through
+the existing collector, deduplicates shared responses, preserves failures and
+unknowns, and verifies the saved batch report. It does not change the collector's
+native reconciliation or the comparison's evidence thresholds. The fixture
+preparer now reads saved checker output, preserving its damaged-content test.
+
+Validation on source `6a83b41a7e1bada648b48f66bf849f41d2006b78`: 167 relevant
+tests passed. Coverage includes failed/missing/pending/skipped checks, timeout
+and recovery, changed PR revision, large Unicode returns, large failed checker
+output, parent/child overlap, conflicting duplicates, incomplete turns,
+recovery, and a failed row inside an oversized batch. The map's existing CLI,
+report/measurement and test directory descriptions still cover these additions.
+
+The model-free preparation initially supplied only the September 12 session
+folder; three selected tasks were stored under September 13. The command
+correctly returned uncollected runs and unknown whole-boundary coverage. Using
+the encompassing September folder reconciled all five selected records and
+their descendants: **7,838,892 historical tokens**, **87 unique responses**, and
+**15 duplicate response observations removed**. The old v2 implementation alone
+is **7,238,832 tokens including its helpers**; its main coordinator accounts for
+6,178,040 of those. These are historical development costs, not routine prices
+or savings. The earlier v2 first attempt remains in the selection. Historical
+task quality remains unmeasured by this reporting exercise even where a native
+task completed; completion is not semantic success.
+
+One fresh Astra/high sample used the committed route without reconstructing
+accounting. It correctly reported the completed union and per-selection totals,
+kept the historical comparison inconclusive, and treated the active turn as
+uncollected with unknown/null usage and native exit 2. The 1,024-byte negative
+case required a targeted saved-report read to obtain the omitted reason; the
+whole completed return remained directly usable. This is acceptable overflow
+handling, not a claim that every task now needs only one tool round.
+
+The completed sample used **262,191 native tokens** across seven responses:
+260,582 input including 236,672 cached, and 1,609 output including 55 reasoning.
+It took 74.014 seconds, has complete native accounting and no discovered
+descendants. A post-hoc checker against frozen historical totals and the
+incomplete-boundary case passed. The native record and verified report hashes
+are in `measurement.json` -> `execution_efficiency`. This is a different
+assignment from the earlier three-version sample, so their token differences
+are not a measured saving. The active implementation coordinator is excluded
+until its turn completes; no completed whole-work-unit or subscription-drain
+estimate is claimed.
+
+Review routing is `not_needed` for the affected reporting boundary: the fresh
+actor's behavior and independently established historical native totals cover
+its consumer outcome; the existing collector and comparison semantics remain
+unchanged, with failure and preservation checks still passing. CI observation
+uses GitHub CLI's existing watch contract, with local failure/identity checks;
+real PR observation and fresh publication gates remain required before landing.
+This disposition does not turn the synthetic tests into independent replication
+or grant a savings claim. No separate review artifact or standing checklist is
+introduced.

@@ -1,5 +1,17 @@
 # Repository scripts
 
+## Agent CI observation
+
+From `forseti-harness`, use
+`python -m runners.run_ci_watch --repo OWNER/REPO --pr NUMBER --head SHA --output-dir _scratch/ci-watch`.
+Supply the full expected commit SHA. GitHub CLI owns polling; normal tool waits
+preserve the runtime's responsiveness requirement. Watch output remains on disk
+and one JSON result identifies the final counts, issues and full record. Failure,
+missing checks, timeout and revision changes remain nonzero. The watch timeout
+defaults to 900 seconds; identity/check snapshots each have a 30-second timeout.
+This read-only command never merges and does not replace the fresh merge guard.
+`merge-when-green.ps1` remains a human-only merge helper.
+
 ## Review-report mechanics
 
 `review-report-mechanics.py` assembles or verifies a reviewer-authored report
