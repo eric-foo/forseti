@@ -59,6 +59,8 @@ def test_real_native_parent_child_union_preserves_failed_selected_run(tmp_path, 
     assert saved["runs"][2]["quality"] == "failed"
     assert saved["comparisons"][0]["overall"] == "inconclusive"
     assert returned["record_readback_matched"] is True
+    assert returned["runs"][0]["usage"]["total_tokens"] == 36
+    assert returned["runs"][0]["thread_id"] == "root"
 
 
 def test_incomplete_turn_remains_uncollected_and_later_completed_turn_recovers(tmp_path, capsys):

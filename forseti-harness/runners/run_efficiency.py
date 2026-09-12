@@ -325,7 +325,8 @@ def _report_codex(args: argparse.Namespace) -> int:
         try:
             returned, record, code = _collect_codex(options)
             records[label] = record
-            rows.append({"label": label, "exit_code": code, **returned})
+            rows.append({"label": label, "thread_id": options.thread_id, "turn_id": options.turn_id,
+                         "exit_code": code, **returned})
         except (ValueError, OSError, subprocess.SubprocessError) as exc:
             row = {"label": label, "exit_code": 2, "outcome": "uncollected", "error": str(exc)}
             if isinstance(exc, IncompleteDesktopTurn):
@@ -347,8 +348,8 @@ def _report_codex(args: argparse.Namespace) -> int:
               "accounting": accounting, "comparisons": compared}
     path = write_verified(result, destination / "report.json")
     returned = {"status": result["status"], "record_path": str(path), "record_readback_matched": True,
-                "accounting": accounting,
-                "runs": [{key: row[key] for key in ("label", "exit_code", "outcome", "quality", "usage_coverage",
+                "accounting": {key: value for key, value in accounting.items() if key != "threads"},
+                "runs": [{key: row[key] for key in ("label", "thread_id", "turn_id", "exit_code", "outcome", "quality", "usage", "usage_coverage",
                          "model_responses", "elapsed_seconds", "record_path", "diagnostic_path", "error") if key in row}
                          for row in rows],
                 "comparisons": [{"label": row["label"], "overall": row["overall"], "reasons": row["reasons"]}
