@@ -255,8 +255,11 @@ and report the collision.
 Subagent requirement:
 - Three subagents are explicitly authorized and required for this
   architecture-planning run when `delegated_three_subagents` mode is available.
-- Use inherited/default agent type, model, role, and reasoning effort unless
+- Use inherited/default agent type, model, and role unless
   the host explicitly supports safe overrides.
+- Assess and select reasoning effort under
+  `docs/decisions/subagent_model_tiering_doctrine_v0.md`, including its
+  launch/inheritance rule.
 - Do not combine full-history or full-context forks with agent/model/reasoning
   overrides unless the host explicitly supports that combination.
 - Each subagent must receive the same required source pack, or a bounded source

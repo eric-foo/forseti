@@ -20,6 +20,10 @@ from provider_attempts import reserve_provider_attempt  # noqa: E402
 from provider_execution import execute_provider_attempt  # noqa: E402
 
 
+# Recognized labels, not a claim that every model supports every effort.
+REASONING_EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
+
+
 # These override the sign-in or provider route independently of user config.
 # Never log their values or silently remove them and change the caller's intent.
 AUTH_ROUTE_OVERRIDES = (
@@ -150,8 +154,9 @@ def main() -> int:
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
                         help="Supply a required UTF-8 instruction file verbatim; repeat for multiple files. Disables shell_tool for this self-contained job.")
     parser.add_argument("--expected-context-sha256", help=argparse.SUPPRESS)
-    # Owner's standing launch rule; reject before reservation or provider access.
-    parser.add_argument("--reasoning-effort", choices=("high",), default="high")
+    # Require the caller's task assessment before reservation or provider access.
+    parser.add_argument("--reasoning-effort", choices=REASONING_EFFORTS, required=True,
+                        help="Explicit task-assessed effort supported by the selected model; no default")
     parser.add_argument("--timeout-seconds", type=float, required=True)
     args = parser.parse_args()
     if not math.isfinite(args.timeout_seconds) or args.timeout_seconds <= 0:

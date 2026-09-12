@@ -29,7 +29,7 @@ def launch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     argv = ["runner", "--codex-executable", str(executable), "--require-chatgpt",
             "--attempt-root", str(tmp_path / "attempts"), "--attempt-id", "test-001",
             "--prompt-file", str(prompt), "--output-schema", str(schema),
-            "--worktree", str(tmp_path), "--model", "test-model", "--timeout-seconds", "5"]
+            "--worktree", str(tmp_path), "--model", "test-model", "--reasoning-effort", "medium", "--timeout-seconds", "5"]
     monkeypatch.setattr(sys, "argv", argv)
     state = SimpleNamespace(argv=argv, root=tmp_path, executable=executable, checks=[],
                             launches=[], status="Logged in using ChatGPT\n", status_code=0, status_stdout="")
@@ -122,7 +122,8 @@ def test_default_launch_does_not_add_context_or_remove_tools(launch):
     assert "--disable" not in command
 
 
-def test_job_passes_frozen_context_to_the_real_attempt_boundary(launch, monkeypatch):
+@pytest.mark.parametrize("effort", ["low", "medium", "high", "xhigh", "max", "ultra", None, "auto"])
+def test_job_passes_selected_effort_and_frozen_context_to_each_attempt(launch, monkeypatch, capsys, effort):
     from runners import run_codex_provider_job as job_runner
     source = launch.root / "authority.md"
     source.write_text("required authority", encoding="utf-8")
@@ -131,6 +132,8 @@ def test_job_passes_frozen_context_to_the_real_attempt_boundary(launch, monkeypa
             "--prompt-file", str(launch.root / "prompt.md"), "--output-schema", str(launch.root / "schema.json"),
             "--worktree", str(launch.root), "--codex-executable", str(launch.executable),
             "--model", "test-model", "--timeout-seconds", "5", "--preload-context", str(source)]
+    if effort is not None:
+        argv += ["--reasoning-effort", effort]
     monkeypatch.setattr(sys, "argv", argv)
     commands = []
     monkeypatch.setattr(job_runner.subprocess, "run", lambda command, **kwargs: commands.append(command))
@@ -139,15 +142,29 @@ def test_job_passes_frozen_context_to_the_real_attempt_boundary(launch, monkeypa
     def run_job(**kwargs):
         observed.update(kwargs['binding'])
         kwargs['launch']('job-attempt-001')
+        kwargs['launch']('job-attempt-002')
         return {'status': 'PROCESS_COMPLETED_NOT_VALIDATED', 'context': '\ufeff café 中文'}
 
     monkeypatch.setattr(job_runner, "run_provider_job", run_job)
+    if effort in (None, "auto"):
+        with pytest.raises(SystemExit) as exc:
+            job_runner.main()
+        assert exc.value.code == 2
+        expected = "required: --reasoning-effort" if effort is None else "--reasoning-effort: invalid choice"
+        assert expected in capsys.readouterr().err
+        assert not commands and not observed and not launch.checks
+        assert not (launch.root / "job").exists()
+        assert not (launch.root / "attempts").exists()
+        return
     captured = io.BytesIO()
     console = io.TextIOWrapper(captured, encoding='cp1252')
     monkeypatch.setattr(sys, 'stdout', console)
     assert job_runner.main() == 0
     console.flush()
     assert json.loads(captured.getvalue().decode('cp1252'))['context'] == '\ufeff café 中文'
+    assert observed['reasoning_effort'] == effort
+    assert len(commands) == 2
+    assert all(command[command.index('--reasoning-effort') + 1] == effort for command in commands)
     command = commands[0]
     assert command[command.index('--preload-context') + 1] == str(source.resolve())
     assert command[command.index('--expected-context-sha256') + 1] == observed['preloaded_context_sha256']

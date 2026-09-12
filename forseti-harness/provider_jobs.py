@@ -103,6 +103,11 @@ def _check_attempt(path, binding):
     for option, key in (("--model", "model"), ("-C", "worktree")):
         if command.count(option) != 1 or command[command.index(option)+1] != binding[key]:
             raise ValueError("provider attempt launch binding changed")
+    if "reasoning_effort" in binding:
+        settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
+        efforts = [value for value in settings if value.startswith("model_reasoning_effort=")]
+        if efforts != [f'model_reasoning_effort="{binding["reasoning_effort"]}"']:
+            raise ValueError("provider attempt reasoning effort changed")
     for name, key in (("prompt", "prompt_sha256"), ("schema", "response_schema_sha256")):
         if receipt.get(key) != binding[name + "_sha256"]:
             raise ValueError("provider attempt input binding changed")
