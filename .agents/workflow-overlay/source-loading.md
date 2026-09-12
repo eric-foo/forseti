@@ -199,8 +199,9 @@ materially change the current claim, route, blocker, or edit boundary.
   prompt authoring reads "Prompt Orchestration Gates"; product-proof work reads
   "Product Proof Gates"; enforcement decisions read "Enforcement Placement".
   Full read: editing validation doctrine.
-- This file — routine Forseti work reads "Rule", "Forseti Start Preflight", and
-  the one pack or protocol section the task names; prompt or capsule
+- This file — when source selection, budgeting, or prompt setup requires it
+  under `S0`, read "Rule", "Forseti Start Preflight", and the applicable pack or
+  protocol section; prompt or capsule
   authoring adds "Prompt Source Capsules". Full read: editing source-loading
   doctrine.
 

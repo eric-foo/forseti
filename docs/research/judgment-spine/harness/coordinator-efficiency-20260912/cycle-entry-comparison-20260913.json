@@ -1,0 +1,522 @@
+{
+  "generated_at": "2026-09-12T22:08:46.013Z",
+  "base_revision": "5bc0f9e933246506515bed3a1ca1562164d8fb7b",
+  "kind": "deterministic reader replay; no model execution",
+  "denominator": "LF-normalized UTF-8 instruction content, excluding unchanged evidence/schema and all coordinator/model usage; requests are reader requests, not observed model turns",
+  "cases": [
+    {
+      "name": "CO2 acquisition entry",
+      "before": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4387
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Bounded instruction reader"
+            },
+            "normalized_utf8_bytes": 1779
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Rule"
+            },
+            "normalized_utf8_bytes": 1052
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Forseti Start Preflight"
+            },
+            "normalized_utf8_bytes": 3983
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Routine Read Shapes (overlay high-traffic files)"
+            },
+            "normalized_utf8_bytes": 2260
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "from": 95,
+              "to": 171
+            },
+            "normalized_utf8_bytes": 5009
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "from": 173,
+              "to": 446
+            },
+            "normalized_utf8_bytes": 18930
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md",
+              "from": 1242,
+              "to": 1313
+            },
+            "normalized_utf8_bytes": 3672
+          }
+        ],
+        "request_count": 8,
+        "normalized_utf8_bytes": 41072
+      },
+      "after": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4941
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "from": 95,
+              "to": 116
+            },
+            "normalized_utf8_bytes": 1341
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "heading": "Role entry reads"
+            },
+            "normalized_utf8_bytes": 2142
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "heading": "Shared acquisition scope"
+            },
+            "normalized_utf8_bytes": 3761
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "heading": "Specialist dispatch and terminal returns"
+            },
+            "normalized_utf8_bytes": 19008
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md",
+              "heading": "5. Portfolio And Retail Architecture"
+            },
+            "normalized_utf8_bytes": 3679
+          }
+        ],
+        "request_count": 6,
+        "normalized_utf8_bytes": 34872
+      },
+      "reduction_percent": 15.095442150370086
+    },
+    {
+      "name": "Evidence Consolidation entry",
+      "before": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4387
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Bounded instruction reader"
+            },
+            "normalized_utf8_bytes": 1779
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Rule"
+            },
+            "normalized_utf8_bytes": 1052
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Forseti Start Preflight"
+            },
+            "normalized_utf8_bytes": 3983
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Routine Read Shapes (overlay high-traffic files)"
+            },
+            "normalized_utf8_bytes": 2260
+          },
+          {
+            "request": {
+              "path": "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
+              "from": 694,
+              "to": 767
+            },
+            "normalized_utf8_bytes": 4788
+          }
+        ],
+        "request_count": 6,
+        "normalized_utf8_bytes": 18249
+      },
+      "after": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4941
+          },
+          {
+            "request": {
+              "path": "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
+              "heading": "Supported operating route"
+            },
+            "normalized_utf8_bytes": 3276
+          }
+        ],
+        "request_count": 2,
+        "normalized_utf8_bytes": 8217
+      },
+      "reduction_percent": 54.97287522603978
+    },
+    {
+      "name": "Synthesize gate entry",
+      "before": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4387
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Bounded instruction reader"
+            },
+            "normalized_utf8_bytes": 1779
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Rule"
+            },
+            "normalized_utf8_bytes": 1052
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Forseti Start Preflight"
+            },
+            "normalized_utf8_bytes": 3983
+          },
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/source-loading.md",
+              "heading": "Routine Read Shapes (overlay high-traffic files)"
+            },
+            "normalized_utf8_bytes": 2260
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "heading": "Turn B — Synthesize"
+            },
+            "normalized_utf8_bytes": 5285
+          }
+        ],
+        "request_count": 6,
+        "normalized_utf8_bytes": 18746
+      },
+      "after": {
+        "requests": [
+          {
+            "request": {
+              "path": ".agents/workflow-overlay/README.md"
+            },
+            "normalized_utf8_bytes": 4941
+          },
+          {
+            "request": {
+              "path": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+              "heading": "Turn B — Synthesize"
+            },
+            "normalized_utf8_bytes": 5285
+          }
+        ],
+        "request_count": 2,
+        "normalized_utf8_bytes": 10226
+      },
+      "reduction_percent": 45.44969593513283
+    }
+  ],
+  "checks": [
+    {
+      "name": "supported procedure preserved",
+      "passed": true
+    },
+    {
+      "name": "experimental caveats preserved",
+      "passed": true
+    },
+    {
+      "name": "entire completion guide preserved apart from headings and presentation order",
+      "passed": true
+    },
+    {
+      "name": "company prompt words and inner examples preserved",
+      "passed": true
+    },
+    {
+      "name": "Turn B — Synthesize preserved",
+      "passed": true
+    },
+    {
+      "name": "Post-Delivery Adversarial Review Handoff preserved",
+      "passed": true
+    },
+    {
+      "name": "all original playbook obligations preserved except the declared capsule pointer replacement",
+      "passed": true
+    },
+    {
+      "name": "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md unchanged",
+      "passed": true
+    },
+    {
+      "name": "forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md unchanged",
+      "passed": true
+    },
+    {
+      "name": "forseti-harness/runners/run_semantic_evidence_integration.py unchanged",
+      "passed": true
+    },
+    {
+      "name": "forseti/product/spines/commission_signal_board/workflows/deliver_decision_memorandum_method_v0.md unchanged",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> prompts/forseti_commission_signal_board_prompt_structure_v0.md#required-inputs",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> prompts/forseti_commission_signal_board_prompt_structure_v0.md#missing-input-intake-output",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> workflows/commission_signal_board_playbook_v0.md#validator-command",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> workflows/commission_signal_board_playbook_v0.md#role-entry-reads",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> ../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/README.md -> workflows/commission_signal_board_playbook_v0.md#post-delivery-adversarial-review-handoff",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #shared-acquisition-scope",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #specialist-dispatch-and-terminal-returns",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #acquisition-and-seal-sequence",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #route-110--campaign-integration-comparator-closure-verification-retailer-state",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #validator-command",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> ../prompts/forseti_commission_signal_board_prompt_structure_v0.md#1-company-commission-and-identity-receipt",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> ../prompts/forseti_commission_signal_board_prompt_structure_v0.md#6-strategic-and-operating-chronology",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> ../prompts/forseti_commission_signal_board_prompt_structure_v0.md#5-portfolio-and-retail-architecture",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> #acquisition-and-seal-sequence",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> ../prompts/forseti_commission_signal_board_prompt_structure_v0.md#7-customer-and-community-response",
+      "passed": true
+    },
+    {
+      "name": "link forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md -> ../../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route",
+      "passed": true
+    },
+    {
+      "name": "missing heading fails for the intended cause with no source body",
+      "passed": true
+    },
+    {
+      "name": "undersized output budget fails for the intended cause with no source body",
+      "passed": true
+    }
+  ],
+  "links": [
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "prompts/forseti_commission_signal_board_prompt_structure_v0.md#required-inputs"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "prompts/forseti_commission_signal_board_prompt_structure_v0.md#missing-input-intake-output"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "workflows/commission_signal_board_playbook_v0.md#validator-command"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "workflows/commission_signal_board_playbook_v0.md#role-entry-reads"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/README.md",
+      "target": "workflows/commission_signal_board_playbook_v0.md#post-delivery-adversarial-review-handoff"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#shared-acquisition-scope"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#specialist-dispatch-and-terminal-returns"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#acquisition-and-seal-sequence"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#route-110--campaign-integration-comparator-closure-verification-retailer-state"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#validator-command"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "../prompts/forseti_commission_signal_board_prompt_structure_v0.md#1-company-commission-and-identity-receipt"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "../prompts/forseti_commission_signal_board_prompt_structure_v0.md#6-strategic-and-operating-chronology"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "../prompts/forseti_commission_signal_board_prompt_structure_v0.md#5-portfolio-and-retail-architecture"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "#acquisition-and-seal-sequence"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "../prompts/forseti_commission_signal_board_prompt_structure_v0.md#7-customer-and-community-response"
+    },
+    {
+      "from": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "target": "../../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route"
+    }
+  ],
+  "sourcePins": [
+    {
+      "file": ".agents/workflow-overlay/README.md",
+      "before_sha256": "1d6bd54c0d534fdd4cda0f48cd9a8b56ea53b15468521e6873fc32770604edfa",
+      "after_sha256": "8752530c1a12e9f142b3838071261f1dec42bc16dedc852cd5bfb19f976283ce"
+    },
+    {
+      "file": ".agents/workflow-overlay/prompt-orchestration.md",
+      "before_sha256": "0e724f455e64546893b737aea2d87e833808a3ebe46a85a4fc7f85e45c01d20c",
+      "after_sha256": "cb9a56f14071524e37d32914909c3a017e44152d67b1a64fed05037f41e272e5"
+    },
+    {
+      "file": ".agents/workflow-overlay/source-loading.md",
+      "before_sha256": "1ed6c38a4dc1deadeb9115f9e8d0c7621183c0b5e6c6e19446ca27891417afbd",
+      "after_sha256": "1c6676abd4180bf1b0f0eec155ffe7a6795148e4bbabe57bf8f3e13969d3aa6a"
+    },
+    {
+      "file": "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
+      "before_sha256": "3db787d04250a21d4d397f7e8982841f90c5ab81f9c8232ff9eb416a33f65fe5",
+      "after_sha256": "69b83fbce0d42b88263522b150e9e2f7e9bc01f073230f9c3e20ca2c05b450a7"
+    },
+    {
+      "file": "forseti/product/spines/commission_signal_board/README.md",
+      "before_sha256": "8a51196b52bd9b2c1b145f5847b4bfae148504f866fa0ed15316b246145e05a5",
+      "after_sha256": "9fc87ca2059ca51ac006bdcf88b1a6c22405febd4182d1220fea07ec71e2a6f0"
+    },
+    {
+      "file": "forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md",
+      "before_sha256": "369c40caa373709f1cb2c04048277e74a4bb63d4f201cbc8c3965802ecd722db",
+      "after_sha256": "b64fdf0a64e2ca3f6ba2137d2461fff689ed7184ce830bce61bf963ac3d20827"
+    },
+    {
+      "file": "forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md",
+      "before_sha256": "df05f82a339b8b4cd5f28894f00ca3889ea0d51180d64d67138a5649ef716bb6",
+      "after_sha256": "ef592023ff808da620115e9e4a30292fdc48fa580baed50e5fb2784027d32f37"
+    }
+  ],
+  "preserved_attempts": [
+    {
+      "stage": "first reader replay",
+      "status": "not_read",
+      "cause": "Company prompt headings were enclosed in an outer four-backtick fence. Exact heading lookup returned Heading not found.",
+      "resolution": "Removed only the outer fence and nested the 43 inner Markdown headings below Prompt Body; unchanged words and inner examples verified. Baseline uses the already-supported exact line window."
+    },
+    {
+      "stage": "second reader replay",
+      "status": "not_read",
+      "cause": "The original Operating path section exceeded the 32768-byte reader maximum.",
+      "resolution": "Separated the supported operation from method context and experimental notes. Baseline uses its bounded original operation window, including the experimental prefix; no clipped content is counted as read."
+    },
+    {
+      "stage": "preservation comparison",
+      "status": "failed",
+      "cause": "The capsule-pointer replacement introduced one extra indentation space.",
+      "resolution": "Restored original indentation; exact normalized restoration of the full playbook now passes."
+    }
+  ],
+  "native_validation": {
+    "command": "python -m pytest tests/unit/test_semantic_evidence_integration.py -k \"judgment_jobs_complete_intake_submit_and_native_terminal or judgment_job_rejects_changed_pinned_bytes or judgment_job_retains_native_validation_failure or judgment_job_identity_and_publication_failures or local_repair_generated_job_delivers_and_submits_exact_repair or local_repair_public_consumer_is_exact_bounded_and_repeatable\" -q",
+    "cwd": "forseti-harness",
+    "exit_code": 0,
+    "passed": 16,
+    "elapsed_seconds": 6.64,
+    "fresh_model_runs": 0
+  }
+}

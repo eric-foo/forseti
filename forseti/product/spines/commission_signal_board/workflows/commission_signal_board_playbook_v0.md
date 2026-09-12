@@ -114,6 +114,25 @@ The default coordinated route has exactly four evidence actors:
   workarounds, response patterns, syndication ceilings, and discriminating
   depth checks.
 
+##### Role entry reads
+
+Bind these sections and the known upstream artifacts in the existing role
+capsule; do not send the receiver through this index when those reads are already
+bound. Select the applicable parts of [shared acquisition scope](#shared-acquisition-scope)
+and [specialist dispatch and terminal returns](#specialist-dispatch-and-terminal-returns).
+Add the role's relevant continuation below and its commissioned source-family
+recipe or runner entry. These are entry routes, not exemptions from applicable
+completion, claim-support, capture, or source-review rules.
+
+| Actor | Role-specific continuation |
+| --- | --- |
+| `CO0` | [Acquisition and seal sequence](#acquisition-and-seal-sequence), [versioned integration and closure](#route-110--campaign-integration-comparator-closure-verification-retailer-state), and [validator command](#validator-command); bind the board, capability/Phase 1 prerequisites, specialist inputs, and terminal paths before dispatch. |
+| `CO1` | Company prompt [identity](../prompts/forseti_commission_signal_board_prompt_structure_v0.md#1-company-commission-and-identity-receipt), [chronology](../prompts/forseti_commission_signal_board_prompt_structure_v0.md#6-strategic-and-operating-chronology), and commissioned company/ad capture recipes; return the official authorization that retailer work depends on. |
+| `CO2` | Company prompt [portfolio and retail architecture](../prompts/forseti_commission_signal_board_prompt_structure_v0.md#5-portfolio-and-retail-architecture), [acquisition-sequence step 3](#acquisition-and-seal-sequence), and the bound retailer recipes; consume official authorization and return reconciled product/corpus pointers for `CO3`. |
+| `CO3` | Company prompt [customer and community response](../prompts/forseti_commission_signal_board_prompt_structure_v0.md#7-customer-and-community-response) and the commissioned community/review recipes; consume `CO2`'s pointers for dependent depth. For authorized Evidence Consolidation, use the [supported operating route](../../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route). |
+
+##### Shared acquisition scope
+
 For review depth, keep Sephora on its existing source-specific capture policy.
 For every selected non-Sephora retailer, default to source-labelled `Most
 Recent`/newest when supported and record the actual ordering plus fallback. Bind
@@ -171,6 +190,8 @@ the reconciled breadth and selected-product pointers that `CO3` needs for depth.
 
 Run those four actors through this lean execution protocol:
 
+##### Specialist dispatch and terminal returns
+
 `CO0` must be the top-level controller with three worker slots available before
 dispatch. If that placement or capacity is absent, stop before capture with
 `BLOCKED_CONTROLLER_CAPACITY`; do not serialize the specialists or accept an
@@ -197,7 +218,8 @@ not spend a separate sacrificial query.
    comparator and retail-relevance rows; `CO3` receives the full typed ledger,
    trigger-thread queue, mediator map, grid-capture queue, and cited-substitute
    watch list. A capsule also contains the bound question, the role's jobs and
-   claim ceilings, the few owning-source pointers it needs, its upstream
+   claim ceilings, the applicable role-entry sections and supported starting
+   operation, its upstream
    artifact dependencies, and its terminal return contract. Do not copy the
    controller's full conversation or unrelated source pack into every actor.
    This is a mechanical dispatch gate, not a narrative ordering preference.

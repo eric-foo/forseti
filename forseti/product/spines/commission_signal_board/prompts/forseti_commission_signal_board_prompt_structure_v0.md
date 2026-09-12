@@ -94,7 +94,6 @@ defaults to `chat-only`.
 
 ## Prompt Body
 
-````text
 You are preparing a Forseti Commission Signal Board for one commission candidate
 or decision context.
 
@@ -144,7 +143,7 @@ Public-reaction engagement handling:
   demand verdict, proof, graph weight, classifier result, final resonance
   weight, Commit/Scale support, credibility label, or Action Ceiling.
 
-## Start Preflight
+### Start Preflight
 
 If you are running inside the Forseti repo, read `AGENTS.md` and
 `.agents/workflow-overlay/README.md` before starting. If you cannot access the
@@ -179,7 +178,7 @@ plain signal-board run with supplied inputs, use this bypass line:
 Cynefin bypass: this is a bounded chat-only signal-board run with no source edits, no delegation, and no runtime build.
 ```
 
-## Required Inputs
+### Required Inputs
 
 Before producing the board, check whether the dispatcher supplied:
 
@@ -249,7 +248,7 @@ complete competitive-intelligence value, or the availability of a report
 template. Synthesis requires an explicit current commission or a separately
 authorized follow-up.
 
-## Missing-Input Intake Output
+### Missing-Input Intake Output
 
 When required inputs are missing, return only this intake scaffold. Keep any
 fields already supplied and mark the rest `operator_to_fill`.
@@ -295,7 +294,7 @@ example_minimum_input:
 next_authorized_step: NEEDS_COMMISSION_INTAKE | NEEDS_CUTOFF_DATE
 ```
 
-## Intelligence Cycle Outcome Signals
+### Intelligence Cycle Outcome Signals
 
 For a company profile, optimize the commission and downstream handoff toward
 these six signals:
@@ -325,7 +324,7 @@ citation volume, ritual sections, forced forecasts, repeated confidence labels,
 or padding. A separate post-delivery reviewer may apply a numerical rubric; the
 producing actor does not receive or optimize against its numbers.
 
-## Source Boundary
+### Source Boundary
 
 Use only supplied evidence/context unless the dispatcher separately authorizes
 retrieval. If no evidence is supplied, produce a collection board with
@@ -367,7 +366,7 @@ especially cutoff-sensitive: for historical cutoffs before the relevant answer
 surface existed, treat them as post-cutoff visibility only, not a normal
 retrieval route.
 
-## Commission Profile And Time-Posture Routing
+### Commission Profile And Time-Posture Routing
 
 Keep `mode: backtest | forward` unchanged. `commission_profile` and
 `time_posture` are orthogonal controls.
@@ -387,7 +386,7 @@ gaps/requests. Scanning owns intelligent-walk selection. Capture owns venue
 access and preservation adapters. Emit requests to those lanes; do not execute
 their runtimes.
 
-## Time Posture
+### Time Posture
 
 `recency_first` is the universal default:
 
@@ -409,7 +408,7 @@ time as `co-movement`: that is spatial alignment. `Co-movement` is a temporal
 classification reserved for a future longitudinal product and requires at least
 two observation dates; this contract does not emit it.
 
-## Mini God Tier Target And Visible Limitations
+### Mini God Tier Target And Visible Limitations
 
 Aim for mini god tier in the limited Forseti sense: most of the value of a heavier
 signal-intelligence and graph-prep system, at prompt-first/manual-first speed.
@@ -430,7 +429,7 @@ Visible limitations to preserve in the output:
 - not validation or readiness;
 - not client-facing output.
 
-## Source-Family Map
+### Source-Family Map
 
 Preserve the hierarchy:
 
@@ -461,7 +460,7 @@ through legacy search-lane history, and do not treat AEO as product authority,
 gate-recordable, validation/readiness/proof, capture authorization, scraping,
 scaling, or implementation authorization.
 
-### Search-Surface MGT Standing Route Card
+#### Search-Surface MGT Standing Route Card
 
 Standing behavior: when a commission has an open question about market language,
 comparison/confusion, hidden venues, or counterevidence queries, the board should
@@ -490,7 +489,7 @@ CSB source-route row
 -> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
 ```
 
-## Field Vocabulary
+### Field Vocabulary
 
 Use these fields consistently:
 
@@ -526,7 +525,7 @@ families. In particular, `org_motion` here means professional / hiring /
 partnership movement, while retail presence belongs under Retail / PDP. The
 demand classifier owns any board-`signal_role` to classifier-family mapping.
 
-## Signal Collection Allocation
+### Signal Collection Allocation
 
 Use effort allocation as search hygiene, not a gate rule:
 
@@ -544,7 +543,7 @@ Include an item only when `Why check it`, `Row purpose`, or `Handoff note`
 names the decision-material job it performs and no equal-or-better included item
 performs the same job.
 
-## Graph-Light Contract
+### Graph-Light Contract
 
 The board owns only the graph retrieval brief and graph-ready row labels.
 
@@ -573,12 +572,12 @@ The board does not own:
 - forecast probabilities;
 - judgment or recommendation.
 
-## Output Contract
+### Output Contract
 
 Return the board in this exact section order. Use concise Markdown plus YAML
 blocks where specified.
 
-### 1. Commission Intake Receipt
+#### 1. Commission Intake Receipt
 
 ```yaml
 commission_id:
@@ -594,13 +593,13 @@ cutoff_rule:
 non_goals_preserved:
 ```
 
-### 2. Boundary Statement
+#### 2. Boundary Statement
 
 One short paragraph stating that this is an evidence/signals-only board, not a
 demand verdict, proof claim, graph artifact, forecast, judgment, or client
 output.
 
-### 3. Source-Family Coverage Plan
+#### 3. Source-Family Coverage Plan
 
 Markdown table:
 
@@ -619,7 +618,7 @@ comparison/confusion, hidden-venue, or counterevidence-query questions, include
 `search_discovery / search_surface_mgt` in this plan even if no SERP packet exists
 yet; mark evidence status `to_retrieve` or `gap`.
 
-### 4. Signal Board Rows
+#### 4. Signal Board Rows
 
 Markdown table:
 
@@ -651,7 +650,7 @@ Rules:
   a recency routing priority; ordinary signal rows that happen to be recent can
   stay `signal_unit` with `recency_attention: high`.
 
-### 5. Mandatory Counterevidence Paths
+#### 5. Mandatory Counterevidence Paths
 
 Markdown table:
 
@@ -667,7 +666,7 @@ Consider these only when they perform a named decision-material job:
 - AEO visibility without origin signal;
 - post-cutoff contamination in backtests.
 
-### 6. Campaign And Duplication Risk
+#### 6. Campaign And Duplication Risk
 
 Markdown table:
 
@@ -678,7 +677,7 @@ retailer/brand syndication, and answer-engine/cited-source loops as duplication
 risks to check. Do not conclude manipulation unless supplied evidence supports
 that claim.
 
-### 7. Graph Retrieval Brief
+#### 7. Graph Retrieval Brief
 
 ```yaml
 graph_retrieval_brief:
@@ -704,7 +703,7 @@ outcomes this evidence could help forecast later, such as review velocity,
 restock/stockout, discounting, creator decay, search decay, or retailer
 assortment changes. Do not assign probabilities.
 
-### 8. Demand-Classifier Handoff Packet
+#### 8. Demand-Classifier Handoff Packet
 
 ```yaml
 classifier_handoff_packet:
@@ -744,12 +743,12 @@ excluded or cutoff-uncertain rows to `source_family_gaps` and/or
 `cutoff_uncertainties` instead, with a note explaining whether the surface was
 post-cutoff or cutoff observability is not yet proven.
 
-### 9. Visible Limitations
+#### 9. Visible Limitations
 
 List limitations specific to this commission. Include platform, source access,
 cutoff, provenance, graph, classifier, and non-claim limitations.
 
-### 10. Board Status And Run Boundary
+#### 10. Board Status And Run Boundary
 
 Return this YAML block:
 
@@ -787,7 +786,7 @@ Use `run_boundary` for what happened in this invocation:
 If more than one applies, choose the most limiting status and explain the others
 in one sentence.
 
-## Conditional Company Competitive-Intelligence Output Contract
+### Conditional Company Competitive-Intelligence Output Contract
 
 Use this contract only when
 `commission_profile: company_competitive_intelligence`. Do not reuse the
@@ -1080,7 +1079,7 @@ Assortment and review evidence alone cannot establish sales, cash generation,
 growth, cannibalization, intent, control, competitive strategy, or operational
 leverage.
 
-### Executive Intelligence Brief (completed reports only)
+#### Executive Intelligence Brief (completed reports only)
 
 A completed company report (`run_boundary:
 COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION`) opens with an
@@ -1122,7 +1121,7 @@ The brief contains:
   its invalidation condition. This frame organizes conclusions; it does not
   replace decision adjudication as the product center.
 
-### 1. Company Commission And Identity Receipt
+#### 1. Company Commission And Identity Receipt
 
 ```yaml
 company_commission_receipt:
@@ -1157,14 +1156,14 @@ company_commission_receipt:
   initial_proving_run: true | false
 ```
 
-### 2. Decision-Neutral Boundary
+#### 2. Decision-Neutral Boundary
 
 State the permitted decision-neutral lenses and explicitly preserve these
 boundaries: one company at a time; deep competitor treatment requires a
 separately named follow-up; no pain, buyer, ICP, priority, urgency, willingness
 to pay, outreach, offer, or wedge conclusion.
 
-### 3. Source-Family And Venue Coverage Ledger
+#### 3. Source-Family And Venue Coverage Ledger
 
 ```yaml
 coverage_ledger:
@@ -1200,7 +1199,7 @@ retailer count into completion. A deepening route becomes
 load-bearing only when acquired evidence promotes its named job into a material
 seam under the acquisition playbook.
 
-### 4. Observation Ledger
+#### 4. Observation Ledger
 
 ```yaml
 observation_ledger:
@@ -1239,14 +1238,14 @@ one origin, not independent corroboration. Community rows use
 `fact_domain: external_customer_evidence` and cannot establish representative
 demand or internal company fact.
 
-### 5. Portfolio And Retail Architecture
+#### 5. Portfolio And Retail Architecture
 
 Open with the decisive outside-in portfolio conclusion, then use the six
 subsections below in order. Cite supporting observation IDs and keep gaps where
 they affect interpretation. These compact matrices summarize sealed evidence;
 they do not replace the coverage or observation ledgers.
 
-#### Owned Portfolio Denominator
+##### Owned Portfolio Denominator
 
 Summarize the complete publicly exposed current category -> franchise/collection
 -> parent-product -> material-variant architecture. Keep bundles and sets visible
@@ -1256,7 +1255,7 @@ denominator-changing gaps.
 | Category / franchise | Current parent products | Material variants | Bundles / sets | Coverage state | Gap IDs | Observation IDs |
 | --- | ---: | --- | --- | --- | --- | --- |
 
-#### Product, Claim, And Price Architecture
+##### Product, Claim, And Price Architecture
 
 Show formats, use cases, routines, price tiers, pack sizes, central claims,
 substantiation posture, ingredients/formula families, suitability, and material
@@ -1265,7 +1264,7 @@ cross-sell or overlap relationships.
 | Product / franchise | Format and use case | Price tier | Claims / proof posture | Ingredient or formula family | Relationship | Observation IDs |
 | --- | --- | --- | --- | --- | --- | --- |
 
-#### Qualified Retailer Corpus
+##### Qualified Retailer Corpus
 
 Report the company-owned official retailer board, Sephora's explicit
 authorization/route outcome, the selected retailers, and the working primary.
@@ -1277,7 +1276,7 @@ completion credit.
 | Retailer | Qualification and typed outcome | Grid denominator | Reconciled exact listings | PDP baseline coverage | Distinct retailer facts | Gap IDs | Observation IDs |
 | --- | --- | ---: | ---: | --- | --- | --- | --- |
 
-#### Evidence-Selected Product Depth
+##### Evidence-Selected Product Depth
 
 Show that breadth selected depth. Cover materially distinct prominence,
 founding/flagship, new investment, entry/premium, complaint, plausible weak-link,
@@ -1288,7 +1287,7 @@ impose a universal review-count cap.
 | Product | Named evidence job | Selection evidence | Deep surfaces | Corpus boundary / overlap state | Limitations | Observation IDs |
 | --- | --- | --- | --- | --- | --- | --- |
 
-#### Outside-In Portfolio Interpretation
+##### Outside-In Portfolio Interpretation
 
 State visible roles, relative traction, concentration, gaps, overlaps, channel
 exposure, dependencies, and weak-link candidates at the strongest level the
@@ -1300,7 +1299,7 @@ acceleration, slowing, decline, or monitored change.
 | Product / franchise | Visible role | Decisive observed pattern | Evidence boundary | Confidence | Invalidation condition | Observation IDs |
 | --- | --- | --- | --- | --- | --- | --- |
 
-#### Strategic Positioning, Markets, And Channels
+##### Strategic Positioning, Markets, And Channels
 
 State which customer segments, use cases, price tiers, categories, routines,
 geographies, and channels the company is visibly pursuing or attempting to
@@ -1311,7 +1310,7 @@ dependence.
 | Arena | Visible company move | Evidence | Strongest bounded interpretation | Gap / contradiction | Observation IDs |
 | --- | --- | --- | --- | --- | --- |
 
-### 6. Strategic And Operating Chronology
+#### 6. Strategic And Operating Chronology
 
 Summarize strategic and operating chronology with observation IDs. Under
 `longitudinal`, name the bounded change, recurrence, or trajectory; otherwise
@@ -1319,7 +1318,7 @@ do not manufacture one. Preserve evidence gaps. For each material
 interpretation this section carries, state what observable evidence would
 invalidate it.
 
-### 7. Customer And Community Response
+#### 7. Customer And Community Response
 
 Summarize customer and community response with observation IDs. State that the
 evidence is not representative demand and not internal company fact. Preserve
@@ -1467,7 +1466,7 @@ Chain rules (conclusion-writing guidance; no other durable structure):
   next observable, never by evidence overclaim. Conclusion rows feed the
   Executive Intelligence Brief preamble.
 
-### 8. Competitor Context, Contradictions, And Gaps
+#### 8. Competitor Context, Contradictions, And Gaps
 
 Use bounded comparator pointers only where they interpret the subject. Cite
 observation IDs, contradictions, and gaps. State that deep competitor treatment
@@ -1491,7 +1490,7 @@ material once. The Deliver phase may request fresh evidence only as a
 decision-specific supplement for the decision it is adjudicating, never as a
 general re-scan.
 
-### 9. Company Surface Candidate Ledger
+#### 9. Company Surface Candidate Ledger
 
 ```yaml
 company_surface_candidate_ledger:
@@ -1508,7 +1507,7 @@ company_surface_candidate_ledger:
 
 These rows are proposals only. This prompt never imports into Company Surface.
 
-### 10. Completion Ledger And Run Boundary
+#### 10. Completion Ledger And Run Boundary
 
 ```yaml
 completion_ledger:
@@ -1583,7 +1582,7 @@ means `status: checked` plus `yield: zero_yield`; blocked means
 `not_required_no_decision_material_job` (either venue) means no row for that
 venue, or a non-selection row recorded as `not_applicable` / `not_applicable`.
 
-## Final Rules
+### Final Rules
 
 - Use the selected profile's ten-section contract only.
 - Do not impose report-length, source-count, page, or observation caps; remove
@@ -1615,7 +1614,6 @@ venue, or a non-selection row recorded as `not_applicable` / `not_applicable`.
 - End with the selected profile's Section 10 YAML block.
 
 COMMISSION INPUTS FOLLOW:
-````
 
 ## Direction Change Propagation
 
