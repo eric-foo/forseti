@@ -1,15 +1,25 @@
-# Coordinator return serialization sample — 2026-09-12
+# Coordinator efficiency samples — 2026-09-12
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Bounded implementation and dogfood record
-scope: Lossless advance return serialization; structural sample and unmeasured subscription impact.
+scope: Coordinator return serialization and batched completed-task verification/accounting; bounded dogfood and unproven subscription impact.
 use_when:
-  - Deciding whether to land the coordinator return serialization candidate.
+  - Assessing the coordinator-efficiency candidates, their behavioral evidence and measurement limits.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/measurement.json
 ```
+
+The latest follow-up combines completed-task verification, accounting and saved
+record readback in the existing importer. The final Astra/high coordinator
+completed three contrasting assessments in **one post-intake tool round**, versus
+three for the baseline. Subscription-drain savings remain unproven. The
+follow-up contract and observations below supersede the earlier serialization
+candidate as the behavioral-efficiency recommendation; both changes remain in
+the managed worktree and publication is held.
+
+## Earlier serialization candidate
 
 The candidate preserves the complete `advance` return and removes JSON
 indentation. Seven genuine CLI boundaries shrink from **85,886 to 81,211 UTF-8
@@ -23,7 +33,7 @@ The initial baseline was already compact in substance: ready returns were mostly
 complete generated worker instructions. Removing transitions would lose earlier
 reconciliation-level bindings that the current artifact map does not retain.
 There was no justified bulk-removal formatter or new artifact store to build.
-The only runtime change is serialization in the public CLI; the two actual
+That first candidate changed only serialization in the public CLI; the two actual
 consumer guidance sources say to parse once, forward full worker prompts
 unchanged, and load complete relevant evidence for source-dependent judgment.
 Worker intake, schema, raw-write/submit instructions, immutable publication,
@@ -92,3 +102,235 @@ serialization, worker transport, fixture bytes or quota-meter semantics.
 Completion remains owned by source task `01a0955a-643a-7dc1-b747-da71e35b40f7`.
 The unresolved outcome is lower subscription drain for the same completed unit;
 the verified outcome here is only lossless, smaller coordinator delivery.
+
+
+## Coordinator batching follow-up: success contract
+
+Authorized 2026-09-12 by the owner: deep-think the smallest complete fix,
+success-implement it, and dogfood a sample. The target is the same managed
+worktree, initially clean at `cd184bdbd7dc2df6e2c99c4fcd94fdc5f461bad9`;
+its earlier implementing task was observed idle. The current coordinator is
+the sole source writer. Publication remains held.
+
+Goal: remove extra coordinator resumptions needed to collect already-known
+verification and accounting facts for a completed task. Extend the existing
+`import-codex` return and route its use; no new batch framework or recurring
+measurement obligation. Authority: current owner instruction, AGENTS SCI,
+overlay decision-routing/validation-gates, and the existing efficiency owners.
+Keep task/child completion boundaries, response de-duplication, quality-checker
+exit status, unknown coverage, full durable records, source evidence, model
+choice and the fixed wait constraint intact. Semantic judgment remains outside
+the mechanical checker. No production-cycle or subscription-% claim follows
+from a small closeout sample.
+
+Signals (planned before source edits):
+- Given a frozen completed native task and its bound result checker, one
+  importer invocation exposes the observed usage, unique model-response count,
+  tool-call events, model/effort, diagnostic observations, checker status/exit
+  and historical completion interval. Compare against the old collector and
+  frozen independently authored accounting/intake verification.
+- Given a missing usage row or damaged intake, keep incomplete coverage or the
+  checker's failure visible in that same return. A passing checker must not
+  repair missing accounting; complete accounting must not repair failed quality.
+- Preserve both function and custom tool-output observations, and do not treat
+  ordinary discussion of truncation as a truncation marker. Marker observations
+  are diagnostic only; exact intake preservation needs the bound checker.
+- Reimporting a task remains the same observation and cannot overwrite an
+  existing record. Baseline and candidate use identical saved work and checker;
+  fresh coordinators use Astra/high. A fresh tie is a tie, even if history had
+  missed batching. Count all sample calls, failures and recovery separately
+  from implementation/preparation. No model downgrade or quota conversion.
+
+Review checkpoint: the repository's conditional success-implement predicate
+in `delegated-review-patch.md`. Independent baseline/native observations must
+support affected boundaries; otherwise route the remaining uncertainty through
+an operator-courier review prompt before any landing.
+
+
+## Follow-up observed outcome
+
+The smallest complete intervention extends `run_efficiency import-codex` rather
+than installing another batch runner. The existing workload checker runs in the
+same invocation as accounting; the returned summary now includes unique response
+counts, observed settings, per-task usage, tool-call counts, output diagnostic
+observations, quality exit/status and the historical interval. Before returning,
+the importer rereads the saved JSON and compares it with the collected record.
+A mismatch exits 2 without a successful readback claim. That last check was
+necessary: the first candidate still made the coordinator spend a separate round
+on required persistence verification.
+
+The operational guide and the overlay's Orchestrator Context Economy section now
+route this combined use only when measurement is commissioned. The recurring
+cost is one local saved-record read within that existing operation; it catches
+persisted-record mismatch and replaces a model resumption. No new registry,
+reporting obligation, semantic judge, model default or wait policy was added.
+
+Both baseline and final candidate used the same saved completed Sol/high worker
+record and checker, plus two deliberate perturbations. The valid record retained
+all 9 intake sections / 13 chunks / 63,321 UTF-8 bytes and the saved response.
+Removing a usage row left quality passed and accounting unknown; removing an
+interior intake chunk while retaining the final marker made the checker fail
+with exit 7 while accounting remained complete. Candidate PowerShell/tool
+wrappers reported outer exit 1 for that failure and preserved checker exit 7;
+the importer invoked directly returned 7. Semantic adequacy was not reassessed.
+Both fresh coordinators made the correct three-way assessment. Reimport could
+not overwrite the prior observation (exit 2). A separate seeded persisted-record
+corruption failed after a passing checker, proving the new readback boundary
+rather than an unrelated earlier guard.
+
+| Completed fresh Astra/high coordinator | Model responses | Tool rounds | Post-intake rounds | Input (cached subset) | Output | Total tokens | Elapsed seconds |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline | 6 | 5 | 3 | 253,882 (222,080) | 2,453 | 256,335 | 115.068 |
+| Intermediate candidate | 5 | 4 | 2 | 188,139 (175,232) | 1,288 | 189,427 | 68.596 |
+| Final candidate with checked readback | 4 | 3 | 1 | 145,995 (100,480) | 1,058 | 147,053 | 53.631 |
+
+The final native trace shows two intake/help rounds followed by one invocation
+that batches all three case commands; it ends without reopening the records.
+The baseline instead runs the importer, reads the records, then scans the native
+logs for remaining accounting facts. This is evidence that the actual consumer
+used the complete return. All coordinator tasks finished before collection;
+response identities and cumulative counters reconcile, and metadata discovery
+found no child tasks to add.
+
+The raw token reduction is descriptive: autonomous source loading differed
+(the baseline also read safety/claim-support sources), and cache fractions
+changed. Final-candidate uncached input was **45,515**, versus **31,802** in the
+baseline despite lower total input. There is no isolated cost-effect estimate,
+Pro usage-percentage mapping, production-cycle proof or broad optimality claim.
+The behavior result supports this bounded fix before considering a model change.
+
+Sample setup failures remain in the record. The first model baseline stopped
+on a missing unchanged baseline dependency and consumed **197,824 tokens**.
+The host checker also initially mishandled section-end framing and JavaScript
+UTF-16 offsets; the original native protocol resolved both before the fresh
+comparison. All four model attempts, including setup failure and the intermediate
+candidate, consumed **790,639 total tokens**. These are complete sample costs;
+the active implementation coordinator and deterministic preparation are separate
+and are not represented as a completed whole-work-unit saving.
+
+Validation: 62 affected tests covered across the initial focused run and final
+33-test runner run; 95 coupling/comparison/foundation checks passed. The original
+native accounting and intake-verification records supplied independent expected
+values. A second historical native trace independently produced two truncation
+observations across five output events; those observations did not falsely turn
+complete accounting into failed usage. No broad CI or publication was performed.
+
+`review_routing_status: not_needed` under the repository's conditional
+success-implement rule: the affected extraction/return, failure separation and
+persistence boundaries have the native observations, preserved baseline,
+contrasting cases and direct readback evidence above. No independent review is
+claimed. Propagation was checked through AGENTS/CLAUDE, overlay source loading
+and validation, the repo-map efficiency row and the efficiency README. Their
+existing guide pointers remain correct; the scoped overlay route and owning
+guide carry the change. No stale instruction requiring separate metric scans
+was found in those routers.
+
+The adjacent measurement preserves exact source paths/hashes, completed task
+identities, counters, case records, checker/bridge source, setup failures and
+raw artifact locations. It is stale if the importer/collector, checker, source
+records, platform event format or coordinator instructions change. Full private
+native logs remain host-local; this is a bounded evidence record, not a portable
+operational archive. Publication remains held; subscription drain is unresolved.
+
+## Reusable comparison setup: success contract
+
+Authorized 2026-09-12: success-implement the proposed reusable coordinator
+comparison setup and dogfood one sample. Existing managed worktree, HEAD
+`cd184bdbd7dc2df6e2c99c4fcd94fdc5f461bad9`, retains the eight earlier modified
+files. The current coordinator remains the sole source writer; publication is
+held. Source owners: AGENTS SCI, the existing efficiency guide/runner and the
+repository's conditional success-implement review policy.
+
+Goal: a fresh coordinator can run the prepared comparison without rebuilding
+dependencies, paths or output interpretation. Add a synthetic executable fixture,
+its tests and the existing guide route. Preserve earlier failed sample artifacts,
+real usage/quality separation, complete-run accounting and production behavior.
+No model/default change or whole-cycle/quota saving is commissioned.
+
+Signals planned before implementation:
+- Two complete selected checkouts execute their own real measurement command;
+  valid saved content has complete usage, one absent response leaves usage
+  unknown, and middle-damaged content fails with its final marker retained.
+- A nested root and an actual missing Python dependency fail before worker
+  commands are published. The missing-dependency test isolates Git admission
+  so it must reach the intended interpreter import failure.
+- A deliberately permissive checker cannot turn the damaged case into ready
+  setup. Its process must actually exit zero before preparation rejects the
+  incorrect success, excluding an unrelated earlier-guard explanation.
+- Prepared commands use distinct worker destinations; repeat preparation and
+  repeated imports cannot overwrite prior evidence. Unicode is checked by exact
+  saved bytes, avoiding another implementation of the native chunk protocol.
+- Only after local checks succeed, one fresh Astra/high coordinator receives
+  the prepared capsule and reports the six results without constructing setup.
+  Freeze the expected case distinctions before reading its response. This is
+  an autonomous-use observation, not a model comparison or savings estimate.
+
+The reusable example did not exist at intake (`Test-Path` false); there is no
+fabricated pre-change red run. Existing preserved setup failures supply the
+historical baseline. Direct counterexamples, two-checkout execution, established
+collector behavior and the fresh consumer observation must support the affected
+boundaries; any remaining material shared-assumption gap routes to an
+operator-courier review prompt under the repository's conditional rule.
+
+## Reusable comparison setup: observed result
+
+Implemented the reusable synthetic example at
+`forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py`, with five
+tests and the existing efficiency guide's "Reusable coordinator closeout sample"
+route. Each complete checkout runs its own real measurement command. All six
+local checks must agree with the frozen cases before worker commands are released.
+This removes the need to rebuild the dependency/path/checker setup for each such
+comparison. Its recurring cost is six small local commands per new preparation;
+it adds no standing step to production intelligence work.
+
+Validation: **85 passed** (5 new setup tests, 62 existing affected unit tests,
+18 required coupling contract tests), no failures/errors/skips. The new tests
+exercise real import failure, a checker that incorrectly accepts damaged content,
+exact Unicode bytes, separate destinations and refusal to overwrite evidence.
+The pre-existing failed attempts and their accounting remain above and in
+`measurement.json`; none were replaced by the successful follow-up.
+
+One fresh Astra/high coordinator completed task
+`01a09620-92cc-79f1-9194-dbf0af927a32`, turn
+`01a09620-93c9-74e3-a90c-d450fd35e61d`. The native public trace shows three intake
+tool rounds followed by one parallel batch of all six supplied commands. There
+were no sample setup errors or retries. Direct readback of all six saved records
+matches the returned summaries:
+
+| Case, in both checkouts | Exit | Quality | Usage coverage | Synthetic total |
+| --- | ---: | --- | --- | ---: |
+| Valid saved content | 0 | Passed | Complete | 36 |
+| One usage response missing | 0 | Passed | Unknown | 23 observed |
+| Middle damage, final marker retained | 7 | Failed | Complete | 36 |
+
+The missing-usage case retained `turn_cumulative_reconciliation_failed`; both
+damaged cases retained `saved_content_mismatch`. All three candidate returns
+also reported matched durable readback. The two exit-7 results are intended
+failures, not setup errors. The generic tool-output counter does not see these
+nested exits; direct parsing of the six public command results does.
+
+The completed coordinator itself used **197,899 native tokens** across five
+responses: 196,592 input (169,984 cached, included within input) and 1,307 output
+(342 reasoning, included within output). Per-response sums reconcile with the
+final native cumulative counters; the collector reports complete coverage, no
+issues and no linked children. Observed start/end timestamps span 65.158 seconds.
+This boundary excludes the still-active implementation coordinator and all earlier
+attempts. The synthetic totals in the table are not additional model consumption.
+
+Review routing: `not_needed` under the repository's conditional rule. Independent
+runtime import failure, deliberately incorrect checker success, frozen literal
+bytes, actual two-checkout execution and the fresh consumer's native trace support
+the affected boundaries. No additional review task was launched.
+
+This proves that one fresh coordinator could use the prepared route and preserve
+both failure distinctions. It does not establish subscription savings, semantic
+quality or reliability across the whole intelligence cycle. The two checkout
+versions include other historical differences, so their outputs are not an
+isolated causal comparison. Preparation must be regenerated after relevant source,
+input or dependency changes; it records observed state rather than enforcing
+future immutability. Source hashes, exact checkout revisions, test reports, native
+accounting and all six saved-record fingerprints are in
+`measurement.json` under `setup_followup`.
+
+Implementation is present in the managed worktree. Publication remains held;
+this follow-up has not been committed, pushed or merged.

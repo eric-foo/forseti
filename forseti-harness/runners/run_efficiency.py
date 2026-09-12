@@ -19,7 +19,7 @@ import tempfile
 import time
 from uuid import NAMESPACE_URL, uuid5
 
-from harness_efficiency import current_revision, make_record, utc_now, write_record
+from harness_efficiency import aggregate_usage, current_revision, make_record, utc_now, write_record
 from reports.efficiency_codex import collect_codex_exec, collect_desktop_task
 from reports.efficiency_compare import compare_runs
 
@@ -185,6 +185,36 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def _desktop_return(record: dict, path: Path) -> dict:
+    """Return the collected decision facts without rereading the detailed record."""
+    collection = record["collection"]
+    by_thread = {}
+    for attempt in record["attempts"]:
+        thread = attempt.get("thread_id")
+        if isinstance(thread, str):
+            by_thread.setdefault(thread, []).append(attempt)
+    return {
+        "record_path": str(path.resolve()), "outcome": record["outcome"],
+        "quality": record["quality"]["status"],
+        "quality_return_code": record["quality_return_code"],
+        "usage_coverage": record["usage"]["coverage"], "usage": record["usage"],
+        "model_responses": sum(isinstance(a.get("response_id"), str) for a in record["attempts"]),
+        "threads": {thread: {"model_responses": sum(isinstance(a.get("response_id"), str) for a in attempts),
+                             "usage": aggregate_usage(attempts)}
+                    for thread, attempts in by_thread.items()},
+        "tool_call_events": collection.get("tools", {}),
+        "tool_output_observations": collection.get("tool_output_observations"),
+        "observed_settings": collection.get("observed_settings"),
+        "collection_issues": collection.get("issues", []),
+        "child_coverage": collection.get("child_coverage"),
+        "selected_turns": collection.get("selected_turns"),
+        "started_at": record.get("started_at"), "ended_at": record.get("ended_at"),
+        "elapsed_seconds": record["elapsed_seconds"],
+        "validation_elapsed_seconds": record["validation_elapsed_seconds"],
+        "validation_issues": record["validation_issues"],
+    }
+
+
 def _import_codex(args: argparse.Namespace) -> int:
     configuration = _json(args.configuration) if args.configuration else {}
     if not isinstance(configuration, dict):
@@ -240,8 +270,12 @@ def _import_codex(args: argparse.Namespace) -> int:
         result["usage"]["issues"] = sorted(set(result["usage"]["issues"] + summary["issues"]))
     result["collection"] = {key: value for key, value in summary.items() if key != "attempts"}
     path = write_record(result, Path(args.output_dir))
-    print(json.dumps({"record_path": str(path.resolve()), "outcome": result["outcome"],
-                      "quality": quality["status"], "usage_coverage": result["usage"]["coverage"]}))
+    persisted = _json(path)
+    if persisted != result:
+        raise ValueError("saved Desktop measurement differs from collected record")
+    returned = _desktop_return(persisted, path)
+    returned["record_readback_matched"] = True
+    print(json.dumps(returned, ensure_ascii=True, allow_nan=False))
     if failed:
         return checker_exit if checker_exit is not None and 0 < checker_exit <= 255 else 1
     return 0

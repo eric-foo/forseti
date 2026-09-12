@@ -71,6 +71,30 @@ hashes. Imported historical duration stays unchanged; the later checker time is
 reported separately. A completed task without a quality check remains
 `unmeasured` for quality, even when all tokens are observed.
 
+For a commissioned completed-task comparison, use `import-codex` with the
+workload's existing `--quality-command` in one coordinator invocation. Its final
+JSON includes usage and coverage issues, unique response counts, per-task usage,
+tool-call event counts, observed model/effort, output diagnostic counts, checker
+exit/status and the completion interval. The importer rereads the saved JSON
+and checks it against the collected record before returning
+`record_readback_matched: true`; a mismatch fails instead of returning success.
+That fresh readback supports the persistence claim at this return boundary.
+The detailed record remains at `record_path`. Read it or the selected source
+only when a missing fact, diagnostic
+or judgment requires it; do not reopen the same log separately for each metric.
+Known independent checks can share the checker; ordered checks preserve their
+individual failures and stop dependent work when a prerequisite fails.
+
+Tool-output observations cover function and custom output events in the selected
+turns. A truncation marker or nonzero command exit nominates investigation; it
+does not establish unrecovered failure. Zero markers do not establish complete
+intake, and quoted markers may be false alarms. Exact section/content/hash checks
+belong in the bound workload checker. Unknown output shapes remain visible.
+These observations neither change usage coverage nor certify semantic adequacy.
+Per-task usage includes only observed responses; whole-task coverage and child
+inventory remain controlling when any work is missing. Tool-call events,
+output notifications and model responses are different counts.
+
 For a fresh CLI task, `measure --codex-json --stdin-file REQUEST_FILE` accepts
 a native `codex exec --json` argv after `--`. Supply the prompt through stdin;
 Windows `.cmd`/`.bat` wrappers are rejected. Normal child stderr remains visible.
@@ -87,6 +111,47 @@ visible and make the measurement unusable while preserving the original
 product result or exception. Archive selected baseline records with the change's
 evidence; routine operational records stay outside Git. `repo-size` exposes
 their current growth; this command performs no deletion.
+
+### Reusable coordinator closeout sample
+
+For a commissioned sample of completed-task inspection, prepare the existing
+synthetic example before launching its coordinator. From `forseti-harness`:
+
+```text
+python tests/fixtures/efficiency_codex_closeout/prepare.py prepare --baseline-root BASELINE_CHECKOUT --candidate-root CANDIDATE_CHECKOUT --output-dir NEW_EXERCISE_DIRECTORY
+```
+
+Both roots are complete Git checkouts containing their own measurement runner;
+select the intended revisions before preparation. Do not copy selected Python
+modules or combine imports across checkouts. Uncommitted candidate edits are
+allowed and the tracked harness diff is identified in the prepared commands.
+The preparer uses each checkout's real `import-codex` command. It checks three
+synthetic completed records in both versions before publishing `commands.json`.
+The supplied byte-for-byte checker avoids a separate Unicode/chunk decoder.
+
+Only an exit-zero `status: ready` return releases the coordinator sample. Give
+the coordinator `commands.json`; execute its argv arrays using their associated
+working directories, batching independent commands and preserving individual
+exits. Ask it to report each case's outcome, quality and accounting coverage.
+Keep fixture source and `preparation.json` expectations outside the tested
+actor's intake unless diagnosis needs them. The local examples include a useful
+positive and two distinct failure conditions; a checker that accepts damaged
+content must stop preparation rather than make the sample appear ready.
+
+Preparation and worker observations have different output directories. Reusing
+a destination fails instead of overwriting evidence. Failures and process logs
+remain in the exercise directory; no worker commands are published after a
+failed local check. Reuse preparation only while the fixture, inputs and relevant
+checkout state are unchanged, including untracked dependencies. The capsule
+identifies observed state; it is not an automatic guard against later edits.
+The 30-second child limits bound this small local fixture, not production work.
+
+This example tests setup and the use of prepared commands. Its synthetic usage
+is not real model consumption. It neither checks native chunk delivery nor
+reassesses semantic quality; native delivery retains its existing owning tests.
+It cannot establish token savings, model superiority or subscription drain.
+Real task collection and comparability rules below remain controlling.
+
 
 ## Compare equivalent successful work
 

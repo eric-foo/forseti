@@ -347,3 +347,157 @@ def test_explicit_failed_selected_turn_is_not_rescued_by_passing_posthoc_checker
     assert result["quality_return_code"] == 0
     assert result["outcome"] == "failed"
     assert result["usage"]["coverage"] == "unknown"
+
+
+@pytest.mark.parametrize("checker_code,coverage", [(0, "complete"), (7, "complete"), (0, "unknown")])
+def test_desktop_single_return_preserves_decision_facts(tmp_path, monkeypatch, capsys, checker_code, coverage):
+    summary = desktop_summary()
+    summary["attempts"][0].update(thread_id="root", response_id="response-1")
+    summary.update(coverage=coverage, issues=[] if coverage == "complete" else ["child_usage_missing"],
+                   tools={"exec": 2}, observed_settings=[{"model": "observed-model", "effort": "high"}],
+                   tool_output_observations={"output_events": 18, "truncation_marker_events": 0},
+                   child_coverage="session_metadata_and_root_turn_attribution", selected_turns={"root": ["turn"]})
+    monkeypatch.setattr(cli, "collect_desktop_task", lambda *args: summary)
+    oracle = checker(tmp_path, f"raise SystemExit({checker_code})")
+    assert cli.main(desktop_options(tmp_path) + ["--quality-command", str(oracle)]) == checker_code
+    returned = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    saved = record(tmp_path)
+    assert returned["usage"] == saved["usage"]
+    assert returned["record_readback_matched"] is True
+    assert returned["model_responses"] == 1
+    assert returned["threads"]["root"]["usage"]["total_tokens"] == 100
+    assert returned["tool_call_events"] == {"exec": 2}
+    assert returned["tool_output_observations"]["output_events"] == 18
+    assert returned["observed_settings"][0]["effort"] == "high"
+    assert returned["quality_return_code"] == checker_code
+    assert returned["quality"] == ("passed" if checker_code == 0 else "failed")
+    assert returned["usage_coverage"] == coverage
+    assert returned["collection_issues"] == summary["issues"]
+    assert returned["ended_at"] == "historical-whole-workunit-end"
+    assert "attempts" not in returned
+
+
+def test_desktop_return_refuses_corrupted_persisted_record(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(cli, "collect_desktop_task", lambda *args: desktop_summary())
+    original_write = cli.write_record
+    def corrupt(record, directory):
+        path = original_write(record, directory)
+        saved = json.loads(path.read_text())
+        saved["usage"]["input_tokens"] += 1
+        path.write_text(json.dumps(saved))
+        return path
+    monkeypatch.setattr(cli, "write_record", corrupt)
+    oracle = checker(tmp_path)
+    assert cli.main(desktop_options(tmp_path) + ["--quality-command", str(oracle)]) == 2
+    captured = capsys.readouterr()
+    assert "differs from collected record" in captured.err
+    assert "record_readback_matched" not in captured.out
+    assert record(tmp_path)["quality"]["status"] == "passed"
+
+
+@pytest.fixture
+def closeout_example():
+    import importlib.util
+
+    path = Path(__file__).resolve().parents[1] / "fixtures/efficiency_codex_closeout/prepare.py"
+    spec = importlib.util.spec_from_file_location("closeout_example", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_closeout_example_prepares_real_commands_and_preserves_three_outcomes(tmp_path, closeout_example):
+    import subprocess
+
+    root = Path(__file__).resolve().parents[3]
+    output = tmp_path / "prepared"
+    assert closeout_example.prepare(root, root, output)["local_checks"] == 6
+    capsule_bytes = (output / "commands.json").read_bytes()
+    capsule = json.loads(capsule_bytes)
+    assert len(capsule["commands"]) == 6
+    expected = {"case-a": (0, "success", "passed", "complete", 36),
+                "case-b": (0, "success", "passed", "unknown", 23),
+                "case-c": (7, "failed", "failed", "complete", 36)}
+    saved = []
+    for command in capsule["commands"]:
+        assert Path(command["cwd"]) == root / "forseti-harness"
+        assert command["argv"][1:6] == ["-E", "-s", "-m", "runners.run_efficiency", "import-codex"]
+        process = subprocess.run(command["argv"], cwd=command["cwd"], capture_output=True,
+                                 encoding="utf-8", timeout=30)
+        returned = json.loads(process.stdout.strip().splitlines()[-1])
+        path = Path(returned["record_path"])
+        assert path.parent == output / "worker-records" / command["arm"] / command["case"]
+        current = json.loads(path.read_text())
+        assert (process.returncode, current["outcome"], current["quality"]["status"],
+                current["usage"]["coverage"], current["usage"]["total_tokens"]) == expected[command["case"]]
+        saved.append((path, path.read_bytes()))
+    assert not list(output.rglob("*.tmp"))
+    with pytest.raises(FileExistsError):
+        closeout_example.prepare(root, root, output)
+    assert (output / "commands.json").read_bytes() == capsule_bytes
+    command = capsule["commands"][0]
+    repeat = subprocess.run(command["argv"], cwd=command["cwd"], capture_output=True, timeout=30)
+    assert repeat.returncode == 2
+    assert all(path.read_bytes() == original for path, original in saved)
+
+
+def test_closeout_example_rejects_nested_checkout_before_worker_commands(tmp_path, closeout_example):
+    root = Path(__file__).resolve().parents[3]
+    output = tmp_path / "wrong-root"
+    with pytest.raises(ValueError, match="complete checkout root"):
+        closeout_example.prepare(root / "forseti-harness", root, output)
+    assert not (output / "commands.json").exists()
+    assert not (output / "inputs").exists()
+    assert "complete checkout root" in json.loads((output / "failure.json").read_text())["error"]
+
+
+def test_closeout_example_missing_dependency_fails_at_real_import(tmp_path, monkeypatch, closeout_example):
+    # Isolate the import failure from Git admission: exercise the real child
+    # interpreter with an admitted test-only root, not a simulated nonzero exit.
+    root = tmp_path / "broken"
+    runners = root / "forseti-harness/runners"
+    runners.mkdir(parents=True)
+    (runners / "__init__.py").write_text("")
+    (runners / "run_efficiency.py").write_text("import missing_closeout_fixture_dependency\n")
+    monkeypatch.setattr(closeout_example, "_checkout", lambda path: {"root": str(path)})
+    output = tmp_path / "missing-dependency"
+    with pytest.raises(ValueError, match="baseline/case-a preparation failed"):
+        closeout_example.prepare(root, root, output)
+    failure = json.loads((output / "baseline-case-a-process.json").read_text())
+    assert failure["exit_code"] != 0
+    assert "ModuleNotFoundError" in failure["stderr"]
+    assert "missing_closeout_fixture_dependency" in failure["stderr"]
+    assert not (output / "commands.json").exists()
+    assert not (output / "worker-records").exists()
+    assert json.loads((output / "failure.json").read_text())["completed_checks"] == []
+
+
+def test_closeout_example_rejects_checker_that_accepts_damaged_content(tmp_path, monkeypatch, closeout_example):
+    original = closeout_example._examples
+    def permissive_checker(output):
+        original(output)
+        (output / "inputs/case-c/checker.json").write_text(json.dumps(
+            [sys.executable, "-c", "print('permissive checker')"]))
+    monkeypatch.setattr(closeout_example, "_examples", permissive_checker)
+    root = Path(__file__).resolve().parents[3]
+    output = tmp_path / "false-positive"
+    with pytest.raises(ValueError, match="baseline/case-c preparation failed"):
+        closeout_example.prepare(root, root, output)
+    process = json.loads((output / "baseline-case-c-process.json").read_text())
+    assert process["exit_code"] == 0  # Intended wrong-success path, not an earlier refusal.
+    assert "permissive checker" in process["stdout"]
+    failure = json.loads((output / "failure.json").read_text())
+    assert len(failure["completed_checks"]) == 2
+    assert "observed (0, 'success', 'passed', 'complete', 36)" in failure["error"]
+    assert not (output / "commands.json").exists()
+
+
+def test_closeout_example_checks_complete_unicode_bytes(tmp_path, closeout_example):
+    artifact = tmp_path / "saved.txt"
+    # Independent literal oracle: no JS offsets, chunk decoder, or normalization.
+    original = ("saved start\n" + "x" * 7999 + "🙂Ω\nEND_SAVED_CONTENT\n").encode("utf-8")
+    artifact.write_bytes(original)
+    assert closeout_example.main(["check", "--artifact", str(artifact)]) == 0
+    artifact.write_bytes(original.replace(b"xxx", b"", 1))
+    assert artifact.read_bytes().endswith(b"END_SAVED_CONTENT\n")
+    assert closeout_example.main(["check", "--artifact", str(artifact)]) == 7

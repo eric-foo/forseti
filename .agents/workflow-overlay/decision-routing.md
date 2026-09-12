@@ -528,6 +528,13 @@ intermediate output (test dumps, batch listings, poll output) stays in the
 receiver; only a compact summary returns to the orchestrator context. This is a
 heuristic for context economy, not a mechanical gate.
 
+When completed Codex work needs an efficiency comparison, use the existing
+`run_efficiency import-codex` route with its workload checker in one invocation
+(usage: `docs/workflows/efficiency/forseti_efficiency_measurement_v0.md`). Its
+return carries the collected verification/accounting facts; reopen records only
+for unresolved diagnostics or judgment. This replaces separate metric scans
+when measurement is commissioned; it adds no per-turn measurement obligation.
+
 Judgment work — adjudication, doctrine wording, contract design, anything
 where the orchestrator's accumulated context materially improves the output —
 stays inline. The binding constraint on dispatch is judgment fidelity, not
