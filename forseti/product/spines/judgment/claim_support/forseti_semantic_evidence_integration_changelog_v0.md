@@ -24,6 +24,15 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-12 delegated review adjudicated — accepted the different-vendor
+  review's placement of supported repair transport in Local reconciliation
+  correction and its correction of the launcher evidence citation. No runtime
+  defect was found. Preserved the cited reports, accounting and bounded
+  source/claim assessments in
+  `docs/research/judgment-spine/harness/worker-efficiency-20260912/`; full
+  replayable runtime archives remain host-local. Experimental defaults remain
+  unpromoted and whole-cycle savings remain unproven.
+
 - 2026-09-12 generated repair launches — repair preparation now emits the shared
   complete-intake worker prompt and hash-pinned job; shared submit reuses the
   existing repair consumer. Three fresh Sol/high cases preserved complete
@@ -70,7 +79,7 @@ contract or its linked owning source. This history creates no new review step.
   output, completed-run savings, default promotion or delegated patch commission
   followed. This exposes a broader support-assignment error, not proof that the
   new wording caused it. See the current contract and the stopped-run evidence
-  at `C:/tmp/forseti-neutral-scale-121-20260912-v1/RESULT.md`.
+  at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-neutral-scale-121-20260912-v1/RESULT.md`).
 
 - 2026-09-12 neutral-evidence/completion experiment (unpromoted) — added opt-in
   authoring v6 to distinguish lack of support from opposition and source

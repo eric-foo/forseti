@@ -249,6 +249,18 @@ fails without truncation. Missing definitions alone retain the narrower existing
 definition-recovery route. No standing census, retry loop, prose classifier,
 additional count renderer, or independent review ceremony is installed.
 
+`prepare-reconciliation-repair` also writes a hash-pinned
+`semantic_judgment_job_v1` descriptor with phase `reconciliation_repair` and
+returns its generated `worker_prompt`, `job_path` and `job_sha256`. A controller
+forwards that prompt unchanged rather than handwriting a delivery wrapper; it
+reuses the shared `intake-judgment-job` complete delivery. `submit-judgment-job`
+routes such a job to this same repair consumer, which writes
+`successor/response.json` and `successor/receipt.json` inside the request
+directory, and returns both exact paths. Changed pinned bytes fail before intake
+and before submission. This binds transport only: repair scope, semantic
+instructions, response schema, the one-attempt rule, and the absence of any
+error detector all remain unchanged.
+
 After a current response-v3 validation failure, the read-only
 `diagnose-reconciliation-response` command may inventory every independently
 observable defect in its declared mechanical scope before a repair is nominated.
@@ -2096,9 +2108,9 @@ separately. Native batch validation accepted the response, but source-backed
 inspection rejected the unsupported purchase support. No full consumer output
 or completed-run savings was established. This does not establish that v6
 wording caused the error; the existing shared formation rule already forbids
-it. V6 remains unpromoted and does not qualify delegated patch review. Exact
+it. V6 remains unpromoted; this failed scale test alone did not qualify delegated patch review. Exact
 evidence and stopped-run accounting are in
-`C:/tmp/forseti-neutral-scale-121-20260912-v1/RESULT.md`.
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-neutral-scale-121-20260912-v1/RESULT.md`).
 
 A subsequent owner-authorized Astra/low judgment reused the exact failed
 92-candidate v6 prompt, schema and stage bytes. It separated ownership from
@@ -2107,7 +2119,7 @@ unsupported `owned` qualifier in a general approval finding. Native batch
 validation passed; this is a target-case improvement, not a clean full-run or
 model-default qualification. Estimated worker cost under the frozen comparison
 rates was $0.976506 versus $0.4697448 for the earlier Sol/high judgment.
-Evidence: `C:/tmp/forseti-astra-low-batch-20260912-v1/RESULT.md`.
+Evidence: `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-astra-low-batch-20260912-v1/RESULT.md`).
 Known errors may use the existing nominated local-repair route described above;
 this observation introduces no per-turn reviewer or automatic error detector.
 
@@ -2121,7 +2133,7 @@ estimated saving is only 2.3%. This proves the nominated correction, not lean
 dispatch, automatic detection or completion of the stopped run. Future repair
 dispatches should reuse the existing complete-intake output pattern rather than
 introducing a new semantic stage. Exact successor and limitations:
-`C:/tmp/forseti-targeted-repair-dogfood-20260912-v1/RESULT.md`.
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-targeted-repair-dogfood-20260912-v1/RESULT.md`).
 
 The matched delivery-only continuation reused that exact repair request with
 one fresh Sol/high worker and the normal complete-intake pattern. All 63,321
@@ -2132,19 +2144,19 @@ $0.1819992 (43.5% lower; 49.8% lower at the old repair's cache rate). This is on
 successful matched repair-delivery test, not full-run or automatic-detection
 qualification. The workflow's local-repair instructions now name the same
 complete-intake pattern. Evidence and corrected successor:
-`C:/tmp/forseti-repair-intake-fix-20260912-v1/RESULT.md`.
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-intake-fix-20260912-v1/RESULT.md`).
 
-Repair preparation now returns the same generated `worker_prompt` and pinned
-judgment job used for normal input delivery. Forward it unchanged. Shared submit
-dispatches repair jobs to the existing repair composer and validator and returns
-the exact durable response/receipt paths. No repair semantic prompt or schema
-changed. Three fresh Sol/high cases corrected neutral-as-counter and unsupported
-ownership in approval, while preserving correct positive/negative price evidence.
+The generated repair launch is specified under **Local reconciliation
+correction** above, which owns that supported transport; it is not part of this
+experimental packing boundary. Its observed evidence is recorded here. No repair
+semantic prompt or schema changed. Three fresh Sol/high cases corrected
+neutral-as-counter and unsupported ownership in approval, while preserving
+correct positive/negative price evidence.
 All delivered complete input in one read, with three model responses per case;
 unrelated work was unchanged. These are bounded repair successes, not full-run
 qualification or automatic error detection. Evidence, costs and the observed
 closing-message receipt-path defect:
-`C:/tmp/forseti-repair-expanded-20260912-v1/RESULT.md`.
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
 
 The subsequent convergence qualification separately exposes opt-in
 `exact_identity_namespaces_v5` via `advance --reconciliation-authoring-revision`
@@ -2181,9 +2193,10 @@ Uncertainty is not an opposite intention. Across normal rounds the treatment
 processed 355 candidate appearances versus 345; the sole unfinished finding
 until the last round was the unchanged ambiguous agreement in both arms.
 This one comparison does not establish that packing caused earlier completion.
-The experiment fails its adoption signals. The 121-row confirmation and
-conditional delegated patch review were not commissioned; defaults remain
-unchanged. Native completion alone does not establish semantic correctness.
+The experiment fails its adoption signals. At that checkpoint the 121-row confirmation and
+conditional delegated patch review had not been commissioned. Subsequent scale
+and repair experiments and the bounded code review are recorded above; defaults
+remain unchanged. Native completion alone does not establish semantic correctness.
 
 The 2026-09-11 owner-commissioned experiment exposes `group_aware_v1` through
 `advance --reconciliation-packing`; `input_order` remains the default and

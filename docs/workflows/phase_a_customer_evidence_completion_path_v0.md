@@ -574,8 +574,10 @@ or submission. `submit-judgment-job` routes this repair to the existing repair
 consumer, writing `successor/response.json` and its receipt within the request
 directory. Do not handwrite a separate delivery wrapper. This changes transport
 only, not repair scope, semantic instructions or the one-attempt rule.
-The matched repair delivery test and exact executed wrapper are recorded at
-`C:/tmp/forseti-repair-intake-fix-20260912-v1/RESULT.md`.
+The three-case test of this generated launcher, including each exact executed
+wrapper, is recorded at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
+The earlier hand-prescribed delivery test it supersedes is at
+`docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-intake-fix-20260912-v1/RESULT.md`).
 
 When that freshly written diagnostic is invalid and its complete issue set is
 exclusively cross-child `duplicate_leaf`, pass the same file as
