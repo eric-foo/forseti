@@ -61,11 +61,13 @@ does not alter any of its evidence or judgment inputs.
 
 One Astra/high baseline coordinator replay launch failed on local Codex
 configuration loading before generation. Authentication was not determined;
-no model usage or provider response exists. The candidate arm was not launched
-after the owner clarified the economic target and prohibited further attempts
-merely for price comparison. There is no measured token, Codex-credit, API-cost
-or quota delta. The owner-supplied Codex credit rates are preserved only as an
-unused proxy in [measurement.json](measurement.json); they do not establish a
+no model usage or provider response exists. After the owner clarified subscription
+percentage drain as the economic target, the source coordinator instructed this
+task to avoid additional attempts merely for API price comparison. The candidate
+arm was not launched; the owner had not revoked the small dogfood authorization.
+There is no measured token, Codex-credit, API-cost or quota delta. The
+coordinator-supplied verified Codex credit rates are preserved only as an unused
+proxy in [measurement.json](measurement.json); they do not establish a
 mapping to this Pro account's usage percentage. Account-wide percentage changes
 would also be confounded by another active task.
 

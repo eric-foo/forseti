@@ -228,11 +228,11 @@
       "generation_started": false,
       "usage": null,
       "failure": "Codex could not load its configuration; authentication not determined.",
-      "retry": "none; owner instructed no further model attempts for economic comparison"
+      "retry": "none; after the owner clarified subscription percentage drain, the source coordinator instructed this task to avoid additional attempts merely for API price comparison; the owner did not revoke the small dogfood authorization"
     },
     {
       "arm": "candidate",
-      "status": "NOT_LAUNCHED_AFTER_OWNER_CLARIFICATION",
+      "status": "NOT_LAUNCHED_AFTER_COORDINATOR_INSTRUCTION",
       "usage": null
     }
   ],
@@ -243,7 +243,7 @@
     "codex_credit_weighted_delta": null,
     "api_cost_delta": null,
     "reason": "No model generation or matched usage observations. Account-wide percentage deltas are confounded by another active task. No published per-request mapping to this account percentage meter was established.",
-    "owner_supplied_codex_credit_rates_per_million": {
+    "coordinator_supplied_verified_codex_credit_rates_per_million": {
       "Astra": {
         "input": 250,
         "cached_input": 25,
