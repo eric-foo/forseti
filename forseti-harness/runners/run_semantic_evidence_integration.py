@@ -4154,11 +4154,7 @@ def main(argv: list[str] | None = None) -> int:
     ) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
-    # Advance is machine-to-coordinator transport. Preserve every value (including
-    # full worker prompts and failures) without charging for JSON indentation.
-    print(json.dumps(result, indent=None if args.command == "advance" else 2,
-                     separators=(",", ":") if args.command == "advance" else None,
-                     sort_keys=args.command != "intake-judgment-job"))
+    print(json.dumps(result, indent=2, sort_keys=args.command != "intake-judgment-job"))
     if args.command == "advance" and result.get("status") == "SEMANTIC_ADVANCE_BLOCKED":
         return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":

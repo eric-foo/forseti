@@ -2416,12 +2416,6 @@ current-corpus final view. A command returning is not itself a reason for a new
 controller turn. The lower-level commands remain available for historical replay
 and explicitly scoped recovery; they are not the normal controller sequence.
 
-The public `advance` return uses compact JSON serialization, preserving every
-field and the complete generated worker prompts. Consumers parse once and avoid
-pretty-printing the return into coordinator history. Source-dependent judgment
-still requires the complete relevant source/claim artifacts; compact control
-state never substitutes for them. No new run artifact or state store is added.
-
 The run root contains `bundle.json`, `extraction/`, `verification/`,
 `reconciliation/level-NNNN/`, and `view.json`. Each stage uses its existing
 prompt, schema, response, stage and compilation artifacts. The returned requests

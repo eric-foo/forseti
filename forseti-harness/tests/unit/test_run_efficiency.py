@@ -422,6 +422,8 @@ def test_closeout_example_prepares_real_commands_and_preserves_three_outcomes(tm
     for command in capsule["commands"]:
         assert Path(command["cwd"]) == root / "forseti-harness"
         assert command["argv"][1:6] == ["-E", "-s", "-m", "runners.run_efficiency", "import-codex"]
+        revision = command["argv"][command["argv"].index("--revision") + 1]
+        assert revision == capsule["checkouts"][command["arm"]]["revision"]
         process = subprocess.run(command["argv"], cwd=command["cwd"], capture_output=True,
                                  encoding="utf-8", timeout=30)
         returned = json.loads(process.stdout.strip().splitlines()[-1])
@@ -430,6 +432,9 @@ def test_closeout_example_prepares_real_commands_and_preserves_three_outcomes(tm
         current = json.loads(path.read_text())
         assert (process.returncode, current["outcome"], current["quality"]["status"],
                 current["usage"]["coverage"], current["usage"]["total_tokens"]) == expected[command["case"]]
+        # Preserve the source commit; the capsule and destination identify the
+        # arm and distinguish checkouts with different uncommitted edits.
+        assert current["revision"] == revision
         saved.append((path, path.read_bytes()))
     assert not list(output.rglob("*.tmp"))
     with pytest.raises(FileExistsError):
@@ -459,7 +464,8 @@ def test_closeout_example_missing_dependency_fails_at_real_import(tmp_path, monk
     runners.mkdir(parents=True)
     (runners / "__init__.py").write_text("")
     (runners / "run_efficiency.py").write_text("import missing_closeout_fixture_dependency\n")
-    monkeypatch.setattr(closeout_example, "_checkout", lambda path: {"root": str(path)})
+    monkeypatch.setattr(closeout_example, "_checkout", lambda path: {
+        "root": str(path), "revision": "0" * 40})
     output = tmp_path / "missing-dependency"
     with pytest.raises(ValueError, match="baseline/case-a preparation failed"):
         closeout_example.prepare(root, root, output)
@@ -501,3 +507,49 @@ def test_closeout_example_checks_complete_unicode_bytes(tmp_path, closeout_examp
     artifact.write_bytes(original.replace(b"xxx", b"", 1))
     assert artifact.read_bytes().endswith(b"END_SAVED_CONTENT\n")
     assert closeout_example.main(["check", "--artifact", str(artifact)]) == 7
+    # A saved artifact that cannot be read is a broken setup, not damaged
+    # content; the record keeps only this exit code, so it must differ.
+    assert closeout_example.main(["check", "--artifact", str(tmp_path / "absent.txt")]) == 8
+    assert closeout_example.main(["check", "--artifact", str(tmp_path)]) == 8
+
+
+def test_closeout_example_binds_untracked_harness_state(tmp_path, closeout_example):
+    import subprocess
+
+    root = tmp_path / "checkout"
+    (root / "forseti-harness/runners").mkdir(parents=True)
+    runner = root / "forseti-harness/runners/run_efficiency.py"
+    runner.write_text("", encoding="utf-8")
+    (root / ".gitignore").write_text("forseti-harness/_scratch/\n", encoding="utf-8")
+    for args in [("init", "-q"), ("add", "--", ".gitignore", str(runner)),
+                 ("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                  "commit", "-q", "-m", "Fixture checkout")]:
+        subprocess.run(["git", *args], cwd=root, capture_output=True, check=True)
+
+    before = closeout_example._checkout(root)
+    ignored = root / "forseti-harness/_scratch/observation.txt"
+    ignored.parent.mkdir()
+    ignored.write_text("local observation", encoding="utf-8")
+    assert closeout_example._checkout(root) == before
+
+    dependency = root / "forseti-harness/local dependency.py"
+    dependency.write_text("VALUE = 1\n", encoding="utf-8")
+    added = closeout_example._checkout(root)
+    assert added != before
+    # Same path and byte length: Git status alone cannot see this content edit.
+    dependency.write_text("VALUE = 2\n", encoding="utf-8")
+    changed = closeout_example._checkout(root)
+    assert changed != added
+    assert before["revision"] == changed["revision"]
+    assert before["harness_diff_sha256"] == changed["harness_diff_sha256"]
+    assert added["untracked_harness_sha256"] != changed["untracked_harness_sha256"]
+
+    renamed = dependency.with_name("renamed dependency.py")
+    dependency.rename(renamed)
+    assert closeout_example._checkout(root) != changed
+    renamed.unlink()
+    assert closeout_example._checkout(root) == before
+    runner.write_text("# tracked edit\n", encoding="utf-8")
+    tracked = closeout_example._checkout(root)
+    assert tracked["harness_diff_sha256"] != before["harness_diff_sha256"]
+    assert tracked["untracked_harness_sha256"] == before["untracked_harness_sha256"]

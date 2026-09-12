@@ -1,7 +1,8 @@
 """Prepare a synthetic completed-task comparison; never launch a model.
 
-Use two intact Git checkouts. All six local checks must match the frozen
-expectations before commands.json is published for a coordinator.
+Use two complete Git checkouts. Record tracked changes and non-ignored untracked
+harness files rather than requiring clean roots. All six local checks must match
+the frozen expectations before commands.json is published for a coordinator.
 """
 from __future__ import annotations
 
@@ -14,10 +15,14 @@ import sys
 
 
 CONTENT = ("saved start\n" + "x" * 7999 + "🙂Ω\nEND_SAVED_CONTENT\n").encode("utf-8")
+# A damaged saved artifact and an unreadable one are different observations and
+# must stay distinguishable by exit code alone in the durable record.
+MISMATCH_EXIT = 7
+UNREADABLE_EXIT = 8
 EXPECTED = {
     "case-a": (0, "success", "passed", "complete", 36),
     "case-b": (0, "success", "passed", "unknown", 23),
-    "case-c": (7, "failed", "failed", "complete", 36),
+    "case-c": (MISMATCH_EXIT, "failed", "failed", "complete", 36),
 }
 SCRIPT = Path(__file__).resolve()
 
@@ -27,7 +32,7 @@ def _digest(raw):
 
 
 def _save(path, value):
-    """Publish only complete, reread JSON; never overwrite an earlier observation."""
+    """Write and reread JSON inside the exclusively created exercise directory."""
     temporary = path.with_name(path.name + ".tmp")
     with temporary.open("x", encoding="utf-8") as stream:
         json.dump(value, stream, ensure_ascii=True, indent=2, allow_nan=False)
@@ -51,9 +56,14 @@ def _checkout(path):
         raise ValueError(f"expected the complete checkout root, received {root}")
     if not (root / "forseti-harness/runners/run_efficiency.py").is_file():
         raise ValueError(f"measurement runner missing in {root}")
+    # Git status lists untracked names, but cannot reveal changes to their bytes.
+    names = _git(root, "ls-files", "--others", "--exclude-standard", "-z",
+                 "--", "forseti-harness").split("\0")
+    untracked = {name: _digest((root / name).read_bytes()) for name in names if name}
     return {"root": str(root), "revision": _git(root, "rev-parse", "HEAD").strip(),
             "harness_diff_sha256": _digest(_git(root, "diff", "--no-ext-diff", "HEAD",
-                                                "--", "forseti-harness").encode("utf-8"))}
+                                                "--", "forseti-harness").encode("utf-8")),
+            "untracked_harness_sha256": _digest(json.dumps(untracked, sort_keys=True).encode("utf-8"))}
 
 
 def _usage(inputs, responses=1):
@@ -98,6 +108,9 @@ def _command(binding, arm, case, output, destination):
             "argv": [sys.executable, "-E", "-s", "-m", "runners.run_efficiency", "import-codex",
                      "--sessions-dir", str(directory), "--thread-id", case, "--turn-id", "turn",
                      "--workflow", "synthetic-coordinator-closeout", "--workload-id", "saved-unicode-v1",
+                     # Preserve the source commit; arm and working changes remain
+                     # identified by the capsule and each record's destination.
+                     "--revision", binding["revision"],
                      "--output-dir", str(output / destination / arm / case),
                      "--quality-command", str(directory / "checker.json"), "--cwd", str(directory),
                      "--timeout-seconds", "30"]}
@@ -123,8 +136,11 @@ def _exercise(command, output):
             raise ValueError(f"expected {EXPECTED[case]}, observed {observed}")
         if (returned["outcome"], returned["quality"], returned["usage_coverage"]) != observed[1:4]:
             raise ValueError("command return disagrees with its saved record")
-        if record["quality_return_code"] != (7 if case == "case-c" else 0):
+        if record["quality_return_code"] != (MISMATCH_EXIT if case == "case-c" else 0):
             raise ValueError("wrong quality-check exit")
+        expected_revision = command["argv"][command["argv"].index("--revision") + 1]
+        if record.get("revision") != expected_revision:
+            raise ValueError("saved record does not carry its own checkout revision")
         if case == "case-b" and "turn_cumulative_reconciliation_failed" not in record["usage"]["issues"]:
             raise ValueError("missing usage failed for the wrong reason")
         if case == "case-c" and "saved_content_mismatch" not in process.stdout:
@@ -181,7 +197,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.action == "check":
-            if Path(args.artifact).read_bytes() != CONTENT:
+            try:
+                saved = Path(args.artifact).read_bytes()
+            except OSError as exc:
+                # An unreadable saved artifact is a broken setup, not the intended
+                # damaged-content result; the record only keeps the exit code.
+                print(json.dumps({"check": "saved_content", "status": "failed",
+                                  "error": f"saved_content_unreadable: {exc}"}))
+                return UNREADABLE_EXIT
+            if saved != CONTENT:
                 raise ValueError("saved_content_mismatch")
             print(json.dumps({"check": "saved_content", "status": "passed"}))
         else:
@@ -189,7 +213,7 @@ def main(argv=None):
         return 0
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         print(json.dumps({"status": "failed", "error": str(exc)}))
-        return 7 if args.action == "check" else 2
+        return MISMATCH_EXIT if args.action == "check" else 2
 
 
 if __name__ == "__main__":

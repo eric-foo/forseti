@@ -10986,31 +10986,6 @@ def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, caps
     assert code == 0 and result["view_sha256"] == expected["view_sha256"]
 
 
-@pytest.mark.parametrize("boundary", ["ready", "invalid", "complete"])
-def test_advance_cli_compact_return_preserves_complete_state(tmp_path, capsys, boundary):
-    from runners.run_semantic_evidence_integration import advance_semantic_run, main
-    source, replay, _ = _advance_replay_fixture(tmp_path)
-    run = tmp_path / "run"
-    if boundary == "complete":
-        for phase, responses in replay.items():
-            _publish_advance_replay(run, phase, responses)
-    elif boundary == "invalid":
-        invalid = deepcopy(replay["extraction"][0])
-        invalid["batch_id"] = "wrong"
-        _publish_advance_replay(run, "extraction", [invalid])
-    kwargs = dict(source_path=source, run_dir=run, max_prompt_bytes=30_000,
-                  max_evidence_per_work_unit=2)
-    advance_semantic_run(**kwargs)  # Normalize written/reused disposition on resume.
-    expected = advance_semantic_run(**kwargs)
-    code = main(["advance", "--source", str(source), "--run-dir", str(run),
-                 "--max-prompt-bytes", "30000", "--max-evidence-per-work-unit", "2"])
-    raw = capsys.readouterr().out
-    assert code == (2 if boundary == "invalid" else 0)
-    assert len(raw.splitlines()) == 1
-    assert json.loads(raw) == expected  # Includes full prompts, diagnostics and bindings.
-    assert len(raw) < len(json.dumps(expected, indent=2))
-
-
 def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
     import subprocess
     from runners.run_semantic_evidence_integration import judgment_worker_prompt

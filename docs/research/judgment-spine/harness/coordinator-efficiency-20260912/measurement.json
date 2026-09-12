@@ -2029,6 +2029,263 @@
       "Preparation identifies observed source state. It does not automatically police later edits or changing untracked dependencies; regenerate after relevant changes.",
       "No subscription percentage saving is established. Actual coordinator usage and synthetic case counters are separate.",
       "Generic tool-output observations report zero nonzero-exit markers; direct parsing of the nested command results observes the two intended exit-7 failures."
-    ]
+    ],
+    "delegated_review_followup": {
+      "date": "2026-09-12",
+      "pass_kind": "delegated_code_review_and_patch",
+      "author_vendor": "OpenAI",
+      "author_family": "GPT / gpt-6-astra",
+      "delegate_vendor": "Anthropic",
+      "delegate_family": "Claude / claude-opus-5",
+      "required_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "reviewed_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "effective_target_worktree": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+      "branch": "codex/coordinator-efficiency-20260912",
+      "status": "Adjudicated 2026-09-13; setup_followup.home_adjudication owns the accepted, modified and rejected dispositions. Review evidence below describes the returned proposal.",
+      "author_recorded_values_unchanged": true,
+      "verified_author_claims": {
+        "recorded_source_hashes": "fixture, guide and test_source sha256 all matched the files at the reviewed revision.",
+        "test_reports": "focused.xml 5, affected.xml 62, contracts.xml 18, zero failures/errors/skips in each; 85 total as reported.",
+        "six_saved_records": "All six recorded worker-record sha256 values matched the files on disk.",
+        "fresh_coordinator_log": "Rollout sha256 matched. Five responses; per-response sums equal the final cumulative counters exactly (197,899 total). Single thread/turn. Four public exec calls: three intake plus one Promise.allSettled batch of six commands read from commands.json; six fulfilled results; no retry or additional call. Observed span 2026-09-12T14:58:32.982Z to 14:59:38.140Z = 65.158 s.",
+        "boundary": "The inspected turn is the fresh coordinator only; the active parent implementation task was not included."
+      },
+      "reproduction": {
+        "method": "Ran the bound preparation from the reviewed revision into new scratch directories before and after the patch; baseline root C:\\Users\\vmon7\\Desktop\\projects\\forseti at c9dc5d449e483f015398d655fa54c89607918dd3, candidate root the pinned worktree.",
+        "pre_patch_commands_sha256": "cad6aea3b518a61b9e50114984587f2fda96cf320b1d85d88a677265942f87c1",
+        "post_patch_commands_sha256": "966c2e87711e3b95cb4c9d6c5ea3076f35252020dd6afbf731388086c3460bea",
+        "outcomes": "Both reproductions produced status ready with 6 local checks and the same six case outcomes as the recorded sample: case-a (0, success, passed, complete, 36), case-b (0, success, passed, unknown, 23), case-c (7, failed, failed, complete, 36) in both arms.",
+        "saved_input_bytes": "All six saved.txt and rollout.jsonl inputs were byte-identical to the recorded sample in both reproductions, including the 8,036-byte valid artifact and the 8,033-byte damaged one.",
+        "explained_differences": "Candidate revision cd184bdb -> 21b59c43 and its harness state digest; validation_elapsed_seconds; and each checker oracle hash, which binds the absolute artifact path and therefore changes with the exercise directory. No byte identity was demanded for those.",
+        "consumer_path": "The six published post-patch commands were executed as a coordinator would: six results matching the table above, each record written to its own worker-records destination, and a repeat of one command refused with exit 2 (FileExistsError) leaving all six saved records byte-unchanged."
+      },
+      "patched_files": {
+        "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": "9d7b34c6a0fb151c6b34ac7422c3c96ed152f696e4b973ae0a627e4c95058574",
+        "forseti-harness/tests/unit/test_run_efficiency.py": "347c54c50494ea4bc3be2a887725c3e93470c960d883cfcd14fa4278d224a495",
+        "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": "9366856048411db195e7f958e37d6b5fa363785d78a64ce285947914c47024f6",
+        "docs/research/judgment-spine/harness/coordinator-efficiency-20260912/result.md": "ff4d1b5abf7dadc8d732330d1f405a45a80d1a203ec4b397d95d15609d48a9ca"
+      },
+      "findings_patched": [
+        {
+          "id": "F-1",
+          "summary": "The saved-content checker returned exit 7 both for content that did not match the frozen bytes and for an artifact it could not read, so a broken setup reached the durable record as the intended damaged-content failure.",
+          "evidence": "Pre-patch: an absent artifact and a directory path each printed a failure line and exited 7, identical to genuine damage; the record keeps only quality.status failed and quality_return_code 7, and quality.output_fingerprint is always null.",
+          "change": "check now exits 8 with a saved_content_unreadable error when the artifact cannot be read; 7 is reserved for a byte mismatch.",
+          "proof": "Removing case-a's artifact after preparation and running its published command produced exit 8 and quality_return_code 8 in both arms' records, where the pre-patch build produced 7."
+        },
+        {
+          "id": "F-2",
+          "summary": "Each checkout binding digested only the tracked forseti-harness diff, so untracked harness files were neither recorded nor detected by the end-of-run checkout-changed guard, although they change what the child interpreter imports.",
+          "evidence": "git diff --no-ext-diff HEAD -- forseti-harness omits untracked files; the equality re-check compared only that digest.",
+          "change": "The digest now covers git status --porcelain=v1 --untracked-files=all -- forseti-harness together with the tracked diff, and the field is renamed harness_state_sha256 so the name does not overstate or understate its coverage.",
+          "proof": "New unit test shows the digest changing when only untracked harness content changes. The command returns zero lines in the baseline checkout that holds the author's ignored _scratch exercise directory, so the intended usage is unaffected."
+        },
+        {
+          "id": "F-3",
+          "summary": "Prepared commands omitted --revision, so every saved record carried revision null; with both arms importing identical inputs and a deterministic run_id, the output directory path was the only arm attribution in the evidence.",
+          "evidence": "Records reproduced from the reviewed revision showed revision null in all six, and baseline/candidate records for the same case share the same run_id filename.",
+          "change": "_command now passes that arm's revision, and the local check refuses a record that does not carry it.",
+          "proof": "Post-patch records carry c9dc5d449e48 for the baseline arm and 21b59c43a8da for the candidate arm."
+        },
+        {
+          "id": "F-6",
+          "summary": "_save documented that it never overwrites an earlier observation, but Path.rename replaces an existing destination silently on POSIX; the real protection came only from the exclusive output-directory creation.",
+          "evidence": "On this Windows host the rename fails, but it leaves the .tmp file behind, and on POSIX it would replace the destination.",
+          "change": "_save refuses before writing when the destination already exists.",
+          "proof": "New unit test: the second _save raises FileExistsError, the first value survives, and no .tmp remains. The pre-patch build failed this test on the leftover .tmp assertion."
+        },
+        {
+          "id": "F-4",
+          "summary": "result.md stated the follow-up had not been committed while the work was checkpointed as 21b59c43 on codex/coordinator-efficiency-20260912.",
+          "change": "Corrected in place with a dated correction note; still not pushed or merged and publication remains held.",
+          "proof": "git rev-parse HEAD in the pinned worktree."
+        }
+      ],
+      "findings_not_patched": [
+        "Off scope, owner forseti-harness/runners/run_efficiency.py: quality.output_fingerprint is never populated, so no checker output survives in the record; and import-codex derives run_id deterministically from thread and turn, so both arms' records for one case share a filename and would collide if ever collected into one directory.",
+        "Minor: prepare accepts baseline_root equal to candidate_root and still reports status ready. The capsule's checkouts block exposes the identical revisions, so the condition is visible rather than concealed, and the existing tests depend on the same-root form.",
+        "Optional, non-required: the damaged case's property that a head-and-tail checker would still pass it is asserted only in prose, not in a test."
+      ],
+      "considered_and_defended": [
+        "Hypothesis that the damaged case's deletion point was too close to the head to be a real interior counterexample: defeated by measurement. The filler is a homogeneous run of 7,999 x bytes, so CONTENT.replace(b'xxx', b'', 1) and a midpoint deletion produce identical bytes, with the first differing byte at offset 8,008 of 8,036 either way. A candidate patch was written and then reverted; the author's expression stands and the case-c bytes remain those of the recorded sample.",
+        "The checker's stdout precedes the runner's machine-readable final line, so parsing the last line stays correct; the shared stream is pre-existing runner behavior.",
+        "Published commands differ from the locally exercised ones only in --output-dir, and the exercised preparation-records path is the longer of the two, so no worker-only path-length or destination risk is introduced."
+      ],
+      "validation": {
+        "environment": "Windows 11, PowerShell, CPython invoked as python, run from the pinned worktree's forseti-harness.",
+        "gates": [
+          {
+            "command": "python -m pytest tests/unit/test_run_efficiency.py tests/unit/test_efficiency_codex.py -q",
+            "result": "69 passed",
+            "exit_code": 0
+          },
+          {
+            "command": "python -m pytest tests/contract/test_data_lake_inventory_gate.py tests/contract/test_policy_module_version_pins.py -q",
+            "result": "18 passed",
+            "exit_code": 0
+          },
+          {
+            "command": "python -m pytest tests/unit/test_run_efficiency.py -k closeout_example",
+            "result": "7 passed, 33 deselected (5 author tests plus 2 added)",
+            "exit_code": 0
+          },
+          {
+            "command": "git diff --check",
+            "result": "no whitespace errors; the LF/CRLF notices are pre-existing host eol configuration and all four files remain pure LF",
+            "exit_code": 0
+          }
+        ],
+        "red_green": "The patched closeout_example tests were run against the reviewed revision's builder restored byte-for-byte in place: 4 failed, 3 passed, each failure for its intended reason (assert 7 == 8 for the unreadable artifact, KeyError harness_state_sha256, a leftover preparation.json.tmp, and the missing --revision argument). The patched builder was then restored and all gates rerun.",
+        "not_run": [
+          "No broad CI run and no full harness suite; only the commissioned gates plus the reproduction.",
+          "No new model experiment or production run; no fresh coordinator was launched against the patched setup, so the patched capsule has no live-consumer observation.",
+          "POSIX behavior of the _save destination guard was not executed on this Windows host."
+        ]
+      },
+      "non_claims": [
+        "No subscription-saving, semantic-quality or whole-cycle reliability conclusion follows from this synthetic sample or from this review.",
+        "This pass is not acceptance, approval, readiness or validation of the checkpoint; the home coordinator adjudicates each finding and change.",
+        "The patched setup has no fresh-coordinator observation of its own; the recorded fresh-coordinator sample describes the pre-patch capsule."
+      ]
+    },
+    "home_adjudication": {
+      "date": "2026-09-13",
+      "author_vendor": "OpenAI",
+      "mode": "home-model review-return adjudication",
+      "base_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "state": "adjudicated; retained patch verified in the working tree; publication held",
+      "original_source_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "record_authority": "This object is the current disposition. Earlier setup_followup values preserve the original implementation observation; delegated_review_followup preserves reviewer claims rather than the final kept patch.",
+      "review_return": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-return.txt",
+        "sha256": "f3986f95670017382766ddcb6b032d9d6916cc0323eb350644ff3418b6e16633"
+      },
+      "reviewer_patch": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate.patch",
+        "sha256": "1e315b12e29655d86f2b305e42eeb0cece429afdb787a3915c497b4d9d0c4480"
+      },
+      "reviewer_measurement_snapshot": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-measurement.json",
+        "sha256": "bf8fbbb0d435cca4efb16374e036921665e245be867ebb606501b26b54e82814"
+      },
+      "reviewer_source_snapshot_root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-source",
+      "decisions": [
+        {
+          "id": "F-1",
+          "decision": "accept",
+          "reason": "The saved checker return code now distinguishes an unreadable artifact (8) from a byte mismatch (7). Both arms persisted 8 during the final missing-file exercise."
+        },
+        {
+          "id": "F-2",
+          "decision": "modify",
+          "reason": "The returned Git-status digest detected names, not edits to an already-untracked file. A real same-path, same-length content edit left its binding unchanged. The final fix hashes untracked names and bytes, retains harness_diff_sha256, and adds untracked_harness_sha256. The test uses real Git and filesystem changes, including addition, modification, rename, removal, ignored scratch and a tracked edit."
+        },
+        {
+          "id": "F-3",
+          "decision": "accept with narrower attribution claim",
+          "reason": "Keep --revision and saved-record validation as source-commit metadata. A commit alone does not identify an arm or dirty checkout; the capsule and separate output destinations retain those distinctions. Guide and comments now say this explicitly."
+        },
+        {
+          "id": "F-4",
+          "decision": "accept",
+          "reason": "The original implementation was checkpointed as 21b59c43 before courier. Keep the dated correction; the adjudicated working-tree patch remains uncommitted and publication is held."
+        },
+        {
+          "id": "F-5",
+          "reviewer_measurement_id": "F-6",
+          "decision": "reject proposed guard and its private-helper test",
+          "reason": "The supported prepare entrypoint exclusively creates a new exercise directory before _save is reached. Reuse is already rejected there, and real repeat-import tests preserve all prior records. A second guard inside the private helper does not close a reachable defect in the commissioned flow. Clarify the helper docstring instead; do not expand into a general publication primitive."
+        }
+      ],
+      "untracked_content_counterexample": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\untracked-content-counterexample.json",
+        "sha256": "ce97ce4924e16ccddaf91c1b51073093de9c2dfbbec96dae26abd66e38933c60"
+      },
+      "red_test": {
+        "report": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\untracked-red.xml",
+          "sha256": "39e012099fafc4226ed9a7d306145ede0b5091cc1c303d000f4b177ef1107435"
+        },
+        "expected_failure": "One real-file content-change test failed on changed != added against the reviewer builder; not a schema-key failure."
+      },
+      "sources": {
+        "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\fixtures\\efficiency_codex_closeout\\prepare.py",
+          "sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667"
+        },
+        "forseti-harness/tests/unit/test_run_efficiency.py": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\unit\\test_run_efficiency.py",
+          "sha256": "faa3dbbe3e8af7f5acbb44f8609655bd6eecf425ee97999e4c941e0c4ed731bf"
+        },
+        "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+          "sha256": "e300d8538178883877740d66f65be0e4d24eb2b187f926a6e8d95c92ce976a49"
+        }
+      },
+      "tests": [
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\focused.xml",
+            "sha256": "529bf48e66758585de77a854fa584c1040a726c040256998a45d03272ea73df5"
+          },
+          "tests": 6,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\affected.xml",
+            "sha256": "dfd8ff13512771b4ba4bc3fb77fe6db0de31812a0b51e38b24c9212778838d60"
+          },
+          "tests": 62,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\contracts.xml",
+            "sha256": "2e6e92448c450e0556bff4e61b78398af65dcd31e31d046cc58310707589e904"
+          },
+          "tests": 18,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        }
+      ],
+      "total_passing_tests": 86,
+      "consumer_evidence": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\consumer-evidence.json",
+        "sha256": "50c9c69c88e15bf912f7d329bb8cbdb029b38310decb0d8a42b514acabe29d16"
+      },
+      "consumer_summary": {
+        "commands": 6,
+        "case_exits": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          7
+        ],
+        "repeat_exit": 2,
+        "unreadable_artifact_exits": [
+          8,
+          8
+        ],
+        "input_files_unchanged": 6,
+        "model_calls": 0
+      },
+      "operator_closeout_source": {
+        "before_review": "A reusable synthetic comparison was implemented, verified by 85 local tests and one completed fresh coordinator, then frozen in the local author checkpoint.",
+        "final_kept_state": "Three setup improvements and the evidence correction are retained: distinct unreadable/mismatch exits, real untracked-content fingerprints without renaming the original field, and source-commit metadata. The extra private-save guard is removed. Exactly the original five commissioned files remain changed.",
+        "validation": "86 passing local tests (6 setup, 62 existing affected unit, 18 coupling contracts). The six published commands reproduced the intended outcomes; repeat import exited 2 without changing prior records; missing artifacts persisted exit 8 in both arms. All six saved input files remain identical to the original sample.",
+        "gaps": "No new model experiment, production run, broad CI or full harness suite. The original fresh coordinator observed the pre-review setup; the final setup has local command-consumer evidence.",
+        "remaining_risk": "Fingerprints cover tracked changes and non-ignored untracked harness files, not ignored files or installed packages. State is checked during preparation, not enforced later. Separate arm directories remain necessary; generic checker-output persistence and record naming are outside scope.",
+        "next_material_move": "Measure setup repairs and avoidable coordinator calls in the next separately authorized real comparison before reconsidering the coordinator model. No additional model launch is authorized by this adjudication.",
+        "lifecycle": "No further lane commit, push, PR or merge. When publication is authorized, handle the accepted changes in one land step."
+      }
+    }
   }
 }

@@ -16,8 +16,10 @@ record readback in the existing importer. The final Astra/high coordinator
 completed three contrasting assessments in **one post-intake tool round**, versus
 three for the baseline. Subscription-drain savings remain unproven. The
 follow-up contract and observations below supersede the earlier serialization
-candidate as the behavioral-efficiency recommendation; both changes remain in
-the managed worktree and publication is held.
+candidate as the behavioral-efficiency recommendation. The owner authorized a
+fresh confirmation and conditional PR merge on 2026-09-13. Publication is scoped
+to batching and reliable comparison setup; the serialization experiment is
+excluded from the proposed production change.
 
 ## Earlier serialization candidate
 
@@ -26,8 +28,8 @@ indentation. Seven genuine CLI boundaries shrink from **85,886 to 81,211 UTF-8
 bytes** (LF-normalized): **4,675 bytes / 5.44%**. Every parsed value and the final
 native consumer view match. **Subscription quota savings are unproven. I would
 not land this change solely as a quota-efficiency fix on this evidence.** The
-small, reversible serialization candidate is retained for the source owner's
-landing decision; this record does not promote its economic value.
+serialization implementation and its two guidance additions have been removed
+from the publication candidate; these historical measurements are preserved.
 
 The initial baseline was already compact in substance: ready returns were mostly
 complete generated worker instructions. Removing transitions would lose earlier
@@ -333,4 +335,87 @@ accounting and all six saved-record fingerprints are in
 `measurement.json` under `setup_followup`.
 
 Implementation is present in the managed worktree. Publication remains held;
-this follow-up has not been committed, pushed or merged.
+this follow-up has not been pushed or merged.
+
+Correction, 2026-09-12: the paragraph above previously read "has not been
+committed, pushed or merged". That was true when written and false at the
+reviewed state: the batching and reusable-setup work is checkpointed in this
+worktree as commit `21b59c43a8da6cac4f81626685966b5d0339b3e6` on branch
+`codex/coordinator-efficiency-20260912`. Nothing was pushed or merged and
+publication is still held.
+
+## Reusable comparison setup: delegated review pass
+
+The external reviewer reported Anthropic / Claude lineage and reviewed the
+OpenAI-authored checkpoint `21b59c43`. The returned patch and its original
+measurement are preserved under the adjudication evidence directory named in
+`measurement.json`. The reviewer's findings and test claims are historical
+proposal evidence; the home disposition below owns the final retained changes.
+
+## Reusable comparison setup: home adjudication (2026-09-13)
+
+| Finding | Decision | What remains |
+| --- | --- | --- |
+| F-1: unreadable content shared the damage exit | Accept | Unreadable artifacts persist exit 8; actual byte mismatch remains 7. |
+| F-2: untracked harness changes were missed | Modify | Hash filenames AND contents. A real same-name, same-length content edit defeated the reviewer's status-only patch. Keep `harness_diff_sha256`; add `untracked_harness_sha256`. |
+| F-3: missing source revision | Accept, narrow the claim | Records retain the source commit. Arm and dirty-state identity still come from the capsule and separate destinations. |
+| F-4: stale uncommitted claim | Accept | The dated checkpoint correction above remains. |
+| F-5 in chat / F-6 in reviewer JSON: extra private-save guard | Reject | The supported entrypoint already refuses an existing exercise directory. Remove the redundant guard/test and clarify the helper's scope. Public no-overwrite checks remain. |
+
+Final verification: **86 passed** (6 setup, 62 existing affected unit, 18 coupling
+contracts), no failures/errors/skips. The added real-Git content-change test first
+failed for the intended unchanged-binding result against the reviewer builder,
+then passed after correction. One review-added private-helper test was removed;
+that explains the difference from the reviewer's 87-test total.
+
+The final prepared commands reproduced all six outcomes (0, 0, 7 in each arm).
+Repeated import exited 2 and preserved all prior saved records. A temporarily
+missing artifact produced exit 8 in both arms' saved records; its original bytes
+were restored afterward. All six saved input files remain byte-identical to the
+original sample. These are local command checks, with no additional AI sample.
+
+The three source/test/guide fingerprints, raw counterexample, test reports, eight
+saved consumer records and original reviewer return are linked under
+`setup_followup.home_adjudication`; its `operator_closeout_source` is the current
+compact closeout. Earlier source hashes and the original completed-coordinator
+accounting remain historical evidence for their original revision.
+
+No material issue remains open within this five-file commission. The setup still
+does not fingerprint ignored files or installed packages, enforce later state,
+or support flattening both arms into one directory. Generic checker-output
+persistence and record naming belong to the unchanged measurement runner. The
+final patch has no new live-model observation, full-harness or broad-CI claim,
+and establishes no subscription saving or whole-cycle reliability conclusion.
+
+At adjudication closeout the base checkpoint was `21b59c43` and the reviewed
+changes were uncommitted. Publication and another model observation were held
+at that stage. The owner's subsequent measurement-and-merge request supersedes
+that hold under the bounded confirmation below.
+
+## Post-review confirmation: success contract (2026-09-13)
+
+Decision: land the reviewed setup and batched importer if a fresh coordinator
+can use the prepared six commands without setup repair, retries or lost failure
+visibility, and required PR checks pass. Exclude the earlier serialization
+candidate from production; retain its measured history. No model downgrade is
+part of this change.
+
+Freeze one fresh Astra/high coordinator with no inherited author discussion,
+fixture implementation or expected answers. Give it the prepared command
+capsule and applicable operating sources. It reports each observed outcome,
+quality and accounting coverage. Host-side expectations remain 0/0/7 exits and
+complete/unknown/complete coverage in each arm; missing response usage must not
+be silently counted complete and damaged bytes must fail quality. Six local
+preparation checks must pass before launch. Use fresh worker destinations.
+
+Measure completed native responses, intake and work tool rounds, setup errors,
+repairs, retries, elapsed time and token counters. Compare with the previous
+successful setup sample (one work batch, three intake rounds, zero repairs or
+retries, five responses, 197,899 total tokens). A tie is a valid confirmation;
+do not substitute the earlier setup failures as a baseline to claim improvement.
+This is one fresh confirmation against a historical reference, not a randomized
+new A/B or an independent six-run replication. Context/cache differences prevent
+a causal token-saving conclusion. Estimated cost is one actor, about five
+responses and 150–220k aggregate input plus 1–2k output tokens; no further sample
+is needed once the bounded decision is resolved. Synthetic imported usage stays
+separate from native actor usage and active-parent/whole-work-unit consumption.

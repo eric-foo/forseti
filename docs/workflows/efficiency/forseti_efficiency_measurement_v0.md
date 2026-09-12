@@ -124,10 +124,19 @@ python tests/fixtures/efficiency_codex_closeout/prepare.py prepare --baseline-ro
 Both roots are complete Git checkouts containing their own measurement runner;
 select the intended revisions before preparation. Do not copy selected Python
 modules or combine imports across checkouts. Uncommitted candidate edits are
-allowed and the tracked harness diff is identified in the prepared commands.
-The preparer uses each checkout's real `import-codex` command. It checks three
-synthetic completed records in both versions before publishing `commands.json`.
-The supplied byte-for-byte checker avoids a separate Unicode/chunk decoder.
+allowed. The capsule retains `harness_diff_sha256` for tracked changes and adds
+`untracked_harness_sha256` for the names and bytes of non-ignored untracked
+harness files; a filename list alone cannot detect an edit to an existing file.
+Ignored files and installed Python packages are outside these fingerprints.
+The preparer uses each checkout's real `import-codex` command and records its
+source commit. That commit alone does not identify an arm or uncommitted edits;
+the capsule and separate destinations preserve those distinctions. It checks
+three synthetic completed records in both versions before publishing
+`commands.json`. The supplied byte-for-byte checker avoids a separate
+Unicode/chunk decoder; it exits 7 only for content that does not match the
+frozen bytes and 8 when the saved artifact cannot be read, so a broken setup
+stays distinguishable from the intended damaged-content failure in the saved
+`quality_return_code` alone.
 
 Only an exit-zero `status: ready` return releases the coordinator sample. Give
 the coordinator `commands.json`; execute its argv arrays using their associated
