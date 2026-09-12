@@ -71,7 +71,7 @@ hashes. Imported historical duration stays unchanged; the later checker time is
 reported separately. A completed task without a quality check remains
 `unmeasured` for quality, even when all tokens are observed.
 
-For a commissioned completed-task comparison, use `import-codex` with the
+For one commissioned completed task, use `import-codex` with the
 workload's existing `--quality-command` in one coordinator invocation. Its final
 JSON includes usage and coverage issues, unique response counts, per-task usage,
 tool-call event counts, observed model/effort, output diagnostic counts, checker
@@ -79,6 +79,14 @@ exit/status and the completion interval. The importer rereads the saved JSON
 and checks it against the collected record before returning
 `record_readback_matched: true`; a mismatch fails instead of returning success.
 That fresh readback supports the persistence claim at this return boundary.
+Completed-task imports and comparisons budget the entire JSON return before
+printing (8,192 UTF-8 bytes by default; `--max-output-bytes` selects 1,024–32,768).
+An oversized return supplies `return_view: details_required`, status facts and
+the complete record's path; it never slices the JSON or implies that omitted
+details passed. Checker stdout/stderr remain in the returned `validation_logs`.
+Comparisons save and verify a full report even without `--output`, using the
+existing efficiency-log destination. Resolve a missing decision fact from that
+record, instead of raising the budget to load everything.
 The detailed record remains at `record_path`. Read it or the selected source
 only when a missing fact, diagnostic
 or judgment requires it; do not reopen the same log separately for each metric.
@@ -111,6 +119,49 @@ visible and make the measurement unusable while preserving the original
 product result or exception. Archive selected baseline records with the change's
 evidence; routine operational records stay outside Git. `repo-size` exposes
 their current growth; this command performs no deletion.
+
+### Completed task batches
+
+For several completed tasks, use one `report-codex` invocation instead of
+assembling importer returns and rebuilding totals in the coordinator:
+
+```text
+python -m runners.run_efficiency report-codex --sessions-dir SESSION_FOLDER --selection selection.json --output-dir memory/logs/efficiency
+```
+
+`selection.json` names only the runs being measured, including unsuccessful
+attempts within the commissioned boundary. It is a command input, not a new
+per-task record obligation. A minimal example is:
+
+```json
+{"runs":[
+  {"label":"before","thread_id":"TASK_A","turn_id":"TURN_A","workflow":"agent_change","workload_id":"FIXTURE_SHA"},
+  {"label":"after","thread_id":"TASK_B","turn_id":"TURN_B","workflow":"agent_change","workload_id":"FIXTURE_SHA"}
+],"comparisons":[{"label":"change","baseline":["before"],"candidate":["after"]}]}
+```
+
+Each run also accepts the existing import options `quality_command`, `cwd`,
+`configuration`, `revision`, `pair_id` and `timeout_seconds`. File paths resolve
+from the selection file's directory. Use the workload's real checker when one
+exists; missing quality remains unmeasured. The existing comparison rules still
+require at least three matched pairs and passed, compatible quality evidence;
+the one-pair example therefore cannot establish an improvement.
+
+The command calls the same collector, verifies each saved run, and writes one
+verified batch report. Its combined return is bounded. Accounting covers the
+union of selected turns and their discovered descendants: a shared response is
+counted once even when a child is also selected explicitly. Conflicting copies
+make the total unknown and the command fail. Failed runs remain included;
+uncompleted or uncollectable runs are listed and make the total unknown. A
+nonzero selected-run/checker exit remains nonzero for the batch. Per-task
+observed subtotals do not override unknown coverage for the whole boundary.
+Concurrent durations are kept per run, never added into invented wall time.
+
+Selection still requires judgment: code cannot discover an omitted experiment
+outside those roots or declare unlike assignments comparable. Count development
+work separately from routine execution, and collect an active coordinator only
+after its selected turn completes. Synthetic fixture counters are not native
+actor cost; token observations are not subscription-percentage measurements.
 
 ### Reusable coordinator closeout sample
 

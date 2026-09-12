@@ -1,5 +1,42 @@
 # Coordinator efficiency samples — 2026-09-12
 
+## Execution efficiency: success contract (2026-09-13)
+
+Authorized outcome: implement the four coordinator fixes sequentially, retaining
+the prior instruction simplification. Worktree `f8e7/forseti`, branch
+`codex/coordinator-execution-efficiency-20260913`, starts clean at
+`d5e564e6a6b1ce65cd75d8f199f73e983b628ef1`; the coordinator is the sole source
+writer. This section owns this work unit's evidence; earlier samples retain
+their original boundaries.
+
+1. Code owns mechanical CI waiting, pinned to the requested PR revision. Fast
+   completion, failed checks, absent checks, timeout and changed head remain
+   distinguishable. No model monitor is commissioned and no merge is hidden in
+   the watcher. The existing fresh merge guard and 60-second responsiveness
+   requirement remain.
+2. CI and measurement returns have a combined UTF-8 byte budget, complete saved
+   records and an explicit detail reference when the summary cannot fit. Large
+   failures cannot become success or silently disappear through truncation.
+3. The actual CI routing names one observation owner and uses the code watcher;
+   judgment delegation keeps event-driven completion/attention waiting.
+4. The existing efficiency command accepts an explicit set of completed runs,
+   reconciles identities and accounting once, retains failed/unknown attempts,
+   verifies saved output and returns a compact result. Overlapping actor usage
+   is counted once; incompatible duplicates fail visibly. Existing minimum-pair
+   and quality conditions still govern comparison claims.
+
+Validate each step before the next: deterministic positive, negative and
+recovery cases, followed by one bounded fresh sample and real PR CI observation.
+Report the completed sample's whole selected actor boundary separately from the
+still-running implementation task; never present fixture counters or a partial
+parent prefix as its completed cost. The sample proves use and correctness,
+not subscription-percentage savings. Review need is evaluated after validation
+against the repository's conditional independent-evidence predicate.
+
+Non-goals: global tool interception, model downgrades, new standing checklists,
+new measurement obligations, changing comparison thresholds, or claiming all
+historical coordinator tokens are waste.
+
 ```yaml
 retrieval_header_version: 1
 artifact_role: Bounded implementation and dogfood record

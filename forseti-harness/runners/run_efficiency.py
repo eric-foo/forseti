@@ -17,11 +17,12 @@ import subprocess
 import sys
 import tempfile
 import time
-from uuid import NAMESPACE_URL, uuid5
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from harness_efficiency import aggregate_usage, current_revision, make_record, utc_now, write_record
 from reports.efficiency_codex import collect_codex_exec, collect_desktop_task
 from reports.efficiency_compare import compare_runs
+from reports.compact_return import bounded_json, output_budget, write_verified
 
 
 def _json(path: str | Path):
@@ -177,11 +178,12 @@ def _measure(args: argparse.Namespace) -> int:
 def _compare(args: argparse.Namespace) -> int:
     report = compare_runs([_json(path) for path in args.baseline], [_json(path) for path in args.candidate],
                           minimum_pairs=args.minimum_pairs, relative_threshold=args.threshold)
-    text = json.dumps(report, ensure_ascii=False, allow_nan=False, sort_keys=True, indent=2) + "\n"
-    if args.output:
-        with Path(args.output).open("x", encoding="utf-8", newline="\n") as handle:
-            handle.write(text)
-    print(text, end="")
+    path = Path(args.output) if args.output else Path(os.environ.get(
+        "FORSETI_EFFICIENCY_DIR", "memory/logs/efficiency")) / f"comparison-{uuid4()}.json"
+    path = write_verified(report, path)
+    returned = {**report, "record_path": str(path), "record_readback_matched": True}
+    print(bounded_json(returned, record_path=path, facts={"overall": report["overall"]},
+                       budget=getattr(args, "max_output_bytes", 8192)), end="")
     return 0
 
 
@@ -215,7 +217,13 @@ def _desktop_return(record: dict, path: Path) -> dict:
     }
 
 
-def _import_codex(args: argparse.Namespace) -> int:
+class IncompleteDesktopTurn(ValueError):
+    def __init__(self, observation: dict):
+        super().__init__("selected Desktop turn has no complete observed elapsed interval")
+        self.observation = observation
+
+
+def _collect_codex(args: argparse.Namespace) -> tuple[dict, dict, int]:
     configuration = _json(args.configuration) if args.configuration else {}
     if not isinstance(configuration, dict):
         raise ValueError("configuration must be a JSON object")
@@ -239,15 +247,19 @@ def _import_codex(args: argparse.Namespace) -> int:
     if isinstance(elapsed, bool) or not isinstance(elapsed, (int, float)) or not math.isfinite(elapsed) or elapsed < 0:
         # Preserve the collector's explanation, without manufacturing a completed
         # run interval from file times or the import operation's own duration.
-        print(json.dumps(summary, allow_nan=False, sort_keys=True, indent=2))
-        raise ValueError("selected Desktop turn has no complete observed elapsed interval")
+        path = write_verified(summary, Path(args.output_dir) / "diagnostics" / f"incomplete-{uuid4()}.json")
+        raise IncompleteDesktopTurn({**summary, "record_path": str(path)})
     quality = {"status": "unmeasured", "oracle": oracle, "output_fingerprint": None}
     checker_exit = None
     validation_elapsed = None
     validation_issues = []
     if checker:
         validation_started = time.perf_counter()
-        checker_exit, validation_issues = _execute(checker, cwd=cwd, timeout=args.timeout_seconds)
+        logs = Path(args.output_dir).resolve() / f"validation-{uuid4()}"
+        logs.mkdir(parents=True, exist_ok=False)
+        with (logs / "stdout.txt").open("x", encoding="utf-8") as stdout, (logs / "stderr.txt").open("x", encoding="utf-8") as stderr:
+            checker_exit, validation_issues = _execute(checker, cwd=cwd, timeout=args.timeout_seconds,
+                                                       stdout=stdout, stderr=stderr)
         validation_elapsed = time.perf_counter() - validation_started
         quality["status"] = "passed" if checker_exit == 0 else "failed"
     # A recovered request does not fail the whole run. An explicitly failed or
@@ -269,16 +281,85 @@ def _import_codex(args: argparse.Namespace) -> int:
         result["usage"]["coverage"] = "unknown"
         result["usage"]["issues"] = sorted(set(result["usage"]["issues"] + summary["issues"]))
     result["collection"] = {key: value for key, value in summary.items() if key != "attempts"}
+    if checker:
+        result["validation_logs"] = {"stdout": str(logs / "stdout.txt"), "stderr": str(logs / "stderr.txt")}
     path = write_record(result, Path(args.output_dir))
     persisted = _json(path)
     if persisted != result:
         raise ValueError("saved Desktop measurement differs from collected record")
     returned = _desktop_return(persisted, path)
     returned["record_readback_matched"] = True
-    print(json.dumps(returned, ensure_ascii=True, allow_nan=False))
-    if failed:
-        return checker_exit if checker_exit is not None and 0 < checker_exit <= 255 else 1
-    return 0
+    if checker:
+        returned["validation_logs"] = persisted["validation_logs"]
+    code = (checker_exit if checker_exit is not None and 0 < checker_exit <= 255 else 1) if failed else 0
+    return returned, persisted, code
+
+
+def _import_codex(args: argparse.Namespace) -> int:
+    try:
+        returned, _, code = _collect_codex(args)
+    except IncompleteDesktopTurn as exc:
+        print(bounded_json(exc.observation, record_path=Path(exc.observation["record_path"]),
+                           facts={"coverage": "unknown", "completion": "incomplete"},
+                           budget=args.max_output_bytes), end="")
+        raise
+    path = Path(returned["record_path"])
+    print(bounded_json(returned, record_path=path,
+                       facts={"outcome": returned["outcome"], "quality": returned["quality"],
+                              "quality_return_code": returned["quality_return_code"], "usage_coverage": returned["usage_coverage"],
+                              "collection_issue_count": len(returned["collection_issues"])},
+                       budget=getattr(args, "max_output_bytes", 8192)), end="")
+    return code
+
+
+def _report_codex(args: argparse.Namespace) -> int:
+    from reports.efficiency_batch import reconcile_runs, selection
+
+    manifest_path = Path(args.selection).resolve(strict=True)
+    runs, comparisons = selection(_json(manifest_path), manifest_path.parent)
+    destination = Path(args.output_dir).resolve() / f"batch-{uuid4()}"
+    records, rows = {}, []
+    for index, run in enumerate(runs):
+        label = run.pop("label")
+        options = argparse.Namespace(sessions_dir=args.sessions_dir, output_dir=str(destination / str(index)), **run)
+        try:
+            returned, record, code = _collect_codex(options)
+            records[label] = record
+            rows.append({"label": label, "exit_code": code, **returned})
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            row = {"label": label, "exit_code": 2, "outcome": "uncollected", "error": str(exc)}
+            if isinstance(exc, IncompleteDesktopTurn):
+                row["diagnostic_path"] = exc.observation["record_path"]
+            rows.append(row)
+    accounting = reconcile_runs(records, uncollected=[row["label"] for row in rows if row["outcome"] == "uncollected"])
+    compared = []
+    for requested in comparisons:
+        try:
+            report = compare_runs([records[label] for label in requested["baseline"]],
+                                  [records[label] for label in requested["candidate"]])
+        except (KeyError, ValueError) as exc:
+            report = {"overall": "inconclusive", "reasons": [f"comparison unavailable: {exc}"]}
+        compared.append({"label": requested["label"], **report})
+    code = next((row["exit_code"] for row in rows if row["exit_code"]), 0)
+    if accounting["conflicts"]:
+        code = 2
+    result = {"status": "failed" if code else "observed", "runs": rows,
+              "accounting": accounting, "comparisons": compared}
+    path = write_verified(result, destination / "report.json")
+    returned = {"status": result["status"], "record_path": str(path), "record_readback_matched": True,
+                "accounting": accounting,
+                "runs": [{key: row[key] for key in ("label", "exit_code", "outcome", "quality", "usage_coverage",
+                         "model_responses", "elapsed_seconds", "record_path", "diagnostic_path", "error") if key in row}
+                         for row in rows],
+                "comparisons": [{"label": row["label"], "overall": row["overall"], "reasons": row["reasons"]}
+                                for row in compared]}
+    print(bounded_json(returned, record_path=path,
+                       facts={"status": result["status"], "selected_runs": len(rows),
+                              "failed_or_uncollected_runs": sum(row["exit_code"] != 0 for row in rows),
+                              "usage_coverage": accounting["usage"]["coverage"],
+                              "unique_model_responses": accounting["unique_model_responses"]},
+                       budget=args.max_output_bytes), end="")
+    return code
 
 
 def _repo_size(args: argparse.Namespace) -> int:
@@ -306,6 +387,7 @@ def main(argv: list[str] | None = None) -> int:
     compare.add_argument("--minimum-pairs", type=int, default=3)
     compare.add_argument("--threshold", type=float, default=0.05)
     compare.add_argument("--output", help="Optional new report file (exclusive creation)")
+    compare.add_argument("--max-output-bytes", type=output_budget, default=8192)
     compare.set_defaults(handler=_compare)
     measure = commands.add_parser("measure", help="Measure a complete command plus optional independent checker")
     measure.add_argument("--workflow", required=True)
@@ -333,7 +415,14 @@ def main(argv: list[str] | None = None) -> int:
     imported.add_argument("--quality-command", help="JSON argv for an independent post-hoc output checker")
     imported.add_argument("--cwd", help="Post-hoc checker working directory")
     imported.add_argument("--timeout-seconds", type=float, default=300)
+    imported.add_argument("--max-output-bytes", type=output_budget, default=8192)
     imported.set_defaults(handler=_import_codex)
+    batch = commands.add_parser("report-codex", help="Collect explicit completed tasks and reconcile their shared usage once")
+    batch.add_argument("--sessions-dir", required=True)
+    batch.add_argument("--selection", required=True, help="JSON runs and optional named baseline/candidate label lists")
+    batch.add_argument("--output-dir", required=True)
+    batch.add_argument("--max-output-bytes", type=output_budget, default=8192)
+    batch.set_defaults(handler=_report_codex)
     size = commands.add_parser("repo-size", help="Observe tracked logical content and current measurement log size")
     size.add_argument("--repo", required=True)
     size.add_argument("--revision", default="HEAD")
