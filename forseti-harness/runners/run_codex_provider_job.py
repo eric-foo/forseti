@@ -13,7 +13,7 @@ if str(HARNESS_ROOT) not in sys.path:
     sys.path.insert(0, str(HARNESS_ROOT))
 from harness_utils import hash_file
 from provider_jobs import run_provider_job
-from runners.run_codex_provider_attempt import preloaded_context
+from runners.run_codex_provider_attempt import REASONING_EFFORTS, preloaded_context
 
 
 def main():
@@ -21,7 +21,8 @@ def main():
     for name in ("job-dir", "attempt-root", "retry-budget-dir", "prompt-file", "output-schema", "worktree", "codex-executable"):
         parser.add_argument("--"+name, type=Path, required=True)
     parser.add_argument("--model", required=True)
-    parser.add_argument("--reasoning-effort", choices=["high"], default="high")
+    parser.add_argument("--reasoning-effort", choices=REASONING_EFFORTS, required=True,
+                        help="Explicit task-assessed effort supported by the selected model; no default")
     parser.add_argument("--timeout-seconds", type=float, required=True)
     parser.add_argument("--run-retry-limit", type=int, required=True)
     parser.add_argument("--max-retries", type=int, default=1)
@@ -44,7 +45,7 @@ def main():
             command = [sys.executable, str(native), "--attempt-root", str(args.attempt_root), "--attempt-id", aid,
                 "--prompt-file", binding["prompt_path"], "--output-schema", binding["schema_path"],
                 "--worktree", binding["worktree"], "--codex-executable", binding["codex_executable"],
-                "--model", args.model, "--reasoning-effort", "high", "--require-chatgpt",
+                "--model", args.model, "--reasoning-effort", binding["reasoning_effort"], "--require-chatgpt",
                 "--timeout-seconds", str(args.timeout_seconds)]
             if context:
                 command += ["--expected-context-sha256", binding["preloaded_context_sha256"]]

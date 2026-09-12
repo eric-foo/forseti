@@ -40,6 +40,40 @@ def test_capacity_recovers_once_and_restart_does_not_generate_or_recount(job):
     assert result['execution_receipt']['usage'] is None
 
 
+@pytest.mark.parametrize('mutation', ['none', 'missing', 'wrong', 'duplicate'])
+def test_selected_effort_is_frozen_across_retries_and_receipt_reuse(job, mutation):
+    args, calls, outcomes, _ = job
+    args['binding']['reasoning_effort'] = 'medium'
+    outcomes.extend(['capacity', 'PROCESS_COMPLETED'])
+    original_launch = args['launch']
+
+    def launch(aid):
+        original_launch(aid)
+        path = args['attempt_root'] / aid / 'execution_receipt.json'
+        receipt = json.loads(path.read_text(encoding='utf-8'))
+        if mutation != 'missing':
+            effort = 'high' if mutation == 'wrong' else 'medium'
+            receipt['command'] += ['--config', f'model_reasoning_effort="{effort}"']
+        if mutation == 'duplicate':
+            receipt['command'] += ['--config', 'model_reasoning_effort="max"']
+        path.write_text(json.dumps(receipt), encoding='utf-8')
+
+    args['launch'] = launch
+    if mutation != 'none':
+        with pytest.raises(ValueError, match='reasoning effort changed'):
+            run_provider_job(**args)
+        assert len(calls) == 1
+        assert not list(args['retry_budget_dir'].glob('claim-*.json'))
+        return
+    result = run_provider_job(**args)
+    assert result['status'] == 'PROCESS_COMPLETED_NOT_VALIDATED' and len(calls) == 2
+    assert run_provider_job(**args) == result and len(calls) == 2
+    args['binding']['reasoning_effort'] = 'max'
+    with pytest.raises(ValueError, match='job binding changed'):
+        run_provider_job(**args)
+    assert len(calls) == 2
+
+
 @pytest.mark.parametrize('mutation', ['none', 'wrong_context', 'shell_enabled'])
 def test_preloaded_job_receipt_requires_bound_context_and_no_shell(job, mutation):
     import hashlib

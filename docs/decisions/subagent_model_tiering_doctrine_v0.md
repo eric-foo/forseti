@@ -50,7 +50,7 @@ below. The availability and inheritance observations here describe the
   inherits the parent model.
 - **Observed Codex override values on 2026-06-16:** `gpt-5.3-codex-spark`,
   `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.5`.
-- **Reasoning/service overrides:** the owner's 2026-08-30 high-only launch rule
+- **Reasoning/service overrides:** the owner's task-based effort rule
   below governs all new agents and provider attempts, including in-session
   subagents. Omit service-tier overrides.
 - **Current availability:** use the active tool schema and role definitions;
@@ -142,7 +142,7 @@ is selected. Set an explicit model override only when available and needed for
 the selected tier.
 
 Omit inherited placeholders under `.agents/workflow-overlay/decision-routing.md`
--> **Subagent Runtime Payload Safety**. Preserve the high-only launch and full-history-fork rules in
+-> **Subagent Runtime Payload Safety**. Preserve the effort-selection and full-history-fork rules in
 **Session-lane tier defaults** below. A dated example payload or model roster
 does not override the current tool contract.
 
@@ -158,7 +158,7 @@ time whenever the subagent's output will be acted on. Do one of these:
 
 - use a full-history fork supported by the current tool only when the parent
   already loaded the controlling sources, the task can safely inherit that
-  context, and the high-only launch rule can be satisfied;
+  context, and the assessed effort can be established under the rule below;
 - provide a compact source capsule with the controlling excerpts and paths; or
 - require the subagent to read named sources first and report
   `SOURCE_CONTEXT_READY` before analysis, patching, or verdicts.
@@ -230,15 +230,22 @@ The same tiering applies to whole delegated session lanes — the worktree lanes
 the operator opens — not only to spawned subagents. Defaults, chosen by the
 operator when opening the lane:
 
-- **All new agents and provider attempts → `high` reasoning effort (owner rule,
-  2026-08-30).** Explicitly select `thinking: high`, `reasoning_effort: high`, or
-  the equivalent supported launch option. Never launch `xhigh` or higher; never
-  inherit an unknown or higher effort. This includes diagnostic calls and cold
-  receiving/handoff tasks. A full-history fork that cannot accept the override
-  uses a bounded source capsule instead. Keep model tier selection separate.
-  If the selected surface cannot establish `high`, stop and report that limit
-  rather than silently substituting another effort. A move alone cannot change
-  an existing task's effort; confirm or select `high` before resuming work.
+- **Assess reasoning effort for the task before launch (owner rule,
+  2026-09-13; replaces the 2026-08-30 high-only rule).** Consider complexity,
+  uncertainty, consequences of error, and the likely benefit of more reasoning
+  against latency and cost. Choose an effort supported by the selected model
+  and current launch surface; `high` is not mandatory. Do not default to
+  `xhigh`, `max`, or higher merely because the parent, client, or tool uses it.
+  Those levels remain available when the task assessment or an explicit owner
+  instruction justifies them. Keep model tier selection separate.
+  Explicitly select the assessed effort, or verify that inheritance preserves
+  it. If a full-history fork cannot establish that choice, use a bounded source
+  capsule with an explicit setting. If the surface cannot establish the choice,
+  report the limitation rather than silently substituting another effort.
+  This includes diagnostic calls and cold receiving/handoff tasks. A move alone
+  does not change effort; confirm or select the assessed effort before resuming.
+  Reuse the assessment while the bounded task and material evidence remain
+  unchanged; no separate benchmark, receipt, or approval step is required.
 
 - **CA / orchestrator threads → judgment tier (Opus).** Adjudication, doctrine
   authoring, cross-lane reconciliation, and anything that decides what is kept.
@@ -276,10 +283,14 @@ runtime enforcement beyond the observed `spawn_agent` payload fields. Dated
 model-name examples are not durable availability claims. It also does not create
 automatic lane-playbook loading for Codex or Claude Code subagents.
 
-The high-only rule does not retroactively change existing tasks or historical
-receipts. The shared Codex provider runner rejects non-high launches before
-attempt reservation; other launch surfaces remain actor-enforced under the
-rule above. No global client configuration or service-tier setting is changed.
+This rule does not retroactively change existing tasks or historical receipts.
+The shared Codex provider runners require an explicit recognized effort label
+before job/attempt reservation and preserve it through retries and receipt
+reuse. Model-specific support remains the caller's selection responsibility
+and the native provider's validation boundary; the wrapper's label list is not
+a model-compatibility claim. Task assessment and other launch surfaces remain
+actor-enforced. This doctrine itself changes no global client or service-tier
+setting.
 
 ## Direction Change Propagation (2026-07-12: cold handoff effort)
 

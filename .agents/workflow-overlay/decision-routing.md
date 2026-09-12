@@ -455,8 +455,8 @@ resident instruction for genuinely judgment-based rules.
 Construct forked-subagent payloads from the current tool schema. Omit inherited
 runtime fields rather than sending `default`, `null`, empty, or same-as-parent
 placeholders. Correct a rejected payload using that schema's required fields
-and inheritance rules, not a saved example call. The high-only launch rule
-below still applies; removing unsupported fields must not drop required effort.
+and inheritance rules, not a saved example call. Preserve the assessed effort
+under the model-tiering doctrine below when correcting the payload.
 
 ## Prompt Propagation
 
@@ -472,13 +472,10 @@ When delegating to a spawned subagent, choose the model tier per
 owns the session-lane tier defaults for delegated review lanes (its
 "Session-lane tier defaults" section).
 
-For every new agent, receiving/handoff task, or model-provider attempt, apply
-the owner's high-only launch rule in that doctrine: explicitly select `high`,
-never `xhigh` or a higher effort. Do not inherit an unknown or higher setting.
-If a full-history fork cannot accept the required effort override, use a bounded
-source capsule with explicit `high` instead. Keep model choice separate. Moving
-an existing task does not change its effort; do not resume it without confirming
-or explicitly selecting `high` on a surface that supports that setting.
+For agent, receiving/handoff, and provider launches or resumptions, apply that
+doctrine's task-based effort assessment and launch/inheritance rule. It owns
+the deliberate-use boundary for `xhigh`, `max`, and higher; this overlay adds
+no fixed effort requirement.
 
 In Claude Code, default delegable work to the Sonnet `worker` agent type;
 trivial rote to the Haiku `mechanical` type; reserve Opus (`general-purpose`,

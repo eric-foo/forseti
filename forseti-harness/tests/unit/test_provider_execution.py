@@ -24,8 +24,8 @@ from provider_execution import execute_provider_attempt
 USAGE = {"input_tokens": 120, "cached_input_tokens": 40, "output_tokens": 25, "reasoning_output_tokens": 9}
 
 
-@pytest.mark.parametrize("effort", [None, "high", "xhigh", "max", "medium"])
-def test_provider_runner_high_only_before_reservation_or_launch(
+@pytest.mark.parametrize("effort", ["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra", None, "auto", "default", "invalid"])
+def test_provider_runner_requires_and_preserves_selected_effort(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture,
     effort: str | None,
 ) -> None:
@@ -40,8 +40,13 @@ def test_provider_runner_high_only_before_reservation_or_launch(
     if effort is not None:
         argv += ["--reasoning-effort", effort]
     monkeypatch.setattr(sys, "argv", argv)
-    monkeypatch.setattr(run_codex_provider_attempt, "_local_codex_check",
-                        lambda *args: SimpleNamespace(returncode=0, stdout="codex-cli 0.153.1\n", stderr=""))
+    checks = []
+
+    def local_check(*args):
+        checks.append(args)
+        return SimpleNamespace(returncode=0, stdout="codex-cli 0.153.1\n", stderr="")
+
+    monkeypatch.setattr(run_codex_provider_attempt, "_local_codex_check", local_check)
     launches = []
 
     def capture(**kwargs):
@@ -49,15 +54,18 @@ def test_provider_runner_high_only_before_reservation_or_launch(
         return {"outcome": "PROCESS_COMPLETED"}
 
     monkeypatch.setattr(run_codex_provider_attempt, "execute_provider_attempt", capture)
-    if effort in (None, "high"):
+    if effort not in (None, "auto", "default", "invalid"):
         assert run_codex_provider_attempt.main() == 0
         assert len(launches) == 1
-        assert 'model_reasoning_effort="high"' in launches[0]
+        assert [part for part in launches[0] if part.startswith("model_reasoning_effort=")] == [f'model_reasoning_effort="{effort}"']
+        assert "--ignore-user-config" in launches[0]
     else:
         with pytest.raises(SystemExit) as error:
             run_codex_provider_attempt.main()
         assert error.value.code == 2
-        assert "--reasoning-effort: invalid choice" in capsys.readouterr().err
+        expected = "required: --reasoning-effort" if effort is None else "--reasoning-effort: invalid choice"
+        assert expected in capsys.readouterr().err
+        assert checks == []
         assert launches == []
         assert not root.exists()
 

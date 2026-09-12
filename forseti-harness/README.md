@@ -142,8 +142,15 @@ history matter, use the shared executor rather than a task-local buffered
 subprocess wrapper. It is usable by any intelligence-cycle stage:
 
 ```powershell
-python runners/run_codex_provider_attempt.py --codex-executable <absolute-native-codex-path> --require-chatgpt --attempt-root <attempts> --attempt-id <new-id> --prompt-file <prompt.md> --output-schema <schema.json> --worktree <repo> --model <model> --reasoning-effort high --timeout-seconds <seconds>
+python runners/run_codex_provider_attempt.py --codex-executable <absolute-native-codex-path> --require-chatgpt --attempt-root <attempts> --attempt-id <new-id> --prompt-file <prompt.md> --output-schema <schema.json> --worktree <repo> --model <model> --reasoning-effort <selected-effort> --timeout-seconds <seconds>
 ```
+
+Both runners require an explicit `--reasoning-effort`; omission fails before
+job/attempt reservation or provider access. Assess the task under
+`docs/decisions/subagent_model_tiering_doctrine_v0.md` and select a label
+supported by the chosen model. The CLI's recognized labels do not establish
+model compatibility. The selected effort is preserved across retries and
+checked when reusing execution receipts.
 
 For a self-contained job whose required project reads would otherwise trigger
 blocked shell calls, both the attempt and job runners accept repeatable
@@ -292,11 +299,11 @@ For a standing run that needs bounded automatic recovery, use the job entry
 point over that same executor:
 
 ```powershell
-python runners/run_codex_provider_job.py --job-dir <run/jobs/unique-batch-id> --retry-budget-dir <run/retry-budget> --run-retry-limit <total-extra-attempts> --attempt-root <run/attempts> --prompt-file <prompt.md> --output-schema <schema.json> --worktree <repo> --codex-executable <absolute-native-codex-path> --model <model> --reasoning-effort high --timeout-seconds <seconds>
+python runners/run_codex_provider_job.py --job-dir <run/jobs/unique-batch-id> --retry-budget-dir <run/retry-budget> --run-retry-limit <total-extra-attempts> --attempt-root <run/attempts> --prompt-file <prompt.md> --output-schema <schema.json> --worktree <repo> --codex-executable <absolute-native-codex-path> --model <model> --reasoning-effort <selected-effort> --timeout-seconds <seconds>
 ```
 
 This entry point always requires ChatGPT authentication. Each job freezes its
-input hashes, executable and executor hashes, model, timeout, paths and retry
+input hashes, executable and executor hashes, model, effort, timeout, paths and retry
 policy. Repeating the same command reuses a completed immutable attempt without
 generation; the stage validator and publisher must still accept that answer.
 Jobs sharing a run use the same retry-budget directory and limit. Default
