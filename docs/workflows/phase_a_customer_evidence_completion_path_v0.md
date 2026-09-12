@@ -722,6 +722,12 @@ For authorized Evidence Consolidation, use the public composed entrypoint:
 python forseti-harness/runners/run_semantic_evidence_integration.py advance --source <materialized-source.json> --run-dir <run-root>
 ```
 
+`advance` emits compact JSON without dropping fields. Parse it once and forward
+each complete `worker_prompt` unchanged; do not pretty-print it back into the
+coordinator conversation. All actionable diagnostics and exact artifact bindings
+remain in the return. Read the complete relevant source/claim artifacts before
+judging meaning; control state alone is not evidence for a semantic decision.
+
 Keep the same source and packing options on resume (`--max-prompt-bytes` and
 `--max-evidence-per-work-unit` when explicitly selected). Dispatch the complete
 compatible `judgment_requests` set through the existing active-agent lane, one

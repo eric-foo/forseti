@@ -1,0 +1,302 @@
+{
+  "schema_version": "coordinator_efficiency_sample_v1",
+  "date": "2026-09-12",
+  "task_id": "01a09593-749c-7973-8423-a732f6aed595",
+  "source_task_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+  "managed_worktree": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+  "branch": "codex/coordinator-efficiency-20260912",
+  "baseline_commit": "307e149ae80075e115abfd543e7ec4a43964166e",
+  "initial_dirty_state": "clean",
+  "writer_state": "single implementation task; no other writer observed in managed worktree",
+  "candidate_runner_sha256": "2fece2cd544c17146d68ede4a21d826c169d5e17be7d2afc79aa8a307a3af15f",
+  "final_outcome": "structural replay passes; subscription quota reduction unproven; candidate not published",
+  "candidate": "compact JSON serialization for advance only, with all fields intact",
+  "fixture": {
+    "name": "_advance_replay_fixture(count=4, rows_per_batch=2, alternate=True)",
+    "path": "forseti-harness/tests/unit/test_semantic_evidence_integration.py",
+    "method": "v13",
+    "packing": "input_order",
+    "authoring": "exact_identity_namespaces_v4",
+    "max_prompt_bytes": 30000,
+    "max_evidence_per_work_unit": 2,
+    "worker_output_origin": "existing deterministic native-valid fixture, not preserved model-authored outputs",
+    "full_source_sha256": "55628bf5c0f815c1f8fd9469349f3e48d678e9842218bd74519ac4fcc352666b",
+    "view_sha256": "fe5e5dbd2fcb4834a0b01f3e565db1b4c01c1a6292589ad446b5c7a32a6413b4",
+    "view_raw_sha256": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b",
+    "view_bytes_equal": true,
+    "native_submissions_per_arm": 6
+  },
+  "samples": [
+    {
+      "name": "ready",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 15021,
+        "candidate": 14445
+      },
+      "disk_bytes": {
+        "baseline": 15113,
+        "candidate": 14446
+      },
+      "raw_sha256": {
+        "baseline": "582f32f6b442183aa37fd468c92116bc12b7f0696541e51adeded587729b6060",
+        "candidate": "8f0d0f9d1f00545055d0e3137085a5d072e576a62c7e64a4b4f1a4e18bc49f57"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0001",
+        "batch-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "pending_unchanged",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 15020,
+        "candidate": 14444
+      },
+      "disk_bytes": {
+        "baseline": 15112,
+        "candidate": 14445
+      },
+      "raw_sha256": {
+        "baseline": "81a08b138019963c44aead6e3d7cbd6a44b70d809ccf036b83e7976af7ef242c",
+        "candidate": "4c740ee06aba066c4ead889ae92395e957ca37987af31decf4e867983a404b96"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0001",
+        "batch-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "invalid",
+      "exit_code": 2,
+      "status": "SEMANTIC_ADVANCE_BLOCKED",
+      "utf8_lf_bytes": {
+        "baseline": 8933,
+        "candidate": 8404
+      },
+      "disk_bytes": {
+        "baseline": 9018,
+        "candidate": 8405
+      },
+      "raw_sha256": {
+        "baseline": "b9946ed6ce704c07ea8a4f10afad5cd263f855e072c3e233cfdf8ab333051bbe",
+        "candidate": "a5b890755cf7d39314ce557c53a5f8381113c48249423f9e5893de41e7b9f812"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0002"
+      ],
+      "problems": [
+        {
+          "batch_id": "batch-0001",
+          "error": "response filename and batch identity differ",
+          "kind": "invalid",
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\_scratch\\coordinator-efficiency-20260912\\run\\extraction\\responses\\batch-0001.json"
+        }
+      ]
+    },
+    {
+      "name": "verification",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 16292,
+        "candidate": 15597
+      },
+      "disk_bytes": {
+        "baseline": 16401,
+        "candidate": 15598
+      },
+      "raw_sha256": {
+        "baseline": "0552dfbc0eb1416f7c9e07775627d2c4c4218d89488c9ae60ad38675d1bc063a",
+        "candidate": "dcf3bea6ec4a9966c5bb351077e6990bf9d8556babee9835f7d9d64d4753be6f"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "verify-0001",
+        "verify-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "reconciliation-level-0001",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 11355,
+        "candidate": 10667
+      },
+      "disk_bytes": {
+        "baseline": 11465,
+        "candidate": 10668
+      },
+      "raw_sha256": {
+        "baseline": "03646b77d5067d63984ab23d05b62ef63b8dedbca8152a04994dfc93d9c1c025",
+        "candidate": "c38c196555f34d6533a59e24fa776f4c6a54037d95325659382d654329e2b7cb"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "reconcile-0001-0001"
+      ],
+      "problems": []
+    },
+    {
+      "name": "reconciliation-level-0002",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 12365,
+        "candidate": 11566
+      },
+      "disk_bytes": {
+        "baseline": 12491,
+        "candidate": 11567
+      },
+      "raw_sha256": {
+        "baseline": "bdc5580f5ac6926c37e8156e2ee9869c40731ff7acfe66d7c904849da616714b",
+        "candidate": "41fa16613f1a711bab6c794eb70326a32b567cb703218ebcd54655c3d093464d"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "reconcile-0002-0001"
+      ],
+      "problems": []
+    },
+    {
+      "name": "complete",
+      "exit_code": 0,
+      "status": "SEMANTIC_EVIDENCE_INTEGRATION_COMPLETE",
+      "utf8_lf_bytes": {
+        "baseline": 6900,
+        "candidate": 6088
+      },
+      "disk_bytes": {
+        "baseline": 7029,
+        "candidate": 6089
+      },
+      "raw_sha256": {
+        "baseline": "acf401378b4cf4a09d5864b7e1b35870e2569a4a9d2942bcfbcfaf2cdc4d3e34",
+        "candidate": "af632de26c25cf89a5317b76a7d101df60874011c9961b10aeaa7d6096834a07"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [],
+      "problems": []
+    }
+  ],
+  "totals": {
+    "utf8_lf_bytes": {
+      "baseline": 85886,
+      "candidate": 81211
+    },
+    "saved_bytes": 4675,
+    "fraction_removed": 0.05443261998463079,
+    "boundary": "seven complete CLI returns; excludes fixture source, worker intake, raw outputs and receipts, which are unchanged"
+  },
+  "source_decision": {
+    "assessment": "The drying proposition is unsupported; all four fixture leaves explicitly report not drying during winter use.",
+    "evidence_refs": [
+      "reddit:t1:comment",
+      "reddit:t2:comment",
+      "reddit:t3:comment",
+      "reddit:t4:comment"
+    ],
+    "preserved": [
+      "negation",
+      "winter-use condition",
+      "descriptive_only causal ceiling",
+      "not_checked conflict posture",
+      "unavailable capture completeness"
+    ],
+    "assessor": "implementation coordinator read full materialized source and full view; no independent model judgment"
+  },
+  "model_attempts": [
+    {
+      "arm": "baseline",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "fast": false,
+      "status": "CONFIGURATION_LOAD_FAILED_BEFORE_GENERATION",
+      "launcher_exit_code": null,
+      "shell_exit_code": 1,
+      "generation_started": false,
+      "usage": null,
+      "failure": "Codex could not load its configuration; authentication not determined.",
+      "retry": "none; owner instructed no further model attempts for economic comparison"
+    },
+    {
+      "arm": "candidate",
+      "status": "NOT_LAUNCHED_AFTER_OWNER_CLARIFICATION",
+      "usage": null
+    }
+  ],
+  "economics": {
+    "target": "Codex subscription quota drain for same completed consumer unit",
+    "quota_delta": null,
+    "native_token_delta": null,
+    "codex_credit_weighted_delta": null,
+    "api_cost_delta": null,
+    "reason": "No model generation or matched usage observations. Account-wide percentage deltas are confounded by another active task. No published per-request mapping to this account percentage meter was established.",
+    "owner_supplied_codex_credit_rates_per_million": {
+      "Astra": {
+        "input": 250,
+        "cached_input": 25,
+        "output": 1250
+      },
+      "Sol": {
+        "input": 100,
+        "cached_input": 10,
+        "output": 500
+      },
+      "fast_multiplier": 2.5
+    },
+    "rate_source": "https://learn.chatgpt.com/docs/pricing (source coordinator verified 2026-09-12)",
+    "status": "unused proxy only; bytes are neither model tokens nor quota"
+  },
+  "accounting": {
+    "new_model_generations": 0,
+    "new_semantic_workers": 0,
+    "new_judges": 0,
+    "new_helpers": 0,
+    "new_repairs": 0,
+    "model_compactions": 0,
+    "operator_actions_per_structural_arm": 1,
+    "operator_action": "preserved deliberate invalid response outside response directory, then submitted saved valid fixture outputs",
+    "additional_candidate_retrievals": 0,
+    "preparation_development_reporting": "outside recurring sample; this implementation task usage not attributed to replay savings; not measured here",
+    "completion_boundary": "native accepted same view, exact raw response/receipt readback; model coordinator final response unavailable"
+  },
+  "checks": {
+    "focused_tests": "python -m pytest forseti-harness/tests/unit/test_semantic_evidence_integration.py -k \"advance or judgment_job or judgment_worker\" -q: exit 0",
+    "structural_replay": "baseline and candidate native CLI invocations; exact parsed equality at all seven boundaries; exit 2 invalid and exit 0 others; matching final view and immutable response readback",
+    "independent_review": "not commissioned or launched; no review quality claim",
+    "coupling_contracts": "python -m pytest forseti-harness/tests/contract/test_data_lake_inventory_gate.py forseti-harness/tests/contract/test_policy_module_version_pins.py -q: exit 0 (18 tests)"
+  },
+  "raw_evidence_root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\_scratch\\coordinator-efficiency-20260912",
+  "raw_evidence": {
+    "prepare.py": "a85c484a8ece27a1f53db16d2ac03c671953583e58774a421f21b519300334c1",
+    "freeze.py": "1d42fed9820428e87a0cfd28875da6c91d932f454178440d4b0525c1c818c0ed",
+    "binding.json": "f4825eeb6e3af9b196079fe47e2884d56d25d062da5fb52f74be4c9fa29d7eb3",
+    "baseline.prompt.md": "2fa29f85e7b85166983a7d0d44e0fca8ca9f1c5ca38ace6d3d578509353d0314",
+    "candidate.prompt.md": "1c765a8fbc2d24caa4ae06ac417de958694ef504c8dc63807f5f31f80eee18e9",
+    "schema.json": "bfd0d95b330700a0d9e614b300f6015e28e2d7b9e598d889739d37cde0a0db25",
+    "source.json": "55628bf5c0f815c1f8fd9469349f3e48d678e9842218bd74519ac4fcc352666b",
+    "baseline.launch.log": "b26a529b6a0fdeb29f1f34f94ad62935cd6d3ec15de1e56b887a5f9deeff9524",
+    "native-receipts.json": "fd60f8d7661da28488692aea4cd91cd4475c357235aff7482b9100b4a6d26793",
+    "native-receipts.candidate.json": "fd60f8d7661da28488692aea4cd91cd4475c357235aff7482b9100b4a6d26793",
+    "run/view.json": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b",
+    "baseline-run/view.json": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b"
+  },
+  "advisory_inputs": {
+    "diagnosis_sha256": "0a92d3d6ec49408010ddc41ba291b62f68ed5ec5ae0b1a584ae639588decd2d2",
+    "measurement_sha256": "bb56c0a89ba64646a0693ae10c561d56a628c644edc3b6700239ac7b47a1180a",
+    "modified": false,
+    "caveat": "source coordinator corrected original/partial historical effort to medium, bounded high; none is a matched baseline here"
+  }
+}
