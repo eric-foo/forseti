@@ -190,21 +190,15 @@ materially change the current claim, route, blocker, or edit boundary.
   for formal lane bindings, "Template Retrieval Binding" when retrieving a
   template, "Rules" for reviewer conduct). Full read: editing lane doctrine
   or adjudicating a lane-authority conflict.
-- `.agents/workflow-overlay/validation-gates.md` — choose reads by the actor's
-  responsibility and claim, not a task title such as "verify" or "closeout".
-  A helper executing prepared commands or reporting saved results reads
-  "Verification principles" and "Failure visibility", plus its bound workload
-  instructions. Reporting a check's observed result does not establish broader
-  acceptance, readiness or permission to advance. The actor making that broader
-  claim reads the applicable "Current Gates" entries before making it; use
-  targeted entries, not the whole gate catalogue by default. The commissioner
-  reads "Model-backed dogfood quality" when designing a model-backed sample;
-  the tested helper does not inherit that design responsibility. Prompt authors
-  read "Prompt Orchestration Gates"; product-proof actors read "Product Proof
-  Gates"; enforcement-placement decisions read "Enforcement Placement". This
-  allocates reading, not authority or exemptions from required checks. Missing,
-  contradictory or unexpected evidence reopens the source needed to resolve
-  that claim. Full read: editing validation doctrine.
+- `.agents/workflow-overlay/validation-gates.md` — report helpers read
+  "Verification principles", "Failure visibility" and workload instructions.
+  Broader approval, readiness or permission-to-advance claims also require
+  applicable "Current Gates" entries. Required checks stay with their responsible
+  actor; reporting does not approve. Reopen sources for missing, conflicting or
+  unexpected evidence. Sample design reads "Model-backed dogfood quality";
+  prompt authoring reads "Prompt Orchestration Gates"; product-proof work reads
+  "Product Proof Gates"; enforcement decisions read "Enforcement Placement".
+  Full read: editing validation doctrine.
 - This file — routine Forseti work reads "Rule", "Forseti Start Preflight", and
   the one pack or protocol section the task names; prompt or capsule
   authoring adds "Prompt Source Capsules". Full read: editing source-loading

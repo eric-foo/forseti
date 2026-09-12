@@ -521,3 +521,24 @@ preserved baseline and direct validation-body checks can support `not_needed`;
 any material role/claim boundary left supported only by the author's assumption
 requires a bounded operator-courier review before landing. This adds no new
 standing review requirement.
+
+### V2.0 first attempt: preserved failure
+
+At `95cb3061`, the fresh actor preserved all six outcomes and read only the
+baseline case-b record for missing diagnostics. It used 335,598 native tokens
+over eight responses, five intake rounds and two work rounds, in 73.042 seconds.
+It avoided the broad gate catalogue, but the expanded routine reading rule made
+the standard Rule/Start Preflight/Routine Read Shapes request 8,503 bytes against
+the reader's 8,192-byte bound. That rejected request and its retry fail the
+zero-source-read-failures acceptance condition. This attempt is not discarded
+or presented as the accepted v2.0 result.
+
+The rule was shortened without changing its allocation of responsibilities or
+any validation body. The exact failed startup request now reads successfully
+at 8,012 bytes, with the same default bound. Native PowerShell reported the
+rejected command as exit 1; direct host subprocess collection retained the
+reader's exit 2. Both expose the same `output_budget_exceeded` result. The first
+host assertion unnecessarily expected exactly 1; the saved raw result was kept
+and the check correctly accepts either nonzero wrapper representation as a
+failure. A new exercise directory and fresh actor will confirm the corrected
+v2.0 source; earlier commands and native usage remain preserved.
