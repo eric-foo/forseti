@@ -67,8 +67,8 @@ inline and never replaced by a pointer. Routine prompts state only the
 non-default core above; do not add unused field placeholders or a start
 receipt for form completeness. The Prompt Validation Gates below are applied
 by the author before use; the prompt body does not carry a validation receipt,
-gate checklist, or self-graded gate result. Fused and genuinely escalated
-prompt work author through `workflow-prompt-orchestrator` and use the
+gate checklist, or self-graded gate result. Authors of escalated
+prompt work use `workflow-prompt-orchestrator` and use the
 escalated contract below. A lane-scoped delegated review-and-patch prompt uses
 the compact default below when its eligibility conditions hold; delegation or
 patch authorization alone does not escalate it.
@@ -241,8 +241,8 @@ as an unnamed specialization of routine depth:
   below when eligible. Delegation, adversarial wording, patch authorization,
   executor-ready wording, multiple named files in one bounded technical diff,
   or a high-stakes label alone is not an escalation trigger.
-- **Full orchestration** applies when explicitly invoked by `/fused` or
-  owner-invoked Mini God Tier, or when the prompt genuinely needs a portable
+- **Full orchestration** applies for owner-invoked Mini God Tier, or when the
+  prompt needs a portable
   no-repo source capsule, multiple independent receivers or output lifecycles,
   or resolution of material authority, target, dirty-state, or output-routing
   ambiguity before it can be used safely. Reusable, canonical, novel,
@@ -375,7 +375,7 @@ registry before the binding is verified.
 
 Every entry into delegated review-and-patch is an authoring request, including
 an explicit invocation and an automatic checkpoint from `success-implement`,
-`/fused`, implementation, or review: return exactly one paste-ready prompt for
+implementation, or review: return exactly one paste-ready prompt for
 the operator to courier. Do not inspect or test installed controllers, agents,
 CLIs, plugins, or fallback routes; create or dispatch a task; fork or spawn
 another agent; send the prompt; or execute the review. This binds the
@@ -678,9 +678,9 @@ anchor to this):
 > shows, not a restatement of the task.
 
 This **extends the surfacing** of `work_unit_fitness_reference_v0` (scope-locked at
-enactment to adversarial artifact review plus the fused gate) to durable and
-cross-recipient prompts generally. It changes none of that decision's substance:
-not its review back-pressure, not the scoped fused gate, not `prompt_body_injection:
+enactment to adversarial artifact review plus the scoped implementation gate)
+to durable and cross-recipient prompts generally. It changes none of that decision's substance:
+not its review back-pressure, not the scoped implementation gate, not `prompt_body_injection:
 no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults

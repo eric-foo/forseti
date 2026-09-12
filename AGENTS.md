@@ -149,6 +149,9 @@ project facts, source loading, routing, safety, prompts, review, validation,
 artifacts, and lifecycle mechanics. Load the owning source when its trigger
 applies instead of duplicating it here.
 
+For legacy `fused` invocations or source-load instructions, apply
+`.agents/workflow-overlay/skill-adoption.md` -> **Fused retirement — 2026-09-12**.
+
 Do not import `jb` or external workflow policy as Forseti authority. Explicitly
 invoked or resolver-loaded skills provide task-local mechanics only.
 
@@ -160,7 +163,7 @@ owns every durable prompt, handoff, wrapper, rerun, and patch prompt.
 All agent and provider launches use `high`, never `xhigh` or higher; apply the
 launch/inheritance rule in `docs/decisions/subagent_model_tiering_doctrine_v0.md`.
 Every entry into delegated review-and-patch -- including an explicit request or
-an automatic checkpoint from `success-implement`, `/fused`, implementation, or
+an automatic checkpoint from `success-implement`, implementation, or
 review -- is operator-courier prompt authoring only: immediately return one
 paste-ready prompt, and do not inspect or test controller availability, create
 or dispatch a task, fork or spawn an agent, or execute the review. This binds

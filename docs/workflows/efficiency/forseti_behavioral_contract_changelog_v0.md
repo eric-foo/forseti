@@ -93,9 +93,14 @@ Success Implement is the deployment incumbent by owner preference, not a
 validated strong baseline. See
 [`success_implement_measurement_calibration_2026_08_13_v0.md`](success_implement_measurement_calibration_2026_08_13_v0.md).
 
-Fused, Assumption Gate, Implementation Scoping, Spec Writing, and
-Micro-decision Locking are preserved. They are not erased, retired, or claimed
-inferior by the owner preference.
+The 2026-09-12 owner decision retires Fused as an active entrypoint. Assumption
+Gate, Implementation Scoping, Spec Writing, and Micro-decision Locking remain
+independently invocable. Success Implement carries required review checkpoints
+without imposing the retired wrapper sequence. The review-return correction
+binds legacy invocation and source-load instructions through `AGENTS.md` to
+the single replacement rule in `.agents/workflow-overlay/skill-adoption.md`
+(**Fused retirement — 2026-09-12**). Historical packets retain their evidence
+and execution status.
 
 The retired Forseti-local Loss-First Implement candidate tested one method:
 keep a single implementation entry, choose the decisive falsifier by maximum
@@ -263,7 +268,7 @@ authority changed. See
 | Mechanic | Reusable source | Forseti binding |
 | --- | --- | --- |
 | Success Implement | [Agent Workflow source](https://github.com/eric-foo/agent-workflow/blob/main/skills/candidates/promote-now/success-implement/SKILL.md) | Task-local mechanic; SCI, safety, validation, and review applicability remain Forseti-owned |
-| Fused | [source](https://github.com/eric-foo/agent-workflow/blob/main/plugin/skills/fused/SKILL.md) | Explicit-only sequence coordinator; owns none of the lane decisions |
+| Fused (retired 2026-09-12) | Historical sequence coordinator; source remains in Git history | Use Success Implement; standalone lanes and required checkpoints remain |
 | Assumption Gate | [source](https://github.com/eric-foo/agent-workflow/blob/main/plugin/skills/workflow-assumption-gate/SKILL.md) | Triggered readiness ledger, not a standing prerequisite |
 | Implementation Scoping | [source](https://github.com/eric-foo/agent-workflow/blob/main/plugin/skills/workflow-implementation-scoping/SKILL.md) | Read-only route mechanic |
 | Spec Writing | [source](https://github.com/eric-foo/agent-workflow/blob/main/plugin/skills/workflow-spec-writing/SKILL.md) | Thin behavior contract only when invoked or returned to |
