@@ -6,13 +6,13 @@ artifact_role: Orca decision record
 scope: >
   Proposed doctrine: bind a carried goal + success-signal "fitness reference"
   that intent-bearing reviews consume as their alignment bar, and that a scoped
-  fused/scoping entry-gate requires before source-changing edits on
+  implementation/scoping entry-gate requires before source-changing edits on
   goal-fitness-judged work. Enacted 2026-06-08 into review-lanes.md,
   prompt-orchestration.md, and the adversarial review template.
 use_when:
   - Deciding how an Orca review checks an artifact's intent/direction, not just
     its internal consistency and doctrine conformance.
-  - Deciding whether implementation (fused/scoping) may begin without a concrete
+  - Deciding whether scoped implementation may begin without a concrete
     goal and success signal.
   - Checking the review-side fitness-reference back-pressure rule.
 authority_boundary: retrieval_only
@@ -22,7 +22,7 @@ open_next:
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md
 downstream_consumers:
   - Orca review prompts (adversarial artifact review, code review)
-  - fused / implementation-scoping entry for goal-fitness-judged work
+  - authorized implementation / implementation-scoping entry for goal-fitness-judged work
 branch_or_commit: ecr-sp3-timing-deriver-slice1 @ 518d844
 stale_if:
   - Owner rejects or materially edits this proposal.
@@ -32,6 +32,10 @@ stale_if:
 ```
 
 ## Status
+
+2026-09-12: `/fused` retirement rebinds the scoped entry gate to authorized
+implementation (including Success Implement) and standalone scoping. The
+fitness discriminator and review alignment-axis guardrail are unchanged.
 
 `ACCEPTED` and `ENACTED` 2026-06-08. The owner accepted this proposal and the
 smallest-complete edits were applied in the same turn to `review-lanes.md`,
@@ -53,8 +57,8 @@ reference_object: goal_plus_success_signal     # NOT the prompt; NOT intended-ou
 reference_form: pointer_preferred              # cite the controlling contract/decision when one exists; else compact prose
 authoring_home: framing_scoping                # reuse workflow-goal-framing output; do NOT relocate into overlay
 review_consumption: required_for_intent_bearing_targets   # back-pressure; reviewer never silently invents the bar
-enforcement: review_backpressure_plus_scoped_fused_gate
-fused_scoping_gate_scope: goal_fitness_judged_work_only    # technical/consistency work exempt
+enforcement: review_backpressure_plus_scoped_implementation_gate
+implementation_scoping_gate_scope: goal_fitness_judged_work_only    # technical/consistency work exempt
 guardrail: reference_is_alignment_axis_to_attack_not_pass_bar
 prompt_body_injection: no
 goal_framing_relocation: no
@@ -82,10 +86,10 @@ The four bound elements:
    rather than silently reconstructing intent. This is the enforcement that pulls
    the reference upstream without a universal gate.
 
-4. **Scoped fused/scoping entry-gate.** Goal-fitness-judged work must have a
+4. **Scoped implementation/scoping entry-gate.** Goal-fitness-judged work must have a
    concrete goal + success signal bound before source-changing edits begin.
    Internal/technical work is exempt (see Discriminator). This is
-   `back-pressure + scoped fused gate`, the owner-selected enforcement strength —
+   `back-pressure + scoped implementation gate`, the owner-selected enforcement strength —
    not a standing overlay mandate on every work unit.
 
 ## Why — Problem And Evidence
@@ -126,7 +130,7 @@ not a new-detection gain. Confidence: high on the prompt census; moderate-high o
 "drift findings are mostly technical" (two reports read in full plus a corpus
 grep, not all reports read in full).
 
-## Discriminator — What The Fused/Scoping Gate Covers
+## Discriminator — What The Implementation/Scoping Gate Covers
 
 Gate trigger question: **is the work's correctness judged by fitness to an
 external goal, or by internal/technical consistency against a known substrate?**

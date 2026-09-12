@@ -206,7 +206,7 @@ inherit this floor.
   `review_routing_status: blocked -- <reason>`, or
   `review_routing_status: not_needed -- <reason>`.
   A carried recommended or required adversarial review may close only as
-  `routed` or `blocked`, never `not_needed` (the fused/review contracts own
+  `routed` or `blocked`, never `not_needed` (the review contracts own
   that vocabulary; this gate does not weaken it). The disposition is routing
   shape only: it is not review quality, review truth, severity authority,
   validation, or readiness, and the gate never decides whether review SHOULD

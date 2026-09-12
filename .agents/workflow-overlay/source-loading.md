@@ -135,23 +135,13 @@ implementation authorization, doctrine propagation, or failure visibility.
 
 ## Default Read Order
 
-Use this order unless the user gives a narrower source pack:
+Use the Ordinary Interactive Path above and the smallest applicable source pack
+below. Source precedence does not require loading every authority file. Expand
+only when a source could change the current decision, prompt, or artifact.
 
-1. Current user instruction.
-2. `AGENTS.md`.
-3. `.agents/workflow-overlay/README.md`.
-4. `.agents/workflow-overlay/source-of-truth.md`.
-5. This file, when source budgeting or prompt setup matters.
-6. `docs/workflows/forseti_repo_map_v0.md`, when choosing among many docs.
-7. The one to four target artifacts named by the request, repo map, retrieval
-   headers, or nearest accepted product artifact.
-
-Stop when the next file would only add background instead of changing the
-decision, prompt, or artifact.
-
-Use the read-budget targets in "Prompt Source Capsules" below to bound loading,
-and "Expansion Rules" and "Context Boundary" to decide whether to narrow or hand
-off. Artifact counts alone do not require a capsule or new thread.
+Use the read-budget targets in "Prompt Source Capsules" and the "Expansion
+Rules" and "Context Boundary" below; artifact counts alone do not require a
+capsule or new task.
 
 ## Source Pack Tiers
 
@@ -159,10 +149,10 @@ Use source packs instead of whole-folder reads.
 
 | Tier | Use when | Default contents |
 | --- | --- | --- |
-| `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
+| `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, and overlay README. Add source-of-truth only for authority/propagation questions and source-loading only when source selection, budgeting, or prompt setup requires it. |
 | `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/forseti_repo_map_v0.md`. |
 | `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus the current product thesis, `.agents/workflow-overlay/product-proof.md`, Core Spine product contract, and the nearest application or boundary note. For beauty, add the beauty decision-adjudication product profile. Add the offer hypothesis and buyer-proof packet only after GTM binds a current buyer and decision family; their historical consumer-demand bindings are not anchors. |
-| `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
+| `S3 target deepening` | A specific artifact family needs details. | `S0` plus the named target and only governing sources, `open_next` files, or adjacent sections that could change the result. Include `S2` only when product context is material; a target read does not inherit the product pack. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |
 
 Do not load `S4` material unless the request explicitly depends on prior

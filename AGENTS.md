@@ -160,7 +160,7 @@ owns every durable prompt, handoff, wrapper, rerun, and patch prompt.
 All agent and provider launches use `high`, never `xhigh` or higher; apply the
 launch/inheritance rule in `docs/decisions/subagent_model_tiering_doctrine_v0.md`.
 Every entry into delegated review-and-patch -- including an explicit request or
-an automatic checkpoint from `success-implement`, `/fused`, implementation, or
+an automatic checkpoint from `success-implement`, implementation, or
 review -- is operator-courier prompt authoring only: immediately return one
 paste-ready prompt, and do not inspect or test controller availability, create
 or dispatch a task, fork or spawn an agent, or execute the review. This binds

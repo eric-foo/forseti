@@ -81,8 +81,8 @@ accepted patches in that same PR, rerun validation, then merge.
 **Every entry is courier-prompt authoring only.** This applies both to an
 explicit user request such as `delegate patch`, `write the delegate patch
 prompt`, or an invocation of the delegated-review-patch skill, and to an
-automatic checkpoint entered from `success-implement`, `/fused`, an
-implementation lane, or a review lane. The authoring agent immediately renders
+automatic checkpoint entered from `success-implement`, an implementation lane,
+or a review lane. The authoring agent immediately renders
 exactly one paste-ready commission for the operator to courier from target and
 commission fields safely inferable from the current context; genuinely
 operator-owned values remain `operator_to_fill`. It must not first search for

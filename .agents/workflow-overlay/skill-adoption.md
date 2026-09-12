@@ -74,7 +74,6 @@ Observed on 2026-06-05:
 
 | Skill | Advisory use in Forseti | Collision status observed 2026-06-05 |
 | --- | --- | --- |
-| `fused` | Explicit fused implementation turn: scoping, spec writing, micro-decision locking, then bounded implementation. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `incremental-planning` | Next-move sequencing: decide which product, proof, foundation, review, or planning move compounds most from the visible state. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `meta-planning` | Upstream framing: detect when a request starts below the right decision layer and name the missing decision or operating contract. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `micro-decision-locking` | Pre-implementation locking of the few route-critical decisions needed before a bounded source edit. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
@@ -290,3 +289,12 @@ cache files, global/user skill roots, or external workflow source.
   `docs/workflows/orca_bootstrap_record.md`.
 - The 2026-06-05 collision table above is the current recognition check for
   Agent Workflow plugin cache `0.1.52`.
+
+## Fused retirement — 2026-09-12
+
+`fused` is retired from Forseti routing. Agent Workflow owns the package and
+personal-entrypoint retirement and its deployment evidence. Use
+`success-implement` for authorized implementation. Assumption Gate,
+Implementation Scoping, Spec Writing, and Micro-decision Locking remain
+independently invocable; retirement does not remove required review checkpoints
+or impose these skills as a standing sequence.
