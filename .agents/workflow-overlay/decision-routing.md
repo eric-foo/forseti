@@ -506,11 +506,14 @@ for hundreds of times.
 Dispatch, do not inline, any mechanical work loop expected to take more than a
 few (~4+) tool round-trips whose success is verifiable by exit code, diff, or
 test count — test-fix loops, batch normalizations, CI polling, bulk file edits.
-First apply Receiver Mechanism And Write-Root Selection above: read-only or safe
-same-root work may use a pinned `worker` or `mechanical` subagent (per Subagent
-Model Tiering above), while an independent repo-changing lane uses a receiver
-launched in its worktree or an independent external controller that completes
-the two-root capability preflight. Give the selected receiver a narrow contract:
+Keep read-only work read-only. Before an editing actor starts, establish its
+target working copy, revision, existing changes, permitted edits, and actual
+access. Use an isolated worktree for a dirty base or independent or concurrent
+work; safe contributions to the same task may share its working copy. Reuse
+that setup while it remains valid. Recheck only when the actor, target, or
+relevant repository state changes materially, a conflicting writer appears,
+or an actual access failure occurs. Do not add synthetic permission probes.
+Give the selected receiver a narrow contract:
 target path(s), exact commands, acceptance condition, and return shape. Bulk
 intermediate output (test dumps, batch listings, poll output) stays in the
 receiver; only a compact summary returns to the orchestrator context. This is a
