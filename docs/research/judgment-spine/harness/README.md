@@ -23,4 +23,4 @@ open_next:
 
 This area does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine, and it does not authorize implementation by itself.
 
-- [Coordinator return serialization sample (2026-09-12)](coordinator-efficiency-20260912/result.md): lossless structural replay; subscription quota impact remains unmeasured.
+- [Coordinator efficiency samples (2026-09-12–13)](coordinator-efficiency-20260912/result.md): instruction-intake v2.0 compared with the two prior setup observations, including the failed first v2.0 attempt; subscription quota impact remains unmeasured.

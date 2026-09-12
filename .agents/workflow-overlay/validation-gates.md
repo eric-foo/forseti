@@ -10,12 +10,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-**Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
-Targeted Read Protocol): closeout checks read the preamble below (evidence
-economy and failure-visibility buckets) plus "Current Gates"; prompt
-authoring reads "Prompt Orchestration Gates"; product-proof work reads
-"Product Proof Gates"; enforcement-placement decisions read "Enforcement
-Placement"; a full-file read is for editing validation doctrine.
+**Reading route:** `.agents/workflow-overlay/source-loading.md`, "Routine Read
+Shapes (overlay high-traffic files)", owns which sections each actor reads.
+
+### Verification principles
 
 Validation must be able to fail. Missing evidence is not a pass.
 

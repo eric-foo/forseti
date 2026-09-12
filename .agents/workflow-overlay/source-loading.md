@@ -190,12 +190,15 @@ materially change the current claim, route, blocker, or edit boundary.
   for formal lane bindings, "Template Retrieval Binding" when retrieving a
   template, "Rules" for reviewer conduct). Full read: editing lane doctrine
   or adjudicating a lane-authority conflict.
-- `.agents/workflow-overlay/validation-gates.md` — closeout checks read the
-  preamble (evidence economy and failure-visibility buckets) plus
-  "Current Gates"; prompt authoring reads "Prompt Orchestration Gates";
-  product-proof work reads "Product Proof Gates"; enforcement-placement
-  decisions read "Enforcement Placement". Full read: editing validation
-  doctrine.
+- `.agents/workflow-overlay/validation-gates.md` — report helpers read
+  "Verification principles", "Failure visibility" and workload instructions.
+  Broader approval, readiness or permission-to-advance claims also require
+  applicable "Current Gates" entries. Required checks stay with their responsible
+  actor; reporting does not approve. Reopen sources for missing, conflicting or
+  unexpected evidence. Sample design reads "Model-backed dogfood quality";
+  prompt authoring reads "Prompt Orchestration Gates"; product-proof work reads
+  "Product Proof Gates"; enforcement decisions read "Enforcement Placement".
+  Full read: editing validation doctrine.
 - This file — routine Forseti work reads "Rule", "Forseti Start Preflight", and
   the one pack or protocol section the task names; prompt or capsule
   authoring adds "Prompt Source Capsules". Full read: editing source-loading
@@ -210,7 +213,9 @@ budget is 8192 UTF-8 bytes, including returned source text and metadata. It is
 a payload bound, not a tokenizer count or a task deadline.
 
 CLI: `node .agents/tools/read_source.mjs --file PATH --heading "Heading title"`.
-Repeat `--file` for a combined request. For an oversized or ambiguous section,
+Repeat `--file` for a combined request. Gather known independent reads in one
+tool round; use separate bounded requests when their combined text will not fit.
+For an oversized or ambiguous section,
 use explicit inclusive `--from N --to N` lines. A small whole-file request may
 omit selectors. In Node REPL, import `readSources` from that module and emit
 only its returned string with `nodeRepl.write(await readSources(requests))`;

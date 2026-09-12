@@ -114,8 +114,28 @@ their current growth; this command performs no deletion.
 
 ### Reusable coordinator closeout sample
 
-For a commissioned sample of completed-task inspection, prepare the existing
-synthetic example before launching its coordinator. From `forseti-harness`:
+The executing helper consumes a released `commands.json`. Execute its argv
+arrays using their associated working directories, batch independent commands
+and preserve each exit. Report each case's outcome, quality, accounting coverage
+and unresolved issue. Use returned facts when they resolve the report; open
+saved records when a required fact is missing or contradictory. Do not retry
+into an existing destination. Unexpected setup failures require diagnosis.
+
+The source-loading overlay owns this helper's validation reading route. Its
+report does not approve the implementation or release a change. Keep fixture
+source and `preparation.json` expectations outside its intake unless diagnosis
+needs them. The commissioning actor owns preparation in the next section.
+
+This example tests setup and the use of prepared commands. Its synthetic usage
+is not real model consumption. It neither checks native chunk delivery nor
+reassesses semantic quality; native delivery retains its existing owning tests.
+It cannot establish token savings, model superiority or subscription drain.
+Real task collection and comparability rules below remain controlling.
+
+### Prepare a coordinator closeout sample
+
+The commissioning actor prepares the existing synthetic example before
+launching its helper. From `forseti-harness`:
 
 ```text
 python tests/fixtures/efficiency_codex_closeout/prepare.py prepare --baseline-root BASELINE_CHECKOUT --candidate-root CANDIDATE_CHECKOUT --output-dir NEW_EXERCISE_DIRECTORY
@@ -138,14 +158,11 @@ frozen bytes and 8 when the saved artifact cannot be read, so a broken setup
 stays distinguishable from the intended damaged-content failure in the saved
 `quality_return_code` alone.
 
-Only an exit-zero `status: ready` return releases the coordinator sample. Give
-the coordinator `commands.json`; execute its argv arrays using their associated
-working directories, batching independent commands and preserving individual
-exits. Ask it to report each case's outcome, quality and accounting coverage.
-Keep fixture source and `preparation.json` expectations outside the tested
-actor's intake unless diagnosis needs them. The local examples include a useful
-positive and two distinct failure conditions; a checker that accepts damaged
-content must stop preparation rather than make the sample appear ready.
+Only an exit-zero `status: ready` return releases `commands.json` to the executing
+helper under "Reusable coordinator closeout sample" above. The local examples
+include a useful positive and two distinct failure conditions; a checker that
+accepts damaged content must stop preparation rather than make the sample
+appear ready.
 
 Preparation and worker observations have different output directories. Reusing
 a destination fails instead of overwriting evidence. Failures and process logs
@@ -154,13 +171,6 @@ failed local check. Reuse preparation only while the fixture, inputs and relevan
 checkout state are unchanged, including untracked dependencies. The capsule
 identifies observed state; it is not an automatic guard against later edits.
 The 30-second child limits bound this small local fixture, not production work.
-
-This example tests setup and the use of prepared commands. Its synthetic usage
-is not real model consumption. It neither checks native chunk delivery nor
-reassesses semantic quality; native delivery retains its existing owning tests.
-It cannot establish token savings, model superiority or subscription drain.
-Real task collection and comparability rules below remain controlling.
-
 
 ## Compare equivalent successful work
 

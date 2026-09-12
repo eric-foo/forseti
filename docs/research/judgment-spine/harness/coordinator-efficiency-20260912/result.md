@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Bounded implementation and dogfood record
-scope: Coordinator return serialization and batched completed-task verification/accounting; bounded dogfood and unproven subscription impact.
+scope: Coordinator instruction intake, batched completed-task verification/accounting and historical serialization evidence; bounded dogfood and unproven subscription impact.
 use_when:
   - Assessing the coordinator-efficiency candidates, their behavioral evidence and measurement limits.
 authority_boundary: retrieval_only
@@ -11,23 +11,25 @@ open_next:
   - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/measurement.json
 ```
 
-The latest follow-up combines completed-task verification, accounting and saved
-record readback in the existing importer. The earlier importer comparison's
-final Astra/high coordinator completed three contrasting assessments in **one
-post-intake tool round**, versus three for the baseline. Subscription-drain
-savings remain unproven. The
-follow-up contract and observations below supersede the earlier serialization
-candidate as the behavioral-efficiency recommendation. The owner authorized a
-fresh confirmation and conditional PR merge on 2026-09-13. Publication is scoped
-to batching and reliable comparison setup; the serialization experiment is
-excluded from the proposed production change.
+The latest, corrected **v2.0 instruction-intake sample used 292,264 native
+tokens**, versus 402,161 after the earlier change and 197,899 before it. All six
+case outcomes remained correct. V2.0 needed four instruction-reading rounds,
+down from six after-change, with no reading failure, setup repair or command
+retry. It still used more tokens than the original observation. These are
+historical observations with different loaded context, not a controlled causal
+estimate or a subscription-drain measurement.
 
-The fresh post-review setup confirmation passed all six cases with no setup
-repair or command retry. It used **402,161 native tokens versus 197,899** in the
-previous successful setup sample, with eight tool rounds versus four. Extra
-instruction reads and a baseline-only diagnostic read remain visible below.
-This confirms the bounded setup/reporting behavior, not overall coordinator
-efficiency or subscription savings.
+V2.0 changes three existing instruction sources: one owner for reading routes,
+report-helper reading scoped to its responsibility, and separate preparation
+and execution sections in the existing sample guide. Validation bodies and
+runtime behavior are unchanged. Its first attempt failed the zero-reading-retry
+criterion and cost 335,598 tokens; that attempt and the correction are retained
+below and in `measurement.json` under `instruction_intake_v2`.
+
+The earlier batching/setup work and excluded serialization experiment remain
+historical evidence below. V2.0 supersedes their instruction-efficiency
+recommendation without replacing their measurements. Publication and merge
+status belong to the corresponding PR's fresh remote readback.
 
 ## Earlier serialization candidate
 
@@ -475,3 +477,137 @@ their frozen acceptance conditions; proceed with the bounded PR if required
 checks are green. The total-cost regression remains explicit. This work unit
 does not expand into another instruction-policy fix or launch another sample.
 Publication and merge state belong to the PR's fresh remote readback.
+
+## V2.0 instruction intake: success contract (2026-09-13)
+
+The owner authorized implementing the accepted instruction-scoping change and
+testing it, retaining three observations: before change, after change, and
+v2.0. The first two labels refer to the completed setup samples above (197,899
+and 402,161 native tokens); neither is replaced by a new or selected baseline.
+
+Goal: a helper running prepared commands obtains the instructions needed for
+its own report without inheriting experiment-design, code-review or publication
+responsibilities. Authority: the owner's implementation request, AGENTS.md and
+the source-loading/validation overlay. Change the existing reading route,
+validation entrypoint and coordinator-sample guide; preserve all validation
+requirements and the actual runner/checker. No model downgrade, new checklist,
+runtime mechanism or general subscription-saving claim is in scope.
+
+Signals: on the same six saved cases, one fresh Astra/high helper must preserve
+0/0/7 exits and complete/unknown/complete accounting in both arms, report missing
+usage and damaged content, and avoid source-read budget failures and command
+retries. Its instruction-intake rounds should fall below the after-change
+sample's six, while candidate results require no separate record read. Count
+all completed native responses and any descendants, with cached input included
+in input. Lower tokens without correct cases or with a broader unearned
+completion claim fail acceptance. Compare instructions and preserved validation
+bodies against the pre-edit source to reject the wrong cause of deleting checks.
+
+Use the previous assignment text with only branch, revision and exercise-root
+substitutions. Keep fixture source/expected results outside the tested actor.
+Preparation remains local and must pass all six checks before launch. The
+original old-importer checkout revision is frozen separately because the main
+working checkout has advanced. The v2.0 implementation base is
+`e3ec6c38f331ec623b61c7282b4162e09a60d8bc`; intervening AGENTS/source-loading/
+validation edits and injected session context limit historical comparability.
+The harness, guide and saved inputs are checked for relevant identity rather
+than assuming that three observations establish a controlled causal estimate.
+Budget estimate: one fresh actor, roughly five to seven native responses,
+200–320k aggregate input and 1–2k output tokens. Stop after the bound observation;
+an unexpected setup or quality failure is preserved and diagnosed rather than
+silently replacing the sample.
+
+Review checkpoint: apply the existing conditional `success-implement` predicate
+in `delegated-review-patch.md` after validation. Independent completed behavior,
+preserved baseline and direct validation-body checks can support `not_needed`;
+any material role/claim boundary left supported only by the author's assumption
+requires a bounded operator-courier review before landing. This adds no new
+standing review requirement.
+
+### V2.0 first attempt: preserved failure
+
+At `95cb3061`, the fresh actor preserved all six outcomes and read only the
+baseline case-b record for missing diagnostics. It used 335,598 native tokens
+over eight responses, five intake rounds and two work rounds, in 73.042 seconds.
+It avoided the broad gate catalogue, but the expanded routine reading rule made
+the standard Rule/Start Preflight/Routine Read Shapes request 8,503 bytes against
+the reader's 8,192-byte bound. That rejected request and its retry fail the
+zero-source-read-failures acceptance condition. This attempt is not discarded
+or presented as the accepted v2.0 result.
+
+The rule was shortened without changing its allocation of responsibilities or
+any validation body. The exact failed startup request now reads successfully
+at 8,012 bytes, with the same default bound. Native PowerShell reported the
+rejected command as exit 1; direct host subprocess collection retained the
+reader's exit 2. Both expose the same `output_budget_exceeded` result. The first
+host assertion unnecessarily expected exactly 1; the saved raw result was kept
+and the check correctly accepts either nonzero wrapper representation as a
+failure. The corrected observation below uses a new exercise directory and
+fresh actor; earlier commands and native usage remain preserved.
+
+### V2.0 corrected observation and three-version comparison
+
+The fresh Astra/high helper at `57d26e48f188ddbaace9b8aa308f88742645f41d`
+met the frozen acceptance conditions. It ran all six commands in one parallel
+batch. Both arms preserved exits 0/0/7, quality passed/passed/failed and accounting
+complete/unknown/complete. Missing usage remained explicitly unknown and damaged
+content failed. All three candidate returns confirmed matching saved records;
+the helper opened only baseline case-b to recover its missing accounting issue.
+Its final report made no broader approval or model-quality claim.
+
+| Completed coordinator observation | Before change | After change | V2.0 corrected |
+| --- | ---: | ---: | ---: |
+| Instruction-reading tool rounds | 3 | 6 | 4 |
+| Work tool rounds | 1 | 2 | 2 |
+| Native responses | 5 | 9 | 7 |
+| Native input tokens (cached subset) | 196,592 (169,984) | 400,469 (362,112) | 290,982 (273,536) |
+| Native output tokens (reasoning subset) | 1,307 (342) | 1,692 (167) | 1,282 (150) |
+| Native total tokens | 197,899 | 402,161 | 292,264 |
+| Instruction-read failures / retries | 0 / 0 | 1 / 1 | 0 / 0 |
+| Setup repairs / command retries | 0 / 0 | 0 / 0 | 0 / 0 |
+| Elapsed seconds | 65.158 | 82.277 | 69.647 |
+
+V2.0 used **109,897 fewer tokens than after-change (27.33%)**, while remaining
+**94,365 above before-change (47.68%)**. The visible improvement is two fewer
+instruction-reading rounds, no oversized-read retry and a narrower baseline
+diagnostic read. Relative to the original, v2.0 still has one additional common
+verification-instruction round and one baseline diagnostic round. This is a
+bounded improvement, not evidence that coordinator overhead is now optimal.
+
+The first v2.0 attempt remains a failed observation, not a fourth version or a
+replacement baseline. It cost 335,598 tokens; both v2.0 sample actors together
+cost **627,862**. That total excludes this active coordinating task, CI observation
+and earlier work. Cached input is included in input, and reasoning is included
+in output. Imported synthetic fixture counters are separate from native cost.
+
+The accepted native boundary is task `01a096b6-37c7-7a60-a3a4-3988f3299868`,
+turn `01a096b6-391e-7a33-90e3-23ae998e7de8`, from
+`2026-09-12T17:42:00.128Z` to `2026-09-12T17:43:09.775Z`: all seven responses,
+complete accounting and no discovered descendants. Native source, public-output,
+capsule and saved-record hashes were verified. Nested public command outputs,
+rather than the collector's generic nonzero-output count, establish the actual
+0/0/7 command exits and zero instruction failures.
+
+Verification: 17 bounded-reader tests passed before the final wording correction;
+reader code is unchanged. Both preparations passed six local checks with zero
+model calls. The exact formerly rejected startup request now fits the unchanged
+8,192-byte bound at 8,012 bytes, and the final native actor read it successfully.
+Every validation body from "Validation must be able to fail" onward matches
+the pre-edit base. Runner, collector and fixture match the after-change source;
+the six saved inputs match the historical samples byte-for-byte.
+
+Comparability remains limited: there is one accepted observation per version,
+with the failed v2.0 attempt also disclosed. Intervening upstream instructions
+and injected context differ. After-change and v2.0 use the same assignment
+template with location/revision substitutions; the original did not separately
+resolve the old baseline's accounting issue. The reduction therefore cannot all
+be assigned causally to this patch, and says nothing measured about subscription
+percentages or general semantic quality.
+
+`review_routing_status: not_needed`. The affected boundary is helper reading and
+reporting. Independent completed behavior covers that boundary, while preserved
+validation bodies and unchanged executable checks cover the retained obligations.
+No additional review is required by the existing conditional predicate on this
+evidence. This disposition does not approve unrelated work or lower its gates.
+The bounded change is eligible for publication and landing when required PR
+checks pass; the sample alone does not establish publication or merge.
