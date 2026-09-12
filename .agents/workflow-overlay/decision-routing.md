@@ -452,13 +452,11 @@ resident instruction for genuinely judgment-based rules.
 
 ## Subagent Runtime Payload Safety
 
-For forked-context subagents, inherited runtime defaults mean omitted fields.
-Do not set `agent_type`, `model`, `reasoning_effort`, `service_tier`, or
-equivalent runtime fields to `default`, `null`, empty, or same-as-parent. If a
-forked spawn is rejected for explicit type/model fields, retry with only
-`fork_context: true` and the task `message` or `items`; if an override is
-required, use a bounded source capsule instead of full-history fork or stop for
-the owner/tooling decision.
+Construct forked-subagent payloads from the current tool schema. Omit inherited
+runtime fields rather than sending `default`, `null`, empty, or same-as-parent
+placeholders. Correct a rejected payload using that schema's required fields
+and inheritance rules, not a saved example call. The high-only launch rule
+below still applies; removing unsupported fields must not drop required effort.
 
 ## Prompt Propagation
 
@@ -490,13 +488,9 @@ tier, so route to a pinned type to avoid paying Opus for non-judgment work. Do
 not set `CLAUDE_CODE_SUBAGENT_MODEL` (it hard-caps all subagents and blocks
 Opus escalation — over-restraint).
 
-In Codex, classify the delegated task before the `spawn_agent` call:
-mechanical/trivial rote, ordinary delegated work, or genuine judgment. Choose
-any explicit model override from the current tool surface only after checking
-that the name is actually available in the current session; otherwise omit the
-override or stop for an owner/tooling decision. `agent_type` remains a role
-selector (`explorer`, `worker`, or omitted), not the model tier. Do not turn a
-dated observed model list into durable routing doctrine.
+In Codex, apply that doctrine's **Enforcement: Codex dispatch payloads, not
+hooks** section for task classification and role/model selection against the
+current tool surface. A dated observed model list does not bind today's launch.
 
 Model tiering does not imply source loading. A spawned subagent does not
 automatically read lane playbooks or overlay sources because it is called a

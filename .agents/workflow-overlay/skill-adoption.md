@@ -102,10 +102,11 @@ Observed on 2026-06-05:
 | `workflow-skill-authoring-discipline` | Discipline for creating, editing, reviewing, or promoting reusable workflow skills. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-spec-writing` | Thin binding-actor spec writing before scoping when downstream actors would otherwise invent intent. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 
-For strict provenance, open the installed `0.1.52` `skill_manifest_v1.json` and
-the relevant `SKILL.md` before relying on any skill behavior. This overlay table
-is a Forseti routing and collision record, not package validation or resolver
-proof.
+Before relying on a skill's current behavior, read the `SKILL.md` at the path
+exposed by the active runtime catalog. For strict plugin provenance, also read
+that package's matching manifest. The 2026-06-05 observations above are
+historical inventory; they do not select today's installed version or establish
+current resolver behavior.
 
 ## Activation Caveat
 

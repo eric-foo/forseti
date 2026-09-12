@@ -31,7 +31,8 @@ the evidence they can affect; mutable external and durable lifecycle claims
 still require fresh readback. A gate's evidence is its exit code plus its
 bucketed findings. Do not re-run a passing gate to improve the readability,
 formatting, or completeness of its output; capture the run once and read the
-captured output. Re-run only when changed bytes could falsify the claim.
+captured output. Use the evidence-validity rule above to decide whether a rerun
+is needed.
 
 ### Model-backed dogfood quality
 
