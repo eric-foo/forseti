@@ -2287,5 +2287,260 @@
         "lifecycle": "No further lane commit, push, PR or merge. When publication is authorized, handle the accepted changes in one land step."
       }
     }
+  },
+  "post_review_confirmation": {
+    "date": "2026-09-13",
+    "authorization": "Owner: let us measure that; merge the PR if good. Supersedes earlier publication and fresh-model holds.",
+    "decision": "Setup/consumer confirmation passed; proceed with bounded batching/setup PR subject to required green checks. Total coordinator-efficiency improvement was NOT demonstrated.",
+    "measured_revision": "6474ea817c9890f4601431b3250e30506810c847",
+    "sources": {
+      "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\fixtures\\efficiency_codex_closeout\\prepare.py",
+        "sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667"
+      },
+      "forseti-harness/runners/run_efficiency.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\runners\\run_efficiency.py",
+        "sha256": "ba5901b327480bea931ff294d50f6ddfea051ab8bb21dc27e75a3fb6ca380e82"
+      },
+      "forseti-harness/reports/efficiency_codex.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\reports\\efficiency_codex.py",
+        "sha256": "44bd388097d830862b82805b74054b550aca5263ec50ada67280de2194305d2a"
+      },
+      "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+        "sha256": "e300d8538178883877740d66f65be0e4d24eb2b187f926a6e8d95c92ce976a49"
+      }
+    },
+    "command_capsule": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\commands.json",
+      "sha256": "c592f2eea26f852793b630cfeb392428c16f8fbf1e96bd40dcc9653a783f9e43"
+    },
+    "checkouts": {
+      "baseline": {
+        "root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti",
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3",
+        "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "candidate": {
+        "root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+        "revision": "6474ea817c9890f4601431b3250e30506810c847",
+        "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    "preparation": {
+      "source": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\preparation.json",
+        "sha256": "ba55773fecc5d5c100f57ae55d797b038f68c23159a1c05cd0e8a27ffa20d6be"
+      },
+      "local_checks": 6,
+      "model_calls": 0
+    },
+    "native_observation": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\native-observation.json",
+      "sha256": "8c9efb37122e3d64d6dd54af9fde062da35a279dd35cf14c8b13d4618a7bdd40"
+    },
+    "public_events": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\public-events.json",
+      "sha256": "c91c598ccbf95c30d463fc7403117704b4e080c83299f882781b40e00737298d"
+    },
+    "fresh_coordinator": {
+      "thread_id": "01a09687-b8da-7e10-ae42-04a518c7e6bb",
+      "turn_id": "01a09687-ba01-7ec1-a82b-c07eefd55f4d",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T00-51-12-01a09687-b8da-7e10-ae42-04a518c7e6bb.jsonl",
+        "sha256": "637730117d081f30a0ce1a57b5c501451ab0df435a5139b6e926dfc1abe9ea47"
+      },
+      "coverage": "complete",
+      "issues": [],
+      "observed_settings": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "model_responses": 9,
+      "child_thread_ids": [],
+      "child_coverage": "session_metadata_and_root_turn_attribution",
+      "selected_turns": {
+        "01a09687-b8da-7e10-ae42-04a518c7e6bb": [
+          "01a09687-ba01-7ec1-a82b-c07eefd55f4d"
+        ]
+      },
+      "started_at": "2026-09-12T16:51:13.082Z",
+      "completed_at": "2026-09-12T16:52:35.359Z",
+      "elapsed_seconds": 82.277,
+      "total_usage": {
+        "coverage": "complete",
+        "input_tokens": 400469,
+        "cached_input_tokens": 362112,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1692,
+        "reasoning_output_tokens": 167,
+        "total_tokens": 402161,
+        "observed_totals": {
+          "input_tokens": 400469,
+          "cached_input_tokens": 362112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1692,
+          "reasoning_output_tokens": 167,
+          "total_tokens": 402161
+        },
+        "issues": []
+      },
+      "tool_call_events": {
+        "exec": 8
+      },
+      "intake_tool_rounds": 6,
+      "work_tool_rounds": 2,
+      "parallel_execution_batches": 1,
+      "parallel_commands": 6,
+      "baseline_only_record_read_rounds": 1,
+      "candidate_record_read_rounds": 0,
+      "setup_errors": 0,
+      "setup_repairs": 0,
+      "command_retries": 0,
+      "instruction_read_retries": 1,
+      "instruction_read_failures": [
+        {
+          "call_id": "call_crXSa4oylNk9tTiaNkWJdAyn",
+          "exit_code": 1,
+          "status": "not_read",
+          "reason": "output_budget_exceeded",
+          "max_output_bytes": 16000,
+          "requested_output_bytes": 23407
+        }
+      ],
+      "candidate_record_readback_matches": 3
+    },
+    "observations": [
+      {
+        "arm": "baseline",
+        "case": "case-a",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+          "sha256": "0faf0ce5764e4804a221daec3a9939e7ec735f9522adf78b65db76dc52392927"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "baseline",
+        "case": "case-b",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+          "sha256": "dfca7ab4fc4f3e0462d68cbf9895f791482831002fe3d3cd30a44290e78b899c"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "unknown",
+        "synthetic_total_tokens": 23,
+        "usage_issues": [
+          "turn_cumulative_reconciliation_failed"
+        ],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "baseline",
+        "case": "case-c",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+          "sha256": "3cce70d93e77a8fb43f9bd84a850a357fa992742bc1b3db951621009323520e0"
+        },
+        "outcome": "failed",
+        "quality": "failed",
+        "quality_return_code": 7,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-a",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+          "sha256": "d46d0c47396fdc28d0c44a8ac8232a66bd474443dbdb89b08a141035ffdb845c"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-b",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+          "sha256": "21f35163561196b76b39d4addb4ff9d4763bc57c3bee0c9a0d1d2537f33182b0"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "unknown",
+        "synthetic_total_tokens": 23,
+        "usage_issues": [
+          "turn_cumulative_reconciliation_failed"
+        ],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-c",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+          "sha256": "69112ce2248860f1ab8a042558beef8c4c3a6e9a88b5a05ca7ef5fea6921ad83"
+        },
+        "outcome": "failed",
+        "quality": "failed",
+        "quality_return_code": 7,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      }
+    ],
+    "input_identity": "All six saved.txt/rollout.jsonl inputs matched the previous successful sample byte-for-byte; checker paths and source revision attribution changed as expected.",
+    "historical_reference": {
+      "pointer": "setup_followup.fresh_coordinator",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T22-58-32-01a09620-92cc-79f1-9194-dbf0af927a32.jsonl",
+        "sha256": "b40f8b6d3c471f5bdc7a110cf515a368138c6e15ec23d779dc167293ea04ad8f"
+      },
+      "model_responses": 5,
+      "intake_tool_rounds": 3,
+      "work_tool_rounds": 1,
+      "setup_errors": 0,
+      "command_retries": 0,
+      "total_tokens": 197899,
+      "elapsed_seconds": 65.158
+    },
+    "comparison": {
+      "setup_repairs": "tie at zero",
+      "candidate_execution_and_readback": "one execution batch, no additional candidate record reads",
+      "total_tool_rounds": "4 to 8; three additional instruction reads plus one baseline-only diagnostic read",
+      "native_total_token_delta": 204262,
+      "native_total_token_change_percent": 103.22,
+      "interpretation": "Observed aggregate use increased. One oversized validation-instruction read was avoidable; no setup command failed unexpectedly. Prompt/context and diagnostic reporting differ, so this is not a causal estimate of the patch cost or saving."
+    },
+    "publication_scope": "Batching, collected diagnostics/readback, reusable setup, consumer guidance, required tests and historical measurement. Earlier advance JSON-format implementation and its guidance/test additions excluded.",
+    "limits": [
+      "One fresh actor observed against one historical successful setup reference, not a randomized new A/B or six independent model replications.",
+      "Completed native boundary includes all nine responses and discovered descendants (none); active parent and earlier work remain excluded.",
+      "Cached input is included in input; reasoning output is included in output. Synthetic imported counters are not native actor usage.",
+      "No subscription percentage, whole-intelligence-cycle saving, general coordinator-efficiency or model-downgrade conclusion.",
+      "Additional standing workflow rules or a second fresh sample are not part of this bounded confirmation."
+    ],
+    "lifecycle": "Measured source frozen at 6474ea817c9890f4601431b3250e30506810c847; publication/check status is carried by the ensuing PR, not inferred from this pre-publication record."
   }
 }

@@ -12,14 +12,22 @@ open_next:
 ```
 
 The latest follow-up combines completed-task verification, accounting and saved
-record readback in the existing importer. The final Astra/high coordinator
-completed three contrasting assessments in **one post-intake tool round**, versus
-three for the baseline. Subscription-drain savings remain unproven. The
+record readback in the existing importer. The earlier importer comparison's
+final Astra/high coordinator completed three contrasting assessments in **one
+post-intake tool round**, versus three for the baseline. Subscription-drain
+savings remain unproven. The
 follow-up contract and observations below supersede the earlier serialization
 candidate as the behavioral-efficiency recommendation. The owner authorized a
 fresh confirmation and conditional PR merge on 2026-09-13. Publication is scoped
 to batching and reliable comparison setup; the serialization experiment is
 excluded from the proposed production change.
+
+The fresh post-review setup confirmation passed all six cases with no setup
+repair or command retry. It used **402,161 native tokens versus 197,899** in the
+previous successful setup sample, with eight tool rounds versus four. Extra
+instruction reads and a baseline-only diagnostic read remain visible below.
+This confirms the bounded setup/reporting behavior, not overall coordinator
+efficiency or subscription savings.
 
 ## Earlier serialization candidate
 
@@ -419,3 +427,51 @@ a causal token-saving conclusion. Estimated cost is one actor, about five
 responses and 150–220k aggregate input plus 1–2k output tokens; no further sample
 is needed once the bounded decision is resolved. Synthetic imported usage stays
 separate from native actor usage and active-parent/whole-work-unit consumption.
+
+## Post-review confirmation: observed result (2026-09-13)
+
+The fresh Astra/high actor completed the six commands in one parallel batch at
+source revision `6474ea817c9890f4601431b3250e30506810c847`. Every saved observation
+matched its host-side expectation: valid content passed; missing response usage
+remained unknown; damaged content failed with exit 7. All three candidate
+returns reported matched durable readback. Setup errors, setup repairs and
+command retries were zero. All six input files matched the historical sample.
+
+| Completed coordinator observation | Previous successful setup | Fresh confirmation |
+| --- | ---: | ---: |
+| Instruction-intake tool rounds | 3 | 6 |
+| Work tool rounds | 1 | 2 |
+| Parallel command batches / commands | 1 / 6 | 1 / 6 |
+| Setup repairs / command retries | 0 / 0 | 0 / 0 |
+| Native responses | 5 | 9 |
+| Native input tokens (cached subset) | 196,592 (169,984) | 400,469 (362,112) |
+| Native output tokens (reasoning subset) | 1,307 (342) | 1,692 (167) |
+| Native total tokens | 197,899 | 402,161 |
+| Elapsed seconds | 65.158 | 82.277 |
+
+The additional work round read only the baseline records to resolve accounting
+details absent from the old return. The candidate needed no separate record
+read. The three additional intake rounds loaded validation instructions; one
+oversized request was rejected and repeated with a larger bound. Thus there was
+**one instruction-read retry**, despite no setup-command retry. That avoidable
+intake failure must not disappear into a zero-retries claim.
+
+Observed native use increased by 204,262 tokens (103.22%). The prompt and loaded
+context differed, including a request to report unresolved issues in both arms;
+this is not a causal estimate of patch cost. It is evidence against calling
+coordinator behavior efficient overall. Setup reliability tied the previous
+success. No model downgrade, subscription-drain conclusion or whole-cycle
+reliability claim follows.
+
+The complete native boundary is task `01a09687-b8da-7e10-ae42-04a518c7e6bb`, turn
+`01a09687-ba01-7ec1-a82b-c07eefd55f4d`, from
+`2026-09-12T16:51:13.082Z` to `2026-09-12T16:52:35.359Z`, with nine response
+records and no discovered descendants. The active parent and earlier attempts
+are excluded. Source hashes, public calls, raw accounting and all six saved
+records are bound in `measurement.json` under `post_review_confirmation`.
+
+Landing decision: the tested setup and importer behavior are useful and meet
+their frozen acceptance conditions; proceed with the bounded PR if required
+checks are green. The total-cost regression remains explicit. This work unit
+does not expand into another instruction-policy fix or launch another sample.
+Publication and merge state belong to the PR's fresh remote readback.
