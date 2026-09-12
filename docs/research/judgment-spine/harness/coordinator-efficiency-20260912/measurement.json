@@ -1,0 +1,2546 @@
+{
+  "schema_version": "coordinator_efficiency_sample_v1",
+  "date": "2026-09-12",
+  "task_id": "01a09593-749c-7973-8423-a732f6aed595",
+  "source_task_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+  "managed_worktree": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+  "branch": "codex/coordinator-efficiency-20260912",
+  "baseline_commit": "307e149ae80075e115abfd543e7ec4a43964166e",
+  "initial_dirty_state": "clean",
+  "writer_state": "single implementation task; no other writer observed in managed worktree",
+  "candidate_runner_sha256": "2fece2cd544c17146d68ede4a21d826c169d5e17be7d2afc79aa8a307a3af15f",
+  "final_outcome": "structural replay passes; subscription quota reduction unproven; candidate not published",
+  "candidate": "compact JSON serialization for advance only, with all fields intact",
+  "fixture": {
+    "name": "_advance_replay_fixture(count=4, rows_per_batch=2, alternate=True)",
+    "path": "forseti-harness/tests/unit/test_semantic_evidence_integration.py",
+    "method": "v13",
+    "packing": "input_order",
+    "authoring": "exact_identity_namespaces_v4",
+    "max_prompt_bytes": 30000,
+    "max_evidence_per_work_unit": 2,
+    "worker_output_origin": "existing deterministic native-valid fixture, not preserved model-authored outputs",
+    "full_source_sha256": "55628bf5c0f815c1f8fd9469349f3e48d678e9842218bd74519ac4fcc352666b",
+    "view_sha256": "fe5e5dbd2fcb4834a0b01f3e565db1b4c01c1a6292589ad446b5c7a32a6413b4",
+    "view_raw_sha256": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b",
+    "view_bytes_equal": true,
+    "native_submissions_per_arm": 6
+  },
+  "samples": [
+    {
+      "name": "ready",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 15021,
+        "candidate": 14445
+      },
+      "disk_bytes": {
+        "baseline": 15113,
+        "candidate": 14446
+      },
+      "raw_sha256": {
+        "baseline": "582f32f6b442183aa37fd468c92116bc12b7f0696541e51adeded587729b6060",
+        "candidate": "8f0d0f9d1f00545055d0e3137085a5d072e576a62c7e64a4b4f1a4e18bc49f57"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0001",
+        "batch-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "pending_unchanged",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 15020,
+        "candidate": 14444
+      },
+      "disk_bytes": {
+        "baseline": 15112,
+        "candidate": 14445
+      },
+      "raw_sha256": {
+        "baseline": "81a08b138019963c44aead6e3d7cbd6a44b70d809ccf036b83e7976af7ef242c",
+        "candidate": "4c740ee06aba066c4ead889ae92395e957ca37987af31decf4e867983a404b96"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0001",
+        "batch-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "invalid",
+      "exit_code": 2,
+      "status": "SEMANTIC_ADVANCE_BLOCKED",
+      "utf8_lf_bytes": {
+        "baseline": 8933,
+        "candidate": 8404
+      },
+      "disk_bytes": {
+        "baseline": 9018,
+        "candidate": 8405
+      },
+      "raw_sha256": {
+        "baseline": "b9946ed6ce704c07ea8a4f10afad5cd263f855e072c3e233cfdf8ab333051bbe",
+        "candidate": "a5b890755cf7d39314ce557c53a5f8381113c48249423f9e5893de41e7b9f812"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "batch-0002"
+      ],
+      "problems": [
+        {
+          "batch_id": "batch-0001",
+          "error": "response filename and batch identity differ",
+          "kind": "invalid",
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\_scratch\\coordinator-efficiency-20260912\\run\\extraction\\responses\\batch-0001.json"
+        }
+      ]
+    },
+    {
+      "name": "verification",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 16292,
+        "candidate": 15597
+      },
+      "disk_bytes": {
+        "baseline": 16401,
+        "candidate": 15598
+      },
+      "raw_sha256": {
+        "baseline": "0552dfbc0eb1416f7c9e07775627d2c4c4218d89488c9ae60ad38675d1bc063a",
+        "candidate": "dcf3bea6ec4a9966c5bb351077e6990bf9d8556babee9835f7d9d64d4753be6f"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "verify-0001",
+        "verify-0002"
+      ],
+      "problems": []
+    },
+    {
+      "name": "reconciliation-level-0001",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 11355,
+        "candidate": 10667
+      },
+      "disk_bytes": {
+        "baseline": 11465,
+        "candidate": 10668
+      },
+      "raw_sha256": {
+        "baseline": "03646b77d5067d63984ab23d05b62ef63b8dedbca8152a04994dfc93d9c1c025",
+        "candidate": "c38c196555f34d6533a59e24fa776f4c6a54037d95325659382d654329e2b7cb"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "reconcile-0001-0001"
+      ],
+      "problems": []
+    },
+    {
+      "name": "reconciliation-level-0002",
+      "exit_code": 0,
+      "status": "SEMANTIC_JUDGMENT_REQUIRED",
+      "utf8_lf_bytes": {
+        "baseline": 12365,
+        "candidate": 11566
+      },
+      "disk_bytes": {
+        "baseline": 12491,
+        "candidate": 11567
+      },
+      "raw_sha256": {
+        "baseline": "bdc5580f5ac6926c37e8156e2ee9869c40731ff7acfe66d7c904849da616714b",
+        "candidate": "41fa16613f1a711bab6c794eb70326a32b567cb703218ebcd54655c3d093464d"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [
+        "reconcile-0002-0001"
+      ],
+      "problems": []
+    },
+    {
+      "name": "complete",
+      "exit_code": 0,
+      "status": "SEMANTIC_EVIDENCE_INTEGRATION_COMPLETE",
+      "utf8_lf_bytes": {
+        "baseline": 6900,
+        "candidate": 6088
+      },
+      "disk_bytes": {
+        "baseline": 7029,
+        "candidate": 6089
+      },
+      "raw_sha256": {
+        "baseline": "acf401378b4cf4a09d5864b7e1b35870e2569a4a9d2942bcfbcfaf2cdc4d3e34",
+        "candidate": "af632de26c25cf89a5317b76a7d101df60874011c9961b10aeaa7d6096834a07"
+      },
+      "parsed_state_equal": true,
+      "ready_batch_ids": [],
+      "problems": []
+    }
+  ],
+  "totals": {
+    "utf8_lf_bytes": {
+      "baseline": 85886,
+      "candidate": 81211
+    },
+    "saved_bytes": 4675,
+    "fraction_removed": 0.05443261998463079,
+    "boundary": "seven complete CLI returns; excludes fixture source, worker intake, raw outputs and receipts, which are unchanged"
+  },
+  "source_decision": {
+    "assessment": "The drying proposition is unsupported; all four fixture leaves explicitly report not drying during winter use.",
+    "evidence_refs": [
+      "reddit:t1:comment",
+      "reddit:t2:comment",
+      "reddit:t3:comment",
+      "reddit:t4:comment"
+    ],
+    "preserved": [
+      "negation",
+      "winter-use condition",
+      "descriptive_only causal ceiling",
+      "not_checked conflict posture",
+      "unavailable capture completeness"
+    ],
+    "assessor": "implementation coordinator read full materialized source and full view; no independent model judgment"
+  },
+  "model_attempts": [
+    {
+      "arm": "baseline",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "fast": false,
+      "status": "CONFIGURATION_LOAD_FAILED_BEFORE_GENERATION",
+      "launcher_exit_code": null,
+      "shell_exit_code": 1,
+      "generation_started": false,
+      "usage": null,
+      "failure": "Codex could not load its configuration; authentication not determined.",
+      "retry": "none; after the owner clarified subscription percentage drain, the source coordinator instructed this task to avoid additional attempts merely for API price comparison; the owner did not revoke the small dogfood authorization"
+    },
+    {
+      "arm": "candidate",
+      "status": "NOT_LAUNCHED_AFTER_COORDINATOR_INSTRUCTION",
+      "usage": null
+    }
+  ],
+  "economics": {
+    "target": "Codex subscription quota drain for same completed consumer unit",
+    "quota_delta": null,
+    "native_token_delta": null,
+    "codex_credit_weighted_delta": null,
+    "api_cost_delta": null,
+    "reason": "No model generation or matched usage observations. Account-wide percentage deltas are confounded by another active task. No published per-request mapping to this account percentage meter was established.",
+    "coordinator_supplied_verified_codex_credit_rates_per_million": {
+      "Astra": {
+        "input": 250,
+        "cached_input": 25,
+        "output": 1250
+      },
+      "Sol": {
+        "input": 100,
+        "cached_input": 10,
+        "output": 500
+      },
+      "fast_multiplier": 2.5
+    },
+    "rate_source": "https://learn.chatgpt.com/docs/pricing (source coordinator verified 2026-09-12)",
+    "status": "unused proxy only; bytes are neither model tokens nor quota"
+  },
+  "accounting": {
+    "new_model_generations": 0,
+    "new_semantic_workers": 0,
+    "new_judges": 0,
+    "new_helpers": 0,
+    "new_repairs": 0,
+    "model_compactions": 0,
+    "operator_actions_per_structural_arm": 1,
+    "operator_action": "preserved deliberate invalid response outside response directory, then submitted saved valid fixture outputs",
+    "additional_candidate_retrievals": 0,
+    "preparation_development_reporting": "outside recurring sample; this implementation task usage not attributed to replay savings; not measured here",
+    "completion_boundary": "native accepted same view, exact raw response/receipt readback; model coordinator final response unavailable"
+  },
+  "checks": {
+    "focused_tests": "python -m pytest forseti-harness/tests/unit/test_semantic_evidence_integration.py -k \"advance or judgment_job or judgment_worker\" -q: exit 0",
+    "structural_replay": "baseline and candidate native CLI invocations; exact parsed equality at all seven boundaries; exit 2 invalid and exit 0 others; matching final view and immutable response readback",
+    "independent_review": "not commissioned or launched; no review quality claim",
+    "coupling_contracts": "python -m pytest forseti-harness/tests/contract/test_data_lake_inventory_gate.py forseti-harness/tests/contract/test_policy_module_version_pins.py -q: exit 0 (18 tests)"
+  },
+  "raw_evidence_root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\_scratch\\coordinator-efficiency-20260912",
+  "raw_evidence": {
+    "prepare.py": "a85c484a8ece27a1f53db16d2ac03c671953583e58774a421f21b519300334c1",
+    "freeze.py": "1d42fed9820428e87a0cfd28875da6c91d932f454178440d4b0525c1c818c0ed",
+    "binding.json": "f4825eeb6e3af9b196079fe47e2884d56d25d062da5fb52f74be4c9fa29d7eb3",
+    "baseline.prompt.md": "2fa29f85e7b85166983a7d0d44e0fca8ca9f1c5ca38ace6d3d578509353d0314",
+    "candidate.prompt.md": "1c765a8fbc2d24caa4ae06ac417de958694ef504c8dc63807f5f31f80eee18e9",
+    "schema.json": "bfd0d95b330700a0d9e614b300f6015e28e2d7b9e598d889739d37cde0a0db25",
+    "source.json": "55628bf5c0f815c1f8fd9469349f3e48d678e9842218bd74519ac4fcc352666b",
+    "baseline.launch.log": "b26a529b6a0fdeb29f1f34f94ad62935cd6d3ec15de1e56b887a5f9deeff9524",
+    "native-receipts.json": "fd60f8d7661da28488692aea4cd91cd4475c357235aff7482b9100b4a6d26793",
+    "native-receipts.candidate.json": "fd60f8d7661da28488692aea4cd91cd4475c357235aff7482b9100b4a6d26793",
+    "run/view.json": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b",
+    "baseline-run/view.json": "1539aa1e668fd9007cf7f4b2d70455c0c00f6e00f824e70235d9992cde1fbe9b"
+  },
+  "advisory_inputs": {
+    "diagnosis_sha256": "0a92d3d6ec49408010ddc41ba291b62f68ed5ec5ae0b1a584ae639588decd2d2",
+    "measurement_sha256": "bb56c0a89ba64646a0693ae10c561d56a628c644edc3b6700239ac7b47a1180a",
+    "modified": false,
+    "caveat": "source coordinator corrected original/partial historical effort to medium, bounded high; none is a matched baseline here"
+  },
+  "batching_followup": {
+    "status": "bounded_behavior_demonstrated_subscription_drain_unproven",
+    "implementation_base": "cd184bdbd7dc2df6e2c99c4fcd94fdc5f461bad9",
+    "worktree": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+    "branch": "codex/coordinator-efficiency-20260912",
+    "scope": "Existing completed-task import only: combined return, output observations and checked persisted readback; no new runtime framework, default model change or recurring measurement duty.",
+    "binding": {
+      "files": [
+        {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\reports\\efficiency_codex.py",
+          "sha256": "44bd388097d830862b82805b74054b550aca5263ec50ada67280de2194305d2a"
+        },
+        {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\runners\\run_efficiency.py",
+          "sha256": "ba5901b327480bea931ff294d50f6ddfea051ab8bb21dc27e75a3fb6ca380e82"
+        },
+        {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checker.py",
+          "sha256": "8861067e424b7f5bfa4c6e972a70782813405fdc695c877727f4b95c63eba370"
+        },
+        {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\bridge.py",
+          "sha256": "ea8e90abee70875d2581e557a717d7021d3ca3ababc339f0c09ff62a908793a2"
+        },
+        {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\candidate-guide-v2.md",
+          "sha256": "650506dc41a4cfd750731766f71188b4cf33d5e00724c2d7161a4271d7c876cd"
+        },
+        {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\baseline-guide.md",
+          "sha256": "f7594b72bf9d0eb0fc34b29ef74d8b21b82413a3d7ebfd08b528c0f96f7d6455"
+        }
+      ],
+      "settings": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "source_variation": "Earlier autonomous baseline loaded safety/claim-support/help; candidate did not. Raw token difference is descriptive, not an isolated batching or quota effect. Final candidate tests only the added readback and reuse of unchanged baseline evidence."
+    },
+    "completed_coordinators": [
+      {
+        "agent_path": "/root/batching_baseline",
+        "thread_id": "01a095de-f1c9-7831-bf18-6d922b925be1",
+        "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+        "turns": [
+          "01a095de-f312-7c62-abd3-e0a2662fe9f7"
+        ],
+        "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T21-46-51-01a095de-f1c9-7831-bf18-6d922b925be1.jsonl",
+        "sha256": "6f5a2140d8a191f1a84044c53304eaffe33990a8e04ee582dcf317a83eb9bd03",
+        "usage": {
+          "coverage": "complete",
+          "input_tokens": 196235,
+          "cached_input_tokens": 164992,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1589,
+          "reasoning_output_tokens": 160,
+          "total_tokens": 197824,
+          "observed_totals": {
+            "input_tokens": 196235,
+            "cached_input_tokens": 164992,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1589,
+            "reasoning_output_tokens": 160,
+            "total_tokens": 197824
+          },
+          "issues": []
+        },
+        "responses": 5,
+        "coverage": "complete",
+        "issues": [],
+        "settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_events": {
+          "exec": 4
+        },
+        "output_observations": {
+          "output_events": 4,
+          "truncation_marker_events": 0,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "elapsed_seconds": 74.136,
+        "child_thread_ids": [],
+        "selected_turns": {
+          "01a095de-f1c9-7831-bf18-6d922b925be1": [
+            "01a095de-f312-7c62-abd3-e0a2662fe9f7"
+          ]
+        },
+        "role": "failed_fixture_setup",
+        "post_intake_tool_rounds": null,
+        "action_locations": [
+          {
+            "line": 15,
+            "name": "exec"
+          },
+          {
+            "line": 22,
+            "name": "exec"
+          },
+          {
+            "line": 29,
+            "name": "exec"
+          },
+          {
+            "line": 40,
+            "name": "exec"
+          }
+        ]
+      },
+      {
+        "agent_path": "/root/batching_baseline_pair",
+        "thread_id": "01a095e3-9c31-75a2-8140-fc2d40320d1b",
+        "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+        "turns": [
+          "01a095e3-9dda-71c3-9dc5-f6fe233ba33b"
+        ],
+        "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T21-51-57-01a095e3-9c31-75a2-8140-fc2d40320d1b.jsonl",
+        "sha256": "6a8ea3a87fade11a82046e708e4eb4f52ed39cf4a4b055a9f9f37bd06ff9a06a",
+        "usage": {
+          "coverage": "complete",
+          "input_tokens": 253882,
+          "cached_input_tokens": 222080,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2453,
+          "reasoning_output_tokens": 502,
+          "total_tokens": 256335,
+          "observed_totals": {
+            "input_tokens": 253882,
+            "cached_input_tokens": 222080,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2453,
+            "reasoning_output_tokens": 502,
+            "total_tokens": 256335
+          },
+          "issues": []
+        },
+        "responses": 6,
+        "coverage": "complete",
+        "issues": [],
+        "settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_events": {
+          "exec": 5
+        },
+        "output_observations": {
+          "output_events": 5,
+          "truncation_marker_events": 0,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "elapsed_seconds": 115.068,
+        "child_thread_ids": [],
+        "selected_turns": {
+          "01a095e3-9c31-75a2-8140-fc2d40320d1b": [
+            "01a095e3-9dda-71c3-9dc5-f6fe233ba33b"
+          ]
+        },
+        "role": "baseline",
+        "post_intake_tool_rounds": 3,
+        "action_locations": [
+          {
+            "line": 15,
+            "name": "exec"
+          },
+          {
+            "line": 23,
+            "name": "exec"
+          },
+          {
+            "line": 31,
+            "name": "exec"
+          },
+          {
+            "line": 36,
+            "name": "exec"
+          },
+          {
+            "line": 45,
+            "name": "exec"
+          }
+        ]
+      },
+      {
+        "agent_path": "/root/batching_candidate_pair",
+        "thread_id": "01a095e3-e41f-7c23-86eb-ec98c5e1ef0a",
+        "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+        "turns": [
+          "01a095e3-e546-77f0-9e73-9944b22dfb31"
+        ],
+        "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T21-52-15-01a095e3-e41f-7c23-86eb-ec98c5e1ef0a.jsonl",
+        "sha256": "75ebd2bd8d89c44856db5f126d3fdbbdd4ae2301bc076246e55f5c38edeb564e",
+        "usage": {
+          "coverage": "complete",
+          "input_tokens": 188139,
+          "cached_input_tokens": 175232,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1288,
+          "reasoning_output_tokens": 101,
+          "total_tokens": 189427,
+          "observed_totals": {
+            "input_tokens": 188139,
+            "cached_input_tokens": 175232,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1288,
+            "reasoning_output_tokens": 101,
+            "total_tokens": 189427
+          },
+          "issues": []
+        },
+        "responses": 5,
+        "coverage": "complete",
+        "issues": [],
+        "settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_events": {
+          "exec": 4
+        },
+        "output_observations": {
+          "output_events": 4,
+          "truncation_marker_events": 0,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "elapsed_seconds": 68.596,
+        "child_thread_ids": [],
+        "selected_turns": {
+          "01a095e3-e41f-7c23-86eb-ec98c5e1ef0a": [
+            "01a095e3-e546-77f0-9e73-9944b22dfb31"
+          ]
+        },
+        "role": "intermediate_candidate",
+        "post_intake_tool_rounds": 2,
+        "action_locations": [
+          {
+            "line": 15,
+            "name": "exec"
+          },
+          {
+            "line": 22,
+            "name": "exec"
+          },
+          {
+            "line": 29,
+            "name": "exec"
+          },
+          {
+            "line": 38,
+            "name": "exec"
+          }
+        ]
+      },
+      {
+        "agent_path": "/root/batching_candidate_final",
+        "thread_id": "01a095e9-6c4c-7b33-b187-3951152ea6ed",
+        "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+        "turns": [
+          "01a095e9-6d34-7dc3-a98b-d929493a8a13"
+        ],
+        "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T21-58-18-01a095e9-6c4c-7b33-b187-3951152ea6ed.jsonl",
+        "sha256": "b718adc8c7e5a8d948fe881deed6083b44bafd0b890dbada919784cbc7e96518",
+        "usage": {
+          "coverage": "complete",
+          "input_tokens": 145995,
+          "cached_input_tokens": 100480,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1058,
+          "reasoning_output_tokens": 41,
+          "total_tokens": 147053,
+          "observed_totals": {
+            "input_tokens": 145995,
+            "cached_input_tokens": 100480,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1058,
+            "reasoning_output_tokens": 41,
+            "total_tokens": 147053
+          },
+          "issues": []
+        },
+        "responses": 4,
+        "coverage": "complete",
+        "issues": [],
+        "settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_events": {
+          "exec": 3
+        },
+        "output_observations": {
+          "output_events": 3,
+          "truncation_marker_events": 0,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "elapsed_seconds": 53.631,
+        "child_thread_ids": [],
+        "selected_turns": {
+          "01a095e9-6c4c-7b33-b187-3951152ea6ed": [
+            "01a095e9-6d34-7dc3-a98b-d929493a8a13"
+          ]
+        },
+        "role": "final_candidate",
+        "post_intake_tool_rounds": 1,
+        "action_locations": [
+          {
+            "line": 13,
+            "name": "exec"
+          },
+          {
+            "line": 18,
+            "name": "exec"
+          },
+          {
+            "line": 25,
+            "name": "exec"
+          }
+        ]
+      }
+    ],
+    "gross_sample_model_usage": {
+      "input_tokens": 784251,
+      "cached_input_tokens": 662784,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 6388,
+      "reasoning_output_tokens": 804,
+      "total_tokens": 790639
+    },
+    "accounting_boundary": "All four explicitly named fresh coordinator tasks completed, deduplicated per response, totals reconciled, metadata discovery found no descendants. Saved historical worker tokens are the workload being audited, not new model spend. This active implementation coordinator and deterministic preparation are outside the completed sample denominator; no whole-work-unit or subscription-drain saving is claimed.",
+    "setup_failures": [
+      "Initial baseline model task failed before collection because the exported baseline omitted unchanged reports/efficiency_compare.py; all 197824 model tokens remain in gross sample cost.",
+      "Host fixture checker initially omitted END_SECTION_BLOCK framing and then confused JavaScript UTF-16 character offsets with Python code points. Corrected against original native call at worker-development log line 3391 and exact saved intake. All failed local records remain preserved.",
+      "An initial contract-test command used tests/unit instead of the actual tests/contract paths and collected no tests; corrected after reading the owning adapter.",
+      "Initial source-edit exact-match guard stopped on two occurrences of the tools counter; continuation targeted only collect_codex_rollouts, preserving the failure."
+    ],
+    "deterministic_dogfood": {
+      "cases": [
+        {
+          "arm": "baseline",
+          "case": "sample-a",
+          "exit": 0,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-baseline\\sample-a\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "success",
+            "quality": "passed",
+            "usage_coverage": "complete"
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "passed",
+            "sections": 9,
+            "chunks": 13,
+            "content_bytes": 63321,
+            "semantic_quality": "not_reassessed"
+          },
+          "stderr": ""
+        },
+        {
+          "arm": "baseline",
+          "case": "sample-b",
+          "exit": 0,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-baseline\\sample-b\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "success",
+            "quality": "passed",
+            "usage_coverage": "unknown"
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "passed",
+            "sections": 9,
+            "chunks": 13,
+            "content_bytes": 63321,
+            "semantic_quality": "not_reassessed"
+          },
+          "stderr": ""
+        },
+        {
+          "arm": "baseline",
+          "case": "sample-c",
+          "exit": 7,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-baseline\\sample-c\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "failed",
+            "quality": "failed",
+            "usage_coverage": "complete"
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "failed",
+            "reason": "intake_content_or_section_missing"
+          },
+          "stderr": ""
+        },
+        {
+          "arm": "candidate",
+          "case": "sample-a",
+          "exit": 0,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-candidate\\sample-a\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "success",
+            "quality": "passed",
+            "quality_return_code": 0,
+            "usage_coverage": "complete",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 135933,
+              "cached_input_tokens": 117248,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3018,
+              "reasoning_output_tokens": 1334,
+              "total_tokens": 138951,
+              "observed_totals": {
+                "input_tokens": 135933,
+                "cached_input_tokens": 117248,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 3018,
+                "reasoning_output_tokens": 1334,
+                "total_tokens": 138951
+              },
+              "issues": []
+            },
+            "model_responses": 3,
+            "threads": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": {
+                "model_responses": 3,
+                "usage": {
+                  "coverage": "complete",
+                  "input_tokens": 135933,
+                  "cached_input_tokens": 117248,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 3018,
+                  "reasoning_output_tokens": 1334,
+                  "total_tokens": 138951,
+                  "observed_totals": {
+                    "input_tokens": 135933,
+                    "cached_input_tokens": 117248,
+                    "cache_write_input_tokens": 0,
+                    "output_tokens": 3018,
+                    "reasoning_output_tokens": 1334,
+                    "total_tokens": 138951
+                  },
+                  "issues": []
+                }
+              }
+            },
+            "tool_call_events": {
+              "exec": 2
+            },
+            "tool_output_observations": {
+              "output_events": 17,
+              "truncation_marker_events": 0,
+              "nonzero_command_exit_observations": 0,
+              "unrecognized_output_events": 0
+            },
+            "observed_settings": [
+              {
+                "model": "gpt-5.6-sol",
+                "effort": "high"
+              }
+            ],
+            "collection_issues": [],
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "started_at": "2026-09-11T21:31:13.720Z",
+            "ended_at": "2026-09-11T21:32:21.697000+00:00",
+            "elapsed_seconds": 67.977,
+            "validation_elapsed_seconds": 0.12370530003681779,
+            "validation_issues": []
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "passed",
+            "sections": 9,
+            "chunks": 13,
+            "content_bytes": 63321,
+            "semantic_quality": "not_reassessed"
+          },
+          "stderr": ""
+        },
+        {
+          "arm": "candidate",
+          "case": "sample-b",
+          "exit": 0,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-candidate\\sample-b\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "success",
+            "quality": "passed",
+            "quality_return_code": 0,
+            "usage_coverage": "unknown",
+            "usage": {
+              "coverage": "unknown",
+              "input_tokens": 101041,
+              "cached_input_tokens": 83584,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 2408,
+              "reasoning_output_tokens": 1263,
+              "total_tokens": 103449,
+              "observed_totals": {
+                "input_tokens": 101041,
+                "cached_input_tokens": 83584,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 2408,
+                "reasoning_output_tokens": 1263,
+                "total_tokens": 103449
+              },
+              "issues": [
+                "turn_cumulative_reconciliation_failed"
+              ]
+            },
+            "model_responses": 2,
+            "threads": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": {
+                "model_responses": 2,
+                "usage": {
+                  "coverage": "complete",
+                  "input_tokens": 101041,
+                  "cached_input_tokens": 83584,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 2408,
+                  "reasoning_output_tokens": 1263,
+                  "total_tokens": 103449,
+                  "observed_totals": {
+                    "input_tokens": 101041,
+                    "cached_input_tokens": 83584,
+                    "cache_write_input_tokens": 0,
+                    "output_tokens": 2408,
+                    "reasoning_output_tokens": 1263,
+                    "total_tokens": 103449
+                  },
+                  "issues": []
+                }
+              }
+            },
+            "tool_call_events": {
+              "exec": 2
+            },
+            "tool_output_observations": {
+              "output_events": 17,
+              "truncation_marker_events": 0,
+              "nonzero_command_exit_observations": 0,
+              "unrecognized_output_events": 0
+            },
+            "observed_settings": [
+              {
+                "model": "gpt-5.6-sol",
+                "effort": "high"
+              }
+            ],
+            "collection_issues": [
+              "turn_cumulative_reconciliation_failed"
+            ],
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "started_at": "2026-09-11T21:31:13.720Z",
+            "ended_at": "2026-09-11T21:32:21.697000+00:00",
+            "elapsed_seconds": 67.977,
+            "validation_elapsed_seconds": 0.14283769996836782,
+            "validation_issues": []
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "passed",
+            "sections": 9,
+            "chunks": 13,
+            "content_bytes": 63321,
+            "semantic_quality": "not_reassessed"
+          },
+          "stderr": ""
+        },
+        {
+          "arm": "candidate",
+          "case": "sample-c",
+          "exit": 7,
+          "summary": {
+            "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\checked-candidate\\sample-c\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+            "outcome": "failed",
+            "quality": "failed",
+            "quality_return_code": 7,
+            "usage_coverage": "complete",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 135933,
+              "cached_input_tokens": 117248,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3018,
+              "reasoning_output_tokens": 1334,
+              "total_tokens": 138951,
+              "observed_totals": {
+                "input_tokens": 135933,
+                "cached_input_tokens": 117248,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 3018,
+                "reasoning_output_tokens": 1334,
+                "total_tokens": 138951
+              },
+              "issues": []
+            },
+            "model_responses": 3,
+            "threads": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": {
+                "model_responses": 3,
+                "usage": {
+                  "coverage": "complete",
+                  "input_tokens": 135933,
+                  "cached_input_tokens": 117248,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 3018,
+                  "reasoning_output_tokens": 1334,
+                  "total_tokens": 138951,
+                  "observed_totals": {
+                    "input_tokens": 135933,
+                    "cached_input_tokens": 117248,
+                    "cache_write_input_tokens": 0,
+                    "output_tokens": 3018,
+                    "reasoning_output_tokens": 1334,
+                    "total_tokens": 138951
+                  },
+                  "issues": []
+                }
+              }
+            },
+            "tool_call_events": {
+              "exec": 2
+            },
+            "tool_output_observations": {
+              "output_events": 16,
+              "truncation_marker_events": 0,
+              "nonzero_command_exit_observations": 0,
+              "unrecognized_output_events": 0
+            },
+            "observed_settings": [
+              {
+                "model": "gpt-5.6-sol",
+                "effort": "high"
+              }
+            ],
+            "collection_issues": [],
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "started_at": "2026-09-11T21:31:13.720Z",
+            "ended_at": "2026-09-11T21:32:21.697000+00:00",
+            "elapsed_seconds": 67.977,
+            "validation_elapsed_seconds": 0.12347600003704429,
+            "validation_issues": []
+          },
+          "checker": {
+            "check": "exact_intake_and_saved_response",
+            "status": "failed",
+            "reason": "intake_content_or_section_missing"
+          },
+          "stderr": ""
+        }
+      ],
+      "repeat_exit": 2,
+      "repeat_stderr": "efficiency command failed: FileExistsError: [Errno 17] File exists: 'C:\\\\Users\\\\vmon7\\\\Desktop\\\\projects\\\\forseti\\\\forseti-harness\\\\_scratch\\\\coordinator-batching-20260912\\\\checked-candidate\\\\sample-c\\\\568fd443-2507-5fbb-88e4-b59774053d76.json'\n"
+    },
+    "final_candidate_records": [
+      {
+        "case": "sample-a",
+        "fixture_sha256": "600c55f3812e123f0a036f9192100b76294c73178ce254a2d633bf3785b6a716",
+        "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\candidate-final\\sample-a\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+        "record_sha256": "eaabe7ab5319f022e95bd37e92c6b5d750188ab2550319abbd140d809dbbeac0",
+        "record": {
+          "attempts": [
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa4732426e887d092cd90be2c0201ff",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 33664,
+                "coverage": "complete",
+                "input_tokens": 34892,
+                "issues": [],
+                "output_tokens": 610,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 33664,
+                  "input_tokens": 34892,
+                  "output_tokens": 610,
+                  "reasoning_output_tokens": 71,
+                  "total_tokens": 35502
+                },
+                "reasoning_output_tokens": 71,
+                "total_tokens": 35502
+              }
+            },
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa473331da087d0b46035c20b6169dd",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 34688,
+                "coverage": "complete",
+                "input_tokens": 49120,
+                "issues": [],
+                "output_tokens": 2092,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 34688,
+                  "input_tokens": 49120,
+                  "output_tokens": 2092,
+                  "reasoning_output_tokens": 1217,
+                  "total_tokens": 51212
+                },
+                "reasoning_output_tokens": 1217,
+                "total_tokens": 51212
+              }
+            },
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa4735e3fd087d085911039a5076ad9",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 48896,
+                "coverage": "complete",
+                "input_tokens": 51921,
+                "issues": [],
+                "output_tokens": 316,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 48896,
+                  "input_tokens": 51921,
+                  "output_tokens": 316,
+                  "reasoning_output_tokens": 46,
+                  "total_tokens": 52237
+                },
+                "reasoning_output_tokens": 46,
+                "total_tokens": 52237
+              }
+            }
+          ],
+          "collection": {
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "child_thread_ids": [],
+            "cli_versions": [
+              "0.153.4"
+            ],
+            "coverage": "complete",
+            "elapsed_seconds": 67.977,
+            "issues": [],
+            "observed_models": [
+              "gpt-5.6-sol"
+            ],
+            "observed_settings": [
+              {
+                "effort": "high",
+                "model": "gpt-5.6-sol"
+              }
+            ],
+            "parent_links": {},
+            "root_completed_at": "2026-09-11T21:32:21.697Z",
+            "root_started_at": "2026-09-11T21:31:13.720Z",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "source_kind": "codex_desktop_rollout",
+            "source_kinds": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": "thread_spawn"
+            },
+            "thread_ids": [
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78"
+            ],
+            "tool_output_observations": {
+              "nonzero_command_exit_observations": 0,
+              "output_events": 17,
+              "truncation_marker_events": 0,
+              "unrecognized_output_events": 0
+            },
+            "tools": {
+              "exec": 2
+            },
+            "workunit_completed_at": "2026-09-11T21:32:21.697000+00:00"
+          },
+          "configuration": {
+            "observed_models": [
+              "gpt-5.6-sol"
+            ]
+          },
+          "elapsed_seconds": 67.977,
+          "ended_at": "2026-09-11T21:32:21.697000+00:00",
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:b076b54265cddcaf9b86e5091edfe14ced594fe622a90b946ade95dab0641663",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "quality_return_code": 0,
+          "revision": null,
+          "run_id": "568fd443-2507-5fbb-88e4-b59774053d76",
+          "schema_version": 1,
+          "started_at": "2026-09-11T21:31:13.720Z",
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 117248,
+            "coverage": "complete",
+            "input_tokens": 135933,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 117248,
+              "input_tokens": 135933,
+              "output_tokens": 3018,
+              "reasoning_output_tokens": 1334,
+              "total_tokens": 138951
+            },
+            "output_tokens": 3018,
+            "reasoning_output_tokens": 1334,
+            "total_tokens": 138951
+          },
+          "validation_elapsed_seconds": 0.14608260011300445,
+          "validation_issues": [],
+          "workflow": "coordinator_closeout_sample",
+          "workload_id": "600c55f3812e123f0a036f9192100b76294c73178ce254a2d633bf3785b6a716"
+        }
+      },
+      {
+        "case": "sample-b",
+        "fixture_sha256": "b90fbf3a14dbb0f434fda6979266cb90dc9d917285b0c95d80fda167ef2b6190",
+        "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\candidate-final\\sample-b\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+        "record_sha256": "061a20a53fef2106cbbb7704d1c54c8441915cb2c0c194f069d670e5b3ac71cf",
+        "record": {
+          "attempts": [
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa473331da087d0b46035c20b6169dd",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 34688,
+                "coverage": "complete",
+                "input_tokens": 49120,
+                "issues": [],
+                "output_tokens": 2092,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 34688,
+                  "input_tokens": 49120,
+                  "output_tokens": 2092,
+                  "reasoning_output_tokens": 1217,
+                  "total_tokens": 51212
+                },
+                "reasoning_output_tokens": 1217,
+                "total_tokens": 51212
+              }
+            },
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa4735e3fd087d085911039a5076ad9",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 48896,
+                "coverage": "complete",
+                "input_tokens": 51921,
+                "issues": [],
+                "output_tokens": 316,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 48896,
+                  "input_tokens": 51921,
+                  "output_tokens": 316,
+                  "reasoning_output_tokens": 46,
+                  "total_tokens": 52237
+                },
+                "reasoning_output_tokens": 46,
+                "total_tokens": 52237
+              }
+            }
+          ],
+          "collection": {
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "child_thread_ids": [],
+            "cli_versions": [
+              "0.153.4"
+            ],
+            "coverage": "unknown",
+            "elapsed_seconds": 67.977,
+            "issues": [
+              "turn_cumulative_reconciliation_failed"
+            ],
+            "observed_models": [
+              "gpt-5.6-sol"
+            ],
+            "observed_settings": [
+              {
+                "effort": "high",
+                "model": "gpt-5.6-sol"
+              }
+            ],
+            "parent_links": {},
+            "root_completed_at": "2026-09-11T21:32:21.697Z",
+            "root_started_at": "2026-09-11T21:31:13.720Z",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "source_kind": "codex_desktop_rollout",
+            "source_kinds": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": "thread_spawn"
+            },
+            "thread_ids": [
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78"
+            ],
+            "tool_output_observations": {
+              "nonzero_command_exit_observations": 0,
+              "output_events": 17,
+              "truncation_marker_events": 0,
+              "unrecognized_output_events": 0
+            },
+            "tools": {
+              "exec": 2
+            },
+            "workunit_completed_at": "2026-09-11T21:32:21.697000+00:00"
+          },
+          "configuration": {
+            "observed_models": [
+              "gpt-5.6-sol"
+            ]
+          },
+          "elapsed_seconds": 67.977,
+          "ended_at": "2026-09-11T21:32:21.697000+00:00",
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:e558bf020c985e58d50dd211d9fdbe4c4b3770d691328947f90318c03ba56be7",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "quality_return_code": 0,
+          "revision": null,
+          "run_id": "568fd443-2507-5fbb-88e4-b59774053d76",
+          "schema_version": 1,
+          "started_at": "2026-09-11T21:31:13.720Z",
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 83584,
+            "coverage": "unknown",
+            "input_tokens": 101041,
+            "issues": [
+              "turn_cumulative_reconciliation_failed"
+            ],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 83584,
+              "input_tokens": 101041,
+              "output_tokens": 2408,
+              "reasoning_output_tokens": 1263,
+              "total_tokens": 103449
+            },
+            "output_tokens": 2408,
+            "reasoning_output_tokens": 1263,
+            "total_tokens": 103449
+          },
+          "validation_elapsed_seconds": 0.12189289974048734,
+          "validation_issues": [],
+          "workflow": "coordinator_closeout_sample",
+          "workload_id": "b90fbf3a14dbb0f434fda6979266cb90dc9d917285b0c95d80fda167ef2b6190"
+        }
+      },
+      {
+        "case": "sample-c",
+        "fixture_sha256": "8f3158f19215964a35e97f9798671ed5171d2ae5851cb640dc5a35841f2fcae8",
+        "record_path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912\\candidate-final\\sample-c\\568fd443-2507-5fbb-88e4-b59774053d76.json",
+        "record_sha256": "9647dc69cdb6ebe1dddf4e18fc2bc10c4ade2c51d887aa28dc72a16c879fb518",
+        "record": {
+          "attempts": [
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa4732426e887d092cd90be2c0201ff",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 33664,
+                "coverage": "complete",
+                "input_tokens": 34892,
+                "issues": [],
+                "output_tokens": 610,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 33664,
+                  "input_tokens": 34892,
+                  "output_tokens": 610,
+                  "reasoning_output_tokens": 71,
+                  "total_tokens": 35502
+                },
+                "reasoning_output_tokens": 71,
+                "total_tokens": 35502
+              }
+            },
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa473331da087d0b46035c20b6169dd",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 34688,
+                "coverage": "complete",
+                "input_tokens": 49120,
+                "issues": [],
+                "output_tokens": 2092,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 34688,
+                  "input_tokens": 49120,
+                  "output_tokens": 2092,
+                  "reasoning_output_tokens": 1217,
+                  "total_tokens": 51212
+                },
+                "reasoning_output_tokens": 1217,
+                "total_tokens": 51212
+              }
+            },
+            {
+              "accounting_unit": "desktop_response",
+              "elapsed_seconds": null,
+              "model": "gpt-5.6-sol",
+              "outcome": "success",
+              "provider": "codex_rollout",
+              "response_id": "resp_0fbebd2be07547d8016aa4735e3fd087d085911039a5076ad9",
+              "thread_id": "01a09261-b8b3-75e0-9a26-fab2ca0f3a78",
+              "turn_id": "01a09261-ba29-79e2-a0ec-c4485720bd9c",
+              "usage": {
+                "cache_write_input_tokens": 0,
+                "cached_input_tokens": 48896,
+                "coverage": "complete",
+                "input_tokens": 51921,
+                "issues": [],
+                "output_tokens": 316,
+                "raw_usage": {
+                  "cache_write_input_tokens": 0,
+                  "cached_input_tokens": 48896,
+                  "input_tokens": 51921,
+                  "output_tokens": 316,
+                  "reasoning_output_tokens": 46,
+                  "total_tokens": 52237
+                },
+                "reasoning_output_tokens": 46,
+                "total_tokens": 52237
+              }
+            }
+          ],
+          "collection": {
+            "child_coverage": "session_metadata_and_root_turn_attribution",
+            "child_thread_ids": [],
+            "cli_versions": [
+              "0.153.4"
+            ],
+            "coverage": "complete",
+            "elapsed_seconds": 67.977,
+            "issues": [],
+            "observed_models": [
+              "gpt-5.6-sol"
+            ],
+            "observed_settings": [
+              {
+                "effort": "high",
+                "model": "gpt-5.6-sol"
+              }
+            ],
+            "parent_links": {},
+            "root_completed_at": "2026-09-11T21:32:21.697Z",
+            "root_started_at": "2026-09-11T21:31:13.720Z",
+            "selected_turns": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": [
+                "01a09261-ba29-79e2-a0ec-c4485720bd9c"
+              ]
+            },
+            "source_kind": "codex_desktop_rollout",
+            "source_kinds": {
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78": "thread_spawn"
+            },
+            "thread_ids": [
+              "01a09261-b8b3-75e0-9a26-fab2ca0f3a78"
+            ],
+            "tool_output_observations": {
+              "nonzero_command_exit_observations": 0,
+              "output_events": 16,
+              "truncation_marker_events": 0,
+              "unrecognized_output_events": 0
+            },
+            "tools": {
+              "exec": 2
+            },
+            "workunit_completed_at": "2026-09-11T21:32:21.697000+00:00"
+          },
+          "configuration": {
+            "observed_models": [
+              "gpt-5.6-sol"
+            ]
+          },
+          "elapsed_seconds": 67.977,
+          "ended_at": "2026-09-11T21:32:21.697000+00:00",
+          "outcome": "failed",
+          "quality": {
+            "oracle": "sha256:a8bd641d846d1efffe7941a19c3577cbc57b0826a1728f71e8b09197cb4dacf0",
+            "output_fingerprint": null,
+            "status": "failed"
+          },
+          "quality_return_code": 7,
+          "revision": null,
+          "run_id": "568fd443-2507-5fbb-88e4-b59774053d76",
+          "schema_version": 1,
+          "started_at": "2026-09-11T21:31:13.720Z",
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 117248,
+            "coverage": "complete",
+            "input_tokens": 135933,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 117248,
+              "input_tokens": 135933,
+              "output_tokens": 3018,
+              "reasoning_output_tokens": 1334,
+              "total_tokens": 138951
+            },
+            "output_tokens": 3018,
+            "reasoning_output_tokens": 1334,
+            "total_tokens": 138951
+          },
+          "validation_elapsed_seconds": 0.12618299992755055,
+          "validation_issues": [],
+          "workflow": "coordinator_closeout_sample",
+          "workload_id": "8f3158f19215964a35e97f9798671ed5171d2ae5851cb640dc5a35841f2fcae8"
+        }
+      }
+    ],
+    "independent_native_transport_observation": {
+      "path": "C:/tmp/forseti-targeted-repair-dogfood-20260912-v1/native-session.jsonl",
+      "sha256": "0caa104193d15ba2dcefd4d69bebc5a90fa5250c2be9bf973e65489ac207a230",
+      "output_events": 5,
+      "truncation_marker_events": 2,
+      "tool_call_events": 5,
+      "usage_coverage": "complete",
+      "meaning": "Real recovered/truncated outputs remain visible independently of usage completeness."
+    },
+    "checker_source": "import hashlib,json,sys\nfrom pathlib import Path\ntrace,intake,response=map(Path,sys.argv[1:4])\nexpected_hash=sys.argv[4]\ntry:\n    assert hashlib.sha256(response.read_bytes()).hexdigest()==expected_hash, 'saved_response_changed'\n    expected=json.loads(intake.read_text(encoding='utf-8'))\n    chunks={}; ends=[]; chunk_count=0\n    for line in trace.read_text(encoding='utf-8').splitlines():\n        row=json.loads(line); p=row.get('payload',{})\n        if row.get('type')!='response_item' or p.get('type') not in {'function_call_output','custom_tool_call_output'}: continue\n        out=p.get('output'); parts=[out] if isinstance(out,str) else [v.get('text','') for v in out if isinstance(v,dict)]\n        for text in parts:\n            head,sep,body=text.partition('\\n')\n            try: meta=json.loads(head)\n            except ValueError: continue\n            if not isinstance(meta,dict): continue\n            if 'intake_end' in meta: ends.append(meta['intake_end'])\n            if not {'section','from_character','to_character','total_characters'}<=meta.keys(): continue\n            chunk_count+=1; name=meta['section']\n            marker='\\nEND_SECTION_BLOCK '+name+' '+str(meta['to_character'])\n            assert body.endswith(marker), 'section_end_marker_mismatch'\n            body=body[:-len(marker)]\n            assert name in expected['content'], 'unexpected_section'\n            previous=chunks.get(name,'')\n            assert len(previous.encode('utf-16-le'))//2==meta['from_character'], 'intake_gap_or_overlap'\n            assert meta['total_characters']==len(expected['content'][name].encode('utf-16-le'))//2, 'section_size_changed'\n            assert meta['to_character']==len((previous+body).encode('utf-16-le'))//2, 'chunk_size_mismatch'\n            chunks[name]=previous+body\n    assert ends==[expected['intake_end']], 'end_marker_not_exactly_once'\n    assert chunks==expected['content'], 'intake_content_or_section_missing'\n    assert {k:len(v.encode('utf-8')) for k,v in chunks.items()}==expected['content_bytes'], 'intake_bytes_mismatch'\n    print(json.dumps({'check':'exact_intake_and_saved_response','status':'passed','sections':len(chunks),'chunks':chunk_count,'content_bytes':sum(expected['content_bytes'].values()),'semantic_quality':'not_reassessed'}))\nexcept (AssertionError,ValueError,OSError,TypeError) as exc:\n    print(json.dumps({'check':'exact_intake_and_saved_response','status':'failed','reason':str(exc)}))\n    raise SystemExit(7)\n",
+    "bridge_source": "import sys\nfrom pathlib import Path\nroot=Path(__file__).resolve().parent\narm=sys.argv.pop(1)\nassert arm in {'baseline','candidate'}\nharness=Path('C:/Users/vmon7/.codex/worktrees/f8e7/forseti/forseti-harness')\nsys.path.insert(0,str(harness))\nif arm=='baseline': sys.path.insert(0,str(root/'baseline'))\nfrom runners.run_efficiency import main\nraise SystemExit(main(sys.argv[1:]))\n",
+    "raw_root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912",
+    "previous_raw_root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\_scratch\\coordinator-batching-20260912",
+    "validation": {
+      "focused_initial": "61 passed; unchanged collector coverage reused",
+      "final_runner": "33 passed including corrupt-persisted-record failure; total affected unique coverage is 62",
+      "coupling_and_efficiency_foundation": "95 passed: tests/contract/test_data_lake_inventory_gate.py, tests/contract/test_policy_module_version_pins.py, tests/unit/test_harness_efficiency.py, tests/unit/test_efficiency_compare.py",
+      "repeat_import_exit": 2,
+      "diff_check_exit": 0
+    },
+    "review_routing_status": "not_needed",
+    "review_basis": "Repository conditional success-implement predicate: native completed traces and independently frozen prior accounting/intake checks support both output shapes, exact usage and failure separation; final fresh coordinator demonstrates the single post-intake invocation and correct three-way assessment; direct durable-readback and seeded corruption exercise the persistence boundary. No remaining affected boundary relies only on implementation-mirroring tests.",
+    "limits": [
+      "One small three-case workload, not independent semantic generation or a full intelligence cycle.",
+      "Autonomous source loading differs between arms and cache fractions differ. Raw token and elapsed deltas are descriptive, not an isolated batching effect or a subscription percentage.",
+      "Truncation markers are observations, may be quoted, and cannot certify exact intake.",
+      "The current source-loaded guide was supplied to the sample actor; no global skill deployment or adoption outside this worktree is claimed."
+    ]
+  },
+  "setup_followup": {
+    "date": "2026-09-12",
+    "authorized_outcome": "Reusable prepared coordinator comparison and one fresh consumer sample.",
+    "implementation_state": "Implemented and verified in the existing managed worktree; publication held.",
+    "source_change_scope": "One synthetic fixture plus tests and the existing efficiency guide. Earlier batching changes remain preserved. No additional production runner or intelligence-cycle change.",
+    "fixture": {
+      "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\fixtures\\efficiency_codex_closeout\\prepare.py",
+      "sha256": "00a2d26ac8adee635d7036332ea25335921a02a0c1857480d910e02c02cc902a"
+    },
+    "guide": {
+      "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+      "sha256": "93894135dce5b7ee65382fa9cee2ca3c921784f60eec29d6ee5e31bcc1e5e864"
+    },
+    "test_source": {
+      "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\unit\\test_run_efficiency.py",
+      "sha256": "55143b1738be90858aa3124fb8547916d2a6a525b5e6851c605faa4555ed08a9"
+    },
+    "command_capsule": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\commands.json",
+      "sha256": "990fbbfbf37161922c196cc569b6dd0d9595d84d2443eef6e9b636b61c31d451"
+    },
+    "checkouts": {
+      "baseline": {
+        "root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti",
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3",
+        "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "candidate": {
+        "root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+        "revision": "cd184bdbd7dc2df6e2c99c4fcd94fdc5f461bad9",
+        "harness_diff_sha256": "1365550b880ae57b73fa19229450c6453723cbb3cd71ce7be9964bfb1c842091"
+      }
+    },
+    "preparation": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\preparation.json",
+      "sha256": "b7f3786f5f8f655a41ff1a9ce736df0bb6f962b60324e714b6331a6d7d5ebb60",
+      "local_checks": 6,
+      "model_calls": 0
+    },
+    "tests": [
+      {
+        "report": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\focused.xml",
+          "sha256": "641fd5b42031b01ac456bb821bb06b91ce8ee79dedfdc7e968507c7eec5cd05f"
+        },
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "report": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\affected.xml",
+          "sha256": "9dde5addc6af9a876e5ef4e2a2cc8a909bc9e61f739333df5b127b49b1cfae9e"
+        },
+        "tests": 62,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "report": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\contracts.xml",
+          "sha256": "dca2e0812a2d08bf8b05cdd59cfdc2d80424ad54ea077da33217bf0132d6944f"
+        },
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "fresh_coordinator": {
+      "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+      "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T22-58-32-01a09620-92cc-79f1-9194-dbf0af927a32.jsonl",
+        "sha256": "b40f8b6d3c471f5bdc7a110cf515a368138c6e15ec23d779dc167293ea04ad8f"
+      },
+      "accounting": {
+        "attempts": [
+          {
+            "provider": "codex_rollout",
+            "model": "gpt-6-astra",
+            "elapsed_seconds": null,
+            "outcome": "success",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 32152,
+              "cached_input_tokens": 19840,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 160,
+              "reasoning_output_tokens": 25,
+              "total_tokens": 32312,
+              "issues": [],
+              "raw_usage": {
+                "input_tokens": 32152,
+                "cached_input_tokens": 19840,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 160,
+                "reasoning_output_tokens": 25,
+                "total_tokens": 32312
+              }
+            },
+            "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+            "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+            "response_id": "resp_0f22ae0acc515088016aa5689b5b6c87d09bfdc06f75f8d688",
+            "accounting_unit": "desktop_response"
+          },
+          {
+            "provider": "codex_rollout",
+            "model": "gpt-6-astra",
+            "elapsed_seconds": null,
+            "outcome": "success",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 36056,
+              "cached_input_tokens": 32000,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 184,
+              "reasoning_output_tokens": 0,
+              "total_tokens": 36240,
+              "issues": [],
+              "raw_usage": {
+                "input_tokens": 36056,
+                "cached_input_tokens": 32000,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 184,
+                "reasoning_output_tokens": 0,
+                "total_tokens": 36240
+              }
+            },
+            "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+            "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+            "response_id": "resp_0f22ae0acc515088016aa568a44bd087d0aedf54164c388c66",
+            "accounting_unit": "desktop_response"
+          },
+          {
+            "provider": "codex_rollout",
+            "model": "gpt-6-astra",
+            "elapsed_seconds": null,
+            "outcome": "success",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 39904,
+              "cached_input_tokens": 35840,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 205,
+              "reasoning_output_tokens": 25,
+              "total_tokens": 40109,
+              "issues": [],
+              "raw_usage": {
+                "input_tokens": 39904,
+                "cached_input_tokens": 35840,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 205,
+                "reasoning_output_tokens": 25,
+                "total_tokens": 40109
+              }
+            },
+            "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+            "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+            "response_id": "resp_0f22ae0acc515088016aa568aeb59087d09cf5e82870bb7d62",
+            "accounting_unit": "desktop_response"
+          },
+          {
+            "provider": "codex_rollout",
+            "model": "gpt-6-astra",
+            "elapsed_seconds": null,
+            "outcome": "success",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 42845,
+              "cached_input_tokens": 39680,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 424,
+              "reasoning_output_tokens": 228,
+              "total_tokens": 43269,
+              "issues": [],
+              "raw_usage": {
+                "input_tokens": 42845,
+                "cached_input_tokens": 39680,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 424,
+                "reasoning_output_tokens": 228,
+                "total_tokens": 43269
+              }
+            },
+            "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+            "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+            "response_id": "resp_0f22ae0acc515088016aa568ba43ac87d0b8e9f8bb6e709ee4",
+            "accounting_unit": "desktop_response"
+          },
+          {
+            "provider": "codex_rollout",
+            "model": "gpt-6-astra",
+            "elapsed_seconds": null,
+            "outcome": "success",
+            "usage": {
+              "coverage": "complete",
+              "input_tokens": 45635,
+              "cached_input_tokens": 42624,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 334,
+              "reasoning_output_tokens": 64,
+              "total_tokens": 45969,
+              "issues": [],
+              "raw_usage": {
+                "input_tokens": 45635,
+                "cached_input_tokens": 42624,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 334,
+                "reasoning_output_tokens": 64,
+                "total_tokens": 45969
+              }
+            },
+            "thread_id": "01a09620-92cc-79f1-9194-dbf0af927a32",
+            "turn_id": "01a09620-93c9-74e3-a90c-d450fd35e61d",
+            "response_id": "resp_0f22ae0acc515088016aa568cd3ddc87d0a4afd16dfbc9a86a",
+            "accounting_unit": "desktop_response"
+          }
+        ],
+        "coverage": "complete",
+        "issues": [],
+        "source_kind": "codex_desktop_rollout",
+        "thread_ids": [
+          "01a09620-92cc-79f1-9194-dbf0af927a32"
+        ],
+        "child_thread_ids": [],
+        "tools": {
+          "exec": 4
+        },
+        "cli_versions": [
+          "0.154.0-alpha.6.2"
+        ],
+        "observed_settings": [
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_output_observations": {
+          "output_events": 4,
+          "truncation_marker_events": 0,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "child_coverage": "session_metadata_and_root_turn_attribution",
+        "parent_links": {},
+        "selected_turns": {
+          "01a09620-92cc-79f1-9194-dbf0af927a32": [
+            "01a09620-93c9-74e3-a90c-d450fd35e61d"
+          ]
+        },
+        "source_kinds": {
+          "01a09620-92cc-79f1-9194-dbf0af927a32": "thread_spawn"
+        },
+        "root_started_at": "2026-09-12T14:58:32.982Z",
+        "root_completed_at": "2026-09-12T14:59:38.140Z",
+        "workunit_completed_at": "2026-09-12T14:59:38.140000+00:00",
+        "elapsed_seconds": 65.158,
+        "observed_models": [
+          "gpt-6-astra"
+        ]
+      },
+      "total_usage": {
+        "input_tokens": 196592,
+        "cached_input_tokens": 169984,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1307,
+        "reasoning_output_tokens": 342,
+        "total_tokens": 197899
+      },
+      "public_behavior": {
+        "intake_tool_rounds": 3,
+        "execution_tool_rounds": 1,
+        "parallel_commands": 6,
+        "setup_errors": 0,
+        "retries": 0,
+        "expected_nonzero_command_exits": 2,
+        "behavior_basis": "Four native public exec calls; last call runs the six supplied cwd/argv commands with Promise.allSettled; six fulfilled results and independently read records agree."
+      },
+      "usage_boundary": "Only this completed fresh coordinator turn, including all five responses and any discovered descendants (none). Excludes the still-active parent implementation task, earlier attempts, and synthetic fixture counters. Cached input is a subset of input; reasoning output is a subset of output.",
+      "observations": [
+        {
+          "arm": "baseline",
+          "case": "case-a",
+          "exit_code": 0,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\baseline\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "4fadbb2a1527762da5ff66320fb04ca8eb35512969f2681e55c4e8730bf23880"
+          },
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:5cbba3e1f3281e5b60b22c2d1a1fd9bb8e4ffc5bcf336c37c56ff053e2853493",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 8,
+            "coverage": "complete",
+            "input_tokens": 30,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 8,
+              "input_tokens": 30,
+              "output_tokens": 6,
+              "reasoning_output_tokens": 2,
+              "total_tokens": 36
+            },
+            "output_tokens": 6,
+            "reasoning_output_tokens": 2,
+            "total_tokens": 36
+          },
+          "quality_return_code": 0,
+          "candidate_readback_matched": null
+        },
+        {
+          "arm": "baseline",
+          "case": "case-b",
+          "exit_code": 0,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\baseline\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "4bedd26a8d7ee5708dbb7ddb3f9913aef76e6a3f28ce7df6bd50412dfd1d78bd"
+          },
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:5a9cffb12fb1e03b6c1c8a41d536238c672edaa378cdda9d2284e799d3a10dd3",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 4,
+            "coverage": "unknown",
+            "input_tokens": 20,
+            "issues": [
+              "turn_cumulative_reconciliation_failed"
+            ],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 4,
+              "input_tokens": 20,
+              "output_tokens": 3,
+              "reasoning_output_tokens": 1,
+              "total_tokens": 23
+            },
+            "output_tokens": 3,
+            "reasoning_output_tokens": 1,
+            "total_tokens": 23
+          },
+          "quality_return_code": 0,
+          "candidate_readback_matched": null
+        },
+        {
+          "arm": "baseline",
+          "case": "case-c",
+          "exit_code": 7,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\baseline\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "85efd0f6ae0f098836be3e192747801aa5a68b387ecc0752f870c4768ace4f30"
+          },
+          "outcome": "failed",
+          "quality": {
+            "oracle": "sha256:f2f1b74ba2e813099b5eba91d216a7670667b3e2fc19913d50cb2ae5eda2283a",
+            "output_fingerprint": null,
+            "status": "failed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 8,
+            "coverage": "complete",
+            "input_tokens": 30,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 8,
+              "input_tokens": 30,
+              "output_tokens": 6,
+              "reasoning_output_tokens": 2,
+              "total_tokens": 36
+            },
+            "output_tokens": 6,
+            "reasoning_output_tokens": 2,
+            "total_tokens": 36
+          },
+          "quality_return_code": 7,
+          "candidate_readback_matched": null
+        },
+        {
+          "arm": "candidate",
+          "case": "case-a",
+          "exit_code": 0,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\candidate\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+            "sha256": "af194db83c68037691c3a42ad356e0f3d4525bab5ea07e7c88a7ef7061da060c"
+          },
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:5cbba3e1f3281e5b60b22c2d1a1fd9bb8e4ffc5bcf336c37c56ff053e2853493",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 8,
+            "coverage": "complete",
+            "input_tokens": 30,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 8,
+              "input_tokens": 30,
+              "output_tokens": 6,
+              "reasoning_output_tokens": 2,
+              "total_tokens": 36
+            },
+            "output_tokens": 6,
+            "reasoning_output_tokens": 2,
+            "total_tokens": 36
+          },
+          "quality_return_code": 0,
+          "candidate_readback_matched": true
+        },
+        {
+          "arm": "candidate",
+          "case": "case-b",
+          "exit_code": 0,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\candidate\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+            "sha256": "f8bfe4e51c0f1c6d48b78b82d7a13fbe8ce786f25031c7418e49316926cc04e0"
+          },
+          "outcome": "success",
+          "quality": {
+            "oracle": "sha256:5a9cffb12fb1e03b6c1c8a41d536238c672edaa378cdda9d2284e799d3a10dd3",
+            "output_fingerprint": null,
+            "status": "passed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 4,
+            "coverage": "unknown",
+            "input_tokens": 20,
+            "issues": [
+              "turn_cumulative_reconciliation_failed"
+            ],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 4,
+              "input_tokens": 20,
+              "output_tokens": 3,
+              "reasoning_output_tokens": 1,
+              "total_tokens": 23
+            },
+            "output_tokens": 3,
+            "reasoning_output_tokens": 1,
+            "total_tokens": 23
+          },
+          "quality_return_code": 0,
+          "candidate_readback_matched": true
+        },
+        {
+          "arm": "candidate",
+          "case": "case-c",
+          "exit_code": 7,
+          "record": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-20260912\\live\\worker-records\\candidate\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+            "sha256": "7af689835af45cb2ad3e2672f90b7a8de3eacd4a90824eeca56e3219a1a545b7"
+          },
+          "outcome": "failed",
+          "quality": {
+            "oracle": "sha256:f2f1b74ba2e813099b5eba91d216a7670667b3e2fc19913d50cb2ae5eda2283a",
+            "output_fingerprint": null,
+            "status": "failed"
+          },
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 8,
+            "coverage": "complete",
+            "input_tokens": 30,
+            "issues": [],
+            "observed_totals": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 8,
+              "input_tokens": 30,
+              "output_tokens": 6,
+              "reasoning_output_tokens": 2,
+              "total_tokens": 36
+            },
+            "output_tokens": 6,
+            "reasoning_output_tokens": 2,
+            "total_tokens": 36
+          },
+          "quality_return_code": 7,
+          "candidate_readback_matched": true
+        }
+      ]
+    },
+    "review_routing_status": "not_needed",
+    "review_basis": "Conditional repository rule. Real two-checkout command execution and a fresh coordinator independently exercise the consumer path. A real missing-dependency subprocess fails at import; a permissive checker actually exits zero before preparation rejects its false success. Frozen literal Unicode bytes and preserved middle-damage failures check the data boundary. Native commands, six saved results and complete usage reconciliation support the observed sample. No material affected boundary relies solely on a matching implementation assumption.",
+    "limits": [
+      "One coordinator on synthetic saved inputs; no semantic-generation or full intelligence-cycle reliability conclusion.",
+      "The checkout revisions include broader historical differences; this is setup usability, not an isolated before/after model or cost comparison.",
+      "Preparation identifies observed source state. It does not automatically police later edits or changing untracked dependencies; regenerate after relevant changes.",
+      "No subscription percentage saving is established. Actual coordinator usage and synthetic case counters are separate.",
+      "Generic tool-output observations report zero nonzero-exit markers; direct parsing of the nested command results observes the two intended exit-7 failures."
+    ],
+    "delegated_review_followup": {
+      "date": "2026-09-12",
+      "pass_kind": "delegated_code_review_and_patch",
+      "author_vendor": "OpenAI",
+      "author_family": "GPT / gpt-6-astra",
+      "delegate_vendor": "Anthropic",
+      "delegate_family": "Claude / claude-opus-5",
+      "required_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "reviewed_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "effective_target_worktree": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+      "branch": "codex/coordinator-efficiency-20260912",
+      "status": "Adjudicated 2026-09-13; setup_followup.home_adjudication owns the accepted, modified and rejected dispositions. Review evidence below describes the returned proposal.",
+      "author_recorded_values_unchanged": true,
+      "verified_author_claims": {
+        "recorded_source_hashes": "fixture, guide and test_source sha256 all matched the files at the reviewed revision.",
+        "test_reports": "focused.xml 5, affected.xml 62, contracts.xml 18, zero failures/errors/skips in each; 85 total as reported.",
+        "six_saved_records": "All six recorded worker-record sha256 values matched the files on disk.",
+        "fresh_coordinator_log": "Rollout sha256 matched. Five responses; per-response sums equal the final cumulative counters exactly (197,899 total). Single thread/turn. Four public exec calls: three intake plus one Promise.allSettled batch of six commands read from commands.json; six fulfilled results; no retry or additional call. Observed span 2026-09-12T14:58:32.982Z to 14:59:38.140Z = 65.158 s.",
+        "boundary": "The inspected turn is the fresh coordinator only; the active parent implementation task was not included."
+      },
+      "reproduction": {
+        "method": "Ran the bound preparation from the reviewed revision into new scratch directories before and after the patch; baseline root C:\\Users\\vmon7\\Desktop\\projects\\forseti at c9dc5d449e483f015398d655fa54c89607918dd3, candidate root the pinned worktree.",
+        "pre_patch_commands_sha256": "cad6aea3b518a61b9e50114984587f2fda96cf320b1d85d88a677265942f87c1",
+        "post_patch_commands_sha256": "966c2e87711e3b95cb4c9d6c5ea3076f35252020dd6afbf731388086c3460bea",
+        "outcomes": "Both reproductions produced status ready with 6 local checks and the same six case outcomes as the recorded sample: case-a (0, success, passed, complete, 36), case-b (0, success, passed, unknown, 23), case-c (7, failed, failed, complete, 36) in both arms.",
+        "saved_input_bytes": "All six saved.txt and rollout.jsonl inputs were byte-identical to the recorded sample in both reproductions, including the 8,036-byte valid artifact and the 8,033-byte damaged one.",
+        "explained_differences": "Candidate revision cd184bdb -> 21b59c43 and its harness state digest; validation_elapsed_seconds; and each checker oracle hash, which binds the absolute artifact path and therefore changes with the exercise directory. No byte identity was demanded for those.",
+        "consumer_path": "The six published post-patch commands were executed as a coordinator would: six results matching the table above, each record written to its own worker-records destination, and a repeat of one command refused with exit 2 (FileExistsError) leaving all six saved records byte-unchanged."
+      },
+      "patched_files": {
+        "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": "9d7b34c6a0fb151c6b34ac7422c3c96ed152f696e4b973ae0a627e4c95058574",
+        "forseti-harness/tests/unit/test_run_efficiency.py": "347c54c50494ea4bc3be2a887725c3e93470c960d883cfcd14fa4278d224a495",
+        "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": "9366856048411db195e7f958e37d6b5fa363785d78a64ce285947914c47024f6",
+        "docs/research/judgment-spine/harness/coordinator-efficiency-20260912/result.md": "ff4d1b5abf7dadc8d732330d1f405a45a80d1a203ec4b397d95d15609d48a9ca"
+      },
+      "findings_patched": [
+        {
+          "id": "F-1",
+          "summary": "The saved-content checker returned exit 7 both for content that did not match the frozen bytes and for an artifact it could not read, so a broken setup reached the durable record as the intended damaged-content failure.",
+          "evidence": "Pre-patch: an absent artifact and a directory path each printed a failure line and exited 7, identical to genuine damage; the record keeps only quality.status failed and quality_return_code 7, and quality.output_fingerprint is always null.",
+          "change": "check now exits 8 with a saved_content_unreadable error when the artifact cannot be read; 7 is reserved for a byte mismatch.",
+          "proof": "Removing case-a's artifact after preparation and running its published command produced exit 8 and quality_return_code 8 in both arms' records, where the pre-patch build produced 7."
+        },
+        {
+          "id": "F-2",
+          "summary": "Each checkout binding digested only the tracked forseti-harness diff, so untracked harness files were neither recorded nor detected by the end-of-run checkout-changed guard, although they change what the child interpreter imports.",
+          "evidence": "git diff --no-ext-diff HEAD -- forseti-harness omits untracked files; the equality re-check compared only that digest.",
+          "change": "The digest now covers git status --porcelain=v1 --untracked-files=all -- forseti-harness together with the tracked diff, and the field is renamed harness_state_sha256 so the name does not overstate or understate its coverage.",
+          "proof": "New unit test shows the digest changing when only untracked harness content changes. The command returns zero lines in the baseline checkout that holds the author's ignored _scratch exercise directory, so the intended usage is unaffected."
+        },
+        {
+          "id": "F-3",
+          "summary": "Prepared commands omitted --revision, so every saved record carried revision null; with both arms importing identical inputs and a deterministic run_id, the output directory path was the only arm attribution in the evidence.",
+          "evidence": "Records reproduced from the reviewed revision showed revision null in all six, and baseline/candidate records for the same case share the same run_id filename.",
+          "change": "_command now passes that arm's revision, and the local check refuses a record that does not carry it.",
+          "proof": "Post-patch records carry c9dc5d449e48 for the baseline arm and 21b59c43a8da for the candidate arm."
+        },
+        {
+          "id": "F-6",
+          "summary": "_save documented that it never overwrites an earlier observation, but Path.rename replaces an existing destination silently on POSIX; the real protection came only from the exclusive output-directory creation.",
+          "evidence": "On this Windows host the rename fails, but it leaves the .tmp file behind, and on POSIX it would replace the destination.",
+          "change": "_save refuses before writing when the destination already exists.",
+          "proof": "New unit test: the second _save raises FileExistsError, the first value survives, and no .tmp remains. The pre-patch build failed this test on the leftover .tmp assertion."
+        },
+        {
+          "id": "F-4",
+          "summary": "result.md stated the follow-up had not been committed while the work was checkpointed as 21b59c43 on codex/coordinator-efficiency-20260912.",
+          "change": "Corrected in place with a dated correction note; still not pushed or merged and publication remains held.",
+          "proof": "git rev-parse HEAD in the pinned worktree."
+        }
+      ],
+      "findings_not_patched": [
+        "Off scope, owner forseti-harness/runners/run_efficiency.py: quality.output_fingerprint is never populated, so no checker output survives in the record; and import-codex derives run_id deterministically from thread and turn, so both arms' records for one case share a filename and would collide if ever collected into one directory.",
+        "Minor: prepare accepts baseline_root equal to candidate_root and still reports status ready. The capsule's checkouts block exposes the identical revisions, so the condition is visible rather than concealed, and the existing tests depend on the same-root form.",
+        "Optional, non-required: the damaged case's property that a head-and-tail checker would still pass it is asserted only in prose, not in a test."
+      ],
+      "considered_and_defended": [
+        "Hypothesis that the damaged case's deletion point was too close to the head to be a real interior counterexample: defeated by measurement. The filler is a homogeneous run of 7,999 x bytes, so CONTENT.replace(b'xxx', b'', 1) and a midpoint deletion produce identical bytes, with the first differing byte at offset 8,008 of 8,036 either way. A candidate patch was written and then reverted; the author's expression stands and the case-c bytes remain those of the recorded sample.",
+        "The checker's stdout precedes the runner's machine-readable final line, so parsing the last line stays correct; the shared stream is pre-existing runner behavior.",
+        "Published commands differ from the locally exercised ones only in --output-dir, and the exercised preparation-records path is the longer of the two, so no worker-only path-length or destination risk is introduced."
+      ],
+      "validation": {
+        "environment": "Windows 11, PowerShell, CPython invoked as python, run from the pinned worktree's forseti-harness.",
+        "gates": [
+          {
+            "command": "python -m pytest tests/unit/test_run_efficiency.py tests/unit/test_efficiency_codex.py -q",
+            "result": "69 passed",
+            "exit_code": 0
+          },
+          {
+            "command": "python -m pytest tests/contract/test_data_lake_inventory_gate.py tests/contract/test_policy_module_version_pins.py -q",
+            "result": "18 passed",
+            "exit_code": 0
+          },
+          {
+            "command": "python -m pytest tests/unit/test_run_efficiency.py -k closeout_example",
+            "result": "7 passed, 33 deselected (5 author tests plus 2 added)",
+            "exit_code": 0
+          },
+          {
+            "command": "git diff --check",
+            "result": "no whitespace errors; the LF/CRLF notices are pre-existing host eol configuration and all four files remain pure LF",
+            "exit_code": 0
+          }
+        ],
+        "red_green": "The patched closeout_example tests were run against the reviewed revision's builder restored byte-for-byte in place: 4 failed, 3 passed, each failure for its intended reason (assert 7 == 8 for the unreadable artifact, KeyError harness_state_sha256, a leftover preparation.json.tmp, and the missing --revision argument). The patched builder was then restored and all gates rerun.",
+        "not_run": [
+          "No broad CI run and no full harness suite; only the commissioned gates plus the reproduction.",
+          "No new model experiment or production run; no fresh coordinator was launched against the patched setup, so the patched capsule has no live-consumer observation.",
+          "POSIX behavior of the _save destination guard was not executed on this Windows host."
+        ]
+      },
+      "non_claims": [
+        "No subscription-saving, semantic-quality or whole-cycle reliability conclusion follows from this synthetic sample or from this review.",
+        "This pass is not acceptance, approval, readiness or validation of the checkpoint; the home coordinator adjudicates each finding and change.",
+        "The patched setup has no fresh-coordinator observation of its own; the recorded fresh-coordinator sample describes the pre-patch capsule."
+      ]
+    },
+    "home_adjudication": {
+      "date": "2026-09-13",
+      "author_vendor": "OpenAI",
+      "mode": "home-model review-return adjudication",
+      "base_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "state": "adjudicated; retained patch verified in the working tree; publication held",
+      "original_source_revision": "21b59c43a8da6cac4f81626685966b5d0339b3e6",
+      "record_authority": "This object is the current disposition. Earlier setup_followup values preserve the original implementation observation; delegated_review_followup preserves reviewer claims rather than the final kept patch.",
+      "review_return": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-return.txt",
+        "sha256": "f3986f95670017382766ddcb6b032d9d6916cc0323eb350644ff3418b6e16633"
+      },
+      "reviewer_patch": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate.patch",
+        "sha256": "1e315b12e29655d86f2b305e42eeb0cece429afdb787a3915c497b4d9d0c4480"
+      },
+      "reviewer_measurement_snapshot": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-measurement.json",
+        "sha256": "bf8fbbb0d435cca4efb16374e036921665e245be867ebb606501b26b54e82814"
+      },
+      "reviewer_source_snapshot_root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\delegate-source",
+      "decisions": [
+        {
+          "id": "F-1",
+          "decision": "accept",
+          "reason": "The saved checker return code now distinguishes an unreadable artifact (8) from a byte mismatch (7). Both arms persisted 8 during the final missing-file exercise."
+        },
+        {
+          "id": "F-2",
+          "decision": "modify",
+          "reason": "The returned Git-status digest detected names, not edits to an already-untracked file. A real same-path, same-length content edit left its binding unchanged. The final fix hashes untracked names and bytes, retains harness_diff_sha256, and adds untracked_harness_sha256. The test uses real Git and filesystem changes, including addition, modification, rename, removal, ignored scratch and a tracked edit."
+        },
+        {
+          "id": "F-3",
+          "decision": "accept with narrower attribution claim",
+          "reason": "Keep --revision and saved-record validation as source-commit metadata. A commit alone does not identify an arm or dirty checkout; the capsule and separate output destinations retain those distinctions. Guide and comments now say this explicitly."
+        },
+        {
+          "id": "F-4",
+          "decision": "accept",
+          "reason": "The original implementation was checkpointed as 21b59c43 before courier. Keep the dated correction; the adjudicated working-tree patch remains uncommitted and publication is held."
+        },
+        {
+          "id": "F-5",
+          "reviewer_measurement_id": "F-6",
+          "decision": "reject proposed guard and its private-helper test",
+          "reason": "The supported prepare entrypoint exclusively creates a new exercise directory before _save is reached. Reuse is already rejected there, and real repeat-import tests preserve all prior records. A second guard inside the private helper does not close a reachable defect in the commissioned flow. Clarify the helper docstring instead; do not expand into a general publication primitive."
+        }
+      ],
+      "untracked_content_counterexample": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\untracked-content-counterexample.json",
+        "sha256": "ce97ce4924e16ccddaf91c1b51073093de9c2dfbbec96dae26abd66e38933c60"
+      },
+      "red_test": {
+        "report": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\untracked-red.xml",
+          "sha256": "39e012099fafc4226ed9a7d306145ede0b5091cc1c303d000f4b177ef1107435"
+        },
+        "expected_failure": "One real-file content-change test failed on changed != added against the reviewer builder; not a schema-key failure."
+      },
+      "sources": {
+        "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\fixtures\\efficiency_codex_closeout\\prepare.py",
+          "sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667"
+        },
+        "forseti-harness/tests/unit/test_run_efficiency.py": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\unit\\test_run_efficiency.py",
+          "sha256": "faa3dbbe3e8af7f5acbb44f8609655bd6eecf425ee97999e4c941e0c4ed731bf"
+        },
+        "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": {
+          "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+          "sha256": "e300d8538178883877740d66f65be0e4d24eb2b187f926a6e8d95c92ce976a49"
+        }
+      },
+      "tests": [
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\focused.xml",
+            "sha256": "529bf48e66758585de77a854fa584c1040a726c040256998a45d03272ea73df5"
+          },
+          "tests": 6,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\affected.xml",
+            "sha256": "dfd8ff13512771b4ba4bc3fb77fe6db0de31812a0b51e38b24c9212778838d60"
+          },
+          "tests": 62,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "report": {
+            "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\contracts.xml",
+            "sha256": "2e6e92448c450e0556bff4e61b78398af65dcd31e31d046cc58310707589e904"
+          },
+          "tests": 18,
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0
+        }
+      ],
+      "total_passing_tests": 86,
+      "consumer_evidence": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-adjudication-20260913\\consumer-evidence.json",
+        "sha256": "50c9c69c88e15bf912f7d329bb8cbdb029b38310decb0d8a42b514acabe29d16"
+      },
+      "consumer_summary": {
+        "commands": 6,
+        "case_exits": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          7
+        ],
+        "repeat_exit": 2,
+        "unreadable_artifact_exits": [
+          8,
+          8
+        ],
+        "input_files_unchanged": 6,
+        "model_calls": 0
+      },
+      "operator_closeout_source": {
+        "before_review": "A reusable synthetic comparison was implemented, verified by 85 local tests and one completed fresh coordinator, then frozen in the local author checkpoint.",
+        "final_kept_state": "Three setup improvements and the evidence correction are retained: distinct unreadable/mismatch exits, real untracked-content fingerprints without renaming the original field, and source-commit metadata. The extra private-save guard is removed. Exactly the original five commissioned files remain changed.",
+        "validation": "86 passing local tests (6 setup, 62 existing affected unit, 18 coupling contracts). The six published commands reproduced the intended outcomes; repeat import exited 2 without changing prior records; missing artifacts persisted exit 8 in both arms. All six saved input files remain identical to the original sample.",
+        "gaps": "No new model experiment, production run, broad CI or full harness suite. The original fresh coordinator observed the pre-review setup; the final setup has local command-consumer evidence.",
+        "remaining_risk": "Fingerprints cover tracked changes and non-ignored untracked harness files, not ignored files or installed packages. State is checked during preparation, not enforced later. Separate arm directories remain necessary; generic checker-output persistence and record naming are outside scope.",
+        "next_material_move": "Measure setup repairs and avoidable coordinator calls in the next separately authorized real comparison before reconsidering the coordinator model. No additional model launch is authorized by this adjudication.",
+        "lifecycle": "No further lane commit, push, PR or merge. When publication is authorized, handle the accepted changes in one land step."
+      }
+    }
+  },
+  "post_review_confirmation": {
+    "date": "2026-09-13",
+    "authorization": "Owner: let us measure that; merge the PR if good. Supersedes earlier publication and fresh-model holds.",
+    "decision": "Setup/consumer confirmation passed; proceed with bounded batching/setup PR subject to required green checks. Total coordinator-efficiency improvement was NOT demonstrated.",
+    "measured_revision": "6474ea817c9890f4601431b3250e30506810c847",
+    "sources": {
+      "forseti-harness/tests/fixtures/efficiency_codex_closeout/prepare.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\tests\\fixtures\\efficiency_codex_closeout\\prepare.py",
+        "sha256": "dd71eae13a8ad740786b438a599566651053e9c41b6e5ddddf3765170fcc2667"
+      },
+      "forseti-harness/runners/run_efficiency.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\runners\\run_efficiency.py",
+        "sha256": "ba5901b327480bea931ff294d50f6ddfea051ab8bb21dc27e75a3fb6ca380e82"
+      },
+      "forseti-harness/reports/efficiency_codex.py": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\forseti-harness\\reports\\efficiency_codex.py",
+        "sha256": "44bd388097d830862b82805b74054b550aca5263ec50ada67280de2194305d2a"
+      },
+      "docs/workflows/efficiency/forseti_efficiency_measurement_v0.md": {
+        "path": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti\\docs\\workflows\\efficiency\\forseti_efficiency_measurement_v0.md",
+        "sha256": "e300d8538178883877740d66f65be0e4d24eb2b187f926a6e8d95c92ce976a49"
+      }
+    },
+    "command_capsule": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\commands.json",
+      "sha256": "c592f2eea26f852793b630cfeb392428c16f8fbf1e96bd40dcc9653a783f9e43"
+    },
+    "checkouts": {
+      "baseline": {
+        "root": "C:\\Users\\vmon7\\Desktop\\projects\\forseti",
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3",
+        "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "candidate": {
+        "root": "C:\\Users\\vmon7\\.codex\\worktrees\\f8e7\\forseti",
+        "revision": "6474ea817c9890f4601431b3250e30506810c847",
+        "harness_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_harness_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    "preparation": {
+      "source": {
+        "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\preparation.json",
+        "sha256": "ba55773fecc5d5c100f57ae55d797b038f68c23159a1c05cd0e8a27ffa20d6be"
+      },
+      "local_checks": 6,
+      "model_calls": 0
+    },
+    "native_observation": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\native-observation.json",
+      "sha256": "8c9efb37122e3d64d6dd54af9fde062da35a279dd35cf14c8b13d4618a7bdd40"
+    },
+    "public_events": {
+      "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\public-events.json",
+      "sha256": "c91c598ccbf95c30d463fc7403117704b4e080c83299f882781b40e00737298d"
+    },
+    "fresh_coordinator": {
+      "thread_id": "01a09687-b8da-7e10-ae42-04a518c7e6bb",
+      "turn_id": "01a09687-ba01-7ec1-a82b-c07eefd55f4d",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T00-51-12-01a09687-b8da-7e10-ae42-04a518c7e6bb.jsonl",
+        "sha256": "637730117d081f30a0ce1a57b5c501451ab0df435a5139b6e926dfc1abe9ea47"
+      },
+      "coverage": "complete",
+      "issues": [],
+      "observed_settings": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "model_responses": 9,
+      "child_thread_ids": [],
+      "child_coverage": "session_metadata_and_root_turn_attribution",
+      "selected_turns": {
+        "01a09687-b8da-7e10-ae42-04a518c7e6bb": [
+          "01a09687-ba01-7ec1-a82b-c07eefd55f4d"
+        ]
+      },
+      "started_at": "2026-09-12T16:51:13.082Z",
+      "completed_at": "2026-09-12T16:52:35.359Z",
+      "elapsed_seconds": 82.277,
+      "total_usage": {
+        "coverage": "complete",
+        "input_tokens": 400469,
+        "cached_input_tokens": 362112,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1692,
+        "reasoning_output_tokens": 167,
+        "total_tokens": 402161,
+        "observed_totals": {
+          "input_tokens": 400469,
+          "cached_input_tokens": 362112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1692,
+          "reasoning_output_tokens": 167,
+          "total_tokens": 402161
+        },
+        "issues": []
+      },
+      "tool_call_events": {
+        "exec": 8
+      },
+      "intake_tool_rounds": 6,
+      "work_tool_rounds": 2,
+      "parallel_execution_batches": 1,
+      "parallel_commands": 6,
+      "baseline_only_record_read_rounds": 1,
+      "candidate_record_read_rounds": 0,
+      "setup_errors": 0,
+      "setup_repairs": 0,
+      "command_retries": 0,
+      "instruction_read_retries": 1,
+      "instruction_read_failures": [
+        {
+          "call_id": "call_crXSa4oylNk9tTiaNkWJdAyn",
+          "exit_code": 1,
+          "status": "not_read",
+          "reason": "output_budget_exceeded",
+          "max_output_bytes": 16000,
+          "requested_output_bytes": 23407
+        }
+      ],
+      "candidate_record_readback_matches": 3
+    },
+    "observations": [
+      {
+        "arm": "baseline",
+        "case": "case-a",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+          "sha256": "0faf0ce5764e4804a221daec3a9939e7ec735f9522adf78b65db76dc52392927"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "baseline",
+        "case": "case-b",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+          "sha256": "dfca7ab4fc4f3e0462d68cbf9895f791482831002fe3d3cd30a44290e78b899c"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "unknown",
+        "synthetic_total_tokens": 23,
+        "usage_issues": [
+          "turn_cumulative_reconciliation_failed"
+        ],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "baseline",
+        "case": "case-c",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\baseline\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+          "sha256": "3cce70d93e77a8fb43f9bd84a850a357fa992742bc1b3db951621009323520e0"
+        },
+        "outcome": "failed",
+        "quality": "failed",
+        "quality_return_code": 7,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "c9dc5d449e483f015398d655fa54c89607918dd3"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-a",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-a\\84f68a75-8c03-5dd8-ad21-99c3f7a79bc4.json",
+          "sha256": "d46d0c47396fdc28d0c44a8ac8232a66bd474443dbdb89b08a141035ffdb845c"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-b",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-b\\95665cfa-360c-5264-8222-1b3b78559c49.json",
+          "sha256": "21f35163561196b76b39d4addb4ff9d4763bc57c3bee0c9a0d1d2537f33182b0"
+        },
+        "outcome": "success",
+        "quality": "passed",
+        "quality_return_code": 0,
+        "usage_coverage": "unknown",
+        "synthetic_total_tokens": 23,
+        "usage_issues": [
+          "turn_cumulative_reconciliation_failed"
+        ],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      },
+      {
+        "arm": "candidate",
+        "case": "case-c",
+        "record": {
+          "path": "C:\\Users\\vmon7\\Desktop\\projects\\forseti\\forseti-harness\\_scratch\\coordinator-setup-confirmation-20260913\\live\\worker-records\\candidate\\case-c\\565f77f5-aa49-5c55-91c9-eea0259e932e.json",
+          "sha256": "69112ce2248860f1ab8a042558beef8c4c3a6e9a88b5a05ca7ef5fea6921ad83"
+        },
+        "outcome": "failed",
+        "quality": "failed",
+        "quality_return_code": 7,
+        "usage_coverage": "complete",
+        "synthetic_total_tokens": 36,
+        "usage_issues": [],
+        "revision": "6474ea817c9890f4601431b3250e30506810c847"
+      }
+    ],
+    "input_identity": "All six saved.txt/rollout.jsonl inputs matched the previous successful sample byte-for-byte; checker paths and source revision attribution changed as expected.",
+    "historical_reference": {
+      "pointer": "setup_followup.fresh_coordinator",
+      "source": {
+        "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T22-58-32-01a09620-92cc-79f1-9194-dbf0af927a32.jsonl",
+        "sha256": "b40f8b6d3c471f5bdc7a110cf515a368138c6e15ec23d779dc167293ea04ad8f"
+      },
+      "model_responses": 5,
+      "intake_tool_rounds": 3,
+      "work_tool_rounds": 1,
+      "setup_errors": 0,
+      "command_retries": 0,
+      "total_tokens": 197899,
+      "elapsed_seconds": 65.158
+    },
+    "comparison": {
+      "setup_repairs": "tie at zero",
+      "candidate_execution_and_readback": "one execution batch, no additional candidate record reads",
+      "total_tool_rounds": "4 to 8; three additional instruction reads plus one baseline-only diagnostic read",
+      "native_total_token_delta": 204262,
+      "native_total_token_change_percent": 103.22,
+      "interpretation": "Observed aggregate use increased. One oversized validation-instruction read was avoidable; no setup command failed unexpectedly. Prompt/context and diagnostic reporting differ, so this is not a causal estimate of the patch cost or saving."
+    },
+    "publication_scope": "Batching, collected diagnostics/readback, reusable setup, consumer guidance, required tests and historical measurement. Earlier advance JSON-format implementation and its guidance/test additions excluded.",
+    "limits": [
+      "One fresh actor observed against one historical successful setup reference, not a randomized new A/B or six independent model replications.",
+      "Completed native boundary includes all nine responses and discovered descendants (none); active parent and earlier work remain excluded.",
+      "Cached input is included in input; reasoning output is included in output. Synthetic imported counters are not native actor usage.",
+      "No subscription percentage, whole-intelligence-cycle saving, general coordinator-efficiency or model-downgrade conclusion.",
+      "Additional standing workflow rules or a second fresh sample are not part of this bounded confirmation."
+    ],
+    "lifecycle": "Measured source frozen at 6474ea817c9890f4601431b3250e30506810c847; publication/check status is carried by the ensuing PR, not inferred from this pre-publication record."
+  }
+}

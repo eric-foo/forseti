@@ -301,3 +301,36 @@ def test_active_child_does_not_inherit_parent_completed_duration(tmp_path):
     result = collect_desktop_task(tmp_path, "root", "turn")
     assert result["coverage"] == "unknown"
     assert result["elapsed_seconds"] is None
+
+
+def test_desktop_output_observations_cover_both_native_shapes_without_claiming_intake(tmp_path):
+    rows = rollout()
+    rows[2]["payload"]["effort"] = "high"
+    outputs = [
+        ("function_call_output", "Discussion of truncation is not a warning."),
+        ("custom_tool_call_output", [{"type": "input_text", "text": json.dumps({
+            "wall_time_seconds": 0.1, "exit_code": 7,
+            "output": "Warning: truncated output (original token count: 100)\nTotal output lines: 20"})}]),
+        ("function_call_output", "Warning: truncated output (original token count: 300)\nOutput:"),
+        ("custom_tool_call_output", {"future_shape": "unknown"}),
+    ]
+    rows[3:3] = [{"type": "response_item", "payload": {"type": kind, "output": output}}
+                 for kind, output in outputs]
+    result = collect(write(tmp_path, rows), expected_child_ids=[])
+    assert result["tool_output_observations"] == {
+        "output_events": 4, "truncation_marker_events": 2,
+        "nonzero_command_exit_observations": 1, "unrecognized_output_events": 1}
+    assert result["observed_settings"] == [{"model": "test-model", "effort": "high"}]
+    # An observed tool failure may have been recovered; accounting stays separate.
+    assert result["coverage"] == "complete"
+    assert "intake_complete" not in result
+
+
+def test_desktop_observations_exclude_unselected_turn_outputs(tmp_path):
+    rows = rollout()
+    rows += [{"type": "turn_context", "payload": {"turn_id": "other", "model": "other", "effort": "low"}},
+             {"type": "response_item", "payload": {"type": "custom_tool_call_output",
+              "output": "Warning: truncated output (original token count: 200)"}}]
+    result = collect(write(tmp_path, rows), expected_child_ids=[])
+    assert result["tool_output_observations"]["output_events"] == 0
+    assert result["observed_settings"] == [{"model": "test-model", "effort": None}]

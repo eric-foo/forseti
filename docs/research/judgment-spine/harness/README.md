@@ -22,3 +22,5 @@ open_next:
 `adjacent-context/` is nearby context that may inform future harness work, but it is not controlling v0.14 spec authority.
 
 This area does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine, and it does not authorize implementation by itself.
+
+- [Coordinator return serialization sample (2026-09-12)](coordinator-efficiency-20260912/result.md): lossless structural replay; subscription quota impact remains unmeasured.

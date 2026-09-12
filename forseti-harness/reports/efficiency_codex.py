@@ -9,6 +9,7 @@ Unknown child coverage is deliberately different from an empty child set.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -152,6 +153,42 @@ def collect_codex_exec(path: str | Path, *, fresh_session: bool = False,
                     model_source="caller_configuration" if model else "unavailable")
 
 
+def _observe_tool_output(output: Any, counts: Counter) -> None:
+    """Content-free observations, never a claim that model intake was complete.
+
+    Desktop retains both plain output strings and lists of text fragments.
+    Exact wrapper markers can also be quoted by a tool: they nominate inspection,
+    while the workload's checker owns complete/exact intake validation.
+    """
+    counts["output_events"] += 1
+    if isinstance(output, str):
+        parts = [output]
+    elif isinstance(output, list) and all(isinstance(p, dict) and
+            p.get("type") in {"input_text", "text"} and isinstance(p.get("text"), str)
+            for p in output):
+        parts = [p["text"] for p in output]
+    else:
+        counts["unrecognized_output_events"] += 1
+        return
+    marker = False
+    for part in parts:
+        marker |= bool(re.search(r"(?:^|\n)Warning: truncated output \(original token count: [0-9]+\)", part))
+        try:
+            envelope = json.loads(part)
+        except (ValueError, TypeError):
+            continue
+        # Read only the known command-result envelope, not arbitrary JSON data.
+        if (isinstance(envelope, dict) and
+                {"wall_time_seconds", "exit_code", "output"} <= envelope.keys()):
+            code = envelope["exit_code"]
+            if type(code) is int and code != 0:
+                counts["nonzero_command_exit_observations"] += 1
+            body = envelope["output"]
+            if isinstance(body, str):
+                marker |= body.startswith("Warning: truncated output (original token count: ")
+    counts["truncation_marker_events"] += int(marker)
+
+
 def collect_codex_rollouts(paths: Iterable[str | Path], *,
                            selected_turns: dict[str, list[str]],
                            root_thread_id: str,
@@ -169,6 +206,9 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
     """
     issues, attempts = [], []
     tools: Counter[str] = Counter()
+    diagnostics = Counter(output_events=0, truncation_marker_events=0,
+                          nonzero_command_exit_observations=0, unrecognized_output_events=0)
+    settings = set()
     sources: dict[str, list[dict]] = {}
     versions = set()
     delegation_seen = False
@@ -226,6 +266,9 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
                 current = turn
                 if turn in wanted:
                     contexts[turn] = payload.get("model")
+                    model, effort = payload.get("model"), payload.get("effort")
+                    settings.add((model if isinstance(model, str) else None,
+                                  effort if isinstance(effort, str) else None))
             elif kind == "event_msg" and payload.get("type") == "task_started":
                 current = turn
                 if turn in wanted:
@@ -243,6 +286,8 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
                         tools[name] += 1
                         short_name = name.split(".")[-1].strip("_")
                         delegation_seen |= short_name in CHILD_TOOLS
+                elif payload.get("type") in {"function_call_output", "custom_tool_call_output"}:
+                    _observe_tool_output(payload.get("output"), diagnostics)
             elif kind == "token_usage_record" and turn in wanted:
                 if payload.get("thread_id") != thread:
                     issues.append("usage_thread_mismatch")
@@ -291,6 +336,9 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
     return _summary(attempts, issues, source_kind="codex_desktop_rollout",
                     thread_ids=sorted(sources), child_thread_ids=sorted(expected),
                     tools=dict(tools), cli_versions=sorted(versions),
+                    observed_settings=[{"model": model, "effort": effort}
+                                       for model, effort in sorted(settings, key=repr)],
+                    tool_output_observations=dict(diagnostics),
                     child_coverage="caller_manifest" if expected_child_ids is not None
                     else "unknown", parent_links=links)
 
