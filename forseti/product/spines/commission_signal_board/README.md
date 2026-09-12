@@ -104,11 +104,14 @@ contract. Open the source for the current job rather than loading every owner.
 
 | Current job | Owning source |
 | --- | --- |
-| Company acquisition order, actor roles, and source routing | [Default Understanding route](workflows/commission_signal_board_playbook_v0.md#default-us-consumer-beauty-understanding-route); [acquisition sequence](workflows/commission_signal_board_playbook_v0.md#acquisition-and-seal-sequence), including retailer breadth in step 3 |
+| Commission inputs or missing-input intake | [Required inputs](prompts/forseti_commission_signal_board_prompt_structure_v0.md#required-inputs), [missing-input return](prompts/forseti_commission_signal_board_prompt_structure_v0.md#missing-input-intake-output), and [board validation](workflows/commission_signal_board_playbook_v0.md#validator-command) |
+| Company acquisition roles and source routing | [Role entry reads](workflows/commission_signal_board_playbook_v0.md#role-entry-reads); the commissioner binds the applicable sections and run inputs before dispatch |
 | Consumer-brand completion, depth, maturity, and final source review | [Intelligence Cycle operating rules](authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract) |
 | Company information jobs, retailer admission, and metric claim limits | [Conditional company prompt contract](prompts/forseti_commission_signal_board_prompt_structure_v0.md#conditional-company-competitive-intelligence-output-contract) |
+| Evidence Consolidation, judgment jobs, or repair/resume | [Supported operating route](../../../../docs/workflows/phase_a_customer_evidence_completion_path_v0.md#supported-operating-route); forward the runner's returned worker prompt |
 | Synthesis gate and Deliver boundaries | [Turn B](workflows/commission_signal_board_playbook_v0.md#turn-b--synthesize) |
 | Commissioned Deliver memorandum | [Deliver decision-memorandum method](workflows/deliver_decision_memorandum_method_v0.md) |
+| Post-delivery review handoff | [Current review boundary and inputs](workflows/commission_signal_board_playbook_v0.md#post-delivery-adversarial-review-handoff) |
 
 When both turns are explicitly commissioned, two turns are the normal budget,
 not permission to convert a blocked acquisition into apparent completion. The

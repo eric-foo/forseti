@@ -709,3 +709,71 @@ real PR observation and fresh publication gates remain required before landing.
 This disposition does not turn the synthetic tests into independent replication
 or grant a savings claim. No separate review artifact or standing checklist is
 introduced.
+
+
+## Intelligence-cycle entry delivery: observed result (2026-09-13)
+
+The owner commissioned the previously proposed smallest complete entry/handoff
+change and requested comparison evidence. Base revision:
+`5bc0f9e933246506515bed3a1ca1562164d8fb7b`; author worktree:
+`C:/tmp/forseti-cycle-entry-20260913`, branch
+`codex/intelligence-cycle-entry-20260913`. This section has its own accounting
+boundary; it does not extend any earlier model-run interval.
+
+The change updates the overlay entry, prompt instructions, cycle index, playbook
+and completion guide. Two required consistency fixes complete that route:
+source-loading's routine-read cue follows its existing conditional S0 rule, and
+the company prompt's outer text fence is removed so its named sections actually
+resolve. Its 43 inner headings are nested beneath Prompt Body, preserving that
+whole-body boundary. No runtime, semantic method, schema or standing receipt is
+added. Existing acquisition, source-review and synthesis gates remain.
+
+[Machine-readable comparison](cycle-entry-comparison-20260913.json) records the
+exact reader requests, normalized source hashes, preservation checks and failed
+attempts. Three fresh deterministic replays used the actual bounded reader:
+
+| Entry | Before instruction bytes | After instruction bytes | Reduction | Reader requests before / after |
+| --- | ---: | ---: | ---: | ---: |
+| CO2 acquisition | 41,072 | 34,872 | 15.10% | 8 / 6 |
+| Evidence Consolidation | 18,249 | 8,217 | 54.97% | 6 / 2 |
+| Synthesize gate | 18,746 | 10,226 | 45.45% | 6 / 2 |
+
+The denominator is LF-normalized UTF-8 entry-instruction content. It excludes
+unchanged evidence, schemas and all coordinator/model usage. Both acquisition
+sides include the actor definitions; the candidate also pays for its new role
+index. Known independent reader requests may share a tool round, so these counts
+are not model turns. The baseline uses its supported explicit line windows where
+its old headings were hidden or oversized; no failed/truncated read is counted
+as consumed content. No autonomous model sample, fresh semantic output, token
+saving or subscription-percentage saving is claimed.
+
+The initial replay exposed two real entry defects: company section lookup failed
+because the headings were inside a code fence, and the old Operating path heading
+exceeded the reader's 32,768-byte ceiling. The patch makes the former addressable
+and separates the supported operation from method context and experimental notes.
+The preservation check also caught an extra indentation space in the capsule
+edit; it was corrected before the passing comparison. The rejected attempts are
+retained in the comparison record, rather than replaced with apparent passes.
+
+All 30 final reader/preservation checks passed, including 17 added link/heading
+resolutions. The complete original playbook is recoverable after removing only
+the added navigation and reversing the declared capsule-pointer substitution;
+the complete guide is recoverable after reversing its presentation changes.
+Company prompt words and inner examples are preserved. Synthesize and review
+sections, Deliver method, claim-support and semantic contracts, and the semantic
+runner match the baseline. Missing headings and undersized payloads returned
+`not_read` for the intended causes without source bodies.
+
+Sixteen existing native consumer tests passed in 6.64 seconds: complete judgment
+intake through native terminal completion, changed pinned inputs, native validation
+failure, identity/publication failures, generated local repair, and exact repeat
+behavior. These are deterministic consumer checks, not independent model
+judgments. Their command is preserved in the comparison JSON. Required publication
+checks and landing state belong to this lane's PR; this result does not pre-claim
+their outcome.
+
+`review_routing_status: not_needed` under the conditional success-implement rule
+in delegated-review-patch.md: the changed boundary is instruction delivery and
+navigation, supported by the independent pre-change sources, actual reader
+failures/returns and native consumer tests. Semantic authority is preserved;
+autonomous route-choice and model-efficiency improvements remain unmeasured.

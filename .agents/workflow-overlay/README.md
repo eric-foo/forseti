@@ -14,13 +14,23 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 
 ## Reading the next instruction source
 
+Start with the current instruction, `AGENTS.md`, and this README. When the task
+already binds its sources and procedure, open those sources directly with the
+applicable governing instructions; no repo-map or source-loading tour is needed.
+Reuse material already supplied or read in this context while its binding holds.
+
 Use `.agents/tools/read_source.mjs` for additional repository instruction reads:
-`node .agents/tools/read_source.mjs --file .agents/workflow-overlay/source-loading.md --heading "Bounded instruction reader"`.
-Then read that file’s "Rule", "Forseti Start Preflight", and "Routine Read Shapes
-(overlay high-traffic files)" sections, plus the task’s applicable pack or protocol.
-These pointers expose the starting requirements and their read shapes; the usage section
-alone does not complete those reads. That source owns selection, output bounds, and
-honest incomplete-read handling.
+`node .agents/tools/read_source.mjs --file PATH --heading "Exact heading"`.
+Gather known independent reads in one tool round, using separate bounded requests
+when needed. A `not_read` or truncated return is incomplete: narrow the request
+and obtain the missing content before using it.
+
+`.agents/workflow-overlay/source-loading.md` owns selection, budgets, read shapes,
+and incomplete-read handling. Open its "Rule", "Forseti Start Preflight", and
+applicable pack or protocol when source selection, budgeting, or prompt setup
+requires them; open "Bounded instruction reader" for reader mechanics. This
+ordinary entry preserves task-triggered authority reads, full-read requirements,
+freshness checks, and permission or validation gates.
 
 ## Behavioral Admission
 

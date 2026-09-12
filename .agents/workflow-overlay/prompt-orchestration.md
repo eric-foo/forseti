@@ -73,6 +73,19 @@ escalated contract below. A lane-scoped delegated review-and-patch prompt uses
 the compact default below when its eligibility conditions hold; delegation or
 patch authorization alone does not escalate it.
 
+**Complete task entry.** In the existing input/required-read list, bind the
+applicable method by exact path and heading, its supported starting operation,
+and the known task inputs together. Reuse a maintained role entry or the runner's
+returned `worker_prompt`; the commission supplies only the run-specific deltas.
+The receiver should not have to search the repository to discover a procedure
+the commissioner already knows. Apply source-loading's bounded batch rules to
+independent reads; dependencies still control when dependent work may begin.
+Already supplied, completely read material satisfies the load while its binding
+holds. Reopen affected sources when their identity, state, scope, or authority
+changes or becomes uncertain, and retain any explicitly required fresh check.
+Missing inputs remain named gaps or blockers under the owning method. This
+extends the existing handoff, not its fields, receipts, or approval steps.
+
 ## Source Boundary
 
 Forseti-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Forseti docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Escalated Preflight Fields below when the routine core is insufficient.

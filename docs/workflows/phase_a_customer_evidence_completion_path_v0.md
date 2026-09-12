@@ -693,28 +693,7 @@ ID through `source_groups` and preserve its truth-support or influence layer.
 
 ## Operating path
 
-The default reconciliation packing remains `input_order`. The opt-in
-`advance --reconciliation-packing group_aware_v1` is an unpromoted experiment:
-use an isolated run root and keep the option on every resume. Existing groups
-guide candidate proximity only; workers still judge the complete candidates
-under the same normal/convergence rules and native finalization. This option
-does not authorize using selected-group checks as completion.
-
-For the separately commissioned convergence qualification, `advance` accepts
-`--reconciliation-authoring-revision exact_identity_namespaces_v5` in a fresh run
-root. It exposes source-row aliases by original relation in convergence prompts;
-workers must union effective supporting rows, not add per-candidate counts.
-Aliases identify rows, not independent people or semantic corroboration. Keep
-the revision on every resume. Default v4, validation and retention remain unchanged.
-
-Opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v6`
-inherits v5 and clarifies that lack of support is not opposition, and a
-finished finding may preserve source uncertainty. It changes prompt guidance
-only; defaults and native validation remain unchanged. Keep the same revision
-on resume. See the owning semantic integration contract for test status.
-The subsequent 121-row comparison stopped on a first-round v6 error that
-promoted ownership evidence into purchase support. It did not reach a final
-consumer view or qualify adoption; the contract links the preserved evidence.
+### Supported operating route
 
 For authorized Evidence Consolidation, use the public composed entrypoint:
 
@@ -764,6 +743,8 @@ Do not replace accepted answers or rerun completed semantic work to clear a
 mechanical interruption. Source/identity changes require the existing explicit
 successor/reopen authority. The final view remains bound to the current corpus;
 the command grants no acquisition, global v34 closure, seal, or synthesis authority.
+
+### Evidence flow and method context
 
 ```text
 SERP map
@@ -2326,6 +2307,31 @@ warning not to buy, but its admitted value-axis meanings are gift-card purchase
 and trying one variant. Those meanings do not directly judge value, so the post
 must remain adjacent to the value box even though it remains useful evidence for
 formula, hydration, scent, and general purchase-warning work.
+
+### Experimental route options
+
+The default reconciliation packing remains `input_order`. The opt-in
+`advance --reconciliation-packing group_aware_v1` is an unpromoted experiment:
+use an isolated run root and keep the option on every resume. Existing groups
+guide candidate proximity only; workers still judge the complete candidates
+under the same normal/convergence rules and native finalization. This option
+does not authorize using selected-group checks as completion.
+
+For the separately commissioned convergence qualification, `advance` accepts
+`--reconciliation-authoring-revision exact_identity_namespaces_v5` in a fresh run
+root. It exposes source-row aliases by original relation in convergence prompts;
+workers must union effective supporting rows, not add per-candidate counts.
+Aliases identify rows, not independent people or semantic corroboration. Keep
+the revision on every resume. Default v4, validation and retention remain unchanged.
+
+Opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v6`
+inherits v5 and clarifies that lack of support is not opposition, and a
+finished finding may preserve source uncertainty. It changes prompt guidance
+only; defaults and native validation remain unchanged. Keep the same revision
+on resume. See the owning semantic integration contract for test status.
+The subsequent 121-row comparison stopped on a first-round v6 error that
+promoted ownership evidence into purchase support. It did not reach a final
+consumer view or qualify adoption; the contract links the preserved evidence.
 
 ## Evidence-family boundary
 
