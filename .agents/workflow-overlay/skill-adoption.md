@@ -298,3 +298,11 @@ personal-entrypoint retirement and its deployment evidence. Use
 Implementation Scoping, Spec Writing, and Micro-decision Locking remain
 independently invocable; retirement does not remove required review checkpoints
 or impose these skills as a standing sequence.
+
+Legacy prompts, handoffs, and standing instructions that invoke or require
+loading `fused` are superseded by `success-implement` under their existing
+implementation authorization. Preserve their explicit scope, prerequisites,
+stop conditions, and required review checkpoints; the retired wrapper itself
+adds no mandatory scoping/spec/micro sequence. This replacement creates neither
+new implementation authority nor a runnable `fused` alias. Archived or
+superseded packets remain non-executing.

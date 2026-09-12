@@ -149,6 +149,9 @@ project facts, source loading, routing, safety, prompts, review, validation,
 artifacts, and lifecycle mechanics. Load the owning source when its trigger
 applies instead of duplicating it here.
 
+For legacy `fused` invocations or source-load instructions, apply
+`.agents/workflow-overlay/skill-adoption.md` -> **Fused retirement — 2026-09-12**.
+
 Do not import `jb` or external workflow policy as Forseti authority. Explicitly
 invoked or resolver-loaded skills provide task-local mechanics only.
 

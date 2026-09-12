@@ -96,7 +96,11 @@ validated strong baseline. See
 The 2026-09-12 owner decision retires Fused as an active entrypoint. Assumption
 Gate, Implementation Scoping, Spec Writing, and Micro-decision Locking remain
 independently invocable. Success Implement carries required review checkpoints
-without imposing the retired wrapper sequence.
+without imposing the retired wrapper sequence. The review-return correction
+binds legacy invocation and source-load instructions through `AGENTS.md` to
+the single replacement rule in `.agents/workflow-overlay/skill-adoption.md`
+(**Fused retirement — 2026-09-12**). Historical packets retain their evidence
+and execution status.
 
 The retired Forseti-local Loss-First Implement candidate tested one method:
 keep a single implementation entry, choose the decisive falsifier by maximum
