@@ -1,0 +1,1707 @@
+{
+  "schema_version": 1,
+  "status": "one_completed_diagnostic_pair_no_repeatability_claim",
+  "owner_request": "Plan and execute one matched actual coordinator/worker measurement after the entry/handoff changes.",
+  "plan": {
+    "content": "# Actual coordinator/worker pair: plan frozen before generation\n\nDecision: do the landed entry/handoff changes reduce recurring coordinator plus worker work for a correct completed local consolidation repair? Compare 5bc0f9e933246506515bed3a1ca1562164d8fb7b with 109959afadc564ce15914e7f74aaafabfcd9dd58, sequentially in the same isolated checkout. The runtime, semantic rules, source inputs, task and launcher are held constant; only the revision's instruction documents change. This route exercises common project entry, local-repair preparation, forwarding the native worker prompt, and coordinator acceptance. It does not exercise CO2 acquisition, all Synthesize instructions, or an entire cycle.\n\nOne pair: two fresh gpt-6-astra/high coordinators, each with one fresh gpt-5.6-sol/high worker. No inherited task history and no previous correct answer. High is fixed on both sides to avoid confounding this instruction comparison with an effort/model change. Planning estimate: four actors, roughly 0.8-1.6 million aggregate native input-plus-output tokens, with wide uncertainty; this is neither a cap nor a subscription-percentage estimate.\n\nQuality is assessed against frozen sources: distinguish the explicit sale purchase from two ownership reports, retain all three source identities/conditions without manufacturing opposition or motive, and preserve every unrelated decision and finding. Require the native saved successor/receipt, source-supported meaning, truthful coordinator acceptance, unchanged inputs and repository, and no host rescue. Do not equate valid JSON or process completion with semantic success. Evaluator expectations and earlier correct patches stay private.\n\nUse the existing native importer after each coordinator and its descendants complete. Count every trial actor response, descendant, failed attempt and recovery. Report coordinator and worker input, cached-input subset, output, total tokens, model responses, tool calls, repeated instruction reads and elapsed time separately; cached input is not added twice. Freeze source prefixes and selected task/turn boundaries. Preparation, the deterministic compatibility probe and this study's setup/evaluation coordinator are outside the recurring-job comparison, separately disclosed rather than counted as zero.\n\nStop on a material quality/source failure, missing native accounting, unauthorized scope, or loss of observable progress. Do not launch replacement runs to improve the result. One pair is diagnostic, not proof of repeatability: preserve the existing comparator's minimum of three pairs and report its inconclusive outcome. Additional pairs require a named unresolved question. The user authorized planning and execution of this small actual comparison; no production change, model downgrade, API-price calculation or new standing measurement framework is part of it.\n",
+    "sha256": "f9da8086fde2dc2b9daacbaea916c0f7219d319af36fab83c783b3a70ce62af4"
+  },
+  "execution": {
+    "workload_id": "388478677305bc81b4661e5add49ea463f1ddb0cbe84249ff2a689ac67c0f50a",
+    "runs": [
+      {
+        "arm": "before",
+        "revision": "5bc0f9e933246506515bed3a1ca1562164d8fb7b",
+        "output": "C:/tmp/forseti-cycle-entry-actual-20260913/run-01",
+        "commission": "C:/tmp/forseti-cycle-entry-actual-20260913/run-01-commission.md",
+        "commission_sha256": "c484c874af67e49486f77cf9d5cf0f5188d39874b11da570ab21d94910627678",
+        "agent_path": "/root/cycle_actual_01",
+        "pair_id": "pair-01"
+      },
+      {
+        "arm": "after",
+        "revision": "109959afadc564ce15914e7f74aaafabfcd9dd58",
+        "output": "C:/tmp/forseti-cycle-entry-actual-20260913/run-02",
+        "commission": "C:/tmp/forseti-cycle-entry-actual-20260913/run-02-commission.md",
+        "commission_sha256": "9689827141ff40f82af63f33e4550eba191232dd7b51d9f14c171fe5a3555c66",
+        "agent_path": "/root/cycle_actual_02",
+        "pair_id": "pair-01"
+      }
+    ],
+    "inputs": [
+      {
+        "file": "bundle.json",
+        "path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/bundle.json",
+        "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/bundle.json",
+        "bytes": 839547,
+        "sha256": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f"
+      },
+      {
+        "file": "stage.json",
+        "path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/stage.json",
+        "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/stage.json",
+        "bytes": 333264,
+        "sha256": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4"
+      },
+      {
+        "file": "original-response.json",
+        "path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/original-response.json",
+        "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/responses/reconcile-0001-0001.json",
+        "bytes": 42350,
+        "sha256": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae"
+      },
+      {
+        "file": "nomination.json",
+        "path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/nomination.json",
+        "source": "C:/tmp/forseti-targeted-repair-dogfood-20260912-v1/nomination.json",
+        "bytes": 278,
+        "sha256": "01a3dca7a1996406b234affeefc800f1e450257d13ccae4e09ba72dbb981b69f"
+      }
+    ],
+    "configuration": {
+      "coordinator_model": "gpt-6-astra",
+      "worker_model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "launcher": "collaboration.spawn_agent",
+      "fork_turns": "none",
+      "host": "local",
+      "one_worker_per_coordinator": true
+    },
+    "plan_sha256": "f9da8086fde2dc2b9daacbaea916c0f7219d319af36fab83c783b3a70ce62af4",
+    "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7"
+  },
+  "evaluation_binding": {
+    "source": "C:\\tmp\\forseti-neutral-scale-121-20260912-v1\\treatment\\verification\\compilation.json",
+    "sha256": "558889396cfff86111b37380102413e69b6f698e0c5f1c7e51c0fc2aec4a9bac",
+    "selected_units": [
+      {
+        "axis_ids": [
+          "shade_and_color_fit"
+        ],
+        "comparator_product_ids": [],
+        "conditions": [
+          "Brown Sugar"
+        ],
+        "container_id": "reddit_thread_13aw1sp",
+        "emerging_axis_labels": [],
+        "evidence_id": "reddit:13aw1sp:jj8q7wz",
+        "evidence_posture": "first_hand",
+        "polarity": "affirmed",
+        "product_version_ids": [],
+        "semantic_unit_ref": "reddit:13aw1sp:jj8q7wz::u01",
+        "statement": "The author owns a new Summer Fridays Lip Butter Balm in Brown Sugar.",
+        "subject_product_ids": [
+          "summer-fridays-lip-butter-balm"
+        ],
+        "uncertainty_posture": "asserted"
+      },
+      {
+        "axis_ids": [
+          "shade_and_color_fit"
+        ],
+        "comparator_product_ids": [],
+        "conditions": [
+          "Brown Sugar"
+        ],
+        "container_id": "reddit_thread_13aw1sp",
+        "emerging_axis_labels": [],
+        "evidence_id": "reddit:13aw1sp:jj8tnlr",
+        "evidence_posture": "first_hand",
+        "polarity": "affirmed",
+        "product_version_ids": [],
+        "semantic_unit_ref": "reddit:13aw1sp:jj8tnlr::u04",
+        "statement": "The author owns Summer Fridays Lip Butter Balm in Brown Sugar.",
+        "subject_product_ids": [
+          "summer-fridays-lip-butter-balm"
+        ],
+        "uncertainty_posture": "asserted"
+      },
+      {
+        "axis_ids": [
+          "shade_and_color_fit"
+        ],
+        "comparator_product_ids": [],
+        "conditions": [
+          "Brown Sugar",
+          "Sale purchase"
+        ],
+        "container_id": "reddit_thread_13aw1sp",
+        "emerging_axis_labels": [],
+        "evidence_id": "reddit:13aw1sp:jjabq8d",
+        "evidence_posture": "first_hand",
+        "polarity": "affirmed",
+        "product_version_ids": [],
+        "semantic_unit_ref": "reddit:13aw1sp:jjabq8d::brown_purchase",
+        "statement": "The author bought Summer Fridays Lip Butter Balm in Brown Sugar during a sale.",
+        "subject_product_ids": [
+          "summer-fridays-lip-butter-balm"
+        ],
+        "uncertainty_posture": "asserted"
+      }
+    ],
+    "checker_sha256": "628b09e9a21a5dee9cff6477ddfca0cb7bd4a9906b1f44a1a65f2efe3250fd2c"
+  },
+  "scripts": {
+    "prepare.py": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\prepare.py",
+      "bytes": 5154,
+      "sha256": "138476113665a2864998c6ae0aa9b724f03f6f5169a9727ee4a7b2156c8e9cdf"
+    },
+    "collect.py": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\collect.py",
+      "bytes": 4763,
+      "sha256": "d700007baba2a49b91044caa7fd6cfe26b84654bd9fd745f7ae74a4142d24710"
+    },
+    "collect_explicit.py": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\collect_explicit.py",
+      "bytes": 7568,
+      "sha256": "ef7d4c145623d92cf1df6d8e9477e3565c8e6e6a8b861b2aafded4cf3d554611"
+    },
+    "audit_calls.py": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\audit_calls.py",
+      "bytes": 4819,
+      "sha256": "3090051b807bc3e3a9257bc557cd7f3b93f670987765bfadf438530125a530be"
+    },
+    "private/check_result.py": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\private\\check_result.py",
+      "bytes": 3001,
+      "sha256": "628b09e9a21a5dee9cff6477ddfca0cb7bd4a9906b1f44a1a65f2efe3250fd2c"
+    }
+  },
+  "arms": [
+    {
+      "run": {
+        "arm": "before",
+        "revision": "5bc0f9e933246506515bed3a1ca1562164d8fb7b",
+        "output": "C:/tmp/forseti-cycle-entry-actual-20260913/run-01",
+        "commission": "C:/tmp/forseti-cycle-entry-actual-20260913/run-01-commission.md",
+        "commission_sha256": "c484c874af67e49486f77cf9d5cf0f5188d39874b11da570ab21d94910627678",
+        "agent_path": "/root/cycle_actual_01",
+        "pair_id": "pair-01"
+      },
+      "usage": {
+        "coverage": "complete",
+        "input_tokens": 1126067,
+        "cached_input_tokens": 1015040,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 7940,
+        "reasoning_output_tokens": 1108,
+        "total_tokens": 1134007,
+        "observed_totals": {
+          "input_tokens": 1126067,
+          "cached_input_tokens": 1015040,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 7940,
+          "reasoning_output_tokens": 1108,
+          "total_tokens": 1134007
+        },
+        "issues": []
+      },
+      "elapsed_seconds": 253.96,
+      "model_responses": 21,
+      "by_actor": [
+        {
+          "role": "coordinator",
+          "thread_id": "01a09948-67f8-7351-9b18-8cb7c46f329d",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 988995,
+            "cached_input_tokens": 930176,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5370,
+            "reasoning_output_tokens": 226,
+            "total_tokens": 994365,
+            "observed_totals": {
+              "input_tokens": 988995,
+              "cached_input_tokens": 930176,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5370,
+              "reasoning_output_tokens": 226,
+              "total_tokens": 994365
+            },
+            "issues": []
+          },
+          "model_responses": 18
+        },
+        {
+          "role": "worker",
+          "thread_id": "01a09949-fbae-73f3-a933-89da7a4d278a",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 137072,
+            "cached_input_tokens": 84864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2570,
+            "reasoning_output_tokens": 882,
+            "total_tokens": 139642,
+            "observed_totals": {
+              "input_tokens": 137072,
+              "cached_input_tokens": 84864,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 2570,
+              "reasoning_output_tokens": 882,
+              "total_tokens": 139642
+            },
+            "issues": []
+          },
+          "model_responses": 3
+        }
+      ],
+      "source_receipts": [
+        {
+          "thread_id": "01a09948-67f8-7351-9b18-8cb7c46f329d",
+          "agent_path": "/root/cycle_actual_01",
+          "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T13-40-54-01a09948-67f8-7351-9b18-8cb7c46f329d.jsonl",
+          "snapshot": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-01\\explicit-accounting\\01a09948-67f8-7351-9b18-8cb7c46f329d.jsonl",
+          "prefix_bytes": 772465,
+          "sha256": "29bc64c51887f36f2ebcb454d8228d9b65dbb77825680ac820751ff27f4ec177",
+          "selected_turns": [
+            "01a09948-68d7-78c1-91e6-802a0bc7710f"
+          ],
+          "credited_root_turn_ids": [
+            "01a0993d-c566-7731-9a04-d26f721ff986"
+          ]
+        },
+        {
+          "thread_id": "01a09949-fbae-73f3-a933-89da7a4d278a",
+          "agent_path": "/root/cycle_actual_01/repair_worker",
+          "parent_thread_id": "01a09948-67f8-7351-9b18-8cb7c46f329d",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T13-42-37-01a09949-fbae-73f3-a933-89da7a4d278a.jsonl",
+          "snapshot": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-01\\explicit-accounting\\01a09949-fbae-73f3-a933-89da7a4d278a.jsonl",
+          "prefix_bytes": 457395,
+          "sha256": "4eeaa450ff307f3066fc1664d490e7086dda1c7f8c8fc9583de2cf068567afb8",
+          "selected_turns": [
+            "01a09949-fcb0-7082-9946-84a63bf73b2a"
+          ],
+          "credited_root_turn_ids": [
+            "01a0993d-c566-7731-9a04-d26f721ff986"
+          ]
+        }
+      ],
+      "spawn_receipts": [
+        {
+          "parent": "01a09948-67f8-7351-9b18-8cb7c46f329d",
+          "child": "01a09949-fbae-73f3-a933-89da7a4d278a",
+          "call_id": "call_YNAz3HI0G5NhQCmRI1VDqS98",
+          "native_receipt": {
+            "task_name": "/root/cycle_actual_01/repair_worker"
+          }
+        }
+      ],
+      "selected_turns": {
+        "01a09948-67f8-7351-9b18-8cb7c46f329d": [
+          "01a09948-68d7-78c1-91e6-802a0bc7710f"
+        ],
+        "01a09949-fbae-73f3-a933-89da7a4d278a": [
+          "01a09949-fcb0-7082-9946-84a63bf73b2a"
+        ]
+      },
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "quality": {
+        "status": "structural_checks_passed",
+        "unrelated_candidates_unchanged": 89,
+        "unrelated_nodes_unchanged": 39,
+        "all_input_hashes_match": true,
+        "repeat_native_submission_identical": true,
+        "successor_sha256": "b2902ad3550e930d1264dd3b27cfe0298bf6454b672ed984cd65eb9081ff50ec",
+        "affected_decisions": {
+          "reddit:13aw1sp:jj8q7wz::u01": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k003_brown_possession"
+              }
+            ],
+            "unmerged_reason": null
+          },
+          "reddit:13aw1sp:jj8tnlr::u04": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k003_brown_possession"
+              }
+            ],
+            "unmerged_reason": null
+          },
+          "reddit:13aw1sp:jjabq8d::brown_purchase": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k002_brown_purchase"
+              }
+            ],
+            "unmerged_reason": null
+          }
+        },
+        "replacement_nodes": [
+          {
+            "axis_ids": [
+              "shade_and_color_fit"
+            ],
+            "bounded_meaning": "Purchase of Brown Sugar Summer Fridays Lip Butter Balm was reported.",
+            "causal_ceiling": "descriptive_only",
+            "claim_kind": "reported_behavior",
+            "opposition_checked": false,
+            "semantic_node_key": "k002_brown_purchase",
+            "terminal_proposition": true,
+            "uncertainty_posture": "asserted"
+          },
+          {
+            "axis_ids": [
+              "shade_and_color_fit"
+            ],
+            "bounded_meaning": "Possession of Brown Sugar Summer Fridays Lip Butter Balm was reported without establishing its acquisition route.",
+            "causal_ceiling": "descriptive_only",
+            "claim_kind": "reported_behavior",
+            "opposition_checked": false,
+            "semantic_node_key": "k003_brown_possession",
+            "terminal_proposition": true,
+            "uncertainty_posture": "asserted"
+          }
+        ]
+      },
+      "semantic_adjudication": {
+        "status": "passed",
+        "adjudicator": "study coordinator, source-backed; not independent certification",
+        "findings": [
+          "The explicit sale purchase alone supports the purchase finding.",
+          "The two ownership reports support a separate possession finding without inventing an acquisition route, opposition, or motive.",
+          "All three source identities and conditions remain reachable; 89 unrelated decisions and 39 unrelated findings are unchanged.",
+          "Saved coordinator acceptance accurately limits completion to the local repair."
+        ],
+        "handoff_audit": {
+          "exact_message_bytes": "unobservable: native spawn message is stored as an opaque protected value, so comparing it directly with plaintext is invalid",
+          "observed_consumer": "One Sol/high worker executed the generated job intake and native submission; no extra worker or semantic retry."
+        }
+      },
+      "call_audit": {
+        "method": "Tool calls and per-response native usage. Phase names classify issued calls, not exclusive causal token costs. Reader rejection and nonzero exit may describe the same event.",
+        "actors": [
+          {
+            "role": "coordinator",
+            "thread_id": "01a09948-67f8-7351-9b18-8cb7c46f329d",
+            "tool_counts": {
+              "exec": 14,
+              "spawn_agent": 1,
+              "wait_agent": 2
+            },
+            "phase_call_counts": {
+              "instruction_loading_or_preparation": 6,
+              "worker_dispatch": 1,
+              "other_task_work": 7,
+              "waiting": 2,
+              "write_acceptance": 1
+            },
+            "calls": [
+              {
+                "call_id": "call_GlK9eyPrr6EmOSkTPqlsHacS",
+                "at": "2026-09-13T05:41:05.741Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": []
+              },
+              {
+                "call_id": "call_BvXQtLzHBU3tnZL7ZmsT6HOF",
+                "at": "2026-09-13T05:41:10.569Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  ".agents/workflow-overlay/source-loading.md"
+                ]
+              },
+              {
+                "call_id": "call_8A3nECPeN3zIL70hPD45hhu6",
+                "at": "2026-09-13T05:41:18.097Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  ".agents/workflow-overlay/source-loading.md",
+                  ".agents/workflow-overlay/source-loading.md",
+                  ".agents/workflow-overlay/source-loading.md"
+                ]
+              },
+              {
+                "call_id": "call_4intIoKgj66n17rq72TVu4Vf",
+                "at": "2026-09-13T05:41:28.996Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
+                  "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  ".agents/workflow-overlay/safety-rules.md",
+                  "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"
+                ]
+              },
+              {
+                "call_id": "call_XgEI8zhooqpmpekRK4FjvuB6",
+                "at": "2026-09-13T05:41:41.149Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  ".agents/workflow-overlay/safety-rules.md"
+                ]
+              },
+              {
+                "call_id": "call_tsrqhsWZK1CwzWkm41HgefZR",
+                "at": "2026-09-13T05:41:56.475Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  ".agents/workflow-overlay/validation-gates.md",
+                  ".agents/workflow-overlay/validation-gates.md"
+                ]
+              },
+              {
+                "call_id": "call_YNAz3HI0G5NhQCmRI1VDqS98",
+                "at": "2026-09-13T05:42:37.725Z",
+                "tool": "spawn_agent",
+                "phase": "worker_dispatch"
+              },
+              {
+                "call_id": "call_hK9k1KRXLJFooIz0CA9CTdk1",
+                "at": "2026-09-13T05:42:44.006Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_YvJeKbJw59hQLcyy82WIcSml",
+                "at": "2026-09-13T05:42:50.687Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_thFcXj2GC6yPNWIIPGT91H4o",
+                "at": "2026-09-13T05:42:57.426Z",
+                "tool": "wait_agent",
+                "phase": "waiting",
+                "timeout_ms": 10000
+              },
+              {
+                "call_id": "call_5Ab5U1RHikLNELYW3ljpvzfX",
+                "at": "2026-09-13T05:43:19.314Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_SX2olUUiUkVM1Z2val4q3Axi",
+                "at": "2026-09-13T05:43:23.574Z",
+                "tool": "wait_agent",
+                "phase": "waiting",
+                "timeout_ms": 10000
+              },
+              {
+                "call_id": "call_cmALBG3S4DGLBQmycSLhkmpu",
+                "at": "2026-09-13T05:43:48.563Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_CPHXQoyeTEn8eQDHIAiK1jhg",
+                "at": "2026-09-13T05:44:09.754Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_nCbZptwBBTnP3HrY7FKkrBC4",
+                "at": "2026-09-13T05:44:18.005Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_2mIbA1H0sLkWQ7KwF7WKLmmB",
+                "at": "2026-09-13T05:44:27.751Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_1FRFxUCS7YzuMFTsVUTrrAUq",
+                "at": "2026-09-13T05:45:03.476Z",
+                "tool": "exec",
+                "phase": "write_acceptance"
+              }
+            ],
+            "responses": [
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63768e24487d0b6cc991cc45cedec",
+                "usage": {
+                  "input_tokens": 32076,
+                  "cached_input_tokens": 13440,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 186,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 32262
+                },
+                "call_ids": [
+                  "call_GlK9eyPrr6EmOSkTPqlsHacS"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63771cec487d08ccc46ead7184742",
+                "usage": {
+                  "input_tokens": 36793,
+                  "cached_input_tokens": 31872,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 69,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 36862
+                },
+                "call_ids": [
+                  "call_BvXQtLzHBU3tnZL7ZmsT6HOF"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637764b7c87d08165c28a166c58d3",
+                "usage": {
+                  "input_tokens": 37429,
+                  "cached_input_tokens": 36608,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 151,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 37580
+                },
+                "call_ids": [
+                  "call_8A3nECPeN3zIL70hPD45hhu6"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa6377e4e0c87d0a0972d7fe2526d9c",
+                "usage": {
+                  "input_tokens": 40362,
+                  "cached_input_tokens": 37248,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 261,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 40623
+                },
+                "call_ids": [
+                  "call_4intIoKgj66n17rq72TVu4Vf"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63788cd7487d0a082081d4c903a3a",
+                "usage": {
+                  "input_tokens": 47737,
+                  "cached_input_tokens": 40192,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 279,
+                  "reasoning_output_tokens": 18,
+                  "total_tokens": 48016
+                },
+                "call_ids": [
+                  "call_XgEI8zhooqpmpekRK4FjvuB6"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637961fb087d099cb330254749240",
+                "usage": {
+                  "input_tokens": 51405,
+                  "cached_input_tokens": 47616,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 300,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 51705
+                },
+                "call_ids": [
+                  "call_tsrqhsWZK1CwzWkm41HgefZR"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637a4e33887d09b5c6320bcde7a8c",
+                "usage": {
+                  "input_tokens": 54736,
+                  "cached_input_tokens": 51200,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 1237,
+                  "reasoning_output_tokens": 9,
+                  "total_tokens": 55973
+                },
+                "call_ids": [
+                  "call_YNAz3HI0G5NhQCmRI1VDqS98"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637cd5e3c87d0921453672a01c4d7",
+                "usage": {
+                  "input_tokens": 56000,
+                  "cached_input_tokens": 54528,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 104,
+                  "reasoning_output_tokens": 14,
+                  "total_tokens": 56104
+                },
+                "call_ids": [
+                  "call_hK9k1KRXLJFooIz0CA9CTdk1"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637d3eda087d094c6f5bc677611fc",
+                "usage": {
+                  "input_tokens": 57212,
+                  "cached_input_tokens": 55808,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 127,
+                  "reasoning_output_tokens": 18,
+                  "total_tokens": 57339
+                },
+                "call_ids": [
+                  "call_YvJeKbJw59hQLcyy82WIcSml"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637da78e887d09cac48285806de9a",
+                "usage": {
+                  "input_tokens": 60667,
+                  "cached_input_tokens": 57088,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 30,
+                  "reasoning_output_tokens": 7,
+                  "total_tokens": 60697
+                },
+                "call_ids": [
+                  "call_thFcXj2GC6yPNWIIPGT91H4o"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637ed39c887d09b200b6577859a98",
+                "usage": {
+                  "input_tokens": 60722,
+                  "cached_input_tokens": 60544,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 177,
+                  "reasoning_output_tokens": 17,
+                  "total_tokens": 60899
+                },
+                "call_ids": [
+                  "call_5Ab5U1RHikLNELYW3ljpvzfX"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa637f7620c87d08d73caab5af4ead7",
+                "usage": {
+                  "input_tokens": 61114,
+                  "cached_input_tokens": 60544,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 43,
+                  "reasoning_output_tokens": 20,
+                  "total_tokens": 61157
+                },
+                "call_ids": [
+                  "call_SX2olUUiUkVM1Z2val4q3Axi"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63809abdc87d0af406162a45166c2",
+                "usage": {
+                  "input_tokens": 61420,
+                  "cached_input_tokens": 61056,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 268,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 61688
+                },
+                "call_ids": [
+                  "call_cmALBG3S4DGLBQmycSLhkmpu"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63814686c87d093862f9b82a98079",
+                "usage": {
+                  "input_tokens": 63969,
+                  "cached_input_tokens": 61184,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 628,
+                  "reasoning_output_tokens": 45,
+                  "total_tokens": 64597
+                },
+                "call_ids": [
+                  "call_CPHXQoyeTEn8eQDHIAiK1jhg"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63829c11887d0aa06733c536bdd37",
+                "usage": {
+                  "input_tokens": 65017,
+                  "cached_input_tokens": 63744,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 178,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 65195
+                },
+                "call_ids": [
+                  "call_nCbZptwBBTnP3HrY7FKkrBC4"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa63831f49087d08ced13af803cf1d5",
+                "usage": {
+                  "input_tokens": 65884,
+                  "cached_input_tokens": 64896,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 163,
+                  "reasoning_output_tokens": 15,
+                  "total_tokens": 66047
+                },
+                "call_ids": [
+                  "call_2mIbA1H0sLkWQ7KwF7WKLmmB"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa6383b7be487d0954be7f6b51a675b",
+                "usage": {
+                  "input_tokens": 67165,
+                  "cached_input_tokens": 65664,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 1107,
+                  "reasoning_output_tokens": 63,
+                  "total_tokens": 68272
+                },
+                "call_ids": [
+                  "call_1FRFxUCS7YzuMFTsVUTrrAUq"
+                ]
+              },
+              {
+                "response_id": "resp_0d205f7f0140634c016aa6385f4bb087d0b9ef2b6f6ab26ec8",
+                "usage": {
+                  "input_tokens": 69287,
+                  "cached_input_tokens": 66944,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 62,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 69349
+                },
+                "call_ids": []
+              }
+            ],
+            "errors": [
+              {
+                "call_id": "call_4intIoKgj66n17rq72TVu4Vf",
+                "kind": "command_nonzero",
+                "exit_code": 1,
+                "output_tail": "d\",\"status\":\"not_read\",\"file_bytes\":5121,\"total_lines\":56,\"from\":1,\"to\":56,\"headings\":[{\"line\":1,\"level\":1,\"title\":\"Safety Rules\"},{\"line\":13,\"level\":2,\"title\":\"Project-Specific Safety\"},{\"line\":44,\"level\":2,\"title\":\"Scope Discipline\"},{\"line\":54,\"level\":2,\"title\":\"Rollback Boundary\"}],\"selected_bytes\":5121,\"heading_count\":4,\"headings_omitted\":0}]}",
+                "at": "2026-09-13T05:41:29.431Z"
+              },
+              {
+                "call_id": "call_4intIoKgj66n17rq72TVu4Vf",
+                "kind": "reader_rejection",
+                "reason": "output_budget_exceeded",
+                "at": "2026-09-13T05:41:29.431Z"
+              },
+              {
+                "call_id": "call_nCbZptwBBTnP3HrY7FKkrBC4",
+                "kind": "command_nonzero",
+                "exit_code": 1,
+                "output_tail": "on7\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\encodings\\cp1252.py\", line 19, in encode\r\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f642' in position 1661: character maps to <undefined>\r\n",
+                "at": "2026-09-13T05:44:18.380Z"
+              }
+            ]
+          },
+          {
+            "role": "worker",
+            "thread_id": "01a09949-fbae-73f3-a933-89da7a4d278a",
+            "tool_counts": {
+              "exec": 2
+            },
+            "phase_call_counts": {
+              "native_intake": 1,
+              "other_task_work": 1
+            },
+            "calls": [
+              {
+                "call_id": "call_0Vzl0CzRO4UoqhxgHRRjHOTP",
+                "at": "2026-09-13T05:42:53.456Z",
+                "tool": "exec",
+                "phase": "native_intake"
+              },
+              {
+                "call_id": "call_pxa3WervcMFEcfxz2qoNec1g",
+                "at": "2026-09-13T05:43:27.674Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              }
+            ],
+            "responses": [
+              {
+                "response_id": "resp_05e33e843b43e82b016aa637d03d3887d081f818d7d46c5ba2",
+                "usage": {
+                  "input_tokens": 35940,
+                  "cached_input_tokens": 0,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 594,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 36534
+                },
+                "call_ids": [
+                  "call_0Vzl0CzRO4UoqhxgHRRjHOTP"
+                ]
+              },
+              {
+                "response_id": "resp_05e33e843b43e82b016aa637de12e887d0b3dfd77df6f938de",
+                "usage": {
+                  "input_tokens": 49304,
+                  "cached_input_tokens": 35712,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 1744,
+                  "reasoning_output_tokens": 813,
+                  "total_tokens": 51048
+                },
+                "call_ids": [
+                  "call_pxa3WervcMFEcfxz2qoNec1g"
+                ]
+              },
+              {
+                "response_id": "resp_05e33e843b43e82b016aa63800772487d0b235c1e0f5d745fe",
+                "usage": {
+                  "input_tokens": 51828,
+                  "cached_input_tokens": 49152,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 232,
+                  "reasoning_output_tokens": 69,
+                  "total_tokens": 52060
+                },
+                "call_ids": []
+              }
+            ],
+            "errors": []
+          }
+        ]
+      },
+      "answer": {
+        "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-01\\answer.json",
+        "bytes": 3661,
+        "sha256": "0ea3bbe4ffd485d72950988bdb86ad63123509b5119bc82316390834c6121a56"
+      },
+      "native_record": {
+        "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-01\\explicit-accounting\\4283b642-5d7f-437a-9850-faf7df07536f.json",
+        "bytes": 22192,
+        "sha256": "e90d6e045619fa50b8946ce6df46e164f75566006138ddca2e70e7e9183bc0f2"
+      }
+    },
+    {
+      "run": {
+        "arm": "after",
+        "revision": "109959afadc564ce15914e7f74aaafabfcd9dd58",
+        "output": "C:/tmp/forseti-cycle-entry-actual-20260913/run-02",
+        "commission": "C:/tmp/forseti-cycle-entry-actual-20260913/run-02-commission.md",
+        "commission_sha256": "9689827141ff40f82af63f33e4550eba191232dd7b51d9f14c171fe5a3555c66",
+        "agent_path": "/root/cycle_actual_02",
+        "pair_id": "pair-01"
+      },
+      "usage": {
+        "coverage": "complete",
+        "input_tokens": 1088503,
+        "cached_input_tokens": 1024768,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8584,
+        "reasoning_output_tokens": 1716,
+        "total_tokens": 1097087,
+        "observed_totals": {
+          "input_tokens": 1088503,
+          "cached_input_tokens": 1024768,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 8584,
+          "reasoning_output_tokens": 1716,
+          "total_tokens": 1097087
+        },
+        "issues": []
+      },
+      "elapsed_seconds": 299.896,
+      "model_responses": 19,
+      "by_actor": [
+        {
+          "role": "coordinator",
+          "thread_id": "01a09957-d8ad-7933-a64e-e9e7843c8177",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 950551,
+            "cached_input_tokens": 905216,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5359,
+            "reasoning_output_tokens": 165,
+            "total_tokens": 955910,
+            "observed_totals": {
+              "input_tokens": 950551,
+              "cached_input_tokens": 905216,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5359,
+              "reasoning_output_tokens": 165,
+              "total_tokens": 955910
+            },
+            "issues": []
+          },
+          "model_responses": 16
+        },
+        {
+          "role": "worker",
+          "thread_id": "01a09959-9bdf-77b1-818a-13aef974c939",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 137952,
+            "cached_input_tokens": 119552,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3225,
+            "reasoning_output_tokens": 1551,
+            "total_tokens": 141177,
+            "observed_totals": {
+              "input_tokens": 137952,
+              "cached_input_tokens": 119552,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3225,
+              "reasoning_output_tokens": 1551,
+              "total_tokens": 141177
+            },
+            "issues": []
+          },
+          "model_responses": 3
+        }
+      ],
+      "source_receipts": [
+        {
+          "thread_id": "01a09957-d8ad-7933-a64e-e9e7843c8177",
+          "agent_path": "/root/cycle_actual_02",
+          "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T13-57-46-01a09957-d8ad-7933-a64e-e9e7843c8177.jsonl",
+          "snapshot": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-02\\explicit-accounting\\01a09957-d8ad-7933-a64e-e9e7843c8177.jsonl",
+          "prefix_bytes": 926684,
+          "sha256": "b15631810474c25cfd384d3f5998f146b727f42b7c2351825d8a3b4cf34d8ceb",
+          "selected_turns": [
+            "01a09957-da51-7893-8a9e-559629d38cf3"
+          ],
+          "credited_root_turn_ids": [
+            "01a0993d-c566-7731-9a04-d26f721ff986"
+          ]
+        },
+        {
+          "thread_id": "01a09959-9bdf-77b1-818a-13aef974c939",
+          "agent_path": "/root/cycle_actual_02/repair_worker",
+          "parent_thread_id": "01a09957-d8ad-7933-a64e-e9e7843c8177",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T13-59-41-01a09959-9bdf-77b1-818a-13aef974c939.jsonl",
+          "snapshot": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-02\\explicit-accounting\\01a09959-9bdf-77b1-818a-13aef974c939.jsonl",
+          "prefix_bytes": 468601,
+          "sha256": "8403047e3d1d5ab4c02f662555b3dbaa1483654af6bccff37d238b7e2c5f599a",
+          "selected_turns": [
+            "01a09959-9cad-7991-8f02-bad51544e6f4"
+          ],
+          "credited_root_turn_ids": [
+            "01a0993d-c566-7731-9a04-d26f721ff986"
+          ]
+        }
+      ],
+      "spawn_receipts": [
+        {
+          "parent": "01a09957-d8ad-7933-a64e-e9e7843c8177",
+          "child": "01a09959-9bdf-77b1-818a-13aef974c939",
+          "call_id": "call_EXtdcEppjd0iIIKLys75xhOE",
+          "native_receipt": {
+            "task_name": "/root/cycle_actual_02/repair_worker"
+          }
+        }
+      ],
+      "selected_turns": {
+        "01a09957-d8ad-7933-a64e-e9e7843c8177": [
+          "01a09957-da51-7893-8a9e-559629d38cf3"
+        ],
+        "01a09959-9bdf-77b1-818a-13aef974c939": [
+          "01a09959-9cad-7991-8f02-bad51544e6f4"
+        ]
+      },
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "quality": {
+        "status": "structural_checks_passed",
+        "unrelated_candidates_unchanged": 89,
+        "unrelated_nodes_unchanged": 39,
+        "all_input_hashes_match": true,
+        "repeat_native_submission_identical": true,
+        "successor_sha256": "6d0eb6e8d07ea6b73333f2f7141e4c96159186476119fce5a0ae71b25d127871",
+        "affected_decisions": {
+          "reddit:13aw1sp:jj8q7wz::u01": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k003_brown_possession"
+              }
+            ],
+            "unmerged_reason": null
+          },
+          "reddit:13aw1sp:jj8tnlr::u04": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k003_brown_possession"
+              }
+            ],
+            "unmerged_reason": null
+          },
+          "reddit:13aw1sp:jjabq8d::brown_purchase": {
+            "attachments": [
+              {
+                "relation": "support",
+                "semantic_node_key": "k002_brown_purchase"
+              }
+            ],
+            "unmerged_reason": null
+          }
+        },
+        "replacement_nodes": [
+          {
+            "axis_ids": [
+              "shade_and_color_fit"
+            ],
+            "bounded_meaning": "Purchase of Summer Fridays Lip Butter Balm in Brown Sugar during a sale was reported.",
+            "causal_ceiling": "descriptive_only",
+            "claim_kind": "reported_behavior",
+            "opposition_checked": false,
+            "semantic_node_key": "k002_brown_purchase",
+            "terminal_proposition": true,
+            "uncertainty_posture": "asserted"
+          },
+          {
+            "axis_ids": [
+              "shade_and_color_fit"
+            ],
+            "bounded_meaning": "Possession of Summer Fridays Lip Butter Balm in Brown Sugar was reported.",
+            "causal_ceiling": "descriptive_only",
+            "claim_kind": "customer_experience",
+            "opposition_checked": false,
+            "semantic_node_key": "k003_brown_possession",
+            "terminal_proposition": true,
+            "uncertainty_posture": "asserted"
+          }
+        ]
+      },
+      "semantic_adjudication": {
+        "status": "passed",
+        "adjudicator": "study coordinator, source-backed; not independent certification",
+        "findings": [
+          "The explicit sale purchase alone supports the purchase finding and retains the sale condition.",
+          "The two ownership reports support a descriptive possession finding, without claiming purchase, opposition, or motive.",
+          "Customer-experience classification of possession is consistent with the first-hand sources and does not promote their force.",
+          "All three source identities and conditions remain reachable; 89 unrelated decisions and 39 unrelated findings are unchanged.",
+          "Saved coordinator acceptance accurately limits completion to the local repair."
+        ],
+        "handoff_audit": {
+          "exact_message_bytes": "unobservable: native spawn message is stored as an opaque protected value, so comparing it directly with plaintext is invalid",
+          "observed_consumer": "One Sol/high worker executed the generated job intake and native submission; no extra worker or semantic retry."
+        }
+      },
+      "call_audit": {
+        "method": "Tool calls and per-response native usage. Phase names classify issued calls, not exclusive causal token costs. Reader rejection and nonzero exit may describe the same event.",
+        "actors": [
+          {
+            "role": "coordinator",
+            "thread_id": "01a09957-d8ad-7933-a64e-e9e7843c8177",
+            "tool_counts": {
+              "exec": 12,
+              "spawn_agent": 1,
+              "send_message": 1,
+              "wait_agent": 1
+            },
+            "phase_call_counts": {
+              "instruction_loading_or_preparation": 6,
+              "worker_dispatch": 1,
+              "other_task_work": 6,
+              "waiting": 1,
+              "write_acceptance": 1
+            },
+            "calls": [
+              {
+                "call_id": "call_rh5Sw3aa8nwijqV23Gfsc8Ju",
+                "at": "2026-09-13T05:58:02.597Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": []
+              },
+              {
+                "call_id": "call_3wVc6yhlzSZ6lG21occ69Rwm",
+                "at": "2026-09-13T05:58:15.311Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": []
+              },
+              {
+                "call_id": "call_5ggCTTG2Vj9PfDwxZk4Ds7BB",
+                "at": "2026-09-13T05:58:29.147Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                  ".agents/workflow-overlay/safety-rules.md",
+                  "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+                  "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+                  ".agents/workflow-overlay/decision-routing.md",
+                  ".agents/workflow-overlay/decision-routing.md"
+                ]
+              },
+              {
+                "call_id": "call_2twO2CmP6r7C7xtVXBx0k6Gq",
+                "at": "2026-09-13T05:58:41.222Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+                  "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+                  ".agents/workflow-overlay/decision-routing.md",
+                  ".agents/workflow-overlay/decision-routing.md"
+                ]
+              },
+              {
+                "call_id": "call_KG5juef5AeKf7G2EV8ALgBk0",
+                "at": "2026-09-13T05:58:51.746Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  "docs/decisions/subagent_model_tiering_doctrine_v0.md"
+                ]
+              },
+              {
+                "call_id": "call_oQY17u2NnKHF4Ai27tZbQYT7",
+                "at": "2026-09-13T05:59:02.757Z",
+                "tool": "exec",
+                "phase": "instruction_loading_or_preparation",
+                "reader_file_requests": [
+                  ".agents/workflow-overlay/prompt-orchestration.md"
+                ]
+              },
+              {
+                "call_id": "call_EXtdcEppjd0iIIKLys75xhOE",
+                "at": "2026-09-13T05:59:41.776Z",
+                "tool": "spawn_agent",
+                "phase": "worker_dispatch"
+              },
+              {
+                "call_id": "call_hyeOgY0JoTOrdgWQ6dP8txLA",
+                "at": "2026-09-13T05:59:47.521Z",
+                "tool": "send_message",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_Cgqnh98ByhzgFt7cgO882Tq1",
+                "at": "2026-09-13T05:59:54.208Z",
+                "tool": "wait_agent",
+                "phase": "waiting",
+                "timeout_ms": 60000
+              },
+              {
+                "call_id": "call_L79pn01B2GuDyze79rXFFWvF",
+                "at": "2026-09-13T06:01:03.345Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_vPTqhafqUbsXfe3hfGRPCmMR",
+                "at": "2026-09-13T06:01:15.976Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_cAWS1aRh2u7jgkkXuWrrJFlj",
+                "at": "2026-09-13T06:01:32.363Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_N053EX9dzn0dXLNn0nIpx5JD",
+                "at": "2026-09-13T06:01:46.067Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_wzsWnw8bCVylw5hGK88RVcfh",
+                "at": "2026-09-13T06:01:58.232Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              },
+              {
+                "call_id": "call_jDZPuCSidiBxn9rUIkmlePFI",
+                "at": "2026-09-13T06:02:38.188Z",
+                "tool": "exec",
+                "phase": "write_acceptance"
+              }
+            ],
+            "responses": [
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b5cf03087d08cfb1b71e082ed83",
+                "usage": {
+                  "input_tokens": 32073,
+                  "cached_input_tokens": 31104,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 155,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 32228
+                },
+                "call_ids": [
+                  "call_rh5Sw3aa8nwijqV23Gfsc8Ju"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b6b23f887d093f1b7bb00b60cc3",
+                "usage": {
+                  "input_tokens": 36877,
+                  "cached_input_tokens": 31872,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 219,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 37096
+                },
+                "call_ids": [
+                  "call_3wVc6yhlzSZ6lG21occ69Rwm"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b77addc87d0b86b5e90822776fb",
+                "usage": {
+                  "input_tokens": 39677,
+                  "cached_input_tokens": 36736,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 321,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 39998
+                },
+                "call_ids": [
+                  "call_5ggCTTG2Vj9PfDwxZk4Ds7BB"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b852e3c87d09be10590426c6d73",
+                "usage": {
+                  "input_tokens": 50364,
+                  "cached_input_tokens": 39552,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 203,
+                  "reasoning_output_tokens": 11,
+                  "total_tokens": 50567
+                },
+                "call_ids": [
+                  "call_2twO2CmP6r7C7xtVXBx0k6Gq"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b9120c087d096cb00b3fea4e3dd",
+                "usage": {
+                  "input_tokens": 57427,
+                  "cached_input_tokens": 50176,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 234,
+                  "reasoning_output_tokens": 12,
+                  "total_tokens": 57661
+                },
+                "call_ids": [
+                  "call_KG5juef5AeKf7G2EV8ALgBk0"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63b9c470487d09a766dc4fed36b91",
+                "usage": {
+                  "input_tokens": 59189,
+                  "cached_input_tokens": 57216,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 238,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 59427
+                },
+                "call_ids": [
+                  "call_oQY17u2NnKHF4Ai27tZbQYT7"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63ba75d3487d0918fe31d4a216daa",
+                "usage": {
+                  "input_tokens": 62420,
+                  "cached_input_tokens": 59008,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 1165,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 63585
+                },
+                "call_ids": [
+                  "call_EXtdcEppjd0iIIKLys75xhOE"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63bcd79c087d0a14bb7456c0545fa",
+                "usage": {
+                  "input_tokens": 63612,
+                  "cached_input_tokens": 62208,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 96,
+                  "reasoning_output_tokens": 24,
+                  "total_tokens": 63708
+                },
+                "call_ids": [
+                  "call_hyeOgY0JoTOrdgWQ6dP8txLA"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63bd3172087d09a5e53d357fcfae6",
+                "usage": {
+                  "input_tokens": 63720,
+                  "cached_input_tokens": 63488,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 21,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 63741
+                },
+                "call_ids": [
+                  "call_Cgqnh98ByhzgFt7cgO882Tq1"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c15fc9487d08e1091ce4c031b69",
+                "usage": {
+                  "input_tokens": 63985,
+                  "cached_input_tokens": 63488,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 170,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 64155
+                },
+                "call_ids": [
+                  "call_L79pn01B2GuDyze79rXFFWvF"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c1ffcd487d0895fdf964416ebcb",
+                "usage": {
+                  "input_tokens": 65525,
+                  "cached_input_tokens": 63744,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 262,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 65787
+                },
+                "call_ids": [
+                  "call_vPTqhafqUbsXfe3hfGRPCmMR"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c2c17f487d08cc3b2dac31c0a3e",
+                "usage": {
+                  "input_tokens": 69248,
+                  "cached_input_tokens": 65408,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 456,
+                  "reasoning_output_tokens": 35,
+                  "total_tokens": 69704
+                },
+                "call_ids": [
+                  "call_cAWS1aRh2u7jgkkXuWrrJFlj"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c3c181487d0930680c907751475",
+                "usage": {
+                  "input_tokens": 70221,
+                  "cached_input_tokens": 69120,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 306,
+                  "reasoning_output_tokens": 24,
+                  "total_tokens": 70527
+                },
+                "call_ids": [
+                  "call_N053EX9dzn0dXLNn0nIpx5JD"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c4a099887d09de6534e8f3494a8",
+                "usage": {
+                  "input_tokens": 70713,
+                  "cached_input_tokens": 70016,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 292,
+                  "reasoning_output_tokens": 17,
+                  "total_tokens": 71005
+                },
+                "call_ids": [
+                  "call_wzsWnw8bCVylw5hGK88RVcfh"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c5605d087d0a9cbd1eafc0b60fa",
+                "usage": {
+                  "input_tokens": 71668,
+                  "cached_input_tokens": 70528,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 1160,
+                  "reasoning_output_tokens": 42,
+                  "total_tokens": 72828
+                },
+                "call_ids": [
+                  "call_jDZPuCSidiBxn9rUIkmlePFI"
+                ]
+              },
+              {
+                "response_id": "resp_0fc03732c71ffbd9016aa63c7e127887d08e5ba7010be3a8f4",
+                "usage": {
+                  "input_tokens": 73832,
+                  "cached_input_tokens": 71552,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 61,
+                  "reasoning_output_tokens": 0,
+                  "total_tokens": 73893
+                },
+                "call_ids": []
+              }
+            ],
+            "errors": [
+              {
+                "call_id": "call_3wVc6yhlzSZ6lG21occ69Rwm",
+                "kind": "command_nonzero",
+                "exit_code": 1,
+                "output_tail": "{\"status\":\"not_read\",\"reason\":\"invalid_arguments\",\"next\":\"Use --file PATH [--heading TITLE | --from N --to N] [--max-output-bytes N]. Budget: 1024..32768 bytes.\"}",
+                "at": "2026-09-13T05:58:16.164Z"
+              },
+              {
+                "call_id": "call_3wVc6yhlzSZ6lG21occ69Rwm",
+                "kind": "reader_rejection",
+                "reason": "invalid_arguments",
+                "at": "2026-09-13T05:58:16.164Z"
+              },
+              {
+                "call_id": "call_5ggCTTG2Vj9PfDwxZk4Ds7BB",
+                "kind": "returned_output_truncated",
+                "notice": "Warning: truncated output (original token count: 17345)",
+                "at": "2026-09-13T05:58:29.735Z"
+              },
+              {
+                "call_id": "call_N053EX9dzn0dXLNn0nIpx5JD",
+                "kind": "command_nonzero",
+                "exit_code": 1,
+                "output_tail": "rs\\vmon7\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\encodings\\cp1252.py\", line 19, in encode\r\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nUnicodeEncodeError: 'charmap' codec can't encode character '\\u2015' in position 309: character maps to <undefined>\r\n",
+                "at": "2026-09-13T06:01:46.553Z"
+              }
+            ]
+          },
+          {
+            "role": "worker",
+            "thread_id": "01a09959-9bdf-77b1-818a-13aef974c939",
+            "tool_counts": {
+              "exec": 2
+            },
+            "phase_call_counts": {
+              "native_intake": 1,
+              "other_task_work": 1
+            },
+            "calls": [
+              {
+                "call_id": "call_3z6Wxm7qX7xqbdbSaN3XBEF0",
+                "at": "2026-09-13T05:59:59.668Z",
+                "tool": "exec",
+                "phase": "native_intake"
+              },
+              {
+                "call_id": "call_uKmD6YnqG3RZQDVkxUelKYte",
+                "at": "2026-09-13T06:00:45.577Z",
+                "tool": "exec",
+                "phase": "other_task_work"
+              }
+            ],
+            "responses": [
+              {
+                "response_id": "resp_01dcd455194cb9db016aa63bd0331887d0b15e464dcfcbc000",
+                "usage": {
+                  "input_tokens": 35934,
+                  "cached_input_tokens": 34560,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 616,
+                  "reasoning_output_tokens": 32,
+                  "total_tokens": 36550
+                },
+                "call_ids": [
+                  "call_3z6Wxm7qX7xqbdbSaN3XBEF0"
+                ]
+              },
+              {
+                "response_id": "resp_01dcd455194cb9db016aa63be0347c87d0bd68a812416f9285",
+                "usage": {
+                  "input_tokens": 49423,
+                  "cached_input_tokens": 35712,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 2388,
+                  "reasoning_output_tokens": 1466,
+                  "total_tokens": 51811
+                },
+                "call_ids": [
+                  "call_uKmD6YnqG3RZQDVkxUelKYte"
+                ]
+              },
+              {
+                "response_id": "resp_01dcd455194cb9db016aa63c0de42c87d0a392737afa387f9d",
+                "usage": {
+                  "input_tokens": 52595,
+                  "cached_input_tokens": 49280,
+                  "cache_write_input_tokens": 0,
+                  "output_tokens": 221,
+                  "reasoning_output_tokens": 53,
+                  "total_tokens": 52816
+                },
+                "call_ids": []
+              }
+            ],
+            "errors": []
+          }
+        ]
+      },
+      "answer": {
+        "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-02\\answer.json",
+        "bytes": 3416,
+        "sha256": "eaeced02baceb115afd0fab53c93b137fbb34441e4897930081cc836ba148b8c"
+      },
+      "native_record": {
+        "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\run-02\\explicit-accounting\\f8e653d6-f1c3-491e-ad9f-60e03d084a70.json",
+        "bytes": 20401,
+        "sha256": "5afb157c661f134c82e6815c85226f635235425ebbb03e7ea2fb7c948c9cb20d"
+      }
+    }
+  ],
+  "comparison": {
+    "schema_version": 1,
+    "overall": "inconclusive",
+    "reasons": [
+      "no consistent material result across all required cases or metrics"
+    ],
+    "metrics": {
+      "elapsed_seconds": {
+        "status": "inconclusive",
+        "reasons": [
+          "no consistent material result across all required cases or metrics"
+        ],
+        "no_worsening": false
+      },
+      "total_tokens": {
+        "status": "inconclusive",
+        "reasons": [
+          "no consistent material result across all required cases or metrics"
+        ],
+        "no_worsening": false
+      }
+    },
+    "cases": [
+      {
+        "workflow": "cycle_entry_actual_repair_pair",
+        "workload_id": "388478677305bc81b4661e5add49ea463f1ddb0cbe84249ff2a689ac67c0f50a",
+        "baseline_runs": 1,
+        "candidate_runs": 1,
+        "pairing": "pair_id",
+        "reasons": [
+          "matched output fingerprints differ"
+        ],
+        "metrics": {
+          "elapsed_seconds": {
+            "status": "inconclusive",
+            "reasons": [
+              "matched output fingerprints differ"
+            ],
+            "no_worsening": false
+          },
+          "total_tokens": {
+            "status": "inconclusive",
+            "reasons": [
+              "matched output fingerprints differ"
+            ],
+            "no_worsening": false
+          }
+        }
+      }
+    ],
+    "protocol": {
+      "minimum_pairs": 3,
+      "relative_threshold": 0.05,
+      "direction_fraction": 0.8,
+      "case_weighting": "equal_case_paired_effects",
+      "pairing_fallback": "caller_order_within_case",
+      "scope": "descriptive observed runs; no significance, pricing, or tail estimate"
+    }
+  },
+  "descriptive_changes": {
+    "total_tokens_before": 1134007,
+    "total_tokens_after": 1097087,
+    "total_tokens_change_percent": -3.255711825412011,
+    "elapsed_seconds_change_percent": 18.087887856355334,
+    "trial_tokens_all_four_actors": 2231094
+  },
+  "setup_and_evaluation_observed_prefix": {
+    "status": "partial_observed_prefix_not_completed_turn",
+    "thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+    "turn_id": "01a0993d-c566-7731-9a04-d26f721ff986",
+    "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T19-22-04-01a0955a-643a-7dc1-b747-da71e35b40f7.jsonl",
+    "prefix_bytes": 39505991,
+    "prefix_sha256": "750b48db85e3cfb4e888ce696f5d79206cda6b19217f3c7d6faccefb0b8d9f81",
+    "started_at": "2026-09-13T05:29:17.448Z",
+    "last_included_response_at": "2026-09-13T06:07:59.951Z",
+    "last_included_response_id": "resp_0a47ff8933c4bb94016aa63d94164c87d081ff21f649a8acdc",
+    "model_responses": 43,
+    "usage": {
+      "input_tokens": 5245526,
+      "cached_input_tokens": 5006336,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 53984,
+      "reasoning_output_tokens": 23802,
+      "total_tokens": 5299510
+    },
+    "cumulative_reconciles": true,
+    "excludes": "Trial descendants are counted separately. This ongoing root turn includes planning, deterministic preparation, collection, source checks, command failures and evaluation; later closeout responses and final completion are not yet observed."
+  },
+  "accounting_notes": [
+    "All four trial actors completed exactly one native turn; parent links, spawn receipts, boundaries and per-response/cumulative totals reconcile.",
+    "Automatic baseline import returned unknown child coverage despite process exit 0. Both actors credit the topmost study turn, not the immediate trial coordinator turn expected by collect_desktop_task. Existing collect_codex_rollouts explicit selection recovered complete usage from native links; used for both arms.",
+    "The automatic and explicit baseline records are alternative observations of one execution, never separate model attempts.",
+    "The first comparator input omitted its required oracle field. Final comparison inputs attach completed source-backed adjudication using the existing quality.oracle field. No model output or usage was changed.",
+    "Final comparator remains inconclusive because output fingerprints differ. Both outputs pass the frozen semantic checks, but they are not byte-identical. The protocol also retains minimum_pairs=3; only one pair exists.",
+    "Raw spawn message values are protected in native logs; plaintext byte equality is unobservable. Both workers actually executed the generated pinned intake and native submission.",
+    "Native cached-input and reasoning-output counters are subsets, not additional tokens. Sequential cache conditions were not reset or controlled. Counts do not establish subscription-percentage drain.",
+    "Setup/evaluation is outside the recurring-job denominator and reported as a partial observed root-turn prefix; later closeout is excluded, not zero. It includes failed commands, oversized reads and accounting/report assembly corrections."
+  ],
+  "preserved_observations": {
+    "result-01.json": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\result-01.json",
+      "bytes": 4287,
+      "sha256": "ac7203079a6102d7502ab7259f3bc763516187eb94a4a02cd6fbf48ba19844d0"
+    },
+    "comparison.json": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\comparison.json",
+      "bytes": 1668,
+      "sha256": "136ff0940ce6b926328f2fafc28cb0af24854df09f4308b658c7bca0fea11bab"
+    },
+    "comparison-adjudicated.json": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\comparison-adjudicated.json",
+      "bytes": 1587,
+      "sha256": "b475d6a85118929dc8b0ae4db53ba6be93d45e3d21b36e159f6b89474c9db46d"
+    },
+    "private/compatibility.json": {
+      "path": "C:\\tmp\\forseti-cycle-entry-actual-20260913\\private\\compatibility.json",
+      "bytes": 1529,
+      "sha256": "b183c41baf8478027802658bc5bb645ce1cb966330d11b9e7396704a60179699"
+    }
+  },
+  "interpretation": {
+    "quality": "Both local repairs passed source-backed judgment and unchanged-scope checks. No host semantic rescue, replacement actor or retry.",
+    "efficiency": "3.26 percent fewer total trial tokens is a descriptive single-pair difference; elapsed time worsened 18.09 percent. No material, repeatable improvement is established.",
+    "behavior": "Both coordinators used six preparation rounds. Baseline had one rejected oversized instruction request. Candidate had an unsupported reader --help call and a clipped instruction batch followed by four rereads. Both retried a Windows Unicode display failure. Workers each used three responses and two tool calls.",
+    "scope": "This shared-entry local repair does not exercise the CO2 role index, the main Consolidation entry route, Synthesize, new capture, or a full intelligence cycle. Runtime and semantic authority are unchanged between pins.",
+    "next_decision": "Retain the navigation change for its demonstrated readability/consumer fixes, withhold a broad token-saving claim, and target repeated source delivery and mechanical verification before commissioning a larger model study."
+  }
+}
