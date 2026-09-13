@@ -1265,7 +1265,14 @@ def _load_repair_coordinator_job(job_path: Path, expected_sha256: str):
         raise ValueError("local repair source file bytes changed")
     if inputs["prompt"].decode("utf-8-sig") != record["request"]["prompt"] + "\n":
         raise ValueError("local repair source prompt differs from the bound request")
-    if "model_tiering" not in inputs:
+    for name, binding in job.get("coordinator_inputs", {}).items():
+        if name in inputs:
+            raise ValueError("coordinator input shadows a worker input")
+        data = Path(binding["path"]).read_bytes()
+        if hashlib.sha256(data).hexdigest() != binding["sha256"]:
+            raise ValueError(f"judgment job input hash mismatch: {name}")
+        inputs[name] = data
+    if {"model_tiering", "runtime_payload_safety"} - inputs.keys():
         raise ValueError("repair job lacks coordinator authority; prepare a new job")
     return job, inputs, record
 
@@ -1283,16 +1290,26 @@ def intake_reconciliation_repair_coordinator(*, job_path: Path, expected_sha256:
     job, inputs, record = _load_repair_coordinator_job(job_path, expected_sha256)
     content = {name: inputs[name].decode("utf-8-sig") for name in
                ["agents", "overlay", "preflight_defaults", "claim_support", "model_tiering"]}
+    # Carry the exact pointed-to section, not a second maintained rule or the
+    # entire routing document. Missing/ambiguous headings fail before delivery.
+    routing = inputs["runtime_payload_safety"].decode("utf-8-sig").splitlines(keepends=True)
+    starts = [i for i, line in enumerate(routing) if line.rstrip("\r\n") == "## Subagent Runtime Payload Safety"]
+    if len(starts) != 1:
+        raise ValueError("coordinator runtime payload safety section is missing or ambiguous")
+    start = starts[0]
+    end = next((i for i in range(start + 1, len(routing)) if routing[i].startswith("## ")), len(routing))
+    content["runtime_payload_safety"] = "".join(routing[start:end])
     content["assigned_job"] = json.dumps({
         "job_path": str(job_path.resolve()), "job_sha256": expected_sha256,
-        "inputs": job["inputs"], "nomination": record["request"]["nomination"],
+        "inputs": job["inputs"], "coordinator_inputs": job.get("coordinator_inputs", {}),
+        "nomination": record["request"]["nomination"],
         "node_keys": record["request"]["node_keys"], "candidate_refs": record["request"]["candidate_refs"],
         "response_path": job["response_path"],
         "worker_prompt": judgment_worker_prompt(job_path, expected_sha256),
     }, ensure_ascii=False, indent=2)
     return _repair_coordinator_view("REPAIR_COORDINATOR_INTAKE_COMPLETE", expected_sha256,
         "Read these pinned authorities and the assigned operation once. Forward worker_prompt "
-        "unchanged to exactly one fresh worker under the commissioned model/effort selection. "
+        "unchanged to exactly one fresh worker using the coordinator prompt's worker model/effort rule. "
         "This intake establishes dispatch scope, not source readiness for semantic judgment. "
         "After worker completion use the generated saved-result review command; it supplies "
         "the full original evidence prompt and the saved affected component. Do not recreate "
@@ -1321,8 +1338,11 @@ def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) ->
         "Check exit status, truncation warnings, exact content byte counts, contiguous section "
         "offsets and intake_end matching the commissioned job hash. A surviving end marker "
         "alone is insufficient. Resolve incomplete delivery before acting; reuse complete reads.\n"
-        "Dispatch exactly one fresh worker with the returned worker_prompt unchanged. Keep the "
-        "commissioned model and effort; do not inherit this coordinator's history. Use completion "
+        "Dispatch exactly one fresh worker with the returned worker_prompt unchanged. Use the "
+        "worker model and reasoning effort named by the launching commission, not this "
+        "coordinator's own. This worker prompt fixes effort at high; stop on a conflicting "
+        "commissioned effort. If no worker model is named, select it under the loaded "
+        "model-tiering authority and report that selection. Do not inherit this coordinator's history. Use completion "
         "notifications or bounded waits rather than repeated unchanged status reads. Keep required "
         "user updates separate from polling. If the worker fails, preserve the failure and stop; "
         "this commission does not authorize a retry.\n"
@@ -1357,7 +1377,10 @@ def review_reconciliation_repair(*, job_path: Path, expected_sha256: str,
     saved_data, receipt_data = saved_path.read_bytes(), receipt_path.read_bytes()
     if saved_data != expected_data:
         raise ValueError("saved repair successor differs from the bound patch")
-    if json.loads(receipt_data, object_pairs_hook=unique_json_object) != expected_receipt:
+    actual_receipt = json.loads(receipt_data, object_pairs_hook=unique_json_object)
+    # Python equality conflates false with 0 and integer counts with floats.
+    # JSON serialization preserves those type distinctions while ignoring key order.
+    if json.dumps(actual_receipt, sort_keys=True) != json.dumps(expected_receipt, sort_keys=True):
         raise ValueError("saved repair receipt differs from the bound result")
     # Scope was enforced by the native composer; compare the whole saved successor
     # before selecting its changed component. Never project away an unrelated edit.
@@ -2161,13 +2184,19 @@ def prepare_reconciliation_local_repair(
         "agents": repo / "AGENTS.md", "overlay": repo / ".agents/workflow-overlay/README.md",
         "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
         "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"}
-    if request.get("repair_rendering_mode") is None:
-        input_paths["model_tiering"] = repo / "docs/decisions/subagent_model_tiering_doctrine_v0.md"
     job = {"schema_version": "semantic_judgment_job_v1", "phase": "reconciliation_repair",
         "batch_id": request["batch_id"],
         "response_path": str((output_dir / "successor/response.json").resolve()),
         "inputs": {name: {"path": str(path.resolve()), "sha256": hash_file(path)}
                    for name, path in input_paths.items()}}
+    if request.get("repair_rendering_mode") is None:
+        # These reads belong only to the coordinator; worker intake/submission
+        # must not acquire a failure dependency on documents it does not consume.
+        job["coordinator_inputs"] = {
+            name: {"path": str(path.resolve()), "sha256": hash_file(path)} for name, path in {
+                "model_tiering": repo / "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+                "runtime_payload_safety": repo / ".agents/workflow-overlay/decision-routing.md",
+            }.items()}
     job_path = (output_dir / "job.json").resolve()
     _write_json(job_path, job)
     job_sha256 = hash_file(job_path)

@@ -915,16 +915,23 @@ before a fresh model comparison or merge. The next comparison must use matching
 fresh Astra/high coordinators and Sol/high workers, the same frozen nomination,
 evidence and semantic rubric, and complete coordinator-plus-worker accounting
 including failures. Any model work preparing a job belongs in that denominator;
-moving it to the study task must not manufacture a saving. Deterministic runner
-preparation may occur before launch in both arms and must be timed separately.
-Compare the existing manual coordinator route with this generated entry on the
-same frozen job; the candidate must actually consume both new views. Keep study
+moving it to the study task must not manufacture a saving. The manual arm keeps
+its existing coordinator-run preparation at base `5e4b1b0`; at this branch,
+preparation output and the method expose `coordinator_prompt`, which would
+contaminate that arm. The generated arm's deterministic preparation may run
+before launch and is timed separately; any model turn that invokes it, reads its
+output or relays `coordinator_prompt` counts in that arm. Both launches carry
+identical coordinator/worker model-effort and output-destination text outside
+the entry being compared. Count a generated-arm run that skips, fails or
+supplements either view as that arm's result; never replace it. Keep study
 setup/collection spend separate and disclose its boundary. Use a frozen
 meaning-based rubric, not answer-file equality, while retaining exact equality
-for the unrelated content. Target: at least 25% less total job input-plus-output
-tokens with preserved quality. This is a proposed threshold, **not observed**;
-one paired sample is diagnostic, and the existing three-pair minimum remains
-necessary for a repeatability claim. Subscription-percentage savings remain
+for the unrelated content. The native comparator's fingerprint-based
+`inconclusive` is neither a quality pass nor a failure. Target: at least 25%
+less total job input-plus-output tokens with preserved quality. This is a
+proposed threshold, **not observed**; one paired sample is diagnostic, and the
+existing three-pair minimum remains necessary for a repeatability claim.
+Subscription-percentage savings remain
 unmeasured.
 
 Deterministic validation completed in the isolated checkout. The generated
@@ -954,3 +961,54 @@ hashes were rechecked. No prior run was edited, no new model experiment ran, and
 no quality improvement or token/subscription saving is claimed. The shared
 native validator still explicitly declines to prove semantic truth. Independent
 review and the proposed live comparison remain outstanding.
+
+### Delegated return adjudicated (2026-09-13)
+
+The owner couriered an Anthropic controller's review of frozen PR #1601 commit
+`47d0500820c3cc21910bbfbc51902c45552678e3`. Its four-file working-tree patch was
+freshly verified against that commit; no lifecycle action had occurred. The
+return is decision input, not an independent certification of every resulting
+line. Home adjudication keeps M1–M3: the manual arm uses base `5e4b1b0`, every
+model response doing job preparation or prompt relay belongs to its arm, skipped
+or supplemented views remain counted outcomes, and fingerprint differences do
+not decide semantic quality. The cited prior commissions and frozen comparison
+support these corrections.
+
+F1 is kept with a narrow modification: the launching commission supplies the
+worker selection; the worker's existing `high` effort remains explicit, and a
+conflicting effort stops dispatch. Only a missing worker model is selected under
+the loaded doctrine. This closes the unbound-model source without introducing
+a conflict with the unchanged worker prompt.
+
+Three named residuals were closed within the reviewed scope. The saved-receipt
+comparison now preserves JSON type distinctions; the two type-only tampering
+tests first failed, then passed. The pointed-to runtime payload safety section
+is delivered verbatim from the pinned routing source, failing visibly if its
+heading disappears or becomes ambiguous. Coordinator-only authority pins now
+live separately in the same job: changing either document rejects coordinator
+reads while tests prove the worker can still intake and submit without an
+unused dependency. Shared authorities and semantic inputs retain their checks.
+These home-authored closure lines have focused mechanical verification; they
+are not represented as independently reviewed authorship.
+
+All 53 affected tests passed after adjudication. A fresh replay in
+`C:/tmp/forseti-coordinator-job-views-20260913/adjudication-replay` again produced
+the pinned successor and original source prompt exactly, kept all 89 unrelated
+decisions and 39 unrelated nodes, and preserved the old worker generator output.
+Both exact delivery scripts reconstructed all bytes (68,191-byte coordinator
+intake, 17,098-byte result view in this longer scratch path); repeated review
+wrote nothing. Remaining limits are the disclosed shim/attention boundary,
+code-derived preservation counts independently checked against the real replay,
+and the absence of measured model savings. The earlier scratch prompt is a
+historical pre-patch artifact, not the current entry.
+
+The required delegated checkpoint and comparison-design adjudication are now
+complete. Next is one diagnostic pair at the frozen base and candidate revisions,
+with preparation performed inside **each fresh trial coordinator** so no
+model-driven job preparation or relay is moved into excluded study setup. Each
+uses one fresh Sol/high worker; both coordinators use Astra/high. Only the
+candidate consumes the new entry and result views. All attempts, deviations,
+failures and descendants remain in their assigned arm. Freeze the commissions,
+source-based rubric and collection boundary before launch. One pair cannot
+establish the retained three-pair repeatability criterion. No merge or measured
+savings is asserted by this adjudication.

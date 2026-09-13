@@ -575,12 +575,20 @@ consumer, writing `successor/response.json` and its receipt within the request
 directory. Do not handwrite a separate delivery wrapper. This changes transport
 only, not repair scope, semantic instructions or the one-attempt rule.
 For a fresh coordinator of a general local repair, preparation also returns
-`coordinator_prompt`. Forward it unchanged with the commissioned model/effort
-selection. Its first operation, `intake-reconciliation-repair-coordinator --job
+`coordinator_prompt`. Forward it unchanged; the launching commission names the
+worker model and reasoning effort. The worker prompt retains its existing
+`high` effort; conflicting commissioned effort stops dispatch. If no worker
+model is named, the coordinator selects and reports it under the model-tiering
+doctrine. Its first operation, `intake-reconciliation-repair-coordinator --job
 ... --job-sha256 ...`, delivers the pinned coordinator authorities, nomination,
 input identities and ready worker prompt together. Use the complete delivery
 supplied in the prompt; do not reconstruct a source-discovery or preflight tour.
 The worker still receives its original full judgment prompt and schema.
+Coordinator-only authority pins live in `coordinator_inputs`: the tiering
+doctrine and routing document's exact `Subagent Runtime Payload Safety` section
+arrive in the same intake. Changes to those documents block coordinator reads
+without becoming unused worker intake/submission dependencies. Shared authority
+and semantic input pins remain checked by both actors.
 
 After that worker completes, the generated coordinator calls
 `review-reconciliation-repair --job ... --job-sha256 ... --response <job.raw.json>`.

@@ -4149,8 +4149,16 @@ def test_repair_coordinator_cli_intake_and_saved_view_are_complete_read_only(tmp
     assert assigned["worker_prompt"] == prepared["worker_prompt"]
     assert assigned["inputs"] == job["inputs"]
     assert "review-reconciliation-repair" in prepared["coordinator_prompt"]
+    # The forwarded prompt carries no worker tier; its source must be explicit, not the coordinator's own.
+    assert "worker model and reasoning effort named by the launching commission" in prepared["coordinator_prompt"]
     for name in ("agents", "overlay", "preflight_defaults", "claim_support", "model_tiering"):
-        assert intake["content"][name] == Path(job["inputs"][name]["path"]).read_bytes().decode("utf-8-sig")
+        binding = {**job["inputs"], **job["coordinator_inputs"]}[name]
+        assert intake["content"][name] == Path(binding["path"]).read_bytes().decode("utf-8-sig")
+    assert assigned["coordinator_inputs"] == job["coordinator_inputs"]
+    routing = Path(job["coordinator_inputs"]["runtime_payload_safety"]["path"]).read_bytes().decode("utf-8-sig")
+    section = intake["content"]["runtime_payload_safety"]
+    assert section in routing and section.startswith("## Subagent Runtime Payload Safety")
+    assert "Omit inherited" in section and "## Prompt Propagation" not in section
     receipt = submit_judgment_job(**args, response_path=raw)
     before_files = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
     views = []
@@ -4178,19 +4186,26 @@ def test_repair_coordinator_cli_intake_and_saved_view_are_complete_read_only(tmp
             name: len(value.encode("utf-8")) for name, value in delivered["content"].items()}
 
 
-@pytest.mark.parametrize("target", ["bundle", "binding", "failed_response", "repair_request", "prompt", "claim_support", "model_tiering"])
+@pytest.mark.parametrize("target", ["bundle", "binding", "failed_response", "repair_request", "prompt",
+                                   "claim_support", "model_tiering", "runtime_payload_safety"])
 def test_repair_coordinator_rejects_changed_pins_before_emitting_content(tmp_path, capsys, target):
     import hashlib
-    from runners.run_semantic_evidence_integration import main, _load_object
+    from runners.run_semantic_evidence_integration import main, _load_object, intake_judgment_job, submit_judgment_job
     _, args, raw = _prepared_coordinator_repair(tmp_path)
     job = _load_object(args["job_path"])
     # Isolate the selected input before corrupting it; never edit repository authority in a test.
     copy = tmp_path / "isolated-input"
-    copy.write_bytes(Path(job["inputs"][target]["path"]).read_bytes())
-    job["inputs"][target]["path"] = str(copy)
+    bindings = job["coordinator_inputs"] if target in job["coordinator_inputs"] else job["inputs"]
+    copy.write_bytes(Path(bindings[target]["path"]).read_bytes())
+    bindings[target]["path"] = str(copy)
     args["job_path"].write_text(json.dumps(job), encoding="utf-8")
     job_sha256 = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
     copy.write_bytes(copy.read_bytes() + b"\n")
+    if target in job["coordinator_inputs"]:
+        # An unused coordinator document cannot stop the worker's own bound job.
+        worker_args = {"job_path": args["job_path"], "expected_sha256": job_sha256}
+        assert intake_judgment_job(**worker_args)["status"] == "SEMANTIC_JUDGMENT_INTAKE_COMPLETE"
+        assert submit_judgment_job(**worker_args, response_path=raw)["status"] == "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN"
     for operation in ("intake-reconciliation-repair-coordinator", "review-reconciliation-repair"):
         cli = [operation, "--job", str(args["job_path"]), "--job-sha256", job_sha256]
         if operation == "review-reconciliation-repair":
@@ -4201,7 +4216,8 @@ def test_repair_coordinator_rejects_changed_pins_before_emitting_content(tmp_pat
         assert "content" not in failure
 
 
-@pytest.mark.parametrize("target", ["unrelated_node", "receipt", "missing_response", "missing_receipt", "foreign_patch"])
+@pytest.mark.parametrize("target", ["unrelated_node", "receipt", "receipt_bool", "receipt_float",
+                                   "missing_response", "missing_receipt", "foreign_patch"])
 def test_repair_review_rejects_saved_or_scope_faults_without_repairing_them(tmp_path, target):
     from runners.run_semantic_evidence_integration import (
         submit_judgment_job, review_reconciliation_repair, _load_object)
@@ -4213,9 +4229,14 @@ def test_repair_review_rejects_saved_or_scope_faults_without_repairing_them(tmp_
         next(n for n in saved["semantic_nodes"] if n["semantic_node_key"] == "untouched")["bounded_meaning"] = "Unauthorized change"
         saved_path.write_text(json.dumps(saved), encoding="utf-8")
         error, message = ValueError, "successor differs"
-    elif target == "receipt":
+    elif target.startswith("receipt"):
         saved_receipt = _load_object(receipt_path)
-        saved_receipt["status"] = "SEMANTIC_TRUTH_PROVEN"
+        if target == "receipt_bool":
+            saved_receipt["model_api_calls"] = False
+        elif target == "receipt_float":
+            saved_receipt["validation"]["semantic_node_count"] = float(saved_receipt["validation"]["semantic_node_count"])
+        else:
+            saved_receipt["status"] = "SEMANTIC_TRUTH_PROVEN"
         receipt_path.write_text(json.dumps(saved_receipt), encoding="utf-8")
         error, message = ValueError, "receipt differs"
     elif target.startswith("missing_"):
@@ -4236,7 +4257,8 @@ def test_repair_review_rejects_saved_or_scope_faults_without_repairing_them(tmp_
 @pytest.mark.parametrize("fault,match", [
     ("job_hash", "job hash mismatch"), ("phase", "general reconciliation repair"),
     ("compact", "compact repair omits raw source context"),
-    ("source_prompt", "source prompt differs"), ("authority", "lacks coordinator authority")])
+    ("source_prompt", "source prompt differs"), ("authority", "lacks coordinator authority"),
+    ("missing_heading", "section is missing or ambiguous"), ("duplicate_heading", "section is missing or ambiguous")])
 def test_repair_coordinator_rejects_unsupported_or_inconsistent_jobs(tmp_path, fault, match):
     import hashlib
     from runners.run_semantic_evidence_integration import intake_reconciliation_repair_coordinator, _load_object
@@ -4245,7 +4267,15 @@ def test_repair_coordinator_rejects_unsupported_or_inconsistent_jobs(tmp_path, f
     if fault == "phase":
         job["phase"] = "extraction"
     elif fault == "authority":
-        del job["inputs"]["model_tiering"]
+        del job["coordinator_inputs"]["model_tiering"]
+    elif fault in {"missing_heading", "duplicate_heading"}:
+        binding = job["coordinator_inputs"]["runtime_payload_safety"]
+        path = tmp_path / "routing-copy.md"
+        text = Path(binding["path"]).read_text(encoding="utf-8-sig")
+        heading = "## Subagent Runtime Payload Safety"
+        text = text.replace(heading, "## Changed heading") if fault == "missing_heading" else text + "\n" + heading + "\n"
+        path.write_text(text, encoding="utf-8")
+        binding.update(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     elif fault in {"compact", "source_prompt"}:
         key = "repair_request" if fault == "compact" else "prompt"
         path = Path(job["inputs"][key]["path"])
