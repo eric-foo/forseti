@@ -777,3 +777,30 @@ in delegated-review-patch.md: the changed boundary is instruction delivery and
 navigation, supported by the independent pre-change sources, actual reader
 failures/returns and native consumer tests. Semantic authority is preserved;
 autonomous route-choice and model-efficiency improvements remain unmeasured.
+
+Follow-up delegated review correction, measured on the working-tree patch to
+`0f283697cde82637ad2d6ae51fdb7e6d706860a7`: the candidate CO2 replay reached
+the four actor definitions only through line window 95-116, which no entry
+route names. `Role entry reads` now begins above those definitions, so its
+heading supplies them: 34,872 bytes in 5 requests. Both CO2 sides also omitted
+the acquisition-sequence step 3 that the CO2 route requires; including its
+unchanged 4,020-byte steps 1-3 window gives 45,092 to 38,892 bytes (13.75%).
+The supported operating route's resume sentence now points to commissioned
+experimental options, making Consolidation 18,249 to 8,295 bytes (54.55%).
+The original rows above remain the record for that revision; the comparison JSON
+adds `follow_up_correction`. The same 16 native tests and the two tests that read
+the completion guide passed. No model was run.
+
+Home adjudication (2026-09-13): retain F1, the F2 instruction clarification, and
+F3's measurement correction. Reject F2's claimed silent cross-level settings
+mix: `advance_semantic_run` restarts reconciliation at level 1 and revalidates
+retained stages and prompts before advancing; dropping an experimental setting
+is already blocked. The existing packing-resume test and both authoring-resume
+cases passed, as did the two guide-consumer tests (five focused cases total).
+The home replay reproduced the original and corrected measurements and passed
+58 source-pin, preservation, reader and link checks. PR #1598's body also carries
+the source-loading propagation explanation omitted from the review's checks.
+The dangling introductory sentence loses no obligation; explicit larger reader
+budgets remain supported for longer sections. Neither residual warrants another
+change in this work unit. No runtime change or fresh model run was made. The next
+material measurement remains a matched actual coordinator/worker run.

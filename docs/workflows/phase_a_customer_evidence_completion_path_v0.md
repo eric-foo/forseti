@@ -702,7 +702,8 @@ python forseti-harness/runners/run_semantic_evidence_integration.py advance --so
 ```
 
 Keep the same source and packing options on resume (`--max-prompt-bytes` and
-`--max-evidence-per-work-unit` when explicitly selected). Dispatch the complete
+`--max-evidence-per-work-unit` when explicitly selected) and any commissioned
+[experimental route option](#experimental-route-options). Dispatch the complete
 compatible `judgment_requests` set through the existing active-agent lane, one
 fresh context per independent request and at most three concurrently. Do not
 reconstruct the mechanics in a new wrapper: forward the returned `worker_prompt`,

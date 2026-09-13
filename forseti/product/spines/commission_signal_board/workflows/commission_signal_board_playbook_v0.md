@@ -92,6 +92,8 @@ Understanding and Deliver as unqualified Phase A/Phase B.
 
 #### Default US Consumer-Beauty Understanding Route
 
+##### Role entry reads
+
 The default coordinated route has exactly four evidence actors:
 
 - `CO0`: whole-run Chief Architect, integration, durable-record owner, and
@@ -113,8 +115,6 @@ The default coordinated route has exactly four evidence actors:
   customer language, pain points, objections, complaints, usage contexts,
   workarounds, response patterns, syndication ceilings, and discriminating
   depth checks.
-
-##### Role entry reads
 
 Bind these sections and the known upstream artifacts in the existing role
 capsule; do not send the receiver through this index when those reads are already
