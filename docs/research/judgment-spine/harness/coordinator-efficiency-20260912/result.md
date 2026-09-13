@@ -1,5 +1,14 @@
 # Coordinator efficiency samples — 2026-09-12
 
+Current coordinator-entry result (2026-09-13): the fresh complete caller,
+coordinator and worker route used **1,161,335 tokens versus 1,604,139** for its
+matched baseline, a **27.604% reduction**, with the frozen local source-quality
+rubric satisfied in both arms. This one-pair diagnostic meets the 25% target;
+it establishes neither repeatability nor subscription drain. See the final
+section and [complete-route evidence](coordinator-complete-route-comparison-20260913.json).
+Earlier sections preserve their historical boundaries and outcomes; their
+pending-review/sample language is superseded by the final adjudication and pair.
+
 ## Execution efficiency: success contract (2026-09-13)
 
 Authorized outcome: implement the four coordinator fixes sequentially, retaining
@@ -45,10 +54,11 @@ use_when:
   - Assessing the coordinator-efficiency candidates, their behavioral evidence and measurement limits.
 authority_boundary: retrieval_only
 open_next:
+  - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/coordinator-complete-route-comparison-20260913.json
   - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/measurement.json
 ```
 
-The latest, corrected **v2.0 instruction-intake sample used 292,264 native
+The historical corrected **v2.0 instruction-intake sample used 292,264 native
 tokens**, versus 402,161 after the earlier change and 197,899 before it. All six
 case outcomes remained correct. V2.0 needed four instruction-reading rounds,
 down from six after-change, with no reading failure, setup repair or command
@@ -1262,3 +1272,77 @@ with the older two-actor records. Those older totals are not the new full-route
 denominator. Estimate six fresh actor contexts and roughly 2–4 million total
 request tokens for this diagnostic pair; actual usage and uncertainty govern.
 No repeatability, subscription-drain or whole-cycle claim follows from one pair.
+
+### Entry completion: fresh complete-route pair (2026-09-13)
+
+[The native evidence](coordinator-complete-route-comparison-20260913.json) binds
+the clean baseline `5e4b1b0e1c252b724f5d13795a4a3d7d29562705` and adjudicated
+candidate `d1d8a1899ae6779638c20255d35333797bbeb343`, the exact four original
+input hashes, commissioned and observed models/high effort, all six fresh
+actors, completed accounting, saved results and the private quality rubric.
+The baseline ran first, then the candidate, with no replacement pair. Actual
+rendered worker messages are byte-identical when their paths are held equal.
+The candidate consumed the real native-generated coordinator commission.
+
+| Actor / outcome | Fresh baseline | Fresh candidate |
+| --- | ---: | ---: |
+| Normal caller tokens | 489,114 | 446,244 |
+| Repair coordinator tokens | 974,530 | 467,843 |
+| Corrective worker tokens | 140,495 | 247,248 |
+| **Complete route tokens** | **1,604,139** | **1,161,335** |
+| Model responses: caller / coordinator / worker | 12 / 17 / 3 | 11 / 9 / 5 |
+| Coordinator responses through worker dispatch | 7 | 3 |
+| Accounting coverage | complete | complete |
+| Source-quality rubric | pass | pass |
+| Unrelated decisions / nodes preserved | 89 / 39 | 89 / 39 |
+
+The full-route reduction is **442,804 tokens, or 27.604%**. The repair
+coordinator alone falls 51.993%; coordinator plus worker falls from 1,115,025
+to 715,091 (35.868%). The older 1,102,020/1,040,770 two-actor results and their
+5.558% reduction remain historical and are not this pair's denominator.
+
+The candidate coordinator uses one preparation/intake operation and one
+complete saved-result view. Its trace contains no separate instruction-reading
+tour or handwritten scope-check script. Baseline instruction loading hit one
+outer-output truncation and recovered, then used separate job/source/result
+reads and a handwritten preservation check. Those costs remain in its total.
+Both repairs retain the explicit sale purchase and the two possession reports
+without awarding the latter an acquisition route. Category/wording variation
+is defensible under the frozen rubric. Both saved answers are truthful about
+local scope; both affected nodes retain `opposition_checked=false`.
+
+Residuals are retained, not corrected away. The candidate worker first wrote
+a malformed patch, then mistook a successful empty-object tool return for
+failure because it expected `Done!`. It made a pre-submit wording edit and
+submitted once; there was no failed semantic submission, host rescue or
+replacement judgment. Its five responses used 106,753 more tokens than the
+baseline worker's three. Both callers also reread the adapter-written check even
+though its writer already performed readback. The candidate has zero observed
+output-truncation markers. These observations bound the coordinator fix; they
+do not establish that every remaining action is efficient.
+
+All normal caller rendering, dispatch, waits and result checks are charged to
+their respective routes. One-time home review, implementation adjudication,
+study setup and evaluation are separate: a native prefix observation records
+**6,095,095 root-only tokens across 51 responses**, excluding the six measured
+actors. The home turn was still active, so its complete total remains null and
+the observation excludes later documentation/publication/final reporting. The
+initial home-prefix lookup searched only the children's September 13 folder
+and found no root; it was unknown, never zero cost. The corrected lookup binds
+the root's actual September 12 rollout. This work unit does not claim net token
+savings or subscription-percentage savings.
+
+Two setup faults were caught before model execution: an AST check assumed the
+baseline's inline transport was a named helper, and the temporary adapter used
+Windows cp1252 output for Unicode JSON. Original setup drafts and failed dry-run
+artifacts are retained. Actual worker-message comparison and complete delivery
+through Windows PowerShell passed before either arm launched. The adapter is
+run-local measurement machinery, not a new production framework or mandatory
+cycle step.
+
+The source-quality and 25% diagnostic conditions are satisfied. Required CI
+passed on the measured code; only evidence/reporting changes follow this pair.
+The courier review and home adjudication above are complete. PR #1601 owns
+publication; its current landing state must be read from the PR. One pair is
+insufficient for repeatability, controlled cache, broader cycle-quality, or
+subscription-drain claims. No additional model pair is commissioned here.

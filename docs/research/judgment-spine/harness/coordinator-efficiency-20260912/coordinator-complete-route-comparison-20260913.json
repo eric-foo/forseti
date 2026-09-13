@@ -1,0 +1,430 @@
+{
+  "schema_version": "coordinator_complete_route_pair_v1",
+  "status": "DIAGNOSTIC_TARGET_MET_QUALITY_PRESERVED",
+  "authority": "One frozen matched sample under the owner-authorized coordinator efficiency implementation; not a repeatability or cycle-wide result.",
+  "local_root": "C:\\tmp\\forseti-entry-route-pair-20260913",
+  "protocol": {
+    "question": "Does the complete generated entry and saved-result view reduce the whole normal caller/coordinator/worker route cost without losing source-backed repair quality?",
+    "sample": "One baseline arm, then one candidate arm; no replacement or additional pair in this commission.",
+    "source_pins": "../source-pins.json",
+    "input_manifest": "C:/tmp/forseti-coordinator-views-pair-20260913/inputs/manifest.json",
+    "models": {
+      "caller": "gpt-6-astra",
+      "coordinator": "gpt-6-astra",
+      "worker": "gpt-5.6-sol",
+      "effort": "high",
+      "fresh_history": true
+    },
+    "volume_estimate": "6 fresh actors; roughly 2-4 million input-plus-output request tokens, including repeated cached input. Stop on a material source, consumer, or quality failure; preserve the failure and incomplete comparison.",
+    "role_boundary": "The normal caller renders the commission, dispatches the repair coordinator, reads its compact result and validates its saved completion. It does not repeat semantic review. The repair coordinator prepares the job, launches one worker and judges its actual saved result. Both arms pay this same topology.",
+    "cost_boundary": "Select the completed caller task and every descendant through native launch, ancestry, creation-time, turn and billing bindings. Include all model preparation, waits, reads, errors, caller rendering/check work and child work. Unknown coverage forbids a completed total or savings claim. Show caller, coordinator and worker subtotals. Root study setup, independent private quality evaluation and CI are separate study overhead; do not assign normal caller work to that category.",
+    "comparison": "Fresh complete baseline versus fresh complete candidate. Proposed 25 percent reduction in summed input-plus-output tokens with quality preserved. One pair is diagnostic, not repeatability proof. Historical 1102020 and 1040770 coordinator-plus-worker totals remain historical, not whole-route denominators.",
+    "private_quality_oracle": {
+      "positive": "reddit:13aw1sp:jjabq8d::brown_purchase alone explicitly describes Brown Sugar and Vanilla Beige as part of a sale purchase. Retain the bounded reported purchase; do not delete it for cheaper output.",
+      "near_miss": "reddit:13aw1sp:jj8q7wz::u01 reports a new Brown Sugar item; reddit:13aw1sp:jj8tnlr::u04 reports having Brown Sugar and Poppy. Both establish possession, not acquisition route. Preserve them with uncertainty, allowing defensible wording/category variation.",
+      "contrary_transfer": "Do not transfer another author's parent-level repurchase or a hypothetical gloss purchase to Brown Sugar acquisition. No invented motive, use, opposition clearance, independence, corroboration or causal force.",
+      "source_conditions": "Keep original candidate/source identities, product/shade and supplied parent contexts available. No quality claim from schema or receipt alone.",
+      "preservation": "All 89 unrelated candidate decisions, 39 unrelated semantic nodes in order and other envelope fields remain unchanged.",
+      "consumer": "Actual saved native successor and matching receipt, honest coordinator acceptance, unchanged supplied input and source checkout; no host correction of worker or coordinator answer."
+    },
+    "non_claims": [
+      "subscription percentage drain",
+      "controlled cache state",
+      "whole intelligence cycle savings",
+      "repeatability from one pair"
+    ],
+    "setup_observation": "Initial freeze completed source pins and caller templates, then its AST-only transport comparison failed because the baseline transport was inline and the candidate factored it into a helper. No model, job preparation or runtime answer existed. The driver and this failed first attempt are preserved; compare actual rendered worker prompts before launch instead."
+  },
+  "setup": {
+    "protocol": "protocol.json",
+    "preflight": "preflight-result.json",
+    "baseline_caller": "/root/entry_route_baseline_01",
+    "candidate_caller": "/root/entry_route_candidate_01",
+    "setup_failures": [
+      "An AST-helper existence check failed after pins/templates were written because baseline transport is inline. Both actual worker messages were subsequently rendered with identical paths and proved byte-identical.",
+      "The actual Windows PowerShell delivery dry run failed because the temporary adapter printed non-ASCII JSON through cp1252. The adapter now uses ASCII JSON escaping; both complete source intakes reconstruct byte-for-byte through the actual transport."
+    ],
+    "setup_failure_treatment": "Both occurred before any model actor or native job. Original adapter and pins/templates are in setup-first-pass; the failed delivery artifact is in preflight-baseline. Corrected setup and quality rubric were frozen before baseline launch. This is root study overhead, not either arm's normal caller work.",
+    "production_revision": "d1d8a1899ae6779638c20255d35333797bbeb343",
+    "ci": "Required forseti-harness-tests and route checks succeeded on the production revision before sample launch.",
+    "pr": "https://github.com/eric-foo/forseti/pull/1601",
+    "pr_state_at_start": "OPEN DRAFT"
+  },
+  "preflight": {
+    "model_calls": 0,
+    "actual_rendered_worker_messages_equal_with_same_paths": true,
+    "caller_intakes": {
+      "baseline": {
+        "executions": 1,
+        "content_bytes": {
+          "agents": 11890,
+          "overlay": 4997,
+          "preflight_defaults": 3769,
+          "dispatch_authority": 6366,
+          "runtime_payload_safety": 427,
+          "assigned_operation": 2367
+        },
+        "complete_content_reconstructed": true,
+        "job_prepared": false
+      },
+      "candidate": {
+        "executions": 1,
+        "content_bytes": {
+          "agents": 11890,
+          "overlay": 4997,
+          "preflight_defaults": 3769,
+          "dispatch_authority": 6366,
+          "runtime_payload_safety": 427,
+          "assigned_operation": 2362
+        },
+        "complete_content_reconstructed": true,
+        "job_prepared": false
+      }
+    }
+  },
+  "source_pins": {
+    "files": {
+      "C:\\tmp\\forseti-entry-route-pair-20260913\\driver.py": "a1a1ad90c86a1fdfc6328903a3863c0c88a6889ff99b7193be03fff996f1c332",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\AGENTS.md": "d5de80a479ef0d7259e529466d04899782e83eafb7932ffaf988cded909beb12",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\.agents\\workflow-overlay\\README.md": "660995aa5729a593ff0241eb8893df85d07f6b6e4bcae3eb36235d5bc4a4cb48",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\docs\\prompts\\templates\\shared\\forseti_preflight_defaults_v0.md": "80b288450c8d1350962152ac168592ec00d4ef8546c0bf145445cbd392102cb1",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\forseti\\product\\spines\\judgment\\claim_support\\forseti_intelligence_claim_support_contract_v0.md": "62d664a8ea81b065c7bf84f7db92382f9b9605df47215478048177805e5da805",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\docs\\decisions\\subagent_model_tiering_doctrine_v0.md": "1cdd7fcfd1f68cb1f9c5bf69f97946050f6a6f21e84db9e23d2ae891024fbe27",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\.agents\\workflow-overlay\\decision-routing.md": "f6b596cfb30e113cb62d641f6f685160b290f4850a4040a8cb18e1632201a4c0",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\forseti-harness\\runners\\run_semantic_evidence_integration.py": "e8c12de3a7133255ab2f4148236b742ae5b433ac8ad26d5e7d3c75b12f3dcd0d",
+      "C:\\tmp\\forseti-entry-route-baseline-20260913\\forseti-harness\\judgment\\semantic_evidence_integration.py": "3123571dc9907d81c904612f305b6cf6e30aace0360217c0395b10713a7aef9b",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\AGENTS.md": "d5de80a479ef0d7259e529466d04899782e83eafb7932ffaf988cded909beb12",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\.agents\\workflow-overlay\\README.md": "92c09e19ad941b53f4f7a7e40decb90703fcc02f37fa5c2ad608573acd526cc3",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\docs\\prompts\\templates\\shared\\forseti_preflight_defaults_v0.md": "80b288450c8d1350962152ac168592ec00d4ef8546c0bf145445cbd392102cb1",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\forseti\\product\\spines\\judgment\\claim_support\\forseti_intelligence_claim_support_contract_v0.md": "62d664a8ea81b065c7bf84f7db92382f9b9605df47215478048177805e5da805",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\docs\\decisions\\subagent_model_tiering_doctrine_v0.md": "1cdd7fcfd1f68cb1f9c5bf69f97946050f6a6f21e84db9e23d2ae891024fbe27",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\.agents\\workflow-overlay\\decision-routing.md": "f6b596cfb30e113cb62d641f6f685160b290f4850a4040a8cb18e1632201a4c0",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\forseti-harness\\runners\\run_semantic_evidence_integration.py": "c43378ce68caafa6d973996fe7b4b99d70f8938666b52bdfb247305a95fc7ad0",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\forseti-harness\\judgment\\semantic_evidence_integration.py": "3123571dc9907d81c904612f305b6cf6e30aace0360217c0395b10713a7aef9b",
+      "C:\\tmp\\forseti-cycle-entry-20260913\\forseti-harness\\reports\\efficiency_codex.py": "c63f98e8979ecd984d7f739a03a8d46ae7fa618cbcde06801a69e6482ef2ef02"
+    },
+    "revisions": {
+      "baseline": "5e4b1b0e1c252b724f5d13795a4a3d7d29562705",
+      "candidate": "d1d8a1899ae6779638c20255d35333797bbeb343"
+    }
+  },
+  "input_manifest": [
+    {
+      "file": "bundle.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\bundle.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/bundle.json",
+      "bytes": 839547,
+      "sha256": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/bundle.json"
+    },
+    {
+      "file": "stage.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\stage.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/stage.json",
+      "bytes": 333264,
+      "sha256": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/stage.json"
+    },
+    {
+      "file": "original-response.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\original-response.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/responses/reconcile-0001-0001.json",
+      "bytes": 42350,
+      "sha256": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/original-response.json"
+    },
+    {
+      "file": "nomination.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\nomination.json",
+      "source": "C:/tmp/forseti-targeted-repair-dogfood-20260912-v1/nomination.json",
+      "bytes": 278,
+      "sha256": "01a3dca7a1996406b234affeefc800f1e450257d13ccae4e09ba72dbb981b69f",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/nomination.json"
+    }
+  ],
+  "runs": [
+    {
+      "arm": "baseline",
+      "agent_path": "/root/entry_route_baseline_01",
+      "coverage": "complete",
+      "issues": [],
+      "complete_total_tokens": 1604139,
+      "model_responses": 32,
+      "actors": [
+        {
+          "thread_id": "01a09b44-9ed0-70b3-a0b4-1e5fecab2ad3",
+          "agent_path": "/root/entry_route_baseline_01",
+          "models": [
+            "gpt-6-astra"
+          ],
+          "responses": 12,
+          "usage": {
+            "input_tokens": 487205,
+            "cached_input_tokens": 453248,
+            "output_tokens": 1909,
+            "reasoning_output_tokens": 67,
+            "total_tokens": 489114
+          }
+        },
+        {
+          "thread_id": "01a09b45-7fb6-7d32-81ee-29b25617366c",
+          "agent_path": "/root/entry_route_baseline_01/repair_coordinator",
+          "models": [
+            "gpt-6-astra"
+          ],
+          "responses": 17,
+          "usage": {
+            "input_tokens": 968979,
+            "cached_input_tokens": 926464,
+            "output_tokens": 5551,
+            "reasoning_output_tokens": 213,
+            "total_tokens": 974530
+          }
+        },
+        {
+          "thread_id": "01a09b47-785e-7a21-af31-1e2694068b3e",
+          "agent_path": "/root/entry_route_baseline_01/repair_coordinator/repair_worker",
+          "models": [
+            "gpt-5.6-sol"
+          ],
+          "responses": 3,
+          "usage": {
+            "input_tokens": 137600,
+            "cached_input_tokens": 98048,
+            "output_tokens": 2895,
+            "reasoning_output_tokens": 1318,
+            "total_tokens": 140495
+          }
+        }
+      ],
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "tool_output_observations": {
+        "output_events": 54,
+        "truncation_marker_events": 1,
+        "nonzero_command_exit_observations": 0,
+        "unrecognized_output_events": 0
+      },
+      "quality_adjudication": {
+        "status": "PASS",
+        "evaluator": "home coordinator, outside measured actor inputs",
+        "rubric": "../private/protocol.json",
+        "native_evidence": "measurement.json",
+        "positive": "Only jjabq8d::brown_purchase supports the saved sale-purchase node, which retains reported_behavior and descriptive_only.",
+        "near_miss": "jj8q7wz::u01 and jj8tnlr::u04 support a separate possession node explicitly saying acquisition is unstated. Its reported_behavior category is defensible for the reported possession and does not invent purchase.",
+        "contrary_transfer": "Neither the hypothetical gloss purchase nor another author's parent-level repurchase is promoted to Brown Sugar purchase. Neither affected node receives opposition clearance.",
+        "preservation": "Native review verifies the whole successor and receipt against pinned raw inputs; 89 unrelated decisions, 39 unrelated nodes and the other envelope content remain unchanged.",
+        "consumer": "The saved coordinator answer names the actual worker/successor/receipt, accurately distinguishes the three sources, and limits completion to this local repair. No host semantic correction or replacement was performed.",
+        "limits": "One small captured-evidence component; this does not prove general cycle quality or opposition clearance. Accounting is complete for all three measured actors."
+      },
+      "coordinator_entry_through_worker_dispatch_responses": 7,
+      "source_revision": "5e4b1b0e1c252b724f5d13795a4a3d7d29562705",
+      "commission_sha256": "7a45ad664467de61d247ed96d8ee141a55ad9f7b1a41623958525a5b4b89ee62",
+      "successor_sha256": "3c9942429bc563d934e2caa4680f6fe6417f225dadc4deb3318e7aaa47944c4e",
+      "receipt_sha256": "6c83e3092fdb29acad5710c6dcef510ed0a787b67ff8d561a16b9601bc8a937f",
+      "job_sha256": "389e34c29be7502cce069d0fa23cae8a8c83d9639585888e9557b0e07683a604",
+      "unchanged_decisions": 89,
+      "unchanged_nodes": 39,
+      "local_evidence": {
+        "baseline\\measurement.json": {
+          "sha256": "0718bebcb9dadfaee771959b765ec350ca5b52f65d1d386c5876cd7e512b4607",
+          "bytes": 9075
+        },
+        "baseline\\answer.json": {
+          "sha256": "55bcdc63c0dff0259a7ba0448ef696b705c75f70192f57cefecbf34dd217cab3",
+          "bytes": 3011
+        },
+        "baseline\\caller-check.json": {
+          "sha256": "f68419590c16d4884a11fa501a1f88bc7a2ffd5e8a7f923c53ae5f805810ec0b",
+          "bytes": 4828
+        },
+        "baseline\\native-accounting\\native-summary.json": {
+          "sha256": "8dad6d142671cef3273b566c18867b562b52729b8db59b2396bb1271a412c54f",
+          "bytes": 31210
+        },
+        "baseline\\native-accounting\\public-call-trace.json": {
+          "sha256": "fd2d45cfdd3b7f2c80684660bbf4d11b2f191a3d82ea85f501f6b476ddef83fd",
+          "bytes": 20781
+        },
+        "baseline\\native-accounting\\01a09b44-9ed0-70b3-a0b4-1e5fecab2ad3.jsonl": {
+          "sha256": "0a195dc20d318d93e680ab048c06c07809059d68f4364785296b5730e0e27bd2",
+          "bytes": 392372
+        },
+        "baseline\\native-accounting\\01a09b45-7fb6-7d32-81ee-29b25617366c.jsonl": {
+          "sha256": "4e1bbe398ca3561fc9c834f1e0f63cb77d99cbfd616caa3837b512be14186e03",
+          "bytes": 830850
+        },
+        "baseline\\native-accounting\\01a09b47-785e-7a21-af31-1e2694068b3e.jsonl": {
+          "sha256": "73730112b48fdbc86e7be5efdc3d47b7e4a2c017dcabfd7b38255644356575c0",
+          "bytes": 464690
+        }
+      }
+    },
+    {
+      "arm": "candidate",
+      "agent_path": "/root/entry_route_candidate_01",
+      "coverage": "complete",
+      "issues": [],
+      "complete_total_tokens": 1161335,
+      "model_responses": 25,
+      "actors": [
+        {
+          "thread_id": "01a09b4b-55e5-7b21-a178-36dd4a420cf2",
+          "agent_path": "/root/entry_route_candidate_01",
+          "models": [
+            "gpt-6-astra"
+          ],
+          "responses": 11,
+          "usage": {
+            "input_tokens": 444309,
+            "cached_input_tokens": 429952,
+            "output_tokens": 1935,
+            "reasoning_output_tokens": 103,
+            "total_tokens": 446244
+          }
+        },
+        {
+          "thread_id": "01a09b4c-366d-7490-9ddb-cb9c6f141927",
+          "agent_path": "/root/entry_route_candidate_01/repair_coordinator",
+          "models": [
+            "gpt-6-astra"
+          ],
+          "responses": 9,
+          "usage": {
+            "input_tokens": 463847,
+            "cached_input_tokens": 431360,
+            "output_tokens": 3996,
+            "reasoning_output_tokens": 154,
+            "total_tokens": 467843
+          }
+        },
+        {
+          "thread_id": "01a09b4d-6788-78c1-b748-eba8894984d3",
+          "agent_path": "/root/entry_route_candidate_01/repair_coordinator/repair_worker",
+          "models": [
+            "gpt-5.6-sol"
+          ],
+          "responses": 5,
+          "usage": {
+            "input_tokens": 242677,
+            "cached_input_tokens": 222336,
+            "output_tokens": 4571,
+            "reasoning_output_tokens": 1804,
+            "total_tokens": 247248
+          }
+        }
+      ],
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "tool_output_observations": {
+        "output_events": 68,
+        "truncation_marker_events": 0,
+        "nonzero_command_exit_observations": 0,
+        "unrecognized_output_events": 0
+      },
+      "quality_adjudication": {
+        "status": "PASS",
+        "evaluator": "home coordinator, outside measured actor inputs",
+        "rubric": "../private/protocol.json",
+        "native_evidence": "measurement.json",
+        "positive": "Only jjabq8d::brown_purchase supports the saved sale-purchase node, retaining the reported sale condition and descriptive_only ceiling.",
+        "near_miss": "jj8q7wz::u01 and jj8tnlr::u04 support a separate current-possession node. Customer_experience is a defensible category for the reported possession. Acquisition is not invented; the saved coordinator answer explicitly preserves that uncertainty and limits current to the captured source, not analysis-time freshness.",
+        "contrary_transfer": "No transfer from hypothetical gloss buying or the other author's repurchase. Both affected opposition flags are false. Product, shade, source identities and parent conditions remain in their unchanged source lineage.",
+        "preservation": "Native review verifies the entire saved successor and receipt against pinned inputs/raw patch, including 89 unrelated decisions, 39 unrelated nodes in order and other envelope content unchanged.",
+        "consumer": "The saved answer names actual worker/result/receipt identities and correctly distinguishes all three sources. No host correction or replacement was performed.",
+        "process_residual": "The worker made an invalid apply_patch payload, then wrongly classified a successful empty-object tool response as failure because it expected the string Done!. Before its sole native submit it added Current to the possession wording. These are retained authoring/transport errors and a pre-submit wording edit, not a failed semantic-submit retry. All five worker model responses are included; no favorable rerun or exclusion.",
+        "limits": "One small component. Native acceptance does not establish general source quality, claim promotion or opposition clearance. Complete accounting is verified for all three actors."
+      },
+      "coordinator_entry_through_worker_dispatch_responses": 3,
+      "source_revision": "d1d8a1899ae6779638c20255d35333797bbeb343",
+      "commission_sha256": "0dfa49aba6b2503e9bf7af85f49a4b1e4d3b104b597d1c899cb09549fbafcd98",
+      "successor_sha256": "2f8f73bcd5b125b4f4d3dcae53cb46954b33ed2180b1ce07d973113712d9b687",
+      "receipt_sha256": "602b9c3aaa3622275f4ef6a811ada5a7b233043186c739d711043576feb29b1a",
+      "job_sha256": "5e9a8c63dd0233374fbba6213e499cb37ebb423b98d274185b7c8a09b74eca15",
+      "unchanged_decisions": 89,
+      "unchanged_nodes": 39,
+      "local_evidence": {
+        "candidate\\measurement.json": {
+          "sha256": "4fc632b79bfbe35a2f3b7d00c65f78ba0f2cdcd091243770c6e1fd6f9bfeb4d8",
+          "bytes": 9681
+        },
+        "candidate\\answer.json": {
+          "sha256": "a30d781313d04404c53af7d1b3f5a8336cc1d38f79805be272c497952a3a9e79",
+          "bytes": 3597
+        },
+        "candidate\\caller-check.json": {
+          "sha256": "3f90eee6ce8a6c535b47dcb815e1c8408c5f953b96fa48e11bbcad62ed39d0a8",
+          "bytes": 4833
+        },
+        "candidate\\native-accounting\\native-summary.json": {
+          "sha256": "b96e9ea261e57f6f8d462a3dabf9ace3a638da868e0e710fa9d54f8d53249c53",
+          "bytes": 24809
+        },
+        "candidate\\native-accounting\\public-call-trace.json": {
+          "sha256": "ebec1ee1a7622cb46858f5c7f2a45b8b42aba2de44832584a8ff3cbef2765427",
+          "bytes": 16455
+        },
+        "candidate\\native-accounting\\01a09b4b-55e5-7b21-a178-36dd4a420cf2.jsonl": {
+          "sha256": "1eb8b3f50ad701fb20ca837509f4e67eefba690cf2cdec07780ac63498ccb5de",
+          "bytes": 372154
+        },
+        "candidate\\native-accounting\\01a09b4c-366d-7490-9ddb-cb9c6f141927.jsonl": {
+          "sha256": "5d66e771d4caee9b60a8a98e16260e8a7f9a776e87ea2dba03892f0d4505754a",
+          "bytes": 650082
+        },
+        "candidate\\native-accounting\\01a09b4d-6788-78c1-b748-eba8894984d3.jsonl": {
+          "sha256": "5eab78f45d7c7599094eb1c1ac5d202452d997f45b2d620aba2d8740ef7035b0",
+          "bytes": 484759
+        }
+      }
+    }
+  ],
+  "token_reduction": 442804,
+  "token_reduction_percent": 27.603842310423225,
+  "home_overhead_prefix": {
+    "boundary": "Unfinished home review/adjudication, study setup and evaluation turn; root actor only, excludes all measured descendants.",
+    "thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+    "turn_id": "01a09b27-1ad5-78b3-8b7c-7a2b76d79015",
+    "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T19-22-04-01a0955a-643a-7dc1-b747-da71e35b40f7.jsonl",
+    "coverage": "unknown",
+    "issues": [
+      "child_inventory_unknown",
+      "observed_delegation_missing_children",
+      "turn_boundary_incomplete"
+    ],
+    "responses_observed": 51,
+    "last_response_id": "resp_0a47ff8933c4bb94016aa6bd695ec487d093517fe9940b1cd1",
+    "observed_usage": {
+      "input_tokens": 6033078,
+      "cached_input_tokens": 5654784,
+      "output_tokens": 62017,
+      "total_tokens": 6095095
+    },
+    "complete_total": null,
+    "limitation": "Prefix observation only: includes implementation adjudication as well as study setup/evaluation; excludes subsequent documentation, publication and final response. It is not zero and is not net saved tokens or subscription drain."
+  },
+  "interpretation": "Coordinator entry/dispatch fell from seven model responses to three, and all coordinator responses from seventeen to nine. Its single combined saved-result view replaced separate result reads and handwritten scope checking. The candidate worker incurred a malformed patch and a mistaken Done!-string success check before its sole native submission; its five responses and increased cost remain included. Both callers retained an extra readback of the adapter-written check. One pair does not attribute every response difference to the code.",
+  "limitations": [
+    "One sequential pair, no controlled cache state or repeatability claim.",
+    "Input-plus-output tokens include cached input and do not measure subscription quota drain.",
+    "The old two-actor 1102020/1040770 totals are not the denominator for this complete three-actor route.",
+    "No new actor, semantic replacement run, host answer correction or production edit occurred during the frozen pair.",
+    "The run-local adapter is measurement setup, not a new production framework."
+  ]
+}
