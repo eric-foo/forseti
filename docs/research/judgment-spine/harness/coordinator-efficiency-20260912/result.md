@@ -957,10 +957,12 @@ Local evidence is in `C:/tmp/forseti-coordinator-job-views-20260913/result.json`
 and its sibling `dogfood.py`, `prepared.json`, `intake.json`, `view.json` and
 executed `delivery-0.cjs` / `delivery-1.cjs`. The replay used the frozen manifest
 under `C:/tmp/forseti-cycle-entry-actual-20260913/inputs/manifest.json`; all file
-hashes were rechecked. No prior run was edited, no new model experiment ran, and
-no quality improvement or token/subscription saving is claimed. The shared
+hashes were rechecked. At that deterministic-validation checkpoint, no prior
+run was edited and no new model experiment had run; it established no quality
+improvement or token/subscription saving. The shared
 native validator still explicitly declines to prove semantic truth. Independent
-review and the proposed live comparison remain outstanding.
+review and the live comparison were then outstanding; their completed outcomes
+are recorded below.
 
 ### Delegated return adjudicated (2026-09-13)
 
@@ -999,11 +1001,11 @@ Both exact delivery scripts reconstructed all bytes (68,191-byte coordinator
 intake, 17,098-byte result view in this longer scratch path); repeated review
 wrote nothing. Remaining limits are the disclosed shim/attention boundary,
 code-derived preservation counts independently checked against the real replay,
-and the absence of measured model savings. The earlier scratch prompt is a
+and, at adjudication, the absence of measured model savings. The earlier scratch prompt is a
 historical pre-patch artifact, not the current entry.
 
-The required delegated checkpoint and comparison-design adjudication are now
-complete. Next is one diagnostic pair at the frozen base and candidate revisions,
+The required delegated checkpoint and comparison-design adjudication completed.
+They bound one diagnostic pair at the frozen base and candidate revisions,
 with preparation performed inside **each fresh trial coordinator** so no
 model-driven job preparation or relay is moved into excluded study setup. Each
 uses one fresh Sol/high worker; both coordinators use Astra/high. Only the
@@ -1012,3 +1014,98 @@ failures and descendants remain in their assigned arm. Freeze the commissions,
 source-based rubric and collection boundary before launch. One pair cannot
 establish the retained three-pair repeatability criterion. No merge or measured
 savings is asserted by this adjudication.
+
+## Prepared coordinator and saved-result views: live pair (2026-09-13)
+
+**The diagnostic pair preserved repair quality but missed the proposed 25%
+efficiency target. PR #1601 remains a draft, unmerged.** Complete native
+coordinator-plus-worker usage fell from 1,102,020 to 1,040,770 tokens: 61,250
+tokens, or **5.558%**, in this pair. This does not establish repeatability or
+subscription-percentage savings. The durable
+[comparison record](coordinator-views-actual-comparison-20260913.json) carries
+the frozen protocol, source hashes, completed actor boundaries, quality
+adjudication, call observations and separate study-cost boundary.
+
+| Completed measurement | Manual at `5e4b1b0` | Generated at `4257033` |
+| --- | ---: | ---: |
+| Coordinator input + output tokens | 959,002 | 899,819 |
+| Sole worker input + output tokens | 143,018 | 140,951 |
+| Total input tokens | 1,092,662 | 1,032,362 |
+| Cached input, already included above | 976,768 | 958,592 |
+| Total output tokens | 9,358 | 8,408 |
+| Total input + output tokens | 1,102,020 | 1,040,770 |
+| Coordinator / worker responses | 17 / 3 | 15 / 3 |
+| Elapsed seconds | 282.998 | 300.675 |
+
+Both coordinators were fresh Astra/high and each dispatched one fresh Sol/high
+worker. Preparation occurred inside each measured coordinator. The manual arm
+used the frozen base, so it could not see the candidate entry; the generated arm
+used the reviewed-and-adjudicated implementation. Both consumed the same four
+hash-verified inputs and wrote the same kind of final answer. No failure,
+additional read or supplemented view was excluded; neither arm was replaced.
+The existing explicit native collector verified completed turns, parent links,
+spawn receipts and every observed descendant. Its coverage is complete for
+both jobs. Protected launch-message fields prevent a plaintext handoff-equality
+claim; the workers' actual pinned intake, model/effort and submission were
+observed. Cache state was sequential and uncontrolled.
+
+Home source-backed adjudication accepted both saved repairs under the rubric
+frozen before launch. The two ownership reports no longer support purchase;
+only the comment explicitly reporting a sale purchase supports that claim.
+The parent author's repurchase of other shades is not transferred to the child
+author. Both results preserve the three candidate identities and conditions,
+all 89 unrelated decisions, all 39 unrelated nodes in order and the other
+response fields. Both keep opposition flags false and avoid causal or prevalence
+claims. Manual retained possession as a nonterminal node; generated retained
+ownership as a descriptive customer-experience claim. That defensible category
+variation is permitted by the frozen rubric; identical wording or final
+compilation was not required or demonstrated. Structural acceptance alone did
+not decide semantic quality, and this local repair does not clear a whole cycle.
+
+The generated route actually executed both views. All native desktop content
+notifications were reassembled with contiguous offsets, matching byte counts
+and the commissioned job end hash, then compared with freshly generated pinned
+content: **68,193 bytes in 12 blocks** for intake and **17,062 bytes in four
+blocks** for the result. The original source prompt was complete. The coordinator
+used the saved-result view without writing its own preservation checker or
+performing another source read afterward. This verifies delivered content and
+observed behavior, not every internal attention decision.
+
+The shortfall is at entry. After reading the commission, the manual coordinator
+made six preparation tool rounds before dispatch; generated made seven. Both
+sent roughly 13.7k tokens of instruction output through the outer tool's 10k
+return limit. Manual recovered with one round requesting four sections;
+generated recovered tiering and safety in one round, then another tiering
+range in a second. These were narrowed recovery requests, not repeated full
+source tours. Generated intake then delivered AGENTS, overlay, preflight
+defaults, claim support and tiering after those sources had already been
+requested during preparation. The new entry therefore supplemented the old
+entry instead of replacing it in this actual route.
+
+The later work shrank, but the coordinator still consumed **86.46%** of the
+generated job's tokens. Manual issued waits of 10, 10 and 60 seconds; generated
+issued two 60-second waits. These differences remain in the comparison, so
+5.558% is the observed combined result, not a causal estimate for the result
+view alone. The generated run was 17.677 seconds slower; no speedup is claimed.
+
+The two jobs used **2,142,790 tokens**. Separately, study setup, monitoring,
+collection and initial evaluation in this task used **3,491,810 tokens across
+24 responses** from 2026-09-13 12:22:00 UTC through the last completed usage
+record at 12:46:22.943 UTC (cutoff 12:46:23). This is a partial native prefix,
+excluding earlier implementation/adjudication, the trial descendants and later
+report/PR/closeout work; it is not a whole-study total. It includes setup
+corrections: path-separator substitution initially retained an old run root,
+then text-mode newline expansion failed readback. Both were detected and fixed
+before any model launch, with initial drafts preserved. Setup was not free and
+was not hidden in either arm's saving.
+
+Do not land this as the promised material efficiency fix. The smallest next
+target is to make generated preparation/intake the actual first entry for a
+cold coordinator, removing the preceding overlapping source discovery while
+preserving governing instructions and counting all model preparation in that
+same job. Keep the saved-result verification available in the candidate; another
+instruction document does not close this entry gap. No further model pair was
+launched. The existing three-pair minimum remains necessary for a repeatability
+claim, once a candidate merits that expense. Run-local frozen evidence and
+collection scripts remain under
+`C:/tmp/forseti-coordinator-views-pair-20260913`.

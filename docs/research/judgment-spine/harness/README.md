@@ -23,4 +23,4 @@ open_next:
 
 This area does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine, and it does not authorize implementation by itself.
 
-- [Coordinator efficiency samples (2026-09-12–13)](coordinator-efficiency-20260912/result.md): setup comparisons, the completed coordinator/worker pair, and generated coordinator/result views with delegated review adjudicated and deterministic replay verified; their fresh comparison remains pending. Subscription quota impact remains unmeasured.
+- [Coordinator efficiency samples (2026-09-12–13)](coordinator-efficiency-20260912/result.md): setup comparisons and reviewed coordinator/result views; the completed fresh pair preserved local repair quality but saved 5.558%, below its 25% target. Early preparation still overlaps the generated intake; PR #1601 remains unmerged. Subscription quota impact remains unmeasured.
