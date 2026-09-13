@@ -804,3 +804,80 @@ The dangling introductory sentence loses no obligation; explicit larger reader
 budgets remain supported for longer sections. Neither residual warrants another
 change in this work unit. No runtime change or fresh model run was made. The next
 material measurement remains a matched actual coordinator/worker run.
+
+## Actual coordinator/worker pair: observed result (2026-09-13)
+
+The owner authorized planning and executing that measurement. One matched pair
+completed on the same isolated checkout: before `5bc0f9e933246506515bed3a1ca1562164d8fb7b`,
+after `109959afadc564ce15914e7f74aaafabfcd9dd58`. Each fresh Astra/high coordinator
+commissioned exactly one fresh Sol/high worker with no inherited task history.
+The frozen task repaired three source attachments in an existing consolidation
+component; no new capture or original-cycle completion was claimed. The runtime,
+semantic rules, evidence and local-repair procedure were unchanged.
+
+[Actual comparison and native accounting](cycle-entry-actual-comparison-20260913.json)
+preserves the pre-generation plan, source hashes, completed task/turn selections,
+four actors' native response counters, failures, quality checks and adjudication.
+The two coordinators and two workers are the entire recurring-job denominator.
+
+| Observed measure | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Coordinator tokens | 994,365 | 955,910 | -3.87% |
+| Worker tokens | 139,642 | 141,177 | +1.10% |
+| Total input plus output tokens | 1,134,007 | 1,097,087 | -3.26% |
+| Coordinator / worker responses | 18 / 3 | 16 / 3 | Two fewer coordinator responses |
+| Coordinator preparation rounds | 6 | 6 | Unchanged |
+| Coordinator / worker tool calls | 17 / 2 | 15 / 2 | Two fewer coordinator calls |
+| Elapsed seconds | 253.960 | 299.896 | +18.09% |
+
+Both saved repairs passed: the explicit sale purchase alone supports purchase;
+the two ownership reports support possession without inventing acquisition,
+opposition or motive. All three source identities and conditions remain
+reachable. All 89 unrelated candidate decisions and 39 unrelated findings are
+unchanged; repeated native submission yields the same saved successor. The study
+coordinator adjudicated meaning against the frozen sources; this is not an
+independent quality certification. Neither worker needed a semantic retry or
+host repair. Correct outputs differ in wording and possession classification;
+the native comparator returns `inconclusive` because their fingerprints differ.
+Its three-pair minimum and 5% threshold remain unchanged; this single pair also
+cannot establish repeatability or a material general saving.
+
+The coordinator remains 87.69% / 87.13% of trial tokens. Its average input per
+response increased from 54,944 to 59,409 tokens, offsetting much of the reduction
+in responses. Both coordinators paid six preparation rounds. Before, an oversized
+instruction request was rejected and narrowed. After, an unsupported reader
+`--help` call failed, then a 17,345-token instruction batch exceeded the outer
+tool's return allowance and four sources were reread. Both runs retried a source
+display after Windows Unicode encoding failed. All these costs are included.
+Workers each needed just the native intake, submission and final response.
+
+Automatic accounting initially returned unknown worker coverage: nested actors'
+usage credits the topmost study turn, while the automatic child selector expects
+the selected trial coordinator turn. Existing explicit collection recovered both
+native logs using their verified parent links, spawn receipts and complete
+boundaries; the same route counted both arms. The incomplete observation is
+preserved, not counted as another execution. A study-side comparator annotation
+initially omitted its required named oracle; completed source-backed adjudication
+was then attached without altering model outputs or usage. Protected native
+message fields prevent a plaintext byte-equality claim for the handoff; both
+workers' actual pinned intake and native submission were observed.
+
+The four trial actors used **2,231,094 tokens**, above the rough pre-run estimate
+of 0.8-1.6 million. Separately, this study task's planning, preparation, collection
+and evaluation had used **5,299,510 tokens across 43 responses** through
+2026-09-13 06:07:59.951 UTC. That is an explicitly partial native prefix, excluding
+later closeout and trial descendants; it is not a completed whole-study total.
+It includes this task's own failed commands, oversized reads and accounting
+corrections. The total observed study spend at that cutoff is therefore at least
+7,530,604 tokens. Cached input is a subset of input (1,015,040 / 1,024,768 in the
+trials), and the sequential cache state was not controlled. None of these counts
+measures subscription-percentage drain.
+
+This sample tests common project entry, one native worker handoff and acceptance
+of a local repair. It does not test the CO2 role index, main Consolidation entry,
+Synthesize or a whole cycle, so it neither proves nor disproves efficiency gains
+on those routes. Retain the navigation change for its demonstrated instruction
+and consumer fixes, withhold a broad token-saving claim, and address repeated
+source delivery and mechanical verification before spending on a larger model
+study. No production source, runtime behavior, model tier or standing workflow
+was changed by this measurement work unit.
