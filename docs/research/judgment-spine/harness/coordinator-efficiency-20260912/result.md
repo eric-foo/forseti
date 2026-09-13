@@ -1109,3 +1109,100 @@ launched. The existing three-pair minimum remains necessary for a repeatability
 claim, once a candidate merits that expense. Run-local frozen evidence and
 collection scripts remain under
 `C:/tmp/forseti-coordinator-views-pair-20260913`.
+
+## Entry, setup and collection completion: success contract (2026-09-13)
+
+The owner authorized implementation of the three-boundary correction after the
+overhead diagnosis. Work continues in the existing isolated PR #1601 checkout
+from `200b49e27ff7875595898c82d8c0fe92386741d2`.
+
+`SUCCESS_CONTRACT`: generate the repair coordinator's commission from explicit
+bindings with one byte-stable writer; make its starting operation prepare and
+deliver the actual intake without the old source-discovery tour; and complete
+the existing accounting/checking route so a selected task includes its workers
+and presents verified saved results for source judgment together. Normal
+coordination, worker judgment, evidence bytes, unrelated content and honest
+unknown/failure states remain invariant. There is no model-tier change or new
+general workflow framework.
+
+Signals: path separators, apostrophes, Unicode and existing newline styles must
+not leave stale destinations or change captured inputs; the generated entry
+itself must execute the supported first operation with complete delivery;
+automatic collection of the frozen jobs must reproduce 1,102,020 and 1,040,770
+tokens including their workers. Missing, conflicting or ambiguous child bindings
+must not become complete coverage. The consolidated result must preserve the
+original source prompt and actual saved component, all 89 unrelated decisions
+and 39 unrelated nodes, and explicitly leave semantic judgment to the model.
+An isolated helper passing while the real caller retains the manual route is
+the bound near-miss. Tests/replay establish mechanics; a later matched sample
+must establish fewer model rounds and the proposed 25% token saving.
+
+Execution decisions are agent-owned and locked: reuse the existing native
+repair and efficiency interfaces; replace the faulty caller rather than add a
+second maintained instruction copy; accept child ownership only from observed
+launch/ancestry and turn boundaries; preserve all prior unfavorable evidence.
+The carried operator-couriered different-vendor review of implementation and
+measurement design, followed by home adjudication, remains required before a
+new model pair or merge. Deterministic validation is authorized now. Source
+invariants or attribution ambiguity stop the affected path rather than invent
+a success or silently broaden the sample.
+
+### Implementation and saved-run replay outcome (2026-09-13)
+
+The three corrections are implemented in the isolated PR #1601 worktree.
+`prepare-reconciliation-repair-coordinator` now writes the actual launch
+commission from explicit input, model and destination fields. Its starting
+operation prepares the native job and delivers the remaining coordinator intake
+in one invocation, after the commission supplies the pinned project entry.
+The owning local-repair procedure points to this route. The already-prepared
+job entry remains available without adding a second intake to the cold route.
+
+`review-reconciliation-repair` can combine the actual saved result, complete
+source prompt, unchanged-scope checks and selected completed-task accounting.
+The caller can use the exact launched agent path instead of hand-discovering
+session UUIDs. Native collection now follows verified fresh child launches
+when a nested task shares its ancestor's billing turn. Ambiguous/reused children,
+missing launches, conflicting attribution and incomplete turns remain unknown;
+unknown coverage supplies no complete total. This extends the shared Desktop
+collector, while the new starting operation is bounded to general local repair.
+
+[Deterministic replay evidence](entry_completion_evidence.json) records execution
+of both generated starting commands and combined checking commands through
+Node and Windows PowerShell against the actual native CLI. No model was called.
+The replay's code is identified by file hashes on the working delta from
+`200b49e27ff7875595898c82d8c0fe92386741d2`; it is not a new measured model sample.
+
+| Original completed sample | Native total recovered automatically | Model responses in original sample | Unrelated decisions/nodes preserved |
+| --- | ---: | ---: | ---: |
+| Manual entry | 1,102,020 | 20 | 89 / 39 |
+| Previous generated entry | 1,040,770 | 18 | 89 / 39 |
+
+Each new starting command performed one native operation. Each combined view
+performed one native operation and delivered every content section completely.
+Replaying each original raw patch into a freshly prepared job produced a
+byte-identical successor; all 26 protected input, saved-result and native-log
+files stayed unchanged. The worker prompt and delivery functions are unchanged
+from `42570334ffc963df7b6418753c88b1b67c7d2598`. These are preservation and
+accounting observations, not a new semantic-quality award or measured reduction
+in model turns.
+
+Validation: 598 tests passed across the semantic integration, Desktop accounting,
+efficiency runner and batch-report unit files. New negative cases cover all
+twelve entry pins, changed destinations, conflicting/missing child evidence,
+reused sessions and active tasks. The actual generated-entry test initially
+failed because Windows PowerShell removed JSON quotes in native argument
+passing; encoding that structured argument fixed the observed failure. The
+passing route includes apostrophes, Unicode paths and mixed input newline styles
+without rewriting captured bytes. Earlier failures and the unfavorable 5.558%
+result remain retained.
+
+The carried different-vendor courier review and home adjudication remain due
+before a live pair or merge. Then use the actual generated commission for one
+matched pair under the frozen source-quality rubric and model/high settings,
+retaining every first attempt, failure and additional read. Count the full
+coordinator plus worker from start through completed native accounting; keep
+study preparation/evaluation overhead separate and report it alongside the
+pair. Success still requires preserved source quality, fewer preparation and
+checking model rounds, and at least 25% lower total tokens. A small pair is a
+directional test; it cannot establish subscription quota drain or a general
+cycle-wide saving. No new model experiment or merge occurred in this work unit.

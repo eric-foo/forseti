@@ -4138,6 +4138,181 @@ def _prepared_coordinator_repair(tmp_path):
     return prepared, {"job_path": job_path, "expected_sha256": prepared["job_sha256"]}, raw
 
 
+def _execute_repair_delivery(script, tmp_path):
+    """Run the generated JS, actual native CLI and notification reconstruction.
+
+    Windows uses PowerShell itself. Other test hosts decode only the renderer's
+    single-quoted literal argv grammar before executing the same native CLI.
+    """
+    import subprocess
+    harness = r'''
+const {spawnSync}=require('node:child_process');
+const notifications=[]; let view; let executions=0;
+const notify=x=>notifications.push(x); const store=(_key,value)=>{view=value};
+const text=x=>{throw Error(JSON.stringify(x))}; const exit=()=>{throw Error('EXIT')};
+const tools={exec_command:async execution=>{
+  executions++;
+  let executable, args;
+  if(process.platform==='win32') {
+    executable='powershell'; args=['-NoProfile','-NonInteractive','-Command',execution.cmd];
+  } else {
+    const body=execution.cmd.replace(/^&\s+/, '');
+    if(body.replace(/'(?:[^']|'')*'/g,'').trim()) throw Error('nonliteral command');
+    const argv=[...body.matchAll(/'((?:[^']|'')*)'/g)].map(m=>m[1].replace(/''/g,"'"));
+    [executable,...args]=argv;
+  }
+  const result=spawnSync(executable,args,{cwd:execution.workdir,encoding:'utf8',maxBuffer:4*1024*1024});
+  if(result.error) throw result.error;
+  return {exit_code:result.status,output:result.stdout || result.stderr};
+}};
+(async()=>{
+''' + script + r'''
+const rebuilt={}; const offsets={};
+for(const block of notifications.filter(x=>typeof x==='string')) {
+  const newline=block.indexOf('\n'), meta=JSON.parse(block.slice(0,newline));
+  if((offsets[meta.section]||0)!==meta.from_character) throw Error('gap');
+  const body=block.slice(newline+1,block.lastIndexOf('\nEND_SECTION_BLOCK '));
+  rebuilt[meta.section]=(rebuilt[meta.section]||'')+body; offsets[meta.section]=meta.to_character;
+}
+if(JSON.stringify(rebuilt)!==JSON.stringify(view.content)) throw Error('content loss');
+if(notifications.at(-1).intake_end!==view.intake_end) throw Error('missing end');
+process.stdout.write(JSON.stringify({view,executions}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    path = tmp_path / "actual-delivery.cjs"
+    path.write_bytes(harness.encode("utf-8"))
+    result = subprocess.run(["node", str(path)], capture_output=True, encoding="utf-8")
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
+def _cold_repair_commission(tmp_path, capsys):
+    from runners.run_semantic_evidence_integration import main
+    bundle, stage, response, request, patch = _local_repair_fixture()
+    target = tmp_path / "O'Brien Ω"
+    target.mkdir()
+    paths = [target / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for i, (path, value) in enumerate(zip(paths, (bundle, stage, response, request["nomination"]), strict=True)):
+        data = json.dumps(value, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        path.write_bytes(data.replace(b"\n", b"\r\n") if i % 2 else data)
+    commission = target / "commission.md"
+    cli = ["prepare-reconciliation-repair-coordinator", "--bundle", str(paths[0]),
+        "--stage", str(paths[1]), "--failed-response", str(paths[2]), "--nomination", str(paths[3]),
+        "--output-dir", str(target / "request"), "--worker-model", "gpt-5.6-sol",
+        "--answer-out", str(target / "answer.json"), "--commission-out", str(commission)]
+    assert main(cli) == 0
+    rendered = json.loads(capsys.readouterr().out)
+    assert rendered["job_prepared"] is False and not (target / "request").exists()
+    return target, paths, commission, cli, patch
+
+
+def test_cold_coordinator_executes_generated_first_operation_and_keeps_original_worker(tmp_path, capsys):
+    import hashlib
+    from runners.run_semantic_evidence_integration import (
+        main, judgment_worker_prompt, submit_judgment_job, review_reconciliation_repair, _write_json)
+    target, paths, commission, cli, patch = _cold_repair_commission(tmp_path, capsys)
+    before = {p: p.read_bytes() for p in paths}
+    raw_commission = commission.read_bytes()
+    assert b"\r\r\n" not in raw_commission
+    assert "Output mode: file-write" in raw_commission.decode("utf-8")
+    assert f"Run-authoritative input: {commission.resolve()}" in raw_commission.decode("utf-8")
+    assert main(cli) == 0
+    assert json.loads(capsys.readouterr().out)["commission_sha256"] == hashlib.sha256(raw_commission).hexdigest()
+    assert commission.read_bytes() == raw_commission
+    script = raw_commission.decode("utf-8").split("\nENTRY_COMMAND\n", 1)[1].split("END_ENTRY_COMMAND\n", 1)[0]
+    executed = _execute_repair_delivery(script, target)
+    view = executed["view"]
+    assert executed["executions"] == 1 and view["status"] == "REPAIR_COORDINATOR_START_COMPLETE"
+    assert "agents" not in view["content"] and "overlay" not in view["content"]
+    assigned = json.loads(view["content"]["assigned_job"])
+    job_path = Path(assigned["job_path"])
+    assert job_path == (target / "request/job.json").resolve()
+    assert assigned["worker_prompt"] == judgment_worker_prompt(job_path, assigned["job_sha256"])
+    assert "intake-reconciliation-repair-coordinator" not in view["content"]["coordinator_continuation"]
+    assert "review-reconciliation-repair" in view["content"]["coordinator_continuation"]
+    job = json.loads(job_path.read_bytes())
+    for name, marker in (("agents", "PROJECT_AGENTS"), ("overlay", "PROJECT_OVERLAY")):
+        expected = Path(job["inputs"][name]["path"]).read_bytes().decode("utf-8-sig")
+        assert f"BEGIN_{marker}\n{expected}\nEND_{marker}" in raw_commission.decode("utf-8")
+    raw = job_path.with_suffix(".raw.json")
+    _write_json(raw, patch)
+    args = {"job_path": job_path, "expected_sha256": assigned["job_sha256"], "response_path": raw}
+    submit_judgment_job(**args)
+    checks = json.loads(review_reconciliation_repair(**args)["content"]["persistence_and_scope"])
+    assert checks["unchanged_node_count"] == checks["unchanged_decision_count"] == 1
+    assert checks["semantic_truth_proven"] is False
+    assert before == {p: p.read_bytes() for p in paths}
+    # A changed destination cannot silently reuse a previous commission.
+    cli[cli.index("--answer-out") + 1] = str(target / "different-answer.json")
+    assert main(cli) == 2
+    assert "differs from current inputs" in json.loads(capsys.readouterr().out)["error"]
+    assert commission.read_bytes() == raw_commission
+
+
+@pytest.mark.parametrize("target_name", ["bundle", "binding", "failed_response", "nomination", "agents",
+    "overlay", "preflight_defaults", "claim_support", "model_tiering", "runtime_payload_safety", "runner", "semantic_method"])
+def test_cold_entry_changed_binding_fails_before_preparation(tmp_path, capsys, target_name):
+    import base64
+    from runners.run_semantic_evidence_integration import main
+    target, _, commission, _, _ = _cold_repair_commission(tmp_path, capsys)
+    # Decode only the renderer's literal argument to perturb a pin; execute the public CLI.
+    import re
+    script = commission.read_bytes().decode("utf-8").split("\nENTRY_COMMAND\n", 1)[1]
+    execution = json.loads(re.search(r"tools.exec_command\((\{[^\n]+\})\)", script)[1])
+    argv = [m.replace("''", "'") for m in re.findall(r"'((?:[^']|'')*)'", execution["cmd"])]
+    entry = json.loads(base64.b64decode(argv[-1]))
+    entry["inputs"][target_name]["sha256"] = "0" * 64
+    encoded = base64.b64encode(json.dumps(entry).encode("utf-8")).decode("ascii")
+    assert main(["start-reconciliation-repair-coordinator", "--entry-base64", encoded]) == 2
+    failure = json.loads(capsys.readouterr().out)
+    assert failure["error"] == "coordinator entry input hash mismatch: " + target_name
+    assert "content" not in failure and not (target / "request").exists()
+
+
+@pytest.mark.parametrize("completed", [True, False])
+def test_combined_saved_review_executes_native_accounting_and_keeps_unknown(tmp_path, capsys, completed):
+    import hashlib
+    from runners.run_semantic_evidence_integration import main, submit_judgment_job
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    submit_judgment_job(**args, response_path=raw)
+    # Original general jobs predate coordinator-only pins; review never dispatches.
+    job = json.loads(args["job_path"].read_bytes())
+    del job["coordinator_inputs"]
+    args["job_path"].write_bytes(json.dumps(job).encode("utf-8"))
+    args["expected_sha256"] = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    usage = {"input_tokens": 10, "cached_input_tokens": 4, "cache_write_input_tokens": 0,
+             "output_tokens": 3, "reasoning_output_tokens": 1, "total_tokens": 13}
+    rows = [
+        {"type": "session_meta", "payload": {"id": "coordinator", "parent_thread_id": "study",
+            "agent_path": "/study/coordinator", "timestamp": "2026-09-05T00:00:00Z"}},
+        {"type": "event_msg", "timestamp": "2026-09-05T00:00:00Z",
+            "payload": {"type": "task_started", "turn_id": "turn"}},
+        {"type": "turn_context", "payload": {"turn_id": "turn", "model": "test-model"}},
+        {"type": "token_usage_record", "payload": {"thread_id": "coordinator", "turn_id": "turn",
+            "root_turn_id": "study-turn", "response_id": "r1", "usage": usage, "turn_token_usage": usage}}]
+    if completed:
+        rows.append({"type": "event_msg", "timestamp": "2026-09-05T00:00:02Z",
+                     "payload": {"type": "task_complete", "turn_id": "turn"}})
+    (tmp_path / "coordinator.jsonl").write_bytes("\n".join(json.dumps(r) for r in rows).encode("utf-8"))
+    cli = ["review-reconciliation-repair", "--job", str(args["job_path"]),
+        "--job-sha256", args["expected_sha256"], "--response", str(raw),
+        "--sessions-dir", str(tmp_path), "--agent-path", "/study/coordinator", "--delivery-script"]
+    assert main(cli) == 0
+    script = json.loads(capsys.readouterr().out)["delivery_script"]
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    executed = _execute_repair_delivery(script, tmp_path)
+    assert executed["executions"] == 1
+    content = executed["view"]["content"]
+    accounting = json.loads(content["selected_task_usage"])
+    assert accounting["coverage"] == ("complete" if completed else "unknown"), accounting["issues"]
+    assert accounting["observed_total_tokens"] == 13
+    assert accounting["total_tokens"] == (13 if completed else None)
+    assert content["claim_support"] == Path(job["inputs"]["claim_support"]["path"]).read_bytes().decode("utf-8-sig")
+    assert content["original_source_prompt"] == Path(job["inputs"]["prompt"]["path"]).read_bytes().decode("utf-8-sig")
+    assert json.loads(content["persistence_and_scope"])["semantic_truth_proven"] is False
+    assert before == {p: p.read_bytes() for p in before}
+
+
 def test_repair_coordinator_cli_intake_and_saved_view_are_complete_read_only(tmp_path, capsys):
     from runners.run_semantic_evidence_integration import main, submit_judgment_job, _load_object
     prepared, args, raw = _prepared_coordinator_repair(tmp_path)

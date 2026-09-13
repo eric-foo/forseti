@@ -574,16 +574,29 @@ or submission. `submit-judgment-job` routes this repair to the existing repair
 consumer, writing `successor/response.json` and its receipt within the request
 directory. Do not handwrite a separate delivery wrapper. This changes transport
 only, not repair scope, semantic instructions or the one-attempt rule.
-For a fresh coordinator of a general local repair, preparation also returns
-`coordinator_prompt`. Forward it unchanged; the launching commission names the
-worker model and reasoning effort. The worker prompt retains its existing
-`high` effort; conflicting commissioned effort stops dispatch. If no worker
-model is named, the coordinator selects and reports it under the model-tiering
-doctrine. Its first operation, `intake-reconciliation-repair-coordinator --job
-... --job-sha256 ...`, delivers the pinned coordinator authorities, nomination,
-input identities and ready worker prompt together. Use the complete delivery
-supplied in the prompt; do not reconstruct a source-discovery or preflight tour.
-The worker still receives its original full judgment prompt and schema.
+For a fresh coordinator starting from the four input files, use
+`prepare-reconciliation-repair-coordinator --bundle ... --stage ...
+--failed-response ... --nomination ... --output-dir <fresh-request-directory>
+--worker-model <commissioned-model> --answer-out <answer.json>
+--commission-out <commission.md>`. This renders the actual launch commission
+from explicit fields; it does not prepare a job or call a model. Forward the
+saved commission unchanged instead of copying and editing an earlier run's
+instructions. It supplies the pinned AGENTS and overlay upfront. Its executable
+first operation, `start-reconciliation-repair-coordinator`, verifies the entry,
+prepares the native job and delivers the remaining authority, assigned job and
+continuation together. Those operations belong to this coordinator's measured
+work. It does not perform manual discovery before a second generated intake.
+Changed source/input bytes fail; a failed attempt is preserved. Generated
+transport uses byte writes and encoded structured arguments across PowerShell;
+captured source files are never normalized or rewritten.
+
+For a job that was already prepared, its returned `coordinator_prompt` remains
+the entry and starts with `intake-reconciliation-repair-coordinator --job ...
+--job-sha256 ...`. Use this entry only for an already-prepared job, not after
+the new starting operation has delivered the same intake. The worker retains
+its original full judgment prompt, schema and `high` effort. The fresh-input
+commission binds its worker model explicitly; the older prepared-job entry
+uses the launching commission's model or the loaded model-tiering authority.
 Coordinator-only authority pins live in `coordinator_inputs`: the tiering
 doctrine and routing document's exact `Subagent Runtime Payload Safety` section
 arrive in the same intake. Changes to those documents block coordinator reads
@@ -599,11 +612,26 @@ unchanged-content counts. Missing files, changed inputs, out-of-scope changes
 and mismatched saved bytes fail; the view never creates or recovers an output.
 The coordinator still judges the repair against the exact evidence, contexts
 and claim-support authority. A verified view does not prove semantic truth.
-These generated views replace recurring assembly and bookkeeping for this
-route; no extra receipt, maintained instruction copy or normal-cycle stage is
-required. Existing jobs lacking coordinator authority pins must be prepared
-anew to use the coordinator entry. Compact duplicate-leaf jobs retain only
-their existing worker entry because their projection omits raw source context.
+After the coordinator finishes, the caller can add `--sessions-dir <folder>`
+and either `--agent-path <exact-launched-task-name>` or both `--thread-id ...
+--turn-id ...` to the same result view. It returns completed native usage,
+saved-scope checks, the full source prompt, affected result and claim-support
+authority together. `--delivery-script` renders the existing complete-view
+transport for that exact selection; execute it unchanged. An agent path must
+identify one session with one turn. Nested fresh workers require matching
+launch receipts, ancestry, turn boundaries and billing attribution; ambiguous
+or reused children remain unknown. Only `coverage=complete` supplies a total
+usable for comparison. Selecting a task does not prove it performed this job
+or that its answer is semantically sound; the caller still binds the task to
+the commission and adjudicates the sources. Native logs contain request
+tokens, not subscription quota percentages.
+
+These entries and views replace recurring assembly and bookkeeping for this
+route; no additional receipt or normal-cycle stage is required. Existing jobs
+lacking coordinator-only authority pins still require preparation for dispatch,
+but their saved results can be reviewed with all original pins verified.
+Compact duplicate-leaf jobs retain only their existing worker entry because
+their projection omits raw source context.
 The three-case test of the existing worker launcher, including each exact executed
 wrapper, is recorded at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
 The earlier hand-prescribed delivery test it supersedes is at

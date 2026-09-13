@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -1252,7 +1253,137 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
     )
 
 
-def _load_repair_coordinator_job(job_path: Path, expected_sha256: str):
+def _repair_authority_paths() -> dict[str, Path]:
+    repo = Path(__file__).resolve().parents[2]
+    return {
+        "agents": repo / "AGENTS.md", "overlay": repo / ".agents/workflow-overlay/README.md",
+        "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+        "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+        "model_tiering": repo / "docs/decisions/subagent_model_tiering_doctrine_v0.md",
+        "runtime_payload_safety": repo / ".agents/workflow-overlay/decision-routing.md",
+    }
+
+
+def prepare_repair_coordinator_commission(*, bundle_path: Path, stage_path: Path,
+        failed_response_path: Path, nomination_path: Path, output_dir: Path,
+        worker_model: str, answer_path: Path, commission_path: Path) -> dict[str, Any]:
+    """Render the real cold entry from explicit fields; do no judgment/job preparation."""
+    if not worker_model.strip():
+        raise ValueError("a worker model must be commissioned explicitly")
+    runner = Path(__file__).resolve()
+    paths = {"bundle": bundle_path, "binding": stage_path, "failed_response": failed_response_path,
+        "nomination": nomination_path, **_repair_authority_paths(), "runner": runner,
+        "semantic_method": runner.parents[1] / "judgment/semantic_evidence_integration.py"}
+    captured = {name: path.read_bytes() for name, path in paths.items()}
+    entry = {"schema_version": "repair_coordinator_entry_v1",
+        "inputs": {name: {"path": str(path.resolve()), "sha256": hashlib.sha256(captured[name]).hexdigest()}
+                   for name, path in paths.items()},
+        "output_dir": str(output_dir.resolve()), "answer_path": str(answer_path.resolve()),
+        "worker_model": worker_model, "worker_effort": "high"}
+    command = "& " + " ".join("'" + value.replace("'", "''") + "'" for value in
+        ["python", str(runner), "start-reconciliation-repair-coordinator", "--entry-base64",
+         # Windows PowerShell's native argv conversion strips JSON double quotes.
+         # Encode structured transport instead of maintaining shell-specific escaping.
+         base64.b64encode(json.dumps(entry, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")])
+    delivery = _judgment_delivery_script(
+        {"cmd": command, "workdir": str(runner.parents[2]), "max_output_tokens": 60000},
+        "repair_coordinator_start")
+    commission = (
+        "Complete one bounded Forseti consolidation repair as this fresh coordinator. "
+        f"Run-authoritative input: {commission_path.resolve()}. "
+        f"Output mode: file-write to {entry['answer_path']}. Edit permission: "
+        "implementation-authorized for the bounded runtime operation; repository and supplied inputs are read-only. "
+        f"Source checkout: {runner.parents[2]}. Runtime execution and writes are authorized "
+        f"only for preparation/worker submission under {entry['output_dir']} and the final "
+        f"answer {entry['answer_path']}. No publication or repository edits.\n"
+        "Shared constants: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md, "
+        "delivered in the starting intake. Method: docs/workflows/phase_a_customer_evidence_completion_path_v0.md "
+        "under Active commercial point-entry boundary, general local repair. The generated "
+        "entry below supplies that supported starting operation and its bound inputs.\n"
+        "Read the following exact project entry before execution. These are pinned source "
+        "contents, not separately maintained instructions. The starting operation verifies "
+        "their bytes before preparing the job and delivers the remaining authority once.\n\n"
+        "BEGIN_PROJECT_AGENTS\n" + captured["agents"].decode("utf-8-sig") +
+        "\nEND_PROJECT_AGENTS\nBEGIN_PROJECT_OVERLAY\n" + captured["overlay"].decode("utf-8-sig") +
+        "\nEND_PROJECT_OVERLAY\n\n"
+        "Your first runtime operation is the following functions.exec invocation. It prepares "
+        "the native job and delivers its complete coordinator intake together; no job has "
+        "been prepared for you. Execute it yourself, then follow coordinator_continuation. "
+        "Do not inspect previous answers, other experiments or evaluator/session records. "
+        "Do not create another coordinator or reconstruct a preparation script.\n"
+        "ENTRY_COMMAND\n" + delivery + "END_ENTRY_COMMAND\n"
+        "Check the exit status, truncation metadata, contiguous section offsets and exact "
+        "byte counts through intake_end. A surviving end marker alone is insufficient. "
+        "Resolve incomplete delivery before acting; reuse already complete input. "
+        "A failed start is a blocker, not permission to change the bindings or retry judgment.\n"
+    ).encode("utf-8")
+    _retain_advance_artifact(commission_path, commission, raw=True)
+    if commission_path.read_bytes() != commission:
+        raise ValueError("coordinator commission durable readback mismatch")
+    return {"status": "REPAIR_COORDINATOR_COMMISSION_WRITTEN", "model_api_calls": 0,
+        "commission_path": str(commission_path.resolve()), "commission_sha256": hash_file(commission_path),
+        "commission_utf8_bytes": len(commission), "job_prepared": False}
+
+
+def start_repair_coordinator(entry: dict[str, Any]) -> dict[str, Any]:
+    """The coordinator pays one operation for bound preparation plus its complete intake."""
+    runner = Path(__file__).resolve()
+    authorities = _repair_authority_paths()
+    source_paths = {**authorities, "runner": runner,
+                    "semantic_method": runner.parents[1] / "judgment/semantic_evidence_integration.py"}
+    required = {"bundle", "binding", "failed_response", "nomination", *source_paths}
+    if (not isinstance(entry, dict)
+            or set(entry) != {"schema_version", "inputs", "output_dir", "answer_path", "worker_model", "worker_effort"}
+            or entry["schema_version"] != "repair_coordinator_entry_v1"
+            or not isinstance(entry["inputs"], dict) or set(entry["inputs"]) != required
+            or entry["worker_effort"] != "high" or not isinstance(entry["worker_model"], str)
+            or not entry["worker_model"].strip()
+            or any(not isinstance(entry[name], str) or not Path(entry[name]).is_absolute()
+                   for name in ("output_dir", "answer_path"))):
+        raise ValueError("invalid repair coordinator entry or worker binding")
+    for name, binding in entry["inputs"].items():
+        if (not isinstance(binding, dict) or set(binding) != {"path", "sha256"}
+                or not isinstance(binding["path"], str) or not isinstance(binding["sha256"], str)):
+            raise ValueError(f"invalid coordinator entry input: {name}")
+        path = Path(binding["path"])
+        if name in source_paths and path.resolve() != source_paths[name].resolve():
+            raise ValueError(f"coordinator entry belongs to a different source checkout: {name}")
+        if hash_file(path) != binding["sha256"]:
+            raise ValueError(f"coordinator entry input hash mismatch: {name}")
+    output_dir, answer_path = Path(entry["output_dir"]), Path(entry["answer_path"])
+    if answer_path.exists():
+        raise ValueError("coordinator answer already exists; preserve the prior attempt")
+    paths = {name: Path(binding["path"]) for name, binding in entry["inputs"].items()}
+    prepared = prepare_reconciliation_local_repair(bundle_path=paths["bundle"], stage_path=paths["binding"],
+        failed_response_path=paths["failed_response"], nomination_path=paths["nomination"], output_dir=output_dir)
+    job_path, job_sha = Path(prepared["job_path"]), prepared["job_sha256"]
+    intake = intake_reconciliation_repair_coordinator(job_path=job_path, expected_sha256=job_sha)
+    # Revalidate after preparation as well: an intervening edit must never be
+    # advertised as the commissioned job. Preserve the failed partial directory.
+    job = _load_object(job_path)
+    job_inputs = {**job["inputs"], **job.get("coordinator_inputs", {})}
+    for name, binding in entry["inputs"].items():
+        if hash_file(Path(binding["path"])) != binding["sha256"] or (
+                name in job_inputs and job_inputs[name] != binding):
+            raise ValueError(f"coordinator entry input changed during preparation: {name}")
+    content = {name: value for name, value in intake["content"].items() if name not in {"agents", "overlay"}}
+    content["coordinator_continuation"] = (
+        f"Worker launch: collaboration.spawn_agent, agent_type default, model {entry['worker_model']}, "
+        "reasoning_effort high, fork_turns none, task_name repair_worker. This is authorized "
+        "intelligence execution, not delegated code review. Use assigned_job.worker_prompt "
+        "unchanged as its complete message.\n" + _repair_coordinator_continuation(job_path, job_sha) +
+        f"\nWrite the final answer to {answer_path} with status (completed or blocked), worker_id, "
+        "successor_path, receipt_path, summary of what the sources establish, scope_check and "
+        "limitations. This destination overrides chat-only defaults. Distinguish completion of "
+        "this local repair from completion of the intelligence run. Return a concise final chat. "
+        "Do not collect your own usage; completed-task accounting belongs to the caller afterward.")
+    return _repair_coordinator_view("REPAIR_COORDINATOR_START_COMPLETE", job_sha,
+        "The commissioned project entry was verified and is not repeated. Read all remaining "
+        "sections once, then execute coordinator_continuation. Preparation and intake are complete; "
+        "do not run a second intake or preparation command.", content)
+
+
+def _load_repair_coordinator_job(job_path: Path, expected_sha256: str, *, dispatch: bool = True):
     job, inputs = _load_judgment_job(job_path, expected_sha256)
     if job["phase"] != "reconciliation_repair":
         raise ValueError("coordinator views require a general reconciliation repair job")
@@ -1272,7 +1403,7 @@ def _load_repair_coordinator_job(job_path: Path, expected_sha256: str):
         if hashlib.sha256(data).hexdigest() != binding["sha256"]:
             raise ValueError(f"judgment job input hash mismatch: {name}")
         inputs[name] = data
-    if {"model_tiering", "runtime_payload_safety"} - inputs.keys():
+    if dispatch and {"model_tiering", "runtime_payload_safety"} - inputs.keys():
         raise ValueError("repair job lacks coordinator authority; prepare a new job")
     return job, inputs, record
 
@@ -1317,15 +1448,18 @@ def intake_reconciliation_repair_coordinator(*, job_path: Path, expected_sha256:
         "inspection remains required if a material question is unanswered.", content)
 
 
+def _repair_job_delivery(job_path: Path, job_sha256: str, operation: str, *extra: str) -> str:
+    runner = Path(__file__).resolve()
+    command = "& " + " ".join("'" + part.replace("'", "''") + "'" for part in
+        ["python", str(runner), operation, "--job", str(job_path),
+         "--job-sha256", job_sha256, *extra])
+    return _judgment_delivery_script(
+        {"cmd": command, "workdir": str(runner.parents[2]), "max_output_tokens": 60000},
+        "repair_coordinator_" + operation)
+
+
 def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) -> str:
     runner = Path(__file__).resolve()
-    def delivery(operation: str, *extra: str) -> str:
-        command = "& " + " ".join("'" + part.replace("'", "''") + "'" for part in
-            ["python", str(runner), operation, "--job", str(job_path),
-             "--job-sha256", job_sha256, *extra])
-        return _judgment_delivery_script(
-            {"cmd": command, "workdir": str(runner.parents[2]), "max_output_tokens": 60000},
-            "repair_coordinator_" + operation)
     return (
         "Coordinate this one already-nominated general reconciliation repair in a fresh context. "
         "Output mode chat-only; edit permission read-only. This dispatch is run-authoritative. "
@@ -1334,10 +1468,16 @@ def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) ->
         "- constants bound; deltas stated inline.\n"
         "First execute this complete intake in functions.exec, keeping both output allowances "
         "and separate notifications. Do not combine it with other source reads:\n"
-        + delivery("intake-reconciliation-repair-coordinator") +
+        + _repair_job_delivery(job_path, job_sha256, "intake-reconciliation-repair-coordinator") +
         "Check exit status, truncation warnings, exact content byte counts, contiguous section "
         "offsets and intake_end matching the commissioned job hash. A surviving end marker "
         "alone is insufficient. Resolve incomplete delivery before acting; reuse complete reads.\n"
+        + _repair_coordinator_continuation(job_path, job_sha256)
+    )
+
+
+def _repair_coordinator_continuation(job_path: Path, job_sha256: str) -> str:
+    return (
         "Dispatch exactly one fresh worker with the returned worker_prompt unchanged. Use the "
         "worker model and reasoning effort named by the launching commission, not this "
         "coordinator's own. This worker prompt fixes effort at high; stop on a conflicting "
@@ -1348,7 +1488,8 @@ def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) ->
         "this commission does not authorize a retry.\n"
         "After completion execute this read-only saved-result view in functions.exec with the "
         "same delivery checks. It revalidates the actual saved files, not the worker's report:\n"
-        + delivery("review-reconciliation-repair", "--response", str(job_path.with_suffix(".raw.json"))) +
+        + _repair_job_delivery(job_path, job_sha256, "review-reconciliation-repair",
+                              "--response", str(job_path.with_suffix(".raw.json"))) +
         "Only after reading the full original_source_prompt and saved_component judge the repair "
         "against the loaded claim-support authority and nomination. Code's scope and persistence "
         "checks are not proof of semantic truth. Preserve uncertainty and source conditions; "
@@ -1360,9 +1501,13 @@ def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) ->
 
 
 def review_reconciliation_repair(*, job_path: Path, expected_sha256: str,
-                                 response_path: Path) -> dict[str, Any]:
+                                 response_path: Path, sessions_dir: Path | None = None,
+                                 thread_id: str | None = None, turn_id: str | None = None,
+                                 agent_path: str | None = None) -> dict[str, Any]:
     """Read back a saved repair; never publish, recover missing files or award semantic truth."""
-    job, inputs, record = _load_repair_coordinator_job(job_path, expected_sha256)
+    # Historical general jobs can be checked without dispatch-only authority.
+    # Every pin they actually contain is still verified, including coordinator pins.
+    job, inputs, record = _load_repair_coordinator_job(job_path, expected_sha256, dispatch=False)
     objects = {name: json.loads(inputs[name], object_pairs_hook=unique_json_object)
                for name in ["bundle", "binding", "failed_response"]}
     raw = response_path.read_bytes()
@@ -1401,15 +1546,33 @@ def review_reconciliation_repair(*, job_path: Path, expected_sha256: str,
         "unchanged_scope_verified": True, "unchanged_node_count": len(preserved_keys),
         "unchanged_decision_count": len(before["decisions_by_candidate_ref"]) - len(request["candidate_refs"]),
         "semantic_truth_proven": False}
+    content = {"persistence_and_scope": json.dumps(checks, ensure_ascii=False, indent=2),
+        "original_source_prompt": inputs["prompt"].decode("utf-8-sig"),
+        "saved_component": json.dumps(component, ensure_ascii=False, indent=2)}
+    if sessions_dir is not None:
+        from reports.efficiency_codex import collect_desktop_task
+        usage = collect_desktop_task(sessions_dir, thread_id, turn_id, agent_path=agent_path)
+        # Keep the proof boundaries and unknown states; request-by-request records
+        # remain available through the existing efficiency collector.
+        summary = {key: value for key, value in usage.items() if key != "attempts"}
+        summary["observed_total_tokens"] = sum(a["usage"].get("total_tokens") or 0 for a in usage["attempts"])
+        summary["total_tokens"] = summary["observed_total_tokens"] if usage["coverage"] == "complete" else None
+        summary["model_response_count"] = len(usage["attempts"])
+        summary["selection"] = {"sessions_dir": str(sessions_dir.resolve()),
+            "thread_id": thread_id, "turn_id": turn_id, "agent_path": agent_path}
+        summary["job_execution_binding"] = "caller_selected_task; usage does not prove job execution or semantic quality"
+        content["selected_task_usage"] = json.dumps(summary, ensure_ascii=False, indent=2)
+        content["claim_support"] = inputs["claim_support"].decode("utf-8-sig")
+    elif any(value is not None for value in (thread_id, turn_id, agent_path)):
+        raise ValueError("task usage selection requires --sessions-dir")
     return _repair_coordinator_view("REPAIR_RESULT_VERIFIED_NOT_SEMANTIC_TRUTH_PROVEN", expected_sha256,
         "The whole saved successor and native receipt match the pinned inputs and raw patch. "
         "Read the complete original source prompt, including the before component, exact "
         "evidence and parent/product contexts; compare it with the actual saved component. "
         "Judge the nomination under the already-loaded claim-support authority. Source "
-        "inventory is not corroboration; code has not established semantic truth.",
-        {"persistence_and_scope": json.dumps(checks, ensure_ascii=False, indent=2),
-         "original_source_prompt": inputs["prompt"].decode("utf-8-sig"),
-         "saved_component": json.dumps(component, ensure_ascii=False, indent=2)})
+        "inventory is not corroboration; code has not established semantic truth. "
+        "When selected_task_usage is present, only coverage=complete is a completed accounting "
+        "boundary. Unknown coverage remains unusable for a savings claim.", content)
 
 
 def submit_judgment_job(*, job_path: Path, expected_sha256: str,
@@ -2176,14 +2339,12 @@ def prepare_reconciliation_local_repair(
     _write_json(output_dir / "request.json", record)
     _write_new(output_dir / "prompt.md", request["prompt"].encode("utf-8") + b"\n")
     _write_json(output_dir / "response.schema.json", request["response_schema"])
-    repo = Path(__file__).resolve().parents[2]
+    authorities = _repair_authority_paths()
     input_paths = {
         "bundle": bundle_path, "binding": stage_path, "failed_response": failed_response_path,
         "repair_request": output_dir / "request.json", "prompt": output_dir / "prompt.md",
         "response_schema": output_dir / "response.schema.json",
-        "agents": repo / "AGENTS.md", "overlay": repo / ".agents/workflow-overlay/README.md",
-        "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
-        "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"}
+        **{name: path for name, path in authorities.items() if name not in {"model_tiering", "runtime_payload_safety"}}}
     job = {"schema_version": "semantic_judgment_job_v1", "phase": "reconciliation_repair",
         "batch_id": request["batch_id"],
         "response_path": str((output_dir / "successor/response.json").resolve()),
@@ -2193,10 +2354,8 @@ def prepare_reconciliation_local_repair(
         # These reads belong only to the coordinator; worker intake/submission
         # must not acquire a failure dependency on documents it does not consume.
         job["coordinator_inputs"] = {
-            name: {"path": str(path.resolve()), "sha256": hash_file(path)} for name, path in {
-                "model_tiering": repo / "docs/decisions/subagent_model_tiering_doctrine_v0.md",
-                "runtime_payload_safety": repo / ".agents/workflow-overlay/decision-routing.md",
-            }.items()}
+            name: {"path": str(authorities[name].resolve()), "sha256": hash_file(authorities[name])}
+            for name in ("model_tiering", "runtime_payload_safety")}
     job_path = (output_dir / "job.json").resolve()
     _write_json(job_path, job)
     job_sha256 = hash_file(job_path)
@@ -3272,6 +3431,18 @@ def _parser() -> argparse.ArgumentParser:
         job.add_argument("--job-sha256", required=True)
         if command in {"submit-judgment-job", "review-reconciliation-repair"}:
             job.add_argument("--response", type=Path, required=True)
+        if command == "review-reconciliation-repair":
+            job.add_argument("--sessions-dir", type=Path)
+            job.add_argument("--thread-id")
+            job.add_argument("--turn-id")
+            job.add_argument("--agent-path")
+            job.add_argument("--delivery-script", action="store_true",
+                help="Return the generated complete-view functions.exec script instead of executing the review.")
+
+    coordinator_start = sub.add_parser("start-reconciliation-repair-coordinator",
+        help="Execute the generated cold coordinator entry; prepares and delivers intake together.")
+    coordinator_start.add_argument("--entry-base64", required=True,
+        type=lambda value: json.loads(base64.b64decode(value, validate=True), object_pairs_hook=unique_json_object))
 
     materialize = sub.add_parser("materialize-v3")
     materialize.add_argument("--source", type=Path, required=True)
@@ -3471,6 +3642,7 @@ def _parser() -> argparse.ArgumentParser:
 
     for command in ("prepare-reconciliation-definitions", "submit-reconciliation-definitions",
                     "compose-reconciliation-definitions", "prepare-reconciliation-repair",
+                    "prepare-reconciliation-repair-coordinator",
                     "submit-reconciliation-repair", "compose-reconciliation-repair",
                     "prepare-reconciliation-definitions-after-repair"):
         definitions = sub.add_parser(command)
@@ -3481,9 +3653,14 @@ def _parser() -> argparse.ArgumentParser:
         if command.startswith(("submit-", "compose-")) or command.endswith("-after-repair"):
             definitions.add_argument("--request", type=Path, required=True)
             definitions.add_argument("--patch", type=Path, required=True)
-        if command == "prepare-reconciliation-repair":
+        if command in {"prepare-reconciliation-repair", "prepare-reconciliation-repair-coordinator"}:
             definitions.add_argument("--nomination", type=Path, required=True)
+        if command == "prepare-reconciliation-repair":
             definitions.add_argument("--diagnostic", type=Path)
+        if command == "prepare-reconciliation-repair-coordinator":
+            definitions.add_argument("--worker-model", required=True)
+            definitions.add_argument("--answer-out", type=Path, required=True)
+            definitions.add_argument("--commission-out", type=Path, required=True)
 
     validate_reconciliation = sub.add_parser("validate-reconciliation-response")
     validate_reconciliation.add_argument("--bundle", type=Path, required=True)
@@ -3853,9 +4030,21 @@ def main(argv: list[str] | None = None) -> int:
                 response_path=args.response)
         elif args.command == "intake-reconciliation-repair-coordinator":
             result = intake_reconciliation_repair_coordinator(job_path=args.job, expected_sha256=args.job_sha256)
+        elif args.command == "start-reconciliation-repair-coordinator":
+            result = start_repair_coordinator(args.entry_base64)
         elif args.command == "review-reconciliation-repair":
-            result = review_reconciliation_repair(job_path=args.job, expected_sha256=args.job_sha256,
-                response_path=args.response)
+            if args.delivery_script:
+                extra = ["--response", str(args.response)]
+                for option in ("sessions_dir", "thread_id", "turn_id", "agent_path"):
+                    if (value := getattr(args, option)) is not None:
+                        extra.extend(["--" + option.replace("_", "-"), str(value)])
+                result = {"status": "REPAIR_REVIEW_DELIVERY_READY", "model_api_calls": 0,
+                    "delivery_script": _repair_job_delivery(args.job, args.job_sha256,
+                        "review-reconciliation-repair", *extra)}
+            else:
+                result = review_reconciliation_repair(job_path=args.job, expected_sha256=args.job_sha256,
+                    response_path=args.response, sessions_dir=args.sessions_dir,
+                    thread_id=args.thread_id, turn_id=args.turn_id, agent_path=args.agent_path)
         elif args.command == "materialize-v3":
             result = materialize_v3(
                 source_path=args.source,
@@ -4062,6 +4251,11 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare_reconciliation_local_repair(bundle_path=args.bundle, stage_path=args.stage,
                 failed_response_path=args.failed_response, nomination_path=args.nomination,
                 output_dir=args.output_dir, diagnostic_path=args.diagnostic)
+        elif args.command == "prepare-reconciliation-repair-coordinator":
+            result = prepare_repair_coordinator_commission(bundle_path=args.bundle, stage_path=args.stage,
+                failed_response_path=args.failed_response, nomination_path=args.nomination,
+                output_dir=args.output_dir, worker_model=args.worker_model,
+                answer_path=args.answer_out, commission_path=args.commission_out)
         elif args.command == "submit-reconciliation-repair":
             result = submit_reconciliation_local_repair(bundle_path=args.bundle, stage_path=args.stage,
                 failed_response_path=args.failed_response, request_path=args.request, patch_path=args.patch, output_dir=args.output_dir)
@@ -4347,7 +4541,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=args.command not in {
-        "intake-judgment-job", "intake-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
+        "intake-judgment-job", "intake-reconciliation-repair-coordinator",
+        "start-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
     if args.command == "advance" and result.get("status") == "SEMANTIC_ADVANCE_BLOCKED":
         return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":
