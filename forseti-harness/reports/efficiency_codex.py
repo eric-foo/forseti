@@ -288,6 +288,9 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
                         delegation_seen |= short_name in CHILD_TOOLS
                 elif payload.get("type") in {"function_call_output", "custom_tool_call_output"}:
                     _observe_tool_output(payload.get("output"), diagnostics)
+            elif kind == "token_usage_record" and (not isinstance(turn, str) or not turn):
+                if current is None or current in wanted:
+                    issues.append("usage_turn_missing")
             elif kind == "token_usage_record" and turn in wanted:
                 if payload.get("thread_id") != thread:
                     issues.append("usage_thread_mismatch")
@@ -475,11 +478,18 @@ def _nested_task_selection(sessions: dict, snapshots: dict, root: str, turn: str
             if not created_in(parent, owner_turn, child):
                 issues.append("nested_spawn_session_not_fresh")
                 continue
-            turns = sorted(bounds[child])
+            # Usage rows without a started turn must not vanish from the selection.
+            usage_rows = [row["payload"] for row in snapshots[sessions[child]["path"]][0]
+                          if row.get("type") == "token_usage_record" and isinstance(row.get("payload"), dict)]
+            if any(not isinstance(p.get("turn_id"), str) or not p["turn_id"] for p in usage_rows):
+                issues.append("nested_child_usage_turn_missing")
+            turns = sorted(set(bounds[child]) | {p["turn_id"] for p in usage_rows
+                                                if isinstance(p.get("turn_id"), str) and p["turn_id"]})
             if len(turns) != 1:
                 issues.append("nested_child_turn_binding_ambiguous")
             created = _stamp(sessions[child].get("timestamp"))
-            if any(bounds[child][t][0] is None or bounds[child][t][0] < created for t in turns):
+            if any(bounds[child].get(t, (None,))[0] is None or bounds[child][t][0] < created
+                   for t in turns):
                 issues.append("nested_child_start_precedes_launch")
             selected[child] = turns
             attributed = {p.get("root_turn_id") for row in snapshots[sessions[child]["path"]][0]
@@ -491,8 +501,10 @@ def _nested_task_selection(sessions: dict, snapshots: dict, root: str, turn: str
                 issues.append("nested_child_root_attribution_conflict")
     for child, meta in sessions.items():
         parent = meta.get("parent_thread_id")
-        if child not in selected and parent in selected and any(
-                created_in(parent, t, child) for t in selected[parent]):
+        # Unknown creation time cannot prove a child predates the selected turn.
+        if child not in selected and parent in selected and (
+                _stamp(meta.get("timestamp")) is None
+                or any(created_in(parent, t, child) for t in selected[parent])):
             issues.append("nested_child_launch_binding_missing")
     return selected, issues
 
@@ -523,8 +535,9 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str | None = 
                         child_thread_ids=[], child_coverage="unknown", tools={})
     root_rows = snapshots[root_meta["path"]][0]
     if agent_path is not None:
-        turns = {p.get("turn_id") for row in root_rows if row.get("type") == "event_msg"
-                 and isinstance(p := row.get("payload"), dict) and p.get("type") == "task_started"}
+        turns = {p.get("turn_id") for row in root_rows if isinstance(p := row.get("payload"), dict)
+                 and (row.get("type") == "token_usage_record" or
+                      (row.get("type") == "event_msg" and p.get("type") == "task_started"))}
         if len(turns) != 1 or not all(isinstance(t, str) and t for t in turns):
             return _summary([], issues + ["agent_turn_missing_or_ambiguous"],
                 source_kind="codex_desktop_rollout", thread_ids=[root_thread_id],

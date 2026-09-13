@@ -347,6 +347,56 @@ def test_nested_task_fresh_metadata_cannot_rebind_old_turn(tmp_path):
     assert "nested_child_start_precedes_launch" in result["issues"]
 
 
+def test_nested_task_child_of_unknown_creation_time_stays_unknown(tmp_path):
+    write(tmp_path, nested_rows())
+    child = nested_rows("child", "root", "/study/root/worker")
+    del child[0]["payload"]["timestamp"]
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_launch_binding_missing" in result["issues"]
+
+
+def test_nested_task_child_usage_without_started_turn_is_not_dropped(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    extra = json.loads(json.dumps(child[3]))
+    extra["payload"].update(turn_id="unstarted", response_id="response-x")
+    child.insert(4, extra)
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_turn_binding_ambiguous" in result["issues"]
+    assert sum(a["usage"]["total_tokens"] for a in result["attempts"]) == 39
+
+
+@pytest.mark.parametrize("actor,orphan_turn", [("root", "unstarted"), ("root", None), ("child", None)])
+def test_fresh_task_unbound_usage_cannot_claim_complete(tmp_path, actor, orphan_turn):
+    rows = nested_rows(target="/study/root/worker" if actor == "child" else None)
+    target = nested_rows("child", "root", "/study/root/worker") if actor == "child" else rows
+    extra = json.loads(json.dumps(target[3]))
+    extra["payload"].update(turn_id=orphan_turn, response_id="orphan-response")
+    target.insert(4, extra)
+    write(tmp_path, rows)
+    if actor == "child":
+        write(tmp_path, target, "child.jsonl")
+    result = collect_desktop_task(tmp_path, agent_path="/study/root")
+    assert result["coverage"] == "unknown"
+    expected = "agent_turn_missing_or_ambiguous" if actor == "root" else "nested_child_usage_turn_missing"
+    assert expected in result["issues"]
+
+
+def test_explicit_turn_selection_keeps_missing_usage_identity_unknown(tmp_path):
+    rows = nested_rows()
+    extra = json.loads(json.dumps(rows[3]))
+    extra["payload"].update(turn_id=None, response_id="orphan-response")
+    rows.insert(4, extra)
+    write(tmp_path, rows)
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "usage_turn_missing" in result["issues"]
+
+
 def test_nested_guardian_extends_completed_accounting_boundary(tmp_path):
     write(tmp_path, nested_rows())
     guardian = nested_rows("guardian", "root", "/study/root/guardian")

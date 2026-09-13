@@ -4034,12 +4034,14 @@ def main(argv: list[str] | None = None) -> int:
             result = start_repair_coordinator(args.entry_base64)
         elif args.command == "review-reconciliation-repair":
             if args.delivery_script:
-                extra = ["--response", str(args.response)]
+                # The script runs from the source checkout, not the caller's directory.
+                extra = ["--response", str(args.response.resolve())]
                 for option in ("sessions_dir", "thread_id", "turn_id", "agent_path"):
                     if (value := getattr(args, option)) is not None:
+                        value = value.resolve() if isinstance(value, Path) else value
                         extra.extend(["--" + option.replace("_", "-"), str(value)])
                 result = {"status": "REPAIR_REVIEW_DELIVERY_READY", "model_api_calls": 0,
-                    "delivery_script": _repair_job_delivery(args.job, args.job_sha256,
+                    "delivery_script": _repair_job_delivery(args.job.resolve(), args.job_sha256,
                         "review-reconciliation-repair", *extra)}
             else:
                 result = review_reconciliation_repair(job_path=args.job, expected_sha256=args.job_sha256,

@@ -23,4 +23,4 @@ open_next:
 
 This area does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine, and it does not authorize implementation by itself.
 
-- [Coordinator efficiency samples (2026-09-12–13)](coordinator-efficiency-20260912/result.md): the completed fresh pair preserved local repair quality but saved 5.558%, below its 25% target. The subsequent cold entry and combined accounting/result check pass saved-run replay; both original totals and unchanged outputs are preserved. New behavior/savings still await courier review, home adjudication and a fresh pair. PR #1601 remains draft and unmerged; subscription quota impact is unmeasured.
+- [Coordinator efficiency samples (2026-09-12–13)](coordinator-efficiency-20260912/result.md): the earlier fresh pair preserved local repair quality but saved 5.558%, below its 25% target. Cold entry and combined accounting/result checks pass saved-run replay; delegated accounting/path fixes and the home omission-class extension are adjudicated. The next pair counts normal caller work in each route. PR #1601 remains draft and unmerged; new savings and subscription quota impact remain unmeasured.

@@ -4270,7 +4270,7 @@ def test_cold_entry_changed_binding_fails_before_preparation(tmp_path, capsys, t
 
 
 @pytest.mark.parametrize("completed", [True, False])
-def test_combined_saved_review_executes_native_accounting_and_keeps_unknown(tmp_path, capsys, completed):
+def test_combined_saved_review_executes_native_accounting_and_keeps_unknown(tmp_path, capsys, monkeypatch, completed):
     import hashlib
     from runners.run_semantic_evidence_integration import main, submit_judgment_job
     _, args, raw = _prepared_coordinator_repair(tmp_path)
@@ -4294,9 +4294,11 @@ def test_combined_saved_review_executes_native_accounting_and_keeps_unknown(tmp_
         rows.append({"type": "event_msg", "timestamp": "2026-09-05T00:00:02Z",
                      "payload": {"type": "task_complete", "turn_id": "turn"}})
     (tmp_path / "coordinator.jsonl").write_bytes("\n".join(json.dumps(r) for r in rows).encode("utf-8"))
-    cli = ["review-reconciliation-repair", "--job", str(args["job_path"]),
-        "--job-sha256", args["expected_sha256"], "--response", str(raw),
-        "--sessions-dir", str(tmp_path), "--agent-path", "/study/coordinator", "--delivery-script"]
+    # Caller-relative paths must survive the script's source-checkout workdir.
+    monkeypatch.chdir(tmp_path)
+    cli = ["review-reconciliation-repair", "--job", "repair/job.json",
+        "--job-sha256", args["expected_sha256"], "--response", "repair/job.raw.json",
+        "--sessions-dir", ".", "--agent-path", "/study/coordinator", "--delivery-script"]
     assert main(cli) == 0
     script = json.loads(capsys.readouterr().out)["delivery_script"]
     before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}

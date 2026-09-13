@@ -619,9 +619,10 @@ saved-scope checks, the full source prompt, affected result and claim-support
 authority together. `--delivery-script` renders the existing complete-view
 transport for that exact selection; execute it unchanged. An agent path must
 identify one session with one turn. Nested fresh workers require matching
-launch receipts, ancestry, turn boundaries and billing attribution; ambiguous
-or reused children remain unknown. Only `coverage=complete` supplies a total
-usable for comparison. Selecting a task does not prove it performed this job
+launch receipts (runtime guardians: guardian source metadata created inside the
+selected turn), ancestry, turn boundaries and billing attribution; ambiguous,
+reused or undated children remain unknown. Only `coverage=complete` supplies a
+total usable for comparison. Selecting a task does not prove it performed this job
 or that its answer is semantically sound; the caller still binds the task to
 the commission and adjudicates the sources. Native logs contain request
 tokens, not subscription quota percentages.

@@ -1202,7 +1202,63 @@ matched pair under the frozen source-quality rubric and model/high settings,
 retaining every first attempt, failure and additional read. Count the full
 coordinator plus worker from start through completed native accounting; keep
 study preparation/evaluation overhead separate and report it alongside the
-pair. Success still requires preserved source quality, fewer preparation and
-checking model rounds, and at least 25% lower total tokens. A small pair is a
+pair. Launcher work that a normal cycle would still perform for an arm, such
+as rendering or authoring its commission and reading its combined result view,
+is that arm's route cost, not study overhead; otherwise work displaced from
+the coordinator to its launcher would appear as a saving. Success still
+requires preserved source quality, fewer preparation and checking model
+rounds, and at least 25% lower total tokens. A small pair is a
 directional test; it cannot establish subscription quota drain or a general
 cycle-wide saving. No new model experiment or merge occurred in this work unit.
+
+### Entry completion: delegated return adjudicated (2026-09-13)
+
+The operator-couriered reviewer reported Anthropic lineage and review of clean
+`05af50c652980cda2690ff3d706b460306df1de7`. The home lane verified the six-file
+working diff, the target revision, and the reviewer's postpatch replay hashes
+against the actual files before adjudicating. The reviewer observed no competing
+edits but could not map every other host process to a worktree; this is an
+observation limit, not proof that no other process existed.
+
+Accepted F1: an unlaunched child with unknown creation time cannot be excluded
+with complete coverage. Accepted F2 with a class-level extension: child usage
+without a start event must remain visible and unknown; the home sweep also
+reproduced omitted parent usage and missing turn identities under both automatic
+and explicit selection. Four new home counterexamples failed before correction
+and passed afterwards. These cases now invalidate complete coverage instead of
+silently dropping cost. Accepted F3: resolve caller-relative paths before
+generating a command that runs from the source checkout. Accepted F4: charge
+normal launcher work to the route. Accepted the guardian/undated-child wording
+correction. No design-level blocker or material review finding remains open.
+
+The 47 Desktop-accounting tests and focused entry/combined-view tests pass.
+The final home replay at
+`C:/tmp/forseti-entry-review-05af50c6-home-final/evidence.json` again recovers
+1,102,020 and 1,040,770 tokens, byte-identical successors, the 89/39 preservation
+counts, and all 26 protected files unchanged. This is working-tree evidence
+after adjudication, identified by its recorded source hashes, with zero model
+calls. The earlier committed replay and unfavorable measurements remain intact.
+The reported 598-test result above still describes the pre-review version.
+
+The review and home-adjudication condition for the next matched pair is now
+satisfied. Freeze the adjudicated code before execution. The pair will include
+one fresh normal caller per arm, each rendering its commission, launching one
+repair coordinator, and checking the completed saved result with the shared
+native collector. Each repair coordinator launches one corrective worker.
+This makes caller work observable inside a completed task boundary instead of
+allocating an unfinished study task's tokens. Both arms have the same actor
+topology; callers perform dispatch and mechanical result checks, not an extra
+semantic review. Source-quality evaluation remains outside the tested actors.
+
+Use the same frozen three-source workload/rubric, caller and coordinator
+`gpt-6-astra`, worker `gpt-5.6-sol`, fresh histories and high effort throughout.
+Run one manual baseline and one adjudicated candidate, retaining all first
+attempts and stopping on a material source/consumer failure. Both launchers use
+explicit-field, deterministic setup; baseline formatting accidents are not
+recreated to inflate its cost. The candidate must consume its actual generated
+commission. Compare the full caller/coordinator/worker route against the fresh
+baseline for the 25% signal; also show coordinator/worker subtotals for continuity
+with the older two-actor records. Those older totals are not the new full-route
+denominator. Estimate six fresh actor contexts and roughly 2–4 million total
+request tokens for this diagnostic pair; actual usage and uncertainty govern.
+No repeatability, subscription-drain or whole-cycle claim follows from one pair.
