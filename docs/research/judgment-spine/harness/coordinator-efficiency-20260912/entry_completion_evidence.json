@@ -1,0 +1,311 @@
+{
+  "schema_version": "coordinator_entry_completion_replay_v1",
+  "model_calls": 0,
+  "source_head": "200b49e27ff7875595898c82d8c0fe92386741d2",
+  "source_files_sha256": {
+    "forseti-harness\\runners\\run_semantic_evidence_integration.py": "292946d7e071cf0fefc1a4b2a2ad6ddde6128a99ba01c06fe3a60373a00d6b9e",
+    "forseti-harness\\reports\\efficiency_codex.py": "c207c7b1b5b54a82db2e3b2d3dc0d87f77eae3135cfd3bd0a957407d48d7b323"
+  },
+  "worker_prompt_and_delivery_unchanged_from": "42570334ffc963df7b6418753c88b1b67c7d2598",
+  "input_manifest": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\manifest.json",
+  "samples": [
+    {
+      "label": "manual",
+      "commission": {
+        "status": "REPAIR_COORDINATOR_COMMISSION_WRITTEN",
+        "model_api_calls": 0,
+        "commission_path": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\manual\\commission.md",
+        "commission_sha256": "e7bb94fe72557d0930eb06aac7f4f1ce9dbd654eb5f36c2092c936f1ce6a1af9",
+        "commission_utf8_bytes": 24160,
+        "job_prepared": false
+      },
+      "entry_native_operations": 1,
+      "project_entry_delivered_upfront": true,
+      "remaining_intake_sections": [
+        "preflight_defaults",
+        "claim_support",
+        "model_tiering",
+        "runtime_payload_safety",
+        "assigned_job",
+        "coordinator_continuation"
+      ],
+      "entry_script": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\manual\\entry-execution\\actual-delivery.cjs",
+      "collection_script": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\manual\\collection-execution\\actual-delivery.cjs",
+      "combined_view_native_operations": 1,
+      "completed_usage": {
+        "coverage": "complete",
+        "issues": [],
+        "source_kind": "codex_desktop_rollout",
+        "thread_ids": [
+          "01a09abe-4855-7522-a646-625f6a9d309a",
+          "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4"
+        ],
+        "child_thread_ids": [
+          "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4"
+        ],
+        "tools": {
+          "exec": 13,
+          "spawn_agent": 1,
+          "send_message": 1,
+          "wait_agent": 3
+        },
+        "cli_versions": [
+          "0.154.0-alpha.6.2"
+        ],
+        "observed_settings": [
+          {
+            "model": "gpt-5.6-sol",
+            "effort": "high"
+          },
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_output_observations": {
+          "output_events": 31,
+          "truncation_marker_events": 1,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "child_coverage": "session_metadata_launch_receipts_and_turn_attribution",
+        "parent_links": {
+          "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4": "01a09abe-4855-7522-a646-625f6a9d309a"
+        },
+        "selected_turns": {
+          "01a09abe-4855-7522-a646-625f6a9d309a": [
+            "01a09abe-49de-7551-a648-c8ae96cd58f5"
+          ],
+          "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4": [
+            "01a09abf-fd83-7e43-b758-90dd7d2d48e2"
+          ]
+        },
+        "source_kinds": {
+          "01a09abe-4855-7522-a646-625f6a9d309a": "thread_spawn",
+          "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4": "thread_spawn"
+        },
+        "root_started_at": "2026-09-13T12:29:17.553Z",
+        "root_completed_at": "2026-09-13T12:34:00.551Z",
+        "workunit_completed_at": "2026-09-13T12:34:00.551000+00:00",
+        "elapsed_seconds": 282.998,
+        "observed_models": [
+          "gpt-5.6-sol",
+          "gpt-6-astra"
+        ],
+        "observed_total_tokens": 1102020,
+        "total_tokens": 1102020,
+        "model_response_count": 20,
+        "selection": {
+          "sessions_dir": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\native-accounting",
+          "thread_id": null,
+          "turn_id": null,
+          "agent_path": "/root/coordinator_views_manual_01"
+        },
+        "job_execution_binding": "caller_selected_task; usage does not prove job execution or semantic quality"
+      },
+      "persistence_and_scope": {
+        "job_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\request\\job.json",
+        "job_sha256": "d7d51910a0980b4ae820527adc84ddf2ecb77b423d53d5f38e77f344f82f4a02",
+        "input_sha256": {
+          "bundle": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+          "failed_response": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+          "stage": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4"
+        },
+        "response_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\request\\successor\\response.json",
+        "receipt_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\request\\successor\\receipt.json",
+        "receipt_sha256": "7a3163efdd401aa2f1ff90260fef2cb898c4794be8a894982b76958f6a129a81",
+        "receipt": {
+          "status": "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN",
+          "input_sha256": {
+            "bundle": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+            "failed_response": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+            "stage": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4"
+          },
+          "request_sha256": "ff0bc49ed3104f33b989996336419289cfacf9aca76a76a1b972e6d30abfd7c5",
+          "patch_sha256": "291ff8a2b5a548024c1abed37100954ae9e75ce4f363d463b5d99f113c613009",
+          "successor_sha256": "4ec8b3d54174719b8a61afb1c55cfaf32a98f6fd892974e6a005fb493154253b",
+          "node_keys": [
+            "k002_brown_purchase"
+          ],
+          "candidate_refs": [
+            "reddit:13aw1sp:jj8q7wz::u01",
+            "reddit:13aw1sp:jj8tnlr::u04",
+            "reddit:13aw1sp:jjabq8d::brown_purchase"
+          ],
+          "validation": {
+            "schema_version": "semantic_evidence_reconciliation_validation_v1",
+            "bundle_sha256": "e20e2cc212d358f4405d54a6e015c0afa3199f774e4aade28aca04eb38b087d5",
+            "stage_sha256": "7db6fcd14288327905d0eb17747cb24840c6f52fa2b879597fd635d42da99c18",
+            "validated_batch_ids": [
+              "reconcile-0001-0001"
+            ],
+            "semantic_node_count": 41,
+            "unmerged_semantic_unit_count": 8,
+            "validation_sha256": "af05bd1d0e2a528ec4c733aa8e14fbce516b16a9fb59de3db4353721a55fb7b7"
+          },
+          "model_api_calls": 0
+        },
+        "unchanged_scope_verified": true,
+        "unchanged_node_count": 39,
+        "unchanged_decision_count": 89,
+        "semantic_truth_proven": false
+      },
+      "replayed_successor_byte_identical": true,
+      "original_source_prompt_byte_complete": true,
+      "new_semantic_judgment": false
+    },
+    {
+      "label": "generated",
+      "commission": {
+        "status": "REPAIR_COORDINATOR_COMMISSION_WRITTEN",
+        "model_api_calls": 0,
+        "commission_path": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\generated\\commission.md",
+        "commission_sha256": "ef6158573b6848cfb05be4061d45f2b244587e06f6f01bb111e3f50de0c09be9",
+        "commission_utf8_bytes": 24180,
+        "job_prepared": false
+      },
+      "entry_native_operations": 1,
+      "project_entry_delivered_upfront": true,
+      "remaining_intake_sections": [
+        "preflight_defaults",
+        "claim_support",
+        "model_tiering",
+        "runtime_payload_safety",
+        "assigned_job",
+        "coordinator_continuation"
+      ],
+      "entry_script": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\generated\\entry-execution\\actual-delivery.cjs",
+      "collection_script": "C:\\tmp\\forseti-entry-completion-replay-20260913-final\\generated\\collection-execution\\actual-delivery.cjs",
+      "combined_view_native_operations": 1,
+      "completed_usage": {
+        "coverage": "complete",
+        "issues": [],
+        "source_kind": "codex_desktop_rollout",
+        "thread_ids": [
+          "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5",
+          "01a09ac6-c752-7311-a3f3-34213718f088"
+        ],
+        "child_thread_ids": [
+          "01a09ac6-c752-7311-a3f3-34213718f088"
+        ],
+        "tools": {
+          "exec": 12,
+          "spawn_agent": 1,
+          "send_message": 1,
+          "wait_agent": 2
+        },
+        "cli_versions": [
+          "0.154.0-alpha.6.2"
+        ],
+        "observed_settings": [
+          {
+            "model": "gpt-5.6-sol",
+            "effort": "high"
+          },
+          {
+            "model": "gpt-6-astra",
+            "effort": "high"
+          }
+        ],
+        "tool_output_observations": {
+          "output_events": 49,
+          "truncation_marker_events": 1,
+          "nonzero_command_exit_observations": 0,
+          "unrecognized_output_events": 0
+        },
+        "child_coverage": "session_metadata_launch_receipts_and_turn_attribution",
+        "parent_links": {
+          "01a09ac6-c752-7311-a3f3-34213718f088": "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5"
+        },
+        "selected_turns": {
+          "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5": [
+            "01a09ac4-bf5f-78b0-b91a-b011b83dba37"
+          ],
+          "01a09ac6-c752-7311-a3f3-34213718f088": [
+            "01a09ac6-c8ad-72b2-8342-979660e7cac5"
+          ]
+        },
+        "source_kinds": {
+          "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5": "thread_spawn",
+          "01a09ac6-c752-7311-a3f3-34213718f088": "thread_spawn"
+        },
+        "root_started_at": "2026-09-13T12:36:20.767Z",
+        "root_completed_at": "2026-09-13T12:41:21.442Z",
+        "workunit_completed_at": "2026-09-13T12:41:21.442000+00:00",
+        "elapsed_seconds": 300.675,
+        "observed_models": [
+          "gpt-5.6-sol",
+          "gpt-6-astra"
+        ],
+        "observed_total_tokens": 1040770,
+        "total_tokens": 1040770,
+        "model_response_count": 18,
+        "selection": {
+          "sessions_dir": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\native-accounting",
+          "thread_id": null,
+          "turn_id": null,
+          "agent_path": "/root/coordinator_views_generated_01"
+        },
+        "job_execution_binding": "caller_selected_task; usage does not prove job execution or semantic quality"
+      },
+      "persistence_and_scope": {
+        "job_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\request\\job.json",
+        "job_sha256": "049b963a8fe23b5fbbba07d8596428e1a72d2cc12b9a8b4d95b52d0f07ce0d48",
+        "input_sha256": {
+          "bundle": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+          "failed_response": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+          "stage": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4"
+        },
+        "response_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\request\\successor\\response.json",
+        "receipt_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\request\\successor\\receipt.json",
+        "receipt_sha256": "f70f316206caa0362afb7a1ca1a8e1190989bf76a371f8ef1b309652ab020187",
+        "receipt": {
+          "status": "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN",
+          "input_sha256": {
+            "bundle": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+            "failed_response": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+            "stage": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4"
+          },
+          "request_sha256": "ff0bc49ed3104f33b989996336419289cfacf9aca76a76a1b972e6d30abfd7c5",
+          "patch_sha256": "40793efc6471b1090aaa40c145e4f533f50970ee78085c5ca2e89c88e027b271",
+          "successor_sha256": "1fd20356bcc5ee1362375d5ddce967cb87f5357f3be36215969d0acc55a6a122",
+          "node_keys": [
+            "k002_brown_purchase"
+          ],
+          "candidate_refs": [
+            "reddit:13aw1sp:jj8q7wz::u01",
+            "reddit:13aw1sp:jj8tnlr::u04",
+            "reddit:13aw1sp:jjabq8d::brown_purchase"
+          ],
+          "validation": {
+            "schema_version": "semantic_evidence_reconciliation_validation_v1",
+            "bundle_sha256": "e20e2cc212d358f4405d54a6e015c0afa3199f774e4aade28aca04eb38b087d5",
+            "stage_sha256": "7db6fcd14288327905d0eb17747cb24840c6f52fa2b879597fd635d42da99c18",
+            "validated_batch_ids": [
+              "reconcile-0001-0001"
+            ],
+            "semantic_node_count": 41,
+            "unmerged_semantic_unit_count": 8,
+            "validation_sha256": "af05bd1d0e2a528ec4c733aa8e14fbce516b16a9fb59de3db4353721a55fb7b7"
+          },
+          "model_api_calls": 0
+        },
+        "unchanged_scope_verified": true,
+        "unchanged_node_count": 39,
+        "unchanged_decision_count": 89,
+        "semantic_truth_proven": false
+      },
+      "replayed_successor_byte_identical": true,
+      "original_source_prompt_byte_complete": true,
+      "new_semantic_judgment": false
+    }
+  ],
+  "protected_file_count": 26,
+  "protected_files_unchanged": true,
+  "savings_measured": false,
+  "limitations": [
+    "Deterministic replay proves transport, scope preservation and accounting, not new model behavior.",
+    "Different-vendor courier review and home adjudication precede a new matched pair or merge.",
+    "The 25% savings target and subscription quota impact remain unmeasured for this implementation."
+  ]
+}

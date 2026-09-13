@@ -4124,6 +4124,352 @@ def test_local_repair_generated_job_delivers_and_submits_exact_repair(tmp_path):
             operation()
 
 
+def _prepared_coordinator_repair(tmp_path):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_local_repair, _write_json
+    bundle, stage, response, request, patch = _local_repair_fixture()
+    paths = [tmp_path / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for path, value in zip(paths, (bundle, stage, response, request["nomination"]), strict=True):
+        _write_json(path, value)
+    prepared = prepare_reconciliation_local_repair(bundle_path=paths[0], stage_path=paths[1],
+        failed_response_path=paths[2], nomination_path=paths[3], output_dir=tmp_path / "repair")
+    job_path = Path(prepared["job_path"])
+    raw = job_path.with_suffix(".raw.json")
+    _write_json(raw, patch)
+    return prepared, {"job_path": job_path, "expected_sha256": prepared["job_sha256"]}, raw
+
+
+def _execute_repair_delivery(script, tmp_path):
+    """Run the generated JS, actual native CLI and notification reconstruction.
+
+    Windows uses PowerShell itself. Other test hosts decode only the renderer's
+    single-quoted literal argv grammar before executing the same native CLI.
+    """
+    import subprocess
+    harness = r'''
+const {spawnSync}=require('node:child_process');
+const notifications=[]; let view; let executions=0;
+const notify=x=>notifications.push(x); const store=(_key,value)=>{view=value};
+const text=x=>{throw Error(JSON.stringify(x))}; const exit=()=>{throw Error('EXIT')};
+const tools={exec_command:async execution=>{
+  executions++;
+  let executable, args;
+  if(process.platform==='win32') {
+    executable='powershell'; args=['-NoProfile','-NonInteractive','-Command',execution.cmd];
+  } else {
+    const body=execution.cmd.replace(/^&\s+/, '');
+    if(body.replace(/'(?:[^']|'')*'/g,'').trim()) throw Error('nonliteral command');
+    const argv=[...body.matchAll(/'((?:[^']|'')*)'/g)].map(m=>m[1].replace(/''/g,"'"));
+    [executable,...args]=argv;
+  }
+  const result=spawnSync(executable,args,{cwd:execution.workdir,encoding:'utf8',maxBuffer:4*1024*1024});
+  if(result.error) throw result.error;
+  return {exit_code:result.status,output:result.stdout || result.stderr};
+}};
+(async()=>{
+''' + script + r'''
+const rebuilt={}; const offsets={};
+for(const block of notifications.filter(x=>typeof x==='string')) {
+  const newline=block.indexOf('\n'), meta=JSON.parse(block.slice(0,newline));
+  if((offsets[meta.section]||0)!==meta.from_character) throw Error('gap');
+  const body=block.slice(newline+1,block.lastIndexOf('\nEND_SECTION_BLOCK '));
+  rebuilt[meta.section]=(rebuilt[meta.section]||'')+body; offsets[meta.section]=meta.to_character;
+}
+if(JSON.stringify(rebuilt)!==JSON.stringify(view.content)) throw Error('content loss');
+if(notifications.at(-1).intake_end!==view.intake_end) throw Error('missing end');
+process.stdout.write(JSON.stringify({view,executions}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    path = tmp_path / "actual-delivery.cjs"
+    path.write_bytes(harness.encode("utf-8"))
+    result = subprocess.run(["node", str(path)], capture_output=True, encoding="utf-8")
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
+def _cold_repair_commission(tmp_path, capsys):
+    from runners.run_semantic_evidence_integration import main
+    bundle, stage, response, request, patch = _local_repair_fixture()
+    target = tmp_path / "O'Brien Ω"
+    target.mkdir()
+    paths = [target / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for i, (path, value) in enumerate(zip(paths, (bundle, stage, response, request["nomination"]), strict=True)):
+        data = json.dumps(value, indent=2, ensure_ascii=False).encode("utf-8") + b"\n"
+        path.write_bytes(data.replace(b"\n", b"\r\n") if i % 2 else data)
+    commission = target / "commission.md"
+    cli = ["prepare-reconciliation-repair-coordinator", "--bundle", str(paths[0]),
+        "--stage", str(paths[1]), "--failed-response", str(paths[2]), "--nomination", str(paths[3]),
+        "--output-dir", str(target / "request"), "--worker-model", "gpt-5.6-sol",
+        "--answer-out", str(target / "answer.json"), "--commission-out", str(commission)]
+    assert main(cli) == 0
+    rendered = json.loads(capsys.readouterr().out)
+    assert rendered["job_prepared"] is False and not (target / "request").exists()
+    return target, paths, commission, cli, patch
+
+
+def test_cold_coordinator_executes_generated_first_operation_and_keeps_original_worker(tmp_path, capsys):
+    import hashlib
+    from runners.run_semantic_evidence_integration import (
+        main, judgment_worker_prompt, submit_judgment_job, review_reconciliation_repair, _write_json)
+    target, paths, commission, cli, patch = _cold_repair_commission(tmp_path, capsys)
+    before = {p: p.read_bytes() for p in paths}
+    raw_commission = commission.read_bytes()
+    assert b"\r\r\n" not in raw_commission
+    assert "Output mode: file-write" in raw_commission.decode("utf-8")
+    assert f"Run-authoritative input: {commission.resolve()}" in raw_commission.decode("utf-8")
+    assert main(cli) == 0
+    assert json.loads(capsys.readouterr().out)["commission_sha256"] == hashlib.sha256(raw_commission).hexdigest()
+    assert commission.read_bytes() == raw_commission
+    script = raw_commission.decode("utf-8").split("\nENTRY_COMMAND\n", 1)[1].split("END_ENTRY_COMMAND\n", 1)[0]
+    executed = _execute_repair_delivery(script, target)
+    view = executed["view"]
+    assert executed["executions"] == 1 and view["status"] == "REPAIR_COORDINATOR_START_COMPLETE"
+    assert "agents" not in view["content"] and "overlay" not in view["content"]
+    assigned = json.loads(view["content"]["assigned_job"])
+    job_path = Path(assigned["job_path"])
+    assert job_path == (target / "request/job.json").resolve()
+    assert assigned["worker_prompt"] == judgment_worker_prompt(job_path, assigned["job_sha256"])
+    assert "intake-reconciliation-repair-coordinator" not in view["content"]["coordinator_continuation"]
+    assert "review-reconciliation-repair" in view["content"]["coordinator_continuation"]
+    job = json.loads(job_path.read_bytes())
+    for name, marker in (("agents", "PROJECT_AGENTS"), ("overlay", "PROJECT_OVERLAY")):
+        expected = Path(job["inputs"][name]["path"]).read_bytes().decode("utf-8-sig")
+        assert f"BEGIN_{marker}\n{expected}\nEND_{marker}" in raw_commission.decode("utf-8")
+    raw = job_path.with_suffix(".raw.json")
+    _write_json(raw, patch)
+    args = {"job_path": job_path, "expected_sha256": assigned["job_sha256"], "response_path": raw}
+    submit_judgment_job(**args)
+    checks = json.loads(review_reconciliation_repair(**args)["content"]["persistence_and_scope"])
+    assert checks["unchanged_node_count"] == checks["unchanged_decision_count"] == 1
+    assert checks["semantic_truth_proven"] is False
+    assert before == {p: p.read_bytes() for p in paths}
+    # A changed destination cannot silently reuse a previous commission.
+    cli[cli.index("--answer-out") + 1] = str(target / "different-answer.json")
+    assert main(cli) == 2
+    assert "differs from current inputs" in json.loads(capsys.readouterr().out)["error"]
+    assert commission.read_bytes() == raw_commission
+
+
+@pytest.mark.parametrize("target_name", ["bundle", "binding", "failed_response", "nomination", "agents",
+    "overlay", "preflight_defaults", "claim_support", "model_tiering", "runtime_payload_safety", "runner", "semantic_method"])
+def test_cold_entry_changed_binding_fails_before_preparation(tmp_path, capsys, target_name):
+    import base64
+    from runners.run_semantic_evidence_integration import main
+    target, _, commission, _, _ = _cold_repair_commission(tmp_path, capsys)
+    # Decode only the renderer's literal argument to perturb a pin; execute the public CLI.
+    import re
+    script = commission.read_bytes().decode("utf-8").split("\nENTRY_COMMAND\n", 1)[1]
+    execution = json.loads(re.search(r"tools.exec_command\((\{[^\n]+\})\)", script)[1])
+    argv = [m.replace("''", "'") for m in re.findall(r"'((?:[^']|'')*)'", execution["cmd"])]
+    entry = json.loads(base64.b64decode(argv[-1]))
+    entry["inputs"][target_name]["sha256"] = "0" * 64
+    encoded = base64.b64encode(json.dumps(entry).encode("utf-8")).decode("ascii")
+    assert main(["start-reconciliation-repair-coordinator", "--entry-base64", encoded]) == 2
+    failure = json.loads(capsys.readouterr().out)
+    assert failure["error"] == "coordinator entry input hash mismatch: " + target_name
+    assert "content" not in failure and not (target / "request").exists()
+
+
+@pytest.mark.parametrize("completed", [True, False])
+def test_combined_saved_review_executes_native_accounting_and_keeps_unknown(tmp_path, capsys, monkeypatch, completed):
+    import hashlib
+    from runners.run_semantic_evidence_integration import main, submit_judgment_job
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    submit_judgment_job(**args, response_path=raw)
+    # Original general jobs predate coordinator-only pins; review never dispatches.
+    job = json.loads(args["job_path"].read_bytes())
+    del job["coordinator_inputs"]
+    args["job_path"].write_bytes(json.dumps(job).encode("utf-8"))
+    args["expected_sha256"] = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    usage = {"input_tokens": 10, "cached_input_tokens": 4, "cache_write_input_tokens": 0,
+             "output_tokens": 3, "reasoning_output_tokens": 1, "total_tokens": 13}
+    rows = [
+        {"type": "session_meta", "payload": {"id": "coordinator", "parent_thread_id": "study",
+            "agent_path": "/study/coordinator", "timestamp": "2026-09-05T00:00:00Z"}},
+        {"type": "event_msg", "timestamp": "2026-09-05T00:00:00Z",
+            "payload": {"type": "task_started", "turn_id": "turn"}},
+        {"type": "turn_context", "payload": {"turn_id": "turn", "model": "test-model"}},
+        {"type": "token_usage_record", "payload": {"thread_id": "coordinator", "turn_id": "turn",
+            "root_turn_id": "study-turn", "response_id": "r1", "usage": usage, "turn_token_usage": usage}}]
+    if completed:
+        rows.append({"type": "event_msg", "timestamp": "2026-09-05T00:00:02Z",
+                     "payload": {"type": "task_complete", "turn_id": "turn"}})
+    (tmp_path / "coordinator.jsonl").write_bytes("\n".join(json.dumps(r) for r in rows).encode("utf-8"))
+    # Caller-relative paths must survive the script's source-checkout workdir.
+    monkeypatch.chdir(tmp_path)
+    cli = ["review-reconciliation-repair", "--job", "repair/job.json",
+        "--job-sha256", args["expected_sha256"], "--response", "repair/job.raw.json",
+        "--sessions-dir", ".", "--agent-path", "/study/coordinator", "--delivery-script"]
+    assert main(cli) == 0
+    script = json.loads(capsys.readouterr().out)["delivery_script"]
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    executed = _execute_repair_delivery(script, tmp_path)
+    assert executed["executions"] == 1
+    content = executed["view"]["content"]
+    accounting = json.loads(content["selected_task_usage"])
+    assert accounting["coverage"] == ("complete" if completed else "unknown"), accounting["issues"]
+    assert accounting["observed_total_tokens"] == 13
+    assert accounting["total_tokens"] == (13 if completed else None)
+    assert content["claim_support"] == Path(job["inputs"]["claim_support"]["path"]).read_bytes().decode("utf-8-sig")
+    assert content["original_source_prompt"] == Path(job["inputs"]["prompt"]["path"]).read_bytes().decode("utf-8-sig")
+    assert json.loads(content["persistence_and_scope"])["semantic_truth_proven"] is False
+    assert before == {p: p.read_bytes() for p in before}
+
+
+def test_repair_coordinator_cli_intake_and_saved_view_are_complete_read_only(tmp_path, capsys):
+    from runners.run_semantic_evidence_integration import main, submit_judgment_job, _load_object
+    prepared, args, raw = _prepared_coordinator_repair(tmp_path)
+    cli = ["--job", str(args["job_path"]), "--job-sha256", args["expected_sha256"]]
+    assert main(["intake-reconciliation-repair-coordinator", *cli]) == 0
+    intake = json.loads(capsys.readouterr().out)
+    job = _load_object(args["job_path"])
+    assigned = json.loads(intake["content"]["assigned_job"])
+    assert assigned["worker_prompt"] == prepared["worker_prompt"]
+    assert assigned["inputs"] == job["inputs"]
+    assert "review-reconciliation-repair" in prepared["coordinator_prompt"]
+    # The forwarded prompt carries no worker tier; its source must be explicit, not the coordinator's own.
+    assert "worker model and reasoning effort named by the launching commission" in prepared["coordinator_prompt"]
+    for name in ("agents", "overlay", "preflight_defaults", "claim_support", "model_tiering"):
+        binding = {**job["inputs"], **job["coordinator_inputs"]}[name]
+        assert intake["content"][name] == Path(binding["path"]).read_bytes().decode("utf-8-sig")
+    assert assigned["coordinator_inputs"] == job["coordinator_inputs"]
+    routing = Path(job["coordinator_inputs"]["runtime_payload_safety"]["path"]).read_bytes().decode("utf-8-sig")
+    section = intake["content"]["runtime_payload_safety"]
+    assert section in routing and section.startswith("## Subagent Runtime Payload Safety")
+    assert "Omit inherited" in section and "## Prompt Propagation" not in section
+    receipt = submit_judgment_job(**args, response_path=raw)
+    before_files = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    views = []
+    for _ in range(2):
+        assert main(["review-reconciliation-repair", *cli, "--response", str(raw)]) == 0
+        views.append(json.loads(capsys.readouterr().out))
+    assert views[0] == views[1]
+    assert before_files == {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    view = views[0]
+    checks = json.loads(view["content"]["persistence_and_scope"])
+    assert checks["unchanged_scope_verified"] is True
+    assert checks["unchanged_node_count"] == checks["unchanged_decision_count"] == 1
+    assert checks["semantic_truth_proven"] is False
+    assert checks["receipt"]["successor_sha256"] == receipt["successor_sha256"]
+    request = _load_object(Path(job["inputs"]["repair_request"]["path"]))["request"]
+    assert view["content"]["original_source_prompt"] == request["prompt"] + "\n"
+    component = json.loads(view["content"]["saved_component"])
+    saved = _load_object(Path(receipt["response_path"]))
+    assert component["semantic_nodes"] == [n for n in saved["semantic_nodes"] if n["semantic_node_key"] == "affected"]
+    assert component["decisions_by_candidate_ref"] == {
+        ref: saved["decisions_by_candidate_ref"][ref] for ref in request["candidate_refs"]}
+    for delivered in (intake, view):
+        assert delivered["intake_end"] == args["expected_sha256"]
+        assert delivered["content_bytes"] == {
+            name: len(value.encode("utf-8")) for name, value in delivered["content"].items()}
+
+
+@pytest.mark.parametrize("target", ["bundle", "binding", "failed_response", "repair_request", "prompt",
+                                   "claim_support", "model_tiering", "runtime_payload_safety"])
+def test_repair_coordinator_rejects_changed_pins_before_emitting_content(tmp_path, capsys, target):
+    import hashlib
+    from runners.run_semantic_evidence_integration import main, _load_object, intake_judgment_job, submit_judgment_job
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    job = _load_object(args["job_path"])
+    # Isolate the selected input before corrupting it; never edit repository authority in a test.
+    copy = tmp_path / "isolated-input"
+    bindings = job["coordinator_inputs"] if target in job["coordinator_inputs"] else job["inputs"]
+    copy.write_bytes(Path(bindings[target]["path"]).read_bytes())
+    bindings[target]["path"] = str(copy)
+    args["job_path"].write_text(json.dumps(job), encoding="utf-8")
+    job_sha256 = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    copy.write_bytes(copy.read_bytes() + b"\n")
+    if target in job["coordinator_inputs"]:
+        # An unused coordinator document cannot stop the worker's own bound job.
+        worker_args = {"job_path": args["job_path"], "expected_sha256": job_sha256}
+        assert intake_judgment_job(**worker_args)["status"] == "SEMANTIC_JUDGMENT_INTAKE_COMPLETE"
+        assert submit_judgment_job(**worker_args, response_path=raw)["status"] == "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN"
+    for operation in ("intake-reconciliation-repair-coordinator", "review-reconciliation-repair"):
+        cli = [operation, "--job", str(args["job_path"]), "--job-sha256", job_sha256]
+        if operation == "review-reconciliation-repair":
+            cli += ["--response", str(raw)]
+        assert main(cli) == 2
+        failure = json.loads(capsys.readouterr().out)
+        assert "input hash mismatch: " + target in failure["error"]
+        assert "content" not in failure
+
+
+@pytest.mark.parametrize("target", ["unrelated_node", "receipt", "receipt_bool", "receipt_float",
+                                   "missing_response", "missing_receipt", "foreign_patch"])
+def test_repair_review_rejects_saved_or_scope_faults_without_repairing_them(tmp_path, target):
+    from runners.run_semantic_evidence_integration import (
+        submit_judgment_job, review_reconciliation_repair, _load_object)
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    receipt = submit_judgment_job(**args, response_path=raw)
+    saved_path, receipt_path = Path(receipt["response_path"]), Path(receipt["receipt_path"])
+    if target == "unrelated_node":
+        saved = _load_object(saved_path)
+        next(n for n in saved["semantic_nodes"] if n["semantic_node_key"] == "untouched")["bounded_meaning"] = "Unauthorized change"
+        saved_path.write_text(json.dumps(saved), encoding="utf-8")
+        error, message = ValueError, "successor differs"
+    elif target.startswith("receipt"):
+        saved_receipt = _load_object(receipt_path)
+        if target == "receipt_bool":
+            saved_receipt["model_api_calls"] = False
+        elif target == "receipt_float":
+            saved_receipt["validation"]["semantic_node_count"] = float(saved_receipt["validation"]["semantic_node_count"])
+        else:
+            saved_receipt["status"] = "SEMANTIC_TRUTH_PROVEN"
+        receipt_path.write_text(json.dumps(saved_receipt), encoding="utf-8")
+        error, message = ValueError, "receipt differs"
+    elif target.startswith("missing_"):
+        (saved_path if target == "missing_response" else receipt_path).unlink()
+        error, message = FileNotFoundError, None
+    else:
+        patch = _load_object(raw)
+        patch["correction"]["replacement"]["decisions_by_candidate_ref"]["foreign"] = {
+            "attachments": [], "unmerged_reason": "Not authorized"}
+        raw.write_text(json.dumps(patch), encoding="utf-8")
+        error, message = SemanticIntegrationError, "authorized candidate scope"
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with pytest.raises(error, match=message):
+        review_reconciliation_repair(**args, response_path=raw)
+    assert before == {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+
+
+@pytest.mark.parametrize("fault,match", [
+    ("job_hash", "job hash mismatch"), ("phase", "general reconciliation repair"),
+    ("compact", "compact repair omits raw source context"),
+    ("source_prompt", "source prompt differs"), ("authority", "lacks coordinator authority"),
+    ("missing_heading", "section is missing or ambiguous"), ("duplicate_heading", "section is missing or ambiguous")])
+def test_repair_coordinator_rejects_unsupported_or_inconsistent_jobs(tmp_path, fault, match):
+    import hashlib
+    from runners.run_semantic_evidence_integration import intake_reconciliation_repair_coordinator, _load_object
+    _, args, _ = _prepared_coordinator_repair(tmp_path)
+    job = _load_object(args["job_path"])
+    if fault == "phase":
+        job["phase"] = "extraction"
+    elif fault == "authority":
+        del job["coordinator_inputs"]["model_tiering"]
+    elif fault in {"missing_heading", "duplicate_heading"}:
+        binding = job["coordinator_inputs"]["runtime_payload_safety"]
+        path = tmp_path / "routing-copy.md"
+        text = Path(binding["path"]).read_text(encoding="utf-8-sig")
+        heading = "## Subagent Runtime Payload Safety"
+        text = text.replace(heading, "## Changed heading") if fault == "missing_heading" else text + "\n" + heading + "\n"
+        path.write_text(text, encoding="utf-8")
+        binding.update(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    elif fault in {"compact", "source_prompt"}:
+        key = "repair_request" if fault == "compact" else "prompt"
+        path = Path(job["inputs"][key]["path"])
+        if fault == "compact":
+            record = _load_object(path)
+            record["request"]["repair_rendering_mode"] = "compact"
+            path.write_text(json.dumps(record), encoding="utf-8")
+        else:
+            path.write_text("Different evidence", encoding="utf-8")
+        job["inputs"][key]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    args["job_path"].write_text(json.dumps(job), encoding="utf-8")
+    if fault != "job_hash":
+        args["expected_sha256"] = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match=match):
+        intake_reconciliation_repair_coordinator(**args)
+
+
 def test_local_repair_can_prepare_exact_chained_missing_definitions(tmp_path):
     from runners.run_semantic_evidence_integration import (
         _load_object,
@@ -10986,11 +11332,22 @@ def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, caps
     assert code == 0 and result["view_sha256"] == expected["view_sha256"]
 
 
-def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
+def _generated_judgment_delivery_script(tmp_path, actor):
+    from runners.run_semantic_evidence_integration import (
+        judgment_worker_prompt, reconciliation_repair_coordinator_prompt)
+    if actor == "worker":
+        prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
+        block, end = 1, "Check exit status"
+    else:
+        prompt = reconciliation_repair_coordinator_prompt(tmp_path / "job.json", "a" * 64)
+        block, end = (1, "Check exit status") if actor == "coordinator_intake" else (2, "Only after reading")
+    return prompt.split('// @exec:')[block].split('\n', 1)[1].split(end, 1)[0]
+
+
+@pytest.mark.parametrize("actor", ["worker", "coordinator_intake", "coordinator_review"])
+def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path, actor):
     import subprocess
-    from runners.run_semantic_evidence_integration import judgment_worker_prompt
-    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
-    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    script = _generated_judgment_delivery_script(tmp_path, actor)
     content = {"prompt": "x" * 7999 + "🙂" + "y" * 40000,
         "schema": '{"complete":true}', "guidance": "Ω" * 18001}
     intake = {"status": "test", "instructions": "read all", "intake_end": "a" * 64,
@@ -11021,11 +11378,10 @@ def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
     assert json.loads(result.stdout)["complete"] is True
 
 
-def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path):
+@pytest.mark.parametrize("actor", ["worker", "coordinator_intake", "coordinator_review"])
+def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path, actor):
     import subprocess
-    from runners.run_semantic_evidence_integration import judgment_worker_prompt
-    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
-    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    script = _generated_judgment_delivery_script(tmp_path, actor)
     evidence = "".join(f"evidence row {i}\n" for i in range(4000))
     full = json.dumps({"status": "test", "instructions": "read all", "intake_end": "a" * 64,
         "content_bytes": {"prompt": len(evidence.encode())}, "content": {"prompt": evidence}})

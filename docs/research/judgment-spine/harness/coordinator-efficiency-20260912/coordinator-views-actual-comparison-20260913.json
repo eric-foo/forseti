@@ -1,0 +1,1041 @@
+{
+  "record_kind": "completed_diagnostic_coordinator_views_pair",
+  "status": "quality_passed_efficiency_target_missed",
+  "authority_and_currentness": "Observed completed local sample at the two exact frozen revisions; this does not confer release authority, repeatability, whole-cycle quality or subscription quota savings.",
+  "execution": {
+    "question": "Does the generated coordinator entry and saved-result view reduce total job tokens without losing source-backed repair quality?",
+    "workload_id": "brown-sugar-three-source-local-repair",
+    "pair_id": "pair-01",
+    "measurement_setup_started_at": "2026-09-13T12:22:00Z",
+    "configuration": {
+      "coordinator_model": "gpt-6-astra",
+      "worker_model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "fresh_history": true,
+      "worker_count": 1
+    },
+    "source_checkout": "C:\\tmp\\forseti-cycle-entry-paired-20260913",
+    "runs": [
+      {
+        "index": 1,
+        "arm": "manual",
+        "revision": "5e4b1b0e1c252b724f5d13795a4a3d7d29562705",
+        "output": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual",
+        "agent_path": "/root/coordinator_views_manual_01",
+        "commission": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual-commission.md",
+        "commission_sha256": "5c8c13bdf2885883f575e7c1dc14f9123cafb01b310263a3384291232f5fe450"
+      },
+      {
+        "index": 2,
+        "arm": "generated",
+        "revision": "42570334ffc963df7b6418753c88b1b67c7d2598",
+        "output": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated",
+        "agent_path": "/root/coordinator_views_generated_01",
+        "commission": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated-commission.md",
+        "commission_sha256": "091366d7f0c7d4700beeb662ef54face442c05629681b1f1864da6fcf2ee5b2c"
+      }
+    ],
+    "accounting": "Use native completed turns, all descendant actors and spawn receipts with the existing explicit collector. Include preparation, additional reads, failures and retries in each assigned arm. Study setup and evaluation are separate, not zero.",
+    "quality_rubric": {
+      "purchase": "Only the explicit sale purchase supports purchase; the two ownership sources cannot acquire an invented purchase, motive or causal force.",
+      "possession": "Retain the two ownership reports with acquisition uncertainty; wording and defensible claim-category variation are allowed.",
+      "source_conditions": "All three original identities, product/shade and source conditions remain reachable. No manufactured opposition or corroboration.",
+      "preservation": "All 89 unrelated decisions, 39 unrelated nodes in order and other envelope fields remain exactly equal.",
+      "consumer": "Native saved successor and receipt, truthful source-backed coordinator acceptance, unchanged source and checkout; no host rescue."
+    },
+    "selection": "Exactly one manual then one generated arm; no replacement or exclusion for skipped/failed/supplemented views. Stop for material source or quality failure and preserve incomplete comparison.",
+    "decision": "Proposed 25% total input-plus-output saving with quality preserved; one pair is diagnostic only. Three pairs remain necessary for repeatability. Fingerprint inconclusive is not a semantic quality verdict.",
+    "non_claims": [
+      "No subscription percentage measure",
+      "No controlled cache-state claim",
+      "No whole intelligence-cycle claim"
+    ],
+    "pre_generation_setup_correction": {
+      "issue": "Path.__str__ used backslashes while the copied prompt used forward slashes; text substitution missed the old run root.",
+      "detected_before_any_model_launch": true,
+      "preserved_initial_drafts": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\setup-first-pass",
+      "correction": "Normalize the known path literal and freshly verify each actual commission, input pointer and output destination. A first readback also detected text-mode CRLF expansion; exact byte writes preserve the original newline encoding."
+    }
+  },
+  "frozen_inputs": [
+    {
+      "file": "bundle.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\bundle.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/bundle.json",
+      "bytes": 839547,
+      "sha256": "f5ab25fad75ddb7254caf707fbf0845ea3ad9a413775a2aea72d226fc0a0af3f",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/bundle.json"
+    },
+    {
+      "file": "stage.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\stage.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/stage.json",
+      "bytes": 333264,
+      "sha256": "0d1d454ae02b4c2e1df96ccf03a73aa96c631a13271f08fe41b7eb352ec0bac4",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/stage.json"
+    },
+    {
+      "file": "original-response.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\original-response.json",
+      "source": "C:/tmp/forseti-neutral-scale-121-20260912-v1/treatment/reconciliation/level-0001/responses/reconcile-0001-0001.json",
+      "bytes": 42350,
+      "sha256": "2a3eb423c37bc4cdf542d05e69e8df3096f61f6ef7af39c6746fdb3064eb42ae",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/original-response.json"
+    },
+    {
+      "file": "nomination.json",
+      "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\inputs\\nomination.json",
+      "source": "C:/tmp/forseti-targeted-repair-dogfood-20260912-v1/nomination.json",
+      "bytes": 278,
+      "sha256": "01a3dca7a1996406b234affeefc800f1e450257d13ccae4e09ba72dbb981b69f",
+      "source_path": "C:/tmp/forseti-cycle-entry-actual-20260913/inputs/nomination.json"
+    }
+  ],
+  "metrics": {
+    "before_total_tokens": 1102020,
+    "after_total_tokens": 1040770,
+    "saved_tokens": 61250,
+    "saved_percent": 5.557975354349286,
+    "target_saved_percent": 25,
+    "target_met": false,
+    "paired_trial_total_tokens": 2142790,
+    "coordinator_share_percent": [
+      87.0221956044355,
+      86.45704622539081
+    ],
+    "elapsed_change_seconds": 17.67700000000002,
+    "response_change": -2
+  },
+  "runs": [
+    {
+      "run": {
+        "index": 1,
+        "arm": "manual",
+        "revision": "5e4b1b0e1c252b724f5d13795a4a3d7d29562705",
+        "output": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual",
+        "agent_path": "/root/coordinator_views_manual_01",
+        "commission": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual-commission.md",
+        "commission_sha256": "5c8c13bdf2885883f575e7c1dc14f9123cafb01b310263a3384291232f5fe450"
+      },
+      "coverage": "complete",
+      "issues": [],
+      "usage": {
+        "coverage": "complete",
+        "input_tokens": 1092662,
+        "cached_input_tokens": 976768,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 9358,
+        "reasoning_output_tokens": 2819,
+        "total_tokens": 1102020,
+        "observed_totals": {
+          "input_tokens": 1092662,
+          "cached_input_tokens": 976768,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 9358,
+          "reasoning_output_tokens": 2819,
+          "total_tokens": 1102020
+        },
+        "issues": []
+      },
+      "model_responses": 20,
+      "elapsed_seconds": 282.998,
+      "started_at": "2026-09-13T12:29:17.553Z",
+      "completed_at": "2026-09-13T12:34:00.551Z",
+      "by_actor": [
+        {
+          "role": "coordinator",
+          "thread_id": "01a09abe-4855-7522-a646-625f6a9d309a",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 953808,
+            "cached_input_tokens": 891776,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5194,
+            "reasoning_output_tokens": 322,
+            "total_tokens": 959002,
+            "observed_totals": {
+              "input_tokens": 953808,
+              "cached_input_tokens": 891776,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5194,
+              "reasoning_output_tokens": 322,
+              "total_tokens": 959002
+            },
+            "issues": []
+          },
+          "model_responses": 17
+        },
+        {
+          "role": "descendant",
+          "thread_id": "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 138854,
+            "cached_input_tokens": 84992,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4164,
+            "reasoning_output_tokens": 2497,
+            "total_tokens": 143018,
+            "observed_totals": {
+              "input_tokens": 138854,
+              "cached_input_tokens": 84992,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 4164,
+              "reasoning_output_tokens": 2497,
+              "total_tokens": 143018
+            },
+            "issues": []
+          },
+          "model_responses": 3
+        }
+      ],
+      "source_receipts": [
+        {
+          "thread_id": "01a09abe-4855-7522-a646-625f6a9d309a",
+          "agent_path": "/root/coordinator_views_manual_01",
+          "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T20-29-16-01a09abe-4855-7522-a646-625f6a9d309a.jsonl",
+          "snapshot": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\native-accounting\\01a09abe-4855-7522-a646-625f6a9d309a.jsonl",
+          "prefix_bytes": 885072,
+          "sha256": "ff47a500c4dccd5e407ab8cf470d671ede1dea2be195a5a894f2d706cfb11631",
+          "selected_turns": [
+            "01a09abe-49de-7551-a648-c8ae96cd58f5"
+          ]
+        },
+        {
+          "thread_id": "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4",
+          "agent_path": "/root/coordinator_views_manual_01/repair_worker",
+          "parent_thread_id": "01a09abe-4855-7522-a646-625f6a9d309a",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T20-31-08-01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4.jsonl",
+          "snapshot": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\native-accounting\\01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4.jsonl",
+          "prefix_bytes": 480401,
+          "sha256": "0d58333d4323ce97a99d298aa56247ed024cebdf259120927178fa1a1dcde902",
+          "selected_turns": [
+            "01a09abf-fd83-7e43-b758-90dd7d2d48e2"
+          ]
+        }
+      ],
+      "spawn_receipts": [
+        {
+          "parent": "01a09abe-4855-7522-a646-625f6a9d309a",
+          "child": "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4",
+          "call_id": "call_AXzH71rMSg3XM2MQQk9Rg6OW",
+          "native_receipt": {
+            "task_name": "/root/coordinator_views_manual_01/repair_worker"
+          }
+        }
+      ],
+      "selected_turns": {
+        "01a09abe-4855-7522-a646-625f6a9d309a": [
+          "01a09abe-49de-7551-a648-c8ae96cd58f5"
+        ],
+        "01a09abf-fbe1-71b1-ba9f-9bcae32c4fc4": [
+          "01a09abf-fd83-7e43-b758-90dd7d2d48e2"
+        ]
+      },
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "quality_process_exit": 0,
+      "quality_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\manual\\evaluation\\quality.json",
+      "semantic_adjudication": {
+        "status": "passed",
+        "authority": "frozen execution.json quality_rubric and claim-support contract",
+        "evidence_ids": [
+          "reddit:13aw1sp:jj8q7wz",
+          "reddit:13aw1sp:jj8tnlr",
+          "reddit:13aw1sp:jjabq8d"
+        ],
+        "finding": "Exact source text and all four parent/product contexts support ownership for the first two and a sale purchase only for the third. Saved attachments implement that distinction; possession is retained as a bounded nonterminal node. No invented acquisition, motive, opposition or causal force. All 89 unrelated decisions, 39 nodes in order and other fields were independently compared by the frozen checker. Coordinator acceptance is truthful.",
+        "assessment_boundary": "Home source-backed adjudication; not independent certification; no required answer wording or terminal promotion for possession."
+      },
+      "accounting_route": "Existing explicit native collector, parent links, spawn receipts and complete single-turn boundaries; all observed descendants retained."
+    },
+    {
+      "run": {
+        "index": 2,
+        "arm": "generated",
+        "revision": "42570334ffc963df7b6418753c88b1b67c7d2598",
+        "output": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated",
+        "agent_path": "/root/coordinator_views_generated_01",
+        "commission": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated-commission.md",
+        "commission_sha256": "091366d7f0c7d4700beeb662ef54face442c05629681b1f1864da6fcf2ee5b2c"
+      },
+      "coverage": "complete",
+      "issues": [],
+      "usage": {
+        "coverage": "complete",
+        "input_tokens": 1032362,
+        "cached_input_tokens": 958592,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8408,
+        "reasoning_output_tokens": 1611,
+        "total_tokens": 1040770,
+        "observed_totals": {
+          "input_tokens": 1032362,
+          "cached_input_tokens": 958592,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 8408,
+          "reasoning_output_tokens": 1611,
+          "total_tokens": 1040770
+        },
+        "issues": []
+      },
+      "model_responses": 18,
+      "elapsed_seconds": 300.675,
+      "started_at": "2026-09-13T12:36:20.767Z",
+      "completed_at": "2026-09-13T12:41:21.442Z",
+      "by_actor": [
+        {
+          "role": "coordinator",
+          "thread_id": "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 894501,
+            "cached_input_tokens": 839040,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5318,
+            "reasoning_output_tokens": 198,
+            "total_tokens": 899819,
+            "observed_totals": {
+              "input_tokens": 894501,
+              "cached_input_tokens": 839040,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5318,
+              "reasoning_output_tokens": 198,
+              "total_tokens": 899819
+            },
+            "issues": []
+          },
+          "model_responses": 15
+        },
+        {
+          "role": "descendant",
+          "thread_id": "01a09ac6-c752-7311-a3f3-34213718f088",
+          "usage": {
+            "coverage": "complete",
+            "input_tokens": 137861,
+            "cached_input_tokens": 119552,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3090,
+            "reasoning_output_tokens": 1413,
+            "total_tokens": 140951,
+            "observed_totals": {
+              "input_tokens": 137861,
+              "cached_input_tokens": 119552,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3090,
+              "reasoning_output_tokens": 1413,
+              "total_tokens": 140951
+            },
+            "issues": []
+          },
+          "model_responses": 3
+        }
+      ],
+      "source_receipts": [
+        {
+          "thread_id": "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5",
+          "agent_path": "/root/coordinator_views_generated_01",
+          "parent_thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T20-36-20-01a09ac4-bdcb-7f23-a009-b9f4b9578ab5.jsonl",
+          "snapshot": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\native-accounting\\01a09ac4-bdcb-7f23-a009-b9f4b9578ab5.jsonl",
+          "prefix_bytes": 1071183,
+          "sha256": "9e7f594c2c9a7661a27f4e69ff911ae747e084303727caf2a542a5fae3cd1c61",
+          "selected_turns": [
+            "01a09ac4-bf5f-78b0-b91a-b011b83dba37"
+          ]
+        },
+        {
+          "thread_id": "01a09ac6-c752-7311-a3f3-34213718f088",
+          "agent_path": "/root/coordinator_views_generated_01/repair_worker",
+          "parent_thread_id": "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5",
+          "path": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\13\\rollout-2026-09-13T20-38-33-01a09ac6-c752-7311-a3f3-34213718f088.jsonl",
+          "snapshot": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\native-accounting\\01a09ac6-c752-7311-a3f3-34213718f088.jsonl",
+          "prefix_bytes": 467745,
+          "sha256": "1acb6619b097bae87df3868e22f0d4b579ccecf00c3c8c21fea3844b22adda1e",
+          "selected_turns": [
+            "01a09ac6-c8ad-72b2-8342-979660e7cac5"
+          ]
+        }
+      ],
+      "spawn_receipts": [
+        {
+          "parent": "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5",
+          "child": "01a09ac6-c752-7311-a3f3-34213718f088",
+          "call_id": "call_rNNuXGFeCoHgv4NL3ybCRJR4",
+          "native_receipt": {
+            "task_name": "/root/coordinator_views_generated_01/repair_worker"
+          }
+        }
+      ],
+      "selected_turns": {
+        "01a09ac4-bdcb-7f23-a009-b9f4b9578ab5": [
+          "01a09ac4-bf5f-78b0-b91a-b011b83dba37"
+        ],
+        "01a09ac6-c752-7311-a3f3-34213718f088": [
+          "01a09ac6-c8ad-72b2-8342-979660e7cac5"
+        ]
+      },
+      "observed_settings": [
+        {
+          "model": "gpt-5.6-sol",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "quality_process_exit": 0,
+      "quality_path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\generated\\evaluation\\quality.json",
+      "semantic_adjudication": {
+        "status": "passed",
+        "assessor": "home coordinating task",
+        "authority": "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+        "rubric": {
+          "purchase": "Only the explicit sale purchase supports purchase; the two ownership sources cannot acquire an invented purchase, motive or causal force.",
+          "possession": "Retain the two ownership reports with acquisition uncertainty; wording and defensible claim-category variation are allowed.",
+          "source_conditions": "All three original identities, product/shade and source conditions remain reachable. No manufactured opposition or corroboration.",
+          "preservation": "All 89 unrelated decisions, 39 unrelated nodes in order and other envelope fields remain exactly equal.",
+          "consumer": "Native saved successor and receipt, truthful source-backed coordinator acceptance, unchanged source and checkout; no host rescue."
+        },
+        "source_findings": [
+          {
+            "source_id": "reddit:13aw1sp:jj8q7wz",
+            "candidate_ref": "reddit:13aw1sp:jj8q7wz::u01",
+            "finding": "Reports a new Brown Sugar balm, establishing ownership with acquisition route unstated; linked parent does not establish purchase."
+          },
+          {
+            "source_id": "reddit:13aw1sp:jj8tnlr",
+            "candidate_ref": "reddit:13aw1sp:jj8tnlr::u04",
+            "finding": "Reports having Brown Sugar and Poppy; hypothetical gloss purchase and a different parent author's repurchase of other shades cannot establish this author's Brown Sugar purchase."
+          },
+          {
+            "source_id": "reddit:13aw1sp:jjabq8d",
+            "candidate_ref": "reddit:13aw1sp:jjabq8d::brown_purchase",
+            "finding": "Explicitly reports Brown Sugar and Vanilla Beige as part of a sale purchase. This alone supports the bounded Brown Sugar sale-purchase claim, without motive or causal inference."
+          }
+        ],
+        "saved_result": "Ownership attaches only to k001_brown_ownership (customer_experience, descriptive); explicit purchase alone attaches to k002_brown_purchase (reported_behavior, descriptive). All three candidates retained; opposition flags remain false.",
+        "quality_boundary": "Manual retained ownership as nonterminal possession; generated made it a descriptive terminal customer_experience. Both satisfy the frozen meaning rubric, which allows defensible category variation. No claim of identical final compilation or whole-cycle clearance.",
+        "unrelated_decisions_unchanged": 89,
+        "unrelated_nodes_unchanged_in_order": 39,
+        "successor_sha256": "1fd20356bcc5ee1362375d5ddce967cb87f5357f3be36215969d0acc55a6a122",
+        "native_acceptance_is_not_semantic_truth": true
+      },
+      "accounting_route": "Existing explicit native collector, parent links, spawn receipts and complete single-turn boundaries; all observed descendants retained."
+    }
+  ],
+  "quality_checks": [
+    {
+      "status": "structural_checks_passed",
+      "unrelated_candidates_unchanged": 89,
+      "unrelated_nodes_unchanged": 39,
+      "all_input_hashes_match": true,
+      "repeat_native_submission_identical": true,
+      "successor_sha256": "4ec8b3d54174719b8a61afb1c55cfaf32a98f6fd892974e6a005fb493154253b",
+      "affected_decisions": {
+        "reddit:13aw1sp:jj8q7wz::u01": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k002_brown_possession"
+            }
+          ],
+          "unmerged_reason": null
+        },
+        "reddit:13aw1sp:jj8tnlr::u04": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k002_brown_possession"
+            }
+          ],
+          "unmerged_reason": null
+        },
+        "reddit:13aw1sp:jjabq8d::brown_purchase": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k002_brown_purchase"
+            }
+          ],
+          "unmerged_reason": null
+        }
+      },
+      "replacement_nodes": [
+        {
+          "axis_ids": [
+            "shade_and_color_fit"
+          ],
+          "bounded_meaning": "A sale purchase of Brown Sugar Summer Fridays Lip Butter Balm was reported.",
+          "causal_ceiling": "descriptive_only",
+          "claim_kind": "reported_behavior",
+          "opposition_checked": false,
+          "semantic_node_key": "k002_brown_purchase",
+          "terminal_proposition": true,
+          "uncertainty_posture": "asserted"
+        },
+        {
+          "axis_ids": [
+            "shade_and_color_fit"
+          ],
+          "bounded_meaning": "Possession of Brown Sugar Summer Fridays Lip Butter Balm was reported.",
+          "causal_ceiling": null,
+          "claim_kind": null,
+          "opposition_checked": false,
+          "semantic_node_key": "k002_brown_possession",
+          "terminal_proposition": false,
+          "uncertainty_posture": "asserted"
+        }
+      ],
+      "coordinator_answer": {
+        "status": "completed",
+        "worker_id": "/root/coordinator_views_manual_01/repair_worker",
+        "successor_path": "C:/tmp/forseti-coordinator-views-pair-20260913/manual/request/successor/response.json",
+        "receipt_path": "C:/tmp/forseti-coordinator-views-pair-20260913/manual/request/successor/receipt.json",
+        "summary": {
+          "outcome": "The nominated local reconciliation defect is corrected in the saved successor: ownership statements no longer support the purchase finding.",
+          "source_findings": [
+            {
+              "candidate_ref": "reddit:13aw1sp:jj8q7wz::u01",
+              "source_ref": "https://www.reddit.com/comments/13aw1sp/_/jj8q7wz",
+              "establishes": "The author reports possession of a new Brown Sugar balm. The comment and supplied parent context do not establish its acquisition route."
+            },
+            {
+              "candidate_ref": "reddit:13aw1sp:jj8tnlr::u04",
+              "source_ref": "https://www.reddit.com/comments/13aw1sp/_/jj8tnlr",
+              "establishes": "The author reports having Brown Sugar and Poppy. The price discussion and hypothetical gloss purchase do not establish that the author purchased Brown Sugar."
+            },
+            {
+              "candidate_ref": "reddit:13aw1sp:jjabq8d::brown_purchase",
+              "source_ref": "https://www.reddit.com/comments/13aw1sp/_/jjabq8d",
+              "establishes": "The author explicitly reports obtaining Brown Sugar and Vanilla Beige as part of a sale purchase. This supports the bounded reported Brown Sugar sale purchase, without establishing motive or causation."
+            }
+          ],
+          "saved_representation": "The two ownership candidates support the nonterminal k002_brown_possession node. Only the explicit sale-purchase candidate supports terminal reported_behavior node k002_brown_purchase, with descriptive_only causal ceiling. Both affected nodes have opposition_checked=false."
+        },
+        "scope_check": {
+          "result": "passed",
+          "commission_sha256_verified": "5c8c13bdf2885883f575e7c1dc14f9123cafb01b310263a3384291232f5fe450",
+          "source_checkout": "C:/tmp/forseti-cycle-entry-paired-20260913",
+          "initial_revision_verified": "5e4b1b0e1c252b724f5d13795a4a3d7d29562705",
+          "initial_checkout_clean": true,
+          "all_four_input_manifest_hashes_matched": true,
+          "changed_candidate_decisions": [
+            "reddit:13aw1sp:jj8q7wz::u01",
+            "reddit:13aw1sp:jj8tnlr::u04"
+          ],
+          "changed_or_added_nodes": [
+            "k002_brown_purchase",
+            "k002_brown_possession"
+          ],
+          "candidate_inventory_unchanged": true,
+          "unrelated_nodes_preserved": 39,
+          "other_response_fields_unchanged": true,
+          "successor_sha256_matches_receipt": "4ec8b3d54174719b8a61afb1c55cfaf32a98f6fd892974e6a005fb493154253b",
+          "native_receipt_status": "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN",
+          "semantic_attempts": 1
+        },
+        "limitations": [
+          "Completed local repair only; no full original intelligence-run completion or final level submission is claimed.",
+          "The source check used supplied captured evidence and its contexts, without new external capture or a general audit of unrelated findings.",
+          "Ownership does not establish purchase, gifting, use, repurchase, or another acquisition route. The retained possession node is nonterminal and carries no terminal claim kind or causal ceiling.",
+          "The sale-purchase claim has one attributable source in this component. No additional purchasing origins, prevalence, or causal force are inferred from the ownership reports or engagement.",
+          "Native acceptance verifies structural validity and persistence, not semantic truth or opposition clearance; affected opposition flags remain false."
+        ]
+      },
+      "semantic_assessment": "requires source-backed home adjudication; schema and native acceptance are insufficient"
+    },
+    {
+      "status": "structural_checks_passed",
+      "unrelated_candidates_unchanged": 89,
+      "unrelated_nodes_unchanged": 39,
+      "all_input_hashes_match": true,
+      "repeat_native_submission_identical": true,
+      "successor_sha256": "1fd20356bcc5ee1362375d5ddce967cb87f5357f3be36215969d0acc55a6a122",
+      "affected_decisions": {
+        "reddit:13aw1sp:jj8q7wz::u01": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k001_brown_ownership"
+            }
+          ],
+          "unmerged_reason": null
+        },
+        "reddit:13aw1sp:jj8tnlr::u04": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k001_brown_ownership"
+            }
+          ],
+          "unmerged_reason": null
+        },
+        "reddit:13aw1sp:jjabq8d::brown_purchase": {
+          "attachments": [
+            {
+              "relation": "support",
+              "semantic_node_key": "k002_brown_purchase"
+            }
+          ],
+          "unmerged_reason": null
+        }
+      },
+      "replacement_nodes": [
+        {
+          "axis_ids": [
+            "shade_and_color_fit"
+          ],
+          "bounded_meaning": "A sale purchase of the Brown Sugar Summer Fridays Lip Butter Balm was reported.",
+          "causal_ceiling": "descriptive_only",
+          "claim_kind": "reported_behavior",
+          "opposition_checked": false,
+          "semantic_node_key": "k002_brown_purchase",
+          "terminal_proposition": true,
+          "uncertainty_posture": "asserted"
+        },
+        {
+          "axis_ids": [
+            "shade_and_color_fit"
+          ],
+          "bounded_meaning": "Ownership of the Brown Sugar Summer Fridays Lip Butter Balm was reported.",
+          "causal_ceiling": "descriptive_only",
+          "claim_kind": "customer_experience",
+          "opposition_checked": false,
+          "semantic_node_key": "k001_brown_ownership",
+          "terminal_proposition": true,
+          "uncertainty_posture": "asserted"
+        }
+      ],
+      "coordinator_answer": {
+        "status": "completed",
+        "worker_id": "/root/coordinator_views_generated_01/repair_worker",
+        "successor_path": "C:/tmp/forseti-coordinator-views-pair-20260913/generated/request/successor/response.json",
+        "receipt_path": "C:/tmp/forseti-coordinator-views-pair-20260913/generated/request/successor/receipt.json",
+        "job_sha256": "049b963a8fe23b5fbbba07d8596428e1a72d2cc12b9a8b4d95b52d0f07ce0d48",
+        "successor_sha256": "1fd20356bcc5ee1362375d5ddce967cb87f5357f3be36215969d0acc55a6a122",
+        "receipt_sha256": "f70f316206caa0362afb7a1ca1a8e1190989bf76a371f8ef1b309652ab020187",
+        "summary": {
+          "semantic_verdict": "pass for the nominated local repair",
+          "source_findings": [
+            {
+              "source_id": "reddit:13aw1sp:jj8q7wz",
+              "source_url": "https://www.reddit.com/comments/13aw1sp/_/jj8q7wz",
+              "actor": "fancyhoneybadger",
+              "candidate_ref": "reddit:13aw1sp:jj8q7wz::u01",
+              "establishes": "The comment reports ownership of a new Brown Sugar Summer Fridays Lip Butter Balm. Its acquisition route is not established."
+            },
+            {
+              "source_id": "reddit:13aw1sp:jj8tnlr",
+              "source_url": "https://www.reddit.com/comments/13aw1sp/_/jj8tnlr",
+              "actor": "maymayloco",
+              "candidate_ref": "reddit:13aw1sp:jj8tnlr::u04",
+              "establishes": "The comment reports having Brown Sugar and Poppy. Its price discussion and reply context do not establish a purchase of Brown Sugar."
+            },
+            {
+              "source_id": "reddit:13aw1sp:jjabq8d",
+              "source_url": "https://www.reddit.com/comments/13aw1sp/_/jjabq8d",
+              "actor": "jukeboxgasoline",
+              "candidate_ref": "reddit:13aw1sp:jjabq8d::brown_purchase",
+              "establishes": "The comment explicitly reports obtaining Brown Sugar and Vanilla Beige as part of a sale purchase. The nominated Brown Sugar candidate supports the bounded sale-purchase statement."
+            }
+          ],
+          "saved_result": "The two ownership candidates now support k001_brown_ownership, a customer_experience node. Only the explicit sale-purchase candidate supports k002_brown_purchase, a reported_behavior node. Both meanings are count-neutral and descriptive. This removes the unsupported acquisition-route inference while retaining all three candidates."
+        },
+        "scope_check": {
+          "result": "passed",
+          "nominated_node": "k002_brown_purchase",
+          "component_candidate_count": 3,
+          "unchanged_node_count": 39,
+          "unchanged_decision_count": 89,
+          "verification": "The generated review-reconciliation-repair operation freshly read and verified the actual saved successor and receipt against the pinned inputs and raw patch, including unchanged scope. Its full original_source_prompt and saved_component were consumed with matching byte counts, contiguous offsets and the commissioned job end hash. Coordinator semantic review found the saved distinction supported by the exact comments and parent/product contexts.",
+          "repository_edits": false,
+          "publication": false
+        },
+        "limitations": [
+          "Completion applies only to this local consolidation repair, not completion or semantic clearance of the original intelligence run.",
+          "Both repaired nodes have opposition_checked=false; the repair does not renew broader opposition clearance.",
+          "Ownership does not establish purchase, gifting, or another acquisition route for the two ownership sources.",
+          "All three evidence rows are community comments from one Reddit thread. Inventory counts and engagement are not interchangeable with claim-specific corroboration or market prevalence.",
+          "The sale-purchase claim has one explicit supporting origin; no additional purchase origins, causal conclusion, formula/version, or publication-time fact is inferred.",
+          "The existing compiler remains responsible for final claim-specific accounting. No additional worker or semantic retry was used."
+        ]
+      },
+      "semantic_assessment": "requires source-backed home adjudication; schema and native acceptance are insufficient"
+    }
+  ],
+  "call_profiles": [
+    {
+      "arm": "manual",
+      "pre_dispatch_tool_rounds_including_commission_read": 7,
+      "pre_dispatch_tool_rounds_excluding_commission_read": 6,
+      "wait_timeouts_ms": [
+        10000,
+        10000,
+        60000
+      ],
+      "calls": [
+        {
+          "call_id": "call_gYDzKrSyouGzYF6DxsiSFdnn",
+          "at": "2026-09-13T12:29:25.029Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_xJxBUCZ6rvmjRlVLyDM00DtH",
+          "at": "2026-09-13T12:29:34.019Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_g2Cb2gCSQ622AP3IFLjVelpy",
+          "at": "2026-09-13T12:29:41.502Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_Jb04bfXajsR0Vywwgp78SoDd",
+          "at": "2026-09-13T12:29:50.882Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": [
+            "${p}"
+          ]
+        },
+        {
+          "call_id": "call_uTnNQoI961PhVpcy8g5zYD2i",
+          "at": "2026-09-13T12:30:02.818Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": [
+            "${p}"
+          ]
+        },
+        {
+          "call_id": "call_3CvNKc2dojbDI8kuGPN1ts1M",
+          "at": "2026-09-13T12:30:17.214Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": [
+            ".agents/workflow-overlay/decision-routing.md"
+          ]
+        },
+        {
+          "call_id": "call_ftWcxiV07iWJsnzPstxBi8x9",
+          "at": "2026-09-13T12:30:27.561Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_AXzH71rMSg3XM2MQQk9Rg6OW",
+          "at": "2026-09-13T12:31:08.213Z",
+          "tool": "spawn_agent",
+          "phase": "worker_dispatch"
+        },
+        {
+          "call_id": "call_TxgQsE8ItUGtQYYIZEVn3eTD",
+          "at": "2026-09-13T12:31:15.138Z",
+          "tool": "send_message",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_0pir2ZBVtLNFXydthydEx8KN",
+          "at": "2026-09-13T12:31:23.324Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_2dUhiEx3GKwlYudjifKPVf5O",
+          "at": "2026-09-13T12:31:27.426Z",
+          "tool": "wait_agent",
+          "phase": "waiting",
+          "timeout_ms": 10000
+        },
+        {
+          "call_id": "call_oVQdvNUBAMcipbxN3od6dwqg",
+          "at": "2026-09-13T12:31:42.851Z",
+          "tool": "wait_agent",
+          "phase": "waiting",
+          "timeout_ms": 10000
+        },
+        {
+          "call_id": "call_gONhe6bN6mjvBJShtAchPreP",
+          "at": "2026-09-13T12:31:56.054Z",
+          "tool": "wait_agent",
+          "phase": "waiting",
+          "timeout_ms": 60000
+        },
+        {
+          "call_id": "call_sMbcYXRpyD1apPkIBiW7Wkki",
+          "at": "2026-09-13T12:32:48.403Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_8uYbHslhahCw5jSsJY6YVPgs",
+          "at": "2026-09-13T12:33:09.579Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_Nik6qh7vAOMWBHKMCgmBovfF",
+          "at": "2026-09-13T12:33:54.723Z",
+          "tool": "exec",
+          "phase": "write_acceptance"
+        }
+      ],
+      "errors": [
+        {
+          "call_id": "call_Jb04bfXajsR0Vywwgp78SoDd",
+          "kind": "returned_output_truncated",
+          "notice": "Warning: truncated output (original token count: 13744)",
+          "at": "2026-09-13T12:29:54.161Z"
+        }
+      ],
+      "response_groups": {
+        "pre_dispatch": {
+          "model_responses": 7,
+          "total_tokens": 300292
+        },
+        "dispatch": {
+          "model_responses": 1,
+          "total_tokens": 59215
+        },
+        "other_after_dispatch_or_final": {
+          "model_responses": 6,
+          "total_tokens": 399996
+        },
+        "wait": {
+          "model_responses": 3,
+          "total_tokens": 199499
+        }
+      },
+      "classification_limit": "Groups describe model responses issuing calls, not exclusive causal token attribution. Input includes all accumulated context."
+    },
+    {
+      "arm": "generated",
+      "pre_dispatch_tool_rounds_including_commission_read": 8,
+      "pre_dispatch_tool_rounds_excluding_commission_read": 7,
+      "wait_timeouts_ms": [
+        60000,
+        60000
+      ],
+      "calls": [
+        {
+          "call_id": "call_dZunPJNikzInCtZMriJ1edVt",
+          "at": "2026-09-13T12:36:28.345Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_nRRwWkF7lM4RlpALQcQngFiK",
+          "at": "2026-09-13T12:36:38.844Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_gLMCft0dhoGM94VlTfo3I5mV",
+          "at": "2026-09-13T12:36:45.347Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_AGWsXRTObRTSAHBvNicquPmq",
+          "at": "2026-09-13T12:36:53.310Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_svJAEEsva5DZnGOVnKwTTIiz",
+          "at": "2026-09-13T12:37:05.732Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_B40gIhZZIcXW8mx3trz7u3Ef",
+          "at": "2026-09-13T12:37:18.717Z",
+          "tool": "exec",
+          "phase": "instruction_loading_or_preparation",
+          "reader_file_requests": []
+        },
+        {
+          "call_id": "call_AX9nHNC0u9jSVjDTsXYi9AHX",
+          "at": "2026-09-13T12:37:29.788Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_EkeDDqDK2SZw9jB33egvuiyV",
+          "at": "2026-09-13T12:37:51.308Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_rNNuXGFeCoHgv4NL3ybCRJR4",
+          "at": "2026-09-13T12:38:33.527Z",
+          "tool": "spawn_agent",
+          "phase": "worker_dispatch"
+        },
+        {
+          "call_id": "call_9nBSdmA30iWJeSWeoYmgWZJJ",
+          "at": "2026-09-13T12:38:41.266Z",
+          "tool": "send_message",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_TNMTIQNzPEssuuNcuDy2Yexj",
+          "at": "2026-09-13T12:38:44.010Z",
+          "tool": "wait_agent",
+          "phase": "waiting",
+          "timeout_ms": 60000
+        },
+        {
+          "call_id": "call_zEPOfKqMNp9nCx7iISyph0qc",
+          "at": "2026-09-13T12:39:49.956Z",
+          "tool": "wait_agent",
+          "phase": "waiting",
+          "timeout_ms": 60000
+        },
+        {
+          "call_id": "call_AFnHd14MC8dxODDNAkotu4MR",
+          "at": "2026-09-13T12:40:26.321Z",
+          "tool": "exec",
+          "phase": "other_task_work"
+        },
+        {
+          "call_id": "call_MfOxSvxcCyBdVQhN22RcjDVG",
+          "at": "2026-09-13T12:41:13.576Z",
+          "tool": "exec",
+          "phase": "write_acceptance"
+        }
+      ],
+      "errors": [
+        {
+          "call_id": "call_AGWsXRTObRTSAHBvNicquPmq",
+          "kind": "returned_output_truncated",
+          "notice": "Warning: truncated output (original token count: 13717)",
+          "at": "2026-09-13T12:36:56.955Z"
+        }
+      ],
+      "response_groups": {
+        "pre_dispatch": {
+          "model_responses": 8,
+          "total_tokens": 353315
+        },
+        "dispatch": {
+          "model_responses": 1,
+          "total_tokens": 75531
+        },
+        "other_after_dispatch_or_final": {
+          "model_responses": 4,
+          "total_tokens": 319351
+        },
+        "wait": {
+          "model_responses": 2,
+          "total_tokens": 151622
+        }
+      },
+      "classification_limit": "Groups describe model responses issuing calls, not exclusive causal token attribution. Input includes all accumulated context."
+    }
+  ],
+  "generated_view_delivery": [
+    {
+      "view": "intake",
+      "call_id": "call_EkeDDqDK2SZw9jB33egvuiyV",
+      "status": "complete_native_delivery_verified",
+      "content_bytes": {
+        "agents": 11890,
+        "overlay": 5014,
+        "preflight_defaults": 3769,
+        "claim_support": 16166,
+        "model_tiering": 23092,
+        "runtime_payload_safety": 427,
+        "assigned_job": 7835
+      },
+      "total_content_bytes": 68193,
+      "blocks": 12,
+      "job_sha256": "049b963a8fe23b5fbbba07d8596428e1a72d2cc12b9a8b4d95b52d0f07ce0d48",
+      "comparison": "Every native notification reassembled with contiguous UTF-16 offsets and UTF-8 byte counts; exact equality to freshly generated pinned content. This proves delivery, not attention."
+    },
+    {
+      "view": "saved_result",
+      "call_id": "call_AFnHd14MC8dxODDNAkotu4MR",
+      "status": "complete_native_delivery_verified",
+      "content_bytes": {
+        "persistence_and_scope": 2307,
+        "original_source_prompt": 13191,
+        "saved_component": 1564
+      },
+      "total_content_bytes": 17062,
+      "blocks": 4,
+      "job_sha256": "049b963a8fe23b5fbbba07d8596428e1a72d2cc12b9a8b4d95b52d0f07ce0d48",
+      "comparison": "Every native notification reassembled with contiguous UTF-16 offsets and UTF-8 byte counts; exact equality to freshly generated pinned content. This proves delivery, not attention."
+    }
+  ],
+  "study_task_partial_accounting": {
+    "coverage": "partial_timestamped_study_task_prefix",
+    "thread_id": "01a0955a-643a-7dc1-b747-da71e35b40f7",
+    "started_at": "2026-09-13T12:22:00.000Z",
+    "cutoff_at": "2026-09-13T12:46:23.000Z",
+    "last_usage_at": "2026-09-13T12:46:22.943Z",
+    "model_responses": 24,
+    "usage": {
+      "input_tokens": 3459090,
+      "cached_input_tokens": 3289600,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 32720,
+      "reasoning_output_tokens": 15989,
+      "total_tokens": 3491810
+    },
+    "source": "C:\\Users\\vmon7\\.codex\\sessions\\2026\\09\\12\\rollout-2026-09-12T19-22-04-01a0955a-643a-7dc1-b747-da71e35b40f7.jsonl",
+    "prefix_bytes": 45405852,
+    "prefix_sha256": "036f3f5a60bd0968bd538a98eb55873efd69c1f031de261a27ef039f4d2dfe82",
+    "boundary": "Study setup, launch, monitoring, collection, source adjudication and initial audit responses in this active task after the stated start. Includes setup mistakes and any compaction-input cost recorded in those responses. Excludes earlier implementation/adjudication, all trial descendants, and all later report/PR/closeout work; not a completed whole-study total."
+  },
+  "study_task_partial_accounting_records": {
+    "path": "C:\\tmp\\forseti-coordinator-views-pair-20260913\\study-task-prefix.json",
+    "sha256": "52d25ef682466285fbf54ff342c42f7aef93da8615395b231b51fe292dc61dfd"
+  },
+  "observations": [
+    "Manual used 17 coordinator responses; generated used 15. Workers each used 3, on their unchanged semantic intake/submission route.",
+    "The generated coordinator used both views completely, added no worker/supervisor or handwritten preservation checker, and issued no further source read after the saved-result view.",
+    "Preparation did not shrink: 6 manual versus 7 generated tool rounds after the commission read, before worker dispatch. Both issued a roughly 13.7k-token instruction batch into the 10k outer return limit; all costs and recovery requests remain counted.",
+    "Candidate recovery read tiering at 245-432 and safety in one round, then tiering 210-245 in another. Manual made one recovery round with four section requests. These are narrowed recovery reads, not multiple full-source reread passes.",
+    "The candidate intake arrives after native preparation, so it repeats already requested AGENTS, overlay, preflight defaults, claim-support and tiering authorities. This is direct evidence that the entry did not replace early preparation in this measured route.",
+    "Manual waits were 10s, 10s, 60s; generated waits were 60s, 60s. Waiting contributes to observed response count, so the net saving is not an isolated estimate of the result-view effect."
+  ],
+  "decision": {
+    "land_now": false,
+    "reason": "Do not land as the promised material efficiency fix: this one retained diagnostic pair misses the frozen 25% target.",
+    "smallest_next_target": "Make the generated preparation/intake the actual first entry for the cold coordinator, eliminating the preceding overlapping source discovery while preserving governing instructions and charging every preparation response to the same arm. The existing saved-result verification can remain; adding another instruction document would not close the observed gap.",
+    "sample_limit": "No replacement or further pair was launched. Three pairs remain required for repeatability only after a candidate merits that expense."
+  },
+  "limits": [
+    "One pair on one local repair, sequential order and uncontrolled cache state; native total is input plus output and cached input is a subset.",
+    "Source-backed home semantic assessment is separate from structural acceptance and independent code review; valid output wording and terminal choice differ.",
+    "Protected native launch-message fields prevent plaintext equality verification of the worker handoff; actual pinned worker intake, model/high effort, submission and complete descendant accounting are observed.",
+    "Parent study overhead is separately disclosed as a partial prefix; no whole-study completion or subscription-percentage interpretation."
+  ],
+  "next_sources": [
+    "result.md#prepared-coordinator-and-saved-result-views-live-pair-2026-09-13",
+    "C:\\tmp\\forseti-coordinator-views-pair-20260913\\execution.json",
+    "C:\\tmp\\forseti-coordinator-views-pair-20260913\\call-audit-01.json",
+    "C:\\tmp\\forseti-coordinator-views-pair-20260913\\call-audit-02.json"
+  ]
+}

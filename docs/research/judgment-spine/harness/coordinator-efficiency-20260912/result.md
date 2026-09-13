@@ -1,5 +1,14 @@
 # Coordinator efficiency samples — 2026-09-12
 
+Current coordinator-entry result (2026-09-13): the fresh complete caller,
+coordinator and worker route used **1,161,335 tokens versus 1,604,139** for its
+matched baseline, a **27.604% reduction**, with the frozen local source-quality
+rubric satisfied in both arms. This one-pair diagnostic meets the 25% target;
+it establishes neither repeatability nor subscription drain. See the final
+section and [complete-route evidence](coordinator-complete-route-comparison-20260913.json).
+Earlier sections preserve their historical boundaries and outcomes; their
+pending-review/sample language is superseded by the final adjudication and pair.
+
 ## Execution efficiency: success contract (2026-09-13)
 
 Authorized outcome: implement the four coordinator fixes sequentially, retaining
@@ -45,10 +54,11 @@ use_when:
   - Assessing the coordinator-efficiency candidates, their behavioral evidence and measurement limits.
 authority_boundary: retrieval_only
 open_next:
+  - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/coordinator-complete-route-comparison-20260913.json
   - docs/research/judgment-spine/harness/coordinator-efficiency-20260912/measurement.json
 ```
 
-The latest, corrected **v2.0 instruction-intake sample used 292,264 native
+The historical corrected **v2.0 instruction-intake sample used 292,264 native
 tokens**, versus 402,161 after the earlier change and 197,899 before it. All six
 case outcomes remained correct. V2.0 needed four instruction-reading rounds,
 down from six after-change, with no reading failure, setup repair or command
@@ -847,7 +857,9 @@ response increased from 54,944 to 59,409 tokens, offsetting much of the reductio
 in responses. Both coordinators paid six preparation rounds. Before, an oversized
 instruction request was rejected and narrowed. After, an unsupported reader
 `--help` call failed, then a 17,345-token instruction batch exceeded the outer
-tool's return allowance and four sources were reread. Both runs retried a source
+tool's return allowance. One recovery round requested four sections across
+three files; most had not reached the model in the clipped output. This was not
+four complete rereading passes. Both runs retried a source
 display after Windows Unicode encoding failed. All these costs are included.
 Workers each needed just the native intake, submission and final response.
 
@@ -881,3 +893,456 @@ and consumer fixes, withhold a broad token-saving claim, and address repeated
 source delivery and mechanical verification before spending on a larger model
 study. No production source, runtime behavior, model tier or standing workflow
 was changed by this measurement work unit.
+
+## Prepared coordinator and saved-result views: implementation contract (2026-09-13)
+
+Owner instruction: attempt the bounded code-assisted preparation and review
+proposal. Baseline is `5e4b1b0e1c252b724f5d13795a4a3d7d29562705`; implementation
+uses `codex/coordinator-job-views-20260913` in the existing isolated checkout.
+The consumer is a fresh coordinator for the same general local reconciliation
+repair measured above. The native producer will supply its executable entry;
+the result command will supply the exact original source prompt, saved changed
+component, and verified preservation of everything outside the nomination.
+Both views are generated from the existing pinned job and governing sources,
+not another maintained instruction document. Compact duplicate-leaf requests
+remain on their existing worker route: they deliberately omit raw source bodies
+and cannot support this source-backed coordinator review.
+
+Success requires complete delivery at the outer tool consumer, an unchanged
+worker judgment/submission path, and read-only verification of the saved native
+result against the pinned inputs and raw patch. Missing or changed inputs,
+out-of-scope patches, changed successors/receipts and parseable clipped delivery
+must fail visibly. Repeating a review must return the same view without creating
+or repairing files. Code verifies structure, identity and persistence; the
+coordinator still judges meaning against the full supplied evidence and context.
+The Brown Sugar replay must preserve the three source identities/conditions and
+all 89 unrelated decisions and 39 unrelated nodes. Replaying an existing answer
+is deterministic validation, not a fresh judgment or a measured token saving.
+
+The carried owner checkpoint requires an operator-couriered, different-vendor
+review of the patch **and measurement design**, followed by home adjudication,
+before a fresh model comparison or merge. The next comparison must use matching
+fresh Astra/high coordinators and Sol/high workers, the same frozen nomination,
+evidence and semantic rubric, and complete coordinator-plus-worker accounting
+including failures. Any model work preparing a job belongs in that denominator;
+moving it to the study task must not manufacture a saving. The manual arm keeps
+its existing coordinator-run preparation at base `5e4b1b0`; at this branch,
+preparation output and the method expose `coordinator_prompt`, which would
+contaminate that arm. The generated arm's deterministic preparation may run
+before launch and is timed separately; any model turn that invokes it, reads its
+output or relays `coordinator_prompt` counts in that arm. Both launches carry
+identical coordinator/worker model-effort and output-destination text outside
+the entry being compared. Count a generated-arm run that skips, fails or
+supplements either view as that arm's result; never replace it. Keep study
+setup/collection spend separate and disclose its boundary. Use a frozen
+meaning-based rubric, not answer-file equality, while retaining exact equality
+for the unrelated content. The native comparator's fingerprint-based
+`inconclusive` is neither a quality pass nor a failure. Target: at least 25%
+less total job input-plus-output tokens with preserved quality. This is a
+proposed threshold, **not observed**; one paired sample is diagnostic, and the
+existing three-pair minimum remains necessary for a repeatability claim.
+Subscription-percentage savings remain
+unmeasured.
+
+Deterministic validation completed in the isolated checkout. The generated
+coordinator intake delivered 67,297 UTF-8 bytes in 11 separate bounded content
+notifications; the saved-result view delivered 17,035 bytes in four. The exact
+generated JavaScript wrappers ran through real PowerShell/native CLI subprocesses
+with a tools/notification shim and reconstructed all content byte-for-byte.
+This checks transport construction, not a live model's attention or the desktop
+tool's own truncation behavior. The shared transport also passed Unicode-boundary
+and parseable-middle-clipping tests for the worker and both coordinator views.
+
+The frozen Brown Sugar raw patch was replayed without modification or request
+rebinding (`a8add9d3d741965fd842d8c92c5a16dd23e987be014ddecb483cec088d06cf93`).
+The successor is byte-identical to the prior sample
+(`6d0eb6e8d07ea6b73333f2f7141e4c96159186476119fce5a0ae71b25d127871`), including
+all 89 unrelated decisions and 39 unrelated nodes. The complete original source
+prompt and all three source identities remain available; repeated review changed
+no file and returned the same view. Extraction of the previous worker generator
+from baseline Git source confirmed its generated prompt remains byte-identical
+for the same job/path/hash after the shared transport extraction.
+
+Local evidence is in `C:/tmp/forseti-coordinator-job-views-20260913/result.json`
+and its sibling `dogfood.py`, `prepared.json`, `intake.json`, `view.json` and
+executed `delivery-0.cjs` / `delivery-1.cjs`. The replay used the frozen manifest
+under `C:/tmp/forseti-cycle-entry-actual-20260913/inputs/manifest.json`; all file
+hashes were rechecked. At that deterministic-validation checkpoint, no prior
+run was edited and no new model experiment had run; it established no quality
+improvement or token/subscription saving. The shared
+native validator still explicitly declines to prove semantic truth. Independent
+review and the live comparison were then outstanding; their completed outcomes
+are recorded below.
+
+### Delegated return adjudicated (2026-09-13)
+
+The owner couriered an Anthropic controller's review of frozen PR #1601 commit
+`47d0500820c3cc21910bbfbc51902c45552678e3`. Its four-file working-tree patch was
+freshly verified against that commit; no lifecycle action had occurred. The
+return is decision input, not an independent certification of every resulting
+line. Home adjudication keeps M1–M3: the manual arm uses base `5e4b1b0`, every
+model response doing job preparation or prompt relay belongs to its arm, skipped
+or supplemented views remain counted outcomes, and fingerprint differences do
+not decide semantic quality. The cited prior commissions and frozen comparison
+support these corrections.
+
+F1 is kept with a narrow modification: the launching commission supplies the
+worker selection; the worker's existing `high` effort remains explicit, and a
+conflicting effort stops dispatch. Only a missing worker model is selected under
+the loaded doctrine. This closes the unbound-model source without introducing
+a conflict with the unchanged worker prompt.
+
+Three named residuals were closed within the reviewed scope. The saved-receipt
+comparison now preserves JSON type distinctions; the two type-only tampering
+tests first failed, then passed. The pointed-to runtime payload safety section
+is delivered verbatim from the pinned routing source, failing visibly if its
+heading disappears or becomes ambiguous. Coordinator-only authority pins now
+live separately in the same job: changing either document rejects coordinator
+reads while tests prove the worker can still intake and submit without an
+unused dependency. Shared authorities and semantic inputs retain their checks.
+These home-authored closure lines have focused mechanical verification; they
+are not represented as independently reviewed authorship.
+
+All 53 affected tests passed after adjudication. A fresh replay in
+`C:/tmp/forseti-coordinator-job-views-20260913/adjudication-replay` again produced
+the pinned successor and original source prompt exactly, kept all 89 unrelated
+decisions and 39 unrelated nodes, and preserved the old worker generator output.
+Both exact delivery scripts reconstructed all bytes (68,191-byte coordinator
+intake, 17,098-byte result view in this longer scratch path); repeated review
+wrote nothing. Remaining limits are the disclosed shim/attention boundary,
+code-derived preservation counts independently checked against the real replay,
+and, at adjudication, the absence of measured model savings. The earlier scratch prompt is a
+historical pre-patch artifact, not the current entry.
+
+The required delegated checkpoint and comparison-design adjudication completed.
+They bound one diagnostic pair at the frozen base and candidate revisions,
+with preparation performed inside **each fresh trial coordinator** so no
+model-driven job preparation or relay is moved into excluded study setup. Each
+uses one fresh Sol/high worker; both coordinators use Astra/high. Only the
+candidate consumes the new entry and result views. All attempts, deviations,
+failures and descendants remain in their assigned arm. Freeze the commissions,
+source-based rubric and collection boundary before launch. One pair cannot
+establish the retained three-pair repeatability criterion. No merge or measured
+savings is asserted by this adjudication.
+
+## Prepared coordinator and saved-result views: live pair (2026-09-13)
+
+**The diagnostic pair preserved repair quality but missed the proposed 25%
+efficiency target. PR #1601 remains a draft, unmerged.** Complete native
+coordinator-plus-worker usage fell from 1,102,020 to 1,040,770 tokens: 61,250
+tokens, or **5.558%**, in this pair. This does not establish repeatability or
+subscription-percentage savings. The durable
+[comparison record](coordinator-views-actual-comparison-20260913.json) carries
+the frozen protocol, source hashes, completed actor boundaries, quality
+adjudication, call observations and separate study-cost boundary.
+
+| Completed measurement | Manual at `5e4b1b0` | Generated at `4257033` |
+| --- | ---: | ---: |
+| Coordinator input + output tokens | 959,002 | 899,819 |
+| Sole worker input + output tokens | 143,018 | 140,951 |
+| Total input tokens | 1,092,662 | 1,032,362 |
+| Cached input, already included above | 976,768 | 958,592 |
+| Total output tokens | 9,358 | 8,408 |
+| Total input + output tokens | 1,102,020 | 1,040,770 |
+| Coordinator / worker responses | 17 / 3 | 15 / 3 |
+| Elapsed seconds | 282.998 | 300.675 |
+
+Both coordinators were fresh Astra/high and each dispatched one fresh Sol/high
+worker. Preparation occurred inside each measured coordinator. The manual arm
+used the frozen base, so it could not see the candidate entry; the generated arm
+used the reviewed-and-adjudicated implementation. Both consumed the same four
+hash-verified inputs and wrote the same kind of final answer. No failure,
+additional read or supplemented view was excluded; neither arm was replaced.
+The existing explicit native collector verified completed turns, parent links,
+spawn receipts and every observed descendant. Its coverage is complete for
+both jobs. Protected launch-message fields prevent a plaintext handoff-equality
+claim; the workers' actual pinned intake, model/effort and submission were
+observed. Cache state was sequential and uncontrolled.
+
+Home source-backed adjudication accepted both saved repairs under the rubric
+frozen before launch. The two ownership reports no longer support purchase;
+only the comment explicitly reporting a sale purchase supports that claim.
+The parent author's repurchase of other shades is not transferred to the child
+author. Both results preserve the three candidate identities and conditions,
+all 89 unrelated decisions, all 39 unrelated nodes in order and the other
+response fields. Both keep opposition flags false and avoid causal or prevalence
+claims. Manual retained possession as a nonterminal node; generated retained
+ownership as a descriptive customer-experience claim. That defensible category
+variation is permitted by the frozen rubric; identical wording or final
+compilation was not required or demonstrated. Structural acceptance alone did
+not decide semantic quality, and this local repair does not clear a whole cycle.
+
+The generated route actually executed both views. All native desktop content
+notifications were reassembled with contiguous offsets, matching byte counts
+and the commissioned job end hash, then compared with freshly generated pinned
+content: **68,193 bytes in 12 blocks** for intake and **17,062 bytes in four
+blocks** for the result. The original source prompt was complete. The coordinator
+used the saved-result view without writing its own preservation checker or
+performing another source read afterward. This verifies delivered content and
+observed behavior, not every internal attention decision.
+
+The shortfall is at entry. After reading the commission, the manual coordinator
+made six preparation tool rounds before dispatch; generated made seven. Both
+sent roughly 13.7k tokens of instruction output through the outer tool's 10k
+return limit. Manual recovered with one round requesting four sections;
+generated recovered tiering and safety in one round, then another tiering
+range in a second. These were narrowed recovery requests, not repeated full
+source tours. Generated intake then delivered AGENTS, overlay, preflight
+defaults, claim support and tiering after those sources had already been
+requested during preparation. The new entry therefore supplemented the old
+entry instead of replacing it in this actual route.
+
+The later work shrank, but the coordinator still consumed **86.46%** of the
+generated job's tokens. Manual issued waits of 10, 10 and 60 seconds; generated
+issued two 60-second waits. These differences remain in the comparison, so
+5.558% is the observed combined result, not a causal estimate for the result
+view alone. The generated run was 17.677 seconds slower; no speedup is claimed.
+
+The two jobs used **2,142,790 tokens**. Separately, study setup, monitoring,
+collection and initial evaluation in this task used **3,491,810 tokens across
+24 responses** from 2026-09-13 12:22:00 UTC through the last completed usage
+record at 12:46:22.943 UTC (cutoff 12:46:23). This is a partial native prefix,
+excluding earlier implementation/adjudication, the trial descendants and later
+report/PR/closeout work; it is not a whole-study total. It includes setup
+corrections: path-separator substitution initially retained an old run root,
+then text-mode newline expansion failed readback. Both were detected and fixed
+before any model launch, with initial drafts preserved. Setup was not free and
+was not hidden in either arm's saving.
+
+Do not land this as the promised material efficiency fix. The smallest next
+target is to make generated preparation/intake the actual first entry for a
+cold coordinator, removing the preceding overlapping source discovery while
+preserving governing instructions and counting all model preparation in that
+same job. Keep the saved-result verification available in the candidate; another
+instruction document does not close this entry gap. No further model pair was
+launched. The existing three-pair minimum remains necessary for a repeatability
+claim, once a candidate merits that expense. Run-local frozen evidence and
+collection scripts remain under
+`C:/tmp/forseti-coordinator-views-pair-20260913`.
+
+## Entry, setup and collection completion: success contract (2026-09-13)
+
+The owner authorized implementation of the three-boundary correction after the
+overhead diagnosis. Work continues in the existing isolated PR #1601 checkout
+from `200b49e27ff7875595898c82d8c0fe92386741d2`.
+
+`SUCCESS_CONTRACT`: generate the repair coordinator's commission from explicit
+bindings with one byte-stable writer; make its starting operation prepare and
+deliver the actual intake without the old source-discovery tour; and complete
+the existing accounting/checking route so a selected task includes its workers
+and presents verified saved results for source judgment together. Normal
+coordination, worker judgment, evidence bytes, unrelated content and honest
+unknown/failure states remain invariant. There is no model-tier change or new
+general workflow framework.
+
+Signals: path separators, apostrophes, Unicode and existing newline styles must
+not leave stale destinations or change captured inputs; the generated entry
+itself must execute the supported first operation with complete delivery;
+automatic collection of the frozen jobs must reproduce 1,102,020 and 1,040,770
+tokens including their workers. Missing, conflicting or ambiguous child bindings
+must not become complete coverage. The consolidated result must preserve the
+original source prompt and actual saved component, all 89 unrelated decisions
+and 39 unrelated nodes, and explicitly leave semantic judgment to the model.
+An isolated helper passing while the real caller retains the manual route is
+the bound near-miss. Tests/replay establish mechanics; a later matched sample
+must establish fewer model rounds and the proposed 25% token saving.
+
+Execution decisions are agent-owned and locked: reuse the existing native
+repair and efficiency interfaces; replace the faulty caller rather than add a
+second maintained instruction copy; accept child ownership only from observed
+launch/ancestry and turn boundaries; preserve all prior unfavorable evidence.
+The carried operator-couriered different-vendor review of implementation and
+measurement design, followed by home adjudication, remains required before a
+new model pair or merge. Deterministic validation is authorized now. Source
+invariants or attribution ambiguity stop the affected path rather than invent
+a success or silently broaden the sample.
+
+### Implementation and saved-run replay outcome (2026-09-13)
+
+The three corrections are implemented in the isolated PR #1601 worktree.
+`prepare-reconciliation-repair-coordinator` now writes the actual launch
+commission from explicit input, model and destination fields. Its starting
+operation prepares the native job and delivers the remaining coordinator intake
+in one invocation, after the commission supplies the pinned project entry.
+The owning local-repair procedure points to this route. The already-prepared
+job entry remains available without adding a second intake to the cold route.
+
+`review-reconciliation-repair` can combine the actual saved result, complete
+source prompt, unchanged-scope checks and selected completed-task accounting.
+The caller can use the exact launched agent path instead of hand-discovering
+session UUIDs. Native collection now follows verified fresh child launches
+when a nested task shares its ancestor's billing turn. Ambiguous/reused children,
+missing launches, conflicting attribution and incomplete turns remain unknown;
+unknown coverage supplies no complete total. This extends the shared Desktop
+collector, while the new starting operation is bounded to general local repair.
+
+[Deterministic replay evidence](entry_completion_evidence.json) records execution
+of both generated starting commands and combined checking commands through
+Node and Windows PowerShell against the actual native CLI. No model was called.
+The replay's code is identified by file hashes on the working delta from
+`200b49e27ff7875595898c82d8c0fe92386741d2`; it is not a new measured model sample.
+
+| Original completed sample | Native total recovered automatically | Model responses in original sample | Unrelated decisions/nodes preserved |
+| --- | ---: | ---: | ---: |
+| Manual entry | 1,102,020 | 20 | 89 / 39 |
+| Previous generated entry | 1,040,770 | 18 | 89 / 39 |
+
+Each new starting command performed one native operation. Each combined view
+performed one native operation and delivered every content section completely.
+Replaying each original raw patch into a freshly prepared job produced a
+byte-identical successor; all 26 protected input, saved-result and native-log
+files stayed unchanged. The worker prompt and delivery functions are unchanged
+from `42570334ffc963df7b6418753c88b1b67c7d2598`. These are preservation and
+accounting observations, not a new semantic-quality award or measured reduction
+in model turns.
+
+Validation: 598 tests passed across the semantic integration, Desktop accounting,
+efficiency runner and batch-report unit files. New negative cases cover all
+twelve entry pins, changed destinations, conflicting/missing child evidence,
+reused sessions and active tasks. The actual generated-entry test initially
+failed because Windows PowerShell removed JSON quotes in native argument
+passing; encoding that structured argument fixed the observed failure. The
+passing route includes apostrophes, Unicode paths and mixed input newline styles
+without rewriting captured bytes. Earlier failures and the unfavorable 5.558%
+result remain retained.
+
+The carried different-vendor courier review and home adjudication remain due
+before a live pair or merge. Then use the actual generated commission for one
+matched pair under the frozen source-quality rubric and model/high settings,
+retaining every first attempt, failure and additional read. Count the full
+coordinator plus worker from start through completed native accounting; keep
+study preparation/evaluation overhead separate and report it alongside the
+pair. Launcher work that a normal cycle would still perform for an arm, such
+as rendering or authoring its commission and reading its combined result view,
+is that arm's route cost, not study overhead; otherwise work displaced from
+the coordinator to its launcher would appear as a saving. Success still
+requires preserved source quality, fewer preparation and checking model
+rounds, and at least 25% lower total tokens. A small pair is a
+directional test; it cannot establish subscription quota drain or a general
+cycle-wide saving. No new model experiment or merge occurred in this work unit.
+
+### Entry completion: delegated return adjudicated (2026-09-13)
+
+The operator-couriered reviewer reported Anthropic lineage and review of clean
+`05af50c652980cda2690ff3d706b460306df1de7`. The home lane verified the six-file
+working diff, the target revision, and the reviewer's postpatch replay hashes
+against the actual files before adjudicating. The reviewer observed no competing
+edits but could not map every other host process to a worktree; this is an
+observation limit, not proof that no other process existed.
+
+Accepted F1: an unlaunched child with unknown creation time cannot be excluded
+with complete coverage. Accepted F2 with a class-level extension: child usage
+without a start event must remain visible and unknown; the home sweep also
+reproduced omitted parent usage and missing turn identities under both automatic
+and explicit selection. Four new home counterexamples failed before correction
+and passed afterwards. These cases now invalidate complete coverage instead of
+silently dropping cost. Accepted F3: resolve caller-relative paths before
+generating a command that runs from the source checkout. Accepted F4: charge
+normal launcher work to the route. Accepted the guardian/undated-child wording
+correction. No design-level blocker or material review finding remains open.
+
+The 47 Desktop-accounting tests and focused entry/combined-view tests pass.
+The final home replay at
+`C:/tmp/forseti-entry-review-05af50c6-home-final/evidence.json` again recovers
+1,102,020 and 1,040,770 tokens, byte-identical successors, the 89/39 preservation
+counts, and all 26 protected files unchanged. This is working-tree evidence
+after adjudication, identified by its recorded source hashes, with zero model
+calls. The earlier committed replay and unfavorable measurements remain intact.
+The reported 598-test result above still describes the pre-review version.
+
+The review and home-adjudication condition for the next matched pair is now
+satisfied. Freeze the adjudicated code before execution. The pair will include
+one fresh normal caller per arm, each rendering its commission, launching one
+repair coordinator, and checking the completed saved result with the shared
+native collector. Each repair coordinator launches one corrective worker.
+This makes caller work observable inside a completed task boundary instead of
+allocating an unfinished study task's tokens. Both arms have the same actor
+topology; callers perform dispatch and mechanical result checks, not an extra
+semantic review. Source-quality evaluation remains outside the tested actors.
+
+Use the same frozen three-source workload/rubric, caller and coordinator
+`gpt-6-astra`, worker `gpt-5.6-sol`, fresh histories and high effort throughout.
+Run one manual baseline and one adjudicated candidate, retaining all first
+attempts and stopping on a material source/consumer failure. Both launchers use
+explicit-field, deterministic setup; baseline formatting accidents are not
+recreated to inflate its cost. The candidate must consume its actual generated
+commission. Compare the full caller/coordinator/worker route against the fresh
+baseline for the 25% signal; also show coordinator/worker subtotals for continuity
+with the older two-actor records. Those older totals are not the new full-route
+denominator. Estimate six fresh actor contexts and roughly 2–4 million total
+request tokens for this diagnostic pair; actual usage and uncertainty govern.
+No repeatability, subscription-drain or whole-cycle claim follows from one pair.
+
+### Entry completion: fresh complete-route pair (2026-09-13)
+
+[The native evidence](coordinator-complete-route-comparison-20260913.json) binds
+the clean baseline `5e4b1b0e1c252b724f5d13795a4a3d7d29562705` and adjudicated
+candidate `d1d8a1899ae6779638c20255d35333797bbeb343`, the exact four original
+input hashes, commissioned and observed models/high effort, all six fresh
+actors, completed accounting, saved results and the private quality rubric.
+The baseline ran first, then the candidate, with no replacement pair. Actual
+rendered worker messages are byte-identical when their paths are held equal.
+The candidate consumed the real native-generated coordinator commission.
+
+| Actor / outcome | Fresh baseline | Fresh candidate |
+| --- | ---: | ---: |
+| Normal caller tokens | 489,114 | 446,244 |
+| Repair coordinator tokens | 974,530 | 467,843 |
+| Corrective worker tokens | 140,495 | 247,248 |
+| **Complete route tokens** | **1,604,139** | **1,161,335** |
+| Model responses: caller / coordinator / worker | 12 / 17 / 3 | 11 / 9 / 5 |
+| Coordinator responses through worker dispatch | 7 | 3 |
+| Accounting coverage | complete | complete |
+| Source-quality rubric | pass | pass |
+| Unrelated decisions / nodes preserved | 89 / 39 | 89 / 39 |
+
+The full-route reduction is **442,804 tokens, or 27.604%**. The repair
+coordinator alone falls 51.993%; coordinator plus worker falls from 1,115,025
+to 715,091 (35.868%). The older 1,102,020/1,040,770 two-actor results and their
+5.558% reduction remain historical and are not this pair's denominator.
+
+The candidate coordinator uses one preparation/intake operation and one
+complete saved-result view. Its trace contains no separate instruction-reading
+tour or handwritten scope-check script. Baseline instruction loading hit one
+outer-output truncation and recovered, then used separate job/source/result
+reads and a handwritten preservation check. Those costs remain in its total.
+Both repairs retain the explicit sale purchase and the two possession reports
+without awarding the latter an acquisition route. Category/wording variation
+is defensible under the frozen rubric. Both saved answers are truthful about
+local scope; both affected nodes retain `opposition_checked=false`.
+
+Residuals are retained, not corrected away. The candidate worker first wrote
+a malformed patch, then mistook a successful empty-object tool return for
+failure because it expected `Done!`. It made a pre-submit wording edit and
+submitted once; there was no failed semantic submission, host rescue or
+replacement judgment. Its five responses used 106,753 more tokens than the
+baseline worker's three. Both callers also reread the adapter-written check even
+though its writer already performed readback. The candidate has zero observed
+output-truncation markers. These observations bound the coordinator fix; they
+do not establish that every remaining action is efficient.
+
+All normal caller rendering, dispatch, waits and result checks are charged to
+their respective routes. One-time home review, implementation adjudication,
+study setup and evaluation are separate: a native prefix observation records
+**6,095,095 root-only tokens across 51 responses**, excluding the six measured
+actors. The home turn was still active, so its complete total remains null and
+the observation excludes later documentation/publication/final reporting. The
+initial home-prefix lookup searched only the children's September 13 folder
+and found no root; it was unknown, never zero cost. The corrected lookup binds
+the root's actual September 12 rollout. This work unit does not claim net token
+savings or subscription-percentage savings.
+
+Two setup faults were caught before model execution: an AST check assumed the
+baseline's inline transport was a named helper, and the temporary adapter used
+Windows cp1252 output for Unicode JSON. Original setup drafts and failed dry-run
+artifacts are retained. Actual worker-message comparison and complete delivery
+through Windows PowerShell passed before either arm launched. The adapter is
+run-local measurement machinery, not a new production framework or mandatory
+cycle step.
+
+The source-quality and 25% diagnostic conditions are satisfied. Required CI
+passed on the measured code; only evidence/reporting changes follow this pair.
+The courier review and home adjudication above are complete. PR #1601 owns
+publication; its current landing state must be read from the PR. One pair is
+insufficient for repeatability, controlled cache, broader cycle-quality, or
+subscription-drain claims. No additional model pair is commissioned here.

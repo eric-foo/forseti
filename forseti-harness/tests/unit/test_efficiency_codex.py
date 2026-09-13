@@ -1,5 +1,6 @@
 """Counterexamples for truthful Codex usage and task coverage."""
 import json
+import pytest
 
 from reports.efficiency_codex import collect_codex_exec, collect_codex_rollouts, collect_desktop_task
 
@@ -258,6 +259,174 @@ def test_auto_discovery_spawn_receipt_resolves_metadata_path(tmp_path):
     result = collect_desktop_task(tmp_path, "root", "turn")
     assert result["coverage"] == "complete"
     assert result["child_thread_ids"] == ["child"]
+
+
+def nested_rows(thread="root", parent="study", agent_path="/study/root", target=None):
+    rows = auto_rows(thread, parent, root_turn="study-turn", agent_path=agent_path)
+    if target:
+        rows[3:3] = [
+            {"type": "response_item", "payload": {"type": "function_call",
+                "name": "spawn_agent", "call_id": "spawn1"}},
+            {"type": "response_item", "payload": {"type": "function_call_output",
+                "call_id": "spawn1", "output": json.dumps({"task_name": target})}},
+        ]
+    return rows
+
+
+def test_nested_task_counts_receipt_bound_workers_with_ancestor_billing_turn(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    write(tmp_path, nested_rows("child", "root", "/study/root/worker", "/study/root/worker/helper"), "child.jsonl")
+    write(tmp_path, nested_rows("grandchild", "child", "/study/root/worker/helper"), "grandchild.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete", result["issues"]
+    assert result["child_thread_ids"] == ["child", "grandchild"]
+    assert sum(a["usage"]["total_tokens"] for a in result["attempts"]) == 39
+
+
+def test_nested_task_shared_billing_alone_does_not_admit_child(tmp_path):
+    write(tmp_path, nested_rows())
+    write(tmp_path, nested_rows("child", "root", "/study/root/worker"), "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_launch_binding_missing" in result["issues"]
+
+
+def test_nested_task_receipt_cannot_rebind_preexisting_child(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    child[0]["payload"]["timestamp"] = "2026-09-04T00:00:00Z"
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_spawn_session_not_fresh" in result["issues"]
+
+
+def test_nested_task_old_unlaunched_child_does_not_taint_selected_turn(tmp_path):
+    write(tmp_path, nested_rows())
+    child = nested_rows("child", "root", "/study/root/old-worker")
+    child[0]["payload"]["timestamp"] = "2026-09-04T00:00:00Z"
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete", result["issues"]
+    assert result["child_thread_ids"] == []
+
+
+def test_nested_task_reused_child_turns_remain_ambiguous(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    extra = json.loads(json.dumps(child[1:]))
+    for row in extra:
+        row["payload"]["turn_id"] = "later-turn"
+        if row["type"] == "token_usage_record":
+            row["payload"]["response_id"] = "response-2"
+    write(tmp_path, child + extra, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_turn_binding_ambiguous" in result["issues"]
+
+
+def test_nested_task_conflicting_billing_does_not_disappear_from_usage(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    child[3]["payload"]["root_turn_id"] = "foreign-turn"
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_root_attribution_conflict" in result["issues"]
+    assert result["child_thread_ids"] == ["child"]
+    assert sum(a["usage"]["total_tokens"] for a in result["attempts"]) == 26
+
+
+def test_nested_task_fresh_metadata_cannot_rebind_old_turn(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    child[1]["timestamp"] = "2026-09-04T00:00:00Z"
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_start_precedes_launch" in result["issues"]
+
+
+def test_nested_task_child_of_unknown_creation_time_stays_unknown(tmp_path):
+    write(tmp_path, nested_rows())
+    child = nested_rows("child", "root", "/study/root/worker")
+    del child[0]["payload"]["timestamp"]
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_launch_binding_missing" in result["issues"]
+
+
+def test_nested_task_child_usage_without_started_turn_is_not_dropped(tmp_path):
+    write(tmp_path, nested_rows(target="/study/root/worker"))
+    child = nested_rows("child", "root", "/study/root/worker")
+    extra = json.loads(json.dumps(child[3]))
+    extra["payload"].update(turn_id="unstarted", response_id="response-x")
+    child.insert(4, extra)
+    write(tmp_path, child, "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "nested_child_turn_binding_ambiguous" in result["issues"]
+    assert sum(a["usage"]["total_tokens"] for a in result["attempts"]) == 39
+
+
+@pytest.mark.parametrize("actor,orphan_turn", [("root", "unstarted"), ("root", None), ("child", None)])
+def test_fresh_task_unbound_usage_cannot_claim_complete(tmp_path, actor, orphan_turn):
+    rows = nested_rows(target="/study/root/worker" if actor == "child" else None)
+    target = nested_rows("child", "root", "/study/root/worker") if actor == "child" else rows
+    extra = json.loads(json.dumps(target[3]))
+    extra["payload"].update(turn_id=orphan_turn, response_id="orphan-response")
+    target.insert(4, extra)
+    write(tmp_path, rows)
+    if actor == "child":
+        write(tmp_path, target, "child.jsonl")
+    result = collect_desktop_task(tmp_path, agent_path="/study/root")
+    assert result["coverage"] == "unknown"
+    expected = "agent_turn_missing_or_ambiguous" if actor == "root" else "nested_child_usage_turn_missing"
+    assert expected in result["issues"]
+
+
+def test_explicit_turn_selection_keeps_missing_usage_identity_unknown(tmp_path):
+    rows = nested_rows()
+    extra = json.loads(json.dumps(rows[3]))
+    extra["payload"].update(turn_id=None, response_id="orphan-response")
+    rows.insert(4, extra)
+    write(tmp_path, rows)
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "usage_turn_missing" in result["issues"]
+
+
+def test_nested_guardian_extends_completed_accounting_boundary(tmp_path):
+    write(tmp_path, nested_rows())
+    guardian = nested_rows("guardian", "root", "/study/root/guardian")
+    guardian[0]["payload"]["source"] = {"subagent": {"other": "guardian"}}
+    guardian[-1]["timestamp"] = "2026-09-05T00:00:04Z"
+    write(tmp_path, guardian, "guardian.jsonl")
+    result = collect_desktop_task(tmp_path, agent_path="/study/root")
+    assert result["coverage"] == "complete", result["issues"]
+    assert result["child_thread_ids"] == ["guardian"]
+    assert result["elapsed_seconds"] == 4
+
+
+@pytest.mark.parametrize("mutation,issue", [
+    ("missing", "agent_path_missing_or_ambiguous"),
+    ("duplicate", "agent_path_missing_or_ambiguous"),
+    ("reused", "agent_turn_missing_or_ambiguous"),
+    ("active", "turn_boundary_incomplete"),
+])
+def test_agent_path_selector_does_not_invent_a_complete_task(tmp_path, mutation, issue):
+    rows = nested_rows()
+    if mutation == "active":
+        rows.pop()
+    elif mutation == "reused":
+        rows.append({"type": "event_msg", "payload": {"type": "task_started", "turn_id": "later"}})
+    write(tmp_path, rows)
+    if mutation == "duplicate":
+        write(tmp_path, nested_rows("second"), "second.jsonl")
+    result = collect_desktop_task(tmp_path, agent_path="/missing" if mutation == "missing" else "/study/root")
+    assert result["coverage"] == "unknown"
+    assert issue in result["issues"]
 
 
 def test_auto_discovery_active_root_has_no_invented_duration(tmp_path):

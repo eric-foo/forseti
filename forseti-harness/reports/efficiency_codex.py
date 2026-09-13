@@ -288,6 +288,9 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
                         delegation_seen |= short_name in CHILD_TOOLS
                 elif payload.get("type") in {"function_call_output", "custom_tool_call_output"}:
                     _observe_tool_output(payload.get("output"), diagnostics)
+            elif kind == "token_usage_record" and (not isinstance(turn, str) or not turn):
+                if current is None or current in wanted:
+                    issues.append("usage_turn_missing")
             elif kind == "token_usage_record" and turn in wanted:
                 if payload.get("thread_id") != thread:
                     issues.append("usage_thread_mismatch")
@@ -343,7 +346,8 @@ def collect_codex_rollouts(paths: Iterable[str | Path], *,
                     else "unknown", parent_links=links)
 
 
-def discover_desktop_sessions(session_root: str | Path, root_thread_id: str) -> dict:
+def discover_desktop_sessions(session_root: str | Path, root_thread_id: str | None,
+                              *, agent_path: str | None = None) -> dict:
     """Inventory first-row metadata only, recursively inside an explicit folder.
 
     Only matched root/descendant paths are returned. No unrelated conversation
@@ -380,6 +384,11 @@ def discover_desktop_sessions(session_root: str | Path, root_thread_id: str) -> 
                             if isinstance(source, dict) and isinstance(subagent, dict) else source}
         except (OSError, ValueError, AttributeError):
             issues.append("session_metadata_unreadable")
+    if agent_path is not None:
+        matches = [ident for ident, meta in metas.items() if meta.get("agent_path") == agent_path]
+        if len(matches) != 1:
+            return {"sessions": {}, "issues": sorted(set(issues + ["agent_path_missing_or_ambiguous"]))}
+        root_thread_id = matches[0]
     linked = {root_thread_id}
     while True:
         more = {ident for ident, meta in metas.items() if meta["parent_thread_id"] in linked}
@@ -392,18 +401,131 @@ def discover_desktop_sessions(session_root: str | Path, root_thread_id: str) -> 
     if any(ident in linked for ident, _ in duplicates):
         issues.append("duplicate_session_metadata")
     return {"sessions": {ident: metas[ident] for ident in sorted(linked) if ident in metas},
-            "issues": sorted(set(issues))}
+            "issues": sorted(set(issues)), "root_thread_id": root_thread_id}
 
 
-def collect_desktop_task(session_root: str | Path, root_thread_id: str, turn_id: str) -> dict:
+def _nested_task_selection(sessions: dict, snapshots: dict, root: str, turn: str,
+                           billing_roots: set[str]) -> tuple[dict, list[str]]:
+    """Bind fresh child turns to selected launches, not a shared ancestor's bill.
+
+    Reused children require a more precise turn binding than Desktop currently
+    exposes in protected follow-up arguments. Keep those cases unknown rather
+    than guessing from overlapping timestamps or silently dropping requests.
+    """
+    selected, issues, visited = {root: [turn]}, [], set()
+    if len(billing_roots) != 1:
+        issues.append("nested_root_attribution_ambiguous")
+    bounds = {}
+    for thread, meta in sessions.items():
+        starts, ends = {}, {}
+        for row in snapshots[meta["path"]][0]:
+            p = row.get("payload", {})
+            if row.get("type") == "event_msg" and isinstance(p, dict):
+                if p.get("type") == "task_started":
+                    starts[p.get("turn_id")] = _stamp(row.get("timestamp"))
+                elif p.get("type") == "task_complete":
+                    ends[p.get("turn_id")] = _stamp(row.get("timestamp"))
+        bounds[thread] = {key: (began, ends.get(key)) for key, began in starts.items()
+                          if isinstance(key, str)}
+
+    def created_in(parent, parent_turn, child):
+        began, ended = bounds[parent].get(parent_turn, (None, None))
+        created = _stamp(sessions[child].get("timestamp"))
+        return (began is not None and created is not None and created >= began
+                and (ended is None or created <= ended))
+
+    while set(selected) - visited:
+        parent = sorted(set(selected) - visited)[0]
+        visited.add(parent)
+        current, pending, launched = None, {}, {}
+        for row in snapshots[sessions[parent]["path"]][0]:
+            p = row.get("payload", {})
+            if not isinstance(p, dict):
+                continue
+            if row.get("type") == "turn_context" or (row.get("type") == "event_msg"
+                    and p.get("type") == "task_started"):
+                current = p.get("turn_id")
+            if row.get("type") != "response_item":
+                continue
+            name = p.get("name", "").split(".")[-1]
+            if current in selected[parent] and p.get("type") == "function_call":
+                if name == "spawn_agent":
+                    pending[p.get("call_id")] = current
+                elif name in CHILD_TOOLS:
+                    issues.append("nested_followup_turn_binding_unavailable")
+            elif p.get("type") == "function_call_output" and p.get("call_id") in pending:
+                owner_turn = pending.pop(p["call_id"])
+                try:
+                    receipt = json.loads(p.get("output", ""))
+                except (TypeError, ValueError):
+                    receipt = {}
+                task_name = receipt.get("task_name") if isinstance(receipt, dict) else None
+                matches = [key for key, meta in sessions.items() if isinstance(task_name, str)
+                           and meta.get("agent_path") == task_name and meta.get("parent_thread_id") == parent]
+                if len(matches) != 1:
+                    issues.append("spawn_receipt_child_usage_missing_or_ambiguous")
+                else:
+                    launched[matches[0]] = owner_turn
+        if pending:
+            issues.append("spawn_receipt_missing")
+        # Runtime-owned guardians have source metadata rather than model launch calls.
+        for child, meta in sessions.items():
+            owners = [t for t in selected[parent] if meta.get("parent_thread_id") == parent
+                      and meta.get("source_kind") == "guardian" and created_in(parent, t, child)]
+            if len(owners) == 1:
+                launched[child] = owners[0]
+        for child, owner_turn in launched.items():
+            if not created_in(parent, owner_turn, child):
+                issues.append("nested_spawn_session_not_fresh")
+                continue
+            # Usage rows without a started turn must not vanish from the selection.
+            usage_rows = [row["payload"] for row in snapshots[sessions[child]["path"]][0]
+                          if row.get("type") == "token_usage_record" and isinstance(row.get("payload"), dict)]
+            if any(not isinstance(p.get("turn_id"), str) or not p["turn_id"] for p in usage_rows):
+                issues.append("nested_child_usage_turn_missing")
+            turns = sorted(set(bounds[child]) | {p["turn_id"] for p in usage_rows
+                                                if isinstance(p.get("turn_id"), str) and p["turn_id"]})
+            if len(turns) != 1:
+                issues.append("nested_child_turn_binding_ambiguous")
+            created = _stamp(sessions[child].get("timestamp"))
+            if any(bounds[child].get(t, (None,))[0] is None or bounds[child][t][0] < created
+                   for t in turns):
+                issues.append("nested_child_start_precedes_launch")
+            selected[child] = turns
+            attributed = {p.get("root_turn_id") for row in snapshots[sessions[child]["path"]][0]
+                          if row.get("type") == "token_usage_record"
+                          and isinstance(p := row.get("payload"), dict) and p.get("turn_id") in turns}
+            if not attributed or None in attributed:
+                issues.append("child_turn_root_attribution_missing")
+            elif attributed != billing_roots:
+                issues.append("nested_child_root_attribution_conflict")
+    for child, meta in sessions.items():
+        parent = meta.get("parent_thread_id")
+        # Unknown creation time cannot prove a child predates the selected turn.
+        if child not in selected and parent in selected and (
+                _stamp(meta.get("timestamp")) is None
+                or any(created_in(parent, t, child) for t in selected[parent])):
+            issues.append("nested_child_launch_binding_missing")
+    return selected, issues
+
+
+def collect_desktop_task(session_root: str | Path, root_thread_id: str | None = None,
+                         turn_id: str | None = None, *, agent_path: str | None = None) -> dict:
     """Collect one Desktop root turn plus automatically linked child/guardian work.
 
     Root-turn attribution comes from observed token_usage_record.root_turn_id.
+    A nested selected task shares its ancestor's billing turn, so its fresh
+    workers additionally require observed launch/ancestry and turn bindings.
     Unattributed child turns overlapping the root interval remain unknown. The
     same snapshots feed selection and counting, so a growing rollout cannot
     silently change which requests are included between the two operations.
     """
-    inventory = discover_desktop_sessions(session_root, root_thread_id)
+    if agent_path is not None and (root_thread_id is not None or turn_id is not None):
+        raise ValueError("select an agent path or explicit thread and turn, not both")
+    if agent_path is None and (root_thread_id is None or turn_id is None):
+        raise ValueError("supply an agent path or both thread and turn")
+    inventory = discover_desktop_sessions(session_root, root_thread_id, agent_path=agent_path)
+    root_thread_id = inventory.get("root_thread_id", root_thread_id)
     sessions = inventory["sessions"]
     issues = list(inventory["issues"])
     snapshots = {meta["path"]: _events(meta["path"]) for meta in sessions.values()}
@@ -412,6 +534,15 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str, turn_id:
         return _summary([], issues, source_kind="codex_desktop_rollout", thread_ids=[],
                         child_thread_ids=[], child_coverage="unknown", tools={})
     root_rows = snapshots[root_meta["path"]][0]
+    if agent_path is not None:
+        turns = {p.get("turn_id") for row in root_rows if isinstance(p := row.get("payload"), dict)
+                 and (row.get("type") == "token_usage_record" or
+                      (row.get("type") == "event_msg" and p.get("type") == "task_started"))}
+        if len(turns) != 1 or not all(isinstance(t, str) and t for t in turns):
+            return _summary([], issues + ["agent_turn_missing_or_ambiguous"],
+                source_kind="codex_desktop_rollout", thread_ids=[root_thread_id],
+                child_thread_ids=[], child_coverage="unknown", tools={})
+        turn_id = next(iter(turns))
     start = end = None
     for row in root_rows:
         p = row.get("payload", {})
@@ -422,8 +553,13 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str, turn_id:
                 end = row.get("timestamp")
     selected = {root_thread_id: [turn_id]}
     start_time, end_time = _stamp(start), _stamp(end)
+    billing_roots = {p["root_turn_id"] for row in root_rows
+                     if row.get("type") == "token_usage_record"
+                     and isinstance(p := row.get("payload"), dict) and p.get("turn_id") == turn_id
+                     and isinstance(p.get("root_turn_id"), str)}
+    nested = bool(root_meta.get("parent_thread_id")) and billing_roots != {turn_id}
     for thread, meta in sessions.items():
-        if thread == root_thread_id:
+        if thread == root_thread_id or nested:
             continue
         rows, read_issues = snapshots[meta["path"]]
         # Descendants created after a finished root turn cannot belong to it.
@@ -462,6 +598,10 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str, turn_id:
                 issues.append("child_usage_or_boundary_missing")
         if wanted:
             selected[thread] = sorted(wanted)
+    if nested:
+        selected, nested_issues = _nested_task_selection(
+            sessions, snapshots, root_thread_id, turn_id, billing_roots)
+        issues.extend(nested_issues)
     # Preserve ancestry even if an intermediate thread has no selected requests.
     for thread in list(selected):
         parent = sessions[thread].get("parent_thread_id")
@@ -511,7 +651,8 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str, turn_id:
         parent_links=links, _snapshots=snapshots)
     result["issues"] = sorted(set(result["issues"] + issues))
     result["coverage"] = "unknown" if result["issues"] else "complete"
-    result["child_coverage"] = "session_metadata_and_root_turn_attribution"
+    result["child_coverage"] = ("session_metadata_launch_receipts_and_turn_attribution" if nested
+                                else "session_metadata_and_root_turn_attribution")
     result["selected_turns"] = selected
     result["source_kinds"] = {thread: sessions[thread]["source_kind"] for thread in selected}
     result["root_started_at"] = start
