@@ -4124,6 +4124,145 @@ def test_local_repair_generated_job_delivers_and_submits_exact_repair(tmp_path):
             operation()
 
 
+def _prepared_coordinator_repair(tmp_path):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_local_repair, _write_json
+    bundle, stage, response, request, patch = _local_repair_fixture()
+    paths = [tmp_path / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for path, value in zip(paths, (bundle, stage, response, request["nomination"]), strict=True):
+        _write_json(path, value)
+    prepared = prepare_reconciliation_local_repair(bundle_path=paths[0], stage_path=paths[1],
+        failed_response_path=paths[2], nomination_path=paths[3], output_dir=tmp_path / "repair")
+    job_path = Path(prepared["job_path"])
+    raw = job_path.with_suffix(".raw.json")
+    _write_json(raw, patch)
+    return prepared, {"job_path": job_path, "expected_sha256": prepared["job_sha256"]}, raw
+
+
+def test_repair_coordinator_cli_intake_and_saved_view_are_complete_read_only(tmp_path, capsys):
+    from runners.run_semantic_evidence_integration import main, submit_judgment_job, _load_object
+    prepared, args, raw = _prepared_coordinator_repair(tmp_path)
+    cli = ["--job", str(args["job_path"]), "--job-sha256", args["expected_sha256"]]
+    assert main(["intake-reconciliation-repair-coordinator", *cli]) == 0
+    intake = json.loads(capsys.readouterr().out)
+    job = _load_object(args["job_path"])
+    assigned = json.loads(intake["content"]["assigned_job"])
+    assert assigned["worker_prompt"] == prepared["worker_prompt"]
+    assert assigned["inputs"] == job["inputs"]
+    assert "review-reconciliation-repair" in prepared["coordinator_prompt"]
+    for name in ("agents", "overlay", "preflight_defaults", "claim_support", "model_tiering"):
+        assert intake["content"][name] == Path(job["inputs"][name]["path"]).read_bytes().decode("utf-8-sig")
+    receipt = submit_judgment_job(**args, response_path=raw)
+    before_files = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    views = []
+    for _ in range(2):
+        assert main(["review-reconciliation-repair", *cli, "--response", str(raw)]) == 0
+        views.append(json.loads(capsys.readouterr().out))
+    assert views[0] == views[1]
+    assert before_files == {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    view = views[0]
+    checks = json.loads(view["content"]["persistence_and_scope"])
+    assert checks["unchanged_scope_verified"] is True
+    assert checks["unchanged_node_count"] == checks["unchanged_decision_count"] == 1
+    assert checks["semantic_truth_proven"] is False
+    assert checks["receipt"]["successor_sha256"] == receipt["successor_sha256"]
+    request = _load_object(Path(job["inputs"]["repair_request"]["path"]))["request"]
+    assert view["content"]["original_source_prompt"] == request["prompt"] + "\n"
+    component = json.loads(view["content"]["saved_component"])
+    saved = _load_object(Path(receipt["response_path"]))
+    assert component["semantic_nodes"] == [n for n in saved["semantic_nodes"] if n["semantic_node_key"] == "affected"]
+    assert component["decisions_by_candidate_ref"] == {
+        ref: saved["decisions_by_candidate_ref"][ref] for ref in request["candidate_refs"]}
+    for delivered in (intake, view):
+        assert delivered["intake_end"] == args["expected_sha256"]
+        assert delivered["content_bytes"] == {
+            name: len(value.encode("utf-8")) for name, value in delivered["content"].items()}
+
+
+@pytest.mark.parametrize("target", ["bundle", "binding", "failed_response", "repair_request", "prompt", "claim_support", "model_tiering"])
+def test_repair_coordinator_rejects_changed_pins_before_emitting_content(tmp_path, capsys, target):
+    import hashlib
+    from runners.run_semantic_evidence_integration import main, _load_object
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    job = _load_object(args["job_path"])
+    # Isolate the selected input before corrupting it; never edit repository authority in a test.
+    copy = tmp_path / "isolated-input"
+    copy.write_bytes(Path(job["inputs"][target]["path"]).read_bytes())
+    job["inputs"][target]["path"] = str(copy)
+    args["job_path"].write_text(json.dumps(job), encoding="utf-8")
+    job_sha256 = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    copy.write_bytes(copy.read_bytes() + b"\n")
+    for operation in ("intake-reconciliation-repair-coordinator", "review-reconciliation-repair"):
+        cli = [operation, "--job", str(args["job_path"]), "--job-sha256", job_sha256]
+        if operation == "review-reconciliation-repair":
+            cli += ["--response", str(raw)]
+        assert main(cli) == 2
+        failure = json.loads(capsys.readouterr().out)
+        assert "input hash mismatch: " + target in failure["error"]
+        assert "content" not in failure
+
+
+@pytest.mark.parametrize("target", ["unrelated_node", "receipt", "missing_response", "missing_receipt", "foreign_patch"])
+def test_repair_review_rejects_saved_or_scope_faults_without_repairing_them(tmp_path, target):
+    from runners.run_semantic_evidence_integration import (
+        submit_judgment_job, review_reconciliation_repair, _load_object)
+    _, args, raw = _prepared_coordinator_repair(tmp_path)
+    receipt = submit_judgment_job(**args, response_path=raw)
+    saved_path, receipt_path = Path(receipt["response_path"]), Path(receipt["receipt_path"])
+    if target == "unrelated_node":
+        saved = _load_object(saved_path)
+        next(n for n in saved["semantic_nodes"] if n["semantic_node_key"] == "untouched")["bounded_meaning"] = "Unauthorized change"
+        saved_path.write_text(json.dumps(saved), encoding="utf-8")
+        error, message = ValueError, "successor differs"
+    elif target == "receipt":
+        saved_receipt = _load_object(receipt_path)
+        saved_receipt["status"] = "SEMANTIC_TRUTH_PROVEN"
+        receipt_path.write_text(json.dumps(saved_receipt), encoding="utf-8")
+        error, message = ValueError, "receipt differs"
+    elif target.startswith("missing_"):
+        (saved_path if target == "missing_response" else receipt_path).unlink()
+        error, message = FileNotFoundError, None
+    else:
+        patch = _load_object(raw)
+        patch["correction"]["replacement"]["decisions_by_candidate_ref"]["foreign"] = {
+            "attachments": [], "unmerged_reason": "Not authorized"}
+        raw.write_text(json.dumps(patch), encoding="utf-8")
+        error, message = SemanticIntegrationError, "authorized candidate scope"
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with pytest.raises(error, match=message):
+        review_reconciliation_repair(**args, response_path=raw)
+    assert before == {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+
+
+@pytest.mark.parametrize("fault,match", [
+    ("job_hash", "job hash mismatch"), ("phase", "general reconciliation repair"),
+    ("compact", "compact repair omits raw source context"),
+    ("source_prompt", "source prompt differs"), ("authority", "lacks coordinator authority")])
+def test_repair_coordinator_rejects_unsupported_or_inconsistent_jobs(tmp_path, fault, match):
+    import hashlib
+    from runners.run_semantic_evidence_integration import intake_reconciliation_repair_coordinator, _load_object
+    _, args, _ = _prepared_coordinator_repair(tmp_path)
+    job = _load_object(args["job_path"])
+    if fault == "phase":
+        job["phase"] = "extraction"
+    elif fault == "authority":
+        del job["inputs"]["model_tiering"]
+    elif fault in {"compact", "source_prompt"}:
+        key = "repair_request" if fault == "compact" else "prompt"
+        path = Path(job["inputs"][key]["path"])
+        if fault == "compact":
+            record = _load_object(path)
+            record["request"]["repair_rendering_mode"] = "compact"
+            path.write_text(json.dumps(record), encoding="utf-8")
+        else:
+            path.write_text("Different evidence", encoding="utf-8")
+        job["inputs"][key]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    args["job_path"].write_text(json.dumps(job), encoding="utf-8")
+    if fault != "job_hash":
+        args["expected_sha256"] = hashlib.sha256(args["job_path"].read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match=match):
+        intake_reconciliation_repair_coordinator(**args)
+
+
 def test_local_repair_can_prepare_exact_chained_missing_definitions(tmp_path):
     from runners.run_semantic_evidence_integration import (
         _load_object,
@@ -10986,11 +11125,22 @@ def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, caps
     assert code == 0 and result["view_sha256"] == expected["view_sha256"]
 
 
-def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
+def _generated_judgment_delivery_script(tmp_path, actor):
+    from runners.run_semantic_evidence_integration import (
+        judgment_worker_prompt, reconciliation_repair_coordinator_prompt)
+    if actor == "worker":
+        prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
+        block, end = 1, "Check exit status"
+    else:
+        prompt = reconciliation_repair_coordinator_prompt(tmp_path / "job.json", "a" * 64)
+        block, end = (1, "Check exit status") if actor == "coordinator_intake" else (2, "Only after reading")
+    return prompt.split('// @exec:')[block].split('\n', 1)[1].split(end, 1)[0]
+
+
+@pytest.mark.parametrize("actor", ["worker", "coordinator_intake", "coordinator_review"])
+def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path, actor):
     import subprocess
-    from runners.run_semantic_evidence_integration import judgment_worker_prompt
-    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
-    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    script = _generated_judgment_delivery_script(tmp_path, actor)
     content = {"prompt": "x" * 7999 + "🙂" + "y" * 40000,
         "schema": '{"complete":true}', "guidance": "Ω" * 18001}
     intake = {"status": "test", "instructions": "read all", "intake_end": "a" * 64,
@@ -11021,11 +11171,10 @@ def test_judgment_worker_delivery_preserves_complete_unicode_sections(tmp_path):
     assert json.loads(result.stdout)["complete"] is True
 
 
-def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path):
+@pytest.mark.parametrize("actor", ["worker", "coordinator_intake", "coordinator_review"])
+def test_judgment_worker_delivery_stops_on_parseable_middle_truncation(tmp_path, actor):
     import subprocess
-    from runners.run_semantic_evidence_integration import judgment_worker_prompt
-    prompt = judgment_worker_prompt(tmp_path / "job.json", "a" * 64)
-    script = prompt.split('// @exec:', 1)[1].split('\n', 1)[1].split('Check exit status', 1)[0]
+    script = _generated_judgment_delivery_script(tmp_path, actor)
     evidence = "".join(f"evidence row {i}\n" for i in range(4000))
     full = json.dumps({"status": "test", "instructions": "read all", "intake_end": "a" * 64,
         "content_bytes": {"prompt": len(evidence.encode())}, "content": {"prompt": evidence}})

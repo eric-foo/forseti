@@ -847,7 +847,9 @@ response increased from 54,944 to 59,409 tokens, offsetting much of the reductio
 in responses. Both coordinators paid six preparation rounds. Before, an oversized
 instruction request was rejected and narrowed. After, an unsupported reader
 `--help` call failed, then a 17,345-token instruction batch exceeded the outer
-tool's return allowance and four sources were reread. Both runs retried a source
+tool's return allowance. One recovery round requested four sections across
+three files; most had not reached the model in the clipped output. This was not
+four complete rereading passes. Both runs retried a source
 display after Windows Unicode encoding failed. All these costs are included.
 Workers each needed just the native intake, submission and final response.
 
@@ -881,3 +883,74 @@ and consumer fixes, withhold a broad token-saving claim, and address repeated
 source delivery and mechanical verification before spending on a larger model
 study. No production source, runtime behavior, model tier or standing workflow
 was changed by this measurement work unit.
+
+## Prepared coordinator and saved-result views: implementation contract (2026-09-13)
+
+Owner instruction: attempt the bounded code-assisted preparation and review
+proposal. Baseline is `5e4b1b0e1c252b724f5d13795a4a3d7d29562705`; implementation
+uses `codex/coordinator-job-views-20260913` in the existing isolated checkout.
+The consumer is a fresh coordinator for the same general local reconciliation
+repair measured above. The native producer will supply its executable entry;
+the result command will supply the exact original source prompt, saved changed
+component, and verified preservation of everything outside the nomination.
+Both views are generated from the existing pinned job and governing sources,
+not another maintained instruction document. Compact duplicate-leaf requests
+remain on their existing worker route: they deliberately omit raw source bodies
+and cannot support this source-backed coordinator review.
+
+Success requires complete delivery at the outer tool consumer, an unchanged
+worker judgment/submission path, and read-only verification of the saved native
+result against the pinned inputs and raw patch. Missing or changed inputs,
+out-of-scope patches, changed successors/receipts and parseable clipped delivery
+must fail visibly. Repeating a review must return the same view without creating
+or repairing files. Code verifies structure, identity and persistence; the
+coordinator still judges meaning against the full supplied evidence and context.
+The Brown Sugar replay must preserve the three source identities/conditions and
+all 89 unrelated decisions and 39 unrelated nodes. Replaying an existing answer
+is deterministic validation, not a fresh judgment or a measured token saving.
+
+The carried owner checkpoint requires an operator-couriered, different-vendor
+review of the patch **and measurement design**, followed by home adjudication,
+before a fresh model comparison or merge. The next comparison must use matching
+fresh Astra/high coordinators and Sol/high workers, the same frozen nomination,
+evidence and semantic rubric, and complete coordinator-plus-worker accounting
+including failures. Any model work preparing a job belongs in that denominator;
+moving it to the study task must not manufacture a saving. Deterministic runner
+preparation may occur before launch in both arms and must be timed separately.
+Compare the existing manual coordinator route with this generated entry on the
+same frozen job; the candidate must actually consume both new views. Keep study
+setup/collection spend separate and disclose its boundary. Use a frozen
+meaning-based rubric, not answer-file equality, while retaining exact equality
+for the unrelated content. Target: at least 25% less total job input-plus-output
+tokens with preserved quality. This is a proposed threshold, **not observed**;
+one paired sample is diagnostic, and the existing three-pair minimum remains
+necessary for a repeatability claim. Subscription-percentage savings remain
+unmeasured.
+
+Deterministic validation completed in the isolated checkout. The generated
+coordinator intake delivered 67,297 UTF-8 bytes in 11 separate bounded content
+notifications; the saved-result view delivered 17,035 bytes in four. The exact
+generated JavaScript wrappers ran through real PowerShell/native CLI subprocesses
+with a tools/notification shim and reconstructed all content byte-for-byte.
+This checks transport construction, not a live model's attention or the desktop
+tool's own truncation behavior. The shared transport also passed Unicode-boundary
+and parseable-middle-clipping tests for the worker and both coordinator views.
+
+The frozen Brown Sugar raw patch was replayed without modification or request
+rebinding (`a8add9d3d741965fd842d8c92c5a16dd23e987be014ddecb483cec088d06cf93`).
+The successor is byte-identical to the prior sample
+(`6d0eb6e8d07ea6b73333f2f7141e4c96159186476119fce5a0ae71b25d127871`), including
+all 89 unrelated decisions and 39 unrelated nodes. The complete original source
+prompt and all three source identities remain available; repeated review changed
+no file and returned the same view. Extraction of the previous worker generator
+from baseline Git source confirmed its generated prompt remains byte-identical
+for the same job/path/hash after the shared transport extraction.
+
+Local evidence is in `C:/tmp/forseti-coordinator-job-views-20260913/result.json`
+and its sibling `dogfood.py`, `prepared.json`, `intake.json`, `view.json` and
+executed `delivery-0.cjs` / `delivery-1.cjs`. The replay used the frozen manifest
+under `C:/tmp/forseti-cycle-entry-actual-20260913/inputs/manifest.json`; all file
+hashes were rechecked. No prior run was edited, no new model experiment ran, and
+no quality improvement or token/subscription saving is claimed. The shared
+native validator still explicitly declines to prove semantic truth. Independent
+review and the proposed live comparison remain outstanding.

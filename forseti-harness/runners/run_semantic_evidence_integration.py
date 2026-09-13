@@ -1185,6 +1185,31 @@ def intake_judgment_job(*, job_path: Path, expected_sha256: str) -> dict[str, An
     }
 
 
+def _judgment_delivery_script(execution: dict[str, Any], store_key: str) -> str:
+    """Share the already-tested transport; emit sections as separate tool outputs."""
+    return (
+        "// @exec: {\"max_output_tokens\": 60000}\n"
+        f"const result = await tools.exec_command({json.dumps(execution)});\n"
+        "if (result.exit_code !== 0) { text(result); exit(); }\n"
+        "const intake = JSON.parse(result.output);\n"
+        f"store({json.dumps(store_key)}, intake);\n"
+        "const { output: _output, ...exec_metadata } = result;\n"
+        "const utf8 = s => { let n = 0; for (const ch of s) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; } return n; };\n"
+        "const received = Object.fromEntries(Object.entries(intake.content || {}).map(([name, content]) => [name, utf8(content)]));\n"
+        "if (JSON.stringify(received) !== JSON.stringify(intake.content_bytes)) { text({status: \"INCOMPLETE_INTAKE\", expected_bytes: intake.content_bytes, received_bytes: received, exec_metadata}); exit(); }\n"
+        "notify({status: intake.status, content_bytes: intake.content_bytes, exec_metadata, instructions: intake.instructions});\n"
+        "for (const [name, content] of Object.entries(intake.content)) {\n"
+        "  for (let offset = 0; offset < content.length;) {\n"
+        "    let end = Math.min(offset + 8000, content.length);\n"
+        "    if (end < content.length && content.charCodeAt(end - 1) >= 0xD800 && content.charCodeAt(end - 1) <= 0xDBFF) end--;\n"
+        "    notify(JSON.stringify({section: name, from_character: offset, to_character: end, total_characters: content.length}) + '\\n' + content.slice(offset, end) + '\\nEND_SECTION_BLOCK ' + name + ' ' + end);\n"
+        "    offset = end;\n"
+        "  }\n"
+        "}\n"
+        "notify({intake_end: intake.intake_end});\n"
+    )
+
+
 def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
     """The controller forwards this executable intake, including both output bounds."""
     runner = Path(__file__).resolve()
@@ -1206,25 +1231,7 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
         "First execute exactly this complete intake with both wrapper output allowances. "
         "Emit every content byte via separate notify outputs within this SAME tool invocation; "
         "accumulated text items can be truncated as one result despite a high allowance:\n"
-        "// @exec: {\"max_output_tokens\": 60000}\n"
-        f"const result = await tools.exec_command({json.dumps(execution)});\n"
-        "if (result.exit_code !== 0) { text(result); exit(); }\n"
-        "const intake = JSON.parse(result.output);\n"
-        "store(\"judgment_intake\", intake);\n"
-        "const { output: _output, ...exec_metadata } = result;\n"
-        "const utf8 = s => { let n = 0; for (const ch of s) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; } return n; };\n"
-        "const received = Object.fromEntries(Object.entries(intake.content || {}).map(([name, content]) => [name, utf8(content)]));\n"
-        "if (JSON.stringify(received) !== JSON.stringify(intake.content_bytes)) { text({status: \"INCOMPLETE_INTAKE\", expected_bytes: intake.content_bytes, received_bytes: received, exec_metadata}); exit(); }\n"
-        "notify({status: intake.status, content_bytes: intake.content_bytes, exec_metadata, instructions: intake.instructions});\n"
-        "for (const [name, content] of Object.entries(intake.content)) {\n"
-        "  for (let offset = 0; offset < content.length;) {\n"
-        "    let end = Math.min(offset + 8000, content.length);\n"
-        "    if (end < content.length && content.charCodeAt(end - 1) >= 0xD800 && content.charCodeAt(end - 1) <= 0xDBFF) end--;\n"
-        "    notify(JSON.stringify({section: name, from_character: offset, to_character: end, total_characters: content.length}) + '\\n' + content.slice(offset, end) + '\\nEND_SECTION_BLOCK ' + name + ' ' + end);\n"
-        "    offset = end;\n"
-        "  }\n"
-        "}\n"
-        "notify({intake_end: intake.intake_end});\n"
+        + _judgment_delivery_script(execution, "judgment_intake") +
         "Check exit status and both tools' truncation warnings/metadata as well as the final "
         "intake_end marker. INCOMPLETE_INTAKE means parsed section bytes differ from the "
         "intake counts. A marker can survive middle truncation: any truncation means "
@@ -1243,6 +1250,143 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
         "Preserve a failed submit and stop; no semantic retry. Return only the compact receipt "
         "or exact failure with paths."
     )
+
+
+def _load_repair_coordinator_job(job_path: Path, expected_sha256: str):
+    job, inputs = _load_judgment_job(job_path, expected_sha256)
+    if job["phase"] != "reconciliation_repair":
+        raise ValueError("coordinator views require a general reconciliation repair job")
+    record = json.loads(inputs["repair_request"], object_pairs_hook=unique_json_object)
+    if record["request"].get("repair_rendering_mode") is not None:
+        raise ValueError("compact repair omits raw source context; use its existing worker route")
+    hashes = {target: hashlib.sha256(inputs[source]).hexdigest() for target, source in
+              [("bundle", "bundle"), ("stage", "binding"), ("failed_response", "failed_response")]}
+    if set(record) != {"request", "input_sha256"} or record["input_sha256"] != hashes:
+        raise ValueError("local repair source file bytes changed")
+    if inputs["prompt"].decode("utf-8-sig") != record["request"]["prompt"] + "\n":
+        raise ValueError("local repair source prompt differs from the bound request")
+    if "model_tiering" not in inputs:
+        raise ValueError("repair job lacks coordinator authority; prepare a new job")
+    return job, inputs, record
+
+
+def _repair_coordinator_view(status: str, expected_sha256: str,
+                             instructions: str, content: dict[str, str]) -> dict[str, Any]:
+    return {"status": status, "job_sha256": expected_sha256, "instructions": instructions,
+            "content": content,
+            "content_bytes": {name: len(value.encode("utf-8")) for name, value in content.items()},
+            "model_api_calls": 0, "intake_end": expected_sha256}
+
+
+def intake_reconciliation_repair_coordinator(*, job_path: Path, expected_sha256: str) -> dict[str, Any]:
+    """Prepare the coordinator's known operation without loading the worker's evidence twice."""
+    job, inputs, record = _load_repair_coordinator_job(job_path, expected_sha256)
+    content = {name: inputs[name].decode("utf-8-sig") for name in
+               ["agents", "overlay", "preflight_defaults", "claim_support", "model_tiering"]}
+    content["assigned_job"] = json.dumps({
+        "job_path": str(job_path.resolve()), "job_sha256": expected_sha256,
+        "inputs": job["inputs"], "nomination": record["request"]["nomination"],
+        "node_keys": record["request"]["node_keys"], "candidate_refs": record["request"]["candidate_refs"],
+        "response_path": job["response_path"],
+        "worker_prompt": judgment_worker_prompt(job_path, expected_sha256),
+    }, ensure_ascii=False, indent=2)
+    return _repair_coordinator_view("REPAIR_COORDINATOR_INTAKE_COMPLETE", expected_sha256,
+        "Read these pinned authorities and the assigned operation once. Forward worker_prompt "
+        "unchanged to exactly one fresh worker under the commissioned model/effort selection. "
+        "This intake establishes dispatch scope, not source readiness for semantic judgment. "
+        "After worker completion use the generated saved-result review command; it supplies "
+        "the full original evidence prompt and the saved affected component. Do not recreate "
+        "input discovery, validation scripts or instruction-reading tours. Additional source "
+        "inspection remains required if a material question is unanswered.", content)
+
+
+def reconciliation_repair_coordinator_prompt(job_path: Path, job_sha256: str) -> str:
+    runner = Path(__file__).resolve()
+    def delivery(operation: str, *extra: str) -> str:
+        command = "& " + " ".join("'" + part.replace("'", "''") + "'" for part in
+            ["python", str(runner), operation, "--job", str(job_path),
+             "--job-sha256", job_sha256, *extra])
+        return _judgment_delivery_script(
+            {"cmd": command, "workdir": str(runner.parents[2]), "max_output_tokens": 60000},
+            "repair_coordinator_" + operation)
+    return (
+        "Coordinate this one already-nominated general reconciliation repair in a fresh context. "
+        "Output mode chat-only; edit permission read-only. This dispatch is run-authoritative. "
+        f"Workspace: {runner.parents[2]}. Runtime writes belong only to the worker's pinned job. "
+        "preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 "
+        "- constants bound; deltas stated inline.\n"
+        "First execute this complete intake in functions.exec, keeping both output allowances "
+        "and separate notifications. Do not combine it with other source reads:\n"
+        + delivery("intake-reconciliation-repair-coordinator") +
+        "Check exit status, truncation warnings, exact content byte counts, contiguous section "
+        "offsets and intake_end matching the commissioned job hash. A surviving end marker "
+        "alone is insufficient. Resolve incomplete delivery before acting; reuse complete reads.\n"
+        "Dispatch exactly one fresh worker with the returned worker_prompt unchanged. Keep the "
+        "commissioned model and effort; do not inherit this coordinator's history. Use completion "
+        "notifications or bounded waits rather than repeated unchanged status reads. Keep required "
+        "user updates separate from polling. If the worker fails, preserve the failure and stop; "
+        "this commission does not authorize a retry.\n"
+        "After completion execute this read-only saved-result view in functions.exec with the "
+        "same delivery checks. It revalidates the actual saved files, not the worker's report:\n"
+        + delivery("review-reconciliation-repair", "--response", str(job_path.with_suffix(".raw.json"))) +
+        "Only after reading the full original_source_prompt and saved_component judge the repair "
+        "against the loaded claim-support authority and nomination. Code's scope and persistence "
+        "checks are not proof of semantic truth. Preserve uncertainty and source conditions; "
+        "inspect additional sources if the supplied context is insufficient. Do not author "
+        "bookkeeping scripts or reread unchanged authority. Return a compact semantic pass/fail "
+        "or exact blocker with source identities, job hash, saved response/receipt paths and "
+        "hashes, and any remaining uncertainty. Do not merge or start another repair."
+    )
+
+
+def review_reconciliation_repair(*, job_path: Path, expected_sha256: str,
+                                 response_path: Path) -> dict[str, Any]:
+    """Read back a saved repair; never publish, recover missing files or award semantic truth."""
+    job, inputs, record = _load_repair_coordinator_job(job_path, expected_sha256)
+    objects = {name: json.loads(inputs[name], object_pairs_hook=unique_json_object)
+               for name in ["bundle", "binding", "failed_response"]}
+    raw = response_path.read_bytes()
+    patch = json.loads(raw, object_pairs_hook=unique_json_object)
+    successor, validation = apply_reconciliation_repair(
+        objects["bundle"], objects["binding"], objects["failed_response"], record["request"], patch)
+    expected_data, expected_receipt = _reconciliation_repair_receipt(
+        record, hashlib.sha256(inputs["repair_request"]).hexdigest(),
+        hashlib.sha256(raw).hexdigest(), successor, validation)
+    saved_path = Path(job["response_path"])
+    receipt_path = saved_path.with_name("receipt.json")
+    saved_data, receipt_data = saved_path.read_bytes(), receipt_path.read_bytes()
+    if saved_data != expected_data:
+        raise ValueError("saved repair successor differs from the bound patch")
+    if json.loads(receipt_data, object_pairs_hook=unique_json_object) != expected_receipt:
+        raise ValueError("saved repair receipt differs from the bound result")
+    # Scope was enforced by the native composer; compare the whole saved successor
+    # before selecting its changed component. Never project away an unrelated edit.
+    saved = json.loads(saved_data, object_pairs_hook=unique_json_object)
+    before = objects["failed_response"]
+    request = record["request"]
+    preserved_keys = {n["semantic_node_key"] for n in before["semantic_nodes"]
+                      if n["semantic_node_key"] not in request["node_keys"]}
+    component = {
+        "semantic_nodes": [n for n in saved["semantic_nodes"] if n["semantic_node_key"] not in preserved_keys],
+        "decisions_by_candidate_ref": {ref: saved["decisions_by_candidate_ref"][ref]
+                                       for ref in request["candidate_refs"]},
+    }
+    checks = {"job_path": str(job_path.resolve()), "job_sha256": expected_sha256,
+        "input_sha256": record["input_sha256"],
+        "response_path": str(saved_path), "receipt_path": str(receipt_path),
+        "receipt_sha256": hashlib.sha256(receipt_data).hexdigest(), "receipt": expected_receipt,
+        "unchanged_scope_verified": True, "unchanged_node_count": len(preserved_keys),
+        "unchanged_decision_count": len(before["decisions_by_candidate_ref"]) - len(request["candidate_refs"]),
+        "semantic_truth_proven": False}
+    return _repair_coordinator_view("REPAIR_RESULT_VERIFIED_NOT_SEMANTIC_TRUTH_PROVEN", expected_sha256,
+        "The whole saved successor and native receipt match the pinned inputs and raw patch. "
+        "Read the complete original source prompt, including the before component, exact "
+        "evidence and parent/product contexts; compare it with the actual saved component. "
+        "Judge the nomination under the already-loaded claim-support authority. Source "
+        "inventory is not corroboration; code has not established semantic truth.",
+        {"persistence_and_scope": json.dumps(checks, ensure_ascii=False, indent=2),
+         "original_source_prompt": inputs["prompt"].decode("utf-8-sig"),
+         "saved_component": json.dumps(component, ensure_ascii=False, indent=2)})
 
 
 def submit_judgment_job(*, job_path: Path, expected_sha256: str,
@@ -2017,6 +2161,8 @@ def prepare_reconciliation_local_repair(
         "agents": repo / "AGENTS.md", "overlay": repo / ".agents/workflow-overlay/README.md",
         "preflight_defaults": repo / "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
         "claim_support": repo / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"}
+    if request.get("repair_rendering_mode") is None:
+        input_paths["model_tiering"] = repo / "docs/decisions/subagent_model_tiering_doctrine_v0.md"
     job = {"schema_version": "semantic_judgment_job_v1", "phase": "reconciliation_repair",
         "batch_id": request["batch_id"],
         "response_path": str((output_dir / "successor/response.json").resolve()),
@@ -2030,6 +2176,8 @@ def prepare_reconciliation_local_repair(
             "output_dir": str(output_dir), "model_api_calls": 0,
             "job_path": str(job_path), "job_sha256": job_sha256,
             "worker_prompt": judgment_worker_prompt(job_path, job_sha256),
+            **({"coordinator_prompt": reconciliation_repair_coordinator_prompt(job_path, job_sha256)}
+               if request.get("repair_rendering_mode") is None else {}),
             "worker_context": "fresh_per_request", "max_concurrent_workers": 3,
             **({"diagnostic_source_sha256": hash_file(diagnostic_path),
                 "repair_rendering_mode": request["repair_rendering_mode"]}
@@ -2096,6 +2244,19 @@ def prepare_reconciliation_definitions_after_local_repair(
             "output_dir": str(output_dir), "model_api_calls": 0}
 
 
+def _reconciliation_repair_receipt(record: dict[str, Any], request_sha256: str,
+                                  patch_sha256: str, successor: dict[str, Any],
+                                  validation: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
+    """Use the native publication format for both submission and read-only verification."""
+    data = json.dumps(successor, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    receipt = {"status": "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN",
+        "input_sha256": record["input_sha256"], "request_sha256": request_sha256,
+        "patch_sha256": patch_sha256, "successor_sha256": hashlib.sha256(data).hexdigest(),
+        "node_keys": record["request"]["node_keys"], "candidate_refs": record["request"]["candidate_refs"],
+        "validation": validation, "model_api_calls": 0}
+    return data, receipt
+
+
 def submit_reconciliation_local_repair(
     *, bundle_path: Path, stage_path: Path, failed_response_path: Path,
     request_path: Path, patch_path: Path, output_dir: Path,
@@ -2108,12 +2269,8 @@ def submit_reconciliation_local_repair(
     successor, validation = apply_reconciliation_repair(
         _load_object(bundle_path), _load_object(stage_path), _load_object(failed_response_path),
         record["request"], _load_object(patch_path))
-    data = json.dumps(successor, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
-    import hashlib
-    receipt = {"status": "LOCAL_REPAIR_APPLIED_NOT_SEMANTIC_TRUTH_PROVEN", "input_sha256": inputs,
-        "request_sha256": hash_file(request_path), "patch_sha256": hash_file(patch_path),
-        "successor_sha256": hashlib.sha256(data).hexdigest(), "node_keys": record["request"]["node_keys"],
-        "candidate_refs": record["request"]["candidate_refs"], "validation": validation, "model_api_calls": 0}
+    data, receipt = _reconciliation_repair_receipt(
+        record, hash_file(request_path), hash_file(patch_path), successor, validation)
     response_path, receipt_path = output_dir / "response.json", output_dir / "receipt.json"
     if output_dir.exists():
         if (not response_path.is_file() or not receipt_path.is_file() or response_path.read_bytes() != data
@@ -3079,11 +3236,12 @@ def _parser() -> argparse.ArgumentParser:
         default=RECONCILIATION_AUTHORING_IDENTITY_V4,
         help="Opt-in v5 adds source-row aliases; v6 clarifies uncertainty and completion. Keep the same revision on resume.")
 
-    for command in ("intake-judgment-job", "submit-judgment-job"):
-        job = sub.add_parser(command, help="Complete hash-bound worker intake or validated immutable submission.")
+    for command in ("intake-judgment-job", "submit-judgment-job",
+                    "intake-reconciliation-repair-coordinator", "review-reconciliation-repair"):
+        job = sub.add_parser(command, help="Hash-bound intake, native submission or read-only saved repair review.")
         job.add_argument("--job", type=Path, required=True)
         job.add_argument("--job-sha256", required=True)
-        if command == "submit-judgment-job":
+        if command in {"submit-judgment-job", "review-reconciliation-repair"}:
             job.add_argument("--response", type=Path, required=True)
 
     materialize = sub.add_parser("materialize-v3")
@@ -3664,6 +3822,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "submit-judgment-job":
             result = submit_judgment_job(job_path=args.job, expected_sha256=args.job_sha256,
                 response_path=args.response)
+        elif args.command == "intake-reconciliation-repair-coordinator":
+            result = intake_reconciliation_repair_coordinator(job_path=args.job, expected_sha256=args.job_sha256)
+        elif args.command == "review-reconciliation-repair":
+            result = review_reconciliation_repair(job_path=args.job, expected_sha256=args.job_sha256,
+                response_path=args.response)
         elif args.command == "materialize-v3":
             result = materialize_v3(
                 source_path=args.source,
@@ -4154,7 +4317,8 @@ def main(argv: list[str] | None = None) -> int:
     ) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
-    print(json.dumps(result, indent=2, sort_keys=args.command != "intake-judgment-job"))
+    print(json.dumps(result, indent=2, sort_keys=args.command not in {
+        "intake-judgment-job", "intake-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
     if args.command == "advance" and result.get("status") == "SEMANTIC_ADVANCE_BLOCKED":
         return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":

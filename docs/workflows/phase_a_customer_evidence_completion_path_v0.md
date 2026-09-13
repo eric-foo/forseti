@@ -574,7 +574,29 @@ or submission. `submit-judgment-job` routes this repair to the existing repair
 consumer, writing `successor/response.json` and its receipt within the request
 directory. Do not handwrite a separate delivery wrapper. This changes transport
 only, not repair scope, semantic instructions or the one-attempt rule.
-The three-case test of this generated launcher, including each exact executed
+For a fresh coordinator of a general local repair, preparation also returns
+`coordinator_prompt`. Forward it unchanged with the commissioned model/effort
+selection. Its first operation, `intake-reconciliation-repair-coordinator --job
+... --job-sha256 ...`, delivers the pinned coordinator authorities, nomination,
+input identities and ready worker prompt together. Use the complete delivery
+supplied in the prompt; do not reconstruct a source-discovery or preflight tour.
+The worker still receives its original full judgment prompt and schema.
+
+After that worker completes, the generated coordinator calls
+`review-reconciliation-repair --job ... --job-sha256 ... --response <job.raw.json>`.
+This read-only operation replays the native scope/validation checks against the
+pinned inputs and raw patch, compares the entire saved successor and receipt,
+then delivers the original source prompt and saved affected component with the
+unchanged-content counts. Missing files, changed inputs, out-of-scope changes
+and mismatched saved bytes fail; the view never creates or recovers an output.
+The coordinator still judges the repair against the exact evidence, contexts
+and claim-support authority. A verified view does not prove semantic truth.
+These generated views replace recurring assembly and bookkeeping for this
+route; no extra receipt, maintained instruction copy or normal-cycle stage is
+required. Existing jobs lacking coordinator authority pins must be prepared
+anew to use the coordinator entry. Compact duplicate-leaf jobs retain only
+their existing worker entry because their projection omits raw source context.
+The three-case test of the existing worker launcher, including each exact executed
 wrapper, is recorded at `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
 The earlier hand-prescribed delivery test it supersedes is at
 `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-intake-fix-20260912-v1/RESULT.md`).
