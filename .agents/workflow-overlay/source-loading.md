@@ -192,8 +192,10 @@ materially change the current claim, route, blocker, or edit boundary.
   or adjudicating a lane-authority conflict.
 - `.agents/workflow-overlay/validation-gates.md` — report helpers read
   "Verification principles", "Failure visibility", and workload instructions.
-  For completion or other gate-bearing work, "Task validation route" selects
-  exact gate headings by the current task and claim. Read those entries,
+  For completion, approval, readiness, or permission-to-advance claims, and for
+  sample design, prompt authoring, product-proof, or enforcement work,
+  "Task validation route" selects exact gate headings by the current task,
+  changed files, and claim. Read those entries,
   including any other gate whose trigger matches; reporting does not discharge
   the responsible actor's checks. Reopen sources for missing, conflicting, or
   unexpected evidence. Full read: editing validation doctrine.
