@@ -498,32 +498,28 @@ return-shape contract in `.agents/workflow-overlay/prompt-orchestration.md`.
 
 ## Orchestrator Context Economy
 
-In a long-running orchestrator or Chief Architect thread, every token that
-enters the context is re-read by every subsequent call: orchestrator cost is
-context size times remaining calls, so bulk output that lands early is paid
-for hundreds of times.
+Repeated model responses process the accumulated context again. Keep mechanical
+execution, waiting, checks and bulky intermediate output inside tools wherever
+the existing procedure can complete them without a judgment or authority decision.
+Reuse a maintained command before inventing a wrapper or delegating a mechanical
+loop. A fresh agent is useful when independent judgment or a substantial work
+loop remains; delegation is not a prerequisite for running a command.
 
-Dispatch, do not inline, any mechanical work loop expected to take more than a
-few (~4+) tool round-trips whose success is verifiable by exit code, diff, or
-test count — test-fix loops, batch normalizations, bulk file edits. For mechanical
-CI observation, code owns waiting: from `forseti-harness`, run
+Size tool waits from the observed command duration, up to the runtime's required
+responsiveness interval. If a command yields a session handle, wait on that same
+execution inside the tool where supported; do not return short polls to the model
+or relaunch a still-running command. Resume model work at completion, an actionable
+failure, a needed decision, or the responsiveness boundary. Preserve exit status
+and failure details; successful execution never substitutes for the bound check.
+
+For mechanical CI observation, from `forseti-harness`, run
 `python -m runners.run_ci_watch --repo OWNER/REPO --pr NUMBER --head SHA --output-dir _scratch/ci-watch`.
-The GitHub CLI watches checks inside that process; resume at completion, failure,
-or the runtime's required responsiveness interval. Do not commission a model
-monitor and then monitor that monitor. Use completion/attention waits for
-delegated judgment. The watch result does not replace the fresh merge guard.
-Keep read-only work read-only. Before an editing actor starts, establish its
-target working copy, revision, existing changes, permitted edits, and actual
-access. Use an isolated worktree for a dirty base or independent or concurrent
-work; safe contributions to the same task may share its working copy. Reuse
-that setup while it remains valid. Recheck only when the actor, target, or
-relevant repository state changes materially, a conflicting writer appears,
-or an actual access failure occurs. Do not add synthetic permission probes.
-Give the selected receiver a narrow contract:
-target path(s), exact commands, acceptance condition, and return shape. Bulk
-intermediate output (test dumps, batch listings, poll output) stays in the
-receiver; only a compact summary returns to the orchestrator context. This is a
-heuristic for context economy, not a mechanical gate.
+The GitHub CLI owns the wait; the result does not replace the fresh merge guard.
+Use completion/attention waits for delegated judgment, without a model monitor.
+Keep read-only work read-only and reuse the **One-Time Writable-Root Binding**
+above. Give a selected receiver the bound sources, inputs, exact command,
+acceptance condition and compact return shape. Keep bulk output at its artifact
+path; return the outcome, decisive counts, checks, paths and unresolved failure.
 
 When completed Codex work needs an efficiency comparison, use the existing
 `run_efficiency report-codex` route for the explicit selected batch, or
