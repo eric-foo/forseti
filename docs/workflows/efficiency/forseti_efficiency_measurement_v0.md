@@ -158,13 +158,16 @@ observed subtotals do not override unknown coverage for the whole boundary.
 Concurrent durations are kept per run, never added into invented wall time.
 
 The normal compact return labels `return_view: "summary"` and
-`accounting_view: "summary_without_threads"`: accounting retains exact union
-totals, coverage, conflicts, uncollected runs and duplicate counts, but omits
-the per-thread map. Failed runs remain visible in the returned run rows.
-`record_readback_matched: true` verifies the full saved report, as made explicit
-by `record_readback_scope: "full_saved_report"`; it does not assert that the
-compact return equals the full report. Use returned facts directly and open
-`record_path` only for missing facts, such as the per-thread map. If the return
+`accounting_view: "summary_without_threads"`: returned accounting equals the
+saved accounting without the per-thread map, so union usage, coverage,
+conflicts, uncollected runs and duplicate counts are unchanged. Returned run
+rows are selected fields; failed runs remain visible there. Returned comparisons
+carry only label, overall result and reasons; any metrics, cases and protocol
+details remain in the saved report. `record_readback_matched: true` verifies the full
+saved report, as made explicit by `record_readback_scope: "full_saved_report"`;
+it does not assert that the compact return equals the full report. Use returned
+facts directly and open `record_path` only for missing facts, such as the
+per-thread map or comparison metrics. If the return
 exceeds its output budget, the existing `return_view: "details_required"`
 fallback supplies bounded facts and the record pointer; read the saved report
 for needed details omitted by that fallback.

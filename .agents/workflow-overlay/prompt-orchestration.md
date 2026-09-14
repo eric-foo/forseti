@@ -76,10 +76,10 @@ patch authorization alone does not escalate it.
 **Complete task entry.** In the existing input/required-read list, bind the
 applicable method by exact path and heading, its supported starting operation,
 and the known task inputs together. Bind long required sources by exact path
-and applicable heading while preserving explicit full-read requirements. Carry
-the known complete-reader command and separate delivery allowance from
-`source-loading.md` -> "Bounded instruction reader" when the intake requires
-the intelligence claim-support contract. Carry known native module/argv and
+and applicable heading while preserving explicit full-read requirements. When
+the intake requires the intelligence claim-support contract, carry its
+complete-read command and tool-output delivery note from `source-loading.md` ->
+"Bounded instruction reader". Carry known native module/argv and
 working directory with run-specific inputs so the receiver need not reconstruct
 command glue. Reuse a maintained role entry or the runner's
 returned `worker_prompt`; the commission supplies only the run-specific deltas.
