@@ -2081,7 +2081,14 @@ artifact.
 The owner-commissioned 2026-09-15 small-sample experiment adds opt-in
 `prepare-reconciliation-level --completion-strategy finite_formation_finish_v1`.
 It does not change the supported default or authorize a full-corpus run. Use
-explicit v4 decision authoring, policy v2 and a fresh output root. The first
+policy v2 and a fresh output root. New finite preparation selects v5 decision
+authoring, whose existing source-row aliases make the finish support floor
+decidable. Explicit v4 remains available for historical replay. V5 stages bind
+the revision in their hash; subsequent preparation, resume and finalization
+inherit it and reject revision changes. Historical stages without that field
+retain v4 and their original hashes. Neither phase may switch revisions, and
+the source-row table remains inside the existing rendered prompt byte ceiling.
+Row aliases identify source rows, never independent people. The first
 level uses `--packing-strategy input_order`: one formation pass preserves every
 verified candidate in a bounded node, including plausible singletons. The second
 uses `--packing-strategy group_aware_v1`: one deliberate cross-batch finishing

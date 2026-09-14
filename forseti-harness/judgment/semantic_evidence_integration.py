@@ -6552,6 +6552,27 @@ def _group_aware_candidate_order(candidates):
     return ordered
 
 
+def _finite_authoring(bundle, authoring_revision, response_version, *, stage=None):
+    # Historical finite stages did not store a revision and were strictly v4.
+    # Bind new v5 requests in the stage hash; never reinterpret frozen v4 work.
+    if stage is not None:
+        stored_revision = stage.get("authoring_revision", RECONCILIATION_AUTHORING_IDENTITY_V4)
+        if authoring_revision is not None and authoring_revision != stored_revision:
+            raise SemanticIntegrationError("finite completion authoring revision changes across stages or resume")
+        authoring_revision = stored_revision
+    elif authoring_revision is None:
+        authoring_revision = RECONCILIATION_AUTHORING_IDENTITY_V5
+    if authoring_revision not in {
+        RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5,
+    }:
+        raise SemanticIntegrationError("finite completion requires v4 or v5 decision authoring")
+    if response_version is None:
+        response_version = RECONCILIATION_RESPONSE_VERSION_V3
+    if not _reconciliation_decision_only(bundle, response_version):
+        raise SemanticIntegrationError("finite completion requires decision-only responses")
+    return authoring_revision, response_version
+
+
 def prepare_reconciliation_stage(
     bundle: Mapping[str, Any],
     compilation: Mapping[str, Any],
@@ -6572,14 +6593,20 @@ def prepare_reconciliation_stage(
         raise SemanticIntegrationError("completion strategy changes across levels")
     completion_phase = None
     if completion_strategy:
-        if authoring_revision != RECONCILIATION_AUTHORING_IDENTITY_V4 or not _reconciliation_decision_only(bundle, response_version):
-            raise SemanticIntegrationError("finite completion requires explicit v4 decision authoring")
         if compilation.get("schema_version") in {BATCH_COMPILATION_VERSION_V2, BATCH_COMPILATION_VERSION_V3}:
             completion_phase = "formation"
         elif stored_strategy == completion_strategy and compilation.get("completion_phase") == "formation":
             completion_phase = "finish"
         else:
             raise SemanticIntegrationError("finite completion requires a verified root then one formation")
+        prior_stage = None
+        if completion_phase == "finish":
+            replay = compilation.get("finite_replay")
+            prior_stage = replay.get("stage") if isinstance(replay, Mapping) else None
+            if not isinstance(prior_stage, Mapping):
+                raise SemanticIntegrationError("finite completion lacks formation replay")
+        authoring_revision, response_version = _finite_authoring(
+            bundle, authoring_revision, response_version, stage=prior_stage)
         expected_packing = "group_aware_v1" if completion_phase == "finish" else "input_order"
         if packing_strategy != expected_packing:
             raise SemanticIntegrationError("finite completion has incorrect phase packing")
@@ -6903,6 +6930,8 @@ def prepare_reconciliation_stage(
     if completion_phase:
         stage["completion_strategy"] = completion_strategy
         stage["completion_phase"] = completion_phase
+        if authoring_revision != RECONCILIATION_AUTHORING_IDENTITY_V4:
+            stage["authoring_revision"] = authoring_revision
         if completion_phase == "finish":
             stage["formation_replay"] = compilation["finite_replay"]
     if compact_lineage:
@@ -6977,6 +7006,9 @@ def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, auth
     This function never translates or repairs a stored response.
     """
     validate_reconciliation_stage(bundle, stage, [], require_all=False)
+    if stage.get("completion_strategy") == FINITE_COMPLETION_STRATEGY:
+        authoring_revision, response_version = _finite_authoring(
+            bundle, authoring_revision, response_version, stage=stage)
     decision_only = _reconciliation_decision_only(bundle, response_version)
     identity_namespaces = _identity_authoring_enabled(decision_only, authoring_revision)
     candidate_index = {row["candidate_ref"]: row for row in stage["candidates"]}
@@ -7678,6 +7710,7 @@ def validate_reconciliation_stage(
             or stage.get("carried_terminal_nodes")
             or (finite_phase == "finish" and not isinstance(stage.get("formation_replay"), Mapping))):
             raise SemanticIntegrationError("invalid finite completion stage")
+        _finite_authoring(bundle, None, None, stage=stage)
     if stage.get("bundle_sha256") != bundle.get("bundle_sha256"):
         raise SemanticIntegrationError("reconciliation stage has stale bundle hash")
     if not _nonempty(stage.get("batch_compilation_sha256")):
@@ -9874,7 +9907,7 @@ def _verify_finite_completion_replay(bundle, batch_compilation, compilation):
                 bundle, current,
                 reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
                 response_version=RECONCILIATION_RESPONSE_VERSION_V3,
-                authoring_revision=RECONCILIATION_AUTHORING_IDENTITY_V4,
+                authoring_revision=replay["stage"].get("authoring_revision", RECONCILIATION_AUTHORING_IDENTITY_V4),
                 packing_strategy="input_order" if phase == "formation" else "group_aware_v1",
                 completion_strategy=FINITE_COMPLETION_STRATEGY,
             )

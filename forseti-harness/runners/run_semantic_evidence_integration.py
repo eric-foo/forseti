@@ -2189,7 +2189,7 @@ def prepare_reconciliation_level(
 ) -> dict[str, Any]:
     bundle = _load_object(bundle_path)
     compilation = _load_object(compilation_path)
-    if authoring_revision is None:
+    if authoring_revision is None and completion_strategy is None:
         authoring_revision = (
             RECONCILIATION_AUTHORING_IDENTITY_V4
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
@@ -2233,7 +2233,8 @@ def prepare_reconciliation_level(
             )
     result = {
         "status": "SEMANTIC_RECONCILIATION_LEVEL_JUDGMENT_REQUIRED",
-        "authoring_revision": authoring_revision,
+        "authoring_revision": (stage.get("authoring_revision", RECONCILIATION_AUTHORING_IDENTITY_V4)
+            if stage.get("completion_strategy") else authoring_revision),
         "stage_sha256": stage["stage_sha256"],
         "level": stage["level"],
         "batch_count": len(prompts),
@@ -3626,7 +3627,7 @@ def _parser() -> argparse.ArgumentParser:
     reconcile_level.add_argument("--existing-stage", type=Path,
         help="Render requests for an immutable partially completed stage without repartitioning.")
     reconcile_level.add_argument("--completion-strategy", choices=["finite_formation_finish_v1"],
-        help="Unpromoted finite formation then one bounded finish; use a fresh run root.")
+        help="Unpromoted finite formation then one bounded finish; new stages use v5 authoring. Use a fresh run root.")
     reconcile_level.add_argument("--packing-strategy", choices=["input_order", "group_aware_v1"],
         help="New stages default to input_order; existing stages retain their frozen packing when omitted.")
     reconcile_level.add_argument("--response-version",
