@@ -128,6 +128,7 @@ SEMANTIC_METHODS_V7_PLUS = {
     METHOD_VERSION_V13,
 }
 RECONCILIATION_POLICY_VERSION_V2 = "semantic_evidence_reconciliation_policy_v2"
+FINITE_COMPLETION_STRATEGY = "finite_formation_finish_v1"
 RELATION_CLOSURE_POLICY_VERSION = "semantic_evidence_relation_closure_policy_v1"
 SOURCE_VERSION_V2 = "semantic_evidence_source_v2"
 SOURCE_VERSION_V3 = "semantic_evidence_source_v3"
@@ -6387,11 +6388,32 @@ def _reconciliation_source_overlap_groups(candidates):
 
 
 def _render_normal_reconciliation_prompt(
-    *, identity_namespaces=False, authoring_revision=None, meaning_boundary=False, **kwargs
+    *, identity_namespaces=False, authoring_revision=None, meaning_boundary=False,
+    completion_phase=None, **kwargs
 ):
     # Normal authoring only: shared repair/definition renderers retain their
     # historical defaults and may legitimately carry older opaque keys.
     prompt = _render_v3_reconciliation_prompt(**kwargs)
+    if completion_phase == "formation":
+        prompt += (
+            "\nEXPERIMENTAL FINITE FORMATION: This is the only formation pass. "
+            "Preserve EVERY verified candidate in a bounded node, including plausible "
+            "singletons and uncertainty. Do not retire candidates as unmerged here. "
+            "Combine supported shared meanings without inventing recurrence; retain "
+            "specific scope and stance. A single deliberate cross-batch finishing pass "
+            "follows; do not depend on repeated normal rounds to repair this formation.\n"
+        )
+    elif completion_phase == "finish":
+        prompt += (
+            "\nEXPERIMENTAL FINITE FINISH: This is the single deliberate finishing pass. "
+            "Compare every supplied candidate for useful shared meaning, recurrence, "
+            "opposition and material conditions. Ordering only exposes possible matches; "
+            "lexical proximity grants no semantic equivalence. Return finished bounded "
+            "findings under the convergence support floor, or explicit retrievable "
+            "unmerged reasons. Every retained node must be terminal. Preserve uncertainty "
+            "as uncertainty; lack of support is not contrary evidence. Do not claim "
+            "global uniqueness or opposition coverage, or invent meaning to finish.\n"
+        )
     # Current v4 authoring carries its role-specific shared formation guidance;
     # prior v13 authoring revisions retain their original full-method preamble.
     if meaning_boundary and authoring_revision not in {RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}:
@@ -6538,10 +6560,29 @@ def prepare_reconciliation_stage(
     response_version: str | None = None,
     authoring_revision: str | None = None,
     packing_strategy: str = "input_order",
+    completion_strategy: str | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare one prompt-bounded Route 1.6 reconciliation level."""
     if packing_strategy not in {"input_order", "group_aware_v1"}:
         raise SemanticIntegrationError("unsupported reconciliation packing strategy")
+    if completion_strategy not in {None, FINITE_COMPLETION_STRATEGY}:
+        raise SemanticIntegrationError("unsupported reconciliation completion strategy")
+    stored_strategy = compilation.get("completion_strategy")
+    if stored_strategy is not None and stored_strategy != completion_strategy:
+        raise SemanticIntegrationError("completion strategy changes across levels")
+    completion_phase = None
+    if completion_strategy:
+        if authoring_revision != RECONCILIATION_AUTHORING_IDENTITY_V4 or not _reconciliation_decision_only(bundle, response_version):
+            raise SemanticIntegrationError("finite completion requires explicit v4 decision authoring")
+        if compilation.get("schema_version") in {BATCH_COMPILATION_VERSION_V2, BATCH_COMPILATION_VERSION_V3}:
+            completion_phase = "formation"
+        elif stored_strategy == completion_strategy and compilation.get("completion_phase") == "formation":
+            completion_phase = "finish"
+        else:
+            raise SemanticIntegrationError("finite completion requires a verified root then one formation")
+        expected_packing = "group_aware_v1" if completion_phase == "finish" else "input_order"
+        if packing_strategy != expected_packing:
+            raise SemanticIntegrationError("finite completion has incorrect phase packing")
     _verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
     _validate_projection(bundle)
     if not _is_current_bundle(bundle):
@@ -6675,6 +6716,10 @@ def prepare_reconciliation_stage(
         if reconciliation_policy == RECONCILIATION_POLICY_VERSION_V2
         else None
     )
+    if completion_phase:
+        if reconciliation_policy != RECONCILIATION_POLICY_VERSION_V2:
+            raise SemanticIntegrationError("finite completion requires policy v2")
+        reconciliation_mode = "normal" if completion_phase == "formation" else "convergence"
     if reconciliation_policy != RECONCILIATION_POLICY_VERSION_V2:
         for candidate in candidates:
             candidate.pop("terminal_proposition", None)
@@ -6777,6 +6822,7 @@ def prepare_reconciliation_stage(
             proposed = [candidate]
         batch_id = f"reconcile-{level:04d}-{len(batches) + 1:04d}"
         prompt = _render_normal_reconciliation_prompt(
+            completion_phase=completion_phase,
             meaning_boundary=bundle.get("method_version") == METHOD_VERSION_V13,
             identity_namespaces=identity_namespaces,
             authoring_revision=authoring_revision,
@@ -6811,6 +6857,7 @@ def prepare_reconciliation_stage(
             current = [candidate]
             next_id = f"reconcile-{level:04d}-{len(batches) + 1:04d}"
             single = _render_normal_reconciliation_prompt(
+                completion_phase=completion_phase,
                 meaning_boundary=bundle.get("method_version") == METHOD_VERSION_V13,
                 identity_namespaces=identity_namespaces,
                 authoring_revision=authoring_revision,
@@ -6853,6 +6900,11 @@ def prepare_reconciliation_stage(
     }
     if packing_strategy != "input_order":
         stage["packing_strategy"] = packing_strategy
+    if completion_phase:
+        stage["completion_strategy"] = completion_strategy
+        stage["completion_phase"] = completion_phase
+        if completion_phase == "finish":
+            stage["formation_replay"] = compilation["finite_replay"]
     if compact_lineage:
         stage["emerging_axis_owner_batch_id"] = (
             batches[0]["batch_id"] if batches else None
@@ -6938,6 +6990,7 @@ def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, auth
     for batch_index, batch in enumerate(batches):
         selected = [candidate_index[ref] for ref in batch["candidate_refs"]]
         render_args = dict(
+            completion_phase=stage.get("completion_phase"),
             stage_sha256=stage["stage_sha256"],
             batch_id=batch["batch_id"],
             candidates=selected,
@@ -7616,6 +7669,15 @@ def validate_reconciliation_stage(
     _verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
     _validate_projection(bundle)
     _verify_stored_hash(stage, field="stage_sha256", label="reconciliation stage")
+    finite_phase = stage.get("completion_phase")
+    if stage.get("completion_strategy") is not None or finite_phase is not None:
+        if (stage.get("completion_strategy") != FINITE_COMPLETION_STRATEGY
+            or finite_phase not in {"formation", "finish"}
+            or stage.get("level") != (1 if finite_phase == "formation" else 2)
+            or stage.get("reconciliation_mode") != ("normal" if finite_phase == "formation" else "convergence")
+            or stage.get("carried_terminal_nodes")
+            or (finite_phase == "finish" and not isinstance(stage.get("formation_replay"), Mapping))):
+            raise SemanticIntegrationError("invalid finite completion stage")
     if stage.get("bundle_sha256") != bundle.get("bundle_sha256"):
         raise SemanticIntegrationError("reconciliation stage has stale bundle hash")
     if not _nonempty(stage.get("batch_compilation_sha256")):
@@ -7806,6 +7868,8 @@ def validate_reconciliation_stage(
                     f"semantic node {key} collapses child polarity"
                 )
             terminal = row.get("terminal_proposition")
+            if finite_phase == "finish" and terminal is not True:
+                raise SemanticIntegrationError("finite finish cannot retain nonterminal nodes")
             if not isinstance(terminal, bool):
                 raise SemanticIntegrationError(
                     f"semantic node {key} lacks terminal_proposition"
@@ -7891,6 +7955,8 @@ def validate_reconciliation_stage(
                 raise SemanticIntegrationError("invalid unmerged reconciliation child")
             child_ref = row["child_ref"]
             candidate = candidate_index[child_ref]
+            if finite_phase == "formation":
+                raise SemanticIntegrationError("finite formation cannot retire a candidate before finishing")
             if reconciliation_mode == "normal" and _is_customer_finding_candidate(
                 candidate
             ):
@@ -8025,6 +8091,11 @@ def validate_reconciliation_stage(
             carried_terminal_nodes
         )
         result["unmerged_candidate_count"] = len(unmerged_candidate_refs)
+    if finite_phase:
+        result["completion_strategy"] = FINITE_COMPLETION_STRATEGY
+        result["completion_phase"] = finite_phase
+        if require_all:
+            result["finite_replay"] = {"stage": dict(stage), "responses": list(responses)}
     result["node_compilation_sha256"] = _sha256(result)
     return result
 
@@ -9787,6 +9858,35 @@ def _carries_relation_closure_evidence(compilation: Mapping[str, Any]) -> bool:
     )
 
 
+def _verify_finite_completion_replay(bundle, batch_compilation, compilation):
+    """Re-derive both finite judgments at the real consumer boundary.
+
+    A strategy label or a round count is never sufficient completion evidence.
+    Replay binds original verified leaves, exact phase membership, raw decisions,
+    and the native compiler's condition/stance/accounting checks.
+    """
+    try:
+        finish_replay = compilation["finite_replay"]
+        formation_replay = finish_replay["stage"]["formation_replay"]
+        current = batch_compilation
+        for phase, replay in (("formation", formation_replay), ("finish", finish_replay)):
+            stage, _ = prepare_reconciliation_stage(
+                bundle, current,
+                reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+                response_version=RECONCILIATION_RESPONSE_VERSION_V3,
+                authoring_revision=RECONCILIATION_AUTHORING_IDENTITY_V4,
+                packing_strategy="input_order" if phase == "formation" else "group_aware_v1",
+                completion_strategy=FINITE_COMPLETION_STRATEGY,
+            )
+            if stage != replay["stage"]:
+                raise SemanticIntegrationError("finite completion replay has stale or altered stage lineage")
+            current = validate_reconciliation_stage(bundle, stage, replay["responses"])
+        if current != compilation:
+            raise SemanticIntegrationError("finite completion differs from native replay")
+    except (KeyError, TypeError) as exc:
+        raise SemanticIntegrationError("finite completion lacks complete replay evidence") from exc
+
+
 def is_terminal_reconciliation_compilation(
     compilation: Mapping[str, Any],
 ) -> bool:
@@ -9796,6 +9896,21 @@ def is_terminal_reconciliation_compilation(
         row.get("terminal_proposition") is not True for row in nodes
     ):
         return False
+    if compilation.get("completion_strategy") is not None:
+        replay = compilation.get("finite_replay", {})
+        stage = replay.get("stage", {})
+        responses = replay.get("responses", [])
+        return (
+            compilation.get("completion_strategy") == FINITE_COMPLETION_STRATEGY
+            and compilation.get("completion_phase") == "finish"
+            and compilation.get("level") == 2
+            and stage.get("completion_phase") == "finish"
+            and stage.get("stage_sha256") == compilation.get("stage_sha256")
+            and isinstance(stage.get("formation_replay"), Mapping)
+            and len(responses) == compilation.get("input_batch_count")
+            and {row.get("batch_id") for row in responses}
+            == {row.get("batch_id") for row in stage.get("batches", [])}
+        )
     if compilation.get("schema_version") == TERMINAL_REPAIR_MIGRATION_COMPILATION_VERSION:
         try:
             _validate_terminal_repair_migration_compilation(compilation)
@@ -9852,6 +9967,8 @@ def finalize_v3_view(
     if not _is_current_bundle(bundle):
         raise SemanticIntegrationError("v3 finalization requires a current bundle")
     _verify_row_verification_manifest(bundle, batch_compilation)
+    if node_compilation.get("completion_strategy") is not None:
+        _verify_finite_completion_replay(bundle, batch_compilation, node_compilation)
     if batch_compilation.get("bundle_sha256") != bundle["bundle_sha256"] or node_compilation.get(
         "bundle_sha256"
     ) != bundle["bundle_sha256"]:
@@ -10210,6 +10327,9 @@ def finalize_v3_view(
             key: sorted(value) for key, value in sorted(container_to_props.items())
         },
     }
+    if node_compilation.get("completion_strategy"):
+        view["completion_strategy"] = node_compilation["completion_strategy"]
+        view["completion_scope"] = "finite formation and bounded finish; no global relation closure"
     view["view_sha256"] = _sha256(view)
     return view
 
@@ -10560,6 +10680,8 @@ def project_evidence_packet_v1(
         ],
         "model_api_calls": 0,
     }
+    if view.get("completion_strategy"):
+        packet["source_bindings"]["completion_strategy"] = view["completion_strategy"]
     packet["packet_sha256"] = _sha256(packet)
     return packet
 

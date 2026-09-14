@@ -7521,6 +7521,74 @@ def test_policy_v2_node_keys_are_local_to_each_prompt_batch() -> None:
         validate_reconciliation_stage(bundle, stage, duplicate_within_one_batch)
 
 
+def test_prepared_level_replay_preserves_unspecified_historical_packing(tmp_path) -> None:
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    stage, _ = prepare_reconciliation_stage(bundle, verified,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        packing_strategy="group_aware_v1")
+    for name, value in (("bundle", bundle), ("verified", verified), ("stage", stage)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+        compilation_path=tmp_path / "verified.json", existing_stage_path=tmp_path / "stage.json",
+        stage_out=tmp_path / "replayed.json", prompt_dir=tmp_path / "prompts")
+    assert result["stage_sha256"] == stage["stage_sha256"]
+    assert json.loads((tmp_path / "replayed.json").read_text()) == stage
+
+
+def test_finite_completion_replays_real_consumer_and_rejects_false_completion() -> None:
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    options = dict(reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        response_version=semantic_module.RECONCILIATION_RESPONSE_VERSION_V3,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    formation, prompts = prepare_reconciliation_stage(bundle, verified, **options)
+    assert "EXPERIMENTAL FINITE FORMATION" in prompts[0]["prompt"]
+    premature = _singleton_reconciliation_responses(formation)
+    omitted = premature[0]["semantic_nodes"].pop()["child_relations"][0]["child_ref"]
+    premature[0]["unmerged_children"] = [{"child_ref": omitted, "reason": "singleton"}]
+    with pytest.raises(SemanticIntegrationError, match="before finishing"):
+        validate_reconciliation_stage(bundle, formation, premature)
+    formed = validate_reconciliation_stage(bundle, formation, _singleton_reconciliation_responses(formation))
+    assert not is_terminal_reconciliation_compilation(formed)
+    already_terminal = validate_reconciliation_stage(bundle, formation, _terminal_singleton_reconciliation_responses(formation))
+    assert not is_terminal_reconciliation_compilation(already_terminal)
+    finish, prompts = prepare_reconciliation_stage(bundle, formed, packing_strategy="group_aware_v1", **options)
+    assert "EXPERIMENTAL FINITE FINISH" in prompts[0]["prompt"]
+    with pytest.raises(SemanticIntegrationError, match="nonterminal"):
+        validate_reconciliation_stage(bundle, finish, _group_level_responses(finish, terminal=False))
+    finished_responses = _group_level_responses(finish, terminal=True)
+    node = finished_responses[0]["semantic_nodes"][0]
+    retired = node["child_relations"][2:]
+    node["child_relations"] = node["child_relations"][:2]
+    finished_responses[0]["unmerged_children"] = [{"child_ref": r["child_ref"],
+        "reason": "Distinct isolated report retained for retrieval"} for r in retired]
+    completed = validate_reconciliation_stage(bundle, finish, finished_responses)
+    assert is_terminal_reconciliation_compilation(completed)
+    assert len(completed["unmerged_semantic_units"]) == 2
+    view = finalize_v3_view(bundle, verified, completed)
+    assert view["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    assert finalize_v3_view(bundle, verified, completed) == view
+    packet = project_evidence_packet_v1(view, bundle, verified, completed,
+        proposition_ids=[row["proposition_id"] for row in view["propositions"]])
+    assert packet
+    assert packet["source_bindings"]["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    assert len(packet["unmerged_axis_candidates"]) == 2
+    with pytest.raises(SemanticIntegrationError, match="one formation"):
+        prepare_reconciliation_stage(bundle, completed, packing_strategy="group_aware_v1", **options)
+    for mutation in ("lineage", "binding", "false_completion"):
+        bad = deepcopy(completed)
+        if mutation == "lineage":
+            bad["finite_replay"]["stage"]["candidates"][0]["statement"] = "forged source"
+        elif mutation == "binding":
+            bad["finite_replay"]["responses"][0]["stage_sha256"] = "f" * 64
+        else:
+            bad.pop("finite_replay")
+        bad["node_compilation_sha256"] = semantic_module._sha256({k:v for k,v in bad.items() if k != "node_compilation_sha256"})
+        with pytest.raises(SemanticIntegrationError):
+            finalize_v3_view(bundle, verified, bad)
+
+
 def test_policy_v2_normal_mode_cannot_drop_a_customer_singleton() -> None:
     bundle, verified = _verified_policy_compilation(count=1)
     stage, _ = prepare_reconciliation_stage(

@@ -2078,6 +2078,28 @@ artifact.
 
 #### Experimental reconciliation packing (unpromoted)
 
+The owner-commissioned 2026-09-15 small-sample experiment adds opt-in
+`prepare-reconciliation-level --completion-strategy finite_formation_finish_v1`.
+It does not change the supported default or authorize a full-corpus run. Use
+explicit v4 decision authoring, policy v2 and a fresh output root. The first
+level uses `--packing-strategy input_order`: one formation pass preserves every
+verified candidate in a bounded node, including plausible singletons. The second
+uses `--packing-strategy group_aware_v1`: one deliberate cross-batch finishing
+opportunity, under the existing convergence one-attachment and repeated-source
+support rules. Finishing yields terminal findings plus explicit retrievable
+residual evidence; it cannot retain nonterminal placeholders or restart a third
+round. Lexical ordering supplies possible-match exposure, never meaning identity.
+
+Finite compilation binds both exact stages and their responses for native replay.
+`finalize-v3` and packet reconstruction rederive formation from the verified root,
+then finishing, and reject changed membership, bindings, decisions or compilation.
+Finite completion does not assert a convergence fixed point, global uniqueness,
+global opposition coverage, or semantic adequacy. The view identifies its finite
+strategy. Native accounting, source-role fit, conditions, stance and support
+counts remain enforced. Qualification requires a matched completed comparison
+of total recurring model work and source-backed downstream usefulness; a smaller
+job count or successful shape validation does not establish a saving or promotion.
+
 The 2026-09-12 narrow continuation adds opt-in authoring
 `exact_identity_namespaces_v6`. It inherits v5 and explicitly distinguishes
 lack of support from opposition: undecided, unknown, untried or missing
