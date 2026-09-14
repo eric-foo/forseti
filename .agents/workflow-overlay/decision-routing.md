@@ -502,8 +502,10 @@ Repeated model responses process the accumulated context again. Keep mechanical
 execution, waiting, checks and bulky intermediate output inside tools wherever
 the existing procedure can complete them without a judgment or authority decision.
 Reuse a maintained command before inventing a wrapper or delegating a mechanical
-loop. A fresh agent is useful when independent judgment or a substantial work
-loop remains; delegation is not a prerequisite for running a command.
+loop; delegation is not a prerequisite for running a command. A fresh agent is
+useful when independent judgment remains, or when a mechanical loop still needs
+repeated model decisions whose outcome is independently checkable, such as
+test-fix loops, batch normalizations or bulk edits.
 
 Size tool waits from the observed command duration, up to the runtime's required
 responsiveness interval. If a command yields a session handle, wait on that same
@@ -516,10 +518,12 @@ For mechanical CI observation, from `forseti-harness`, run
 `python -m runners.run_ci_watch --repo OWNER/REPO --pr NUMBER --head SHA --output-dir _scratch/ci-watch`.
 The GitHub CLI owns the wait; the result does not replace the fresh merge guard.
 Use completion/attention waits for delegated judgment, without a model monitor.
-Keep read-only work read-only and reuse the **One-Time Writable-Root Binding**
-above. Give a selected receiver the bound sources, inputs, exact command,
-acceptance condition and compact return shape. Keep bulk output at its artifact
-path; return the outcome, decisive counts, checks, paths and unresolved failure.
+Keep read-only work read-only. Reuse the setup and recheck limits in
+**Bounded-Change Fast Path** above, including its prohibition on synthetic probes.
+Give a selected receiver the bound sources, inputs, exact command,
+acceptance condition and compact return shape.
+Keep bulk output at its artifact path; return the outcome, decisive counts,
+checks, paths and unresolved failure.
 
 When completed Codex work needs an efficiency comparison, use the existing
 `run_efficiency report-codex` route for the explicit selected batch, or

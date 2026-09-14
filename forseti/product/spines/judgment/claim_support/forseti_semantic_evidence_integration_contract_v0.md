@@ -209,6 +209,9 @@ exact leaf text, parent/product context, and compiler-derived source inventory.
 Inventory is not claim support: one shared identity remains one credited origin,
 but only the established finalizer determines which sources support a claim.
 An allegation is not a verdict; review may retain the original choices.
+Repair admits response-v3 answers for methods v12/v13 and verified method-v7
+continuations, preserving the original method and stage. Historical response-v2
+answers keep their existing replay and are not admitted as v3 repairs.
 
 Before emitting a repair request, preparation reuses the compiler's exact
 product/comparator/version compatibility check across the original response's
@@ -2530,10 +2533,13 @@ python -m runners.run_semantic_evidence_integration prepare-reconciliation-level
 Bind the four paths to the commissioned inputs and fresh output locations before
 execution. The native command checks input identity and renders the complete
 stage, prompt files and accompanying response schemas without model calls.
-Current method-v12/v13 preparation uses the current response/authoring defaults;
-older-method continuations use the explicit response selection in **Division of
-labor**. Use each generated schema unchanged. This entry changes no meaning,
-lineage, source-role, condition or candidate-accounting requirement.
+Current method-v12/v13 preparation uses the current response/authoring defaults.
+Verified method-v7 continuations may add
+`--response-version semantic_evidence_reconciliation_response_v3` as described in
+**Division of labor**; other older methods and explicit response v2 keep their
+historical defaults under **Prompt-bounded hierarchy**. Use each generated
+schema unchanged. This entry changes no meaning, lineage, source-role, condition
+or candidate-accounting requirement.
 
 Run the command and any already-bound readback/checker in one tool invocation;
 apply [Orchestrator Context Economy](../../../../../.agents/workflow-overlay/decision-routing.md#orchestrator-context-economy)
