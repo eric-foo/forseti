@@ -61,11 +61,14 @@ def preloaded_context(paths: list[Path]) -> tuple[str, list[dict[str, str]]]:
         "rather than inventing its contents or claiming completion.\n\n" + "\n".join(sections),
         manifest,
     )
-# Only this reproduced stderr notice is unrelated to authentication. A generic
+# Only these reproduced stderr notices are unrelated to authentication. A generic
 # "proceeding" warning is not evidence that its remaining text is harmless.
 TEMP_ALIAS_NOTICE_PREFIX = (
     "WARNING: proceeding, even though we could not create PATH aliases: "
     "Refusing to create helper binaries under temporary dir "
+)
+STALE_ARG0_CLEANUP_NOTICE = (
+    "WARNING: failed to clean up stale arg0 temp dirs: Access is denied. (os error 5)"
 )
 
 
@@ -92,7 +95,7 @@ def _local_codex_check(executable: str, arguments: list[str], env: dict[str, str
 
 
 def _auth_verdict(stdout: str, stderr: str) -> str:
-    """Remove only the reproduced temporary-directory notice from stderr.
+    """Remove only the reproduced temporary-directory notices from stderr.
 
     Keep stream boundaries, all other nonempty lines, and duplicate verdicts;
     the caller still requires exit zero and exactly one ChatGPT verdict.
@@ -100,7 +103,9 @@ def _auth_verdict(stdout: str, stderr: str) -> str:
     lines = [line.strip() for line in stdout.splitlines()]
     for raw_line in stderr.splitlines():
         line = raw_line.strip()
-        if not re.fullmatch(re.escape(TEMP_ALIAS_NOTICE_PREFIX) + r'"[^"\r\n]+"', line):
+        if line != STALE_ARG0_CLEANUP_NOTICE and not re.fullmatch(
+            re.escape(TEMP_ALIAS_NOTICE_PREFIX) + r'"[^"\r\n]+"', line
+        ):
             lines.append(line)
     return "\n".join(line for line in lines if line)
 
@@ -108,9 +113,9 @@ def _auth_verdict(stdout: str, stderr: str) -> str:
 def _auth_failure_diagnostic(status: subprocess.CompletedProcess[str]) -> dict:
     """Explain a refused local check without copying credential-bearing output.
 
-    The job caller already preserves stderr in its launch log. Keep stream and
-    verdict facts there before argparse replaces native output with a generic
-    error. Unknown lines remain opaque fingerprints, never an auth allowlist.
+    Native status output is captured privately by _local_codex_check; the job
+    caller receives this safe summary, not the raw output. Unknown lines remain
+    opaque fingerprints, never an auth allowlist or a reason to expose secrets.
     """
     observed = _auth_verdict(status.stdout, status.stderr)
     lines = observed.splitlines()
@@ -200,6 +205,11 @@ def main() -> int:
         metadata["codex_version"] = version.stdout.strip()
         if args.require_chatgpt:
             status = _local_codex_check(executable, [*config, "login", "status"], env)
+            for line in status.stderr.splitlines():
+                if line.strip() == STALE_ARG0_CLEANUP_NOTICE:
+                    # Emit only the known literal, never arbitrary native output.
+                    print("FORSETI_CODEX_AUTH_CHECK_NOTICE " + STALE_ARG0_CLEANUP_NOTICE,
+                          file=sys.stderr, flush=True)
             observed = _auth_verdict(status.stdout, status.stderr)
             if status.returncode or observed != "Logged in using ChatGPT":
                 print("FORSETI_CODEX_AUTH_CHECK_FAILED " + json.dumps(
@@ -209,7 +219,7 @@ def main() -> int:
             if CONFIG_LOAD_FAILURE in observed:
                 raise ValueError(f"Codex could not load its configuration under CODEX_HOME={env['CODEX_HOME']}; authentication was not determined (no generation launched)")
             if status.returncode or observed != "Logged in using ChatGPT":
-                raise ValueError("ChatGPT authentication was not verified; check file-backed sign-in in this execution context (no generation launched)")
+                raise ValueError("ChatGPT authentication was not verified from the local status check; inspect the safe diagnostic above (no generation launched)")
             metadata["authentication_observed"] = "chatgpt"
             # Enforce again inside Codex to close credential changes after status.
             config += ["--config", 'forced_login_method="chatgpt"']
