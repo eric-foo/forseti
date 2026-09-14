@@ -12,15 +12,19 @@ authority_boundary: retrieval_only
 
 ## Task validation route
 
-Use the applicable row and exact headings below; rows select existing gates,
-not a new checklist or permission. Reuse already-read sources while their
-bindings hold. Expand for any other gate whose trigger matches the task.
+Use every applicable row and its exact headings below; rows select existing
+gates, not a new checklist or permission. Task and changed-file rows combine.
+Reuse already-read sources while their bindings hold. Expand for any other gate
+whose trigger matches the task.
 
 | Task or claim | Read here |
 | --- | --- |
 | Reporting existing results | "Verification principles", "Failure visibility", and the workload instructions. Reporting does not approve or discharge another actor's checks. |
-| Repo work completion or permission to advance | The reporting route plus "Repository work" and "Receipt-field provenance"; add the triggered entries below. |
-| Creating or materially changing durable artifacts | "Durable artifact completion"; "Handoff-pointer resolution" and "Ontology-tag validity" for changed Markdown; "Markdown hash-pin freshness" or "Source-input hash freshness" when pins or their inputs change. |
+| Repo work completion, approval, readiness or permission to advance | The reporting route plus "Repository work" and "Receipt-field provenance"; add every triggered row below. |
+| Creating or materially changing durable artifacts | "Durable artifact completion". |
+| Any changed Markdown file, whatever the task | "Ontology-tag validity" (tracked Markdown) and "Handoff-pointer resolution" (durable `.md`). |
+| A Markdown document with supported hash pins changes, or a file it pins changes | "Markdown hash-pin freshness". |
+| A JSON artifact with source-input or packet hashes changes, or a file it references changes | "Source-input hash freshness"; the referenced file can be any type. |
 | Selecting a writer, receiver, or multi-task group | "Writable-root acceptance"; "Multi-task conservation" for a group. |
 | Any changed file under `forseti-harness/` or `.agents/hooks/`, including Markdown | "Review-routing disposition": its trigger is the changed path, including a Markdown-only edit such as `.agents/hooks/README.md`. |
 | CI scope or harness/helper changes | "CI diff base"; "Harness coupling preflight" and "Shared-helper adoption" only when each entry's actual file/type trigger applies. A Markdown-only change does not activate those Python/inventory checks. |
@@ -318,9 +322,11 @@ inherit this floor.
 
 Apply the matching case when the JSON artifact or a referenced file changes:
 
-- **Repo-local source inputs:** JSON `source_inputs[]` records carrying
-  `source_pointer` + `sha256` must match current file bytes after CRLF
-  normalization.
+- **Repo-local source inputs:** JSON `source_inputs[]` lists at any depth whose
+  records carry `source_pointer` + `sha256` must match current file bytes after
+  CRLF normalization. Resolve `source_pointer` against the repository root, not
+  the JSON file's directory. URL, absolute, drive-letter, `#`-prefixed, and
+  `..`-traversing pointers are treated as non-local and skipped.
 - **Source-capture packet manifests:** A top-level `manifest_version` string
   identifies this case. Top-level `preserved_files[]` records carrying
   `relative_packet_path` + `sha256` must match current **raw stored bytes,
@@ -329,7 +335,9 @@ Apply the matching case when the JSON artifact or a referenced file changes:
   preserved-file paths fail visibly; nested `preserved_files` blocks describing
   machine-local packets outside the repo are deliberately not matched.
 
-Both cases enforce provenance freshness only: not semantic validation,
+Both cases compare `sha256` exactly against lowercase hex, unlike Markdown pins;
+uppercase `Get-FileHash` output does not match. Both enforce provenance
+freshness only: not semantic validation,
 generated-artifact completeness, readiness, source quality, capture freshness,
 or metric validity. Enforcement is diff-scoped and forward-only through
 `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
@@ -395,7 +403,8 @@ Markdown hash comparisons are CRLF-normalized and case-insensitive.
   the owning shared home (`forseti-harness/harness_utils.py` /
   `forseti-harness/source_capture/projection_shared.py` /
   `.agents/hooks/_hooklib.py`) or carry, on the def line, the line immediately
-  above, or the first body line below, a comment naming the delta vs the shared home (any
+  above, or the line immediately below the `def` line (the first body line only
+  for a one-line signature), a comment naming the delta vs the shared home (any
   comment containing `harness_utils`, `_hooklib`, `projection_shared`, or
   `helper-delta`). The
   rule itself is owned by the adoption-rule paragraphs in
