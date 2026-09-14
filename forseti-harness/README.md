@@ -104,8 +104,8 @@ response-v3 answers, preserving the original method and stage. Historical
 response-v2 answers retain their existing replay and are not admitted as v3 repairs.
 `prepare-reconciliation-repair` returns compact status, a hash-bound judgment
 job and `preparation_result_path`. That saved JSON preserves the complete result,
-including `worker_prompt` and `coordinator_prompt`; load the needed prompt from
-it for launch. The Python preparation return retains both prompts. Forward the
+including `worker_prompt` and, for the general route, `coordinator_prompt`; load
+the needed prompt from it for launch. The Python preparation return is unchanged. Forward the
 generated prompt unchanged; the shared intake
 delivers complete inputs and the shared submit routes to the existing repair
 consumer. Its response and receipt are saved under the request's `successor/`.

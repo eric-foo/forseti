@@ -251,8 +251,12 @@ additional count renderer, or independent review ceremony is installed.
 
 `prepare-reconciliation-repair` also writes a hash-pinned
 `semantic_judgment_job_v1` descriptor with phase `reconciliation_repair` and
-returns its generated `worker_prompt`, `job_path` and `job_sha256`. A controller
-forwards that prompt unchanged rather than handwriting a delivery wrapper; it
+returns compact CLI status with `job_path`, `job_sha256` and
+`preparation_result_path`. That saved JSON retains the complete preparation
+result, including `worker_prompt` and, for the general route,
+`coordinator_prompt`; the Python preparation return is unchanged. A controller
+loads the needed prompt from that file and forwards it unchanged rather than
+handwriting a delivery wrapper; it
 reuses the shared `intake-judgment-job` complete delivery. `submit-judgment-job`
 routes such a job to this same repair consumer, which writes
 `successor/response.json` and `successor/receipt.json` inside the request
