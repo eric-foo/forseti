@@ -4124,6 +4124,71 @@ def test_local_repair_generated_job_delivers_and_submits_exact_repair(tmp_path):
             operation()
 
 
+
+@pytest.mark.parametrize("extra_prompt_bytes", [0, 100_000])
+def test_local_repair_cli_returns_compact_status_with_complete_saved_payload(
+        tmp_path, capsys, monkeypatch, extra_prompt_bytes):
+    from runners import run_semantic_evidence_integration as runner
+    bundle, stage, response, request, _patch = _local_repair_fixture()
+    paths = [tmp_path / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for path, value in zip(paths, (bundle, stage, response, request["nomination"]), strict=True):
+        runner._write_json(path, value)
+    original_prompt = runner.judgment_worker_prompt
+    monkeypatch.setattr(runner, "judgment_worker_prompt",
+                        lambda *args: original_prompt(*args) + "x" * extra_prompt_bytes)
+    output_dir = tmp_path / "repair"
+    argv = ["prepare-reconciliation-repair", "--bundle", str(paths[0]),
+            "--stage", str(paths[1]), "--failed-response", str(paths[2]),
+            "--nomination", str(paths[3]), "--output-dir", str(output_dir)]
+    assert runner.main(argv) == 0
+    delivered = capsys.readouterr().out
+    summary = json.loads(delivered)
+    assert len(delivered.encode("utf-8")) < 2048
+    assert summary["status"] == "LOCAL_REPAIR_JUDGMENT_REQUIRED"
+    assert summary["model_api_calls"] == 0
+    assert "worker_prompt" not in summary and "coordinator_prompt" not in summary
+    saved_path = Path(summary["preparation_result_path"])
+    assert saved_path == (output_dir / "preparation_result.json").resolve()
+    saved = runner._load_object(saved_path)
+    assert summary == {**{key: value for key, value in saved.items()
+                         if key not in {"worker_prompt", "coordinator_prompt"}},
+                       "preparation_result_path": str(saved_path)}
+    job_path, job_sha = Path(summary["job_path"]), summary["job_sha256"]
+    assert saved["worker_prompt"] == runner.judgment_worker_prompt(job_path, job_sha)
+    assert saved["coordinator_prompt"] == runner.reconciliation_repair_coordinator_prompt(job_path, job_sha)
+    intake = runner.intake_judgment_job(job_path=job_path, expected_sha256=job_sha)
+    assert intake["content"]["prompt"] == request["prompt"] + "\n"
+    assert json.loads(intake["content"]["response_schema"]) == request["response_schema"]
+    before = {path: path.read_bytes() for path in output_dir.rglob("*") if path.is_file()}
+    assert runner.main(argv) == 2
+    failure = json.loads(capsys.readouterr().out)
+    assert failure["status"] == "error"
+    assert "refusing to write into existing" in failure["error"]
+    assert before == {path: path.read_bytes() for path in output_dir.rglob("*") if path.is_file()}
+
+
+def test_local_repair_cli_surfaces_saved_payload_write_failure(tmp_path, capsys, monkeypatch):
+    from runners import run_semantic_evidence_integration as runner
+    bundle, stage, response, request, _patch = _local_repair_fixture()
+    paths = [tmp_path / name for name in ("bundle.json", "stage.json", "response.json", "nomination.json")]
+    for path, value in zip(paths, (bundle, stage, response, request["nomination"]), strict=True):
+        runner._write_json(path, value)
+    original_write = runner._write_json
+    def fail_result_write(path, value):
+        if path.name == "preparation_result.json":
+            raise OSError("preparation result disk write failed")
+        original_write(path, value)
+    monkeypatch.setattr(runner, "_write_json", fail_result_write)
+    output_dir = tmp_path / "repair"
+    assert runner.main(["prepare-reconciliation-repair", "--bundle", str(paths[0]),
+                        "--stage", str(paths[1]), "--failed-response", str(paths[2]),
+                        "--nomination", str(paths[3]), "--output-dir", str(output_dir)]) == 2
+    assert json.loads(capsys.readouterr().out) == {
+        "status": "error", "error": "preparation result disk write failed"}
+    assert (output_dir / "job.json").is_file()  # Preserve the partial attempt for diagnosis.
+    assert not (output_dir / "preparation_result.json").exists()
+
+
 def _prepared_coordinator_repair(tmp_path):
     from runners.run_semantic_evidence_integration import prepare_reconciliation_local_repair, _write_json
     bundle, stage, response, request, patch = _local_repair_fixture()

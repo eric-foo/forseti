@@ -102,8 +102,11 @@ legacy responses keep their original replay. Explicit v3 also defaults to
 The local reconciliation repair route also accepts these verified method-v7
 response-v3 answers, preserving the original method and stage. Historical
 response-v2 answers retain their existing replay and are not admitted as v3 repairs.
-`prepare-reconciliation-repair` also returns the normal generated `worker_prompt`
-and a hash-bound judgment job. Forward the prompt unchanged; the shared intake
+`prepare-reconciliation-repair` returns compact status, a hash-bound judgment
+job and `preparation_result_path`. That saved JSON preserves the complete result,
+including `worker_prompt` and `coordinator_prompt`; load the needed prompt from
+it for launch. The Python preparation return retains both prompts. Forward the
+generated prompt unchanged; the shared intake
 delivers complete inputs and the shared submit routes to the existing repair
 consumer. Its response and receipt are saved under the request's `successor/`.
 Normal method-v12 response-v3 requests default to
