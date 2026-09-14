@@ -157,6 +157,18 @@ nonzero selected-run/checker exit remains nonzero for the batch. Per-task
 observed subtotals do not override unknown coverage for the whole boundary.
 Concurrent durations are kept per run, never added into invented wall time.
 
+The normal compact return labels `return_view: "summary"` and
+`accounting_view: "summary_without_threads"`: accounting retains exact union
+totals, coverage, conflicts, uncollected runs and duplicate counts, but omits
+the per-thread map. Failed runs remain visible in the returned run rows.
+`record_readback_matched: true` verifies the full saved report, as made explicit
+by `record_readback_scope: "full_saved_report"`; it does not assert that the
+compact return equals the full report. Use returned facts directly and open
+`record_path` only for missing facts, such as the per-thread map. If the return
+exceeds its output budget, the existing `return_view: "details_required"`
+fallback supplies bounded facts and the record pointer; read the saved report
+for needed details omitted by that fallback.
+
 Selection still requires judgment: code cannot discover an omitted experiment
 outside those roots or declare unlike assignments comparable. Count development
 work separately from routine execution, and collect an active coordinator only
