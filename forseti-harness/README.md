@@ -28,100 +28,26 @@ Cleaning, or Judgment behavior.
 
 ## Unattended Model Attempts
 
-For explicitly commissioned packing experiments, `advance` accepts
-`--reconciliation-packing group_aware_v1`; the default remains `input_order`.
-Use separate run roots and the same option on every resume. This changes only
-whole-candidate ordering before the existing byte/count packer; it makes no
-merge decision. See the semantic integration contract's experimental packing
-boundary for limitations and promotion requirements.
+Use the semantic contract's [Consolidation execution](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
+for normal starts and resumes. It owns the complete `advance` command, independent
+worker dispatch, generated `worker_prompt`, intake/submit protocol and failure
+boundaries. Run from `forseti-harness/` as shown there.
 
-The separately opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v5`
-adds compiler-assigned source-row aliases to convergence prompts so workers can
-distinguish multiple claims in one row from support spanning different rows.
-The default stays v4. Use a fresh run root and the same revision on every resume;
-this experiment changes neither validation nor the repeated-support floor.
+For a commissioned checkpoint with an existing bundle and verified compilation,
+use [Preparation from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
+That entry owns the direct command, fresh outputs and preparation-only stopping
+point. [Division of labor](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#division-of-labor)
+and [Prompt-bounded hierarchy](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#prompt-bounded-hierarchy)
+own semantic requirements, current authoring and historical replay.
+[Experimental packing and authoring options](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#experimental-reconciliation-packing-unpromoted)
+remain separately commissioned; they are not ordinary setup.
 
-Opt-in `--reconciliation-authoring-revision exact_identity_namespaces_v6`
-inherits v5 and clarifies that lack of support is not opposition, and a
-finished finding may preserve source uncertainty. It changes prompt guidance
-only; defaults and native validation remain unchanged. Keep the same revision
-on resume. See the owning semantic integration contract for test status.
+### Reconciliation repair
 
-Normal semantic consolidation starts and resumes with
-`python runners/run_semantic_evidence_integration.py advance --source <materialized-source.json> --run-dir <run-root>`.
-The provider-free command carries extraction compilation, mandatory independent
-row verification, policy-v2 reconciliation/convergence and finalization through
-their native gates in one invocation wherever accepted responses permit it.
-The active agent dispatches the complete compatible `judgment_requests` set
-together in fresh contexts (one per request, at most three concurrent), preserves
-independent judgment boundaries, and advances again. Each worker uses
-the returned `worker_prompt` (both output allowances, separate bounded `notify`
-outputs within one tool invocation,
-and truncation-metadata checks) rather than a hand-reconstructed intake wrapper.
-Each worker uses
-`intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` for complete
-hash-verified prompt/schema/guidance, checks its final `intake_end` marker, then
-`submit-judgment-job --job <job_path> --job-sha256 <job_sha256> --response <raw.json>`
-for native validation, immutable publication and a compact receipt. Allow the
-complete intake through the tool output boundary; never judge truncated input.
-Desktop accumulated output can truncate despite larger allowances; use the
-separate `notify` outputs in the generated prompt. Stop before judgment when
-complete visibility cannot be obtained, even if the native log is intact.
-Do not reuse previous job conversations or author per-worker validation scripts.
-Avoid a controller return for each
-preparation/submit/check seam. Use returned prompt/schema paths and hashes;
-native validation remains required. Accepted files are immutable restart state;
-same-input reruns preserve their bytes, and invalid/staged work blocks explicitly
-with exit 2. `SEMANTIC_JUDGMENT_REQUIRED` is pending semantic work, not completion.
-Keep the same source and packing options on resume. Per-stage commands below
-remain available for historical replay and scoped recovery. The owning
-[semantic contract](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md)
-retains source/reopen, current-corpus finalization and unsupported v34 boundaries.
-
-Current method-v12 semantic reconciliation preparation writes each prompt's
-`.schema.json` alongside its `.md` file. Current response v3 requires keyed
-candidate decisions and original-label assignments. The model chooses nodes,
-relations and wording; code carries child-owned identities, literal conditions,
-emerging labels, polarity composition and lineage. Use that exact sidecar.
-Current prompts also expose source-linked conditions when a candidate's sources
-have different condition sets, including empty sets. The combined `conditions`
-list does not establish that its details co-occur: shared wording must preserve
-each source's scope. Ordinary candidates omit this extra lineage. This changes
-newly rendered requests; it does not repair or replace already accepted answers.
-Native validation rejects missing, foreign, duplicate or prohibited decisions;
-a schema pass is not semantic proof. `prepare-reconciliation-level
---existing-stage <stage.json>` resumes unchanged stage membership. Explicit
-`--response-version semantic_evidence_reconciliation_response_v2` preserves
-historical preparation, and stored v2 responses remain consumable unchanged.
-For a verified method-v7 continuation, explicitly select
-`--response-version semantic_evidence_reconciliation_response_v3` on a fresh
-stage to use the same decision compiler and source-role constraints. This
-retains method v7 and its verified inputs; the older-method default and stored
-legacy responses keep their original replay. Explicit v3 also defaults to
-`exact_identity_namespaces_v3`. Never rebind an old answer to this new request.
-The local reconciliation repair route also accepts these verified method-v7
-response-v3 answers, preserving the original method and stage. Historical
-response-v2 answers retain their existing replay and are not admitted as v3 repairs.
 `prepare-reconciliation-repair` also returns the normal generated `worker_prompt`
 and a hash-bound judgment job. Forward the prompt unchanged; the shared intake
 delivers complete inputs and the shared submit routes to the existing repair
 consumer. Its response and receipt are saved under the request's `successor/`.
-Normal method-v12 response-v3 requests default to
-`--authoring-revision exact_identity_namespaces_v3`: opaque node-key prefixes
-separate exact subject/comparator/version identity classes without choosing
-meanings, and code supplies exact groups of candidates sharing original evidence.
-Each output node may use at most one member of each group; overlapping groups
-do not prohibit unrelated combinations. An empty list means no shared-source
-restrictions in that batch. The model need not reconstruct hidden source IDs;
-native validation still rejects duplicate source paths. These restrictions are
-included in the rendered byte budget. Fresh
-current stages cap each batch at 96 candidates as well as the prompt-byte limit.
-Use `--authoring-revision exact_identity_namespaces_v2` for prior capped requests,
-`--authoring-revision exact_identity_namespaces_v1` for prior namespaced
-packing or `--authoring-revision legacy` for older normal v3 replay.
-Low-level Python preparation retains legacy defaults; current callers select
-`RECONCILIATION_AUTHORING_IDENTITY_V3` explicitly. Preserve completed request and
-response bindings; prepare future work separately under the new revision.
 Definition recovery and local
 repair keep their previously fitting historical requests and existing keys.
 Oversized local repairs try a lossless table layout before enforcing the same

@@ -11651,11 +11651,28 @@ def test_advance_signal_rejects_broken_post_build_variant(tmp_path, capsys, monk
 
 def test_advance_live_instructions_and_partial_validation_are_not_completion(tmp_path):
     root = Path(__file__).resolve().parents[3]
+    owner = root / "forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md"
     for locator in ["forseti-harness/README.md",
                     "docs/workflows/phase_a_customer_evidence_completion_path_v0.md",
                     "forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md"]:
-        text = (root / locator).read_text(encoding="utf-8-sig")
-        assert "advance --source" in text and "judgment_requests" in text
+        for heading, command, boundary in [
+            ("Consolidation execution", "advance --source", "judgment_requests"),
+            ("Preparation from verified inputs", "prepare-reconciliation-level --bundle",
+             "SEMANTIC_RECONCILIATION_LEVEL_JUDGMENT_REQUIRED"),
+        ]:
+            entry = root / locator
+            text = entry.read_text(encoding="utf-8-sig")
+            if entry != owner:
+                marker = f"[{heading}]("
+                assert text.count(marker) == 1
+                target = text.split(marker, 1)[1].split(")", 1)[0]
+                path, anchor = target.rsplit("#", 1)
+                assert anchor == heading.lower().replace(" ", "-")
+                entry = (entry.parent / path).resolve()
+                assert entry == owner
+                text = entry.read_text(encoding="utf-8-sig")
+            execution = text.split(f"### {heading}\n", 1)[1].split("\n### ", 1)[0]
+            assert command in execution and boundary in execution
     source_path, replay, _ = _advance_replay_fixture(tmp_path)
     bundle = build_bundle(json.loads(source_path.read_text()), max_prompt_bytes=30_000,
                           max_evidence_per_work_unit=2)

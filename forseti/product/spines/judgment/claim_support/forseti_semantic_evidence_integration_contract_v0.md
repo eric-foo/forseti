@@ -141,13 +141,19 @@ Deterministic code owns:
 The agent never chooses its own evidence count, independence count, support
 posture, cross-venue credit, or causal strength.
 
+Current reconciliation prompts expose source-linked conditions when a candidate's
+sources have different condition sets, including empty sets. The combined
+`conditions` list does not establish that its details co-occur: shared wording
+must preserve each source's scope. Ordinary candidates omit this extra lineage.
+Newly rendered guidance does not repair or replace already accepted answers.
+
 Verified method-v7 continuations may explicitly select reconciliation response
 v3 on a fresh stage. The decision compiler derives the existing exact child
 conditions and identities and supplies the same source-role competence rules
 that validation enforces. This is an authoring route over the original verified
 method, not a method migration: v7 defaults and historical responses retain their
 original replay. Missing decisions and incompetent claims still fail. The public
-runner uses the current identity-v2 packing for this explicit route; no completed
+runner uses the current identity namespace guidance for this explicit route; no completed
 legacy answer may be rebound to an unexecuted decision request.
 
 This ownership also applies to `bounded_meaning` prose. Current response-v3
@@ -203,6 +209,9 @@ exact leaf text, parent/product context, and compiler-derived source inventory.
 Inventory is not claim support: one shared identity remains one credited origin,
 but only the established finalizer determines which sources support a claim.
 An allegation is not a verdict; review may retain the original choices.
+Repair admits response-v3 answers for methods v12/v13 and verified method-v7
+continuations, preserving the original method and stage. Historical response-v2
+answers keep their existing replay and are not admitted as v3 repairs.
 
 Before emitting a repair request, preparation reuses the compiler's exact
 product/comparator/version compatibility check across the original response's
@@ -2361,6 +2370,12 @@ overwrite, drop, or invent its original-label disposition. A lower-level
 
 ## No-provider workflow
 
+For an existing materialized source, start at **Consolidation execution** below.
+For a separately commissioned checkpoint that already has a bundle and verified
+compilation, use **Preparation from verified inputs**. The source preparation
+and native-operation inventory are references for missing inputs or scoped replay,
+not a checklist to repeat on every continuation.
+
 The runner makes no model API call. Historical v1/v2 routes retain their four
 operations. Before current-route batching, a reusable full-corpus run uses an
 immutable `phase_a_semantic_integration_run_v1` specification. The spec binds
@@ -2405,8 +2420,16 @@ materialization. Large source, prompt, response, and compilation artifacts
 remain under the spec's external run root; a compact repository receipt may
 bind their hashes.
 
-Normal Evidence Consolidation uses `advance --source <materialized-source.json>
---run-dir <run-root>` in `run_semantic_evidence_integration.py`. Use that same
+### Consolidation execution
+
+From `forseti-harness/`, run the existing composed command:
+
+```text
+python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT
+```
+
+Replace the uppercase placeholders with the bound materialized source and run
+directory. Reuse the task's resolved Python interpreter and working copy. Use that same
 invocation, including its packing options, for initial preparation and every
 resume. It composes operations 7–14 below: extraction compilation, independent
 whole-row verification, policy-v2 reconciliation levels and convergence/retention,
@@ -2414,7 +2437,17 @@ then the native final view. Each invocation carries all deterministically ready
 steps to the complete next judgment request set, an actionable blocker, or the
 current-corpus final view. A command returning is not itself a reason for a new
 controller turn. The lower-level commands remain available for historical replay
-and explicitly scoped recovery; they are not the normal controller sequence.
+and explicitly scoped checkpoints or recovery; they are not the normal controller sequence.
+Keep execution, waits and mechanical checks together under
+[Orchestrator Context Economy](../../../../../.agents/workflow-overlay/decision-routing.md#orchestrator-context-economy).
+Ordinary runs do not repeat comparison setup, negative-test seeding or token
+accounting; those belong to a separately commissioned measurement or validation.
+
+Dispatch the complete compatible `judgment_requests` set in fresh contexts, one
+per independent request and at most three concurrently. Preserve independent
+extraction and verifier judgments. Forward the returned `worker_prompt` instead
+of rebuilding its intake or writing per-worker validation scripts, then call
+`advance` again after the accepted responses are published.
 
 The run root contains `bundle.json`, `extraction/`, `verification/`,
 `reconciliation/level-NNNN/`, and `view.json`. Each stage uses its existing
@@ -2438,6 +2471,8 @@ a judgment-required return supplies every currently ready request and never
 credits a missing answer. No semantic retry, response selection, identity reset,
 new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
+
+### Independent judgment workers
 
 Each ready request also binds a `semantic_judgment_job_v1` descriptor by raw
 SHA-256. Only dispatchable requests receive a descriptor, named by that hash, so
@@ -2469,13 +2504,9 @@ Publication or cleanup failure remains a blocker, including a crash after the
 final link was created. These operations do not change accepted response
 versions, semantic validation, reconciliation meaning or termination policy.
 
-Desktop transport boundary: accumulated `text` output can omit items and
-truncate a block despite larger requested allowances. Native logs can preserve
-complete bytes while the model-visible return is incomplete. Use the separate
-`notify` outputs in the generated dispatch, and check their contiguous coverage
-and end markers. Stop before judgment when the complete input cannot be made
-visible; a successful CLI return or intact native log does not clear this
-consumer boundary. A changed transport still requires observed complete delivery.
+Stop before judgment when complete input cannot be made visible; an intact
+native log does not establish model-visible delivery. A changed transport still
+requires observed complete delivery.
 
 If verification leaves no active claim-bearing rows, `advance` returns the
 actionable `NO_CLAIM_BEARING_EVIDENCE` blocker before creating reconciliation
@@ -2488,7 +2519,49 @@ file outside its output directory, then rerun to validate existing outputs and
 rebuild missing artifacts. Accepted outputs must not be overwritten or removed.
 Staged semantic responses retain their separate explicit-recovery boundary.
 
-Current-route operations are (the individually callable seams):
+### Preparation from verified inputs
+
+Use this entry when the commissioned endpoint is a prepared reconciliation
+level and the exact bundle and verified compilation already exist outside an
+established `advance` run. Reuse those inputs; do not reconstruct acquisition,
+extraction or completed row verification. From `forseti-harness/`:
+
+```text
+python -m runners.run_semantic_evidence_integration prepare-reconciliation-level --bundle BUNDLE_JSON --compilation VERIFIED_COMPILATION_JSON --stage-out NEW_STAGE_JSON --prompt-dir NEW_PROMPT_DIR --reconciliation-policy semantic_evidence_reconciliation_policy_v2
+```
+
+Bind the four paths to the commissioned inputs and fresh output locations before
+execution. The native command checks input identity and renders the complete
+stage, prompt files and accompanying response schemas without model calls.
+Current method-v12/v13 preparation uses the current response/authoring defaults.
+Verified method-v7 continuations may add
+`--response-version semantic_evidence_reconciliation_response_v3` as described in
+**Division of labor**; other older methods and explicit response v2 keep their
+historical defaults under **Prompt-bounded hierarchy**. Use each generated
+schema unchanged. This entry changes no meaning, lineage, source-role, condition
+or candidate-accounting requirement.
+
+Run the command and any already-bound readback/checker in one tool invocation;
+apply [Orchestrator Context Economy](../../../../../.agents/workflow-overlay/decision-routing.md#orchestrator-context-economy)
+to waiting. Return its compact status, stage hash,
+candidate/batch counts and artifact paths, not prompt or corpus dumps. If a
+check is required, preserve its actual result alongside the command's exit code;
+file existence alone is not a fidelity check. Do not invent a new checker or
+repeat a benchmark to perform ordinary preparation.
+
+The successful status is `SEMANTIC_RECONCILIATION_LEVEL_JUDGMENT_REQUIRED`:
+preparation is complete, consolidation judgments are still pending. This is not
+evidence of semantic quality, a final view, or whole-cycle savings. A nonzero
+exit remains failure; preserve partial outputs and diagnose the named failure
+instead of overwriting them or restarting upstream work. For an unchanged
+partially completed stage, add `--existing-stage ORIGINAL_STAGE_JSON` with fresh
+output paths to rerender frozen membership; retain accepted answers and their
+actual request provenance. **Prompt-bounded hierarchy** owns explicit historical
+authoring replay and semantic constraints.
+
+### Native operations and historical replay
+
+Current-route operations are the individually callable seams:
 
 1. `audit-phase-a-source` verifies the final seal, every terminal route
    artifact, every route classification, and every hash-pinned source binding.
@@ -2564,7 +2637,8 @@ Current-route operations are (the individually callable seams):
     `replace`, or `unresolved` decision per row before writing the sole active
     compilation. Non-claim rows are not reread.
 11. `prepare-reconciliation-level` renders one or more byte-bounded prompts
-    from batch units or prior semantic nodes.
+    from batch units or prior semantic nodes; **Preparation from verified inputs**
+    above is the direct entry for a commissioned preparation checkpoint.
 12. `validate-reconciliation-response` validates one returned hierarchy batch
     before the level is complete.
 13. `submit-reconciliation-level` validates exact child accounting and writes

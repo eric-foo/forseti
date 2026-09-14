@@ -431,73 +431,14 @@ replay and stored v1 responses remain supported; the source-work stage is unchan
 answers are not regenerated merely to adopt keyed transport. Correct row
 participation does not establish correct interpretation.
 
-Current method-v12 reconciliation preparation persists decision-only response
-v3's schema beside every prompt. Every candidate has one required decision slot
-(one or more node attachments, or an allowed unmerged reason); every original
-emerging label has one required group-assignment slot. Normal-mode admitted
-customer findings cannot be unmerged: an uncertain finding may remain a
-nonterminal singleton. The model owns grouping, relations, bounded wording,
-axes and claim/uncertainty metadata. Code carries exact compatible product,
-comparator and version identities, literal child-owned conditions, original
-emerging labels, polarity composition and lineage. It never authors a missing
-decision or definition; explicit model-authored completion is separate below.
-Native consumers reject missing, foreign,
-duplicate, orphan or prohibited assignments, and incompatible identities.
-Structural exactness does not establish semantic warrant.
-Normal method-v12 response-v3 requests at `prepare-reconciliation-level` select
-`exact_identity_namespaces_v4`: each exact subject/comparator/version set tuple
-gets an opaque prefix and each candidate may attach only to keys in its own
-class. Compatible evidence may share any number of model-authored keys; matching
-identity does not justify merging meanings. The same rule applies at later
-levels and in convergence. The native one-leaf/one-child-path rule is exposed
-through exact shared-leaf groups, and fresh current batches cap at 96 candidates so output and connected
-repair scope remain bounded without truncation. It adds request bytes, not
-another provider stage. V4 adds the shared supported-meaning standard: form a
-useful assertion each support establishes without inventing a stronger status
-label or threshold. Current selection manifest v3 applies that standard when
-interpreting the fixed claim; it does not broaden the claim or relax source facts.
-New packing includes those bytes; resumed stages keep their frozen membership
-and fail without truncation when they cannot fit.
-Use `--authoring-revision exact_identity_namespaces_v1`, `exact_identity_namespaces_v2`,
-or `exact_identity_namespaces_v3` for their respective prior namespaced
-replay and `--authoring-revision legacy` for older normal prompt/schema replay;
-low-level Python callers select `RECONCILIATION_AUTHORING_IDENTITY_V4` explicitly
-for current generation. Explicit response-v2 and older-method public defaults,
-missing-definition requests and local repairs keep their historical behavior.
-For a verified method-v7 continuation, explicitly request response v3 on a fresh
-stage to use that same decision compiler, source-role guidance and identity-v4
-packing. Preserve the method-v7 input identity and historical attempts. This
-removes exact source copying from the model's work without weakening claim-kind
-competence or pretending that a new prompt was used for an old answer.
-Preserve each accepted response's actual attempt and correction provenance;
-never rebind it to a newly rendered unused request. The semantic-integration
-contract v104 owns this normal-authoring boundary. Semantic preservation and
-upstream identity truth remain judgment-owned; preventing incompatible attempts
-also removes their incidental discrepancy signal, with no equal-discovery claim.
-Current response-v3 authoring and review apply the intelligence claim-support
-contract's **Meaning-preserving interpretation and useful abstraction** rule.
-Interpret ordinary language in context and consolidate a useful common claim
-when each supporting child establishes it; do not demand the same words or
-identical detail. Keep source-specific detail, conditions and uncertainty with
-their evidence. Shared interest is not completed behavior, and a shared axis is
-not automatically corroboration. The same rule governs review; no growing list
-of phrase-specific owner exemptions or additional provider pass is required.
-The semantic-integration contract's compiler-owned-count boundary also governs
-bounded wording: normal response-v3 and missing-definition prompts request
-count-neutral reported propositions, not inferred author headcounts. Preserve
-source-attributed statements about others as attributed. Oppositely oriented
-comparisons remain separate under the existing exact-identity node shape even
-when they express the same fact; separation does not create extra observations
-or people. These instructions do not make semantic prose mechanically verified.
-
-Use `prepare-reconciliation-level --existing-stage <stage.json>` to render new
-requests for an unchanged partially completed stage. Oversized resumed current
-prompts may compact JSON whitespace without losing content or repartitioning.
-Accepted responses are not regenerated merely to change transport. Explicit
-`--response-version semantic_evidence_reconciliation_response_v2` retains old
-prompt replay; stored v2 responses can coexist with v3 responses at submission.
-The downstream node-compilation shape and normal-path semantic provider-stage
-count stay unchanged. Historical method-v11-and-earlier preparation remains unchanged.
+Current reconciliation preparation, resume and historical replay are owned by
+[the semantic integration contract](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
+Its [Division of labor](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#division-of-labor)
+and [Prompt-bounded hierarchy](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#prompt-bounded-hierarchy)
+retain the meaning, source-role, identity, condition, count and provenance rules.
+Use generated prompt/schema bindings; a preparation or schema pass does not
+establish semantic warrant. The current execution entry is under
+[Supported operating route](#supported-operating-route) below.
 
 If the current consumer raises `MissingReconciliationDefinitions`, use the shared
 failure-only `prepare-reconciliation-definitions --bundle ... --stage ...
@@ -754,55 +695,13 @@ ID through `source_groups` and preserve its truth-support or influence layer.
 
 ### Supported operating route
 
-For authorized Evidence Consolidation, use the public composed entrypoint:
-
-```powershell
-python forseti-harness/runners/run_semantic_evidence_integration.py advance --source <materialized-source.json> --run-dir <run-root>
-```
-
-Keep the same source and packing options on resume (`--max-prompt-bytes` and
-`--max-evidence-per-work-unit` when explicitly selected) and any commissioned
-[experimental route option](#experimental-route-options). Dispatch the complete
-compatible `judgment_requests` set through the existing active-agent lane, one
-fresh context per independent request and at most three concurrently. Do not
-reconstruct the mechanics in a new wrapper: forward the returned `worker_prompt`,
-which binds both tool output allowances and emits all content as separate
-bounded `notify` outputs within one tool invocation (no model turn between
-pieces). Accumulated `text` items can share one truncation limit. Inspect
-both tool layers' truncation metadata/warnings; an end marker alone can survive
-middle truncation. Do not
-carry previous jobs' conversations into a new extraction, verifier, or
-reconciliation request. Each worker calls `intake-judgment-job --job <job_path>
---job-sha256 <job_sha256>` using the returned binding: this returns the complete
-hash-verified prompt, schema and role guidance together. Read all content and
-the final `intake_end` marker; a truncated tool return is incomplete intake,
-not permission to judge clipped evidence. Allow sufficient tool output for the
-complete payload. The worker writes one complete raw JSON answer and calls
-`submit-judgment-job --job <job_path> --job-sha256 <job_sha256> --response
-<raw-answer.json>`. Code checks identity, runs the existing phase validator,
-publishes exact bytes without replacement, and retains a compact receipt.
-Workers do not author mechanical validation scripts. Preserve independent
-extraction/verifier judgments, then call `advance`
-again on the published results. Do not split preparation, submission, validation,
-normal reconciliation levels/convergence, and final compilation into trivial
-controller turns. The operation carries those deterministic steps through their
-native gates, reports exact prompt/schema/response and accepted-artifact bindings,
-and stops at required meaning judgment, an actionable failure, or `view.json`.
-There is no fixed model-call quota. Existing per-stage commands are recovery and
-historical replay seams, not the normal execution sequence.
-
-Desktop accumulated tool output can truncate despite larger allowances; use
-the separate `notify` outputs in the generated prompt. Stop before judgment
-when complete visibility cannot be obtained. The native log retaining all bytes
-does not prove that the worker saw them; the semantic contract owns this boundary.
-
-Accepted artifacts under `extraction/`, `verification/`, and
-`reconciliation/level-NNNN/` are revalidated and reused on restart. Invalid or
-staged artifacts block with their paths; missing responses remain judgment work.
-Do not replace accepted answers or rerun completed semantic work to clear a
-mechanical interruption. Source/identity changes require the existing explicit
-successor/reopen authority. The final view remains bound to the current corpus;
-the command grants no acquisition, global v34 closure, seal, or synthesis authority.
+Follow the owning [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
+section for normal starts and resumes. It binds the command, complete request set,
+generated worker protocol, accepted-artifact reuse and stopping conditions.
+For an explicitly commissioned prepared-level checkpoint with existing verified
+inputs, use [Preparation from verified inputs](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
+These entries replace reconstructing the sequence from the history in this file.
+Phase A's [experimental route options](#experimental-route-options) remain opt-in.
 
 ### Evidence flow and method context
 
@@ -841,7 +740,9 @@ then join a Reddit observation and a retailer review when they concern the same
 stable product and bounded meaning. It does not merge them merely because they
 share a phrase.
 
-A full-corpus run uses the run-v3 / bundle-v5 / method-v5 generation. Every
+The historical run-v3 / bundle-v5 / method-v5 generation introduced the following
+leaf-disposition behavior; current authoring versions are owned by the semantic
+integration contract. Every
 assessable leaf still receives exactly one context-aware judgment, made after
 reading its parent and container context; there is no keyword or phrase gate,
 and a short referential reply that adopts a specific parent complaint,
