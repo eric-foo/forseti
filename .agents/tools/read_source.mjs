@@ -111,6 +111,7 @@ async function main(args) {
   let maxOutputBytes = DEFAULT_OUTPUT_BYTES;
   for (let i = 0; i < args.length; i++) {
     const flag = args[i];
+    if (flag === '--help') throw new Error('Run --help alone');
     const value = args[++i];
     if (value === undefined) throw new Error('Every option requires a value');
     if (flag === '--file') requests.push({ path: value });
@@ -124,16 +125,18 @@ async function main(args) {
         if (current[key] !== undefined) throw new Error('Repeated range option');
         current[key] = flag === '--heading' ? value : Number(value);
       }
-    } else throw new Error('Use --file PATH [--heading TITLE | --from N --to N] [--max-output-bytes N]');
+    } else throw new Error(['--heading', '--from', '--to'].includes(flag)
+      ? flag + ' before --file' : 'Unknown option; run --help for usage');
   }
   const output = await readSources(requests, { maxOutputBytes });
   process.stdout.write(output);
   if (JSON.parse(output).status !== 'read') process.exitCode = 2;
 }
 if (typeof process !== 'undefined' && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main(process.argv.slice(2)).catch(() => {
-    process.stdout.write(encode({ status: 'not_read', reason: 'invalid_arguments',
-      next: 'Use --file PATH [--heading TITLE | --from N --to N] [--max-output-bytes N]. Budget: 1024..32768 bytes.' }));
+  // Parser/validation diagnostics contain no source bodies or arbitrary argument text.
+  main(process.argv.slice(2)).catch(error => {
+    process.stdout.write(encode({ status: 'not_read', reason: 'invalid_arguments', error: error.message,
+      next: 'Run --help alone for usage. Budget: 1024..32768 bytes; at most 16 requests.' }));
     process.exitCode = 2;
   });
 }

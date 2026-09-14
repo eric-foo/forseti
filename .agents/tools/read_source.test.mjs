@@ -142,6 +142,27 @@ test('CLI rejects overwritten ranges and mixed help without reading bodies', () 
   }
 });
 
+test('CLI argument failures name their cause and point to help', () => {
+  const cli = fileURLToPath(new URL('./read_source.mjs', import.meta.url));
+  for (const [args, cause] of [
+    [['--file', source, '--from', '1', '--from', '3', '--to', '6'], /Repeated range option/],
+    [['--file', source, ...Array(17).fill(['--heading', 'One']).flat()], /16/],
+    [['--heading', 'One', '--file', source], /--heading.*before --file/],
+    [['--max-output-bytes', '1024', '--' + 'x'.repeat(12000), 'unused'], /Unknown option/],
+    [['--file', source, '--help'], /--help alone/],
+    [['--help', '--file', source], /--help alone/],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+    assert.equal(result.status, 2, JSON.stringify(args));
+    const failure = JSON.parse(result.stdout);
+    assert.equal(failure.reason, 'invalid_arguments');
+    assert.match(failure.error, cause);
+    assert.match(failure.next, /--help/);
+    assert.ok(Buffer.byteLength(result.stdout) <= 1024, 'Argument diagnostics must fit the minimum output budget');
+    assert.equal(failure.sources, undefined);
+  }
+});
+
 test('ordinary startup batch delivers four independent complete governing units', async () => {
   const routing = fileURLToPath(new URL('../workflow-overlay/decision-routing.md', import.meta.url));
   const safety = fileURLToPath(new URL('../workflow-overlay/safety-rules.md', import.meta.url));
@@ -159,6 +180,10 @@ test('ordinary startup batch delivers four independent complete governing units'
     const next = lines.findIndex((line, i) => i > from && line.startsWith('## '));
     assert.equal(result.sources[index].text, lines.slice(from, next < 0 ? undefined : next).join(''));
   }
+  // The former parent must not read as the complete binding rule on its own.
+  for (const title of ['Task-Local Tool-Stall Circuit', 'Bounded-Change Fast Path',
+    'Created-Task Completion Return', 'Multi-Task Conservation Fast Path'])
+    assert.ok(result.sources[0].text.includes('**' + title + '**'), title + ' must be named from the root binding');
   assert.equal(result.sources[3].text, await fs.readFile(safety, 'utf8'));
   assert.ok(Buffer.byteLength(output) <= 20000);
   const tooSmall = await readSources(requests, { maxOutputBytes: 1024 });

@@ -165,6 +165,13 @@ blocker. If a correctly rooted Desktop lane still stalls or needs sustained
 shell-heavy parallelism, standalone CLI or WSL2 is an explicit fallback, not the
 standing default.
 
+This section is not the complete binding rule. Binding reuse, receiver
+classes, `receiver_binding`, and revision modes continue under
+**Bounded-Change Fast Path**; mismatch rerouting follows
+**Created-Task Completion Return**. Tool stalls use
+**Task-Local Tool-Stall Circuit**; multiple actors use
+**Multi-Task Conservation Fast Path**. Select each heading that applies.
+
 ## Task-Local Tool-Stall Circuit
 
 Separate an expected-duration review interval from a hard deadline. Reaching an
