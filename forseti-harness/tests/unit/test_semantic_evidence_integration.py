@@ -7521,6 +7521,239 @@ def test_policy_v2_node_keys_are_local_to_each_prompt_batch() -> None:
         validate_reconciliation_stage(bundle, stage, duplicate_within_one_batch)
 
 
+def test_prepared_level_replay_preserves_unspecified_historical_packing(tmp_path) -> None:
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    stage, _ = prepare_reconciliation_stage(bundle, verified,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        packing_strategy="group_aware_v1")
+    for name, value in (("bundle", bundle), ("verified", verified), ("stage", stage)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+        compilation_path=tmp_path / "verified.json", existing_stage_path=tmp_path / "stage.json",
+        stage_out=tmp_path / "replayed.json", prompt_dir=tmp_path / "prompts")
+    assert result["stage_sha256"] == stage["stage_sha256"]
+    assert json.loads((tmp_path / "replayed.json").read_text()) == stage
+
+
+@pytest.mark.parametrize("revision", [
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+])
+def test_finite_completion_replays_real_consumer_and_rejects_false_completion(revision) -> None:
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    options = dict(reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        response_version=semantic_module.RECONCILIATION_RESPONSE_VERSION_V3,
+        authoring_revision=revision,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    formation, prompts = prepare_reconciliation_stage(bundle, verified, **options)
+    assert "EXPERIMENTAL FINITE FORMATION" in prompts[0]["prompt"]
+    premature = _singleton_reconciliation_responses(formation)
+    omitted = premature[0]["semantic_nodes"].pop()["child_relations"][0]["child_ref"]
+    premature[0]["unmerged_children"] = [{"child_ref": omitted, "reason": "singleton"}]
+    with pytest.raises(SemanticIntegrationError, match="before finishing"):
+        validate_reconciliation_stage(bundle, formation, premature)
+    formed = validate_reconciliation_stage(bundle, formation, _singleton_reconciliation_responses(formation))
+    assert not is_terminal_reconciliation_compilation(formed)
+    already_terminal = validate_reconciliation_stage(bundle, formation, _terminal_singleton_reconciliation_responses(formation))
+    assert not is_terminal_reconciliation_compilation(already_terminal)
+    finish, prompts = prepare_reconciliation_stage(bundle, formed, packing_strategy="group_aware_v1", **options)
+    assert "EXPERIMENTAL FINITE FINISH" in prompts[0]["prompt"]
+    with pytest.raises(SemanticIntegrationError, match="nonterminal"):
+        validate_reconciliation_stage(bundle, finish, _group_level_responses(finish, terminal=False))
+    finished_responses = _group_level_responses(finish, terminal=True)
+    node = finished_responses[0]["semantic_nodes"][0]
+    retired = node["child_relations"][2:]
+    node["child_relations"] = node["child_relations"][:2]
+    finished_responses[0]["unmerged_children"] = [{"child_ref": r["child_ref"],
+        "reason": "Distinct isolated report retained for retrieval"} for r in retired]
+    completed = validate_reconciliation_stage(bundle, finish, finished_responses)
+    assert is_terminal_reconciliation_compilation(completed)
+    assert len(completed["unmerged_semantic_units"]) == 2
+    view = finalize_v3_view(bundle, verified, completed)
+    assert view["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    assert finalize_v3_view(bundle, verified, completed) == view
+    packet = project_evidence_packet_v1(view, bundle, verified, completed,
+        proposition_ids=[row["proposition_id"] for row in view["propositions"]])
+    assert packet
+    assert packet["source_bindings"]["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    assert len(packet["unmerged_axis_candidates"]) == 2
+    with pytest.raises(SemanticIntegrationError, match="one formation"):
+        prepare_reconciliation_stage(bundle, completed, packing_strategy="group_aware_v1", **options)
+    for mutation in ("lineage", "binding", "malformed_formation", "false_completion"):
+        bad = deepcopy(completed)
+        if mutation == "lineage":
+            bad["finite_replay"]["stage"]["candidates"][0]["statement"] = "forged source"
+        elif mutation == "binding":
+            bad["finite_replay"]["responses"][0]["stage_sha256"] = "f" * 64
+        elif mutation == "malformed_formation":
+            bad["finite_replay"]["stage"]["formation_replay"]["stage"] = []
+        else:
+            bad.pop("finite_replay")
+        bad["node_compilation_sha256"] = semantic_module._sha256({k:v for k,v in bad.items() if k != "node_compilation_sha256"})
+        with pytest.raises(SemanticIntegrationError):
+            finalize_v3_view(bundle, verified, bad)
+
+
+def _finite_row_identity_fixture():
+    source = _source_v7(count=3)
+    for row in source["captured_items"]:
+        row["independence_key"] = "reddit:one-actor"
+    bundle = build_bundle(source, max_prompt_bytes=80_000)
+    responses = _v5_responses(bundle, detailed_per_batch=3)
+    first = responses[0]["evidence"][0]["semantic_units"]
+    first.append({**deepcopy(first[0]), "semantic_unit_key": "second-claim"})
+    compiled = validate_batch_responses(bundle, responses)
+    verification, _ = prepare_row_verification(bundle, compiled)
+    verified = apply_row_verification(bundle, compiled, verification,
+        _row_verification_responses(verification))
+    formation, _ = prepare_reconciliation_stage(bundle, verified,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    return bundle, verified, formation
+
+
+def _finite_decision_response(stage, groups, *, terminal):
+    """Decision-only judgments; source-owned facts are compiled, never supplied."""
+    template = _singleton_reconciliation_responses(stage)[0]["semantic_nodes"][0]
+    source_fields = {"subject_product_ids", "comparator_product_ids", "product_version_ids",
+        "conditions", "polarity", "emerging_axis_labels", "child_relations"}
+    decisions = {ref: {"attachments": [], "unmerged_reason": "Isolated evidence retained"}
+        for ref in stage["batches"][0]["candidate_refs"]}
+    nodes = []
+    for index, group in enumerate(groups):
+        key = f"k000_n{index}"
+        node = {k: v for k, v in template.items() if k not in source_fields}
+        node.update(semantic_node_key=key, terminal_proposition=terminal,
+            claim_kind="customer_experience" if terminal else None,
+            opposition_checked=True if terminal else None,
+            causal_ceiling="descriptive_only" if terminal else None)
+        nodes.append(node)
+        for ref, relation in group:
+            decisions[ref] = {"attachments": [{"semantic_node_key": key, "relation": relation}],
+                "unmerged_reason": None}
+    return {"schema_version": semantic_module.RECONCILIATION_RESPONSE_VERSION_V3,
+        "stage_sha256": stage["stage_sha256"], "batch_id": stage["batches"][0]["batch_id"],
+        "semantic_nodes": nodes, "decisions_by_candidate_ref": decisions,
+        "emerging_axis_consolidations": [], "assignments_by_original_label": {}}
+
+
+@pytest.mark.parametrize("parent_relation", ["support", "counter"])
+def test_finite_source_rows_compose_relations_without_inventing_people(parent_relation):
+    bundle, verified, formation = _finite_row_identity_fixture()
+    by_row = {}
+    for candidate in formation["candidates"]:
+        ref = candidate["candidate_ref"]
+        by_row.setdefault(ref.rsplit("::", 1)[0], []).append(ref)
+    row0, row1, row2 = sorted(by_row)
+    formation_response = _finite_decision_response(formation, [
+        [(by_row[row0][0], "support"), (by_row[row1][0], "counter")],
+        [(by_row[row0][1], "support")], [(by_row[row2][0], "support")],
+    ], terminal=False)
+    formed = validate_reconciliation_stage(bundle, formation, [formation_response])
+    finish, prompts = prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+        packing_strategy="group_aware_v1")
+    assert finish["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+    aliases = json.loads(prompts[0]["prompt"].split("CONVERGENCE_SOURCE_ROWS\n")[1].split("\n", 1)[1])
+    mixed = next(c for c in finish["candidates"] if len(c["leaf_relations"]) == 2)
+    other = [c for c in finish["candidates"] if len(c["leaf_relations"]) == 1]
+    same = next(c for c in other if aliases[c["candidate_ref"]]["support"] == aliases[mixed["candidate_ref"]]["support"])
+    different = next(c for c in other if c != same)
+    assert aliases[mixed["candidate_ref"]]["counter"] != aliases[same["candidate_ref"]]["support"]
+    for extra_relation in (None, "adjacent", "counter"):
+        group = [(mixed["candidate_ref"], "support"), (same["candidate_ref"], "support")]
+        if extra_relation:
+            group.append((different["candidate_ref"], extra_relation))
+        bad = _finite_decision_response(finish, [group], terminal=True)
+        # The support floor must be the first failing boundary, even with a
+        # distinct opposing/adjacent row and two different claims from row0.
+        with pytest.raises(SemanticIntegrationError, match="lacks repeated source-row support"):
+            validate_reconciliation_stage(bundle, finish, [bad])
+    group = [(mixed["candidate_ref"], parent_relation), (same["candidate_ref"], "support")]
+    if parent_relation == "support":
+        group.append((different["candidate_ref"], "support"))
+    response = _finite_decision_response(finish, [group], terminal=True)
+    completed = validate_reconciliation_stage(bundle, finish, [response])
+    view = finalize_v3_view(bundle, verified, completed)
+    assert finalize_v3_view(bundle, verified, completed) == view
+    proposition = view["propositions"][0]
+    expected_support = {row0, row2} if parent_relation == "support" else {row0, row1}
+    assert set(proposition["claim_support"]["evidence_refs"]) == expected_support
+    assert set(proposition["claim_support"]["counterevidence_refs"]) == ({row1} if parent_relation == "support" else {row0})
+    assert proposition["claim_support"]["independent_origin_count"] == 1
+    assert proposition["claim_support"]["support_posture"] == "isolated"
+    packet = project_evidence_packet_v1(view, bundle, verified, completed,
+        proposition_ids=[proposition["proposition_id"]])
+    assert packet["source_bindings"]["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    represented = {leaf["semantic_unit_ref"] for node in completed["semantic_nodes"] for leaf in node["leaf_relations"]}
+    residual = {row["semantic_unit_ref"] for row in completed["unmerged_semantic_units"]}
+    assert represented | residual == {row["semantic_unit_ref"] for row in verified["semantic_units"]}
+
+
+def test_finite_runner_new_stage_selects_v5_authoring(tmp_path):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    for name, value in (("bundle", bundle), ("verified", verified)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+        compilation_path=tmp_path / "verified.json", stage_out=tmp_path / "formation.json",
+        prompt_dir=tmp_path / "prompts", reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    stage = json.loads((tmp_path / "formation.json").read_text())
+    assert result["authoring_revision"] == stage["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+
+
+@pytest.mark.parametrize("revision", [
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+])
+def test_finite_revision_resume_and_byte_ceiling_are_bound(tmp_path, revision):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle, verified = _verified_policy_compilation(count=12, max_prompt_bytes=18_000)
+    options = dict(completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        authoring_revision=revision)
+    formation, _ = prepare_reconciliation_stage(bundle, verified, **options)
+    formed = validate_reconciliation_stage(bundle, formation, _singleton_reconciliation_responses(formation))
+    finish, prompts = prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
+    assert ("authoring_revision" in finish) == (revision == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    assert len(prompts) > 1
+    assert all(len(p["prompt"].encode("utf-8")) <= 18_000 for p in prompts)
+    assert semantic_module.prepare_reconciliation_prompts(bundle, finish) == prompts
+    assert {ref for batch in finish["batches"] for ref in batch["candidate_refs"]} == {row["candidate_ref"] for row in finish["candidates"]}
+    for name, value in (("bundle", bundle), ("formed", formed), ("finish", finish)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    kwargs = dict(bundle_path=tmp_path / "bundle.json", compilation_path=tmp_path / "formed.json",
+        existing_stage_path=tmp_path / "finish.json", stage_out=tmp_path / "resumed.json",
+        prompt_dir=tmp_path / "prompts", completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    result = prepare_reconciliation_level(**kwargs)
+    assert result["authoring_revision"] == revision
+    assert json.loads((tmp_path / "resumed.json").read_text()) == finish
+    for prompt in prompts:
+        assert (tmp_path / "prompts" / f"{prompt['batch_id']}.md").read_bytes() == prompt["prompt"].encode("utf-8") + b"\n"
+        assert json.loads((tmp_path / "prompts" / f"{prompt['batch_id']}.schema.json").read_text()) == prompt["response_schema"]
+    changed_revision = (semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4
+        if revision == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5 else semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    with pytest.raises(SemanticIntegrationError, match="authoring revision changes"):
+        prepare_reconciliation_level(**{**kwargs, "prompt_dir": tmp_path / "changed"}, authoring_revision=changed_revision)
+    with pytest.raises(SemanticIntegrationError, match="authoring revision changes"):
+        prepare_reconciliation_stage(bundle, formed, completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+            packing_strategy="group_aware_v1", authoring_revision=changed_revision)
+    for invalid in (semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V6, "unknown"):
+        bad = {**finish, "authoring_revision": invalid}
+        bad["stage_sha256"] = semantic_module._sha256({k:v for k,v in bad.items() if k != "stage_sha256"})
+        with pytest.raises(SemanticIntegrationError, match="requires v4 or v5"):
+            validate_reconciliation_stage(bundle, bad, [], require_all=False)
+    with pytest.raises(SemanticIntegrationError, match="decision-only"):
+        semantic_module.prepare_reconciliation_prompts(bundle, finish, response_version=RECONCILIATION_RESPONSE_VERSION_V2)
+    too_small = {**finish, "max_prompt_bytes": 100}
+    too_small["stage_sha256"] = semantic_module._sha256({k:v for k,v in too_small.items() if k != "stage_sha256"})
+    with pytest.raises(SemanticIntegrationError, match="rendered prompt byte ceiling"):
+        semantic_module.prepare_reconciliation_prompts(bundle, too_small)
+
+
 def test_policy_v2_normal_mode_cannot_drop_a_customer_singleton() -> None:
     bundle, verified = _verified_policy_compilation(count=1)
     stage, _ = prepare_reconciliation_stage(

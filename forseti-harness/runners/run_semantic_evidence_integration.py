@@ -2184,10 +2184,12 @@ def prepare_reconciliation_level(
     response_version: str | None = None,
     existing_stage_path: Path | None = None,
     authoring_revision: str | None = None,
+    completion_strategy: str | None = None,
+    packing_strategy: str | None = None,
 ) -> dict[str, Any]:
     bundle = _load_object(bundle_path)
     compilation = _load_object(compilation_path)
-    if authoring_revision is None:
+    if authoring_revision is None and completion_strategy is None:
         authoring_revision = (
             RECONCILIATION_AUTHORING_IDENTITY_V4
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
@@ -2200,6 +2202,8 @@ def prepare_reconciliation_level(
             bundle, compilation, reconciliation_policy_version=reconciliation_policy_version,
             response_version=response_version,
             authoring_revision=authoring_revision,
+            completion_strategy=completion_strategy,
+            packing_strategy=packing_strategy or "input_order",
         )
     else:
         stage = _load_object(existing_stage_path)
@@ -2210,6 +2214,8 @@ def prepare_reconciliation_level(
             raise ValueError("existing reconciliation stage has stale input compilation")
         if reconciliation_policy_version is not None and stage.get("reconciliation_policy_version") != reconciliation_policy_version:
             raise ValueError("existing reconciliation stage has different policy")
+        if stage.get("completion_strategy") != completion_strategy or (packing_strategy is not None and stage.get("packing_strategy", "input_order") != packing_strategy):
+            raise ValueError("existing reconciliation stage has different completion or packing strategy")
         prompts = prepare_reconciliation_prompts(bundle, stage, response_version=response_version,
                                                 authoring_revision=authoring_revision)
     if prompt_dir.exists():
@@ -2225,9 +2231,10 @@ def prepare_reconciliation_level(
             _write_json(
                 prompt_dir / f"{row['batch_id']}.schema.json", row["response_schema"]
             )
-    return {
+    result = {
         "status": "SEMANTIC_RECONCILIATION_LEVEL_JUDGMENT_REQUIRED",
-        "authoring_revision": authoring_revision,
+        "authoring_revision": (stage.get("authoring_revision", RECONCILIATION_AUTHORING_IDENTITY_V4)
+            if stage.get("completion_strategy") else authoring_revision),
         "stage_sha256": stage["stage_sha256"],
         "level": stage["level"],
         "batch_count": len(prompts),
@@ -2241,6 +2248,10 @@ def prepare_reconciliation_level(
         "prompt_dir": str(prompt_dir),
         "model_api_calls": 0,
     }
+    if stage.get("completion_strategy"):
+        result["completion_strategy"] = stage["completion_strategy"]
+        result["completion_phase"] = stage["completion_phase"]
+    return result
 
 
 def prepare_reconciliation_definitions(
@@ -3615,6 +3626,10 @@ def _parser() -> argparse.ArgumentParser:
     reconcile_level.add_argument("--prompt-dir", type=Path, required=True)
     reconcile_level.add_argument("--existing-stage", type=Path,
         help="Render requests for an immutable partially completed stage without repartitioning.")
+    reconcile_level.add_argument("--completion-strategy", choices=["finite_formation_finish_v1"],
+        help="Unpromoted finite formation then one bounded finish; new stages use v5 authoring. Use a fresh run root.")
+    reconcile_level.add_argument("--packing-strategy", choices=["input_order", "group_aware_v1"],
+        help="New stages default to input_order; existing stages retain their frozen packing when omitted.")
     reconcile_level.add_argument("--response-version",
         choices=[RECONCILIATION_RESPONSE_VERSION_V2, RECONCILIATION_RESPONSE_VERSION_V3],
         help="Defaults to decision-only v3 for method v12; explicit v2 is historical replay.")
@@ -4238,6 +4253,8 @@ def main(argv: list[str] | None = None) -> int:
                 stage_out=args.stage_out,
                 prompt_dir=args.prompt_dir,
                 reconciliation_policy_version=args.reconciliation_policy,
+                completion_strategy=args.completion_strategy,
+                packing_strategy=args.packing_strategy,
                 response_version=args.response_version,
                 existing_stage_path=args.existing_stage,
                 authoring_revision=args.authoring_revision,
