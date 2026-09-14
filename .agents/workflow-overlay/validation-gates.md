@@ -124,7 +124,13 @@ inherit this floor.
 
 ## Current Gates
 
+
+### Bootstrap file existence
+
 - Required Forseti files exist before claiming bootstrap completion.
+
+### Diff-scoped CI event base
+
 - Diff-scoped CI gates bind one exact event base SHA: pull requests use
   `github.event.pull_request.base.sha`; pushes to `main` use
   `github.event.before`. `.github/workflows/ci.yml` exports that value as
@@ -134,6 +140,9 @@ inherit this floor.
   an explicit CLI base, then local `origin/main`. The local pre-push mirror
   deliberately leaves the CI variable unset and scans outgoing
   `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
+
+### Harness coupling contract preflight
+
 - Harness coupling contract preflight: when the exact CI event diff (or local
   outgoing `origin/main...HEAD` diff) touches `forseti-harness/**/*.py` or the
   generated `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`,
@@ -142,19 +151,34 @@ inherit this floor.
   contract files before the full suite. Diff-resolution and launch errors fail
   closed. The adapter adds no test rule and a pass is not full-suite validation,
   readiness, approval, or proof that every CI failure is prevented.
+
+### Implementation directory authorization
+
 - No software implementation directories are present unless explicitly authorized.
+
+### Forseti authority isolation
+
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
+
+### Material preflight checks
+
 - Material authority, source-scope, edit-permission, and repository-state checks
   occur before repo-aware work. Require a `forseti_start_preflight` receipt only
   when the applicable boundary in `.agents/workflow-overlay/source-loading.md`
   requires it; missing required receipt evidence blocks that portable handoff
   or claim, not ordinary interactive work.
+
+### Direction-change propagation evidence
+
 - Doctrine-changing source work must carry direction-change propagation
   evidence under `.agents/workflow-overlay/source-of-truth.md` before claiming
   completion. The PR body or final closeout is the default; an inline receipt or
   blocker is exceptional under that owner. Missing propagation evidence blocks
   strict success or status claims that depend on the changed doctrine; it
   authorizes no adjacent cleanup or tooling.
+
+### Writable-root acceptance
+
 - Writable-root acceptance follows the one-time binding owned by
   `.agents/workflow-overlay/decision-routing.md`:
 
@@ -187,6 +211,9 @@ inherit this floor.
   for that review run. It never satisfies an existing exact gate. Live
   hook-adoption probing is reserved for a commission whose purpose is that
   adoption test, never routine lane proof.
+
+### Multi-task conservation acceptance
+
 - Multi-task conservation is a resident acceptance judgment. A full-group
   restart is accepted only for cross-member contamination, a changed common
   contract or controlled variable, a required revision change after evidence or
@@ -195,6 +222,9 @@ inherit this floor.
   ordinary member-preflight failures recover in the same task; an unusable task
   may be replaced once without replacing unaffected members. Superseded tasks
   are archived after the authoritative replacement or group is bound.
+
+### Review-routing disposition gate
+
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -212,6 +242,9 @@ inherit this floor.
   have been recommended — that stays resident scoping judgment. Enforced
   diff-scoped and forward-only by `.agents/hooks/check_review_routing.py`
   (local `--commit-msg` advisory; CI `--strict`).
+
+### Handoff-pointer resolution gate
+
 - Handoff-pointer resolution gate: a changed durable `.md` file must not
   reference a handoff-packet path (`docs/workflows/*handoff*.md`,
   `docs/prompts/handoffs/*.md`) that does not resolve in the same tree,
@@ -231,6 +264,9 @@ inherit this floor.
   `.agents/workflow-overlay/prompt-orchestration.md`. Enforced diff-scoped
   and forward-only by `.agents/hooks/check_handoff_pointers.py` (CI
   `--strict`; whole-corpus backlog via `--audit`, never gated).
+
+### Source-input hash freshness gate
+
 - Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
   records that carry `source_pointer` + `sha256` must match current file bytes
   (CRLF-normalized), and source-capture packet manifests (top-level
@@ -242,6 +278,9 @@ inherit this floor.
   capture freshness, or metric validity. Enforced diff-scoped and forward-only
   by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
   pre-push mirror; whole-repo advisory via `--audit`, never gated).
+
+### Review-summary shape gate
+
 - Review-summary shape gate: a changed durable review output under
   `docs/review-outputs/` carrying a real (non-template) `review_summary`
   YAML block must keep the block's mechanically checkable shape from
@@ -261,6 +300,9 @@ inherit this floor.
   fencing checks stay with `check_review_output_provenance.py`. Enforced
   diff-scoped and forward-only by `.agents/hooks/check_review_summary.py`
   (CI `--strict`; whole-corpus advisory via `--audit`, never gated).
+
+### Hash-pin freshness gate
+
 - Hash-pin freshness gate: markdown freshness hash pins in changed durable
   docs — labeled `path:` + `sha256:` bullet pairs (e.g. the skill-adoption
   source pins) and `source_captures/**/receipt.md` preserved-file bullets —
@@ -275,6 +317,9 @@ inherit this floor.
   Enforced diff-scoped and forward-only by
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+
+### Shared-helper adoption gate
+
 - Shared-helper adoption gate: an added line in `forseti-harness/**/*.py`
   (excluding `forseti-harness/tests/**` and `harness_utils.py` itself) or
   `.agents/hooks/*.py` (excluding `_hooklib.py` and
@@ -299,6 +344,9 @@ inherit this floor.
   justification, validation, or readiness. Enforced diff-scoped by
   `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`; dormant
   `--hook` compatibility is not registered interactively).
+
+### Ontology-tag validity gate
+
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
   the ontology SSOT roster over the CI event base (or local pre-push
   `origin/main...HEAD`); an additive annotation
@@ -309,6 +357,9 @@ inherit this floor.
   mirror. An unresolvable diff base fails open with a loud infrastructure-gap
   warning, never a pass claim. Tag-shape only: not ontology correctness,
   semantic validity, validation, readiness, or approval.
+
+### Receipt-field provenance gate
+
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -327,9 +378,15 @@ inherit this floor.
   Forseti-local adoption of general authoring/review discipline, not Forseti-owned
   doctrine; it is a candidate for future skill-source adoption and becomes
   stale here if an equivalent accepted skill-source rule is adopted.
+
+### Workflow artifact retrieval metadata
+
 - New or materially touched durable human-authored workflow artifacts follow
   `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
   contract.
+
+### Artifact-level completion
+
 - New or materially touched durable artifacts close against `AGENTS.md`
   ("Artifact-Level Smallest Complete Intervention"): resident judgment must
   confirm a distinct future consumer, outcome, or lifecycle; standalone
@@ -338,12 +395,18 @@ inherit this floor.
   registry; and reconciliation of affected supersession, retirement, and live
   routers. Deterministic tooling may check objective router-target existence,
   but a green path check does not establish semantic completeness.
+
+### Report-only retrievability checks
+
 - Report-only retrievability checks may use
   `docs/workflows/artifact_retrievability_guide.md` for artifact body-opening
   shape, stale/recheck clarity, repo-map/index treatment, and hygiene anti-rot.
   Findings are routing or hygiene defects only; they do not prove validation
   failure, validation success, approval, readiness, lifecycle completion,
   implementation authorization, or edit permission.
+
+### Repo-map T1 admission gate
+
 - Repo-map T1 admission gate: a change that adds or materially expands a row in
   `docs/workflows/forseti_repo_map_v0.md` must identify which T1 class in
   `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` it serves and why an
@@ -354,11 +417,23 @@ inherit this floor.
   duplicated owner-source descriptions. This gate is resident judgment: the
   existing retrieval checkers continue to enforce existence, reachability,
   freshness, and header shape only; none claims semantic T1 admission.
+
+### Migration-governance source hashes
+
 - Source hashes for migration-governance inputs are recorded in `docs/workflows/orca_bootstrap_record.md`.
+
+### Skill-name snapshots
+
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
+
+### Git status reporting
+
 - Git status is reported when this workspace is a Git repo.
 
 ## Prompt Orchestration Gates
+
+
+### Behavioral-mechanism admission gate
 
 - Behavioral-mechanism admission gate: a new or materially expanded standing
   prompt field, preflight, gate, receipt, review pass, hook, checker, artifact,
@@ -366,13 +441,25 @@ inherit this floor.
   the bound outcome, defect class, trigger, recurring cost, and why an existing
   lower-cost boundary is insufficient. If that case cannot be made, exclude
   the mechanism.
+
+### Overlay authority gate
+
 - Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
   must be read before prompt-orchestration work. Routine prompts carry the
   complete inline core; escalated prompts carry the portable start receipt and
   fields owned by `.agents/workflow-overlay/source-loading.md` and
   `.agents/workflow-overlay/prompt-orchestration.md`.
+
+### Artifact role gate
+
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
+
+### Source-resolution gate
+
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
+
+### Effective-target gate
+
 - Effective-target gate: same-lane prompts point to the active one-time target
   snapshot and do not repeat root receipts, probes, canaries, or capability
   recitals. The current actor may continue against its selected worktree when
@@ -380,6 +467,9 @@ inherit this floor.
   evidence; collaboration remains same-root and unknown couriers preparation-
   only. Reroot only after observed ambiguity, required-tool denial, root-bound
   feature mismatch, or writer conflict leaves no authorized capable path.
+
+### Multi-task conservation gate
+
 - Multi-task conservation gate: a multi-task commission must choose
   collaboration for same-root roles and create only the independent
   worktree/lifecycle members the outcome requires. Those members launch as one
@@ -402,12 +492,18 @@ inherit this floor.
   delivery, direct repo access, different-vendor eligibility) is owned by
   `.agents/workflow-overlay/delegated-review-patch.md` and enforced at CA
   adjudication, not by a self-declared prompt token.
+
+### Control-plane source-state gate
+
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
   sources affect strict claims. Modified or untracked controlling sources may
   support advisory work, but strict status claims remain blocked unless owner
   acceptance or controlling authority is explicit.
+
+### Output-mode gate
+
 - Output-mode gate: prompts must name exactly one output mode from `.agents/workflow-overlay/prompt-orchestration.md`.
   The mechanically checkable shell — an output-mode declaration naming at
   least one closed-set token in a changed `docs/prompts/**` artifact
@@ -417,6 +513,9 @@ inherit this floor.
   scoped to this artifact rather than a nested dispatch/receiver role stays
   resident judgment; multi-declaration and compound-token shapes are
   advisory INFO, never gate failures.
+
+### Chat-output topology gate
+
 - Chat-output topology gate: prompt-policy patches, workflow patches, and
   reusable prompt templates touching chat output shape must check for
   contradictions between the general human-summary / agent-detail /
@@ -438,6 +537,9 @@ inherit this floor.
   active `review-report` prompts and stale one-offs must not be broad-synced;
   and extra courier keys or ritual non-claim fields must not be added merely to
   satisfy process metrics.
+
+### Review-report topology gate
+
 - Review-report topology gate: prompts and prompt-policy patches touching
   `review-report` must check that the saved-report exception is adjacent to the
   owning output-mode rule; the durable report remains the review artifact; chat
@@ -450,6 +552,9 @@ inherit this floor.
   templates/prompts are patched or stale one-offs are queued for hygiene; and
   no validation, approval, readiness, resolver, lifecycle, install, deploy,
   merge-safety, or product-readiness claim is introduced.
+
+### Review-doctrine gate
+
 - Review-doctrine gate: review prompts, review templates, review-output
   closeouts, and CA-facing review handoffs must keep review output
   findings-first by default; require adversarial artifact review prompts to
@@ -466,15 +571,24 @@ inherit this floor.
   avoid creating a synthesis lane. Missing or contradictory doctrine binding
   blocks strict `PASS`, readiness, acceptance, validation, or
   alignment-complete claims.
+
+### Source-evidence preservation gate
+
 - Source-evidence preservation gate: source-heavy work persists a unit only
   when its evidence must survive compaction, cross a receiver boundary, or is
   itself the requested deliverable. Otherwise use targeted reads and source
   pointers. A claim blocks only when its evidence cannot be reconstructed or
   verified; compaction alone is not contamination.
+
+### Readback economy gate
+
 - Readback economy gate: prompt validation must use targeted existence, hash,
   marker, status, and count checks. It must not require full artifact echo, full
   ledger-row echo, pasted Evidence Units, or broad source dumps unless a
   targeted failure makes that exact excerpt necessary.
+
+### Document-pinned projection falsifier
+
 - Document-pinned projection falsifier: when a delegated code target changes a
   builder or projector whose bytes could affect a frozen artifact that an
   in-scope document explicitly uses for identity, compatibility, or proof, the
@@ -489,11 +603,20 @@ inherit this floor.
   document carries such a pin. Missing tooling or inputs is `not-run` and
   blocks only the compatibility or proof claim that depends on the pin; it is
   never a generic review failure.
+
+### Retrieval-metadata gate
+
 - Retrieval-metadata gate: new or materially touched durable prompt artifacts
   must follow `.agents/workflow-overlay/retrieval-metadata.md` without using
   retrieval metadata as authority, validation proof, approval, readiness,
   lifecycle completion, deployment/install/resolver status, or edit permission.
+
+### Rerun economy gate
+
 - Rerun economy gate: retry prompts must name the prior artifact, frozen decisions, mutable fields, and unresolved finding.
+
+### Leakage gate
+
 - Leakage gate: prompt artifacts must not copy `jb` templates, GAP/CV Engine paths, compiler paths, handoff rules, product-lead rules, or repo-local lifecycle mechanics.
 
 ## Product Proof Gates

@@ -193,10 +193,18 @@ materially change the current claim, route, blocker, or edit boundary.
 - `.agents/workflow-overlay/validation-gates.md` — report helpers read
   "Verification principles", "Failure visibility" and workload instructions.
   Broader approval, readiness or permission-to-advance claims also require
-  applicable "Current Gates" entries. Required checks stay with their responsible
-  actor; reporting does not approve. Reopen sources for missing, conflicting or
-  unexpected evidence. Sample design reads "Model-backed dogfood quality";
-  prompt authoring reads "Prompt Orchestration Gates"; product-proof work reads
+  "Current Gates" subheadings selected by exact name for the task. Prompt authors
+  and receivers select the complete applicable rule subheadings under
+  "Current Gates" and "Prompt Orchestration Gates", using separate default-budget reader
+  requests when needed. For Python-harness or generated lake-touchpoint-inventory
+  changes, select "Harness coupling contract preflight"; for changes touching
+  code roots (forseti-harness/ or .agents/hooks/), select
+  "Review-routing disposition gate" when authoring commit instructions or preparing the
+  code commit. When both apply, request those two headings together. Their
+  existing diff conditions and responsible actors still govern applicability.
+  Required checks stay with their responsible actor; reporting does not approve.
+  Reopen sources for missing, conflicting or unexpected evidence. Sample design
+  reads "Model-backed dogfood quality"; product-proof work reads
   "Product Proof Gates"; enforcement decisions read "Enforcement Placement".
   Full read: editing validation doctrine.
 - This file — when source selection, budgeting, or prompt setup requires it
