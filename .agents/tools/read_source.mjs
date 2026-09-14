@@ -100,26 +100,43 @@ export async function readSources(requests, { maxOutputBytes = DEFAULT_OUTPUT_BY
 }
 
 async function main(args) {
+  if (args.length === 1 && args[0] === '--help') {
+    process.stdout.write(encode({ status: 'help',
+      usage: 'node .agents/tools/read_source.mjs --file PATH [--heading TITLE ... | --from N --to N] [--file PATH ...] [--max-output-bytes N]',
+      selection: 'Headings match exact titles and include children through the next peer. Repeat --heading for sections of the same file; repeat --file for another request. Omit selectors for a complete file.',
+      budget: 'Combined UTF-8 JSON output: default 8192 bytes, allowed 1024..32768. Oversize or invalid reads emit no source bodies and exit 2; help is not a source read.' }));
+    return;
+  }
   const requests = [];
   let maxOutputBytes = DEFAULT_OUTPUT_BYTES;
   for (let i = 0; i < args.length; i++) {
     const flag = args[i];
+    if (flag === '--help') throw new Error('Run --help alone');
     const value = args[++i];
     if (value === undefined) throw new Error('Every option requires a value');
     if (flag === '--file') requests.push({ path: value });
     else if (flag === '--max-output-bytes') maxOutputBytes = Number(value);
     else if (['--heading', '--from', '--to'].includes(flag) && requests.length) {
-      requests.at(-1)[flag.slice(2)] = flag === '--heading' ? value : Number(value);
-    } else throw new Error('Use --file PATH [--heading TITLE | --from N --to N] [--max-output-bytes N]');
+      const current = requests.at(-1);
+      const key = flag.slice(2);
+      if (flag === '--heading' && current.heading !== undefined)
+        requests.push({ path: current.path, heading: value });
+      else {
+        if (current[key] !== undefined) throw new Error('Repeated range option');
+        current[key] = flag === '--heading' ? value : Number(value);
+      }
+    } else throw new Error(['--heading', '--from', '--to'].includes(flag)
+      ? flag + ' before --file' : 'Unknown option; run --help for usage');
   }
   const output = await readSources(requests, { maxOutputBytes });
   process.stdout.write(output);
   if (JSON.parse(output).status !== 'read') process.exitCode = 2;
 }
 if (typeof process !== 'undefined' && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main(process.argv.slice(2)).catch(() => {
-    process.stdout.write(encode({ status: 'not_read', reason: 'invalid_arguments',
-      next: 'Use --file PATH [--heading TITLE | --from N --to N] [--max-output-bytes N]. Budget: 1024..32768 bytes.' }));
+  // Parser/validation diagnostics contain no source bodies or arbitrary argument text.
+  main(process.argv.slice(2)).catch(error => {
+    process.stdout.write(encode({ status: 'not_read', reason: 'invalid_arguments', error: error.message,
+      next: 'Run --help alone for usage. Budget: 1024..32768 bytes; at most 16 requests.' }));
     process.exitCode = 2;
   });
 }

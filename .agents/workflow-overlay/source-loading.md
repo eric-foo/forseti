@@ -222,7 +222,10 @@ budget is 8192 UTF-8 bytes, including returned source text and metadata. It is
 a payload bound, not a tokenizer count or a task deadline.
 
 CLI: `node .agents/tools/read_source.mjs --file PATH --heading "Heading title"`.
-Repeat `--file` for a combined request. Gather known independent reads in one
+`--help` returns usage without reading a source. Headings match exact titles and
+include their nested sections through the next peer; selecting both a parent
+and its child repeats that text. Repeat `--heading` for multiple sections of the
+same file, or `--file` for another request. Gather known independent reads in one
 tool round; use separate bounded requests when their combined text will not fit.
 For an oversized or ambiguous section,
 use explicit inclusive `--from N --to N` lines. A small whole-file request may
