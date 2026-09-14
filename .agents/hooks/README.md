@@ -42,24 +42,29 @@ tracked configuration is authoritative.
 
 Each active guard/checker documents its boundary and validation mode; tracked
 configuration and CI are the activation authorities.
-## Run the CI hook-gate set locally (before pushing)
+## Local validation
 
-CI runs every strict hook command registered in `.github/workflows/ci.yml`.
-The local pre-push guard mirrors ten selected strict gates, so CI still has
-additional hook commands that can fail after a push. Run the complete CI hook
-set locally with:
+Use `.agents/workflow-overlay/validation-gates.md` -> "Verification principles"
+to choose local depth: run focused checks for affected behavior and leave broad
+integration to required CI. A focused failure blocks broader runs until
+diagnosed. Unchanged valid evidence remains reusable; a setup visit does not
+require the entire checker battery.
+
+`.github/workflows/ci.yml` is the command source. The local pre-push guard mirrors
+selected strict gates; it does not cover every CI command. To discover the live
+hook-gate commands without reconstructing a list:
 
 ```powershell
-pwsh .github/scripts/run-doc-gates.ps1          # run each registered CI hook command
-pwsh .github/scripts/run-doc-gates.ps1 -List    # list the commands derived from ci.yml
+pwsh .github/scripts/run-doc-gates.ps1 -List
 ```
 
-The runner parses both one-line steps and commands inside multiline `run: |`
-blocks directly from `.github/workflows/ci.yml`, so the workflow remains the
-command source. It intentionally excludes non-hook steps such as
-`python -m pytest` and `.github/scripts/*`; run relevant tests separately when
-you touch code. This is convenience tooling, not validation or readiness; CI
-remains the authoritative gate.
+When a focused failure, cross-cutting uncertainty, or unavailable CI requires
+broader local diagnosis, run `pwsh .github/scripts/run-doc-gates.ps1`. It derives
+hook commands from one-line steps and multiline `run: |` blocks in the workflow.
+It includes only CI-registered selftests: run changed-checker focused selftests
+separately when needed. It excludes `python -m pytest` and `.github/scripts/*`;
+run relevant tests separately for affected code. CI remains the authoritative
+gate; a local pass does not establish readiness or that every CI step will pass.
 
 **Shared helpers:** `_hooklib.py` (same directory) owns the helpers the wired
 checkers share -- repo-root/path normalization, tool-event parsing (incl. Codex
@@ -113,31 +118,15 @@ that file for the authoritative registration) is:
   5-second host timeout.
 - No Claude `PostToolUse` or `Stop` hooks are registered.
 Hooks load at session start — **restart the session** after editing settings.
-Verify:
+For changes to this wiring or its hook implementations, verify the affected
+components:
 ```powershell
 python .agents/hooks/_hooklib.py --selftest
 python .agents/hooks/guard_protected_actions.py --selftest
-python .agents/hooks/check_review_output_provenance.py --selftest
-python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
-python .agents/hooks/check_review_routing.py --selftest
-python .agents/hooks/check_handoff_pointers.py --selftest
-python .agents/hooks/check_source_input_hashes.py --selftest
-python .agents/hooks/check_source_input_hashes.py --strict
-python .agents/hooks/check_prompt_output_mode.py --selftest
-python .agents/hooks/check_review_summary.py --selftest
-python .agents/hooks/check_hash_pin_freshness.py --selftest
-python .agents/hooks/check_hash_pin_freshness.py --strict
-python .agents/hooks/check_shared_helper_duplication.py --selftest
-python .agents/hooks/check_shared_helper_duplication.py --strict
-python .agents/hooks/check_repo_map_freshness.py --selftest
-python .agents/hooks/check_search_surface_google_route.py --selftest
-python .agents/hooks/check_search_surface_google_route.py --strict --base main
-python .agents/hooks/check_retrieval_header.py --selftest
-python .agents/hooks/check_placement.py --selftest
-python .agents/hooks/check_placement.py --changed --strict --base origin/main
-python .agents/hooks/check_full_gt_claims.py --selftest
 python .agents/hooks/session_context_capsule.py --selftest
 ```
+These are component checks, not proof of live session adoption. Checker changes
+and broader CI diagnosis follow "Local validation" above.
 
 ### Codex (tracked project hook)
 Codex does not read `.claude/settings.json`. Forseti wires Codex through the
@@ -206,26 +195,15 @@ Codex only loads project-local hooks after the project `.codex/` layer is
 trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks
 that need review.
 
-Verify:
+For changes to this wiring or its hook implementations, verify the affected
+components:
 ```powershell
 python .agents/hooks/guard_protected_actions.py --selftest
-python .agents/hooks/check_review_output_provenance.py --selftest
-python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
-python .agents/hooks/check_review_routing.py --selftest
-python .agents/hooks/check_handoff_pointers.py --selftest
-python .agents/hooks/check_source_input_hashes.py --selftest
-python .agents/hooks/check_source_input_hashes.py --strict
-python .agents/hooks/check_prompt_output_mode.py --selftest
-python .agents/hooks/check_review_summary.py --selftest
-python .agents/hooks/check_hash_pin_freshness.py --selftest
-python .agents/hooks/check_hash_pin_freshness.py --strict
-python .agents/hooks/check_shared_helper_duplication.py --selftest
-python .agents/hooks/check_shared_helper_duplication.py --strict
-python .agents/hooks/check_repo_map_freshness.py --selftest
-python .agents/hooks/check_search_surface_google_route.py --selftest
-python .agents/hooks/check_search_surface_google_route.py --strict --base main
 python .codex/hooks/forseti_guard_codex_adapter.py --selftest
 ```
+These component checks do not replace the live-adoption probe when adoption
+testing is commissioned. Checker changes and broader CI diagnosis follow
+"Local validation" above.
 
 ### Another harness
 `.claude/settings.json` is **not read** by other harnesses, so:

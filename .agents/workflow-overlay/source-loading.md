@@ -191,14 +191,12 @@ materially change the current claim, route, blocker, or edit boundary.
   template, "Rules" for reviewer conduct). Full read: editing lane doctrine
   or adjudicating a lane-authority conflict.
 - `.agents/workflow-overlay/validation-gates.md` — report helpers read
-  "Verification principles", "Failure visibility" and workload instructions.
-  Broader approval, readiness or permission-to-advance claims also require
-  applicable "Current Gates" entries. Required checks stay with their responsible
-  actor; reporting does not approve. Reopen sources for missing, conflicting or
-  unexpected evidence. Sample design reads "Model-backed dogfood quality";
-  prompt authoring reads "Prompt Orchestration Gates"; product-proof work reads
-  "Product Proof Gates"; enforcement decisions read "Enforcement Placement".
-  Full read: editing validation doctrine.
+  "Verification principles", "Failure visibility", and workload instructions.
+  For completion or other gate-bearing work, "Task validation route" selects
+  exact gate headings by the current task and claim. Read those entries,
+  including any other gate whose trigger matches; reporting does not discharge
+  the responsible actor's checks. Reopen sources for missing, conflicting, or
+  unexpected evidence. Full read: editing validation doctrine.
 - This file — when source selection, budgeting, or prompt setup requires it
   under `S0`, read "Rule", "Forseti Start Preflight", and the applicable pack or
   protocol section; prompt or capsule

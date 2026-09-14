@@ -10,10 +10,30 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-**Reading route:** `.agents/workflow-overlay/source-loading.md`, "Routine Read
-Shapes (overlay high-traffic files)", owns which sections each actor reads.
+## Task validation route
 
-### Verification principles
+Use the applicable row and exact headings below; rows select existing gates,
+not a new checklist or permission. Reuse already-read sources while their
+bindings hold. Expand for any other gate whose trigger matches the task.
+
+| Task or claim | Read here |
+| --- | --- |
+| Reporting existing results | "Verification principles", "Failure visibility", and the workload instructions. Reporting does not approve or discharge another actor's checks. |
+| Repo work completion or permission to advance | The reporting route plus "Repository work" and "Receipt-field provenance"; add the triggered entries below. |
+| Creating or materially changing durable artifacts | "Durable artifact completion"; "Handoff-pointer resolution" and "Ontology-tag validity" for changed Markdown; "Markdown hash-pin freshness" or "Source-input hash freshness" when pins or their inputs change. |
+| Selecting a writer, receiver, or multi-task group | "Writable-root acceptance"; "Multi-task conservation" for a group. |
+| Any changed file under `forseti-harness/` or `.agents/hooks/`, including Markdown | "Review-routing disposition": its trigger is the changed path, including a Markdown-only edit such as `.agents/hooks/README.md`. |
+| CI scope or harness/helper changes | "CI diff base"; "Harness coupling preflight" and "Shared-helper adoption" only when each entry's actual file/type trigger applies. A Markdown-only change does not activate those Python/inventory checks. |
+| Review output or review disposition | "Review-summary shape" and "Review-routing disposition" when applicable; the owning review lane still decides authority and review need. |
+| Prompt authoring, product proof, model-backed experiment, repo-map expansion, migration or skill adoption | Respectively "Prompt Orchestration Gates", "Product Proof Gates", "Model-backed dogfood quality", "Repo-map T1 admission", or "Migration and skill provenance". |
+| Choosing or changing enforcement | "Enforcement Placement"; its named child sections carry the remaining checker-specific decisions. |
+
+`.agents/workflow-overlay/source-loading.md` owns read budgets, expansion, and
+full-read requirements. Editing validation doctrine still requires the full
+file. Local commands are in `.agents/hooks/README.md` -> "Local validation";
+required CI is not replaced by local checks.
+
+## Verification principles
 
 Validation must be able to fail. Missing evidence is not a pass.
 
@@ -32,7 +52,7 @@ formatting, or completeness of its output; capture the run once and read the
 captured output. Use the evidence-validity rule above to decide whether a rerun
 is needed.
 
-### Model-backed dogfood quality
+## Model-backed dogfood quality
 
 Before commissioning model-backed dogfood, use the existing plan or commission
 to name the decision, the material failure the experiment must expose, a valid
@@ -103,7 +123,7 @@ resolve a named remaining uncertainty. Preserve failures and frozen expected
 judgments. Infrastructure recovery is distinct from a semantic retry; neither
 another sample nor a revised oracle may silently erase an unfavorable result.
 
-### Failure visibility
+## Failure visibility
 
 Validation reports must preserve failure visibility by bucket:
 
@@ -124,24 +144,9 @@ inherit this floor.
 
 ## Current Gates
 
+### Repository work
+
 - Required Forseti files exist before claiming bootstrap completion.
-- Diff-scoped CI gates bind one exact event base SHA: pull requests use
-  `github.event.pull_request.base.sha`; pushes to `main` use
-  `github.event.before`. `.github/workflows/ci.yml` exports that value as
-  `FORSETI_DIFF_BASE` and fails closed before policy gates when it is absent,
-  all-zero, malformed, or unresolvable after full-history checkout. Checker
-  resolution priority is `FORSETI_DIFF_BASE`, then `$GITHUB_BASE_REF`, then
-  an explicit CLI base, then local `origin/main`. The local pre-push mirror
-  deliberately leaves the CI variable unset and scans outgoing
-  `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
-- Harness coupling contract preflight: when the exact CI event diff (or local
-  outgoing `origin/main...HEAD` diff) touches `forseti-harness/**/*.py` or the
-  generated `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`,
-  `.agents/hooks/check_harness_coupling.py --strict` runs the existing
-  `test_data_lake_inventory_gate.py` and `test_policy_module_version_pins.py`
-  contract files before the full suite. Diff-resolution and launch errors fail
-  closed. The adapter adds no test rule and a pass is not full-suite validation,
-  readiness, approval, or proof that every CI failure is prevented.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
 - Material authority, source-scope, edit-permission, and repository-state checks
@@ -155,6 +160,74 @@ inherit this floor.
   blocker is exceptional under that owner. Missing propagation evidence blocks
   strict success or status claims that depend on the changed doctrine; it
   authorizes no adjacent cleanup or tooling.
+- Git status is reported when this workspace is a Git repo.
+
+### Durable artifact completion
+
+- New or materially touched durable human-authored workflow artifacts follow
+  `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
+  contract.
+- New or materially touched durable artifacts close against `AGENTS.md`
+  ("Artifact-Level Smallest Complete Intervention"): resident judgment must
+  confirm a distinct future consumer, outcome, or lifecycle; standalone
+  usability without authoring-chat reconstruction; the material authority,
+  currentness, and next-source facts; no duplicated authority or speculative
+  registry; and reconciliation of affected supersession, retirement, and live
+  routers. Deterministic tooling may check objective router-target existence,
+  but a green path check does not establish semantic completeness.
+- Report-only retrievability checks may use
+  `docs/workflows/artifact_retrievability_guide.md` for artifact body-opening
+  shape, stale/recheck clarity, repo-map/index treatment, and hygiene anti-rot.
+  Findings are routing or hygiene defects only; they do not prove validation
+  failure, validation success, approval, readiness, lifecycle completion,
+  implementation authorization, or edit permission.
+
+### Receipt-field provenance
+
+- Receipt-field provenance gate (non-self-certification): a gate, predicate,
+  acceptance check, or completion claim must not clear on a self-asserted field
+  value. A field clears only when it is owner-produced and provenance-bound or
+  independently verifiable — computed, re-derivable, audited, or produced by an
+  authorized process. A value a by-hand, unauthorized, dry-runner,
+  local-fixture, manually normalized, or operator-authored record could simply
+  assert is not self-certifying and does not clear, even when it reads `proven`,
+  `pass_valid`, `valid`, or `complete`. Where no owner-produced or verifiable
+  field exists yet, the check is `indeterminate_until_authored` (blocked, not
+  passed); do not clear on a paraphrase and do not invent the field. Corollaries:
+  (a) fix the whole class of such checks in one pass, not one instance; (b)
+  verify a cited source actually defines the field before binding a check to it;
+  (c) single-source any value otherwise enumerated in multiple places (enumerate
+  once; reference it). This gate is a check, not validation or readiness
+  evidence; its presence does not prove any artifact passes it. Lifecycle:
+  Forseti-local adoption of general authoring/review discipline, not Forseti-owned
+  doctrine; it is a candidate for future skill-source adoption and becomes
+  stale here if an equivalent accepted skill-source rule is adopted.
+
+### CI diff base
+
+- Diff-scoped CI gates bind one exact event base SHA: pull requests use
+  `github.event.pull_request.base.sha`; pushes to `main` use
+  `github.event.before`. `.github/workflows/ci.yml` exports that value as
+  `FORSETI_DIFF_BASE` and fails closed before policy gates when it is absent,
+  all-zero, malformed, or unresolvable after full-history checkout. Checker
+  resolution priority is `FORSETI_DIFF_BASE`, then `$GITHUB_BASE_REF`, then
+  an explicit CLI base, then local `origin/main`. The local pre-push mirror
+  deliberately leaves the CI variable unset and scans outgoing
+  `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
+
+### Harness coupling preflight
+
+- Harness coupling contract preflight: when the exact CI event diff (or local
+  outgoing `origin/main...HEAD` diff) touches `forseti-harness/**/*.py` or the
+  generated `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`,
+  `.agents/hooks/check_harness_coupling.py --strict` runs the existing
+  `test_data_lake_inventory_gate.py` and `test_policy_module_version_pins.py`
+  contract files before the full suite. Diff-resolution and launch errors fail
+  closed. The adapter adds no test rule and a pass is not full-suite validation,
+  readiness, approval, or proof that every CI failure is prevented.
+
+### Writable-root acceptance
+
 - Writable-root acceptance follows the one-time binding owned by
   `.agents/workflow-overlay/decision-routing.md`:
 
@@ -187,6 +260,9 @@ inherit this floor.
   for that review run. It never satisfies an existing exact gate. Live
   hook-adoption probing is reserved for a commission whose purpose is that
   adoption test, never routine lane proof.
+
+### Multi-task conservation
+
 - Multi-task conservation is a resident acceptance judgment. A full-group
   restart is accepted only for cross-member contamination, a changed common
   contract or controlled variable, a required revision change after evidence or
@@ -195,6 +271,9 @@ inherit this floor.
   ordinary member-preflight failures recover in the same task; an unusable task
   may be replaced once without replacing unaffected members. Superseded tasks
   are archived after the authoritative replacement or group is bound.
+
+### Review-routing disposition
+
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -212,6 +291,9 @@ inherit this floor.
   have been recommended — that stays resident scoping judgment. Enforced
   diff-scoped and forward-only by `.agents/hooks/check_review_routing.py`
   (local `--commit-msg` advisory; CI `--strict`).
+
+### Handoff-pointer resolution
+
 - Handoff-pointer resolution gate: a changed durable `.md` file must not
   reference a handoff-packet path (`docs/workflows/*handoff*.md`,
   `docs/prompts/handoffs/*.md`) that does not resolve in the same tree,
@@ -231,17 +313,30 @@ inherit this floor.
   `.agents/workflow-overlay/prompt-orchestration.md`. Enforced diff-scoped
   and forward-only by `.agents/hooks/check_handoff_pointers.py` (CI
   `--strict`; whole-corpus backlog via `--audit`, never gated).
-- Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
-  records that carry `source_pointer` + `sha256` must match current file bytes
-  (CRLF-normalized), and source-capture packet manifests (top-level
-  `manifest_version`) must have top-level `preserved_files[]` records whose
-  `relative_packet_path` + `sha256` match current raw stored bytes resolved
-  against the manifest's own directory, when the JSON artifact or referenced
-  file changed. This is provenance freshness only: it is not semantic
-  validation, generated-artifact completeness, readiness, source quality,
-  capture freshness, or metric validity. Enforced diff-scoped and forward-only
-  by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
-  pre-push mirror; whole-repo advisory via `--audit`, never gated).
+
+### Source-input hash freshness
+
+Apply the matching case when the JSON artifact or a referenced file changes:
+
+- **Repo-local source inputs:** JSON `source_inputs[]` records carrying
+  `source_pointer` + `sha256` must match current file bytes after CRLF
+  normalization.
+- **Source-capture packet manifests:** A top-level `manifest_version` string
+  identifies this case. Top-level `preserved_files[]` records carrying
+  `relative_packet_path` + `sha256` must match current **raw stored bytes,
+  preserving line endings**. Do not apply CRLF normalization to packet files.
+  Resolve paths against the manifest's own directory. Non-packet-local
+  preserved-file paths fail visibly; nested `preserved_files` blocks describing
+  machine-local packets outside the repo are deliberately not matched.
+
+Both cases enforce provenance freshness only: not semantic validation,
+generated-artifact completeness, readiness, source quality, capture freshness,
+or metric validity. Enforcement is diff-scoped and forward-only through
+`.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
+mirror; whole-repo advisory via `--audit`, never gated).
+
+### Review-summary shape
+
 - Review-summary shape gate: a changed durable review output under
   `docs/review-outputs/` carrying a real (non-template) `review_summary`
   YAML block must keep the block's mechanically checkable shape from
@@ -261,6 +356,12 @@ inherit this floor.
   fencing checks stay with `check_review_output_provenance.py`. Enforced
   diff-scoped and forward-only by `.agents/hooks/check_review_summary.py`
   (CI `--strict`; whole-corpus advisory via `--audit`, never gated).
+
+Widening the advisory recommendation vocabulary into a strict enum gate is a
+future doctrine change, not a checker default.
+
+### Markdown hash-pin freshness
+
 - Hash-pin freshness gate: markdown freshness hash pins in changed durable
   docs — labeled `path:` + `sha256:` bullet pairs (e.g. the skill-adoption
   source pins) and `source_captures/**/receipt.md` preserved-file bullets —
@@ -275,6 +376,11 @@ inherit this floor.
   Enforced diff-scoped and forward-only by
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+
+Markdown hash comparisons are CRLF-normalized and case-insensitive.
+
+### Shared-helper adoption
+
 - Shared-helper adoption gate: an added line in `forseti-harness/**/*.py`
   (excluding `forseti-harness/tests/**` and `harness_utils.py` itself) or
   `.agents/hooks/*.py` (excluding `_hooklib.py` and
@@ -288,8 +394,8 @@ inherit this floor.
   `_git_lines` / `porcelain_paths` in `.agents/hooks/` only — must either use
   the owning shared home (`forseti-harness/harness_utils.py` /
   `forseti-harness/source_capture/projection_shared.py` /
-  `.agents/hooks/_hooklib.py`) or carry, on the def line or the line
-  immediately above, a comment naming the delta vs the shared home (any
+  `.agents/hooks/_hooklib.py`) or carry, on the def line, the line immediately
+  above, or the first body line below, a comment naming the delta vs the shared home (any
   comment containing `harness_utils`, `_hooklib`, `projection_shared`, or
   `helper-delta`). The
   rule itself is owned by the adoption-rule paragraphs in
@@ -299,6 +405,9 @@ inherit this floor.
   justification, validation, or readiness. Enforced diff-scoped by
   `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`; dormant
   `--hook` compatibility is not registered interactively).
+
+### Ontology-tag validity
+
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
   the ontology SSOT roster over the CI event base (or local pre-push
   `origin/main...HEAD`); an additive annotation
@@ -309,41 +418,9 @@ inherit this floor.
   mirror. An unresolvable diff base fails open with a loud infrastructure-gap
   warning, never a pass claim. Tag-shape only: not ontology correctness,
   semantic validity, validation, readiness, or approval.
-- Receipt-field provenance gate (non-self-certification): a gate, predicate,
-  acceptance check, or completion claim must not clear on a self-asserted field
-  value. A field clears only when it is owner-produced and provenance-bound or
-  independently verifiable — computed, re-derivable, audited, or produced by an
-  authorized process. A value a by-hand, unauthorized, dry-runner,
-  local-fixture, manually normalized, or operator-authored record could simply
-  assert is not self-certifying and does not clear, even when it reads `proven`,
-  `pass_valid`, `valid`, or `complete`. Where no owner-produced or verifiable
-  field exists yet, the check is `indeterminate_until_authored` (blocked, not
-  passed); do not clear on a paraphrase and do not invent the field. Corollaries:
-  (a) fix the whole class of such checks in one pass, not one instance; (b)
-  verify a cited source actually defines the field before binding a check to it;
-  (c) single-source any value otherwise enumerated in multiple places (enumerate
-  once; reference it). This gate is a check, not validation or readiness
-  evidence; its presence does not prove any artifact passes it. Lifecycle:
-  Forseti-local adoption of general authoring/review discipline, not Forseti-owned
-  doctrine; it is a candidate for future skill-source adoption and becomes
-  stale here if an equivalent accepted skill-source rule is adopted.
-- New or materially touched durable human-authored workflow artifacts follow
-  `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
-  contract.
-- New or materially touched durable artifacts close against `AGENTS.md`
-  ("Artifact-Level Smallest Complete Intervention"): resident judgment must
-  confirm a distinct future consumer, outcome, or lifecycle; standalone
-  usability without authoring-chat reconstruction; the material authority,
-  currentness, and next-source facts; no duplicated authority or speculative
-  registry; and reconciliation of affected supersession, retirement, and live
-  routers. Deterministic tooling may check objective router-target existence,
-  but a green path check does not establish semantic completeness.
-- Report-only retrievability checks may use
-  `docs/workflows/artifact_retrievability_guide.md` for artifact body-opening
-  shape, stale/recheck clarity, repo-map/index treatment, and hygiene anti-rot.
-  Findings are routing or hygiene defects only; they do not prove validation
-  failure, validation success, approval, readiness, lifecycle completion,
-  implementation authorization, or edit permission.
+
+### Repo-map T1 admission
+
 - Repo-map T1 admission gate: a change that adds or materially expands a row in
   `docs/workflows/forseti_repo_map_v0.md` must identify which T1 class in
   `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` it serves and why an
@@ -354,9 +431,11 @@ inherit this floor.
   duplicated owner-source descriptions. This gate is resident judgment: the
   existing retrieval checkers continue to enforce existence, reachability,
   freshness, and header shape only; none claims semantic T1 admission.
+
+### Migration and skill provenance
+
 - Source hashes for migration-governance inputs are recorded in `docs/workflows/orca_bootstrap_record.md`.
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
-- Git status is reported when this workspace is a Git repo.
 
 ## Prompt Orchestration Gates
 
@@ -549,7 +628,13 @@ authority rather than restating it, and a green substrate proves shape only,
 never truth, readiness, or approval. Judgment-based rules (claim discipline,
 scope, lifecycle reasoning) stay resident and must actually fire. The per-rule
 classification and build history live in
-`docs/decisions/overlay_enforcement_placement_classification_v0.md`.
+`docs/decisions/overlay_enforcement_placement_classification_v0.md`. The former
+expanded build narratives remain in this file at Git revision
+`69967b544fc0e5b962f9ae18e4638f1e49b5b52d`; they are historical evidence, not an
+additional operating read. Current gate scope, exceptions, and checker modes
+are owned by the named entries under "Current Gates" and "Prompt Orchestration
+Gates" above. The live command set is `.github/workflows/ci.yml`; local execution
+and harness wiring are in `.agents/hooks/README.md`.
 
 Active placement instance: `.agents/hooks/check_placement.py --changed --strict`
 runs in CI against the exact event base. It checks added/modified/copied paths
@@ -598,7 +683,9 @@ wiring. Placement decides where a rule is enforced, not whether it is correct:
 a passing check is not validation, readiness, approval, or source-of-truth
 promotion.
 
-**Live-router direct-target check** (`.agents/hooks/check_map_links.py`, C5).
+### Live-router direct-target check
+
+(`.agents/hooks/check_map_links.py`, C5).
 The existing map/link gate also checks the authoritative-target column of the
 Artifact Roles `Role Bindings` table and the Doctrine Index product-spine table.
 Each live row must carry a repo-rooted target that exists directly in the
@@ -606,7 +693,9 @@ current tree; moved-path indexes do not satisfy a live router. This is objective
 path existence only — not authority, currentness, semantic completeness,
 validation, readiness, or proof that the routed source is the right one.
 
-**Retrieval-header index + forward-only CI gate** (`.agents/hooks/header_index.py`).
+### Retrieval-header CI gate
+
+(`.agents/hooks/header_index.py`).
 Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
 - `--index`: full retrieval view of all header-bearing durable docs (human use).
 - `--health [--verbose]`: whole-repo advisory counts of MISSING-HEADER and ORPHAN
@@ -622,7 +711,8 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
   back to whole-repo strict.
 Registered in `.github/workflows/ci.yml` after the existing link-check step.
 
-**Google search-surface route guard**
+### Google search-surface route guard
+
 (`.agents/hooks/check_search_surface_google_route.py`). Diff-scoped CI gate for
 the mechanically checkable shell of
 `docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md`:
@@ -633,7 +723,9 @@ docs. This is route-shape enforcement only. It is not physical-locality proof,
 source sufficiency, validation, readiness, demand proof, Judgment evidence, or
 Product Lead evidence.
 
-**Retrieval-header forbidden-field scan** (`.agents/hooks/check_retrieval_header.py`,
+### Retrieval-header forbidden-field scan
+
+(`.agents/hooks/check_retrieval_header.py`,
 EP-07 forbidden-field subset — the part previously deferred). The shared header
 predicate (`header_problems_for_lines`, used by the dormant compatibility mode
 and the active `header_index.py --strict` CI gate) rejects status-leak keys in a
@@ -647,7 +739,8 @@ allowed-key set were assessed and intentionally NOT enforced — the corpus mixe
 retrieval-header fields with required review/prompt-provenance frontmatter in one
 block, so neither is born-green. Placement enforces header shape, never truth.
 
-**Exceptional doctrine-change receipt-shape gate**
+### Exceptional doctrine-change receipt-shape gate
+
 (`.agents/hooks/check_dcp_receipt.py`, EP-09 shape subset). Diff-scoped,
 forward-only CI validates the shape of any exceptional durable
 `direction_change_propagation` receipt or blocker present in changed Markdown.
@@ -655,25 +748,9 @@ It never requires a receipt, decides that one is justified, or verifies the
 truth of its propagation claims. Registered in `.github/workflows/ci.yml`;
 `--audit` is maintenance-only and `--selftest` is present.
 
-**Review-routing disposition gate** (`.agents/hooks/check_review_routing.py`,
-EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a
-change touching code roots must carry its review disposition — a review
-artifact filed in the same change, or a shape-valid `review_routing_status`
-line (grammar owned by the Current Gates bullet above), with path-routed targets
-verified to exist and chat-only adjudication carrying a non-empty durable
-disposition rather than duplicated findings. Born from the 2026-07-02 fused-lane audit: most fused
-implementation lanes closed without filing the delegated-review handoff their
-contract carried, several claimed it in commit prose without filing it, and
-the disposition lived only in chat where nothing durable could check it
-(51 of 67 code-root landings in the trailing 120 main commits carried no
-disposition at build time — advisory backlog via `--audit`, never gated).
-The gate checks disposition PRESENCE and SHAPE only — never the truth of a
-`not_needed` reason, the quality of a filed review, or whether review should
-have been recommended (resident judgment; cf. the receipt-field provenance
-gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
-`--selftest` present.
+### Local pre-push selected-gate mirror
 
-**Local pre-push selected-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
+(`.agents/hooks/pre_push_guard.py`, the
 policy behind the `.githooks/pre-push` adapter). For a push whose update lines
 pass the guard's safety checks, the guard runs ten selected strict CI gates over the
 outgoing `origin/main...HEAD` change: retrieval links and headers, review
@@ -693,138 +770,6 @@ nested worktrees to a tracked, diff-scoped gate. Local Git hook only: bypassable
 with `--no-verify`; it does not see GitHub API merges; CI remains the
 authoritative boundary. A green pre-push is not validation, readiness, approval,
 or proof that every CI step will pass.
-
-**Harness coupling contract preflight**
-(`.agents/hooks/check_harness_coupling.py`). This is a conditional adapter over
-the two existing contract files named in Current Gates, not a new validation
-rule. It runs in CI immediately before the full suite and in the local pre-push
-selected-gate mirror. The trigger is deliberately broad across harness Python
-because policy-module pins can be affected through imports and deliberately
-narrow across non-Python data to the generated inventory snapshot. A 2026-07-15
-sample of the latest 100 `ci` workflow runs found 96 completed runs and six
-failures; three of the six failures were stale generated-inventory or
-policy-module-pin coupling. No SHA in the sample both failed and later passed,
-so blanket retry had no supporting evidence. The two contract files completed
-in about 8.6 seconds locally versus about 79 seconds for the full harness suite.
-This placement is the smallest complete response to the repeated fast coupling
-class; other isolated failures remain visible in the authoritative full suite.
-
-
-**Source-input hash freshness gate** (`.agents/hooks/check_source_input_hashes.py`,
-EP-37). Diff-scoped, forward-only CI gate plus local pre-push mirror for the
-Current Gates bullet above: list-style JSON `source_inputs[]` records with
-repo-local `source_pointer` + `sha256` must match current file bytes when the
-JSON artifact or referenced source changed. Born from PR #817: a Creator
-Registry ledger merge changed the ledger hash while the YouTube metric seed's
-source-input hash stayed stale, and full pytest caught it late. Extended
-2026-07-10 to source-capture packet manifests: a JSON document with a
-top-level `manifest_version` string has its top-level `preserved_files[]`
-records (`relative_packet_path` + `sha256`) checked against current **raw
-stored bytes**, with the path resolved against the manifest's own directory
-(the manifests' `hash_basis: raw_stored_bytes`; `.gitattributes` pins
-`**/source_captures/** -text`). Non-packet-local paths fail loud; nested
-`preserved_files` blocks (review-input fixtures describing machine-local
-packets outside the repo) are deliberately not matched. Gap surfaced by the
-EP-15 build survey (PR #842): the packet-manifest shape was matched by
-neither the `source_inputs[]` JSON gate nor the markdown pin-grammar gate.
-Registered in `.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
-`--audit` and `--selftest` present. Provenance shape/freshness only — a green
-run never proves semantic validity, completeness, readiness, source quality,
-capture freshness, or metric validity.
-
-**Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
-EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
-handoff-packet paths referenced in changed durable docs must resolve in the
-same tree, or the pointer line must carry an explicit pin or exemption marker.
-Born from repeated cold-agent resolution failures: packets authored on
-unmerged lane branches — e.g. `docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md`, reachable only on its authoring branch — were
-referenced by filed courier/patch prompts that landed on `main`, so receiving
-agents and delegated reviewers starting cold from `main` could not find them
-(both the receiving agent and a delegated reviewer failed on that packet; the
-`--audit` backlog at build time showed 17 unresolved pointers across at least
-six distinct packets — surfaced, never gated). Because the gate runs on the
-landing PR's tree, it mechanically enforces the merge-ordering rule without
-needing to see lane starts. A write-time PostToolUse advisory was
-intentionally NOT built: the defect is a merge-topology property (packet on a
-different unmerged branch), invisible at the write boundary where the packet
-usually exists in the author's own tree. Registered in
-`.github/workflows/ci.yml`; `--selftest` present. Pointer shape only — a
-green run never proves packet content, freshness, or pin truth.
-
-**Prompt output-mode gate** (`.agents/hooks/check_prompt_output_mode.py`,
-EP-11 shape subset). Diff-scoped, forward-only CI gate for the Output-mode
-gate bullet (Prompt Orchestration Gates above): a changed prompt artifact
-under `docs/prompts/**` (templates and READMEs excluded) must carry an
-output-mode declaration naming at least one token from the closed set in
-`.agents/workflow-overlay/prompt-orchestration.md` § Output Modes,
-referencing that owner, never restating it. Build-time corpus measurement
-falsified the literal "exactly one" substrate reading — the `output_mode:`
-field shape is legitimately reused for receiver/reviewer/dispatch roles
-within one prompt, and legitimate compound two-token values exist — so the
-gate checks presence + token-in-set only, multi-declaration and multi-token
-shapes are INFO (never gated), and the EP-11 classification row moved
-SUBSTRATE→PARTIAL. Registered in `.github/workflows/ci.yml`; `--selftest`
-present, including a token-drift assertion that parses the owning section.
-Prompt contract shape is enforced at CI; no prompt advisory is registered on a
-write boundary.
-
-**Review-summary shape gate** (`.agents/hooks/check_review_summary.py`,
-EP-10 born-green subset). Diff-scoped, forward-only CI gate for the
-Review-summary shape gate bullet above (shape source
-`.agents/workflow-overlay/communication-style.md`, referenced never
-restated). Strict scope is deliberately the born-green subset: forbidden
-process keys, `report_path` resolution, failed-write consistency, and
-non-blank `recommendation`; full `recommendation` enum membership runs
-`--audit`-only because delegated-review-patch lanes carry an extended
-vocabulary `communication-style.md` never bound (measured on roughly 40% of
-one recent week's real closeouts at build time) — the owner decided
-(2026-07-10) to keep the narrowed gate as standing: the vocabulary stays
-unbound, enum membership stays advisory, and re-widening is a future
-doctrine change, not a checker default. Non-overlap:
-retrieval-header, provenance, and fencing checks stay with
-`check_review_output_provenance.py`. No write-time hook by design: review
-outputs are frequently authored by other harnesses that never fire this
-harness's hooks, so CI on the landing tree is the boundary. Registered in
-`.github/workflows/ci.yml`; `--selftest` present.
-
-**Hash-pin freshness gate** (`.agents/hooks/check_hash_pin_freshness.py`,
-EP-15 freshness subset). Diff-scoped, forward-only CI gate plus local
-pre-push mirror for the Hash-pin freshness gate bullet above. Build-time
-corpus survey found six markdown sha256 grammars; only the two freshness
-grammars are parsed — labeled `path:` + `sha256:` bullet pairs (the
-skill-adoption source pins) and `source_captures/**/receipt.md`
-preserved-file bullets — while package-manifest tables, source-read
-ledgers, and the external-path bootstrap-record table are provenance
-records and deliberately unparsed (gating them would false-block
-working-as-intended history). Hashes compare CRLF-normalized and
-case-insensitive; the two skill-adoption pins were re-pinned in the same
-change from raw-CRLF Get-FileHash values (which would pass on CRLF checkouts
-and permanently fail on LF CI checkouts) to the normalized convention. The
-markdown sibling of the EP-37 JSON gate. Registered in
-`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
-`--selftest` present.
-
-**Shared-helper duplication gate**
-(`.agents/hooks/check_shared_helper_duplication.py`). Diff-scoped,
-forward-only CI gate for the Shared-helper adoption gate bullet above. The
-mechanical backstop for the
-helper-adoption rule adopted by the 2026-07-16 helper-dedup lane (PRs
-#988–#992): the wired checkers and harness modules had accumulated diverged
-private copies of the same helpers, and the adopted rule — check the shared
-home first, import it when it already has the helper, and keep a deliberately
-divergent copy only with a one-line comment naming the delta — lived only in
-the two README paragraphs where nothing mechanical could catch the next
-private copy. Forward-only by design: only newly added def lines are gated;
-the escape hatch is the rule's own delta-comment convention (`harness_utils`
-/ `_hooklib` / `helper-delta` in a comment on the def line or the line
-above). `guard_protected_actions.py` stays excluded — its import-free
-duplication is the documented deliberate exception in the `_hooklib.py`
-docstring — as do `harness_utils.py`, `_hooklib.py`, and
-`forseti-harness/tests/**`. Registered in `.github/workflows/ci.yml` only;
-`--selftest` present. Its dormant `--hook` mode is not active wiring.
-Adoption-rule shape only — a green run never proves imports are correct, a
-kept divergence is justified, validation, or readiness.
-
 
 ## Future Gates
 
