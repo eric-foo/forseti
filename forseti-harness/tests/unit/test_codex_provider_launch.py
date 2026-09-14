@@ -263,6 +263,7 @@ def test_refused_login_preserves_safe_diagnostic_in_job_log(launch, capsys, stdo
     assert diagnostic["reason"] == reason
     assert diagnostic["exit_code"] == code
     assert diagnostic["generation_started"] is False
+    assert "check file-backed sign-in" not in output
     for name, raw in (("stdout", stdout), ("stderr", stderr)):
         lines = [line.strip() for line in raw.splitlines() if line.strip()]
         assert diagnostic["streams"][name]["chatgpt_verdict_count"] == lines.count("Logged in using ChatGPT")
@@ -284,6 +285,78 @@ def test_native_nonfatal_notice_does_not_defeat_verified_chatgpt_auth(launch):
     launch.status = NATIVE_NOTICE + "Logged in using ChatGPT\n"
     assert runner.main() == 0
     assert launch.launches[0]["launch_metadata"]["authentication_observed"] == "chatgpt"
+
+
+# Recovered verbatim from two completed native 0.154.0-alpha.6.2 attempts.
+# Its SHA256 matches the extra stderr line in four exit-zero auth refusals:
+# 73ac7814150e9b5c3a3d40ac6440b4870d7164ed34b0ec3d5430596f3adeaee5
+NATIVE_CLEANUP_NOTICE = (
+    "WARNING: failed to clean up stale arg0 temp dirs: Access is denied. (os error 5)\n"
+)
+
+
+@pytest.mark.parametrize("verdict_stream", ["stderr", "stdout"])
+def test_native_cleanup_warning_preserves_verified_auth_and_safe_notice(launch, capsys, verdict_stream):
+    launch.status = NATIVE_CLEANUP_NOTICE
+    if verdict_stream == "stderr":
+        launch.status += "Logged in using ChatGPT\n"
+    else:
+        launch.status_stdout = "Logged in using ChatGPT\n"
+    assert runner.main() == 0
+    assert len(launch.checks) == 2
+    assert len(launch.launches) == 1
+    call = launch.launches[0]
+    assert call["launch_metadata"]["authentication_observed"] == "chatgpt"
+    assert 'forced_login_method="chatgpt"' in call["command"]
+    for setting in runner.CHATGPT_CONFIG:
+        assert setting in call["command"] and setting in launch.checks[1][0]
+    assert launch.checks[1][1]["env"] == call["env"]
+    output = capsys.readouterr().err
+    assert "FORSETI_CODEX_AUTH_CHECK_NOTICE " + NATIVE_CLEANUP_NOTICE in output
+    assert "FORSETI_CODEX_AUTH_CHECK_FAILED" not in output
+
+
+@pytest.mark.parametrize("stdout,stderr,code,reason", [
+    ("", NATIVE_CLEANUP_NOTICE, 0, "chatgpt_verdict_missing"),
+    ("", NATIVE_CLEANUP_NOTICE + "Logged in using ChatGPT\n", 1, "local_check_nonzero_exit"),
+    (NATIVE_CLEANUP_NOTICE, "Logged in using ChatGPT\n", 0, "unexpected_output_with_chatgpt_verdict"),
+    ("Logged in using ChatGPT", NATIVE_CLEANUP_NOTICE + "Logged in using ChatGPT\n", 0,
+     "chatgpt_verdict_ambiguous"),
+    ("", NATIVE_CLEANUP_NOTICE + "Logged in using ChatGPT\nLogged in using ChatGPT\n", 0,
+     "chatgpt_verdict_ambiguous"),
+    ("Logged in using an API key: SECRET_DO_NOT_PRINT", NATIVE_CLEANUP_NOTICE + "Logged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", NATIVE_CLEANUP_NOTICE + "Logged in using an API key: SECRET_DO_NOT_PRINT\n", 0,
+     "chatgpt_verdict_missing"),
+    ("", NATIVE_CLEANUP_NOTICE + "Not logged in\n", 0, "chatgpt_verdict_missing"),
+    ("", NATIVE_CLEANUP_NOTICE + "Error loading config: SECRET_DO_NOT_PRINT\n", 1,
+     "configuration_load_failed"),
+    ("", NATIVE_CLEANUP_NOTICE.rstrip() + " SECRET_DO_NOT_PRINT\nLogged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", NATIVE_CLEANUP_NOTICE.replace("os error 5", "os error 13") + "Logged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", NATIVE_CLEANUP_NOTICE.replace("stale arg0", "active arg0") + "Logged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", "prefix " + NATIVE_CLEANUP_NOTICE + "Logged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", NATIVE_CLEANUP_NOTICE + "WARNING: SECRET_DO_NOT_PRINT\nLogged in using ChatGPT\n", 0,
+     "unexpected_output_with_chatgpt_verdict"),
+    ("", NATIVE_CLEANUP_NOTICE.rstrip() + "Logged in using ChatGPT\n", 0, "chatgpt_verdict_missing"),
+])
+def test_cleanup_warning_does_not_hide_failed_or_changed_status(launch, capsys, stdout, stderr, code, reason):
+    launch.status_stdout, launch.status, launch.status_code = stdout, stderr, code
+    with pytest.raises(SystemExit) as exc:
+        runner.main()
+    assert exc.value.code == 2
+    output = capsys.readouterr().err
+    marker = "FORSETI_CODEX_AUTH_CHECK_FAILED "
+    diagnostic, = [json.loads(line[len(marker):]) for line in output.splitlines() if line.startswith(marker)]
+    assert diagnostic["reason"] == reason
+    assert diagnostic["exit_code"] == code
+    assert diagnostic["generation_started"] is False
+    assert "SECRET_DO_NOT_PRINT" not in output
+    assert len(launch.checks) == 2
+    assert not launch.launches and not (launch.root / "attempts").exists()
 
 
 def test_native_nonfatal_notice_never_admits_a_non_chatgpt_verdict(launch, capsys):
