@@ -7580,12 +7580,14 @@ def test_finite_completion_replays_real_consumer_and_rejects_false_completion(re
     assert len(packet["unmerged_axis_candidates"]) == 2
     with pytest.raises(SemanticIntegrationError, match="one formation"):
         prepare_reconciliation_stage(bundle, completed, packing_strategy="group_aware_v1", **options)
-    for mutation in ("lineage", "binding", "false_completion"):
+    for mutation in ("lineage", "binding", "malformed_formation", "false_completion"):
         bad = deepcopy(completed)
         if mutation == "lineage":
             bad["finite_replay"]["stage"]["candidates"][0]["statement"] = "forged source"
         elif mutation == "binding":
             bad["finite_replay"]["responses"][0]["stage_sha256"] = "f" * 64
+        elif mutation == "malformed_formation":
+            bad["finite_replay"]["stage"]["formation_replay"]["stage"] = []
         else:
             bad.pop("finite_replay")
         bad["node_compilation_sha256"] = semantic_module._sha256({k:v for k,v in bad.items() if k != "node_compilation_sha256"})
@@ -7687,6 +7689,19 @@ def test_finite_source_rows_compose_relations_without_inventing_people(parent_re
     represented = {leaf["semantic_unit_ref"] for node in completed["semantic_nodes"] for leaf in node["leaf_relations"]}
     residual = {row["semantic_unit_ref"] for row in completed["unmerged_semantic_units"]}
     assert represented | residual == {row["semantic_unit_ref"] for row in verified["semantic_units"]}
+
+
+def test_finite_runner_new_stage_selects_v5_authoring(tmp_path):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    for name, value in (("bundle", bundle), ("verified", verified)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+        compilation_path=tmp_path / "verified.json", stage_out=tmp_path / "formation.json",
+        prompt_dir=tmp_path / "prompts", reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+    stage = json.loads((tmp_path / "formation.json").read_text())
+    assert result["authoring_revision"] == stage["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
 
 
 @pytest.mark.parametrize("revision", [

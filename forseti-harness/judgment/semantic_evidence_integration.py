@@ -9903,6 +9903,8 @@ def _verify_finite_completion_replay(bundle, batch_compilation, compilation):
         formation_replay = finish_replay["stage"]["formation_replay"]
         current = batch_compilation
         for phase, replay in (("formation", formation_replay), ("finish", finish_replay)):
+            if not isinstance(replay["stage"], Mapping):
+                raise SemanticIntegrationError("finite completion replay has stale or altered stage lineage")
             stage, _ = prepare_reconciliation_stage(
                 bundle, current,
                 reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
