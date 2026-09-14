@@ -165,7 +165,7 @@ blocker. If a correctly rooted Desktop lane still stalls or needs sustained
 shell-heavy parallelism, standalone CLI or WSL2 is an explicit fallback, not the
 standing default.
 
-### Task-Local Tool-Stall Circuit
+## Task-Local Tool-Stall Circuit
 
 Separate an expected-duration review interval from a hard deadline. Reaching an
 expected duration, a quiet period, or a yielded tool handle triggers inspection
@@ -246,7 +246,7 @@ alone does not verify a saved artifact: apply the fresh durable-target readback
 rule in `AGENTS.md` before claiming persistence. The circuit and blocker-scope
 rules above still apply.
 
-### Bounded-Change Fast Path
+## Bounded-Change Fast Path
 
 For a named handoff with a small candidate-authority set, one bound edit unit,
 and known validation, use at most five latency-bearing rounds:
@@ -359,7 +359,7 @@ new managed task is sufficient. A durable commission may carry the bounded
 `proceed`, ordinary implementation authority, and read-only/scoping/review work
 do not create that authority; a task's mere existence is never authority.
 
-### Created-Task Completion Return
+## Created-Task Completion Return
 
 When a user-visible Codex task is created and its result will return to the
 creating source task, completion ownership remains with that source task. The
@@ -388,7 +388,7 @@ no authorized capable route exists, or the one allowed creation fails. Capable
 means able to perform the required operation against the exact target while the
 state checks hold; it does not require launch-root equality.
 
-### Multi-Task Conservation Fast Path
+## Multi-Task Conservation Fast Path
 
 When one user-authorized work unit needs multiple actors, first separate
 same-root collaboration from independent worktree ownership. Use in-session

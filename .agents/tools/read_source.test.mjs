@@ -98,6 +98,74 @@ test('CLI returns a complete read or a nonzero not-read result', () => {
   assert.equal(JSON.parse(bad.stdout).status, 'not_read');
 });
 
+test('CLI help explains complete selection without claiming a source read', () => {
+  const cli = fileURLToPath(new URL('./read_source.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [cli, '--help'], { encoding: 'utf8' });
+  assert.equal(result.status, 0);
+  const help = JSON.parse(result.stdout);
+  assert.equal(help.status, 'help');
+  assert.equal(help.sources, undefined);
+  for (const flag of ['--file', '--heading', '--from', '--to', '--max-output-bytes'])
+    assert.ok(result.stdout.includes(flag));
+  assert.match(result.stdout, /children/);
+  assert.ok(Buffer.byteLength(result.stdout) <= 1024);
+});
+
+test('CLI repeated headings retain every requested complete section', () => {
+  const cli = fileURLToPath(new URL('./read_source.mjs', import.meta.url));
+  const result = spawnSync(process.execPath,
+    [cli, '--file', source, '--heading', 'One', '--heading', 'Two'], { encoding: 'utf8' });
+  assert.equal(result.status, 0);
+  assert.deepEqual(JSON.parse(result.stdout).sources.map(s => s.text),
+    ['## One\r\nfirst\r\n### Child\r\nnested\r\n', '## Two\r\nsecond\r\n']);
+  const missing = spawnSync(process.execPath,
+    [cli, '--file', source, '--heading', 'Absent', '--heading', 'Two'], { encoding: 'utf8' });
+  assert.equal(missing.status, 2);
+  assert.equal(JSON.parse(missing.stdout).reason, 'request_error');
+  assert.ok(!missing.stdout.includes('second'));
+});
+
+test('CLI rejects overwritten ranges and mixed help without reading bodies', () => {
+  const cli = fileURLToPath(new URL('./read_source.mjs', import.meta.url));
+  for (const args of [
+    ['--file', source, '--from', '1', '--from', '3', '--to', '6'],
+    ['--file', source, '--from', '1', '--to', '4', '--to', '6'],
+    ['--file', source, '--help'],
+    ['--help', '--file', source],
+    ['--file', source, '--from', '1', '--to', '6', '--heading', 'One'],
+    ['--file', source, '--heading', 'One', '--heading', 'Two', '--from', '7', '--to', '8'],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+    assert.equal(result.status, 2, JSON.stringify(args));
+    assert.equal(JSON.parse(result.stdout).status, 'not_read');
+    assert.ok(!result.stdout.includes('first'));
+  }
+});
+
+test('ordinary startup batch delivers four independent complete governing units', async () => {
+  const routing = fileURLToPath(new URL('../workflow-overlay/decision-routing.md', import.meta.url));
+  const safety = fileURLToPath(new URL('../workflow-overlay/safety-rules.md', import.meta.url));
+  const titles = ['One-Time Writable-Root Binding', 'Bounded-Change Fast Path', 'Created-Task Completion Return'];
+  const requests = titles.map(heading => ({ path: routing, heading }));
+  requests.push({ path: safety });
+  const output = await readSources(requests, { maxOutputBytes: 20000 });
+  const result = JSON.parse(output);
+  assert.equal(result.status, 'read');
+  assert.equal(result.sources.length, 4);
+  const lines = (await fs.readFile(routing, 'utf8')).match(/[^\n]*\n|[^\n]+$/g);
+  for (const [index, title] of titles.entries()) {
+    const from = lines.findIndex(line => line.trimEnd() === '## ' + title);
+    assert.ok(from >= 0, title + ' must be independently selectable');
+    const next = lines.findIndex((line, i) => i > from && line.startsWith('## '));
+    assert.equal(result.sources[index].text, lines.slice(from, next < 0 ? undefined : next).join(''));
+  }
+  assert.equal(result.sources[3].text, await fs.readFile(safety, 'utf8'));
+  assert.ok(Buffer.byteLength(output) <= 20000);
+  const tooSmall = await readSources(requests, { maxOutputBytes: 1024 });
+  assert.equal(JSON.parse(tooSmall).reason, 'output_budget_exceeded');
+  assert.ok(!tooSmall.includes('At the first repo-changing act'));
+});
+
 test('library import works when the host hides the process global', () => {
   const moduleURL = new URL('./read_source.mjs', import.meta.url).href;
   const script = 'globalThis.process = undefined; await import(' + JSON.stringify(moduleURL) + '); console.log("imported")';
