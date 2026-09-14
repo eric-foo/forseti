@@ -22,7 +22,8 @@ bindings hold. Expand for any other gate whose trigger matches the task.
 | Repo work completion or permission to advance | The reporting route plus "Repository work" and "Receipt-field provenance"; add the triggered entries below. |
 | Creating or materially changing durable artifacts | "Durable artifact completion"; "Handoff-pointer resolution" and "Ontology-tag validity" for changed Markdown; "Markdown hash-pin freshness" or "Source-input hash freshness" when pins or their inputs change. |
 | Selecting a writer, receiver, or multi-task group | "Writable-root acceptance"; "Multi-task conservation" for a group. |
-| Code changes or CI scope | "CI diff base"; "Harness coupling preflight", "Shared-helper adoption", and "Review-routing disposition" when their code-root triggers apply. |
+| Any changed file under `forseti-harness/` or `.agents/hooks/`, including Markdown | "Review-routing disposition": its trigger is the changed path, including a Markdown-only edit such as `.agents/hooks/README.md`. |
+| CI scope or harness/helper changes | "CI diff base"; "Harness coupling preflight" and "Shared-helper adoption" only when each entry's actual file/type trigger applies. A Markdown-only change does not activate those Python/inventory checks. |
 | Review output or review disposition | "Review-summary shape" and "Review-routing disposition" when applicable; the owning review lane still decides authority and review need. |
 | Prompt authoring, product proof, model-backed experiment, repo-map expansion, migration or skill adoption | Respectively "Prompt Orchestration Gates", "Product Proof Gates", "Model-backed dogfood quality", "Repo-map T1 admission", or "Migration and skill provenance". |
 | Choosing or changing enforcement | "Enforcement Placement"; its named child sections carry the remaining checker-specific decisions. |
@@ -315,21 +316,24 @@ inherit this floor.
 
 ### Source-input hash freshness
 
-- Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
-  records that carry `source_pointer` + `sha256` must match current file bytes
-  (CRLF-normalized), and source-capture packet manifests (top-level
-  `manifest_version`) must have top-level `preserved_files[]` records whose
-  `relative_packet_path` + `sha256` match current raw stored bytes resolved
-  against the manifest's own directory, when the JSON artifact or referenced
-  file changed. This is provenance freshness only: it is not semantic
-  validation, generated-artifact completeness, readiness, source quality,
-  capture freshness, or metric validity. Enforced diff-scoped and forward-only
-  by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
-  pre-push mirror; whole-repo advisory via `--audit`, never gated).
+Apply the matching case when the JSON artifact or a referenced file changes:
 
-Packet manifests require a top-level `manifest_version` string. Non-packet-local
-preserved-file paths fail visibly; nested `preserved_files` blocks describing
-machine-local packets outside the repo are deliberately not matched.
+- **Repo-local source inputs:** JSON `source_inputs[]` records carrying
+  `source_pointer` + `sha256` must match current file bytes after CRLF
+  normalization.
+- **Source-capture packet manifests:** A top-level `manifest_version` string
+  identifies this case. Top-level `preserved_files[]` records carrying
+  `relative_packet_path` + `sha256` must match current **raw stored bytes,
+  preserving line endings**. Do not apply CRLF normalization to packet files.
+  Resolve paths against the manifest's own directory. Non-packet-local
+  preserved-file paths fail visibly; nested `preserved_files` blocks describing
+  machine-local packets outside the repo are deliberately not matched.
+
+Both cases enforce provenance freshness only: not semantic validation,
+generated-artifact completeness, readiness, source quality, capture freshness,
+or metric validity. Enforcement is diff-scoped and forward-only through
+`.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
+mirror; whole-repo advisory via `--audit`, never gated).
 
 ### Review-summary shape
 
