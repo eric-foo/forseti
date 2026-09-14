@@ -565,8 +565,13 @@ or semantic defects can still remain, so this is not a complete error census.
 Current optional retention schemas disallow simultaneous attachments and an
 unmerged reason before submission, while native guards remain unchanged.
 
-Preparation returns `worker_prompt`, `job_path` and `job_sha256`. Forward that
-generated prompt unchanged to the fresh corrective worker. It uses the same
+The preparation CLI returns compact status, `job_path`, `job_sha256` and
+`preparation_result_path`. The saved JSON contains the complete preparation
+result, including `worker_prompt` and, for the general route,
+`coordinator_prompt`; read the needed
+prompt there when launching. The Python preparation return is unchanged.
+Forward the generated worker prompt unchanged to the fresh corrective worker.
+It uses the same
 `intake-judgment-job` delivery as normal judgments: both output allowances,
 separate bounded notifications, byte counts and contiguous offsets. The job
 pins the request, evidence and authority files; changed bytes fail before intake
@@ -590,7 +595,7 @@ Changed source/input bytes fail; a failed attempt is preserved. Generated
 transport uses byte writes and encoded structured arguments across PowerShell;
 captured source files are never normalized or rewritten.
 
-For a job that was already prepared, its returned `coordinator_prompt` remains
+For a job that was already prepared, its saved `coordinator_prompt` remains
 the entry and starts with `intake-reconciliation-repair-coordinator --job ...
 --job-sha256 ...`. Use this entry only for an already-prepared job, not after
 the new starting operation has delivered the same intake. The worker retains

@@ -4253,6 +4253,12 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare_reconciliation_local_repair(bundle_path=args.bundle, stage_path=args.stage,
                 failed_response_path=args.failed_response, nomination_path=args.nomination,
                 output_dir=args.output_dir, diagnostic_path=args.diagnostic)
+            # Keep launch payloads available without expanding every CLI status return.
+            preparation_result_path = (args.output_dir / "preparation_result.json").resolve()
+            _write_json(preparation_result_path, result)
+            result = {key: value for key, value in result.items()
+                      if key not in {"worker_prompt", "coordinator_prompt"}}
+            result["preparation_result_path"] = str(preparation_result_path)
         elif args.command == "prepare-reconciliation-repair-coordinator":
             result = prepare_repair_coordinator_commission(bundle_path=args.bundle, stage_path=args.stage,
                 failed_response_path=args.failed_response, nomination_path=args.nomination,
