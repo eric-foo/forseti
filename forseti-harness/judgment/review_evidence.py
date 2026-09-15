@@ -7,6 +7,7 @@ from collections import Counter
 from copy import deepcopy
 import hashlib
 import json
+import re
 
 
 RENDERING_GUIDANCE = (
@@ -142,3 +143,18 @@ def compose_answer_patch(original, patch, affected):
         raise ValueError("answer patch must replace exactly the affected questions")
     return {**original, "answers": [deepcopy(replacements.get(a["question_id"], a))
                                     for a in original["answers"]]}
+
+
+def answer_source_references(row, known):
+    """Include inline references in the supplied source namespaces, not just the index.
+
+    Ordinary prose and URLs are not interpreted as source citations. Namespaces
+    come from the actual evidence identities; no product/source-specific rules.
+    """
+    refs = set(row["evidence_refs"])
+    namespaces = sorted({r.split(":", 1)[0] for r in known if ":" in r})
+    if namespaces:
+        pattern = r"(?<![\w:])(?:" + "|".join(map(re.escape, namespaces)) + r"):[\w:.-]+"
+        for field in ("answer", "limits"):
+            refs.update(m.rstrip(".:,") for m in re.findall(pattern, row.get(field, "")))
+    return refs

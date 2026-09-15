@@ -69,6 +69,30 @@ def test_patch_cannot_change_or_omit_unaffected_answer():
         compose_answer_patch(original, {"answers": original["answers"]}, {"one"})
 
 
+def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answers(tmp_path):
+    run, original = answer_fixture(tmp_path)
+    run.bundle = {"evidence_units": [{"evidence_id": "source:one"}]}
+    run.verified = {"semantic_units": [{"semantic_unit_ref": "source:one::purchase-despite-price"}]}
+    for row in original["answers"]:
+        row["evidence_refs"] = ["source:one"]
+    original["answers"][0]["answer"] = "A report (source:one::purchase_despite_price)."
+    with pytest.raises(finite.UnknownAnswerEvidence):
+        finite.check_answer(original, run.questions["questions"], run.bundle, run.verified)
+    path = run.root / "original.json"
+    finite.persist(path, original)
+    patch = {"schema_version": "finite_answer_v1", "answers": [{**original["answers"][0],
+        "answer": "A report (source:one::purchase-despite-price)."}]}
+    def job(name, prompt, schema):
+        assert 'source:one::purchase_despite_price' in prompt
+        response = run.root / "patch.json"
+        finite.persist(response, patch)
+        return response
+    run.job = job
+    corrected = finite.read(run.correct_invalid_answer(path, {"questions": run.questions["questions"]}))
+    assert corrected["answers"][1] == original["answers"][1]
+    finite.check_answer(corrected, run.questions["questions"], run.bundle, run.verified)
+
+
 @pytest.mark.parametrize("missing_body", [False, True])
 def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path, missing_body):
     run, answer = answer_fixture(tmp_path)

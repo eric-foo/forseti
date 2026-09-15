@@ -2749,6 +2749,11 @@ supplies the complete current evidence and only the affected questions, validate
 the correction, and preserves unaffected answers. The subsequent full source
 assessment checks the corrected answer. Later defects remain visible; there is
 no second answer correction. Other malformed answer failures still stop.
+Validation covers inline references in the supplied evidence namespaces as well
+as `evidence_refs`; an inline typo cannot bypass the correction/rejection path.
+The full assessment states the mechanically observed captured-row body count
+and any missing body IDs, separately from original-artifact locator scope.
+Those availability counts do not certify the assessor's semantic inspection.
 
 Repeating an unchanged invocation rederives outputs and reuses the native
 provider receipts; it does not treat file existence or a prior process exit as

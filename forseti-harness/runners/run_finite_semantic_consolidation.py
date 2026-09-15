@@ -22,7 +22,7 @@ from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
 from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
-from judgment.review_evidence import render_evidence, material_answer_findings, compose_answer_patch
+from judgment.review_evidence import render_evidence, material_answer_findings, compose_answer_patch, answer_source_references
 
 HARNESS = Path(__file__).resolve().parents[1]
 REPO = HARNESS.parent
@@ -104,7 +104,7 @@ def check_answer(answer, questions, bundle, verified):
     known = {u["evidence_id"] for u in bundle["evidence_units"]}
     known.update(u["semantic_unit_ref"] for u in verified["semantic_units"])
     for row in answer["answers"]:
-        if set(row["evidence_refs"]) - known:
+        if answer_source_references(row, known) - known:
             raise UnknownAnswerEvidence("answer contains unknown evidence references")
 
 
@@ -445,11 +445,11 @@ class FiniteRun:
         original = read(original_path)
         known = {r["evidence_id"] for r in self.bundle["evidence_units"]}
         known.update(r["semantic_unit_ref"] for r in self.verified["semantic_units"])
-        affected = {a["question_id"] for a in original["answers"] if set(a["evidence_refs"]) - known}
+        affected = {a["question_id"] for a in original["answers"] if answer_source_references(a, known) - known}
         questions = [q for q in self.questions["questions"] if q["id"] in affected]
         request = {"current_evidence": {**evidence_request, "questions": questions},
             "original_affected_answers": [a for a in original["answers"] if a["question_id"] in affected],
-            "unknown_references": sorted({r for a in original["answers"] for r in a["evidence_refs"]} - known)}
+            "unknown_references": sorted({r for a in original["answers"] for r in answer_source_references(a, known)} - known)}
         persist(self.provider_root / "answer-correction/allowance.json", {
             "kind": "pre_freeze_unknown_evidence", "original_response_sha256": hash_file(original_path),
             "affected_question_ids": sorted(affected)})
@@ -489,9 +489,10 @@ class FiniteRun:
         persist(self.provider_root / "answer-correction/allowance.json", {
             "kind": "post_assessment", "original_answer": answer, "affected_question_ids": sorted(affected)})
         refs = {r for f in nominations for r in f["source_refs"]}
-        refs.update(r for a in answer["answers"] if a["question_id"] in affected for r in a["evidence_refs"])
         known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
         known_ids = {r["evidence_id"] for r in self.source["captured_items"]}
+        refs.update(r for a in answer["answers"] if a["question_id"] in affected
+                    for r in answer_source_references(a, known_ids | set(known_units)))
         if refs - known_ids - set(known_units):
             raise ValueError("correction nomination/citation contains unknown source reference")
         ids = {known_units.get(r, r) for r in refs}
@@ -535,7 +536,7 @@ class FiniteRun:
         persist(self.root / "answer-correction/composition.json", {"patch": str(patch_path), "patch_sha256": hash_file(patch_path),
             "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
             "corrected_sha256": hash_file(self.root / "answer-correction/answers-corrected.json")})
-        corrected_refs = {r for a in patch["answers"] for r in a["evidence_refs"]}
+        corrected_refs = {r for a in patch["answers"] for r in answer_source_references(a, known_ids | set(known_units))}
         ids.update(known_units.get(r, r) for r in corrected_refs)
         checks = [c for c in self.questions["assessment_only"]["checks"] if ids & set(c["source_rows"])]
         ids.update(r for c in checks for r in c["source_rows"])
@@ -660,6 +661,13 @@ def render_answer(request):
 
 
 def render_assessment(request):
+    rows = request["complete_frozen_source"]["captured_items"]
+    missing = [r["evidence_id"] for r in rows if not r.get("text")]
+    body_coverage = (f"Input availability: {len(rows) - len(missing)} of {len(rows)} captured rows have source-native "
+        f"bodies in complete_frozen_source.captured_items.text; missing body IDs: {json.dumps(missing)}. "
+        "Resolve transport references to read these bodies. Original artifact locators are not substitutes for "
+        "the supplied bodies, and unreferenced locators are a separate scope. Availability does not certify inspection; "
+        "name exact row IDs and affected checks if any included body cannot be inspected. ")
     return ("Output mode: chat-only. Edit permission: read-only. The input below is run-authoritative. "
             "Perform the commissioned source-backed assessment of every current finding meaning, condition, assignment "
             "and residual disposition, plus the frozen checks and additional inventory checks. Prior answers are comparison, "
@@ -668,7 +676,8 @@ def render_assessment(request):
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
             "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
             "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
-            "does not require identical wording or maximal detail. Return the supplied JSON schema.\n\n" + render_evidence(request))
+            "does not require identical wording or maximal detail. Return the supplied JSON schema.\n\n"
+            + body_coverage + render_evidence(request))
 
 
 def main(argv=None):
