@@ -53,8 +53,9 @@ def test_minor_or_inventory_only_finding_does_not_spend_answer_correction(tmp_pa
         assert result["remaining_material_answer_findings"] == []
 
 
-def test_uncertain_origin_and_corrected_answer_major_remain_visible():
-    finding = {"severity": "major", "status": "open", "introduced_at": "uncertain",
+@pytest.mark.parametrize("origin", ["uncertain", "historical_answer"])
+def test_uncertain_origin_and_corrected_answer_major_remain_visible(origin):
+    finding = {"severity": "major", "status": "open", "introduced_at": origin,
                "artifact_refs": ["corrected_answer:one"]}
     assert material_answer_findings([finding]) == []
     assert material_answer_findings([finding], for_correction=False) == [finding]

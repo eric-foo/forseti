@@ -131,7 +131,7 @@ def material_answer_findings(findings, *, for_correction=True):
     """Consume existing reviewer judgments; do not introduce another triage call."""
     return [f for f in findings if f["status"] == "open" and f["severity"] in {"blocker", "major"}
             and f["introduced_at"] in ({"current_answer", "frozen_upstream"} if for_correction
-                                       else {"current_answer", "frozen_upstream", "uncertain"})
+                                       else {"current_answer", "frozen_upstream", "uncertain", "historical_answer"})
             and any(r.startswith("current_answer:") or (not for_correction and r.startswith("corrected_answer:"))
                     for r in f["artifact_refs"])]
 
