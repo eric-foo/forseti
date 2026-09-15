@@ -55,10 +55,54 @@ def _lock(path, *, wait_seconds=0):
             release()
 
 
+def stopped_read_only_timeout(receipt, events):
+    """A local stop is recovery permission, not proof of zero remote work."""
+    if (receipt.get("outcome") != "TIMED_OUT" or "error" not in receipt or receipt["error"] is not None
+            or type(receipt.get("exit_code")) is not int or receipt.get("response_bytes") != 0
+            or receipt.get("response_sha256") is not None
+            or receipt.get("launch_metadata", {}).get("authentication_observed") != "chatgpt"):
+        return False
+    command = receipt.get("command", [])
+    if len(command) < 3 or command[1] != "exec" or command[-1] != "-":
+        return False
+    flags, options, settings = set(), {}, {}
+    index = 2
+    while index < len(command) - 1:
+        key = command[index]
+        if key in {"--ephemeral", "--ignore-user-config", "--ignore-rules", "--json"}:
+            if key in flags: return False
+            flags.add(key); index += 1
+        elif key in {"--sandbox", "--disable", "-C", "--model", "--output-schema", "--output-last-message", "--config"}:
+            if index + 1 >= len(command) - 1: return False
+            value = command[index+1]
+            target = settings if key == "--config" else options
+            if key == "--config":
+                key, separator, value = value.partition("=")
+                if not separator or key not in {"model_reasoning_effort", "cli_auth_credentials_store",
+                        "model_provider", "forced_login_method", "developer_instructions"}: return False
+            if key in target: return False
+            target[key] = value; index += 2
+        else:
+            return False
+    if (flags != {"--ephemeral", "--ignore-user-config", "--ignore-rules", "--json"}
+            or options.get("--sandbox") != "read-only" or options.get("--disable") != "shell_tool"
+            or any(settings.get(k) != v for k, v in {
+                "cli_auth_credentials_store": '"file"', "model_provider": '"openai"',
+                "forced_login_method": '"chatgpt"'}.items())):
+        return False
+    try:
+        rows = [json.loads(line) for line in events.splitlines()]
+        return all(isinstance(row, dict) and row.get("type") in {"thread.started", "turn.started"} for row in rows)
+    except ValueError:
+        return False
+
+
 def transient_failure(receipt, events, stderr):
-    """Recognize provider diagnostics only, never answer text or generic timeouts."""
+    """Recognize bounded transport recovery; never infer success or free usage."""
     if receipt.get("outcome") not in {"PROCESS_FAILED", "TIMED_OUT"}:
         return None
+    if receipt.get("outcome") == "TIMED_OUT":
+        return "stopped_read_only_timeout" if stopped_read_only_timeout(receipt, events) else None
     messages = []
     for line in events.splitlines():
         try:
@@ -160,6 +204,35 @@ def _check_context_files(binding):
             raise ValueError("provider job preloaded context changed")
 
 
+def completed_recovery_record(failed: Path, completed: Path, binding: dict):
+    """Verify an explicitly supplied completed repeat without restamping it."""
+    original = _check_attempt(failed, binding)
+    if ((failed / "response.json").exists() or not stopped_read_only_timeout(
+            original, (failed / "events.jsonl").read_text(encoding="utf-8"))):
+        raise ValueError("completed recovery requires a stopped read-only timeout without output")
+    receipt = _check_attempt(completed, binding)
+    def request_command(value, directory):
+        command = list(value["command"])
+        if command.count("--output-last-message") != 1:
+            raise ValueError("completed recovery output binding changed")
+        index = command.index("--output-last-message") + 1
+        if index >= len(command) or Path(command[index]).resolve() != (directory / "response.json").resolve():
+            raise ValueError("completed recovery output binding changed")
+        command[index] = "<attempt-response>"
+        return command
+    if (receipt.get("outcome") != "PROCESS_COMPLETED" or receipt.get("exit_code") != 0
+            or receipt.get("error") is not None
+            or receipt.get("prompt_sha256") != original.get("prompt_sha256")
+            or receipt.get("timeout_seconds") != original.get("timeout_seconds")
+            or request_command(receipt, completed) != request_command(original, failed)):
+        raise ValueError("completed recovery must be a completed repeat of the exact request")
+    record = {"mode": "completed_same_request_recovery", "attempt_dir": str(completed.resolve()),
+        "execution_receipt_sha256": hash_file(completed / "execution_receipt.json"),
+        "failed_attempt_dir": str(failed.resolve()),
+        "failed_execution_receipt_sha256": hash_file(failed / "execution_receipt.json")}
+    return record, receipt
+
+
 def _claim_retry(root, limit, job, attempt_id):
     with _lock(root / "budget.lock", wait_seconds=5):
         policy = root / "policy.json"
@@ -181,7 +254,7 @@ def _claim_retry(root, limit, job, attempt_id):
 def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
                      launch, retry_budget_dir: Path, run_retry_limit: int,
                      max_retries: int = 1, retry_delay_seconds: float = 10,
-                     sleep=time.sleep):
+                     sleep=time.sleep, completed_recovery: Path | None = None):
     """Return process completion or a failed job; callers still validate meaning.
 
     `launch(attempt_id)` runs the existing subscription-only runner. A crash
@@ -192,6 +265,8 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
         raise ValueError("retry limits must be nonnegative integers")
     if not isinstance(retry_delay_seconds, (int, float)) or not 0 <= retry_delay_seconds <= 60:
         raise ValueError("retry delay must be finite and between zero and 60 seconds")
+    if completed_recovery is not None and max_retries < 1:
+        raise ValueError("completed recovery requires a retry allowance")
     if "preloaded_context_sha256" in binding:
         # Refuse an unusable envelope before freezing a job or recording launch intent.
         try:
@@ -202,6 +277,8 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
         retry_budget_dir=str(retry_budget_dir.resolve()), retry_delay_seconds=retry_delay_seconds,
         attempt_root=str(attempt_root.resolve()))
     with _lock(job_dir / "job.lock"):
+        if completed_recovery is not None and not (attempt_root / (job_dir.name + "-attempt-001") / "execution_receipt.json").is_file():
+            raise ValueError("completed recovery requires an existing original attempt; no generation launched")
         contract = job_dir / "binding.json"
         if contract.exists():
             if _read(contract) != policy:
@@ -220,6 +297,22 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
             aid = job_dir.name + f"-attempt-{index+1:03d}"
             attempt = attempt_root / aid
             intent = job_dir / f"launch-{index+1:03d}.json"
+            recovery_path = job_dir / "recovery-002.json"
+            if index == 1 and (completed_recovery is not None or recovery_path.exists()):
+                if intent.exists() or attempt.exists():
+                    raise ValueError("second launch already recorded; completed recovery cannot replace it")
+                saved = _read(recovery_path) if recovery_path.exists() else None
+                completed = Path(saved["attempt_dir"]) if saved else completed_recovery.resolve(strict=True)
+                if completed_recovery is not None and completed_recovery.resolve(strict=True) != completed:
+                    raise ValueError("completed recovery binding changed")
+                record, receipt = completed_recovery_record(attempt_root / (job_dir.name + "-attempt-001"), completed, binding)
+                if saved is not None and saved != record:
+                    raise ValueError("completed recovery receipt binding changed")
+                _claim_retry(retry_budget_dir, run_retry_limit, job_dir, aid)
+                if saved is None:
+                    _new(recovery_path, record)
+                return {"status": "PROCESS_COMPLETED_NOT_VALIDATED", "attempt_dir": str(completed),
+                    "execution_receipt": receipt, "attempt_count": 2, "recovery": record}
             if (attempt / "execution_receipt.json").exists() and (
                 not intent.exists() or _read(intent) != {"attempt_id": aid}
             ):
@@ -249,11 +342,17 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
                     raise ValueError("provider launch returned no execution receipt; authentication or launch failure is not retryable")
             receipt = _check_attempt(attempt, binding)
             if receipt["outcome"] == "PROCESS_COMPLETED":
+                if completed_recovery is not None or recovery_path.exists():
+                    raise ValueError("unused completed recovery; original job already completed")
                 return {"status": "PROCESS_COMPLETED_NOT_VALIDATED", "attempt_dir": str(attempt),
                     "execution_receipt": receipt, "attempt_count": index+1}
             cause = transient_failure(receipt, (attempt / "events.jsonl").read_text(encoding="utf-8"),
                 (attempt / "stderr.log").read_text(encoding="utf-8"))
+            if receipt["outcome"] == "TIMED_OUT" and (attempt / "response.json").exists():
+                cause = None
             if cause is None or index == max_retries:
+                if completed_recovery is not None or recovery_path.exists():
+                    raise ValueError("completed recovery requires an eligible failed attempt and retry allowance")
                 return {"status": "JOB_FAILED", "attempt_dir": str(attempt), "cause": cause or "unclassified",
                     "attempt_count": index+1, "execution_receipt": receipt}
         raise AssertionError("unreachable provider job state")

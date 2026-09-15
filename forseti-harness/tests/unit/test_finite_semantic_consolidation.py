@@ -86,6 +86,24 @@ def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, m
     assert len(commands) == 1
 
 
+def test_finite_forwards_and_verifies_completed_recovery(tmp_path, monkeypatch):
+    run = object.__new__(finite.FiniteRun)
+    run.root, run.provider_root, run.replay = tmp_path / "successor", tmp_path / "original", None
+    name = "finish/provider/reconcile-0002-0002"
+    record = {"mode": "completed_same_request_recovery", "attempt_dir": str(tmp_path / "diagnostic")}
+    run.completed_recoveries, run.consumed_recoveries = {name: record}, set()
+    run.bind_executable = lambda: {"path": "fixture-codex"}
+    finite.persist(Path(record["attempt_dir"]) / "response.json", {})
+    def provider(command, **kwargs):
+        assert command[command.index("--completed-recovery")+1] == record["attempt_dir"]
+        finite.persist(Path(command[command.index("--result-out")+1]), {
+            "status": "PROCESS_COMPLETED_NOT_VALIDATED", "attempt_dir": record["attempt_dir"], "recovery": record})
+        return Namespace(returncode=0)
+    monkeypatch.setattr(finite.subprocess, "run", provider)
+    assert run.job(name, "fixture", {"type": "object"}) == Path(record["attempt_dir"]) / "response.json"
+    assert run.consumed_recoveries == {name}
+
+
 @pytest.mark.parametrize("case", ["missing", "ambiguous", "foreign", "version", "arbitrary", "origin", "missing_file"])
 def test_unverified_installation_fails_before_native_or_paid_work(installed_codex, monkeypatch, case):
     ancestors = installed_codex.context["ancestors"]
@@ -397,7 +415,8 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
     assert finite.read(run.provider_root / "answer-correction/allowance.json")["kind"] == "post_assessment"
 
 
-def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, monkeypatch):
+@pytest.mark.parametrize("kind", ["local-repair successor", "completed-recovery"])
+def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, monkeypatch, kind):
     run, _ = answer_fixture(tmp_path)
     run.provider_root, run.source, run.consumed_repairs = run.root, {}, set()
     run.bundle["schema_version"] = "fixture"
@@ -407,11 +426,14 @@ def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, mon
         args[name] = tmp_path / (name + ".json")
         finite.persist(args[name], {})
     run.args = Namespace(**args)
+    if kind == "completed-recovery":
+        run.args.local_repair_successor = []
+        run.completed_recoveries, run.consumed_recoveries = {"finish/provider/unmatched": {}}, set()
     run.bind_executable = lambda: {"path": str(args["codex_executable"])}
     monkeypatch.setattr(finite.semantic, "build_bundle", lambda *a, **k: run.bundle)
     run.phase = lambda name, compilation: {}
     run.consumers = lambda *a: pytest.fail("stale repair binding must stop before answer and assessment jobs")
-    with pytest.raises(ValueError, match="unused local-repair successor"):
+    with pytest.raises(ValueError, match="unused " + kind):
         run.run()
     assert not (run.root / "result.json").exists()
 

@@ -15,6 +15,9 @@ from harness_utils import hash_file, utc_now_z_microseconds
 from provider_attempts import codex_usage_from_events
 
 
+CODEX_COMPACT_DIAGNOSTICS = "warn,codex_otel.trace_safe=info,codex_otel.log_only=off"
+
+
 def _write_new_json(path: Path, value: dict[str, Any]) -> None:
     with path.open("x", encoding="utf-8", newline="\n") as handle:
         json.dump(value, handle, ensure_ascii=False, indent=2, sort_keys=True)
@@ -113,6 +116,20 @@ def execute_provider_attempt(
     if launch_metadata is not None:
         # Caller-supplied, non-secret observations; never serialize env.
         start["launch_metadata"] = dict(launch_metadata)
+    if (list(command[1:2]) == ["exec"] and "--json" in command
+            and (launch_metadata or {}).get("authentication_observed") == "chatgpt"):
+        # Generation only: verbose logging must not contaminate login-status
+        # stderr and turn a successful authentication preflight into a refusal.
+        env = dict(os.environ if env is None else env)
+        # Desktop normally inherits RUST_LOG=warn. Add the two targeted defaults
+        # even in that case, while preserving explicit per-target overrides.
+        filters = env.get("RUST_LOG", "warn").split(",")
+        targets = {part.split("=", 1)[0].strip() for part in filters}
+        additions = [part for part in CODEX_COMPACT_DIAGNOSTICS.split(",")[1:]
+                     if part.split("=", 1)[0] not in targets]
+        if additions:
+            env["RUST_LOG"] = ",".join(filters + additions)
+            start["launch_metadata"]["generation_diagnostics"] = "codex_trace_safe_defaults_v1"
     # Exclusive creation is the launch lock when two callers share a reservation.
     _write_new_json(paths["execution_started.json"], start)
     started = time.monotonic()
