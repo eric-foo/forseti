@@ -15,6 +15,7 @@ from test_semantic_evidence_integration import _missing_definition_fixture, _loc
 def bare_run(tmp_path, bundle, stage):
     run = object.__new__(finite.FiniteRun)
     run.root = tmp_path / "run"
+    run.provider_root = run.root
     run.bundle = bundle
     run.args = Namespace(bundle=tmp_path / "bundle.json", local_repair_successor=[])
     run.consumed_repairs = set()
@@ -174,6 +175,7 @@ def test_provider_result_file_is_separate_from_attempt_stdout_and_no_replace(tmp
 def test_finite_provider_failure_stops_before_response_consumption(tmp_path, monkeypatch):
     run = object.__new__(finite.FiniteRun)
     run.root, run.replay = tmp_path, None
+    run.provider_root = run.root
     run.args = Namespace(codex_executable=tmp_path / "codex")
     def failed(command, **kwargs):
         kwargs["stderr"].write(b"provider launch outcome unknown\n")
@@ -183,3 +185,102 @@ def test_finite_provider_failure_stops_before_response_consumption(tmp_path, mon
         run.job("formation/provider/batch", "fixture", {"type": "object"})
     assert finite.read(tmp_path / "formation/provider/batch/invoke-001.json")["exit_code"] == 1
     assert not (tmp_path / "result.json").exists()
+
+
+def answer_fixture(tmp_path):
+    run = object.__new__(finite.FiniteRun)
+    run.root, run.provider_root, run.replay = tmp_path / "successor", tmp_path / "original", None
+    run.questions = {"questions": [{"id": "one"}, {"id": "two"}]}
+    run.bundle = {"evidence_units": [{"evidence_id": "known"}]}
+    run.verified = {"semantic_units": []}
+    answer = {"schema_version": "finite_answer_v1", "answers": [
+        {"question_id": q["id"], "answer": "bounded", "evidence_refs": ["known"], "limits": "sample"}
+        for q in run.questions["questions"]]}
+    return run, answer
+
+
+def test_no_correction_final_answer_is_consumable_answer_object(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    response = run.provider_root / "answer/response.json"
+    finite.persist(response, answer)
+    finite.persist(run.root / "answer/freeze.json", {"response": str(response), "response_sha256": finite.hash_file(response)})
+    result = run.correct_and_recheck(answer, {"material_findings": []}, {})
+    finite.check_answer(finite.read(result["final_answer"]), run.questions["questions"], run.bundle, run.verified)
+    assert result["answer_corrections"] == 0
+
+
+def test_unknown_citation_correction_preserves_original_unaffected_and_shared_allowance(tmp_path):
+    run, original = answer_fixture(tmp_path)
+    original["answers"][0]["evidence_refs"] = ["invented"]
+    response = run.provider_root / "answer/response.json"
+    finite.persist(response, original)
+    before = response.read_bytes()
+    with pytest.raises(finite.UnknownAnswerEvidence):
+        finite.check_answer(original, run.questions["questions"], run.bundle, run.verified)
+    patch = {"schema_version": "finite_answer_v1", "answers": [
+        {**original["answers"][0], "evidence_refs": ["known"]}]}
+    patch_path = run.provider_root / "answer-correction/response.json"
+    finite.persist(patch_path, patch)
+    run.job = lambda *a, **k: patch_path
+    corrected = finite.read(run.correct_invalid_answer(response, {"questions": run.questions["questions"]}))
+    assert corrected["answers"][1] == original["answers"][1]
+    assert response.read_bytes() == before
+    assert finite.read(run.provider_root / "answer-correction/allowance.json")["kind"] == "pre_freeze_unknown_evidence"
+    # A different successor cannot obtain a second correction by changing its output root.
+    run.root = tmp_path / "another-successor"
+    run.job = lambda *a, **k: pytest.fail("shared allowance must reject a second correction before launch")
+    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+        "artifact_refs": ["current_answer:one"]}]}
+    with pytest.raises(ValueError, match="existing finite output differs"):
+        run.correct_and_recheck(corrected, assessment, {})
+
+
+def test_other_answer_failures_do_not_enter_unknown_citation_recovery(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    answer["answers"].reverse()
+    with pytest.raises(ValueError, match="identities/order differ") as failure:
+        finite.check_answer(answer, run.questions["questions"], run.bundle, run.verified)
+    assert not isinstance(failure.value, finite.UnknownAnswerEvidence)
+    assert not (run.provider_root / "answer-correction/allowance.json").exists()
+
+
+@pytest.mark.parametrize("mutation", ["inputs", "policy", "missing", "locked"])
+def test_provider_root_binding_and_ownership_fail_before_consumers(tmp_path, mutation):
+    run, _ = answer_fixture(tmp_path)
+    inputs = {}
+    args = {"provider_root": run.provider_root, "codex_executable": Path(sys.executable)}
+    for name in ("source", "bundle", "verified", "questions", "previous_answer"):
+        path = tmp_path / (name + ".json")
+        finite.persist(path, {})
+        args[name] = path
+        inputs[name] = {"path": str(path.resolve()), "sha256": finite.hash_file(path)}
+    run.args = Namespace(**args)
+    run.phase = lambda *a: pytest.fail("unbound or concurrent origin must not reach consumers")
+    origin = {"inputs": inputs, "policy": finite.POLICY, "replay_from": None}
+    if mutation == "inputs":
+        origin["inputs"] = {}
+    elif mutation == "policy":
+        origin["policy"] = {}
+    if mutation != "missing":
+        finite.persist(run.provider_root / "binding.json", origin)
+    if mutation == "locked":
+        with finite._lock(run.provider_root / "run.lock"):
+            with pytest.raises(ValueError, match="already in use"):
+                run.run()
+    else:
+        with pytest.raises((ValueError, FileNotFoundError)):
+            run.run()
+    assert not (run.root / "binding.json").exists()
+
+
+def test_successor_repair_budget_uses_original_root(tmp_path):
+    bundle, stage, _, failed, _, _ = _missing_definition_fixture()
+    run = bare_run(tmp_path, bundle, stage)
+    run.provider_root = tmp_path / "original"
+    for index in range(4):
+        finite.persist(run.provider_root / "repair-budget" / f"prior-{index}.json", {"retained": True})
+    response = tmp_path / "failed.json"
+    finite.persist(response, failed)
+    run.job = lambda *a, **k: pytest.fail("successor must not reset repair calls")
+    with pytest.raises(ValueError, match="repair budget exhausted"):
+        run.validate_or_repair("formation", stage, response, 0)

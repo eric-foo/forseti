@@ -2651,6 +2651,17 @@ receipts in the same commissioned accounting boundary. Its calls also count
 toward the owner's repair allowance; this explicit recovery flag does not grant
 additional calls.
 
+When an authorized implementation patch changes the execution binding of a
+stopped run, choose a fresh `--output-dir` and add `--provider-root ORIGINAL_RUN_ROOT`.
+This reuses native provider jobs in place; it does not copy or restamp responses.
+The successor binds the exact original input paths/hashes, finite policy and
+provider-root binding hash. Native jobs still verify request, schema, executable,
+model, effort and required context before accepting a completed attempt. The
+original provider root owns the shared run lock and transport, consolidation
+repair and answer-correction allowances, so a successor cannot reset them.
+Keep any explicit local-repair successor arguments. Preserve stopped-run costs
+and intervening implementation work in the original declared execution interval.
+
 Native finalization and all-finding plus per-axis v3 projections retain complete
 finding/residual coverage. Repeated native finalization and packet reconstruction
 verify durable consumer bytes. The answer sees retrievable residual statements
@@ -2659,11 +2670,18 @@ one correction of explicitly identified answer questions, followed by one
 affected-scope source recheck. Unaffected answers are preserved; remaining
 inventory defects remain visible. A correction with unknown source or question
 references fails rather than guessing its scope.
+If an otherwise schema-valid initial answer cites an unknown evidence reference,
+the entry may instead spend that same single correction before freezing: it
+supplies the complete current evidence and only the affected questions, validates
+the correction, and preserves unaffected answers. The subsequent full source
+assessment checks the corrected answer. Later defects remain visible; there is
+no second answer correction. Other malformed answer failures still stop.
 
 Repeating an unchanged invocation rederives outputs and reuses the native
 provider receipts; it does not treat file existence or a prior process exit as
 acceptance. Each provider invocation saves its stdout, stderr, exit status and
 separate result JSON. `result.json` carries the endpoint and evidence paths;
+its `final_answer` always points to the accepted answer object, not freeze metadata.
 nonzero exits save `failure-*.json`. Preserve partial outputs and unknown usage.
 
 For deterministic replay of the saved complete finite experiment layout, replace

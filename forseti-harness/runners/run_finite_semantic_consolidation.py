@@ -34,6 +34,10 @@ POLICY = dict(completion_strategy="finite_formation_finish_v1",
               response_version="semantic_evidence_reconciliation_response_v3")
 
 
+class UnknownAnswerEvidence(ValueError):
+    """A schema-valid answer cites evidence absent from its admitted input."""
+
+
 def read(path):
     return native._load_object(Path(path))
 
@@ -98,7 +102,7 @@ def check_answer(answer, questions, bundle, verified):
     known.update(u["semantic_unit_ref"] for u in verified["semantic_units"])
     for row in answer["answers"]:
         if set(row["evidence_refs"]) - known:
-            raise ValueError("answer contains unknown evidence references")
+            raise UnknownAnswerEvidence("answer contains unknown evidence references")
 
 
 def check_assessment(value, questions):
@@ -132,6 +136,7 @@ class FiniteRun:
     def __init__(self, args):
         self.args = args
         self.root = args.output_dir.resolve()
+        self.provider_root = args.provider_root.resolve(strict=True) if args.provider_root else self.root
         self.bundle, self.verified, self.source, self.questions = (
             read(getattr(args, name)) for name in ("bundle", "verified", "source", "questions"))
         self.replay = args.replay_from.resolve() if args.replay_from else None
@@ -157,7 +162,7 @@ class FiniteRun:
                             (receipt_path.parent / "response.json", policy["binding"]))
 
     def job(self, name, prompt, schema, *, replay_response=None):
-        directory = self.root / name
+        directory = self.provider_root / name
         prompt_path, schema_path = directory / "prompt.md", directory / "response.schema.json"
         persist_bytes(prompt_path, prompt.encode("utf-8"))
         persist(schema_path, schema)
@@ -180,7 +185,7 @@ class FiniteRun:
         else:
             command = [sys.executable, str(HARNESS / "runners/run_codex_provider_job.py"),
                 "--job-dir", str(directory / "job"), "--attempt-root", str(directory / "attempts"),
-                "--retry-budget-dir", str(self.root / "retry-budget"), "--run-retry-limit", "2",
+                "--retry-budget-dir", str(self.provider_root / "retry-budget"), "--run-retry-limit", "2",
                 "--max-retries", "1", "--prompt-file", str(prompt_path), "--output-schema", str(schema_path),
                 "--worktree", str(REPO), "--codex-executable", str(self.args.codex_executable.resolve()),
                 "--model", "gpt-5.6-sol", "--reasoning-effort", "high", "--timeout-seconds", "1800"]
@@ -281,7 +286,7 @@ class FiniteRun:
         return response
 
     def claim_repair(self, name, record):
-        claim = self.root / "repair-budget" / f"{name}.json"
+        claim = self.provider_root / "repair-budget" / f"{name}.json"
         with _lock(claim.parent / "budget.lock", wait_seconds=5):
             if not claim.exists() and len(list(claim.parent.glob("*.json"))) >= 4:
                 raise ValueError("finite consolidation repair budget exhausted")
@@ -340,7 +345,15 @@ class FiniteRun:
         answer_path = self.job("answer/provider", render_answer(request), answer_schema(self.questions["questions"]),
                                replay_response=original_answer)
         answer = read(answer_path)
-        check_answer(answer, self.questions["questions"], self.bundle, self.verified)
+        pre_corrected = False
+        try:
+            check_answer(answer, self.questions["questions"], self.bundle, self.verified)
+        except UnknownAnswerEvidence:
+            if self.replay:
+                raise
+            answer_path = self.correct_invalid_answer(answer_path, request)
+            answer = read(answer_path)
+            pre_corrected = True
         persist(self.root / "answer/freeze.json", {"response": str(answer_path), "response_sha256": hash_file(answer_path),
             "input_sha256": hash_file(self.root / "answer/input.json"), "historical_answer_access_before_freeze": False})
         # Historical answer and hidden checks first enter a provider request AFTER freeze.
@@ -371,21 +384,64 @@ class FiniteRun:
         assessment = read(assessment_path)
         check_assessment(assessment, self.questions)
         persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
-        correction = self.correct_and_recheck(answer, assessment, view)
+        if pre_corrected:
+            # The single correction was spent before freeze; the commissioned
+            # complete source assessment above also checks that corrected answer.
+            correction = {"final_answer": str(answer_path), "answer_corrections": 1,
+                "affected_rechecks": 0, "correction_checked_by": str(assessment_path),
+                "answer_correction_allowance_exhausted": True}
+        else:
+            correction = self.correct_and_recheck(answer, assessment, view)
         return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
                 "material_findings": assessment["material_findings"], "overall_usefulness": assessment["overall_usefulness"]}
+
+    def correct_invalid_answer(self, original_path, evidence_request):
+        original = read(original_path)
+        known = {r["evidence_id"] for r in self.bundle["evidence_units"]}
+        known.update(r["semantic_unit_ref"] for r in self.verified["semantic_units"])
+        affected = {a["question_id"] for a in original["answers"] if set(a["evidence_refs"]) - known}
+        questions = [q for q in self.questions["questions"] if q["id"] in affected]
+        request = {"current_evidence": {**evidence_request, "questions": questions},
+            "original_affected_answers": [a for a in original["answers"] if a["question_id"] in affected],
+            "unknown_references": sorted({r for a in original["answers"] for r in a["evidence_refs"]} - known)}
+        persist(self.provider_root / "answer-correction/allowance.json", {
+            "kind": "pre_freeze_unknown_evidence", "original_response_sha256": hash_file(original_path),
+            "affected_question_ids": sorted(affected)})
+        persist(self.root / "answer-correction/input.json", request)
+        prompt = ("Output mode: chat-only. Edit permission: read-only. Repair only the affected answers' unknown "
+            "evidence citations using the complete current evidence below. Check all material claims and citations in those "
+            "answers against that evidence; do not guess a replacement ID or remove a citation merely to pass. "
+            "Preserve supported meaning, conditions, source attribution and uncertainty. No historical answer or hidden "
+            "assessment checks are supplied. Return only the affected questions in supplied order under the response schema.\n\n"
+            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+        patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
+        patch = read(patch_path)
+        check_answer(patch, questions, self.bundle, self.verified)
+        replacements = {a["question_id"]: a for a in patch["answers"]}
+        corrected = {**original, "answers": [replacements.get(a["question_id"], a) for a in original["answers"]]}
+        check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
+        target = self.root / "answer-correction/answers-corrected.json"
+        persist(target, corrected)
+        persist(self.root / "answer-correction/composition.json", {"original_response": str(original_path),
+            "original_response_sha256": hash_file(original_path), "patch": str(patch_path), "patch_sha256": hash_file(patch_path),
+            "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
+            "corrected_sha256": hash_file(target)})
+        return target
 
     def correct_and_recheck(self, answer, assessment, view):
         nominations = [f for f in assessment["material_findings"]
                        if f["status"] == "open" and f["introduced_at"] in {"current_answer", "frozen_upstream"}
                        and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
         if not nominations:
-            return {"final_answer": str(self.root / "answer/freeze.json"), "answer_corrections": 0, "affected_rechecks": 0}
+            return {"final_answer": read(self.root / "answer/freeze.json")["response"],
+                    "answer_corrections": 0, "affected_rechecks": 0}
         affected = {r.removeprefix("current_answer:") for f in nominations for r in f["artifact_refs"]
                     if r.startswith("current_answer:")}
         questions = [q for q in self.questions["questions"] if q["id"] in affected]
         if {q["id"] for q in questions} != affected:
             raise ValueError("assessment correction scope contains unknown question identity")
+        persist(self.provider_root / "answer-correction/allowance.json", {
+            "kind": "post_assessment", "original_answer": answer, "affected_question_ids": sorted(affected)})
         refs = {r for f in nominations for r in f["source_refs"]}
         refs.update(r for a in answer["answers"] if a["question_id"] in affected for r in a["evidence_refs"])
         known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
@@ -481,7 +537,15 @@ class FiniteRun:
             runtime.append(self.args.codex_executable)
         binding = {"inputs": inputs, "policy": POLICY, "replay_from": str(self.replay) if self.replay else None,
             "runtime": {str(p.resolve()): hash_file(p) for p in runtime}}
-        with _lock(self.root / "run.lock"):
+        with _lock(self.provider_root / "run.lock"):
+            if self.args.provider_root:
+                if self.replay:
+                    raise ValueError("provider-root reuse and historical replay are separate modes")
+                origin_path = self.provider_root / "binding.json"
+                origin = read(origin_path)
+                if origin["inputs"] != inputs or origin["policy"] != POLICY or origin.get("replay_from") is not None:
+                    raise ValueError("provider-root inputs or finite policy differ")
+                binding["provider_root"] = {"path": str(self.provider_root), "binding_sha256": hash_file(origin_path)}
             persist(self.root / "binding.json", binding)
             rederived = semantic.build_bundle(self.source, max_prompt_bytes=80000,
                 max_evidence_per_work_unit=30, target_bundle_version=self.bundle["schema_version"])
@@ -494,7 +558,8 @@ class FiniteRun:
             if {r[0] for r in self.args.local_repair_successor} != self.consumed_repairs:
                 raise ValueError("unused local-repair successor binding")
             result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION",
-                          coverage=counts, output_dir=str(self.root), provider_usage="native attempts/*/execution_receipt.json; unknown remains unknown")
+                          coverage=counts, output_dir=str(self.root), provider_root=str(self.provider_root),
+                          provider_usage="native attempts/*/execution_receipt.json under provider_root; unknown remains unknown")
             persist(self.root / "result.json", result)
             return result
 
@@ -526,6 +591,8 @@ def main(argv=None):
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--codex-executable", type=Path)
     mode.add_argument("--replay-from", type=Path)
+    parser.add_argument("--provider-root", type=Path,
+        help="Explicit prior live run root: reuse native jobs, shared lock and all budgets in place")
     parser.add_argument("--local-repair-successor", nargs=4, action="append", default=[],
         metavar=("PHASE:BATCH", "REQUEST", "PATCH", "SUCCESSOR_DIR"),
         help="Resume with an explicitly nominated, already accepted native local repair")
