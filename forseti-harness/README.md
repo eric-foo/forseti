@@ -81,11 +81,26 @@ checked when reusing execution receipts.
 For a self-contained job whose required project reads would otherwise trigger
 blocked shell calls, both the attempt and job runners accept repeatable
 `--preload-context <required-instruction-file>` arguments. The selected UTF-8
-files are supplied verbatim as additional developer context and the native
+files are supplied verbatim with developer-authorized precedence and the native
 `shell_tool` feature is disabled for that job. Project instructions remain
 active; select every required source for the bounded task, and report missing
 context rather than manufacturing an answer. Do not use this mode for a task
 that needs further file discovery or shell execution.
+
+Preloaded text and the original task travel through standard input in the
+attempt's `context-input.json`, keeping document text out of the launch command.
+A short developer instruction explicitly delegates developer-level authority to
+the packet's `required_context` string; `task_prompt` holds the original task.
+This changes message layout, not document or task contents. User settings remain
+disabled and the existing auth home is unchanged. Named profiles are unsuitable
+on observed build `0.154.0-alpha.6.2`: `--ignore-user-config` also skips them.
+The execution receipt hashes the actual input packet; job reuse additionally
+checks its decoded context and original task against their frozen hashes, along
+with the fixed delegation instruction. Historical inline receipts remain valid.
+Packet paths are absolute so a job can resume from another working directory.
+With preloaded context, both entry points reject a non-UTF-8 task before recording
+a launch or reserving an attempt; the job also leaves its binding unfrozen.
+No truncation or smaller-context fallback is performed.
 
 For reconciliation, the observed required reads are the worktree's
 `.agents/workflow-overlay/README.md` and
@@ -100,7 +115,7 @@ Changing context or launcher code creates a different job binding: use a new job
 identity for new work, and preserve completed results under their original
 bindings rather than relaunching them to update instructions. Disabling
 `shell_tool` does not assert that every other tool feature is unavailable.
-Existing prompt/schema bytes and default launches
+Original task/schema files and default launches
 are unchanged. Additional context consumes input tokens (about 20 KB for these
 two files); measure whole-job usage and denied-tool events rather than assuming
 a saving. This opt-in removes repeated blocked reads, not the underlying host

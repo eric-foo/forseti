@@ -79,22 +79,79 @@ def test_selected_installation_auth_environment_and_native_restriction(launch, m
 
 def test_required_context_is_verbatim_without_shell_or_prompt_mutation(launch):
     source = launch.root / "authority.md"
-    original = '# Required rules\r\nPreserve "quoted" meaning, café, and  two spaces.\r\n'
+    original = '# Required rules\r\nPreserve "quoted" meaning, café, 中文, 🐳, \x7f and  two spaces.\r\n'
     source.write_bytes(original.encode("utf-8"))
     context, manifest = runner.preloaded_context([source])
     launch.argv += ["--preload-context", str(source), "--expected-context-sha256",
                     hashlib.sha256(context.encode()).hexdigest()]
     assert runner.main() == 0
     call = launch.launches[0]
-    setting = next(p for p in call["command"] if p.startswith("developer_instructions="))
-    assert json.loads(setting.split("=", 1)[1]) == context
+    saved = call["attempt_dir"] / "context-input.json"
+    assert call['prompt_path'] == saved
+    packet = json.loads(saved.read_text(encoding='utf-8'))
+    assert packet == {'required_context': context, 'task_prompt': 'exact prompt'}
+    setting = next(p for p in call['command'] if p.startswith('developer_instructions='))
+    assert json.loads(setting.split('=', 1)[1]) == runner.CONTEXT_STDIN_INSTRUCTION
+    assert not (launch.root / 'auth-home').exists()
     assert original in context
-    assert call["prompt_path"].read_text(encoding="utf-8") == "exact prompt"
+    assert (launch.root / "prompt.md").read_text(encoding="utf-8") == "exact prompt"
     disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
     assert {"shell_tool"}.issubset(disabled)
     assert json.loads(call["launch_metadata"]["preloaded_context_files"]) == manifest
     assert manifest[0]["sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
     assert "project_doc_max_bytes=0" not in call["command"]
+
+
+def test_large_context_does_not_expand_windows_command(launch):
+    source = launch.root / "large.md"
+    source.write_text('begin\n' + 'required context 🐳\n' * 9000 + 'end\n', encoding='utf-8')
+    context, _ = runner.preloaded_context([source])
+    launch.argv += ["--preload-context", str(source)]
+    assert runner.main() == 0
+    call = launch.launches[0]
+    assert len(context) > 100_000
+    assert len(subprocess.list2cmdline(call["command"])) < 4096
+    assert json.loads(call['prompt_path'].read_text(encoding='utf-8'))['required_context'] == context
+
+
+def test_attempt_input_files_preserve_each_other_and_original_prompt(launch):
+    first, second = launch.root / 'first', launch.root / 'second'
+    first.mkdir(); second.mkdir()
+    prompt = launch.root / 'prompt.md'
+    original = '\ufeffTask with "quotes", 🐳 and\r\n  whitespace.\r\n'.encode('utf-8')
+    prompt.write_bytes(original)
+    a, _, _ = runner._context_input('first context', prompt, first)
+    b, _, _ = runner._context_input('second context', prompt, second)
+    assert a != b
+    assert json.loads(a.read_text(encoding='utf-8')) == {'required_context': 'first context', 'task_prompt': original.decode('utf-8')}
+    assert json.loads(b.read_text(encoding='utf-8'))['required_context'] == 'second context'
+    assert prompt.read_bytes() == original
+    with pytest.raises(FileExistsError):
+        runner._context_input('overwrite', prompt, first)
+    assert json.loads(a.read_text(encoding='utf-8'))['required_context'] == 'first context'
+
+
+def test_input_write_failure_has_no_smaller_context_fallback(launch, monkeypatch):
+    source = launch.root / 'authority.md'
+    source.write_text('required context', encoding='utf-8')
+    launch.argv += ['--preload-context', str(source)]
+    def denied(*args):
+        raise PermissionError('input unavailable')
+    monkeypatch.setattr(runner, '_context_input', denied)
+    with pytest.raises(SystemExit) as exc:
+        runner.main()
+    assert exc.value.code == 2 and not launch.launches
+
+
+def test_non_utf8_prompt_with_context_fails_before_auth_and_reservation(launch):
+    source = launch.root / 'authority.md'
+    source.write_text('required context', encoding='utf-8')
+    (launch.root / 'prompt.md').write_bytes(b'\xff task')
+    launch.argv += ['--preload-context', str(source)]
+    with pytest.raises(SystemExit) as exc:
+        runner.main()
+    assert exc.value.code == 2 and not launch.checks and not launch.launches
+    assert not (launch.root / 'attempts').exists()
 
 
 @pytest.mark.parametrize("mutation", ["changed", "missing", "empty", "invalid_utf8"])
@@ -173,11 +230,9 @@ def test_job_passes_selected_effort_and_frozen_context_to_each_attempt(launch, m
 
 
 def test_completed_attempt_is_reported_on_a_windows_ansi_console(launch, monkeypatch):
-    # The receipt echoes the command, so preloaded context puts document bytes on
-    # this console. A required overlay source starts with a BOM, and losing the
-    # report of a completed, quota-consuming attempt to the encoder would also make
-    # its exit code indistinguishable from a real generation failure.
-    source = launch.root / "authority.md"
+    # Source paths still reach the receipt after context moves out of argv.
+    # Losing a completed attempt's report to console encoding would hide success.
+    source = launch.root / "authority-中文.md"
     source.write_bytes("\ufeff# Required rules\r\ncafé 中文\r\n".encode("utf-8"))
     context, _ = runner.preloaded_context([source])
     launch.argv += ["--preload-context", str(source), "--expected-context-sha256",
@@ -191,8 +246,9 @@ def test_completed_attempt_is_reported_on_a_windows_ansi_console(launch, monkeyp
     assert runner.main() == 0
     console.flush()
     reported = json.loads(captured.getvalue().decode("cp1252"))
-    setting = next(p for p in reported["command"] if p.startswith("developer_instructions="))
-    assert json.loads(setting.split("=", 1)[1]) == context
+    saved = launch.root / 'attempts/test-001/context-input.json'
+    assert json.loads(saved.read_text(encoding='utf-8'))['required_context'] == context
+    assert '中文' in reported['launch_metadata']['preloaded_context_files']
     assert reported["launch_metadata"]["preloaded_context_sha256"] == hashlib.sha256(context.encode()).hexdigest()
 
 

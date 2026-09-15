@@ -108,21 +108,40 @@ def _check_attempt(path, binding):
         efforts = [value for value in settings if value.startswith("model_reasoning_effort=")]
         if efforts != [f'model_reasoning_effort="{binding["reasoning_effort"]}"']:
             raise ValueError("provider attempt reasoning effort changed")
-    for name, key in (("prompt", "prompt_sha256"), ("schema", "response_schema_sha256")):
-        if receipt.get(key) != binding[name + "_sha256"]:
-            raise ValueError("provider attempt input binding changed")
+    task_prompt_sha = receipt.get("prompt_sha256")
     if receipt.get("launch_metadata", {}).get("authentication_observed") != "chatgpt":
         raise ValueError("provider attempt lacks subscription authentication evidence")
     if "preloaded_context_sha256" in binding:
         metadata = receipt.get("launch_metadata", {})
         settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
         contexts = [value.split("=", 1)[1] for value in settings if value.startswith("developer_instructions=")]
+        transport = metadata.get("preloaded_context_transport")
+        if transport is not None:
+            from runners.run_codex_provider_attempt import CONTEXT_STDIN_INSTRUCTION, CONTEXT_STDIN_TRANSPORT
+            try:
+                packet_path = path / "context-input.json"
+                raw = packet_path.read_bytes()
+                packet = json.loads(raw)
+                if (transport != CONTEXT_STDIN_TRANSPORT
+                        or len(contexts) != 1 or json.loads(contexts[0]) != CONTEXT_STDIN_INSTRUCTION
+                        or not isinstance(receipt.get("prompt_path"), str)
+                        or Path(receipt["prompt_path"]).resolve() != packet_path.resolve()
+                        or hashlib.sha256(raw).hexdigest() != receipt.get("prompt_sha256")
+                        or not isinstance(packet, dict) or set(packet) != {"required_context", "task_prompt"}
+                        or not all(isinstance(value, str) for value in packet.values())):
+                    raise ValueError("input envelope binding changed")
+                task_prompt_sha = hashlib.sha256(packet["task_prompt"].encode("utf-8")).hexdigest()
+                contexts = [json.dumps(packet["required_context"])]
+            except (OSError, ValueError) as exc:
+                raise ValueError("provider attempt preloaded context input changed or unavailable") from exc
         disabled = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--disable"]
         if (metadata.get("preloaded_context_sha256") != binding["preloaded_context_sha256"]
                 or len(contexts) != 1
                 or hashlib.sha256(json.loads(contexts[0]).encode("utf-8")).hexdigest() != binding["preloaded_context_sha256"]
                 or not {"shell_tool"}.issubset(disabled)):
             raise ValueError("provider attempt preloaded context or shell restriction changed")
+    if task_prompt_sha != binding["prompt_sha256"] or receipt.get("response_schema_sha256") != binding["schema_sha256"]:
+        raise ValueError("provider attempt input binding changed")
     for name, key in (("events.jsonl", "events_sha256"), ("stderr.log", "stderr_sha256")):
         if hash_file(path / name) != receipt.get(key):
             raise ValueError("provider attempt diagnostic bytes changed")
@@ -173,6 +192,12 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
         raise ValueError("retry limits must be nonnegative integers")
     if not isinstance(retry_delay_seconds, (int, float)) or not 0 <= retry_delay_seconds <= 60:
         raise ValueError("retry delay must be finite and between zero and 60 seconds")
+    if "preloaded_context_sha256" in binding:
+        # Refuse an unusable envelope before freezing a job or recording launch intent.
+        try:
+            Path(binding["prompt_path"]).read_bytes().decode("utf-8")
+        except (OSError, UnicodeError) as exc:
+            raise ValueError("prompt must be UTF-8 text to accompany preloaded context; no generation launched") from exc
     policy = dict(binding=binding, max_retries=max_retries, run_retry_limit=run_retry_limit,
         retry_budget_dir=str(retry_budget_dir.resolve()), retry_delay_seconds=retry_delay_seconds,
         attempt_root=str(attempt_root.resolve()))
