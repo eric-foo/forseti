@@ -2716,12 +2716,33 @@ Native finalization and all-finding plus per-axis v3 projections retain complete
 finding/residual coverage. Repeated native finalization and packet reconstruction
 verify durable consumer bytes. The answer sees retrievable residual statements
 and source rows that lack attached findings. A source assessment may nominate
-one correction of explicitly identified answer questions, followed by one
-affected-scope source recheck. Unaffected answers are preserved; remaining
+one correction of explicitly identified answer questions for open `blocker` or
+`major` answer defects, followed by one affected-scope source recheck. Minor
+findings remain reported without automatic correction. Existing severity/effect
+judgment supplies this decision; no extra triage call is added. Change affected
+claims and necessary context; mechanically preserve unaffected answers. Remaining
 inventory defects remain visible. The returned `material_findings` stay those of
 the initial assessment; a live post-assessment correction also returns the
 recheck's own `affected_recheck_material_findings`. A correction with unknown
 source or question references fails rather than guessing its scope.
+Correction context includes all support and opposition behind the related
+findings. Recheck context includes every source body named by the selected
+frozen checks and displayed findings; missing bodies fail before the recheck.
+`answer_material_status` and `remaining_material_answer_findings` expose open
+material answer defects after the single correction allowance is spent; process
+completion never closes those defects.
+
+Answer, full source assessment, correction and affected recheck use the shared
+lossless renderer in `judgment/review_evidence.py`. Repeated text appears once
+under stable transport references; common record fields use named defaults and
+columns with ordered rows. Full ordinary-schema inputs remain stored and the
+renderer verifies exact reconstruction, including missing versus null fields.
+Source IDs, independent origins, support/opposition and per-source conditions
+keep their meaning. The rendering explains that finding conditions are a union
+of child conditions and that condition lineage, not the union, attributes a
+condition to a source. No source assessment coverage or prior-answer comparison
+is removed. Shared correction guidance is owned by the overlay's review lanes;
+the finite algorithm and opt-in assessment boundary remain local to this entry.
 If an otherwise schema-valid initial answer cites an unknown evidence reference,
 the entry may instead spend that same single correction before freezing: it
 supplies the complete current evidence and only the affected questions, validates

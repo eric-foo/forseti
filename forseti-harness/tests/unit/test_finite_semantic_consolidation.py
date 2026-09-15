@@ -390,7 +390,7 @@ def test_unknown_citation_correction_preserves_original_unaffected_and_shared_al
     # A different successor cannot obtain a second correction by changing its output root.
     run.root = tmp_path / "another-successor"
     run.job = lambda *a, **k: pytest.fail("shared allowance must reject a second correction before launch")
-    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+    assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"]}]}
     with pytest.raises(ValueError, match="existing finite output differs"):
         run.correct_and_recheck(corrected, assessment, {})
@@ -409,7 +409,7 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
     run, answer = answer_fixture(tmp_path)
     run.source = {"captured_items": [{"evidence_id": "known"}]}
     run.questions["assessment_only"] = {"checks": [{"id": "anchored", "source_rows": ["known"]}]}
-    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+    assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}]}
     patch = {"schema_version": "finite_answer_v1", "answers": [{**answer["answers"][0], "answer": "corrected"}]}
     new_defect = {"severity": "minor", "introduced_at": "current_answer", "status": "open", "source_refs": ["known"],

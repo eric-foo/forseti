@@ -22,6 +22,7 @@ from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
 from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
+from judgment.review_evidence import render_evidence, material_answer_findings, compose_answer_patch
 
 HARNESS = Path(__file__).resolve().parents[1]
 REPO = HARNESS.parent
@@ -432,6 +433,9 @@ class FiniteRun:
             correction = {"final_answer": str(answer_path), "answer_corrections": 1,
                 "affected_rechecks": 0, "correction_checked_by": str(assessment_path),
                 "answer_correction_allowance_exhausted": True}
+            correction["remaining_material_answer_findings"] = material_answer_findings(assessment["material_findings"], for_correction=False)
+            correction["answer_material_status"] = (
+                "material_defects_remain" if correction["remaining_material_answer_findings"] else "no_open_material_answer_defects_reported")
         else:
             correction = self.correct_and_recheck(answer, assessment, view)
         return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
@@ -455,12 +459,11 @@ class FiniteRun:
             "answers against that evidence; do not guess a replacement ID or remove a citation merely to pass. "
             "Preserve supported meaning, conditions, source attribution and uncertainty. No historical answer or hidden "
             "assessment checks are supplied. Return only the affected questions in supplied order under the response schema.\n\n"
-            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            + render_evidence(request))
         patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
         patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
-        replacements = {a["question_id"]: a for a in patch["answers"]}
-        corrected = {**original, "answers": [replacements.get(a["question_id"], a) for a in original["answers"]]}
+        corrected = compose_answer_patch(original, patch, affected)
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
         target = self.root / "answer-correction/answers-corrected.json"
         persist(target, corrected)
@@ -471,12 +474,13 @@ class FiniteRun:
         return target
 
     def correct_and_recheck(self, answer, assessment, view):
-        nominations = [f for f in assessment["material_findings"]
-                       if f["status"] == "open" and f["introduced_at"] in {"current_answer", "frozen_upstream"}
-                       and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
+        nominations = material_answer_findings(assessment["material_findings"])
         if not nominations:
+            remaining = material_answer_findings(assessment["material_findings"], for_correction=False)
             return {"final_answer": read(self.root / "answer/freeze.json")["response"],
-                    "answer_corrections": 0, "affected_rechecks": 0}
+                    "answer_corrections": 0, "affected_rechecks": 0,
+                    "answer_material_status": "material_defects_remain" if remaining else "no_open_material_answer_defects_reported",
+                    "remaining_material_answer_findings": remaining}
         affected = {r.removeprefix("current_answer:") for f in nominations for r in f["artifact_refs"]
                     if r.startswith("current_answer:")}
         questions = [q for q in self.questions["questions"] if q["id"] in affected]
@@ -491,12 +495,18 @@ class FiniteRun:
         if refs - known_ids - set(known_units):
             raise ValueError("correction nomination/citation contains unknown source reference")
         ids = {known_units.get(r, r) for r in refs}
+        # Include all support/opposition behind related findings, not just the
+        # assessor's cited side. Hidden checks enter only the later recheck.
+        related = [p for p in view["propositions"]
+                   if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]
+        ids.update(known_units[r] for p in related for rs in p["semantic_relations"].values() for r in rs)
+        if ids - known_ids:
+            raise ValueError("correction lacks required source bodies")
         request = {"questions": questions, "original_affected_answers": [a for a in answer["answers"] if a["question_id"] in affected],
             "nominations_to_verify_against_sources": nominations,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
-            "current_findings": [p for p in view["propositions"]
-                if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]}
+            "current_findings": related}
         persist(self.root / "answer-correction/input.json", request)
         if self.replay:
             self.check_saved_input("answer-correction", "answer_correction_input_json")
@@ -510,16 +520,16 @@ class FiniteRun:
             patch = {"schema_version": "finite_answer_v1", "answers": [read(patch_path)]}
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Correct only the affected answers. "
+                "Change only defective claims and the context needed for consistency; preserve unaffected assertions verbatim when possible. "
                 "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
                 "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
                 "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
                 "Cite evidence IDs or semantic unit refs. Return only affected questions in supplied order using the response schema.\n\n"
-                + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+                + render_evidence(request))
             patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
             patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
-        by_id = {a["question_id"]: a for a in patch["answers"]}
-        corrected = {**answer, "answers": [by_id.get(a["question_id"], a) for a in answer["answers"]]}
+        corrected = compose_answer_patch(answer, patch, affected)
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
         persist(self.root / "answer-correction/answers-corrected.json", corrected)
         persist(self.root / "answer-correction/composition.json", {"patch": str(patch_path), "patch_sha256": hash_file(patch_path),
@@ -528,7 +538,14 @@ class FiniteRun:
         corrected_refs = {r for a in patch["answers"] for r in a["evidence_refs"]}
         ids.update(known_units.get(r, r) for r in corrected_refs)
         checks = [c for c in self.questions["assessment_only"]["checks"] if ids & set(c["source_rows"])]
+        ids.update(r for c in checks for r in c["source_rows"])
+        recheck_findings = [p for p in view["propositions"]
+            if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]
+        ids.update(known_units[r] for p in recheck_findings for rs in p["semantic_relations"].values() for r in rs)
+        if ids - known_ids:
+            raise ValueError("affected recheck lacks commissioned check source bodies")
         recheck_request = {**request, "corrected_affected_answers": patch["answers"], "frozen_relevant_checks": checks,
+            "current_findings": recheck_findings,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         persist(self.root / "assessment-recheck/input.json", recheck_request)
@@ -547,7 +564,7 @@ class FiniteRun:
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
                 "consolidation inventory limits separately; correcting prose does not repair the inventory. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
-                + json.dumps(recheck_request, ensure_ascii=False, separators=(",", ":")) + "\n")
+                + render_evidence(recheck_request))
             recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())
             recheck = read(recheck_path)
             check_assessment(recheck, {"assessment_only": {"checks": checks}})
@@ -558,6 +575,9 @@ class FiniteRun:
         if not self.replay:
             # Initial material_findings predate the correction; surface the recheck's own findings.
             result["affected_recheck_material_findings"] = recheck["material_findings"]
+            result["remaining_material_answer_findings"] = material_answer_findings(recheck["material_findings"], for_correction=False)
+            result["answer_material_status"] = (
+                "material_defects_remain" if result["remaining_material_answer_findings"] else "no_open_material_answer_defects_reported")
         return result
 
     def check_saved_input(self, directory, tag):
@@ -636,7 +656,7 @@ def render_answer(request):
             "under named columns/defaults; interpret those exactly. Residuals are retrievable evidence, not findings. "
             "Cite source evidence IDs or semantic unit refs. Preserve conditions, opposition, uncertainty and intent versus action. "
             "Return the supplied JSON schema in question order. Follow worker_instructions for length and scope.\n\n"
-            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            + render_evidence(request))
 
 
 def render_assessment(request):
@@ -646,7 +666,9 @@ def render_assessment(request):
             "not truth. Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
             "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. Cite exact source "
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
-            "Return the supplied JSON schema.\n\n" + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
+            "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
+            "does not require identical wording or maximal detail. Return the supplied JSON schema.\n\n" + render_evidence(request))
 
 
 def main(argv=None):
