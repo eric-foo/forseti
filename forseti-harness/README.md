@@ -42,6 +42,12 @@ own semantic requirements, current authoring and historical replay.
 [Experimental packing and authoring options](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#experimental-reconciliation-packing-unpromoted)
 remain separately commissioned; they are not ordinary setup.
 
+For the explicitly commissioned complete finite route, use
+[Finite execution from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#finite-execution-from-verified-inputs-opt-in).
+One maintained invocation drives formation, finishing, native validation and
+consumer replay, answering, source assessment, and bounded answer correction.
+The named entry also owns resume and the caller's program-owned wait pattern.
+
 ### Reconciliation repair
 
 `prepare-reconciliation-repair` also returns the normal generated `worker_prompt`

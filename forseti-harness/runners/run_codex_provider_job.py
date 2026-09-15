@@ -12,7 +12,7 @@ HARNESS_ROOT = Path(__file__).resolve().parents[1]
 if str(HARNESS_ROOT) not in sys.path:
     sys.path.insert(0, str(HARNESS_ROOT))
 from harness_utils import hash_file
-from provider_jobs import run_provider_job
+from provider_jobs import _new, run_provider_job
 from runners.run_codex_provider_attempt import REASONING_EFFORTS, preloaded_context
 
 
@@ -27,9 +27,13 @@ def main():
     parser.add_argument("--run-retry-limit", type=int, required=True)
     parser.add_argument("--max-retries", type=int, default=1)
     parser.add_argument("--retry-delay-seconds", type=float, default=10)
+    parser.add_argument("--result-out", type=Path,
+                        help="New JSON result file for callers; stdout also contains attempt receipts")
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
                         help="Required context supplied verbatim with shell_tool disabled; repeat per file")
     args = parser.parse_args()
+    if args.result_out is not None and args.result_out.exists():
+        parser.error("refusing to replace provider result output")
     native = HARNESS_ROOT / "runners/run_codex_provider_attempt.py"
     try:
         binding = dict(prompt_path=str(args.prompt_file.resolve(strict=True)), prompt_sha256=hash_file(args.prompt_file),
@@ -55,6 +59,8 @@ def main():
         result = run_provider_job(job_dir=args.job_dir, attempt_root=args.attempt_root, binding=binding,
             launch=launch, retry_budget_dir=args.retry_budget_dir, run_retry_limit=args.run_retry_limit,
             max_retries=args.max_retries, retry_delay_seconds=args.retry_delay_seconds)
+        if args.result_out is not None:
+            _new(args.result_out, result)
     except (ValueError, OSError) as exc:
         parser.error(str(exc))
     # Context can contain BOMs or text outside a Windows redirected console's
