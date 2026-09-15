@@ -507,11 +507,16 @@ class FiniteRun:
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
                 + json.dumps(recheck_request, ensure_ascii=False, separators=(",", ":")) + "\n")
             recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())
-            check_assessment(read(recheck_path), {"assessment_only": {"checks": checks}})
+            recheck = read(recheck_path)
+            check_assessment(recheck, {"assessment_only": {"checks": checks}})
         persist(self.root / "assessment-recheck/result.json", {"response": str(recheck_path),
             "response_sha256": hash_file(recheck_path), "saved_replay": bool(self.replay)})
-        return {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
-                "affected_recheck": str(recheck_path), "answer_corrections": 1, "affected_rechecks": 1}
+        result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
+                  "affected_recheck": str(recheck_path), "answer_corrections": 1, "affected_rechecks": 1}
+        if not self.replay:
+            # Initial material_findings predate the correction; surface the recheck's own findings.
+            result["affected_recheck_material_findings"] = recheck["material_findings"]
+        return result
 
     def check_saved_input(self, directory, tag):
         """Tie saved consumer input back to the original hash-bound provider prompt."""
@@ -543,6 +548,9 @@ class FiniteRun:
                     raise ValueError("provider-root reuse and historical replay are separate modes")
                 origin_path = self.provider_root / "binding.json"
                 origin = read(origin_path)
+                if "provider_root" in origin:
+                    # A successor root holds no provider jobs or budgets; chaining would reset them.
+                    raise ValueError("provider root must be the original live run root, not a successor")
                 if origin["inputs"] != inputs or origin["policy"] != POLICY or origin.get("replay_from") is not None:
                     raise ValueError("provider-root inputs or finite policy differ")
                 binding["provider_root"] = {"path": str(self.provider_root), "binding_sha256": hash_file(origin_path)}
@@ -553,10 +561,11 @@ class FiniteRun:
                 raise ValueError("source and bundle bytes/packing differ under the finite input boundary")
             formation = self.phase("formation", self.verified)
             finish = self.phase("finish", formation)
-            view, packet, axes, counts = self.consumers(finish)
-            result = self.answer_and_assess(view, packet, axes)
+            # Repairs are consumed only by the two phases; reject a stale binding before paid consumers.
             if {r[0] for r in self.args.local_repair_successor} != self.consumed_repairs:
                 raise ValueError("unused local-repair successor binding")
+            view, packet, axes, counts = self.consumers(finish)
+            result = self.answer_and_assess(view, packet, axes)
             result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION",
                           coverage=counts, output_dir=str(self.root), provider_root=str(self.provider_root),
                           provider_usage="native attempts/*/execution_receipt.json under provider_root; unknown remains unknown")

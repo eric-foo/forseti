@@ -2659,8 +2659,10 @@ provider-root binding hash. Native jobs still verify request, schema, executable
 model, effort and required context before accepting a completed attempt. The
 original provider root owns the shared run lock and transport, consolidation
 repair and answer-correction allowances, so a successor cannot reset them.
-Keep any explicit local-repair successor arguments. Preserve stopped-run costs
-and intervening implementation work in the original declared execution interval.
+Always name that original live root; a successor root is rejected as
+`--provider-root`. An unused local-repair successor argument stops the run
+after finishing, before answer or assessment jobs. Keep any explicit
+local-repair successor arguments. Preserve stopped-run costs and intervening implementation work in the original declared execution interval.
 
 Native finalization and all-finding plus per-axis v3 projections retain complete
 finding/residual coverage. Repeated native finalization and packet reconstruction
@@ -2668,8 +2670,10 @@ verify durable consumer bytes. The answer sees retrievable residual statements
 and source rows that lack attached findings. A source assessment may nominate
 one correction of explicitly identified answer questions, followed by one
 affected-scope source recheck. Unaffected answers are preserved; remaining
-inventory defects remain visible. A correction with unknown source or question
-references fails rather than guessing its scope.
+inventory defects remain visible. The returned `material_findings` stay those of
+the initial assessment; a live post-assessment correction also returns the
+recheck's own `affected_recheck_material_findings`. A correction with unknown
+source or question references fails rather than guessing its scope.
 If an otherwise schema-valid initial answer cites an unknown evidence reference,
 the entry may instead spend that same single correction before freezing: it
 supplies the complete current evidence and only the affected questions, validates
@@ -2679,10 +2683,12 @@ no second answer correction. Other malformed answer failures still stop.
 
 Repeating an unchanged invocation rederives outputs and reuses the native
 provider receipts; it does not treat file existence or a prior process exit as
-acceptance. Each provider invocation saves its stdout, stderr, exit status and
-separate result JSON. `result.json` carries the endpoint and evidence paths;
-its `final_answer` always points to the accepted answer object, not freeze metadata.
-nonzero exits save `failure-*.json`. Preserve partial outputs and unknown usage.
+acceptance. Each provider invocation saves its stdout, stderr and exit status,
+plus a separate result JSON whenever the job runner returns a job result; a
+refused or unknown job has none. `result.json` carries the endpoint and evidence
+paths; its `final_answer` always points to the accepted answer object, not freeze
+metadata. Nonzero entry exits save `failure-*.json`. Preserve partial outputs
+and unknown usage.
 
 For deterministic replay of the saved complete finite experiment layout, replace
 `--codex-executable` with `--replay-from SAVED_RUN_ROOT` and choose a fresh output

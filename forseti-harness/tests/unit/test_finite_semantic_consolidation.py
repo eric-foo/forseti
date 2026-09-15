@@ -244,7 +244,54 @@ def test_other_answer_failures_do_not_enter_unknown_citation_recovery(tmp_path):
     assert not (run.provider_root / "answer-correction/allowance.json").exists()
 
 
-@pytest.mark.parametrize("mutation", ["inputs", "policy", "missing", "locked"])
+def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_findings(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    run.source = {"captured_items": [{"evidence_id": "known"}]}
+    run.questions["assessment_only"] = {"checks": [{"id": "anchored", "source_rows": ["known"]}]}
+    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+        "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}]}
+    patch = {"schema_version": "finite_answer_v1", "answers": [{**answer["answers"][0], "answer": "corrected"}]}
+    new_defect = {"severity": "minor", "introduced_at": "current_answer", "status": "open", "source_refs": ["known"],
+        "artifact_refs": ["current_answer:one"], "defect": "fixture", "effect": "fixture", "bounded_repair": "fixture"}
+    recheck = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "fixture", "comparison": "fixture",
+        "unassessed_material": "fixture", "overall_usefulness": "fixture", "material_findings": [new_defect],
+        "check_results": [{"check_id": "anchored", "status": "pass", "source_refs": ["known"], "finding_refs": [],
+                           "explanation": "fixture"}]}
+    responses = {"answer-correction/provider": run.provider_root / "patch.json",
+                 "assessment-recheck/provider": run.provider_root / "recheck.json"}
+    finite.persist(responses["answer-correction/provider"], patch)
+    finite.persist(responses["assessment-recheck/provider"], recheck)
+    launched = []
+    run.job = lambda name, *a, **k: launched.append(name) or responses[name]
+    result = run.correct_and_recheck(answer, assessment, {"propositions": []})
+    corrected = finite.read(result["final_answer"])
+    assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
+    assert launched == ["answer-correction/provider", "assessment-recheck/provider"]
+    assert (result["answer_corrections"], result["affected_rechecks"]) == (1, 1)
+    assert result["affected_recheck_material_findings"] == [new_defect]
+    assert finite.read(run.root / "assessment-recheck/input.json")["frozen_relevant_checks"] == run.questions["assessment_only"]["checks"]
+    assert finite.read(run.provider_root / "answer-correction/allowance.json")["kind"] == "post_assessment"
+
+
+def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, monkeypatch):
+    run, _ = answer_fixture(tmp_path)
+    run.provider_root, run.source, run.consumed_repairs = run.root, {}, set()
+    run.bundle["schema_version"] = "fixture"
+    args = {"provider_root": None, "codex_executable": Path(sys.executable),
+            "local_repair_successor": [["formation:unmatched", "request", "patch", "successor"]]}
+    for name in ("source", "bundle", "verified", "questions", "previous_answer"):
+        args[name] = tmp_path / (name + ".json")
+        finite.persist(args[name], {})
+    run.args = Namespace(**args)
+    monkeypatch.setattr(finite.semantic, "build_bundle", lambda *a, **k: run.bundle)
+    run.phase = lambda name, compilation: {}
+    run.consumers = lambda *a: pytest.fail("stale repair binding must stop before answer and assessment jobs")
+    with pytest.raises(ValueError, match="unused local-repair successor"):
+        run.run()
+    assert not (run.root / "result.json").exists()
+
+
+@pytest.mark.parametrize("mutation", ["inputs", "policy", "missing", "locked", "chained"])
 def test_provider_root_binding_and_ownership_fail_before_consumers(tmp_path, mutation):
     run, _ = answer_fixture(tmp_path)
     inputs = {}
@@ -261,6 +308,9 @@ def test_provider_root_binding_and_ownership_fail_before_consumers(tmp_path, mut
         origin["inputs"] = {}
     elif mutation == "policy":
         origin["policy"] = {}
+    elif mutation == "chained":
+        # A successor root has matching inputs/policy but owns no provider jobs or budgets.
+        origin["provider_root"] = {"path": str(tmp_path / "earlier"), "binding_sha256": "0" * 64}
     if mutation != "missing":
         finite.persist(run.provider_root / "binding.json", origin)
     if mutation == "locked":
