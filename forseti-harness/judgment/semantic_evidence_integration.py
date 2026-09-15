@@ -5969,6 +5969,7 @@ def _render_v3_reconciliation_prompt(
     decision_only: bool = False,
     compact_json: bool = False,
     definition_recovery: Mapping[str, Any] | None = None,
+    definition_completion_phase: str | None = None,
     local_repair: Mapping[str, Any] | None = None,
     duplicate_leaf_structural_repair: bool = False,
 ) -> str:
@@ -6070,10 +6071,12 @@ def _render_v3_reconciliation_prompt(
         "leaves under a counter child both count while any adjacent involvement never "
         "does. An observable_statement posture "
         "does not make a community report a directly verified observable_fact. Never "
-        "change a claim's meaning or relabel its kind merely to pass this check. Retain "
-        "non-customer material with no eligible terminal kind in unmerged_children "
-        "with its limitation explicit; unmerged remains retrievable evidence.\n"
-        "TERMINAL_SOURCE_ROLE_COMPETENCE\n"
+        "change a claim's meaning or relabel its kind merely to pass this check. "
+        + ("Apply the definition-recovery phase rules below when no terminal kind is eligible.\n"
+           if definition_completion_phase is not None else
+           "Retain non-customer material with no eligible terminal kind in unmerged_children "
+           "with its limitation explicit; unmerged remains retrievable evidence.\n")
+        + "TERMINAL_SOURCE_ROLE_COMPETENCE\n"
         + json.dumps({kind: sorted(_competent_roles(kind)) for kind in sorted(CLAIM_KINDS)}, sort_keys=True)
         + "\n"
         if preserve_child_scope
@@ -6224,6 +6227,30 @@ def _render_v3_reconciliation_prompt(
     if definition_recovery is not None:
         if not decision_only:
             raise SemanticIntegrationError("definition recovery requires decision-only response v3")
+        phase_instruction = ""
+        if definition_completion_phase == "formation":
+            phase_instruction = (
+                "\nFINITE FORMATION DEFINITION RECOVERY: Preserve every fixed attachment in a "
+                "bounded definition; this stage cannot retire candidates as unmerged. When "
+                "a terminal finding is not warranted, retain a nonterminal node with "
+                "terminal_proposition=false, claim_kind=null and causal_ceiling=null. "
+                "A source-attributed question, uncertain explanation or unverified report "
+                "can remain a bounded nonterminal meaning. Preserve its attribution and "
+                "uncertainty: support for that meaning is not proof of the answer, cause "
+                "or reported fact. Terminal posture and source-role requirements apply "
+                "only to terminal nodes. Use cannot_define_reason only when the fixed "
+                "bindings cannot honestly support even a nonterminal definition.\n"
+            )
+        elif definition_completion_phase == "finish":
+            phase_instruction = (
+                "\nFINITE FINISH DEFINITION RECOVERY: Every supplied definition must be "
+                "terminal, with effective support from at least two distinct source rows "
+                "under the fixed relations. Nonterminal placeholders cannot finish. "
+                "Assignments are frozen, so this repair cannot move a candidate to "
+                "unmerged. If a terminal definition is unsupported, return node=null "
+                "and cannot_define_reason; never invent meaning or promote a source "
+                "merely to complete the repair.\n"
+            )
         return (
             "Output mode: file-write through the designated response artifact. "
             "Edit permission: read-only evidence analysis; return JSON only matching the supplied schema.\n"
@@ -6237,7 +6264,7 @@ def _render_v3_reconciliation_prompt(
             "definition or the supplied context is insufficient; never manufacture a claim to pass. "
             "Do not fix grouping, omit a key, add a key, or relabel an existing decision. "
             "A structurally complete answer does not prove semantic truth. "
-            + posture_instruction + scope_instruction + source_role_instruction
+            + posture_instruction + scope_instruction + source_role_instruction + phase_instruction
             + "\n\nMISSING_NODE_BINDINGS\n" + json.dumps(definition_recovery, ensure_ascii=False)
             + "\n\nCANDIDATES\n" + json.dumps([
                 _agent_reconciliation_candidate(row,
@@ -7079,7 +7106,7 @@ def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, auth
     return prompts
 
 
-def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
+def prepare_reconciliation_definition_recovery(bundle, stage, failed_response, *, request_version=None):
     """Prepare one failure-only judgment request; never fill definitions in code.
 
     Other defects may become visible after missing definitions are supplied.
@@ -7091,6 +7118,15 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         bindings = exc.bindings
     else:
         raise SemanticIntegrationError("definition recovery requires a missing-definition failure")
+    finite = stage.get("completion_strategy") == FINITE_COMPLETION_STRATEGY
+    if request_version is None:
+        request_version = ("semantic_reconciliation_definition_request_v2" if finite
+                           else "semantic_reconciliation_definition_request_v1")
+    if request_version not in {"semantic_reconciliation_definition_request_v1",
+                               "semantic_reconciliation_definition_request_v2"}:
+        raise SemanticIntegrationError("unsupported definition recovery request version")
+    if request_version == "semantic_reconciliation_definition_request_v2" and not finite:
+        raise SemanticIntegrationError("definition recovery request v2 requires a finite stage")
     candidate_index = {row["candidate_ref"]: row for row in stage["candidates"]}
     batch = next(row for row in stage["batches"] if row["batch_id"] == failed_response["batch_id"])
     evidence_index = _unit_index(bundle)
@@ -7101,7 +7137,9 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         compact_lineage=True, emerging_axis_labels=[], emerging_axis_owner=False,
         agreement_origin_rule=True, preserve_child_scope=True,
         reconciliation_mode=stage.get("reconciliation_mode"), evidence_index=evidence_index,
-        decision_only=True, definition_recovery=bindings)
+        decision_only=True, definition_recovery=bindings,
+        definition_completion_phase=(stage["completion_phase"]
+            if request_version == "semantic_reconciliation_definition_request_v2" else None))
     if len(prompt.encode("utf-8")) > stage["max_prompt_bytes"]:
         raise SemanticIntegrationError("definition recovery exceeds rendered prompt byte ceiling; no truncation allowed")
 
@@ -7122,7 +7160,7 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         "cannot_define_reason": {"type": ["string", "null"]},
     })}
     return {
-        "schema_version": "semantic_reconciliation_definition_request_v1",
+        "schema_version": request_version,
         "bundle_sha256": bundle["bundle_sha256"], **{k: v for k, v in identity.items() if k != "schema_version"},
         "missing_bindings": bindings, "candidate_count": len(candidates),
         "prompt": prompt, "prompt_utf8_bytes": len(prompt.encode("utf-8")),
@@ -7134,7 +7172,8 @@ def compose_reconciliation_definition_recovery_intermediate(
     bundle, stage, failed_response, request, patch
 ):
     """Compose scope-checked definitions without presenting them as accepted."""
-    expected = prepare_reconciliation_definition_recovery(bundle, stage, failed_response)
+    expected = prepare_reconciliation_definition_recovery(bundle, stage, failed_response,
+        request_version=request.get("schema_version") if isinstance(request, Mapping) else None)
     if request != expected:
         raise SemanticIntegrationError("definition recovery request differs from bound inputs")
     properties = request["response_schema"]["properties"]
