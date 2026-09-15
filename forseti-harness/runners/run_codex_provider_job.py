@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--retry-delay-seconds", type=float, default=10)
     parser.add_argument("--result-out", type=Path,
                         help="New JSON result file for callers; stdout also contains attempt receipts")
+    parser.add_argument("--completed-recovery", type=Path,
+                        help="Explicit completed identical repeat of a stopped read-only timeout; consumes one retry")
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
                         help="Required context supplied verbatim with shell_tool disabled; repeat per file")
     args = parser.parse_args()
@@ -58,7 +60,8 @@ def main():
             subprocess.run(command, check=False)
         result = run_provider_job(job_dir=args.job_dir, attempt_root=args.attempt_root, binding=binding,
             launch=launch, retry_budget_dir=args.retry_budget_dir, run_retry_limit=args.run_retry_limit,
-            max_retries=args.max_retries, retry_delay_seconds=args.retry_delay_seconds)
+            max_retries=args.max_retries, retry_delay_seconds=args.retry_delay_seconds,
+            completed_recovery=args.completed_recovery)
         if args.result_out is not None:
             _new(args.result_out, result)
     except (ValueError, OSError) as exc:

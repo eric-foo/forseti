@@ -18,7 +18,7 @@ import sys
 from jsonschema import Draft202012Validator
 
 from harness_utils import hash_file
-from provider_jobs import _check_attempt, _lock
+from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
 from runners.run_codex_provider_attempt import _local_codex_check
 from judgment import semantic_evidence_integration as semantic
@@ -222,6 +222,17 @@ class FiniteRun:
         self.policy = {**POLICY, **({"authoring_revision": "exact_identity_namespaces_v5"} if self.replay else {})}
         self.saved = {}
         self.consumed_repairs = set()
+        self.completed_recoveries = {}
+        self.consumed_recoveries = set()
+        for name, supplied in getattr(args, "completed_recovery", []):
+            if (self.replay or name in self.completed_recoveries
+                    or not re.fullmatch(r"(?:formation|finish)/provider/reconcile-\d{4}-\d{4}", name)):
+                raise ValueError("completed recovery must name one distinct live formation/finish job")
+            directory = self.provider_root / name
+            policy = read(directory / "job/binding.json")
+            failed = Path(policy["attempt_root"]) / "job-attempt-001"
+            record, _ = completed_recovery_record(failed, Path(supplied).resolve(strict=True), policy["binding"])
+            self.completed_recoveries[name] = record
         if self.replay:
             frozen = read(self.replay / "manifest.json")
             for name, filename in (("source", "source.json"), ("bundle", "bundle.json"),
@@ -272,6 +283,9 @@ class FiniteRun:
                 "--model", "gpt-5.6-sol", "--reasoning-effort", "high", "--timeout-seconds", "1800"]
             for path in CONTEXT:
                 command += ["--preload-context", str(path)]
+            recovery = getattr(self, "completed_recoveries", {}).get(name)
+            if recovery:
+                command += ["--completed-recovery", recovery["attempt_dir"]]
             # Logs for each invocation remain separate, including failed resumes.
             index = len(list(directory.glob("invoke-*.stdout"))) + 1
             out, err = directory / f"invoke-{index:03d}.stdout", directory / f"invoke-{index:03d}.stderr"
@@ -289,6 +303,10 @@ class FiniteRun:
             result = read(result_path)
             if result["status"] != "PROCESS_COMPLETED_NOT_VALIDATED":
                 raise ValueError("provider did not complete")
+            if recovery:
+                if result.get("recovery") != recovery:
+                    raise ValueError("provider did not consume the bound completed recovery")
+                self.consumed_recoveries.add(name)
             response = Path(result["attempt_dir"]) / "response.json"
         Draft202012Validator(schema).validate(read(response))
         return response
@@ -637,9 +655,12 @@ class FiniteRun:
                   for name in ("bundle", "verified", "source", "questions", "previous_answer")}
         runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
             HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
+            HARNESS / "provider_execution.py",
             HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
         binding = {"inputs": inputs, "policy": self.policy, "replay_from": str(self.replay) if self.replay else None,
             "runtime": {str(p.resolve()): hash_file(p) for p in runtime}}
+        if getattr(self, "completed_recoveries", {}):
+            binding["completed_recoveries"] = self.completed_recoveries
         with _lock(self.provider_root / "run.lock"):
             if self.args.provider_root:
                 if self.replay:
@@ -664,11 +685,22 @@ class FiniteRun:
             # Repairs are consumed only by the two phases; reject a stale binding before paid consumers.
             if {r[0] for r in self.args.local_repair_successor} != self.consumed_repairs:
                 raise ValueError("unused local-repair successor binding")
+            if set(getattr(self, "completed_recoveries", {})) != getattr(self, "consumed_recoveries", set()):
+                raise ValueError("unused completed-recovery binding")
             view, packet, axes, counts = self.consumers(finish)
             result = self.answer_and_assess(view, packet, axes)
-            result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION",
+            # Include external completed repeats once, alongside every preserved
+            # original attempt. A timeout's missing usage remains unknown.
+            receipts = {str(p.resolve()) for p in self.provider_root.rglob("attempts/*/execution_receipt.json")}
+            recoveries = [read(p) for p in sorted(self.provider_root.rglob("job/recovery-002.json"))]
+            receipts.update(str(Path(r["attempt_dir"]) / "execution_receipt.json") for r in recoveries)
+            recovered = bool(recoveries) or any(read(Path(p))["outcome"] != "PROCESS_COMPLETED" for p in receipts)
+            result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else (
+                              "FINITE_EXECUTION_RECOVERED_QUALITY_REQUIRES_ADJUDICATION" if recovered
+                              else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION"),
                           coverage=counts, output_dir=str(self.root), provider_root=str(self.provider_root),
-                          provider_usage="native attempts/*/execution_receipt.json under provider_root; unknown remains unknown")
+                          provider_recoveries=recoveries, provider_execution_receipts=sorted(receipts),
+                          provider_usage="listed original and recovery receipts; unknown remains unknown; completed-turn usage may omit startup warmup and hidden requests")
             persist(self.root / "result.json", result)
             return result
 
@@ -705,6 +737,9 @@ def main(argv=None):
     parser.add_argument("--local-repair-successor", nargs=4, action="append", default=[],
         metavar=("PHASE:BATCH", "REQUEST", "PATCH", "SUCCESSOR_DIR"),
         help="Resume with an explicitly nominated, already accepted native local repair")
+    parser.add_argument("--completed-recovery", nargs=2, action="append", default=[],
+        metavar=("PHASE/provider/BATCH", "ATTEMPT_DIR"),
+        help="Adopt a completed identical repeat of an existing stopped timeout; preserves failure and consumes one shared retry")
     args = parser.parse_args(argv)
     try:
         result = FiniteRun(args).run()

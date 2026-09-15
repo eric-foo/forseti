@@ -253,6 +253,120 @@ def test_unknown_failure_is_not_retried(job,outcome):
     assert run_provider_job(**args)['status']=='JOB_FAILED' and len(calls)==1
 
 
+def stopped_timeout(job):
+    args, calls, outcomes, _ = job
+    outcomes.append('TIMED_OUT')
+    original = args['launch']
+    def launch(aid):
+        original(aid)
+        directory = args['attempt_root'] / aid
+        path = directory / 'execution_receipt.json'
+        receipt = json.loads(path.read_text())
+        receipt['command'] += ['--ephemeral', '--ignore-user-config', '--ignore-rules', '--json',
+            '--sandbox', 'read-only', '--disable', 'shell_tool',
+            '--config', 'forced_login_method="chatgpt"', '--config', 'model_provider="openai"',
+            '--config', 'cli_auth_credentials_store="file"', '--output-schema', args['binding']['schema_path'],
+            '--output-last-message', str(directory / 'response.json'), '-']
+        if receipt['outcome'] == 'TIMED_OUT':
+            (directory / 'response.json').unlink()
+            (directory / 'events.jsonl').write_text('{"type":"thread.started"}\n{"type":"turn.started"}\n')
+            receipt.update(exit_code=1, error=None, response_bytes=0, response_sha256=None,
+                events_sha256=hash_file(directory / 'events.jsonl'), timeout_seconds=1800)
+        else:
+            receipt.update(exit_code=0, error=None, timeout_seconds=1800)
+        path.write_text(json.dumps(receipt))
+    args['launch'] = launch
+    return args, calls, outcomes
+
+
+def test_stopped_read_only_timeout_recovers_once_and_preserves_unknown_usage(job):
+    args, calls, outcomes = stopped_timeout(job)
+    outcomes.append('PROCESS_COMPLETED')
+    result = run_provider_job(**args)
+    assert result['status'] == 'PROCESS_COMPLETED_NOT_VALIDATED' and len(calls) == 2
+    failed = args['attempt_root'] / calls[0] / 'execution_receipt.json'
+    assert json.loads(failed.read_text())['usage'] is None
+    assert run_provider_job(**args) == result and len(calls) == 2
+
+
+@pytest.mark.parametrize('mutation', ['cleanup', 'exit', 'output', 'tool', 'malformed', 'sandbox', 'enable', 'config'])
+def test_timeout_recovery_requires_stopped_read_only_no_output_proof(job, mutation):
+    args, calls, _ = stopped_timeout(job)
+    original = args['launch']
+    def launch(aid):
+        original(aid)
+        directory = args['attempt_root'] / aid
+        path = directory / 'execution_receipt.json'
+        receipt = json.loads(path.read_text())
+        if mutation == 'cleanup': receipt['error'] = 'cleanup failed'
+        if mutation == 'exit': receipt['exit_code'] = None
+        if mutation == 'output': (directory / 'response.json').write_text('answer')
+        if mutation in {'tool', 'malformed'}:
+            (directory / 'events.jsonl').write_text('{"type":"item.started","item":{"type":"command_execution"}}' if mutation == 'tool' else '{bad')
+            receipt['events_sha256'] = hash_file(directory / 'events.jsonl')
+        if mutation == 'sandbox': receipt['command'][receipt['command'].index('read-only')] = 'workspace-write'
+        if mutation == 'enable': receipt['command'] += ['--enable', 'shell_tool']
+        if mutation == 'config': receipt['command'] += ['--config', 'sandbox_mode="danger-full-access"']
+        path.write_text(json.dumps(receipt))
+    args['launch'] = launch
+    assert run_provider_job(**args)['status'] == 'JOB_FAILED' and len(calls) == 1
+    assert not list(args['retry_budget_dir'].glob('claim-*.json'))
+
+
+def saved_timeout_and_recovery(job):
+    args, calls, outcomes = stopped_timeout(job)
+    # A historical stopped job, before timeout recovery was supported.
+    args['job_dir'].mkdir()
+    args['launch']('job-attempt-001')
+    (args['job_dir'] / 'launch-001.json').write_text('{"attempt_id":"job-attempt-001"}')
+    outcomes.append('PROCESS_COMPLETED')
+    args['launch']('diagnostic-001')
+    attempt = args['attempt_root'] / 'diagnostic-001'
+    args['completed_recovery'] = attempt
+    return args, calls, attempt
+
+
+def test_completed_timeout_recovery_is_bound_counted_and_reusable_without_generation(job):
+    args, calls, attempt = saved_timeout_and_recovery(job)
+    before = {p: p.read_bytes() for p in args['attempt_root'].rglob('*') if p.is_file()}
+    result = run_provider_job(**args)
+    assert result['attempt_dir'] == str(attempt.resolve()) and result['attempt_count'] == 2
+    assert result['recovery']['mode'] == 'completed_same_request_recovery'
+    assert len(calls) == 2 and len(list(args['retry_budget_dir'].glob('claim-*.json'))) == 1
+    assert run_provider_job(**args) == result
+    del args['completed_recovery']
+    assert run_provider_job(**args) == result and len(calls) == 2
+    assert all(p.read_bytes() == raw for p, raw in before.items())
+    (attempt / 'response.json').write_text('changed')
+    with pytest.raises(ValueError, match='response bytes changed'):
+        run_provider_job(**args)
+
+
+@pytest.mark.parametrize('mutation', ['prompt', 'command', 'receipt', 'unknown_second', 'budget'])
+def test_completed_timeout_recovery_refuses_mismatch_or_unavailable_retry(job, mutation):
+    args, calls, attempt = saved_timeout_and_recovery(job)
+    path = attempt / 'execution_receipt.json'
+    receipt = json.loads(path.read_text())
+    if mutation == 'prompt': receipt['prompt_sha256'] = 'different'
+    if mutation == 'command': receipt['command'] += ['--enable', 'shell_tool']
+    if mutation == 'receipt': receipt['outcome'] = 'TIMED_OUT'
+    if mutation == 'budget': args['run_retry_limit'] = 0
+    if mutation == 'unknown_second': (args['job_dir'] / 'launch-002.json').write_text('{"attempt_id":"job-attempt-002"}')
+    path.write_text(json.dumps(receipt))
+    expected = {'prompt': 'input binding changed', 'command': 'exact request', 'receipt': 'exact request',
+        'unknown_second': 'second launch already recorded', 'budget': 'budget exhausted'}[mutation]
+    with pytest.raises(ValueError, match=expected): run_provider_job(**args)
+    assert len(calls) == 2 and not (args['job_dir'] / 'recovery-002.json').exists()
+
+
+def test_completed_recovery_cannot_launch_a_missing_original(job):
+    args, calls, _, _ = job
+    args['completed_recovery'] = args['attempt_root'] / 'unrelated'
+    with pytest.raises(ValueError, match='existing original attempt'):
+        run_provider_job(**args)
+    assert calls == []
+
+
 def test_budget_is_shared_and_zero_budget_is_not_a_free_retry(job):
     args,calls,outcomes,_=job; outcomes.extend(['capacity','PROCESS_COMPLETED','capacity'])
     run_provider_job(**args)
@@ -276,9 +390,10 @@ def test_source_drift_and_unknown_launch_cannot_restart(job):
 
 
 def test_diagnostics_are_typed_and_auth_errors_do_not_become_network_retries():
-    receipt={'outcome':'TIMED_OUT'}
+    receipt={'outcome':'PROCESS_FAILED'}
     reset='2026-09-05T19:15:41.785887Z  WARN codex_core::responses_retry: stream disconnected - retrying sampling request (1/5 in 199ms)... sampling_error=stream disconnected before completion: WebSocket protocol error: Connection reset without closing handshake\n'
     assert transient_failure(receipt,'',reset)=='connection_reset'
+    assert transient_failure({'outcome':'TIMED_OUT'},'',reset) is None  # No stopped-process proof.
     assert transient_failure(receipt,json.dumps({'type':'error','message':'authentication failed'}),reset) is None
     assert transient_failure(receipt,json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'Selected model is at capacity.'}}),'') is None
     assert transient_failure({'outcome':'PROCESS_COMPLETED'},'',reset) is None

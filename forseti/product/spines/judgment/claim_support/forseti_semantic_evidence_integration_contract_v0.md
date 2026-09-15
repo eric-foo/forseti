@@ -2646,6 +2646,18 @@ finish, the 80,000-byte reconciliation prompt ceiling and original 30-row
 work-unit bound. Counts derive from the inputs. It uses subscription-only
 Sol/high provider jobs, at most three concurrent jobs, 1,800 seconds per job,
 and the existing shared two-retry budget with at most one retry per job.
+An otherwise unclassified timeout may spend that same retry only when its
+receipt confirms process shutdown without cleanup errors, its launch was
+read-only with shell tools disabled, and it has neither answer output nor
+events beyond thread/turn startup. Missing stop evidence, tool activity and
+unknown launch states still stop. The original timeout and unknown remote usage
+remain visible; retry does not establish why the request stalled. Generation
+defaults to compact `codex_otel.trace_safe` diagnostics for startup, connection
+and completed-response observations. Authentication preflight is unaffected;
+explicit per-target `RUST_LOG` overrides are preserved, while an inherited
+general `warn` filter still receives the targeted defaults. Diagnostic completed-response
+tokens can include startup warmup omitted from ordinary completed-turn usage;
+these are overlapping observations, never additive accounting totals.
 The first job is natively validated before parallel expansion. Exact-assignment
 missing-definition recovery may consume at most four corrective calls across
 the run. Other failures stop with their original responses and diagnostics;
@@ -2667,6 +2679,25 @@ runtime or prompt binding is rejected. Preserve the external repair's provider
 receipts in the same commissioned accounting boundary. Its calls also count
 toward the owner's repair allowance; this explicit recovery flag does not grant
 additional calls.
+
+If an authorized diagnostic repeat of a stopped timeout has already completed,
+reuse it without another generation:
+
+```text
+--completed-recovery finish/provider/BATCH_ID COMPLETED_ATTEMPT_DIR
+```
+
+This opt-in requires an existing formation/finish job and the identical native
+request, including input envelope, schema, executable, model, effort and timeout.
+Only the response output path may differ. An immutable `job/recovery-002.json`
+references the original and completed receipts; it does not replace the failed
+attempt or its launch intent. Adoption consumes the same one retry and shared
+budget as a fresh repeat. A recorded second launch cannot be replaced, and a
+changed recovery receipt or response is rejected. Subsequent job resumes reuse
+the bound recovery. Native schema and semantic validation still own acceptance.
+An unused or duplicate recovery argument is an error. The final result lists
+original and external recovery receipts for accounting and labels recovered
+execution explicitly; it does not claim a clean run.
 
 When an authorized implementation patch changes the execution binding of a
 stopped run, choose a fresh `--output-dir` and add `--provider-root ORIGINAL_RUN_ROOT`.

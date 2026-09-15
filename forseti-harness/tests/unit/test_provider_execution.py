@@ -110,6 +110,31 @@ def test_success_preserves_exact_output_usage_and_stage_acceptance(tmp_path: Pat
     assert Path(published["response_path"]).read_bytes() == (attempt / "response.json").read_bytes()
 
 
+@pytest.mark.parametrize("override", [None, "warn", "warn,codex_otel.trace_safe=off,codex_otel.log_only=off"])
+def test_compact_diagnostics_apply_only_to_generation_environment(tmp_path, monkeypatch, override):
+    import os
+    prompt, attempt = _setup(tmp_path)
+    original_env = dict(os.environ)
+    original_env.pop("RUST_LOG", None)
+    if override is not None:
+        original_env["RUST_LOG"] = override
+    before = dict(original_env)
+    native_popen = provider_execution.subprocess.Popen
+    def simulated_codex(command, **kwargs):
+        # Real subprocess transport, with a local fixture replacing the provider.
+        return native_popen([sys.executable, "-c",
+            "import os,sys; sys.stdin.read(); print(os.environ['RUST_LOG'],file=sys.stderr)"], **kwargs)
+    monkeypatch.setattr(provider_execution.subprocess, "Popen", simulated_codex)
+    result = execute_provider_attempt(command=["fixture-codex", "exec", "--json"], prompt_path=prompt,
+        attempt_dir=attempt, timeout_seconds=5, stderr_echo=io.BytesIO(), env=original_env,
+        launch_metadata={"authentication_observed": "chatgpt"})
+    assert result["outcome"] == "PROCESS_COMPLETED"
+    explicit = override is not None and "codex_otel.trace_safe=" in override
+    assert (attempt / "stderr.log").read_text().strip() == (override if explicit else provider_execution.CODEX_COMPACT_DIAGNOSTICS)
+    assert original_env == before  # Caller/authentication environment was not changed.
+    assert result["launch_metadata"].get("generation_diagnostics") == (None if explicit else "codex_trace_safe_defaults_v1")
+
+
 def test_retry_is_on_disk_and_mirrored_before_completion(tmp_path: Path) -> None:
     prompt, attempt = _setup(tmp_path)
     echo = io.BytesIO()
