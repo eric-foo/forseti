@@ -24,6 +24,7 @@ from judgment.semantic_evidence_integration import (  # noqa: E402
     RECONCILIATION_AUTHORING_IDENTITY_V4,
     RECONCILIATION_AUTHORING_IDENTITY_V5,
     RECONCILIATION_AUTHORING_IDENTITY_V6,
+    RECONCILIATION_AUTHORING_FINITE_V1,
     RECONCILIATION_POLICY_VERSION_V2,
     SOURCE_VERSION_V3,
     SEMANTIC_METHODS_V7_PLUS,
@@ -3627,7 +3628,7 @@ def _parser() -> argparse.ArgumentParser:
     reconcile_level.add_argument("--existing-stage", type=Path,
         help="Render requests for an immutable partially completed stage without repartitioning.")
     reconcile_level.add_argument("--completion-strategy", choices=["finite_formation_finish_v1"],
-        help="Unpromoted finite formation then one bounded finish; new stages use v5 authoring. Use a fresh run root.")
+        help="Unpromoted finite formation then one bounded finish; new stages use finite_formation_retention_v1 authoring. Use a fresh run root.")
     reconcile_level.add_argument("--packing-strategy", choices=["input_order", "group_aware_v1"],
         help="New stages default to input_order; existing stages retain their frozen packing when omitted.")
     reconcile_level.add_argument("--response-version",
@@ -3642,6 +3643,7 @@ def _parser() -> argparse.ArgumentParser:
             RECONCILIATION_AUTHORING_IDENTITY_V4,
             RECONCILIATION_AUTHORING_IDENTITY_V5,
             RECONCILIATION_AUTHORING_IDENTITY_V6,
+            RECONCILIATION_AUTHORING_FINITE_V1,
         ],
         help="Normal requests only: defaults to exact identity namespaces for method-v12 response-v3; legacy reproduces historical requests.")
     reconcile_level.add_argument(

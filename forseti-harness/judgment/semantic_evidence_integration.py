@@ -90,6 +90,7 @@ RECONCILIATION_AUTHORING_IDENTITY_V3 = "exact_identity_namespaces_v3"
 RECONCILIATION_AUTHORING_IDENTITY_V4 = "exact_identity_namespaces_v4"
 RECONCILIATION_AUTHORING_IDENTITY_V5 = "exact_identity_namespaces_v5"
 RECONCILIATION_AUTHORING_IDENTITY_V6 = "exact_identity_namespaces_v6"
+RECONCILIATION_AUTHORING_FINITE_V1 = "finite_formation_retention_v1"
 RECONCILIATION_IDENTITY_V2_MAX_BATCH_CANDIDATES = 96
 RELATION_CLOSURE_STAGE_VERSION = "semantic_evidence_relation_closure_stage_v1"
 RELATION_CLOSURE_RESPONSE_VERSION = "semantic_evidence_relation_closure_response_v1"
@@ -5836,7 +5837,8 @@ def _decision_reconciliation_schema(stage, batch, labels, candidate_index, evide
     definitions["decision"] = {"anyOf": [attached, unmerged]}
     decisions = {}
     for ref in batch["candidate_refs"]:
-        required = _must_retain_reconciliation_candidate(
+        required = (stage.get("completion_phase") == "formation"
+                    and stage.get("authoring_revision") == RECONCILIATION_AUTHORING_FINITE_V1) or _must_retain_reconciliation_candidate(
             candidate_index[ref], stage.get("reconciliation_mode"), evidence_index)
         decisions[ref] = {"$ref": "#/$defs/retained_decision" if required else "#/$defs/decision"}
         if required:
@@ -6413,6 +6415,7 @@ def _identity_authoring_enabled(decision_only, authoring_revision):
         RECONCILIATION_AUTHORING_IDENTITY_V4,
         RECONCILIATION_AUTHORING_IDENTITY_V5,
         RECONCILIATION_AUTHORING_IDENTITY_V6,
+        RECONCILIATION_AUTHORING_FINITE_V1,
     } and decision_only:
         return True
     raise SemanticIntegrationError("unsupported reconciliation normal-authoring revision for response version")
@@ -6434,6 +6437,21 @@ def _render_normal_reconciliation_prompt(
     *, identity_namespaces=False, authoring_revision=None, meaning_boundary=False,
     completion_phase=None, **kwargs
 ):
+    if authoring_revision == RECONCILIATION_AUTHORING_FINITE_V1:
+        if completion_phase not in {"formation", "finish"}:
+            raise SemanticIntegrationError("finite retention authoring requires finite completion")
+        prompt = _render_normal_reconciliation_prompt(
+            identity_namespaces=identity_namespaces,
+            authoring_revision=RECONCILIATION_AUTHORING_IDENTITY_V5,
+            meaning_boundary=meaning_boundary, completion_phase=completion_phase, **kwargs)
+        prompt = prompt.replace("NORMAL_AUTHORING_REVISION: " + RECONCILIATION_AUTHORING_IDENTITY_V5,
+                                "NORMAL_AUTHORING_REVISION: " + RECONCILIATION_AUTHORING_FINITE_V1)
+        if completion_phase == "formation":
+            prompt += ("\nEvery supplied candidate must have at least one attachment and null unmerged_reason. "
+                       "Preserve attributed questions, uncertain explanations and reports as honest nonterminal "
+                       "nodes where needed: terminal_proposition=false, claim_kind=null, causal_ceiling=null. "
+                       "Do not invent an affirmative finding to satisfy retention.\n")
+        return prompt
     # Normal authoring only: shared repair/definition renderers retain their
     # historical defaults and may legitimately carry older opaque keys.
     prompt = _render_v3_reconciliation_prompt(**kwargs)
@@ -6597,18 +6615,19 @@ def _group_aware_candidate_order(candidates):
 
 def _finite_authoring(bundle, authoring_revision, response_version, *, stage=None):
     # Historical finite stages did not store a revision and were strictly v4.
-    # Bind new v5 requests in the stage hash; never reinterpret frozen v4 work.
+    # Bind new finite retention requests; never reinterpret frozen v4/v5 work.
     if stage is not None:
         stored_revision = stage.get("authoring_revision", RECONCILIATION_AUTHORING_IDENTITY_V4)
         if authoring_revision is not None and authoring_revision != stored_revision:
             raise SemanticIntegrationError("finite completion authoring revision changes across stages or resume")
         authoring_revision = stored_revision
     elif authoring_revision is None:
-        authoring_revision = RECONCILIATION_AUTHORING_IDENTITY_V5
+        authoring_revision = RECONCILIATION_AUTHORING_FINITE_V1
     if authoring_revision not in {
         RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5,
+        RECONCILIATION_AUTHORING_FINITE_V1,
     }:
-        raise SemanticIntegrationError("finite completion requires v4 or v5 decision authoring")
+        raise SemanticIntegrationError("finite completion requires v4 or v5 or finite retention decision authoring")
     if response_version is None:
         response_version = RECONCILIATION_RESPONSE_VERSION_V3
     if not _reconciliation_decision_only(bundle, response_version):
@@ -6855,7 +6874,7 @@ def prepare_reconciliation_stage(
     identity_namespaces = _identity_authoring_enabled(decision_only, authoring_revision)
     max_batch_candidates = (
         RECONCILIATION_IDENTITY_V2_MAX_BATCH_CANDIDATES
-        if authoring_revision in {RECONCILIATION_AUTHORING_IDENTITY_V2, RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6}
+        if authoring_revision in {RECONCILIATION_AUTHORING_IDENTITY_V2, RECONCILIATION_AUTHORING_IDENTITY_V3, RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6, RECONCILIATION_AUTHORING_FINITE_V1}
         else None
     )
     current_emerging_labels = sorted(
