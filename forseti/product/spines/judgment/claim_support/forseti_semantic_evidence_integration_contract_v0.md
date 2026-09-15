@@ -2086,6 +2086,7 @@ policy v2 and a fresh output root. New finite preparation selects
 aliases and requiring every formation candidate to remain attached in the
 generated response schema. Questions, reports and uncertainty may remain honest
 nonterminal nodes; finishing retirement remains legal under the existing rules.
+Normal non-finite reconciliation rejects that finite-only revision.
 Explicit v4 and v5 remain available for historical replay. New stages bind
 the revision in their hash; subsequent preparation, resume and finalization
 inherit it and reject revision changes. Historical stages without that field

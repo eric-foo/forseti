@@ -7873,6 +7873,11 @@ def test_finite_formation_generation_preserves_nonterminal_candidates_and_finish
     assert {tuple(e.path) for e in errors} == {
         ("decisions_by_candidate_ref", ref, "attachments"),
         ("decisions_by_candidate_ref", ref, "unmerged_reason")}
+    # Control: the same question retirement stays legal under historical v5,
+    # so the finite retention clause, not the customer helper, is the cause.
+    v5_question_stage = {**question_stage, "authoring_revision": semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5}
+    assert not list(Draft202012Validator(semantic_module._decision_reconciliation_schema(v5_question_stage,
+        stage["batches"][0], [], index, semantic_module._unit_index(bundle))).iter_errors(bad))
     formed = validate_reconciliation_stage(bundle, stage, [response])
     finish, finished_prompts = prepare_reconciliation_stage(bundle, formed,
         completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
@@ -7882,6 +7887,23 @@ def test_finite_formation_generation_preserves_nonterminal_candidates_and_finish
     assert historical["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
     with pytest.raises(SemanticIntegrationError, match="authoring revision changes"):
         semantic_module.prepare_reconciliation_prompts(bundle, historical,
+            authoring_revision=semantic_module.RECONCILIATION_AUTHORING_FINITE_V1)
+
+
+def test_finite_retention_authoring_is_rejected_outside_finite_completion():
+    bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
+    decision = dict(reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
+                    response_version=semantic_module.RECONCILIATION_RESPONSE_VERSION_V3)
+    normal, _ = prepare_reconciliation_stage(bundle, verified, **decision,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    assert "completion_strategy" not in normal
+    # A finite-only revision must not become a relabelled v5 on normal routes.
+    with pytest.raises(SemanticIntegrationError, match="requires finite completion"):
+        prepare_reconciliation_stage(bundle, verified, **decision,
+            authoring_revision=semantic_module.RECONCILIATION_AUTHORING_FINITE_V1)
+    with pytest.raises(SemanticIntegrationError, match="requires finite completion"):
+        semantic_module.prepare_reconciliation_prompts(bundle, normal,
+            response_version=decision["response_version"],
             authoring_revision=semantic_module.RECONCILIATION_AUTHORING_FINITE_V1)
 
 

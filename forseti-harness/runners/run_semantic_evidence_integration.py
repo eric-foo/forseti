@@ -3628,7 +3628,7 @@ def _parser() -> argparse.ArgumentParser:
     reconcile_level.add_argument("--existing-stage", type=Path,
         help="Render requests for an immutable partially completed stage without repartitioning.")
     reconcile_level.add_argument("--completion-strategy", choices=["finite_formation_finish_v1"],
-        help="Unpromoted finite formation then one bounded finish; new stages use v5 authoring. Use a fresh run root.")
+        help="Unpromoted finite formation then one bounded finish; new stages use finite_formation_retention_v1 authoring. Use a fresh run root.")
     reconcile_level.add_argument("--packing-strategy", choices=["input_order", "group_aware_v1"],
         help="New stages default to input_order; existing stages retain their frozen packing when omitted.")
     reconcile_level.add_argument("--response-version",

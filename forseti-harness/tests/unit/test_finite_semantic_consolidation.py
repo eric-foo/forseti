@@ -12,6 +12,22 @@ from runners import run_codex_provider_job as job_runner
 from test_semantic_evidence_integration import _missing_definition_fixture, _local_repair_fixture
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows PowerShell output encoding")
+def test_desktop_ancestry_preserves_non_ascii_paths(monkeypatch):
+    native_run = finite.subprocess.run
+    expected = "C:/Users/Zo\u00eb/\u30c7\u30fc\u30bf/ChatGPT.exe"
+
+    def with_process_fixture(command, **kwargs):
+        # Exercise the real Windows PowerShell serialization and Python decoding.
+        fixture = ("function Get-CimInstance { param($ClassName, $Filter) "
+                   "[pscustomobject]@{ProcessId=1; ParentProcessId=0; "
+                   "Name='ChatGPT.exe'; ExecutablePath='" + expected + "'} }\n")
+        return native_run([*command[:-1], fixture + command[-1]], **kwargs)
+
+    monkeypatch.setattr(finite.subprocess, "run", with_process_fixture)
+    assert finite.desktop_process_context()["ancestors"][0]["path"] == expected
+
+
 @pytest.fixture
 def installed_codex(tmp_path, monkeypatch):
     monkeypatch.setenv("CODEX_INTERNAL_ORIGINATOR_OVERRIDE", "Codex Desktop")

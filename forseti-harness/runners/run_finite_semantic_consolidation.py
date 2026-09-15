@@ -43,6 +43,7 @@ def desktop_process_context():
     powershell = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
     script = r"""
 $ErrorActionPreference = 'Stop'
+$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $nextProcess = __PID__
 $ancestors = @()
 $seen = @{}

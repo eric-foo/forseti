@@ -6438,6 +6438,8 @@ def _render_normal_reconciliation_prompt(
     completion_phase=None, **kwargs
 ):
     if authoring_revision == RECONCILIATION_AUTHORING_FINITE_V1:
+        if completion_phase not in {"formation", "finish"}:
+            raise SemanticIntegrationError("finite retention authoring requires finite completion")
         prompt = _render_normal_reconciliation_prompt(
             identity_namespaces=identity_namespaces,
             authoring_revision=RECONCILIATION_AUTHORING_IDENTITY_V5,
