@@ -16,6 +16,7 @@ def test_complete_roundtrip_retains_origins_conditions_opposition_and_literal_ma
         {"id": "two", "origin": "actor-b", "text": text, "conditions": ["not drying"], "relation": "opposes"}],
         "heterogeneous": [{"nullable": None}, {}], "literal": [{"$text": text}, {"$text": text}],
         "distinct_types": [{"v": False}, {"v": 0}, {"v": 0.0}],
+        "repeated_structure": {"one": {"text": text, "date": None}, "two": {"text": text, "date": None}},
         "scalars": [None, False, 0, "", [], {}, [1, 2]],
         "condition_lineage": [{"semantic_unit_ref": "one::u", "conditions": ["dry lips"]},
                               {"semantic_unit_ref": "two::u", "conditions": ["not drying"]}]}
@@ -24,6 +25,7 @@ def test_complete_roundtrip_retains_origins_conditions_opposition_and_literal_ma
     assert expand_evidence(json.loads(json.dumps(compact))) == payload == before
     assert json.dumps(expand_evidence(compact), sort_keys=True) == json.dumps(payload, sort_keys=True)
     assert list(compact["texts"].values()) == [text]
+    assert compact["values"]  # Repeated literal source structures are transmitted once too.
     assert compact_evidence({"elsewhere": [text, text]})["texts"] == compact["texts"]
     # A cheaper-but-misleading renderer that drops the contrary row must fail equality.
     bad = deepcopy(compact)
@@ -46,8 +48,9 @@ def test_minor_or_inventory_only_finding_does_not_spend_answer_correction(tmp_pa
     assert (result["answer_corrections"], result["affected_rechecks"]) == (0, 0)
     assert assessment == before
     if severity == "major":
-        assert result["remaining_material_answer_findings"] == [finding]
-        assert result["answer_material_status"] == "material_defects_remain"
+        # A cross-reference to the answer does not move an inventory defect
+        # into the answer; the reviewer's introduced_at judgment still owns it.
+        assert result["remaining_material_answer_findings"] == []
 
 
 def test_uncertain_origin_and_corrected_answer_major_remain_visible():

@@ -10,7 +10,8 @@ import json
 
 
 RENDERING_GUIDANCE = (
-    "The JSON uses lossless review_evidence_v1 transport. Resolve {$text: ID} from texts; "
+    "The JSON uses lossless review_evidence_v1 transport. Resolve {$text: ID} from texts and "
+    "{$value: ID} from values (which can themselves contain references); "
     "a {$table: {defaults, columns, rows}} is a list of records: copy named defaults into each "
     "record and map row values to columns in order. {$literal: OBJECT} escapes a literal object. "
     "All fields and list order are preserved. Transport references are NOT source identities: "
@@ -18,14 +19,25 @@ RENDERING_GUIDANCE = (
     "Finding conditions/scope_conditions are the UNION of child conditions, including opposing sources; "
     "condition_lineage binds conditions to individual semantic units. Do not attribute the union to "
     "every source or delete legitimate opposing conditions. Use per-source lineage and relations to judge meaning. "
+    "Read the whole source context: ordinary context-supported interpretation is permitted; absence of identical "
+    "literal words is not by itself a defect. Criticism must identify an unsupported change in meaning and its "
+    "concrete effect, not merely different phrasing or a more precise possible citation. "
 )
 
 
 def compact_evidence(value):
     """Factor repeated text and common record fields without selecting evidence."""
     counts = Counter()
+    structures = Counter()
+
+    def signature(node):
+        return json.dumps(node, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
     def count(node):
+        if isinstance(node, (list, dict)):
+            key = signature(node)
+            if len(key) >= 120:
+                structures[key] += 1
         if isinstance(node, str) and len(node) >= 120:
             counts[node] += 1
         elif isinstance(node, dict):
@@ -36,15 +48,31 @@ def compact_evidence(value):
                 count(child)
 
     count(value)
-    identities = {s: "t" + hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
+    identities = {s: "t" + hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
                   for s, n in counts.items() if n > 1}
     texts = {ref: s for s, ref in identities.items()}
     if len(texts) != len(identities):
         raise ValueError("compact evidence text identity collision")
+    shared = {s: "v" + hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
+              for s, n in structures.items() if n > 1}
+    if len(set(shared.values())) != len(shared):
+        raise ValueError("compact evidence value identity collision")
+    values = {}
+    used_texts = set()
 
-    def encode(node):
+    def encode(node, *, inline=False):
         if isinstance(node, str):
-            return {"$text": identities[node]} if node in identities else node
+            if node in identities:
+                used_texts.add(identities[node])
+                return {"$text": identities[node]}
+            return node
+        if not inline and isinstance(node, (list, dict)):
+            key = signature(node)
+            if key in shared:
+                ref = shared[key]
+                if ref not in values:
+                    values[ref] = encode(node, inline=True)
+                return {"$value": ref}
         if isinstance(node, dict):
             result = {k: encode(v) for k, v in node.items()}
             return {"$literal": result} if any(k.startswith("$") for k in node) else result
@@ -60,7 +88,9 @@ def compact_evidence(value):
             return [encode(v) for v in node]
         return node
 
-    result = {"format": "review_evidence_v1", "texts": texts, "data": encode(value)}
+    data = encode(value)
+    result = {"format": "review_evidence_v1", "texts": {r: texts[r] for r in sorted(used_texts)},
+              "values": values, "data": data}
     if json.dumps(expand_evidence(result), sort_keys=True) != json.dumps(value, sort_keys=True):
         raise ValueError("compact evidence failed complete field preservation")
     return result
@@ -78,6 +108,8 @@ def expand_evidence(packet):
             return node
         if set(node) == {"$text"}:
             return packet["texts"][node["$text"]]
+        if set(node) == {"$value"}:
+            return decode(packet["values"][node["$value"]])
         if set(node) == {"$literal"}:
             return {k: decode(v) for k, v in node["$literal"].items()}
         if set(node) == {"$table"}:
@@ -98,7 +130,8 @@ def render_evidence(value):
 def material_answer_findings(findings, *, for_correction=True):
     """Consume existing reviewer judgments; do not introduce another triage call."""
     return [f for f in findings if f["status"] == "open" and f["severity"] in {"blocker", "major"}
-            and (not for_correction or f["introduced_at"] in {"current_answer", "frozen_upstream"})
+            and f["introduced_at"] in ({"current_answer", "frozen_upstream"} if for_correction
+                                       else {"current_answer", "frozen_upstream", "uncertain"})
             and any(r.startswith("current_answer:") or (not for_correction and r.startswith("corrected_answer:"))
                     for r in f["artifact_refs"])]
 

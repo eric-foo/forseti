@@ -2733,8 +2733,8 @@ material answer defects after the single correction allowance is spent; process
 completion never closes those defects.
 
 Answer, full source assessment, correction and affected recheck use the shared
-lossless renderer in `judgment/review_evidence.py`. Repeated text appears once
-under stable transport references; common record fields use named defaults and
+lossless renderer in `judgment/review_evidence.py`. Repeated text and structured
+values appear once under stable transport references; common record fields use named defaults and
 columns with ordered rows. Full ordinary-schema inputs remain stored and the
 renderer verifies exact reconstruction, including missing versus null fields.
 Source IDs, independent origins, support/opposition and per-source conditions
