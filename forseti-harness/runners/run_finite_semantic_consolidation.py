@@ -10,7 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import os
-import platform
 import re
 from pathlib import Path
 import subprocess
@@ -37,38 +36,63 @@ POLICY = dict(completion_strategy="finite_formation_finish_v1",
               response_version="semantic_evidence_reconciliation_response_v3")
 
 
-def select_codex_executable(override=None):
-    """Select the Windows user-global npm installation, or an explicit native path.
+def desktop_process_context():
+    """Read this runner's actual ancestry, not PATH or installation caches."""
+    if sys.platform != "win32" or not os.environ.get("SystemRoot"):
+        raise ValueError("automatic Codex selection requires a Windows Desktop ancestor; use an explicit native override")
+    powershell = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
+    script = r"""
+$ErrorActionPreference = 'Stop'
+$nextProcess = __PID__
+$ancestors = @()
+$seen = @{}
+while ($nextProcess -ne 0) {
+    if ($seen.ContainsKey($nextProcess) -or $ancestors.Count -ge 64) { throw 'Invalid process ancestry' }
+    $seen[$nextProcess] = $true
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $nextProcess"
+    if ($null -eq $process) { throw 'Process ancestry unavailable' }
+    $ancestors += @{pid=[int]$process.ProcessId; parent_pid=[int]$process.ParentProcessId; name=$process.Name;
+        path=$process.ExecutablePath}
+    if ($process.Name -ieq 'ChatGPT.exe') { break }
+    $nextProcess = [int]$process.ParentProcessId
+}
+@{ancestors=$ancestors} | ConvertTo-Json -Depth 5 -Compress
+""".replace("__PID__", str(os.getpid()))
+    result = subprocess.run([str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
+        stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=20, check=False, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    if result.returncode:
+        raise ValueError("Codex Desktop ancestry check failed; use an explicit native override")
+    return json.loads(result.stdout)
 
-    Match the installed @openai/codex entry's platform dependency; never choose
-    among Desktop caches, search PATH, or silently switch installation families.
-    """
+
+def select_codex_executable(override=None):
+    """Select the verified native runtime actually hosting this Desktop task."""
+    provenance = {}
     expected_version = None
     if override is None:
-        machine = platform.machine().lower()
-        architectures = {"amd64": ("x64", "x86_64"), "arm64": ("arm64", "aarch64")}
-        if sys.platform != "win32" or machine not in architectures or not os.environ.get("APPDATA"):
-            raise ValueError("automatic Codex selection requires Windows user-global npm; use an explicit native override")
-        arch, triple = architectures[machine]
-        modules = Path(os.environ["APPDATA"]) / "npm/node_modules"
-        package = modules / "@openai/codex"
-        entry = read(package / "package.json")
-        expected_version = entry.get("version", "")
-        dependency = f"@openai/codex-win32-{arch}"
-        if (entry.get("name") != "@openai/codex" or entry.get("bin") != {"codex": "bin/codex.js"}
-                or not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", expected_version)
-                or entry.get("optionalDependencies", {}).get(dependency) != f"npm:@openai/codex@{expected_version}-win32-{arch}"):
-            raise ValueError("installed Codex package identity or platform dependency is unverified")
-        candidates = {p.resolve() for p in (package / "node_modules" / dependency, modules / dependency)
-                      if (p / "package.json").is_file()}
-        if len(candidates) != 1:
-            raise ValueError("installed Codex native package selection is missing or ambiguous")
-        native_package = candidates.pop()
-        metadata = read(native_package / "package.json")
-        if (metadata.get("name") != "@openai/codex" or metadata.get("version") != f"{expected_version}-win32-{arch}"
-                or metadata.get("os") != ["win32"] or metadata.get("cpu") != [arch]):
-            raise ValueError("installed Codex native package identity/version differs")
-        override = native_package / f"vendor/{triple}-pc-windows-msvc/bin/codex.exe"
+        context = desktop_process_context()
+        ancestors = context["ancestors"]
+        natives = [p for p in ancestors if p["name"].lower() == "codex.exe"]
+        if len(natives) != 1:
+            raise ValueError("Codex Desktop native ancestor is missing or ambiguous")
+        native_process = natives[0]
+        hosts = [p for p in ancestors if p["pid"] == native_process["parent_pid"]
+                 and p["name"].lower() == "chatgpt.exe"]
+        if len(hosts) != 1:
+            raise ValueError("Codex Desktop host ownership is missing or ambiguous")
+        host = hosts[0]
+        if (not host["path"] or not native_process["path"]
+                or not Path(host["path"]).is_absolute()
+                or Path(host["path"]).name.lower() != "chatgpt.exe"
+                or os.environ.get("CODEX_INTERNAL_ORIGINATOR_OVERRIDE") != "Codex Desktop"):
+            raise ValueError("Codex Desktop native/host ownership is unverified")
+        expected_version = os.environ.get("CODEX_VERSION")
+        if not expected_version:
+            raise ValueError("Codex Desktop host version is unavailable")
+        override = Path(native_process["path"])
+        provenance = {"desktop_host": host["path"], "native_ancestor_pid": native_process["pid"],
+                      "originator": "Codex Desktop"}
     path = Path(override)
     if not path.is_absolute() or not path.is_file() or path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
         raise ValueError("Codex selection requires an existing absolute native executable")
@@ -84,7 +108,7 @@ def select_codex_executable(override=None):
     if hash_file(path) != before:
         raise ValueError("selected Codex executable changed during verification")
     return {"path": str(path), "sha256": before, "version": observed,
-            "selection": "windows_user_global_npm" if expected_version else "explicit_native_override"}
+            "selection": "active_desktop_ancestor" if expected_version else "explicit_native_override", **provenance}
 
 
 class UnknownAnswerEvidence(ValueError):
@@ -673,7 +697,7 @@ def main(argv=None):
     for name in ("bundle", "verified", "source", "questions", "previous-answer", "output-dir"):
         parser.add_argument("--" + name, type=Path, required=True)
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--codex-executable", type=Path, help="Explicit native override; default selects the verified Windows user-global npm installation")
+    mode.add_argument("--codex-executable", type=Path, help="Explicit native override; default selects the verified native ancestor hosting this Windows Desktop task")
     mode.add_argument("--replay-from", type=Path)
     parser.add_argument("--provider-root", type=Path,
         help="Explicit prior live run root: reuse native jobs, shared lock and all budgets in place")

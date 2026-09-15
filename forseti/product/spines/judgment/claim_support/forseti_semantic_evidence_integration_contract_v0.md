@@ -2627,18 +2627,18 @@ consolidation, current-answer and historical-answer defects separate. Its
 semantic verdict still requires adjudication; process completion does not
 certify quality. This entry installs no assessment on other operating routes.
 
-Before paid work, the entry selects the current Windows user-global npm
-`@openai/codex` installation under `%APPDATA%/npm/node_modules`. It verifies the
-entry package identity, exact platform dependency and native package version,
-then checks the selected native executable's CLI version. Missing, ambiguous or
-unverified installations stop. It does not select Desktop caches or search PATH.
-Use `--codex-executable ABSOLUTE_NATIVE_CODEX` for an explicit verified native
-override, including a different installation family. Selection path, hash and
-version are bound in `codex-selection.json` and the run binding; every job uses
-that path and refuses changed bytes. A running or resumed run never silently
-switches executables after an update. Existing ChatGPT authentication, required
-context and native receipt checks remain. Record runtime differences when
-comparing runs; installed npm and Desktop versions need not match.
+Before paid work, the entry resolves the native `codex.exe` ancestor actually
+hosting this Windows Codex Desktop task. Its direct parent must be the active
+Desktop `ChatGPT.exe`; process ancestry, the inherited Desktop origin and the
+native CLI version must agree. It does not choose among cache directories,
+other running Codex processes, npm installations or PATH entries. Missing,
+ambiguous or foreign host context stops. Use
+`--codex-executable ABSOLUTE_NATIVE_CODEX` for an explicit verified native
+override, including non-Desktop use. Selection path, hash, version and Desktop
+ownership provenance are bound in `codex-selection.json` and the run binding;
+every job uses that path and refuses changed bytes. A running or resumed run
+never silently switches executables after an update. Existing ChatGPT
+authentication, required context and native receipt checks remain.
 
 The entry preserves finite formation followed by exactly one group-aware
 finish, the 80,000-byte reconciliation prompt ceiling and original 30-row

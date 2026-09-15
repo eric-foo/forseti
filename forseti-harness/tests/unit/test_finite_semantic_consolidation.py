@@ -14,30 +14,29 @@ from test_semantic_evidence_integration import _missing_definition_fixture, _loc
 
 @pytest.fixture
 def installed_codex(tmp_path, monkeypatch):
-    monkeypatch.setenv("APPDATA", str(tmp_path))
-    monkeypatch.setattr(finite.sys, "platform", "win32")
-    monkeypatch.setattr(finite.platform, "machine", lambda: "AMD64")
-    modules = tmp_path / "npm/node_modules"
-    package = modules / "@openai/codex"
-    native = package / "node_modules/@openai/codex-win32-x64"
-    executable = native / "vendor/x86_64-pc-windows-msvc/bin/codex.exe"
+    monkeypatch.setenv("CODEX_INTERNAL_ORIGINATOR_OVERRIDE", "Codex Desktop")
     calls = []
+    context = {"ancestors": []}
+    state = Namespace(calls=calls, context=context)
     def install(version):
-        package.mkdir(parents=True, exist_ok=True)
-        native.mkdir(parents=True, exist_ok=True)
-        (package / "package.json").write_text(json.dumps({"name": "@openai/codex", "version": version,
-            "bin": {"codex": "bin/codex.js"}, "optionalDependencies": {
-                "@openai/codex-win32-x64": f"npm:@openai/codex@{version}-win32-x64"}}))
-        (native / "package.json").write_text(json.dumps({"name": "@openai/codex", "version": version + "-win32-x64",
-            "os": ["win32"], "cpu": ["x64"]}))
+        executable = tmp_path / "Codex/bin" / version / "codex.exe"
         executable.parent.mkdir(parents=True, exist_ok=True)
         executable.write_text(version)
+        host = tmp_path / "WindowsApps" / ("OpenAI.Codex_" + version) / "app/ChatGPT.exe"
+        context["ancestors"] = [
+            {"pid": 1, "parent_pid": 2, "name": "python.exe", "path": str(Path(sys.executable))},
+            {"pid": 2, "parent_pid": 3, "name": "codex.exe", "path": str(executable)},
+            {"pid": 3, "parent_pid": 4, "name": "ChatGPT.exe", "path": str(host)}]
+        monkeypatch.setenv("CODEX_VERSION", version)
+        state.executable = executable
     def local(exe, args, env):
         calls.append((exe, args))
         return Namespace(returncode=0, stdout="codex-cli " + Path(exe).read_text(), stderr="")
     install("1.0.0")
+    monkeypatch.setattr(finite, "desktop_process_context", lambda: deepcopy(context))
     monkeypatch.setattr(finite, "_local_codex_check", local)
-    return Namespace(install=install, executable=executable, native=native, modules=modules, calls=calls)
+    state.install = install
+    return state
 
 
 def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, monkeypatch, installed_codex):
@@ -62,30 +61,35 @@ def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, m
     assert commands[0][commands[0].index("--codex-executable") + 1] == selected["path"]
     assert installed_codex.calls == [(selected["path"], ["--version"])]
     assert run.bind_executable() == selected
+    bound_executable = Path(selected["path"])
     installed_codex.install("1.2.0")
+    assert run.bind_executable() == selected  # New host cannot silently rebind this run.
+    bound_executable.write_text("changed bound bytes")
     with pytest.raises(ValueError, match="bound Codex executable changed"):
         run.job("other-job", "prompt", {"type": "object"})
     assert len(commands) == 1
 
 
-@pytest.mark.parametrize("case", ["missing", "ambiguous", "foreign", "version", "arbitrary"])
-def test_unverified_installation_fails_before_native_or_paid_work(installed_codex, case):
-    package = installed_codex.native / "package.json"
+@pytest.mark.parametrize("case", ["missing", "ambiguous", "foreign", "version", "arbitrary", "origin", "missing_file"])
+def test_unverified_installation_fails_before_native_or_paid_work(installed_codex, monkeypatch, case):
+    ancestors = installed_codex.context["ancestors"]
     if case == "missing":
-        package.unlink()
+        ancestors.pop(1)
     elif case == "ambiguous":
-        other = installed_codex.modules / "@openai/codex-win32-x64/package.json"
-        other.parent.mkdir(parents=True)
-        other.write_bytes(package.read_bytes())
-    elif case in {"foreign", "version"}:
-        value = json.loads(package.read_text())
-        value["name" if case == "foreign" else "version"] = "wrong"
-        package.write_text(json.dumps(value))
+        ancestors.append({**ancestors[1], "pid": 99})
+    elif case == "foreign":
+        ancestors[2]["name"] = "unrelated.exe"
+    elif case == "origin":
+        monkeypatch.setenv("CODEX_INTERNAL_ORIGINATOR_OVERRIDE", "unrelated")
+    elif case == "missing_file":
+        installed_codex.executable.unlink()
+    elif case == "version":
+        monkeypatch.setenv("CODEX_VERSION", "9.9.9")
     else:
         installed_codex.executable.write_text("not-codex")
     with pytest.raises(ValueError):
         finite.select_codex_executable()
-    assert len(installed_codex.calls) == (1 if case == "arbitrary" else 0)
+    assert len(installed_codex.calls) == (1 if case in {"arbitrary", "version"} else 0)
 
 
 def test_explicit_override_is_verified_and_never_falls_back(tmp_path, installed_codex):
