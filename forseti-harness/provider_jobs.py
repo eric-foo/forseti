@@ -124,7 +124,8 @@ def _check_attempt(path, binding):
                 packet = json.loads(raw)
                 if (transport != CONTEXT_STDIN_TRANSPORT
                         or len(contexts) != 1 or json.loads(contexts[0]) != CONTEXT_STDIN_INSTRUCTION
-                        or receipt.get("prompt_path") != str(packet_path)
+                        or not isinstance(receipt.get("prompt_path"), str)
+                        or Path(receipt["prompt_path"]).resolve() != packet_path.resolve()
                         or hashlib.sha256(raw).hexdigest() != receipt.get("prompt_sha256")
                         or not isinstance(packet, dict) or set(packet) != {"required_context", "task_prompt"}
                         or not all(isinstance(value, str) for value in packet.values())):
@@ -191,6 +192,12 @@ def run_provider_job(*, job_dir: Path, attempt_root: Path, binding: dict,
         raise ValueError("retry limits must be nonnegative integers")
     if not isinstance(retry_delay_seconds, (int, float)) or not 0 <= retry_delay_seconds <= 60:
         raise ValueError("retry delay must be finite and between zero and 60 seconds")
+    if "preloaded_context_sha256" in binding:
+        # Refuse an unusable envelope before freezing a job or recording launch intent.
+        try:
+            Path(binding["prompt_path"]).read_bytes().decode("utf-8")
+        except (OSError, UnicodeError) as exc:
+            raise ValueError("prompt must be UTF-8 text to accompany preloaded context; no generation launched") from exc
     policy = dict(binding=binding, max_retries=max_retries, run_retry_limit=run_retry_limit,
         retry_budget_dir=str(retry_budget_dir.resolve()), retry_delay_seconds=retry_delay_seconds,
         attempt_root=str(attempt_root.resolve()))

@@ -143,6 +143,17 @@ def test_input_write_failure_has_no_smaller_context_fallback(launch, monkeypatch
     assert exc.value.code == 2 and not launch.launches
 
 
+def test_non_utf8_prompt_with_context_fails_before_auth_and_reservation(launch):
+    source = launch.root / 'authority.md'
+    source.write_text('required context', encoding='utf-8')
+    (launch.root / 'prompt.md').write_bytes(b'\xff task')
+    launch.argv += ['--preload-context', str(source)]
+    with pytest.raises(SystemExit) as exc:
+        runner.main()
+    assert exc.value.code == 2 and not launch.checks and not launch.launches
+    assert not (launch.root / 'attempts').exists()
+
+
 @pytest.mark.parametrize("mutation", ["changed", "missing", "empty", "invalid_utf8"])
 def test_bad_or_changed_context_fails_before_auth_and_reservation(launch, mutation):
     source = launch.root / "authority.md"

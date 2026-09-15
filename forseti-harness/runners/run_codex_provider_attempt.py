@@ -78,7 +78,8 @@ def _context_input(context: str, prompt: Path, attempt_dir: Path):
     if not context:
         return prompt, [], {}
     packet = {"required_context": context, "task_prompt": prompt.read_bytes().decode("utf-8")}
-    target = attempt_dir / "context-input.json"
+    # Receipts must remain usable when a job resumes from a different directory.
+    target = (attempt_dir / "context-input.json").resolve()
     with target.open("x", encoding="utf-8", newline="\n") as saved:
         json.dump(packet, saved, ensure_ascii=False)
         saved.write("\n")
@@ -214,6 +215,12 @@ def main() -> int:
     context_sha = hashlib.sha256(context.encode("utf-8")).hexdigest() if context else None
     if args.expected_context_sha256 and args.expected_context_sha256 != context_sha:
         parser.error("preloaded task context changed; no generation launched")
+    if context:
+        # The input envelope carries the task as text; refuse before reserving an ID.
+        try:
+            args.prompt_file.read_bytes().decode("utf-8")
+        except (OSError, UnicodeError) as exc:
+            parser.error(f"prompt must be UTF-8 text to accompany preloaded context ({type(exc).__name__}); no generation launched")
     env = dict(os.environ)
     config: list[str] = []
     metadata = {"authentication_policy": "chatgpt_only" if args.require_chatgpt else "caller_managed"}

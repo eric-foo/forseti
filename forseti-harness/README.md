@@ -97,6 +97,9 @@ on observed build `0.154.0-alpha.6.2`: `--ignore-user-config` also skips them.
 The execution receipt hashes the actual input packet; job reuse additionally
 checks its decoded context and original task against their frozen hashes, along
 with the fixed delegation instruction. Historical inline receipts remain valid.
+Packet paths are absolute so a job can resume from another working directory.
+With preloaded context, both entry points reject a non-UTF-8 task before recording
+a launch or reserving an attempt; the job also leaves its binding unfrozen.
 No truncation or smaller-context fallback is performed.
 
 For reconciliation, the observed required reads are the worktree's
