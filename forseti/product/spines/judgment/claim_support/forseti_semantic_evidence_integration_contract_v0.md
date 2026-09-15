@@ -2606,6 +2606,116 @@ output paths to rerender frozen membership; retain accepted answers and their
 actual request provenance. **Prompt-bounded hierarchy** owns explicit historical
 authoring replay and semantic constraints.
 
+### Finite execution from verified inputs (opt-in)
+
+For an explicitly commissioned finite run through answering and source-backed
+assessment, use the maintained entry from `forseti-harness/`:
+
+```text
+python -m runners.run_finite_semantic_consolidation --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT --codex-executable ABSOLUTE_NATIVE_CODEX
+```
+
+The question file supplies `questions` (unique `id` and question text),
+`worker_instructions`, `coverage`, and the commissioned `assessment_only.checks`
+with their source anchors. The prior answer is comparison evidence only. Neither
+it nor assessment-only checks enters the answer request; assessment begins only
+after the fresh answer is validated and frozen. The assessment keeps upstream,
+consolidation, current-answer and historical-answer defects separate. Its
+semantic verdict still requires adjudication; process completion does not
+certify quality. This entry installs no assessment on other operating routes.
+
+The entry preserves v5 finite formation followed by exactly one group-aware
+finish, the 80,000-byte reconciliation prompt ceiling and original 30-row
+work-unit bound. Counts derive from the inputs. It uses subscription-only
+Sol/high provider jobs, at most three concurrent jobs, 1,800 seconds per job,
+and the existing shared two-retry budget with at most one retry per job.
+The first job is natively validated before parallel expansion. Exact-assignment
+missing-definition recovery may consume at most four corrective calls across
+the run. Other failures stop with their original responses and diagnostics;
+the entry does not invent a local repair nomination or chain semantic edits.
+
+For a stopped run with an explicitly nominated, already accepted local repair,
+repeat the same invocation and add:
+
+```text
+--local-repair-successor formation:BATCH_ID REQUEST_JSON PATCH_JSON SUCCESSOR_DIR
+```
+
+Use `finish:BATCH_ID` for a finishing repair. The native local-repair consumer
+rederives and validates the exact original response, request, patch and durable
+successor before continuation. This is recovery of a stopped phase, not mutation
+of a completed view. Completed paid jobs retain their original bindings and are
+reused; unknown launch states still stop. A changed accepted output, source,
+runtime or prompt binding is rejected. Preserve the external repair's provider
+receipts in the same commissioned accounting boundary. Its calls also count
+toward the owner's repair allowance; this explicit recovery flag does not grant
+additional calls.
+
+When an authorized implementation patch changes the execution binding of a
+stopped run, choose a fresh `--output-dir` and add `--provider-root ORIGINAL_RUN_ROOT`.
+This reuses native provider jobs in place; it does not copy or restamp responses.
+The successor binds the exact original input paths/hashes, finite policy and
+provider-root binding hash. Native jobs still verify request, schema, executable,
+model, effort and required context before accepting a completed attempt. The
+original provider root owns the shared run lock and transport, consolidation
+repair and answer-correction allowances, so a successor cannot reset them.
+Always name that original live root; a successor root is rejected as
+`--provider-root`. An unused local-repair successor argument stops the run
+after finishing, before answer or assessment jobs. Keep any explicit
+local-repair successor arguments. Preserve stopped-run costs and intervening implementation work in the original declared execution interval.
+
+Native finalization and all-finding plus per-axis v3 projections retain complete
+finding/residual coverage. Repeated native finalization and packet reconstruction
+verify durable consumer bytes. The answer sees retrievable residual statements
+and source rows that lack attached findings. A source assessment may nominate
+one correction of explicitly identified answer questions, followed by one
+affected-scope source recheck. Unaffected answers are preserved; remaining
+inventory defects remain visible. The returned `material_findings` stay those of
+the initial assessment; a live post-assessment correction also returns the
+recheck's own `affected_recheck_material_findings`. A correction with unknown
+source or question references fails rather than guessing its scope.
+If an otherwise schema-valid initial answer cites an unknown evidence reference,
+the entry may instead spend that same single correction before freezing: it
+supplies the complete current evidence and only the affected questions, validates
+the correction, and preserves unaffected answers. The subsequent full source
+assessment checks the corrected answer. Later defects remain visible; there is
+no second answer correction. Other malformed answer failures still stop.
+
+Repeating an unchanged invocation rederives outputs and reuses the native
+provider receipts; it does not treat file existence or a prior process exit as
+acceptance. Each provider invocation saves its stdout, stderr and exit status,
+plus a separate result JSON whenever the job runner returns a job result; a
+refused or unknown job has none. `result.json` carries the endpoint and evidence
+paths; its `final_answer` always points to the accepted answer object, not freeze
+metadata. Nonzero entry exits save `failure-*.json`. Preserve partial outputs
+and unknown usage.
+
+For deterministic replay of the saved complete finite experiment layout, replace
+`--codex-executable` with `--replay-from SAVED_RUN_ROOT` and choose a fresh output
+root. Replay verifies original input hashes, provider bindings and response
+hashes, replays exact consolidation prompts and native repair/finalization, then
+checks the saved answer, assessment, correction and recheck against their
+original provider inputs. Saved consumer responses retain their original paths
+and provenance; their replay is not a fresh judgment of newly rendered prompts.
+The return is `SAVED_REPLAY_COMPLETE`, never fresh quality or provider-cost proof.
+
+The caller must also own waiting mechanically. In a functions-capable caller,
+set the outer `functions.exec` yield allowance for the commissioned run and
+await the initial `tools.exec_command` plus any `tools.write_stdin` continuations
+inside that same JavaScript invocation. Keep each inner wait at most 60 seconds
+and use `notify` for bounded progress while the program runs. Do not return each
+empty process handle to the model. A 75-second real-process probe verified this
+pattern with one outer call and two internal waits; it establishes neither an
+automatic completion event nor an unlimited tool lifetime. If the actual outer
+call yields, preserve that observation cost and live handle; do not relaunch the
+program. The full-run caller behavior must be observed before claiming its
+efficiency gain.
+
+Use the existing `runners.run_efficiency` collector and native attempt receipts
+for the declared complete execution interval. Separate implementation/setup,
+fresh executor work, provider work and source assessment; retain unknown usage.
+No percentage saving or cold acceptance follows from deterministic replay.
+
 ### Native operations and historical replay
 
 Current-route operations are the individually callable seams:

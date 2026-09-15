@@ -1,0 +1,622 @@
+"""Opt-in finite formation/finish execution over already verified evidence.
+
+No extraction, third round, semantic acceptance shortcut, or model supervisor.
+The existing provider jobs own transport retry, receipt reuse and unknown states.
+"""
+from __future__ import annotations
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+from jsonschema import Draft202012Validator
+
+from harness_utils import hash_file
+from provider_jobs import _check_attempt, _lock
+from runners import run_semantic_evidence_integration as native
+from judgment import semantic_evidence_integration as semantic
+
+HARNESS = Path(__file__).resolve().parents[1]
+REPO = HARNESS.parent
+CONTEXT = [REPO / path for path in (
+    "AGENTS.md", ".agents/workflow-overlay/README.md",
+    "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md",
+    "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
+)]
+POLICY = dict(completion_strategy="finite_formation_finish_v1",
+              authoring_revision="exact_identity_namespaces_v5",
+              reconciliation_policy_version="semantic_evidence_reconciliation_policy_v2",
+              response_version="semantic_evidence_reconciliation_response_v3")
+
+
+class UnknownAnswerEvidence(ValueError):
+    """A schema-valid answer cites evidence absent from its admitted input."""
+
+
+def read(path):
+    return native._load_object(Path(path))
+
+
+def persist(path, value):
+    """No replacement; every resume rederives the expected durable bytes."""
+    data = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    persist_bytes(path, data)
+    return value
+
+
+def persist_bytes(path, data):
+    path = Path(path)
+    if path.exists():
+        if path.read_bytes() != data:
+            raise ValueError(f"existing finite output differs: {path}")
+    else:
+        native._write_new(path, data)
+    if path.read_bytes() != data:
+        raise ValueError(f"finite output readback differs: {path}")
+
+
+def answer_schema(questions):
+    ids = [q["id"] for q in questions]
+    if not ids or len(set(ids)) != len(ids):
+        raise ValueError("questions require unique nonempty identities")
+    item = {"type": "object", "additionalProperties": False,
+            "required": ["question_id", "answer", "evidence_refs", "limits"],
+            "properties": {"question_id": {"type": "string", "enum": ids},
+                           "answer": {"type": "string"}, "limits": {"type": "string"},
+                           "evidence_refs": {"type": "array", "items": {"type": "string"}}}}
+    return {"type": "object", "additionalProperties": False,
+            "required": ["schema_version", "answers"], "properties": {
+                "schema_version": {"type": "string", "const": "finite_answer_v1"},
+                "answers": {"type": "array", "minItems": len(ids), "maxItems": len(ids), "items": item}}}
+
+
+def assessment_schema():
+    text = {"type": "string"}
+    refs = {"type": "array", "items": text}
+    def obj(props):
+        return {"type": "object", "additionalProperties": False,
+                "required": list(props), "properties": props}
+    return obj({"schema_version": {"type": "string", "const": "finite_source_assessment_v1"},
+        "inventory_coverage": text, "comparison": text, "unassessed_material": text,
+        "overall_usefulness": text,
+        "check_results": {"type": "array", "items": obj({
+            "check_id": text, "status": {"type": "string", "enum": ["pass", "partial", "fail", "uncertain"]},
+            "source_refs": refs, "finding_refs": refs, "explanation": text})},
+        "material_findings": {"type": "array", "items": obj({
+            "severity": {"type": "string", "enum": ["blocker", "major", "minor"]},
+            "introduced_at": {"type": "string", "enum": ["frozen_upstream", "current_consolidation", "current_answer", "historical_answer", "uncertain"]},
+            "status": {"type": "string", "enum": ["open", "repaired", "not_a_defect"]},
+            "source_refs": refs, "artifact_refs": refs, "defect": text, "effect": text, "bounded_repair": text})}})
+
+
+def check_answer(answer, questions, bundle, verified):
+    Draft202012Validator(answer_schema(questions)).validate(answer)
+    if [a["question_id"] for a in answer["answers"]] != [q["id"] for q in questions]:
+        raise ValueError("answer question identities/order differ")
+    known = {u["evidence_id"] for u in bundle["evidence_units"]}
+    known.update(u["semantic_unit_ref"] for u in verified["semantic_units"])
+    for row in answer["answers"]:
+        if set(row["evidence_refs"]) - known:
+            raise UnknownAnswerEvidence("answer contains unknown evidence references")
+
+
+def check_assessment(value, questions):
+    Draft202012Validator(assessment_schema()).validate(value)
+    ids = [x["check_id"] for x in value["check_results"]]
+    required = {x["id"] for x in questions["assessment_only"]["checks"]}
+    if len(ids) != len(set(ids)) or not required.issubset(ids):
+        raise ValueError("source assessment omits or duplicates commissioned checks")
+
+
+def coverage(bundle, verified, view, packet):
+    original = {x["semantic_unit_ref"] for x in verified["semantic_units"]}
+    attached = {ref for p in view["propositions"] for refs in p["semantic_relations"].values() for ref in refs}
+    residual_rows = [x["semantic_unit_ref"] for x in view["unmerged_semantic_units"]]
+    residual = set(residual_rows)
+    if (attached | residual != original or attached & residual
+            or len(residual) != len(residual_rows)):
+        raise ValueError("finding/residual coverage does not partition verified statements")
+    selected = packet["selection_coverage"]
+    if (selected["truncated"] or selected["selected_proposition_count"] != len(view["propositions"])
+            or selected["corpus_unmerged_semantic_unit_count"] != len(residual)):
+        raise ValueError("consumer packet coverage differs")
+    if view["coverage"]["accounted_item_count"] != len(bundle["evidence_units"]):
+        raise ValueError("native view does not account for every source row")
+    return dict(source_rows=len(bundle["evidence_units"]), verified_statements=len(original),
+                attached_statements=len(attached), residual_statements=len(residual),
+                findings=len(view["propositions"]), missing_statements=0, packet_truncated=False)
+
+
+class FiniteRun:
+    def __init__(self, args):
+        self.args = args
+        self.root = args.output_dir.resolve()
+        self.provider_root = args.provider_root.resolve(strict=True) if args.provider_root else self.root
+        self.bundle, self.verified, self.source, self.questions = (
+            read(getattr(args, name)) for name in ("bundle", "verified", "source", "questions"))
+        self.replay = args.replay_from.resolve() if args.replay_from else None
+        self.saved = {}
+        self.consumed_repairs = set()
+        if self.replay:
+            frozen = read(self.replay / "manifest.json")
+            for name, filename in (("source", "source.json"), ("bundle", "bundle.json"),
+                                   ("verified", "verified.json"), ("questions", "evaluation-questions.json")):
+                record = frozen["inputs"][filename]
+                if hash_file(Path(record["path"])) != record["sha256"] or hash_file(getattr(args, name)) != record["sha256"]:
+                    raise ValueError(f"historical replay input bytes differ: {name}")
+            prior = frozen["reference"]["answers-final.json"]
+            if hash_file(args.previous_answer) != prior["sha256"]:
+                raise ValueError("historical replay comparison answer differs")
+            # Original job bindings and receipts are preserved, never restamped.
+            for binding_path in self.replay.rglob("job/binding.json"):
+                policy = read(binding_path)
+                for receipt_path in Path(policy["attempt_root"]).glob("*/execution_receipt.json"):
+                    receipt = _check_attempt(receipt_path.parent, policy["binding"])
+                    if receipt["outcome"] == "PROCESS_COMPLETED":
+                        self.saved.setdefault(policy["binding"]["prompt_sha256"], []).append(
+                            (receipt_path.parent / "response.json", policy["binding"]))
+
+    def job(self, name, prompt, schema, *, replay_response=None):
+        directory = self.provider_root / name
+        prompt_path, schema_path = directory / "prompt.md", directory / "response.schema.json"
+        persist_bytes(prompt_path, prompt.encode("utf-8"))
+        persist(schema_path, schema)
+        Draft202012Validator.check_schema(schema)
+        if self.replay:
+            if replay_response is None:
+                matches = self.saved.get(hash_file(prompt_path), [])
+                matches = [(p, b) for p, b in matches if read(b["schema_path"]) == schema]
+                if len(matches) != 1:
+                    raise ValueError(f"replay requires one original prompt/schema-bound response: {name}")
+                response = matches[0][0]
+            else:
+                response = replay_response
+                if not any(response == p for records in self.saved.values() for p, _ in records):
+                    raise ValueError("replay consumer response lacks verified original provider receipt")
+            persist(directory / "replay.json", {"mode": "saved_response_replay_not_fresh_generation",
+                "original_response": str(response), "original_response_sha256": hash_file(response),
+                "current_prompt_sha256": hash_file(prompt_path),
+                "prompt_identical": replay_response is None})
+        else:
+            command = [sys.executable, str(HARNESS / "runners/run_codex_provider_job.py"),
+                "--job-dir", str(directory / "job"), "--attempt-root", str(directory / "attempts"),
+                "--retry-budget-dir", str(self.provider_root / "retry-budget"), "--run-retry-limit", "2",
+                "--max-retries", "1", "--prompt-file", str(prompt_path), "--output-schema", str(schema_path),
+                "--worktree", str(REPO), "--codex-executable", str(self.args.codex_executable.resolve()),
+                "--model", "gpt-5.6-sol", "--reasoning-effort", "high", "--timeout-seconds", "1800"]
+            for path in CONTEXT:
+                command += ["--preload-context", str(path)]
+            # Logs for each invocation remain separate, including failed resumes.
+            index = len(list(directory.glob("invoke-*.stdout"))) + 1
+            out, err = directory / f"invoke-{index:03d}.stdout", directory / f"invoke-{index:03d}.stderr"
+            result_path = directory / f"invoke-{index:03d}-result.json"
+            command += ["--result-out", str(result_path)]
+            with out.open("xb") as stdout, err.open("xb") as stderr:
+                process = subprocess.run(command, cwd=HARNESS, stdin=subprocess.DEVNULL,
+                    stdout=stdout, stderr=stderr, check=False,
+                    env=dict(os.environ, PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1"),
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            persist(directory / f"invoke-{index:03d}.json", dict(command=command, exit_code=process.returncode,
+                stdout=str(out), stderr=str(err)))
+            if process.returncode:
+                raise ValueError(f"provider job failed or unknown; preserve job/attempt state: {directory}")
+            result = read(result_path)
+            if result["status"] != "PROCESS_COMPLETED_NOT_VALIDATED":
+                raise ValueError("provider did not complete")
+            response = Path(result["attempt_dir"]) / "response.json"
+        Draft202012Validator(schema).validate(read(response))
+        return response
+
+    def phase(self, name, compilation):
+        print(json.dumps({"phase": name, "state": "preparing"}), flush=True)
+        stage, prompts = semantic.prepare_reconciliation_stage(self.bundle, compilation, **POLICY,
+            packing_strategy="input_order" if name == "formation" else "group_aware_v1")
+        if stage["completion_phase"] != name or stage["max_prompt_bytes"] != 80000:
+            raise ValueError("finite phase or prompt ceiling differs")
+        stage_path = self.root / name / "stage.json"
+        persist(stage_path, stage)
+        def execute(row):
+            return self.job(f"{name}/provider/{row['batch_id']}", row["prompt"] + "\n", row["response_schema"])
+        # Validate the first actual installation/context result before expansion.
+        responses = [execute(prompts[0])]
+        self.validate_or_repair(name, stage, responses[0], 0)
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            responses += list(pool.map(execute, prompts[1:]))
+        accepted = [self.validate_or_repair(name, stage, path, index)
+                    for index, path in enumerate(responses)]
+        compiled = semantic.validate_reconciliation_stage(self.bundle, stage, [read(p) for p in accepted])
+        persist(self.root / name / "compilation.json", compiled)
+        # Validate the bytes actually consumed by the next phase.
+        if read(self.root / name / "compilation.json") != compiled:
+            raise ValueError("durable compilation differs")
+        print(json.dumps({"phase": name, "state": "native_validated", "batches": len(prompts)}), flush=True)
+        return read(self.root / name / "compilation.json")
+
+    def validate_or_repair(self, phase, stage, response, index):
+        try:
+            receipt = native.validate_one_reconciliation_response(self.bundle, stage, read(response))
+        except semantic.SemanticIntegrationError as exc:
+            base = self.root / phase / "repair" / stage["batches"][index]["batch_id"]
+            persist(base / "failure.json", {"response": str(response), "sha256": hash_file(response), "error": str(exc)})
+            key = f"{phase}:{stage['batches'][index]['batch_id']}"
+            supplied = [r for r in self.args.local_repair_successor if r[0] == key]
+            if len(supplied) > 1:
+                raise ValueError("duplicate local-repair successor binding")
+            if supplied:
+                _, request_path, patch_path, successor_dir = supplied[0]
+                successor_dir = Path(successor_dir).resolve(strict=True)
+                # Reuse only a previously accepted native successor, with original
+                # response/request/patch and complete durable revalidation.
+                if not (successor_dir / "receipt.json").is_file():
+                    raise ValueError("supplied local repair has no native acceptance receipt")
+                native.submit_reconciliation_local_repair(bundle_path=self.args.bundle,
+                    stage_path=self.root / phase / "stage.json", failed_response_path=response,
+                    request_path=Path(request_path), patch_path=Path(patch_path), output_dir=successor_dir)
+                self.claim_repair(f"{phase}-{index:04d}-local", {
+                    "response_sha256": hash_file(response), "request": str(Path(request_path).resolve()),
+                    "patch": str(Path(patch_path).resolve()), "patch_sha256": hash_file(Path(patch_path)),
+                    "successor": str(successor_dir), "external_provider_usage": "must be included; not inferred from patch"})
+                self.consumed_repairs.add(key)
+                response = successor_dir / "response.json"
+                receipt = native.validate_one_reconciliation_response(self.bundle, stage, read(response))
+                persist(self.root / phase / "accepted" / f"{index:04d}.json",
+                    {"response": str(response), "response_sha256": hash_file(response), "validation": receipt})
+                return response
+            request = semantic.prepare_reconciliation_definition_recovery(self.bundle, stage, read(response))
+            # Existing native definition recovery admits only exact frozen assignments.
+            # Other semantic/graph failures remain diagnosed failures, never generic rerolls.
+            self.claim_repair(f"{phase}-{index:04d}", {"response_sha256": hash_file(response)})
+            record = {"request": request, "input_sha256": {"bundle": hash_file(self.args.bundle),
+                "stage": hash_file(self.root / phase / "stage.json"), "failed_response": hash_file(response)}}
+            persist(base / "request.json", record)
+            patch = self.job(f"{phase}/repair/{stage['batches'][index]['batch_id']}/provider-definition",
+                             request["prompt"] + "\n", request["response_schema"])
+            native.submit_reconciliation_definitions(bundle_path=self.args.bundle,
+                stage_path=self.root / phase / "stage.json", failed_response_path=response,
+                request_path=base / "request.json", patch_path=patch, output_dir=base / "successor")
+            response = base / "successor/response.json"
+            receipt = native.validate_one_reconciliation_response(self.bundle, stage, read(response))
+        persist(self.root / phase / "accepted" / f"{index:04d}.json",
+                {"response": str(response), "response_sha256": hash_file(response), "validation": receipt})
+        return response
+
+    def claim_repair(self, name, record):
+        claim = self.provider_root / "repair-budget" / f"{name}.json"
+        with _lock(claim.parent / "budget.lock", wait_seconds=5):
+            if not claim.exists() and len(list(claim.parent.glob("*.json"))) >= 4:
+                raise ValueError("finite consolidation repair budget exhausted")
+            persist(claim, record)
+
+    def consumers(self, compilation):
+        print(json.dumps({"phase": "consumer_finalization", "state": "running"}), flush=True)
+        view = semantic.finalize_v3_view(self.bundle, self.verified, compilation)
+        persist(self.root / "view.json", view)
+        view = read(self.root / "view.json")
+        packet = semantic.project_evidence_packet(read(self.root / "view.json"), self.bundle,
+            self.verified, compilation, proposition_ids=[p["proposition_id"] for p in view["propositions"]])
+        persist(self.root / "packet-all.json", packet)
+        counts = coverage(self.bundle, self.verified, read(self.root / "view.json"), read(self.root / "packet-all.json"))
+        persist(self.root / "coverage.json", counts)
+        axis_rows = []
+        for axis in self.source["axes"]:
+            selection = semantic.project_evidence_packet(view, self.bundle, self.verified, compilation, axis_ids=[axis["axis_id"]])
+            path = self.root / "packets-axis" / f"{axis['axis_id']}.json"
+            persist(path, selection)
+            axis_rows.append({"axis_id": axis["axis_id"], "label": axis["label"], "packet_sha256": hash_file(path),
+                "selected_proposition_ids": [p["proposition_id"] for p in selection["propositions"]],
+                "unmerged_axis_semantic_unit_refs": [u["semantic_unit_ref"] for u in selection["unmerged_axis_candidates"]],
+                "unresolved_axis_evidence_ids": [u["evidence_id"] for u in selection["unresolved_axis_candidates"]]})
+        # Consumer replay goes through the same validators and serializer again.
+        replay_view = semantic.finalize_v3_view(self.bundle, self.verified, read(self.root / "finish/compilation.json"))
+        replay_packet = semantic.project_evidence_packet(replay_view, self.bundle, self.verified, compilation,
+            proposition_ids=[p["proposition_id"] for p in replay_view["propositions"]])
+        persist(self.root / "view.json", replay_view)
+        persist(self.root / "packet-all.json", replay_packet)
+        return view, packet, axis_rows, counts
+
+    def answer_and_assess(self, view, packet, axes):
+        print(json.dumps({"phase": "answer", "state": "preparing"}), flush=True)
+        units = {u["semantic_unit_ref"]: u for u in self.verified["semantic_units"]}
+        attached = {r for p in view["propositions"] for refs in p["semantic_relations"].values() for r in refs}
+        represented_ids = {units[r]["evidence_id"] for r in attached}
+        evidence = {u["evidence_id"]: u for u in self.bundle["evidence_units"]}
+        unit_ids = {u["evidence_id"] for u in units.values()}
+        request = {"schema_version": "finite_answer_input_v1", "worker_instructions": self.questions["worker_instructions"],
+            "questions": self.questions["questions"], "current_native_packet": packet, "native_axis_selections": axes,
+            "retrievable_residual_statements": [{"semantic_unit_ref": u["semantic_unit_ref"], "reason": u["reason"],
+                "verified_statement": units[u["semantic_unit_ref"]]} for u in view["unmerged_semantic_units"]],
+            "additional_source_rows_for_retrieval": [evidence[e] for e in sorted(set(evidence) - represented_ids)],
+            "nonclaim_source_dispositions": [d for d in self.verified["evidence_dispositions"] if d["evidence_id"] not in unit_ids],
+            "source_row_resolution": {"native_packet_source_rows": len(represented_ids),
+                "additional_retrievable_source_rows": len(set(evidence) - represented_ids), "total_unique_source_rows": len(evidence)},
+            "scope": self.questions["coverage"]}
+        persist(self.root / "answer/input.json", request)
+        original_answer = None
+        if self.replay:
+            if read(self.replay / "answer-v3/input.json") != request:
+                raise ValueError("saved answer evidence/input differs from replay consumer")
+            self.check_saved_input("answer-v3", "current_answer_input_json")
+            original_answer = Path(read(self.replay / "answer-v3/freeze.json")["response"])
+        answer_path = self.job("answer/provider", render_answer(request), answer_schema(self.questions["questions"]),
+                               replay_response=original_answer)
+        answer = read(answer_path)
+        pre_corrected = False
+        try:
+            check_answer(answer, self.questions["questions"], self.bundle, self.verified)
+        except UnknownAnswerEvidence:
+            if self.replay:
+                raise
+            answer_path = self.correct_invalid_answer(answer_path, request)
+            answer = read(answer_path)
+            pre_corrected = True
+        persist(self.root / "answer/freeze.json", {"response": str(answer_path), "response_sha256": hash_file(answer_path),
+            "input_sha256": hash_file(self.root / "answer/input.json"), "historical_answer_access_before_freeze": False})
+        # Historical answer and hidden checks first enter a provider request AFTER freeze.
+        reachable = {r["source_artifact_id"] for r in self.source["captured_items"]}
+        assessment_source = {k: v for k, v in self.source.items() if k != "source_artifacts"}
+        assessment_source["source_artifacts_for_bound_rows"] = [a for a in self.source["source_artifacts"] if a["artifact_id"] in reachable]
+        if {a["artifact_id"] for a in assessment_source["source_artifacts_for_bound_rows"]} != reachable:
+            raise ValueError("source assessment lacks bound source-artifact locators")
+        assessment_source["unreferenced_locator_count_not_assessed"] = len(self.source["source_artifacts"]) - len(reachable)
+        assessment_input = {"current_answer": answer, "previously_completed_answer_for_comparison": read(self.args.previous_answer),
+            "assessment_checks": self.questions["assessment_only"], "current_final_view": view,
+            "complete_frozen_source": assessment_source, "complete_frozen_verified_evidence": self.verified,
+            "scope": self.questions["coverage"]}
+        persist(self.root / "assessment/input.json", assessment_input)
+        original_assessment = None
+        if self.replay:
+            self.check_saved_input("assessment", "source_assessment_input_json")
+            old = read(self.replay / "assessment/input.json")
+            for key, expected in (("current_answer", answer), ("previously_completed_answer_for_comparison", read(self.args.previous_answer)),
+                    ("assessment_checks", self.questions["assessment_only"]),
+                    ("current_final_view_all_findings_relations_conditions_and_residuals", view),
+                    ("complete_frozen_verified_evidence_and_dispositions", self.verified)):
+                if old[key] != expected:
+                    raise ValueError(f"saved source assessment binding differs: {key}")
+            original_assessment = Path(read(self.replay / "assessment/completion.json")["response"])
+        assessment_path = self.job("assessment/provider", render_assessment(assessment_input), assessment_schema(),
+                                   replay_response=original_assessment)
+        assessment = read(assessment_path)
+        check_assessment(assessment, self.questions)
+        persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
+        if pre_corrected:
+            # The single correction was spent before freeze; the commissioned
+            # complete source assessment above also checks that corrected answer.
+            correction = {"final_answer": str(answer_path), "answer_corrections": 1,
+                "affected_rechecks": 0, "correction_checked_by": str(assessment_path),
+                "answer_correction_allowance_exhausted": True}
+        else:
+            correction = self.correct_and_recheck(answer, assessment, view)
+        return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
+                "material_findings": assessment["material_findings"], "overall_usefulness": assessment["overall_usefulness"]}
+
+    def correct_invalid_answer(self, original_path, evidence_request):
+        original = read(original_path)
+        known = {r["evidence_id"] for r in self.bundle["evidence_units"]}
+        known.update(r["semantic_unit_ref"] for r in self.verified["semantic_units"])
+        affected = {a["question_id"] for a in original["answers"] if set(a["evidence_refs"]) - known}
+        questions = [q for q in self.questions["questions"] if q["id"] in affected]
+        request = {"current_evidence": {**evidence_request, "questions": questions},
+            "original_affected_answers": [a for a in original["answers"] if a["question_id"] in affected],
+            "unknown_references": sorted({r for a in original["answers"] for r in a["evidence_refs"]} - known)}
+        persist(self.provider_root / "answer-correction/allowance.json", {
+            "kind": "pre_freeze_unknown_evidence", "original_response_sha256": hash_file(original_path),
+            "affected_question_ids": sorted(affected)})
+        persist(self.root / "answer-correction/input.json", request)
+        prompt = ("Output mode: chat-only. Edit permission: read-only. Repair only the affected answers' unknown "
+            "evidence citations using the complete current evidence below. Check all material claims and citations in those "
+            "answers against that evidence; do not guess a replacement ID or remove a citation merely to pass. "
+            "Preserve supported meaning, conditions, source attribution and uncertainty. No historical answer or hidden "
+            "assessment checks are supplied. Return only the affected questions in supplied order under the response schema.\n\n"
+            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+        patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
+        patch = read(patch_path)
+        check_answer(patch, questions, self.bundle, self.verified)
+        replacements = {a["question_id"]: a for a in patch["answers"]}
+        corrected = {**original, "answers": [replacements.get(a["question_id"], a) for a in original["answers"]]}
+        check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
+        target = self.root / "answer-correction/answers-corrected.json"
+        persist(target, corrected)
+        persist(self.root / "answer-correction/composition.json", {"original_response": str(original_path),
+            "original_response_sha256": hash_file(original_path), "patch": str(patch_path), "patch_sha256": hash_file(patch_path),
+            "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
+            "corrected_sha256": hash_file(target)})
+        return target
+
+    def correct_and_recheck(self, answer, assessment, view):
+        nominations = [f for f in assessment["material_findings"]
+                       if f["status"] == "open" and f["introduced_at"] in {"current_answer", "frozen_upstream"}
+                       and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
+        if not nominations:
+            return {"final_answer": read(self.root / "answer/freeze.json")["response"],
+                    "answer_corrections": 0, "affected_rechecks": 0}
+        affected = {r.removeprefix("current_answer:") for f in nominations for r in f["artifact_refs"]
+                    if r.startswith("current_answer:")}
+        questions = [q for q in self.questions["questions"] if q["id"] in affected]
+        if {q["id"] for q in questions} != affected:
+            raise ValueError("assessment correction scope contains unknown question identity")
+        persist(self.provider_root / "answer-correction/allowance.json", {
+            "kind": "post_assessment", "original_answer": answer, "affected_question_ids": sorted(affected)})
+        refs = {r for f in nominations for r in f["source_refs"]}
+        refs.update(r for a in answer["answers"] if a["question_id"] in affected for r in a["evidence_refs"])
+        known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
+        known_ids = {r["evidence_id"] for r in self.source["captured_items"]}
+        if refs - known_ids - set(known_units):
+            raise ValueError("correction nomination/citation contains unknown source reference")
+        ids = {known_units.get(r, r) for r in refs}
+        request = {"questions": questions, "original_affected_answers": [a for a in answer["answers"] if a["question_id"] in affected],
+            "nominations_to_verify_against_sources": nominations,
+            "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
+            "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
+            "current_findings": [p for p in view["propositions"]
+                if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]}
+        persist(self.root / "answer-correction/input.json", request)
+        if self.replay:
+            self.check_saved_input("answer-correction", "answer_correction_input_json")
+            old = read(self.replay / "answer-correction/input.json")
+            if (old["assessor_nominations_to_verify_against_sources"] != nominations
+                    or old["original_answer_one"] not in request["original_affected_answers"]):
+                raise ValueError("saved correction nomination or original answer differs")
+            patch_path = self.replay / "answer-correction/provider/attempts/job-attempt-001/response.json"
+            if not any(patch_path == p for records in self.saved.values() for p, _ in records):
+                raise ValueError("saved correction lacks original provider receipt")
+            patch = {"schema_version": "finite_answer_v1", "answers": [read(patch_path)]}
+        else:
+            prompt = ("Output mode: chat-only. Edit permission: read-only. Correct only the affected answers. "
+                "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
+                "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
+                "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
+                "Cite evidence IDs or semantic unit refs. Return only affected questions in supplied order using the response schema.\n\n"
+                + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
+            patch = read(patch_path)
+        check_answer(patch, questions, self.bundle, self.verified)
+        by_id = {a["question_id"]: a for a in patch["answers"]}
+        corrected = {**answer, "answers": [by_id.get(a["question_id"], a) for a in answer["answers"]]}
+        check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
+        persist(self.root / "answer-correction/answers-corrected.json", corrected)
+        persist(self.root / "answer-correction/composition.json", {"patch": str(patch_path), "patch_sha256": hash_file(patch_path),
+            "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
+            "corrected_sha256": hash_file(self.root / "answer-correction/answers-corrected.json")})
+        corrected_refs = {r for a in patch["answers"] for r in a["evidence_refs"]}
+        ids.update(known_units.get(r, r) for r in corrected_refs)
+        checks = [c for c in self.questions["assessment_only"]["checks"] if ids & set(c["source_rows"])]
+        recheck_request = {**request, "corrected_affected_answers": patch["answers"], "frozen_relevant_checks": checks,
+            "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
+            "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
+        persist(self.root / "assessment-recheck/input.json", recheck_request)
+        if self.replay:
+            self.check_saved_input("assessment-recheck", "affected_recheck_input_json")
+            old = read(self.replay / "assessment-recheck/input.json")
+            if old["corrected_answer_one"] not in patch["answers"]:
+                raise ValueError("saved affected recheck corrected answer differs")
+            recheck_path = self.replay / "assessment-recheck/provider/attempts/job-attempt-001/response.json"
+            if not any(recheck_path == p for records in self.saved.values() for p, _ in records):
+                raise ValueError("saved recheck lacks original provider receipt")
+            Draft202012Validator(read(self.replay / "assessment-recheck/response.schema.json")).validate(read(recheck_path))
+        else:
+            prompt = ("Output mode: chat-only. Edit permission: read-only. Perform one source-backed affected-scope recheck "
+                "of the corrected answers and original nominations. Check every material changed assertion and citation. "
+                "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
+                "consolidation inventory limits separately; correcting prose does not repair the inventory. "
+                "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
+                + json.dumps(recheck_request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())
+            recheck = read(recheck_path)
+            check_assessment(recheck, {"assessment_only": {"checks": checks}})
+        persist(self.root / "assessment-recheck/result.json", {"response": str(recheck_path),
+            "response_sha256": hash_file(recheck_path), "saved_replay": bool(self.replay)})
+        result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
+                  "affected_recheck": str(recheck_path), "answer_corrections": 1, "affected_rechecks": 1}
+        if not self.replay:
+            # Initial material_findings predate the correction; surface the recheck's own findings.
+            result["affected_recheck_material_findings"] = recheck["material_findings"]
+        return result
+
+    def check_saved_input(self, directory, tag):
+        """Tie saved consumer input back to the original hash-bound provider prompt."""
+        path = self.replay / directory / "prompt.md"
+        binding = read(self.replay / directory / "provider/job/binding.json")["binding"]
+        if hash_file(path) != binding["prompt_sha256"]:
+            raise ValueError("saved consumer prompt bytes changed")
+        text = path.read_text(encoding="utf-8")
+        opening, closing = f"<{tag}>", f"</{tag}>"
+        if text.count(opening) != 1 or text.count(closing) != 1:
+            raise ValueError("saved consumer input boundary differs")
+        payload = json.loads(text.split(opening, 1)[1].split(closing, 1)[0], object_pairs_hook=native.unique_json_object)
+        if payload != read(self.replay / directory / "input.json"):
+            raise ValueError("saved consumer input differs from original provider prompt")
+
+    def run(self):
+        inputs = {name: {"path": str(getattr(self.args, name).resolve()), "sha256": hash_file(getattr(self.args, name))}
+                  for name in ("bundle", "verified", "source", "questions", "previous_answer")}
+        runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
+            HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
+            HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
+        if not self.replay:
+            runtime.append(self.args.codex_executable)
+        binding = {"inputs": inputs, "policy": POLICY, "replay_from": str(self.replay) if self.replay else None,
+            "runtime": {str(p.resolve()): hash_file(p) for p in runtime}}
+        with _lock(self.provider_root / "run.lock"):
+            if self.args.provider_root:
+                if self.replay:
+                    raise ValueError("provider-root reuse and historical replay are separate modes")
+                origin_path = self.provider_root / "binding.json"
+                origin = read(origin_path)
+                if "provider_root" in origin:
+                    # A successor root holds no provider jobs or budgets; chaining would reset them.
+                    raise ValueError("provider root must be the original live run root, not a successor")
+                if origin["inputs"] != inputs or origin["policy"] != POLICY or origin.get("replay_from") is not None:
+                    raise ValueError("provider-root inputs or finite policy differ")
+                binding["provider_root"] = {"path": str(self.provider_root), "binding_sha256": hash_file(origin_path)}
+            persist(self.root / "binding.json", binding)
+            rederived = semantic.build_bundle(self.source, max_prompt_bytes=80000,
+                max_evidence_per_work_unit=30, target_bundle_version=self.bundle["schema_version"])
+            if rederived != self.bundle:
+                raise ValueError("source and bundle bytes/packing differ under the finite input boundary")
+            formation = self.phase("formation", self.verified)
+            finish = self.phase("finish", formation)
+            # Repairs are consumed only by the two phases; reject a stale binding before paid consumers.
+            if {r[0] for r in self.args.local_repair_successor} != self.consumed_repairs:
+                raise ValueError("unused local-repair successor binding")
+            view, packet, axes, counts = self.consumers(finish)
+            result = self.answer_and_assess(view, packet, axes)
+            result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION",
+                          coverage=counts, output_dir=str(self.root), provider_root=str(self.provider_root),
+                          provider_usage="native attempts/*/execution_receipt.json under provider_root; unknown remains unknown")
+            persist(self.root / "result.json", result)
+            return result
+
+
+def render_answer(request):
+    return ("Output mode: chat-only. Edit permission: read-only. The input below is run-authoritative. "
+            "Answer only the frozen questions from current finalized evidence and retrievable residuals. "
+            "Inspect residuals where they materially qualify an answer. The packet uses positional catalogue rows "
+            "under named columns/defaults; interpret those exactly. Residuals are retrievable evidence, not findings. "
+            "Cite source evidence IDs or semantic unit refs. Preserve conditions, opposition, uncertainty and intent versus action. "
+            "Return the supplied JSON schema in question order. Follow worker_instructions for length and scope.\n\n"
+            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def render_assessment(request):
+    return ("Output mode: chat-only. Edit permission: read-only. The input below is run-authoritative. "
+            "Perform the commissioned source-backed assessment of every current finding meaning, condition, assignment "
+            "and residual disposition, plus the frozen checks and additional inventory checks. Prior answers are comparison, "
+            "not truth. Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
+            "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. Cite exact source "
+            "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
+            "Return the supplied JSON schema.\n\n" + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ("bundle", "verified", "source", "questions", "previous-answer", "output-dir"):
+        parser.add_argument("--" + name, type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--codex-executable", type=Path)
+    mode.add_argument("--replay-from", type=Path)
+    parser.add_argument("--provider-root", type=Path,
+        help="Explicit prior live run root: reuse native jobs, shared lock and all budgets in place")
+    parser.add_argument("--local-repair-successor", nargs=4, action="append", default=[],
+        metavar=("PHASE:BATCH", "REQUEST", "PATCH", "SUCCESSOR_DIR"),
+        help="Resume with an explicitly nominated, already accepted native local repair")
+    args = parser.parse_args(argv)
+    try:
+        result = FiniteRun(args).run()
+    except Exception as exc:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        failure = args.output_dir / ("failure-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json")
+        persist(failure, {"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "error_type": type(exc).__name__, "error": str(exc)})
+        print(json.dumps({"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "failure": str(failure), "error": str(exc)}))
+        return 1
+    print(json.dumps({"status": result["status"], "coverage": result["coverage"], "result": str(args.output_dir / "result.json")}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
