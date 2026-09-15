@@ -2747,17 +2747,14 @@ original provider inputs. Saved consumer responses retain their original paths
 and provenance; their replay is not a fresh judgment of newly rendered prompts.
 The return is `SAVED_REPLAY_COMPLETE`, never fresh quality or provider-cost proof.
 
-The caller must also own waiting mechanically. In a functions-capable caller,
-set the outer `functions.exec` yield allowance for the commissioned run and
-await the initial `tools.exec_command` plus any `tools.write_stdin` continuations
-inside that same JavaScript invocation. Keep each inner wait at most 60 seconds
-and use `notify` for bounded progress while the program runs. Do not return each
-empty process handle to the model. A 75-second real-process probe verified this
-pattern with one outer call and two internal waits; it establishes neither an
-automatic completion event nor an unlimited tool lifetime. If the actual outer
-call yields, preserve that observation cost and live handle; do not relaunch the
-program. The full-run caller behavior must be observed before claiming its
-efficiency gain.
+Command waiting and resumable closeout are owned by
+`.agents/workflow-overlay/decision-routing.md` -> "Task-Local Tool-Stall Circuit"
+and the maintained `runners.run_efficiency start/status/resume` entry. Wrap this
+finite command once, supply the existing required checker and exact provider
+root, and retain its operation identity across status or interrupted waits.
+The finite runner still owns all semantic validation and retention behavior.
+Native selection is shared by `runners.run_codex_provider_attempt`; this entry
+imports that selector and retains its immutable run binding.
 
 Use the existing `runners.run_efficiency` collector and native attempt receipts
 for the declared complete execution interval. Separate implementation/setup,

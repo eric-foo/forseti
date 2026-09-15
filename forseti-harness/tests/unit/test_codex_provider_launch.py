@@ -72,6 +72,9 @@ def test_selected_installation_auth_environment_and_native_restriction(launch, m
         assert setting in launch.checks[1][0]
     assert all(check[1]["env"] == call["env"] for check in launch.checks)
     assert call["launch_metadata"] == {
+        "codex_selection": {"path": str(launch.executable.resolve()),
+                            "sha256": hashlib.sha256(launch.executable.read_bytes()).hexdigest(),
+                            "version": "codex-cli 0.153.1", "selection": "explicit_native_override"},
         "codex_version": "codex-cli 0.153.1", "authentication_policy": "chatgpt_only",
         "authentication_observed": "chatgpt",
     }
@@ -193,6 +196,9 @@ def test_job_passes_selected_effort_and_frozen_context_to_each_attempt(launch, m
         argv += ["--reasoning-effort", effort]
     monkeypatch.setattr(sys, "argv", argv)
     commands = []
+    monkeypatch.setattr(job_runner, "select_codex_executable", lambda path: {
+        "path": str(path.resolve()), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "version": "codex-cli 0.153.1"})
     monkeypatch.setattr(job_runner.subprocess, "run", lambda command, **kwargs: commands.append(command))
     observed = {}
 
@@ -469,7 +475,7 @@ def test_shim_rejection_uses_resolution_without_symlink_privilege(launch, monkey
     monkeypatch.setattr(Path, "resolve", resolve)
     with pytest.raises(SystemExit):
         runner.main()
-    assert ".cmd/.bat shim" in capsys.readouterr().err
+    assert "resolved to a script, not a native executable" in capsys.readouterr().err
     assert not launch.checks and not launch.launches
 
 
@@ -490,7 +496,7 @@ def test_shim_rejection_judges_the_resolved_executable(launch, capsys):
 
 
 @pytest.mark.parametrize("kind", ["missing", "relative", "shim", "omitted"])
-def test_executable_never_falls_back_to_path(launch, capsys, kind):
+def test_executable_never_falls_back_to_path(launch, capsys, monkeypatch, kind):
     if kind == "missing":
         launch.executable.unlink()
     elif kind == "relative":
@@ -501,6 +507,8 @@ def test_executable_never_falls_back_to_path(launch, capsys, kind):
         launch.argv[2] = str(shim)
     else:
         del launch.argv[1:3]
+        monkeypatch.delenv("FORSETI_CODEX_SELECTION", raising=False)
+        monkeypatch.setattr(runner, "desktop_process_context", lambda: {"ancestors": []})
     with pytest.raises(SystemExit):
         runner.main()
     assert "--codex-executable" in capsys.readouterr().err
@@ -534,7 +542,7 @@ def test_diagnostic_failures_never_launch_or_expose_output(launch, monkeypatch, 
         runner.main()
     output = capsys.readouterr().err
     assert "SECRET_DO_NOT_PRINT" not in output
-    assert "local check failed" in output or "did not report a Codex CLI version" in output
+    assert "local check failed" in output or "did not report the verified Codex CLI version" in output
     assert not launch.launches and not (launch.root / "attempts").exists()
 
 

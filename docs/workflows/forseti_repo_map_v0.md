@@ -222,7 +222,7 @@ authorized.
 | `forseti-harness/evidence_binding/` | JSG-01-scoped evidence binding and composition. |
 | `forseti-harness/judgment/` | Judgment-stage prompt construction, response validation, and bounded profile assembly. |
 | `forseti-harness/provider_attempts.py`, `forseti-harness/provider_execution.py`, and `forseti-harness/provider_jobs.py` | Shared immutable model-attempt storage/publication, deadline-bound live-log execution, and resumable subscription jobs with finite shared retry budgets. Route to "Unattended Model Attempts" in `forseti-harness/README.md`; stage validators retain semantic acceptance. |
-| `forseti-harness/harness_efficiency.py` | Operational timing/usage sidecars; complete-task collection and comparison route through `docs/workflows/efficiency/forseti_efficiency_measurement_v0.md`. |
+| `forseti-harness/harness_efficiency.py` and `forseti-harness/command_execution.py` | Operational timing/usage sidecars and launch-once commands with resumable observation and compact closeout. The existing efficiency runner owns the public entry; collection, comparison and execution routes are in `docs/workflows/efficiency/forseti_efficiency_measurement_v0.md`. |
 | `forseti-harness/packing/` | Packing Spine model-facing serialization: payload-agnostic columnar packing core plus per-consumer adapters; encoding only, never selection. |
 | `forseti-harness/schemas/` | Shared typed models. |
 | `forseti-harness/scoring/` | Deterministic scoring and calibration helpers. |

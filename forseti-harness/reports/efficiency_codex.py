@@ -15,12 +15,107 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
-from harness_efficiency import normalize_usage
+from harness_efficiency import normalize_usage, aggregate_usage
 
 TOKEN_KEYS = ("input_tokens", "cached_input_tokens", "cache_write_input_tokens",
               "output_tokens", "reasoning_output_tokens", "total_tokens")
 CHILD_TOOLS = {"spawn_agent", "followup_task", "send_input", "create_thread",
                "send_message_to_thread", "fork_thread"}
+
+
+def collect_provider_roots(roots, *, started_at=None):
+    """Account selected immutable native attempts, including incomplete launches.
+
+    Existing receipts may be reused by a resumed command. Their costs are
+    preserved history, not fresh generation or model-supervision savings.
+    Only trace_safe numeric counters are inspected; log_only is never copied.
+    """
+    from harness_utils import hash_file
+    directories, intents, retries, issues = set(), set(), set(), []
+    for raw in roots:
+        root = Path(raw).resolve()
+        if not root.is_dir():
+            issues.append(f"provider_root_missing:{root}")
+            continue
+        directories.update(p.parent for p in root.rglob("execution_started.json"))
+        directories.update(p.parent for p in root.rglob("execution_receipt.json"))
+        for path in root.rglob("launch-*.json"):
+            intents.add(path)
+            if path.name != "launch-001.json":
+                retries.add(path)
+        for path in root.rglob("recovery-*.json"):
+            retries.add(path)
+            try:
+                directories.add(Path(json.loads(path.read_text(encoding="utf-8"))["attempt_dir"]).resolve())
+            except (ValueError, OSError, KeyError):
+                issues.append(f"invalid_recovery_record:{path}")
+    for intent in intents:
+        try:
+            policy = json.loads((intent.parent / "binding.json").read_text(encoding="utf-8"))
+            aid = json.loads(intent.read_text(encoding="utf-8"))["attempt_id"]
+            directories.add((Path(policy["attempt_root"]) / aid).resolve())
+        except (ValueError, OSError, KeyError):
+            issues.append(f"unresolved_launch_intent:{intent}")
+    attempts, additional = [], 0
+    diagnostic_unknown = 0
+    for directory in sorted(directories):
+        path = directory / "execution_receipt.json"
+        entry = {"receipt_path": str(path), "outcome": "unknown", "usage": normalize_usage("codex_exec", None),
+                 "issues": [], "execution_scope": "unknown", "additional_observed_response_tokens": None}
+        try:
+            receipt = json.loads(path.read_text(encoding="utf-8"))
+            if receipt.get("schema_version") != "forseti_provider_execution_receipt_v1":
+                raise ValueError("unknown receipt schema")
+            for filename, field in (("events.jsonl", "events_sha256"), ("stderr.log", "stderr_sha256")):
+                if hash_file(directory / filename) != receipt[field]:
+                    raise ValueError("diagnostic hash mismatch")
+            if receipt.get("response_sha256") and hash_file(directory / "response.json") != receipt["response_sha256"]:
+                raise ValueError("response hash mismatch")
+            summary = collect_codex_exec(directory / "events.jsonl", fresh_session=True)
+            entry.update(outcome=receipt["outcome"], receipt_sha256=hash_file(path),
+                         usage=normalize_usage("codex_exec", _raw(receipt.get("usage"))),
+                         observed_retry_events=receipt.get("observed_retry_events"),
+                         execution_scope="preserved_prior_execution" if started_at and receipt["started_at"] < started_at else
+                                         "current_operation_interval" if started_at else "selected_receipt_history")
+            event_usage = aggregate_usage(summary["attempts"])
+            if (entry["usage"]["total_tokens"] != event_usage["total_tokens"] or summary["coverage"] != "complete"):
+                entry["usage"]["coverage"] = "unknown"
+                entry["usage"]["issues"].append("native_event_usage_incomplete_or_mismatch")
+            observations = []
+            with (directory / "stderr.log").open(encoding="utf-8", errors="replace") as stream:
+                for line in stream:
+                    if "codex_otel.trace_safe:" not in line or "event.kind=response.completed " not in line:
+                        continue
+                    fields = dict(re.findall(r"\b(input_token_count|output_token_count)=(\d+)\b", line))
+                    if len(fields) == 2:
+                        observations.append((int(fields["input_token_count"]), int(fields["output_token_count"])))
+            pair = (entry["usage"]["input_tokens"], entry["usage"]["output_tokens"])
+            # Admit extra startup only with one exactly overlapping completed-turn
+            # response and preceding zero-output responses. Other shapes stay unknown.
+            if (observations and observations[-1] == pair and observations.count(pair) == 1
+                    and all(output == 0 for _, output in observations[:-1])):
+                entry["additional_observed_response_tokens"] = sum(inp for inp, _ in observations[:-1])
+            if receipt["outcome"] != "PROCESS_COMPLETED":
+                entry["issues"].append("provider_attempt_not_completed")
+        except (OSError, ValueError, KeyError, TypeError):
+            entry["issues"].append("native_receipt_missing_invalid_or_changed")
+        if entry["additional_observed_response_tokens"] is None:
+            diagnostic_unknown += 1
+        else:
+            additional += entry["additional_observed_response_tokens"]
+        attempts.append(entry)
+    usage = aggregate_usage(attempts)
+    unknown = sum(a["usage"]["coverage"] != "complete" for a in attempts)
+    issues.extend(issue for a in attempts for issue in a["issues"])
+    if roots and not attempts:
+        issues.append("selected_provider_scope_has_no_attempts")
+    return {"attempts": attempts, "attempt_count": len(attempts), "usage": usage,
+            "unknown_usage_attempts": unknown, "retry_claims_observed": len(retries),
+            "observed_retry_events": sum(a.get("observed_retry_events") or 0 for a in attempts),
+            "additional_observed_response_tokens": additional,
+            "startup_observation_unknown_attempts": diagnostic_unknown,
+            "issues": sorted(set(issues)),
+            "scope": "selected native receipts only; cached input/reasoning output are subsets; additional observed startup is separate; hidden requests and parent active-turn costs are not closed"}
 
 
 def _stamp(value: Any) -> datetime | None:

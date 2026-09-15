@@ -20,7 +20,7 @@ from jsonschema import Draft202012Validator
 from harness_utils import hash_file
 from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
-from runners.run_codex_provider_attempt import _local_codex_check
+from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
 
 HARNESS = Path(__file__).resolve().parents[1]
@@ -34,82 +34,6 @@ POLICY = dict(completion_strategy="finite_formation_finish_v1",
               authoring_revision="finite_formation_retention_v1",
               reconciliation_policy_version="semantic_evidence_reconciliation_policy_v2",
               response_version="semantic_evidence_reconciliation_response_v3")
-
-
-def desktop_process_context():
-    """Read this runner's actual ancestry, not PATH or installation caches."""
-    if sys.platform != "win32" or not os.environ.get("SystemRoot"):
-        raise ValueError("automatic Codex selection requires a Windows Desktop ancestor; use an explicit native override")
-    powershell = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-    script = r"""
-$ErrorActionPreference = 'Stop'
-$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-$nextProcess = __PID__
-$ancestors = @()
-$seen = @{}
-while ($nextProcess -ne 0) {
-    if ($seen.ContainsKey($nextProcess) -or $ancestors.Count -ge 64) { throw 'Invalid process ancestry' }
-    $seen[$nextProcess] = $true
-    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $nextProcess"
-    if ($null -eq $process) { throw 'Process ancestry unavailable' }
-    $ancestors += @{pid=[int]$process.ProcessId; parent_pid=[int]$process.ParentProcessId; name=$process.Name;
-        path=$process.ExecutablePath}
-    if ($process.Name -ieq 'ChatGPT.exe') { break }
-    $nextProcess = [int]$process.ParentProcessId
-}
-@{ancestors=$ancestors} | ConvertTo-Json -Depth 5 -Compress
-""".replace("__PID__", str(os.getpid()))
-    result = subprocess.run([str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
-        stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", errors="replace",
-        timeout=20, check=False, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-    if result.returncode:
-        raise ValueError("Codex Desktop ancestry check failed; use an explicit native override")
-    return json.loads(result.stdout)
-
-
-def select_codex_executable(override=None):
-    """Select the verified native runtime actually hosting this Desktop task."""
-    provenance = {}
-    expected_version = None
-    if override is None:
-        context = desktop_process_context()
-        ancestors = context["ancestors"]
-        natives = [p for p in ancestors if p["name"].lower() == "codex.exe"]
-        if len(natives) != 1:
-            raise ValueError("Codex Desktop native ancestor is missing or ambiguous")
-        native_process = natives[0]
-        hosts = [p for p in ancestors if p["pid"] == native_process["parent_pid"]
-                 and p["name"].lower() == "chatgpt.exe"]
-        if len(hosts) != 1:
-            raise ValueError("Codex Desktop host ownership is missing or ambiguous")
-        host = hosts[0]
-        if (not host["path"] or not native_process["path"]
-                or not Path(host["path"]).is_absolute()
-                or Path(host["path"]).name.lower() != "chatgpt.exe"
-                or os.environ.get("CODEX_INTERNAL_ORIGINATOR_OVERRIDE") != "Codex Desktop"):
-            raise ValueError("Codex Desktop native/host ownership is unverified")
-        expected_version = os.environ.get("CODEX_VERSION")
-        if not expected_version:
-            raise ValueError("Codex Desktop host version is unavailable")
-        override = Path(native_process["path"])
-        provenance = {"desktop_host": host["path"], "native_ancestor_pid": native_process["pid"],
-                      "originator": "Codex Desktop"}
-    path = Path(override)
-    if not path.is_absolute() or not path.is_file() or path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
-        raise ValueError("Codex selection requires an existing absolute native executable")
-    path = path.resolve(strict=True)
-    if path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
-        raise ValueError("Codex selection resolved to a script, not a native executable")
-    before = hash_file(path)
-    version = _local_codex_check(str(path), ["--version"], dict(os.environ))
-    observed = version.stdout.strip()
-    if (version.returncode or not re.fullmatch(r"codex-cli \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", observed)
-            or expected_version is not None and observed != "codex-cli " + expected_version):
-        raise ValueError("selected native executable did not report the verified Codex CLI version")
-    if hash_file(path) != before:
-        raise ValueError("selected Codex executable changed during verification")
-    return {"path": str(path), "sha256": before, "version": observed,
-            "selection": "active_desktop_ancestor" if expected_version else "explicit_native_override", **provenance}
 
 
 class UnknownAnswerEvidence(ValueError):

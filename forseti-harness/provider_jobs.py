@@ -144,6 +144,13 @@ def _check_attempt(path, binding):
     command = receipt.get("command", [])
     if not command or command[0] != binding["codex_executable"]:
         raise ValueError("provider attempt executable changed")
+    if ("codex_version" in binding and
+            receipt.get("launch_metadata", {}).get("codex_version") != binding["codex_version"]):
+        raise ValueError("provider attempt executable version changed")
+    selection = receipt.get("launch_metadata", {}).get("codex_selection")
+    if selection is not None and (selection.get("path") != binding["codex_executable"] or
+                                  selection.get("sha256") != binding["codex_sha256"]):
+        raise ValueError("provider attempt selected executable bytes changed")
     for option, key in (("--model", "model"), ("-C", "worktree")):
         if command.count(option) != 1 or command[command.index(option)+1] != binding[key]:
             raise ValueError("provider attempt launch binding changed")
