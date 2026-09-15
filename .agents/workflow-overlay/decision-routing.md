@@ -509,14 +509,14 @@ test-fix loops, batch normalizations or bulk edits.
 
 Once provider prompts, schemas and commands are fixed, let the run's program
 launch and wait for those jobs, then save completion or failure for the next
-judgment. Do not commission a model just to launch commands or repeatedly call
-`write_stdin` on their handles. Use the existing provider job runner;
+judgment. Do not commission a model just to launch commands or repeatedly poll
+their handles (for example with `write_stdin`). Use the existing provider job runner;
 **Unattended Model Attempts** in `forseti-harness/README.md` owns asynchronous
 delivery, return and fallback limits. Dependent stages still need their bound
 validation. For a foreground command, reuse its live handle and size waits to
 the runtime's responsiveness boundary; do not relaunch a running command.
-Preserve exit status and failures. The native-child quiet-wait rule does not
-govern shell processes.
+Preserve exit status and failures; successful execution never substitutes for
+the bound check.
 
 For mechanical CI observation, from `forseti-harness`, run
 `python -m runners.run_ci_watch --repo OWNER/REPO --pr NUMBER --head SHA --output-dir _scratch/ci-watch`.
