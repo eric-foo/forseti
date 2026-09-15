@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import os
+import platform
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -19,6 +21,7 @@ from jsonschema import Draft202012Validator
 from harness_utils import hash_file
 from provider_jobs import _check_attempt, _lock
 from runners import run_semantic_evidence_integration as native
+from runners.run_codex_provider_attempt import _local_codex_check
 from judgment import semantic_evidence_integration as semantic
 
 HARNESS = Path(__file__).resolve().parents[1]
@@ -29,9 +32,59 @@ CONTEXT = [REPO / path for path in (
     "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md",
 )]
 POLICY = dict(completion_strategy="finite_formation_finish_v1",
-              authoring_revision="exact_identity_namespaces_v5",
+              authoring_revision="finite_formation_retention_v1",
               reconciliation_policy_version="semantic_evidence_reconciliation_policy_v2",
               response_version="semantic_evidence_reconciliation_response_v3")
+
+
+def select_codex_executable(override=None):
+    """Select the Windows user-global npm installation, or an explicit native path.
+
+    Match the installed @openai/codex entry's platform dependency; never choose
+    among Desktop caches, search PATH, or silently switch installation families.
+    """
+    expected_version = None
+    if override is None:
+        machine = platform.machine().lower()
+        architectures = {"amd64": ("x64", "x86_64"), "arm64": ("arm64", "aarch64")}
+        if sys.platform != "win32" or machine not in architectures or not os.environ.get("APPDATA"):
+            raise ValueError("automatic Codex selection requires Windows user-global npm; use an explicit native override")
+        arch, triple = architectures[machine]
+        modules = Path(os.environ["APPDATA"]) / "npm/node_modules"
+        package = modules / "@openai/codex"
+        entry = read(package / "package.json")
+        expected_version = entry.get("version", "")
+        dependency = f"@openai/codex-win32-{arch}"
+        if (entry.get("name") != "@openai/codex" or entry.get("bin") != {"codex": "bin/codex.js"}
+                or not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", expected_version)
+                or entry.get("optionalDependencies", {}).get(dependency) != f"npm:@openai/codex@{expected_version}-win32-{arch}"):
+            raise ValueError("installed Codex package identity or platform dependency is unverified")
+        candidates = {p.resolve() for p in (package / "node_modules" / dependency, modules / dependency)
+                      if (p / "package.json").is_file()}
+        if len(candidates) != 1:
+            raise ValueError("installed Codex native package selection is missing or ambiguous")
+        native_package = candidates.pop()
+        metadata = read(native_package / "package.json")
+        if (metadata.get("name") != "@openai/codex" or metadata.get("version") != f"{expected_version}-win32-{arch}"
+                or metadata.get("os") != ["win32"] or metadata.get("cpu") != [arch]):
+            raise ValueError("installed Codex native package identity/version differs")
+        override = native_package / f"vendor/{triple}-pc-windows-msvc/bin/codex.exe"
+    path = Path(override)
+    if not path.is_absolute() or not path.is_file() or path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
+        raise ValueError("Codex selection requires an existing absolute native executable")
+    path = path.resolve(strict=True)
+    if path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
+        raise ValueError("Codex selection resolved to a script, not a native executable")
+    before = hash_file(path)
+    version = _local_codex_check(str(path), ["--version"], dict(os.environ))
+    observed = version.stdout.strip()
+    if (version.returncode or not re.fullmatch(r"codex-cli \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", observed)
+            or expected_version is not None and observed != "codex-cli " + expected_version):
+        raise ValueError("selected native executable did not report the verified Codex CLI version")
+    if hash_file(path) != before:
+        raise ValueError("selected Codex executable changed during verification")
+    return {"path": str(path), "sha256": before, "version": observed,
+            "selection": "windows_user_global_npm" if expected_version else "explicit_native_override"}
 
 
 class UnknownAnswerEvidence(ValueError):
@@ -133,6 +186,7 @@ def coverage(bundle, verified, view, packet):
 
 
 class FiniteRun:
+    policy = POLICY
     def __init__(self, args):
         self.args = args
         self.root = args.output_dir.resolve()
@@ -140,6 +194,7 @@ class FiniteRun:
         self.bundle, self.verified, self.source, self.questions = (
             read(getattr(args, name)) for name in ("bundle", "verified", "source", "questions"))
         self.replay = args.replay_from.resolve() if args.replay_from else None
+        self.policy = {**POLICY, **({"authoring_revision": "exact_identity_namespaces_v5"} if self.replay else {})}
         self.saved = {}
         self.consumed_repairs = set()
         if self.replay:
@@ -183,11 +238,12 @@ class FiniteRun:
                 "current_prompt_sha256": hash_file(prompt_path),
                 "prompt_identical": replay_response is None})
         else:
+            selection = self.bind_executable()
             command = [sys.executable, str(HARNESS / "runners/run_codex_provider_job.py"),
                 "--job-dir", str(directory / "job"), "--attempt-root", str(directory / "attempts"),
                 "--retry-budget-dir", str(self.provider_root / "retry-budget"), "--run-retry-limit", "2",
                 "--max-retries", "1", "--prompt-file", str(prompt_path), "--output-schema", str(schema_path),
-                "--worktree", str(REPO), "--codex-executable", str(self.args.codex_executable.resolve()),
+                "--worktree", str(REPO), "--codex-executable", selection["path"],
                 "--model", "gpt-5.6-sol", "--reasoning-effort", "high", "--timeout-seconds", "1800"]
             for path in CONTEXT:
                 command += ["--preload-context", str(path)]
@@ -212,9 +268,28 @@ class FiniteRun:
         Draft202012Validator(schema).validate(read(response))
         return response
 
+    def bind_executable(self):
+        path = self.provider_root / "codex-selection.json"
+        if path.exists():
+            selected = read(path)
+            binding_path = self.provider_root / "binding.json"
+            if binding_path.exists() and read(binding_path).get("codex_selection") != selected:
+                raise ValueError("Codex selection differs from the immutable run binding")
+            if (self.args.codex_executable is not None
+                    and str(self.args.codex_executable.resolve()) != selected["path"]):
+                raise ValueError("explicit Codex selection differs from the bound run")
+            if hash_file(Path(selected["path"])) != selected["sha256"]:
+                raise ValueError("bound Codex executable changed; no automatic rebind")
+            return selected
+        if (self.provider_root / "binding.json").exists():
+            raise ValueError("bound run has no Codex selection; refusing an automatic rebind")
+        selected = select_codex_executable(self.args.codex_executable)
+        persist(path, selected)
+        return read(path)
+
     def phase(self, name, compilation):
         print(json.dumps({"phase": name, "state": "preparing"}), flush=True)
-        stage, prompts = semantic.prepare_reconciliation_stage(self.bundle, compilation, **POLICY,
+        stage, prompts = semantic.prepare_reconciliation_stage(self.bundle, compilation, **self.policy,
             packing_strategy="input_order" if name == "formation" else "group_aware_v1")
         if stage["completion_phase"] != name or stage["max_prompt_bytes"] != 80000:
             raise ValueError("finite phase or prompt ceiling differs")
@@ -538,9 +613,7 @@ class FiniteRun:
         runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
             HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
             HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
-        if not self.replay:
-            runtime.append(self.args.codex_executable)
-        binding = {"inputs": inputs, "policy": POLICY, "replay_from": str(self.replay) if self.replay else None,
+        binding = {"inputs": inputs, "policy": self.policy, "replay_from": str(self.replay) if self.replay else None,
             "runtime": {str(p.resolve()): hash_file(p) for p in runtime}}
         with _lock(self.provider_root / "run.lock"):
             if self.args.provider_root:
@@ -551,9 +624,11 @@ class FiniteRun:
                 if "provider_root" in origin:
                     # A successor root holds no provider jobs or budgets; chaining would reset them.
                     raise ValueError("provider root must be the original live run root, not a successor")
-                if origin["inputs"] != inputs or origin["policy"] != POLICY or origin.get("replay_from") is not None:
+                if origin["inputs"] != inputs or origin["policy"] != self.policy or origin.get("replay_from") is not None:
                     raise ValueError("provider-root inputs or finite policy differ")
                 binding["provider_root"] = {"path": str(self.provider_root), "binding_sha256": hash_file(origin_path)}
+            if not self.replay:
+                binding["codex_selection"] = self.bind_executable()
             persist(self.root / "binding.json", binding)
             rederived = semantic.build_bundle(self.source, max_prompt_bytes=80000,
                 max_evidence_per_work_unit=30, target_bundle_version=self.bundle["schema_version"])
@@ -597,8 +672,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("bundle", "verified", "source", "questions", "previous-answer", "output-dir"):
         parser.add_argument("--" + name, type=Path, required=True)
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--codex-executable", type=Path)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--codex-executable", type=Path, help="Explicit native override; default selects the verified Windows user-global npm installation")
     mode.add_argument("--replay-from", type=Path)
     parser.add_argument("--provider-root", type=Path,
         help="Explicit prior live run root: reuse native jobs, shared lock and all budgets in place")

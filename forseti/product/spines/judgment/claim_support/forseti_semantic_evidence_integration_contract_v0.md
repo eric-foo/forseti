@@ -2081,9 +2081,12 @@ artifact.
 The owner-commissioned 2026-09-15 small-sample experiment adds opt-in
 `prepare-reconciliation-level --completion-strategy finite_formation_finish_v1`.
 It does not change the supported default or authorize a full-corpus run. Use
-policy v2 and a fresh output root. New finite preparation selects v5 decision
-authoring, whose existing source-row aliases make the finish support floor
-decidable. Explicit v4 remains available for historical replay. V5 stages bind
+policy v2 and a fresh output root. New finite preparation selects
+`finite_formation_retention_v1` decision authoring, inheriting v5's source-row
+aliases and requiring every formation candidate to remain attached in the
+generated response schema. Questions, reports and uncertainty may remain honest
+nonterminal nodes; finishing retirement remains legal under the existing rules.
+Explicit v4 and v5 remain available for historical replay. New stages bind
 the revision in their hash; subsequent preparation, resume and finalization
 inherit it and reject revision changes. Historical stages without that field
 retain v4 and their original hashes. Neither phase may switch revisions, and
@@ -2612,7 +2615,7 @@ For an explicitly commissioned finite run through answering and source-backed
 assessment, use the maintained entry from `forseti-harness/`:
 
 ```text
-python -m runners.run_finite_semantic_consolidation --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT --codex-executable ABSOLUTE_NATIVE_CODEX
+python -m runners.run_finite_semantic_consolidation --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT
 ```
 
 The question file supplies `questions` (unique `id` and question text),
@@ -2624,7 +2627,20 @@ consolidation, current-answer and historical-answer defects separate. Its
 semantic verdict still requires adjudication; process completion does not
 certify quality. This entry installs no assessment on other operating routes.
 
-The entry preserves v5 finite formation followed by exactly one group-aware
+Before paid work, the entry selects the current Windows user-global npm
+`@openai/codex` installation under `%APPDATA%/npm/node_modules`. It verifies the
+entry package identity, exact platform dependency and native package version,
+then checks the selected native executable's CLI version. Missing, ambiguous or
+unverified installations stop. It does not select Desktop caches or search PATH.
+Use `--codex-executable ABSOLUTE_NATIVE_CODEX` for an explicit verified native
+override, including a different installation family. Selection path, hash and
+version are bound in `codex-selection.json` and the run binding; every job uses
+that path and refuses changed bytes. A running or resumed run never silently
+switches executables after an update. Existing ChatGPT authentication, required
+context and native receipt checks remain. Record runtime differences when
+comparing runs; installed npm and Desktop versions need not match.
+
+The entry preserves finite formation followed by exactly one group-aware
 finish, the 80,000-byte reconciliation prompt ceiling and original 30-row
 work-unit bound. Counts derive from the inputs. It uses subscription-only
 Sol/high provider jobs, at most three concurrent jobs, 1,800 seconds per job,
@@ -2690,8 +2706,8 @@ paths; its `final_answer` always points to the accepted answer object, not freez
 metadata. Nonzero entry exits save `failure-*.json`. Preserve partial outputs
 and unknown usage.
 
-For deterministic replay of the saved complete finite experiment layout, replace
-`--codex-executable` with `--replay-from SAVED_RUN_ROOT` and choose a fresh output
+For deterministic replay of the saved complete finite experiment layout, add
+`--replay-from SAVED_RUN_ROOT` (without `--codex-executable`) and choose a fresh output
 root. Replay verifies original input hashes, provider bindings and response
 hashes, replays exact consolidation prompts and native repair/finalization, then
 checks the saved answer, assessment, correction and recheck against their

@@ -7539,6 +7539,7 @@ def test_prepared_level_replay_preserves_unspecified_historical_packing(tmp_path
 @pytest.mark.parametrize("revision", [
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+    semantic_module.RECONCILIATION_AUTHORING_FINITE_V1,
 ])
 def test_finite_completion_replays_real_consumer_and_rejects_false_completion(revision) -> None:
     bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
@@ -7595,7 +7596,7 @@ def test_finite_completion_replays_real_consumer_and_rejects_false_completion(re
             finalize_v3_view(bundle, verified, bad)
 
 
-def _finite_row_identity_fixture():
+def _finite_row_identity_fixture(*, revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5):
     source = _source_v7(count=3)
     for row in source["captured_items"]:
         row["independence_key"] = "reddit:one-actor"
@@ -7609,7 +7610,7 @@ def _finite_row_identity_fixture():
         _row_verification_responses(verification))
     formation, _ = prepare_reconciliation_stage(bundle, verified,
         reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
-        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, authoring_revision=revision)
     return bundle, verified, formation
 
 
@@ -7845,7 +7846,46 @@ def test_repair_authoring_rejects_unknown_or_nonfinite_revision(kind):
             prepare(bundle, stage, response, **args, authoring_revision=revision)
 
 
-def test_finite_runner_new_stage_selects_v5_authoring(tmp_path):
+def test_finite_formation_generation_preserves_nonterminal_candidates_and_finish_retirement():
+    from jsonschema import Draft202012Validator
+    bundle, verified, historical = _finite_row_identity_fixture()
+    stage, prompts = prepare_reconciliation_stage(bundle, verified,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+        reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2)
+    assert stage["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_FINITE_V1
+    response = _finite_decision_response(stage,
+        [[(ref, "support")] for ref in stage["batches"][0]["candidate_refs"]], terminal=False)
+    schema = prompts[0]["response_schema"]
+    Draft202012Validator(schema).validate(response)
+    assert "attributed questions" in prompts[0]["prompt"]
+    assert semantic_module.prepare_reconciliation_prompts(bundle, stage) == prompts
+    # Challenge the actual generation decision for a noncustomer candidate,
+    # which previously escaped the customer-only must-retain helper.
+    question_stage = deepcopy(stage)
+    question_stage["candidates"][0]["evidence_postures"] = ["question"]
+    index = {c["candidate_ref"]: c for c in question_stage["candidates"]}
+    question_schema = semantic_module._decision_reconciliation_schema(question_stage,
+        stage["batches"][0], [], index, semantic_module._unit_index(bundle))
+    bad = deepcopy(response)
+    ref = question_stage["candidates"][0]["candidate_ref"]
+    bad["decisions_by_candidate_ref"][ref] = {"attachments": [], "unmerged_reason": "Question remains uncertain"}
+    errors = list(Draft202012Validator(question_schema).iter_errors(bad))
+    assert {tuple(e.path) for e in errors} == {
+        ("decisions_by_candidate_ref", ref, "attachments"),
+        ("decisions_by_candidate_ref", ref, "unmerged_reason")}
+    formed = validate_reconciliation_stage(bundle, stage, [response])
+    finish, finished_prompts = prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
+    retired = _finite_decision_response(finish, [], terminal=True)
+    Draft202012Validator(finished_prompts[0]["response_schema"]).validate(retired)
+    validate_reconciliation_stage(bundle, finish, [retired])
+    assert historical["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+    with pytest.raises(SemanticIntegrationError, match="authoring revision changes"):
+        semantic_module.prepare_reconciliation_prompts(bundle, historical,
+            authoring_revision=semantic_module.RECONCILIATION_AUTHORING_FINITE_V1)
+
+
+def test_finite_runner_new_stage_selects_retention_authoring(tmp_path):
     from runners.run_semantic_evidence_integration import prepare_reconciliation_level
     bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)
     for name, value in (("bundle", bundle), ("verified", verified)):
@@ -7855,12 +7895,13 @@ def test_finite_runner_new_stage_selects_v5_authoring(tmp_path):
         prompt_dir=tmp_path / "prompts", reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
         completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY)
     stage = json.loads((tmp_path / "formation.json").read_text())
-    assert result["authoring_revision"] == stage["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+    assert result["authoring_revision"] == stage["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_FINITE_V1
 
 
 @pytest.mark.parametrize("revision", [
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+    semantic_module.RECONCILIATION_AUTHORING_FINITE_V1,
 ])
 def test_finite_revision_resume_and_byte_ceiling_are_bound(tmp_path, revision):
     from runners.run_semantic_evidence_integration import prepare_reconciliation_level
@@ -7872,7 +7913,7 @@ def test_finite_revision_resume_and_byte_ceiling_are_bound(tmp_path, revision):
     formed = validate_reconciliation_stage(bundle, formation, _singleton_reconciliation_responses(formation))
     finish, prompts = prepare_reconciliation_stage(bundle, formed,
         completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
-    assert ("authoring_revision" in finish) == (revision == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    assert ("authoring_revision" in finish) == (revision != semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
     assert len(prompts) > 1
     assert all(len(p["prompt"].encode("utf-8")) <= 18_000 for p in prompts)
     assert semantic_module.prepare_reconciliation_prompts(bundle, finish) == prompts

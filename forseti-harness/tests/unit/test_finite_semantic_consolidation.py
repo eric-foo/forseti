@@ -12,6 +12,109 @@ from runners import run_codex_provider_job as job_runner
 from test_semantic_evidence_integration import _missing_definition_fixture, _local_repair_fixture
 
 
+@pytest.fixture
+def installed_codex(tmp_path, monkeypatch):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    monkeypatch.setattr(finite.sys, "platform", "win32")
+    monkeypatch.setattr(finite.platform, "machine", lambda: "AMD64")
+    modules = tmp_path / "npm/node_modules"
+    package = modules / "@openai/codex"
+    native = package / "node_modules/@openai/codex-win32-x64"
+    executable = native / "vendor/x86_64-pc-windows-msvc/bin/codex.exe"
+    calls = []
+    def install(version):
+        package.mkdir(parents=True, exist_ok=True)
+        native.mkdir(parents=True, exist_ok=True)
+        (package / "package.json").write_text(json.dumps({"name": "@openai/codex", "version": version,
+            "bin": {"codex": "bin/codex.js"}, "optionalDependencies": {
+                "@openai/codex-win32-x64": f"npm:@openai/codex@{version}-win32-x64"}}))
+        (native / "package.json").write_text(json.dumps({"name": "@openai/codex", "version": version + "-win32-x64",
+            "os": ["win32"], "cpu": ["x64"]}))
+        executable.parent.mkdir(parents=True, exist_ok=True)
+        executable.write_text(version)
+    def local(exe, args, env):
+        calls.append((exe, args))
+        return Namespace(returncode=0, stdout="codex-cli " + Path(exe).read_text(), stderr="")
+    install("1.0.0")
+    monkeypatch.setattr(finite, "_local_codex_check", local)
+    return Namespace(install=install, executable=executable, native=native, modules=modules, calls=calls)
+
+
+def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, monkeypatch, installed_codex):
+    run = object.__new__(finite.FiniteRun)
+    run.root = run.provider_root = tmp_path / "run"
+    run.replay = None
+    run.args = Namespace(codex_executable=None)
+    installed_codex.install("1.1.0")  # Update after runner construction, before first paid job.
+    commands = []
+    def job(command, **kwargs):
+        commands.append(command)
+        response_dir = run.root / "job/attempts/job-attempt-001"
+        finite.persist(response_dir / "response.json", {})
+        result = Path(command[command.index("--result-out") + 1])
+        finite.persist(result, {"status": "PROCESS_COMPLETED_NOT_VALIDATED", "attempt_dir": str(response_dir)})
+        return Namespace(returncode=0)
+    monkeypatch.setattr(finite.subprocess, "run", job)
+    run.job("job", "prompt", {"type": "object"})
+    selected = finite.read(run.root / "codex-selection.json")
+    assert selected["version"] == "codex-cli 1.1.0"
+    assert selected["sha256"] == finite.hash_file(installed_codex.executable)
+    assert commands[0][commands[0].index("--codex-executable") + 1] == selected["path"]
+    assert installed_codex.calls == [(selected["path"], ["--version"])]
+    assert run.bind_executable() == selected
+    installed_codex.install("1.2.0")
+    with pytest.raises(ValueError, match="bound Codex executable changed"):
+        run.job("other-job", "prompt", {"type": "object"})
+    assert len(commands) == 1
+
+
+@pytest.mark.parametrize("case", ["missing", "ambiguous", "foreign", "version", "arbitrary"])
+def test_unverified_installation_fails_before_native_or_paid_work(installed_codex, case):
+    package = installed_codex.native / "package.json"
+    if case == "missing":
+        package.unlink()
+    elif case == "ambiguous":
+        other = installed_codex.modules / "@openai/codex-win32-x64/package.json"
+        other.parent.mkdir(parents=True)
+        other.write_bytes(package.read_bytes())
+    elif case in {"foreign", "version"}:
+        value = json.loads(package.read_text())
+        value["name" if case == "foreign" else "version"] = "wrong"
+        package.write_text(json.dumps(value))
+    else:
+        installed_codex.executable.write_text("not-codex")
+    with pytest.raises(ValueError):
+        finite.select_codex_executable()
+    assert len(installed_codex.calls) == (1 if case == "arbitrary" else 0)
+
+
+def test_explicit_override_is_verified_and_never_falls_back(tmp_path, installed_codex):
+    override = tmp_path / "explicit.exe"
+    override.write_text("2.0.0")
+    selected = finite.select_codex_executable(override)
+    assert selected["path"] == str(override.resolve())
+    assert selected["selection"] == "explicit_native_override"
+    assert selected["version"] == "codex-cli 2.0.0"
+    with pytest.raises(ValueError, match="existing absolute native"):
+        finite.select_codex_executable(tmp_path / "missing.exe")
+    assert len(installed_codex.calls) == 1
+
+
+def test_run_selection_cannot_be_rebound_or_removed(tmp_path, installed_codex):
+    run = object.__new__(finite.FiniteRun)
+    run.root = run.provider_root = tmp_path / "run"
+    run.args = Namespace(codex_executable=None)
+    selected = run.bind_executable()
+    finite.persist(run.root / "binding.json", {"codex_selection": selected})
+    run.args.codex_executable = tmp_path / "another.exe"
+    with pytest.raises(ValueError, match="explicit Codex selection differs"):
+        run.bind_executable()
+    run.args.codex_executable = None
+    (run.root / "codex-selection.json").unlink()
+    with pytest.raises(ValueError, match="no Codex selection"):
+        run.bind_executable()
+
+
 def bare_run(tmp_path, bundle, stage):
     run = object.__new__(finite.FiniteRun)
     run.root = tmp_path / "run"
@@ -177,6 +280,7 @@ def test_finite_provider_failure_stops_before_response_consumption(tmp_path, mon
     run.root, run.replay = tmp_path, None
     run.provider_root = run.root
     run.args = Namespace(codex_executable=tmp_path / "codex")
+    run.bind_executable = lambda: {"path": str(run.args.codex_executable)}
     def failed(command, **kwargs):
         kwargs["stderr"].write(b"provider launch outcome unknown\n")
         return Namespace(returncode=1)
@@ -283,6 +387,7 @@ def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, mon
         args[name] = tmp_path / (name + ".json")
         finite.persist(args[name], {})
     run.args = Namespace(**args)
+    run.bind_executable = lambda: {"path": str(args["codex_executable"])}
     monkeypatch.setattr(finite.semantic, "build_bundle", lambda *a, **k: run.bundle)
     run.phase = lambda name, compilation: {}
     run.consumers = lambda *a: pytest.fail("stale repair binding must stop before answer and assessment jobs")

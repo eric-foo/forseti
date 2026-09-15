@@ -24,6 +24,7 @@ from judgment.semantic_evidence_integration import (  # noqa: E402
     RECONCILIATION_AUTHORING_IDENTITY_V4,
     RECONCILIATION_AUTHORING_IDENTITY_V5,
     RECONCILIATION_AUTHORING_IDENTITY_V6,
+    RECONCILIATION_AUTHORING_FINITE_V1,
     RECONCILIATION_POLICY_VERSION_V2,
     SOURCE_VERSION_V3,
     SEMANTIC_METHODS_V7_PLUS,
@@ -3642,6 +3643,7 @@ def _parser() -> argparse.ArgumentParser:
             RECONCILIATION_AUTHORING_IDENTITY_V4,
             RECONCILIATION_AUTHORING_IDENTITY_V5,
             RECONCILIATION_AUTHORING_IDENTITY_V6,
+            RECONCILIATION_AUTHORING_FINITE_V1,
         ],
         help="Normal requests only: defaults to exact identity namespaces for method-v12 response-v3; legacy reproduces historical requests.")
     reconcile_level.add_argument(
