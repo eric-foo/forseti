@@ -83,6 +83,7 @@ RECONCILIATION_REPAIR_REQUEST_VERSION_V2 = "semantic_reconciliation_repair_reque
 RECONCILIATION_REPAIR_REQUEST_VERSION_V3 = "semantic_reconciliation_repair_request_v3"
 RECONCILIATION_DUPLICATE_LEAF_REPAIR_MODE = "duplicate_leaf_structural_v1"
 RECONCILIATION_AUTHORING_LEGACY = "legacy"
+RECONCILIATION_REPAIR_AUTHORING_FINITE_V1 = "finite_repair_phase_v1"
 RECONCILIATION_AUTHORING_IDENTITY_V1 = "exact_identity_namespaces_v1"
 RECONCILIATION_AUTHORING_IDENTITY_V2 = "exact_identity_namespaces_v2"
 RECONCILIATION_AUTHORING_IDENTITY_V3 = "exact_identity_namespaces_v3"
@@ -5969,7 +5970,9 @@ def _render_v3_reconciliation_prompt(
     decision_only: bool = False,
     compact_json: bool = False,
     definition_recovery: Mapping[str, Any] | None = None,
+    definition_completion_phase: str | None = None,
     local_repair: Mapping[str, Any] | None = None,
+    local_completion_phase: str | None = None,
     duplicate_leaf_structural_repair: bool = False,
 ) -> str:
     posture_instruction = (
@@ -6070,10 +6073,14 @@ def _render_v3_reconciliation_prompt(
         "leaves under a counter child both count while any adjacent involvement never "
         "does. An observable_statement posture "
         "does not make a community report a directly verified observable_fact. Never "
-        "change a claim's meaning or relabel its kind merely to pass this check. Retain "
-        "non-customer material with no eligible terminal kind in unmerged_children "
-        "with its limitation explicit; unmerged remains retrievable evidence.\n"
-        "TERMINAL_SOURCE_ROLE_COMPETENCE\n"
+        "change a claim's meaning or relabel its kind merely to pass this check. "
+        + ("Apply the formation local-repair rules below when no terminal kind is eligible.\n"
+           if local_completion_phase == "formation" else
+           "Apply the definition-recovery phase rules below when no terminal kind is eligible.\n"
+           if definition_completion_phase is not None else
+           "Retain non-customer material with no eligible terminal kind in unmerged_children "
+           "with its limitation explicit; unmerged remains retrievable evidence.\n")
+        + "TERMINAL_SOURCE_ROLE_COMPETENCE\n"
         + json.dumps({kind: sorted(_competent_roles(kind)) for kind in sorted(CLAIM_KINDS)}, sort_keys=True)
         + "\n"
         if preserve_child_scope
@@ -6143,6 +6150,17 @@ def _render_v3_reconciliation_prompt(
     if local_repair is not None:
         if not decision_only or definition_recovery is not None:
             raise SemanticIntegrationError("local repair requires decision-only response v3")
+        phase_instruction = (
+            "\nFINITE FORMATION LOCAL REPAIR: Preserve every supplied candidate in a "
+            "bounded node; do not retire any as unmerged. Unsupported terminal claims "
+            "may remain honestly bounded nonterminal meanings with terminal_proposition=false, "
+            "claim_kind=null and causal_ceiling=null. Preserve attribution, questions and "
+            "uncertainty without turning them into answers, causes or contrary evidence. "
+            "Terminal posture and source-role requirements apply only to terminal nodes. "
+            "Regroup only within the nominated component; when no honest replacement "
+            "can preserve its candidates, return cannot_repair_reason.\n"
+            if local_completion_phase == "formation" else ""
+        )
         if duplicate_leaf_structural_repair:
             if compact_json:
                 raise SemanticIntegrationError(
@@ -6171,6 +6189,7 @@ def _render_v3_reconciliation_prompt(
                 + posture_instruction
                 + scope_instruction
                 + source_role_instruction
+                + phase_instruction
                 + "\n\nLOCAL_REPAIR_CONTEXT\n"
                 + json.dumps(
                     local_repair,
@@ -6218,12 +6237,36 @@ def _render_v3_reconciliation_prompt(
             "Distinct comments or meaning units from one credited identity are not extra people or events. "
             "The existing compiler still owns final claim-specific accounting. "
             "Do not emit opposition_checked; code invalidates prior clearance when meaning or attachments change. "
-            + posture_instruction + scope_instruction + source_role_instruction + packing_instruction
+            + posture_instruction + scope_instruction + source_role_instruction + phase_instruction + packing_instruction
             + "\n\nLOCAL_REPAIR_CONTEXT\n" + json.dumps(local_repair, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         )
     if definition_recovery is not None:
         if not decision_only:
             raise SemanticIntegrationError("definition recovery requires decision-only response v3")
+        phase_instruction = ""
+        if definition_completion_phase == "formation":
+            phase_instruction = (
+                "\nFINITE FORMATION DEFINITION RECOVERY: Preserve every fixed attachment in a "
+                "bounded definition; this stage cannot retire candidates as unmerged. When "
+                "a terminal finding is not warranted, retain a nonterminal node with "
+                "terminal_proposition=false, claim_kind=null and causal_ceiling=null. "
+                "A source-attributed question, uncertain explanation or unverified report "
+                "can remain a bounded nonterminal meaning. Preserve its attribution and "
+                "uncertainty: support for that meaning is not proof of the answer, cause "
+                "or reported fact. Terminal posture and source-role requirements apply "
+                "only to terminal nodes. Use cannot_define_reason only when the fixed "
+                "bindings cannot honestly support even a nonterminal definition.\n"
+            )
+        elif definition_completion_phase == "finish":
+            phase_instruction = (
+                "\nFINITE FINISH DEFINITION RECOVERY: Every supplied definition must be "
+                "terminal, with effective support from at least two distinct source rows "
+                "under the fixed relations. Nonterminal placeholders cannot finish. "
+                "Assignments are frozen, so this repair cannot move a candidate to "
+                "unmerged. If a terminal definition is unsupported, return node=null "
+                "and cannot_define_reason; never invent meaning or promote a source "
+                "merely to complete the repair.\n"
+            )
         return (
             "Output mode: file-write through the designated response artifact. "
             "Edit permission: read-only evidence analysis; return JSON only matching the supplied schema.\n"
@@ -6237,7 +6280,7 @@ def _render_v3_reconciliation_prompt(
             "definition or the supplied context is insufficient; never manufacture a claim to pass. "
             "Do not fix grouping, omit a key, add a key, or relabel an existing decision. "
             "A structurally complete answer does not prove semantic truth. "
-            + posture_instruction + scope_instruction + source_role_instruction
+            + posture_instruction + scope_instruction + source_role_instruction + phase_instruction
             + "\n\nMISSING_NODE_BINDINGS\n" + json.dumps(definition_recovery, ensure_ascii=False)
             + "\n\nCANDIDATES\n" + json.dumps([
                 _agent_reconciliation_candidate(row,
@@ -7079,7 +7122,22 @@ def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, auth
     return prompts
 
 
-def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
+def _finite_repair_guidance(stage, authoring_revision, *, enabled=True):
+    finite = stage.get("completion_strategy") == FINITE_COMPLETION_STRATEGY and enabled
+    if authoring_revision is None:
+        return finite
+    if authoring_revision == RECONCILIATION_AUTHORING_LEGACY:
+        return False
+    if authoring_revision != RECONCILIATION_REPAIR_AUTHORING_FINITE_V1:
+        raise SemanticIntegrationError("unsupported repair authoring revision")
+    if not finite:
+        raise SemanticIntegrationError("repair authoring revision requires an enabled finite stage")
+    return True
+
+
+def prepare_reconciliation_definition_recovery(
+    bundle, stage, failed_response, *, request_version=None, authoring_revision=None
+):
     """Prepare one failure-only judgment request; never fill definitions in code.
 
     Other defects may become visible after missing definitions are supplied.
@@ -7091,6 +7149,17 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         bindings = exc.bindings
     else:
         raise SemanticIntegrationError("definition recovery requires a missing-definition failure")
+    finite = stage.get("completion_strategy") == FINITE_COMPLETION_STRATEGY
+    if request_version is None:
+        request_version = ("semantic_reconciliation_definition_request_v2" if finite
+                           else "semantic_reconciliation_definition_request_v1")
+    if request_version not in {"semantic_reconciliation_definition_request_v1",
+                               "semantic_reconciliation_definition_request_v2"}:
+        raise SemanticIntegrationError("unsupported definition recovery request version")
+    if request_version == "semantic_reconciliation_definition_request_v2" and not finite:
+        raise SemanticIntegrationError("definition recovery request v2 requires a finite stage")
+    phase_guidance = _finite_repair_guidance(stage, authoring_revision,
+        enabled=request_version == "semantic_reconciliation_definition_request_v2")
     candidate_index = {row["candidate_ref"]: row for row in stage["candidates"]}
     batch = next(row for row in stage["batches"] if row["batch_id"] == failed_response["batch_id"])
     evidence_index = _unit_index(bundle)
@@ -7101,7 +7170,28 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         compact_lineage=True, emerging_axis_labels=[], emerging_axis_owner=False,
         agreement_origin_rule=True, preserve_child_scope=True,
         reconciliation_mode=stage.get("reconciliation_mode"), evidence_index=evidence_index,
-        decision_only=True, definition_recovery=bindings)
+        decision_only=True, definition_recovery=bindings,
+        definition_completion_phase=(stage["completion_phase"]
+            if request_version == "semantic_reconciliation_definition_request_v2" else None))
+    if phase_guidance and stage["completion_phase"] == "finish":
+        # Definitions cannot change attachments: expose the exact union after
+        # relation composition, not per-candidate counts the model would add.
+        fixed_support_counts = {
+            key: len({
+                _leaf_evidence_id(leaf["semantic_unit_ref"], evidence_index, node_key=key)
+                for binding in rows
+                for leaf in candidate_index[binding["child_ref"]]["leaf_relations"]
+                if _relation_product(binding["relation"], leaf["relation"]) == "support"
+            }) for key, rows in bindings.items()
+        }
+        prompt += (
+            "\n\nFIXED_SUPPORTING_SOURCE_ROW_COUNTS\n"
+            "Code counted distinct source rows under each missing node's frozen relations. "
+            "These are not independent-author counts or semantic proof. Do not add candidate "
+            "counts. A count below two cannot support a finish definition: return node=null "
+            "and cannot_define_reason rather than inventing support or changing assignments.\n"
+            + json.dumps(fixed_support_counts, sort_keys=True, separators=(",", ":"))
+        )
     if len(prompt.encode("utf-8")) > stage["max_prompt_bytes"]:
         raise SemanticIntegrationError("definition recovery exceeds rendered prompt byte ceiling; no truncation allowed")
 
@@ -7122,11 +7212,12 @@ def prepare_reconciliation_definition_recovery(bundle, stage, failed_response):
         "cannot_define_reason": {"type": ["string", "null"]},
     })}
     return {
-        "schema_version": "semantic_reconciliation_definition_request_v1",
+        "schema_version": request_version,
         "bundle_sha256": bundle["bundle_sha256"], **{k: v for k, v in identity.items() if k != "schema_version"},
         "missing_bindings": bindings, "candidate_count": len(candidates),
         "prompt": prompt, "prompt_utf8_bytes": len(prompt.encode("utf-8")),
         "response_schema": schema,
+        **({"authoring_revision": RECONCILIATION_REPAIR_AUTHORING_FINITE_V1} if phase_guidance else {}),
     }
 
 
@@ -7134,7 +7225,10 @@ def compose_reconciliation_definition_recovery_intermediate(
     bundle, stage, failed_response, request, patch
 ):
     """Compose scope-checked definitions without presenting them as accepted."""
-    expected = prepare_reconciliation_definition_recovery(bundle, stage, failed_response)
+    expected = prepare_reconciliation_definition_recovery(bundle, stage, failed_response,
+        request_version=request.get("schema_version") if isinstance(request, Mapping) else None,
+        authoring_revision=request.get("authoring_revision", RECONCILIATION_AUTHORING_LEGACY)
+            if isinstance(request, Mapping) else RECONCILIATION_AUTHORING_LEGACY)
     if request != expected:
         raise SemanticIntegrationError("definition recovery request differs from bound inputs")
     properties = request["response_schema"]["properties"]
@@ -7304,6 +7398,7 @@ def prepare_reconciliation_repair(
     reason,
     request_version=None,
     diagnostic=None,
+    authoring_revision=None,
 ):
     """Pack an explicitly nominated connected component; never detect meaning errors.
 
@@ -7311,6 +7406,7 @@ def prepare_reconciliation_repair(
     normal-path provider stage and never mutates the original response.
     """
     validate_reconciliation_stage(bundle, stage, [], require_all=False)
+    phase_guidance = _finite_repair_guidance(stage, authoring_revision)
     if (bundle.get("method_version") not in {METHOD_VERSION_V7, METHOD_VERSION_V12, METHOD_VERSION_V13}
             or response.get("schema_version") != RECONCILIATION_RESPONSE_VERSION_V3
             or response.get("stage_sha256") != stage["stage_sha256"]):
@@ -7508,7 +7604,8 @@ def prepare_reconciliation_repair(
     render_args = dict(stage_sha256=stage["stage_sha256"], batch_id=batch["batch_id"],
         candidates=chosen, evidence_index=evidence, preserve_child_scope=True, agreement_origin_rule=True,
         reconciliation_mode=stage.get("reconciliation_mode"), decision_only=True, local_repair=context,
-        duplicate_leaf_structural_repair=compact_duplicate_leaf)
+        duplicate_leaf_structural_repair=compact_duplicate_leaf,
+        local_completion_phase=stage["completion_phase"] if phase_guidance else None)
     prompt = _render_v3_reconciliation_prompt(**render_args)
     if not compact_duplicate_leaf and len(prompt.encode("utf-8")) > stage["max_prompt_bytes"]:
         # Preserve every previously valid request exactly; compact only rejected transport.
@@ -7519,6 +7616,8 @@ def prepare_reconciliation_repair(
         "stage_sha256": stage["stage_sha256"], "response_sha256": _sha256(response), "batch_id": batch["batch_id"],
         "nomination": seeds, "node_keys": sorted(selected_keys), "candidate_refs": sorted(selected_refs),
         "context_sha256": _sha256(context), "prompt": prompt, "prompt_utf8_bytes": len(prompt.encode("utf-8"))}
+    if phase_guidance:
+        identity["authoring_revision"] = RECONCILIATION_REPAIR_AUTHORING_FINITE_V1
     if compact_duplicate_leaf:
         identity["repair_rendering_mode"] = RECONCILIATION_DUPLICATE_LEAF_REPAIR_MODE
         identity["diagnostic_sha256"] = bound_diagnostic["diagnostic_sha256"]
@@ -7550,6 +7649,7 @@ def compose_reconciliation_repair_intermediate(bundle, stage, response, request,
         response,
         **request["nomination"],
         request_version=request.get("schema_version"),
+        authoring_revision=request.get("authoring_revision", RECONCILIATION_AUTHORING_LEGACY),
     )
     if request != expected:
         raise SemanticIntegrationError("local repair request differs from bound inputs")

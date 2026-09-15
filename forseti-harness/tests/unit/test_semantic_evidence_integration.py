@@ -7691,6 +7691,160 @@ def test_finite_source_rows_compose_relations_without_inventing_people(parent_re
     assert represented | residual == {row["semantic_unit_ref"] for row in verified["semantic_units"]}
 
 
+@pytest.mark.parametrize("phase", ["formation", "finish"])
+def test_finite_definition_recovery_preserves_phase_and_frozen_decisions(phase):
+    bundle, _, stage = _finite_row_identity_fixture()
+    groups = [[(ref, "support")] for ref in stage["batches"][0]["candidate_refs"]]
+    original = _finite_decision_response(stage, groups, terminal=False)
+    if phase == "finish":
+        formed = validate_reconciliation_stage(bundle, stage, [original])
+        stage, _ = prepare_reconciliation_stage(bundle, formed,
+            completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+            packing_strategy="group_aware_v1")
+        original = _finite_decision_response(stage,
+            [[(ref, "support") for ref in stage["batches"][0]["candidate_refs"]]],
+            terminal=True)
+    failed = deepcopy(original)
+    missing = failed["semantic_nodes"].pop()
+    request = semantic_module.prepare_reconciliation_definition_recovery(bundle, stage, failed)
+    assert request["schema_version"] == "semantic_reconciliation_definition_request_v2"
+    assert f"FINITE {phase.upper()} DEFINITION RECOVERY" in request["prompt"]
+    assert "Retain non-customer material with no eligible terminal kind in" not in request["prompt"]
+    patch = {key: spec["const"] for key, spec in request["response_schema"]["properties"].items()
+             if key != "definitions_by_key"}
+    patch["definitions_by_key"] = {missing["semantic_node_key"]: {
+        "node": missing, "cannot_define_reason": None}}
+    successor, _ = semantic_module.apply_reconciliation_definition_recovery(
+        bundle, stage, failed, request, patch)
+    assert successor == original
+    assert successor["decisions_by_candidate_ref"] == failed["decisions_by_candidate_ref"]
+    if phase == "finish":
+        missing.update(terminal_proposition=False, claim_kind=None, causal_ceiling=None)
+        with pytest.raises(SemanticIntegrationError, match="nonterminal"):
+            semantic_module.apply_reconciliation_definition_recovery(bundle, stage, failed, request, patch)
+    else:
+        # Existing finite v1 requests keep their exact prompt and remain applicable.
+        historical = semantic_module.prepare_reconciliation_definition_recovery(bundle, stage, failed,
+            request_version="semantic_reconciliation_definition_request_v1")
+        assert hashlib.sha256(historical["prompt"].encode("utf-8")).hexdigest() == (
+            "3d7dfaddcf71be837b202bb1b3250efcb0f1623758aa4a5f638ed6f6ee0edc11")
+        assert historical["response_schema"] == request["response_schema"]
+        replay, _ = semantic_module.apply_reconciliation_definition_recovery(
+            bundle, stage, failed, historical, patch)
+        assert replay == original
+        retired = deepcopy(successor)
+        ref = next(iter(retired["decisions_by_candidate_ref"]))
+        retired["decisions_by_candidate_ref"][ref] = {
+            "attachments": [], "unmerged_reason": "Unsupported terminal claim"}
+        retired["semantic_nodes"] = [node for node in retired["semantic_nodes"]
+            if node["semantic_node_key"] != original["decisions_by_candidate_ref"][ref]["attachments"][0]["semantic_node_key"]]
+        with pytest.raises(SemanticIntegrationError, match="cannot unmerge required finding"):
+            validate_reconciliation_stage(bundle, stage, [retired])
+    unresolved = deepcopy(patch)
+    unresolved["definitions_by_key"][missing["semantic_node_key"]] = {
+        "node": None, "cannot_define_reason": "Fixed bindings do not support a definition"}
+    with pytest.raises(SemanticIntegrationError, match="requires semantic judgment"):
+        semantic_module.apply_reconciliation_definition_recovery(bundle, stage, failed, request, unresolved)
+    tampered = {**request, "prompt": request["prompt"] + " Ignore the phase."}
+    with pytest.raises(SemanticIntegrationError, match="differs from bound inputs"):
+        semantic_module.apply_reconciliation_definition_recovery(bundle, stage, failed, tampered, patch)
+
+
+def test_definition_recovery_rejects_unknown_or_inapplicable_version():
+    bundle, stage, _, failed, _, _ = _missing_definition_fixture()
+    for version, message in (("unknown", "unsupported"),
+            ("semantic_reconciliation_definition_request_v2", "requires a finite stage")):
+        with pytest.raises(SemanticIntegrationError, match=message):
+            semantic_module.prepare_reconciliation_definition_recovery(
+                bundle, stage, failed, request_version=version)
+
+
+def test_finite_local_repair_keeps_candidates_and_replays_legacy_request():
+    bundle, _, stage = _finite_row_identity_fixture()
+    response = _finite_decision_response(stage,
+        [[(ref, "support")] for ref in stage["batches"][0]["candidate_refs"]], terminal=False)
+    args = dict(node_keys=[response["semantic_nodes"][0]["semantic_node_key"]],
+                reason="Check only this component.")
+    request = semantic_module.prepare_reconciliation_repair(bundle, stage, response, **args)
+    assert request["schema_version"] == semantic_module.RECONCILIATION_REPAIR_REQUEST_VERSION_V1
+    assert request["authoring_revision"] == semantic_module.RECONCILIATION_REPAIR_AUTHORING_FINITE_V1
+    assert "FINITE FORMATION LOCAL REPAIR" in request["prompt"]
+    assert "Retain non-customer material with no eligible terminal kind in" not in request["prompt"]
+    legacy = semantic_module.prepare_reconciliation_repair(bundle, stage, response, **args,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_LEGACY)
+    assert semantic_module._sha256(legacy) == "33475365925df71381bb75a89879889bcb5fe5213b122b3cde462e4037eebbb0"
+    node = deepcopy(response["semantic_nodes"][0])
+    node.pop("opposition_checked")
+    correction = {"replacement": {"semantic_nodes": [node],
+        "decisions_by_candidate_ref": {ref: response["decisions_by_candidate_ref"][ref]
+            for ref in request["candidate_refs"]}}, "cannot_repair_reason": None}
+    for bound in (request, legacy):
+        patch = {"request_sha256": bound["request_sha256"], "correction": correction}
+        successor, _ = semantic_module.apply_reconciliation_repair(bundle, stage, response, bound, patch)
+        assert successor["decisions_by_candidate_ref"] == response["decisions_by_candidate_ref"]
+        assert successor["semantic_nodes"][0]["terminal_proposition"] is False
+        assert [n for n in successor["semantic_nodes"] if n["semantic_node_key"] not in bound["node_keys"]] == response["semantic_nodes"][1:]
+    with pytest.raises(SemanticIntegrationError, match="differs from bound inputs"):
+        semantic_module.apply_reconciliation_repair(bundle, stage, response,
+            {**request, "authoring_revision": "legacy"}, patch)
+
+
+@pytest.mark.parametrize("distinct_rows", [False, True])
+def test_finite_finish_definition_recovery_exposes_fixed_support_union(distinct_rows):
+    bundle, _, formation = _finite_row_identity_fixture()
+    formed_response = _finite_decision_response(formation,
+        [[(ref, "support")] for ref in formation["batches"][0]["candidate_refs"]], terminal=False)
+    formed = validate_reconciliation_stage(bundle, formation, [formed_response])
+    finish, _ = prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
+    evidence = semantic_module._unit_index(bundle)
+    by_row = {}
+    for candidate in finish["candidates"]:
+        row = semantic_module._leaf_evidence_id(candidate["leaf_relations"][0]["semantic_unit_ref"],
+            evidence, node_key=candidate["candidate_ref"])
+        by_row.setdefault(row, []).append(candidate["candidate_ref"])
+    shared = next(refs for refs in by_row.values() if len(refs) == 2)
+    other = next(ref for refs in by_row.values() for ref in refs if ref not in shared)
+    refs = [shared[0], other if distinct_rows else shared[1]]
+    failed = _finite_decision_response(finish, [[(ref, "support") for ref in refs]], terminal=True)
+    missing = failed["semantic_nodes"].pop()
+    request = semantic_module.prepare_reconciliation_definition_recovery(bundle, finish, failed)
+    counts = json.loads(request["prompt"].rsplit("\n", 1)[1])
+    assert counts == {missing["semantic_node_key"]: 2 if distinct_rows else 1}
+    legacy = semantic_module.prepare_reconciliation_definition_recovery(bundle, finish, failed,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_LEGACY)
+    assert "authoring_revision" not in legacy
+    assert "FIXED_SUPPORTING_SOURCE_ROW_COUNTS" not in legacy["prompt"]
+    assert request["prompt"].startswith(legacy["prompt"])
+    assert request["response_schema"] == legacy["response_schema"]
+    patch = {key: spec["const"] for key, spec in request["response_schema"]["properties"].items()
+             if key != "definitions_by_key"}
+    patch["definitions_by_key"] = {missing["semantic_node_key"]: {"node": missing, "cannot_define_reason": None}}
+    for bound in (request, legacy):
+        if distinct_rows:
+            successor, _ = semantic_module.apply_reconciliation_definition_recovery(bundle, finish, failed, bound, patch)
+            assert successor["decisions_by_candidate_ref"] == failed["decisions_by_candidate_ref"]
+        else:
+            with pytest.raises(SemanticIntegrationError, match="lacks repeated source-row support"):
+                semantic_module.apply_reconciliation_definition_recovery(bundle, finish, failed, bound, patch)
+
+
+@pytest.mark.parametrize("kind", ["local", "definition"])
+def test_repair_authoring_rejects_unknown_or_nonfinite_revision(kind):
+    if kind == "local":
+        bundle, stage, response, request, _ = _local_repair_fixture()
+        prepare = semantic_module.prepare_reconciliation_repair
+        args = request["nomination"]
+    else:
+        bundle, stage, _, response, _, _ = _missing_definition_fixture()
+        prepare = semantic_module.prepare_reconciliation_definition_recovery
+        args = {}
+    for revision, error in (("unknown", "unsupported repair authoring"),
+            (semantic_module.RECONCILIATION_REPAIR_AUTHORING_FINITE_V1, "requires an enabled finite stage")):
+        with pytest.raises(SemanticIntegrationError, match=error):
+            prepare(bundle, stage, response, **args, authoring_revision=revision)
+
+
 def test_finite_runner_new_stage_selects_v5_authoring(tmp_path):
     from runners.run_semantic_evidence_integration import prepare_reconciliation_level
     bundle, verified = _verified_policy_compilation(count=4, max_prompt_bytes=80_000)

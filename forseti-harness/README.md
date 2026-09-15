@@ -256,6 +256,24 @@ per-attempt receipts; missing usage is unknown, and subscription usage is not an
 inferred dollar charge. The recurring cost is local hash/lock/receipt work plus
 only the explicitly budgeted extra provider attempts.
 
+For a prepared batch, the run's deterministic program owns command execution
+and waiting: invoke this entry point with `subprocess.run(..., check=False)`,
+save its exit code and log paths on both success and failure, and return to
+model judgment only when the next decision needs it. A small pool may run
+independent jobs under the bound concurrency and shared retry budget. Keep
+dependent preparation or publication behind its stage validator. Do not place
+a model between the program and the executor merely to poll process handles.
+
+When the caller must remain responsive, launch that program once in the
+background (on Windows, `Start-Process -WindowStyle Hidden`) with saved logs and
+an owned process identity. Consume the program's completion record through an
+available completion event or an owner-requested follow-up. If neither return
+route is available, retain the live handle and the required responsiveness
+interval; report that remaining observation cost. A missing completion record
+is unknown, not success or permission to repeat the launch. This uses the same
+executor, authentication, retries and native validation; it adds no model
+supervisor, new monitor service, or extra review pass.
+
 Complete frontier point readers use named relation and preselection-confirmation
 batches when necessary. Both preparation commands accept `--max-request-bytes`
 (CLI default 50000), measured as UTF-8 prompt plus compact JSON response schema,

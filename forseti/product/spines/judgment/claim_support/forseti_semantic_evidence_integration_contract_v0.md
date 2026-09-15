@@ -2097,6 +2097,24 @@ support rules. Finishing yields terminal findings plus explicit retrievable
 residual evidence; it cannot retain nonterminal placeholders or restart a third
 round. Lexical ordering supplies possible-match exposure, never meaning identity.
 
+Finite missing-definition requests use
+`semantic_reconciliation_definition_request_v2` with the bound stage's phase.
+Formation may preserve attributed questions, uncertain explanations and reports
+as nonterminal definitions (`claim_kind` and `causal_ceiling` remain null).
+Finish still requires terminal definitions meeting the existing support floor.
+Definition recovery may not change frozen assignments or retire a candidate. When the
+fixed bindings cannot support an honest definition, recovery still fails explicitly.
+New finite definition and local-repair requests carry
+`authoring_revision: finite_repair_phase_v1`, separately from their existing
+context-shape versions. Local formation repair must preserve every nominated
+candidate, including honest nonterminal meanings; it may regroup only within
+its nominated component. Finish definition recovery exposes compiler-counted
+distinct supporting source rows for each missing node under its frozen
+relations, rather than asking the model to infer a union from candidate counts.
+Stored requests without this revision retain their exact rendering and replay,
+including definition v1/v2 and local-repair v1/v2/v3. Response shapes, native
+validation and normal authoring are unchanged.
+
 Finite compilation binds both exact stages and their responses for native replay.
 `finalize-v3` and packet reconstruction rederive formation from the verified root,
 then finishing, and reject changed membership, bindings, decisions or compilation.
