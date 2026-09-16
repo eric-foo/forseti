@@ -20,8 +20,9 @@ from jsonschema import Draft202012Validator
 from harness_utils import hash_file
 from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
-from runners.run_codex_provider_attempt import _local_codex_check
+from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
+from judgment.review_evidence import render_evidence, material_answer_findings, compose_answer_patch, answer_source_references
 
 HARNESS = Path(__file__).resolve().parents[1]
 REPO = HARNESS.parent
@@ -34,82 +35,6 @@ POLICY = dict(completion_strategy="finite_formation_finish_v1",
               authoring_revision="finite_formation_retention_v1",
               reconciliation_policy_version="semantic_evidence_reconciliation_policy_v2",
               response_version="semantic_evidence_reconciliation_response_v3")
-
-
-def desktop_process_context():
-    """Read this runner's actual ancestry, not PATH or installation caches."""
-    if sys.platform != "win32" or not os.environ.get("SystemRoot"):
-        raise ValueError("automatic Codex selection requires a Windows Desktop ancestor; use an explicit native override")
-    powershell = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-    script = r"""
-$ErrorActionPreference = 'Stop'
-$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-$nextProcess = __PID__
-$ancestors = @()
-$seen = @{}
-while ($nextProcess -ne 0) {
-    if ($seen.ContainsKey($nextProcess) -or $ancestors.Count -ge 64) { throw 'Invalid process ancestry' }
-    $seen[$nextProcess] = $true
-    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $nextProcess"
-    if ($null -eq $process) { throw 'Process ancestry unavailable' }
-    $ancestors += @{pid=[int]$process.ProcessId; parent_pid=[int]$process.ParentProcessId; name=$process.Name;
-        path=$process.ExecutablePath}
-    if ($process.Name -ieq 'ChatGPT.exe') { break }
-    $nextProcess = [int]$process.ParentProcessId
-}
-@{ancestors=$ancestors} | ConvertTo-Json -Depth 5 -Compress
-""".replace("__PID__", str(os.getpid()))
-    result = subprocess.run([str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
-        stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", errors="replace",
-        timeout=20, check=False, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-    if result.returncode:
-        raise ValueError("Codex Desktop ancestry check failed; use an explicit native override")
-    return json.loads(result.stdout)
-
-
-def select_codex_executable(override=None):
-    """Select the verified native runtime actually hosting this Desktop task."""
-    provenance = {}
-    expected_version = None
-    if override is None:
-        context = desktop_process_context()
-        ancestors = context["ancestors"]
-        natives = [p for p in ancestors if p["name"].lower() == "codex.exe"]
-        if len(natives) != 1:
-            raise ValueError("Codex Desktop native ancestor is missing or ambiguous")
-        native_process = natives[0]
-        hosts = [p for p in ancestors if p["pid"] == native_process["parent_pid"]
-                 and p["name"].lower() == "chatgpt.exe"]
-        if len(hosts) != 1:
-            raise ValueError("Codex Desktop host ownership is missing or ambiguous")
-        host = hosts[0]
-        if (not host["path"] or not native_process["path"]
-                or not Path(host["path"]).is_absolute()
-                or Path(host["path"]).name.lower() != "chatgpt.exe"
-                or os.environ.get("CODEX_INTERNAL_ORIGINATOR_OVERRIDE") != "Codex Desktop"):
-            raise ValueError("Codex Desktop native/host ownership is unverified")
-        expected_version = os.environ.get("CODEX_VERSION")
-        if not expected_version:
-            raise ValueError("Codex Desktop host version is unavailable")
-        override = Path(native_process["path"])
-        provenance = {"desktop_host": host["path"], "native_ancestor_pid": native_process["pid"],
-                      "originator": "Codex Desktop"}
-    path = Path(override)
-    if not path.is_absolute() or not path.is_file() or path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
-        raise ValueError("Codex selection requires an existing absolute native executable")
-    path = path.resolve(strict=True)
-    if path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
-        raise ValueError("Codex selection resolved to a script, not a native executable")
-    before = hash_file(path)
-    version = _local_codex_check(str(path), ["--version"], dict(os.environ))
-    observed = version.stdout.strip()
-    if (version.returncode or not re.fullmatch(r"codex-cli \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", observed)
-            or expected_version is not None and observed != "codex-cli " + expected_version):
-        raise ValueError("selected native executable did not report the verified Codex CLI version")
-    if hash_file(path) != before:
-        raise ValueError("selected Codex executable changed during verification")
-    return {"path": str(path), "sha256": before, "version": observed,
-            "selection": "active_desktop_ancestor" if expected_version else "explicit_native_override", **provenance}
 
 
 class UnknownAnswerEvidence(ValueError):
@@ -179,7 +104,7 @@ def check_answer(answer, questions, bundle, verified):
     known = {u["evidence_id"] for u in bundle["evidence_units"]}
     known.update(u["semantic_unit_ref"] for u in verified["semantic_units"])
     for row in answer["answers"]:
-        if set(row["evidence_refs"]) - known:
+        if answer_source_references(row, known) - known:
             raise UnknownAnswerEvidence("answer contains unknown evidence references")
 
 
@@ -508,6 +433,9 @@ class FiniteRun:
             correction = {"final_answer": str(answer_path), "answer_corrections": 1,
                 "affected_rechecks": 0, "correction_checked_by": str(assessment_path),
                 "answer_correction_allowance_exhausted": True}
+            correction["remaining_material_answer_findings"] = material_answer_findings(assessment["material_findings"], for_correction=False)
+            correction["answer_material_status"] = (
+                "material_defects_remain" if correction["remaining_material_answer_findings"] else "no_open_material_answer_defects_reported")
         else:
             correction = self.correct_and_recheck(answer, assessment, view)
         return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
@@ -517,11 +445,11 @@ class FiniteRun:
         original = read(original_path)
         known = {r["evidence_id"] for r in self.bundle["evidence_units"]}
         known.update(r["semantic_unit_ref"] for r in self.verified["semantic_units"])
-        affected = {a["question_id"] for a in original["answers"] if set(a["evidence_refs"]) - known}
+        affected = {a["question_id"] for a in original["answers"] if answer_source_references(a, known) - known}
         questions = [q for q in self.questions["questions"] if q["id"] in affected]
         request = {"current_evidence": {**evidence_request, "questions": questions},
             "original_affected_answers": [a for a in original["answers"] if a["question_id"] in affected],
-            "unknown_references": sorted({r for a in original["answers"] for r in a["evidence_refs"]} - known)}
+            "unknown_references": sorted({r for a in original["answers"] for r in answer_source_references(a, known)} - known)}
         persist(self.provider_root / "answer-correction/allowance.json", {
             "kind": "pre_freeze_unknown_evidence", "original_response_sha256": hash_file(original_path),
             "affected_question_ids": sorted(affected)})
@@ -531,12 +459,11 @@ class FiniteRun:
             "answers against that evidence; do not guess a replacement ID or remove a citation merely to pass. "
             "Preserve supported meaning, conditions, source attribution and uncertainty. No historical answer or hidden "
             "assessment checks are supplied. Return only the affected questions in supplied order under the response schema.\n\n"
-            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            + render_evidence(request))
         patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
         patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
-        replacements = {a["question_id"]: a for a in patch["answers"]}
-        corrected = {**original, "answers": [replacements.get(a["question_id"], a) for a in original["answers"]]}
+        corrected = compose_answer_patch(original, patch, affected)
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
         target = self.root / "answer-correction/answers-corrected.json"
         persist(target, corrected)
@@ -547,12 +474,13 @@ class FiniteRun:
         return target
 
     def correct_and_recheck(self, answer, assessment, view):
-        nominations = [f for f in assessment["material_findings"]
-                       if f["status"] == "open" and f["introduced_at"] in {"current_answer", "frozen_upstream"}
-                       and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
+        nominations = material_answer_findings(assessment["material_findings"])
         if not nominations:
+            remaining = material_answer_findings(assessment["material_findings"], for_correction=False)
             return {"final_answer": read(self.root / "answer/freeze.json")["response"],
-                    "answer_corrections": 0, "affected_rechecks": 0}
+                    "answer_corrections": 0, "affected_rechecks": 0,
+                    "answer_material_status": "material_defects_remain" if remaining else "no_open_material_answer_defects_reported",
+                    "remaining_material_answer_findings": remaining}
         affected = {r.removeprefix("current_answer:") for f in nominations for r in f["artifact_refs"]
                     if r.startswith("current_answer:")}
         questions = [q for q in self.questions["questions"] if q["id"] in affected]
@@ -561,18 +489,25 @@ class FiniteRun:
         persist(self.provider_root / "answer-correction/allowance.json", {
             "kind": "post_assessment", "original_answer": answer, "affected_question_ids": sorted(affected)})
         refs = {r for f in nominations for r in f["source_refs"]}
-        refs.update(r for a in answer["answers"] if a["question_id"] in affected for r in a["evidence_refs"])
         known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
         known_ids = {r["evidence_id"] for r in self.source["captured_items"]}
+        refs.update(r for a in answer["answers"] if a["question_id"] in affected
+                    for r in answer_source_references(a, known_ids | set(known_units)))
         if refs - known_ids - set(known_units):
             raise ValueError("correction nomination/citation contains unknown source reference")
         ids = {known_units.get(r, r) for r in refs}
+        # Include all support/opposition behind related findings, not just the
+        # assessor's cited side. Hidden checks enter only the later recheck.
+        related = [p for p in view["propositions"]
+                   if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]
+        ids.update(known_units[r] for p in related for rs in p["semantic_relations"].values() for r in rs)
+        if ids - known_ids:
+            raise ValueError("correction lacks required source bodies")
         request = {"questions": questions, "original_affected_answers": [a for a in answer["answers"] if a["question_id"] in affected],
             "nominations_to_verify_against_sources": nominations,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
-            "current_findings": [p for p in view["propositions"]
-                if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]}
+            "current_findings": related}
         persist(self.root / "answer-correction/input.json", request)
         if self.replay:
             self.check_saved_input("answer-correction", "answer_correction_input_json")
@@ -586,25 +521,32 @@ class FiniteRun:
             patch = {"schema_version": "finite_answer_v1", "answers": [read(patch_path)]}
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Correct only the affected answers. "
+                "Change only defective claims and the context needed for consistency; preserve unaffected assertions verbatim when possible. "
                 "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
                 "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
                 "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
                 "Cite evidence IDs or semantic unit refs. Return only affected questions in supplied order using the response schema.\n\n"
-                + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+                + render_evidence(request))
             patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
             patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
-        by_id = {a["question_id"]: a for a in patch["answers"]}
-        corrected = {**answer, "answers": [by_id.get(a["question_id"], a) for a in answer["answers"]]}
+        corrected = compose_answer_patch(answer, patch, affected)
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
         persist(self.root / "answer-correction/answers-corrected.json", corrected)
         persist(self.root / "answer-correction/composition.json", {"patch": str(patch_path), "patch_sha256": hash_file(patch_path),
             "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
             "corrected_sha256": hash_file(self.root / "answer-correction/answers-corrected.json")})
-        corrected_refs = {r for a in patch["answers"] for r in a["evidence_refs"]}
+        corrected_refs = {r for a in patch["answers"] for r in answer_source_references(a, known_ids | set(known_units))}
         ids.update(known_units.get(r, r) for r in corrected_refs)
         checks = [c for c in self.questions["assessment_only"]["checks"] if ids & set(c["source_rows"])]
+        ids.update(r for c in checks for r in c["source_rows"])
+        recheck_findings = [p for p in view["propositions"]
+            if ids & {known_units[r] for rs in p["semantic_relations"].values() for r in rs}]
+        ids.update(known_units[r] for p in recheck_findings for rs in p["semantic_relations"].values() for r in rs)
+        if ids - known_ids:
+            raise ValueError("affected recheck lacks commissioned check source bodies")
         recheck_request = {**request, "corrected_affected_answers": patch["answers"], "frozen_relevant_checks": checks,
+            "current_findings": recheck_findings,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         persist(self.root / "assessment-recheck/input.json", recheck_request)
@@ -623,7 +565,7 @@ class FiniteRun:
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
                 "consolidation inventory limits separately; correcting prose does not repair the inventory. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
-                + json.dumps(recheck_request, ensure_ascii=False, separators=(",", ":")) + "\n")
+                + render_evidence(recheck_request))
             recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())
             recheck = read(recheck_path)
             check_assessment(recheck, {"assessment_only": {"checks": checks}})
@@ -634,6 +576,9 @@ class FiniteRun:
         if not self.replay:
             # Initial material_findings predate the correction; surface the recheck's own findings.
             result["affected_recheck_material_findings"] = recheck["material_findings"]
+            result["remaining_material_answer_findings"] = material_answer_findings(recheck["material_findings"], for_correction=False)
+            result["answer_material_status"] = (
+                "material_defects_remain" if result["remaining_material_answer_findings"] else "no_open_material_answer_defects_reported")
         return result
 
     def check_saved_input(self, directory, tag):
@@ -712,17 +657,27 @@ def render_answer(request):
             "under named columns/defaults; interpret those exactly. Residuals are retrievable evidence, not findings. "
             "Cite source evidence IDs or semantic unit refs. Preserve conditions, opposition, uncertainty and intent versus action. "
             "Return the supplied JSON schema in question order. Follow worker_instructions for length and scope.\n\n"
-            + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            + render_evidence(request))
 
 
 def render_assessment(request):
+    rows = request["complete_frozen_source"]["captured_items"]
+    missing = [r["evidence_id"] for r in rows if not r.get("text")]
+    body_coverage = (f"Input availability: {len(rows) - len(missing)} of {len(rows)} captured rows have source-native "
+        f"bodies in complete_frozen_source.captured_items.text; missing body IDs: {json.dumps(missing)}. "
+        "Resolve transport references to read these bodies. Original artifact locators are not substitutes for "
+        "the supplied bodies, and unreferenced locators are a separate scope. Availability does not certify inspection; "
+        "name exact row IDs and affected checks if any included body cannot be inspected. ")
     return ("Output mode: chat-only. Edit permission: read-only. The input below is run-authoritative. "
             "Perform the commissioned source-backed assessment of every current finding meaning, condition, assignment "
             "and residual disposition, plus the frozen checks and additional inventory checks. Prior answers are comparison, "
             "not truth. Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
             "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. Cite exact source "
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
-            "Return the supplied JSON schema.\n\n" + json.dumps(request, ensure_ascii=False, separators=(",", ":")) + "\n")
+            "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
+            "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
+            "does not require identical wording or maximal detail. Return the supplied JSON schema.\n\n"
+            + body_coverage + render_evidence(request))
 
 
 def main(argv=None):

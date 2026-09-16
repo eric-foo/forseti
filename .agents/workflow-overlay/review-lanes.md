@@ -194,6 +194,21 @@ handoffs remain prompt-orchestration work.
 
 ## Rules
 
+- Automatic answer correction consumes the existing reviewer's severity and
+  effect judgment: repair open material defects (`blocker`/`major` in the
+  finite assessor), not every minor imperfection. Minor findings remain visible.
+  Explicit owner-requested edits and mandatory schema, citation and reference
+  validation still bind; an uncorrected material defect is not success. Change
+  affected claims plus context needed for consistency, mechanically preserve
+  unaffected material where possible, and recheck relevant consequences.
+- Answer, review and correction requests may transmit repeated source material
+  once through stable references and lossless tables/defaults. Preserve source
+  meaning, independent origins, per-source conditions, support and opposition;
+  retain full data and provenance in stored artifacts. Explain union-of-child
+  conditions and per-source lineage to the consumer. This is transport economy,
+  not evidence selection or permission to truncate scope. The shared harness
+  renderer lives in `judgment/review_evidence.py`; it does not install automatic
+  review on routes that do not already have it.
 - Reviewer threads are source-read-only unless explicitly assigned patch execution.
 - Adversarial artifact review prompts must explicitly invoke
   `workflow-adversarial-artifact-review` after source readiness. If the skill is

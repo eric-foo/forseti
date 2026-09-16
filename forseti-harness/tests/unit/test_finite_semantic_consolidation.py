@@ -9,6 +9,7 @@ import pytest
 
 from runners import run_finite_semantic_consolidation as finite
 from runners import run_codex_provider_job as job_runner
+from runners import run_codex_provider_attempt as launcher
 from test_semantic_evidence_integration import _missing_definition_fixture, _local_repair_fixture
 
 
@@ -25,7 +26,7 @@ def test_desktop_ancestry_preserves_non_ascii_paths(monkeypatch):
         return native_run([*command[:-1], fixture + command[-1]], **kwargs)
 
     monkeypatch.setattr(finite.subprocess, "run", with_process_fixture)
-    assert finite.desktop_process_context()["ancestors"][0]["path"] == expected
+    assert launcher.desktop_process_context()["ancestors"][0]["path"] == expected
 
 
 @pytest.fixture
@@ -49,8 +50,8 @@ def installed_codex(tmp_path, monkeypatch):
         calls.append((exe, args))
         return Namespace(returncode=0, stdout="codex-cli " + Path(exe).read_text(), stderr="")
     install("1.0.0")
-    monkeypatch.setattr(finite, "desktop_process_context", lambda: deepcopy(context))
-    monkeypatch.setattr(finite, "_local_codex_check", local)
+    monkeypatch.setattr(launcher, "desktop_process_context", lambda: deepcopy(context))
+    monkeypatch.setattr(launcher, "_local_codex_check", local)
     state.install = install
     return state
 
@@ -136,6 +137,22 @@ def test_explicit_override_is_verified_and_never_falls_back(tmp_path, installed_
     with pytest.raises(ValueError, match="existing absolute native"):
         finite.select_codex_executable(tmp_path / "missing.exe")
     assert len(installed_codex.calls) == 1
+
+
+def test_inherited_selection_rechecks_bytes_and_explicit_override_wins(tmp_path, installed_codex, monkeypatch):
+    selected = launcher.select_codex_executable()
+    binding = tmp_path / "selection.json"
+    binding.write_text(json.dumps(selected), encoding="utf-8")
+    monkeypatch.setenv("FORSETI_CODEX_SELECTION", str(binding))
+    monkeypatch.setenv("FORSETI_CODEX_SELECTION_SHA256", finite.hash_file(binding))
+    monkeypatch.setattr(launcher, "desktop_process_context", lambda: {"ancestors": []})
+    assert launcher.select_codex_executable() == selected
+    installed_codex.executable.write_text("changed")
+    with pytest.raises(ValueError):
+        launcher.select_codex_executable()
+    override = tmp_path / "override.exe"
+    override.write_text("3.0.0")
+    assert launcher.select_codex_executable(override)["path"] == str(override.resolve())
 
 
 def test_run_selection_cannot_be_rebound_or_removed(tmp_path, installed_codex):
@@ -305,6 +322,8 @@ def test_provider_result_file_is_separate_from_attempt_stdout_and_no_replace(tmp
         return result
     monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setattr(job_runner, "run_provider_job", simulated_job)
+    monkeypatch.setattr(job_runner, "select_codex_executable", lambda path: {
+        "path": str(path.resolve()), "sha256": finite.hash_file(path), "version": "codex-cli 1.0.0"})
     assert job_runner.main() == 0
     assert finite.read(output) == result
     assert "attempt_receipt" in capsys.readouterr().out
@@ -371,7 +390,7 @@ def test_unknown_citation_correction_preserves_original_unaffected_and_shared_al
     # A different successor cannot obtain a second correction by changing its output root.
     run.root = tmp_path / "another-successor"
     run.job = lambda *a, **k: pytest.fail("shared allowance must reject a second correction before launch")
-    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+    assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"]}]}
     with pytest.raises(ValueError, match="existing finite output differs"):
         run.correct_and_recheck(corrected, assessment, {})
@@ -390,7 +409,7 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
     run, answer = answer_fixture(tmp_path)
     run.source = {"captured_items": [{"evidence_id": "known"}]}
     run.questions["assessment_only"] = {"checks": [{"id": "anchored", "source_rows": ["known"]}]}
-    assessment = {"material_findings": [{"status": "open", "introduced_at": "current_answer",
+    assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}]}
     patch = {"schema_version": "finite_answer_v1", "answers": [{**answer["answers"][0], "answer": "corrected"}]}
     new_defect = {"severity": "minor", "introduced_at": "current_answer", "status": "open", "source_refs": ["known"],

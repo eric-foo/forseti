@@ -2716,18 +2716,44 @@ Native finalization and all-finding plus per-axis v3 projections retain complete
 finding/residual coverage. Repeated native finalization and packet reconstruction
 verify durable consumer bytes. The answer sees retrievable residual statements
 and source rows that lack attached findings. A source assessment may nominate
-one correction of explicitly identified answer questions, followed by one
-affected-scope source recheck. Unaffected answers are preserved; remaining
+one correction of explicitly identified answer questions for open `blocker` or
+`major` answer defects, followed by one affected-scope source recheck. Minor
+findings remain reported without automatic correction. Existing severity/effect
+judgment supplies this decision; no extra triage call is added. Change affected
+claims and necessary context; mechanically preserve unaffected answers. Remaining
 inventory defects remain visible. The returned `material_findings` stay those of
 the initial assessment; a live post-assessment correction also returns the
 recheck's own `affected_recheck_material_findings`. A correction with unknown
 source or question references fails rather than guessing its scope.
+Correction context includes all support and opposition behind the related
+findings. Recheck context includes every source body named by the selected
+frozen checks and displayed findings; missing bodies fail before the recheck.
+`answer_material_status` and `remaining_material_answer_findings` expose open
+material answer defects after the single correction allowance is spent; process
+completion never closes those defects.
+
+Answer, full source assessment, correction and affected recheck use the shared
+lossless renderer in `judgment/review_evidence.py`. Repeated text and structured
+values appear once under stable transport references; common record fields use named defaults and
+columns with ordered rows. Full ordinary-schema inputs remain stored and the
+renderer verifies exact reconstruction, including missing versus null fields.
+Source IDs, independent origins, support/opposition and per-source conditions
+keep their meaning. The rendering explains that finding conditions are a union
+of child conditions and that condition lineage, not the union, attributes a
+condition to a source. No source assessment coverage or prior-answer comparison
+is removed. Shared correction guidance is owned by the overlay's review lanes;
+the finite algorithm and opt-in assessment boundary remain local to this entry.
 If an otherwise schema-valid initial answer cites an unknown evidence reference,
 the entry may instead spend that same single correction before freezing: it
 supplies the complete current evidence and only the affected questions, validates
 the correction, and preserves unaffected answers. The subsequent full source
 assessment checks the corrected answer. Later defects remain visible; there is
 no second answer correction. Other malformed answer failures still stop.
+Validation covers inline references in the supplied evidence namespaces as well
+as `evidence_refs`; an inline typo cannot bypass the correction/rejection path.
+The full assessment states the mechanically observed captured-row body count
+and any missing body IDs, separately from original-artifact locator scope.
+Those availability counts do not certify the assessor's semantic inspection.
 
 Repeating an unchanged invocation rederives outputs and reuses the native
 provider receipts; it does not treat file existence or a prior process exit as
@@ -2747,17 +2773,14 @@ original provider inputs. Saved consumer responses retain their original paths
 and provenance; their replay is not a fresh judgment of newly rendered prompts.
 The return is `SAVED_REPLAY_COMPLETE`, never fresh quality or provider-cost proof.
 
-The caller must also own waiting mechanically. In a functions-capable caller,
-set the outer `functions.exec` yield allowance for the commissioned run and
-await the initial `tools.exec_command` plus any `tools.write_stdin` continuations
-inside that same JavaScript invocation. Keep each inner wait at most 60 seconds
-and use `notify` for bounded progress while the program runs. Do not return each
-empty process handle to the model. A 75-second real-process probe verified this
-pattern with one outer call and two internal waits; it establishes neither an
-automatic completion event nor an unlimited tool lifetime. If the actual outer
-call yields, preserve that observation cost and live handle; do not relaunch the
-program. The full-run caller behavior must be observed before claiming its
-efficiency gain.
+Command waiting and resumable closeout are owned by
+`.agents/workflow-overlay/decision-routing.md` -> "Task-Local Tool-Stall Circuit"
+and the maintained `runners.run_efficiency start/status/resume` entry. Wrap this
+finite command once, supply the existing required checker and exact provider
+root, and retain its operation identity across status or interrupted waits.
+The finite runner still owns all semantic validation and retention behavior.
+Native selection is shared by `runners.run_codex_provider_attempt`; this entry
+imports that selector and retains its immutable run binding.
 
 Use the existing `runners.run_efficiency` collector and native attempt receipts
 for the declared complete execution interval. Separate implementation/setup,

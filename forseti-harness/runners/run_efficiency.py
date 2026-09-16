@@ -382,6 +382,8 @@ def _repo_size(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="subcommand", required=True)
+    from command_execution import add_commands
+    add_commands(commands)
     compare = commands.add_parser("compare", help="Compare explicit ordered run files; verdict is descriptive")
     compare.add_argument("--baseline", nargs="+", required=True)
     compare.add_argument("--candidate", nargs="+", required=True)

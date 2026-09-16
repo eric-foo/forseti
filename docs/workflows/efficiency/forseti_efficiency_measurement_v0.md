@@ -56,6 +56,17 @@ or evidence that an unavailable platform event was logged.
 
 Run from `forseti-harness`. All commands have `--help`.
 
+For a live command that needs interruption-safe observation, use this runner's
+`start`, `status`, and `resume` subcommands. `start` reserves one operation and
+runs the command plus any supplied required checker once; `resume` only waits
+for its compact closeout. Native receipt accounting is scoped by repeatable
+`--provider-root` arguments. Add `--bind-codex` before detachment when the command
+uses the shared native launcher. Exact syntax, identity and unknown-state
+behavior live in `forseti-harness/README.md` under "Unattended Model Attempts";
+the functions wait recipe is in `.agents/workflow-overlay/decision-routing.md`
+under "Task-Local Tool-Stall Circuit". This does not close parent active-turn
+costs or replace the completed-task collector below.
+
 ```text
 python -m runners.run_efficiency import-codex --sessions-dir SESSION_FOLDER --thread-id THREAD --turn-id TURN --workflow agent_change --workload-id FIXTURE_SHA --output-dir memory/logs/efficiency --quality-command checker.json --cwd EXERCISE_FOLDER
 python -m runners.run_efficiency measure --workflow validation --workload-id TREE_SHA --output-dir memory/logs/efficiency -- python ../.agents/hooks/check_map_links.py --strict

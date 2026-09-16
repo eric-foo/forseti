@@ -84,6 +84,37 @@ supported by the chosen model. The CLI's recognized labels do not establish
 model compatibility. The selected effort is preserved across retries and
 checked when reusing execution receipts.
 
+Both native runners now share verified executable selection. Omitting
+`--codex-executable` selects the native ancestor of the active Windows Desktop
+task; an explicit absolute native override takes precedence. Version, path and
+hash are checked, and an existing job retains its original binding. No PATH,
+cache-directory, npm-shim or arbitrary-process fallback is used.
+
+For an authorized command with interrupted observation or repeated closeout,
+use `python -m runners.run_efficiency start --operation-dir NEW_DIR --cwd CWD
+[--quality-command CHECKER_ARGV_JSON] [--provider-root EXACT_RUN_ROOT] --
+EXECUTABLE ARGS`. Add `--bind-codex` for commands that launch native providers:
+selection occurs before detachment and the shared selector rechecks the inherited
+binding. Unrelated commands need no native installation. The returned exact
+`resume_argv` and `resume_cwd` observe the same operation through completion;
+`status --operation-dir SAME_DIR` is a read-only observation. Resume never
+relaunches execution or validation. Unknown worker state does not permit retry.
+`--wait-seconds` bounds observation only; optional command and checker hard
+deadlines are separate. A new directory is required for a genuinely new launch.
+
+The worker saves one closeout with command exit, supplied required-checker exit,
+native usage/retries/unknowns, unresolved issues and exact detail paths. A passed
+checker claims its own scope only. Selected prior provider receipts remain
+historical costs and stay counted apart from this operation's interval under the
+closeout's `usage_by_execution_scope`. Each scope separates completed-turn tokens,
+extra observed startup and unknown startup coverage; the merged total includes
+history. Cached input/reasoning are subsets, and active parent-turn costs remain
+open. The existing `report-codex`
+collector owns completed Desktop accounting. The functions wait recipe and
+platform-yield boundary live in `.agents/workflow-overlay/decision-routing.md`
+under "Task-Local Tool-Stall Circuit"; the Node helper remains an optional
+fallback, not this command's front door.
+
 For a self-contained job whose required project reads would otherwise trigger
 blocked shell calls, both the attempt and job runners accept repeatable
 `--preload-context <required-instruction-file>` arguments. The selected UTF-8
@@ -127,11 +158,11 @@ two files); measure whole-job usage and denied-tool events rather than assuming
 a saving. This opt-in removes repeated blocked reads, not the underlying host
 policy. API authentication and spend boundaries are unchanged.
 
-Select a compatible installed native executable explicitly (`codex.exe` on
-Windows), including after an installation moves during an update. The runner
-never searches PATH, selects a different installation, or upgrades it. Its local
-version check records the version in the existing execution records; a version
-string alone does not establish that the server supports the requested model.
+The shared selector verifies the active Desktop native executable (`codex.exe`
+on Windows), or an explicit native override. Existing jobs keep their bound
+path/version/hash after an update and refuse changed bytes. The runner never
+searches PATH or upgrades an installation. A version string alone does not
+establish that the server supports the requested model.
 
 The standing command above requires file-backed ChatGPT sign-in under
 `CODEX_HOME` (default `~/.codex`). It rejects `OPENAI_API_KEY`, `CODEX_API_KEY`,

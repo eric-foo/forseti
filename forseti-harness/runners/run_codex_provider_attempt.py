@@ -16,6 +16,7 @@ HARNESS_ROOT = Path(__file__).resolve().parents[1]
 if str(HARNESS_ROOT) not in sys.path:
     sys.path.insert(0, str(HARNESS_ROOT))
 
+from harness_utils import hash_file
 from provider_attempts import reserve_provider_attempt  # noqa: E402
 from provider_execution import execute_provider_attempt  # noqa: E402
 
@@ -43,6 +44,93 @@ CONTEXT_STDIN_INSTRUCTION = (
 # Native marker for a config-load fault; matched, never echoed, since the text
 # quotes the user's configuration file.
 CONFIG_LOAD_FAILURE = "Error loading config"
+
+
+def desktop_process_context():
+    """Read this runner's actual ancestry, not PATH or installation caches."""
+    if sys.platform != "win32" or not os.environ.get("SystemRoot"):
+        raise ValueError("automatic Codex selection requires a Windows Desktop ancestor; use an explicit native override")
+    powershell = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
+    script = r"""
+$ErrorActionPreference = 'Stop'
+$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$nextProcess = __PID__
+$ancestors = @()
+$seen = @{}
+while ($nextProcess -ne 0) {
+    if ($seen.ContainsKey($nextProcess) -or $ancestors.Count -ge 64) { throw 'Invalid process ancestry' }
+    $seen[$nextProcess] = $true
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $nextProcess"
+    if ($null -eq $process) { throw 'Process ancestry unavailable' }
+    $ancestors += @{pid=[int]$process.ProcessId; parent_pid=[int]$process.ParentProcessId; name=$process.Name;
+        path=$process.ExecutablePath}
+    if ($process.Name -ieq 'ChatGPT.exe') { break }
+    $nextProcess = [int]$process.ParentProcessId
+}
+@{ancestors=$ancestors} | ConvertTo-Json -Depth 5 -Compress
+""".replace("__PID__", str(os.getpid()))
+    result = subprocess.run([str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
+        stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=20, check=False, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    if result.returncode:
+        raise ValueError("Codex Desktop ancestry check failed; use an explicit native override")
+    return json.loads(result.stdout)
+
+
+def select_codex_executable(override=None):
+    """Select the verified native runtime actually hosting this Desktop task."""
+    provenance = {}
+    expected_version = None
+    inherited = os.environ.get("FORSETI_CODEX_SELECTION") if override is None else None
+    if inherited:
+        if hash_file(Path(inherited)) != os.environ.get("FORSETI_CODEX_SELECTION_SHA256"):
+            raise ValueError("inherited Codex selection record changed or lacks its hash binding")
+        bound = json.loads(Path(inherited).read_text(encoding="utf-8"))
+        if not isinstance(bound, dict) or not all(isinstance(bound.get(k), str) for k in ("path", "sha256", "version")):
+            raise ValueError("inherited native Codex binding is invalid")
+        selected = select_codex_executable(Path(bound["path"]))
+        if any(selected[key] != bound[key] for key in ("path", "sha256", "version")):
+            raise ValueError("inherited native Codex binding changed; no automatic rebind")
+        return bound
+    if override is None:
+        context = desktop_process_context()
+        ancestors = context["ancestors"]
+        natives = [p for p in ancestors if p["name"].lower() == "codex.exe"]
+        if len(natives) != 1:
+            raise ValueError("Codex Desktop native ancestor is missing or ambiguous")
+        native_process = natives[0]
+        hosts = [p for p in ancestors if p["pid"] == native_process["parent_pid"]
+                 and p["name"].lower() == "chatgpt.exe"]
+        if len(hosts) != 1:
+            raise ValueError("Codex Desktop host ownership is missing or ambiguous")
+        host = hosts[0]
+        if (not host["path"] or not native_process["path"]
+                or not Path(host["path"]).is_absolute()
+                or Path(host["path"]).name.lower() != "chatgpt.exe"
+                or os.environ.get("CODEX_INTERNAL_ORIGINATOR_OVERRIDE") != "Codex Desktop"):
+            raise ValueError("Codex Desktop native/host ownership is unverified")
+        expected_version = os.environ.get("CODEX_VERSION")
+        if not expected_version:
+            raise ValueError("Codex Desktop host version is unavailable")
+        override = Path(native_process["path"])
+        provenance = {"desktop_host": host["path"], "native_ancestor_pid": native_process["pid"],
+                      "originator": "Codex Desktop"}
+    path = Path(override)
+    if not path.is_absolute() or not path.is_file() or path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
+        raise ValueError("Codex selection requires an existing absolute native executable")
+    path = path.resolve(strict=True)
+    if path.suffix.lower() in {".cmd", ".bat", ".ps1", ".js"}:
+        raise ValueError("Codex selection resolved to a script, not a native executable")
+    before = hash_file(path)
+    version = _local_codex_check(str(path), ["--version"], dict(os.environ))
+    observed = version.stdout.strip()
+    if (version.returncode or not re.fullmatch(r"codex-cli \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", observed)
+            or expected_version is not None and observed != "codex-cli " + expected_version):
+        raise ValueError("selected native executable did not report the verified Codex CLI version")
+    if hash_file(path) != before:
+        raise ValueError("selected Codex executable changed during verification")
+    return {"path": str(path), "sha256": before, "version": observed,
+            "selection": "active_desktop_ancestor" if expected_version else "explicit_native_override", **provenance}
 
 
 def preloaded_context(paths: list[Path]) -> tuple[str, list[dict[str, str]]]:
@@ -179,8 +267,8 @@ def main() -> int:
     parser.add_argument("--output-schema", type=Path, required=True)
     parser.add_argument("--worktree", type=Path, required=True)
     parser.add_argument("--model", required=True)
-    parser.add_argument("--codex-executable", type=Path, required=True,
-                        help="Absolute path to the selected Codex executable; never search PATH")
+    parser.add_argument("--codex-executable", type=Path,
+                        help="Explicit native override; default verifies the active Desktop native ancestor")
     parser.add_argument("--require-chatgpt", action="store_true",
                         help="Require file-backed ChatGPT sign-in; reject API or unknown authentication before generation")
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
@@ -195,13 +283,6 @@ def main() -> int:
         parser.error("--timeout-seconds must be finite and positive")
     if not args.prompt_file.is_file() or not args.output_schema.is_file() or not args.worktree.is_dir():
         parser.error("prompt/schema must be accessible files and worktree an accessible directory")
-    if not args.codex_executable.is_absolute() or not args.codex_executable.is_file():
-        parser.error("--codex-executable must name an existing absolute executable path; no PATH fallback")
-    executable = str(args.codex_executable.resolve())
-    # Windows batch shims introduce an extra shell and installation selection.
-    # Judge the path that will actually run, not the one named on the command line.
-    if Path(executable).suffix.lower() in (".cmd", ".bat"):
-        parser.error("--codex-executable must select the native executable, not a .cmd/.bat shim")
     for label, source in (("prompt", args.prompt_file), ("schema", args.output_schema)):
         try:
             with source.open("rb") as handle:
@@ -232,10 +313,10 @@ def main() -> int:
         env["CODEX_HOME"] = str(Path(env.get("CODEX_HOME") or Path.home() / ".codex").resolve())
         config = [part for value in CHATGPT_CONFIG for part in ("--config", value)]
     try:
-        version = _local_codex_check(executable, ["--version"], env)
-        if version.returncode or not re.fullmatch(r"codex-cli \d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", version.stdout.strip()):
-            raise ValueError("selected executable did not report a Codex CLI version")
-        metadata["codex_version"] = version.stdout.strip()
+        selected = select_codex_executable(args.codex_executable)
+        executable = selected["path"]
+        metadata["codex_selection"] = selected
+        metadata["codex_version"] = selected["version"]
         if args.require_chatgpt:
             status = _local_codex_check(executable, [*config, "login", "status"], env)
             for line in status.stderr.splitlines():
@@ -260,6 +341,8 @@ def main() -> int:
             config += ["--disable", "shell_tool"]
             metadata["preloaded_context_sha256"] = context_sha
             metadata["preloaded_context_files"] = json.dumps(context_files, ensure_ascii=False)
+        if hash_file(Path(executable)) != selected["sha256"]:
+            raise ValueError("selected Codex executable changed before launch")
         reserved = reserve_provider_attempt(attempt_root=args.attempt_root, attempt_id=args.attempt_id)
     except (ValueError, OSError) as exc:
         parser.error(str(exc))

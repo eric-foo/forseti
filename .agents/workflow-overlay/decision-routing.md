@@ -201,6 +201,54 @@ does not authorize a retry or bypass. A fresh task is a fresh route even when
 carried context reports an earlier task's stall. Verify the final diff;
 alternate-route completion is mitigation, not proof the ordinary route is repaired.
 
+For an authorized command that needs to survive interrupted observation, use
+`python -m runners.run_efficiency start --operation-dir NEW_OPERATION_DIR --cwd
+HARNESS_DIR [--quality-command CHECKER_ARGV_JSON] [--provider-root EXACT_RUN_ROOT]
+-- EXECUTABLE ARGS` from `forseti-harness/`. This existing command owner reserves
+one operation directory, runs one detached worker, and returns its operation ID,
+exact resume argv and cwd. The worker owns command execution, any supplied
+required checker, and one compact closeout. Supply the workload's existing
+required validation command; passing it claims only that check, never semantic
+acceptance. For commands that use native providers, add `--bind-codex`: the shared selector
+verifies path/version/hash before detachment and rechecks that inherited binding
+in each caller. Explicit native overrides take precedence. Commands without
+providers need no Codex installation; direct callers use the same selector.
+
+Use `status --operation-dir SAME_DIR` for a requested observation and
+`resume --operation-dir SAME_DIR` to wait for that operation's closeout. Resume
+only observes; interruption, a status request, and repeated resume never launch
+work or rerun validation. A worker without a closeout is unknown, never a reason
+to retry writes. `--wait-seconds` only returns the observer; explicit command and
+checker hard deadlines are separate optional flags. The operation owns exact
+stdout/stderr, validation, accounting and closeout paths; inspect detail only
+for unresolved issues or required judgment. Selected provider roots preserve
+old receipts as prior execution and incomplete launches as unknown usage.
+Cached input/reasoning are subsets; additional observed startup is separate.
+Parent active-turn accounting remains open until the existing collector can
+observe a completed turn. No recurring service or per-run approval is added.
+
+In a functions-capable caller, await the resume command and its process
+continuations mechanically inside the same outer call:
+
+```javascript
+// @exec: {"yield_time_ms": 60000, "max_output_tokens": 2000}
+let result = await tools.exec_command({cmd: RESUME_COMMAND, workdir: RESUME_CWD, yield_time_ms: 1000});
+while (result.session_id) {
+  result = await tools.write_stdin({session_id: result.session_id, chars: "", yield_time_ms: 60000});
+}
+text(result);
+```
+
+Use the returned exact executable/argv with the caller shell's normal quoting.
+Keep each inner wait at most 60 seconds and emit bounded progress only when
+useful. If the platform yields the outer call, retain and wait on that cell;
+if the observer is interrupted, call the returned resume argv again. Neither
+case authorizes another `start`. Platform-forced yields and their model cost
+remain observable, not an automatic completion-event claim. Native child-agent
+`wait_agent` is a separate interruptible wait; its maximum does not become a
+shell deadline. Purpose-built command tools remain the normal route; the Node
+helper below remains only an approved fallback.
+
 When an approved alternate route uses Node REPL for local commands, import
 `.agents/tools/node_command.mjs` from the effective target worktree; do not
 recreate transient child-process wrappers. Normal purpose-built command tools
