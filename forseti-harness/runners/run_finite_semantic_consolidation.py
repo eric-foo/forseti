@@ -587,6 +587,10 @@ class FiniteRun:
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
             "current_findings": related}
+        if not self.replay:
+            request["answer_commission"] = {"questions": self.questions["questions"],
+                "worker_instructions": request.pop("worker_instructions")}
+            request["affected_questions"] = request.pop("questions")
         persist(self.root / "answer-correction/input.json", request)
         if self.replay:
             self.check_saved_input("answer-correction", "answer_correction_input_json")
@@ -603,8 +607,11 @@ class FiniteRun:
                 "Change only defective claims and the context needed for consistency; preserve unaffected assertions verbatim when possible. "
                 "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
                 "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
-                "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
-                "The supplied questions and worker_instructions define answer scope. For each affected question, return either "
+                "answer_commission describes the original full assignment; affected_questions is this repair's complete scope. "
+                "The runner preserves other answers unchanged; they are not missing. Apply the original answer requirements "
+                "within this subset, not its full-assignment counts or total length. Keep answer and limits user-facing: "
+                "preserve source-supported scope and uncertainty, but do not narrate review, extraction or consolidation defects. "
+                "Those remain in the assessment findings supplied to recheck. For each affected question, return either "
                 "a replacement in answers or its question_id and reason in retained_answers when no supported correction is needed. "
                 "Retained answers are copied unchanged by the runner. Put nomination disputes only in retained_answers.reason, "
                 "never in answer or limits text. Cite evidence IDs or semantic unit refs. Account for every affected question "
@@ -650,11 +657,16 @@ class FiniteRun:
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Perform one source-backed affected-scope recheck "
                 "of the corrected answers and original nominations. Check every material changed assertion and citation. "
-                "Verify retained_answers reasons against the actual questions and worker_instructions; retained answer text "
+                "answer_commission describes the original full assignment; review only affected_questions. Other answers "
+                "are preserved unchanged by the runner and deliberately absent here, not missing from the full answer. "
+                "Full-assignment counts and length do not apply to this subset. Verify retained_answers reasons against "
+                "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
-                "consolidation inventory limits separately; correcting prose does not repair the inventory. "
+                "consolidation inventory limits separately in material_findings; correcting prose does not repair the inventory. "
+                "Keep internal review and inventory diagnostics out of answer and limits; preserve source-supported limitations "
+                "that matter to the user's question. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
                 + render_evidence(recheck_request))
             recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())

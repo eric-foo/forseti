@@ -2744,6 +2744,12 @@ correction returns `finite_answer_correction_v1`: replacement `answers` and
 Rejected nominations belong in retention reasons, never replacement answer prose.
 The runner copies retained answers unchanged and submits those dispositions to
 the existing recheck. No extra provider call is added.
+Live correction and recheck receive the original full `answer_commission`
+separately from `affected_questions`. Only that subset is repaired and reviewed;
+the runner preserves other answers unchanged. Full-assignment counts and length
+do not apply to the subset. Answer prose and limits retain source-supported
+scope and uncertainty relevant to the question; internal review, extraction and
+consolidation defects stay in assessment findings, not user-facing answers.
 The returned `material_findings` stay those of
 the initial assessment; a live post-assessment correction also returns the
 recheck's own `affected_recheck_material_findings`. A correction with unknown

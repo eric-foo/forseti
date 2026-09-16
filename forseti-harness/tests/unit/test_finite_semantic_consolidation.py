@@ -715,6 +715,7 @@ def test_other_answer_failures_do_not_enter_unknown_citation_recovery(tmp_path):
                                          "failed_check", "uncertain_check"])
 def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path, outcome):
     run, answer = answer_fixture(tmp_path)
+    run.questions["worker_instructions"] = "Answer both commissioned questions."
     original_path = run.root / "original.json"
     finite.persist(original_path, answer)
     finite.persist(run.root / "answer/freeze.json", {"response": str(original_path)})
@@ -756,7 +757,13 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     launched = []
     def correction_job(name, prompt, schema):
         launched.append(name)
+        request = finite.read(run.root / name.removesuffix("/provider") / "input.json")
+        assert request["answer_commission"] == {
+            "questions": run.questions["questions"], "worker_instructions": run.questions["worker_instructions"]}
+        assert request["affected_questions"] == run.questions["questions"][:1]
+        assert "questions" not in request and "worker_instructions" not in request
         if name == "answer-correction/provider":
+            assert schema["properties"]["answers"]["items"]["properties"]["question_id"]["enum"] == ["one"]
             choices = schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"]
             assert choices == ["known", "known::u"]
             bad = deepcopy(patch)
