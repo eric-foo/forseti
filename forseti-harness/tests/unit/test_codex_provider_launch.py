@@ -491,7 +491,7 @@ def test_shim_rejection_judges_the_resolved_executable(launch, capsys):
     launch.argv[2] = str(link)
     with pytest.raises(SystemExit):
         runner.main()
-    assert ".cmd/.bat shim" in capsys.readouterr().err
+    assert "error: Codex selection resolved to a script, not a native executable" in capsys.readouterr().err
     assert not launch.checks and not launch.launches
 
 
