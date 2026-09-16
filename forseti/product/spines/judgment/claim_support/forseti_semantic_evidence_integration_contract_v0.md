@@ -2668,7 +2668,10 @@ the rejected definitions, and leaves their unchanged input candidates explicitly
 retrievable as unmerged evidence. A separately stored successor must pass the
 same native validation, including required-finding retention; the complete stage
 and downstream finding/residual coverage are still checked. Existing repeated
-findings cannot be discarded to make this path pass. Changed durable successors
+findings cannot be discarded to make this path pass: declining is refused
+outright when any retained candidate carries repeated source-row support of its
+own, including a counter- or adjacent-attached child that contributes no
+supporting row to the declined group. Changed durable successors
 are rejected on resume. `grouping_rejections` in the final result points to the
 records and marks execution as recovered, never semantic quality acceptance.
 Formation, zero-support groups, malformed or mixed failures, and other failures

@@ -252,6 +252,7 @@ def test_unsupported_finish_group_retains_evidence_and_valid_group_without_model
     ("missing_candidate", "candidate decisions"),
     ("duplicate_definition", "duplicate or empty node key"),
     ("bad_claim_kind", "lacks claim metadata"),
+    ("other_node_bad_claim_kind", "lacks claim metadata"),
     ("zero_support", "lacks repeated source-row support"),
     ("multiple_attachments", "multiple attachments"),
 ])
@@ -263,6 +264,10 @@ def test_other_finish_defects_stop_without_retention_or_paid_repair(tmp_path, mu
         failed["semantic_nodes"].append(deepcopy(failed["semantic_nodes"][0]))
     elif mutation == "bad_claim_kind":
         failed["semantic_nodes"][0]["claim_kind"] = "unknown"
+    elif mutation == "other_node_bad_claim_kind":
+        # A defect in a different, well-supported node must still stop the run
+        # even though the single-row node deferred earlier in the same batch.
+        failed["semantic_nodes"][1]["claim_kind"] = "unknown"
     elif mutation == "zero_support":
         for ref in shared:
             failed["decisions_by_candidate_ref"][ref]["attachments"][0]["relation"] = "counter"
@@ -291,7 +296,11 @@ def test_valid_distinct_source_group_is_unchanged(tmp_path):
     assert not run.grouping_rejections
 
 
-def test_rejection_cannot_retire_an_existing_repeated_finding():
+@pytest.mark.parametrize("formation_terminal, error", [
+    (True, "cannot unmerge required finding"),
+    (False, "carries repeated source-row support"),
+])
+def test_rejection_cannot_retire_an_existing_repeated_finding(formation_terminal, error):
     bundle, _, formation = _finite_row_identity_fixture()
     by_row = {}
     for candidate in formation["candidates"]:
@@ -301,7 +310,7 @@ def test_rejection_cannot_retire_an_existing_repeated_finding():
     others = [ref for refs in by_row.values() for ref in refs if ref not in shared]
     response = _finite_decision_response(formation, [
         [(shared[0], "support"), (others[0], "support")],
-        [(shared[1], "support")], [(others[1], "support")]], terminal=True)
+        [(shared[1], "support")], [(others[1], "support")]], terminal=formation_terminal)
     formed = finite.semantic.validate_reconciliation_stage(bundle, formation, [response])
     finish, _ = finite.semantic.prepare_reconciliation_stage(bundle, formed,
         completion_strategy=finite.semantic.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
@@ -311,7 +320,11 @@ def test_rejection_cannot_retire_an_existing_repeated_finding():
         [[(repeated["candidate_ref"], "counter"), (single["candidate_ref"], "support")]], terminal=True)
     with pytest.raises(finite.semantic.UnsupportedFinishGroupings):
         finite.semantic.validate_reconciliation_stage(bundle, finish, [failed])
-    with pytest.raises(finite.semantic.SemanticIntegrationError, match="cannot unmerge required finding"):
+    # The declined group's own support is single-row, but this counter-attached
+    # child carries two distinct supporting rows of its own. Required-finding
+    # retention names that case exactly when it applies; the grouping guard
+    # refuses the rest instead of authoring an undeclared unmerge.
+    with pytest.raises(finite.semantic.SemanticIntegrationError, match=error):
         finite.semantic.reject_unsupported_finish_groupings(bundle, finish, failed)
 
 

@@ -8295,6 +8295,22 @@ def reject_unsupported_finish_groupings(bundle, stage, response):
     for ref in refs:
         successor["decisions_by_candidate_ref"][ref] = {"attachments": [], "unmerged_reason": reason}
     validation = validate_reconciliation_stage(bundle, stage, [successor], require_all=False)
+    # Only the group's own support is single-row. A counter- or adjacent-attached
+    # child contributes no supporting row to the group yet can carry repeated
+    # support of its own. Retention above refuses that for a required finding and
+    # names it exactly; refuse the remainder here rather than author an unmerge
+    # the model never declared under a reason that is false for that child.
+    evidence_index = _unit_index(bundle)
+    candidate_index = {row["candidate_ref"]: row for row in stage["candidates"]}
+    for ref in sorted(refs):
+        if len({
+            _leaf_evidence_id(leaf["semantic_unit_ref"], evidence_index, node_key=ref)
+            for leaf in candidate_index[ref]["leaf_relations"]
+            if leaf["relation"] == "support"
+        }) > 1:
+            raise SemanticIntegrationError(
+                f"cannot decline grouping: candidate {ref} carries repeated source-row support"
+            )
     return successor, {"rejected_groups": groups, "retained_candidate_refs": sorted(refs),
         "reason": reason, "model_api_calls": 0, "validation": validation}
 
