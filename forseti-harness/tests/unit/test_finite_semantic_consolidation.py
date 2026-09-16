@@ -10,7 +10,10 @@ import pytest
 from runners import run_finite_semantic_consolidation as finite
 from runners import run_codex_provider_job as job_runner
 from runners import run_codex_provider_attempt as launcher
-from test_semantic_evidence_integration import _missing_definition_fixture, _local_repair_fixture
+from test_semantic_evidence_integration import (
+    _missing_definition_fixture, _local_repair_fixture,
+    _finite_row_identity_fixture, _finite_decision_response,
+)
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows PowerShell output encoding")
@@ -177,9 +180,152 @@ def bare_run(tmp_path, bundle, stage):
     run.bundle = bundle
     run.args = Namespace(bundle=tmp_path / "bundle.json", local_repair_successor=[])
     run.consumed_repairs = set()
+    run.grouping_rejections = {}
     finite.persist(run.args.bundle, bundle)
     finite.persist(run.root / "formation/stage.json", stage)
     return run
+
+
+def unsupported_finish_fixture():
+    bundle, verified, formation = _finite_row_identity_fixture()
+    formed_response = _finite_decision_response(formation,
+        [[(ref, "support")] for ref in formation["batches"][0]["candidate_refs"]], terminal=False)
+    formed = finite.semantic.validate_reconciliation_stage(bundle, formation, [formed_response])
+    finish, _ = finite.semantic.prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=finite.semantic.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
+    by_row = {}
+    for candidate in finish["candidates"]:
+        row = candidate["leaf_relations"][0]["semantic_unit_ref"].rsplit("::", 1)[0]
+        by_row.setdefault(row, []).append(candidate["candidate_ref"])
+    shared = next(refs for refs in by_row.values() if len(refs) == 2)
+    others = [ref for refs in by_row.values() for ref in refs if ref not in shared]
+    response = _finite_decision_response(finish,
+        [[(ref, "support") for ref in refs] for refs in (shared, others)], terminal=True)
+    return bundle, verified, finish, response, shared
+
+
+def test_unsupported_finish_group_retains_evidence_and_valid_group_without_model(tmp_path):
+    bundle, verified, stage, failed, shared = unsupported_finish_fixture()
+    run = bare_run(tmp_path, bundle, stage)
+    run.verified = verified
+    response = tmp_path / "original.json"
+    finite.persist(response, failed)
+    before = response.read_bytes()
+    with pytest.raises(finite.semantic.UnsupportedFinishGroupings, match="lacks repeated source-row support"):
+        finite.semantic.validate_reconciliation_stage(bundle, stage, [failed])
+    run.job = lambda *a, **k: pytest.fail("declining a grouping must not invoke a model")
+    successor = run.validate_or_repair("finish", stage, response, 0)
+    restored = finite.read(successor)
+    assert restored["semantic_nodes"] == failed["semantic_nodes"][1:]
+    assert set(restored["decisions_by_candidate_ref"]) == set(failed["decisions_by_candidate_ref"])
+    for ref, decision in restored["decisions_by_candidate_ref"].items():
+        if ref in shared:
+            assert decision["attachments"] == []
+            assert "one distinct supporting source row" in decision["unmerged_reason"]
+        else:
+            assert decision == failed["decisions_by_candidate_ref"][ref]
+    compiled = finite.semantic.validate_reconciliation_stage(bundle, stage, [restored])
+    view = finite.semantic.finalize_v3_view(bundle, verified, compiled)
+    packet = finite.semantic.project_evidence_packet(view, bundle, verified, compiled,
+        proposition_ids=[p["proposition_id"] for p in view["propositions"]])
+    counts = finite.coverage(bundle, verified, view, packet)
+    assert counts == dict(source_rows=3, verified_statements=4, attached_statements=2,
+                         residual_statements=2, findings=1, missing_statements=0, packet_truncated=False)
+    assert {r["semantic_unit_ref"] for r in view["unmerged_semantic_units"]} == {
+        leaf["semantic_unit_ref"] for c in stage["candidates"] if c["candidate_ref"] in shared
+        for leaf in c["leaf_relations"]}
+    assert run.validate_or_repair("finish", stage, response, 0) == successor
+    assert response.read_bytes() == before
+    assert not (run.root / "repair-budget").exists()
+    rejection = finite.read(next(iter(run.grouping_rejections.values())))
+    assert rejection["retained_candidate_refs"] == sorted(shared)
+    assert rejection["original_response_sha256"] == finite.hash_file(response)
+    assert rejection["successor_sha256"] == finite.hash_file(successor)
+    assert rejection["model_api_calls"] == 0
+    assert "lacks repeated" in finite.read(successor.parent.parent / "failure.json")["error"]
+    successor.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="existing finite output differs"):
+        run.validate_or_repair("finish", stage, response, 0)
+
+
+@pytest.mark.parametrize("mutation, error", [
+    ("missing_candidate", "candidate decisions"),
+    ("duplicate_definition", "duplicate or empty node key"),
+    ("bad_claim_kind", "lacks claim metadata"),
+    ("other_node_bad_claim_kind", "lacks claim metadata"),
+    ("zero_support", "lacks repeated source-row support"),
+    ("multiple_attachments", "multiple attachments"),
+])
+def test_other_finish_defects_stop_without_retention_or_paid_repair(tmp_path, mutation, error):
+    bundle, _, stage, failed, shared = unsupported_finish_fixture()
+    if mutation == "missing_candidate":
+        del failed["decisions_by_candidate_ref"][shared[0]]
+    elif mutation == "duplicate_definition":
+        failed["semantic_nodes"].append(deepcopy(failed["semantic_nodes"][0]))
+    elif mutation == "bad_claim_kind":
+        failed["semantic_nodes"][0]["claim_kind"] = "unknown"
+    elif mutation == "other_node_bad_claim_kind":
+        # A defect in a different, well-supported node must still stop the run
+        # even though the single-row node deferred earlier in the same batch.
+        failed["semantic_nodes"][1]["claim_kind"] = "unknown"
+    elif mutation == "zero_support":
+        for ref in shared:
+            failed["decisions_by_candidate_ref"][ref]["attachments"][0]["relation"] = "counter"
+    else:
+        failed["decisions_by_candidate_ref"][shared[0]]["attachments"].append(
+            {"semantic_node_key": failed["semantic_nodes"][1]["semantic_node_key"], "relation": "support"})
+    run = bare_run(tmp_path, bundle, stage)
+    response = tmp_path / "failed.json"
+    finite.persist(response, failed)
+    run.job = lambda *a, **k: pytest.fail("unrelated defects must not invoke repair")
+    with pytest.raises(finite.semantic.SemanticIntegrationError, match=error) as caught:
+        run.validate_or_repair("finish", stage, response, 0)
+    assert type(caught.value) is finite.semantic.SemanticIntegrationError
+    assert not run.grouping_rejections
+    assert not (run.root / "finish/accepted").exists()
+
+
+def test_valid_distinct_source_group_is_unchanged(tmp_path):
+    bundle, _, stage, response, _ = unsupported_finish_fixture()
+    refs = stage["batches"][0]["candidate_refs"]
+    response = _finite_decision_response(stage, [[(ref, "support") for ref in refs]], terminal=True)
+    run = bare_run(tmp_path, bundle, stage)
+    path = tmp_path / "valid.json"
+    finite.persist(path, response)
+    assert run.validate_or_repair("finish", stage, path, 0) == path
+    assert not run.grouping_rejections
+
+
+@pytest.mark.parametrize("formation_terminal, error", [
+    (True, "cannot unmerge required finding"),
+    (False, "carries repeated source-row support"),
+])
+def test_rejection_cannot_retire_an_existing_repeated_finding(formation_terminal, error):
+    bundle, _, formation = _finite_row_identity_fixture()
+    by_row = {}
+    for candidate in formation["candidates"]:
+        ref = candidate["candidate_ref"]
+        by_row.setdefault(ref.rsplit("::", 1)[0], []).append(ref)
+    shared = next(refs for refs in by_row.values() if len(refs) == 2)
+    others = [ref for refs in by_row.values() for ref in refs if ref not in shared]
+    response = _finite_decision_response(formation, [
+        [(shared[0], "support"), (others[0], "support")],
+        [(shared[1], "support")], [(others[1], "support")]], terminal=formation_terminal)
+    formed = finite.semantic.validate_reconciliation_stage(bundle, formation, [response])
+    finish, _ = finite.semantic.prepare_reconciliation_stage(bundle, formed,
+        completion_strategy=finite.semantic.FINITE_COMPLETION_STRATEGY, packing_strategy="group_aware_v1")
+    repeated = next(c for c in finish["candidates"] if len(c["leaf_relations"]) == 2)
+    single = next(c for c in finish["candidates"] if c != repeated)
+    failed = _finite_decision_response(finish,
+        [[(repeated["candidate_ref"], "counter"), (single["candidate_ref"], "support")]], terminal=True)
+    with pytest.raises(finite.semantic.UnsupportedFinishGroupings):
+        finite.semantic.validate_reconciliation_stage(bundle, finish, [failed])
+    # The declined group's own support is single-row, but this counter-attached
+    # child carries two distinct supporting rows of its own. Required-finding
+    # retention names that case exactly when it applies; the grouping guard
+    # refuses the rest instead of authoring an undeclared unmerge.
+    with pytest.raises(finite.semantic.SemanticIntegrationError, match=error):
+        finite.semantic.reject_unsupported_finish_groupings(bundle, finish, failed)
 
 
 def test_native_definition_recovery_preserves_original_and_reuses_successor(tmp_path):
