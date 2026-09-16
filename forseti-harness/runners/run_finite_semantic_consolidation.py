@@ -78,6 +78,27 @@ def answer_schema(questions):
                 "answers": {"type": "array", "minItems": len(ids), "maxItems": len(ids), "items": item}}}
 
 
+def answer_generation_schema(questions, source_rows, semantic_units):
+    """Constrain generation to the evidence supplied to this answer call.
+
+    Keep the structural schema separate for historical replay and the initial
+    answer's existing unknown-reference recovery. Choices establish identity,
+    never semantic support for an assertion.
+    """
+    refs = [r["evidence_id"] for r in source_rows]
+    refs.extend(u["semantic_unit_ref"] for u in semantic_units)
+    if any(not isinstance(ref, str) or not ref.strip() for ref in refs):
+        raise ValueError("answer citation choices require nonempty source identities")
+    schema = answer_schema(questions)
+    citations = schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]
+    if refs:
+        citations["items"]["enum"] = sorted(set(refs))
+    else:
+        # Empty evidence is not an unrestricted vocabulary or a fake sentinel.
+        citations["maxItems"] = 0
+    return schema
+
+
 def assessment_schema():
     text = {"type": "string"}
     refs = {"type": "array", "items": text}
@@ -178,7 +199,7 @@ class FiniteRun:
                         self.saved.setdefault(policy["binding"]["prompt_sha256"], []).append(
                             (receipt_path.parent / "response.json", policy["binding"]))
 
-    def job(self, name, prompt, schema, *, replay_response=None):
+    def job(self, name, prompt, schema, *, replay_response=None, validation_schema=None):
         directory = self.provider_root / name
         prompt_path, schema_path = directory / "prompt.md", directory / "response.schema.json"
         persist_bytes(prompt_path, prompt.encode("utf-8"))
@@ -234,7 +255,7 @@ class FiniteRun:
                     raise ValueError("provider did not consume the bound completed recovery")
                 self.consumed_recoveries.add(name)
             response = Path(result["attempt_dir"]) / "response.json"
-        Draft202012Validator(schema).validate(read(response))
+        Draft202012Validator(schema if validation_schema is None else validation_schema).validate(read(response))
         return response
 
     def bind_executable(self):
@@ -401,8 +422,13 @@ class FiniteRun:
                 raise ValueError("saved answer evidence/input differs from replay consumer")
             self.check_saved_input("answer-v3", "current_answer_input_json")
             original_answer = Path(read(self.replay / "answer-v3/freeze.json")["response"])
-        answer_path = self.job("answer/provider", render_answer(request), answer_schema(self.questions["questions"]),
-                               replay_response=original_answer)
+        structural_schema = answer_schema(self.questions["questions"])
+        generation_schema = structural_schema if self.replay else answer_generation_schema(
+            self.questions["questions"], self.bundle["evidence_units"], self.verified["semantic_units"])
+        # A provider that ignores choices still reaches the existing single
+        # unknown-citation correction; malformed answers continue to stop.
+        answer_path = self.job("answer/provider", render_answer(request), generation_schema,
+                               replay_response=original_answer, validation_schema=structural_schema)
         answer = read(answer_path)
         pre_corrected = False
         try:
@@ -476,7 +502,8 @@ class FiniteRun:
             "Preserve supported meaning, conditions, source attribution and uncertainty. No historical answer or hidden "
             "assessment checks are supplied. Return only the affected questions in supplied order under the response schema.\n\n"
             + render_evidence(request))
-        patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
+        patch_path = self.job("answer-correction/provider", prompt, answer_generation_schema(
+            questions, self.bundle["evidence_units"], self.verified["semantic_units"]))
         patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
         corrected = compose_answer_patch(original, patch, affected)
@@ -543,7 +570,8 @@ class FiniteRun:
                 "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
                 "Cite evidence IDs or semantic unit refs. Return only affected questions in supplied order using the response schema.\n\n"
                 + render_evidence(request))
-            patch_path = self.job("answer-correction/provider", prompt, answer_schema(questions))
+            patch_path = self.job("answer-correction/provider", prompt, answer_generation_schema(
+                questions, request["complete_relevant_source_rows"], request["verified_units"]))
             patch = read(patch_path)
         check_answer(patch, questions, self.bundle, self.verified)
         corrected = compose_answer_patch(answer, patch, affected)
