@@ -172,8 +172,9 @@ expected duration, a quiet period, or a yielded tool handle triggers inspection
 of the existing operation, not automatic termination or a restart. Use elapsed
 time, available process state, output progress, and operation-specific evidence
 to decide whether to keep waiting. Silence alone proves neither health nor a
-stall. Keep owner updates timely and use short tool waits or persistent handles
-so monitoring does not itself lose the operation at a tool-call timeout.
+stall. Keep owner updates timely at meaningful observation boundaries and retain
+persistent handles so observation does not lose the operation. Short inner
+process waits do not require short outer waits that repeatedly resume the model.
 
 Choose review intervals from the operation's expected duration; do not use fixed
 read, patch, or test kill budgets as defaults. A hard deadline needs an explicit
@@ -227,27 +228,48 @@ Cached input/reasoning are subsets; additional observed startup is separate.
 Parent active-turn accounting remains open until the existing collector can
 observe a completed turn. No recurring service or per-run approval is added.
 
-In a functions-capable caller, await the resume command and its process
-continuations mechanically inside the same outer call:
+For routine deterministic work, invoke the maintained runner directly; do not
+commission a model merely to execute or wait. Use the durable operation above
+when observation must survive interruption. In a functions-capable caller,
+await the command and its process continuations inside one outer call. The
+outer yield controls model wakeups; inner process polling does not resume the
+model while the outer call remains pending. For a routine intelligence-cycle
+command, observe completion, failure, user interruption, or one review around
+25 minutes if still running:
 
 ```javascript
-// @exec: {"yield_time_ms": 60000, "max_output_tokens": 2000}
-let result = await tools.exec_command({cmd: RESUME_COMMAND, workdir: RESUME_CWD, yield_time_ms: 1000});
+// @exec: {"yield_time_ms": 1500000, "max_output_tokens": 2000}
+let result = await tools.exec_command({cmd: COMMAND, workdir: COMMAND_CWD, yield_time_ms: 1000});
 while (result.session_id) {
   result = await tools.write_stdin({session_id: result.session_id, chars: "", yield_time_ms: 60000});
 }
 text(result);
 ```
 
-Use the returned exact executable/argv with the caller shell's normal quoting.
-Keep each inner wait at most 60 seconds and emit bounded progress only when
-useful. If the platform yields the outer call, retain and wait on that cell;
-if the observer is interrupted, call the returned resume argv again. Neither
-case authorizes another `start`. Platform-forced yields and their model cost
-remain observable, not an automatic completion-event claim. Native child-agent
-`wait_agent` is a separate interruptible wait; its maximum does not become a
-shell deadline. Purpose-built command tools remain the normal route; the Node
-helper below remains only an approved fallback.
+Keep each inner wait at most 60 seconds for tool responsiveness. Completion
+returns immediately; the 25-minute outer interval is an observation boundary,
+not a minimum sleep or a command kill/relaunch timeout. At an outer yield,
+review available progress once and retain the same cell. If continuing, use
+`functions.wait` with that `cell_id` and `yield_time_ms: 1500000` (or the next
+operation-specific review interval), not routine one-minute model polling.
+Do not terminate the cell solely because the review interval elapsed.
+
+For durable operations, `COMMAND` is the returned exact resume executable/argv
+with the caller shell's normal quoting and `COMMAND_CWD` is `resume_cwd`.
+If that observer is interrupted, call the same resume argv again. Neither a
+yield nor interrupted observation authorizes another `start`. Lost foreground
+handles require state recovery under the circuit above, never a blind relaunch.
+Preserve terminal exit status; an unknown result is not success. Return one
+compact terminal closeout and inspect bulk logs only for unresolved judgment.
+
+A requested yield duration alone does not prove quiet waiting. Caller changes
+require actual elapsed-time and model-response evidence before claiming the
+same behavior. If a host forces earlier yields, retain its cell, report that
+limitation, and use its supported wait; do not claim completion callbacks or
+quiet waiting from detached command continuity. Native child-agent `wait_agent`
+is a separate interruptible wait, not a routine command executor or shell
+deadline. Purpose-built command tools remain the normal route; the Node helper
+below remains only an approved fallback.
 
 When an approved alternate route uses Node REPL for local commands, import
 `.agents/tools/node_command.mjs` from the effective target worktree; do not
@@ -561,8 +583,9 @@ judgment. Do not commission a model just to launch commands or repeatedly poll
 their handles (for example with `write_stdin`). Use the existing provider job runner;
 **Unattended Model Attempts** in `forseti-harness/README.md` owns asynchronous
 delivery, return and fallback limits. Dependent stages still need their bound
-validation. For a foreground command, reuse its live handle and size waits to
-the runtime's responsiveness boundary; do not relaunch a running command.
+validation. For a foreground command, reuse its live handle and the outer/inner
+wait distinction in **Task-Local Tool-Stall Circuit** above; do not relaunch a
+running command.
 Preserve exit status and failures; successful execution never substitutes for
 the bound check.
 

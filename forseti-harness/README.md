@@ -90,8 +90,10 @@ task; an explicit absolute native override takes precedence. Version, path and
 hash are checked, and an existing job retains its original binding. No PATH,
 cache-directory, npm-shim or arbitrary-process fallback is used.
 
-For an authorized command with interrupted observation or repeated closeout,
-use `python -m runners.run_efficiency start --operation-dir NEW_DIR --cwd CWD
+Run routine deterministic work through its maintained runner directly, without
+a model executor or poller. For an authorized command that needs observation to
+survive interruption or repeated closeout, use
+`python -m runners.run_efficiency start --operation-dir NEW_DIR --cwd CWD
 [--quality-command CHECKER_ARGV_JSON] [--provider-root EXACT_RUN_ROOT] --
 EXECUTABLE ARGS`. Add `--bind-codex` for commands that launch native providers:
 selection occurs before detachment and the shared selector rechecks the inherited
@@ -110,8 +112,9 @@ closeout's `usage_by_execution_scope`. Each scope separates completed-turn token
 extra observed startup and unknown startup coverage; the merged total includes
 history. Cached input/reasoning are subsets, and active parent-turn costs remain
 open. The existing `report-codex`
-collector owns completed Desktop accounting. The functions wait recipe and
-platform-yield boundary live in `.agents/workflow-overlay/decision-routing.md`
+collector owns completed Desktop accounting. The functions wait recipe,
+25-minute outer review interval, and host-yield evidence boundary live in
+`.agents/workflow-overlay/decision-routing.md`
 under "Task-Local Tool-Stall Circuit"; the Node helper remains an optional
 fallback, not this command's front door.
 
