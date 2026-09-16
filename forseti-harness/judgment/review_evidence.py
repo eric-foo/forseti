@@ -139,8 +139,7 @@ def material_answer_findings(findings, *, for_correction=True):
     # differs from the routing syntax. Inventory-only findings remain separate.
     answer_fields = {"current_answer", "corrected_answer", "corrected_affected_answers", "original_affected_answers"}
     return [f for f in material if f["introduced_at"] in {"current_answer", "uncertain"}
-            or (f["introduced_at"] in {"frozen_upstream", "historical_answer"}
-                and any(re.split(r"[:.\[]", r, maxsplit=1)[0] in answer_fields for r in f["artifact_refs"]))]
+            or any(re.split(r"[:.\[]", r, maxsplit=1)[0] in answer_fields for r in f["artifact_refs"])]
 
 
 def compose_answer_patch(original, patch, affected):
