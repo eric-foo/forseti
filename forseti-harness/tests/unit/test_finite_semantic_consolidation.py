@@ -512,7 +512,9 @@ def test_initial_job_generation_schema_does_not_preempt_recovery(tmp_path, monke
 def test_initial_answer_call_uses_live_choices_but_retains_historical_schema(tmp_path, replay):
     run, answer = answer_fixture(tmp_path)
     run.questions.update(worker_instructions="fixture", coverage={})
-    run.verified["evidence_dispositions"] = []
+    # Most real citations are unit refs, so the live vocabulary must carry them.
+    run.verified.update(evidence_dispositions=[],
+                        semantic_units=[{"evidence_id": "known", "semantic_unit_ref": "known::u"}])
     run.source = {"captured_items": [], "source_artifacts": []}
     run.args = Namespace(previous_answer=tmp_path / "prior.json")
     finite.persist(run.args.previous_answer, answer)
@@ -528,8 +530,9 @@ def test_initial_answer_call_uses_live_choices_but_retains_historical_schema(tmp
     def job(name, prompt, schema, **kwargs):
         assert name == "answer/provider"
         expected = finite.answer_schema(run.questions["questions"]) if replay else finite.answer_generation_schema(
-            run.questions["questions"], run.bundle["evidence_units"], [])
+            run.questions["questions"], run.bundle["evidence_units"], run.verified["semantic_units"])
         assert schema == expected
+        assert replay or "known::u" in schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"]
         assert kwargs["validation_schema"] == finite.answer_schema(run.questions["questions"])
         assert kwargs["replay_response"] == (response if replay else None)
         raise CapturedInitial
@@ -631,6 +634,7 @@ def test_no_correction_final_answer_is_consumable_answer_object(tmp_path):
 
 def test_unknown_citation_correction_preserves_original_unaffected_and_shared_allowance(tmp_path):
     run, original = answer_fixture(tmp_path)
+    run.verified["semantic_units"] = [{"evidence_id": "known", "semantic_unit_ref": "known::u"}]
     original["answers"][0]["evidence_refs"] = ["invented"]
     response = run.provider_root / "answer/response.json"
     finite.persist(response, original)
@@ -643,7 +647,11 @@ def test_unknown_citation_correction_preserves_original_unaffected_and_shared_al
     finite.persist(patch_path, patch)
     def correction_job(name, prompt, schema):
         assert name == "answer-correction/provider"
-        assert schema == finite.answer_generation_schema(run.questions["questions"][:1], run.bundle["evidence_units"], [])
+        assert schema == finite.answer_generation_schema(
+            run.questions["questions"][:1], run.bundle["evidence_units"], run.verified["semantic_units"])
+        # Recovery keeps the complete supplied vocabulary, unit refs included.
+        assert schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"] == [
+            "known", "known::u"]
         Draft202012Validator(schema).validate(patch)
         return patch_path
     run.job = correction_job
