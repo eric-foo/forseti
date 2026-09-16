@@ -128,18 +128,23 @@ def answer_correction_patch(original, proposal, questions):
             "answers": [replacements.get(q, originals[q]) for q in ids]}
 
 
-def assessment_schema():
+def assessment_schema(*, scoped_checks=False):
     text = {"type": "string"}
     refs = {"type": "array", "items": text}
     def obj(props):
         return {"type": "object", "additionalProperties": False,
                 "required": list(props), "properties": props}
-    return obj({"schema_version": {"type": "string", "const": "finite_source_assessment_v1"},
+    check = obj({"check_id": text,
+        "status": {"type": "string", "enum": ["pass", "partial", "fail", "uncertain"]},
+        "source_refs": refs, "finding_refs": refs, "explanation": text})
+    if scoped_checks:
+        check["required"].append("scope")
+        check["properties"]["scope"] = {"type": "string", "enum": ["answer", "upstream_only", "unknown"]}
+    return obj({"schema_version": {"type": "string", "const": (
+        "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1")},
         "inventory_coverage": text, "comparison": text, "unassessed_material": text,
         "overall_usefulness": text,
-        "check_results": {"type": "array", "items": obj({
-            "check_id": text, "status": {"type": "string", "enum": ["pass", "partial", "fail", "uncertain"]},
-            "source_refs": refs, "finding_refs": refs, "explanation": text})},
+        "check_results": {"type": "array", "items": check},
         "material_findings": {"type": "array", "items": obj({
             "severity": {"type": "string", "enum": ["blocker", "major", "minor"]},
             "introduced_at": {"type": "string", "enum": ["frozen_upstream", "current_consolidation", "current_answer", "historical_answer", "uncertain"]},
@@ -158,8 +163,8 @@ def check_answer(answer, questions, bundle, verified):
             raise UnknownAnswerEvidence("answer contains unknown evidence references")
 
 
-def check_assessment(value, questions):
-    Draft202012Validator(assessment_schema()).validate(value)
+def check_assessment(value, questions, *, scoped_checks=False):
+    Draft202012Validator(assessment_schema(scoped_checks=scoped_checks)).validate(value)
     ids = [x["check_id"] for x in value["check_results"]]
     required = {x["id"] for x in questions["assessment_only"]["checks"]}
     if len(ids) != len(set(ids)) or not required.issubset(ids):
@@ -587,6 +592,10 @@ class FiniteRun:
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
             "current_findings": related}
+        if not self.replay:
+            request["answer_commission"] = {"questions": self.questions["questions"],
+                "worker_instructions": request.pop("worker_instructions")}
+            request["affected_questions"] = request.pop("questions")
         persist(self.root / "answer-correction/input.json", request)
         if self.replay:
             self.check_saved_input("answer-correction", "answer_correction_input_json")
@@ -601,10 +610,14 @@ class FiniteRun:
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Correct only the affected answers. "
                 "Change only defective claims and the context needed for consistency; preserve unaffected assertions verbatim when possible. "
+                "Consistency includes merging overlapping descriptions of the same source event, not counting them as separate events. "
                 "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
                 "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
-                "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
-                "The supplied questions and worker_instructions define answer scope. For each affected question, return either "
+                "answer_commission describes the original full assignment; affected_questions is this repair's complete scope. "
+                "The runner preserves other answers unchanged; they are not missing. Apply the original answer requirements "
+                "within this subset, not its full-assignment counts or total length. Keep answer and limits user-facing: "
+                "preserve source-supported scope and uncertainty, but do not narrate review, extraction or consolidation defects. "
+                "Those remain in the assessment findings supplied to recheck. For each affected question, return either "
                 "a replacement in answers or its question_id and reason in retained_answers when no supported correction is needed. "
                 "Retained answers are copied unchanged by the runner. Put nomination disputes only in retained_answers.reason, "
                 "never in answer or limits text. Cite evidence IDs or semantic unit refs. Account for every affected question "
@@ -650,16 +663,25 @@ class FiniteRun:
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Perform one source-backed affected-scope recheck "
                 "of the corrected answers and original nominations. Check every material changed assertion and citation. "
-                "Verify retained_answers reasons against the actual questions and worker_instructions; retained answer text "
+                "answer_commission describes the original full assignment; review only affected_questions. Other answers "
+                "are preserved unchanged by the runner and deliberately absent here, not missing from the full answer. "
+                "Full-assignment counts and length do not apply to this subset. Verify retained_answers reasons against "
+                "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
-                "consolidation inventory limits separately; correcting prose does not repair the inventory. "
+                "consolidation inventory limits separately in material_findings; correcting prose does not repair the inventory. "
+                "For every check, including added checks, set scope to answer if it concerns the corrected answer "
+                "or an upstream defect still affects that answer; use upstream_only only for inventory defects with no "
+                "remaining effect on the corrected answer. A check covering both is answer; unresolved scope is unknown. "
+                "Explain that scope against the supplied sources and candidate. Scope describes remaining effect, not defect origin. "
+                "Keep internal review and inventory diagnostics out of answer and limits; preserve source-supported limitations "
+                "that matter to the user's question. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
                 + render_evidence(recheck_request))
-            recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema())
+            recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema(scoped_checks=True))
             recheck = read(recheck_path)
-            check_assessment(recheck, {"assessment_only": {"checks": checks}})
+            check_assessment(recheck, {"assessment_only": {"checks": checks}}, scoped_checks=True)
         persist(self.root / "assessment-recheck/result.json", {"response": str(recheck_path),
             "response_sha256": hash_file(recheck_path), "saved_replay": bool(self.replay)})
         result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
@@ -667,7 +689,8 @@ class FiniteRun:
         if not self.replay:
             # Preserve the candidate even when it cannot replace the frozen original.
             remaining = material_answer_findings(recheck["material_findings"], for_correction=False)
-            failed_checks = [c for c in recheck["check_results"] if c["status"] in {"fail", "uncertain"}]
+            failed_checks = [c for c in recheck["check_results"]
+                             if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
             accepted = not remaining and not failed_checks
             unchanged = corrected == answer
             result["answer_correction_candidate"] = result["final_answer"]
@@ -677,6 +700,7 @@ class FiniteRun:
             if not accepted or unchanged:
                 result["final_answer"] = str(original_path)
             result["affected_recheck_material_findings"] = recheck["material_findings"]
+            result["affected_recheck_check_results"] = recheck["check_results"]
             # A rejected candidate's findings stay above; retaining the original
             # does not discharge its original nominations or declare it successful.
             original_remaining = material_answer_findings(assessment["material_findings"], for_correction=False)

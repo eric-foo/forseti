@@ -2735,8 +2735,10 @@ one correction of explicitly identified answer questions for open `blocker` or
 `major` answer defects, followed by one affected-scope source recheck. Minor
 findings remain reported without automatic correction. Existing severity/effect
 judgment supplies this decision; no extra triage call is added. Change affected
-claims and necessary context; mechanically preserve unaffected answers. Remaining
-inventory defects remain visible. The full assessor receives the exact answer
+claims and necessary context; mechanically preserve unaffected answers. Necessary
+context includes merging overlapping descriptions of the same source event rather
+than counting them as separate events. Remaining inventory defects stay visible.
+The full assessor receives the exact answer
 questions and worker instructions as `answer_commission`; the broader source
 research question does not expand that answer scope. A live post-assessment
 correction returns `finite_answer_correction_v1`: replacement `answers` and
@@ -2744,6 +2746,12 @@ correction returns `finite_answer_correction_v1`: replacement `answers` and
 Rejected nominations belong in retention reasons, never replacement answer prose.
 The runner copies retained answers unchanged and submits those dispositions to
 the existing recheck. No extra provider call is added.
+Live correction and recheck receive the original full `answer_commission`
+separately from `affected_questions`. Only that subset is repaired and reviewed;
+the runner preserves other answers unchanged. Full-assignment counts and length
+do not apply to the subset. Answer prose and limits retain source-supported
+scope and uncertainty relevant to the question; internal review, extraction and
+consolidation defects stay in assessment findings, not user-facing answers.
 The returned `material_findings` stay those of
 the initial assessment; a live post-assessment correction also returns the
 recheck's own `affected_recheck_material_findings`. A correction with unknown
@@ -2757,8 +2765,21 @@ completion never closes those defects. Current-answer and uncertain material
 findings remain visible even when their artifact labels cannot route a correction.
 An affected-scope recheck cannot clear original findings outside its nominations.
 A live candidate replaces the frozen original only when the recheck reports no
-open material answer defects and no failed or uncertain checks; minor findings
-and partial checks alone do not prevent adoption. Rejected candidates remain at
+open material answer defects and no failed or uncertain answer or unknown-scope
+checks; minor findings and partial checks alone do not prevent adoption.
+Live affected rechecks use `finite_source_assessment_v2`, requiring each check's
+`scope` to be `answer`, `upstream_only`, or `unknown`, including added checks.
+`upstream_only` means the remaining defect has no effect on the corrected answer,
+not merely that it originated upstream. Mixed answer/inventory checks are
+`answer`; unresolved scope is `unknown`. An explicit answer reference on an open
+material finding remains answer-relevant regardless of its origin. No check-scope
+label can clear such a finding. All recheck findings and checks remain exposed as
+`affected_recheck_material_findings` and `affected_recheck_check_results`;
+`answer_correction_failed_checks` contains the checks that block answer adoption.
+An accepted answer does not repair or certify the frozen inventory or consolidation.
+The initial assessment retains v1. An old or unscoped report cannot authorize a
+live correction; historical replay retains its saved schema and selection semantics.
+Rejected candidates remain at
 `answer_correction_candidate`, with their recheck findings and failed checks.
 `final_answer` then retains the original, its original nominations remain open,
 and `answer_material_status` explicitly requires adjudication. Retention is not

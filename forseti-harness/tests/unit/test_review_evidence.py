@@ -34,7 +34,7 @@ def test_complete_roundtrip_retains_origins_conditions_opposition_and_literal_ma
 
 
 @pytest.mark.parametrize("severity,origin", [("minor", "current_answer"), ("major", "current_consolidation")])
-def test_minor_or_inventory_only_finding_does_not_spend_answer_correction(tmp_path, severity, origin):
+def test_minor_or_consolidation_origin_finding_does_not_spend_answer_correction(tmp_path, severity, origin):
     run, answer = answer_fixture(tmp_path)
     path = run.root / "answer.json"
     finite.persist(path, answer)
@@ -48,9 +48,9 @@ def test_minor_or_inventory_only_finding_does_not_spend_answer_correction(tmp_pa
     assert (result["answer_corrections"], result["affected_rechecks"]) == (0, 0)
     assert assessment == before
     if severity == "major":
-        # A cross-reference to the answer does not move an inventory defect
-        # into the answer; the reviewer's introduced_at judgment still owns it.
-        assert result["remaining_material_answer_findings"] == []
+        # Origin does not discharge an explicitly answer-relevant open defect.
+        assert result["remaining_material_answer_findings"] == [finding]
+        assert result["answer_material_status"] == "material_defects_remain"
 
 
 @pytest.mark.parametrize("origin", ["uncertain", "historical_answer"])
@@ -121,9 +121,9 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     view = {"propositions": [{"semantic_relations": {"supports": ["known::u"], "opposes": ["opposition::u"]}}]}
     patch = {"schema_version": "finite_answer_correction_v1", "retained_answers": [],
              "answers": [{**answer["answers"][0], "answer": "corrected"}]}
-    recheck = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "complete",
+    recheck = {"schema_version": "finite_source_assessment_v2", "inventory_coverage": "complete",
                "comparison": "fixture", "unassessed_material": "none", "overall_usefulness": "material issue remains",
-               "check_results": [{"check_id": "contrast", "status": "fail", "source_refs": ids,
+               "check_results": [{"check_id": "contrast", "scope": "answer", "status": "fail", "source_refs": ids,
                                   "finding_refs": [], "explanation": "fixture"}],
                "material_findings": [{**finding, "defect": "still wrong", "effect": "misleads", "bounded_repair": "reject"}]}
     launches = []
