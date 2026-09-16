@@ -149,6 +149,7 @@ class FiniteRun:
         self.consumed_repairs = set()
         self.completed_recoveries = {}
         self.consumed_recoveries = set()
+        self.grouping_rejections = {}
         for name, supplied in getattr(args, "completed_recovery", []):
             if (self.replay or name in self.completed_recoveries
                     or not re.fullmatch(r"(?:formation|finish)/provider/reconcile-\d{4}-\d{4}", name)):
@@ -309,6 +310,21 @@ class FiniteRun:
                 receipt = native.validate_one_reconciliation_response(self.bundle, stage, read(response))
                 persist(self.root / phase / "accepted" / f"{index:04d}.json",
                     {"response": str(response), "response_sha256": hash_file(response), "validation": receipt})
+                return response
+            if isinstance(exc, semantic.UnsupportedFinishGroupings):
+                successor, rejection = semantic.reject_unsupported_finish_groupings(self.bundle, stage, read(response))
+                original = response
+                response = base / "retained/response.json"
+                persist(response, successor)
+                receipt = native.validate_one_reconciliation_response(self.bundle, stage, read(response))
+                record_path = base / "retained/rejection.json"
+                persist(record_path, {**rejection, "original_response": str(original),
+                    "original_response_sha256": hash_file(original), "successor": str(response),
+                    "successor_sha256": hash_file(response)})
+                self.grouping_rejections[key] = str(record_path)
+                persist(self.root / phase / "accepted" / f"{index:04d}.json",
+                    {"response": str(response), "response_sha256": hash_file(response),
+                     "validation": receipt, "grouping_rejection": str(record_path)})
                 return response
             request = semantic.prepare_reconciliation_definition_recovery(self.bundle, stage, read(response))
             # Existing native definition recovery admits only exact frozen assignments.
@@ -639,12 +655,14 @@ class FiniteRun:
             receipts = {str(p.resolve()) for p in self.provider_root.rglob("attempts/*/execution_receipt.json")}
             recoveries = [read(p) for p in sorted(self.provider_root.rglob("job/recovery-002.json"))]
             receipts.update(str(Path(r["attempt_dir"]) / "execution_receipt.json") for r in recoveries)
-            recovered = bool(recoveries) or any(read(Path(p))["outcome"] != "PROCESS_COMPLETED" for p in receipts)
+            rejections = list(getattr(self, "grouping_rejections", {}).values())
+            recovered = bool(recoveries or rejections) or any(read(Path(p))["outcome"] != "PROCESS_COMPLETED" for p in receipts)
             result.update(status="SAVED_REPLAY_COMPLETE" if self.replay else (
                               "FINITE_EXECUTION_RECOVERED_QUALITY_REQUIRES_ADJUDICATION" if recovered
                               else "FINITE_EXECUTION_COMPLETE_QUALITY_REQUIRES_ADJUDICATION"),
                           coverage=counts, output_dir=str(self.root), provider_root=str(self.provider_root),
                           provider_recoveries=recoveries, provider_execution_receipts=sorted(receipts),
+                          grouping_rejections=rejections,
                           provider_usage="listed original and recovery receipts; unknown remains unknown; completed-turn usage may omit startup warmup and hidden requests")
             persist(self.root / "result.json", result)
             return result

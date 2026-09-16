@@ -1018,6 +1018,15 @@ class MissingReconciliationDefinitions(SemanticIntegrationError):
                          + ", ".join(self.bindings))
 
 
+class UnsupportedFinishGroupings(SemanticIntegrationError):
+    """Single-row finish groups; all other batch validation has passed."""
+
+    def __init__(self, groups):
+        self.groups = groups
+        super().__init__(f"convergence semantic node {groups[0]['semantic_node_key']} "
+                         "lacks repeated source-row support")
+
+
 def _json_bytes(value: Any) -> bytes:
     return json.dumps(
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
@@ -7855,6 +7864,7 @@ def validate_reconciliation_stage(
     elif reconciliation_policy is not None or reconciliation_mode is not None:
         raise SemanticIntegrationError("reconciliation stage carries unknown policy")
     seen_batches: set[str] = set()
+    unsupported_finish_groups: list[dict[str, Any]] = []
     nodes: list[dict[str, Any]] = list(carried_terminal_nodes)
     unmerged: list[dict[str, Any]] = list(stage["carried_unmerged_semantic_units"])
     unmerged_candidate_refs: set[str] = set()
@@ -7890,6 +7900,8 @@ def validate_reconciliation_stage(
         if batch_id not in expected_batches or batch_id in seen_batches:
             raise SemanticIntegrationError("unknown or duplicate reconciliation batch")
         allowed = set(expected_batches[batch_id]["candidate_refs"])
+        can_reject_grouping = (finite_phase == "finish"
+                              and response["schema_version"] == RECONCILIATION_RESPONSE_VERSION_V3)
         if response["schema_version"] == RECONCILIATION_RESPONSE_VERSION_V3:
             if bundle.get("method_version") not in {METHOD_VERSION_V7, METHOD_VERSION_V12, METHOD_VERSION_V13}:
                 raise SemanticIntegrationError("decision reconciliation requires verified method v7 or current method v12 or v13")
@@ -7994,9 +8006,15 @@ def validate_reconciliation_stage(
                     if stance == "support"
                 }
                 if len(supporting_rows) < 2:
-                    raise SemanticIntegrationError(
-                        f"convergence semantic node {key} lacks repeated source-row support"
-                    )
+                    if can_reject_grouping and len(supporting_rows) == 1:
+                        # Finish every other batch check before exposing a
+                        # recoverable rejection; never mask a second defect.
+                        unsupported_finish_groups.append({"batch_id": batch_id,
+                            "semantic_node_key": key, "candidate_refs": sorted(child_seen)})
+                    else:
+                        raise SemanticIntegrationError(
+                            f"convergence semantic node {key} lacks repeated source-row support"
+                        )
             if set(emerging) != child_emerging_labels:
                 raise SemanticIntegrationError(
                     f"semantic node {key} does not preserve the exact union of child emerging-axis labels"
@@ -8170,6 +8188,8 @@ def validate_reconciliation_stage(
         seen_batches.add(batch_id)
     if require_all and seen_batches != set(expected_batches):
         raise SemanticIntegrationError("not all reconciliation batches were submitted")
+    if unsupported_finish_groups:
+        raise UnsupportedFinishGroupings(unsupported_finish_groups)
     if not require_all:
         receipt = {
             "schema_version": "semantic_evidence_reconciliation_validation_v1",
@@ -8250,6 +8270,33 @@ def validate_reconciliation_stage(
             result["finite_replay"] = {"stage": dict(stage), "responses": list(responses)}
     result["node_compilation_sha256"] = _sha256(result)
     return result
+
+
+def reject_unsupported_finish_groupings(bundle, stage, response):
+    """Decline invalid groups, preserving candidates through existing retention.
+
+    This produces a separately validated successor, never acceptance of the
+    original response or a new semantic judgment. Required findings cannot be
+    retired, and unrelated defects still fail the unchanged validator rules.
+    """
+    try:
+        validate_reconciliation_stage(bundle, stage, [response], require_all=False)
+    except UnsupportedFinishGroupings as exc:
+        groups = exc.groups
+    else:
+        raise SemanticIntegrationError("response has no unsupported finish grouping to reject")
+    rejected = {group["semantic_node_key"] for group in groups}
+    refs = {ref for group in groups for ref in group["candidate_refs"]}
+    successor = deepcopy(response)
+    successor["semantic_nodes"] = [row for row in successor["semantic_nodes"]
+                                   if row["semantic_node_key"] not in rejected]
+    reason = ("Grouping rejected: only one distinct supporting source row; "
+              "original candidate retained as retrievable unmerged evidence.")
+    for ref in refs:
+        successor["decisions_by_candidate_ref"][ref] = {"attachments": [], "unmerged_reason": reason}
+    validation = validate_reconciliation_stage(bundle, stage, [successor], require_all=False)
+    return successor, {"rejected_groups": groups, "retained_candidate_refs": sorted(refs),
+        "reason": reason, "model_api_calls": 0, "validation": validation}
 
 
 def diagnose_reconciliation_response(

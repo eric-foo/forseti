@@ -2660,8 +2660,20 @@ tokens can include startup warmup omitted from ordinary completed-turn usage;
 these are overlapping observations, never additive accounting totals.
 The first job is natively validated before parallel expansion. Exact-assignment
 missing-definition recovery may consume at most four corrective calls across
-the run. Other failures stop with their original responses and diagnostics;
-the entry does not invent a local repair nomination or chain semantic edits.
+the run. A decision-only finite finish response whose only batch defects are
+groups supported by exactly one source row may instead decline those groups
+without a model call. The validator checks the rest of the batch before allowing
+this path. The entry preserves the original failure and response, removes only
+the rejected definitions, and leaves their unchanged input candidates explicitly
+retrievable as unmerged evidence. A separately stored successor must pass the
+same native validation, including required-finding retention; the complete stage
+and downstream finding/residual coverage are still checked. Existing repeated
+findings cannot be discarded to make this path pass. Changed durable successors
+are rejected on resume. `grouping_rejections` in the final result points to the
+records and marks execution as recovered, never semantic quality acceptance.
+Formation, zero-support groups, malformed or mixed failures, and other failures
+still stop or use the existing bounded recovery routes. The entry does not invent
+new meanings, broaden a claim to meet the source-row floor, or chain semantic edits.
 
 For a stopped run with an explicitly nominated, already accepted local repair,
 repeat the same invocation and add:
