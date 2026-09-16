@@ -99,6 +99,35 @@ def answer_generation_schema(questions, source_rows, semantic_units):
     return schema
 
 
+def answer_correction_schema(questions, source_rows, semantic_units):
+    """A rejected nomination has a disposition, never replacement answer prose."""
+    schema = answer_generation_schema(questions, source_rows, semantic_units)
+    schema["properties"]["schema_version"]["const"] = "finite_answer_correction_v1"
+    schema["properties"]["answers"]["minItems"] = 0
+    schema["required"].append("retained_answers")
+    schema["properties"]["retained_answers"] = {
+        "type": "array", "maxItems": len(questions), "items": {
+            "type": "object", "additionalProperties": False, "required": ["question_id", "reason"],
+            "properties": {"question_id": {"type": "string", "enum": [q["id"] for q in questions]},
+                           "reason": {"type": "string", "minLength": 1}}}}
+    return schema
+
+
+def answer_correction_patch(original, proposal, questions):
+    replaced = [a["question_id"] for a in proposal["answers"]]
+    retained = [a["question_id"] for a in proposal["retained_answers"]]
+    ids = [q["id"] for q in questions]
+    if (len(replaced + retained) != len(set(replaced + retained))
+            or set(replaced + retained) != set(ids)):
+        raise ValueError("correction must replace or retain each affected question exactly once")
+    if replaced != [q for q in ids if q in replaced] or retained != [q for q in ids if q in retained]:
+        raise ValueError("correction question identities/order differ")
+    replacements = {a["question_id"]: a for a in proposal["answers"]}
+    originals = {a["question_id"]: a for a in original["answers"]}
+    return {"schema_version": "finite_answer_v1",
+            "answers": [replacements.get(q, originals[q]) for q in ids]}
+
+
 def assessment_schema():
     text = {"type": "string"}
     refs = {"type": "array", "items": text}
@@ -449,6 +478,8 @@ class FiniteRun:
             raise ValueError("source assessment lacks bound source-artifact locators")
         assessment_source["unreferenced_locator_count_not_assessed"] = len(self.source["source_artifacts"]) - len(reachable)
         assessment_input = {"current_answer": answer, "previously_completed_answer_for_comparison": read(self.args.previous_answer),
+            "answer_commission": {"questions": self.questions["questions"],
+                                  "worker_instructions": self.questions["worker_instructions"]},
             "assessment_checks": self.questions["assessment_only"], "current_final_view": view,
             "complete_frozen_source": assessment_source, "complete_frozen_verified_evidence": self.verified,
             "scope": self.questions["coverage"]}
@@ -531,6 +562,10 @@ class FiniteRun:
             raise ValueError("assessment correction scope contains unknown question identity")
         persist(self.provider_root / "answer-correction/allowance.json", {
             "kind": "post_assessment", "original_answer": answer, "affected_question_ids": sorted(affected)})
+        if not self.replay:
+            original_path = Path(read(self.root / "answer/freeze.json")["response"])
+            if read(original_path) != answer:
+                raise ValueError("frozen original answer differs before correction")
         refs = {r for f in nominations for r in f["source_refs"]}
         known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
         known_ids = {r["evidence_id"] for r in self.source["captured_items"]}
@@ -546,7 +581,8 @@ class FiniteRun:
         ids.update(known_units[r] for p in related for rs in p["semantic_relations"].values() for r in rs)
         if ids - known_ids:
             raise ValueError("correction lacks required source bodies")
-        request = {"questions": questions, "original_affected_answers": [a for a in answer["answers"] if a["question_id"] in affected],
+        request = {"questions": questions, "worker_instructions": self.questions["worker_instructions"],
+            "original_affected_answers": [a for a in answer["answers"] if a["question_id"] in affected],
             "nominations_to_verify_against_sources": nominations,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids],
@@ -568,11 +604,17 @@ class FiniteRun:
                 "Verify assessor nominations against the supplied raw source rows and verified units. Preserve source role, "
                 "scope, conditions, opposition, uncertainty and intent versus action; do not turn enjoyed attributes into motives. "
                 "An upstream omission stays an upstream inventory defect even when source context repairs the answer. "
-                "Cite evidence IDs or semantic unit refs. Return only affected questions in supplied order using the response schema.\n\n"
+                "The supplied questions and worker_instructions define answer scope. For each affected question, return either "
+                "a replacement in answers or its question_id and reason in retained_answers when no supported correction is needed. "
+                "Retained answers are copied unchanged by the runner. Put nomination disputes only in retained_answers.reason, "
+                "never in answer or limits text. Cite evidence IDs or semantic unit refs. Account for every affected question "
+                "exactly once, preserving supplied order within each list.\n\n"
                 + render_evidence(request))
-            patch_path = self.job("answer-correction/provider", prompt, answer_generation_schema(
-                questions, request["complete_relevant_source_rows"], request["verified_units"]))
-            patch = read(patch_path)
+            schema = answer_correction_schema(questions, request["complete_relevant_source_rows"], request["verified_units"])
+            patch_path = self.job("answer-correction/provider", prompt, schema)
+            proposal = read(patch_path)
+            Draft202012Validator(schema).validate(proposal)
+            patch = answer_correction_patch(answer, proposal, questions)
         check_answer(patch, questions, self.bundle, self.verified)
         corrected = compose_answer_patch(answer, patch, affected)
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
@@ -593,6 +635,8 @@ class FiniteRun:
             "current_findings": recheck_findings,
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
+        if not self.replay:
+            recheck_request["retained_answers"] = proposal["retained_answers"]
         persist(self.root / "assessment-recheck/input.json", recheck_request)
         if self.replay:
             self.check_saved_input("assessment-recheck", "affected_recheck_input_json")
@@ -606,6 +650,9 @@ class FiniteRun:
         else:
             prompt = ("Output mode: chat-only. Edit permission: read-only. Perform one source-backed affected-scope recheck "
                 "of the corrected answers and original nominations. Check every material changed assertion and citation. "
+                "Verify retained_answers reasons against the actual questions and worker_instructions; retained answer text "
+                "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
+                "report any unresolved material defect in the candidate answers as open. "
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
                 "consolidation inventory limits separately; correcting prose does not repair the inventory. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
@@ -618,11 +665,27 @@ class FiniteRun:
         result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
                   "affected_recheck": str(recheck_path), "answer_corrections": 1, "affected_rechecks": 1}
         if not self.replay:
-            # Initial material_findings predate the correction; surface the recheck's own findings.
+            # Preserve the candidate even when it cannot replace the frozen original.
+            remaining = material_answer_findings(recheck["material_findings"], for_correction=False)
+            failed_checks = [c for c in recheck["check_results"] if c["status"] in {"fail", "uncertain"}]
+            accepted = not remaining and not failed_checks
+            unchanged = corrected == answer
+            result["answer_correction_candidate"] = result["final_answer"]
+            result["answer_correction_status"] = (
+                "rejected" if not accepted else "original_retained" if unchanged else "accepted")
+            result["answer_correction_failed_checks"] = failed_checks
+            if not accepted or unchanged:
+                result["final_answer"] = str(original_path)
             result["affected_recheck_material_findings"] = recheck["material_findings"]
-            result["remaining_material_answer_findings"] = material_answer_findings(recheck["material_findings"], for_correction=False)
+            # A rejected candidate's findings stay above; retaining the original
+            # does not discharge its original nominations or declare it successful.
+            original_remaining = material_answer_findings(assessment["material_findings"], for_correction=False)
+            result["remaining_material_answer_findings"] = (
+                [f for f in original_remaining if f not in nominations] if accepted else original_remaining)
             result["answer_material_status"] = (
-                "material_defects_remain" if result["remaining_material_answer_findings"] else "no_open_material_answer_defects_reported")
+                "correction_rejected_original_requires_adjudication" if not accepted
+                else "material_defects_remain" if result["remaining_material_answer_findings"]
+                else "no_open_material_answer_defects_reported")
         return result
 
     def check_saved_input(self, directory, tag):
@@ -717,7 +780,9 @@ def render_assessment(request):
     return ("Output mode: chat-only. Edit permission: read-only. The input below is run-authoritative. "
             "Perform the commissioned source-backed assessment of every current finding meaning, condition, assignment "
             "and residual disposition, plus the frozen checks and additional inventory checks. Prior answers are comparison, "
-            "not truth. Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
+            "not truth. Judge answer coverage against answer_commission.questions and worker_instructions. The broader "
+            "complete_frozen_source.question defines research inventory scope; it does not expand the commissioned answers. "
+            "Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
             "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. Cite exact source "
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
             "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "

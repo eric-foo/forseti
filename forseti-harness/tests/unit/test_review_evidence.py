@@ -61,6 +61,17 @@ def test_uncertain_origin_and_corrected_answer_major_remain_visible(origin):
     assert material_answer_findings([finding], for_correction=False) == [finding]
 
 
+@pytest.mark.parametrize("reference", [
+    "corrected_affected_answers:one", "corrected_affected_answers.evidence_refs", "unrecognized_label", "",
+])
+def test_current_answer_defect_cannot_disappear_through_reference_spelling(reference):
+    # The real recheck used its input field name, not the filter's corrected_answer prefix.
+    finding = {"severity": "blocker", "status": "open", "introduced_at": "current_answer",
+               "artifact_refs": [reference]}
+    assert material_answer_findings([finding], for_correction=False) == [finding]
+    assert material_answer_findings([finding]) == []  # Unknown routing never guesses a question.
+
+
 def test_patch_cannot_change_or_omit_unaffected_answer():
     original = {"answers": [{"question_id": "one", "answer": "bad"}, {"question_id": "two", "answer": "fixed"}]}
     patch = {"answers": [{"question_id": "one", "answer": "repaired"}]}
@@ -96,6 +107,9 @@ def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answe
 @pytest.mark.parametrize("missing_body", [False, True])
 def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path, missing_body):
     run, answer = answer_fixture(tmp_path)
+    original_path = run.root / "original.json"
+    finite.persist(original_path, answer)
+    finite.persist(run.root / "answer/freeze.json", {"response": str(original_path)})
     ids = ["known", "opposition", "check-only"]
     run.source = {"captured_items": [{"evidence_id": e, "text": e + " original source body"}
                                      for e in ids if not (missing_body and e == "check-only")]}
@@ -105,7 +119,8 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     finding = {"severity": "major", "status": "open", "introduced_at": "current_answer",
                "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}
     view = {"propositions": [{"semantic_relations": {"supports": ["known::u"], "opposes": ["opposition::u"]}}]}
-    patch = {"schema_version": "finite_answer_v1", "answers": [{**answer["answers"][0], "answer": "corrected"}]}
+    patch = {"schema_version": "finite_answer_correction_v1", "retained_answers": [],
+             "answers": [{**answer["answers"][0], "answer": "corrected"}]}
     recheck = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "complete",
                "comparison": "fixture", "unassessed_material": "none", "overall_usefulness": "material issue remains",
                "check_results": [{"check_id": "contrast", "status": "fail", "source_refs": ids,
@@ -130,5 +145,7 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
         assert launches == ["answer-correction/provider"]
     else:
         result = run.correct_and_recheck(answer, {"material_findings": [finding]}, view)
-        assert result["answer_material_status"] == "material_defects_remain"
+        assert result["answer_material_status"] == "correction_rejected_original_requires_adjudication"
+        assert finite.read(result["final_answer"]) == answer
+        assert result["affected_recheck_material_findings"] == recheck["material_findings"]
         assert len(launches) == 2

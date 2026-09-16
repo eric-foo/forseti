@@ -2736,7 +2736,15 @@ one correction of explicitly identified answer questions for open `blocker` or
 findings remain reported without automatic correction. Existing severity/effect
 judgment supplies this decision; no extra triage call is added. Change affected
 claims and necessary context; mechanically preserve unaffected answers. Remaining
-inventory defects remain visible. The returned `material_findings` stay those of
+inventory defects remain visible. The full assessor receives the exact answer
+questions and worker instructions as `answer_commission`; the broader source
+research question does not expand that answer scope. A live post-assessment
+correction returns `finite_answer_correction_v1`: replacement `answers` and
+`retained_answers` (question ID and reason) partition the affected questions.
+Rejected nominations belong in retention reasons, never replacement answer prose.
+The runner copies retained answers unchanged and submits those dispositions to
+the existing recheck. No extra provider call is added.
+The returned `material_findings` stay those of
 the initial assessment; a live post-assessment correction also returns the
 recheck's own `affected_recheck_material_findings`. A correction with unknown
 source or question references fails rather than guessing its scope.
@@ -2745,7 +2753,16 @@ findings. Recheck context includes every source body named by the selected
 frozen checks and displayed findings; missing bodies fail before the recheck.
 `answer_material_status` and `remaining_material_answer_findings` expose open
 material answer defects after the single correction allowance is spent; process
-completion never closes those defects.
+completion never closes those defects. Current-answer and uncertain material
+findings remain visible even when their artifact labels cannot route a correction.
+An affected-scope recheck cannot clear original findings outside its nominations.
+A live candidate replaces the frozen original only when the recheck reports no
+open material answer defects and no failed or uncertain checks; minor findings
+and partial checks alone do not prevent adoption. Rejected candidates remain at
+`answer_correction_candidate`, with their recheck findings and failed checks.
+`final_answer` then retains the original, its original nominations remain open,
+and `answer_material_status` explicitly requires adjudication. Retention is not
+a success fallback. An accepted all-retained proposal keeps the original path.
 
 Answer, full source assessment, correction and affected recheck use the shared
 lossless renderer in `judgment/review_evidence.py`. Repeated text and structured
@@ -2786,8 +2803,10 @@ provider receipts; it does not treat file existence or a prior process exit as
 acceptance. Each provider invocation saves its stdout, stderr and exit status,
 plus a separate result JSON whenever the job runner returns a job result; a
 refused or unknown job has none. `result.json` carries the endpoint and evidence
-paths; its `final_answer` always points to the accepted answer object, not freeze
-metadata. Nonzero entry exits save `failure-*.json`. Preserve partial outputs
+paths; its `final_answer` points to the selected answer object, not freeze
+metadata or an automatically promoted correction. Selection is not quality
+acceptance; read its material and correction status. Nonzero entry exits save
+`failure-*.json`. Preserve partial outputs
 and unknown usage.
 
 For deterministic replay of the saved complete finite experiment layout, add

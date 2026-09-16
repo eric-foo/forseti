@@ -130,11 +130,17 @@ def render_evidence(value):
 
 def material_answer_findings(findings, *, for_correction=True):
     """Consume existing reviewer judgments; do not introduce another triage call."""
-    return [f for f in findings if f["status"] == "open" and f["severity"] in {"blocker", "major"}
-            and f["introduced_at"] in ({"current_answer", "frozen_upstream"} if for_correction
-                                       else {"current_answer", "frozen_upstream", "uncertain", "historical_answer"})
-            and any(r.startswith("current_answer:") or (not for_correction and r.startswith("corrected_answer:"))
-                    for r in f["artifact_refs"])]
+    material = [f for f in findings if f["status"] == "open" and f["severity"] in {"blocker", "major"}]
+    if for_correction:
+        # Routing a paid correction still requires an explicit current question.
+        return [f for f in material if f["introduced_at"] in {"current_answer", "frozen_upstream"}
+                and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
+    # Reporting must not erase a current/uncertain defect because its locator
+    # differs from the routing syntax. Inventory-only findings remain separate.
+    answer_fields = {"current_answer", "corrected_answer", "corrected_affected_answers", "original_affected_answers"}
+    return [f for f in material if f["introduced_at"] in {"current_answer", "uncertain"}
+            or (f["introduced_at"] in {"frozen_upstream", "historical_answer"}
+                and any(re.split(r"[:.\[]", r, maxsplit=1)[0] in answer_fields for r in f["artifact_refs"]))]
 
 
 def compose_answer_patch(original, patch, affected):

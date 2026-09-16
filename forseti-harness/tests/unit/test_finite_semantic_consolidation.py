@@ -555,6 +555,40 @@ def test_initial_answer_call_uses_live_choices_but_retains_historical_schema(tmp
             run.answer_and_assess(view, {}, {})
 
 
+def test_assessment_receives_actual_answer_commission(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    run.questions.update(worker_instructions="Answer only the two supplied questions.", coverage="fixture")
+    run.questions["questions"] = [{"id": "one", "question": "The first narrow question?"},
+                                 {"id": "two", "question": "The second narrow question?"}]
+    run.questions["assessment_only"] = {"checks": []}
+    run.verified["evidence_dispositions"] = []
+    run.source = {"question": "A much broader research question?", "captured_items": [], "source_artifacts": []}
+    run.args = Namespace(previous_answer=tmp_path / "prior.json")
+    finite.persist(run.args.previous_answer, answer)
+    response = tmp_path / "answer.json"
+    finite.persist(response, answer)
+
+    class CapturedAssessment(Exception):
+        pass
+
+    def job(name, prompt, schema, **kwargs):
+        if name == "answer/provider":
+            assert "assessment_checks" not in prompt
+            return response
+        assert name == "assessment/provider"
+        request = finite.read(run.root / "assessment/input.json")
+        assert request["answer_commission"] == {
+            "questions": run.questions["questions"], "worker_instructions": run.questions["worker_instructions"]}
+        assert all(q["question"] in prompt for q in run.questions["questions"])
+        assert run.questions["worker_instructions"] in prompt
+        assert request["complete_frozen_source"]["question"] == run.source["question"]
+        raise CapturedAssessment
+
+    run.job = job
+    with pytest.raises(CapturedAssessment):
+        run.answer_and_assess({"propositions": [], "unmerged_semantic_units": []}, {}, [])
+
+
 def test_assessment_allows_extra_checks_but_not_missing_frozen_checks():
     questions = {"assessment_only": {"checks": [{"id": "one"}, {"id": "two"}]}}
     result = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "fixture",
@@ -613,7 +647,7 @@ def test_finite_provider_failure_stops_before_response_consumption(tmp_path, mon
 def answer_fixture(tmp_path):
     run = object.__new__(finite.FiniteRun)
     run.root, run.provider_root, run.replay = tmp_path / "successor", tmp_path / "original", None
-    run.questions = {"questions": [{"id": "one"}, {"id": "two"}]}
+    run.questions = {"questions": [{"id": "one"}, {"id": "two"}], "worker_instructions": "Answer the supplied questions."}
     run.bundle = {"evidence_units": [{"evidence_id": "known"}]}
     run.verified = {"semantic_units": []}
     answer = {"schema_version": "finite_answer_v1", "answers": [
@@ -677,8 +711,14 @@ def test_other_answer_failures_do_not_enter_unknown_citation_recovery(tmp_path):
     assert not (run.provider_root / "answer-correction/allowance.json").exists()
 
 
-def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_findings(tmp_path):
+@pytest.mark.parametrize("outcome", ["minor", "partial", "retain", "unaddressed", "major", "unknown_locator", "uncertain_origin",
+                                         "failed_check", "uncertain_check"])
+def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path, outcome):
     run, answer = answer_fixture(tmp_path)
+    original_path = run.root / "original.json"
+    finite.persist(original_path, answer)
+    finite.persist(run.root / "answer/freeze.json", {"response": str(original_path)})
+    original_bytes = original_path.read_bytes()
     run.source = {"captured_items": [{"evidence_id": "known"}, {"evidence_id": "outside"}]}
     run.bundle["evidence_units"].append({"evidence_id": "outside"})
     run.verified["semantic_units"] = [{"evidence_id": ref, "semantic_unit_ref": ref + "::u"}
@@ -686,13 +726,29 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
     run.questions["assessment_only"] = {"checks": [{"id": "anchored", "source_rows": ["known"]}]}
     assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}]}
-    patch = {"schema_version": "finite_answer_v1", "answers": [{**answer["answers"][0], "answer": "corrected"}]}
+    patch = {"schema_version": "finite_answer_correction_v1", "retained_answers": [],
+             "answers": [{**answer["answers"][0], "answer": "corrected"}]}
     new_defect = {"severity": "minor", "introduced_at": "current_answer", "status": "open", "source_refs": ["known"],
         "artifact_refs": ["current_answer:one"], "defect": "fixture", "effect": "fixture", "bounded_repair": "fixture"}
     recheck = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "fixture", "comparison": "fixture",
         "unassessed_material": "fixture", "overall_usefulness": "fixture", "material_findings": [new_defect],
         "check_results": [{"check_id": "anchored", "status": "pass", "source_refs": ["known"], "finding_refs": [],
                            "explanation": "fixture"}]}
+    if outcome == "retain":
+        patch.update(answers=[], retained_answers=[{"question_id": "one", "reason": "The nomination expands question scope."}])
+        new_defect["status"] = "not_a_defect"
+    elif outcome in {"major", "unknown_locator", "uncertain_origin"}:
+        new_defect.update(severity="blocker", artifact_refs=["corrected_affected_answers:one"])
+        if outcome == "unknown_locator":
+            new_defect["artifact_refs"] = ["unrecognized_input_label"]
+        if outcome == "uncertain_origin":
+            new_defect["introduced_at"] = "uncertain"
+    elif outcome in {"failed_check", "uncertain_check", "partial"}:
+        recheck["check_results"][0]["status"] = {"failed_check": "fail", "uncertain_check": "uncertain", "partial": "partial"}[outcome]
+    if outcome == "unaddressed":
+        assessment["material_findings"].append({"severity": "major", "status": "open", "introduced_at": "current_answer",
+                                               "artifact_refs": ["unroutable_other_question"]})
+    accepted = outcome in {"minor", "partial", "retain", "unaddressed"}
     responses = {"answer-correction/provider": run.provider_root / "patch.json",
                  "assessment-recheck/provider": run.provider_root / "recheck.json"}
     finite.persist(responses["answer-correction/provider"], patch)
@@ -704,22 +760,75 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
             choices = schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"]
             assert choices == ["known", "known::u"]
             bad = deepcopy(patch)
-            for ref in ("outside", "outside::u", "prop_supplied_finding"):
+            for ref in (() if outcome == "retain" else ("outside", "outside::u", "prop_supplied_finding")):
                 bad["answers"][0]["evidence_refs"] = [ref]
                 with pytest.raises(ValidationError) as failure:
                     Draft202012Validator(schema).validate(bad)
                 assert failure.value.validator == "enum"
             Draft202012Validator(schema).validate(patch)
+        else:
+            request = finite.read(run.root / "assessment-recheck/input.json")
+            assert request["retained_answers"] == patch["retained_answers"]
+            assert request["corrected_affected_answers"] == (answer["answers"][:1] if outcome == "retain" else patch["answers"])
         return responses[name]
     run.job = correction_job
     result = run.correct_and_recheck(answer, assessment, {"propositions": []})
     corrected = finite.read(result["final_answer"])
-    assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
+    if accepted and outcome != "retain":
+        assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
+        assert result["answer_correction_status"] == "accepted"
+    else:
+        assert corrected == answer
+        assert Path(result["final_answer"]) == original_path
+        assert result["answer_correction_status"] == ("original_retained" if accepted else "rejected")
+    assert original_path.read_bytes() == original_bytes
+    assert finite.read(result["answer_correction_candidate"])["answers"] == (
+        answer["answers"] if outcome == "retain" else [patch["answers"][0], answer["answers"][1]])
+    assert result["answer_material_status"] == (
+        "material_defects_remain" if outcome == "unaddressed" else "no_open_material_answer_defects_reported" if accepted
+        else "correction_rejected_original_requires_adjudication")
+    assert result["remaining_material_answer_findings"] == (
+        assessment["material_findings"][1:] if outcome == "unaddressed" else [] if accepted else assessment["material_findings"])
     assert launched == ["answer-correction/provider", "assessment-recheck/provider"]
     assert (result["answer_corrections"], result["affected_rechecks"]) == (1, 1)
     assert result["affected_recheck_material_findings"] == [new_defect]
     assert finite.read(run.root / "assessment-recheck/input.json")["frozen_relevant_checks"] == run.questions["assessment_only"]["checks"]
     assert finite.read(run.provider_root / "answer-correction/allowance.json")["kind"] == "post_assessment"
+    # Repeating the consumer over the same saved responses preserves the exact result.
+    assert run.correct_and_recheck(answer, assessment, {"propositions": []}) == result
+
+
+@pytest.mark.parametrize("invalid", ["missing", "overlap", "duplicate_replacement", "duplicate_retention", "foreign", "order"])
+def test_correction_must_partition_questions_without_dropping_or_reordering(tmp_path, invalid):
+    run, answer = answer_fixture(tmp_path)
+    proposal = {"schema_version": "finite_answer_correction_v1", "answers": [answer["answers"][0]],
+                "retained_answers": [{"question_id": "two", "reason": "No defect."}]}
+    if invalid == "missing":
+        proposal["retained_answers"] = []
+    elif invalid == "overlap":
+        proposal["retained_answers"].append({"question_id": "one", "reason": "Conflicting action."})
+    elif invalid == "duplicate_replacement":
+        proposal["answers"] *= 2
+    elif invalid == "duplicate_retention":
+        proposal["retained_answers"] *= 2
+    elif invalid == "foreign":
+        proposal["retained_answers"][0]["question_id"] = "outside"
+    else:
+        proposal.update(answers=list(reversed(answer["answers"])), retained_answers=[])
+    with pytest.raises(ValueError, match="exactly once|identities/order"):
+        finite.answer_correction_patch(answer, proposal, run.questions["questions"])
+
+
+def test_correction_can_mix_a_repair_with_verbatim_retention(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    proposal = {"schema_version": "finite_answer_correction_v1",
+                "answers": [{**answer["answers"][1], "answer": "A supported repair."}],
+                "retained_answers": [{"question_id": "one", "reason": "The original already answers its question."}]}
+    schema = finite.answer_correction_schema(run.questions["questions"], run.bundle["evidence_units"], [])
+    Draft202012Validator(schema).validate(proposal)
+    result = finite.answer_correction_patch(answer, proposal, run.questions["questions"])
+    assert result["answers"] == [answer["answers"][0], proposal["answers"][0]]
+    finite.check_answer(result, run.questions["questions"], run.bundle, run.verified)
 
 
 @pytest.mark.parametrize("kind", ["local-repair successor", "completed-recovery"])
