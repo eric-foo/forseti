@@ -59,7 +59,8 @@ def test_real_interrupted_observer_resume_launches_exactly_once(tmp_path):
 
 
 @pytest.mark.parametrize("command,checker,status,validation", [
-    ("raise SystemExit(7)", "raise SystemExit(0)", "failed", "not_run_execution_failed"),
+    ("import sys; print('before failure', flush=True); print('failure detail', file=sys.stderr, flush=True); raise SystemExit(7)",
+     "raise SystemExit(0)", "failed", "not_run_execution_failed"),
     ("pass", "raise SystemExit(9)", "failed", "failed"),
     ("pass", None, "completed", "not_requested"),
 ])
@@ -69,8 +70,10 @@ def test_real_failure_and_absent_checker_are_not_acceptance(tmp_path, command, c
     result = resume(args.operation_dir, 15)
     assert result["status"] == status
     assert result["required_validation"]["status"] == validation
-    if command.startswith("raise"):
+    if validation == "not_run_execution_failed":
         assert result["execution"]["exit_code"] == 7
+        assert Path(result["execution"]["stdout_path"]).read_text() == "before failure\n"
+        assert Path(result["execution"]["stderr_path"]).read_text() == "failure detail\n"
     if validation == "failed":
         assert result["required_validation"]["exit_code"] == 9
 
@@ -144,6 +147,23 @@ def test_unknown_worker_never_relaunches(tmp_path):
     result = resume(directory)
     assert result["status"] == "unknown"
     assert not (directory / "worker.json").exists()
+
+
+def test_incomplete_observation_returns_carry_resume_recovery(tmp_path):
+    """A caller that lost its observer recovers from the return alone, never by relaunching."""
+    args = options(tmp_path, "import time; time.sleep(2)")
+    running = launch(args)
+    unknown = tmp_path / "unknown"
+    unknown.mkdir()
+    (unknown / "operation.json").write_text(json.dumps({"operation_id": "original"}))
+    for result, state, directory in ((running, "running", Path(args.operation_dir)),
+                                     (observe(unknown), "unknown", unknown)):
+        assert result["status"] == state
+        assert result["resume_argv"] == [sys.executable, "-m", "runners.run_efficiency", "resume",
+                                         "--operation-dir", str(directory.resolve())]
+        assert Path(result["resume_cwd"]) == Path(command_execution.__file__).resolve().parent
+        assert "never start again" in result["wait_contract"]
+    assert resume(args.operation_dir, 15)["status"] == "completed"
 
 
 def test_real_deadline_preserves_timeout(tmp_path):

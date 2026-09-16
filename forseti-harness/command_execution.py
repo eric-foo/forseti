@@ -190,12 +190,14 @@ def observe(directory):
             "wait_contract": (
                 "resume only observes this operation; interrupting it leaves execution running. "
                 "Await exec_command and write_stdin continuations inside one functions.exec: "
-                "outer yield_time_ms=1500000 for a 25-minute review, inner waits <=60s. "
+                "the `// @exec` header sets the outer yield (1500000 ms = one 25-minute review); "
+                "inner waits stay <=60s. "
                 "Completion returns early; a review interval never kills or relaunches work. "
                 "On an outer yield review once, retain its cell and use functions.wait with "
                 "yield_time_ms=1500000 if continuing, not one-minute model polling. "
                 "If interrupted, invoke this same resume_argv; never start again. "
-                "A host yielding earlier is a limitation to report, not proof of quiet waiting.")}
+                "A host yielding earlier is a limitation to report, not proof of quiet waiting. "
+                "Policy owner: .agents/workflow-overlay/decision-routing.md -> Task-Local Tool-Stall Circuit.")}
 
 
 def resume(directory, wait_seconds=None):

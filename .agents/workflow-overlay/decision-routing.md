@@ -230,12 +230,18 @@ observe a completed turn. No recurring service or per-run approval is added.
 
 For routine deterministic work, invoke the maintained runner directly; do not
 commission a model merely to execute or wait. Use the durable operation above
-when observation must survive interruption. In a functions-capable caller,
-await the command and its process continuations inside one outer call. The
+when observation must survive interruption. Before using the loop below, ensure
+the command preserves its complete output: retain its existing log paths,
+redirect stdout/stderr to files, or use the durable operation above. The loop
+returns only the final continuation's chunk; a preserved exit status alone is
+not the failure record. In a functions-capable caller, await the command and its
+process continuations inside one outer call. The
 outer yield controls model wakeups; inner process polling does not resume the
 model while the outer call remains pending. For a routine intelligence-cycle
-command, observe completion, failure, user interruption, or one review around
-25 minutes if still running:
+command, await completion or failure, with one review around 25 minutes if still
+running. The caller controls whether user input interrupts a pending wait.
+Handle delivered user input before continuing; use the same-operation recovery
+below when resuming:
 
 ```javascript
 // @exec: {"yield_time_ms": 1500000, "max_output_tokens": 2000}
