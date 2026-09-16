@@ -20,6 +20,16 @@ from provider_jobs import _lock
 from reports.compact_return import bounded_json, output_budget, write_verified
 
 
+# An observer holds the worker lock only long enough to read one record, so lock
+# contention alone identifies neither a second worker nor a live one. The worker
+# outwaits peer holds instead of dying; single execution stays owned by the
+# exclusive `worker.json` create below. An observer outwaits a peer observer so a
+# dead operation is not reported as running; a live worker holds the lock for its
+# whole lifetime and is still observed as running after this bounded wait.
+WORKER_LOCK_WAIT_SECONDS = 30
+OBSERVER_LOCK_WAIT_SECONDS = 0.25
+
+
 def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -111,13 +121,16 @@ def _run(command, directory, label, cwd, timeout, identity, stdin_file=None):
 def worker(directory):
     from reports.efficiency_codex import collect_provider_roots
     directory = Path(directory).resolve(strict=True)
-    with _lock(directory / "worker.lock"):
+    with _lock(directory / "worker.lock", wait_seconds=WORKER_LOCK_WAIT_SECONDS):
         # Re-entering the private worker is not a recovery mechanism.
         write_verified({"pid": os.getpid(), "started_at": utc_now()}, directory / "worker.json")
         manifest = read(directory / "operation.json")
         started = time.monotonic()
         cwd = Path(manifest["cwd"])
-        validation = {"status": "not_requested", "exit_code": None, "issues": []}
+        # A supplied checker never closes out as "not_requested", including when
+        # the run aborts before validation could be reached.
+        validation = {"status": "not_run_execution_failed" if manifest["checker"] else "not_requested",
+                      "exit_code": None, "issues": []}
         issues = []
         try:
             if manifest["stdin_file"] and hash_file(Path(manifest["stdin_file"])) != manifest["stdin_sha256"]:
@@ -125,11 +138,9 @@ def worker(directory):
             execution = _run(manifest["command"], directory, "command", cwd, manifest["timeout_seconds"],
                              manifest["command_identity"], manifest["stdin_file"])
             write_verified(execution, directory / "execution.json")
-            if manifest["checker"]:
-                validation = {"status": "not_run_execution_failed", "exit_code": None, "issues": []}
-                if execution["status"] == "passed":
-                    validation = _run(manifest["checker"], directory, "validation", cwd,
-                                      manifest["validation_timeout_seconds"], manifest["checker_identity"])
+            if manifest["checker"] and execution["status"] == "passed":
+                validation = _run(manifest["checker"], directory, "validation", cwd,
+                                  manifest["validation_timeout_seconds"], manifest["checker_identity"])
             write_verified(validation, directory / "validation.json")
         except (ValueError, OSError, subprocess.SubprocessError) as exc:
             execution = read(directory / "execution.json") if (directory / "execution.json").exists() else {
@@ -156,7 +167,7 @@ def observe(directory):
     directory = Path(directory).resolve(strict=True)
     manifest = read(directory / "operation.json")
     try:
-        with _lock(directory / "worker.lock"):
+        with _lock(directory / "worker.lock", wait_seconds=OBSERVER_LOCK_WAIT_SECONDS):
             if (directory / "closeout.json").exists():
                 result = read(directory / "closeout.json")
                 if result["operation_id"] != manifest["operation_id"]:

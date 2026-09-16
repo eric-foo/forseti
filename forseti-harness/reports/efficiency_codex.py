@@ -109,7 +109,23 @@ def collect_provider_roots(roots, *, started_at=None):
     issues.extend(issue for a in attempts for issue in a["issues"])
     if roots and not attempts:
         issues.append("selected_provider_scope_has_no_attempts")
+    # The compact closeout keeps this summary but drops the per-attempt rows, so
+    # the scope split has to survive here; otherwise the one merged total above
+    # reads as the current operation's cost even when it carries replayed
+    # receipts. Unknown coverage stays unknown per scope, as in the merged total.
+    scopes = {}
+    for scope in sorted({a["execution_scope"] for a in attempts}):
+        selected = [a for a in attempts if a["execution_scope"] == scope]
+        aggregate = aggregate_usage(selected)
+        scopes[scope] = {"attempts": len(selected), "coverage": aggregate["coverage"],
+                         "total_tokens": aggregate["total_tokens"],
+                         "observed_total_tokens": aggregate["observed_totals"]["total_tokens"],
+                         "additional_observed_response_tokens": sum(
+                             a["additional_observed_response_tokens"] or 0 for a in selected),
+                         "startup_observation_unknown_attempts": sum(
+                             a["additional_observed_response_tokens"] is None for a in selected)}
     return {"attempts": attempts, "attempt_count": len(attempts), "usage": usage,
+            "usage_by_execution_scope": scopes,
             "unknown_usage_attempts": unknown, "retry_claims_observed": len(retries),
             "observed_retry_events": sum(a.get("observed_retry_events") or 0 for a in attempts),
             "additional_observed_response_tokens": additional,

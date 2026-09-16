@@ -511,7 +511,11 @@ def test_executable_never_falls_back_to_path(launch, capsys, monkeypatch, kind):
         monkeypatch.setattr(runner, "desktop_process_context", lambda: {"ancestors": []})
     with pytest.raises(SystemExit):
         runner.main()
-    assert "--codex-executable" in capsys.readouterr().err
+    error = capsys.readouterr().err
+    if kind == "omitted":
+        assert "error: Codex Desktop native ancestor is missing or ambiguous" in error
+    else:
+        assert "--codex-executable" in error
     assert not launch.checks and not launch.launches
 
 

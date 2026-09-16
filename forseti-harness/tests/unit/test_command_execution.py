@@ -4,12 +4,23 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import threading
 import time
 
 import pytest
 
+import command_execution
 from command_execution import launch, observe, resume, worker
+from provider_jobs import _lock
 from reports.efficiency_codex import collect_provider_roots
+
+
+def reserve(monkeypatch, args):
+    """Reserve one operation without spawning its real detached worker."""
+    monkeypatch.setattr(command_execution.subprocess, "Popen", lambda *a, **k: Namespace(poll=lambda: 0))
+    reserved = launch(args)
+    monkeypatch.undo()
+    return reserved
 
 
 def options(tmp_path, body, checker=None):
@@ -62,6 +73,68 @@ def test_real_failure_and_absent_checker_are_not_acceptance(tmp_path, command, c
         assert result["execution"]["exit_code"] == 7
     if validation == "failed":
         assert result["required_validation"]["exit_code"] == 9
+
+
+def test_brief_observer_lock_hold_never_kills_the_worker(tmp_path, monkeypatch):
+    args = options(tmp_path, "from pathlib import Path\nPath('ran').open('x').write('one')")
+    assert reserve(monkeypatch, args)["status"] == "unknown"
+    directory = Path(args.operation_dir)
+    holding, release = threading.Event(), threading.Event()
+
+    def hold():
+        with _lock(directory / "worker.lock"):
+            holding.set()
+            release.wait(10)
+
+    holder = threading.Thread(target=hold)
+    holder.start()
+    assert holding.wait(5)
+    ran = threading.Thread(target=lambda: worker(directory))
+    ran.start()
+    time.sleep(.3)
+    # Observation holds the same lock; it must delay the worker, never end it.
+    assert not (directory / "closeout.json").exists()
+    release.set()
+    holder.join(10)
+    ran.join(30)
+    assert not ran.is_alive()
+    assert observe(directory)["status"] == "completed"
+    assert (tmp_path / "ran").read_text() == "one"
+
+
+def test_peer_observation_does_not_report_a_dead_operation_as_running(tmp_path):
+    directory = tmp_path / "dead"
+    directory.mkdir()
+    (directory / "operation.json").write_text(json.dumps({"operation_id": "dead"}))
+    holding = threading.Event()
+
+    def hold():
+        with _lock(directory / "worker.lock"):
+            holding.set()
+            time.sleep(.05)
+
+    holder = threading.Thread(target=hold)
+    holder.start()
+    assert holding.wait(5)
+    assert observe(directory)["status"] == "unknown"
+    holder.join(5)
+
+
+def test_supplied_checker_is_never_closed_out_as_not_requested(tmp_path, monkeypatch):
+    args = options(tmp_path, "pass", "raise SystemExit(0)")
+    stdin_file = tmp_path / "stdin.txt"
+    stdin_file.write_text("bound", encoding="utf-8")
+    args.stdin_file = str(stdin_file)
+    reserve(monkeypatch, args)
+    stdin_file.write_text("changed", encoding="utf-8")
+    worker(Path(args.operation_dir))
+    result = observe(Path(args.operation_dir))
+    assert result["status"] == "failed"
+    assert result["required_validation"]["status"] == "not_run_execution_failed"
+    assert any(i.startswith("execution_or_validation_incomplete") for i in result["issues"])
+    # The compact closeout drops per-attempt rows but keeps the accounting scope split.
+    assert result["accounting"]["usage_by_execution_scope"] == {}
+    assert not (Path(args.operation_dir) / "command.stdout").exists()
 
 
 def test_unknown_worker_never_relaunches(tmp_path):
@@ -124,9 +197,30 @@ def test_native_accounting_subsets_startup_and_repeated_roots(tmp_path):
     assert result["usage"]["total_tokens"] == 120
     assert result["additional_observed_response_tokens"] == 7
     assert result["attempts"][0]["execution_scope"] == "preserved_prior_execution"
+    assert result["usage_by_execution_scope"] == {"preserved_prior_execution": {
+        "attempts": 1, "coverage": "complete", "total_tokens": 120, "observed_total_tokens": 120,
+        "additional_observed_response_tokens": 7, "startup_observation_unknown_attempts": 0}}
+    current = tmp_path / "current"
+    current.mkdir()
+    for source in (events, log):
+        (current / source.name).write_bytes(source.read_bytes())
+    (current / path.name).write_text(json.dumps({**receipt, "started_at": "2026-03-01T00:00:00Z"}), encoding="utf-8")
+    mixed = collect_provider_roots([tmp_path, current], started_at="2026-02-01T00:00:00Z")
+    assert mixed["attempt_count"] == 2
+    assert mixed["usage"]["total_tokens"] == 240
+    assert mixed["additional_observed_response_tokens"] == 14
+    scopes = mixed["usage_by_execution_scope"]
+    assert scopes["current_operation_interval"] == scopes["preserved_prior_execution"]
+    assert scopes["current_operation_interval"]["total_tokens"] == 120
     # Perturb an already-admitted receipt, preserving valid diagnostic hashes.
     receipt["usage"]["input_tokens"] = 101
     path.write_text(json.dumps(receipt), encoding="utf-8")
-    result = collect_provider_roots([tmp_path])
+    result = collect_provider_roots([tmp_path], started_at="2026-02-01T00:00:00Z")
     assert result["unknown_usage_attempts"] == 1
     assert result["usage"]["total_tokens"] is None
+    scopes = result["usage_by_execution_scope"]
+    assert scopes["preserved_prior_execution"]["total_tokens"] is None
+    assert scopes["preserved_prior_execution"]["startup_observation_unknown_attempts"] == 1
+    assert scopes["current_operation_interval"]["total_tokens"] == 120
+    assert scopes["current_operation_interval"]["additional_observed_response_tokens"] == 7
+    assert scopes["current_operation_interval"]["startup_observation_unknown_attempts"] == 0

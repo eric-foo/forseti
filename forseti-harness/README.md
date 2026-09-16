@@ -105,8 +105,11 @@ deadlines are separate. A new directory is required for a genuinely new launch.
 The worker saves one closeout with command exit, supplied required-checker exit,
 native usage/retries/unknowns, unresolved issues and exact detail paths. A passed
 checker claims its own scope only. Selected prior provider receipts remain
-historical costs; cached input/reasoning are subsets, extra observed startup is
-separate, and active parent-turn costs remain open. The existing `report-codex`
+historical costs and stay counted apart from this operation's interval under the
+closeout's `usage_by_execution_scope`. Each scope separates completed-turn tokens,
+extra observed startup and unknown startup coverage; the merged total includes
+history. Cached input/reasoning are subsets, and active parent-turn costs remain
+open. The existing `report-codex`
 collector owns completed Desktop accounting. The functions wait recipe and
 platform-yield boundary live in `.agents/workflow-overlay/decision-routing.md`
 under "Task-Local Tool-Stall Circuit"; the Node helper remains an optional
