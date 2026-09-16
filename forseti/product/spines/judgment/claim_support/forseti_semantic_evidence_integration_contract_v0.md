@@ -2766,6 +2766,17 @@ assessment checks the corrected answer. Later defects remain visible; there is
 no second answer correction. Other malformed answer failures still stop.
 Validation covers inline references in the supplied evidence namespaces as well
 as `evidence_refs`; an inline typo cannot bypass the correction/rejection path.
+All three live answer-producing calls constrain `evidence_refs` during generation
+to the supplied source evidence IDs and semantic-unit references. Finding IDs
+are not citation choices. Post-assessment correction choices cover only its
+supplied source rows and units; an empty evidence set permits only an empty
+citation list. Empty citation lists remain possible for an honest unsupported
+answer, never proof of semantic adequacy. Allowed identities likewise do not
+prove that a source supports the assertion. Final source, inline-reference and
+question-order checks remain. The initial response still passes structural
+validation before unknown-reference recovery, so a provider that ignores the
+generation choices retains the existing single correction route. Historical
+replay keeps the original structural schema and saved-response semantics.
 The full assessment states the mechanically observed captured-row body count
 and any missing body IDs, separately from original-artifact locator scope.
 Those availability counts do not certify the assessor's semantic inspection.

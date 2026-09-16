@@ -6,6 +6,7 @@ import json
 import sys
 
 import pytest
+from jsonschema import Draft202012Validator, ValidationError
 
 from runners import run_finite_semantic_consolidation as finite
 from runners import run_codex_provider_job as job_runner
@@ -439,6 +440,121 @@ def test_answer_schema_order_and_citations_are_native_input_bound():
         finite.check_answer(answer, questions, bundle, verified)
 
 
+def test_generation_choices_reject_wrong_kind_without_changing_recovery(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    run.verified["semantic_units"] = [{"semantic_unit_ref": "known::u"}]
+    schema = finite.answer_generation_schema(run.questions["questions"],
+        run.bundle["evidence_units"], run.verified["semantic_units"])
+    Draft202012Validator.check_schema(schema)
+    validator = Draft202012Validator(schema)
+    for refs in (["known"], ["known::u"], ["known", "known::u"], []):
+        answer["answers"][0]["evidence_refs"] = refs
+        validator.validate(answer)
+        finite.check_answer(answer, run.questions["questions"], run.bundle, run.verified)
+    for ref in ("prop_supplied_finding", "unknown", ""):
+        answer["answers"][0]["evidence_refs"] = [ref]
+        # This is the historical failure: the old structural schema admits it.
+        Draft202012Validator(finite.answer_schema(run.questions["questions"])).validate(answer)
+        with pytest.raises(ValidationError) as failure:
+            validator.validate(answer)
+        assert failure.value.validator == "enum"
+        assert list(failure.value.path) == ["answers", 0, "evidence_refs", 0]
+        with pytest.raises(finite.UnknownAnswerEvidence):
+            finite.check_answer(answer, run.questions["questions"], run.bundle, run.verified)
+
+
+def test_generation_empty_evidence_and_invalid_identities_are_not_unrestricted(tmp_path):
+    run, answer = answer_fixture(tmp_path)
+    schema = finite.answer_generation_schema(run.questions["questions"], [], [])
+    Draft202012Validator.check_schema(schema)
+    for row in answer["answers"]:
+        row.update(answer="No supplied evidence supports an answer.", evidence_refs=[], limits="No evidence supplied.")
+    Draft202012Validator(schema).validate(answer)
+    finite.check_answer(answer, run.questions["questions"], {"evidence_units": []}, {"semantic_units": []})
+    answer["answers"][0]["evidence_refs"] = ["invented"]
+    with pytest.raises(ValidationError) as failure:
+        Draft202012Validator(schema).validate(answer)
+    assert failure.value.validator == "maxItems"
+    for bad in ("", " ", None, 42):
+        for rows, units in (([{"evidence_id": bad}], []), ([], [{"semantic_unit_ref": bad}])):
+            with pytest.raises(ValueError, match="nonempty source identities"):
+                finite.answer_generation_schema(run.questions["questions"], rows, units)
+
+
+@pytest.mark.parametrize("malformed", [False, True])
+def test_initial_job_generation_schema_does_not_preempt_recovery(tmp_path, monkeypatch, malformed):
+    run, answer = answer_fixture(tmp_path)
+    answer["answers"][0]["evidence_refs"] = ["prop_supplied_finding"]
+    if malformed:
+        del answer["answers"][0]["limits"]
+    structural = finite.answer_schema(run.questions["questions"])
+    generation = finite.answer_generation_schema(run.questions["questions"], run.bundle["evidence_units"], [])
+    run.bind_executable = lambda: {"path": "fixture-codex"}
+    def provider(command, **kwargs):
+        assert finite.read(Path(command[command.index("--output-schema") + 1])) == generation
+        attempt = run.provider_root / "answer/provider/attempts/job-attempt-001"
+        finite.persist(attempt / "response.json", answer)
+        finite.persist(Path(command[command.index("--result-out") + 1]), {
+            "status": "PROCESS_COMPLETED_NOT_VALIDATED", "attempt_dir": str(attempt)})
+        return Namespace(returncode=0)
+    monkeypatch.setattr(finite.subprocess, "run", provider)
+    if malformed:
+        with pytest.raises(ValidationError) as failure:
+            run.job("answer/provider", "fixture", generation, validation_schema=structural)
+        assert failure.value.validator == "required"
+    else:
+        response = run.job("answer/provider", "fixture", generation, validation_schema=structural)
+        with pytest.raises(finite.UnknownAnswerEvidence):
+            finite.check_answer(finite.read(response), run.questions["questions"], run.bundle, run.verified)
+
+
+@pytest.mark.parametrize("replay", [False, True])
+def test_initial_answer_call_uses_live_choices_but_retains_historical_schema(tmp_path, replay):
+    run, answer = answer_fixture(tmp_path)
+    run.questions.update(worker_instructions="fixture", coverage={})
+    # Most real citations are unit refs, so the live vocabulary must carry them.
+    run.verified.update(evidence_dispositions=[],
+                        semantic_units=[{"evidence_id": "known", "semantic_unit_ref": "known::u"}])
+    run.source = {"captured_items": [], "source_artifacts": []}
+    run.args = Namespace(previous_answer=tmp_path / "prior.json")
+    finite.persist(run.args.previous_answer, answer)
+    response = tmp_path / "answer.json"
+    finite.persist(response, answer)
+    view = {"propositions": [], "unmerged_semantic_units": []}
+    if replay:
+        run.replay = tmp_path / "saved"
+        # Build the exact consumer input through the same native entry below.
+        run.check_saved_input = lambda *args: None
+    class CapturedInitial(Exception):
+        pass
+    def job(name, prompt, schema, **kwargs):
+        assert name == "answer/provider"
+        expected = finite.answer_schema(run.questions["questions"]) if replay else finite.answer_generation_schema(
+            run.questions["questions"], run.bundle["evidence_units"], run.verified["semantic_units"])
+        assert schema == expected
+        assert replay or "known::u" in schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"]
+        assert kwargs["validation_schema"] == finite.answer_schema(run.questions["questions"])
+        assert kwargs["replay_response"] == (response if replay else None)
+        raise CapturedInitial
+    run.job = job
+    if replay:
+        # Persist intercept supplies historical fixture bytes before replay checks.
+        original_persist = finite.persist
+        def persist_input(path, value):
+            original_persist(path, value)
+            if Path(path) == run.root / "answer/input.json":
+                original_persist(run.replay / "answer-v3/input.json", value)
+                original_persist(run.replay / "answer-v3/freeze.json", {"response": str(response)})
+            return value
+        with pytest.MonkeyPatch.context() as patcher:
+            patcher.setattr(finite, "persist", persist_input)
+            with pytest.raises(CapturedInitial):
+                run.answer_and_assess(view, {}, {})
+    else:
+        with pytest.raises(CapturedInitial):
+            run.answer_and_assess(view, {}, {})
+
+
 def test_assessment_allows_extra_checks_but_not_missing_frozen_checks():
     questions = {"assessment_only": {"checks": [{"id": "one"}, {"id": "two"}]}}
     result = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "fixture",
@@ -518,6 +634,7 @@ def test_no_correction_final_answer_is_consumable_answer_object(tmp_path):
 
 def test_unknown_citation_correction_preserves_original_unaffected_and_shared_allowance(tmp_path):
     run, original = answer_fixture(tmp_path)
+    run.verified["semantic_units"] = [{"evidence_id": "known", "semantic_unit_ref": "known::u"}]
     original["answers"][0]["evidence_refs"] = ["invented"]
     response = run.provider_root / "answer/response.json"
     finite.persist(response, original)
@@ -528,7 +645,16 @@ def test_unknown_citation_correction_preserves_original_unaffected_and_shared_al
         {**original["answers"][0], "evidence_refs": ["known"]}]}
     patch_path = run.provider_root / "answer-correction/response.json"
     finite.persist(patch_path, patch)
-    run.job = lambda *a, **k: patch_path
+    def correction_job(name, prompt, schema):
+        assert name == "answer-correction/provider"
+        assert schema == finite.answer_generation_schema(
+            run.questions["questions"][:1], run.bundle["evidence_units"], run.verified["semantic_units"])
+        # Recovery keeps the complete supplied vocabulary, unit refs included.
+        assert schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"] == [
+            "known", "known::u"]
+        Draft202012Validator(schema).validate(patch)
+        return patch_path
+    run.job = correction_job
     corrected = finite.read(run.correct_invalid_answer(response, {"questions": run.questions["questions"]}))
     assert corrected["answers"][1] == original["answers"][1]
     assert response.read_bytes() == before
@@ -553,7 +679,10 @@ def test_other_answer_failures_do_not_enter_unknown_citation_recovery(tmp_path):
 
 def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_findings(tmp_path):
     run, answer = answer_fixture(tmp_path)
-    run.source = {"captured_items": [{"evidence_id": "known"}]}
+    run.source = {"captured_items": [{"evidence_id": "known"}, {"evidence_id": "outside"}]}
+    run.bundle["evidence_units"].append({"evidence_id": "outside"})
+    run.verified["semantic_units"] = [{"evidence_id": ref, "semantic_unit_ref": ref + "::u"}
+                                      for ref in ("known", "outside")]
     run.questions["assessment_only"] = {"checks": [{"id": "anchored", "source_rows": ["known"]}]}
     assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
         "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}]}
@@ -569,7 +698,20 @@ def test_post_assessment_correction_rechecks_affected_scope_and_reports_recheck_
     finite.persist(responses["answer-correction/provider"], patch)
     finite.persist(responses["assessment-recheck/provider"], recheck)
     launched = []
-    run.job = lambda name, *a, **k: launched.append(name) or responses[name]
+    def correction_job(name, prompt, schema):
+        launched.append(name)
+        if name == "answer-correction/provider":
+            choices = schema["properties"]["answers"]["items"]["properties"]["evidence_refs"]["items"]["enum"]
+            assert choices == ["known", "known::u"]
+            bad = deepcopy(patch)
+            for ref in ("outside", "outside::u", "prop_supplied_finding"):
+                bad["answers"][0]["evidence_refs"] = [ref]
+                with pytest.raises(ValidationError) as failure:
+                    Draft202012Validator(schema).validate(bad)
+                assert failure.value.validator == "enum"
+            Draft202012Validator(schema).validate(patch)
+        return responses[name]
+    run.job = correction_job
     result = run.correct_and_recheck(answer, assessment, {"propositions": []})
     corrected = finite.read(result["final_answer"])
     assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
