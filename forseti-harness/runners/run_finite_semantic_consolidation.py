@@ -39,11 +39,12 @@ ASSESSMENT_MATERIALITY = (
     "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. "
     "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
     "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
-    "does not require identical wording or maximal detail. Unsupported claims, changed meaning, missing important "
-    "conditions and materially untraceable claims remain material defects. A more precise possible citation or "
+    "does not require identical wording or maximal detail. Material defects include unsupported claims, changed meaning, "
+    "missing important conditions and materially untraceable claims. A more precise possible citation or "
     "other nonmaterial imperfection alone does not require correction or rejection. Apply this standard to "
-    "check_results too: failed or uncertain answer checks must reflect a material defect or unresolved material "
-    "support; report nonmaterial imperfections as minor findings. "
+    "check_results about the answer: a failed or uncertain answer check must reflect a material defect or unresolved "
+    "material support, and a nonmaterial imperfection is reported as a minor finding instead. Inventory and upstream "
+    "check results keep their observed status. "
 )
 
 
