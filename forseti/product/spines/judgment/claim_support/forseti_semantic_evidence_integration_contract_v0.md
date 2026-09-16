@@ -2734,7 +2734,14 @@ and source rows that lack attached findings. A source assessment may nominate
 one correction of explicitly identified answer questions for open `blocker` or
 `major` answer defects, followed by one affected-scope source recheck. Minor
 findings remain reported without automatic correction. Existing severity/effect
-judgment supplies this decision; no extra triage call is added. Change affected
+judgment supplies this decision; no extra triage call is added. Apply the same
+roughly comparable supported usefulness standard in both
+the initial assessment and affected recheck, including their check results.
+Unsupported claims, changed meaning, missing important conditions and materially
+untraceable claims remain material defects. More precise possible citations or
+other nonmaterial imperfections alone do not require correction or rejection;
+report them as minor findings. Failed or uncertain answer checks still block
+when they reflect a material defect or unresolved material support. Change affected
 claims and necessary context; mechanically preserve unaffected answers. Necessary
 context includes merging overlapping descriptions of the same source event rather
 than counting them as separate events. Remaining inventory defects stay visible.

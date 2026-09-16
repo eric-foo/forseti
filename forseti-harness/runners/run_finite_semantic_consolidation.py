@@ -35,6 +35,16 @@ POLICY = dict(completion_strategy="finite_formation_finish_v1",
               authoring_revision="finite_formation_retention_v1",
               reconciliation_policy_version="semantic_evidence_reconciliation_policy_v2",
               response_version="semantic_evidence_reconciliation_response_v3")
+ASSESSMENT_MATERIALITY = (
+    "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. "
+    "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
+    "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
+    "does not require identical wording or maximal detail. Unsupported claims, changed meaning, missing important "
+    "conditions and materially untraceable claims remain material defects. A more precise possible citation or "
+    "other nonmaterial imperfection alone does not require correction or rejection. Apply this standard to "
+    "check_results too: failed or uncertain answer checks must reflect a material defect or unresolved material "
+    "support; report nonmaterial imperfections as minor findings. "
+)
 
 
 class UnknownAnswerEvidence(ValueError):
@@ -669,6 +679,7 @@ class FiniteRun:
                 "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
+                + ASSESSMENT_MATERIALITY +
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
                 "consolidation inventory limits separately in material_findings; correcting prose does not repair the inventory. "
                 "For every check, including added checks, set scope to answer if it concerns the corrected answer "
@@ -807,11 +818,9 @@ def render_assessment(request):
             "not truth. Judge answer coverage against answer_commission.questions and worker_instructions. The broader "
             "complete_frozen_source.question defines research inventory scope; it does not expand the commissioned answers. "
             "Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
-            "Judge roughly comparable supported usefulness, not matching vocabulary or finding counts. Cite exact source "
+            + ASSESSMENT_MATERIALITY + "Cite exact source "
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
-            "Report minor imperfections too, using the existing severity/effect judgment: blocker or major means a material "
-            "source-supported meaning or usefulness defect; minor means a nonmaterial imperfection. An answer correction "
-            "does not require identical wording or maximal detail. Return the supplied JSON schema.\n\n"
+            "Return the supplied JSON schema.\n\n"
             + body_coverage + render_evidence(request))
 
 
