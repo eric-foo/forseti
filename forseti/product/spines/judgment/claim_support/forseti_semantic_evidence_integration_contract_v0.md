@@ -2803,11 +2803,14 @@ provider receipts; it does not treat file existence or a prior process exit as
 acceptance. Each provider invocation saves its stdout, stderr and exit status,
 plus a separate result JSON whenever the job runner returns a job result; a
 refused or unknown job has none. `result.json` carries the endpoint and evidence
-paths; its `final_answer` points to the selected answer object, not freeze
-metadata or an automatically promoted correction. Selection is not quality
-acceptance; read its material and correction status. Nonzero entry exits save
-`failure-*.json`. Preserve partial outputs
-and unknown usage.
+paths; its `final_answer` points to the selected answer object, never freeze
+metadata. In a live run no post-assessment correction reaches it without the
+acceptance decision above. Saved replay of a spent correction instead reproduces
+the recorded selection and carries no correction or material status, so it is
+provenance, not a current answer selection. Selection is not quality acceptance.
+For live runs, read `answer_material_status` and, after post-assessment correction,
+`answer_correction_status`. Nonzero entry exits save `failure-*.json`.
+Preserve partial outputs and unknown usage.
 
 For deterministic replay of the saved complete finite experiment layout, add
 `--replay-from SAVED_RUN_ROOT` (without `--codex-executable`) and choose a fresh output
