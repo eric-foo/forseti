@@ -826,7 +826,12 @@ def render_assessment(request):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "closeout":
+        from reports.finite_closeout import main as closeout
+        return closeout(argv[1:])
+    parser = argparse.ArgumentParser(description=__doc__,
+        epilog="Read a saved endpoint without provider calls: closeout --run-root RUN_ROOT [--operation-dir OPERATION] [--output NEW_JSON]")
     for name in ("bundle", "verified", "source", "questions", "previous-answer", "output-dir"):
         parser.add_argument("--" + name, type=Path, required=True)
     mode = parser.add_mutually_exclusive_group()

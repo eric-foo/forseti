@@ -47,6 +47,10 @@ For the explicitly commissioned complete finite route, use
 One maintained invocation drives formation, finishing, native validation and
 consumer replay, answering, source assessment, and bounded answer correction.
 The named entry also owns resume and the caller's program-owned wait pattern.
+Its `closeout --run-root SAVED_RUN_ROOT` dispatch assembles a saved live endpoint's
+answers, review status, native costs and exact evidence for its commissioned
+checks without provider calls. The same contract section owns the full command,
+optional consumer artifact and wider-inspection limits.
 
 ### Reconciliation repair
 
