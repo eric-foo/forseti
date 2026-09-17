@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from jsonschema import ValidationError
 
 from harness_utils import hash_file
 from judgment.review_evidence import compact_evidence, expand_evidence, RENDERING_GUIDANCE
@@ -44,6 +45,22 @@ def check_material_status(result, assessment):
               else "material_defects_remain" if remaining else "no_open_material_answer_defects_reported")
     if result["remaining_material_answer_findings"] != remaining or result["answer_material_status"] != status:
         raise ValueError("saved material status differs from reported findings and selection")
+
+
+def composed_correction(composition, original, patch, questions):
+    """Recompose the saved candidate with the rule the runner used for this correction shape.
+
+    A post-assessment proposal reports retained answers separately and the runner
+    copies those from the original; only the pre-freeze repair response is itself
+    the patch. Recomposing both shapes the same way would refuse a saved run whose
+    correction legitimately retained an affected answer.
+    """
+    from runners import run_finite_semantic_consolidation as finite
+    affected = composition["affected_question_ids"]
+    if patch.get("schema_version") == "finite_answer_correction_v1":
+        scoped = [q for q in questions if q["id"] in set(affected)]
+        patch = finite.answer_correction_patch(original, patch, scoped)
+    return finite.compose_answer_patch(original, patch, affected)
 
 
 def evidence_view(source, verified, view, questions):
@@ -196,22 +213,21 @@ def collect(run_root, operation_dir=None):
     if result["material_findings"] != assessment["material_findings"] or result["overall_usefulness"] != assessment["overall_usefulness"]:
         raise ValueError("result omits or changes assessment findings")
     assessment_input = load(root / "assessment/input.json")
-    if not binding.get("replay_from"):
-        expected_source = {k: v for k, v in source.items() if k != "source_artifacts"}
-        ids = {r["source_artifact_id"] for r in source["captured_items"]}
-        expected_source["source_artifacts_for_bound_rows"] = [a for a in source["source_artifacts"] if a["artifact_id"] in ids]
-        expected_source["unreferenced_locator_count_not_assessed"] = len(source["source_artifacts"]) - len(ids)
-        expected = {"current_answer": frozen, "previously_completed_answer_for_comparison": inputs["previous_answer"],
-                    "answer_commission": {"questions": questions["questions"], "worker_instructions": questions["worker_instructions"]},
-                    "assessment_checks": questions["assessment_only"], "current_final_view": view,
-                    "complete_frozen_source": expected_source, "complete_frozen_verified_evidence": verified,
-                    "scope": questions["coverage"]}
-        if assessment_input != expected:
-            raise ValueError("assessment input differs from bound evidence")
-        policy = load(provider_root / "assessment/provider/job/binding.json")
-        prompt = Path(policy["binding"]["prompt_path"])
-        if hash_file(prompt) != policy["binding"]["prompt_sha256"] or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected):
-            raise ValueError("assessment prompt differs from bound evidence")
+    expected_source = {k: v for k, v in source.items() if k != "source_artifacts"}
+    ids = {r["source_artifact_id"] for r in source["captured_items"]}
+    expected_source["source_artifacts_for_bound_rows"] = [a for a in source["source_artifacts"] if a["artifact_id"] in ids]
+    expected_source["unreferenced_locator_count_not_assessed"] = len(source["source_artifacts"]) - len(ids)
+    expected = {"current_answer": frozen, "previously_completed_answer_for_comparison": inputs["previous_answer"],
+                "answer_commission": {"questions": questions["questions"], "worker_instructions": questions["worker_instructions"]},
+                "assessment_checks": questions["assessment_only"], "current_final_view": view,
+                "complete_frozen_source": expected_source, "complete_frozen_verified_evidence": verified,
+                "scope": questions["coverage"]}
+    if assessment_input != expected:
+        raise ValueError("assessment input differs from bound evidence")
+    policy = load(provider_root / "assessment/provider/job/binding.json")
+    prompt = Path(policy["binding"]["prompt_path"])
+    if hash_file(prompt) != policy["binding"]["prompt_sha256"] or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected):
+        raise ValueError("assessment prompt differs from bound evidence")
 
     answer_versions = {"frozen": {"path": freeze["response"], "value": frozen}}
     correction_records = {}
@@ -226,7 +242,7 @@ def collect(run_root, operation_dir=None):
             raise ValueError("correction patch lacks a bound provider response")
         original_path = composition.get("original_response", freeze["response"])
         original = load(original_path, composition.get("original_response_sha256"))
-        if finite.compose_answer_patch(original, patch, composition["affected_question_ids"]) != candidate:
+        if composed_correction(composition, original, patch, questions["questions"]) != candidate:
             raise ValueError("corrected answer composition differs")
         finite.check_answer(candidate, questions["questions"], bundle, verified)
         correction_records["composition"] = composition
@@ -244,12 +260,11 @@ def collect(run_root, operation_dir=None):
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
         correction_records["recheck_input"] = request
-        if not binding.get("replay_from"):
-            finite.check_assessment(recheck, {"assessment_only": {"checks": request["frozen_relevant_checks"]}}, scoped_checks=True)
-            for key, field in (("affected_recheck_material_findings", "material_findings"),
-                               ("affected_recheck_check_results", "check_results")):
-                if result[key] != recheck[field]:
-                    raise ValueError("result recheck findings/statuses differ")
+        finite.check_assessment(recheck, {"assessment_only": {"checks": request["frozen_relevant_checks"]}}, scoped_checks=True)
+        for key, field in (("affected_recheck_material_findings", "material_findings"),
+                           ("affected_recheck_check_results", "check_results")):
+            if result[key] != recheck[field]:
+                raise ValueError("result recheck findings/statuses differ")
     final_path = selected_answer_path(result, freeze["response"], corrected, frozen, candidate, recheck)
     check_material_status(result, assessment)
     answer_versions["selected"] = {"path": str(final_path), "value": load(final_path)}
@@ -333,7 +348,7 @@ def main(argv=None):
             print(json.dumps(json.loads(text), ensure_ascii=True, separators=(",", ":")))
         else:
             print(json.dumps(rendered, ensure_ascii=True, separators=(",", ":")))
-    except (OSError, ValueError, KeyError, TypeError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, IndexError, ValidationError) as exc:
         print(json.dumps({"status": "FINITE_CLOSEOUT_FAILED", "error": str(exc)}, ensure_ascii=True))
         return 1
     return 0
