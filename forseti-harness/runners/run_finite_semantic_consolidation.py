@@ -46,6 +46,11 @@ ASSESSMENT_MATERIALITY = (
     "material support, and a nonmaterial imperfection is reported as a minor finding instead. Inventory and upstream "
     "check results keep their observed status. "
 )
+ASSESSMENT_CHECK_FIELDS = (
+    "Fill every named field in commissioned_checks with its source-backed judgment. "
+    "Those field names are fixed check identities; do not rename them or add check_id inside those judgments. "
+    "Put extra judgments in additional_checks, each with a descriptive check_id distinct from all other checks. "
+)
 
 
 class UnknownAnswerEvidence(ValueError):
@@ -161,6 +166,40 @@ def assessment_schema(*, scoped_checks=False):
             "introduced_at": {"type": "string", "enum": ["frozen_upstream", "current_consolidation", "current_answer", "historical_answer", "uncertain"]},
             "status": {"type": "string", "enum": ["open", "repaired", "not_a_defect"]},
             "source_refs": refs, "artifact_refs": refs, "defect": text, "effect": text, "bounded_repair": text})}})
+
+
+def assessment_generation_schema(checks, *, scoped_checks=False):
+    """Bind commissioned identities in provider output, before paid generation."""
+    ids = [c.get("id") if isinstance(c, dict) else None for c in checks]
+    if any(not isinstance(ref, str) or not ref.strip() for ref in ids) or len(ids) != len(set(ids)):
+        raise ValueError("assessment checks require unique nonempty identities")
+    schema = assessment_schema(scoped_checks=scoped_checks)
+    props = schema["properties"]
+    additional = props.pop("check_results")["items"]
+    check = {**additional,
+             "properties": {k: v for k, v in additional["properties"].items() if k != "check_id"},
+             "required": [k for k in additional["required"] if k != "check_id"]}
+    props["schema_version"]["const"] = props["schema_version"]["const"].replace("_v", "_keyed_v")
+    props["commissioned_checks"] = {"type": "object", "additionalProperties": False,
+                                    "properties": {ref: check for ref in ids}, "required": ids}
+    props["additional_checks"] = {"type": "array", "items": additional}
+    schema["required"] = list(props)
+    return schema
+
+
+def assessment_from_response(value, checks, *, scoped_checks=False):
+    """Project new provider transport; keep historical assessments unchanged."""
+    if value.get("schema_version") in {"finite_source_assessment_keyed_v1", "finite_source_assessment_keyed_v2"}:
+        Draft202012Validator(assessment_generation_schema(checks, scoped_checks=scoped_checks)).validate(value)
+        value = dict(value)
+        required = value.pop("commissioned_checks")
+        additional = value.pop("additional_checks")
+        rows = [{"check_id": c["id"], **required[c["id"]]} for c in checks]
+        rows.extend(dict(check) for check in additional)
+        value["schema_version"] = "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1"
+        value["check_results"] = rows
+    check_assessment(value, {"assessment_only": {"checks": checks}}, scoped_checks=scoped_checks)
+    return value
 
 
 def check_answer(answer, questions, bundle, verified):
@@ -511,10 +550,11 @@ class FiniteRun:
                 if old[key] != expected:
                     raise ValueError(f"saved source assessment binding differs: {key}")
             original_assessment = Path(read(self.replay / "assessment/completion.json")["response"])
-        assessment_path = self.job("assessment/provider", render_assessment(assessment_input), assessment_schema(),
-                                   replay_response=original_assessment)
-        assessment = read(assessment_path)
-        check_assessment(assessment, self.questions)
+        checks = self.questions["assessment_only"]["checks"]
+        schema = assessment_schema() if self.replay else assessment_generation_schema(checks)
+        assessment_path = self.job("assessment/provider", render_assessment(assessment_input, keyed_checks=not self.replay), schema,
+                                    replay_response=original_assessment)
+        assessment = assessment_from_response(read(assessment_path), checks)
         persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
         if pre_corrected:
             # The single correction was spent before freeze; the commissioned
@@ -680,7 +720,7 @@ class FiniteRun:
                 "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
-                + ASSESSMENT_MATERIALITY +
+                + ASSESSMENT_MATERIALITY + ASSESSMENT_CHECK_FIELDS +
                 "Run the supplied relevant frozen checks. Identify new defects from correction. Preserve upstream and "
                 "consolidation inventory limits separately in material_findings; correcting prose does not repair the inventory. "
                 "For every check, including added checks, set scope to answer if it concerns the corrected answer "
@@ -691,9 +731,9 @@ class FiniteRun:
                 "that matter to the user's question. "
                 "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
                 + render_evidence(recheck_request))
-            recheck_path = self.job("assessment-recheck/provider", prompt, assessment_schema(scoped_checks=True))
-            recheck = read(recheck_path)
-            check_assessment(recheck, {"assessment_only": {"checks": checks}}, scoped_checks=True)
+            recheck_path = self.job("assessment-recheck/provider", prompt,
+                                   assessment_generation_schema(checks, scoped_checks=True))
+            recheck = assessment_from_response(read(recheck_path), checks, scoped_checks=True)
         persist(self.root / "assessment-recheck/result.json", {"response": str(recheck_path),
             "response_sha256": hash_file(recheck_path), "saved_replay": bool(self.replay)})
         result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
@@ -805,7 +845,7 @@ def render_answer(request):
             + render_evidence(request))
 
 
-def render_assessment(request):
+def render_assessment(request, *, keyed_checks=False):
     rows = request["complete_frozen_source"]["captured_items"]
     missing = [r["evidence_id"] for r in rows if not r.get("text")]
     body_coverage = (f"Input availability: {len(rows) - len(missing)} of {len(rows)} captured rows have source-native "
@@ -819,7 +859,7 @@ def render_assessment(request):
             "not truth. Judge answer coverage against answer_commission.questions and worker_instructions. The broader "
             "complete_frozen_source.question defines research inventory scope; it does not expand the commissioned answers. "
             "Distinguish frozen upstream, current consolidation, current answer and historical answer defects. "
-            + ASSESSMENT_MATERIALITY + "Cite exact source "
+            + ASSESSMENT_MATERIALITY + (ASSESSMENT_CHECK_FIELDS if keyed_checks else "") + "Cite exact source "
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
             "Return the supplied JSON schema.\n\n"
             + body_coverage + render_evidence(request))

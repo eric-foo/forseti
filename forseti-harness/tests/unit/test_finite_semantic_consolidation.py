@@ -589,6 +589,77 @@ def test_assessment_receives_actual_answer_commission(tmp_path):
         run.answer_and_assess({"propositions": [], "unmerged_semantic_units": []}, {}, [])
 
 
+def _keyed_assessment(assessment, ids):
+    """Model-output fixture; production deliberately has no legacy-to-wire converter."""
+    value = deepcopy(assessment)
+    rows = value.pop("check_results")
+    value["schema_version"] = value["schema_version"].replace("_v", "_keyed_v")
+    value["commissioned_checks"] = {r["check_id"]: {k: v for k, v in r.items() if k != "check_id"}
+                                     for r in rows if r["check_id"] in ids}
+    value["additional_checks"] = [r for r in rows if r["check_id"] not in ids]
+    return value
+
+
+@pytest.mark.parametrize("scoped", [False, True])
+def test_assessment_generation_binds_names_and_preserves_all_judgments(scoped):
+    checks = [{"id": "behavior_contrasts"}, {"id": "additional_check_1"}]
+    result = {"schema_version": "finite_source_assessment_v2" if scoped else "finite_source_assessment_v1",
+              "inventory_coverage": "Bounded", "comparison": "Not identical", "unassessed_material": "Outside rows",
+              "overall_usefulness": "Material issue remains", "material_findings": [], "check_results": [
+                  {"check_id": ref, "status": status, "source_refs": ["source"], "finding_refs": [],
+                   "explanation": ref, **({"scope": "unknown"} if scoped else {})}
+                  for ref, status in [("behavior_contrasts", "partial"), ("additional_check_1", "pass"),
+                                      ("extra", "fail"), ("extra_two", "uncertain")]]}
+    wire = _keyed_assessment(result, [c["id"] for c in checks])
+    wire["commissioned_checks"] = dict(reversed(list(wire["commissioned_checks"].items())))
+    original = deepcopy(wire)
+    schema = finite.assessment_generation_schema(checks, scoped_checks=scoped)
+    Draft202012Validator.check_schema(schema)
+    Draft202012Validator(schema).validate(wire)
+    assert finite.assessment_from_response(wire, checks, scoped_checks=scoped) == result
+    assert wire == original
+    assert finite.assessment_from_response(result, checks, scoped_checks=scoped) == result
+    for perturbation in ("renamed", "missing", "extra_name", "model_supplied_id"):
+        bad = deepcopy(wire)
+        named = bad["commissioned_checks"]
+        if perturbation == "renamed":
+            named["frozen.behavior_contrasts"] = named.pop("behavior_contrasts")
+        elif perturbation == "missing":
+            named.pop("behavior_contrasts")
+        elif perturbation == "extra_name":
+            named["uncommissioned"] = deepcopy(named["behavior_contrasts"])
+        else:
+            named["behavior_contrasts"]["check_id"] = "frozen.behavior_contrasts"
+        with pytest.raises(ValidationError):
+            Draft202012Validator(schema).validate(bad)
+        with pytest.raises(ValidationError):
+            finite.assessment_from_response(bad, checks, scoped_checks=scoped)
+    bad = deepcopy(wire)
+    del bad["additional_checks"][0]["check_id"]
+    with pytest.raises(ValidationError):
+        finite.assessment_from_response(bad, checks, scoped_checks=scoped)
+    for collision in ("behavior_contrasts", "extra_two"):
+        bad = deepcopy(wire)
+        bad["additional_checks"][0]["check_id"] = collision
+        with pytest.raises(ValueError, match="omits or duplicates commissioned checks"):
+            finite.assessment_from_response(bad, checks, scoped_checks=scoped)
+
+
+@pytest.mark.parametrize("checks", [[{"id": "same"}, {"id": "same"}], [{"id": ""}], [{"id": None}],
+                                    [{}], [None], [{"id": []}], [{"id": "  "}]])
+def test_assessment_generation_refuses_ambiguous_commissions(checks):
+    with pytest.raises(ValueError, match="unique nonempty identities"):
+        finite.assessment_generation_schema(checks)
+
+
+def test_assessment_generation_supports_no_commissioned_checks():
+    result = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "Fixture",
+              "comparison": "Fixture", "unassessed_material": "None", "overall_usefulness": "Bounded",
+              "material_findings": [], "check_results": []}
+    wire = _keyed_assessment(result, [])
+    assert finite.assessment_from_response(wire, []) == result
+
+
 def test_assessment_allows_extra_checks_but_not_missing_frozen_checks():
     questions = {"assessment_only": {"checks": [{"id": "one"}, {"id": "two"}]}}
     result = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "fixture",
@@ -785,8 +856,9 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
                            "upstream_commissioned"}
     responses = {"answer-correction/provider": run.provider_root / "patch.json",
                  "assessment-recheck/provider": run.provider_root / "recheck.json"}
+    wire_recheck = recheck if outcome == "legacy_report" else _keyed_assessment(recheck, ["anchored"])
     finite.persist(responses["answer-correction/provider"], patch)
-    finite.persist(responses["assessment-recheck/provider"], recheck)
+    finite.persist(responses["assessment-recheck/provider"], wire_recheck)
     frozen_inputs = deepcopy((run.questions, run.source, run.bundle, run.verified, assessment))
     launched = []
     def correction_job(name, prompt, schema):
@@ -809,7 +881,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
             Draft202012Validator(schema).validate(patch)
         else:
             if not invalid_report:
-                Draft202012Validator(schema).validate(recheck)
+                Draft202012Validator(schema).validate(wire_recheck)
             request = finite.read(run.root / "assessment-recheck/input.json")
             assert request["retained_answers"] == patch["retained_answers"]
             assert request["corrected_affected_answers"] == (answer["answers"][:1] if outcome == "retain" else patch["answers"])
