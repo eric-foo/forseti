@@ -2864,6 +2864,53 @@ for the declared complete execution interval. Separate implementation/setup,
 fresh executor work, provider work and source assessment; retain unknown usage.
 No percentage saving or cold acceptance follows from deterministic replay.
 
+For closeout of a saved **live finite endpoint**, assemble the existing answers,
+assessment, mechanical checks, native costs and commissioned source evidence in
+one read-only invocation from `forseti-harness/`:
+
+```text
+python -m runners.run_finite_semantic_consolidation closeout --run-root SAVED_RUN_ROOT --operation-dir EXISTING_OPERATION_DIR --output NEW_CONSUMER_JSON
+```
+
+Omit `--operation-dir` if no operation was recorded; this makes no operation
+completion claim. The reader reuses native coverage, finalization/projection,
+answer/check validators and receipt accounting. Wrong or changed bindings fail;
+missing original runtime files are explicitly listed, not replaced with today's
+runtime. Historical replay and incomplete endpoints are refused: inspect their
+original run and saved replay/failure records separately. The reader neither
+launches providers nor repairs, resumes or mutates the saved run.
+
+The complete consumer JSON uses the existing lossless review-evidence renderer.
+It includes all selected/frozen/initial answers and, when present, the separate
+correction candidate, composition and affected recheck. Rejected candidates and
+open, minor, upstream and uncertain findings remain visible. Saved assessment
+verdicts and mechanical success are evidence for adjudication, never semantic
+certification. Native costs retain startup and incomplete-usage distinctions;
+executor and implementation/setup costs remain outside this reader's scope.
+
+Evidence selection is mechanical: every `assessment_only.checks` source anchor,
+plus every supporting, opposing and adjacent source behind findings touching an
+anchor. Each included row retains its complete body/context, all its verified
+units and residual dispositions; related findings retain all relations and
+condition lineage. Selection is one hop, not a recursive full-inventory audit.
+The view names included, omitted and missing-body IDs, preserves the full saved
+assessment, and links the hash-bound inputs, complete view/packet and assessment
+input. The original `additional_checks` are shown as historical scope, not
+silently recommissioned. The agent judges the commissioned distinctions and
+writes the concise conclusion. Inspect wider linked sources when a check needs
+evidence outside this selection, a body is missing, or judging another finding,
+residual, answer citation or assessment nomination. Do not claim exhaustive
+inspection from this bounded view.
+
+`--output` exclusively creates a new UTF-8 consumer artifact outside the saved
+run/provider/operation roots and verifies its readback. Console JSON is ASCII
+safe. With `--output`, oversized returns explicitly say `details_required` and
+point to the complete artifact (`--max-output-bytes`, default 8192); read that
+artifact before judging. Without `--output`, stdout contains the complete JSON
+for piping to a consumer, without silent truncation. This replaces improvised
+accounting scripts and overlapping broad rereads; it adds no review gate and
+claims neither guaranteed semantic accuracy nor a percentage cost saving.
+
 ### Native operations and historical replay
 
 Current-route operations are the individually callable seams:
