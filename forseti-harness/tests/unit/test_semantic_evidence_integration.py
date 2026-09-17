@@ -12377,7 +12377,8 @@ def test_lossless_row_review_complete_packing_and_oversize(tmp_path, monkeypatch
         prepare_row_verification_run(compiled_path=compiled_path, **run_kwargs)
     else:
         prepare_row_repair_run(verified_path=compiled_path, **kwargs, **run_kwargs)
-    assert json.loads((tmp_path / "stage.json").read_text()) == stage
+    # The runner persists UTF-8; decoding by ambient locale would corrupt the row text.
+    assert json.loads((tmp_path / "stage.json").read_text(encoding="utf-8")) == stage
     for prompt in prompts:
         assert len((tmp_path / "prompts" / (prompt["batch_id"] + ".md")).read_bytes()) == prompt["prompt_utf8_bytes"]
     oversized = True
@@ -12424,7 +12425,7 @@ def test_advance_reuses_legacy_row_review_stage_and_saved_response(tmp_path, cap
         patch.setattr(runner, "prepare_row_verification", historical)
         code, before = _advance_cli(source, run_dir, capsys)
     assert code == 0 and before["phase"] == "verification"
-    stage = json.loads((run_dir / "verification/stage.json").read_text())
+    stage = json.loads((run_dir / "verification/stage.json").read_text(encoding="utf-8"))
     assert "prompt_rendering_version" not in stage
     _publish_advance_replay(run_dir, "verification", _row_verification_responses(stage)[:1])
     frozen = {p: p.read_bytes() for p in run_dir.rglob("*") if p.is_file()}
