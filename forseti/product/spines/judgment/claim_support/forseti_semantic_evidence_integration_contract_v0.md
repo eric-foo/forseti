@@ -3030,7 +3030,16 @@ Current-route operations are the individually callable seams:
     checks for every primary claim-bearing row, and
     `submit-row-verification` requires exactly one `accept`, complete-row
     `replace`, or `unresolved` decision per row before writing the sole active
-    compilation. Non-claim rows are not reread.
+    compilation. Non-claim rows are not reread. New row-verification and row-repair
+    stages render the complete axes, product catalog and source/proposal rows
+    through the shared lossless `review_evidence_v1` renderer. The native method
+    instructions and response schemas remain unchanged. Packing includes the
+    persisted prompt newline and bounds both supported response layouts; the
+    larger v1 layout keeps immutable membership independent of keyed transport.
+    The byte ceiling is unchanged and an oversized complete row still fails.
+    Stages bind `prompt_rendering_version`; saved unmarked stages retain their
+    original rendering, partition, hashes and response replay. Stored evidence
+    and verified compilation schemas remain ordinary, complete JSON.
 11. `prepare-reconciliation-level` renders one or more byte-bounded prompts
     from batch units or prior semantic nodes; **Preparation from verified inputs**
     above is the direct entry for a commissioned preparation checkpoint.

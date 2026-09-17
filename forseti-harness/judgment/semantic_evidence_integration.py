@@ -21,6 +21,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any
 from judgment.claim_meaning import CLAIM_FORMATION_GUIDANCE
+from judgment.review_evidence import render_evidence
 
 
 BUNDLE_VERSION = "semantic_evidence_bundle_v1"
@@ -3928,6 +3929,7 @@ def _render_row_verification_prompt(
     batch_id: str,
     rows: Sequence[Mapping[str, Any]],
     response_version: str = ROW_VERIFICATION_RESPONSE_VERSION,
+    _legacy_prompt_rendering: bool = False,
 ) -> str:
     catalog = bundle.get("product_identity_catalog")
     catalog_section = (
@@ -3936,7 +3938,7 @@ def _render_row_verification_prompt(
         else "\n\nPRODUCT_IDENTITY_CATALOG\n"
         + json.dumps(catalog, ensure_ascii=False, indent=2)
     )
-    return (
+    prefix = (
         _downstream_method_text(bundle)
         + "\n\n"
         + _verification_method(bundle)[1]
@@ -3948,6 +3950,15 @@ def _render_row_verification_prompt(
             ensure_ascii=False,
             indent=2,
         )
+    )
+    if not _legacy_prompt_rendering:
+        payload = {"CURRENT_AXES": bundle["axes"]}
+        if catalog is not None:
+            payload["PRODUCT_IDENTITY_CATALOG"] = catalog
+        payload["ROWS_TO_VERIFY"] = list(rows)
+        return prefix + "\n\n" + render_evidence(payload).rstrip("\n")
+    return (
+        prefix
         + "\n\nCURRENT_AXES\n"
         + json.dumps(bundle["axes"], ensure_ascii=False, indent=2)
         + catalog_section
@@ -3960,8 +3971,8 @@ def _row_review_prompts(
     bundle: Mapping[str, Any], stage: Mapping[str, Any],
     response_version: str | None,
 ) -> list[dict[str, Any]]:
-    # The immutable stage partitions source work using the historical template.
-    # Transport may change without rebatching or rewriting completed v1 answers.
+    # Saved stages without the rendering marker retain their exact old prompts.
+    # Response transport stays independent of immutable stage membership.
     version = response_version or (
         ROW_VERIFICATION_KEYED_RESPONSE_VERSION
         if _expected_response_version(bundle) == BATCH_KEYED_RESPONSE_VERSION_V3
@@ -3983,8 +3994,9 @@ def _row_review_prompts(
             bundle, stage_sha256=stage["stage_sha256"], batch_id=batch["batch_id"],
             rows=[row_index[ref] for ref in batch["evidence_ids"]],
             response_version=version,
+            _legacy_prompt_rendering="prompt_rendering_version" not in stage,
         )
-        size = len(prompt.encode("utf-8"))
+        size = len(prompt.encode("utf-8")) + ("prompt_rendering_version" in stage)
         if size > stage["max_prompt_bytes"]:
             raise SemanticIntegrationError(
                 f"row review batch {batch['batch_id']} exceeds rendered prompt byte ceiling"
@@ -4056,6 +4068,7 @@ def prepare_row_verification(
     *,
     max_prompt_bytes: int | None = None,
     response_version: str | None = None,
+    _legacy_prompt_rendering: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare one independent whole-row check for every claim-bearing result."""
     dispositions, claim_ids = _validate_verification_input_compilation(
@@ -4104,8 +4117,9 @@ def prepare_row_verification(
             stage_sha256=placeholder,
             batch_id=batch_id,
             rows=candidate,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(candidate) <= max_rows and len(rendered.encode("utf-8")) <= limit:
+        if len(candidate) <= max_rows and len(rendered.encode("utf-8")) + (not _legacy_prompt_rendering) <= limit:
             current = candidate
             continue
         if not current:
@@ -4119,8 +4133,9 @@ def prepare_row_verification(
             stage_sha256=placeholder,
             batch_id=f"verify-{len(chunks) + 1:04d}",
             rows=current,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(single.encode("utf-8")) > limit:
+        if len(single.encode("utf-8")) + (not _legacy_prompt_rendering) > limit:
             raise SemanticIntegrationError(
                 f"verification row {row['evidence_id']} exceeds rendered prompt byte ceiling"
             )
@@ -4157,6 +4172,8 @@ def prepare_row_verification(
             "bijection_complete": True,
         },
     }
+    if not _legacy_prompt_rendering:
+        stage["prompt_rendering_version"] = "review_evidence_v1"
     stage["stage_sha256"] = _sha256(stage)
     return stage, _row_review_prompts(bundle, stage, response_version)
 
@@ -4174,6 +4191,7 @@ def apply_row_verification(
         bundle,
         compilation,
         max_prompt_bytes=stage.get("max_prompt_bytes"),
+        _legacy_prompt_rendering="prompt_rendering_version" not in stage,
     )
     if stage != expected_stage:
         raise SemanticIntegrationError(
@@ -4817,6 +4835,7 @@ def prepare_row_repair(
     evidence_ids: Sequence[str],
     max_prompt_bytes: int | None = None,
     response_version: str | None = None,
+    _legacy_prompt_rendering: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare a bounded whole-row repair without re-reviewing untouched rows."""
     _verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
@@ -4882,8 +4901,9 @@ def prepare_row_repair(
             stage_sha256=placeholder,
             batch_id=batch_id,
             rows=proposed,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(proposed) <= max_rows and len(rendered.encode("utf-8")) <= limit:
+        if len(proposed) <= max_rows and len(rendered.encode("utf-8")) + (not _legacy_prompt_rendering) <= limit:
             current = proposed
             continue
         if not current:
@@ -4924,6 +4944,8 @@ def prepare_row_repair(
             "bijection_complete": True,
         },
     }
+    if not _legacy_prompt_rendering:
+        stage["prompt_rendering_version"] = "review_evidence_v1"
     stage["stage_sha256"] = _sha256(stage)
     return stage, _row_review_prompts(bundle, stage, response_version)
 
@@ -4940,6 +4962,7 @@ def apply_row_repair(
         verified_compilation,
         evidence_ids=stage.get("selected_evidence_ids", []),
         max_prompt_bytes=stage.get("max_prompt_bytes"),
+        _legacy_prompt_rendering="prompt_rendering_version" not in stage,
     )
     if stage != expected_stage:
         raise SemanticIntegrationError("row repair stage does not match its verified input")

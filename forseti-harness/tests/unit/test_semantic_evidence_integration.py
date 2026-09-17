@@ -3160,6 +3160,10 @@ def test_public_normal_authoring_default_and_legacy_replay_are_separate(tmp_path
 
 
 def test_current_claim_formation_guidance_changes_prompt_only_and_preserves_historical_bytes(monkeypatch):
+    # Historical downstream hash pins bind the original unmarked row stage.
+    from functools import partial
+    monkeypatch.setitem(globals(), "prepare_row_verification",
+                        partial(prepare_row_verification, _legacy_prompt_rendering=True))
     import hashlib
     from judgment.claim_meaning import CLAIM_FORMATION_GUIDANCE, CLAIM_MEANING_GUIDANCE
 
@@ -3200,7 +3204,11 @@ def test_current_claim_formation_guidance_changes_prompt_only_and_preserves_hist
     ("exact_identity_namespaces_v2", "539f5008caec8478a9158f9b82deb5a6c37b9a50ee9be85e7ef8515d4166bfe4", "fce121e97c1c8d62aabf0e486080f860398bd79d9a81461fa481313e5e760c86"),
     ("exact_identity_namespaces_v3", "100768e54bed83d53e02cd4ebe8da2f33cb7c84d0b1406b1d82d3204f19cf6e5", "fce121e97c1c8d62aabf0e486080f860398bd79d9a81461fa481313e5e760c86"),
 ])
-def test_v13_explicit_historical_authoring_preserves_reviewed_foreign_prompts(tmp_path, revision, prompt_hash, schema_hash):
+def test_v13_explicit_historical_authoring_preserves_reviewed_foreign_prompts(tmp_path, revision, prompt_hash, schema_hash, monkeypatch):
+    # Historical downstream hash pins bind the original unmarked row stage.
+    from functools import partial
+    monkeypatch.setitem(globals(), "prepare_row_verification",
+                        partial(prepare_row_verification, _legacy_prompt_rendering=True))
     import hashlib
     from runners.run_semantic_evidence_integration import prepare_reconciliation_level
 
@@ -4616,7 +4624,11 @@ def test_local_repair_wrong_cause(mutation, error):
         semantic_module.apply_reconciliation_repair(bundle, stage, response, request, patch)
 
 
-def test_local_repair_connected_scope_context_and_semantic_nonclaim():
+def test_local_repair_connected_scope_context_and_semantic_nonclaim(monkeypatch):
+    # Historical downstream hash pins bind the original unmarked row stage.
+    from functools import partial
+    monkeypatch.setitem(globals(), "prepare_row_verification",
+                        partial(prepare_row_verification, _legacy_prompt_rendering=True))
     bundle, stage, response, request, patch = _local_repair_fixture()
     context = json.loads(request["prompt"].split("\n\nLOCAL_REPAIR_CONTEXT\n")[1])
     assert request["schema_version"] == "semantic_reconciliation_repair_request_v1"
@@ -7760,7 +7772,11 @@ def test_definition_recovery_rejects_unknown_or_inapplicable_version():
                 bundle, stage, failed, request_version=version)
 
 
-def test_finite_local_repair_keeps_candidates_and_replays_legacy_request():
+def test_finite_local_repair_keeps_candidates_and_replays_legacy_request(monkeypatch):
+    # Historical downstream hash pins bind the original unmarked row stage.
+    from functools import partial
+    monkeypatch.setitem(globals(), "prepare_row_verification",
+                        partial(prepare_row_verification, _legacy_prompt_rendering=True))
     bundle, _, stage = _finite_row_identity_fixture()
     response = _finite_decision_response(stage,
         [[(ref, "support")] for ref in stage["batches"][0]["candidate_refs"]], terminal=False)
@@ -10414,7 +10430,8 @@ def test_supplied_axis_vocabulary_reaches_all_current_consumers(axis_id, label, 
     forbidden = ("shade_and_color_fit", "texture_and_skin_finish", "formula_consistency_and_change",
                  "reaction_and_breakout", "hydration_and_moisture", "value_and_quantity")
     for rendered in [*initial, *verification, *repairs]:
-        policy = rendered["prompt"].split("\n\nCURRENT_AXES\n", 1)[0]
+        from judgment.review_evidence import RENDERING_GUIDANCE
+        policy = rendered["prompt"].split("\n\nCURRENT_AXES\n", 1)[0].split(RENDERING_GUIDANCE, 1)[0]
         assert "CURRENT_AXES is the sole vocabulary for output axis_ids" in policy
         assert not any(identifier in policy for identifier in forbidden)
         assert axis_id in rendered["prompt"]
@@ -12309,3 +12326,109 @@ def test_frozen_v8_repair_replay_keeps_parent_and_active_content_bound() -> None
     downgraded["compilation_sha256"] = _canonical_hash(downgraded)
     with pytest.raises(SemanticIntegrationError, match="stale method lineage"):
         prepare_reconciliation_stage(bundle, downgraded)
+
+
+@pytest.mark.parametrize("phase", ["verification", "repair"])
+def test_lossless_row_review_complete_packing_and_oversize(tmp_path, monkeypatch, phase):
+    from judgment.review_evidence import expand_evidence, RENDERING_GUIDANCE
+    bundle, compiled, old_stage, _ = _identity_bound_row_stage(phase)
+    original = semantic_module._expand_v4_unit
+    repeated = "Complete context Unicode café and distinct ownership. " * 800
+    oversized = False
+
+    def expanded(*args, **kwargs):
+        row = original(*args, **kwargs)
+        row["context_a"] = repeated
+        row["context_b"] = repeated
+        row["extra_fields"] = [{"missing_is_not_null": None}, {}, {"$text": "literal"}]
+        if oversized:
+            row["unique_context"] = "".join(f"{i:08x}" for i in range(12000))
+        return row
+
+    monkeypatch.setattr(semantic_module, "_expand_v4_unit", expanded)
+    prepare = prepare_row_verification if phase == "verification" else prepare_row_repair
+    kwargs = {"evidence_ids": old_stage["selected_evidence_ids"]} if phase == "repair" else {}
+    with pytest.raises(SemanticIntegrationError, match="exceeds rendered prompt byte ceiling"):
+        prepare(bundle, compiled, max_prompt_bytes=80_000, _legacy_prompt_rendering=True, **kwargs)
+    stage, prompts = prepare(bundle, compiled, max_prompt_bytes=80_000, **kwargs)
+    assert stage["prompt_rendering_version"] == "review_evidence_v1"
+    recovered = []
+    for prompt in prompts:
+        prefix, encoded = prompt["prompt"].split(RENDERING_GUIDANCE + "\n\n")
+        payload = expand_evidence(json.loads(encoded))
+        assert payload["CURRENT_AXES"] == bundle["axes"]
+        assert payload["PRODUCT_IDENTITY_CATALOG"] == bundle["product_identity_catalog"]
+        recovered.extend(payload["ROWS_TO_VERIFY"])
+        historical = semantic_module._render_row_verification_prompt(bundle,
+            stage_sha256=stage["stage_sha256"], batch_id=prompt["batch_id"],
+            rows=payload["ROWS_TO_VERIFY"], response_version=semantic_module.ROW_VERIFICATION_KEYED_RESPONSE_VERSION,
+            _legacy_prompt_rendering=True)
+        assert prefix == historical.split("CURRENT_AXES\n")[0]
+        assert prompt["prompt_utf8_bytes"] == len((prompt["prompt"] + "\n").encode("utf-8")) <= 80_000
+    assert recovered == stage["verification_rows"]
+    assert [r["evidence_id"] for r in recovered] == [r["evidence_id"] for r in old_stage["verification_rows"]]
+    assert all(r["source"]["context_a"] == r["source"]["context_b"] == repeated for r in recovered)
+    bundle_path, compiled_path = tmp_path / "bundle.json", tmp_path / "compiled.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+    compiled_path.write_text(json.dumps(compiled), encoding="utf-8")
+    run_kwargs = dict(bundle_path=bundle_path, stage_out=tmp_path / "stage.json",
+                      prompt_dir=tmp_path / "prompts", max_prompt_bytes=80_000)
+    if phase == "verification":
+        prepare_row_verification_run(compiled_path=compiled_path, **run_kwargs)
+    else:
+        prepare_row_repair_run(verified_path=compiled_path, **kwargs, **run_kwargs)
+    assert json.loads((tmp_path / "stage.json").read_text()) == stage
+    for prompt in prompts:
+        assert len((tmp_path / "prompts" / (prompt["batch_id"] + ".md")).read_bytes()) == prompt["prompt_utf8_bytes"]
+    oversized = True
+    with pytest.raises(SemanticIntegrationError, match="exceeds rendered prompt byte ceiling"):
+        prepare(bundle, compiled, max_prompt_bytes=80_000, **kwargs)
+
+
+@pytest.mark.parametrize("phase", ["verification", "repair"])
+def test_lossless_row_review_replays_saved_unmarked_stages(phase):
+    bundle, compiled, stage, _ = _identity_bound_row_stage(phase)
+    prepare = prepare_row_verification if phase == "verification" else prepare_row_repair
+    apply = apply_row_verification if phase == "verification" else apply_row_repair
+    kwargs = {"evidence_ids": stage["selected_evidence_ids"]} if phase == "repair" else {}
+    old_stage, prompts = prepare(bundle, compiled, max_prompt_bytes=60_000,
+                                _legacy_prompt_rendering=True, **kwargs)
+    assert "prompt_rendering_version" not in old_stage
+    assert "review_evidence_v1" not in prompts[0]["prompt"]
+    responses = _row_verification_responses(old_stage)
+    frozen = deepcopy((old_stage, responses))
+    verified = apply(bundle, compiled, old_stage, responses)
+    assert (old_stage, responses) == frozen
+    assert verified["semantic_units"] == compiled["semantic_units"]
+    prepare_reconciliation_stage(bundle, verified)
+    tampered = deepcopy(old_stage)
+    tampered["prompt_rendering_version"] = "unknown"
+    tampered["stage_sha256"] = semantic_module._sha256({k: v for k, v in tampered.items() if k != "stage_sha256"})
+    with pytest.raises(SemanticIntegrationError, match="stage does not match"):
+        apply(bundle, compiled, tampered, responses)
+
+
+
+def test_advance_reuses_legacy_row_review_stage_and_saved_response(tmp_path, capsys, monkeypatch):
+    import runners.run_semantic_evidence_integration as runner
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run_dir = tmp_path / "run"
+    _advance_cli(source, run_dir, capsys)
+    _publish_advance_replay(run_dir, "extraction", replay["extraction"])
+    original = runner.prepare_row_verification
+
+    def historical(*args, **kwargs):
+        return original(*args, **{**kwargs, "_legacy_prompt_rendering": True})
+
+    with monkeypatch.context() as patch:
+        patch.setattr(runner, "prepare_row_verification", historical)
+        code, before = _advance_cli(source, run_dir, capsys)
+    assert code == 0 and before["phase"] == "verification"
+    stage = json.loads((run_dir / "verification/stage.json").read_text())
+    assert "prompt_rendering_version" not in stage
+    _publish_advance_replay(run_dir, "verification", _row_verification_responses(stage)[:1])
+    frozen = {p: p.read_bytes() for p in run_dir.rglob("*") if p.is_file()}
+    code, resumed = _advance_cli(source, run_dir, capsys)
+    assert code == 0 and resumed["phase"] == "verification"
+    assert resumed["response_state"]["valid_batch_ids"] == [stage["batches"][0]["batch_id"]]
+    assert all(p.read_bytes() == data for p, data in frozen.items())
