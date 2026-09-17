@@ -2876,7 +2876,38 @@ for the declared complete execution interval. Separate implementation/setup,
 fresh executor work, provider work and source assessment; retain unknown usage.
 No percentage saving or cold acceptance follows from deterministic replay.
 
-For closeout of a saved **live finite endpoint**, assemble the existing answers,
+When a final source-backed judgment of a saved **live finite endpoint** is
+commissioned, deliver the complete closeout view directly to one cold reviewer:
+
+```text
+python -m runners.run_finite_semantic_consolidation judge-closeout --run-root SAVED_RUN_ROOT --operation-dir EXISTING_OPERATION_DIR --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS
+```
+
+Omit `--operation-dir` when none was recorded. This calls the same read-only
+collector below, preserving its evidence selection and lossless representation,
+then uses the existing provider job launcher with required context preloaded and
+tools disabled. This is the commissioned final judgment, not an additional
+review gate. It does not regenerate consolidation or change answer selection.
+The reviewer independently judges the exact commissioned check IDs, preserves
+useful distinctions and names missing evidence; prior assessment verdicts are
+not truth. The program supplies the mechanical facts and accounting separately.
+Read the returned judgment or `NEW_REVIEW_DIR/result.json`, with its limitations,
+instead of manually paging through the full evidence export. Reopen source
+detail only to adjudicate a specific unresolved finding or missing-evidence
+claim. The complete evidence, prompt, response, logs and receipts remain saved.
+
+The review directory is new and outside the saved run/provider/operation roots.
+One attempt is permitted by this invocation, with no automatic retry or repair;
+a repeated invocation refuses the existing directory without launching. Input
+capacity, provider, malformed-response and changed-source failures remain
+failures; there is no fallback to repeated model-driven chunk reading. Check
+identities and cited source IDs are validated, not the truth of the judgment.
+Fresh-review usage is reported separately from historical generation and retains
+startup/unknown distinctions. Parent and implementation costs are excluded and
+must be added when claiming a complete-work-unit saving. Test this maintained
+delivery path on the same saved run when measuring closeout improvements.
+
+For provider-free inspection or export, assemble the existing answers,
 assessment, mechanical checks, native costs and commissioned source evidence in
 one read-only invocation from `forseti-harness/`:
 

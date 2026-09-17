@@ -47,7 +47,15 @@ For the explicitly commissioned complete finite route, use
 One maintained invocation drives formation, finishing, native validation and
 consumer replay, answering, source assessment, and bounded answer correction.
 The named entry also owns resume and the caller's program-owned wait pattern.
-Its `closeout --run-root SAVED_RUN_ROOT` dispatch assembles a saved live endpoint's
+For a commissioned final source-backed judgment, use its
+`judge-closeout --run-root SAVED_RUN_ROOT --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS`
+dispatch (plus `--operation-dir` when recorded). The maintained command supplies
+the complete unchanged closeout view directly to one fresh no-tools reviewer,
+then returns the judgment, limitations and separate fresh-review usage. Read its
+`result.json`; do not page through the evidence export to repeat that judgment.
+It neither regenerates consolidation nor repairs answers. Failures and missing
+evidence remain explicit; reusing a review directory cannot launch another call.
+Its provider-free `closeout --run-root SAVED_RUN_ROOT` dispatch assembles a saved live endpoint's
 answers, review status, native costs and exact evidence for its commissioned
 checks without provider calls. The same contract section owns the full command,
 optional consumer artifact and wider-inspection limits.

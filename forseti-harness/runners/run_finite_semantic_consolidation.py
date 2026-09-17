@@ -867,6 +867,9 @@ def render_assessment(request, *, keyed_checks=False):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "judge-closeout":
+        from reports.finite_closeout_judgment import main as judge_closeout
+        return judge_closeout(argv[1:])
     if argv and argv[0] == "closeout":
         from reports.finite_closeout import main as closeout
         return closeout(argv[1:])
