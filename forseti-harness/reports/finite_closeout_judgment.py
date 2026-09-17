@@ -139,11 +139,22 @@ def main(argv=None):
     try:
         result = judge(args.run_root, args.operation_dir, args.output_dir, model=args.model,
                        reasoning_effort=args.reasoning_effort, timeout_seconds=args.timeout_seconds)
+        # Schema diagnostics and usage issue lists can themselves exceed the
+        # return budget. Keep them in the saved record; the pointer carries only
+        # fixed-shape counters, including startup and unknown coverage.
+        accounting = result["review_accounting"]
+        usage = accounting["usage"]
+        review_usage = {"coverage": usage["coverage"], "completed_turn_tokens": usage["total_tokens"],
+            "observed_completed_turn_tokens": usage["observed_totals"]["total_tokens"],
+            "observed_startup_tokens": accounting["additional_observed_response_tokens"],
+            "unknown_usage_attempts": accounting["unknown_usage_attempts"],
+            "unknown_startup_attempts": accounting["startup_observation_unknown_attempts"]}
         text = bounded_json(result, record_path=args.output_dir / "result.json", budget=args.max_output_bytes,
-            facts={"status": result["status"], "review_usage": result["review_accounting"]["usage"],
-                   "error": result.get("error"), "semantic_verdict": "requires_adjudication"})
+            facts={"status": result["status"], "review_usage": review_usage,
+                   "error": "Full failure diagnostic in record_path." if result.get("error") else None,
+                   "semantic_verdict": "requires_adjudication"})
         print(json.dumps(json.loads(text), ensure_ascii=True, separators=(",", ":")))
         return 0 if result["judgment"] is not None else 1
-    except (OSError, ValueError, KeyError, TypeError, ValidationError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, IndexError, ValidationError) as exc:
         print(json.dumps({"status": "FINITE_CLOSEOUT_JUDGMENT_FAILED", "error": str(exc)}, ensure_ascii=True))
         return 1

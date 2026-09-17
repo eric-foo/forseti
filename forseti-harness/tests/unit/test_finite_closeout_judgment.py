@@ -118,6 +118,63 @@ def test_existing_launcher_is_no_tools_no_retry_and_keeps_logs(tmp_path, monkeyp
     assert (tmp_path / "provider.stdout.log").read_text() == "retained provider output"
 
 
+@pytest.mark.parametrize("budget", [1024, 32768])
+@pytest.mark.parametrize("coverage", ["complete", "unknown"])
+def test_oversized_failure_diagnostic_keeps_the_record_locator_and_paid_usage(tmp_path, monkeypatch, capsys, budget, coverage):
+    """Controlled counters and diagnostics test the return, not fresh model cost."""
+    run, _ = saved_correction_run(tmp_path, "accepted")
+    detail = "invalid \U0001f9f4 schema and instance \u6e90 " * 6000
+    accounting = {"usage": {"coverage": coverage,
+        "total_tokens": 199367 if coverage == "complete" else None,
+        "observed_totals": {"total_tokens": 199367}, "issues": ["diagnostic " * 4000]},
+        "additional_observed_response_tokens": 11117,
+        "unknown_usage_attempts": 0 if coverage == "complete" else 1,
+        "startup_observation_unknown_attempts": 0 if coverage == "complete" else 1}
+
+    def job(output, **kwargs):
+        raise ValueError(detail)
+
+    monkeypatch.setattr(judgment, "launch", job)
+    monkeypatch.setattr(judgment, "collect_provider_roots", lambda roots: accounting)
+    output = tmp_path / "review"
+    capsys.readouterr()  # Drop the runner's own progress lines from the fixture.
+    assert judgment.main(["--run-root", str(run.root), "--output-dir", str(output),
+        "--model", "controlled", "--reasoning-effort", "high", "--timeout-seconds", "30",
+        "--max-output-bytes", str(budget)]) == 1
+    console = capsys.readouterr().out
+    assert len(console.encode("utf-8")) <= budget
+    printed = json.loads(console)
+    assert printed["return_view"] == "details_required"
+    assert printed["record_path"] == str((output / "result.json").resolve())
+    assert printed["facts"]["status"] == "FINITE_CLOSEOUT_JUDGMENT_FAILED"
+    usage = printed["facts"]["review_usage"]
+    assert usage == {"coverage": coverage, "completed_turn_tokens": accounting["usage"]["total_tokens"],
+        "observed_completed_turn_tokens": 199367, "observed_startup_tokens": 11117,
+        "unknown_usage_attempts": accounting["unknown_usage_attempts"],
+        "unknown_startup_attempts": accounting["startup_observation_unknown_attempts"]}
+    assert printed["facts"]["error"] == "Full failure diagnostic in record_path."
+    # The bounded console fact never replaces the complete saved diagnostic.
+    saved = json.loads((output / "result.json").read_text(encoding="utf-8"))
+    assert saved["error"] == detail
+    assert saved["review_accounting"] == accounting
+
+
+def test_collector_index_failure_stays_an_explicit_failure_return(tmp_path, monkeypatch, capsys):
+    """A saved operation command truncated after a flag raises IndexError."""
+    run, _ = saved_correction_run(tmp_path, "accepted")
+    operation = tmp_path / "operation"
+    operation.mkdir()
+    (operation / "operation.json").write_text(json.dumps({"command": ["--output-dir"]}), encoding="utf-8")
+    monkeypatch.setattr(judgment, "launch", lambda *a, **kw: pytest.fail("must fail before launch"))
+    capsys.readouterr()
+    assert judgment.main(["--run-root", str(run.root), "--operation-dir", str(operation),
+        "--output-dir", str(tmp_path / "review"),
+        "--model", "controlled", "--reasoning-effort", "high", "--timeout-seconds", "30"]) == 1
+    assert json.loads(capsys.readouterr().out) == {
+        "status": "FINITE_CLOSEOUT_JUDGMENT_FAILED", "error": "list index out of range"}
+    assert not (tmp_path / "review").exists()
+
+
 def test_existing_runner_routes_to_judgment_without_restarting_consolidation(monkeypatch):
     monkeypatch.setattr(judgment, "main", lambda argv: 17 if argv == ["--help"] else 18)
     monkeypatch.setattr(finite, "FiniteRun", lambda *a: pytest.fail("restarted consolidation"))
