@@ -596,8 +596,7 @@ def _keyed_assessment(assessment, ids):
     value["schema_version"] = value["schema_version"].replace("_v", "_keyed_v")
     value["commissioned_checks"] = {r["check_id"]: {k: v for k, v in r.items() if k != "check_id"}
                                      for r in rows if r["check_id"] in ids}
-    value["additional_checks"] = [{k: v for k, v in r.items() if k != "check_id"}
-                                  for r in rows if r["check_id"] not in ids]
+    value["additional_checks"] = [r for r in rows if r["check_id"] not in ids]
     return value
 
 
@@ -617,10 +616,7 @@ def test_assessment_generation_binds_names_and_preserves_all_judgments(scoped):
     schema = finite.assessment_generation_schema(checks, scoped_checks=scoped)
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(wire)
-    expected = deepcopy(result)
-    expected["check_results"][2]["check_id"] = "_additional_check_1"
-    expected["check_results"][3]["check_id"] = "additional_check_2"
-    assert finite.assessment_from_response(wire, checks, scoped_checks=scoped) == expected
+    assert finite.assessment_from_response(wire, checks, scoped_checks=scoped) == result
     assert wire == original
     assert finite.assessment_from_response(result, checks, scoped_checks=scoped) == result
     for perturbation in ("renamed", "missing", "extra_name", "model_supplied_id"):
@@ -638,12 +634,22 @@ def test_assessment_generation_binds_names_and_preserves_all_judgments(scoped):
             Draft202012Validator(schema).validate(bad)
         with pytest.raises(ValidationError):
             finite.assessment_from_response(bad, checks, scoped_checks=scoped)
+    bad = deepcopy(wire)
+    del bad["additional_checks"][0]["check_id"]
+    with pytest.raises(ValidationError):
+        finite.assessment_from_response(bad, checks, scoped_checks=scoped)
+    for collision in ("behavior_contrasts", "extra_two"):
+        bad = deepcopy(wire)
+        bad["additional_checks"][0]["check_id"] = collision
+        with pytest.raises(ValueError, match="omits or duplicates commissioned checks"):
+            finite.assessment_from_response(bad, checks, scoped_checks=scoped)
 
 
-@pytest.mark.parametrize("ids", [["same", "same"], [""], [None]])
-def test_assessment_generation_refuses_ambiguous_commissions(ids):
+@pytest.mark.parametrize("checks", [[{"id": "same"}, {"id": "same"}], [{"id": ""}], [{"id": None}],
+                                    [{}], [None], [{"id": []}], [{"id": "  "}]])
+def test_assessment_generation_refuses_ambiguous_commissions(checks):
     with pytest.raises(ValueError, match="unique nonempty identities"):
-        finite.assessment_generation_schema([{"id": ref} for ref in ids])
+        finite.assessment_generation_schema(checks)
 
 
 def test_assessment_generation_supports_no_commissioned_checks():
@@ -850,8 +856,6 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
                            "upstream_commissioned"}
     responses = {"answer-correction/provider": run.provider_root / "patch.json",
                  "assessment-recheck/provider": run.provider_root / "recheck.json"}
-    for index, check in enumerate(recheck["check_results"][1:], 1):
-        check["check_id"] = f"additional_check_{index}"
     wire_recheck = recheck if outcome == "legacy_report" else _keyed_assessment(recheck, ["anchored"])
     finite.persist(responses["answer-correction/provider"], patch)
     finite.persist(responses["assessment-recheck/provider"], wire_recheck)

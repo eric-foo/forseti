@@ -2789,10 +2789,12 @@ The normalized initial assessment retains v1. New live provider output uses
 `finite_source_assessment_keyed_v1` for the initial review and
 `finite_source_assessment_keyed_v2` for its affected recheck: `commissioned_checks`
 is an object with every commissioned ID required as an exact field name, and
-`additional_checks` holds any extra judgments. The runner supplies check identities
-and projects these fields to the existing `check_results` list, preserving all
-judgments, references, findings and scope; additional identities are assigned
-uniquely by the runner. The closeout reader uses the same projection. Raw provider
+output `additional_checks` holds extra judgments with their descriptive `check_id`
+intact. This output array is distinct from input `assessment_only.additional_checks`,
+which carries review instructions. The runner supplies commissioned identities
+and projects both sets to the existing `check_results` list, preserving every extra
+identity, judgment, reference, finding and scope. Duplicate IDs remain invalid.
+The closeout reader uses the same projection. Raw provider
 responses and their hash bindings remain intact. Missing or renamed fields fail
 schema validation; no identity guessing, extra model call or retry is added.
 An old or unscoped report cannot authorize a

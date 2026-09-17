@@ -48,8 +48,8 @@ ASSESSMENT_MATERIALITY = (
 )
 ASSESSMENT_CHECK_FIELDS = (
     "Fill every named field in commissioned_checks with its source-backed judgment. "
-    "The field names are fixed check identities; do not rename them or add check_id fields. "
-    "Put any additional checks in additional_checks; the runner assigns their identities. "
+    "Those field names are fixed check identities; do not rename them or add check_id inside those judgments. "
+    "Put extra judgments in additional_checks, each with a descriptive check_id distinct from all other checks. "
 )
 
 
@@ -170,18 +170,19 @@ def assessment_schema(*, scoped_checks=False):
 
 def assessment_generation_schema(checks, *, scoped_checks=False):
     """Bind commissioned identities in provider output, before paid generation."""
-    ids = [c["id"] for c in checks]
-    if any(not isinstance(ref, str) or not ref for ref in ids) or len(ids) != len(set(ids)):
+    ids = [c.get("id") if isinstance(c, dict) else None for c in checks]
+    if any(not isinstance(ref, str) or not ref.strip() for ref in ids) or len(ids) != len(set(ids)):
         raise ValueError("assessment checks require unique nonempty identities")
     schema = assessment_schema(scoped_checks=scoped_checks)
     props = schema["properties"]
-    check = props.pop("check_results")["items"]
-    check["properties"].pop("check_id")
-    check["required"].remove("check_id")
+    additional = props.pop("check_results")["items"]
+    check = {**additional,
+             "properties": {k: v for k, v in additional["properties"].items() if k != "check_id"},
+             "required": [k for k in additional["required"] if k != "check_id"]}
     props["schema_version"]["const"] = props["schema_version"]["const"].replace("_v", "_keyed_v")
     props["commissioned_checks"] = {"type": "object", "additionalProperties": False,
                                     "properties": {ref: check for ref in ids}, "required": ids}
-    props["additional_checks"] = {"type": "array", "items": check}
+    props["additional_checks"] = {"type": "array", "items": additional}
     schema["required"] = list(props)
     return schema
 
@@ -194,13 +195,7 @@ def assessment_from_response(value, checks, *, scoped_checks=False):
         required = value.pop("commissioned_checks")
         additional = value.pop("additional_checks")
         rows = [{"check_id": c["id"], **required[c["id"]]} for c in checks]
-        used = {c["id"] for c in checks}
-        for index, check in enumerate(additional, 1):
-            ref = f"additional_check_{index}"
-            while ref in used:
-                ref = "_" + ref
-            used.add(ref)
-            rows.append({"check_id": ref, **check})
+        rows.extend(dict(check) for check in additional)
         value["schema_version"] = "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1"
         value["check_results"] = rows
     check_assessment(value, {"assessment_only": {"checks": checks}}, scoped_checks=scoped_checks)

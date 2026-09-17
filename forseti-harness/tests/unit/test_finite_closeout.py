@@ -231,6 +231,8 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
                   "check_results": [{"check_id": "contrast", "status": "pass", "source_refs": [ref],
                                      "finding_refs": [], "explanation": "Controlled check."}],
                   "material_findings": [] if outcome == "pre_freeze" else [finding]}
+    assessment["check_results"].append({"check_id": "additional.source_traceability", "status": "pass",
+        "source_refs": [ref], "finding_refs": [], "explanation": "Extra source-backed check."})
     proposal = {"schema_version": "finite_answer_correction_v1",
                 "answers": [{**answer["answers"][1], "answer": "Corrected source-backed answer."}],
                 "retained_answers": [{"question_id": "z", "reason": "Original already preserves the distinction."}]}
@@ -238,8 +240,9 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
         proposal.update(answers=[], retained_answers=[{"question_id": q["id"], "reason": "No supported change."}
                                                       for q in questions["questions"]])
     recheck = {**deepcopy(assessment), "schema_version": "finite_source_assessment_v2", "material_findings": [],
-               "check_results": [{**assessment["check_results"][0], "scope": "answer",
-                                  "status": "fail" if outcome == "rejected" else "pass"}]}
+               "check_results": [{**check, "scope": "answer"} for check in assessment["check_results"]]}
+    if outcome == "rejected":
+        recheck["check_results"][-1]["status"] = "fail"
     inputs = {"source": source, "bundle": bundle, "verified": verified, "questions": questions,
               "previous_answer": answer}
     paths = {name: tmp_path / "inputs" / (name + ".json") for name in inputs}
@@ -312,6 +315,7 @@ def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected
     before = {p: hash_file(p) for p in tmp_path.rglob("*") if p.is_file()}
     view = closeout.collect(run.root)
     assert view["saved_result"] == result
+    assert view["initial_assessment"]["check_results"][-1]["check_id"] == "additional.source_traceability"
     assert view["answers"]["selected"]["value"] == finite.read(result["final_answer"])
     assert view["answers"]["correction_candidate"]["value"] == finite.read(run.root / "answer-correction/answers-corrected.json")
     assert view["correction_records"]["composition"] == finite.read(run.root / "answer-correction/composition.json")
@@ -323,8 +327,11 @@ def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected
     else:
         assert view["correction_records"]["recheck_input"] == finite.read(run.root / "assessment-recheck/input.json")
         assert view["affected_recheck"]["check_results"][0]["scope"] == "answer"
+        assert view["affected_recheck"]["check_results"] == result["affected_recheck_check_results"]
+        assert view["affected_recheck"]["check_results"][-1]["check_id"] == "additional.source_traceability"
         assert view["initial_assessment"]["material_findings"]
     if outcome == "rejected":
+        assert [c["check_id"] for c in result["answer_correction_failed_checks"]] == ["additional.source_traceability"]
         assert view["answers"]["selected"]["value"] == view["answers"]["frozen"]["value"]
         assert view["answers"]["selected"]["value"] != view["answers"]["correction_candidate"]["value"]
     assert closeout.collect(run.root) == view
