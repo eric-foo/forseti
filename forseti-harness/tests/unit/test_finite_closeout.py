@@ -196,7 +196,7 @@ def test_existing_runner_dispatch_is_read_only(monkeypatch):
     assert finite.main(["closeout", "--help"]) == 17
 
 
-def saved_correction_run(tmp_path, outcome):
+def saved_correction_run(tmp_path, outcome, *, keyed=True):
     """Actual runner-to-reader integration; only provider generation is controlled.
 
     These are synthetic test receipts, never model-quality or cost evidence.
@@ -206,6 +206,7 @@ def saved_correction_run(tmp_path, outcome):
     from test_semantic_evidence_integration import (
         _source_v7, _v5_responses, _row_verification_responses, _finite_decision_response,
     )
+    from test_finite_semantic_consolidation import _keyed_assessment
     source = _source_v7(count=3)
     bundle = finite.semantic.build_bundle(source, max_prompt_bytes=80000, max_evidence_per_work_unit=30)
     compiled = finite.semantic.validate_batch_responses(bundle, _v5_responses(bundle, detailed_per_batch=3))
@@ -266,6 +267,15 @@ def saved_correction_run(tmp_path, outcome):
         else:
             assert phase == "assessment-recheck"
             response = recheck
+        if phase in {"assessment", "assessment-recheck"}:
+            if keyed:
+                response = _keyed_assessment(response, ["contrast"])
+            else:
+                # A saved historical provider response has its original schema
+                # and prompt; the reader must reproduce that prompt exactly.
+                schema = finite.assessment_schema(scoped_checks=phase == "assessment-recheck")
+                prompt = prompt.replace(finite.ASSESSMENT_CHECK_FIELDS, "")
+            finite.Draft202012Validator(schema).validate(response)
         directory = run.root / name
         finite.persist_bytes(directory / "prompt.md", prompt.encode("utf-8"))
         finite.persist(directory / "response.schema.json", schema)
@@ -294,10 +304,11 @@ def saved_correction_run(tmp_path, outcome):
     return run, result
 
 
+@pytest.mark.parametrize("keyed", [False, True])
 @pytest.mark.parametrize("outcome,selected", [("mixed", "accepted"), ("retained", "original_retained"),
-                                             ("rejected", "rejected"), ("pre_freeze", None)])
-def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected):
-    run, result = saved_correction_run(tmp_path, outcome)
+                                              ("rejected", "rejected"), ("pre_freeze", None)])
+def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected, keyed):
+    run, result = saved_correction_run(tmp_path, outcome, keyed=keyed)
     before = {p: hash_file(p) for p in tmp_path.rglob("*") if p.is_file()}
     view = closeout.collect(run.root)
     assert view["saved_result"] == result
@@ -344,7 +355,7 @@ def test_saved_recheck_schema_failure_returns_structured_failure(tmp_path, capsy
     run, result = saved_correction_run(tmp_path, "mixed")
     response = Path(result["affected_recheck"])
     invalid = finite.read(response)
-    del invalid["check_results"][0]["scope"]
+    del invalid["commissioned_checks"]["contrast"]["scope"]
     response.write_text(json.dumps(invalid), encoding="utf-8")
     # Preserve byte bindings deliberately: the reader must reach the actual
     # scoped schema validator, not merely reject an unrefreshed digest.

@@ -202,6 +202,7 @@ def collect(run_root, operation_dir=None):
     bound_consumer_input("answer")
     assessment_record = load(root / "assessment/result.json")
     assessment = bound_response(assessment_record)
+    keyed_assessment = assessment.get("schema_version") == "finite_source_assessment_keyed_v1"
     if Path(result["answer"]).resolve() != Path(freeze["response"]).resolve():
         raise ValueError("result answer differs from frozen answer")
     if Path(result["assessment"]).resolve() != Path(assessment_record["response"]).resolve():
@@ -209,7 +210,7 @@ def collect(run_root, operation_dir=None):
     if str(Path(result["assessment"]).resolve()) not in responses:
         raise ValueError("assessment lacks a bound provider response")
     finite.check_answer(frozen, questions["questions"], bundle, verified)
-    finite.check_assessment(assessment, questions)
+    assessment = finite.assessment_from_response(assessment, questions["assessment_only"]["checks"])
     if result["material_findings"] != assessment["material_findings"] or result["overall_usefulness"] != assessment["overall_usefulness"]:
         raise ValueError("result omits or changes assessment findings")
     assessment_input = load(root / "assessment/input.json")
@@ -226,7 +227,8 @@ def collect(run_root, operation_dir=None):
         raise ValueError("assessment input differs from bound evidence")
     policy = load(provider_root / "assessment/provider/job/binding.json")
     prompt = Path(policy["binding"]["prompt_path"])
-    if hash_file(prompt) != policy["binding"]["prompt_sha256"] or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected):
+    if (hash_file(prompt) != policy["binding"]["prompt_sha256"]
+            or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected, keyed_checks=keyed_assessment)):
         raise ValueError("assessment prompt differs from bound evidence")
 
     answer_versions = {"frozen": {"path": freeze["response"], "value": frozen}}
@@ -260,7 +262,7 @@ def collect(run_root, operation_dir=None):
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
         correction_records["recheck_input"] = request
-        finite.check_assessment(recheck, {"assessment_only": {"checks": request["frozen_relevant_checks"]}}, scoped_checks=True)
+        recheck = finite.assessment_from_response(recheck, request["frozen_relevant_checks"], scoped_checks=True)
         for key, field in (("affected_recheck_material_findings", "material_findings"),
                            ("affected_recheck_check_results", "check_results")):
             if result[key] != recheck[field]:

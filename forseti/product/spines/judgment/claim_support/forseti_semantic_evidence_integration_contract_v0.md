@@ -2775,7 +2775,7 @@ An affected-scope recheck cannot clear original findings outside its nominations
 A live candidate replaces the frozen original only when the recheck reports no
 open material answer defects and no failed or uncertain answer or unknown-scope
 checks; minor findings and partial checks alone do not prevent adoption.
-Live affected rechecks use `finite_source_assessment_v2`, requiring each check's
+Normalized affected rechecks use `finite_source_assessment_v2`, requiring each check's
 `scope` to be `answer`, `upstream_only`, or `unknown`, including added checks.
 `upstream_only` means the remaining defect has no effect on the corrected answer,
 not merely that it originated upstream. Mixed answer/inventory checks are
@@ -2785,7 +2785,17 @@ label can clear such a finding. All recheck findings and checks remain exposed a
 `affected_recheck_material_findings` and `affected_recheck_check_results`;
 `answer_correction_failed_checks` contains the checks that block answer adoption.
 An accepted answer does not repair or certify the frozen inventory or consolidation.
-The initial assessment retains v1. An old or unscoped report cannot authorize a
+The normalized initial assessment retains v1. New live provider output uses
+`finite_source_assessment_keyed_v1` for the initial review and
+`finite_source_assessment_keyed_v2` for its affected recheck: `commissioned_checks`
+is an object with every commissioned ID required as an exact field name, and
+`additional_checks` holds any extra judgments. The runner supplies check identities
+and projects these fields to the existing `check_results` list, preserving all
+judgments, references, findings and scope; additional identities are assigned
+uniquely by the runner. The closeout reader uses the same projection. Raw provider
+responses and their hash bindings remain intact. Missing or renamed fields fail
+schema validation; no identity guessing, extra model call or retry is added.
+An old or unscoped report cannot authorize a
 live correction; historical replay retains its saved schema and selection semantics.
 Rejected candidates remain at
 `answer_correction_candidate`, with their recheck findings and failed checks.
