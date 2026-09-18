@@ -11373,6 +11373,121 @@ def _v5_mixed_role_stage() -> tuple[dict, dict, list[str]]:
     return bundle, stage, refs
 
 
+def _v5_mixed_posture_stage() -> tuple[dict, dict, dict, list[str]]:
+    bundle = _bundle_v5(count=3)
+    responses = _v5_responses(bundle, detailed_per_batch=3)
+    responses[0]["evidence"][1]["semantic_units"][0]["evidence_posture"] = (
+        "attribution_or_echo"
+    )
+    compiled = validate_batch_responses(bundle, responses)
+    stage, _ = prepare_reconciliation_stage(bundle, compiled)
+    refs = [row["candidate_ref"] for row in stage["candidates"]]
+    assert len(refs) == 3
+    return bundle, compiled, stage, refs
+
+
+@pytest.mark.parametrize("claim_kind", ["customer_experience", "reported_behavior"])
+@pytest.mark.parametrize("echo_relation", ["support", "counter", "adjacent"])
+def test_v5_customer_competence_uses_effective_support_postures(
+    claim_kind: str, echo_relation: str,
+) -> None:
+    bundle, compiled, stage, refs = _v5_mixed_posture_stage()
+    responses = _staged_node_responses(
+        stage,
+        [[(refs[0], "support"), (refs[1], echo_relation), (refs[2], "support")]],
+        terminal=True, claim_kind=claim_kind,
+    )
+    if echo_relation == "support":
+        with pytest.raises(SemanticIntegrationError, match="non-experience posture"):
+            validate_reconciliation_stage(bundle, stage, responses)
+        return
+
+    first = validate_reconciliation_stage(bundle, stage, responses)
+    node = first["semantic_nodes"][0]
+    assert node["leaf_relations"] == [
+        {"semantic_unit_ref": ref, "relation": echo_relation if i == 1 else "support",
+         "evidence_posture": "attribution_or_echo" if i == 1 else "first_hand"}
+        for i, ref in enumerate(refs)
+    ]
+    next_stage, prompts = prepare_reconciliation_stage(bundle, first)
+    candidate = next_stage["candidates"][0]
+    assert semantic_module._is_customer_finding_candidate(candidate)
+    assert '"evidence_postures_by_relation"' in prompts[0]["prompt"]
+    second = validate_reconciliation_stage(
+        bundle, next_stage, _staged_node_responses(
+            next_stage, [[(candidate["candidate_ref"], "support")]],
+            terminal=True, claim_kind=claim_kind,
+        ),
+    )
+    assert second["semantic_nodes"][0]["leaf_relations"] == node["leaf_relations"]
+    # The next level and the final consumer must agree on the unchanged leaves.
+    finalize_v3_view(bundle, compiled, second)
+
+
+def test_v5_customer_competence_composes_counter_postures_before_checking() -> None:
+    bundle, _, stage, refs = _v5_mixed_posture_stage()
+    first = validate_reconciliation_stage(
+        bundle, stage, _staged_node_responses(
+            stage, [[(refs[0], "support")], [(refs[1], "counter"), (refs[2], "support")]],
+            terminal=False,
+        ),
+    )
+    next_stage, _ = prepare_reconciliation_stage(bundle, first)
+    ordinary = _node_ref_carrying(first, refs[0])
+    mixed = _node_ref_carrying(first, refs[1])
+    with pytest.raises(SemanticIntegrationError, match="non-experience posture"):
+        validate_reconciliation_stage(
+            bundle, next_stage, _staged_node_responses(
+                next_stage, [[(ordinary, "support"), (mixed, "counter")]],
+                terminal=True, claim_kind="customer_experience",
+            ),
+        )
+
+
+def test_v5_legacy_mixed_postures_are_not_guessed_from_leaf_relations() -> None:
+    bundle, _, stage, refs = _v5_mixed_posture_stage()
+    first = validate_reconciliation_stage(
+        bundle, stage, _staged_node_responses(
+            stage, [[(refs[0], "support"), (refs[1], "adjacent"), (refs[2], "support")]],
+            terminal=False,
+        ),
+    )
+    for leaf in first["semantic_nodes"][0]["leaf_relations"]:
+        leaf.pop("evidence_posture")
+    first["node_compilation_sha256"] = semantic_module._sha256({
+        key: value for key, value in first.items() if key != "node_compilation_sha256"
+    })
+    next_stage, _ = prepare_reconciliation_stage(bundle, first)
+    with pytest.raises(SemanticIntegrationError, match="non-experience posture"):
+        validate_reconciliation_stage(
+            bundle, next_stage, _staged_node_responses(
+                next_stage, [[(next_stage["candidates"][0]["candidate_ref"], "support")]],
+                terminal=True, claim_kind="customer_experience",
+            ),
+        )
+
+
+def test_v5_posture_lineage_survives_terminal_coalescence_and_is_source_checked() -> None:
+    bundle, compiled, stage, refs = _v5_mixed_posture_stage()
+    first = validate_reconciliation_stage(
+        bundle, stage, _staged_node_responses(
+            stage, [[(refs[0], "support"), (refs[1], "adjacent")], [(refs[2], "support")]],
+            terminal=True, claim_kind="customer_experience",
+        ),
+    )
+    nodes = first["semantic_nodes"]
+    nodes[1]["bounded_meaning"] = nodes[0]["bounded_meaning"]
+    merged = _terminal_repair_coalesce_group(
+        nodes, repaired_compilation_sha256=compiled["compilation_sha256"],
+    )
+    index = {row["semantic_unit_ref"]: row for row in compiled["semantic_units"]}
+    assert semantic_module._terminal_repair_validate_node_against_leaves(merged, index) == set(refs)
+    assert merged["leaf_relations"][1]["evidence_posture"] == "attribution_or_echo"
+    merged["leaf_relations"][1]["evidence_posture"] = "first_hand"
+    with pytest.raises(SemanticIntegrationError, match="stale leaf posture"):
+        semantic_module._terminal_repair_validate_node_against_leaves(merged, index)
+
+
 def test_v5_reconciliation_checks_only_supporting_source_roles_for_competence() -> None:
     bundle, stage, refs = _v5_mixed_role_stage()
     reconciliation = _staged_node_responses(

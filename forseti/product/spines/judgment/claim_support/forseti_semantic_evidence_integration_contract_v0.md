@@ -1002,6 +1002,11 @@ when any supporting posture is not `first_hand` or `personal_agreement`.
 `strategy_statement` is routed as `actor_strategy`. This check occurs before
 finalization so a known impossible claim-kind/posture combination cannot spend
 another level or masquerade as a valid node compilation.
+Competence uses the effective supporting leaves after relation composition;
+counter and adjacent context do not become customer proof. Mixed-posture nodes
+retain each known leaf's posture in their internal `leaf_relations`, and prompts
+summarize those postures by relation. Historical compilations lacking that
+association keep the conservative union check rather than guessing attribution.
 
 Reconciliation must expose conflict and exact agreement, not merely keep their
 leaves somewhere in the view. When opposite experiences address the same
