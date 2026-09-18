@@ -21,6 +21,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any
 from judgment.claim_meaning import CLAIM_FORMATION_GUIDANCE
+from judgment.review_evidence import render_evidence
 
 
 BUNDLE_VERSION = "semantic_evidence_bundle_v1"
@@ -3928,6 +3929,7 @@ def _render_row_verification_prompt(
     batch_id: str,
     rows: Sequence[Mapping[str, Any]],
     response_version: str = ROW_VERIFICATION_RESPONSE_VERSION,
+    _legacy_prompt_rendering: bool = False,
 ) -> str:
     catalog = bundle.get("product_identity_catalog")
     catalog_section = (
@@ -3936,7 +3938,7 @@ def _render_row_verification_prompt(
         else "\n\nPRODUCT_IDENTITY_CATALOG\n"
         + json.dumps(catalog, ensure_ascii=False, indent=2)
     )
-    return (
+    prefix = (
         _downstream_method_text(bundle)
         + "\n\n"
         + _verification_method(bundle)[1]
@@ -3948,6 +3950,15 @@ def _render_row_verification_prompt(
             ensure_ascii=False,
             indent=2,
         )
+    )
+    if not _legacy_prompt_rendering:
+        payload = {"CURRENT_AXES": bundle["axes"]}
+        if catalog is not None:
+            payload["PRODUCT_IDENTITY_CATALOG"] = catalog
+        payload["ROWS_TO_VERIFY"] = list(rows)
+        return prefix + "\n\n" + render_evidence(payload).rstrip("\n")
+    return (
+        prefix
         + "\n\nCURRENT_AXES\n"
         + json.dumps(bundle["axes"], ensure_ascii=False, indent=2)
         + catalog_section
@@ -3960,8 +3971,8 @@ def _row_review_prompts(
     bundle: Mapping[str, Any], stage: Mapping[str, Any],
     response_version: str | None,
 ) -> list[dict[str, Any]]:
-    # The immutable stage partitions source work using the historical template.
-    # Transport may change without rebatching or rewriting completed v1 answers.
+    # Saved stages without the rendering marker retain their exact old prompts.
+    # Response transport stays independent of immutable stage membership.
     version = response_version or (
         ROW_VERIFICATION_KEYED_RESPONSE_VERSION
         if _expected_response_version(bundle) == BATCH_KEYED_RESPONSE_VERSION_V3
@@ -3983,8 +3994,9 @@ def _row_review_prompts(
             bundle, stage_sha256=stage["stage_sha256"], batch_id=batch["batch_id"],
             rows=[row_index[ref] for ref in batch["evidence_ids"]],
             response_version=version,
+            _legacy_prompt_rendering="prompt_rendering_version" not in stage,
         )
-        size = len(prompt.encode("utf-8"))
+        size = len(prompt.encode("utf-8")) + ("prompt_rendering_version" in stage)
         if size > stage["max_prompt_bytes"]:
             raise SemanticIntegrationError(
                 f"row review batch {batch['batch_id']} exceeds rendered prompt byte ceiling"
@@ -4056,6 +4068,7 @@ def prepare_row_verification(
     *,
     max_prompt_bytes: int | None = None,
     response_version: str | None = None,
+    _legacy_prompt_rendering: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare one independent whole-row check for every claim-bearing result."""
     dispositions, claim_ids = _validate_verification_input_compilation(
@@ -4104,8 +4117,9 @@ def prepare_row_verification(
             stage_sha256=placeholder,
             batch_id=batch_id,
             rows=candidate,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(candidate) <= max_rows and len(rendered.encode("utf-8")) <= limit:
+        if len(candidate) <= max_rows and len(rendered.encode("utf-8")) + (not _legacy_prompt_rendering) <= limit:
             current = candidate
             continue
         if not current:
@@ -4119,8 +4133,9 @@ def prepare_row_verification(
             stage_sha256=placeholder,
             batch_id=f"verify-{len(chunks) + 1:04d}",
             rows=current,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(single.encode("utf-8")) > limit:
+        if len(single.encode("utf-8")) + (not _legacy_prompt_rendering) > limit:
             raise SemanticIntegrationError(
                 f"verification row {row['evidence_id']} exceeds rendered prompt byte ceiling"
             )
@@ -4157,6 +4172,8 @@ def prepare_row_verification(
             "bijection_complete": True,
         },
     }
+    if not _legacy_prompt_rendering:
+        stage["prompt_rendering_version"] = "review_evidence_v1"
     stage["stage_sha256"] = _sha256(stage)
     return stage, _row_review_prompts(bundle, stage, response_version)
 
@@ -4174,6 +4191,7 @@ def apply_row_verification(
         bundle,
         compilation,
         max_prompt_bytes=stage.get("max_prompt_bytes"),
+        _legacy_prompt_rendering="prompt_rendering_version" not in stage,
     )
     if stage != expected_stage:
         raise SemanticIntegrationError(
@@ -4817,6 +4835,7 @@ def prepare_row_repair(
     evidence_ids: Sequence[str],
     max_prompt_bytes: int | None = None,
     response_version: str | None = None,
+    _legacy_prompt_rendering: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Prepare a bounded whole-row repair without re-reviewing untouched rows."""
     _verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
@@ -4882,8 +4901,9 @@ def prepare_row_repair(
             stage_sha256=placeholder,
             batch_id=batch_id,
             rows=proposed,
+            _legacy_prompt_rendering=_legacy_prompt_rendering,
         )
-        if len(proposed) <= max_rows and len(rendered.encode("utf-8")) <= limit:
+        if len(proposed) <= max_rows and len(rendered.encode("utf-8")) + (not _legacy_prompt_rendering) <= limit:
             current = proposed
             continue
         if not current:
@@ -4924,6 +4944,8 @@ def prepare_row_repair(
             "bijection_complete": True,
         },
     }
+    if not _legacy_prompt_rendering:
+        stage["prompt_rendering_version"] = "review_evidence_v1"
     stage["stage_sha256"] = _sha256(stage)
     return stage, _row_review_prompts(bundle, stage, response_version)
 
@@ -4940,6 +4962,7 @@ def apply_row_repair(
         verified_compilation,
         evidence_ids=stage.get("selected_evidence_ids", []),
         max_prompt_bytes=stage.get("max_prompt_bytes"),
+        _legacy_prompt_rendering="prompt_rendering_version" not in stage,
     )
     if stage != expected_stage:
         raise SemanticIntegrationError("row repair stage does not match its verified input")
@@ -5447,6 +5470,42 @@ def _relation_product(parent: str, child: str) -> str:
     return "counter"
 
 
+def _leaf_evidence_postures(candidate, leaf) -> set[str]:
+    postures = set(candidate.get("evidence_postures", []))
+    if "evidence_posture" not in leaf:
+        # Older compilations retain only the union. Do not guess which leaf
+        # supplied a posture or weaken their conservative competence check.
+        return postures
+    posture = leaf["evidence_posture"]
+    if posture not in postures:
+        raise SemanticIntegrationError("leaf posture disagrees with candidate postures")
+    return {posture}
+
+
+def _evidence_postures_by_relation(candidate) -> dict[str, list[str]]:
+    return {
+        relation: sorted({
+            posture
+            for leaf in candidate["leaf_relations"]
+            if leaf["relation"] == relation
+            for posture in _leaf_evidence_postures(candidate, leaf)
+        })
+        for relation in sorted(RELATIONS)
+    }
+
+
+def _postured_leaf_relations(relations, postures_by_leaf) -> list[dict[str, Any]]:
+    # Homogeneous nodes need no extra lineage. Mixed nodes keep each known
+    # leaf's posture so later relation composition cannot turn context into proof.
+    mixed = len({p for values in postures_by_leaf.values() for p in values}) > 1
+    return [
+        {"semantic_unit_ref": ref, "relation": relation,
+         **({"evidence_posture": next(iter(postures_by_leaf[ref]))}
+            if mixed and len(postures_by_leaf[ref]) == 1 else {})}
+        for ref, relation in sorted(relations.items())
+    ]
+
+
 def _v3_candidate_from_unit(
     unit: Mapping[str, Any], *, carry_evidence_postures: bool = False
 ) -> dict[str, Any]:
@@ -5533,6 +5592,10 @@ def _agent_reconciliation_candidate(
     }
     if "evidence_postures" in candidate:
         agent_candidate["evidence_postures"] = candidate["evidence_postures"]
+        if any("evidence_posture" in leaf for leaf in candidate["leaf_relations"]):
+            agent_candidate["evidence_postures_by_relation"] = (
+                _evidence_postures_by_relation(candidate)
+            )
     if include_condition_lineage and (lineage := _mixed_condition_lineage(candidate)):
         agent_candidate["condition_lineage"] = lineage
     if convergence_mode and "terminal_proposition" in candidate:
@@ -5571,7 +5634,7 @@ def _agent_reconciliation_candidate(
 
 
 def _is_customer_finding_candidate(candidate: Mapping[str, Any]) -> bool:
-    postures = set(candidate.get("evidence_postures", []))
+    postures = set(_evidence_postures_by_relation(candidate)["support"])
     return bool(postures) and postures <= {"first_hand", "personal_agreement"}
 
 
@@ -7930,6 +7993,7 @@ def validate_reconciliation_stage(
             child_polarities: set[str] = set()
             child_emerging_labels: set[str] = set()
             child_evidence_postures: set[str] = set()
+            leaf_postures: dict[str, set[str]] = {}
             subjects = _string_list(
                 row.get("subject_product_ids"), field=f"{key}.subjects", allow_empty=False
             )
@@ -7978,6 +8042,9 @@ def validate_reconciliation_stage(
                             f"semantic node {key} duplicates one leaf through multiple children"
                         )
                     leaf_relations[leaf["semantic_unit_ref"]] = effective
+                    leaf_postures[leaf["semantic_unit_ref"]] = (
+                        _leaf_evidence_postures(child, leaf)
+                    )
                 for lineage in child["condition_lineage"]:
                     condition_lineage[lineage["semantic_unit_ref"]] = list(
                         lineage["conditions"]
@@ -8072,7 +8139,9 @@ def validate_reconciliation_stage(
                         f"terminal semantic node {key} uses source roles incompetent for {kind}: {sorted(incompetent)!r}"
                     )
                 if kind in {"customer_experience", "reported_behavior"} and (
-                    child_evidence_postures - {"first_hand", "personal_agreement"}
+                    {posture for ref, relation in leaf_relations.items()
+                     if relation == "support" for posture in leaf_postures[ref]}
+                    - {"first_hand", "personal_agreement"}
                 ):
                     raise SemanticIntegrationError(
                         f"terminal semantic node {key} uses non-experience posture as customer proof"
@@ -8096,10 +8165,9 @@ def validate_reconciliation_stage(
                     "polarity": row["polarity"],
                     "uncertainty_posture": row["uncertainty_posture"],
                     "child_relations": list(refs),
-                    "leaf_relations": [
-                        {"semantic_unit_ref": ref, "relation": stance}
-                        for ref, stance in sorted(leaf_relations.items())
-                    ],
+                    "leaf_relations": _postured_leaf_relations(
+                        leaf_relations, leaf_postures
+                    ),
                     "condition_lineage": [
                         {"semantic_unit_ref": ref, "conditions": values}
                         for ref, values in sorted(condition_lineage.items())
@@ -9108,6 +9176,7 @@ def validate_relation_closure_stage(
         axes: set[str] = set()
         emerging: set[str] = set()
         postures: set[str] = set()
+        leaf_postures: dict[str, set[str]] = defaultdict(set)
         for ref in refs:
             group_ref_by_candidate[ref] = node_ref
             candidate = candidate_index[ref]
@@ -9116,6 +9185,7 @@ def validate_relation_closure_stage(
             postures.update(candidate.get("evidence_postures", []))
             for relation in candidate["leaf_relations"]:
                 leaf_ref = relation["semantic_unit_ref"]
+                leaf_postures[leaf_ref].update(_leaf_evidence_postures(candidate, relation))
                 prior = leaf_relations.get(leaf_ref)
                 leaf_relations[leaf_ref] = (
                     relation["relation"]
@@ -9146,10 +9216,7 @@ def validate_relation_closure_stage(
             "child_relations": [
                 {"child_ref": ref, "relation": "support"} for ref in sorted(refs)
             ],
-            "leaf_relations": [
-                {"semantic_unit_ref": ref, "relation": relation}
-                for ref, relation in sorted(leaf_relations.items())
-            ],
+            "leaf_relations": _postured_leaf_relations(leaf_relations, leaf_postures),
             "condition_lineage": [
                 {"semantic_unit_ref": ref, "conditions": values}
                 for ref, values in sorted(condition_lineage.items())
@@ -9473,6 +9540,10 @@ def _terminal_repair_validate_node_against_leaves(
         raise SemanticIntegrationError(
             "terminal repair migration loses current evidence postures"
         )
+    for leaf in node["leaf_relations"]:
+        if ("evidence_posture" in leaf and leaf["evidence_posture"]
+                != semantic_index[leaf["semantic_unit_ref"]]["evidence_posture"]):
+            raise SemanticIntegrationError("terminal repair migration has stale leaf posture")
     if _terminal_repair_condition_lineage(node) != expected_lineage:
         raise SemanticIntegrationError(
             "terminal repair migration condition lineage does not match current leaves"
@@ -9514,6 +9585,7 @@ def _terminal_repair_coalesce_group(
     source_refs: list[str] = []
     emerging: set[str] = set()
     postures: set[str] = set()
+    leaf_postures: dict[str, set[str]] = {}
     opposition_checked = True
     for node in nodes:
         source_ref = node.get("semantic_node_ref")
@@ -9545,6 +9617,10 @@ def _terminal_repair_coalesce_group(
             condition_lineage[ref] = conditions
         emerging.update(node.get("emerging_axis_labels", []))
         postures.update(node.get("evidence_postures", []))
+        leaf_postures.update({
+            leaf["semantic_unit_ref"]: _leaf_evidence_postures(node, leaf)
+            for leaf in node["leaf_relations"]
+        })
         opposition_checked = opposition_checked and node.get("opposition_checked") is True
     if duplicate_leaf_refs:
         raise SemanticIntegrationError(
@@ -9557,10 +9633,7 @@ def _terminal_repair_coalesce_group(
         *sorted(source_refs),
         *sorted(leaf_relations),
     )
-    result["leaf_relations"] = [
-        {"semantic_unit_ref": ref, "relation": leaf_relations[ref]}
-        for ref in sorted(leaf_relations)
-    ]
+    result["leaf_relations"] = _postured_leaf_relations(leaf_relations, leaf_postures)
     result["child_relations"] = [
         {"child_ref": ref, "relation": child_relations[ref]}
         for ref in sorted(child_relations)
@@ -10291,6 +10364,11 @@ def finalize_v3_view(
             if ref not in semantic_index or relation["relation"] not in RELATIONS:
                 raise SemanticIntegrationError(
                     f"terminal semantic node {key} has invalid leaf lineage"
+                )
+            if ("evidence_posture" in relation and relation["evidence_posture"]
+                    != semantic_index[ref]["evidence_posture"]):
+                raise SemanticIntegrationError(
+                    f"terminal semantic node {key} has stale leaf posture"
                 )
             if ref not in related[relation["relation"]]:
                 related[relation["relation"]].append(ref)

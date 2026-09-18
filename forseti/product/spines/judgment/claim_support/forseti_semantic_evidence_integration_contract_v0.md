@@ -1002,6 +1002,11 @@ when any supporting posture is not `first_hand` or `personal_agreement`.
 `strategy_statement` is routed as `actor_strategy`. This check occurs before
 finalization so a known impossible claim-kind/posture combination cannot spend
 another level or masquerade as a valid node compilation.
+Competence uses the effective supporting leaves after relation composition;
+counter and adjacent context do not become customer proof. Mixed-posture nodes
+retain each known leaf's posture in their internal `leaf_relations`, and prompts
+summarize those postures by relation. Historical compilations lacking that
+association keep the conservative union check rather than guessing attribution.
 
 Reconciliation must expose conflict and exact agreement, not merely keep their
 leaves somewhere in the view. When opposite experiences address the same
@@ -3030,7 +3035,16 @@ Current-route operations are the individually callable seams:
     checks for every primary claim-bearing row, and
     `submit-row-verification` requires exactly one `accept`, complete-row
     `replace`, or `unresolved` decision per row before writing the sole active
-    compilation. Non-claim rows are not reread.
+    compilation. Non-claim rows are not reread. New row-verification and row-repair
+    stages render the complete axes, product catalog and source/proposal rows
+    through the shared lossless `review_evidence_v1` renderer. The native method
+    instructions and response schemas remain unchanged. Packing includes the
+    persisted prompt newline and bounds both supported response layouts; the
+    larger v1 layout keeps immutable membership independent of keyed transport.
+    The byte ceiling is unchanged and an oversized complete row still fails.
+    Stages bind `prompt_rendering_version`; saved unmarked stages retain their
+    original rendering, partition, hashes and response replay. Stored evidence
+    and verified compilation schemas remain ordinary, complete JSON.
 11. `prepare-reconciliation-level` renders one or more byte-bounded prompts
     from batch units or prior semantic nodes; **Preparation from verified inputs**
     above is the direct entry for a commissioned preparation checkpoint.
