@@ -1830,8 +1830,14 @@ def advance_semantic_run(
         compiled = validate_batch_responses(bundle, responses)
         retain("batch_compilation", directory / "compilation.json", compiled, "submit-batches")
         directory = run_dir / "verification"
-        stage, prompts = prepare_row_verification(bundle, compiled)
         stage_path = directory / "stage.json"
+        saved_stage = _load_object(stage_path) if stage_path.exists() else None
+        stage, prompts = prepare_row_verification(
+            bundle, compiled,
+            _legacy_prompt_rendering=(
+                saved_stage is not None and "prompt_rendering_version" not in saved_stage
+            ),
+        )
         retain("verification_stage", stage_path, stage, "prepare-row-verification")
         requests = requests_for("verification", directory, prompts, stage_path, stage["stage_sha256"])
         verification_responses, problems = read_responses(directory, requests)

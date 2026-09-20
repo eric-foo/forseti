@@ -233,7 +233,18 @@ def coverage(bundle, verified, view, packet):
     if (selected["truncated"] or selected["selected_proposition_count"] != len(view["propositions"])
             or selected["corpus_unmerged_semantic_unit_count"] != len(residual)):
         raise ValueError("consumer packet coverage differs")
-    if view["coverage"]["accounted_item_count"] != len(bundle["evidence_units"]):
+    denominator = bundle["coverage_denominator"]
+    expected = {
+        "captured_item_count": denominator["captured_item_count"],
+        "semantically_assessed_item_count": len(bundle["evidence_units"]),
+        "mechanically_excluded_item_count": denominator["accounting_disposition_counts"]["mechanically_excluded"],
+        "blocked_item_count": 0,
+        "accounted_item_count": denominator["captured_item_count"],
+        "complete": True,
+    }
+    if (any(view["coverage"].get(k) != value for k, value in expected.items())
+            or expected["semantically_assessed_item_count"] + expected["mechanically_excluded_item_count"]
+            != expected["captured_item_count"]):
         raise ValueError("native view does not account for every source row")
     return dict(source_rows=len(bundle["evidence_units"]), verified_statements=len(original),
                 attached_statements=len(attached), residual_statements=len(residual),
@@ -808,6 +819,10 @@ class FiniteRun:
                 max_evidence_per_work_unit=30, target_bundle_version=self.bundle["schema_version"])
             if rederived != self.bundle:
                 raise ValueError("source and bundle bytes/packing differ under the finite input boundary")
+            # Packet compatibility depends only on frozen source metadata;
+            # reject it before paying for formation and finish.
+            for row in self.bundle["evidence_units"]:
+                semantic._packet_v2_engagement_observation(row)
             formation = self.phase("formation", self.verified)
             finish = self.phase("finish", formation)
             # Repairs are consumed only by the two phases; reject a stale binding before paid consumers.
