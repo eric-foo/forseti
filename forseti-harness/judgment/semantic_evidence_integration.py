@@ -10997,8 +10997,12 @@ def _packet_v2_engagement_observation(
         # Keep that explicit posture as group context, never as positive support.
         bare = {"material_positive", "posture"}
         measured = bare | {"metric_kind", "raw_value", "observed_at"}
-        if engagement.get("material_positive") is not False:
+        if engagement.get("material_positive") is True:
             raise SemanticIntegrationError("uninterpreted engagement cannot assert materiality")
+        if engagement.get("material_positive") is not False:
+            # Absent or non-boolean is an unsupported shape, not a materiality
+            # claim; name the reason the operator actually has to repair.
+            raise SemanticIntegrationError("evidence packet cannot normalize uninterpreted engagement shape")
         if set(engagement) == bare:
             return ("engagement_unavailable", "not_interpreted",
                     {"status": "engagement_unavailable"})

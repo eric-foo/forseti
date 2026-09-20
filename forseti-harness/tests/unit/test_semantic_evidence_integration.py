@@ -1393,16 +1393,25 @@ def test_packet_preserves_uninterpreted_absence_as_distinct_context() -> None:
     }}) == ("engagement_unavailable", "not_interpreted", {"status": "engagement_unavailable"})
 
 
-@pytest.mark.parametrize("extra", [
-    {"material_positive": True}, {"material_positive": 0},
-    {"raw_value": "2"}, {"unknown_metadata": "preserve me"},
-    {"posture": "a different posture"},
+@pytest.mark.parametrize("extra,message", [
+    ({"material_positive": True}, "cannot assert materiality"),
+    ({"material_positive": 0}, "uninterpreted engagement shape"),
+    ({"raw_value": "2"}, "uninterpreted engagement shape"),
+    ({"unknown_metadata": "preserve me"}, "uninterpreted engagement shape"),
+    ({"posture": "a different posture"}, "ambiguous legacy engagement"),
 ])
-def test_packet_does_not_guess_or_drop_uninterpreted_engagement_fields(extra) -> None:
-    with pytest.raises(SemanticIntegrationError, match="engagement"):
+def test_packet_does_not_guess_or_drop_uninterpreted_engagement_fields(extra, message) -> None:
+    with pytest.raises(SemanticIntegrationError, match=message):
         _packet_v2_engagement_observation({"engagement": {
             "posture": "not_interpreted", "material_positive": False, **extra,
         }})
+
+
+def test_packet_reports_missing_uninterpreted_materiality_flag_as_a_shape() -> None:
+    # An absent flag asserts nothing; reporting it as a materiality claim would
+    # send the operator looking for a positive value that is not there.
+    with pytest.raises(SemanticIntegrationError, match="uninterpreted engagement shape"):
+        _packet_v2_engagement_observation({"engagement": {"posture": "not_interpreted"}})
 
 
 def test_packet_v3_keeps_required_available_engagement_field_when_all_values_are_null() -> None:

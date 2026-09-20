@@ -1188,10 +1188,15 @@ context remain resolvable by `evidence_id` from the hash-bound bundle and are
 not duplicated inline.
 
 Capture's explicit `not_interpreted` engagement posture remains group context.
-Its optional native `metric_kind`, `raw_value`, and `observed_at` are preserved
-without awarding materiality; absent counts remain unavailable. Unknown fields
-or contradictory positive materiality still fail. Finite execution checks this
-source-only packet compatibility before paid consolidation.
+Exactly two saved field sets export. The posture with `material_positive: false`
+alone remains unavailable, in a group context distinct from an absent
+engagement. That pair carrying all three of `metric_kind`, `raw_value`, and
+`observed_at` preserves the native count without awarding materiality; the three
+travel together, so a partial metric is not a supported shape. An unknown field,
+a partial metric, or a missing or non-boolean materiality flag fails as an
+unnormalizable shape, and an explicit positive materiality fails as a
+contradictory assertion. Finite execution checks this source-only packet
+compatibility before paid consolidation.
 
 The catalogue has no evidence-count cap and no top-k admission rule. Source
 grouping is presentation and transport normalization only; it does not merge
