@@ -132,7 +132,7 @@ def material_answer_findings(findings, *, for_correction=True):
     """Consume existing reviewer judgments; do not introduce another triage call."""
     material = [f for f in findings if f["status"] == "open" and f["severity"] in {"blocker", "major"}]
     if for_correction:
-        # Routing a paid correction still requires an explicit current question.
+        # Routing a material repair still requires an explicit current question.
         return [f for f in material if f["introduced_at"] in {"current_answer", "frozen_upstream"}
                 and any(r.startswith("current_answer:") for r in f["artifact_refs"])]
     # Reporting must not erase a current/uncertain defect because its locator
@@ -148,6 +148,81 @@ def compose_answer_patch(original, patch, affected):
         raise ValueError("answer patch must replace exactly the affected questions")
     return {**original, "answers": [deepcopy(replacements.get(a["question_id"], a))
                                     for a in original["answers"]]}
+
+
+def answer_identity(answer):
+    return hashlib.sha256(json.dumps(answer, ensure_ascii=False, sort_keys=True,
+                                    separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def apply_exact_answer_repairs(original, repairs, nominations, known_refs, reference_errors=None, *, unit_sources=None):
+    """Apply reviewer-authored text only. Applicability is not semantic acceptance."""
+    if repairs["answer_sha256"] != answer_identity(original):
+        raise ValueError("exact repairs have a stale frozen answer identity")
+    rows = {row["question_id"]: row for row in original["answers"]}
+    reference_errors = reference_errors or {}
+    unit_sources = unit_sources or {}
+    def source_ids(refs):
+        return {unit_sources.get(ref, ref) for ref in refs}
+    scope = {}
+    for finding in material_answer_findings(nominations):
+        for ref in finding["artifact_refs"]:
+            if ref.startswith("current_answer:"):
+                scope.setdefault(ref.removeprefix("current_answer:"), set()).update(finding["source_refs"])
+    edits_by_field = {}
+    added_refs = {}
+    for edit in repairs["edits"]:
+        question, field = edit["question_id"], edit["field"]
+        if question not in rows or question not in scope.keys() | reference_errors.keys() or field not in {"answer", "limits", "evidence_refs"}:
+            raise ValueError("exact repair is outside nominated answer scope")
+        refs = set(edit["source_refs"])
+        before, after = edit["before"], edit["after"]
+        citation_repair = before in reference_errors.get(question, []) and after in known_refs and edit["source_refs"] == [after]
+        nominated_sources = source_ids(scope.get(question, set()))
+        original_refs = answer_source_references(rows[question], known_refs)
+        repair_sources = source_ids(refs)
+        # A focused repair can retain cited context without nominating that
+        # unchanged context as a defect. It still needs a material repair source.
+        if not refs or refs - known_refs or (not citation_repair and (
+                not repair_sources & nominated_sources or repair_sources - nominated_sources - source_ids(original_refs))):
+            raise ValueError("exact repair sources are outside nominated source scope")
+        if field == "evidence_refs":
+            if not citation_repair or rows[question][field].count(before) != 1:
+                raise ValueError("exact citation repair must replace one observed invalid reference")
+            start = rows[question][field].index(before)
+            group = edits_by_field.setdefault((question, field), [])
+            if any(old_start == start for old_start, _, _ in group):
+                raise ValueError("exact repair anchors overlap")
+            group.append((start, start + 1, after))
+            added_refs.setdefault(question, set()).update(refs)
+            continue
+        text = rows[question][field]
+        start = text.find(before)
+        if not before or start < 0 or text.find(before, start + 1) >= 0:
+            raise ValueError("exact repair anchor is missing or ambiguous")
+        if before == after:
+            raise ValueError("exact repair has no text change")
+        introduced = answer_source_references({"answer": after, "evidence_refs": []}, known_refs)
+        if introduced - original_refs - refs:
+            raise ValueError("exact repair introduces a citation outside its source refs")
+        end = start + len(before)
+        group = edits_by_field.setdefault((question, field), [])
+        if any(start < old_end and old_start < end for old_start, old_end, _ in group):
+            raise ValueError("exact repair anchors overlap")
+        group.append((start, end, after))
+        added_refs.setdefault(question, set()).update(refs)
+    if set(added_refs) != scope.keys() | reference_errors.keys():
+        raise ValueError("exact repairs omit a nominated answer")
+    corrected = deepcopy(original)
+    for row in corrected["answers"]:
+        question = row["question_id"]
+        for field in ("answer", "limits"):
+            for start, end, after in sorted(edits_by_field.get((question, field), []), reverse=True):
+                row[field] = row[field][:start] + after + row[field][end:]
+        for start, _, after in edits_by_field.get((question, "evidence_refs"), []):
+            row["evidence_refs"][start] = after
+        row["evidence_refs"].extend(sorted(added_refs.get(question, set()) - set(row["evidence_refs"])))
+    return corrected
 
 
 def answer_source_references(row, known):

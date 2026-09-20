@@ -24,6 +24,27 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-20 v126 — constrained initial exact-review generation to proposed,
+  unresolved findings; only the existing affected recheck can discharge them.
+  Focused material edits may retain already-cited context without falsely
+  nominating that context as defective. Every non-citation edit still requires
+  a material-nominated source; minor-only edits and new foreign references fail.
+  Application and closeout resolve row/unit reference forms through the verified
+  source mapping, preserving exact reference validity without prefix guessing.
+  Saved statuses remain unchanged in historical decoding. This addresses the
+  live response that labelled unapplied proposals repaired; semantic acceptance
+  and savings still require live evidence.
+
+- 2026-09-20 v125 — carried existing per-finding support/origin/conflict facts
+  into the shared writer packet and replaced post-assessment answer rewriting
+  with exact source-reviewer edits. Frozen identity/scope checks precede the
+  existing affected recheck; semantic acceptance remains separate. Historical
+  packet, assessment and correction receipts retain their original methods.
+  Citation-invalid drafts now enter the same reviewer, with strict candidate
+  and final reference validation. Generation offers index edits only for actual
+  invalid entries; live proof exposed an invented index target and stopped
+  before recheck. The final generation refinement is locally validated only.
+
 - 2026-09-12 delegated review adjudicated — accepted the different-vendor
   review's placement of supported repair transport in Local reconciliation
   correction and its correction of the launcher evidence citation. No runtime

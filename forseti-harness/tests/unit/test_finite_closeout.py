@@ -196,7 +196,7 @@ def test_existing_runner_dispatch_is_read_only(monkeypatch):
     assert finite.main(["closeout", "--help"]) == 17
 
 
-def saved_correction_run(tmp_path, outcome, *, keyed=True):
+def saved_correction_run(tmp_path, outcome):
     """Actual runner-to-reader integration; only provider generation is controlled.
 
     These are synthetic test receipts, never model-quality or cost evidence.
@@ -208,6 +208,16 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
     )
     from test_finite_semantic_consolidation import _keyed_assessment
     source = _source_v7(count=3)
+    excluded_row = "reddit:t1:excluded"
+    if outcome.startswith("excluded_row"):
+        # A mechanically excluded capture stays an assessable source row but
+        # never becomes a citable evidence unit.
+        kept = source["captured_items"][0]
+        source["captured_items"].append({
+            "evidence_id": excluded_row, "accounting_disposition": "mechanically_excluded",
+            "accounting_reason": "native body unavailable in fixture",
+            **{k: kept[k] for k in ("container_id", "source_artifact_id", "source_ref")}})
+        source["containers"][0]["captured_leaf_count"] += 1
     bundle = finite.semantic.build_bundle(source, max_prompt_bytes=80000, max_evidence_per_work_unit=30)
     compiled = finite.semantic.validate_batch_responses(bundle, _v5_responses(bundle, detailed_per_batch=3))
     verification, _ = finite.semantic.prepare_row_verification(bundle, compiled)
@@ -223,25 +233,40 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
     answer = {"schema_version": "finite_answer_v1", "answers": [
         {"question_id": q["id"], "answer": "Original source-backed answer.", "evidence_refs": [ref], "limits": "Sample."}
         for q in questions["questions"]]}
+    if outcome.startswith("invalid_draft"):
+        answer["answers"][1]["evidence_refs"] = ["unknown-source"]
+        answer["answers"][1]["answer"] += " [" + ref.split(":")[0] + ":typo]"
+    if outcome == "excluded_row_draft":
+        answer["answers"][1]["answer"] += " [" + excluded_row + "]"
+    draft = outcome.startswith("invalid_draft") or outcome == "excluded_row_draft"
     finding = {"severity": "major", "status": "open", "introduced_at": "current_answer",
-               "source_refs": [ref], "artifact_refs": ["current_answer:z", "current_answer:a"],
+               "source_refs": [ref], "artifact_refs": ["current_answer:a"],
                "defect": "Controlled nomination.", "effect": "Qualification lost.", "bounded_repair": "Check source."}
     assessment = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "Fixture.",
                   "comparison": "Fixture.", "unassessed_material": "None in fixture.", "overall_usefulness": "Bounded.",
                   "check_results": [{"check_id": "contrast", "status": "pass", "source_refs": [ref],
                                      "finding_refs": [], "explanation": "Controlled check."}],
-                  "material_findings": [] if outcome == "pre_freeze" else [finding]}
+                  "material_findings": [] if draft else [finding]}
     assessment["check_results"].append({"check_id": "additional.source_traceability", "status": "pass",
         "source_refs": [ref], "finding_refs": [], "explanation": "Extra source-backed check."})
-    proposal = {"schema_version": "finite_answer_correction_v1",
-                "answers": [{**answer["answers"][1], "answer": "Corrected source-backed answer."}],
-                "retained_answers": [{"question_id": "z", "reason": "Original already preserves the distinction."}]}
-    if outcome == "retained":
-        proposal.update(answers=[], retained_answers=[{"question_id": q["id"], "reason": "No supported change."}
-                                                      for q in questions["questions"]])
+    repairs = {"answer_sha256": finite.answer_identity(answer), "edits": [] if draft else [
+        {"question_id": "a", "field": "answer", "before": "Original", "after": "Corrected", "source_refs": [ref]}]}
+    if outcome.startswith("invalid_draft"):
+        repairs["edits"] = [
+            {"question_id": "a", "field": "evidence_refs", "before": "unknown-source", "after": ref, "source_refs": [ref]},
+            {"question_id": "a", "field": "answer", "before": ref.split(":")[0] + ":typo", "after": ref, "source_refs": [ref]}]
+    if outcome == "excluded_row_draft":
+        repairs["edits"] = [{"question_id": "a", "field": "answer", "before": excluded_row,
+                             "after": ref, "source_refs": [ref]}]
+    if outcome == "excluded_row_repair":
+        finding["source_refs"] = [excluded_row]
+        repairs["edits"][0]["source_refs"] = [excluded_row]
+    if outcome == "invalid_draft_unrepaired":
+        repairs["edits"] = []
     recheck = {**deepcopy(assessment), "schema_version": "finite_source_assessment_v2", "material_findings": [],
                "check_results": [{**check, "scope": "answer"} for check in assessment["check_results"]]}
-    if outcome == "rejected":
+    assessment.update(schema_version="finite_source_assessment_v3", answer_repairs=repairs)
+    if outcome in {"rejected", "invalid_draft_rejected"}:
         recheck["check_results"][-1]["status"] = "fail"
     inputs = {"source": source, "bundle": bundle, "verified": verified, "questions": questions,
               "previous_answer": answer}
@@ -260,24 +285,18 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
                 [[(r, "support") for r in stage["batches"][0]["candidate_refs"]]], terminal=phase == "finish")
         elif phase == "answer":
             response = deepcopy(answer)
-            if outcome == "pre_freeze":
+            if outcome.startswith("invalid_draft"):
                 response["answers"][1]["evidence_refs"] = ["unknown-source"]
         elif phase == "assessment":
             response = assessment
         elif phase == "answer-correction":
             response = ({"schema_version": "finite_answer_v1", "answers": [answer["answers"][1]]}
-                        if outcome == "pre_freeze" else proposal)
+                        if outcome.startswith("invalid_draft") else pytest.fail("unexpected paid rewrite"))
         else:
             assert phase == "assessment-recheck"
             response = recheck
         if phase in {"assessment", "assessment-recheck"}:
-            if keyed:
-                response = _keyed_assessment(response, ["contrast"])
-            else:
-                # A saved historical provider response has its original schema
-                # and prompt; the reader must reproduce that prompt exactly.
-                schema = finite.assessment_schema(scoped_checks=phase == "assessment-recheck")
-                prompt = prompt.replace(finite.ASSESSMENT_CHECK_FIELDS, "")
+            response = _keyed_assessment(response, ["contrast"])
             finite.Draft202012Validator(schema).validate(response)
         directory = run.root / name
         finite.persist_bytes(directory / "prompt.md", prompt.encode("utf-8"))
@@ -307,11 +326,10 @@ def saved_correction_run(tmp_path, outcome, *, keyed=True):
     return run, result
 
 
-@pytest.mark.parametrize("keyed", [False, True])
-@pytest.mark.parametrize("outcome,selected", [("mixed", "accepted"), ("retained", "original_retained"),
-                                              ("rejected", "rejected"), ("pre_freeze", None)])
-def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected, keyed):
-    run, result = saved_correction_run(tmp_path, outcome, keyed=keyed)
+@pytest.mark.parametrize("outcome,selected", [("mixed", "accepted"),
+                                              ("rejected", "rejected"), ("invalid_draft", "accepted")])
+def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected):
+    run, result = saved_correction_run(tmp_path, outcome)
     before = {p: hash_file(p) for p in tmp_path.rglob("*") if p.is_file()}
     view = closeout.collect(run.root)
     assert view["saved_result"] == result
@@ -321,19 +339,22 @@ def test_saved_correction_runs_reach_complete_reader(tmp_path, outcome, selected
     assert view["correction_records"]["composition"] == finite.read(run.root / "answer-correction/composition.json")
     assert result.get("answer_correction_status") == selected
     assert view["native_accounting"]["startup_observation_unknown_attempts"] > 0
-    if outcome == "pre_freeze":
-        assert view["affected_recheck"] is None
-        assert view["answers"]["initial_provider_responses"][0]["value"] != view["answers"]["frozen"]["value"]
+    assert view["correction_records"]["recheck_input"] == finite.read(run.root / "assessment-recheck/input.json")
+    assert view["affected_recheck"]["check_results"][0]["scope"] == "answer"
+    assert view["affected_recheck"]["check_results"] == result["affected_recheck_check_results"]
+    assert view["affected_recheck"]["check_results"][-1]["check_id"] == "additional.source_traceability"
+    if outcome == "invalid_draft":
+        assert view["initial_assessment"]["material_findings"] == []  # Citation validity does not inflate materiality.
+        assert finite.read(run.root / "assessment/input.json")["citation_validation"]["status"] == "invalid_draft"
+        assert not (run.root / "answer-correction/provider").exists()
+        assert len(result["provider_execution_receipts"]) == 5  # Two synthetic consolidation, answer, reviewer, recheck.
     else:
-        assert view["correction_records"]["recheck_input"] == finite.read(run.root / "assessment-recheck/input.json")
-        assert view["affected_recheck"]["check_results"][0]["scope"] == "answer"
-        assert view["affected_recheck"]["check_results"] == result["affected_recheck_check_results"]
-        assert view["affected_recheck"]["check_results"][-1]["check_id"] == "additional.source_traceability"
         assert view["initial_assessment"]["material_findings"]
     if outcome == "rejected":
         assert [c["check_id"] for c in result["answer_correction_failed_checks"]] == ["additional.source_traceability"]
         assert view["answers"]["selected"]["value"] == view["answers"]["frozen"]["value"]
         assert view["answers"]["selected"]["value"] != view["answers"]["correction_candidate"]["value"]
+    assert run.run() == result  # Same frozen draft/repairs rederive identical durable bytes.
     assert closeout.collect(run.root) == view
     assert {p: hash_file(p) for p in tmp_path.rglob("*") if p.is_file()} == before
 
@@ -345,7 +366,7 @@ def test_saved_correction_input_tamper_is_refused(tmp_path, phase):
     value = finite.read(path)
     value["answer_commission"]["worker_instructions"] = "Changed after execution."
     path.write_text(json.dumps(value), encoding="utf-8")
-    with pytest.raises(ValueError, match="input differs from provider prompt"):
+    with pytest.raises(ValueError, match="saved binding changed|input differs from provider prompt"):
         closeout.collect(run.root)
 
 
@@ -375,3 +396,45 @@ def test_saved_recheck_schema_failure_returns_structured_failure(tmp_path, capsy
     failure = json.loads(capsys.readouterr().out)
     assert failure["status"] == "FINITE_CLOSEOUT_FAILED"
     assert "scope" in failure["error"]
+
+
+@pytest.mark.parametrize("outcome,error", [("invalid_draft_rejected", finite.UnknownAnswerEvidence),
+                                         ("invalid_draft_unrepaired", ValueError)])
+def test_invalid_frozen_answer_cannot_be_selected_after_failed_exact_repair(tmp_path, outcome, error):
+    with pytest.raises(error):
+        saved_correction_run(tmp_path, outcome)
+    root = tmp_path / "run"
+    assert not (root / "result.json").exists()
+    frozen = finite.read(finite.read(root / "answer/freeze.json")["response"])
+    assert frozen["answers"][1]["evidence_refs"] == ["unknown-source"]
+    assert not (root / "answer-correction/provider").exists()
+    if outcome == "invalid_draft_rejected":
+        assert (root / "answer-correction/answers-corrected.json").is_file()
+        assert (root / "assessment-recheck/result.json").is_file()
+
+
+def test_excluded_capture_is_not_a_citable_answer_reference_for_the_reader(tmp_path):
+    """The reader resolves answer references the way the runner validated them.
+
+    A captured row the bundle excluded is assessable source but not a citable
+    answer reference, so the frozen draft's inline use of it is a real
+    reference error and its saved exact repair is in the recorded scope.
+    """
+    run, result = saved_correction_run(tmp_path, "excluded_row_draft")
+    source, bundle = finite.read(run.args.source), finite.read(run.args.bundle)
+    assert ({r["evidence_id"] for r in source["captured_items"]}
+            - {u["evidence_id"] for u in bundle["evidence_units"]}) == {"reddit:t1:excluded"}
+    assert finite.read(run.root / "assessment/input.json")["citation_validation"] == {
+        "status": "invalid_draft", "unknown_references_by_question": {"a": ["reddit:t1:excluded"]}}
+    assert result["answer_correction_status"] == "accepted"
+    view = closeout.collect(run.root)
+    selected = view["answers"]["selected"]["value"]
+    assert selected == finite.read(result["final_answer"])
+    assert "reddit:t1:excluded" not in selected["answers"][1]["answer"]
+
+
+def test_excluded_capture_repair_reference_fails_before_recheck(tmp_path):
+    with pytest.raises(ValueError, match="exact repair sources are outside nominated source scope"):
+        saved_correction_run(tmp_path, "excluded_row_repair")
+    assert not (tmp_path / "run/answer-correction/answers-corrected.json").exists()
+    assert not (tmp_path / "run/assessment-recheck").exists()

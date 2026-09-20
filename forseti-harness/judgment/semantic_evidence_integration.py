@@ -10648,6 +10648,7 @@ def project_evidence_packet_v1(
     batch_compilation: Mapping[str, Any],
     node_compilation: Mapping[str, Any],
     *,
+    include_claim_support: bool = True,
     axis_ids: Sequence[str] = (),
     proposition_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
@@ -10806,6 +10807,9 @@ def project_evidence_packet_v1(
                 "product_version_ids": proposition["product_version_ids"],
                 "axis_ids": proposition["axis_ids"],
                 "conditions": proposition["conditions"],
+                **({"claim_support": {key: proposition["claim_support"][key] for key in (
+                    "support_posture", "independent_origin_count", "conflict_posture", "causal_ceiling"
+                )}} if include_claim_support else {}),
                 "evidence_item_counts": {
                     relation: len(relation_evidence[relation])
                     for relation in sorted(RELATIONS)
@@ -11602,6 +11606,7 @@ def project_evidence_packet_v2(
     batch_compilation: Mapping[str, Any],
     node_compilation: Mapping[str, Any],
     *,
+    include_claim_support: bool = True,
     axis_ids: Sequence[str] = (),
     proposition_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
@@ -11611,6 +11616,7 @@ def project_evidence_packet_v2(
         bundle,
         batch_compilation,
         node_compilation,
+        include_claim_support=include_claim_support,
         axis_ids=axis_ids,
         proposition_ids=proposition_ids,
     )
@@ -11623,6 +11629,7 @@ def project_evidence_packet(
     batch_compilation: Mapping[str, Any],
     node_compilation: Mapping[str, Any],
     *,
+    include_claim_support: bool = True,
     axis_ids: Sequence[str] = (),
     proposition_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
@@ -11632,6 +11639,7 @@ def project_evidence_packet(
         bundle,
         batch_compilation,
         node_compilation,
+        include_claim_support=include_claim_support,
         axis_ids=axis_ids,
         proposition_ids=proposition_ids,
     )
