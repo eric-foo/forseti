@@ -324,7 +324,7 @@ def collect(run_root, operation_dir=None):
 
     answer_versions = {"frozen": {"path": freeze["response"], "value": frozen}}
     correction_records = {}
-    candidate = None
+    candidate = composition = None
     corrected = root / "answer-correction/answers-corrected.json"
     if result["answer_corrections"]:
         composition = load(root / "answer-correction/composition.json")
@@ -365,15 +365,17 @@ def collect(run_root, operation_dir=None):
         if Path(result["affected_recheck"]).resolve() != Path(record["response"]).resolve():
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
-        if composition.get("method") == "reviewer_exact_repairs_v2":
+        if composition is not None and composition.get("method") == "reviewer_exact_repairs_v2":
             affected = set(composition["affected_question_ids"])
             scoped_questions = [q for q in questions["questions"] if q["id"] in affected]
             edited = {edit["question_id"] for edit in assessment["answer_repairs"]["edits"]}
+            # Compare the retained records whole: their stated open-nomination reason is
+            # what told the recheck to review that unchanged text, not decoration.
             if (request["affected_questions"] != scoped_questions
                     or request["corrected_affected_answers"] != [a for a in candidate["answers"] if a["question_id"] in affected]
                     or request["nominations_to_verify_against_sources"] != finite.material_answer_findings(assessment["material_findings"])
                     or request["exact_repairs"] != assessment["answer_repairs"]
-                    or [a["question_id"] for a in request["retained_answers"]] != [q["id"] for q in scoped_questions if q["id"] not in edited]):
+                    or request["retained_answers"] != finite.retained_answer_records(scoped_questions, edited)):
                 raise ValueError("exact repair recheck omits or changes affected answer scope")
         correction_records["recheck_input"] = request
         recheck = finite.assessment_from_response(recheck, request["frozen_relevant_checks"], scoped_checks=True)

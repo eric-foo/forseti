@@ -359,13 +359,18 @@ def test_partial_exact_repair_keeps_unedited_questions_in_recheck_and_saved_vali
                                     run.questions["questions"], assessment=assessment, known_refs=known)
 
 
-@pytest.mark.parametrize("field", ["affected_questions", "corrected_affected_answers",
-                                    "nominations_to_verify_against_sources", "retained_answers"])
-def test_saved_partial_recheck_cannot_drop_unchanged_nominated_scope(tmp_path, field):
+@pytest.mark.parametrize("field,mutate", [
+    ("affected_questions", lambda value: value[1:]),
+    ("corrected_affected_answers", lambda value: value[1:]),
+    ("nominations_to_verify_against_sources", lambda value: value[1:]),
+    ("retained_answers", lambda value: value[1:]),
+    # Keeping the question but retracting its open-nomination reason is also lost scope.
+    ("retained_answers", lambda value: [{**value[0], "reason": "Already resolved; no recheck needed."}])])
+def test_saved_partial_recheck_cannot_drop_unchanged_nominated_scope(tmp_path, field, mutate):
     run, _ = saved_correction_run(tmp_path, "partial_accepted")
     path = run.root / "assessment-recheck/input.json"
     request = finite.read(path)
-    request[field] = request[field][1:]
+    request[field] = mutate(request[field])
     path.write_text(json.dumps(request), encoding="utf-8")
     # Deliberately bind the reduced request as if it were what the provider saw:
     # reject lost review scope, not just a stale digest.
@@ -382,6 +387,16 @@ def test_saved_partial_recheck_cannot_drop_unchanged_nominated_scope(tmp_path, f
     receipt["prompt_sha256"] = hash_file(prompt)
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
     with pytest.raises(ValueError, match="recheck omits or changes affected answer scope"):
+        closeout.collect(run.root)
+
+
+def test_saved_recheck_without_a_correction_reports_the_missing_candidate(tmp_path):
+    run, _ = saved_correction_run(tmp_path, "partial_accepted")
+    path = run.root / "result.json"
+    result = finite.read(path)
+    result["answer_corrections"] = 0
+    path.write_text(json.dumps(result), encoding="utf-8")
+    with pytest.raises(ValueError, match="recheck lacks a correction candidate"):
         closeout.collect(run.root)
 
 

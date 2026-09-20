@@ -94,6 +94,13 @@ def bound_provider_harness(origin):
     return harness
 
 
+def retained_answer_records(questions, edited):
+    """Name each affected question the proposal left unedited, with its open-nomination status."""
+    return [{"question_id": q["id"],
+             "reason": "No exact edit supplied; the original text remains under its open nomination for this recheck."}
+            for q in questions if q["id"] not in edited]
+
+
 def answer_schema(questions):
     ids = [q["id"] for q in questions]
     if not ids or len(set(ids)) != len(ids):
@@ -730,10 +737,8 @@ class FiniteRun:
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         if not self.replay:
             recheck_request["exact_repairs"] = proposal
-            edited = {edit["question_id"] for edit in proposal["edits"]}
-            recheck_request["retained_answers"] = [
-                {"question_id": q["id"], "reason": "No exact edit supplied; the original text remains under its open nomination for this recheck."}
-                for q in questions if q["id"] not in edited]
+            recheck_request["retained_answers"] = retained_answer_records(
+                questions, {edit["question_id"] for edit in proposal["edits"]})
         persist(self.root / "assessment-recheck/input.json", recheck_request)
         if self.replay:
             self.check_saved_input("assessment-recheck", "affected_recheck_input_json")
