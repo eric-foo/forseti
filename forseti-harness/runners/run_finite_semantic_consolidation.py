@@ -822,6 +822,7 @@ class FiniteRun:
         runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
             HARNESS / "judgment/review_evidence.py",
             HARNESS / "reports/finite_closeout.py",
+            HARNESS / "reports/finite_failure_evidence.py",
             HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
             HARNESS / "provider_execution.py",
             HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
@@ -937,12 +938,20 @@ def render_assessment(request, *, keyed_checks=False, exact_repairs=False):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "run-and-report":
+        from runners.finite_run_report import main as run_and_report
+        return run_and_report(argv[1:])
     if argv and argv[0] == "judge-closeout":
         from reports.finite_closeout_judgment import main as judge_closeout
         return judge_closeout(argv[1:])
     if argv and argv[0] == "closeout":
         from reports.finite_closeout import main as closeout
         return closeout(argv[1:])
+    args = argument_parser().parse_args(argv)
+    return execute(args)
+
+
+def argument_parser():
     parser = argparse.ArgumentParser(description=__doc__,
         epilog="Read a saved endpoint without provider calls: closeout --run-root RUN_ROOT [--operation-dir OPERATION] [--output NEW_JSON]")
     for name in ("bundle", "verified", "source", "questions", "previous-answer", "output-dir"):
@@ -958,7 +967,10 @@ def main(argv=None):
     parser.add_argument("--completed-recovery", nargs=2, action="append", default=[],
         metavar=("PHASE/provider/BATCH", "ATTEMPT_DIR"),
         help="Adopt a completed identical repeat of an existing stopped timeout; preserves failure and consumes one shared retry")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def execute(args):
     try:
         result = FiniteRun(args).run()
     except Exception as exc:
@@ -970,6 +982,14 @@ def main(argv=None):
             record["diagnostics"] = failure_summary(args.output_dir, args.provider_root or args.output_dir)
         except Exception as diagnostic_error:
             record["diagnostic_error"] = str(diagnostic_error)
+        # Freeze the stopped interval for later reporting. New provider work or
+        # altered evidence cannot silently enter this failure's diagnosis.
+        try:
+            roots = {args.output_dir.resolve(), (args.provider_root or args.output_dir).resolve()}
+            record["evidence_files"] = {str(path.resolve()): hash_file(path)
+                for root in roots for path in sorted(root.rglob("*")) if path.is_file() and path.suffix != ".lock"}
+        except OSError as evidence_error:
+            record["evidence_binding_error"] = str(evidence_error)
         persist(failure, record)
         print(json.dumps({"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "failure": str(failure), "error": str(exc)}))
         return 1

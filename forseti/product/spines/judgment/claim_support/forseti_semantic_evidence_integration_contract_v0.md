@@ -2935,11 +2935,41 @@ original provider inputs. Saved consumer responses retain their original paths
 and provenance; their replay is not a fresh judgment of newly rendered prompts.
 The return is `SAVED_REPLAY_COMPLETE`, never fresh quality or provider-cost proof.
 
+For a commissioned run **and** report, use the maintained composed entry:
+
+```text
+python -m runners.run_finite_semantic_consolidation run-and-report --report-dir NEW_REPORT_ROOT --model MODEL --reasoning-effort EFFORT --timeout-seconds REPORT_SECONDS -- --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT
+```
+
+Arguments after `--` retain the existing finite runner's native selection,
+provider-root reuse, correction and recovery authority. The report directory is
+new and outside run/provider roots. Its exclusive reservation prevents repeating
+the composed invocation from launching execution or judgment twice. The command
+waits mechanically for the existing runner's validation and terminal record,
+then commissions exactly one report. Successful endpoints and rejected candidates
+retain the source-backed closeout judgment below; failures receive diagnosis of
+saved observations, with prior reviewer claims explicitly provisional. No extra
+semantic review, automatic correction, retry or approval is added.
+`result.json` preserves execution exit, terminal status and reporting status
+separately. Reporting failure never clears a command failure or rejected answer;
+the original nonzero execution exit takes precedence. Unknown execution remains
+unknown. Raw stdout, stderr, provider records and model response stay separate.
+
 Command waiting and resumable closeout are owned by
 `.agents/workflow-overlay/decision-routing.md` -> "Task-Local Tool-Stall Circuit"
 and the maintained `runners.run_efficiency start/status/resume` entry. Wrap this
-finite command once, supply the existing required checker and exact provider
-root, and retain its operation identity across status or interrupted waits.
+`run-and-report` command once, supply any existing required checker and exact
+generation and reporting provider roots, and retain its operation identity across
+status or interrupted waits. For example, from `forseti-harness/`:
+
+```text
+python -m runners.run_efficiency start --operation-dir NEW_OPERATION_DIR --cwd HARNESS_DIR --bind-codex --provider-root NEW_RUN_ROOT --provider-root NEW_REPORT_ROOT/judgment/provider -- python -m runners.run_finite_semantic_consolidation run-and-report --report-dir NEW_REPORT_ROOT --model MODEL --reasoning-effort EFFORT --timeout-seconds REPORT_SECONDS -- --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT
+```
+
+Use the returned exact `resume_argv` to observe completion; never commission a
+model solely to execute or poll. A lost worker without a terminal record stays
+unknown and is not automatically relaunched. Low-level finite execution and
+separate saved-result reporting remain available.
 The finite runner still owns all semantic validation and retention behavior.
 Native selection is shared by `runners.run_codex_provider_attempt`; this entry
 imports that selector and retains its immutable run binding.
@@ -2949,8 +2979,9 @@ for the declared complete execution interval. Separate implementation/setup,
 fresh executor work, provider work and source assessment; retain unknown usage.
 No percentage saving or cold acceptance follows from deterministic replay.
 
-When a final source-backed judgment of a saved **live finite endpoint** is
-commissioned, deliver the complete closeout view directly to one cold reviewer:
+When a final source-backed judgment of a saved **live finite endpoint**, or a
+diagnostic report of a saved failed execution, is commissioned, deliver the
+complete applicable closeout view directly to one cold reviewer:
 
 ```text
 python -m runners.run_finite_semantic_consolidation judge-closeout --run-root SAVED_RUN_ROOT --operation-dir EXISTING_OPERATION_DIR --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS
@@ -2961,13 +2992,40 @@ collector below, preserving its evidence selection and lossless representation,
 then uses the existing provider job launcher with required context preloaded and
 tools disabled. This is the commissioned final judgment, not an additional
 review gate. It does not regenerate consolidation or change answer selection.
-The reviewer independently judges the exact commissioned check IDs, preserves
+For a completed endpoint the reviewer independently judges the exact commissioned check IDs, preserves
 useful distinctions and names missing evidence; prior assessment verdicts are
 not truth. The program supplies the mechanical facts and accounting separately.
-Read the returned judgment or `NEW_REVIEW_DIR/result.json`, with its limitations,
+Read `NEW_REVIEW_DIR/report.md` or `result.json`, with its limitations,
 instead of manually paging through the full evidence export. Reopen source
 detail only to adjudicate a specific unresolved finding or missing-evidence
 claim. The complete evidence, prompt, response, logs and receipts remain saved.
+
+For failure diagnosis, add `--failure-record SAVED_FAILURE_JSON`. The collector
+assembles saved coverage, formation/finish counts, corpus and answer scope,
+original frozen answer, full prior assessment and repair nominations, unfinished
+endpoint artifacts, original bound exception functions when recoverable, native
+attempt dispositions, retries, stage usage and startup observations. It does not
+rejudge source meaning. Missing cause evidence is named for `details_required`,
+not replaced with today's runtime or an invented diagnosis. The report's program
+section always renders exact status, coverage dimensions, correction status,
+usage and observed totals including startup beside the untouched judgment, even
+if the prose omits them. Unknown accounting remains unknown; observed totals are
+not asserted complete totals.
+
+New failure records hash-bind the stopped file inventory. Later partial work,
+recovery endpoints, changed inputs/runtime/responses and changed snapshot
+inventories cannot silently enter that report. A frozen historical copy is
+readable with `--snapshot-manifest MANIFEST_JSON`: `files` maps relative copy
+paths to `original` absolute locators and `sha256`. Every file and the exact
+inventory are verified; original locators resolve only inside those copies,
+without rewriting raw records or falling back to a live root. A legacy failure
+without such a frozen inventory remains readable but carries an explicit
+evidence gap and `FINITE_CLOSEOUT_DETAILS_REQUIRED`. Keep report outputs outside
+the snapshot. Mechanical hashes stay in `evidence-bindings.json` and are checked
+after judgment; they need not consume the model prompt. Reporting performs one
+normal cold call with the four existing governing sources preloaded and tools
+disabled. It has no investigation or retry fallback. Returned missing-evidence
+claims stay explicit and cannot be a quality pass.
 
 The review directory is new and outside the saved run/provider/operation roots.
 One attempt is permitted by this invocation, with no automatic retry or repair;
@@ -2992,8 +3050,8 @@ Omit `--operation-dir` if no operation was recorded; this makes no operation
 completion claim. The reader reuses native coverage, finalization/projection,
 answer/check validators and receipt accounting. Wrong or changed bindings fail;
 missing original runtime files are explicitly listed, not replaced with today's
-runtime. Historical replay and incomplete endpoints are refused: inspect their
-original run and saved replay/failure records separately. The reader neither
+runtime. Historical replay remains refused; a failed endpoint requires the
+explicit failure-record route above. The reader neither
 launches providers nor repairs, resumes or mutates the saved run.
 
 The complete consumer JSON uses the existing lossless review-evidence renderer.

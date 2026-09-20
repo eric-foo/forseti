@@ -54,18 +54,30 @@ review as explicit validation defects; candidate and final selection still requi
 valid references. Packet findings carry credited origins separately from source-item
 counts. Saved older correction receipts keep their historical semantics.
 The named entry also owns resume and the caller's program-owned wait pattern.
+For commissioned execution **and** reporting, its `run-and-report` dispatch
+runs the existing finite command to a saved terminal outcome and delivers one
+supplied-evidence judgment. Wrap it once in the existing `run_efficiency start`
+operation to survive interrupted observation; `resume` only waits. No model
+executor or polling task is needed. The named contract gives the complete argv.
 On failure, read its `failure-*.json` for the original error plus saved coverage,
 review findings, repair scope and native costs; diagnostic observations do not
-certify completion or quality.
+certify completion or quality. New failures bind their stopped file inventory.
 For a commissioned final source-backed judgment, use its
 `judge-closeout --run-root SAVED_RUN_ROOT --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS`
-dispatch (plus `--operation-dir` when recorded). The maintained command supplies
+dispatch (plus `--operation-dir` when recorded). Add `--failure-record FILE` for
+a stopped run. Historical frozen copies also accept `--snapshot-manifest FILE`,
+whose original-path/hash inventory prevents reading later live recovery.
+The maintained command supplies
 the complete unchanged closeout view directly to one fresh no-tools reviewer,
-then returns the judgment, limitations and separate fresh-review usage. Read its
-`result.json`; do not page through the evidence export to repeat that judgment.
+then returns the judgment, limitations and separate fresh-review usage. Failures
+receive diagnosis of saved observations, without another semantic assessment.
+Read its `report.md` or `result.json`: code renders exact status, counts, stage
+usage and observed startup totals alongside the unchanged model judgment.
+Missing evidence returns `details_required`; there is no investigative fallback.
 It neither regenerates consolidation nor repairs answers. Failures and missing
 evidence remain explicit; reusing a review directory cannot launch another call.
-Its provider-free `closeout --run-root SAVED_RUN_ROOT` dispatch assembles a saved live endpoint's
+Its provider-free `closeout --run-root SAVED_RUN_ROOT` dispatch (with the same
+failure/snapshot options when applicable) assembles a saved live endpoint's
 answers, review status, native costs and exact evidence for its commissioned
 checks without provider calls. The same contract section owns the full command,
 optional consumer artifact and wider-inspection limits.

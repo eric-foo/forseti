@@ -190,7 +190,12 @@ def evidence_view(source, verified, view, questions):
                           if units[u["semantic_unit_ref"]]["evidence_id"] in selected]}
 
 
-def collect(run_root, operation_dir=None):
+def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manifest=None):
+    if failure_record is not None:
+        from reports.finite_failure_evidence import collect_failure
+        return collect_failure(run_root, failure_record, operation_dir, snapshot_manifest)
+    if snapshot_manifest is not None:
+        raise ValueError("snapshot manifest requires an explicit failure record")
     # Import only read/validation routines; FiniteRun (and therefore job launch,
     # repair, resume, locks and persistence) is deliberately never instantiated.
     from runners import run_finite_semantic_consolidation as finite
@@ -398,8 +403,11 @@ def collect(run_root, operation_dir=None):
         operation_root = Path(operation_dir).resolve(strict=True)
         op = load(operation_root / "operation.json")
         command = op["command"]
+        expected_roots = {provider_root}
+        if "run-and-report" in command and command.count("--report-dir") == 1:
+            expected_roots.add(Path(command[command.index("--report-dir") + 1]).resolve() / "judgment/provider")
         if (command.count("--output-dir") != 1 or Path(command[command.index("--output-dir") + 1]).resolve() != root
-                or {Path(p).resolve() for p in op["provider_roots"]} != {provider_root}):
+                or {Path(p).resolve() for p in op["provider_roots"]} != expected_roots):
             raise ValueError("operation does not bind this finite run/provider scope")
         for name, record in binding["inputs"].items():
             flag = "--" + name.replace("_", "-")
@@ -417,7 +425,9 @@ def collect(run_root, operation_dir=None):
         raise ValueError("saved provider receipt inventory differs from native scope")
     if operation is not None:
         saved_accounting = load(operation_root / "accounting.json")
-        if saved_accounting != accounting or operation["accounting"] != {k: v for k, v in accounting.items() if k != "attempts"}:
+        operation_accounting = (accounting if expected_roots == {provider_root} else
+            collect_provider_roots(op["provider_roots"], started_at=started_at))
+        if saved_accounting != operation_accounting or operation["accounting"] != {k: v for k, v in operation_accounting.items() if k != "attempts"}:
             raise ValueError("saved operation accounting differs from native receipts")
     payload = {"schema_version": "finite_closeout_v1", "semantic_verdict": "requires_human_or_agent_judgment",
                "saved_result": result, "mechanical_validation": {"coverage": counts,
@@ -433,6 +443,9 @@ def collect(run_root, operation_dir=None):
                "wider_sources": {"bound_inputs": binding["inputs"], "view": str(root / "view.json"), "packet": str(root / "packet-all.json"),
                                  "full_assessment_input": str(root / "assessment/input.json"),
                                  "original_additional_checks_not_recommissioned": questions["assessment_only"].get("additional_checks", [])}}
+    from reports.finite_failure_evidence import execution_facts, stage_usage
+    payload["execution_facts"] = execution_facts(root, load)
+    payload["usage_by_stage"] = stage_usage(accounting, provider_root)
     for path, digest in manifest.items():
         if hash_file(Path(path)) != digest:
             raise ValueError(f"artifact changed during closeout read: {path}")
@@ -444,11 +457,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-root", required=True, type=Path)
     parser.add_argument("--operation-dir", type=Path, help="Existing run_efficiency operation; omitted means no operation claim")
+    parser.add_argument("--failure-record", type=Path, help="Explicit saved failure instead of a completed endpoint")
+    parser.add_argument("--snapshot-manifest", type=Path, help="Frozen file manifest with original locators and SHA256; no live-path fallback")
     parser.add_argument("--output", type=Path, help="New optional full consumer JSON outside the saved run; never overwritten")
     parser.add_argument("--max-output-bytes", type=output_budget, default=8192)
     args = parser.parse_args(argv)
     try:
-        value = collect(args.run_root, args.operation_dir)
+        options = {"failure_record": args.failure_record, "snapshot_manifest": args.snapshot_manifest} if args.failure_record or args.snapshot_manifest else {}
+        value = collect(args.run_root, args.operation_dir, **options)
         rendered = {"guidance": RENDERING_GUIDANCE, "evidence": compact_evidence(value)}
         if args.output:
             protected = [args.run_root.resolve(), Path(value["saved_result"]["provider_root"]).resolve()]
@@ -460,7 +476,7 @@ def main(argv=None):
             text = bounded_json(rendered, record_path=args.output,
                 facts={"semantic_verdict": value["semantic_verdict"], "saved_status": value["saved_result"]["status"],
                        "coverage": value["mechanical_validation"]["coverage"], "native_usage": value["native_accounting"]["usage"],
-                       "missing_source_body_ids": value["judgment_evidence"]["selection"]["missing_source_body_ids"]},
+                       "missing_source_body_ids": value.get("judgment_evidence", {}).get("selection", {}).get("missing_source_body_ids")},
                 budget=args.max_output_bytes)
             # Escape at the console boundary without changing the full UTF-8 file.
             print(json.dumps(json.loads(text), ensure_ascii=True, separators=(",", ":")))
