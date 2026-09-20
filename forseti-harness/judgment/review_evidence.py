@@ -155,12 +155,15 @@ def answer_identity(answer):
                                     separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-def apply_exact_answer_repairs(original, repairs, nominations, known_refs, reference_errors=None):
+def apply_exact_answer_repairs(original, repairs, nominations, known_refs, reference_errors=None, *, unit_sources=None):
     """Apply reviewer-authored text only. Applicability is not semantic acceptance."""
     if repairs["answer_sha256"] != answer_identity(original):
         raise ValueError("exact repairs have a stale frozen answer identity")
     rows = {row["question_id"]: row for row in original["answers"]}
     reference_errors = reference_errors or {}
+    unit_sources = unit_sources or {}
+    def source_ids(refs):
+        return {unit_sources.get(ref, ref) for ref in refs}
     scope = {}
     for finding in material_answer_findings(nominations):
         for ref in finding["artifact_refs"]:
@@ -175,12 +178,13 @@ def apply_exact_answer_repairs(original, repairs, nominations, known_refs, refer
         refs = set(edit["source_refs"])
         before, after = edit["before"], edit["after"]
         citation_repair = before in reference_errors.get(question, []) and after in known_refs and edit["source_refs"] == [after]
-        nominated_refs = scope.get(question, set())
+        nominated_sources = source_ids(scope.get(question, set()))
         original_refs = answer_source_references(rows[question], known_refs)
+        repair_sources = source_ids(refs)
         # A focused repair can retain cited context without nominating that
         # unchanged context as a defect. It still needs a material repair source.
         if not refs or refs - known_refs or (not citation_repair and (
-                not refs & nominated_refs or refs - nominated_refs - original_refs)):
+                not repair_sources & nominated_sources or repair_sources - nominated_sources - source_ids(original_refs))):
             raise ValueError("exact repair sources are outside nominated source scope")
         if field == "evidence_refs":
             if not citation_repair or rows[question][field].count(before) != 1:

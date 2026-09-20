@@ -681,7 +681,8 @@ class FiniteRun:
                 raise ValueError("live correction requires reviewer-authored exact repairs")
             proposal = assessment["answer_repairs"]
             Draft202012Validator(exact_repairs_schema()).validate(proposal)
-            corrected = apply_exact_answer_repairs(answer, proposal, nominations, known_ids | set(known_units), reference_errors)
+            corrected = apply_exact_answer_repairs(answer, proposal, nominations, known_ids | set(known_units),
+                                                   reference_errors, unit_sources=known_units)
             patch = {"schema_version": "finite_answer_v1",
                      "answers": [a for a in corrected["answers"] if a["question_id"] in affected]}
             patch_path = self.root / "answer-correction/exact-repairs.json"

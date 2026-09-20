@@ -2788,7 +2788,11 @@ Prose edits select `answer` or `limits` and require material nominated answer
 questions and at least one source identity from that question's open material
 nominations. Additional repair references must already be cited in the same frozen
 answer and support retained context; they do not authorize minor-only repairs or
-new foreign sources. Explicit citation-validation defects
+new foreign sources. Source scope uses the verified unit-to-row mapping, so an
+evidence-row reference and its verified semantic-unit references identify the
+same source. Reference validity remains exact; unknown lookalikes are never
+resolved by guessing a prefix. Live application and closeout use the same mapping.
+Explicit citation-validation defects
 can also be repaired without promoting minor findings: `before` is the observed
 invalid reference, `after` is a supported supplied reference, and `source_refs`
 is exactly `[after]`. Field `evidence_refs` replaces one invalid index entry in

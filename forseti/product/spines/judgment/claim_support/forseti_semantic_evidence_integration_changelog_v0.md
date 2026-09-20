@@ -29,6 +29,8 @@ contract or its linked owning source. This history creates no new review step.
   Focused material edits may retain already-cited context without falsely
   nominating that context as defective. Every non-citation edit still requires
   a material-nominated source; minor-only edits and new foreign references fail.
+  Application and closeout resolve row/unit reference forms through the verified
+  source mapping, preserving exact reference validity without prefix guessing.
   Saved statuses remain unchanged in historical decoding. This addresses the
   live response that labelled unapplied proposals repaired; semantic acceptance
   and savings still require live evidence.

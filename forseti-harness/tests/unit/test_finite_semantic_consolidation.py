@@ -1208,3 +1208,35 @@ def test_exact_repair_context_refs_still_require_material_nomination(tmp_path, c
         assert corrected["answers"][1] == original["answers"][1]
         assert corrected["answers"][0]["limits"] == original["answers"][0]["limits"]
     assert answer == original
+
+
+@pytest.mark.parametrize("case", ["row_to_unit", "unit_to_row", "foreign_unit", "unknown_lookalike"])
+def test_exact_repairs_bind_row_and_verified_unit_to_same_source(tmp_path, case):
+    from reports.finite_closeout import composed_correction
+    run, answer = answer_fixture(tmp_path)
+    unit_sources = {"unit:opaque-one": "source:one", "unit:opaque-two": "source:two"}
+    known = {"known", *unit_sources, *unit_sources.values()}
+    nominated = "unit:opaque-one" if case == "unit_to_row" else "source:one"
+    ref = {"row_to_unit": "unit:opaque-one", "unit_to_row": "source:one",
+           "foreign_unit": "unit:opaque-two", "unknown_lookalike": "source:one::invented"}[case]
+    assessment = {"material_findings": [{"severity": "major", "status": "open", "introduced_at": "current_answer",
+        "artifact_refs": ["current_answer:one"], "source_refs": [nominated]}],
+        "answer_repairs": {"answer_sha256": finite.answer_identity(answer), "edits": [
+            {"question_id": "one", "field": "answer", "before": "bounded", "after": "supported",
+             "source_refs": [ref]}]}}
+    composition = {"method": "reviewer_exact_repairs_v1", "affected_question_ids": ["one"]}
+    def apply():
+        return finite.apply_exact_answer_repairs(answer, assessment["answer_repairs"],
+            assessment["material_findings"], known, unit_sources=unit_sources)
+    def closeout():
+        return composed_correction(composition, answer, assessment["answer_repairs"], run.questions["questions"],
+            assessment=assessment, known_refs=known, unit_sources=unit_sources)
+    if case in {"foreign_unit", "unknown_lookalike"}:
+        for consumer in (apply, closeout):
+            with pytest.raises(ValueError, match="sources are outside nominated source scope"):
+                consumer()
+    else:
+        corrected = apply()
+        assert corrected["answers"][0]["answer"] == "supported"
+        assert corrected["answers"][1] == answer["answers"][1]
+        assert closeout() == corrected

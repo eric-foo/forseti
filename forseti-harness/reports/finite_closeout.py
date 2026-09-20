@@ -47,7 +47,7 @@ def check_material_status(result, assessment):
         raise ValueError("saved material status differs from reported findings and selection")
 
 
-def composed_correction(composition, original, patch, questions, *, assessment=None, known_refs=None):
+def composed_correction(composition, original, patch, questions, *, assessment=None, known_refs=None, unit_sources=None):
     """Recompose the saved candidate with the rule the runner used for this correction shape.
 
     A post-assessment proposal reports retained answers separately and the runner
@@ -68,7 +68,8 @@ def composed_correction(composition, original, patch, questions, *, assessment=N
         expected.update(reference_errors)
         if set(affected) != expected:
             raise ValueError("exact repair composition scope differs")
-        return finite.apply_exact_answer_repairs(original, patch, nominated, known_refs, reference_errors)
+        return finite.apply_exact_answer_repairs(original, patch, nominated, known_refs, reference_errors,
+                                                 unit_sources=unit_sources)
     if patch.get("schema_version") == "finite_answer_correction_v1":
         scoped = [q for q in questions if q["id"] in set(affected)]
         patch = finite.answer_correction_patch(original, patch, scoped)
@@ -268,9 +269,10 @@ def collect(run_root, operation_dir=None):
             raise ValueError("correction patch lacks a bound provider response")
         original_path = composition.get("original_response", freeze["response"])
         original = load(original_path, composition.get("original_response_sha256"))
-        known_refs = {r["evidence_id"] for r in source["captured_items"]} | {u["semantic_unit_ref"] for u in verified["semantic_units"]}
+        unit_sources = {u["semantic_unit_ref"]: u["evidence_id"] for u in verified["semantic_units"]}
+        known_refs = {r["evidence_id"] for r in source["captured_items"]} | set(unit_sources)
         if composed_correction(composition, original, patch, questions["questions"],
-                               assessment=assessment, known_refs=known_refs) != candidate:
+                               assessment=assessment, known_refs=known_refs, unit_sources=unit_sources) != candidate:
             raise ValueError("corrected answer composition differs")
         finite.check_answer(candidate, questions["questions"], bundle, verified)
         correction_records["composition"] = composition
