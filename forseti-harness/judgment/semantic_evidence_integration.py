@@ -10992,6 +10992,23 @@ def _packet_v2_engagement_observation(
             "unavailable",
             {"status": "engagement_unavailable"},
         )
+    if engagement.get("posture") == "not_interpreted":
+        # Capture can preserve a native count without judging its materiality.
+        # Keep that explicit posture as group context, never as positive support.
+        bare = {"material_positive", "posture"}
+        measured = bare | {"metric_kind", "raw_value", "observed_at"}
+        if engagement.get("material_positive") is not False:
+            raise SemanticIntegrationError("uninterpreted engagement cannot assert materiality")
+        if set(engagement) == bare:
+            return ("engagement_unavailable", "not_interpreted",
+                    {"status": "engagement_unavailable"})
+        if set(engagement) == measured and _nonempty(engagement["metric_kind"]):
+            return (engagement["metric_kind"], "not_interpreted", {
+                "raw_value": engagement["raw_value"],
+                "observed_at": engagement["observed_at"],
+                "material_positive": False,
+            })
+        raise SemanticIntegrationError("evidence packet cannot normalize uninterpreted engagement shape")
     if _nonempty(engagement.get("kind")):
         allowed = {
             "kind",

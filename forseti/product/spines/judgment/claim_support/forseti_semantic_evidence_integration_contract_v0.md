@@ -1187,6 +1187,12 @@ relation-to-semantic-unit references. Full evidence text and parent/product
 context remain resolvable by `evidence_id` from the hash-bound bundle and are
 not duplicated inline.
 
+Capture's explicit `not_interpreted` engagement posture remains group context.
+Its optional native `metric_kind`, `raw_value`, and `observed_at` are preserved
+without awarding materiality; absent counts remain unavailable. Unknown fields
+or contradictory positive materiality still fail. Finite execution checks this
+source-only packet compatibility before paid consolidation.
+
 The catalogue has no evidence-count cap and no top-k admission rule. Source
 grouping is presentation and transport normalization only; it does not merge
 actors, platforms, source roles, meanings, engagement units, or proposition

@@ -407,10 +407,15 @@ def test_explicit_native_local_successor_resumes_without_generation(tmp_path):
     assert original.read_bytes() == before
 
 
-def test_coverage_is_input_derived_and_rejects_missing_or_overlapping_statement():
-    bundle = {"evidence_units": [{"evidence_id": "one"}, {"evidence_id": "two"}]}
+@pytest.mark.parametrize("excluded", [0, 6])
+def test_coverage_is_input_derived_and_rejects_missing_or_overlapping_statement(excluded):
+    bundle = {"evidence_units": [{"evidence_id": "one"}, {"evidence_id": "two"}],
+        "coverage_denominator": {"captured_item_count": 2 + excluded,
+            "accounting_disposition_counts": {"mechanically_excluded": excluded}}}
     verified = {"semantic_units": [{"semantic_unit_ref": "a"}, {"semantic_unit_ref": "b"}]}
-    view = {"coverage": {"accounted_item_count": 2},
+    view = {"coverage": {"accounted_item_count": 2 + excluded, "captured_item_count": 2 + excluded,
+        "semantically_assessed_item_count": 2, "mechanically_excluded_item_count": excluded,
+        "blocked_item_count": 0, "complete": True},
         "propositions": [{"semantic_relations": {"support": ["a"]}}],
         "unmerged_semantic_units": [{"semantic_unit_ref": "b"}]}
     packet = {"selection_coverage": {"truncated": False, "selected_proposition_count": 1,
@@ -422,6 +427,11 @@ def test_coverage_is_input_derived_and_rejects_missing_or_overlapping_statement(
             finite.coverage(bundle, verified, changed, packet)
     with pytest.raises(ValueError, match="packet coverage differs"):
         finite.coverage(bundle, verified, view, {"selection_coverage": {**packet["selection_coverage"], "truncated": True}})
+    for field in ("accounted_item_count", "semantically_assessed_item_count", "mechanically_excluded_item_count"):
+        changed = deepcopy(view)
+        changed["coverage"][field] += 1
+        with pytest.raises(ValueError, match="does not account for every source row"):
+            finite.coverage(bundle, verified, changed, packet)
 
 
 def test_answer_schema_order_and_citations_are_native_input_bound():
@@ -1014,6 +1024,26 @@ def test_unused_local_repair_successor_fails_before_paid_consumers(tmp_path, mon
     run.phase = lambda name, compilation: {}
     run.consumers = lambda *a: pytest.fail("stale repair binding must stop before answer and assessment jobs")
     with pytest.raises(ValueError, match="unused " + kind):
+        run.run()
+    assert not (run.root / "result.json").exists()
+
+
+def test_unsupported_packet_metadata_stops_before_any_paid_phase(tmp_path, monkeypatch):
+    run, _ = answer_fixture(tmp_path)
+    run.provider_root, run.source, run.consumed_repairs = run.root, {}, set()
+    run.bundle["schema_version"] = "fixture"
+    run.bundle["evidence_units"][0]["engagement"] = {
+        "posture": "not_interpreted", "material_positive": False, "unknown_field": "must not disappear",
+    }
+    args = {"provider_root": None, "codex_executable": Path(sys.executable), "local_repair_successor": []}
+    for name in ("source", "bundle", "verified", "questions", "previous_answer"):
+        args[name] = tmp_path / (name + ".json")
+        finite.persist(args[name], {})
+    run.args = Namespace(**args)
+    run.bind_executable = lambda: {"path": str(args["codex_executable"])}
+    monkeypatch.setattr(finite.semantic, "build_bundle", lambda *a, **k: run.bundle)
+    run.phase = lambda *a: pytest.fail("unsupported source metadata must stop before generation")
+    with pytest.raises(finite.semantic.SemanticIntegrationError, match="engagement shape"):
         run.run()
     assert not (run.root / "result.json").exists()
 

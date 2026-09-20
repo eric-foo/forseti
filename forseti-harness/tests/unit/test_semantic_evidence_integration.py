@@ -1377,6 +1377,34 @@ def test_packet_normalizes_legacy_source_native_engagement_without_loss(
     assert _packet_v2_engagement_observation({"engagement": engagement}) == expected
 
 
+@pytest.mark.parametrize("raw", ["0", "2", None])
+def test_packet_preserves_uninterpreted_native_count_without_materiality(raw) -> None:
+    assert _packet_v2_engagement_observation({"engagement": {
+        "posture": "not_interpreted", "material_positive": False,
+        "metric_kind": "likes", "raw_value": raw, "observed_at": "2026-09-07T11:08:50Z",
+    }}) == ("likes", "not_interpreted", {
+        "raw_value": raw, "observed_at": "2026-09-07T11:08:50Z", "material_positive": False,
+    })
+
+
+def test_packet_preserves_uninterpreted_absence_as_distinct_context() -> None:
+    assert _packet_v2_engagement_observation({"engagement": {
+        "posture": "not_interpreted", "material_positive": False,
+    }}) == ("engagement_unavailable", "not_interpreted", {"status": "engagement_unavailable"})
+
+
+@pytest.mark.parametrize("extra", [
+    {"material_positive": True}, {"material_positive": 0},
+    {"raw_value": "2"}, {"unknown_metadata": "preserve me"},
+    {"posture": "a different posture"},
+])
+def test_packet_does_not_guess_or_drop_uninterpreted_engagement_fields(extra) -> None:
+    with pytest.raises(SemanticIntegrationError, match="engagement"):
+        _packet_v2_engagement_observation({"engagement": {
+            "posture": "not_interpreted", "material_positive": False, **extra,
+        }})
+
+
 def test_packet_v3_keeps_required_available_engagement_field_when_all_values_are_null() -> None:
     _, _, defaults, columns = _packet_v3_group_layout(
         {
