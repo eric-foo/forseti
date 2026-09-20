@@ -2362,6 +2362,33 @@ def test_v4_exact_public_handle_match_across_scoped_origins_gets_one_credit() ->
     assert view["propositions"][0]["claim_support"]["independent_origin_count"] == 1
 
 
+@pytest.mark.parametrize("identity,count", [("same", 1), ("distinct", 2), ("unknown", 0)])
+def test_writer_packet_carries_existing_support_without_promoting_items_to_people(identity, count):
+    source = _source_v3(count=2)
+    for index, row in enumerate(source["captured_items"]):
+        row["independence_posture"] = "unavailable" if identity == "unknown" else "credited"
+        row["independence_key"] = None if identity == "unknown" else "origin:" + str(index)
+        row["public_identity_key"] = "public_handle:same" if identity == "same" else None
+    bundle = build_bundle(source, max_prompt_bytes=8_000)
+    compiled = validate_batch_responses(bundle, _v3_batch_responses(bundle))
+    stage_one, _ = prepare_reconciliation_stage(bundle, compiled)
+    nodes_one = validate_reconciliation_stage(bundle, stage_one, _group_level_responses(stage_one, terminal=False))
+    stage_two, _ = prepare_reconciliation_stage(bundle, nodes_one)
+    terminal = validate_reconciliation_stage(bundle, stage_two, _group_level_responses(stage_two, terminal=True))
+    view = finalize_v3_view(bundle, compiled, terminal)
+    proposition = view["propositions"][0]
+    for projector in (project_evidence_packet_v1, project_evidence_packet_v2, project_evidence_packet):
+        packet = projector(view, bundle, compiled, terminal, proposition_ids=[proposition["proposition_id"]])
+        found = packet["propositions"][0]
+        assert found["evidence_item_counts"]["support"] == 2
+        assert found["claim_support"]["independent_origin_count"] == count
+        assert found["claim_support"] == {key: proposition["claim_support"][key]
+            for key in ("support_posture", "independent_origin_count", "conflict_posture", "causal_ceiling")}
+        historical = projector(view, bundle, compiled, terminal,
+            proposition_ids=[proposition["proposition_id"]], include_claim_support=False)
+        assert "claim_support" not in historical["propositions"][0]
+
+
 def test_personal_agreement_support_never_adds_independent_origin_credit() -> None:
     source = _source_v7(count=2)
     source["captured_items"][1]["conversation_depth"] = 1

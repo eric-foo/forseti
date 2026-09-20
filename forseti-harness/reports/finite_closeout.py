@@ -47,7 +47,7 @@ def check_material_status(result, assessment):
         raise ValueError("saved material status differs from reported findings and selection")
 
 
-def composed_correction(composition, original, patch, questions):
+def composed_correction(composition, original, patch, questions, *, assessment=None, known_refs=None):
     """Recompose the saved candidate with the rule the runner used for this correction shape.
 
     A post-assessment proposal reports retained answers separately and the runner
@@ -57,6 +57,18 @@ def composed_correction(composition, original, patch, questions):
     """
     from runners import run_finite_semantic_consolidation as finite
     affected = composition["affected_question_ids"]
+    if composition.get("method") == "reviewer_exact_repairs_v1":
+        if assessment is None or patch != assessment.get("answer_repairs"):
+            raise ValueError("exact repairs differ from bound reviewer response")
+        nominated = finite.material_answer_findings(assessment["material_findings"])
+        reference_errors = {row["question_id"]: sorted(refs) for row in original["answers"]
+            if (refs := finite.answer_source_references(row, known_refs) - known_refs)}
+        expected = {r.removeprefix("current_answer:") for f in nominated for r in f["artifact_refs"]
+                    if r.startswith("current_answer:")}
+        expected.update(reference_errors)
+        if set(affected) != expected:
+            raise ValueError("exact repair composition scope differs")
+        return finite.apply_exact_answer_repairs(original, patch, nominated, known_refs, reference_errors)
     if patch.get("schema_version") == "finite_answer_correction_v1":
         scoped = [q for q in questions if q["id"] in set(affected)]
         patch = finite.answer_correction_patch(original, patch, scoped)
@@ -173,6 +185,7 @@ def collect(run_root, operation_dir=None):
     if finite.semantic.finalize_v3_view(bundle, verified, compilation) != view:
         raise ValueError("saved view differs from native finalization")
     if finite.semantic.project_evidence_packet(view, bundle, verified, compilation,
+            include_claim_support=any("claim_support" in p for p in packet["propositions"]),
             proposition_ids=[p["proposition_id"] for p in view["propositions"]]) != packet:
         raise ValueError("saved packet differs from native projection")
     counts = finite.coverage(bundle, verified, view, packet)
@@ -202,14 +215,17 @@ def collect(run_root, operation_dir=None):
     bound_consumer_input("answer")
     assessment_record = load(root / "assessment/result.json")
     assessment = bound_response(assessment_record)
-    keyed_assessment = assessment.get("schema_version") == "finite_source_assessment_keyed_v1"
+    exact_repairs = assessment.get("schema_version") == "finite_source_assessment_keyed_v3"
+    keyed_assessment = assessment.get("schema_version") in {"finite_source_assessment_keyed_v1", "finite_source_assessment_keyed_v3"}
     if Path(result["answer"]).resolve() != Path(freeze["response"]).resolve():
         raise ValueError("result answer differs from frozen answer")
     if Path(result["assessment"]).resolve() != Path(assessment_record["response"]).resolve():
         raise ValueError("result assessment differs from saved assessment")
     if str(Path(result["assessment"]).resolve()) not in responses:
         raise ValueError("assessment lacks a bound provider response")
-    finite.check_answer(frozen, questions["questions"], bundle, verified)
+    reference_errors = finite.answer_reference_errors(frozen, questions["questions"], bundle, verified)
+    if reference_errors and not exact_repairs:
+        raise ValueError("historical frozen answer contains unknown evidence references")
     assessment = finite.assessment_from_response(assessment, questions["assessment_only"]["checks"])
     if result["material_findings"] != assessment["material_findings"] or result["overall_usefulness"] != assessment["overall_usefulness"]:
         raise ValueError("result omits or changes assessment findings")
@@ -223,12 +239,15 @@ def collect(run_root, operation_dir=None):
                 "assessment_checks": questions["assessment_only"], "current_final_view": view,
                 "complete_frozen_source": expected_source, "complete_frozen_verified_evidence": verified,
                 "scope": questions["coverage"]}
+    if "citation_validation" in assessment_input:
+        expected["citation_validation"] = {"unknown_references_by_question": reference_errors,
+            "status": "invalid_draft" if reference_errors else "valid"}
     if assessment_input != expected:
         raise ValueError("assessment input differs from bound evidence")
     policy = load(provider_root / "assessment/provider/job/binding.json")
     prompt = Path(policy["binding"]["prompt_path"])
     if (hash_file(prompt) != policy["binding"]["prompt_sha256"]
-            or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected, keyed_checks=keyed_assessment)):
+            or prompt.read_text(encoding="utf-8") != finite.render_assessment(expected, keyed_checks=keyed_assessment, exact_repairs=exact_repairs)):
         raise ValueError("assessment prompt differs from bound evidence")
 
     answer_versions = {"frozen": {"path": freeze["response"], "value": frozen}}
@@ -236,15 +255,22 @@ def collect(run_root, operation_dir=None):
     candidate = None
     corrected = root / "answer-correction/answers-corrected.json"
     if result["answer_corrections"]:
-        bound_consumer_input("answer-correction")
         composition = load(root / "answer-correction/composition.json")
+        if composition.get("method") == "reviewer_exact_repairs_v1":
+            if composition["assessment"] != assessment_record:
+                raise ValueError("exact repairs lack bound source assessment")
+            load(root / "answer-correction/input.json", composition["input_sha256"])
+        else:
+            bound_consumer_input("answer-correction")
         candidate = load(corrected, composition["corrected_sha256"])
         patch = load(composition["patch"], composition["patch_sha256"])
-        if str(Path(composition["patch"]).resolve()) not in responses:
+        if composition.get("method") != "reviewer_exact_repairs_v1" and str(Path(composition["patch"]).resolve()) not in responses:
             raise ValueError("correction patch lacks a bound provider response")
         original_path = composition.get("original_response", freeze["response"])
         original = load(original_path, composition.get("original_response_sha256"))
-        if composed_correction(composition, original, patch, questions["questions"]) != candidate:
+        known_refs = {r["evidence_id"] for r in source["captured_items"]} | {u["semantic_unit_ref"] for u in verified["semantic_units"]}
+        if composed_correction(composition, original, patch, questions["questions"],
+                               assessment=assessment, known_refs=known_refs) != candidate:
             raise ValueError("corrected answer composition differs")
         finite.check_answer(candidate, questions["questions"], bundle, verified)
         correction_records["composition"] = composition
@@ -268,6 +294,7 @@ def collect(run_root, operation_dir=None):
             if result[key] != recheck[field]:
                 raise ValueError("result recheck findings/statuses differ")
     final_path = selected_answer_path(result, freeze["response"], corrected, frozen, candidate, recheck)
+    finite.check_answer(load(final_path), questions["questions"], bundle, verified)
     check_material_status(result, assessment)
     answer_versions["selected"] = {"path": str(final_path), "value": load(final_path)}
     finite.check_answer(answer_versions["selected"]["value"], questions["questions"], bundle, verified)

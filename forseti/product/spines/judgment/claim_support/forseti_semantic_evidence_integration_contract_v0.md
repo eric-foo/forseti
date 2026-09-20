@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v124
+version: v125
 effective_date: 2026-09-10
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v124
+# Semantic Evidence Integration Contract v125
 
 ## Purpose
 
@@ -1222,6 +1222,17 @@ source-group evidence row, or proposition relation. V2 remains available
 through the explicit packet-version route as the matched comparison baseline;
 v1 remains historical reproduction. The normal runner needs no new operator
 step, lookup, or retrieval round.
+
+Current projections also carry a compact per-proposition `claim_support` with
+`support_posture`, `independent_origin_count`, `conflict_posture`, and
+`causal_ceiling`, copied from the finalized view. Existing `evidence_item_counts`
+remain distinct preserved source-item counts; they are not people or independent
+origins. Credited origins are not proven unique persons. Unknown or uncredited
+identity stays uncertain in source-owned catalogue fields. Relation links,
+conditions and source roles remain in their existing packet locations rather than
+duplicating the full view. V1, v2 and v3 projections preserve these facts; the
+historical replay reader explicitly retains the older projection without them.
+
 
 Contract v37 changes only the downstream evidence-consumer protocol. The
 packet remains `phase_a_evidence_packet_v3`. A no-provider prepare operation
@@ -2765,11 +2776,31 @@ than counting them as separate events. Remaining inventory defects stay visible.
 The full assessor receives the exact answer
 questions and worker instructions as `answer_commission`; the broader source
 research question does not expand that answer scope. A live post-assessment
-correction returns `finite_answer_correction_v1`: replacement `answers` and
-`retained_answers` (question ID and reason) partition the affected questions.
-Rejected nominations belong in retention reasons, never replacement answer prose.
-The runner copies retained answers unchanged and submits those dispositions to
-the existing recheck. No extra provider call is added.
+correction uses `reviewer_exact_repairs_v1`: the existing full source reviewer
+supplies `answer_repairs` in initial assessment v3, containing the frozen answer's
+canonical SHA256 and exact edits (`question_id`, `field`,
+unique nonempty `before`, `after`, and supporting `source_refs`). Additions replace
+an existing anchor with itself plus the addition. Prose edits select `answer` or `limits` and require material nominated answer
+questions and nominated source identities. Explicit citation-validation defects
+can also be repaired without promoting minor findings: `before` is the observed
+invalid reference, `after` is a supported supplied reference, and `source_refs`
+is exactly `[after]`. Field `evidence_refs` replaces one invalid index entry in
+place; it cannot rewrite the list, delete an entry, or edit a valid reference.
+The live generation schema offers this index-edit target only for actually
+observed, uniquely located invalid entries in that exact question. An inline-only
+invalid reference does not create an index-edit option. Text anchors and source
+support still require application checks and the separate semantic recheck. Code rejects
+stale answer hashes, missing/ambiguous/overlapping anchors, unbacked source
+identities, new inline citations absent from repair source refs, no-op edits
+and omitted nominated questions. It applies disjoint edits against the frozen original and preserves
+all other text and reference order, adding newly cited repair references once.
+The reviewer owns supported meaning; application establishes identity and scope,
+never semantic acceptance. No post-assessment interpretation/rewrite model call
+remains. The existing separate affected recheck can reject even an exactly
+applicable edit, including a reversed comparator. An unrepairable nomination
+fails visibly rather than triggering another paid correction call. Historical
+`finite_answer_correction_v1` proposals and older full-answer patches retain their
+saved composition/selection semantics; they are not relabelled as exact repairs.
 Live correction and recheck receive the original full `answer_commission`
 separately from `affected_questions`. Only that subset is repaired and reviewed;
 the runner preserves other answers unchanged. Full-assignment counts and length
@@ -2801,8 +2832,9 @@ label can clear such a finding. All recheck findings and checks remain exposed a
 `affected_recheck_material_findings` and `affected_recheck_check_results`;
 `answer_correction_failed_checks` contains the checks that block answer adoption.
 An accepted answer does not repair or certify the frozen inventory or consolidation.
-The normalized initial assessment retains v1. New live provider output uses
-`finite_source_assessment_keyed_v1` for the initial review and
+The normalized initial assessment is v3 with exact repairs; saved v1 remains
+readable. New live provider output uses `finite_source_assessment_keyed_v3` for
+the initial review and
 `finite_source_assessment_keyed_v2` for its affected recheck: `commissioned_checks`
 is an object with every commissioned ID required as an exact field name, and
 output `additional_checks` holds extra judgments with their descriptive `check_id`
@@ -2821,7 +2853,7 @@ Rejected candidates remain at
 and `answer_material_status` explicitly requires adjudication. Retention is not
 a success fallback. An accepted all-retained proposal keeps the original path.
 
-Answer, full source assessment, correction and affected recheck use the shared
+Answer, full source assessment and affected recheck use the shared
 lossless renderer in `judgment/review_evidence.py`. Repeated text and structured
 values appear once under stable transport references; common record fields use named defaults and
 columns with ordered rows. Full ordinary-schema inputs remain stored and the
@@ -2832,25 +2864,25 @@ of child conditions and that condition lineage, not the union, attributes a
 condition to a source. No source assessment coverage or prior-answer comparison
 is removed. Shared correction guidance is owned by the overlay's review lanes;
 the finite algorithm and opt-in assessment boundary remain local to this entry.
-If an otherwise schema-valid initial answer cites an unknown evidence reference,
-the entry may instead spend that same single correction before freezing: it
-supplies the complete current evidence and only the affected questions, validates
-the correction, and preserves unaffected answers. The subsequent full source
-assessment checks the corrected answer. Later defects remain visible; there is
-no second answer correction. Other malformed answer failures still stop.
-Validation covers inline references in the supplied evidence namespaces as well
-as `evidence_refs`; an inline typo cannot bypass the correction/rejection path.
-All three live answer-producing calls constrain `evidence_refs` during generation
-to the supplied source evidence IDs and semantic-unit references. Finding IDs
-are not citation choices. Post-assessment correction choices cover only its
-supplied source rows and units; an empty evidence set permits only an empty
-citation list. Empty citation lists remain possible for an honest unsupported
-answer, never proof of semantic adequacy. Allowed identities likewise do not
-prove that a source supports the assertion. Final source, inline-reference and
-question-order checks remain. The initial response still passes structural
-validation before unknown-reference recovery, so a provider that ignores the
-generation choices retains the existing single correction route. Historical
-replay keeps the original structural schema and saved-response semantics.
+A schema-valid initial answer with unknown references freezes as an explicitly
+reference-invalid draft. The same complete source assessment receives
+`citation_validation` with exact unknown refs by question; it does not receive
+code-guessed replacements. Malformed structures or question/order errors still
+stop before review. Known citations and reviewer-supplied repair refs determine
+source-body scope; unknown identities remain explicit validation defects, not
+retrieved evidence. There is no separate live pre-freeze rewrite call.
+The initial writer constrains `evidence_refs` to supplied IDs during generation;
+inline and index references are both checked afterward. Reviewer edits must
+produce a citation-valid candidate before any paid recheck, and the finally
+selected answer must pass the same validator. A rejected repair cannot select
+an invalid frozen original: the endpoint stops visibly with original, candidate
+and recheck preserved. Missing repairs never trigger another correction call.
+This validity boundary does not upgrade citation polish into material meaning
+or change the semantic materiality threshold. Historical pre-freeze correction
+receipts retain their old composition and selection semantics; they do not
+create a second live repair path. Valid source identities establish citation
+identity, not that a source supports a claim. Empty citation lists remain
+possible for an honest unsupported answer, never proof of semantic adequacy.
 The full assessment states the mechanically observed captured-row body count
 and any missing body IDs, separately from original-artifact locator scope.
 Those availability counts do not certify the assessor's semantic inspection.

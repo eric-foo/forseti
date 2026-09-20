@@ -24,6 +24,16 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-20 v125 — carried existing per-finding support/origin/conflict facts
+  into the shared writer packet and replaced post-assessment answer rewriting
+  with exact source-reviewer edits. Frozen identity/scope checks precede the
+  existing affected recheck; semantic acceptance remains separate. Historical
+  packet, assessment and correction receipts retain their original methods.
+  Citation-invalid drafts now enter the same reviewer, with strict candidate
+  and final reference validation. Generation offers index edits only for actual
+  invalid entries; live proof exposed an invented index target and stopped
+  before recheck. The final generation refinement is locally validated only.
+
 - 2026-09-12 delegated review adjudicated — accepted the different-vendor
   review's placement of supported repair transport in Local reconciliation
   correction and its correction of the launcher evidence citation. No runtime
