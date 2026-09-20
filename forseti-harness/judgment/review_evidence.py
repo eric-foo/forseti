@@ -175,7 +175,12 @@ def apply_exact_answer_repairs(original, repairs, nominations, known_refs, refer
         refs = set(edit["source_refs"])
         before, after = edit["before"], edit["after"]
         citation_repair = before in reference_errors.get(question, []) and after in known_refs and edit["source_refs"] == [after]
-        if not refs or refs - known_refs or (not citation_repair and refs - scope.get(question, set())):
+        nominated_refs = scope.get(question, set())
+        original_refs = answer_source_references(rows[question], known_refs)
+        # A focused repair can retain cited context without nominating that
+        # unchanged context as a defect. It still needs a material repair source.
+        if not refs or refs - known_refs or (not citation_repair and (
+                not refs & nominated_refs or refs - nominated_refs - original_refs)):
             raise ValueError("exact repair sources are outside nominated source scope")
         if field == "evidence_refs":
             if not citation_repair or rows[question][field].count(before) != 1:
@@ -194,7 +199,6 @@ def apply_exact_answer_repairs(original, repairs, nominations, known_refs, refer
         if before == after:
             raise ValueError("exact repair has no text change")
         introduced = answer_source_references({"answer": after, "evidence_refs": []}, known_refs)
-        original_refs = answer_source_references(rows[question], known_refs)
         if introduced - original_refs - refs:
             raise ValueError("exact repair introduces a citation outside its source refs")
         end = start + len(before)

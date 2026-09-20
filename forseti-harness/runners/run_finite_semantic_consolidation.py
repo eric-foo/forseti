@@ -208,6 +208,10 @@ def assessment_generation_schema(checks, *, scoped_checks=False, exact_repairs=F
         raise ValueError("assessment checks require unique nonempty identities")
     schema = assessment_schema(scoped_checks=scoped_checks, exact_repairs=exact_repairs, answer=answer, known_refs=known_refs)
     props = schema["properties"]
+    if exact_repairs and answer is not None:
+        # This call proposes edits; only the later recheck can discharge them.
+        # Unbound historical decoding preserves the statuses actually returned.
+        props["material_findings"]["items"]["properties"]["status"]["enum"] = ["open", "not_a_defect"]
     additional = props.pop("check_results")["items"]
     check = {**additional,
              "properties": {k: v for k, v in additional["properties"].items() if k != "check_id"},
@@ -877,7 +881,8 @@ def render_assessment(request, *, keyed_checks=False, exact_repairs=False):
             "and artifact refs. Use current_answer:QUESTION_ID for affected answer references. State unassessed material honestly. "
             + (("Supply answer_repairs bound to answer_sha256=" + answer_identity(request["current_answer"]) + ". "
                 "For every open major/blocker nomination referencing current_answer:QUESTION_ID, author the exact supported "
-                "text edits now. "
+                "text edits now. Findings describe the unchanged frozen answer: keep defects open even when supplying "
+                "their proposed fixes. Do not include edits for minor or not_a_defect findings. "
                 + (("citation_validation lists observed invalid draft references; repair those too even when "
                 "the typo is nonmaterial, without promoting minor findings. They are not source evidence. For an exact "
                 "citation repair, before must be the observed invalid reference, after a supported supplied reference, "
@@ -886,7 +891,9 @@ def render_assessment(request, *, keyed_checks=False, exact_repairs=False):
                 "a visible failure. Other edits select answer or limits, a nonempty before substring occurring exactly once in "
 ) if "citation_validation" in request else
                    "Each edit selects answer or limits, a nonempty before substring occurring exactly once in ") +
-                "that frozen field, the exact after replacement, and source_refs also present in that question's nomination. "
+                "that frozen field and the exact after replacement. Each non-citation edit's source_refs must include "
+                "a source from that question's open major/blocker nominations; any other refs must already be cited "
+                "in that frozen answer and support retained context. "
                 "For additions replace a unique existing anchor with itself plus the addition. Use disjoint anchors; "
                 "preserve all unrelated prose verbatim, direction, scope, attribution and uncertainty. No rewrite call follows: "
                 "these exact edits will be applied mechanically, then separately source-rechecked. Do not put internal "

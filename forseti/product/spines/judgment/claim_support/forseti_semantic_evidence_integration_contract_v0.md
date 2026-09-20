@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v125
+version: v126
 effective_date: 2026-09-10
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v125
+# Semantic Evidence Integration Contract v126
 
 ## Purpose
 
@@ -2780,8 +2780,15 @@ correction uses `reviewer_exact_repairs_v1`: the existing full source reviewer
 supplies `answer_repairs` in initial assessment v3, containing the frozen answer's
 canonical SHA256 and exact edits (`question_id`, `field`,
 unique nonempty `before`, `after`, and supporting `source_refs`). Additions replace
-an existing anchor with itself plus the addition. Prose edits select `answer` or `limits` and require material nominated answer
-questions and nominated source identities. Explicit citation-validation defects
+an existing anchor with itself plus the addition. Bound initial generation offers
+`open` and `not_a_defect` statuses: supplying a proposal does not repair the frozen
+answer. Minor or dismissed findings receive no edits. Historical decoding retains
+the recorded statuses; the separate recheck still decides acceptance.
+Prose edits select `answer` or `limits` and require material nominated answer
+questions and at least one source identity from that question's open material
+nominations. Additional repair references must already be cited in the same frozen
+answer and support retained context; they do not authorize minor-only repairs or
+new foreign sources. Explicit citation-validation defects
 can also be repaired without promoting minor findings: `before` is the observed
 invalid reference, `after` is a supported supplied reference, and `source_refs`
 is exactly `[after]`. Field `evidence_refs` replaces one invalid index entry in

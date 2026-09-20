@@ -1153,3 +1153,58 @@ def test_reviewer_generation_offers_only_actual_invalid_index_entries(tmp_path, 
         with pytest.raises(ValidationError) as failure:
             Draft202012Validator(schema).validate(repairs)
         assert failure.value.validator == ("enum" if case == "inline_only" else "anyOf")
+
+
+@pytest.mark.parametrize("status", ["open", "not_a_defect", "repaired"])
+def test_bound_initial_reviewer_cannot_declare_its_proposals_repaired(tmp_path, status):
+    _, answer = answer_fixture(tmp_path)
+    result = {"schema_version": "finite_source_assessment_v3", "inventory_coverage": "bounded",
+        "comparison": "none", "unassessed_material": "none", "overall_usefulness": "pending",
+        "check_results": [], "material_findings": [{"severity": "major", "status": status,
+            "introduced_at": "current_answer", "artifact_refs": ["current_answer:one"],
+            "source_refs": ["known"], "defect": "origin overcount", "effect": "overstated recurrence",
+            "bounded_repair": "one origin"}],
+        "answer_repairs": {"answer_sha256": finite.answer_identity(answer), "edits": []}}
+    wire = _keyed_assessment(result, [])
+    # Historical decoding preserves what the old reviewer actually reported.
+    assert finite.assessment_from_response(wire, []) == result
+    schema = finite.assessment_generation_schema([], exact_repairs=True, answer=answer, known_refs={"known"})
+    Draft202012Validator.check_schema(schema)
+    if status == "repaired":
+        with pytest.raises(ValidationError) as failure:
+            Draft202012Validator(schema).validate(wire)
+        assert list(failure.value.path) == ["material_findings", 0, "status"]
+    else:
+        Draft202012Validator(schema).validate(wire)
+
+
+@pytest.mark.parametrize("case", ["retained_index", "retained_inline", "foreign_known", "minor_only"])
+def test_exact_repair_context_refs_still_require_material_nomination(tmp_path, case):
+    _, answer = answer_fixture(tmp_path)
+    answer["answers"][0]["answer"] = "Two accounts. Keep surrounding context."
+    if case == "retained_inline":
+        answer["answers"][0]["answer"] += " [s:context]"
+    else:
+        answer["answers"][0]["evidence_refs"].append("s:context")
+    original = deepcopy(answer)
+    nominations = [{"severity": "major", "status": "open", "introduced_at": "current_answer",
+        "artifact_refs": ["current_answer:one"], "source_refs": ["known"]},
+        {"severity": "minor", "status": "open", "introduced_at": "current_answer",
+        "artifact_refs": ["current_answer:one"], "source_refs": ["s:context"]}]
+    edit = {"question_id": "one", "field": "answer", "before": "Two accounts",
+            "after": "One account across two comments", "source_refs": ["known", "s:context"]}
+    if case == "foreign_known": edit["source_refs"] = ["known", "s:foreign"]
+    if case == "minor_only":
+        edit.update(before="Keep surrounding context", after="Unrequested wording change", source_refs=["s:context"])
+    repairs = {"answer_sha256": finite.answer_identity(answer), "edits": [edit]}
+    known = {"known", "s:context", "s:foreign"}
+    if case in {"foreign_known", "minor_only"}:
+        with pytest.raises(ValueError, match="sources are outside nominated source scope"):
+            finite.apply_exact_answer_repairs(answer, repairs, nominations, known)
+    else:
+        corrected = finite.apply_exact_answer_repairs(answer, repairs, nominations, known)
+        assert corrected["answers"][0]["answer"] == original["answers"][0]["answer"].replace(
+            "Two accounts", "One account across two comments")
+        assert corrected["answers"][1] == original["answers"][1]
+        assert corrected["answers"][0]["limits"] == original["answers"][0]["limits"]
+    assert answer == original

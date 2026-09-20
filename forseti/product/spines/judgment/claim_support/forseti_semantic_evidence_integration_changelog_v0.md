@@ -24,6 +24,15 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-20 v126 — constrained initial exact-review generation to proposed,
+  unresolved findings; only the existing affected recheck can discharge them.
+  Focused material edits may retain already-cited context without falsely
+  nominating that context as defective. Every non-citation edit still requires
+  a material-nominated source; minor-only edits and new foreign references fail.
+  Saved statuses remain unchanged in historical decoding. This addresses the
+  live response that labelled unapplied proposals repaired; semantic acceptance
+  and savings still require live evidence.
+
 - 2026-09-20 v125 — carried existing per-finding support/origin/conflict facts
   into the shared writer packet and replaced post-assessment answer rewriting
   with exact source-reviewer edits. Frozen identity/scope checks precede the
