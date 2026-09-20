@@ -81,6 +81,26 @@ def persist_bytes(path, data):
         raise ValueError(f"finite output readback differs: {path}")
 
 
+def bound_provider_harness(origin):
+    """Keep the original native launch paths when continuing in another checkout."""
+    paths = [Path(p) for p in origin["runtime"] if Path(p).name == "run_codex_provider_job.py"]
+    if len(paths) != 1:
+        raise ValueError("provider root lacks one bound job runner")
+    harness = paths[0].resolve().parents[1]
+    if harness != HARNESS:
+        for path, digest in origin["runtime"].items():
+            if hash_file(Path(path)) != digest:
+                raise ValueError(f"original provider runtime changed: {path}")
+    return harness
+
+
+def retained_answer_records(questions, edited):
+    """Name each affected question the proposal left unedited, with its open-nomination status."""
+    return [{"question_id": q["id"],
+             "reason": "No exact edit supplied; the original text remains under its open nomination for this recheck."}
+            for q in questions if q["id"] not in edited]
+
+
 def answer_schema(questions):
     ids = [q["id"] for q in questions]
     if not ids or len(set(ids)) != len(ids):
@@ -360,14 +380,15 @@ class FiniteRun:
                 "prompt_identical": replay_response is None})
         else:
             selection = self.bind_executable()
-            command = [sys.executable, str(HARNESS / "runners/run_codex_provider_job.py"),
+            provider_harness = getattr(self, "provider_harness", HARNESS)
+            command = [sys.executable, str(provider_harness / "runners/run_codex_provider_job.py"),
                 "--job-dir", str(directory / "job"), "--attempt-root", str(directory / "attempts"),
                 "--retry-budget-dir", str(self.provider_root / "retry-budget"), "--run-retry-limit", "2",
                 "--max-retries", "1", "--prompt-file", str(prompt_path), "--output-schema", str(schema_path),
-                "--worktree", str(REPO), "--codex-executable", selection["path"],
+                "--worktree", str(provider_harness.parent), "--codex-executable", selection["path"],
                 "--model", "gpt-5.6-sol", "--reasoning-effort", "high", "--timeout-seconds", "1800"]
             for path in CONTEXT:
-                command += ["--preload-context", str(path)]
+                command += ["--preload-context", str(provider_harness.parent / path.relative_to(REPO))]
             recovery = getattr(self, "completed_recoveries", {}).get(name)
             if recovery:
                 command += ["--completed-recovery", recovery["attempt_dir"]]
@@ -377,7 +398,7 @@ class FiniteRun:
             result_path = directory / f"invoke-{index:03d}-result.json"
             command += ["--result-out", str(result_path)]
             with out.open("xb") as stdout, err.open("xb") as stderr:
-                process = subprocess.run(command, cwd=HARNESS, stdin=subprocess.DEVNULL,
+                process = subprocess.run(command, cwd=provider_harness, stdin=subprocess.DEVNULL,
                     stdout=stdout, stderr=stderr, check=False,
                     env=dict(os.environ, PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1"),
                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
@@ -686,7 +707,7 @@ class FiniteRun:
             # citable namespace the answer itself is validated against, not the
             # wider assessed source rows a nomination may cite.
             corrected = apply_exact_answer_repairs(answer, proposal, nominations, citable_refs,
-                                                   reference_errors, unit_sources=known_units)
+                                                   reference_errors, unit_sources=known_units, allow_retained=True)
             patch = {"schema_version": "finite_answer_v1",
                      "answers": [a for a in corrected["answers"] if a["question_id"] in affected]}
             patch_path = self.root / "answer-correction/exact-repairs.json"
@@ -696,7 +717,7 @@ class FiniteRun:
         check_answer(corrected, self.questions["questions"], self.bundle, self.verified)
         persist(self.root / "answer-correction/answers-corrected.json", corrected)
         persist(self.root / "answer-correction/composition.json", {
-            **({"method": "reviewer_exact_repairs_v1", "assessment": read(self.root / "assessment/result.json"),
+            **({"method": "reviewer_exact_repairs_v2", "assessment": read(self.root / "assessment/result.json"),
                 "input_sha256": hash_file(self.root / "answer-correction/input.json")} if not self.replay else {}),
             "patch": str(patch_path), "patch_sha256": hash_file(patch_path),
             "affected_question_ids": sorted(affected), "unaffected_answers_unchanged": True,
@@ -716,7 +737,8 @@ class FiniteRun:
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         if not self.replay:
             recheck_request["exact_repairs"] = proposal
-            recheck_request["retained_answers"] = []
+            recheck_request["retained_answers"] = retained_answer_records(
+                questions, {edit["question_id"] for edit in proposal["edits"]})
         persist(self.root / "assessment-recheck/input.json", recheck_request)
         if self.replay:
             self.check_saved_input("assessment-recheck", "affected_recheck_input_json")
@@ -799,6 +821,7 @@ class FiniteRun:
                   for name in ("bundle", "verified", "source", "questions", "previous_answer")}
         runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
             HARNESS / "judgment/review_evidence.py",
+            HARNESS / "reports/finite_closeout.py",
             HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
             HARNESS / "provider_execution.py",
             HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
@@ -817,6 +840,7 @@ class FiniteRun:
                     raise ValueError("provider root must be the original live run root, not a successor")
                 if origin["inputs"] != inputs or origin["policy"] != self.policy or origin.get("replay_from") is not None:
                     raise ValueError("provider-root inputs or finite policy differ")
+                self.provider_harness = bound_provider_harness(origin)
                 binding["provider_root"] = {"path": str(self.provider_root), "binding_sha256": hash_file(origin_path)}
             if not self.replay:
                 binding["codex_selection"] = self.bind_executable()
@@ -940,7 +964,13 @@ def main(argv=None):
     except Exception as exc:
         args.output_dir.mkdir(parents=True, exist_ok=True)
         failure = args.output_dir / ("failure-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json")
-        persist(failure, {"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "error_type": type(exc).__name__, "error": str(exc)})
+        record = {"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "error_type": type(exc).__name__, "error": str(exc)}
+        try:
+            from reports.finite_closeout import failure_summary
+            record["diagnostics"] = failure_summary(args.output_dir, args.provider_root or args.output_dir)
+        except Exception as diagnostic_error:
+            record["diagnostic_error"] = str(diagnostic_error)
+        persist(failure, record)
         print(json.dumps({"status": "FINITE_EXECUTION_FAILED_OR_UNKNOWN", "failure": str(failure), "error": str(exc)}))
         return 1
     print(json.dumps({"status": result["status"], "coverage": result["coverage"], "result": str(args.output_dir / "result.json")}))

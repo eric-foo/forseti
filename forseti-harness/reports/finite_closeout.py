@@ -12,6 +12,76 @@ from reports.compact_return import bounded_json, output_budget, write_verified
 from reports.efficiency_codex import collect_provider_roots
 
 
+def failure_summary(run_root, provider_root):
+    """Compact saved observations for a failed run, never endpoint validation.
+
+    The exception remains owned by the caller. Missing, unreadable or changed
+    diagnostics are explicit and cannot turn that exception into success.
+    """
+    from harness_efficiency import aggregate_usage
+    from judgment.review_evidence import material_answer_findings
+    root, providers = Path(run_root).resolve(), Path(provider_root).resolve()
+    artifacts, issues = {}, []
+
+    def optional(name):
+        path = root / name
+        if not path.exists():
+            return None
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(value, dict):
+                raise ValueError("expected object")
+            artifacts[name] = {"path": str(path), "sha256": hash_file(path)}
+            return value
+        except (OSError, ValueError) as exc:
+            issues.append(f"{name}: {exc}")
+            return None
+
+    counts = optional("coverage.json")
+    for name in ("formation/compilation.json", "finish/compilation.json", "answer/freeze.json",
+                 "answer-correction/composition.json", "assessment-recheck/result.json"):
+        optional(name)
+    assessment, repair_scope = None, None
+    record = optional("assessment/result.json")
+    if record is not None:
+        try:
+            path = Path(record["response"]).resolve(strict=True)
+            if not path.is_relative_to(providers) or hash_file(path) != record["response_sha256"]:
+                raise ValueError("assessment response is outside its provider scope or changed")
+            value = json.loads(path.read_text(encoding="utf-8"))
+            findings = value["material_findings"]
+            affected = {ref.removeprefix("current_answer:") for finding in material_answer_findings(findings)
+                        for ref in finding["artifact_refs"] if ref.startswith("current_answer:")}
+            edited = {edit["question_id"] for edit in value.get("answer_repairs", {}).get("edits", [])}
+            repair_scope = {"nominated_question_ids": sorted(affected), "edited_question_ids": sorted(edited),
+                            "unedited_nominated_question_ids": sorted(affected - edited)}
+            assessment = {"response": record, "semantic_status": "initial reviewer claims; not final acceptance",
+                          "commissioned_checks": {key: check["status"] for key, check in value.get("commissioned_checks", {}).items()},
+                          "material_findings": findings}
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            issues.append(f"assessment response: {exc}")
+    accounting = collect_provider_roots([str(providers)])
+    stages = {}
+    for attempt in accounting["attempts"]:
+        path = Path(attempt["receipt_path"]).resolve()
+        stage = path.relative_to(providers).parts[0] if path.is_relative_to(providers) else "external_recovery"
+        stages.setdefault(stage, []).append(attempt)
+    usage_by_stage = {}
+    for stage, attempts in stages.items():
+        usage = aggregate_usage(attempts)
+        usage_by_stage[stage] = {"attempts": len(attempts), "coverage": usage["coverage"],
+            **{key: usage[key] for key in ("input_tokens", "cached_input_tokens", "output_tokens", "total_tokens")},
+            "observed_total_tokens": usage["observed_totals"]["total_tokens"],
+            "additional_observed_response_tokens": sum(a["additional_observed_response_tokens"] or 0 for a in attempts),
+            "startup_observation_unknown_attempts": sum(a["additional_observed_response_tokens"] is None for a in attempts)}
+    return {"schema_version": "finite_failure_diagnostics_v1",
+            "scope": "saved diagnostic observations only; no complete endpoint, final selection or semantic acceptance",
+            "run_root": str(root), "provider_root": str(providers), "coverage": counts,
+            "saved_artifacts": artifacts, "initial_assessment": assessment, "repair_scope": repair_scope,
+            "native_accounting": {k: v for k, v in accounting.items() if k != "attempts"},
+            "usage_by_stage": usage_by_stage, "diagnostic_issues": issues}
+
+
 def selected_answer_path(result, frozen_path, candidate_path, frozen, candidate, recheck):
     """Verify the saved live selection with the finite runner's existing rules."""
     from judgment.review_evidence import material_answer_findings
@@ -57,7 +127,7 @@ def composed_correction(composition, original, patch, questions, *, assessment=N
     """
     from runners import run_finite_semantic_consolidation as finite
     affected = composition["affected_question_ids"]
-    if composition.get("method") == "reviewer_exact_repairs_v1":
+    if composition.get("method") in {"reviewer_exact_repairs_v1", "reviewer_exact_repairs_v2"}:
         if assessment is None or patch != assessment.get("answer_repairs"):
             raise ValueError("exact repairs differ from bound reviewer response")
         nominated = finite.material_answer_findings(assessment["material_findings"])
@@ -69,7 +139,8 @@ def composed_correction(composition, original, patch, questions, *, assessment=N
         if set(affected) != expected:
             raise ValueError("exact repair composition scope differs")
         return finite.apply_exact_answer_repairs(original, patch, nominated, known_refs, reference_errors,
-                                                 unit_sources=unit_sources)
+                                                 unit_sources=unit_sources,
+                                                 allow_retained=composition["method"] == "reviewer_exact_repairs_v2")
     if patch.get("schema_version") == "finite_answer_correction_v1":
         scoped = [q for q in questions if q["id"] in set(affected)]
         patch = finite.answer_correction_patch(original, patch, scoped)
@@ -253,11 +324,12 @@ def collect(run_root, operation_dir=None):
 
     answer_versions = {"frozen": {"path": freeze["response"], "value": frozen}}
     correction_records = {}
-    candidate = None
+    candidate = composition = None
     corrected = root / "answer-correction/answers-corrected.json"
     if result["answer_corrections"]:
         composition = load(root / "answer-correction/composition.json")
-        if composition.get("method") == "reviewer_exact_repairs_v1":
+        exact_method = composition.get("method") in {"reviewer_exact_repairs_v1", "reviewer_exact_repairs_v2"}
+        if exact_method:
             if composition["assessment"] != assessment_record:
                 raise ValueError("exact repairs lack bound source assessment")
             load(root / "answer-correction/input.json", composition["input_sha256"])
@@ -265,7 +337,7 @@ def collect(run_root, operation_dir=None):
             bound_consumer_input("answer-correction")
         candidate = load(corrected, composition["corrected_sha256"])
         patch = load(composition["patch"], composition["patch_sha256"])
-        if composition.get("method") != "reviewer_exact_repairs_v1" and str(Path(composition["patch"]).resolve()) not in responses:
+        if not exact_method and str(Path(composition["patch"]).resolve()) not in responses:
             raise ValueError("correction patch lacks a bound provider response")
         original_path = composition.get("original_response", freeze["response"])
         original = load(original_path, composition.get("original_response_sha256"))
@@ -293,6 +365,18 @@ def collect(run_root, operation_dir=None):
         if Path(result["affected_recheck"]).resolve() != Path(record["response"]).resolve():
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
+        if composition is not None and composition.get("method") == "reviewer_exact_repairs_v2":
+            affected = set(composition["affected_question_ids"])
+            scoped_questions = [q for q in questions["questions"] if q["id"] in affected]
+            edited = {edit["question_id"] for edit in assessment["answer_repairs"]["edits"]}
+            # Compare the retained records whole: their stated open-nomination reason is
+            # what told the recheck to review that unchanged text, not decoration.
+            if (request["affected_questions"] != scoped_questions
+                    or request["corrected_affected_answers"] != [a for a in candidate["answers"] if a["question_id"] in affected]
+                    or request["nominations_to_verify_against_sources"] != finite.material_answer_findings(assessment["material_findings"])
+                    or request["exact_repairs"] != assessment["answer_repairs"]
+                    or request["retained_answers"] != finite.retained_answer_records(scoped_questions, edited)):
+                raise ValueError("exact repair recheck omits or changes affected answer scope")
         correction_records["recheck_input"] = request
         recheck = finite.assessment_from_response(recheck, request["frozen_relevant_checks"], scoped_checks=True)
         for key, field in (("affected_recheck_material_findings", "material_findings"),

@@ -242,6 +242,8 @@ def saved_correction_run(tmp_path, outcome):
     finding = {"severity": "major", "status": "open", "introduced_at": "current_answer",
                "source_refs": [ref], "artifact_refs": ["current_answer:a"],
                "defect": "Controlled nomination.", "effect": "Qualification lost.", "bounded_repair": "Check source."}
+    if outcome.startswith("partial_"):
+        finding["artifact_refs"].append("current_answer:z")
     assessment = {"schema_version": "finite_source_assessment_v1", "inventory_coverage": "Fixture.",
                   "comparison": "Fixture.", "unassessed_material": "None in fixture.", "overall_usefulness": "Bounded.",
                   "check_results": [{"check_id": "contrast", "status": "pass", "source_refs": [ref],
@@ -266,8 +268,11 @@ def saved_correction_run(tmp_path, outcome):
     recheck = {**deepcopy(assessment), "schema_version": "finite_source_assessment_v2", "material_findings": [],
                "check_results": [{**check, "scope": "answer"} for check in assessment["check_results"]]}
     assessment.update(schema_version="finite_source_assessment_v3", answer_repairs=repairs)
-    if outcome in {"rejected", "invalid_draft_rejected"}:
+    if outcome in {"rejected", "invalid_draft_rejected", "partial_rejected"}:
         recheck["check_results"][-1]["status"] = "fail"
+    if outcome == "partial_rejected":
+        recheck["material_findings"] = [{**finding, "artifact_refs": ["current_answer:z"],
+                                        "defect": "The unedited answer still loses the qualification."}]
     inputs = {"source": source, "bundle": bundle, "verified": verified, "questions": questions,
               "previous_answer": answer}
     paths = {name: tmp_path / "inputs" / (name + ".json") for name in inputs}
@@ -294,6 +299,11 @@ def saved_correction_run(tmp_path, outcome):
                         if outcome.startswith("invalid_draft") else pytest.fail("unexpected paid rewrite"))
         else:
             assert phase == "assessment-recheck"
+            if outcome.startswith("partial_"):
+                request = finite.read(run.root / "assessment-recheck/input.json")
+                assert [q["id"] for q in request["affected_questions"]] == ["z", "a"]
+                assert request["corrected_affected_answers"][0] == answer["answers"][0]
+                assert [r["question_id"] for r in request["retained_answers"]] == ["z"]
             response = recheck
         if phase in {"assessment", "assessment-recheck"}:
             response = _keyed_assessment(response, ["contrast"])
@@ -324,6 +334,130 @@ def saved_correction_run(tmp_path, outcome):
     run.job = fixture_job
     result = run.run()
     return run, result
+
+
+@pytest.mark.parametrize("outcome,status", [("partial_accepted", "accepted"), ("partial_rejected", "rejected")])
+def test_partial_exact_repair_keeps_unedited_questions_in_recheck_and_saved_validation(tmp_path, outcome, status):
+    run, result = saved_correction_run(tmp_path, outcome)
+    payload = closeout.collect(run.root)
+    original = payload["answers"]["frozen"]["value"]
+    candidate = payload["answers"]["correction_candidate"]["value"]
+    assert result["answer_correction_status"] == status
+    assert candidate["answers"][0] == original["answers"][0]
+    assert candidate["answers"][1] != original["answers"][1]
+    assert payload["answers"]["selected"]["value"] == (candidate if status == "accepted" else original)
+    assert payload["correction_records"]["composition"]["affected_question_ids"] == ["a", "z"]
+    if status == "rejected":
+        assert result["remaining_material_answer_findings"]
+        assert result["affected_recheck_material_findings"][0]["artifact_refs"] == ["current_answer:z"]
+    # Historical v1 records retain the old all-edited requirement.
+    composition = {**payload["correction_records"]["composition"], "method": "reviewer_exact_repairs_v1"}
+    assessment = payload["initial_assessment"]
+    known = {r["evidence_id"] for r in run.bundle["evidence_units"]}
+    with pytest.raises(ValueError, match="omit a nominated answer"):
+        closeout.composed_correction(composition, original, assessment["answer_repairs"],
+                                    run.questions["questions"], assessment=assessment, known_refs=known)
+
+
+@pytest.mark.parametrize("field,mutate", [
+    ("affected_questions", lambda value: value[1:]),
+    ("corrected_affected_answers", lambda value: value[1:]),
+    ("nominations_to_verify_against_sources", lambda value: value[1:]),
+    ("retained_answers", lambda value: value[1:]),
+    # Keeping the question but retracting its open-nomination reason is also lost scope.
+    ("retained_answers", lambda value: [{**value[0], "reason": "Already resolved; no recheck needed."}])])
+def test_saved_partial_recheck_cannot_drop_unchanged_nominated_scope(tmp_path, field, mutate):
+    run, _ = saved_correction_run(tmp_path, "partial_accepted")
+    path = run.root / "assessment-recheck/input.json"
+    request = finite.read(path)
+    request[field] = mutate(request[field])
+    path.write_text(json.dumps(request), encoding="utf-8")
+    # Deliberately bind the reduced request as if it were what the provider saw:
+    # reject lost review scope, not just a stale digest.
+    binding_path = run.root / "assessment-recheck/provider/job/binding.json"
+    binding = finite.read(binding_path)
+    prompt = Path(binding["binding"]["prompt_path"])
+    prefix = prompt.read_text(encoding="utf-8").rstrip().rsplit("\n", 1)[0]
+    packet = finite.render_evidence(request).rstrip().rsplit("\n", 1)[-1]
+    prompt.write_text(prefix + "\n" + packet + "\n", encoding="utf-8")
+    binding["binding"]["prompt_sha256"] = hash_file(prompt)
+    binding_path.write_text(json.dumps(binding), encoding="utf-8")
+    receipt_path = run.root / "assessment-recheck/provider/attempts/job-attempt-001/execution_receipt.json"
+    receipt = finite.read(receipt_path)
+    receipt["prompt_sha256"] = hash_file(prompt)
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(ValueError, match="recheck omits or changes affected answer scope"):
+        closeout.collect(run.root)
+
+
+def test_saved_recheck_without_a_correction_reports_the_missing_candidate(tmp_path):
+    run, _ = saved_correction_run(tmp_path, "partial_accepted")
+    path = run.root / "result.json"
+    result = finite.read(path)
+    result["answer_corrections"] = 0
+    path.write_text(json.dumps(result), encoding="utf-8")
+    with pytest.raises(ValueError, match="recheck lacks a correction candidate"):
+        closeout.collect(run.root)
+
+
+def test_failed_runner_emits_one_compact_diagnostic_without_changing_saved_work(tmp_path, monkeypatch, capsys):
+    with pytest.raises(ValueError, match="outside nominated source scope") as observed:
+        saved_correction_run(tmp_path, "excluded_row_repair")
+    root = tmp_path / "run"
+    before = {p: hash_file(p) for p in tmp_path.rglob("*") if p.is_file()}
+    def fail():
+        raise observed.value
+    monkeypatch.setattr(finite, "FiniteRun", lambda args: type("FailedRun", (), {"run": staticmethod(fail)})())
+    argv = [arg for name in ("source", "bundle", "verified", "questions", "previous-answer")
+            for arg in ("--" + name, str(tmp_path / "inputs" / (name.replace("-", "_") + ".json")))]
+    capsys.readouterr()
+    assert finite.main([*argv, "--output-dir", str(root)]) == 1
+    terminal = json.loads(capsys.readouterr().out)
+    record = finite.read(terminal["failure"])
+    assert record["error"] == str(observed.value)
+    assert record["status"] == "FINITE_EXECUTION_FAILED_OR_UNKNOWN"
+    diagnostic = record["diagnostics"]
+    assert diagnostic["diagnostic_issues"] == []
+    assert diagnostic["coverage"]["missing_statements"] == 0
+    assert diagnostic["repair_scope"] == {"nominated_question_ids": ["a"], "edited_question_ids": ["a"],
+                                          "unedited_nominated_question_ids": []}
+    assert diagnostic["initial_assessment"]["commissioned_checks"] == {"contrast": "pass"}
+    assert diagnostic["initial_assessment"]["material_findings"][0]["status"] == "open"
+    assert set(diagnostic["usage_by_stage"]) == {"formation", "finish", "answer", "assessment"}
+    assert diagnostic["native_accounting"]["usage"]["total_tokens"] == 48  # Synthetic, not model-cost proof.
+    assert diagnostic["native_accounting"]["startup_observation_unknown_attempts"] == 4
+    assert {p: hash_file(p) for p in before} == before
+    assert not (root / "answer-correction/answers-corrected.json").exists()
+    assert not (root / "assessment-recheck").exists()
+
+
+def test_failure_diagnostics_keep_changed_evidence_and_unknown_usage_explicit(tmp_path):
+    with pytest.raises(ValueError):
+        saved_correction_run(tmp_path, "excluded_row_repair")
+    root = tmp_path / "run"
+    response = root / "assessment/provider/attempts/job-attempt-001/response.json"
+    response.write_text("{}", encoding="utf-8")
+    diagnostic = closeout.failure_summary(root, root)
+    assert diagnostic["initial_assessment"] is None
+    assert any("changed" in issue for issue in diagnostic["diagnostic_issues"])
+    assert diagnostic["native_accounting"]["unknown_usage_attempts"] == 1
+    assert diagnostic["native_accounting"]["usage"]["total_tokens"] is None
+    assert diagnostic["usage_by_stage"]["assessment"]["total_tokens"] is None
+
+
+def test_broken_diagnostic_cannot_replace_original_execution_failure(tmp_path, monkeypatch, capsys):
+    def fail():
+        raise ValueError("original execution failure")
+    def broken_diagnostic(*args):
+        raise OSError("diagnostic unavailable")
+    monkeypatch.setattr(finite, "FiniteRun", lambda args: type("FailedRun", (), {"run": staticmethod(fail)})())
+    monkeypatch.setattr(closeout, "failure_summary", broken_diagnostic)
+    argv = [arg for name in ("source", "bundle", "verified", "questions", "previous-answer")
+            for arg in ("--" + name, str(tmp_path / name))]
+    assert finite.main([*argv, "--output-dir", str(tmp_path / "run")]) == 1
+    record = finite.read(json.loads(capsys.readouterr().out)["failure"])
+    assert record["error"] == "original execution failure"
+    assert record["diagnostic_error"] == "diagnostic unavailable"
 
 
 @pytest.mark.parametrize("outcome,selected", [("mixed", "accepted"),

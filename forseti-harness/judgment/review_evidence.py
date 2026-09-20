@@ -155,7 +155,8 @@ def answer_identity(answer):
                                     separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-def apply_exact_answer_repairs(original, repairs, nominations, known_refs, reference_errors=None, *, unit_sources=None):
+def apply_exact_answer_repairs(original, repairs, nominations, known_refs, reference_errors=None, *, unit_sources=None,
+                              allow_retained=False):
     """Apply reviewer-authored text only. Applicability is not semantic acceptance."""
     if repairs["answer_sha256"] != answer_identity(original):
         raise ValueError("exact repairs have a stale frozen answer identity")
@@ -169,6 +170,8 @@ def apply_exact_answer_repairs(original, repairs, nominations, known_refs, refer
         for ref in finding["artifact_refs"]:
             if ref.startswith("current_answer:"):
                 scope.setdefault(ref.removeprefix("current_answer:"), set()).update(finding["source_refs"])
+    if scope.keys() - rows.keys():
+        raise ValueError("exact repair nomination has unknown answer scope")
     edits_by_field = {}
     added_refs = {}
     for edit in repairs["edits"]:
@@ -211,7 +214,11 @@ def apply_exact_answer_repairs(original, repairs, nominations, known_refs, refer
             raise ValueError("exact repair anchors overlap")
         group.append((start, end, after))
         added_refs.setdefault(question, set()).update(refs)
-    if set(added_refs) != scope.keys() | reference_errors.keys():
+    expected = scope.keys() | reference_errors.keys()
+    required = reference_errors.keys() if allow_retained else expected
+    # A valid edit may resolve a finding spanning multiple answer sections.
+    # Retention never clears a nomination: the caller must recheck all of them.
+    if required - added_refs.keys() or (expected and not added_refs):
         raise ValueError("exact repairs omit a nominated answer")
     corrected = deepcopy(original)
     for row in corrected["answers"]:

@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v126
-effective_date: 2026-09-10
+version: v127
+effective_date: 2026-09-21
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v126
+# Semantic Evidence Integration Contract v127
 
 ## Purpose
 
@@ -2747,6 +2747,9 @@ This reuses native provider jobs in place; it does not copy or restamp responses
 The successor binds the exact original input paths/hashes, finite policy and
 provider-root binding hash. Native jobs still verify request, schema, executable,
 model, effort and required context before accepting a completed attempt. The
+successor's orchestration can run in a new worktree; provider launches retain
+the original runner, worktree and context paths. The original checkout must
+remain available and unchanged for this cross-worktree continuation. The
 original provider root owns the shared run lock and transport, consolidation
 repair and answer-correction allowances, so a successor cannot reset them.
 Always name that original live root; a successor root is rejected as
@@ -2776,7 +2779,7 @@ than counting them as separate events. Remaining inventory defects stay visible.
 The full assessor receives the exact answer
 questions and worker instructions as `answer_commission`; the broader source
 research question does not expand that answer scope. A live post-assessment
-correction uses `reviewer_exact_repairs_v1`: the existing full source reviewer
+correction uses `reviewer_exact_repairs_v2`: the existing full source reviewer
 supplies `answer_repairs` in initial assessment v3, containing the frozen answer's
 canonical SHA256 and exact edits (`question_id`, `field`,
 unique nonempty `before`, `after`, and supporting `source_refs`). Additions replace
@@ -2802,15 +2805,21 @@ observed, uniquely located invalid entries in that exact question. An inline-onl
 invalid reference does not create an index-edit option. Text anchors and source
 support still require application checks and the separate semantic recheck. Code rejects
 stale answer hashes, missing/ambiguous/overlapping anchors, unbacked source
-identities, new inline citations absent from repair source refs, no-op edits
-and omitted nominated questions. It applies disjoint edits against the frozen original and preserves
+identities, new inline citations absent from repair source refs, no-op edits,
+empty proposals when repairs are required, and unedited questions with invalid
+references. A nonempty valid proposal may leave other nominated questions
+unchanged: the recheck receives every nominated question, its candidate text,
+the original nominations, and explicit identification of unedited questions.
+Retention does not discharge a nomination; a remaining material defect or failed
+answer check still rejects the candidate. Code applies disjoint edits against the frozen original and preserves
 all other text and reference order, adding newly cited repair references once.
 The reviewer owns supported meaning; application establishes identity and scope,
 never semantic acceptance. No post-assessment interpretation/rewrite model call
 remains. The existing separate affected recheck can reject even an exactly
 applicable edit, including a reversed comparator. An unrepairable nomination
 fails visibly rather than triggering another paid correction call. Historical
-`finite_answer_correction_v1` proposals and older full-answer patches retain their
+`reviewer_exact_repairs_v1` compositions retain their all-nominated-questions-edited
+requirement. Historical `finite_answer_correction_v1` proposals and older full-answer patches retain their
 saved composition/selection semantics; they are not relabelled as exact repairs.
 Live correction and recheck receive the original full `answer_commission`
 separately from `affected_questions`. Only that subset is repaired and reviewed;
@@ -2909,8 +2918,13 @@ acceptance decision above. Saved replay of a spent correction instead reproduces
 the recorded selection and carries no correction or material status, so it is
 provenance, not a current answer selection. Selection is not quality acceptance.
 For live runs, read `answer_material_status` and, after post-assessment correction,
-`answer_correction_status`. Nonzero entry exits save `failure-*.json`.
-Preserve partial outputs and unknown usage.
+`answer_correction_status`. Nonzero entry exits save `failure-*.json` with the
+original error and saved coverage, artifact pointers, initial review checks and
+findings, nominated/edited/unedited question IDs, and native usage by stage.
+Read this diagnostic together instead of reconstructing it across separate
+source and accounting reads. Missing or changed diagnostics stay explicit and
+cannot replace the original failure. These are saved observations, not endpoint
+validation or semantic acceptance. Preserve partial outputs and unknown usage.
 
 For deterministic replay of the saved complete finite experiment layout, add
 `--replay-from SAVED_RUN_ROOT` (without `--codex-executable`) and choose a fresh output
