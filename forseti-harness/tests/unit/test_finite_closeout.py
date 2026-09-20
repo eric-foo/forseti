@@ -208,6 +208,16 @@ def saved_correction_run(tmp_path, outcome):
     )
     from test_finite_semantic_consolidation import _keyed_assessment
     source = _source_v7(count=3)
+    excluded_row = "reddit:t1:excluded"
+    if outcome.startswith("excluded_row"):
+        # A mechanically excluded capture stays an assessable source row but
+        # never becomes a citable evidence unit.
+        kept = source["captured_items"][0]
+        source["captured_items"].append({
+            "evidence_id": excluded_row, "accounting_disposition": "mechanically_excluded",
+            "accounting_reason": "native body unavailable in fixture",
+            **{k: kept[k] for k in ("container_id", "source_artifact_id", "source_ref")}})
+        source["containers"][0]["captured_leaf_count"] += 1
     bundle = finite.semantic.build_bundle(source, max_prompt_bytes=80000, max_evidence_per_work_unit=30)
     compiled = finite.semantic.validate_batch_responses(bundle, _v5_responses(bundle, detailed_per_batch=3))
     verification, _ = finite.semantic.prepare_row_verification(bundle, compiled)
@@ -226,6 +236,9 @@ def saved_correction_run(tmp_path, outcome):
     if outcome.startswith("invalid_draft"):
         answer["answers"][1]["evidence_refs"] = ["unknown-source"]
         answer["answers"][1]["answer"] += " [" + ref.split(":")[0] + ":typo]"
+    if outcome == "excluded_row_draft":
+        answer["answers"][1]["answer"] += " [" + excluded_row + "]"
+    draft = outcome.startswith("invalid_draft") or outcome == "excluded_row_draft"
     finding = {"severity": "major", "status": "open", "introduced_at": "current_answer",
                "source_refs": [ref], "artifact_refs": ["current_answer:a"],
                "defect": "Controlled nomination.", "effect": "Qualification lost.", "bounded_repair": "Check source."}
@@ -233,15 +246,21 @@ def saved_correction_run(tmp_path, outcome):
                   "comparison": "Fixture.", "unassessed_material": "None in fixture.", "overall_usefulness": "Bounded.",
                   "check_results": [{"check_id": "contrast", "status": "pass", "source_refs": [ref],
                                      "finding_refs": [], "explanation": "Controlled check."}],
-                  "material_findings": [] if outcome.startswith("invalid_draft") else [finding]}
+                  "material_findings": [] if draft else [finding]}
     assessment["check_results"].append({"check_id": "additional.source_traceability", "status": "pass",
         "source_refs": [ref], "finding_refs": [], "explanation": "Extra source-backed check."})
-    repairs = {"answer_sha256": finite.answer_identity(answer), "edits": [] if outcome.startswith("invalid_draft") else [
+    repairs = {"answer_sha256": finite.answer_identity(answer), "edits": [] if draft else [
         {"question_id": "a", "field": "answer", "before": "Original", "after": "Corrected", "source_refs": [ref]}]}
     if outcome.startswith("invalid_draft"):
         repairs["edits"] = [
             {"question_id": "a", "field": "evidence_refs", "before": "unknown-source", "after": ref, "source_refs": [ref]},
             {"question_id": "a", "field": "answer", "before": ref.split(":")[0] + ":typo", "after": ref, "source_refs": [ref]}]
+    if outcome == "excluded_row_draft":
+        repairs["edits"] = [{"question_id": "a", "field": "answer", "before": excluded_row,
+                             "after": ref, "source_refs": [ref]}]
+    if outcome == "excluded_row_repair":
+        finding["source_refs"] = [excluded_row]
+        repairs["edits"][0]["source_refs"] = [excluded_row]
     if outcome == "invalid_draft_unrepaired":
         repairs["edits"] = []
     recheck = {**deepcopy(assessment), "schema_version": "finite_source_assessment_v2", "material_findings": [],
@@ -392,3 +411,30 @@ def test_invalid_frozen_answer_cannot_be_selected_after_failed_exact_repair(tmp_
     if outcome == "invalid_draft_rejected":
         assert (root / "answer-correction/answers-corrected.json").is_file()
         assert (root / "assessment-recheck/result.json").is_file()
+
+
+def test_excluded_capture_is_not_a_citable_answer_reference_for_the_reader(tmp_path):
+    """The reader resolves answer references the way the runner validated them.
+
+    A captured row the bundle excluded is assessable source but not a citable
+    answer reference, so the frozen draft's inline use of it is a real
+    reference error and its saved exact repair is in the recorded scope.
+    """
+    run, result = saved_correction_run(tmp_path, "excluded_row_draft")
+    source, bundle = finite.read(run.args.source), finite.read(run.args.bundle)
+    assert ({r["evidence_id"] for r in source["captured_items"]}
+            - {u["evidence_id"] for u in bundle["evidence_units"]}) == {"reddit:t1:excluded"}
+    assert finite.read(run.root / "assessment/input.json")["citation_validation"] == {
+        "status": "invalid_draft", "unknown_references_by_question": {"a": ["reddit:t1:excluded"]}}
+    assert result["answer_correction_status"] == "accepted"
+    view = closeout.collect(run.root)
+    selected = view["answers"]["selected"]["value"]
+    assert selected == finite.read(result["final_answer"])
+    assert "reddit:t1:excluded" not in selected["answers"][1]["answer"]
+
+
+def test_excluded_capture_repair_reference_fails_before_recheck(tmp_path):
+    with pytest.raises(ValueError, match="exact repair sources are outside nominated source scope"):
+        saved_correction_run(tmp_path, "excluded_row_repair")
+    assert not (tmp_path / "run/answer-correction/answers-corrected.json").exists()
+    assert not (tmp_path / "run/assessment-recheck").exists()

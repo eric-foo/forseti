@@ -270,7 +270,11 @@ def collect(run_root, operation_dir=None):
         original_path = composition.get("original_response", freeze["response"])
         original = load(original_path, composition.get("original_response_sha256"))
         unit_sources = {u["semantic_unit_ref"]: u["evidence_id"] for u in verified["semantic_units"]}
-        known_refs = {r["evidence_id"] for r in source["captured_items"]} | set(unit_sources)
+        # Answer references resolve in the citable evidence namespace the runner
+        # validated against. A captured row the bundle excluded is a real source
+        # but never a citable answer reference; reading it as one would refuse
+        # the saved repair scope the runner correctly froze.
+        known_refs = {u["evidence_id"] for u in bundle["evidence_units"]} | set(unit_sources)
         if composed_correction(composition, original, patch, questions["questions"],
                                assessment=assessment, known_refs=known_refs, unit_sources=unit_sources) != candidate:
             raise ValueError("corrected answer composition differs")
@@ -296,7 +300,6 @@ def collect(run_root, operation_dir=None):
             if result[key] != recheck[field]:
                 raise ValueError("result recheck findings/statuses differ")
     final_path = selected_answer_path(result, freeze["response"], corrected, frozen, candidate, recheck)
-    finite.check_answer(load(final_path), questions["questions"], bundle, verified)
     check_material_status(result, assessment)
     answer_versions["selected"] = {"path": str(final_path), "value": load(final_path)}
     finite.check_answer(answer_versions["selected"]["value"], questions["questions"], bundle, verified)

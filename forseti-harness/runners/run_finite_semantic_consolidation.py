@@ -640,6 +640,7 @@ class FiniteRun:
         refs = {r for f in nominations for r in f["source_refs"]}
         known_units = {u["semantic_unit_ref"]: u["evidence_id"] for u in self.verified["semantic_units"]}
         known_ids = {r["evidence_id"] for r in self.source["captured_items"]}
+        citable_refs = {r["evidence_id"] for r in self.bundle["evidence_units"]} | set(known_units)
         refs.update(r for a in answer["answers"] if a["question_id"] in affected
                     for r in answer_source_references(a, known_ids | set(known_units)) if r in known_ids or r in known_units)
         if not self.replay:
@@ -681,7 +682,10 @@ class FiniteRun:
                 raise ValueError("live correction requires reviewer-authored exact repairs")
             proposal = assessment["answer_repairs"]
             Draft202012Validator(exact_repairs_schema()).validate(proposal)
-            corrected = apply_exact_answer_repairs(answer, proposal, nominations, known_ids | set(known_units),
+            # Repair references become answer citations, so they resolve in the
+            # citable namespace the answer itself is validated against, not the
+            # wider assessed source rows a nomination may cite.
+            corrected = apply_exact_answer_repairs(answer, proposal, nominations, citable_refs,
                                                    reference_errors, unit_sources=known_units)
             patch = {"schema_version": "finite_answer_v1",
                      "answers": [a for a in corrected["answers"] if a["question_id"] in affected]}
