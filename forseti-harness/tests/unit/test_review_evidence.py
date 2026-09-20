@@ -6,7 +6,7 @@ import pytest
 
 from judgment.review_evidence import compact_evidence, expand_evidence, compose_answer_patch, material_answer_findings
 from runners import run_finite_semantic_consolidation as finite
-from test_finite_semantic_consolidation import answer_fixture
+from test_finite_semantic_consolidation import answer_fixture, _keyed_assessment
 
 
 def test_complete_roundtrip_retains_origins_conditions_opposition_and_literal_markers():
@@ -83,7 +83,10 @@ def test_patch_cannot_change_or_omit_unaffected_answer():
 def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answers(tmp_path):
     run, original = answer_fixture(tmp_path)
     run.bundle = {"evidence_units": [{"evidence_id": "source:one"}]}
-    run.verified = {"semantic_units": [{"semantic_unit_ref": "source:one::purchase-despite-price"}]}
+    run.verified = {"semantic_units": [{"semantic_unit_ref": "source:one::purchase-despite-price",
+                                       "evidence_id": "source:one"}]}
+    run.source = {"captured_items": [{"evidence_id": "source:one", "text": "Bought despite price."}]}
+    run.questions["assessment_only"] = {"checks": []}
     for row in original["answers"]:
         row["evidence_refs"] = ["source:one"]
     original["answers"][0]["answer"] = "A report (source:one::purchase_despite_price)."
@@ -91,16 +94,32 @@ def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answe
         finite.check_answer(original, run.questions["questions"], run.bundle, run.verified)
     path = run.root / "original.json"
     finite.persist(path, original)
-    patch = {"schema_version": "finite_answer_v1", "answers": [{**original["answers"][0],
-        "answer": "A report (source:one::purchase-despite-price)."}]}
+    finite.persist(run.root / "answer/freeze.json", {"response": str(path)})
+    finite.persist(run.root / "assessment/result.json", {"response": "fixture-review", "response_sha256": "fixture"})
+    assessment = {"schema_version": "finite_source_assessment_v3", "material_findings": [],
+        "answer_repairs": {"answer_sha256": finite.answer_identity(original), "edits": [
+            {"question_id": "one", "field": "answer", "before": "source:one::purchase_despite_price",
+             "after": "source:one::purchase-despite-price", "source_refs": ["source:one::purchase-despite-price"]}]}}
+    recheck = _keyed_assessment({"schema_version": "finite_source_assessment_v2",
+        "inventory_coverage": "fixture", "comparison": "fixture", "unassessed_material": "none",
+        "overall_usefulness": "supported", "material_findings": [], "check_results": []}, [])
+    launches = []
     def job(name, prompt, schema):
+        launches.append(name)
+        assert name == "assessment-recheck/provider"
         assert 'source:one::purchase_despite_price' in prompt
-        response = run.root / "patch.json"
-        finite.persist(response, patch)
+        response = run.root / "recheck.json"
+        finite.Draft202012Validator(schema).validate(recheck)
+        finite.persist(response, recheck)
         return response
     run.job = job
-    corrected = finite.read(run.correct_invalid_answer(path, {"questions": run.questions["questions"]}))
+    result = run.correct_and_recheck(original, assessment, {"propositions": []})
+    assert result["answer_correction_status"] == "accepted"
+    corrected = finite.read(result["final_answer"])
+    assert corrected["answers"][0]["answer"] == "A report (source:one::purchase-despite-price)."
     assert corrected["answers"][1] == original["answers"][1]
+    assert finite.read(path) == original
+    assert launches == ["assessment-recheck/provider"]
     finite.check_answer(corrected, run.questions["questions"], run.bundle, run.verified)
 
 
@@ -119,8 +138,11 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     finding = {"severity": "major", "status": "open", "introduced_at": "current_answer",
                "artifact_refs": ["current_answer:one"], "source_refs": ["known"]}
     view = {"propositions": [{"semantic_relations": {"supports": ["known::u"], "opposes": ["opposition::u"]}}]}
-    patch = {"schema_version": "finite_answer_correction_v1", "retained_answers": [],
-             "answers": [{**answer["answers"][0], "answer": "corrected"}]}
+    assessment = {"schema_version": "finite_source_assessment_v3", "material_findings": [finding],
+        "answer_repairs": {"answer_sha256": finite.answer_identity(answer), "edits": [
+            {"question_id": "one", "field": "answer", "before": "bounded", "after": "corrected",
+             "source_refs": ["known"]}]}}
+    finite.persist(run.root / "assessment/result.json", {"response": "fixture-review", "response_sha256": "fixture"})
     recheck = {"schema_version": "finite_source_assessment_v2", "inventory_coverage": "complete",
                "comparison": "fixture", "unassessed_material": "none", "overall_usefulness": "material issue remains",
                "check_results": [{"check_id": "contrast", "scope": "answer", "status": "fail", "source_refs": ids,
@@ -129,23 +151,25 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     launches = []
     def job(name, prompt, schema):
         launches.append(name)
+        assert name == "assessment-recheck/provider"
         packet = json.loads(prompt[prompt.index('{"format":'):])
         data = expand_evidence(packet)
         bodies = {r["evidence_id"] for r in data["complete_relevant_source_rows"]}
         assert {"known", "opposition"} <= bodies
-        if "recheck" in name:
-            assert set(ids) <= bodies
+        assert set(ids) <= bodies
         path = run.root / (name + ".json")
-        finite.persist(path, recheck if "recheck" in name else patch)
+        wire_recheck = _keyed_assessment(recheck, ["contrast"])
+        finite.Draft202012Validator(schema).validate(wire_recheck)
+        finite.persist(path, wire_recheck)
         return path
     run.job = job
     if missing_body:
         with pytest.raises(ValueError, match="check source bodies"):
-            run.correct_and_recheck(answer, {"material_findings": [finding]}, view)
-        assert launches == ["answer-correction/provider"]
+            run.correct_and_recheck(answer, assessment, view)
+        assert launches == []
     else:
-        result = run.correct_and_recheck(answer, {"material_findings": [finding]}, view)
+        result = run.correct_and_recheck(answer, assessment, view)
         assert result["answer_material_status"] == "correction_rejected_original_requires_adjudication"
         assert finite.read(result["final_answer"]) == answer
         assert result["affected_recheck_material_findings"] == recheck["material_findings"]
-        assert len(launches) == 2
+        assert launches == ["assessment-recheck/provider"]
