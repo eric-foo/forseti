@@ -47,12 +47,16 @@ For the explicitly commissioned complete finite route, use
 One maintained invocation drives formation, finishing, native validation and
 consumer replay, answering, source assessment, and bounded answer correction.
 The source reviewer now supplies exact supported text edits, applied against the
-frozen answer before the separate affected recheck; there is no post-assessment
-rewrite call. Schema-valid drafts with unknown citations enter that same source
+frozen answer before the separate affected recheck. Nominated sections left
+unchanged remain in that recheck and can still reject the candidate; there is no
+post-assessment rewrite call. Schema-valid drafts with unknown citations enter that same source
 review as explicit validation defects; candidate and final selection still require
 valid references. Packet findings carry credited origins separately from source-item
 counts. Saved older correction receipts keep their historical semantics.
 The named entry also owns resume and the caller's program-owned wait pattern.
+On failure, read its `failure-*.json` for the original error plus saved coverage,
+review findings, repair scope and native costs; diagnostic observations do not
+certify completion or quality.
 For a commissioned final source-backed judgment, use its
 `judge-closeout --run-root SAVED_RUN_ROOT --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS`
 dispatch (plus `--operation-dir` when recorded). The maintained command supplies

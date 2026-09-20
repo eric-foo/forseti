@@ -24,6 +24,16 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-21 v127 — exact-repair composition v2 permits a nonempty supported
+  proposal to leave nominated questions unchanged while preserving every
+  nomination in the independent affected recheck. Remaining material defects
+  still reject the candidate; empty proposals and unedited invalid references
+  still fail. Saved v1 compositions keep their stricter edit coverage. Existing
+  failure records now gather saved stage, review, repair-scope and native usage
+  observations without changing the original failure or claiming acceptance.
+  A successor in another worktree keeps original provider launch paths after
+  verifying the original checkout, avoiding a binding conflict before reuse.
+
 - 2026-09-20 v126 — constrained initial exact-review generation to proposed,
   unresolved findings; only the existing affected recheck can discharge them.
   Focused material edits may retain already-cited context without falsely

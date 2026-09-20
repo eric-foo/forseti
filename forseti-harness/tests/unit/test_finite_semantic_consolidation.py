@@ -60,15 +60,28 @@ def installed_codex(tmp_path, monkeypatch):
     return state
 
 
-def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, monkeypatch, installed_codex):
+@pytest.mark.parametrize("reuse_launch_context", [False, True])
+def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, monkeypatch, installed_codex, reuse_launch_context):
     run = object.__new__(finite.FiniteRun)
     run.root = run.provider_root = tmp_path / "run"
     run.replay = None
     run.args = Namespace(codex_executable=None)
+    if reuse_launch_context:
+        job_path = tmp_path / "original-checkout/forseti-harness/runners/run_codex_provider_job.py"
+        job_path.parent.mkdir(parents=True)
+        job_path.write_text("synthetic bound provider runner", encoding="utf-8")
+        origin = {"runtime": {str(job_path): finite.hash_file(job_path)}}
+        run.provider_harness = finite.bound_provider_harness(origin)
     installed_codex.install("1.1.0")  # Update after runner construction, before first paid job.
     commands = []
     def job(command, **kwargs):
         commands.append(command)
+        launch_root = run.provider_harness if reuse_launch_context else finite.HARNESS
+        assert command[1] == str(launch_root / "runners/run_codex_provider_job.py")
+        assert command[command.index("--worktree") + 1] == str(launch_root.parent)
+        assert kwargs["cwd"] == launch_root
+        contexts = [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--preload-context"]
+        assert contexts == [str(launch_root.parent / p.relative_to(finite.REPO)) for p in finite.CONTEXT]
         response_dir = run.root / "job/attempts/job-attempt-001"
         finite.persist(response_dir / "response.json", {})
         result = Path(command[command.index("--result-out") + 1])
@@ -76,6 +89,10 @@ def test_installation_update_is_selected_at_actual_finite_job_launch(tmp_path, m
         return Namespace(returncode=0)
     monkeypatch.setattr(finite.subprocess, "run", job)
     run.job("job", "prompt", {"type": "object"})
+    if reuse_launch_context:
+        job_path.write_text("changed", encoding="utf-8")
+        with pytest.raises(ValueError, match="original provider runtime changed"):
+            finite.bound_provider_harness(origin)
     selected = finite.read(run.root / "codex-selection.json")
     assert selected["version"] == "codex-cli 1.1.0"
     assert selected["sha256"] == finite.hash_file(installed_codex.executable)
@@ -1081,7 +1098,8 @@ def test_successor_repair_budget_uses_original_root(tmp_path):
     ("overlap", "anchors overlap"), ("stale", "stale frozen"),
     ("question", "answer scope"), ("source", "source scope"),
     ("inline", "outside its source refs"), ("empty", "omit a nominated")])
-def test_exact_repairs_reject_at_the_intended_boundary(tmp_path, case, message):
+@pytest.mark.parametrize("allow_retained", [False, True])
+def test_exact_repairs_reject_at_the_intended_boundary(tmp_path, case, message, allow_retained):
     run, answer = answer_fixture(tmp_path)
     answer["answers"][0]["answer"] = "Preserve preface. aaaabounded. Preserve tail."
     nominations = [{"severity": "major", "status": "open", "introduced_at": "current_answer",
@@ -1100,7 +1118,8 @@ def test_exact_repairs_reject_at_the_intended_boundary(tmp_path, case, message):
     before = deepcopy(answer)
     Draft202012Validator(finite.exact_repairs_schema()).validate(repairs)
     with pytest.raises(ValueError, match=message):
-        finite.apply_exact_answer_repairs(answer, repairs, nominations, {"known", "s:outside"})
+        finite.apply_exact_answer_repairs(answer, repairs, nominations, {"known", "s:outside"},
+                                          allow_retained=allow_retained)
     assert answer == before
 
 
