@@ -44,7 +44,7 @@ def test_minor_or_consolidation_origin_finding_does_not_spend_answer_correction(
     assessment = {"material_findings": [finding]}
     before = deepcopy(assessment)
     run.job = lambda *a, **k: pytest.fail("nonmaterial answer finding launched correction")
-    result = run.correct_and_recheck(answer, assessment, {})
+    result = run.correct_and_recheck(answer, assessment, {}, run.test_packet)
     assert (result["answer_corrections"], result["affected_rechecks"]) == (0, 0)
     assert assessment == before
     if severity == "major":
@@ -113,7 +113,7 @@ def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answe
         finite.persist(response, recheck)
         return response
     run.job = job
-    result = run.correct_and_recheck(original, assessment, {"propositions": []})
+    result = run.correct_and_recheck(original, assessment, {"propositions": []}, run.test_packet)
     assert result["answer_correction_status"] == "accepted"
     corrected = finite.read(result["final_answer"])
     assert corrected["answers"][0]["answer"] == "A report (source:one::purchase-despite-price)."
@@ -165,10 +165,10 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     run.job = job
     if missing_body:
         with pytest.raises(ValueError, match="check source bodies"):
-            run.correct_and_recheck(answer, assessment, view)
+            run.correct_and_recheck(answer, assessment, view, run.test_packet)
         assert launches == []
     else:
-        result = run.correct_and_recheck(answer, assessment, view)
+        result = run.correct_and_recheck(answer, assessment, view, run.test_packet)
         assert result["answer_material_status"] == "correction_rejected_original_requires_adjudication"
         assert finite.read(result["final_answer"]) == answer
         assert result["affected_recheck_material_findings"] == recheck["material_findings"]

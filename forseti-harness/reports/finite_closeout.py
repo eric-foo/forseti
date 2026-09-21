@@ -367,6 +367,11 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
         if Path(result["affected_recheck"]).resolve() != Path(record["response"]).resolve():
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
+        # Older saved requests omitted this context. New facts must match the
+        # complete packet rederived above, not merely a hash-bound model input.
+        if ("program_verified_inventory" in request
+                and request["program_verified_inventory"] != finite.recheck_inventory_facts(packet)):
+            raise ValueError("recheck inventory facts differ from native packet")
         if composition is not None and composition.get("method") == "reviewer_exact_repairs_v2":
             affected = set(composition["affected_question_ids"])
             scoped_questions = [q for q in questions["questions"] if q["id"] in affected]

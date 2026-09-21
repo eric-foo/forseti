@@ -2945,7 +2945,17 @@ recheck's own `affected_recheck_material_findings`. A correction with unknown
 source or question references fails rather than guessing its scope.
 Correction context includes all support and opposition behind the related
 findings. Recheck context includes every source body named by the selected
-frozen checks and displayed findings; missing bodies fail before the recheck.
+frozen checks and displayed findings; missing bodies fail before the recheck. The
+same input also projects compact `program_verified_inventory` totals from the
+full native answer packet: captured rows/containers and container types, plus
+returned proposition/evidence-item/container counts and truncation state.
+Closeout rederives the native packet and verifies any supplied projection.
+These program facts authorize inventory accounting only; source evidence still
+owns subject claims, independent origins and behavior. A smaller affected
+recheck subset is not evidence against matching full-packet totals. Mismatched
+or unsupported numerical claims remain defects, and exact counts do not waive
+the answer commission's user-facing content rules. Historical recheck inputs
+without this projection retain their recorded judgments and selection.
 `answer_material_status` and `remaining_material_answer_findings` expose open
 material answer defects after the single correction allowance is spent; process
 completion never closes those defects. Current-answer and uncertain material

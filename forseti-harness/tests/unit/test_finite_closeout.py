@@ -242,6 +242,8 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
     answer = {"schema_version": "finite_answer_v1", "answers": [
         {"question_id": q["id"], "answer": "Original source-backed answer.", "evidence_refs": [ref], "limits": "Sample."}
         for q in questions["questions"]]}
+    if outcome.startswith("inventory_counts_"):
+        answer["answers"][1]["answer"] += " Inventory contains " + ("30" if outcome.endswith("wrong") else "3") + " rows."
     if outcome.startswith("invalid_draft"):
         answer["answers"][1]["evidence_refs"] = ["unknown-source"]
         answer["answers"][1]["answer"] += " [" + ref.split(":")[0] + ":typo]"
@@ -317,6 +319,18 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
                 assert request["corrected_affected_answers"][0] == answer["answers"][0]
                 assert [r["question_id"] for r in request["retained_answers"]] == ["z"]
             response = {**recheck, "schema_version": "finite_source_assessment_v4", "answer_comparison": None}
+            if outcome.startswith("inventory_counts_"):
+                request = finite.read(run.root / "assessment-recheck/input.json")
+                packet = finite.read(run.root / "packet-all.json")
+                assert request["program_verified_inventory"] == finite.recheck_inventory_facts(packet)
+                assert "only for inventory accounting" in prompt
+                assert "Do not demand source-row quotations" in prompt
+                expected_count = request["program_verified_inventory"]["corpus_coverage"]["captured_item_count"]
+                candidate = finite.read(run.root / "answer-correction/answers-corrected.json")
+                matches = f"Inventory contains {expected_count} rows." in candidate["answers"][1]["answer"]
+                response["material_findings"] = [{**finding, "source_refs": [], "introduced_at": "historical_answer",
+                    "defect": "Inventory count compared with native accounting", "status": "not_a_defect" if matches else "open"}]
+                response["check_results"][-1].update(status="pass" if matches else "uncertain", source_refs=[])
             if outcome == "improvement":
                 from test_review_evidence import comparison_for_test
                 request = finite.read(run.root / "assessment-recheck/input.json")
@@ -609,4 +623,39 @@ def test_saved_improvement_selected_with_visible_residual_and_no_extra_job(tmp_p
     saved["answer_material_status"] = "no_open_material_answer_defects_reported"
     result_path.write_text(json.dumps(saved), encoding="utf-8")
     with pytest.raises(ValueError, match="saved material status differs"):
+        closeout.collect(run.root)
+
+
+@pytest.mark.parametrize("outcome,expected", [("inventory_counts_valid", "accepted"), ("inventory_counts_wrong", "rejected")])
+def test_saved_recheck_uses_native_totals_without_approving_wrong_counts(tmp_path, outcome, expected):
+    run, result = saved_correction_run(tmp_path, outcome)
+    payload = closeout.collect(run.root)
+    request = payload["correction_records"]["recheck_input"]
+    assert request["program_verified_inventory"]["corpus_coverage"]["captured_item_count"] == 3
+    assert result["answer_correction_status"] == expected
+    assert len(result["provider_execution_receipts"]) == 5
+    assert result["answer_corrections"] == result["affected_rechecks"] == 1
+    if expected == "rejected":
+        assert result["answer_material_status"] == "correction_rejected_original_requires_adjudication"
+        assert result["affected_recheck_material_findings"][0]["status"] == "open"
+
+
+def test_closeout_rederives_recheck_program_facts_even_with_rebound_prompt(tmp_path):
+    run, _ = saved_correction_run(tmp_path, "inventory_counts_valid")
+    path = run.root / "assessment-recheck/input.json"
+    request = finite.read(path)
+    request["program_verified_inventory"]["corpus_coverage"]["captured_item_count"] = 30
+    path.write_text(json.dumps(request), encoding="utf-8")
+    binding_path = run.root / "assessment-recheck/provider/job/binding.json"
+    binding = finite.read(binding_path)
+    prompt = Path(binding["binding"]["prompt_path"])
+    prefix = prompt.read_text(encoding="utf-8").rstrip().rsplit("\n", 1)[0]
+    prompt.write_text(prefix + "\n" + finite.render_evidence(request).rstrip().rsplit("\n", 1)[-1] + "\n", encoding="utf-8")
+    binding["binding"]["prompt_sha256"] = hash_file(prompt)
+    binding_path.write_text(json.dumps(binding), encoding="utf-8")
+    receipt_path = run.root / "assessment-recheck/provider/attempts/job-attempt-001/execution_receipt.json"
+    receipt = finite.read(receipt_path)
+    receipt["prompt_sha256"] = hash_file(prompt)
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(ValueError, match="recheck inventory facts differ from native packet"):
         closeout.collect(run.root)

@@ -370,6 +370,14 @@ def answer_input(bundle, verified, questions, view, packet, axes):
     return request
 
 
+def recheck_inventory_facts(packet):
+    """Project native inventory totals, without importing semantic origin judgments."""
+    return {"corpus_coverage": {k: deepcopy(packet["corpus_coverage"][k]) for k in (
+                "captured_item_count", "captured_container_count", "container_type_counts")},
+            "selection_coverage": {k: packet["selection_coverage"][k] for k in (
+                "selected_proposition_count", "returned_evidence_item_count", "returned_container_count", "truncated")}}
+
+
 def assessment_input(source, verified, questions, previous_answer, answer, view, reference_errors=None):
     """Preserve the live/replay assessment request and locator validation."""
     reachable = {r["source_artifact_id"] for r in source["captured_items"]}
@@ -694,12 +702,12 @@ class FiniteRun:
                                     replay_response=original_assessment)
         assessment = assessment_from_response(read(assessment_path), checks)
         persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
-        correction = self.correct_and_recheck(answer, assessment, view)
+        correction = self.correct_and_recheck(answer, assessment, view, packet)
         check_answer(read(correction["final_answer"]), self.questions["questions"], self.bundle, self.verified)
         return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
                 "material_findings": assessment["material_findings"], "overall_usefulness": assessment["overall_usefulness"]}
 
-    def correct_and_recheck(self, answer, assessment, view):
+    def correct_and_recheck(self, answer, assessment, view, packet):
         nominations = material_answer_findings(assessment["material_findings"])
         reference_errors = answer_reference_errors(answer, self.questions["questions"], self.bundle, self.verified)
         if not nominations and not reference_errors:
@@ -800,6 +808,7 @@ class FiniteRun:
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         if not self.replay:
+            recheck_request["program_verified_inventory"] = recheck_inventory_facts(packet)
             recheck_request["answer_comparison_binding"] = {
                 "original_answer_sha256": answer_identity(answer), "candidate_answer_sha256": answer_identity(corrected)}
             recheck_request["exact_repairs"] = proposal
@@ -820,7 +829,15 @@ class FiniteRun:
                 "of the corrected answers and original nominations. Check every material changed assertion and citation. "
                 "answer_commission describes the original full assignment; review only affected_questions. Other answers "
                 "are preserved unchanged by the runner and deliberately absent here, not missing from the full answer. "
-                "Full-assignment counts and length do not apply to this subset. Verify retained_answers reasons against "
+                "Full-assignment requested answer counts and length do not apply to this subset. "
+                "program_verified_inventory carries exact program-derived totals from the full native answer packet, "
+                "not counts of this affected subset. Use corpus_coverage for captured rows and containers, and "
+                "selection_coverage for the returned proposition and evidence-item totals. These facts are authoritative "
+                "only for inventory accounting; they do not establish people, independent origins, repeated behavior, "
+                "representativeness or semantic claim support. Do not demand source-row quotations for matching program "
+                "totals or infer missing aggregate evidence from the smaller recheck subset. Mismatched or unsupported "
+                "totals remain defects; inspect the actual field and scope rather than approving any numerical claim. "
+                "This authority does not waive the commission's user-facing content rules. Verify retained_answers reasons against "
                 "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
