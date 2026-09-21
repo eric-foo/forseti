@@ -196,7 +196,7 @@ def test_existing_runner_dispatch_is_read_only(monkeypatch):
     assert finite.main(["closeout", "--help"]) == 17
 
 
-def saved_correction_run(tmp_path, outcome):
+def saved_correction_run(tmp_path, outcome, *, selected=False):
     """Actual runner-to-reader integration; only provider generation is controlled.
 
     These are synthetic test receipts, never model-quality or cost evidence.
@@ -207,7 +207,7 @@ def saved_correction_run(tmp_path, outcome):
         _source_v7, _v5_responses, _row_verification_responses, _finite_decision_response,
     )
     from test_finite_semantic_consolidation import _keyed_assessment
-    source = _source_v7(count=3)
+    source = _source_v7(count=5 if selected else 3)
     excluded_row = "reddit:t1:excluded"
     if outcome.startswith("excluded_row"):
         # A mechanically excluded capture stays an assessable source row but
@@ -223,6 +223,15 @@ def saved_correction_run(tmp_path, outcome):
     verification, _ = finite.semantic.prepare_row_verification(bundle, compiled)
     verified = finite.semantic.apply_row_verification(bundle, compiled, verification,
                                                        _row_verification_responses(verification))
+    if selected:
+        from judgment.verified_evidence_selection import derive_verified_selection
+        dependencies = {}
+        for name, value in (("source", source), ("bundle", bundle), ("verified", verified)):
+            path = tmp_path / "original-proof" / (name + ".json")
+            finite.persist(path, value)
+            dependencies[name] = {"path": str(path.resolve()), "sha256": hash_file(path)}
+        source, bundle, verified = derive_verified_selection(dependencies,
+            [r["evidence_id"] for r in bundle["evidence_units"][:3]])
     ref = source["captured_items"][0]["evidence_id"]
     # Deliberately different from alphabetical order: retained/replaced answers
     # follow the commission, not the sorted composition affected-ID list.

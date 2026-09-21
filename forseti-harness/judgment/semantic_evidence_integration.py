@@ -5106,7 +5106,10 @@ def apply_row_repair(
 
 def _verify_row_verification_manifest(
     bundle: Mapping[str, Any], compilation: Mapping[str, Any]
-) -> None:
+) -> Mapping[str, Any] | None:
+    if "verified_row_selection" in compilation:
+        from judgment.verified_evidence_selection import validate_verified_selection
+        return validate_verified_selection(bundle, compilation)
     manifest = compilation.get("row_verification_manifest")
     required = bundle.get("method_version") in SEMANTIC_METHODS_V7_PLUS
     if manifest is None:
@@ -6765,7 +6768,7 @@ def prepare_reconciliation_stage(
         # reconciliation lineage. Later levels carry its hash through their
         # validator-produced node compilation, so they must not be mistaken
         # for a fresh, unverified batch compilation.
-        _verify_row_verification_manifest(bundle, compilation)
+        verification_bundle = _verify_row_verification_manifest(bundle, compilation) or bundle
         _verify_stored_hash(
             compilation, field="compilation_sha256", label="batch compilation"
         )
@@ -6829,7 +6832,7 @@ def prepare_reconciliation_stage(
             if len(manifest_batches) != len(set(manifest_batches)) or sorted(
                 manifest_batches
             ) != sorted(
-                row["batch_id"] for row in bundle["batches"]
+                row["batch_id"] for row in verification_bundle["batches"]
             ):
                 raise SemanticIntegrationError(
                     "batch compilation v3 lineage does not cover every work unit"

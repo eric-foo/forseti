@@ -23,6 +23,7 @@ from provider_jobs import _check_attempt, _lock, completed_recovery_record
 from runners import run_semantic_evidence_integration as native
 from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
+from judgment.verified_evidence_selection import validate_verified_selection, provider_verified_evidence
 from judgment.review_evidence import (render_evidence, material_answer_findings, compose_answer_patch,
                                      answer_source_references, answer_identity, apply_exact_answer_repairs)
 
@@ -309,9 +310,15 @@ def coverage(bundle, verified, view, packet):
             or expected["semantically_assessed_item_count"] + expected["mechanically_excluded_item_count"]
             != expected["captured_item_count"]):
         raise ValueError("native view does not account for every source row")
-    return dict(source_rows=len(bundle["evidence_units"]), verified_statements=len(original),
+    result = dict(source_rows=len(bundle["evidence_units"]), verified_statements=len(original),
                 attached_statements=len(attached), residual_statements=len(residual),
                 findings=len(view["propositions"]), missing_statements=0, packet_truncated=False)
+    if "verified_row_selection" in verified:
+        selected = verified["verified_row_selection"]
+        result["verified_selection"] = {k: selected[k] for k in (
+            "selection_sha256", "original_captured_row_count", "original_verified_row_count",
+            "original_semantic_unit_count", "selected_row_count", "selected_semantic_unit_count", "excluded_row_count")}
+    return result
 
 
 class FiniteRun:
@@ -605,7 +612,8 @@ class FiniteRun:
             "answer_commission": {"questions": self.questions["questions"],
                                   "worker_instructions": self.questions["worker_instructions"]},
             "assessment_checks": self.questions["assessment_only"], "current_final_view": view,
-            "complete_frozen_source": assessment_source, "complete_frozen_verified_evidence": self.verified,
+            "complete_frozen_source": assessment_source,
+            "complete_frozen_verified_evidence": provider_verified_evidence(self.verified),
             "scope": self.questions["coverage"]}
         if not self.replay:
             assessment_input["citation_validation"] = {"unknown_references_by_question": reference_errors,
@@ -819,8 +827,12 @@ class FiniteRun:
     def run(self):
         inputs = {name: {"path": str(getattr(self.args, name).resolve()), "sha256": hash_file(getattr(self.args, name))}
                   for name in ("bundle", "verified", "source", "questions", "previous_answer")}
+        selection = self.verified.get("verified_row_selection")
+        if selection is not None:
+            validate_verified_selection(self.bundle, self.verified, source=self.source)
         runtime = [Path(__file__), HARNESS / "judgment/semantic_evidence_integration.py",
             HARNESS / "judgment/review_evidence.py",
+            HARNESS / "judgment/verified_evidence_selection.py",
             HARNESS / "reports/finite_closeout.py",
             HARNESS / "reports/finite_failure_evidence.py",
             HARNESS / "runners/run_semantic_evidence_integration.py", HARNESS / "provider_jobs.py",
@@ -828,6 +840,8 @@ class FiniteRun:
             HARNESS / "runners/run_codex_provider_job.py", HARNESS / "runners/run_codex_provider_attempt.py", *CONTEXT]
         binding = {"inputs": inputs, "policy": self.policy, "replay_from": str(self.replay) if self.replay else None,
             "runtime": {str(p.resolve()): hash_file(p) for p in runtime}}
+        if selection is not None:
+            binding["verified_selection_original_inputs"] = selection["original_inputs"]
         if getattr(self, "completed_recoveries", {}):
             binding["completed_recoveries"] = self.completed_recoveries
         with _lock(self.provider_root / "run.lock"):

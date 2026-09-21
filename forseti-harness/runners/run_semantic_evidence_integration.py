@@ -2181,6 +2181,25 @@ def finalize(
     }
 
 
+def select_verified_rows(*, source_path, bundle_path, verified_path, evidence_ids_path, output_dir):
+    from judgment.verified_evidence_selection import derive_verified_selection, validate_verified_selection
+    if output_dir.exists():
+        raise ValueError(f"refusing to write into existing selection directory: {output_dir}")
+    dependencies = {key: {"path": str(path.resolve(strict=True)), "sha256": hash_file(path)}
+        for key, path in (("source", source_path), ("bundle", bundle_path), ("verified", verified_path))}
+    evidence_ids = json.loads(evidence_ids_path.read_text(encoding="utf-8-sig"))
+    source, bundle, verified = derive_verified_selection(dependencies, evidence_ids)
+    for name, value in (("source", source), ("bundle", bundle), ("verified", verified)):
+        _write_json(output_dir / f"{name}.json", value)
+    validate_verified_selection(_load_object(output_dir / "bundle.json"),
+        _load_object(output_dir / "verified.json"), source=_load_object(output_dir / "source.json"))
+    selection = verified["verified_row_selection"]
+    return {"status": "VERIFIED_COMPLETE_ROW_SELECTION_READY", "model_api_calls": 0,
+        "output_dir": str(output_dir), "compilation_sha256": verified["compilation_sha256"],
+        **{k: selection[k] for k in ("selection_sha256", "selected_row_count",
+            "selected_semantic_unit_count", "excluded_row_count")}}
+
+
 def prepare_reconciliation_level(
     *,
     bundle_path: Path,
@@ -2214,6 +2233,9 @@ def prepare_reconciliation_level(
         )
     else:
         stage = _load_object(existing_stage_path)
+        if "verified_row_selection" in compilation:
+            from judgment.verified_evidence_selection import validate_verified_selection
+            validate_verified_selection(bundle, compilation)
         compilation_hash = compilation.get("node_compilation_sha256", compilation.get("compilation_sha256"))
         hash_field = "node_compilation_sha256" if "node_compilation_sha256" in compilation else "compilation_sha256"
         _verify_stored_hash(compilation, field=hash_field, label="reconciliation input")
@@ -3626,6 +3648,11 @@ def _parser() -> argparse.ArgumentParser:
     finish.add_argument("--response", type=Path, required=True)
     finish.add_argument("--view-out", type=Path, required=True)
 
+    select_rows = sub.add_parser("select-verified-rows",
+        help="Derive complete unchanged rows from original verified inputs; no model calls.")
+    for flag in ("source", "bundle", "verified", "evidence-ids", "output-dir"):
+        select_rows.add_argument("--" + flag, type=Path, required=True)
+
     reconcile_level = sub.add_parser("prepare-reconciliation-level")
     reconcile_level.add_argument("--bundle", type=Path, required=True)
     reconcile_level.add_argument("--compilation", type=Path, required=True)
@@ -4254,6 +4281,9 @@ def main(argv: list[str] | None = None) -> int:
                 response_path=args.response,
                 view_out=args.view_out,
             )
+        elif args.command == "select-verified-rows":
+            result = select_verified_rows(source_path=args.source, bundle_path=args.bundle,
+                verified_path=args.verified, evidence_ids_path=args.evidence_ids, output_dir=args.output_dir)
         elif args.command == "prepare-reconciliation-level":
             result = prepare_reconciliation_level(
                 bundle_path=args.bundle,
