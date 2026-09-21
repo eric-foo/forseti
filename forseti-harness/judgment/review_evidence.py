@@ -245,3 +245,138 @@ def answer_source_references(row, known):
         for field in ("answer", "limits"):
             refs.update(m.rstrip(".:,") for m in re.findall(pattern, row.get(field, "")))
     return refs
+
+
+def correction_selection(original, candidate, assessment, recheck, request=None):
+    """Shared live/closeout decision; selection with residuals never means approval.
+
+    Old responses retain the old clean-only selection rule. New comparison
+    authority is usable only with its exact bound request and source evidence.
+    """
+    remaining = recheck_answer_findings(recheck)
+    failed = [c for c in recheck["check_results"]
+              if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
+    accepted = not remaining and not failed
+    comparison = recheck.get("answer_comparison")
+    if recheck.get("schema_version") == "finite_source_assessment_v4" and comparison is not None:
+        verified = verified_answer_improvement(original, candidate, assessment, recheck, request)
+        accepted = verified
+    outside = [f for f in material_answer_findings(assessment["material_findings"], for_correction=False)
+               if f not in material_answer_findings(assessment["material_findings"])]
+    unresolved = remaining or failed or (outside and recheck.get("schema_version") == "finite_source_assessment_v4")
+    status = ("rejected" if not accepted else "original_retained" if candidate == original
+              else "selected_requires_adjudication" if unresolved else "accepted")
+    result = {"answer_correction_status": status, "answer_correction_failed_checks": failed}
+    result.update(correction_material_status(assessment, status, recheck))
+    return result
+
+
+def correction_material_status(assessment, correction_status, recheck=None):
+    original = material_answer_findings(assessment["material_findings"], for_correction=False)
+    selected = correction_status in {"accepted", "original_retained", "selected_requires_adjudication"}
+    remaining = original
+    if selected:
+        nominations = material_answer_findings(assessment["material_findings"])
+        remaining = [f for f in original if f not in nominations]
+        if recheck is not None:
+            remaining += [f for f in recheck_answer_findings(recheck)
+                          if f not in remaining]
+    status = ("correction_rejected_original_requires_adjudication" if correction_status == "rejected"
+              else "selected_answer_requires_adjudication" if correction_status == "selected_requires_adjudication"
+              else "material_defects_remain" if remaining else "no_open_material_answer_defects_reported")
+    return {"remaining_material_answer_findings": remaining, "answer_material_status": status}
+
+
+def recheck_answer_findings(recheck):
+    findings = material_answer_findings(recheck["material_findings"], for_correction=False)
+    if recheck.get("schema_version") == "finite_source_assessment_v4":
+        # Historical origin is never evidence that an open answer defect vanished.
+        findings = [f for f in recheck["material_findings"] if f in findings or (
+            f["introduced_at"] == "historical_answer" and f["status"] == "open"
+            and f["severity"] in {"major", "blocker"})]
+    return findings
+
+
+def verified_answer_improvement(original, candidate, assessment, recheck, request):
+    """Check identity/coverage of source-backed comparison, not semantic truth by code."""
+    comparison = recheck["answer_comparison"]
+    if not request or not assessment or original == candidate:
+        return False
+    nominations = material_answer_findings(assessment["material_findings"])
+    repairs = assessment.get("answer_repairs", {}).get("edits", [])
+    affected = [q["id"] for q in request["affected_questions"]]
+    before = {a["question_id"]: a for a in original["answers"]}
+    after = {a["question_id"]: a for a in candidate["answers"]}
+    if (comparison["original_answer_sha256"] != answer_identity(original)
+            or comparison["candidate_answer_sha256"] != answer_identity(candidate)
+            or comparison["affected_question_ids"] != affected
+            or comparison["changed_claims_verdict"] != "no_new_or_worsened_material_defect"
+            or request["original_affected_answers"] != [a for a in original["answers"] if a["question_id"] in affected]
+            or request["corrected_affected_answers"] != [a for a in candidate["answers"] if a["question_id"] in affected]
+            or request["nominations_to_verify_against_sources"] != nominations
+            or request["exact_repairs"] != assessment.get("answer_repairs")
+            or before.keys() != after.keys()
+            or any(a != after[q] for q, a in before.items() if q not in affected)):
+        return False
+    sources = {r["evidence_id"]: r for r in request["complete_relevant_source_rows"]}
+    units = {u["semantic_unit_ref"]: u["evidence_id"] for u in request["verified_units"]}
+
+    def supported(row):
+        refs = row["source_refs"]
+        observations = row["source_observations"]
+        return bool(refs and row["explanation"].strip()
+                    and all(units.get(ref, ref) in sources for ref in refs)
+                    and {o["source_ref"] for o in observations} == set(refs)
+                    and all(o["excerpt"].strip() and o["excerpt"] in sources[units.get(o["source_ref"], o["source_ref"])].get("text", "")
+                            for o in observations))
+
+    repair_checks = comparison["repair_checks"]
+    if (not repairs or sorted(r["edit_index"] for r in repair_checks) != list(range(len(repairs)))
+            or any(r["verdict"] != "verified" or not supported(r)
+                   or not set(repairs[r["edit_index"]]["source_refs"]).issubset(r["source_refs"])
+                   for r in repair_checks)):
+        return False
+    residuals = recheck_answer_findings(recheck)
+    expected = [i for i, f in enumerate(recheck["material_findings"]) if f in residuals]
+    records = comparison["residual_checks"]
+    if sorted(r["finding_index"] for r in records) != expected:
+        return False
+    for row in records:
+        q, field = row["question_id"], row["field"]
+        finding = recheck["material_findings"][row["finding_index"]]
+        excerpt = row["original_excerpt"]
+        if (row["verdict"] != "unchanged_preexisting" or q not in affected or not supported(row)
+                or not excerpt.strip() or excerpt != row["candidate_excerpt"]
+                or excerpt not in before[q][field] or excerpt not in after[q][field]
+                or not set(finding["source_refs"]).issubset(row["source_refs"])
+                or not set(before[q]["evidence_refs"]).issubset(after[q]["evidence_refs"])):
+            return False
+    nomination_checks = comparison["nomination_checks"]
+    if sorted(r["nomination_index"] for r in nomination_checks) != list(range(len(nominations))):
+        return False
+    for row in nomination_checks:
+        linked = row["remaining_finding_indices"]
+        if (not supported(row) or not set(nominations[row["nomination_index"]]["source_refs"]).issubset(row["source_refs"])
+                or row["disposition"] == "uncertain"
+                or (row["disposition"] == "remaining" and (not linked or not set(linked).issubset(expected)))
+                or (row["disposition"] != "remaining" and linked)):
+            return False
+    failed = [c for c in recheck["check_results"]
+              if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
+    links = comparison["failed_check_links"]
+    if sorted(r["check_id"] for r in links) != sorted(c["check_id"] for c in failed):
+        return False
+    if any(c["scope"] != "answer" or c["status"] != "fail" for c in failed):
+        return False
+    for link in links:
+        if not link["finding_indices"] or not set(link["finding_indices"]).issubset(expected):
+            return False
+        check = next(c for c in failed if c["check_id"] == link["check_id"])
+        findings = [recheck["material_findings"][i] for i in link["finding_indices"]]
+        aliases = {r for f in findings for r in f["artifact_refs"]}
+        aliases.update(f"material_findings[{i}]" for i in link["finding_indices"])
+        supporting_sources = {units.get(r, r) for f in findings for r in f["source_refs"]}
+        if (set(check["finding_refs"]) - aliases
+                or {units.get(r, r) for r in check["source_refs"]} - supporting_sources):
+            return False
+    return True

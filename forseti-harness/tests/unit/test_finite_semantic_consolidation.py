@@ -878,6 +878,8 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
                            "upstream_commissioned"}
     responses = {"answer-correction/provider": run.provider_root / "patch.json",
                  "assessment-recheck/provider": run.provider_root / "recheck.json"}
+    if outcome != "legacy_report":
+        recheck.update(schema_version="finite_source_assessment_v4", answer_comparison=None)
     wire_recheck = recheck if outcome == "legacy_report" else _keyed_assessment(recheck, ["anchored"])
     finite.persist(responses["answer-correction/provider"], patch)
     finite.persist(responses["assessment-recheck/provider"], wire_recheck)
@@ -909,7 +911,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     corrected = finite.read(result["final_answer"])
     if accepted and outcome != "retain":
         assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
-        assert result["answer_correction_status"] == "accepted"
+        assert result["answer_correction_status"] == ("selected_requires_adjudication" if outcome == "unaddressed" else "accepted")
     else:
         assert corrected == answer
         assert Path(result["final_answer"]) == original_path
@@ -918,7 +920,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     assert finite.read(result["answer_correction_candidate"])["answers"] == (
         answer["answers"] if outcome == "retain" else [patch["answers"][0], answer["answers"][1]])
     assert result["answer_material_status"] == (
-        "material_defects_remain" if outcome == "unaddressed" else "no_open_material_answer_defects_reported" if accepted
+        "selected_answer_requires_adjudication" if outcome == "unaddressed" else "no_open_material_answer_defects_reported" if accepted
         else "correction_rejected_original_requires_adjudication")
     assert result["remaining_material_answer_findings"] == (
         assessment["material_findings"][1:] if outcome == "unaddressed" else [] if accepted else assessment["material_findings"])

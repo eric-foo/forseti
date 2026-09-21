@@ -279,6 +279,9 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
     assessment.update(schema_version="finite_source_assessment_v3", answer_repairs=repairs)
     if outcome in {"rejected", "invalid_draft_rejected", "partial_rejected"}:
         recheck["check_results"][-1]["status"] = "fail"
+    if outcome == "improvement":
+        recheck["material_findings"] = [{**finding, "defect": "Unchanged residual citation gap", "introduced_at": "historical_answer"}]
+        recheck["check_results"][-1]["status"] = "fail"
     if outcome == "partial_rejected":
         recheck["material_findings"] = [{**finding, "artifact_refs": ["current_answer:z"],
                                         "defect": "The unedited answer still loses the qualification."}]
@@ -313,7 +316,13 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
                 assert [q["id"] for q in request["affected_questions"]] == ["z", "a"]
                 assert request["corrected_affected_answers"][0] == answer["answers"][0]
                 assert [r["question_id"] for r in request["retained_answers"]] == ["z"]
-            response = recheck
+            response = {**recheck, "schema_version": "finite_source_assessment_v4", "answer_comparison": None}
+            if outcome == "improvement":
+                from test_review_evidence import comparison_for_test
+                request = finite.read(run.root / "assessment-recheck/input.json")
+                candidate = finite.read(run.root / "answer-correction/answers-corrected.json")
+                response["answer_comparison"] = comparison_for_test(answer, candidate, assessment, response, request,
+                                                                   {0: ("a", "source-backed answer.")})
         if phase in {"assessment", "assessment-recheck"}:
             response = _keyed_assessment(response, ["contrast"])
             finite.Draft202012Validator(schema).validate(response)
@@ -581,3 +590,23 @@ def test_excluded_capture_repair_reference_fails_before_recheck(tmp_path):
         saved_correction_run(tmp_path, "excluded_row_repair")
     assert not (tmp_path / "run/answer-correction/answers-corrected.json").exists()
     assert not (tmp_path / "run/assessment-recheck").exists()
+
+
+def test_saved_improvement_selected_with_visible_residual_and_no_extra_job(tmp_path):
+    run, result = saved_correction_run(tmp_path, "improvement")
+    view = closeout.collect(run.root)
+    assert result["answer_correction_status"] == "selected_requires_adjudication"
+    assert result["answer_material_status"] == "selected_answer_requires_adjudication"
+    assert result["remaining_material_answer_findings"][0]["defect"] == "Unchanged residual citation gap"
+    assert Path(result["final_answer"]) == run.root / "answer-correction/answers-corrected.json"
+    assert len(result["provider_execution_receipts"]) == 5
+    assert result["answer_corrections"] == result["affected_rechecks"] == 1
+    assert view["saved_result"]["remaining_material_answer_findings"] == result["remaining_material_answer_findings"]
+    frozen = finite.read(run.root / "answer/freeze.json")
+    assert finite.read(frozen["response"])["answers"][0] == finite.read(result["final_answer"])["answers"][0]
+    result_path = run.root / "result.json"
+    saved = finite.read(result_path)
+    saved["answer_material_status"] = "no_open_material_answer_defects_reported"
+    result_path.write_text(json.dumps(saved), encoding="utf-8")
+    with pytest.raises(ValueError, match="saved material status differs"):
+        closeout.collect(run.root)

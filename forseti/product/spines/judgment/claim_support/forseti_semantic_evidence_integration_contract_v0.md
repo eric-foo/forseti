@@ -2922,8 +2922,8 @@ empty proposals when repairs are required, and unedited questions with invalid
 references. A nonempty valid proposal may leave other nominated questions
 unchanged: the recheck receives every nominated question, its candidate text,
 the original nominations, and explicit identification of unedited questions.
-Retention does not discharge a nomination; a remaining material defect or failed
-answer check still rejects the candidate. Code applies disjoint edits against the frozen original and preserves
+Retention does not discharge a nomination. The recheck must account for each
+nomination; unresolved defects remain visible under the selection rule below. Code applies disjoint edits against the frozen original and preserves
 all other text and reference order, adding newly cited repair references once.
 The reviewer owns supported meaning; application establishes identity and scope,
 never semantic acceptance. No post-assessment interpretation/rewrite model call
@@ -2951,10 +2951,35 @@ material answer defects after the single correction allowance is spent; process
 completion never closes those defects. Current-answer and uncertain material
 findings remain visible even when their artifact labels cannot route a correction.
 An affected-scope recheck cannot clear original findings outside its nominations.
-A live candidate replaces the frozen original only when the recheck reports no
-open material answer defects and no failed or uncertain answer or unknown-scope
-checks; minor findings and partial checks alone do not prevent adoption.
-Normalized affected rechecks use `finite_source_assessment_v2`, requiring each check's
+A clean candidate retains the existing acceptance rule: no open material answer
+defects and no failed or uncertain answer or unknown-scope checks; minor findings
+and partial checks alone do not prevent adoption. Working-answer selection is
+distinct from full approval. A corrected candidate may instead be selected with
+`answer_correction_status: selected_requires_adjudication` when the same affected
+recheck source-verifies every proposed repair and establishes no new or worsened
+material answer defect. It must bind the exact original and candidate canonical
+SHA256 identities and affected questions, account for every original nomination,
+and compare every remaining material answer finding through exact original and
+candidate passages, source references, literal source-row excerpts, and an
+explanation of unchanged meaning, context and support. A historical-origin label
+or free-form claim that the candidate is better is insufficient. Every failed
+answer check must link only to those evidenced unchanged defects. New or worsened
+defects, uncertain comparison or scope, unverified repairs, stale or incomplete
+comparison coverage, and invalid answer schema or citations cannot authorize this
+selection. No extra provider call or correction loop is added.
+
+The selected working answer retains all candidate-relevant remaining findings
+and all unresolved initial findings outside nominated scope. Its
+`answer_material_status: selected_answer_requires_adjudication` is never an
+all-clear label. Original and candidate answers remain durable; selecting an
+improvement neither closes its residuals nor certifies upstream inventory. Live
+and closeout consumers share the same selection and material-status logic.
+
+New normalized affected rechecks use `finite_source_assessment_v4`, adding
+`answer_comparison` to the scoped v2 shape. Null comparison carries no partial
+selection authority and retains the clean-only rule. Historical v2 and replay
+responses keep their saved selection semantics and are never retroactively
+awarded comparison authority. Every scoped recheck requires each check's
 `scope` to be `answer`, `upstream_only`, or `unknown`, including added checks.
 `upstream_only` means the remaining defect has no effect on the corrected answer,
 not merely that it originated upstream. Mixed answer/inventory checks are
@@ -2962,12 +2987,14 @@ not merely that it originated upstream. Mixed answer/inventory checks are
 material finding remains answer-relevant regardless of its origin. No check-scope
 label can clear such a finding. All recheck findings and checks remain exposed as
 `affected_recheck_material_findings` and `affected_recheck_check_results`;
-`answer_correction_failed_checks` contains the checks that block answer adoption.
+`answer_correction_failed_checks` retains every failed or uncertain answer or
+unknown-scope check, including evidenced pre-existing failures when a working
+answer is selected with adjudication still required.
 An accepted answer does not repair or certify the frozen inventory or consolidation.
 The normalized initial assessment is v3 with exact repairs; saved v1 remains
 readable. New live provider output uses `finite_source_assessment_keyed_v3` for
 the initial review and
-`finite_source_assessment_keyed_v2` for its affected recheck: `commissioned_checks`
+`finite_source_assessment_keyed_v4` for its affected recheck: `commissioned_checks`
 is an object with every commissioned ID required as an exact field name, and
 output `additional_checks` holds extra judgments with their descriptive `check_id`
 intact. This output array is distinct from input `assessment_only.additional_checks`,
