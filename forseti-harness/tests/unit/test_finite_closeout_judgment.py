@@ -20,7 +20,7 @@ def controlled_response(value):
 
 @pytest.mark.parametrize("outcome", ["accepted", "retained", "rejected"])
 def test_real_saved_run_keeps_commissioned_evidence_and_repeat_cannot_relaunch(tmp_path, monkeypatch, outcome):
-    run, _ = saved_correction_run(tmp_path, outcome)
+    run, _ = saved_correction_run(tmp_path, outcome, emerging=True)
     value = judgment.collect(run.root)
     calls = []
 
@@ -33,6 +33,13 @@ def test_real_saved_run_keeps_commissioned_evidence_and_repeat_cannot_relaunch(t
                     "initial_assessment", "affected_recheck", "wider_sources"):
             assert supplied[key] == value[key]
         native_packet = json.loads((run.root / "packet-all.json").read_text(encoding="utf-8"))
+        native_view = json.loads((run.root / "view.json").read_text(encoding="utf-8"))
+        candidates = supplied["judgment_evidence"]["emerging_axis_candidates"]
+        assert candidates == native_view["emerging_axis_candidates"]
+        assert len(candidates) == 1
+        assert candidates[0]["original_labels"] == ["drying experience", "dryness after use"]
+        assert candidates[0]["disposition"] == "accepted"
+        assert candidates[0]["reason"] == "Controlled grouping; source conditions remain in the finding."
         assert supplied["program_verified_inventory"] == finite.recheck_inventory_facts(native_packet)
         for key in ("status", "answer_material_status", "answer_correction_status"):
             assert supplied["saved_result"][key] == value["saved_result"][key]

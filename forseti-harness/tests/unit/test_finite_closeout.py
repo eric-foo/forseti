@@ -31,7 +31,8 @@ def fixture():
                 "supporting": ["s:a::u"], "opposing": ["s:b::u"], "adjacent": ["s:c::u"]},
                 "conditions": ["cold weather"], "condition_lineage": {"s:b::u": ["cold weather"]}},
             {"proposition_id": "p2", "semantic_relations": {"supporting": ["s:d::u", "s:c::u"]}}],
-            "unmerged_semantic_units": [{"semantic_unit_ref": "s:c::u", "reason": "expectation not observed"}]}
+            "unmerged_semantic_units": [{"semantic_unit_ref": "s:c::u", "reason": "expectation not observed"}],
+            "emerging_axis_candidates": []}
     questions = {"assessment_only": {"checks": [{"id": "contrast", "source_rows": ["s:a"], "expectation": "Preserve qualifications"}]}}
     return source, verified, view, questions
 
@@ -57,6 +58,47 @@ def test_missing_anchor_fails_and_missing_body_is_explicit():
     args[3]["assessment_only"]["checks"][0]["source_rows"].append("missing")
     with pytest.raises(ValueError, match="source anchor missing"):
         closeout.evidence_view(*args)
+
+
+@pytest.mark.parametrize("disposition", ["accepted", "nonmaterial", "blocker"])
+def test_emerging_candidates_keep_full_original_label_lineage_without_expanding_scope(disposition):
+    source, verified, view, questions = fixture()
+    # The anchor has no label. Its finding's related leaf carries a label, and
+    # another unit remains an explicit residual rather than a merged finding.
+    verified["semantic_units"][1]["emerging_axis_labels"] = ["appearance"]
+    verified["semantic_units"][2]["emerging_axis_labels"] = ["brush expectation"]
+    verified["semantic_units"][3]["emerging_axis_labels"] = ["visual appeal", "unrelated"]
+    view["propositions"][0]["semantic_relations"]["adjacent"] = []
+    questions["assessment_only"]["checks"][0]["source_rows"].append("s:c")
+    # Drop p2 so the residual anchor does not bring s:d into the one-hop set.
+    view["propositions"] = view["propositions"][:1]
+    candidates = [{"candidate_key": "appearance", "canonical_label": "aesthetic appeal",
+                   "original_labels": ["appearance", "visual appeal"], "disposition": disposition,
+                   "reason": "Shared visual dimension; source-owned scope remains distinct."},
+                  {"candidate_key": "expectation", "canonical_label": "tool expectation",
+                   "original_labels": ["brush expectation"], "disposition": disposition,
+                   "reason": "An expectation is not an observed result."},
+                  {"candidate_key": "unrelated", "canonical_label": "appearance",
+                   "original_labels": ["unrelated"], "disposition": "accepted", "reason": "Other scope."}]
+    view["emerging_axis_candidates"] = candidates
+    result = closeout.evidence_view(source, verified, view, questions)
+    # Match original labels, never canonical-label similarity or disposition.
+    # Keep the entire grouped record without pulling in its other source rows.
+    assert result["emerging_axis_candidates"] == candidates[:2]
+    assert result["source_rows"] == source["captured_items"][:3]
+    assert result["findings"] == view["propositions"]
+    assert result["residuals"] == view["unmerged_semantic_units"]
+    assert expand_evidence(compact_evidence(result)) == result
+
+
+@pytest.mark.parametrize("candidate_present", [False, True])
+def test_no_emerging_labels_does_not_import_unrelated_candidates(candidate_present):
+    source, verified, view, questions = fixture()
+    if candidate_present:
+        view["emerging_axis_candidates"] = [{"candidate_key": "other", "canonical_label": "other",
+            "original_labels": ["other"], "disposition": "blocker", "reason": "Outside commissioned rows."}]
+    result = closeout.evidence_view(source, verified, view, questions)
+    assert result["emerging_axis_candidates"] == []
 
 
 @pytest.mark.parametrize("check_status,scope,finding,status", [
@@ -196,7 +238,7 @@ def test_existing_runner_dispatch_is_read_only(monkeypatch):
     assert finite.main(["closeout", "--help"]) == 17
 
 
-def saved_correction_run(tmp_path, outcome, *, selected=False):
+def saved_correction_run(tmp_path, outcome, *, selected=False, emerging=False):
     """Actual runner-to-reader integration; only provider generation is controlled.
 
     These are synthetic test receipts, never model-quality or cost evidence.
@@ -219,7 +261,12 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
             **{k: kept[k] for k in ("container_id", "source_artifact_id", "source_ref")}})
         source["containers"][0]["captured_leaf_count"] += 1
     bundle = finite.semantic.build_bundle(source, max_prompt_bytes=80000, max_evidence_per_work_unit=30)
-    compiled = finite.semantic.validate_batch_responses(bundle, _v5_responses(bundle, detailed_per_batch=3))
+    responses = _v5_responses(bundle, detailed_per_batch=3)
+    if emerging:
+        for response in responses:
+            for row in response["evidence"]:
+                row["semantic_units"][0]["emerging_axis_labels"] = ["drying experience", "dryness after use"]
+    compiled = finite.semantic.validate_batch_responses(bundle, responses)
     verification, _ = finite.semantic.prepare_row_verification(bundle, compiled)
     verified = finite.semantic.apply_row_verification(bundle, compiled, verification,
                                                        _row_verification_responses(verification))
@@ -302,6 +349,12 @@ def saved_correction_run(tmp_path, outcome, *, selected=False):
             stage = finite.read(run.root / phase / "stage.json")
             response = _finite_decision_response(stage,
                 [[(r, "support") for r in stage["batches"][0]["candidate_refs"]]], terminal=phase == "finish")
+            if emerging and phase == "formation":
+                response["emerging_axis_consolidations"] = [{"candidate_key": "dryness",
+                    "canonical_label": "drying experience over time", "disposition": "accepted",
+                    "reason": "Controlled grouping; source conditions remain in the finding."}]
+                response["assignments_by_original_label"] = {
+                    label: "dryness" for label in ("drying experience", "dryness after use")}
         elif phase == "answer":
             response = deepcopy(answer)
             if outcome.startswith("invalid_draft"):
