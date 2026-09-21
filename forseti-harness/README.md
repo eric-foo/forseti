@@ -80,9 +80,11 @@ For a commissioned final source-backed judgment, use its
 dispatch (plus `--operation-dir` when recorded). Add `--failure-record FILE` for
 a stopped run. Historical frozen copies also accept `--snapshot-manifest FILE`,
 whose original-path/hash inventory prevents reading later live recovery.
-The maintained command supplies
-the complete unchanged closeout view directly to one fresh no-tools reviewer,
-then returns the judgment, limitations and separate fresh-review usage. Failures
+The maintained command supplies complete evidence for the commissioned checks,
+all answer versions, earlier findings and verified inventory totals to one fresh
+no-tools reviewer. The broader correction request and bookkeeping stay outside
+that prompt; code still verifies their saved bindings. It then returns the
+judgment, limitations and separate fresh-review usage. Failures
 receive diagnosis of saved observations, without another semantic assessment.
 Read its `report.md` or `result.json`: code renders exact status, counts, stage
 usage and observed startup totals alongside the unchanged model judgment.

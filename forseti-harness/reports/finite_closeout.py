@@ -440,6 +440,7 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
                "answers": answer_versions, "previous_answer_for_comparison": inputs["previous_answer"],
                "initial_assessment": assessment, "affected_recheck": recheck,
                "correction_records": correction_records, "operation_closeout": operation,
+               "program_verified_inventory": finite.recheck_inventory_facts(packet),
                "native_accounting": accounting,
                "cost_limits": "native receipts only; startup unknowns remain unknown; parent/executor and implementation/setup costs are outside this view; no savings inference",
                "judgment_evidence": evidence_view(source, verified, view, questions),

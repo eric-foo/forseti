@@ -3130,7 +3130,7 @@ No percentage saving or cold acceptance follows from deterministic replay.
 
 When a final source-backed judgment of a saved **live finite endpoint**, or a
 diagnostic report of a saved failed execution, is commissioned, deliver the
-complete applicable closeout view directly to one cold reviewer:
+applicable evidence directly to one cold reviewer:
 
 ```text
 python -m runners.run_finite_semantic_consolidation judge-closeout --run-root SAVED_RUN_ROOT --operation-dir EXISTING_OPERATION_DIR --output-dir NEW_REVIEW_DIR --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS
@@ -3141,6 +3141,15 @@ collector below, preserving its evidence selection and lossless representation,
 then uses the existing provider job launcher with required context preloaded and
 tools disabled. This is the commissioned final judgment, not an additional
 review gate. It does not regenerate consolidation or change answer selection.
+For completed endpoints, the model receives the complete selected source rows,
+context, units, relations and residuals, all answer versions, prior assessments,
+correction status and exact edits, and program-verified inventory totals. The
+broader correction request is not embedded again, and bookkeeping is rendered
+by code. The full collector export and original saved records remain available;
+`evidence-bindings.json` preserves the complete integrity inventory, checked
+after judgment even for records excluded from the prompt. This projection does
+not change the commissioned checks or widen their evidence selection. Evidence
+needed outside that selection still requires `details_required`, never a pass.
 For a completed endpoint the reviewer independently judges the exact commissioned check IDs, preserves
 useful distinctions and names missing evidence; prior assessment verdicts are
 not truth. The program supplies the mechanical facts and accounting separately.
