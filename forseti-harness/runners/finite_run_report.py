@@ -28,8 +28,8 @@ def main(argv=None):
     finite_args = args.finite_args[1:] if args.finite_args[:1] == ["--"] else args.finite_args
     output = args.report_dir.resolve()
     try:
-        from runners.run_finite_semantic_consolidation import argument_parser
-        finite = argument_parser().parse_args(finite_args)
+        from runners.run_finite_semantic_consolidation import argument_parser as finite_argument_parser
+        finite = finite_argument_parser().parse_args(finite_args)
         if finite.replay_from:
             raise ValueError("run-and-report requires live execution; replay is not fresh report evidence")
         if any(output.is_relative_to(p.resolve()) for p in (finite.output_dir, finite.provider_root or finite.output_dir)):
