@@ -52,18 +52,19 @@ def invoke(case, settings=None, execution=None):
     return code, finite.read(result) if result.exists() else None
 
 
-def test_fresh_fit_preserves_semantics_and_emits_owner_parsable_launch(case, tmp_path):
+def test_validated_inputs_preserve_semantics_without_claiming_capacity(case, tmp_path):
     paths, output, _, execution = case
     before = {p: p.read_bytes() for p in paths.values()}
     execution = ["run-and-report", "--report-dir", str(tmp_path / "report"), "--model", "gpt-6-astra",
                  "--reasoning-effort", "high", "--timeout-seconds", "1800", "--", *execution]
     code, result = invoke(case, execution=execution)
-    assert code == 0 and result["status"] == "FINITE_PREPARATION_ESTIMATED_FIT"
+    assert code == 1 and result["status"] == "FINITE_PREPARATION_CAPACITY_UNCONFIRMED"
+    assert result["validation"] == "passed"
+    assert result["capacity"]["execution_fit"] == "unconfirmed"
     assert result["counts"] == {"source_rows": 3, "semantic_units": 3, "no_unit_rows": 1,
                                 "containers": 3, "formation_batches": 1}
     assert result["provider_calls"] == 0 and result["preparation_invocations"] == 1
-    assert result["execution_settings"]["model"] == "gpt-5.6-sol"
-    argv = result["launch"]["argv"]
+    argv = result["candidate_command"]["argv"]
     args, report, rebuilt = prep.launch_arguments(argv[5:])
     assert rebuilt == argv and report.model == "gpt-6-astra" and report.reasoning_effort == "high"
     assert report.timeout_seconds == 1800 and args.questions == paths["questions"]
@@ -72,18 +73,29 @@ def test_fresh_fit_preserves_semantics_and_emits_owner_parsable_launch(case, tmp
     assert "not upper bounds" in " ".join(result["capacity"]["limitations"])
 
 
+@pytest.mark.parametrize("reserve", ["0", "1000000"])
+def test_planning_allowances_cannot_confirm_unseen_generated_requests(case, reserve):
+    settings = list(case[2])
+    settings[settings.index("--generated-content-reserve-tokens") + 1] = reserve
+    code, result = invoke(case, settings=settings)
+    assert result["capacity"]["measured_requests_within_allowances"]
+    assert code == 1 and result["status"] == "FINITE_PREPARATION_CAPACITY_UNCONFIRMED"
+    assert result["capacity"]["execution_fit"] == "unconfirmed"
+    assert "launch" not in result
+
+
 def test_capacity_failure_has_no_launch(case):
     settings = list(case[2])
     settings[settings.index("--effective-context-tokens") + 1] = "1"
     code, result = invoke(case, settings=settings)
     assert code == 1 and result["status"] == "FINITE_PREPARATION_CAPACITY_EXCEEDED"
-    assert result["launch"] is None and result["validation"] == "passed"
+    assert result["candidate_command"] is None and result["validation"] == "passed"
 
 
 def test_missing_capacity_inputs_stay_unknown(case):
     code, result = invoke(case, settings=[])
     assert code == 1 and result["status"] == "FINITE_PREPARATION_CAPACITY_UNKNOWN"
-    assert "missing explicit capacity inputs" in result["error"] and result["launch"] is None
+    assert "missing explicit capacity inputs" in result["error"] and result["candidate_command"] is None
 
 
 def test_unavailable_tokenizer_stays_unknown(case, monkeypatch):
@@ -92,7 +104,7 @@ def test_unavailable_tokenizer_stays_unknown(case, monkeypatch):
     monkeypatch.setattr(prep, "offline_tokenizer", unavailable)
     code, result = invoke(case)
     assert code == 1 and result["status"] == "FINITE_PREPARATION_CAPACITY_UNKNOWN"
-    assert result["validation"] == "passed" and result["launch"] is None
+    assert result["validation"] == "passed" and result["candidate_command"] is None
 
 
 @pytest.mark.parametrize("change, cause", [
@@ -116,7 +128,7 @@ def test_commission_failures_report_actual_cause(case, change, cause):
     write(path, questions)
     code, result = invoke(case)
     assert code == 1 and result["status"] == "FINITE_PREPARATION_REFUSED"
-    assert cause in result["error"] and result["launch"] is None
+    assert cause in result["error"] and result["candidate_command"] is None
 
 
 def test_new_case_can_be_sized_before_checks_without_inventing_them(case):
@@ -127,7 +139,7 @@ def test_new_case_can_be_sized_before_checks_without_inventing_them(case):
     before = path.read_bytes()
     code, result = invoke(case)
     assert code == 1 and result["status"] == "FINITE_PREPARATION_CHECKS_PENDING"
-    assert result["capacity"]["fits_planning_allowances"] and result["launch"] is None
+    assert result["capacity"]["measured_requests_within_allowances"] and result["candidate_command"] is None
     assert path.read_bytes() == before
 
 
@@ -146,7 +158,7 @@ def test_changed_provenance_never_passes(case, change):
         else: original.unlink()
         cause = "original dependency changed" if change == "original" else "original dependency unavailable"
     code, result = invoke(case)
-    assert code == 1 and cause in result["error"] and result["launch"] is None
+    assert code == 1 and cause in result["error"] and result["candidate_command"] is None
 
 
 @pytest.mark.parametrize("target", ["result", "run", "report", "overlap"])
@@ -169,7 +181,7 @@ def test_existing_outputs_are_never_overwritten(case, target, tmp_path):
         execution = ["run-and-report", "--report-dir", str(directory), "--model", "gpt-6-astra",
                      "--reasoning-effort", "high", "--timeout-seconds", "1800", "--", *execution]
     code, record = invoke(case, execution=execution)
-    assert code == 1 and "fresh output" in record["error"] and record["launch"] is None
+    assert code == 1 and "fresh output" in record["error"] and record["candidate_command"] is None
     assert (directory / "evidence").read_text() == "unchanged"
 
 

@@ -190,12 +190,13 @@ def estimate(settings, source, bundle, verified, questions, previous, prompts):
         "assumptions_source": "explicit caller planning settings; no universal model context limit",
         "serialization_basis": "json.dumps envelope and schema with ensure_ascii=False and default separators; CLI framing and native schema transport are not attested",
         "context_inputs": manifest, "measurements": measurements,
-        "fits_planning_allowances": all(row["margin_after_reserves_tokens"] >= 0 for row in measurements.values()),
+        "measured_requests_within_allowances": all(row["margin_after_reserves_tokens"] >= 0 for row in measurements.values()),
+        "execution_fit": "unconfirmed",
         "limitations": ["Tokenizer equivalence to the execution model is not attested.",
             "Generated view, packet, axes, answer, finish and correction requests are unknown; reserves are planning allowances, not upper bounds.",
             "The all-residual answer probe is not the eventual answer request or a bound on its size.",
             "Final report capacity is not estimated. Provider overhead and output policy are not measured.",
-            "Estimated fit neither guarantees execution fit nor establishes intelligence quality or launch authorization."]}
+            "Passing these partial measurements cannot establish execution fit, intelligence quality or launch authorization."]}
 
 
 def prepare(settings, result):
@@ -228,23 +229,23 @@ def prepare(settings, result):
                 "no_unit_rows": len({r["evidence_id"] for r in bundle["evidence_units"]} - units),
                 "containers": len({r["container_id"] for r in source["captured_items"]}), "formation_batches": len(prompts)},
         finite_policy=finite.POLICY,
-        execution_settings={"model": "gpt-5.6-sol", "reasoning_effort": "high", "timeout_seconds": 1800},
         runtime_prerequisites="Native executable, authentication and provider availability remain execution-time checks; no executable launched.")
     result["capacity"] = estimate(settings, source, bundle, verified, questions, previous, prompts)
-    # A race changing selected inputs cannot leave a launchable result.
+    # A race changing selected inputs cannot leave a validated candidate command.
     for record in result["inputs"].values():
         if hash_file(Path(record["path"])) != record["sha256"]:
             raise ValueError(f"input changed during preparation: {record['path']}")
     for record in dependencies.values():
         if hash_file(Path(record["path"])) != record["sha256"]:
             raise ValueError(f"original proof changed during preparation: {record['path']}")
-    if not result["capacity"]["fits_planning_allowances"]:
+    if not result["capacity"]["measured_requests_within_allowances"]:
         result["status"] = "FINITE_PREPARATION_CAPACITY_EXCEEDED"
     elif not complete:
         result["status"] = "FINITE_PREPARATION_CHECKS_PENDING"
     else:
         fresh_outputs(settings.result_out, args, report, paths)
-        result.update(status="FINITE_PREPARATION_ESTIMATED_FIT", launch={"cwd": str(finite.HARNESS), "argv": argv})
+        result.update(status="FINITE_PREPARATION_CAPACITY_UNCONFIRMED",
+            candidate_command={"cwd": str(finite.HARNESS), "argv": argv})
 
 
 def main(argv=None):
@@ -258,7 +259,7 @@ def main(argv=None):
     settings.result_out = settings.result_out.resolve()
     start = time.perf_counter()
     result = {"status": "FINITE_PREPARATION_REFUSED", "provider_calls": 0, "preparation_invocations": 1,
-              "validation": "not_completed", "launch": None,
+              "validation": "not_completed", "candidate_command": None,
               "planning_inputs": {name: getattr(settings, name) for name in (
                   "encoding", "effective_context_tokens", "generated_content_reserve_tokens",
                   "output_reserve_tokens", "other_overhead_reserve_tokens")}}
@@ -286,4 +287,6 @@ def main(argv=None):
         return 1
     print(json.dumps({"status": result["status"], "result": str(settings.result_out),
         "elapsed_seconds": result["elapsed_seconds"], "output_bytes": settings.result_out.stat().st_size, "provider_calls": 0}))
-    return 0 if result["status"] == "FINITE_PREPARATION_ESTIMATED_FIT" else 1
+    # Fresh preparation cannot measure the requests built from future outputs.
+    # Keep even validated candidates non-successful for callers gating a launch.
+    return 1

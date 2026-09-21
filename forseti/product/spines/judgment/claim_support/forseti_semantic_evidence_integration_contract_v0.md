@@ -2609,9 +2609,12 @@ python -X utf8 -m runners.run_finite_semantic_consolidation prepare --result-out
 After `--`, callers may instead supply the existing `run-and-report` arguments,
 including explicit report directory, model, effort and timeout, then its `--`
 and ordinary finite arguments. Both routes reuse their existing parsers. The
-saved `launch.cwd` and `launch.argv` are directly executable only when all
-deterministic checks and explicit planning allowances pass. Preparation never
-executes them, selects evidence, rewrites checks, or changes model/effort settings.
+saved `candidate_command.cwd` and `candidate_command.argv` preserve the proposed
+execution command when deterministic checks and measured planning allowances
+pass. They are planning data, not launch clearance: full capacity is still
+unconfirmed. Preparation never executes them, selects evidence, rewrites checks,
+or changes model/effort settings. Execution owns its settings; preparation does
+not publish a separate copy of the finite runner's defaults.
 Use separate, fresh result/run/report paths; replay, recovery and provider-root
 reuse are outside this fresh-run interface.
 
@@ -2620,7 +2623,7 @@ environment and provide the encoding's existing tiktoken vocabulary cache
 (`TIKTOKEN_CACHE_DIR`, `DATA_GYM_CACHE_DIR`, or tiktoken's default temporary cache).
 Preparation reads and hash-checks cached vocabulary only: it never downloads or
 repairs a cache. Missing tokenizer, encoding cache, or explicit capacity inputs
-returns `FINITE_PREPARATION_CAPACITY_UNKNOWN`, without launch argv. Context
+returns `FINITE_PREPARATION_CAPACITY_UNKNOWN`, without a candidate command. Context
 budget and all three reserves are caller-supplied planning settings, not model
 limits inferred from a model name.
 
@@ -2632,18 +2635,25 @@ schemas and preloaded context: fixed assessment with an empty generated answer
 and view, an all-residual answer probe, and the largest formation request.
 Generated view/packet/axes/answer, finishing, correction and final reporting
 remain uncertain; planning reserves are not hard bounds, and tokenizer/model
-equivalence is not attested. `FINITE_PREPARATION_ESTIMATED_FIT` is neither an
-execution-fit guarantee, semantic-quality judgment nor authorization to launch.
+equivalence is not attested. Even when measured requests plus reserves are below
+budget, `capacity.execution_fit` stays `unconfirmed` and the result is
+`FINITE_PREPARATION_CAPACITY_UNCONFIRMED`, with a nonzero exit. Increasing a reserve
+cannot turn unknown generated content into evidence of fit. This entry does not
+emit a fit verdict, successful launch gate, or semantic-quality judgment.
 
 For a new case, questions, instructions, scope and a prior-answer object (which
 may explicitly state unavailability) still bind sizing. Omit `assessment_only`
 or its `checks` while designing sample-specific checks: sizing then returns
-`FINITE_PREPARATION_CHECKS_PENDING` without launch argv. No checks are invented.
+`FINITE_PREPARATION_CHECKS_PENDING` without a candidate command. No checks are invented.
 Explicit `checks: []` means the caller commissioned no named checks. Supplied
 checks must have unique IDs, expectation text and nonempty `source_rows`
 resolving to the selected source rows. Malformed or absent referenced rows are
-refused for their actual cause. `FINITE_PREPARATION_CAPACITY_EXCEEDED`, pending,
-unknown and refused results all exit nonzero. Results preserve input hashes and
+refused for their actual cause. `FINITE_PREPARATION_CAPACITY_EXCEEDED` means a
+measured request plus its allowances already exceeds the supplied planning
+budget; it is not a measured provider limit. Exceeded, pending, unknown and refused
+results omit the candidate command. All results exit nonzero, including validated
+but capacity-unconfirmed candidates, so a launch chained on success cannot run.
+Results preserve input hashes and
 original proof dependencies; launch-time native validation remains unchanged.
 This optional entry introduces no gate or receipt requirement on existing runs.
 
