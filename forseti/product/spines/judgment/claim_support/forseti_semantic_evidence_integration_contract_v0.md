@@ -2599,6 +2599,21 @@ Staged semantic responses retain their separate explicit-recovery boundary.
 
 ### Preparation from verified inputs
 
+For an ordinary batch, bind the selected source, bundle, verified compilation,
+questions and required source checks once. Reuse completed selection and
+verification; design new source-specific checks only when the new evidence or
+question requires judgment. A cold actor may own that judgment, but a model
+executor or a second parent pass over the same preparation is not required.
+The native input bindings, validation and receipts own execution provenance;
+do not add per-run launch scripts, duplicate freezing manifests or another
+checker unless the commissioned outcome requires something those records lack.
+Run the maintained entry below and, when execution and reporting are commissioned,
+the existing `run-and-report` route. Consume its selected answer, remaining
+quality issues and cost breakdown together. Reopen only the specific detail
+needed to resolve a reported gap; routine completion does not require rebuilding
+the report from logs. This uses the existing execution and judgment obligations,
+without adding a preparation gate, another model call or a quality pass.
+
 For an already selected verified case whose intended endpoint is a finite run,
 the maintained offline sizing entry is, from `forseti-harness/`:
 

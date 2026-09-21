@@ -167,6 +167,9 @@ def judge(run_root, operation_dir, output_dir, *, model, reasoning_effort, timeo
     except (OSError, ValueError, KeyError, TypeError, ValidationError) as exc:
         report["error"] = str(exc)
     report["review_accounting"] = collect_provider_roots([str(output / "provider")])
+    from reports.finite_failure_evidence import cost_breakdown
+    report["cost_breakdown"] = cost_breakdown(value["native_accounting"],
+        value["saved_result"]["provider_root"], report["review_accounting"])
     report["report_path"] = str(output / "report.md")
     render_report(report, output / "report.md")
     write_verified(report, output / "result.json")
@@ -177,7 +180,7 @@ def render_report(report, path):
     """Program facts are always adjacent to the untouched judgment, even on failure."""
     facts = {k: report[k] for k in ("status", "saved_status", "saved_answer_material_status",
         "saved_answer_correction_status", "saved_failure", "selected_answer", "mechanical_validation", "execution_facts", "saved_endpoint_counts", "evidence_gaps",
-        "historical_usage_by_stage", "historical_native_accounting", "cost_limits")}
+        "historical_usage_by_stage", "historical_native_accounting", "cost_limits", "cost_breakdown")}
     review = report["review_accounting"]
     facts["review_accounting"] = {k: v for k, v in review.items() if k != "attempts"}
     for key in ("historical_native_accounting", "review_accounting"):

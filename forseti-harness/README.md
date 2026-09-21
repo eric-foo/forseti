@@ -67,6 +67,11 @@ runs the existing finite command to a saved terminal outcome and delivers one
 supplied-evidence judgment. Wrap it once in the existing `run_efficiency start`
 operation to survive interrupted observation; `resume` only waits. No model
 executor or polling task is needed. The named contract gives the complete argv.
+The saved result returns the selected answer, its unresolved material status,
+the judgment, and costs separated into process, semantic repair/recheck,
+reporting, and failed or unresolved attempts. Use that return for ordinary
+closeout; its detail paths identify any remaining judgment work. Closed Desktop
+coordination is accounted separately; an active parent turn remains pending.
 On failure, read its `failure-*.json` for the original error plus saved coverage,
 review findings, repair scope and native costs; diagnostic observations do not
 certify completion or quality. New failures bind their stopped file inventory.
