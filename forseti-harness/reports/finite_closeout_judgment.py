@@ -128,8 +128,13 @@ def judge(run_root, operation_dir, output_dir, *, model, reasoning_effort, timeo
             # prompt and enforce every one after the single response.
             bindings = write_verified({k: value[k] for k in ("read_artifact_hashes", "read_directory_inventories")}, output / "evidence-bindings.json")
             supplied = {k: v for k, v in value.items() if k not in ("read_artifact_hashes", "read_directory_inventories")}
+            # The frozen failure inventory is the same class of hashes; each
+            # entry is already verified into read_artifact_hashes.
+            frozen = value["saved_result"].get("evidence_files", {})
+            supplied["saved_result"] = {k: v for k, v in value["saved_result"].items() if k != "evidence_files"}
             supplied["evidence_binding"] = {"path": str(bindings), "sha256": hash_file(bindings),
-                "verified_file_count": len(value["read_artifact_hashes"])}
+                "verified_file_count": len(value["read_artifact_hashes"]),
+                "frozen_failure_inventory_file_count": len(frozen)}
         rendered = {"guidance": RENDERING_GUIDANCE, "evidence": compact_evidence(supplied)}
         write_verified(rendered, output / "consumer.json")
         schema = response_schema(value)

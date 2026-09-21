@@ -103,6 +103,10 @@ def test_one_failure_judgment_rendered_with_counts_and_failure_even_if_prose_omi
     assert '"attached_statements": 2' in text and '"residual_statements": 3' in text
     assert '"packet_truncated": false' in text and '"total_including_startup": null' in text
     assert "unrelated precise fixture defect" in text
+    prompt = (output / "prompt.md").read_text(encoding="utf-8")
+    frozen = json.loads(failure.read_text())["evidence_files"]
+    assert frozen and not any(digest in prompt for digest in frozen.values())
+    assert '"frozen_failure_inventory_file_count":%d' % len(frozen) in prompt
     with pytest.raises(FileExistsError):
         judgment.judge(root, None, output, model="controlled", reasoning_effort="high", timeout_seconds=30, failure_record=failure)
     assert len(calls) == 1
