@@ -163,18 +163,23 @@ def evidence_view(source, verified, view, questions):
     artifacts = [a for a in source["source_artifacts"] if a["artifact_id"] in locators]
     if {a["artifact_id"] for a in artifacts} != locators:
         raise ValueError("closeout source artifact locator missing")
+    selected_units = [u for u in verified["semantic_units"] if u["evidence_id"] in selected]
+    emerging_labels = {label for u in selected_units for label in u.get("emerging_axis_labels", [])}
     return {"commissioned_checks": checks,
             "selection": {"rule": "all check anchors plus all relations of findings touching an anchor; one hop",
                           "anchor_source_ids": sorted(anchors), "included_source_ids": sorted(selected),
                           "omitted_source_ids": sorted(rows.keys() - selected),
                           "missing_source_body_ids": missing,
+                          "emerging_candidate_rule": "complete candidates whose original labels occur in selected verified units",
                           "scope": "bounded commissioned checks; not an exhaustive inventory or every answer citation audit",
                           "wider_inspection_required_when": "a check needs evidence outside these rows, a body is missing, "
                           "or a question concerns another finding, residual, citation, or saved assessment nomination"},
             "source_context": {k: v for k, v in source.items() if k not in {"captured_items", "source_artifacts"}},
             "source_rows": [r for r in source["captured_items"] if r["evidence_id"] in selected],
             "source_artifacts": artifacts,
-            "verified_units": [u for u in verified["semantic_units"] if u["evidence_id"] in selected],
+            "verified_units": selected_units,
+            "emerging_axis_candidates": [c for c in view["emerging_axis_candidates"]
+                                         if emerging_labels.intersection(c["original_labels"])],
             "evidence_dispositions": [d for d in verified["evidence_dispositions"] if d["evidence_id"] in selected],
             "findings": findings,
             "residuals": [u for u in view["unmerged_semantic_units"]
