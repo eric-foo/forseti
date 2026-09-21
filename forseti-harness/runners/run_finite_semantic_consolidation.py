@@ -321,6 +321,58 @@ def coverage(bundle, verified, view, packet):
     return result
 
 
+def answer_input(bundle, verified, questions, view, packet, axes):
+    """The runtime answer projection, also used by offline capacity probes."""
+    units = {u["semantic_unit_ref"]: u for u in verified["semantic_units"]}
+    attached = {r for p in view["propositions"] for refs in p["semantic_relations"].values() for r in refs}
+    represented_ids = {units[r]["evidence_id"] for r in attached}
+    evidence = {u["evidence_id"]: u for u in bundle["evidence_units"]}
+    unit_ids = {u["evidence_id"] for u in units.values()}
+    request = {"schema_version": "finite_answer_input_v1", "worker_instructions": questions["worker_instructions"],
+        "questions": questions["questions"], "current_native_packet": packet, "native_axis_selections": axes,
+        "retrievable_residual_statements": [{"semantic_unit_ref": u["semantic_unit_ref"], "reason": u["reason"],
+            "verified_statement": units[u["semantic_unit_ref"]]} for u in view["unmerged_semantic_units"]],
+        "additional_source_rows_for_retrieval": [evidence[e] for e in sorted(set(evidence) - represented_ids)],
+        "nonclaim_source_dispositions": [d for d in verified["evidence_dispositions"] if d["evidence_id"] not in unit_ids],
+        "source_row_resolution": {"native_packet_source_rows": len(represented_ids),
+            "additional_retrievable_source_rows": len(set(evidence) - represented_ids), "total_unique_source_rows": len(evidence)},
+        "scope": questions["coverage"]}
+    return request
+
+
+def assessment_input(source, verified, questions, previous_answer, answer, view, reference_errors=None):
+    """Preserve the live/replay assessment request and locator validation."""
+    reachable = {r["source_artifact_id"] for r in source["captured_items"]}
+    assessment_source = {k: v for k, v in source.items() if k != "source_artifacts"}
+    assessment_source["source_artifacts_for_bound_rows"] = [a for a in source["source_artifacts"] if a["artifact_id"] in reachable]
+    if {a["artifact_id"] for a in assessment_source["source_artifacts_for_bound_rows"]} != reachable:
+        raise ValueError("source assessment lacks bound source-artifact locators")
+    assessment_source["unreferenced_locator_count_not_assessed"] = len(source["source_artifacts"]) - len(reachable)
+    assessment_input = {"current_answer": answer, "previously_completed_answer_for_comparison": previous_answer,
+        "answer_commission": {"questions": questions["questions"],
+                              "worker_instructions": questions["worker_instructions"]},
+        "assessment_checks": questions["assessment_only"], "current_final_view": view,
+        "complete_frozen_source": assessment_source,
+        "complete_frozen_verified_evidence": provider_verified_evidence(verified),
+        "scope": questions["coverage"]}
+    if reference_errors is not None:
+        assessment_input["citation_validation"] = {"unknown_references_by_question": reference_errors,
+            "status": "invalid_draft" if reference_errors else "valid"}
+    return assessment_input
+
+
+def validate_finite_bundle(source, bundle):
+    """Shared finite source/packing and packet-metadata boundary."""
+    rederived = semantic.build_bundle(source, max_prompt_bytes=80000,
+        max_evidence_per_work_unit=30, target_bundle_version=bundle["schema_version"])
+    if rederived != bundle:
+        raise ValueError("source and bundle bytes/packing differ under the finite input boundary")
+    # Packet compatibility depends only on frozen source metadata;
+    # reject it before paying for formation and finish.
+    for row in bundle["evidence_units"]:
+        semantic._packet_v2_engagement_observation(row)
+
+
 class FiniteRun:
     policy = POLICY
     def __init__(self, args):
@@ -568,19 +620,7 @@ class FiniteRun:
     def answer_and_assess(self, view, packet, axes):
         print(json.dumps({"phase": "answer", "state": "preparing"}), flush=True)
         units = {u["semantic_unit_ref"]: u for u in self.verified["semantic_units"]}
-        attached = {r for p in view["propositions"] for refs in p["semantic_relations"].values() for r in refs}
-        represented_ids = {units[r]["evidence_id"] for r in attached}
-        evidence = {u["evidence_id"]: u for u in self.bundle["evidence_units"]}
-        unit_ids = {u["evidence_id"] for u in units.values()}
-        request = {"schema_version": "finite_answer_input_v1", "worker_instructions": self.questions["worker_instructions"],
-            "questions": self.questions["questions"], "current_native_packet": packet, "native_axis_selections": axes,
-            "retrievable_residual_statements": [{"semantic_unit_ref": u["semantic_unit_ref"], "reason": u["reason"],
-                "verified_statement": units[u["semantic_unit_ref"]]} for u in view["unmerged_semantic_units"]],
-            "additional_source_rows_for_retrieval": [evidence[e] for e in sorted(set(evidence) - represented_ids)],
-            "nonclaim_source_dispositions": [d for d in self.verified["evidence_dispositions"] if d["evidence_id"] not in unit_ids],
-            "source_row_resolution": {"native_packet_source_rows": len(represented_ids),
-                "additional_retrievable_source_rows": len(set(evidence) - represented_ids), "total_unique_source_rows": len(evidence)},
-            "scope": self.questions["coverage"]}
+        request = answer_input(self.bundle, self.verified, self.questions, view, packet, axes)
         persist(self.root / "answer/input.json", request)
         original_answer = None
         if self.replay:
@@ -602,23 +642,9 @@ class FiniteRun:
         persist(self.root / "answer/freeze.json", {"response": str(answer_path), "response_sha256": hash_file(answer_path),
             "input_sha256": hash_file(self.root / "answer/input.json"), "historical_answer_access_before_freeze": False})
         # Historical answer and hidden checks first enter a provider request AFTER freeze.
-        reachable = {r["source_artifact_id"] for r in self.source["captured_items"]}
-        assessment_source = {k: v for k, v in self.source.items() if k != "source_artifacts"}
-        assessment_source["source_artifacts_for_bound_rows"] = [a for a in self.source["source_artifacts"] if a["artifact_id"] in reachable]
-        if {a["artifact_id"] for a in assessment_source["source_artifacts_for_bound_rows"]} != reachable:
-            raise ValueError("source assessment lacks bound source-artifact locators")
-        assessment_source["unreferenced_locator_count_not_assessed"] = len(self.source["source_artifacts"]) - len(reachable)
-        assessment_input = {"current_answer": answer, "previously_completed_answer_for_comparison": read(self.args.previous_answer),
-            "answer_commission": {"questions": self.questions["questions"],
-                                  "worker_instructions": self.questions["worker_instructions"]},
-            "assessment_checks": self.questions["assessment_only"], "current_final_view": view,
-            "complete_frozen_source": assessment_source,
-            "complete_frozen_verified_evidence": provider_verified_evidence(self.verified),
-            "scope": self.questions["coverage"]}
-        if not self.replay:
-            assessment_input["citation_validation"] = {"unknown_references_by_question": reference_errors,
-                "status": "invalid_draft" if reference_errors else "valid"}
-        persist(self.root / "assessment/input.json", assessment_input)
+        assessment_request = assessment_input(self.source, self.verified, self.questions,
+            read(self.args.previous_answer), answer, view, None if self.replay else reference_errors)
+        persist(self.root / "assessment/input.json", assessment_request)
         original_assessment = None
         if self.replay:
             self.check_saved_input("assessment", "source_assessment_input_json")
@@ -634,7 +660,7 @@ class FiniteRun:
         known_refs = {r["evidence_id"] for r in self.bundle["evidence_units"]} | set(units)
         schema = assessment_schema() if self.replay else assessment_generation_schema(
             checks, exact_repairs=True, answer=answer, known_refs=known_refs)
-        assessment_path = self.job("assessment/provider", render_assessment(assessment_input, keyed_checks=not self.replay, exact_repairs=not self.replay), schema,
+        assessment_path = self.job("assessment/provider", render_assessment(assessment_request, keyed_checks=not self.replay, exact_repairs=not self.replay), schema,
                                     replay_response=original_assessment)
         assessment = assessment_from_response(read(assessment_path), checks)
         persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
@@ -860,14 +886,7 @@ class FiniteRun:
             if not self.replay:
                 binding["codex_selection"] = self.bind_executable()
             persist(self.root / "binding.json", binding)
-            rederived = semantic.build_bundle(self.source, max_prompt_bytes=80000,
-                max_evidence_per_work_unit=30, target_bundle_version=self.bundle["schema_version"])
-            if rederived != self.bundle:
-                raise ValueError("source and bundle bytes/packing differ under the finite input boundary")
-            # Packet compatibility depends only on frozen source metadata;
-            # reject it before paying for formation and finish.
-            for row in self.bundle["evidence_units"]:
-                semantic._packet_v2_engagement_observation(row)
+            validate_finite_bundle(self.source, self.bundle)
             formation = self.phase("formation", self.verified)
             finish = self.phase("finish", formation)
             # Repairs are consumed only by the two phases; reject a stale binding before paid consumers.
@@ -952,6 +971,9 @@ def render_assessment(request, *, keyed_checks=False, exact_repairs=False):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "prepare":
+        from runners.finite_preparation import main as prepare
+        return prepare(argv[1:])
     if argv and argv[0] == "run-and-report":
         from runners.finite_run_report import main as run_and_report
         return run_and_report(argv[1:])

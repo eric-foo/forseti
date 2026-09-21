@@ -46,6 +46,12 @@ remain separately commissioned; they are not ordinary setup.
 
 For the explicitly commissioned complete finite route, use
 [Finite execution from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#finite-execution-from-verified-inputs-opt-in).
+Its optional `prepare` subcommand validates selected verified inputs and measures
+partial request sizes offline, returning compact JSON and proposed command arguments without
+calling a provider. The preparation instructions linked above cover explicit
+settings, the optional `preparation` dependency and cached tokenizer. Full capacity
+stays unconfirmed with a nonzero exit; the proposed command is not clearance to
+launch. Existing runs do not require preparation or a preparation receipt.
 One maintained invocation drives formation, finishing, native validation and
 consumer replay, answering, source assessment, and bounded answer correction.
 The source reviewer now supplies exact supported text edits, applied against the

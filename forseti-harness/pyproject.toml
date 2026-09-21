@@ -16,6 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+preparation = [
+  "tiktoken>=0.14,<0.15",
+]
 browser = [
   "playwright>=1.44,<2",
 ]
