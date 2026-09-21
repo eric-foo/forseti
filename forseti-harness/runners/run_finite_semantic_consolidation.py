@@ -25,7 +25,8 @@ from runners.run_codex_provider_attempt import select_codex_executable
 from judgment import semantic_evidence_integration as semantic
 from judgment.verified_evidence_selection import validate_verified_selection, provider_verified_evidence
 from judgment.review_evidence import (render_evidence, material_answer_findings, compose_answer_patch,
-                                     answer_source_references, answer_identity, apply_exact_answer_repairs)
+                                     answer_source_references, answer_identity, apply_exact_answer_repairs,
+                                     correction_selection)
 
 HARNESS = Path(__file__).resolve().parents[1]
 REPO = HARNESS.parent
@@ -197,7 +198,33 @@ def exact_repairs_schema(answer=None, known_refs=None):
             "properties": {"answer_sha256": text, "edits": {"type": "array", "items": edit}}}
 
 
-def assessment_schema(*, scoped_checks=False, exact_repairs=False, answer=None, known_refs=None):
+def answer_comparison_schema():
+    text = {"type": "string"}
+    index = {"type": "integer", "minimum": 0}
+    def obj(props):
+        return {"type": "object", "additionalProperties": False, "required": list(props), "properties": props}
+    def array(item):
+        return {"type": "array", "items": item}
+    def choice(*values):
+        return {"type": "string", "enum": list(values)}
+    support = {"source_refs": array(text), "explanation": text,
+               "source_observations": array(obj({"source_ref": text, "excerpt": text}))}
+    return {"anyOf": [{"type": "null"}, obj({
+        "original_answer_sha256": text, "candidate_answer_sha256": text,
+        "affected_question_ids": array(text),
+        "changed_claims_verdict": choice("no_new_or_worsened_material_defect", "new_or_worsened_material_defect", "uncertain"),
+        "repair_checks": array(obj({"edit_index": index, "verdict": choice("verified", "unverified"), **support})),
+        "nomination_checks": array(obj({"nomination_index": index,
+            "disposition": choice("repaired", "not_a_defect", "remaining", "uncertain"),
+            "remaining_finding_indices": array(index), **support})),
+        "residual_checks": array(obj({"finding_index": index, "question_id": text,
+            "field": choice("answer", "limits"), "original_excerpt": text, "candidate_excerpt": text,
+            "verdict": choice("unchanged_preexisting", "new_or_worsened", "uncertain"), **support})),
+        "failed_check_links": array(obj({"check_id": text, "finding_indices": array(index)})),
+    })]}
+
+
+def assessment_schema(*, scoped_checks=False, exact_repairs=False, answer=None, known_refs=None, comparison=False):
     text = {"type": "string"}
     refs = {"type": "array", "items": text}
     def obj(props):
@@ -210,8 +237,9 @@ def assessment_schema(*, scoped_checks=False, exact_repairs=False, answer=None, 
         check["required"].append("scope")
         check["properties"]["scope"] = {"type": "string", "enum": ["answer", "upstream_only", "unknown"]}
     return obj({"schema_version": {"type": "string", "const": (
-        "finite_source_assessment_v3" if exact_repairs else "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1")},
+        "finite_source_assessment_v4" if comparison else "finite_source_assessment_v3" if exact_repairs else "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1")},
         **({"answer_repairs": exact_repairs_schema(answer, known_refs)} if exact_repairs else {}),
+        **({"answer_comparison": answer_comparison_schema()} if comparison else {}),
         "inventory_coverage": text, "comparison": text, "unassessed_material": text,
         "overall_usefulness": text,
         "check_results": {"type": "array", "items": check},
@@ -222,12 +250,12 @@ def assessment_schema(*, scoped_checks=False, exact_repairs=False, answer=None, 
             "source_refs": refs, "artifact_refs": refs, "defect": text, "effect": text, "bounded_repair": text})}})
 
 
-def assessment_generation_schema(checks, *, scoped_checks=False, exact_repairs=False, answer=None, known_refs=None):
+def assessment_generation_schema(checks, *, scoped_checks=False, exact_repairs=False, answer=None, known_refs=None, comparison=False):
     """Bind commissioned identities in provider output, before paid generation."""
     ids = [c.get("id") if isinstance(c, dict) else None for c in checks]
     if any(not isinstance(ref, str) or not ref.strip() for ref in ids) or len(ids) != len(set(ids)):
         raise ValueError("assessment checks require unique nonempty identities")
-    schema = assessment_schema(scoped_checks=scoped_checks, exact_repairs=exact_repairs, answer=answer, known_refs=known_refs)
+    schema = assessment_schema(scoped_checks=scoped_checks, exact_repairs=exact_repairs, answer=answer, known_refs=known_refs, comparison=comparison)
     props = schema["properties"]
     if exact_repairs and answer is not None:
         # This call proposes edits; only the later recheck can discharge them.
@@ -247,15 +275,16 @@ def assessment_generation_schema(checks, *, scoped_checks=False, exact_repairs=F
 
 def assessment_from_response(value, checks, *, scoped_checks=False):
     """Project new provider transport; keep historical assessments unchanged."""
+    comparison = value.get("schema_version") in {"finite_source_assessment_keyed_v4", "finite_source_assessment_v4"}
     exact_repairs = value.get("schema_version") in {"finite_source_assessment_keyed_v3", "finite_source_assessment_v3"}
-    if value.get("schema_version") in {"finite_source_assessment_keyed_v1", "finite_source_assessment_keyed_v2", "finite_source_assessment_keyed_v3"}:
-        Draft202012Validator(assessment_generation_schema(checks, scoped_checks=scoped_checks, exact_repairs=exact_repairs)).validate(value)
+    if value.get("schema_version") in {"finite_source_assessment_keyed_v1", "finite_source_assessment_keyed_v2", "finite_source_assessment_keyed_v3", "finite_source_assessment_keyed_v4"}:
+        Draft202012Validator(assessment_generation_schema(checks, scoped_checks=scoped_checks, exact_repairs=exact_repairs, comparison=comparison)).validate(value)
         value = dict(value)
         required = value.pop("commissioned_checks")
         additional = value.pop("additional_checks")
         rows = [{"check_id": c["id"], **required[c["id"]]} for c in checks]
         rows.extend(dict(check) for check in additional)
-        value["schema_version"] = "finite_source_assessment_v3" if exact_repairs else "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1"
+        value["schema_version"] = "finite_source_assessment_v4" if comparison else "finite_source_assessment_v3" if exact_repairs else "finite_source_assessment_v2" if scoped_checks else "finite_source_assessment_v1"
         value["check_results"] = rows
     check_assessment(value, {"assessment_only": {"checks": checks}}, scoped_checks=scoped_checks)
     return value
@@ -278,7 +307,8 @@ def check_answer(answer, questions, bundle, verified):
 
 def check_assessment(value, questions, *, scoped_checks=False):
     Draft202012Validator(assessment_schema(scoped_checks=scoped_checks,
-        exact_repairs=value.get("schema_version") == "finite_source_assessment_v3")).validate(value)
+        exact_repairs=value.get("schema_version") == "finite_source_assessment_v3",
+        comparison=value.get("schema_version") == "finite_source_assessment_v4")).validate(value)
     ids = [x["check_id"] for x in value["check_results"]]
     required = {x["id"] for x in questions["assessment_only"]["checks"]}
     if len(ids) != len(set(ids)) or not required.issubset(ids):
@@ -338,6 +368,14 @@ def answer_input(bundle, verified, questions, view, packet, axes):
             "additional_retrievable_source_rows": len(set(evidence) - represented_ids), "total_unique_source_rows": len(evidence)},
         "scope": questions["coverage"]}
     return request
+
+
+def recheck_inventory_facts(packet):
+    """Project native inventory totals, without importing semantic origin judgments."""
+    return {"corpus_coverage": {k: deepcopy(packet["corpus_coverage"][k]) for k in (
+                "captured_item_count", "captured_container_count", "container_type_counts")},
+            "selection_coverage": {k: packet["selection_coverage"][k] for k in (
+                "selected_proposition_count", "returned_evidence_item_count", "returned_container_count", "truncated")}}
 
 
 def assessment_input(source, verified, questions, previous_answer, answer, view, reference_errors=None):
@@ -664,12 +702,12 @@ class FiniteRun:
                                     replay_response=original_assessment)
         assessment = assessment_from_response(read(assessment_path), checks)
         persist(self.root / "assessment/result.json", {"response": str(assessment_path), "response_sha256": hash_file(assessment_path)})
-        correction = self.correct_and_recheck(answer, assessment, view)
+        correction = self.correct_and_recheck(answer, assessment, view, packet)
         check_answer(read(correction["final_answer"]), self.questions["questions"], self.bundle, self.verified)
         return {"answer": str(answer_path), "assessment": str(assessment_path), **correction,
                 "material_findings": assessment["material_findings"], "overall_usefulness": assessment["overall_usefulness"]}
 
-    def correct_and_recheck(self, answer, assessment, view):
+    def correct_and_recheck(self, answer, assessment, view, packet):
         nominations = material_answer_findings(assessment["material_findings"])
         reference_errors = answer_reference_errors(answer, self.questions["questions"], self.bundle, self.verified)
         if not nominations and not reference_errors:
@@ -770,6 +808,9 @@ class FiniteRun:
             "complete_relevant_source_rows": [r for r in self.source["captured_items"] if r["evidence_id"] in ids],
             "verified_units": [u for u in self.verified["semantic_units"] if u["evidence_id"] in ids]}
         if not self.replay:
+            recheck_request["program_verified_inventory"] = recheck_inventory_facts(packet)
+            recheck_request["answer_comparison_binding"] = {
+                "original_answer_sha256": answer_identity(answer), "candidate_answer_sha256": answer_identity(corrected)}
             recheck_request["exact_repairs"] = proposal
             recheck_request["retained_answers"] = retained_answer_records(
                 questions, {edit["question_id"] for edit in proposal["edits"]})
@@ -788,7 +829,15 @@ class FiniteRun:
                 "of the corrected answers and original nominations. Check every material changed assertion and citation. "
                 "answer_commission describes the original full assignment; review only affected_questions. Other answers "
                 "are preserved unchanged by the runner and deliberately absent here, not missing from the full answer. "
-                "Full-assignment counts and length do not apply to this subset. Verify retained_answers reasons against "
+                "Full-assignment requested answer counts and length do not apply to this subset. "
+                "program_verified_inventory carries exact program-derived totals from the full native answer packet, "
+                "not counts of this affected subset. Use corpus_coverage for captured rows and containers, and "
+                "selection_coverage for the returned proposition and evidence-item totals. These facts are authoritative "
+                "only for inventory accounting; they do not establish people, independent origins, repeated behavior, "
+                "representativeness or semantic claim support. Do not demand source-row quotations for matching program "
+                "totals or infer missing aggregate evidence from the smaller recheck subset. Mismatched or unsupported "
+                "totals remain defects; inspect the actual field and scope rather than approving any numerical claim. "
+                "This authority does not waive the commission's user-facing content rules. Verify retained_answers reasons against "
                 "the affected questions and original answer requirements; retained answer text "
                 "is copied from the original. A rejected nomination is not answer prose. Mark disproven nominations not_a_defect; "
                 "report any unresolved material defect in the candidate answers as open. "
@@ -801,39 +850,36 @@ class FiniteRun:
                 "Explain that scope against the supplied sources and candidate. Scope describes remaining effect, not defect origin. "
                 "Keep internal review and inventory diagnostics out of answer and limits; preserve source-supported limitations "
                 "that matter to the user's question. "
-                "Use the supplied assessment schema; comparison means corrected versus original affected answers.\n\n"
+                "Use answer_comparison to distinguish working-answer selection from clean approval. Copy the exact "
+                "answer_comparison_binding hashes and affected question IDs. Source-check every exact edit in repair_checks "
+                "using its zero-based edit_index, source_refs and explanation. Each evidence record must include source_observations "
+                "with an exact source-row text excerpt for each source_ref (resolve semantic-unit refs to their row). Cover every nomination by zero-based "
+                "nomination_index as repaired, not_a_defect, remaining (linked to recheck material_findings indices), or uncertain. "
+                "For EVERY open material answer finding, give a residual_checks record with its zero-based finding_index, "
+                "question, field, exact original and candidate excerpts, sources, and a source-backed explanation of whether "
+                "the defect is unchanged_preexisting, new_or_worsened, or uncertain. Historical origin labels alone are not "
+                "comparison evidence. An unchanged claim with worsened support, missing context, or changed meaning is not "
+                "unchanged_preexisting. Link each failed/uncertain answer or unknown-scope check to its remaining finding "
+                "indices in failed_check_links. A failed check may concern only old unchanged defects; do not mark it pass "
+                "to permit selection. Explicitly assess all materially changed claims for regressions in changed_claims_verdict. "
+                "Use null answer_comparison if comparison cannot be established; never invent verification. "
+                "No free-form better claim authorizes selection.\n\n"
                 + render_evidence(recheck_request))
             recheck_path = self.job("assessment-recheck/provider", prompt,
-                                   assessment_generation_schema(checks, scoped_checks=True))
+                                   assessment_generation_schema(checks, scoped_checks=True, comparison=True))
             recheck = assessment_from_response(read(recheck_path), checks, scoped_checks=True)
         persist(self.root / "assessment-recheck/result.json", {"response": str(recheck_path),
             "response_sha256": hash_file(recheck_path), "saved_replay": bool(self.replay)})
         result = {"final_answer": str(self.root / "answer-correction/answers-corrected.json"),
                   "affected_recheck": str(recheck_path), "answer_corrections": 1, "affected_rechecks": 1}
         if not self.replay:
-            # Preserve the candidate even when it cannot replace the frozen original.
-            remaining = material_answer_findings(recheck["material_findings"], for_correction=False)
-            failed_checks = [c for c in recheck["check_results"]
-                             if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
-            accepted = not remaining and not failed_checks
-            unchanged = corrected == answer
+            decision = correction_selection(answer, corrected, assessment, recheck, recheck_request)
+            result.update(decision)
             result["answer_correction_candidate"] = result["final_answer"]
-            result["answer_correction_status"] = (
-                "rejected" if not accepted else "original_retained" if unchanged else "accepted")
-            result["answer_correction_failed_checks"] = failed_checks
-            if not accepted or unchanged:
+            if decision["answer_correction_status"] in {"rejected", "original_retained"}:
                 result["final_answer"] = str(original_path)
             result["affected_recheck_material_findings"] = recheck["material_findings"]
             result["affected_recheck_check_results"] = recheck["check_results"]
-            # A rejected candidate's findings stay above; retaining the original
-            # does not discharge its original nominations or declare it successful.
-            original_remaining = material_answer_findings(assessment["material_findings"], for_correction=False)
-            result["remaining_material_answer_findings"] = (
-                [f for f in original_remaining if f not in nominations] if accepted else original_remaining)
-            result["answer_material_status"] = (
-                "correction_rejected_original_requires_adjudication" if not accepted
-                else "material_defects_remain" if result["remaining_material_answer_findings"]
-                else "no_open_material_answer_defects_reported")
         return result
 
     def check_saved_input(self, directory, tag):

@@ -54,6 +54,12 @@ or evidence that an unavailable platform event was logged.
 
 ## Run the commands
 
+Desktop collection joins same-task paginated logs only at their recorded byte
+and ordinal boundaries, retaining the original task creation time and counting
+each response once. Unbound tails, unrelated conversation bodies and competing
+continuations cannot supply usage. Missing or inconsistent history remains
+unknown; an unfinished parent turn is not a complete coordination bill.
+
 Run from `forseti-harness`. All commands have `--help`.
 
 For a live command that needs interruption-safe observation, use this runner's

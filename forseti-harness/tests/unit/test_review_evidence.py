@@ -44,7 +44,7 @@ def test_minor_or_consolidation_origin_finding_does_not_spend_answer_correction(
     assessment = {"material_findings": [finding]}
     before = deepcopy(assessment)
     run.job = lambda *a, **k: pytest.fail("nonmaterial answer finding launched correction")
-    result = run.correct_and_recheck(answer, assessment, {})
+    result = run.correct_and_recheck(answer, assessment, {}, run.test_packet)
     assert (result["answer_corrections"], result["affected_rechecks"]) == (0, 0)
     assert assessment == before
     if severity == "major":
@@ -100,7 +100,7 @@ def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answe
         "answer_repairs": {"answer_sha256": finite.answer_identity(original), "edits": [
             {"question_id": "one", "field": "answer", "before": "source:one::purchase_despite_price",
              "after": "source:one::purchase-despite-price", "source_refs": ["source:one::purchase-despite-price"]}]}}
-    recheck = _keyed_assessment({"schema_version": "finite_source_assessment_v2",
+    recheck = _keyed_assessment({"schema_version": "finite_source_assessment_v4", "answer_comparison": None,
         "inventory_coverage": "fixture", "comparison": "fixture", "unassessed_material": "none",
         "overall_usefulness": "supported", "material_findings": [], "check_results": []}, [])
     launches = []
@@ -113,7 +113,7 @@ def test_unknown_inline_citation_uses_mandatory_repair_and_preserves_other_answe
         finite.persist(response, recheck)
         return response
     run.job = job
-    result = run.correct_and_recheck(original, assessment, {"propositions": []})
+    result = run.correct_and_recheck(original, assessment, {"propositions": []}, run.test_packet)
     assert result["answer_correction_status"] == "accepted"
     corrected = finite.read(result["final_answer"])
     assert corrected["answers"][0]["answer"] == "A report (source:one::purchase-despite-price)."
@@ -143,7 +143,7 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
             {"question_id": "one", "field": "answer", "before": "bounded", "after": "corrected",
              "source_refs": ["known"]}]}}
     finite.persist(run.root / "assessment/result.json", {"response": "fixture-review", "response_sha256": "fixture"})
-    recheck = {"schema_version": "finite_source_assessment_v2", "inventory_coverage": "complete",
+    recheck = {"schema_version": "finite_source_assessment_v4", "answer_comparison": None, "inventory_coverage": "complete",
                "comparison": "fixture", "unassessed_material": "none", "overall_usefulness": "material issue remains",
                "check_results": [{"check_id": "contrast", "scope": "answer", "status": "fail", "source_refs": ids,
                                   "finding_refs": [], "explanation": "fixture"}],
@@ -165,11 +165,129 @@ def test_repair_includes_opposition_and_recheck_all_named_source_bodies(tmp_path
     run.job = job
     if missing_body:
         with pytest.raises(ValueError, match="check source bodies"):
-            run.correct_and_recheck(answer, assessment, view)
+            run.correct_and_recheck(answer, assessment, view, run.test_packet)
         assert launches == []
     else:
-        result = run.correct_and_recheck(answer, assessment, view)
+        result = run.correct_and_recheck(answer, assessment, view, run.test_packet)
         assert result["answer_material_status"] == "correction_rejected_original_requires_adjudication"
         assert finite.read(result["final_answer"]) == answer
         assert result["affected_recheck_material_findings"] == recheck["material_findings"]
         assert launches == ["assessment-recheck/provider"]
+
+
+def comparison_for_test(original, candidate, assessment, recheck, request, excerpts):
+    """Synthetic source-comparison input, never a historical model judgment."""
+    from judgment.review_evidence import answer_identity, material_answer_findings
+    sources = {r["evidence_id"]: r for r in request["complete_relevant_source_rows"]}
+    units = {u["semantic_unit_ref"]: u["evidence_id"] for u in request["verified_units"]}
+    def support(refs):
+        return {"source_refs": refs, "explanation": "Synthetic source-checked comparison for the controlled test.",
+                "source_observations": [{"source_ref": r, "excerpt": sources[units.get(r, r)]["text"]} for r in refs]}
+    residuals = material_answer_findings(recheck["material_findings"], for_correction=False)
+    indices = [i for i, f in enumerate(recheck["material_findings"]) if f in residuals]
+    return {"original_answer_sha256": answer_identity(original), "candidate_answer_sha256": answer_identity(candidate),
+        "affected_question_ids": [q["id"] for q in request["affected_questions"]],
+        "changed_claims_verdict": "no_new_or_worsened_material_defect",
+        "repair_checks": [{"edit_index": i, "verdict": "verified", **support(e["source_refs"])}
+                          for i, e in enumerate(assessment["answer_repairs"]["edits"])],
+        "nomination_checks": [{"nomination_index": i, "disposition": "repaired", "remaining_finding_indices": [],
+                               **support(f["source_refs"])} for i, f in enumerate(material_answer_findings(assessment["material_findings"]))],
+        "residual_checks": [{"finding_index": i, "question_id": excerpts[i][0], "field": "answer",
+            "original_excerpt": excerpts[i][1], "candidate_excerpt": excerpts[i][1], "verdict": "unchanged_preexisting",
+            **support(recheck["material_findings"][i]["source_refs"])} for i in indices],
+        "failed_check_links": [{"check_id": c["check_id"], "finding_indices": indices} for c in recheck["check_results"]
+                               if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]}
+
+
+def improvement_fixture():
+    from judgment.review_evidence import answer_identity
+    original = {"answers": [{"question_id": "a", "answer": "Beta beats Alpha. Residual old claim.", "limits": "", "evidence_refs": ["source"]},
+                            {"question_id": "b", "answer": "Untouched.", "limits": "", "evidence_refs": ["source"]}]}
+    candidate = deepcopy(original)
+    candidate["answers"][0]["answer"] = "Alpha beats Beta. Residual old claim."
+    finding = {"severity": "major", "status": "open", "introduced_at": "current_answer", "artifact_refs": ["current_answer:a"],
+               "source_refs": ["source"], "defect": "Comparator reversed", "effect": "Wrong meaning", "bounded_repair": "Fix comparator"}
+    assessment = {"material_findings": [finding, {**finding, "artifact_refs": ["unroutable_outside"], "defect": "Outside scope"}],
+                  "answer_repairs": {"answer_sha256": answer_identity(original), "edits": [
+                      {"question_id": "a", "field": "answer", "before": "Beta beats Alpha", "after": "Alpha beats Beta", "source_refs": ["source"]}]}}
+    recheck = {"schema_version": "finite_source_assessment_v4", "material_findings": [{**finding, "defect": "Residual traceability", "introduced_at": "historical_answer"}],
+               "check_results": [{"check_id": "trace", "status": "fail", "scope": "answer", "source_refs": ["source"], "finding_refs": [], "explanation": "Old gap"}]}
+    request = {"affected_questions": [{"id": "a"}], "original_affected_answers": original["answers"][:1],
+               "corrected_affected_answers": candidate["answers"][:1], "nominations_to_verify_against_sources": [finding],
+               "exact_repairs": assessment["answer_repairs"], "complete_relevant_source_rows": [{"evidence_id": "source", "text": "Alpha beats Beta. Old claim is observed."}], "verified_units": []}
+    recheck["answer_comparison"] = comparison_for_test(original, candidate, assessment, recheck, request, {0: ("a", "Residual old claim.")})
+    return original, candidate, assessment, recheck, request
+
+
+def test_verified_improvement_keeps_residual_and_outside_scope_visible():
+    from judgment.review_evidence import correction_selection
+    args = improvement_fixture()
+    before = deepcopy(args)
+    result = correction_selection(*args)
+    assert result["answer_correction_status"] == "selected_requires_adjudication"
+    assert result["answer_material_status"] == "selected_answer_requires_adjudication"
+    assert result["remaining_material_answer_findings"] == [args[2]["material_findings"][1], args[3]["material_findings"][0]]
+    assert args == before
+
+
+@pytest.mark.parametrize("defect", ["reversed_comparator", "unverified_repair", "stale", "missing", "legacy", "uncertain", "changed_excerpt", "invented_source",
+                                   "omitted_residual", "omitted_nomination", "uncertain_scope", "uncertain_check", "omitted_check", "untouched_changed", "citation_removed"])
+def test_partial_selection_refuses_missing_or_regressing_comparison(defect):
+    from judgment.review_evidence import correction_selection
+    original, candidate, assessment, recheck, request = improvement_fixture()
+    comparison = recheck["answer_comparison"]
+    if defect == "reversed_comparator":
+        comparison["changed_claims_verdict"] = "new_or_worsened_material_defect"
+    elif defect == "unverified_repair":
+        comparison["repair_checks"][0]["verdict"] = "unverified"
+    elif defect == "stale":
+        comparison["candidate_answer_sha256"] = "stale"
+    elif defect == "missing":
+        recheck["answer_comparison"] = None
+    elif defect == "legacy":
+        recheck["schema_version"] = "finite_source_assessment_v2"
+        recheck.pop("answer_comparison")
+    elif defect == "uncertain":
+        comparison["residual_checks"][0]["verdict"] = "uncertain"
+    elif defect == "changed_excerpt":
+        comparison["residual_checks"][0]["candidate_excerpt"] = "Different meaning"
+    elif defect == "invented_source":
+        comparison["repair_checks"][0]["source_observations"][0]["excerpt"] = "Beta beats Alpha"
+    elif defect == "omitted_residual":
+        comparison["residual_checks"] = []
+    elif defect == "omitted_nomination":
+        comparison["nomination_checks"] = []
+    elif defect == "uncertain_scope":
+        recheck["check_results"][0]["scope"] = "unknown"
+    elif defect == "uncertain_check":
+        recheck["check_results"][0]["status"] = "uncertain"
+    elif defect == "omitted_check":
+        comparison["failed_check_links"] = []
+    elif defect == "untouched_changed":
+        candidate["answers"][1]["answer"] = "Changed without authority"
+    elif defect == "citation_removed":
+        candidate["answers"][0]["evidence_refs"] = []
+        from judgment.review_evidence import answer_identity
+        comparison["candidate_answer_sha256"] = answer_identity(candidate)
+    result = correction_selection(original, candidate, assessment, recheck, request)
+    assert result["answer_correction_status"] == "rejected"
+    assert result["remaining_material_answer_findings"] == assessment["material_findings"]
+
+
+@pytest.mark.parametrize("comparison,expected", [("null", "accepted"), ("imperfect", "accepted"), ("regression", "rejected")])
+def test_clean_recheck_keeps_existing_rule_unless_comparison_reports_regression(comparison, expected):
+    from judgment.review_evidence import correction_selection
+    original, candidate, assessment, recheck, request = improvement_fixture()
+    recheck["material_findings"] = []
+    recheck["check_results"][0]["status"] = "pass"
+    recheck["answer_comparison"] = comparison_for_test(original, candidate, assessment, recheck, request, {})
+    if comparison == "null":
+        recheck["answer_comparison"] = None
+    elif comparison == "imperfect":
+        # Optional comparison evidence cannot withdraw a clean recheck.
+        recheck["answer_comparison"]["repair_checks"][0]["source_observations"][0]["excerpt"] = "paraphrase"
+    else:
+        recheck["answer_comparison"]["changed_claims_verdict"] = "new_or_worsened_material_defect"
+    result = correction_selection(original, candidate, assessment, recheck, request)
+    assert result["answer_correction_status"] == expected
+    assert (result["answer_material_status"] == "material_defects_remain") == (expected == "accepted")

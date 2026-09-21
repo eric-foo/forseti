@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from reports.compact_return import write_verified
+from reports.compact_return import bounded_json, write_verified
 from reports.finite_closeout_judgment import judge, REASONING_EFFORTS
 
 
@@ -67,11 +67,16 @@ def main(argv=None):
             codex_executable=finite.codex_executable)
         result.update(reporting_status=report["status"], judgment_result=str(output / "judgment/result.json"),
                       report_path=report["report_path"], saved_status=report["saved_status"],
-                      saved_answer_correction_status=report["saved_answer_correction_status"])
+                      saved_answer_correction_status=report["saved_answer_correction_status"],
+                      selected_answer=report["selected_answer"],
+                      saved_answer_material_status=report["saved_answer_material_status"],
+                      judgment=report["judgment"], cost_breakdown=report["cost_breakdown"])
         if not process.returncode and report["status"] == "FINITE_CLOSEOUT_JUDGMENT_COMPLETE_REQUIRES_ADJUDICATION":
             result["status"] = "FINITE_RUN_REPORT_COMPLETE_REQUIRES_ADJUDICATION"
     except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
         result.update(reporting_status="failed_or_unknown", error=str(exc))
     write_verified(result, output / "result.json")
-    print(json.dumps(result, ensure_ascii=True))
+    print(bounded_json(result, record_path=output / "result.json", facts={
+        key: result.get(key) for key in ("status", "reporting_status", "report_path", "judgment_result",
+            "selected_answer", "saved_answer_material_status", "saved_answer_correction_status", "cost_breakdown")}))
     return result["execution_exit_code"] or (0 if result["status"] == "FINITE_RUN_REPORT_COMPLETE_REQUIRES_ADJUDICATION" else 1)

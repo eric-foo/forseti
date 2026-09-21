@@ -67,6 +67,11 @@ runs the existing finite command to a saved terminal outcome and delivers one
 supplied-evidence judgment. Wrap it once in the existing `run_efficiency start`
 operation to survive interrupted observation; `resume` only waits. No model
 executor or polling task is needed. The named contract gives the complete argv.
+The saved result returns the selected answer, its unresolved material status,
+the judgment, and costs separated into process, semantic repair/recheck,
+reporting, and failed or unresolved attempts. Use that return for ordinary
+closeout; its detail paths identify any remaining judgment work. Closed Desktop
+coordination is accounted separately; an active parent turn remains pending.
 On failure, read its `failure-*.json` for the original error plus saved coverage,
 review findings, repair scope and native costs; diagnostic observations do not
 certify completion or quality. New failures bind their stopped file inventory.
@@ -75,9 +80,11 @@ For a commissioned final source-backed judgment, use its
 dispatch (plus `--operation-dir` when recorded). Add `--failure-record FILE` for
 a stopped run. Historical frozen copies also accept `--snapshot-manifest FILE`,
 whose original-path/hash inventory prevents reading later live recovery.
-The maintained command supplies
-the complete unchanged closeout view directly to one fresh no-tools reviewer,
-then returns the judgment, limitations and separate fresh-review usage. Failures
+The maintained command supplies complete evidence for the commissioned checks,
+all answer versions, earlier findings and verified inventory totals to one fresh
+no-tools reviewer. The broader correction request and bookkeeping stay outside
+that prompt; code still verifies their saved bindings. It then returns the
+judgment, limitations and separate fresh-review usage. Failures
 receive diagnosis of saved observations, without another semantic assessment.
 Read its `report.md` or `result.json`: code renders exact status, counts, stage
 usage and observed startup totals alongside the unchanged model judgment.

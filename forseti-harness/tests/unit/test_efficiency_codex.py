@@ -454,6 +454,96 @@ def test_related_duplicate_metadata_fails_closed(tmp_path):
     assert "duplicate_session_metadata" in result["issues"]
 
 
+def paginated_rows(tmp_path, rows, split=3):
+    """Desktop continuation binds an exact prefix, not the old file's tail."""
+    import copy
+    base = copy.deepcopy(rows[:split])
+    base[0]["payload"]["history_mode"] = "paginated"
+    prefix = ("\n".join(json.dumps(row) for row in base) + "\n").encode()
+    first = tmp_path / "base.jsonl"
+    first.write_bytes(prefix)
+    meta = copy.deepcopy(base[0])
+    meta["payload"].update(timestamp="2026-09-05T00:00:01Z", history_base={
+        "thread_id": rows[0]["payload"]["id"], "end_ordinal_exclusive": len(base),
+        "end_byte_offset": len(prefix)})
+    second = write(tmp_path, [meta, *copy.deepcopy(rows[split:])], "continuation.jsonl")
+    return first, second
+
+
+def test_paginated_turn_and_child_count_once_and_ignore_unbound_tail(tmp_path):
+    first, _ = paginated_rows(tmp_path, auto_rows())
+    with first.open("a", encoding="utf-8") as stream:
+        stream.write("NOT PART OF THE BOUND HISTORY\n")
+    write(tmp_path, auto_rows("child", "root"), "child.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete", result["issues"]
+    assert sum(a["usage"]["total_tokens"] for a in result["attempts"]) == 26
+    assert result["child_thread_ids"] == ["child"]
+    assert result["elapsed_seconds"] == 2
+
+
+def test_paginated_completed_turn_in_base_remains_collectible(tmp_path):
+    rows = auto_rows()
+    paginated_rows(tmp_path, rows, len(rows))
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete", result["issues"]
+    assert len(result["attempts"]) == 1
+
+
+@pytest.mark.parametrize("mutation", ["offset", "ordinal", "foreign", "ancestry", "missing_base"])
+def test_paginated_invalid_history_cannot_claim_complete(tmp_path, mutation):
+    first, second = paginated_rows(tmp_path, auto_rows(), split=1)
+    rows = [json.loads(line) for line in second.read_text().splitlines()]
+    meta = rows[0]["payload"]
+    if mutation == "offset":
+        meta["history_base"]["end_byte_offset"] -= 1
+    elif mutation == "ordinal":
+        meta["history_base"]["end_ordinal_exclusive"] += 1
+    elif mutation == "foreign":
+        meta["history_base"]["thread_id"] = "other"
+    elif mutation == "ancestry":
+        meta["parent_thread_id"] = "other"
+    else:
+        first.unlink()
+    write(tmp_path, rows, second.name)
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert any("paginated" in issue or "duplicate_session" in issue for issue in result["issues"])
+
+
+def test_paginated_three_pages_preserve_turn_without_counting_headers(tmp_path):
+    _, second = paginated_rows(tmp_path, auto_rows())
+    rows = [json.loads(line) for line in second.read_text().splitlines()]
+    prefix = ("\n".join(json.dumps(row) for row in rows[:2]) + "\n").encode()
+    second.write_bytes(prefix)
+    meta = json.loads(json.dumps(rows[0]))
+    meta["payload"]["history_base"].update(end_ordinal_exclusive=5, end_byte_offset=len(prefix))
+    write(tmp_path, [meta, rows[-1]], "third.jsonl")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete", result["issues"]
+    assert len(result["attempts"]) == 1
+
+
+def test_paginated_competing_continuations_fail_closed(tmp_path):
+    _, second = paginated_rows(tmp_path, auto_rows())
+    (tmp_path / "competing.jsonl").write_bytes(second.read_bytes())
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "unknown"
+    assert "duplicate_session_metadata" in result["issues"]
+
+
+def test_unrelated_paginated_body_is_never_read(tmp_path):
+    write(tmp_path, auto_rows())
+    unrelated = tmp_path / "unrelated"
+    unrelated.mkdir()
+    first, second = paginated_rows(unrelated, auto_rows("other"))
+    with second.open("a", encoding="utf-8") as stream:
+        stream.write("\nPRIVATE UNRELATED BODY")
+    result = collect_desktop_task(tmp_path, "root", "turn")
+    assert result["coverage"] == "complete"
+    assert "PRIVATE" not in json.dumps(result)
+
+
 def test_child_finishing_after_parent_extends_whole_task_elapsed(tmp_path):
     write(tmp_path, auto_rows())
     child = auto_rows("child", "root")

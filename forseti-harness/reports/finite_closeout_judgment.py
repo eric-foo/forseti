@@ -1,4 +1,4 @@
-"""Deliver the unchanged finite closeout view to one cold, no-tools reviewer."""
+"""Deliver complete commissioned evidence to one cold, no-tools reviewer."""
 from __future__ import annotations
 
 import argparse
@@ -39,6 +39,31 @@ Explain the terminal state, precise cause and evidence distinguishing it from ot
 
 Consumer view:
 """
+
+
+def review_input(value):
+    """Keep the commissioned evidence intact, without replaying the repair job.
+
+    collect() still validates the complete saved record. Accounting and artifact
+    bindings belong to the program; the earlier recheck's wider source inventory
+    does not expand this review's commissioned checks.
+    """
+    supplied = {k: value[k] for k in (
+        "schema_version", "semantic_verdict", "answer_commission", "answers",
+        "previous_answer_for_comparison", "initial_assessment", "affected_recheck",
+        "program_verified_inventory", "judgment_evidence", "wider_sources")}
+    supplied["saved_result"] = {k: value["saved_result"][k] for k in (
+        "status", "answer_material_status", "answer_correction_status",
+        "answer_correction_failed_checks", "remaining_material_answer_findings",
+        "answer_corrections", "affected_rechecks", "coverage") if k in value["saved_result"]}
+    records = value["correction_records"]
+    supplied["correction_records"] = {k: records[k] for k in ("composition",) if k in records}
+    if "recheck_input" in records:
+        request = records["recheck_input"]
+        supplied["correction_records"]["recheck_context"] = {k: request[k] for k in (
+            "affected_questions", "answer_comparison_binding", "exact_repairs", "reference_errors")
+            if k in request}
+    return supplied
 
 
 def response_schema(value):
@@ -121,20 +146,25 @@ def judge(run_root, operation_dir, output_dir, *, model, reasoning_effort, timeo
               "cost_limits": "Historical generation and this fresh review are separate. Parent/implementation tokens excluded; unknown usage remains unknown.",
               "consumer_path": str(output / "consumer.json")}
     try:
-        supplied = value
+        # Preserve the complete integrity inventory outside either model prompt.
+        # Every recorded artifact is still checked after the response below.
+        bindings = write_verified({k: value[k] for k in (
+            "read_artifact_hashes", "read_directory_inventories") if k in value}, output / "evidence-bindings.json")
         if failure_record:
             # Hundreds of hashes are execution integrity checks, not facts a
             # diagnostic judge must reason over. Preserve them outside its
             # prompt and enforce every one after the single response.
-            bindings = write_verified({k: value[k] for k in ("read_artifact_hashes", "read_directory_inventories")}, output / "evidence-bindings.json")
             supplied = {k: v for k, v in value.items() if k not in ("read_artifact_hashes", "read_directory_inventories")}
             # The frozen failure inventory is the same class of hashes; each
             # entry is already verified into read_artifact_hashes.
             frozen = value["saved_result"].get("evidence_files", {})
             supplied["saved_result"] = {k: v for k, v in value["saved_result"].items() if k != "evidence_files"}
-            supplied["evidence_binding"] = {"path": str(bindings), "sha256": hash_file(bindings),
-                "verified_file_count": len(value["read_artifact_hashes"]),
-                "frozen_failure_inventory_file_count": len(frozen)}
+        else:
+            supplied = review_input(value)
+        supplied["evidence_binding"] = {"path": str(bindings), "sha256": hash_file(bindings),
+            "verified_file_count": len(value["read_artifact_hashes"])}
+        if failure_record:
+            supplied["evidence_binding"]["frozen_failure_inventory_file_count"] = len(frozen)
         rendered = {"guidance": RENDERING_GUIDANCE, "evidence": compact_evidence(supplied)}
         write_verified(rendered, output / "consumer.json")
         schema = response_schema(value)
@@ -167,6 +197,9 @@ def judge(run_root, operation_dir, output_dir, *, model, reasoning_effort, timeo
     except (OSError, ValueError, KeyError, TypeError, ValidationError) as exc:
         report["error"] = str(exc)
     report["review_accounting"] = collect_provider_roots([str(output / "provider")])
+    from reports.finite_failure_evidence import cost_breakdown
+    report["cost_breakdown"] = cost_breakdown(value["native_accounting"],
+        value["saved_result"]["provider_root"], report["review_accounting"])
     report["report_path"] = str(output / "report.md")
     render_report(report, output / "report.md")
     write_verified(report, output / "result.json")
@@ -177,7 +210,7 @@ def render_report(report, path):
     """Program facts are always adjacent to the untouched judgment, even on failure."""
     facts = {k: report[k] for k in ("status", "saved_status", "saved_answer_material_status",
         "saved_answer_correction_status", "saved_failure", "selected_answer", "mechanical_validation", "execution_facts", "saved_endpoint_counts", "evidence_gaps",
-        "historical_usage_by_stage", "historical_native_accounting", "cost_limits")}
+        "historical_usage_by_stage", "historical_native_accounting", "cost_limits", "cost_breakdown")}
     review = report["review_accounting"]
     facts["review_accounting"] = {k: v for k, v in review.items() if k != "attempts"}
     for key in ("historical_native_accounting", "review_accounting"):

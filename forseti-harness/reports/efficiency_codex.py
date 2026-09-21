@@ -485,14 +485,18 @@ def discover_desktop_sessions(session_root: str | Path, root_thread_id: str | No
             if not isinstance(spawn, dict):
                 spawn = {}
             parent = payload.get("parent_thread_id") or spawn.get("parent_thread_id")
-            if ident in metas:
-                duplicates.append((ident, parent))
-                continue
-            metas[ident] = {"path": str(path), "parent_thread_id": parent,
+            meta = {"path": str(path), "parent_thread_id": parent,
                             "agent_path": payload.get("agent_path") or spawn.get("agent_path"),
                             "timestamp": payload.get("timestamp"),
+                            "history_mode": payload.get("history_mode"),
+                            "history_base": payload.get("history_base"),
                             "source_kind": subagent.get("other", "thread_spawn")
                             if isinstance(source, dict) and isinstance(subagent, dict) else source}
+            if ident in metas:
+                duplicates.append((ident, parent))
+                metas[ident].setdefault("pages", [dict(metas[ident])]).append(meta)
+            else:
+                metas[ident] = meta
         except (OSError, ValueError, AttributeError):
             issues.append("session_metadata_unreadable")
     if agent_path is not None:
@@ -509,10 +513,67 @@ def discover_desktop_sessions(session_root: str | Path, root_thread_id: str | No
         linked.update(more)
     if root_thread_id not in metas:
         issues.append("root_session_missing")
-    if any(ident in linked for ident, _ in duplicates):
-        issues.append("duplicate_session_metadata")
+    for ident in linked & metas.keys():
+        meta = metas[ident]
+        pages = meta.get("pages", [meta])
+        if len(pages) == 1 and meta["history_base"] is None:
+            continue
+        bases = [p for p in pages if p["history_base"] is None]
+        continuations = [p for p in pages if p["history_base"] is not None]
+        valid = len(bases) == 1 and all(p["history_mode"] == "paginated" for p in pages)
+        for page in continuations:
+            boundary = page["history_base"]
+            valid = valid and isinstance(boundary, dict) and boundary.get("thread_id") == ident
+            valid = valid and all(type(boundary.get(k)) is int and boundary[k] > 0
+                                  for k in ("end_ordinal_exclusive", "end_byte_offset"))
+        valid = valid and all((p["parent_thread_id"], p["agent_path"], p["source_kind"]) ==
+                             (bases[0]["parent_thread_id"], bases[0]["agent_path"], bases[0]["source_kind"])
+                             for p in pages)
+        if valid:
+            ordered = sorted(continuations, key=lambda p: p["history_base"]["end_ordinal_exclusive"])
+            ordinals = [p["history_base"]["end_ordinal_exclusive"] for p in ordered]
+            valid = len(ordinals) == len(set(ordinals))
+        if valid:
+            metas[ident] = {**bases[0], "pages": [bases[0], *ordered]}
+        else:
+            # An inherited foreign-thread history is not this task's usage.
+            if len(pages) == 1 and isinstance(meta["history_base"], dict) and meta["history_base"].get("thread_id") != ident:
+                continue
+            issues.append("duplicate_session_metadata" if len(pages) > 1 else "paginated_base_missing")
+            meta.pop("pages", None)
     return {"sessions": {ident: metas[ident] for ident in sorted(linked) if ident in metas},
             "issues": sorted(set(issues)), "root_thread_id": root_thread_id}
+
+
+def _desktop_events(meta):
+    """Join only metadata-bound prefixes; stale tails are not continuation history."""
+    pages = meta.get("pages")
+    if not pages:
+        return _events(meta["path"])
+    rows = []
+    try:
+        for index, page in enumerate(pages):
+            next_base = pages[index + 1]["history_base"] if index + 1 < len(pages) else None
+            with Path(page["path"]).open("rb") as stream:
+                raw = stream.read(next_base["end_byte_offset"] if next_base else -1)
+            lines = raw.splitlines()
+            if next_base:
+                start = page["history_base"]["end_ordinal_exclusive"] if page["history_base"] else 0
+                if (len(raw) != next_base["end_byte_offset"] or not raw.endswith(b"\n")
+                        or len(lines) != next_base["end_ordinal_exclusive"] - start):
+                    raise ValueError("pagination boundary differs")
+            decoded = [json.loads(line) for line in lines]
+            header = decoded[0]
+            if (header.get("type") != "session_meta" or
+                    header["payload"].get("history_base") != page["history_base"] or
+                    not all(isinstance(row, dict) for row in decoded)):
+                raise ValueError("pagination snapshot changed")
+            if index and header["payload"].get("id") != rows[0]["payload"].get("id"):
+                raise ValueError("pagination identity differs")
+            rows.extend(decoded if index == 0 else decoded[1:])
+        return rows, []
+    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError):
+        return rows, ["paginated_history_invalid_or_incomplete"]
 
 
 def _nested_task_selection(sessions: dict, snapshots: dict, root: str, turn: str,
@@ -639,7 +700,7 @@ def collect_desktop_task(session_root: str | Path, root_thread_id: str | None = 
     root_thread_id = inventory.get("root_thread_id", root_thread_id)
     sessions = inventory["sessions"]
     issues = list(inventory["issues"])
-    snapshots = {meta["path"]: _events(meta["path"]) for meta in sessions.values()}
+    snapshots = {meta["path"]: _desktop_events(meta) for meta in sessions.values()}
     root_meta = sessions.get(root_thread_id)
     if root_meta is None:
         return _summary([], issues, source_kind="codex_desktop_rollout", thread_ids=[],

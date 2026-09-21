@@ -19,14 +19,29 @@ def controlled_response(value):
 
 
 @pytest.mark.parametrize("outcome", ["accepted", "retained", "rejected"])
-def test_real_saved_run_reaches_single_job_unchanged_and_repeat_cannot_relaunch(tmp_path, monkeypatch, outcome):
+def test_real_saved_run_keeps_commissioned_evidence_and_repeat_cannot_relaunch(tmp_path, monkeypatch, outcome):
     run, _ = saved_correction_run(tmp_path, outcome)
     value = judgment.collect(run.root)
     calls = []
 
     def job(output, **kwargs):
         packet = json.loads((output / "prompt.md").read_text(encoding="utf-8").split("Consumer view:\n", 1)[1])
-        assert expand_evidence(packet["evidence"]) == value
+        supplied = expand_evidence(packet["evidence"])
+        # Complete semantic evidence, answer versions and earlier judgments survive;
+        # these assertions do not use the implementation's projection as the oracle.
+        for key in ("judgment_evidence", "answers", "answer_commission", "previous_answer_for_comparison",
+                    "initial_assessment", "affected_recheck", "wider_sources"):
+            assert supplied[key] == value[key]
+        native_packet = json.loads((run.root / "packet-all.json").read_text(encoding="utf-8"))
+        assert supplied["program_verified_inventory"] == finite.recheck_inventory_facts(native_packet)
+        for key in ("status", "answer_material_status", "answer_correction_status"):
+            assert supplied["saved_result"][key] == value["saved_result"][key]
+        assert supplied["correction_records"]["composition"] == value["correction_records"]["composition"]
+        assert "recheck_input" not in supplied["correction_records"]
+        for key in ("read_artifact_hashes", "native_accounting", "execution_facts", "usage_by_stage"):
+            assert key not in supplied
+        bindings = json.loads((output / "evidence-bindings.json").read_text(encoding="utf-8"))
+        assert bindings["read_artifact_hashes"] == value["read_artifact_hashes"]
         assert json.loads((output / "consumer.json").read_text(encoding="utf-8")) == packet
         calls.append(kwargs)
         attempt = output / "provider/attempts/controlled"
@@ -47,7 +62,7 @@ def test_real_saved_run_reaches_single_job_unchanged_and_repeat_cannot_relaunch(
     assert len(calls) == 1
 
 
-@pytest.mark.parametrize("fault", ["missing_check", "unknown_source", "empty_refs", "artifact_changed", "provider_failed"])
+@pytest.mark.parametrize("fault", ["missing_check", "unknown_source", "empty_refs", "artifact_changed", "omitted_input_changed", "provider_failed"])
 def test_failed_or_invalid_judgment_is_visible_without_another_job(tmp_path, monkeypatch, fault):
     run, _ = saved_correction_run(tmp_path, "accepted")
     value = judgment.collect(run.root)
@@ -67,6 +82,9 @@ def test_failed_or_invalid_judgment_is_visible_without_another_job(tmp_path, mon
         if fault == "artifact_changed":
             selected = Path(value["answers"]["selected"]["path"])
             selected.write_text(selected.read_text() + "\n", encoding="utf-8")
+        if fault == "omitted_input_changed":
+            omitted = run.root / "assessment-recheck/input.json"
+            omitted.write_text(omitted.read_text() + "\n", encoding="utf-8")
         attempt = output / "provider/attempts/controlled"
         attempt.mkdir(parents=True)
         (attempt / "response.json").write_text(json.dumps(response), encoding="utf-8")
@@ -81,6 +99,29 @@ def test_failed_or_invalid_judgment_is_visible_without_another_job(tmp_path, mon
     assert "review_accounting" in result
     assert len(calls) == 1
     assert json.loads((output / "result.json").read_text()) == result
+
+
+def test_missing_review_evidence_remains_details_required_without_retry(tmp_path, monkeypatch):
+    run, _ = saved_correction_run(tmp_path, "accepted")
+    value = judgment.collect(run.root)
+    calls = []
+
+    def job(output, **kwargs):
+        calls.append(output)
+        response = controlled_response(value)
+        response["check_results"]["contrast"] = {
+            "outcome": "details_required", "source_refs": [],
+            "evidence": "The commissioned check needs evidence outside the supplied selection."}
+        attempt = output / "provider/attempts/controlled"
+        attempt.mkdir(parents=True)
+        (attempt / "response.json").write_text(json.dumps(response), encoding="utf-8")
+        return {"attempt_dir": str(attempt)}
+
+    monkeypatch.setattr(judgment, "launch", job)
+    result = judgment.judge(run.root, None, tmp_path / "review", model="controlled", reasoning_effort="high", timeout_seconds=30)
+    assert result["status"] == "FINITE_CLOSEOUT_DETAILS_REQUIRED"
+    assert result["judgment"]["check_results"]["contrast"]["outcome"] == "details_required"
+    assert len(calls) == 1
 
 
 def test_protected_output_and_changed_binding_refused_before_job(tmp_path, monkeypatch):

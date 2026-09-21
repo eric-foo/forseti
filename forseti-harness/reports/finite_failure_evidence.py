@@ -79,6 +79,61 @@ def stage_usage(accounting, providers):
     return result
 
 
+def cost_breakdown(accounting, providers, reporting=None):
+    """Partition native work once; failed attempts never disappear into retries."""
+    groups = {key: [] for key in ("actual_process", "semantic_repairs_and_rechecks",
+        "reporting", "technical_failures_or_unknown_attempts")}
+    seen, issues = set(), []
+    providers = Path(providers).resolve()
+    for source, is_report in ((accounting, False), (reporting, True)):
+        if source is None:
+            continue
+        issues.extend(i for i in source.get("issues", []) if i != "provider_attempt_not_completed")
+        if "attempts" not in source:
+            issues.append("per_attempt_accounting_missing")
+        for attempt in source.get("attempts", []):
+            path = Path(attempt["receipt_path"]).resolve()
+            if path in seen:
+                issues.append("receipt_accounted_more_than_once")
+                continue
+            seen.add(path)
+            parts = path.relative_to(providers).parts if path.is_relative_to(providers) else ()
+            if attempt["outcome"] != "PROCESS_COMPLETED":
+                group = "technical_failures_or_unknown_attempts"
+            elif is_report:
+                group = "reporting"
+            elif not parts or "repair" in parts or parts[0] in {"answer-correction", "assessment-recheck"}:
+                # Out-of-root attempts are the finite runner's explicit recovery receipts.
+                group = "semantic_repairs_and_rechecks"
+            else:
+                group = "actual_process"
+            groups[group].append(attempt)
+    result = {}
+    for key, attempts in groups.items():
+        usage = aggregate_usage(attempts)
+        startup = sum(a["additional_observed_response_tokens"] or 0 for a in attempts)
+        unknown = sum(a["additional_observed_response_tokens"] is None for a in attempts)
+        complete = not issues and not unknown and (not attempts or usage["coverage"] == "complete")
+        observed = usage["observed_totals"]["total_tokens"] + startup
+        result[key] = {"attempts": len(attempts),
+            "input_tokens": usage["observed_totals"]["input_tokens"],
+            "cached_input_tokens": usage["observed_totals"]["cached_input_tokens"],
+            "output_tokens": usage["observed_totals"]["output_tokens"],
+            "observed_startup_tokens": startup,
+            "unknown_usage_attempts": sum(a["usage"]["coverage"] != "complete" for a in attempts),
+            "unknown_startup_attempts": unknown,
+            "observed_tokens_including_startup": observed,
+            "complete_tokens_including_startup": observed if complete else None}
+    complete = all(g["complete_tokens_including_startup"] is not None for g in result.values())
+    total = sum(g["observed_tokens_including_startup"] for g in result.values())
+    return {"groups": result, "coverage": "complete" if complete else "unknown",
+        "observed_tokens_including_startup": total,
+        "complete_tokens_including_startup": total if complete else None,
+        "issues": sorted(set(issues)),
+        "scope": "Selected native receipt history, including reporting when supplied. Completed recovery and semantic repair/recheck calls are repair; failed or unresolved attempts are separate. Cached input is included, not added.",
+        "coordination": "Outside native receipts: collect completed Desktop turns separately; an active parent turn remains pending. Implementation work is separate from recurring process cost."}
+
+
 def execution_facts(root, load):
     """Copy dimensions separately; absence does not claim a completed stage."""
     facts = {"stages": {}, "endpoint_artifacts": {}}

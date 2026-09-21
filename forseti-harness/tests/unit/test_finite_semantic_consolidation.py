@@ -748,6 +748,10 @@ def answer_fixture(tmp_path):
     run.questions = {"questions": [{"id": "one"}, {"id": "two"}], "worker_instructions": "Answer the supplied questions."}
     run.bundle = {"evidence_units": [{"evidence_id": "known"}]}
     run.verified = {"semantic_units": []}
+    run.test_packet = {"corpus_coverage": {"captured_item_count": 1, "captured_container_count": 1,
+                       "container_type_counts": {"conversation": 1}},
+                       "selection_coverage": {"selected_proposition_count": 0, "returned_evidence_item_count": 0,
+                                              "returned_container_count": 0, "truncated": False}}
     answer = {"schema_version": "finite_answer_v1", "answers": [
         {"question_id": q["id"], "answer": "bounded", "evidence_refs": ["known"], "limits": "sample"}
         for q in run.questions["questions"]]}
@@ -759,7 +763,7 @@ def test_no_correction_final_answer_is_consumable_answer_object(tmp_path):
     response = run.provider_root / "answer/response.json"
     finite.persist(response, answer)
     finite.persist(run.root / "answer/freeze.json", {"response": str(response), "response_sha256": finite.hash_file(response)})
-    result = run.correct_and_recheck(answer, {"material_findings": []}, {})
+    result = run.correct_and_recheck(answer, {"material_findings": []}, {}, run.test_packet)
     finite.check_answer(finite.read(result["final_answer"]), run.questions["questions"], run.bundle, run.verified)
     assert result["answer_corrections"] == 0
 
@@ -878,6 +882,8 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
                            "upstream_commissioned"}
     responses = {"answer-correction/provider": run.provider_root / "patch.json",
                  "assessment-recheck/provider": run.provider_root / "recheck.json"}
+    if outcome != "legacy_report":
+        recheck.update(schema_version="finite_source_assessment_v4", answer_comparison=None)
     wire_recheck = recheck if outcome == "legacy_report" else _keyed_assessment(recheck, ["anchored"])
     finite.persist(responses["answer-correction/provider"], patch)
     finite.persist(responses["assessment-recheck/provider"], wire_recheck)
@@ -899,13 +905,13 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     run.job = correction_job
     if invalid_report:
         with pytest.raises(ValidationError) as failure:
-            run.correct_and_recheck(answer, assessment, {"propositions": []})
+            run.correct_and_recheck(answer, assessment, {"propositions": []}, run.test_packet)
         assert failure.value.validator == {
             "missing_scope": "required", "false_scope": "type", "invalid_scope": "enum", "legacy_report": "const"}[outcome]
         assert original_path.read_bytes() == original_bytes
         assert launched == ["assessment-recheck/provider"]
         return
-    result = run.correct_and_recheck(answer, assessment, {"propositions": []})
+    result = run.correct_and_recheck(answer, assessment, {"propositions": []}, run.test_packet)
     corrected = finite.read(result["final_answer"])
     if accepted and outcome != "retain":
         assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
@@ -931,7 +937,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     assert finite.read(run.root / "assessment-recheck/input.json")["frozen_relevant_checks"] == run.questions["assessment_only"]["checks"]
     assert finite.read(run.provider_root / "answer-correction/allowance.json")["kind"] == "post_assessment"
     # Repeating the consumer over the same saved responses preserves the exact result.
-    assert run.correct_and_recheck(answer, assessment, {"propositions": []}) == result
+    assert run.correct_and_recheck(answer, assessment, {"propositions": []}, run.test_packet) == result
     assert (run.questions, run.source, run.bundle, run.verified, assessment) == frozen_inputs
 
 
@@ -962,7 +968,7 @@ def test_saved_unscoped_recheck_keeps_historical_selection_without_live_acceptan
     checked_inputs = []
     run.check_saved_input = lambda directory, tag: checked_inputs.append((directory, tag))
     run.job = lambda *a, **k: pytest.fail("historical replay launched a provider")
-    result = run.correct_and_recheck(answer, assessment, {"propositions": []})
+    result = run.correct_and_recheck(answer, assessment, {"propositions": []}, run.test_packet)
     assert finite.read(result["final_answer"])["answers"] == [corrected_row, answer["answers"][1]]
     assert "answer_correction_status" not in result and "answer_material_status" not in result
     assert result["affected_recheck"] == str(recheck_path)

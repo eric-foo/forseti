@@ -82,38 +82,29 @@ def failure_summary(run_root, provider_root):
             "usage_by_stage": usage_by_stage, "diagnostic_issues": issues}
 
 
-def selected_answer_path(result, frozen_path, candidate_path, frozen, candidate, recheck):
-    """Verify the saved live selection with the finite runner's existing rules."""
-    from judgment.review_evidence import material_answer_findings
+def selected_answer_path(result, frozen_path, candidate_path, frozen, candidate, recheck, *, assessment=None, request=None):
+    """Verify the saved selection through the same decision used by the live runner."""
+    from judgment.review_evidence import correction_selection
     if result["answer_corrections"] not in (0, 1) or result["affected_rechecks"] not in (0, 1):
         raise ValueError("invalid finite correction/recheck counts")
     expected = Path(frozen_path).resolve()
     if result["affected_rechecks"]:
         if result["answer_corrections"] != 1 or recheck is None or candidate is None:
             raise ValueError("recheck lacks a correction candidate")
-        remaining = material_answer_findings(recheck["material_findings"], for_correction=False)
-        failed = [c for c in recheck["check_results"] if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
-        accepted = not remaining and not failed
-        status = "rejected" if not accepted else "original_retained" if candidate == frozen else "accepted"
-        if result["answer_correction_status"] != status or result["answer_correction_failed_checks"] != failed:
+        decision = correction_selection(frozen, candidate, assessment or {"material_findings": []}, recheck, request)
+        if any(result[key] != decision[key] for key in ("answer_correction_status", "answer_correction_failed_checks")):
             raise ValueError("saved correction acceptance differs from existing rules")
-        if status == "accepted":
+        if decision["answer_correction_status"] in {"accepted", "selected_requires_adjudication"}:
             expected = Path(candidate_path).resolve()
     if Path(result["final_answer"]).resolve() != expected:
         raise ValueError("selected answer is not authorized by saved selection")
     return expected
 
 
-def check_material_status(result, assessment):
-    from judgment.review_evidence import material_answer_findings
-    remaining = material_answer_findings(assessment["material_findings"], for_correction=False)
-    correction_status = result.get("answer_correction_status")
-    if correction_status in {"accepted", "original_retained"}:
-        nominations = material_answer_findings(assessment["material_findings"])
-        remaining = [f for f in remaining if f not in nominations]
-    status = ("correction_rejected_original_requires_adjudication" if correction_status == "rejected"
-              else "material_defects_remain" if remaining else "no_open_material_answer_defects_reported")
-    if result["remaining_material_answer_findings"] != remaining or result["answer_material_status"] != status:
+def check_material_status(result, assessment, recheck=None):
+    from judgment.review_evidence import correction_material_status
+    expected = correction_material_status(assessment, result.get("answer_correction_status"), recheck)
+    if any(result[key] != value for key, value in expected.items()):
         raise ValueError("saved material status differs from reported findings and selection")
 
 
@@ -376,6 +367,11 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
         if Path(result["affected_recheck"]).resolve() != Path(record["response"]).resolve():
             raise ValueError("recheck selection differs")
         request = bound_consumer_input("assessment-recheck")
+        # Older saved requests omitted this context. New facts must match the
+        # complete packet rederived above, not merely a hash-bound model input.
+        if ("program_verified_inventory" in request
+                and request["program_verified_inventory"] != finite.recheck_inventory_facts(packet)):
+            raise ValueError("recheck inventory facts differ from native packet")
         if composition is not None and composition.get("method") == "reviewer_exact_repairs_v2":
             affected = set(composition["affected_question_ids"])
             scoped_questions = [q for q in questions["questions"] if q["id"] in affected]
@@ -394,8 +390,9 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
                            ("affected_recheck_check_results", "check_results")):
             if result[key] != recheck[field]:
                 raise ValueError("result recheck findings/statuses differ")
-    final_path = selected_answer_path(result, freeze["response"], corrected, frozen, candidate, recheck)
-    check_material_status(result, assessment)
+    final_path = selected_answer_path(result, freeze["response"], corrected, frozen, candidate, recheck,
+                                      assessment=assessment, request=correction_records.get("recheck_input"))
+    check_material_status(result, assessment, recheck)
     answer_versions["selected"] = {"path": str(final_path), "value": load(final_path)}
     finite.check_answer(answer_versions["selected"]["value"], questions["questions"], bundle, verified)
     # The raw initial provider answer stays distinct even after pre-freeze repair.
@@ -443,6 +440,7 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
                "answers": answer_versions, "previous_answer_for_comparison": inputs["previous_answer"],
                "initial_assessment": assessment, "affected_recheck": recheck,
                "correction_records": correction_records, "operation_closeout": operation,
+               "program_verified_inventory": finite.recheck_inventory_facts(packet),
                "native_accounting": accounting,
                "cost_limits": "native receipts only; startup unknowns remain unknown; parent/executor and implementation/setup costs are outside this view; no savings inference",
                "judgment_evidence": evidence_view(source, verified, view, questions),
