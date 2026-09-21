@@ -11,7 +11,7 @@ from reports.compact_return import write_verified
 from reports.finite_closeout_judgment import judge, REASONING_EFFORTS
 
 
-def main(argv=None):
+def argument_parser():
     parser = argparse.ArgumentParser(description=__doc__, epilog=(
         "For interrupted observation, wrap this command once with run_efficiency start --bind-codex; "
         "use its returned resume argv. Neither repeated start nor report-dir reuse relaunches work."))
@@ -20,7 +20,11 @@ def main(argv=None):
     parser.add_argument("--reasoning-effort", required=True, choices=REASONING_EFFORTS)
     parser.add_argument("--timeout-seconds", required=True, type=float, help="Reporting attempt deadline only")
     parser.add_argument("finite_args", nargs=argparse.REMAINDER, help="-- followed by the existing finite execution arguments")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv=None):
+    args = argument_parser().parse_args(argv)
     finite_args = args.finite_args[1:] if args.finite_args[:1] == ["--"] else args.finite_args
     output = args.report_dir.resolve()
     try:

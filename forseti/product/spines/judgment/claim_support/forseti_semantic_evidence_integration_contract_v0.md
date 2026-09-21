@@ -2599,6 +2599,54 @@ Staged semantic responses retain their separate explicit-recovery boundary.
 
 ### Preparation from verified inputs
 
+For an already selected verified case whose intended endpoint is a finite run,
+the maintained offline sizing entry is, from `forseti-harness/`:
+
+```text
+python -X utf8 -m runners.run_finite_semantic_consolidation prepare --result-out NEW_PREPARATION_JSON --encoding ENCODING --effective-context-tokens BUDGET --generated-content-reserve-tokens GENERATED --output-reserve-tokens OUTPUT --other-overhead-reserve-tokens OVERHEAD -- --source SOURCE_JSON --bundle BUNDLE_JSON --verified VERIFIED_JSON --questions QUESTIONS_JSON --previous-answer PRIOR_ANSWER_JSON --output-dir NEW_RUN_ROOT
+```
+
+After `--`, callers may instead supply the existing `run-and-report` arguments,
+including explicit report directory, model, effort and timeout, then its `--`
+and ordinary finite arguments. Both routes reuse their existing parsers. The
+saved `launch.cwd` and `launch.argv` are directly executable only when all
+deterministic checks and explicit planning allowances pass. Preparation never
+executes them, selects evidence, rewrites checks, or changes model/effort settings.
+Use separate, fresh result/run/report paths; replay, recovery and provider-root
+reuse are outside this fresh-run interface.
+
+Install the narrow optional `preparation` dependency in the caller's local
+environment and provide the encoding's existing tiktoken vocabulary cache
+(`TIKTOKEN_CACHE_DIR`, `DATA_GYM_CACHE_DIR`, or tiktoken's default temporary cache).
+Preparation reads and hash-checks cached vocabulary only: it never downloads or
+repairs a cache. Missing tokenizer, encoding cache, or explicit capacity inputs
+returns `FINITE_PREPARATION_CAPACITY_UNKNOWN`, without launch argv. Context
+budget and all three reserves are caller-supplied planning settings, not model
+limits inferred from a model name.
+
+The result counts complete rows, units, no-unit rows, containers and formation
+batches. Native owners validate original/selected provenance, exact finite
+packing, packet metadata, formation prerequisites and commissioned source-row
+anchors. Token measurements use shared runtime request builders, renderers,
+schemas and preloaded context: fixed assessment with an empty generated answer
+and view, an all-residual answer probe, and the largest formation request.
+Generated view/packet/axes/answer, finishing, correction and final reporting
+remain uncertain; planning reserves are not hard bounds, and tokenizer/model
+equivalence is not attested. `FINITE_PREPARATION_ESTIMATED_FIT` is neither an
+execution-fit guarantee, semantic-quality judgment nor authorization to launch.
+
+For a new case, questions, instructions, scope and a prior-answer object (which
+may explicitly state unavailability) still bind sizing. Omit `assessment_only`
+or its `checks` while designing sample-specific checks: sizing then returns
+`FINITE_PREPARATION_CHECKS_PENDING` without launch argv. No checks are invented.
+Explicit `checks: []` means the caller commissioned no named checks. Supplied
+checks must have unique IDs, expectation text and nonempty `source_rows`
+resolving to the selected source rows. Malformed or absent referenced rows are
+refused for their actual cause. `FINITE_PREPARATION_CAPACITY_EXCEEDED`, pending,
+unknown and refused results all exit nonzero. Results preserve input hashes and
+original proof dependencies; launch-time native validation remains unchanged.
+This optional entry introduces no gate or receipt requirement on existing runs.
+
 For an explicitly selected subset, first derive unchanged **complete rows** from
 the original source, bundle and verified compilation. From `forseti-harness/`:
 
