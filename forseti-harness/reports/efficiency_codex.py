@@ -23,7 +23,7 @@ CHILD_TOOLS = {"spawn_agent", "followup_task", "send_input", "create_thread",
                "send_message_to_thread", "fork_thread"}
 
 
-def collect_provider_roots(roots, *, started_at=None):
+def collect_provider_roots(roots, *, started_at=None, resolve_path=Path):
     """Account selected immutable native attempts, including incomplete launches.
 
     Existing receipts may be reused by a resumed command. Their costs are
@@ -46,14 +46,14 @@ def collect_provider_roots(roots, *, started_at=None):
         for path in root.rglob("recovery-*.json"):
             retries.add(path)
             try:
-                directories.add(Path(json.loads(path.read_text(encoding="utf-8"))["attempt_dir"]).resolve())
+                directories.add(resolve_path(json.loads(path.read_text(encoding="utf-8"))["attempt_dir"]).resolve())
             except (ValueError, OSError, KeyError):
                 issues.append(f"invalid_recovery_record:{path}")
     for intent in intents:
         try:
             policy = json.loads((intent.parent / "binding.json").read_text(encoding="utf-8"))
             aid = json.loads(intent.read_text(encoding="utf-8"))["attempt_id"]
-            directories.add((Path(policy["attempt_root"]) / aid).resolve())
+            directories.add(resolve_path(Path(policy["attempt_root"]) / aid).resolve())
         except (ValueError, OSError, KeyError):
             issues.append(f"unresolved_launch_intent:{intent}")
     attempts, additional = [], 0
