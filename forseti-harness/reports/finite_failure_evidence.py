@@ -126,6 +126,11 @@ def collect_failure(run_root, failure_record, operation_dir=None, snapshot_manif
     if failures[-1] != failure_path:
         raise ValueError("selected failure is not latest; use its frozen snapshot")
     inputs = {k: saved.load(v["path"], v["sha256"]) for k, v in binding["inputs"].items()}
+    if "verified_row_selection" in inputs["verified"]:
+        from judgment.verified_evidence_selection import validate_verified_selection
+        if binding.get("verified_selection_original_inputs") != inputs["verified"]["verified_row_selection"]["original_inputs"]:
+            raise ValueError("saved verified selection original binding differs")
+        validate_verified_selection(inputs["bundle"], inputs["verified"], source=inputs["source"], load=saved.load)
     providers = root
     if "provider_root" in binding:
         origin = binding["provider_root"]

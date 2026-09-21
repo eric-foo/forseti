@@ -36,7 +36,9 @@ boundaries. Run from `forseti-harness/` as shown there.
 For a commissioned checkpoint with an existing bundle and verified compilation,
 use [Preparation from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
 That entry owns the direct command, fresh outputs and preparation-only stopping
-point. [Division of labor](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#division-of-labor)
+point. Its opt-in `select-verified-rows` command derives unchanged complete rows
+from original verification before ordinary preparation, keeping full proof local
+and selected/excluded coverage explicit. [Division of labor](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#division-of-labor)
 and [Prompt-bounded hierarchy](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#prompt-bounded-hierarchy)
 own semantic requirements, current authoring and historical replay.
 [Experimental packing and authoring options](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#experimental-reconciliation-packing-unpromoted)

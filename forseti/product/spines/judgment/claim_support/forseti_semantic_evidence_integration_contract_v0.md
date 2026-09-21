@@ -2599,6 +2599,36 @@ Staged semantic responses retain their separate explicit-recovery boundary.
 
 ### Preparation from verified inputs
 
+For an explicitly selected subset, first derive unchanged **complete rows** from
+the original source, bundle and verified compilation. From `forseti-harness/`:
+
+```text
+python -m runners.run_semantic_evidence_integration select-verified-rows --source ORIGINAL_SOURCE_JSON --bundle ORIGINAL_BUNDLE_JSON --verified ORIGINAL_VERIFIED_JSON --evidence-ids SELECTED_IDS_JSON --output-dir NEW_SELECTION_DIR
+```
+
+`SELECTED_IDS_JSON` is a nonempty JSON array of unique admitted evidence-row IDs,
+not semantic-unit refs. Selection follows original source order and retains each
+selected raw row, its complete disposition and every semantic unit, including
+legitimate no-unit dispositions. Method, catalog, source context, polarity and
+conditions remain unchanged. The derived source uses bounded-slice scope and
+selected container counts; rows outside the selection are not processed by the
+new run. The compilation carries explicit original/selected/excluded counts and
+an excluded-ID digest; the original source supplies the exact excluded membership.
+
+The output `source.json`, `bundle.json` and `verified.json` feed the ordinary
+preparation command below and the finite entry. Packing uses the finite input
+boundary of 80,000 bytes and 30 rows per work unit. This is deterministic evidence
+reuse, **not fresh verification**: original raw-response, verification and repair
+manifests retain their original hashes and counts. The separate
+`verified_row_selection` manifest binds exact original file paths and SHA-256s,
+original bundle/compilation identities, selected membership and derived source
+identity. Shared reconciliation/finalization validation reloads that proof,
+validates its original guards and rederives exact selected content. Rehashing
+changed selected rows or dropping units/dispositions cannot transfer verification.
+Missing or changed originals fail closed. Keep these originals available and
+include them in any frozen snapshot; a locator or asserted mapping alone is not
+proof. Ordinary unsliced runs acquire no selection step.
+
 Use this entry when the commissioned endpoint is a prepared reconciliation
 level and the exact bundle and verified compilation already exist outside an
 established `advance` run. Reuse those inputs; do not reconstruct acquisition,
@@ -2638,6 +2668,15 @@ actual request provenance. **Prompt-bounded hierarchy** owns explicit historical
 authoring replay and semantic constraints.
 
 ### Finite execution from verified inputs (opt-in)
+
+For derived complete-row inputs, use the three files produced by
+`select-verified-rows` above. The finite binding and closeout include the required
+hash-pinned original proof dependencies, including when reading a frozen failure
+snapshot. Provider requests contain selected evidence and compact derivation
+lineage; full original manifests and excluded source bodies stay local. Coverage
+reports selected processing separately from the original captured/verified scope.
+Selection or preparation success says nothing about paid-run capacity or semantic
+quality, and does not authorize a model call.
 
 For an explicitly commissioned finite run through answering and source-backed
 assessment, use the maintained entry from `forseti-harness/`:

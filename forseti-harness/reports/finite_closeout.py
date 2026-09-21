@@ -254,6 +254,11 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
     elif provider_root != root:
         raise ValueError("unbound provider root")
     source, bundle, verified, questions = (inputs[k] for k in ("source", "bundle", "verified", "questions"))
+    if "verified_row_selection" in verified:
+        from judgment.verified_evidence_selection import validate_verified_selection
+        if binding.get("verified_selection_original_inputs") != verified["verified_row_selection"]["original_inputs"]:
+            raise ValueError("saved verified selection original binding differs")
+        validate_verified_selection(bundle, verified, source=source, load=load)
     if finite.semantic.build_bundle(source, max_prompt_bytes=80000, max_evidence_per_work_unit=30,
                                    target_bundle_version=bundle["schema_version"]) != bundle:
         raise ValueError("source and bundle binding differ")
@@ -314,7 +319,8 @@ def collect(run_root, operation_dir=None, *, failure_record=None, snapshot_manif
     expected = {"current_answer": frozen, "previously_completed_answer_for_comparison": inputs["previous_answer"],
                 "answer_commission": {"questions": questions["questions"], "worker_instructions": questions["worker_instructions"]},
                 "assessment_checks": questions["assessment_only"], "current_final_view": view,
-                "complete_frozen_source": expected_source, "complete_frozen_verified_evidence": verified,
+                "complete_frozen_source": expected_source,
+                "complete_frozen_verified_evidence": finite.provider_verified_evidence(verified),
                 "scope": questions["coverage"]}
     if "citation_validation" in assessment_input:
         expected["citation_validation"] = {"unknown_references_by_question": reference_errors,
