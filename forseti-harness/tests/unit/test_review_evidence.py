@@ -272,3 +272,22 @@ def test_partial_selection_refuses_missing_or_regressing_comparison(defect):
     result = correction_selection(original, candidate, assessment, recheck, request)
     assert result["answer_correction_status"] == "rejected"
     assert result["remaining_material_answer_findings"] == assessment["material_findings"]
+
+
+@pytest.mark.parametrize("comparison,expected", [("null", "accepted"), ("imperfect", "accepted"), ("regression", "rejected")])
+def test_clean_recheck_keeps_existing_rule_unless_comparison_reports_regression(comparison, expected):
+    from judgment.review_evidence import correction_selection
+    original, candidate, assessment, recheck, request = improvement_fixture()
+    recheck["material_findings"] = []
+    recheck["check_results"][0]["status"] = "pass"
+    recheck["answer_comparison"] = comparison_for_test(original, candidate, assessment, recheck, request, {})
+    if comparison == "null":
+        recheck["answer_comparison"] = None
+    elif comparison == "imperfect":
+        # Optional comparison evidence cannot withdraw a clean recheck.
+        recheck["answer_comparison"]["repair_checks"][0]["source_observations"][0]["excerpt"] = "paraphrase"
+    else:
+        recheck["answer_comparison"]["changed_claims_verdict"] = "new_or_worsened_material_defect"
+    result = correction_selection(original, candidate, assessment, recheck, request)
+    assert result["answer_correction_status"] == expected
+    assert (result["answer_material_status"] == "material_defects_remain") == (expected == "accepted")

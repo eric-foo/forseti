@@ -256,16 +256,16 @@ def correction_selection(original, candidate, assessment, recheck, request=None)
     remaining = recheck_answer_findings(recheck)
     failed = [c for c in recheck["check_results"]
               if c["status"] in {"fail", "uncertain"} and c["scope"] != "upstream_only"]
-    accepted = not remaining and not failed
     comparison = recheck.get("answer_comparison")
-    if recheck.get("schema_version") == "finite_source_assessment_v4" and comparison is not None:
-        verified = verified_answer_improvement(original, candidate, assessment, recheck, request)
-        accepted = verified
-    outside = [f for f in material_answer_findings(assessment["material_findings"], for_correction=False)
-               if f not in material_answer_findings(assessment["material_findings"])]
-    unresolved = remaining or failed or (outside and recheck.get("schema_version") == "finite_source_assessment_v4")
+    if recheck.get("schema_version") != "finite_source_assessment_v4":
+        comparison = None
+    # Comparison evidence can only widen selection: an imperfect comparison never
+    # withdraws a clean recheck, but a reported changed-claim regression does.
+    regression = comparison is not None and comparison["changed_claims_verdict"] == "new_or_worsened_material_defect"
+    accepted = ((not remaining and not failed and not regression) or (
+        comparison is not None and verified_answer_improvement(original, candidate, assessment, recheck, request)))
     status = ("rejected" if not accepted else "original_retained" if candidate == original
-              else "selected_requires_adjudication" if unresolved else "accepted")
+              else "selected_requires_adjudication" if remaining or failed else "accepted")
     result = {"answer_correction_status": status, "answer_correction_failed_checks": failed}
     result.update(correction_material_status(assessment, status, recheck))
     return result

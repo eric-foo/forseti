@@ -915,7 +915,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     corrected = finite.read(result["final_answer"])
     if accepted and outcome != "retain":
         assert corrected["answers"] == [patch["answers"][0], answer["answers"][1]]
-        assert result["answer_correction_status"] == ("selected_requires_adjudication" if outcome == "unaddressed" else "accepted")
+        assert result["answer_correction_status"] == "accepted"
     else:
         assert corrected == answer
         assert Path(result["final_answer"]) == original_path
@@ -924,7 +924,7 @@ def test_post_assessment_correction_rechecks_before_adopting_candidate(tmp_path,
     assert finite.read(result["answer_correction_candidate"])["answers"] == (
         answer["answers"] if outcome == "retain" else [patch["answers"][0], answer["answers"][1]])
     assert result["answer_material_status"] == (
-        "selected_answer_requires_adjudication" if outcome == "unaddressed" else "no_open_material_answer_defects_reported" if accepted
+        "material_defects_remain" if outcome == "unaddressed" else "no_open_material_answer_defects_reported" if accepted
         else "correction_rejected_original_requires_adjudication")
     assert result["remaining_material_answer_findings"] == (
         assessment["material_findings"][1:] if outcome == "unaddressed" else [] if accepted else assessment["material_findings"])

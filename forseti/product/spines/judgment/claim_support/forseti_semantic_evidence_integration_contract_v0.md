@@ -2963,7 +2963,9 @@ findings remain visible even when their artifact labels cannot route a correctio
 An affected-scope recheck cannot clear original findings outside its nominations.
 A clean candidate retains the existing acceptance rule: no open material answer
 defects and no failed or uncertain answer or unknown-scope checks; minor findings
-and partial checks alone do not prevent adoption. Working-answer selection is
+and partial checks alone do not prevent adoption. An incomplete comparison cannot
+withdraw that result; a comparison reporting a new or worsened material defect
+rejects it. Working-answer selection is
 distinct from full approval. A corrected candidate may instead be selected with
 `answer_correction_status: selected_requires_adjudication` when the same affected
 recheck source-verifies every proposed repair and establishes no new or worsened
