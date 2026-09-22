@@ -2019,11 +2019,12 @@ def advance_semantic_run(
         if answer_commission_path is not None:
             if answer_capacity_path is None:
                 raise ValueError("answer commission requires explicit answer capacity")
-            from judgment.complete_case_consumer import advance as advance_consumer
+            from judgment.complete_case_consumer import advance as advance_consumer, validate_capacity
             from runners.finite_preparation import offline_tokenizer
             from runners.run_codex_provider_attempt import preloaded_context
             from runners.run_finite_semantic_consolidation import CONTEXT
             capacity = _load_object(answer_capacity_path)
+            validate_capacity(capacity)
             tokenizer, _ = offline_tokenizer(capacity["encoding"])
             context, _ = preloaded_context(CONTEXT)
             state.update(advance_consumer(source, verified, view, _load_object(answer_commission_path),
@@ -4240,9 +4241,9 @@ def main(argv: list[str] | None = None) -> int:
                 reconciliation_authoring_revision=args.reconciliation_authoring_revision,
                 answer_commission_path=args.answer_commission, answer_capacity_path=args.answer_capacity)
         elif args.command == "submit-consumer-response":
-            from judgment.complete_case_consumer import read, submit
+            from judgment.complete_case_consumer import read, submit, validate_request
             from runners.finite_preparation import offline_tokenizer
-            request = read(args.job)
+            request = validate_request(read(args.job), args.job_sha256)
             tokenizer, _ = offline_tokenizer(request["capacity"]["encoding"])
             result = submit(args.job, args.job_sha256, args.response,
                 lambda value: len(tokenizer.encode(value, disallowed_special=())))

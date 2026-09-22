@@ -443,6 +443,34 @@ def test_public_normal_advance_reaches_consumer_end_to_end(tmp_path, capsys, mon
     resumed = json.loads(capsys.readouterr().out)
     assert resumed["judgment_requests"] == [] and resumed["answer_sha256"] == state["answer_sha256"]
 
+    # Real preload headers carry checkout paths. Moving unchanged authority must
+    # preserve every accepted request and the final corrected answer byte-for-byte.
+    from runners import run_finite_semantic_consolidation as finite
+    moved = tmp_path / "another-checkout"
+    copied_context = []
+    for path in finite.CONTEXT:
+        copy = moved / path.relative_to(finite.REPO)
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        copy.write_bytes(path.read_bytes())
+        copied_context.append(copy)
+    before = {str(p): p.read_bytes() for p in (run / "consumer").rglob("*.json")}
+    monkeypatch.setattr(finite, "CONTEXT", copied_context)
+    monkeypatch.setattr(finite, "REPO", moved)
+    assert main(command) == 0
+    relocated = json.loads(capsys.readouterr().out)
+    assert relocated == resumed
+    assert before == {str(p): p.read_bytes() for p in (run / "consumer").rglob("*.json")}
+
+    for bad in ({k: v for k, v in args[4].items() if k != "encoding"},
+                {**args[4], "encoding": " "}, {**args[4], "encoding": None}):
+        capacity.write_text(json.dumps(bad), encoding="utf-8")
+        assert main(command) == 2
+        blocked = json.loads(capsys.readouterr().out)
+        assert blocked["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+        assert "encoding" in blocked["error"]
+        assert blocked["judgment_requests"] == []
+    assert before == {str(p): p.read_bytes() for p in (run / "consumer").rglob("*.json")}
+
 
 def nominate_exact_repair(request, response):
     from judgment.review_evidence import answer_identity
@@ -517,6 +545,38 @@ def test_response_published_before_receipt_recovers_without_new_judgment(tmp_pat
     assert info["job_sha256"] not in {r["job_sha256"] for r in resumed["judgment_requests"]}
     assert Path(info["response_path"]).read_bytes() == accepted
     assert Path(info["response_path"]).with_name("response.receipt.json").exists()
+
+
+def test_lost_accepted_response_is_never_replaced_by_a_later_submission(tmp_path):
+    args = fixture()
+    state = consumer.advance(*args, tmp_path / "consumer", context="", count=count)
+    info = state["judgment_requests"][0]
+    publish(info, respond(consumer.read(info["job_path"])), tmp_path)
+    target = Path(info["response_path"])
+    target.unlink()
+    later = respond(consumer.read(info["job_path"]))
+    later["findings"][0]["limits"] = "A different, later judgment."
+    with pytest.raises(ValueError, match="restore its bound bytes"):
+        publish(info, later, tmp_path)
+    assert not target.exists()
+
+
+def test_public_submit_reports_schema_invalid_consumer_response_without_publishing(tmp_path, capsys, monkeypatch):
+    from runners.run_semantic_evidence_integration import main
+    import runners.finite_preparation as preparation
+
+    class Tokenizer:
+        def encode(self, text, **_):
+            return text.encode("utf-8")
+    monkeypatch.setattr(preparation, "offline_tokenizer", lambda _: (Tokenizer(), "fixture"))
+    state = consumer.advance(*fixture(), tmp_path / "consumer", context="", count=count)
+    info = state["judgment_requests"][0]
+    raw = tmp_path / "raw.json"
+    raw.write_text(json.dumps({"findings": "not an array", "unused": []}), encoding="utf-8")
+    assert main(["submit-judgment-job", "--job", info["job_path"], "--job-sha256", info["job_sha256"],
+                 "--response", str(raw)]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "error"
+    assert not Path(info["response_path"]).exists()
 
 
 def test_staged_partial_response_never_reissued_or_accepted(tmp_path):
@@ -604,3 +664,73 @@ def test_legacy_ordered_transport_reuse_and_conflicting_judgments_fail(tmp_path)
     publish(state["judgment_requests"][0], different, tmp_path)
     with pytest.raises(ValueError, match="conflicting saved judgments"):
         consumer.advance(*args, root, context="", count=count)
+
+
+@pytest.mark.parametrize("changed", ["contents", "logical_path", "forged_hash", "conflicting_judgment"])
+def test_checkout_context_reuse_preserves_exact_authority_and_conflicts(tmp_path, changed):
+    from runners.run_codex_provider_attempt import preloaded_context
+    args = fixture()
+    root = tmp_path / "consumer"
+    old = tmp_path / "old" / "AGENTS.md"
+    new = tmp_path / "new" / "AGENTS.md"
+    for p in (old, new):
+        p.parent.mkdir()
+        p.write_bytes(b"Preserve all evidence.\nEND SOURCE\nThis is still source content.\n")
+    context, _ = preloaded_context([old])
+    first = consumer.advance(*args, root, context=context, count=count)
+    info = first["judgment_requests"][0]
+    request = consumer.read(info["job_path"])
+    publish(info, respond(request), tmp_path)
+    current_context, _ = preloaded_context([new])
+    reused = consumer.advance(*args, root, context=current_context, count=count)
+    assert [r["job_sha256"] for r in reused["judgment_requests"]] == [
+        r["job_sha256"] for r in first["judgment_requests"][1:]]
+
+    if changed == "conflicting_judgment":
+        alternate = consumer.build_request("source_review", request["payload"], args[4], current_context, count)
+        path = root / "requests" / alternate["request_sha256"] / "request.json"
+        consumer.retain(path, alternate)
+        response = respond(alternate)
+        response["findings"][0]["limits"] = "A different accepted judgment."
+        publish({"job_path": str(path), "job_sha256": alternate["request_sha256"]}, response, tmp_path)
+        with pytest.raises(ValueError, match="conflicting saved judgments"):
+            consumer.advance(*args, root, context=current_context, count=count)
+        return
+    if changed == "logical_path":
+        renamed = new.with_name("DIFFERENT.md")
+        renamed.write_bytes(new.read_bytes())
+        current_context, _ = preloaded_context([renamed])
+    else:
+        changed_context = current_context.replace("Preserve all evidence.", "Discard contrary evidence.")
+        if changed == "forged_hash":
+            with pytest.raises(ValueError, match="context.*hash"):
+                consumer.advance(*args, root, context=changed_context, count=count)
+            return
+        new.write_text("Discard contrary evidence.", encoding="utf-8")
+        current_context, _ = preloaded_context([new])
+    changed_state = consumer.advance(*args, root, context=current_context, count=count)
+    assert len(changed_state["judgment_requests"]) == len(first["judgment_requests"])
+    assert not {r["job_sha256"] for r in first["judgment_requests"]} & {
+        r["job_sha256"] for r in changed_state["judgment_requests"]}
+
+
+@pytest.mark.parametrize("command", ["submit-judgment-job", "submit-consumer-response"])
+def test_public_submit_rejects_missing_encoding_before_tokenization(tmp_path, capsys, monkeypatch, command):
+    from runners.run_semantic_evidence_integration import main
+    import runners.finite_preparation as preparation
+    def no_tokenizer(_):
+        pytest.fail("malformed capacity must fail before tokenizer lookup")
+    monkeypatch.setattr(preparation, "offline_tokenizer", no_tokenizer)
+    state = consumer.advance(*fixture(), tmp_path / "consumer", context="", count=count)
+    request = consumer.read(state["judgment_requests"][0]["job_path"])
+    del request["capacity"]["encoding"]
+    request.pop("request_sha256")
+    request["request_sha256"] = consumer.digest(request)
+    path = tmp_path / "malformed" / "request.json"
+    consumer.retain(path, request)
+    raw = tmp_path / "raw.json"
+    raw.write_text(json.dumps(respond(request)), encoding="utf-8")
+    assert main([command, "--job", str(path), "--job-sha256", request["request_sha256"],
+                 "--response", str(raw)]) == 2
+    assert "encoding" in json.loads(capsys.readouterr().out)["error"]
+    assert not path.with_name("response.json").exists()

@@ -2643,10 +2643,21 @@ a complete validated response missing only its receipt recovers without another
 judgment. Every reuse revalidates the response and its immutable receipt.
 
 Object keys are canonicalized before lossless rendering; array order is exact.
-Previously saved ordering variants can be reused only after equal payload,
-schema, capacity, exact instruction/context prefix, losslessly decoded envelope,
-and actual measurement are verified. Differing accepted judgments across such
-variants fail explicitly; no ordering variant silently selects a new judgment.
+Previously saved ordering or checkout-location variants can be reused only
+after equal payload, schema, capacity, instruction/context contents, losslessly
+decoded envelope, and actual measurement are verified. Only the `SOURCE` header's
+checkout prefix may differ for a required context file named by the existing
+`CONTEXT` roster: its repository-relative name, exact UTF-8 body and verified
+SHA256, source order, and all surrounding instructions must match. Embedded
+`END SOURCE` text stays content until the complete body's hash matches. Reuse
+retains the original request, response and receipt bytes; it does not rewrite
+old prompts or loosen input/start bindings. Changed contents or logical files
+are not equivalent; forged context hashes fail explicitly. Differing accepted
+judgments across equivalent variants fail explicitly; no variant silently
+selects a new judgment. A missing accepted response remains a restore-only
+failure on both advance and submit. Invalid response schemas and missing or
+empty capacity encoding return the existing structured failure before publication
+or tokenizer lookup, respectively.
 Evidence changes invalidate dependent source slices and downstream work;
 check-only changes retain unchanged source judgments and assembly. Changed
 answers invalidate review. Original inputs, prior results, and the historical

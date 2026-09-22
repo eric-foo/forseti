@@ -334,18 +334,73 @@ No provider jobs or Summer Fridays processing were run in this integration.
 
 ## Review disposition
 
-The carried operator-courier review remains routed to
-`docs/prompts/reviews/bounded_complete_consumer_review_patch_20260922.md`.
-The earlier response/receipt interruption gap now has concrete injected-failure
-and recovery coverage. The courier's bounded persistence/recovery scope now
-includes process-stable request identity, exact old-transport equivalence,
-conflicting saved judgments and unchanged selected-proof start. It does not
-claim that interruption remains untested or commission a general new review.
-The receiver may patch only the six implementation/test files named in that
-scope packet, at the exact frozen commit supplied by the accompanying operator
-courier. This replaces the former mutable-file-hash binding. The packet is not
-executable alone: target/revision and receiver binding come from that courier.
-No reviewer was dispatched. Parent owns freezing and publication, required CI,
-review adjudication and landing.
+The Anthropic controller returned review of immutable revision
+`88ad6fe8463db000c9101ad2f6ed9bb4cf514cf4` with changes limited to the consumer
+and its unit tests. Home-model adjudication kept both submitted fixes:
 
-review_routing_status: routed docs/prompts/reviews/bounded_complete_consumer_review_patch_20260922.md
+- F1 accepted: submit must not publish a later judgment when an accepted response
+  is missing but its receipt survives. The same restore-only failure already
+  governs advance; the patch now enforces it before response publication.
+- F2 accepted: schema-invalid responses must reach the existing structured error
+  boundary. Preserve the schema failure's explanation through `ValueError`;
+  rejected responses remain unpublished.
+- R1 accepted and closed in the existing consumer reuse boundary. Compare exact
+  context bodies and verified hashes under the existing roster's logical file
+  names, allowing only checkout-location header changes. Preserve original
+  request/answer/receipt bytes and measured delivery. Changed logical files or
+  contents do not reuse; forged context hashes and conflicting accepted judgments
+  fail. No shared provider launcher change or new persisted identity registry is
+  needed. Input/start bindings remain exact.
+- R2 accepted and closed: validate nonempty string encoding before advance's
+  tokenizer lookup, and validate saved consumer capacity at request intake and
+  both public submission commands. Missing/empty encoding returns structured
+  failure with no response publication or new judgment request.
+
+The relocation regression failed before R1's patch by returning new source jobs
+instead of the already checked answer. After the patch, the public route copies
+all four actual context sources to another checkout and returns the exact same
+answer with zero jobs and every consumer JSON artifact byte-for-byte unchanged.
+Additional negative cases cover changed source contents, changed logical names,
+forged hashes, conflicting accepted judgments, and literal END SOURCE text inside
+a context file. Missing encoding reproduced an uncaught KeyError on advance and
+the compatibility submit command before their corrections. The test initially
+expected exit 1; it was corrected to the existing runner's documented-in-code
+error exit 2, while retaining the structured-block/no-publication assertions.
+
+Parent validation on the final patch: 97 consumer/selection/review-evidence tests
+passed; 64 native advance, judgment-delivery, inventory and version-pin tests
+passed (510 deselected). The controller's original 91 + 64 results remain its
+reported evidence; the parent independently ran both suites on the adjudicated
+working tree. These tests are structural, not model-quality proof.
+
+The saved independent public CLI fixture was also rebuilt from its bound inputs
+with the real offline tokenizer and deterministic responses. All nine phases
+passed; the answer file exactly reproduced pinned SHA256
+`fb1a0991138dddd9adf0833d55ed175073953d86c6f0f23f2979461475338d38`, completed
+resume issued zero jobs, exact correction/recheck retained originals, and changed
+input bindings remained blocked. Working-tree evidence:
+`C:/Users/vmon7/AppData/Local/Temp/forseti-consumer-adjudicated-gu_2r25i/public/result.json`,
+SHA256 `dc7cb1a525cd954cd79c5ed599d1f9ac1f65cf126051949b5d06058df46149cd`.
+The first scratch replay was blocked by sandbox access to the existing optional
+tokenizer; a second attempt could not read the first sandbox's scratch file. The
+successful run read the original script and bound inputs directly with approved
+access. No dependency was installed or input evidence changed.
+
+The controller's clean-export replay preserved semantics but changed request IDs
+with checkout location; its patched-original-path replay preserved the answer
+bytes. Its legacy-reuse reproduction preserved prior artifacts. It did not
+reproduce the live nested-tool delivery pin or locate the final handoff replay
+script. Those two pins remain historical observations, not fresh controller
+proof. This adjudication changes response admission/context reuse, not chunk
+transport or generated framing; the passing scoped suite covers those existing
+boundaries. No provider jobs or current Summer Fridays processing were run.
+Full-case input readiness, full-case capacity fit and semantic quality remain
+unclaimed. Writer isolation was observed from clean intake/no lock and the
+returned bounded diff; this is not proof of a concurrent-writer capability.
+
+The transport-only courier is retired in this change after adjudication; its
+exact review instructions remain in Git history at the reviewed revision. This
+section owns the current disposition, and the PR owns landing/CI state. No
+unresolved material review finding remains.
+
+review_routing_status: routed -- chat_only_adjudicated: Anthropic return at 88ad6fe8 adjudicated; F1/F2 kept and R1/R2 closed with focused regressions and independent public replay.

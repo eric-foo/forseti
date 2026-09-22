@@ -6,6 +6,7 @@ and accepted responses are immutable and addressed by their actual dependencies.
 from collections import Counter, defaultdict
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, ValidationError
@@ -120,7 +121,11 @@ def exact(actual, expected, boundary):
 
 
 def validate_response(request, response, count):
-    Draft202012Validator(request["schema"]).validate(response)
+    try:
+        Draft202012Validator(request["schema"]).validate(response)
+    except ValidationError as exc:
+        # Callers report ValueError as a preserved failure, never a crash.
+        raise ValueError(f"consumer response schema violation: {exc.message}") from exc
     def text_and_array_rules(value, *, exact_after=False):
         if isinstance(value, str) and not value.strip() and not exact_after:
             raise ValueError("consumer response contains empty text")
@@ -297,6 +302,8 @@ def prepare_source_requests(groups, commission, capacity, context, count, *, pha
 
 
 def validate_capacity(capacity):
+    if not isinstance(capacity, dict) or not isinstance(capacity.get("encoding"), str) or not capacity["encoding"].strip():
+        raise ValueError("consumer requires explicit nonempty encoding")
     for key in ("effective_context_tokens", "output_reserve_tokens", "max_rows_per_slice"):
         if type(capacity.get(key)) is not int or capacity[key] <= 0:
             raise ValueError(f"consumer requires positive {key}")
@@ -405,6 +412,29 @@ def reused_nonclaims(groups):
     return records, membership
 
 
+def context_prefix_identity(prefix):
+    """Compare exact authority bytes while allowing only checkout header relocation."""
+    from runners.run_finite_semantic_consolidation import CONTEXT, REPO
+    logical_paths = {p.relative_to(REPO).as_posix() for p in CONTEXT}
+    header = re.compile(r"^SOURCE ([^\r\n]+)\nSHA256 ([0-9a-f]{64})\n", re.MULTILINE)
+    ending = "\nEND SOURCE\n"
+    parts, cursor = [], 0
+    while match := header.search(prefix, cursor):
+        end = prefix.find(ending, match.end())
+        # A literal END SOURCE in a supplied file is content, not a delimiter.
+        while end >= 0 and hashlib.sha256(prefix[match.end():end].encode("utf-8")).hexdigest() != match[2]:
+            end = prefix.find(ending, end + 1)
+        if end < 0:
+            raise ValueError("preloaded context source hash differs")
+        label = match[1].replace("\\", "/")
+        names = [name for name in logical_paths if label.endswith("/" + name)]
+        identity = names[0] if len(names) == 1 else match[1]
+        stop = end + len(ending)
+        parts.extend((prefix[cursor:match.start(1)], identity, prefix[match.end(1):stop]))
+        cursor = stop
+    return "".join(parts) + prefix[cursor:]
+
+
 def advance(source, verified, view, commission, capacity, root, *, context, count):
     """Return all ready bounded jobs, or immutable checked answers / real blockers."""
     validate_capacity(capacity)
@@ -425,7 +455,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     binding_fields = ("version", "phase", "payload", "schema", "capacity")
 
     def saved_request(request):
-        """Reuse old object ordering only after proving equal complete delivery."""
+        """Reuse ordering/checkout variants only after proving equal complete delivery."""
         nonlocal stored_requests
         from judgment.review_evidence import RENDERING_GUIDANCE, expand_evidence
         # In-memory lookup only; each existing request is read at most once per
@@ -439,6 +469,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
         key = digest({k: request.get(k) for k in binding_fields})
         marker = RENDERING_GUIDANCE + "\n\n"
         prefix, envelope = request["prompt"].rsplit(marker, 1)
+        prefix_identity = context_prefix_identity(prefix)
         expected = expand_evidence(json.loads(envelope))
         matches, accepted = [], set()
         for path, saved in stored_requests[key]:
@@ -446,7 +477,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
             if marker not in saved["prompt"]:
                 continue
             old_prefix, old_envelope = saved["prompt"].rsplit(marker, 1)
-            if old_prefix != prefix or expand_evidence(json.loads(old_envelope)) != expected:
+            if context_prefix_identity(old_prefix) != prefix_identity or expand_evidence(json.loads(old_envelope)) != expected:
                 continue
             measured = count(compact({"prompt": saved["prompt"], "response_schema": saved["schema"]}))
             total = measured + capacity["output_reserve_tokens"] + capacity["other_overhead_reserve_tokens"]
@@ -664,6 +695,7 @@ def validate_request(request, expected_sha256):
     body = {k: v for k, v in request.items() if k != "request_sha256"}
     if digest(body) != expected_sha256 or request["request_sha256"] != expected_sha256:
         raise ValueError("consumer request identity mismatch")
+    validate_capacity(request.get("capacity"))
     return request
 
 
@@ -672,6 +704,8 @@ def submit(request_path, expected_sha256, response_path, count):
     response = read(response_path)
     validate_response(request, response, count)
     target = Path(request_path).parent / "response.json"
+    if not target.exists() and target.with_name("response.receipt.json").exists():
+        raise ValueError("accepted consumer response missing; restore its bound bytes, do not rejudge")
     retain(target, response)
     retain(target.with_name("response.receipt.json"), {"request_sha256": expected_sha256, "response_sha256": digest(response)})
     return {"status": "CONSUMER_RESPONSE_ACCEPTED", "response_path": str(target), "response_sha256": digest(read(target))}
