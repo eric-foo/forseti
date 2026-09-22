@@ -30,6 +30,11 @@ def _read(path):
     return json.loads(Path(path).read_text(encoding="utf-8-sig"), object_pairs_hook=unique_json_object)
 
 
+def _attempt_dir(provider_root, job_sha256):
+    # The only attempt a direct job may own: no retries are configured.
+    return Path(provider_root).resolve() / job_sha256 / "attempts" / "job-attempt-001"
+
+
 def execute_judgment_job(*, job_path, job_sha256, provider_root, model, reasoning_effort,
                          timeout_seconds, codex_executable=None):
     """One provider attempt; restart reuses the existing provider job/answer.
@@ -107,8 +112,7 @@ def execute_judgment_job(*, job_path, job_sha256, provider_root, model, reasonin
         from provider_jobs import _check_attempt
         policy = _read(directory / "job" / "binding.json")
         attempt = Path(result["attempt_dir"])
-        expected_attempt = directory / "attempts" / "job-attempt-001"
-        if attempt.resolve() != expected_attempt.resolve() or result.get("attempt_count") != 1:
+        if attempt.resolve() != _attempt_dir(provider_root, job_sha256) or result.get("attempt_count") != 1:
             raise ValueError("direct provider result has a foreign attempt or retry")
         receipt = _check_attempt(attempt, policy["binding"])
         if receipt != result.get("execution_receipt") or receipt.get("outcome") != "PROCESS_COMPLETED":
@@ -136,11 +140,15 @@ def execute_semantic_run(*, advance_kwargs, model, reasoning_effort, timeout_sec
         raise ValueError("--execute requires model, reasoning effort and positive finite timeout")
     root = Path(advance_kwargs["run_dir"]).resolve()
     completed = []
+    # Count newly recorded launch attempts, including refusals and unknown
+    # outcomes. An intent without an attempt directory is still not proof of
+    # zero execution. This count is not model-call or token-usage accounting.
+    launched = 0
     with _lock(root / "execution.lock"):
         while True:
             state = native.advance_semantic_run(**advance_kwargs)
             state.pop("model_api_calls", None)  # advance's zero covers preparation only
-            state["executed_job_count"] = len(completed)
+            state["executed_job_count"] = launched
             state["provider_root"] = str(root / "provider")
             requests = state.get("judgment_requests", [])
             if state["status"] != "SEMANTIC_JUDGMENT_REQUIRED" or not requests:
@@ -150,6 +158,8 @@ def execute_semantic_run(*, advance_kwargs, model, reasoning_effort, timeout_sec
                     action="Configured job bound reached; no further judgments launched.")
                 return state
             for request in requests[:max_jobs - len(completed)]:
+                intent = root / "provider" / request["job_sha256"] / "job" / "launch-001.json"
+                existed = intent.exists()
                 try:
                     result = execute_judgment_job(job_path=Path(request["job_path"]),
                         job_sha256=request["job_sha256"], provider_root=root / "provider",
@@ -157,6 +167,8 @@ def execute_semantic_run(*, advance_kwargs, model, reasoning_effort, timeout_sec
                         codex_executable=codex_executable)
                 except (OSError, ValueError, ValidationError) as exc:
                     return {"status": "SEMANTIC_EXECUTION_BLOCKED", "error": str(exc),
-                        "executed_job_count": len(completed), "failed_job": request["job_path"],
+                        "executed_job_count": launched + (not existed and intent.exists()),
+                        "failed_job": request["job_path"],
                         "provider_root": str(root / "provider"), "judgment_requests": []}
+                launched += not existed and intent.exists()
                 completed.append(result)

@@ -2527,9 +2527,12 @@ accounting; those belong to a separately commissioned measurement or validation.
 
 The ordinary executor consumes `judgment_requests` in code, with one fresh
 provider context per request and independent extraction and verifier judgments.
-It uses the maintained subscription-only provider runner with shell execution
-disabled, supplies the complete prompt/schema and required context, then invokes
-the native submission validator itself. There is no model dispatcher, polling
+It uses the maintained subscription-only provider runner with explicit launch
+restrictions for the direct role's named capabilities, supplies the complete prompt/schema and
+required context, and disables automatic project instruction discovery to avoid
+duplicating that context. Saved receipts must retain those restrictions; any
+observed non-judgment event blocks submission. The native submission validator
+still decides acceptance. There is no model dispatcher, polling
 agent, file-writing agent, or fallback to that workflow. Requests carry a compact
 `execution` descriptor instead of a worker script. Execution is sequential;
 concurrency is not part of judgment identity. Provider attempts, failed raw
@@ -2537,6 +2540,12 @@ answers and native usage remain under `RUN_ROOT/provider/`; a failed or unknown
 attempt stops the invocation with no automatic retry. A restart reuses completed
 attempts and accepted responses. Existing `run_efficiency` observation/reporting
 remains the owner of aggregate accounting; execution itself adds no model report.
+`executed_job_count` counts newly recorded provider launch attempts in this
+invocation, including failed or unknown launches; reuse counts zero. A launch
+intent without its attempt directory remains unknown. This operational count
+is neither model-call count nor a token-usage estimate. The configured job bound
+also counts reused submissions. Blocked compact output preserves the named
+invalid/staged artifact paths needed for recovery.
 
 For an owner-selected subset of completed extraction batches, prepare a new
 selection without modifying the original run:

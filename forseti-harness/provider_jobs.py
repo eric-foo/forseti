@@ -194,8 +194,15 @@ def _check_attempt(path, binding):
     if task_prompt_sha != binding["prompt_sha256"] or receipt.get("response_schema_sha256") != binding["schema_sha256"]:
         raise ValueError("provider attempt input binding changed")
     if binding.get("direct_judgment"):
+        from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_CONFIG, DIRECT_JUDGMENT_DISABLED_FEATURES
         disabled = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--disable"]
-        if receipt.get("launch_metadata", {}).get("direct_judgment") is not True or "shell_tool" not in disabled:
+        settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
+        if (receipt.get("launch_metadata", {}).get("direct_judgment") is not True
+                or not set(DIRECT_JUDGMENT_DISABLED_FEATURES).issubset(disabled)
+                or any(flag in command for flag in ("--enable", "-c", "--profile", "-p"))
+                or any(value.startswith(("features=", "features.", "tools=")) for value in settings)
+                or any([value for value in settings if value.split("=", 1)[0] == required.split("=", 1)[0]]
+                       != [required] for required in DIRECT_JUDGMENT_CONFIG)):
             raise ValueError("provider attempt direct judgment restriction changed")
         if "preloaded_context_sha256" not in binding:
             from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_INSTRUCTION

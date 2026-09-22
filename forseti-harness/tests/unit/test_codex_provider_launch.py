@@ -106,7 +106,7 @@ def test_required_context_is_verbatim_without_shell_or_prompt_mutation(launch):
 
 
 @pytest.mark.parametrize("with_context", [False, True])
-def test_direct_judgment_disables_shell_preserves_input_and_records_mode(launch, with_context):
+def test_direct_judgment_restricts_capabilities_and_discovery_preserving_input(launch, with_context):
     launch.argv += ["--direct-judgment"]
     if with_context:
         source = launch.root / "authority.md"
@@ -117,7 +117,10 @@ def test_direct_judgment_disables_shell_preserves_input_and_records_mode(launch,
     call = launch.launches[0]
     assert call["launch_metadata"]["direct_judgment"] is True
     disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
-    assert "shell_tool" in disabled
+    assert {"shell_tool", "unified_exec", "multi_agent", "apps", "plugins", "browser_use",
+            "computer_use", "image_generation", "code_mode_host", "tool_suggest"}.issubset(disabled)
+    for setting in ("project_doc_max_bytes=0", "tools.view_image=false", 'web_search="disabled"'):
+        assert call["command"].count(setting) == 1
     setting = next(p for p in call["command"] if p.startswith("developer_instructions="))
     if with_context:
         packet = json.loads(call["prompt_path"].read_text(encoding="utf-8"))

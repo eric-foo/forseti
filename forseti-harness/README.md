@@ -179,6 +179,16 @@ active; select every required source for the bounded task, and report missing
 context rather than manufacturing an answer. Do not use this mode for a task
 that needs further file discovery or shell execution.
 
+The semantic runner's `--direct-judgment` role additionally disables automatic
+project instruction discovery (`project_doc_max_bytes=0`) because its exact
+required instructions are already supplied. It explicitly requests restrictions
+on shell, delegation, connector, plugin, browser, computer, image and code-mode
+capabilities at launch; the saved-attempt validator checks those settings, and semantic
+submission rejects any observed non-judgment event. Default provider launches
+and ordinary `--preload-context` behavior are unchanged. Runtime overhead and
+actual model usage still require native observations, not an inference from
+these settings.
+
 Preloaded text and the original task travel through standard input in the
 attempt's `context-input.json`, keeping document text out of the launch command.
 A short developer instruction explicitly delegates developer-level authority to

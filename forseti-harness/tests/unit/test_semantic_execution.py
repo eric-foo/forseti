@@ -112,7 +112,7 @@ def test_selection_tampering_blocks_before_new_judgments(corpus, tmp_path, chang
     assert not kwargs["run_dir"].exists()
 
 
-def simulated_provider(monkeypatch, tmp_path, responses, calls):
+def simulated_provider(monkeypatch, tmp_path, responses, calls, *, before_launch=None):
     """Use the real job state machine with an explicitly simulated model boundary."""
     codex = tmp_path / "simulated-codex"
     codex.write_text("offline simulation", encoding="utf-8")
@@ -133,14 +133,19 @@ def simulated_provider(monkeypatch, tmp_path, responses, calls):
         if context:
             binding.update(preloaded_context_sha256=hashlib.sha256(context.encode()).hexdigest(), preloaded_context_files=context_files)
         def launch(aid):
+            if before_launch is not None:
+                before_launch()
             calls.append({"prompt": prompt.read_bytes(), "schema": native._load_object(schema), "command": command})
             attempt = Path(arg("--attempt-root")) / aid
             attempt.mkdir(parents=True)
             write(attempt / "response.json", responses.pop(0))
             (attempt / "events.jsonl").write_text('{"type":"turn.completed"}\n', encoding="utf-8")
             (attempt / "stderr.log").write_text("", encoding="utf-8")
+            from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_CONFIG, DIRECT_JUDGMENT_DISABLED_FEATURES
             launch_command = [str(codex), "exec", "--model", binding["model"], "-C", binding["worktree"],
-                "--disable", "shell_tool", "--config", f'model_reasoning_effort="{binding["reasoning_effort"]}"',
+                *[part for feature in DIRECT_JUDGMENT_DISABLED_FEATURES for part in ("--disable", feature)],
+                *[part for value in DIRECT_JUDGMENT_CONFIG for part in ("--config", value)],
+                "--config", f'model_reasoning_effort="{binding["reasoning_effort"]}"',
                 "--config", "developer_instructions=" + json.dumps(context or DIRECT_JUDGMENT_INSTRUCTION)]
             metadata = {"authentication_observed": "chatgpt", "direct_judgment": True}
             if context:
@@ -205,7 +210,7 @@ def test_invalid_answer_stops_with_preserved_failure_and_no_semantic_retry(corpu
         timeout_seconds=60, max_jobs=2)
     result = execution.execute_semantic_run(**kwargs)
     assert result["status"] == "SEMANTIC_EXECUTION_BLOCKED" and "batch identity" in result["error"]
-    assert len(calls) == 1
+    assert len(calls) == 1 and result["executed_job_count"] == 1  # a rejected answer still ran
     assert list((tmp_path / "run/extraction/responses").glob("*.tmp"))
     again = execution.execute_semantic_run(**kwargs)
     assert again["status"] == "SEMANTIC_ADVANCE_BLOCKED" and len(calls) == 1
@@ -295,6 +300,97 @@ def test_tool_escape_is_rejected_at_role_boundary_not_an_unrelated_hash_check(co
         return result
     monkeypatch.setattr(execution.subprocess, "run", escaped)
     with pytest.raises(ValueError, match="non-judgment item: command_execution"):
+        execution.execute_judgment_job(job_path=Path(request["job_path"]), job_sha256=request["job_sha256"],
+            provider_root=tmp_path / "provider", model="offline-model", reasoning_effort="high", timeout_seconds=60)
+    assert len(calls) == 1 and not Path(request["response_path"]).exists()
+
+
+def test_job_count_reports_provider_attempts_not_reuse(corpus, tmp_path, monkeypatch):
+    _, _, responses, paths = corpus
+    calls = []
+    invoke = simulated_provider(monkeypatch, tmp_path, [responses[0]], calls)
+    def interrupted(command, **kwargs):
+        invoke(command, **kwargs)
+        Path(command[command.index("--result-out") + 1]).unlink()
+        raise OSError("simulated interrupted observer")
+    monkeypatch.setattr(execution.subprocess, "run", interrupted)
+    kwargs = dict(advance_kwargs=dict(source_path=paths["source"], run_dir=tmp_path / "run",
+        max_prompt_bytes=80000, max_evidence_per_work_unit=2), model="offline-model", reasoning_effort="high",
+        timeout_seconds=60, max_jobs=1)
+    blocked = execution.execute_semantic_run(**kwargs)
+    assert blocked["status"] == "SEMANTIC_EXECUTION_BLOCKED" and len(calls) == 1
+    assert blocked["executed_job_count"] == 1
+    monkeypatch.setattr(execution.subprocess, "run", invoke)
+    resumed = execution.execute_semantic_run(**kwargs)
+    assert resumed["status"] == "SEMANTIC_EXECUTION_LIMIT_REACHED" and len(calls) == 1
+    assert resumed["executed_job_count"] == 0  # submitting the saved attempt launched nothing
+
+
+def test_cli_blocked_resume_names_preserved_artifacts(corpus, tmp_path, monkeypatch, capsys):
+    _, _, responses, paths = corpus
+    bad = deepcopy(responses[0])
+    bad["batch_id"] = "foreign-batch"
+    calls = []
+    simulated_provider(monkeypatch, tmp_path, [bad], calls)
+    argv = ["advance", "--source", str(paths["source"]), "--run-dir", str(tmp_path / "run"),
+        "--max-prompt-bytes", "80000", "--max-evidence-per-work-unit", "2", "--execute",
+        "--model", "offline-model", "--reasoning-effort", "high", "--timeout-seconds", "60", "--max-jobs", "2"]
+    assert native.main(argv) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "SEMANTIC_EXECUTION_BLOCKED"
+    assert native.main(argv) == 2
+    again = json.loads(capsys.readouterr().out)
+    staged = next((tmp_path / "run/extraction/responses").glob("*.tmp"))
+    assert again["status"] == "SEMANTIC_ADVANCE_BLOCKED" and len(calls) == 1
+    assert [Path(row["path"]).resolve() for row in again["problems"]] == [staged.resolve()]
+
+
+def test_launch_intent_without_attempt_is_counted_as_unknown_not_free(corpus, tmp_path, monkeypatch):
+    _, _, responses, paths = corpus
+    calls = []
+    def interrupted():
+        raise OSError("observer interrupted before attempt reservation")
+    simulated_provider(monkeypatch, tmp_path, [responses[0]], calls, before_launch=interrupted)
+    kwargs = dict(advance_kwargs=dict(source_path=paths["source"], run_dir=tmp_path / "run",
+        max_prompt_bytes=80000, max_evidence_per_work_unit=2), model="offline-model", reasoning_effort="high",
+        timeout_seconds=60, max_jobs=1)
+    blocked = execution.execute_semantic_run(**kwargs)
+    assert blocked["status"] == "SEMANTIC_EXECUTION_BLOCKED"
+    assert blocked["executed_job_count"] == 1 and not calls
+    assert list((tmp_path / "run/provider").glob("*/job/launch-001.json"))
+    assert not list((tmp_path / "run/provider").glob("*/attempts/job-attempt-001"))
+    again = execution.execute_semantic_run(**kwargs)
+    assert again["status"] == "SEMANTIC_EXECUTION_BLOCKED" and "execution is unconfirmed" in again["error"]
+    assert again["executed_job_count"] == 0 and not calls
+
+
+@pytest.mark.parametrize("mutation", ["missing_feature", "enabled_feature", "missing_context_cap", "duplicate_context_cap", "feature_config", "tools_config"])
+def test_saved_direct_attempt_cannot_weaken_launch_restrictions(corpus, tmp_path, monkeypatch, mutation):
+    _, _, responses, paths = corpus
+    request = native.advance_semantic_run(source_path=paths["source"], run_dir=tmp_path / "run",
+        max_prompt_bytes=80000, max_evidence_per_work_unit=2)["judgment_requests"][0]
+    calls = []
+    invoke = simulated_provider(monkeypatch, tmp_path, [responses[0]], calls)
+    def weakened(command, **kwargs):
+        result = invoke(command, **kwargs)
+        path = Path(command[command.index("--result-out") + 1])
+        saved = native._load_object(path)
+        launch_command = saved["execution_receipt"]["command"]
+        if mutation in {"missing_feature", "missing_context_cap"}:
+            value = "multi_agent" if mutation == "missing_feature" else "project_doc_max_bytes=0"
+            index = launch_command.index(value)
+            del launch_command[index-1:index+1]
+        elif mutation == "enabled_feature":
+            launch_command += ["--enable", "multi_agent"]
+        else:
+            setting = {"duplicate_context_cap": "project_doc_max_bytes=32000",
+                       "feature_config": "features.multi_agent=true",
+                       "tools_config": "tools={view_image=true}"}[mutation]
+            launch_command += ["--config", setting]
+        write(Path(saved["attempt_dir"]) / "execution_receipt.json", saved["execution_receipt"])
+        write(path, saved)
+        return result
+    monkeypatch.setattr(execution.subprocess, "run", weakened)
+    with pytest.raises(ValueError, match="direct judgment restriction changed"):
         execution.execute_judgment_job(job_path=Path(request["job_path"]), job_sha256=request["job_sha256"],
             provider_root=tmp_path / "provider", model="offline-model", reasoning_effort="high", timeout_seconds=60)
     assert len(calls) == 1 and not Path(request["response_path"]).exists()

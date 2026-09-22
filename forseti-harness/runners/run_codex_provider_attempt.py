@@ -54,6 +54,16 @@ DIRECT_JUDGMENT_INSTRUCTION = (
     "permission to invent it."
 )
 
+# Direct judgments already carry their required authority and evidence. Keep
+# automatic project discovery and unrelated capabilities out of this role.
+DIRECT_JUDGMENT_DISABLED_FEATURES = (
+    "shell_tool", "unified_exec", "multi_agent", "apps", "plugins",
+    "browser_use", "computer_use", "image_generation", "code_mode_host", "tool_suggest",
+)
+DIRECT_JUDGMENT_CONFIG = (
+    "project_doc_max_bytes=0", "tools.view_image=false", 'web_search="disabled"',
+)
+
 
 def desktop_process_context():
     """Read this runner's actual ancestry, not PATH or installation caches."""
@@ -348,12 +358,14 @@ def main() -> int:
             metadata["authentication_observed"] = "chatgpt"
             # Enforce again inside Codex to close credential changes after status.
             config += ["--config", 'forced_login_method="chatgpt"']
-        if context or args.direct_judgment:
-            config += ["--disable", "shell_tool"]
         if args.direct_judgment:
+            config += [part for feature in DIRECT_JUDGMENT_DISABLED_FEATURES for part in ("--disable", feature)]
+            config += [part for value in DIRECT_JUDGMENT_CONFIG for part in ("--config", value)]
             metadata["direct_judgment"] = True
             if not context:
                 config += ["--config", "developer_instructions=" + json.dumps(DIRECT_JUDGMENT_INSTRUCTION)]
+        elif context:
+            config += ["--disable", "shell_tool"]
         if context:
             metadata["preloaded_context_sha256"] = context_sha
             metadata["preloaded_context_files"] = json.dumps(context_files, ensure_ascii=False)

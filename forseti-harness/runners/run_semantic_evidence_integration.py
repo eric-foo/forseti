@@ -4291,11 +4291,14 @@ def main(argv: list[str] | None = None) -> int:
                     reasoning_effort=args.reasoning_effort, timeout_seconds=args.timeout_seconds,
                     max_jobs=args.max_jobs, codex_executable=args.codex_executable)
                 # Bulky planning inventories stay in the native run artifacts;
-                # a controller needs only the result and the bounded remainder.
+                # a controller needs only the result, the bounded remainder and
+                # any named invalid/staged artifacts a blocker refers to.
+                problems = result.get("response_state", {}).get("problems")
                 result = {**{key: result[key] for key in ("status", "phase", "executed_job_count",
                     "provider_root", "answer_path", "answer_sha256", "view_sha256", "error", "failed_job", "action")
                     if key in result}, "run_dir": str(args.run_dir.resolve()),
-                    "pending_job_count": len(result.get("judgment_requests", []))}
+                    "pending_job_count": len(result.get("judgment_requests", [])),
+                    **({"problems": problems} if problems else {})}
             else:
                 if any(value is not None for value in (args.model, args.reasoning_effort, args.timeout_seconds, args.max_jobs, args.codex_executable)):
                     raise ValueError("execution options require --execute; no model launched")
