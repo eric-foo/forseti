@@ -7136,7 +7136,8 @@ def _validated_carried_terminal_nodes(stage, candidate_index):
     return carried
 
 
-def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, authoring_revision=None):
+def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, authoring_revision=None,
+                                   include_legacy_schema=False):
     """Render versioned requests for an immutable, possibly partly completed stage.
 
     Stage membership and accepted response identities do not change on resume.
@@ -7203,7 +7204,9 @@ def prepare_reconciliation_prompts(bundle, stage, *, response_version=None, auth
                 "prompt_utf8_bytes": prompt_bytes,
             }
         )
-        if preserve_child_scope:
+        # Normal coordinator handoff can add native schema metadata without
+        # changing historical prompt records, stage, method or response versions.
+        if preserve_child_scope or include_legacy_schema:
             labels = current_emerging_labels if batch_index == 0 else []
             prompts[-1]["response_schema"] = (
                 _decision_reconciliation_schema(stage, batch, labels, candidate_index, evidence_index)

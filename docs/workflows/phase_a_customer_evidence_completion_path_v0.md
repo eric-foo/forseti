@@ -695,6 +695,19 @@ ID through `source_groups` and preserve its truth-support or influence layer.
 
 ### Supported operating route
 
+When the owner also commissions a complete-case answer, the normal `advance`
+entry accepts `--answer-commission` and `--answer-capacity` after its unchanged
+policy-v2 completion. The semantic-integration contract's **Bounded complete-case
+answer and review** section owns this continuation, its exact inventory/reuse
+boundaries, measured actor envelope, original-source reopening, and explicit
+capacity failures. The same command can begin with an explicit `--bundle` /
+`--verified` pair for the same source after native full-provenance validation.
+Consumer jobs use the established intake/submit handoff, preserve unchanged
+accepted work across process restarts, and support one classified exact answer
+repair plus independent recheck. The existing point/axis readers keep their
+validated pack and selected-display semantics; no axis pack is fabricated from
+the complete inventory. This does not promote the optional finite route.
+
 Follow the owning [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
 section for normal starts and resumes. It binds the command, complete request set,
 generated worker protocol, accepted-artifact reuse and stopping conditions.

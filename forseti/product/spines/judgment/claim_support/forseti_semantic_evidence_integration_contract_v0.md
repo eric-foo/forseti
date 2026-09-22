@@ -2550,10 +2550,133 @@ credits a missing answer. No semantic retry, response selection, identity reset,
 new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
 
+### Bounded complete-case answer and review
+
+An explicitly commissioned answer can continue the supported normal `advance`
+route after its native view, without adopting finite formation-plus-finish:
+
+```text
+python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT --answer-commission QUESTIONS_JSON --answer-capacity CAPACITY_JSON
+```
+
+For existing complete or `select-verified-rows` outputs, add the explicit pair
+`--bundle BUNDLE_JSON --verified VERIFIED_JSON` to that same command. Native
+validators bind the complete source/bundle relationship and full unchanged
+verification/selection proof, including mandatory original dependencies. The
+start mode and exact input files/hashes are immutable in `start.json`; reuse
+revalidates them before new judgments. Missing/changed originals or a different
+source block. This skips extraction/verification only; policy-v2 reconciliation,
+method versions and the original manifests remain unchanged. Legacy native
+reconciliation prompts receive their existing response schema as worker-handoff
+metadata without changing stored historical prompt records.
+
+Keep the same consolidation options on resume. The commission contains
+`questions` (`id`, `question`), `worker_instructions`, `coverage`, and optional
+`assessment_only.checks` (`id`, `source_rows`, `expectation`). Capacity explicitly
+names `encoding`, `effective_context_tokens`, `output_reserve_tokens`,
+`other_overhead_reserve_tokens`, and `max_rows_per_slice`. The offline cached
+tokenizer counts the full prompt, required project context, schema, generated
+worker instructions/intake framing, and reserved output/other runtime overhead
+before each dispatch. A fitting core envelope with an oversized handoff blocks. Tokenizer/model equivalence remains
+unattested; these are declared planning bounds, not a provider limit inference.
+
+`judgment/complete_case_consumer.py` consumes existing verified meanings and
+native finding relations. Whole source rows form bounded review slices, with
+original context, all same-row meanings, relation ownership, and residuals.
+All compatible commissioned questions share each slice. Verified no-unit
+dispositions are reused with their exact distinct reasons; mechanically excluded
+rows remain excluded with their original reasons. Commissioned source anchors
+reopen their raw rows. Reuse does not prove downstream irrelevance: final review
+can request exact original-source handles when an exclusion, conflict, missing
+context, or current question makes that necessary.
+
+Source judgments partition the complete supplied unit inventory into used and
+reasoned unused evidence. A used unit may legitimately inform several findings;
+duplicate findings, duplicate unused dispositions, foreign references, missing
+units, and a used/unused overlap are rejected. Final assembly receives all checked
+findings, limits, and distinct unused/reused-disposition reasons across slices.
+Short local handles resolve through an immutable exact membership manifest.
+Source-origin aliases preserve known equal/distinct identity across slices,
+source role, and independence posture; unknown identity never becomes a new
+independent person. Origin identity is not independent corroboration by itself.
+Homogeneous transport lists preserve every record while enabling the existing
+lossless renderer to factor repeated fields.
+
+The independent answer review receives the complete checked set, actual answer,
+and exact commissioned checks. It may nominate material findings and reopen
+implicated originals. One bounded original-source reinspection and recheck is
+supported. New reviews use the existing assessment finding classifications
+(`severity`, `introduced_at`, `status`, `source_refs`, `artifact_refs`) and exact
+`answer_repairs` bound to the actual answer hash; checks explicitly name scope.
+The shared `review_evidence` helpers apply admissible review-authored edits only
+to nominated current answers, compose unchanged answers exactly, then require
+one independent `correction_recheck`. Clean-only `correction_selection` may
+select the candidate; an upstream-only, unclassified, ambiguous, inapplicable,
+or failed correction leaves the original and failure visible. Original and
+candidate answers, review and recheck are retained. No extra rewrite, automatic
+retry, or reread of unchanged source jobs occurs. The optional finite v4
+improvement-comparison path is not asserted by this consumer. Saved reviews with
+no repair classification keep their prior result without inferred authority.
+Remaining defects or unresolved work return
+`COMPLETE_CASE_ANSWER_REQUIRES_REVISION`, never a checked answer. `COMPLETE_CASE_ANSWER_CHECKED` reports the actual
+review outcome, not source completeness outside the bound inventory, universal
+semantic correctness, or owner acceptance.
+
+Consumer requests and accepted responses live under `consumer/requests/` by
+content identity. The generated `judgment_worker_prompt` uses the normal
+`intake-judgment-job` / `submit-judgment-job` handoff. Intake emits the measured
+prompt and schema once; the prompt already includes project context, and the
+separate local-validation payload is not redelivered. Small/default intake remains
+unchanged. When serialized intake exceeds a conservative 60,000-byte single-return
+threshold, the generated worker automatically uses the same intake command's
+`--delivery-manifest` and byte-offset `--delivery-section` delivery. Every section
+return is at most 8,000 UTF-8 bytes with intact codepoints, and revalidates the
+same job/input hashes before reading. The generated script verifies per-chunk
+and complete-section SHA256, contiguous byte offsets and totals before the final
+`intake_end`; missing, truncated, corrupt or changed input fails incomplete.
+Chunking occurs before the tool's stdout capture, so a fitting model request no
+longer depends on capturing its entire JSON intake in one 60,000-token return.
+This threshold selects transport; it does not cap or truncate evidence. The
+legacy `submit-consumer-response` command remains compatible. Shared staged/no-replace
+publication retains invalid/incomplete staging as an explicit recovery state;
+a complete validated response missing only its receipt recovers without another
+judgment. Every reuse revalidates the response and its immutable receipt.
+
+Object keys are canonicalized before lossless rendering; array order is exact.
+Previously saved ordering or checkout-location variants can be reused only
+after equal payload, schema, capacity, instruction/context contents, losslessly
+decoded envelope, and actual measurement are verified. Only the `SOURCE` header's
+checkout prefix may differ for a required context file named by the existing
+`CONTEXT` roster: its repository-relative name, exact UTF-8 body and verified
+SHA256, source order, and all surrounding instructions must match. Embedded
+`END SOURCE` text stays content until the complete body's hash matches. Reuse
+retains the original request, response and receipt bytes; it does not rewrite
+old prompts or loosen input/start bindings. Changed contents or logical files
+are not equivalent; forged context hashes fail explicitly. Differing accepted
+judgments across equivalent variants fail explicitly; no variant silently
+selects a new judgment. A missing accepted response remains a restore-only
+failure on both advance and submit. Invalid response schemas and missing or
+empty capacity encoding return the existing structured failure before publication
+or tokenizer lookup, respectively.
+Evidence changes invalidate dependent source slices and downstream work;
+check-only changes retain unchanged source judgments and assembly. Changed
+answers invalidate review. Original inputs, prior results, and the historical
+finite route remain untouched. No provider calls are launched by `advance`.
+
+Oversized rows, generated findings, final assembly, review, reopening, schema,
+and output reservations fail visibly at their actual boundary. Nothing is
+sampled or silently shortened to fit. A source request fitting does not establish
+that generated downstream requests fit. The historical sizing and synthetic
+quality evidence, including limitations, are recorded in
+`docs/research/summer_fridays_complete_comparison_20260922/consumer_implementation.md`.
+
 ### Independent judgment workers
 
-Each ready request also binds a `semantic_judgment_job_v1` descriptor by raw
-SHA-256. Only dispatchable requests receive a descriptor, named by that hash, so
+For native extraction, verification and reconciliation, each ready request also
+binds a `semantic_judgment_job_v1` descriptor by raw SHA-256. The consumer's
+content-hashed request binding and measured intake are owned by **Bounded
+complete-case answer and review** above; the following native batch identity
+and raw-response publication details apply to the three native phases. Only dispatchable requests receive a descriptor, named by that hash, so
 accepted phases resume from any checkout and changed guidance issues a new
 descriptor. An older descriptor remains usable only while all of its pinned
 inputs remain unchanged; issuing a newer descriptor does not revoke it.
