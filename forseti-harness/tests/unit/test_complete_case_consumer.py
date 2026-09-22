@@ -1099,10 +1099,11 @@ def test_completed_legacy_result_replays_when_new_reserve_planning_selects_batch
         consumer.advance(*args, root, context="claim support fixture", count=count)
 
 
-@pytest.mark.parametrize("mode", ["clean", "repair", "late_defect"])
-def test_small_legacy_inventory_bounds_large_original_reopen_and_correction(tmp_path, mode):
+@pytest.mark.parametrize("mode,rows_per_slice", [("clean", 1), ("repair", 1), ("late_defect", 1), ("clean", 20)])
+def test_small_legacy_inventory_bounds_large_original_reopen_and_correction(tmp_path, mode, rows_per_slice):
     args = fixture()
-    args[4].update(effective_context_tokens=40000, output_reserve_tokens=3000)
+    # Multi-row packing must admit the actual worker handoff, not only the core envelope.
+    args[4].update(effective_context_tokens=40000, output_reserve_tokens=3000, max_rows_per_slice=rows_per_slice)
     source, verified = args[:2]
     for i in range(20):
         eid = "unused-" + str(i)
@@ -1120,6 +1121,9 @@ def test_small_legacy_inventory_bounds_large_original_reopen_and_correction(tmp_
             seen.append(request)
             assert info["measurement"]["total_reserved_tokens"] <= args[4]["effective_context_tokens"]
             response = respond(request)
+            if request["phase"] == "reopen" and rows_per_slice > 1:
+                for finding in response["findings"]:
+                    finding["statement"] = finding["statement"][:40]
             if request["phase"] == "answer_review":
                 reasons = request["payload"]["checked_findings_and_unused"]["reused_dispositions"]
                 handle = next(r["handle"] for r in reasons if r["unit_count"] == 20)
@@ -1137,13 +1141,15 @@ def test_small_legacy_inventory_bounds_large_original_reopen_and_correction(tmp_
             break
     else:
         pytest.fail("legacy reopened continuation did not terminate")
-    assert final_review_count > 1
+    assert final_review_count > 1 or rows_per_slice > 1
     assert all(r["payload"].get("bounded_stage") != "question_fold" for r in seen)
     assert state["status"] == ("COMPLETE_CASE_ANSWER_REQUIRES_REVISION" if mode == "late_defect" else "COMPLETE_CASE_ANSWER_CHECKED")
     result = consumer.read(state["answer_path"])
     if mode == "repair":
         assert result["correction"]["status"] == "accepted"
         assert len(result["correction"]["recheck_requests"]) > 1
+    if rows_per_slice > 1:
+        assert max(len(r["payload"]["source_groups"]) for r in seen if r["phase"] == "reopen") > 1
     reviewed = [r for r in seen if r["phase"] == "answer_review_after_reopen"]
     assert {f["supporting_refs"][0] for job in reviewed for r in job["payload"]["reopened_original_judgments"] for f in r["findings"]} == {"source:unused-" + str(i) for i in range(20)}
     assert consumer.advance(*args, root, context="", count=count) == state
@@ -1168,3 +1174,118 @@ def test_bounded_review_rejects_foreign_batch_reopen_at_scope_boundary(tmp_path)
     consumer.Draft202012Validator(request["schema"]).validate(response)
     with pytest.raises(ValueError, match="must target assigned checked evidence"):
         consumer.validate_response(request, response, count)
+
+
+def test_source_packing_uses_complete_handoff_and_preserves_accepted_rows(tmp_path):
+    args = large_final_fixture()
+    args[4]["max_rows_per_slice"] = 20
+    root = tmp_path / "consumer"
+    state = consumer.advance(*args, root, context="", count=count)
+    jobs = state["judgment_requests"]
+    requests = [consumer.read(info["job_path"]) for info in jobs]
+    assert 1 < len(jobs) < 18
+    assert max(len(r["payload"]["source_groups"]) for r in requests) > 1
+    assert [g["source_row"]["evidence_id"] for r in requests for g in r["payload"]["source_groups"]] == [str(i) for i in range(18)]
+    for info, request in zip(jobs, requests):
+        assert info["measurement"]["total_reserved_tokens"] <= args[4]["effective_context_tokens"]
+        response = respond(request)
+        # Fixture responses keep complete unit accounting within the output budget.
+        for finding in response["findings"]:
+            finding["statement"] = finding["statement"][:40]
+        publish(info, response, tmp_path)
+    before = {p: p.read_bytes() for p in root.rglob("*.json")}
+    resumed = consumer.advance(*args, root, context="", count=count)
+    assert resumed["judgment_requests"]
+    assert all(info["phase"] != "source_review" for info in resumed["judgment_requests"])
+    assert all(p.read_bytes() == data for p, data in before.items())
+    assert consumer.advance(*args, root, context="", count=count) == resumed
+
+
+@pytest.mark.parametrize("damage", [None, "missing", "changed", "staged"])
+def test_unfinished_legacy_assembly_resumes_without_rewriting_or_bypassing_damage(tmp_path, monkeypatch, damage):
+    args = large_final_fixture()
+    source, verified, view, commission, capacity = args
+    source["captured_items"] = source["captured_items"][:10] + source["captured_items"][-1:]
+    verified["semantic_units"] = verified["semantic_units"][:10]
+    verified["evidence_dispositions"] = verified["evidence_dispositions"][:10] + verified["evidence_dispositions"][-1:]
+    view["unmerged_semantic_units"] = view["unmerged_semantic_units"][:10]
+    commission["assessment_only"]["checks"][0]["source_rows"] = ["9"]
+    root = tmp_path / "consumer"
+    state = consumer.advance(*args, root, context="", count=count)
+    for info in state["judgment_requests"]:
+        publish(info, respond(consumer.read(info["job_path"])), tmp_path)
+    measure = consumer.measure_delivery
+    def previous_planning(request, root, count):
+        measured = measure(request, root, count)
+        if request["phase"] == "answer_review" and request["payload"].get("answer") == {"answers": []}:
+            return {**measured, "total_reserved_tokens": 0}
+        return measured
+    # Seed the fitting assembly emitted by the previous runner. Only its future
+    # planning reserve is disabled; the real worker delivery still must fit.
+    with monkeypatch.context() as seed:
+        seed.setattr(consumer, "measure_delivery", previous_planning)
+        state = consumer.advance(*args, root, context="", count=count)
+    assert len(state["judgment_requests"]) == 1
+    info = state["judgment_requests"][0]
+    assembly = consumer.read(info["job_path"])
+    assert assembly["phase"] == "assembly" and "bounded_stage" not in assembly["payload"]
+    assert measure(assembly, root, count)["total_reserved_tokens"] <= capacity["effective_context_tokens"]
+    probe = consumer.build_request("answer_review", {**assembly["payload"], "answer": {"answers": []},
+        "checks": commission["assessment_only"]["checks"], "correction_policy": "exact_review_repairs_v1"}, capacity, "", count)
+    assert measure(probe, root, count)["total_reserved_tokens"] + capacity["output_reserve_tokens"] > capacity["effective_context_tokens"]
+    answer = respond(assembly)
+    publish(info, answer, tmp_path)
+    target = Path(info["response_path"])
+    if damage == "missing":
+        target.unlink()
+    elif damage == "changed":
+        altered = deepcopy(answer)
+        altered["answers"][0]["answer"] = "Unbound replacement."
+        target.write_text(consumer.compact(altered), encoding="utf-8")
+    elif damage == "staged":
+        target.with_name("response.json.tmp").write_text("{}", encoding="utf-8")
+    before = {p: p.read_bytes() for p in root.rglob("*.json*")}
+    if damage:
+        message = {"missing": "accepted consumer response missing", "changed": "accepted consumer response binding changed",
+                   "staged": "staged consumer response requires explicit recovery"}[damage]
+        with pytest.raises(ValueError, match=message):
+            consumer.advance(*args, root, context="", count=count)
+        assert before == {p: p.read_bytes() for p in root.rglob("*.json*")}
+        return
+    for _ in range(5):
+        state = consumer.advance(*args, root, context="", count=count)
+        if not state["judgment_requests"]:
+            break
+        for info in state["judgment_requests"]:
+            request = consumer.read(info["job_path"])
+            assert request["phase"] == "answer_review"
+            assert request["payload"]["answer"] == answer
+            assert info["measurement"]["total_reserved_tokens"] <= capacity["effective_context_tokens"]
+            publish(info, respond(request), tmp_path)
+    assert state["status"] == "COMPLETE_CASE_ANSWER_CHECKED"
+    assert consumer.read(state["answer_path"])["assembly_request"] == assembly["request_sha256"]
+    assert all(p.read_bytes() == data for p, data in before.items())
+    assert consumer.advance(*args, root, context="", count=count) == state
+
+
+@pytest.mark.parametrize("scopes,expected", [(["upstream_only"], "upstream_only"),
+    (["upstream_only", "upstream_only"], "upstream_only"), (["answer", "upstream_only"], "unknown"),
+    (["upstream_only", None], "unknown"), (["answer", "answer"], "answer"), ([None], "unknown")])
+def test_objection_union_preserves_known_failure_scope(scopes, expected):
+    answer = {"answers": []}
+    base = {"answers": [], "checks": [{"check_id": "c", "status": "pass", "reason": "Locally supported.", "scope": "answer"}],
+        "material_findings": [], "reopen_refs": []}
+    failures = []
+    for i, scope in enumerate(scopes):
+        failure = deepcopy(base)
+        failure["checks"][0].update(status="unresolved", reason="Objection " + str(i))
+        if scope is None:
+            failure["checks"][0].pop("scope")
+        else:
+            failure["checks"][0]["scope"] = scope
+        failures.append(failure)
+    merged = consumer.merge_assessments([base, *failures, base], answer)
+    assert merged["checks"][0]["scope"] == expected
+    assert merged["checks"][0]["status"] == "unresolved"
+    assert merged["checks"][0]["reason"] == "\n".join("Objection " + str(i) for i in range(len(scopes)))
+    assert not consumer.assessment_clean(merged)

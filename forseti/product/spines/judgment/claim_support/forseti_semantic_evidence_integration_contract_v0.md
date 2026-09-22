@@ -2629,8 +2629,9 @@ ambiguity requiring their original context; answer-prose reopen requests do not
 automatically become reviewer obligations. The review must still challenge this batch's opposition,
 conditions, role limits, unjustified cross-source promotion and material omissions.
 A local, lossless union preserves every objection and failed/unresolved answer or
-check; clean batches cannot outvote a failure. This union is never dispatched as
-an unbounded combine request. Exact duplicate nominations/edits can be coalesced;
+check; clean batches cannot outvote a failure. A shared known scope among failed
+checks remains known; conflicting or unclassified failure scopes remain unknown.
+This union is never dispatched as an unbounded combine request. Exact duplicate nominations/edits can be coalesced;
 conflicting exact edits fail shared repair admission.
 
 One round may reopen exact implicated original handles. On the bounded route,
@@ -2710,10 +2711,16 @@ source, verification, view, commission and source-job bindings keep their prior
 route even if new hypothetical-output reserve planning would select batches.
 Their content-addressed result only selects that route; the actual requests,
 responses and immutable receipts still revalidate before a result is returned.
+An unchanged accepted legacy assembly also resumes that route before a final
+result exists, using bounded independent review of the saved answer. Missing,
+changed or staged accepted-response state fails visibly rather than switching
+routes and writing another answer.
 Original inputs, prior results, and the historical finite route remain untouched. No provider calls are launched by `advance`.
 
 The bounded planner reserves downstream answer/review context and uses the same
-pure intake-envelope construction as actual delivery. Every actual composition,
+pure intake-envelope construction as actual delivery. Initial source reading and
+legacy original-source reopening pack whole rows against that complete delivery,
+including worker instructions, before publishing jobs. Every actual composition,
 review, reopen and correction request is remeasured with schema and normal worker
 handoff; oversized review inputs split across whole records, original groups or
 checks. An indivisible row/record, required fixed context, schema or permitted

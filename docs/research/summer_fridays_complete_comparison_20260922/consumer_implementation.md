@@ -497,7 +497,7 @@ reopening/correction now partitions an actually oversized downstream request.
 
 ### Structural checks and wrong-cause evidence
 
-The durable final consumer run used the edited worktree, not a copied export:
+At implementation handoff, the consumer run used the edited worktree, not a copied export:
 `python -m pytest tests/unit/test_complete_case_consumer.py -q -o addopts= --disable-warnings`
 from `forseti-harness`: **56 passed in 66.19 seconds**.
 Full stdout and command/cwd/hash/exit receipt:
@@ -609,10 +609,11 @@ zero; its 20% execution allowance remains unused.
 
 ### Residuals and closeout boundary
 
-Structural tests, archived fit and the bounded synthetic semantic evaluation
-pass. Independent evidence remains incomplete for oversized original-context
-and correction partition coverage beyond author-built fixtures; the positive
-semantic probe did not exercise those branches. Current complete all-role
+At implementation handoff, structural tests, archived fit and the bounded
+synthetic semantic evaluation passed. Independent structural review of oversized
+original-context and correction partition coverage was still pending; its return
+and adjudication are recorded below. The positive live semantic probe did not
+exercise those branches. Current complete all-role
 Summer Fridays materialization/execution remains unfinished and parent-owned.
 An indivisible row/record, fixed context or cited-identity/answer context that
 cannot fit still fails visibly. One original reinspection and one classified
@@ -621,16 +622,88 @@ requires-revision. Citation-only omissions without an admissible substantive
 text edit also remain requires-revision. No arbitrary answer rewrite or repair
 policy expansion was added.
 
-Six existing paths changed: the consumer, normal runner envelope helper, consumer
+The implementation touched the consumer, normal runner envelope helper, consumer
 tests, owning semantic integration contract, supported route document, and this
 report. No source evidence, saved historical output, provider configuration or
-finite-route implementation changed. No commit, push, PR, merge or delegated
-review was executed by the implementer. The parent owns publication/CI and
-bounded courier-only review of the oversized original-context/correction
-partition boundary. The courier commission is prepared at
-`docs/prompts/reviews/bounded_final_stages_review_patch_prompt_v0.md`; it is the
-run-authoritative input for the independent receiver and the review-routing
-gate. No controller dispatch or completed review is asserted, and merge waits
-for review/adjudication.
-Historical sections above retain their original authority and results; their
-prior closeout does not attest this new change.
+finite-route implementation changed. Historical sections above retain their
+original authority and results; their prior closeout does not attest this change.
+
+### Independent review and parent adjudication — 2026-09-22
+
+The owner supplied an Anthropic Claude Opus 5 review return bound to clean
+`9e82c2c9aba05133f3456946eb4e34eaa308e7ea`, with implementation commit
+`7cb6a042c35b3546068e462b8650f23900744f51` verified as an ancestor. The reviewer
+reported external direct write access and left exactly the consumer and its unit
+tests changed. The parent observed that two-file diff before making further
+changes. The reviewer could not independently prove exclusive ownership from
+machine-wide process presence; that isolation limitation is not upgraded into a
+stronger claim. The pasted return is the carrier, at
+`C:/Users/vmon7/.codex/attachments/8399d80a-ccdc-48fb-8534-1db38a21c80b/Pasted text.txt`,
+SHA256 `ecad5f6cfdee095890448b99d5e834db589bf16fed988a8eb39cb2f54fd8bb16`.
+No separate review report was created.
+
+The parent adjudicated the returned `CHANGES_PROPOSED` verdict and all four
+reported issues:
+
+- **F1, accept the returned patch.** Legacy original-source reopen packing now
+  measures the complete worker delivery before choosing whole-row batches. The
+  parent independently disabled only the returned sizing fix in memory: the
+  reviewer's multi-row regression failed at 46,224 against a 40,000 fixture-byte
+  capacity; retaining the patch passed. Whole rows and exact original coverage
+  remain intact; an indivisible oversized row still fails.
+- **Initial source packing, accept and close in the parent.** The same helper
+  needs the actual root for initial reading too. A separate reproduction failed
+  at 46,916 against 40,000 before the one-call-site fix. The regression proves
+  fitting multi-row requests, exact 18-row coverage and accepted-source reuse.
+- **Unfinished legacy restart, accept and close in the parent.** Completed-result
+  compatibility alone left an already accepted assembly eligible for rewriting
+  while its final review was unfinished. Exact bound saved assemblies now select
+  their existing route, with normal response/receipt validation and bounded
+  review of the actual saved answer. Missing, changed and staged response states
+  fail visibly instead of switching routes. Independent fixtures seeded by the
+  actual previous runtime at `3d53e48702be0f90e31ff199292a33ea10b9ba16` reproduced
+  unnecessary question folds for 10, 11 and 12 rows before the fix. All three now
+  complete without another assembly: one, one and two review jobs respectively,
+  with every prior JSON byte unchanged and zero new jobs on repeat. The largest
+  case's split reviews reserve 32,653 and 32,994 of 40,000 fixture bytes.
+- **Failed-check scope precision, accept and close in the parent.** A unanimous
+  known failure scope remains `upstream_only` or `answer`; mixed or unclassified
+  scopes remain `unknown`. Passing batches cannot relabel a failure. Acceptance
+  and exact-repair authority are unchanged.
+
+Parent-added regression cases demonstrated **7 failures and 4 passes before**
+the parent fixes, then **11 passes**. Final verification on the actual target
+worktree passed **68 consumer tests**, **68 shared/contract tests** and **27
+native intake/public-route tests**. Commands match the implementation checks
+above, with `-o addopts=` to bind the local runs. Full stdout, the preserved
+reviewer diff, reproduction scripts/results and hash-bound validation receipt are
+under
+`C:/Users/vmon7/AppData/Local/Temp/forseti-review-adjudication-09cfa01cd9d4/`.
+The tested runtime byte SHA256 is
+`359f1b2bcfd1f818abcb30585a1ff4a485de344f245fba6f71a6212af7bc7364`.
+The runner remains byte-identical to the implementation's tested runner.
+
+The reviewer also reported passing original/review cross-product and correction
+partition probes. Their scratch paths were not supplied, so those observations
+remain attributed reviewer evidence; they are not represented as parent-run
+receipts. Parent whole-suite coverage retains the exact cross-product, late
+objection, correction and restart regressions. This adjudication makes no new
+live model calls. The prior synthetic semantic results remain evidence for the
+unchanged phase instructions and identity representation, not a live proof of
+reopening or a successfully corrected answer. Joint-context ambiguities and
+incompatible repairs still fail closed; those residuals remain accepted.
+
+All material review issues are closed in the retained patch. The transport-only
+courier prompt `bounded_final_stages_review_patch_prompt_v0.md` is retired from
+`docs/prompts/reviews/` in this same PR; its exact commission remains in Git at
+`9e82c2c9aba05133f3456946eb4e34eaa308e7ea`. The contract now describes actual
+whole-row delivery sizing, partial legacy resume and preserved known scopes.
+The supported route already directs consumers to that contract. PR #1635 owns
+this work unit; required CI and protected landing remain publication checks.
+No current Summer Fridays processing or 20% execution allowance was consumed by
+this adjudication. The next material move is the current all-source input
+readiness check before its bounded run.
+
+```text
+review_routing_status: routed -- chat_only_adjudicated: Anthropic return at 9e82c2c9 adjudicated; F1 kept, initial packing and unfinished legacy restart fixed, known failure scope preserved; 163 targeted tests pass.
+```

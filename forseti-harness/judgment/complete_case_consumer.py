@@ -474,9 +474,10 @@ def merge_assessments(responses, answer):
         rank = {"pass": 0, "unresolved": 1, "defect": 2}
         for ident, rows in groups.items():
             worst = max(rows, key=lambda r: rank[r["status"]])
+            scopes = {r.get("scope", "unknown") for r in rows if r["status"] != "pass"} if key == "checks" else set()
             result.append({**worst, identity: ident,
                 "reason": "\n".join(dict.fromkeys(r["reason"] for r in rows if r["status"] != "pass")) or worst["reason"],
-                **({"scope": "unknown"} if key == "checks" and any(r["status"] != "pass" and r.get("scope") != "answer" for r in rows) else {})})
+                **({"scope": next(iter(scopes)) if len(scopes) == 1 else "unknown"} if scopes else {})})
         return result
     return {"answers": statuses("answers", "question_id"), "checks": statuses("checks", "check_id"),
         "material_findings": unique([r for a in responses for r in a["material_findings"]]),
@@ -716,14 +717,17 @@ def source_groups(source, verified, view):
     return result
 
 
-def prepare_source_requests(groups, commission, capacity, context, count, *, phase="source_review", extra=None):
+def prepare_source_requests(groups, commission, capacity, context, count, *, phase="source_review", extra=None, root=None):
     """Pack whole source rows; never split a row or silently drop overflow."""
     requests, pending = [], []
 
     def build(items):
-        return build_request(phase, {"commission": commission,
+        request = build_request(phase, {"commission": commission,
             "unit_ids": [i for g in items for i in g["unit_ids"]], "source_groups": items,
             **(extra or {})}, capacity, context, count)
+        if root is not None:
+            measure_delivery(request, root, count)  # pack against the actual worker handoff
+        return request
 
     for group in groups:
         candidate = pending + [group]
@@ -989,7 +993,8 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
         raise ValueError("consumer check has unknown source anchor")
     active = [g for g in groups if g["verified_units"] or g["source_row"]["evidence_id"] in anchors]
     inactive = [g for g in groups if not g["verified_units"] and g["source_row"]["evidence_id"] not in anchors]
-    requests = prepare_source_requests(active, base, capacity, context, count, extra={"source_context": context_source})
+    requests = prepare_source_requests(active, base, capacity, context, count,
+        extra={"source_context": context_source}, root=root)
     missing, results = consume(requests)
     if missing:
         return waiting(missing)
@@ -1042,6 +1047,20 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                 bounded = False
                 break
     if bounded:
+        # Resume an accepted legacy assembly even before a final result exists.
+        # Route through consume so missing, changed or staged responses still fail;
+        # actual downstream review can split without reauthoring this answer.
+        try:
+            prior_assembly = build_request("assembly", payload, capacity, context, count)
+        except ValueError as exc:
+            if "capacity exceeded" not in str(exc):
+                raise
+        else:
+            prior_assembly = saved_request(prior_assembly)
+            directory = root / "requests" / prior_assembly["request_sha256"]
+            if any((directory / name).exists() for name in ("response.json", "response.receipt.json", "response.json.tmp")):
+                bounded = False
+    if bounded:
         return advance_bounded(payload, checks, capacity, context, count, root, groups, membership,
             consume, waiting, source, verified, view, commission, results, active, inactive)
     assembly = build_request("assembly", payload, capacity, context, count)
@@ -1077,7 +1096,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
             selected = {ref for handle in local_assessment["reopen_refs"] for ref in membership[handle]}
             reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
             requests.extend(prepare_source_requests(reopened, base, capacity, context, count, phase="reopen",
-                extra={"answer": answer, "review": local_assessment, "source_context": context_source}))
+                extra={"answer": answer, "review": local_assessment, "source_context": context_source}, root=root))
         missing, reopened_results = consume(requests)
         if missing:
             return waiting(missing)
