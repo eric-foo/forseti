@@ -282,7 +282,23 @@ def test_cli_execution_returns_compact_bound_result(corpus, tmp_path, monkeypatc
     assert len(calls) == 1
 
 
-def test_tool_escape_is_rejected_at_role_boundary_not_an_unrelated_hash_check(corpus, tmp_path, monkeypatch):
+@pytest.mark.parametrize("event, after_turn, accepted", [
+    ({"type": "item.completed", "item": {"type": "error", "message":
+      "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; "
+      "enable `features.code_mode_host` and install `codex-code-mode-host`."}}, False, True),
+    ({"type": "item.completed", "item": {"type": "error", "message":
+      "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; "
+      "enable `features.code_mode_host` and install `codex-code-mode-host`."}}, True, False),
+    ({"type": "item.completed", "item": {"type": "error", "message":
+      "Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n"
+      "  session-flags: `tools.view_image` is ignored."}}, False, False),
+    ({"type": "item.completed", "item": {"type": "error", "message": "unexpected provider failure"}}, False, False),
+    ({"type": "item.completed", "item": {"type": "command_execution"}}, True, False),
+    ({"type": "item.completed", "item": {"type": "mcp_tool_call"}}, True, False),
+    ({"type": "turn.failed", "error": {"message": "generation failed"}}, True, False),
+    ({"type": "error", "message": "generation failed"}, False, False),
+])
+def test_startup_notice_and_failures_at_role_boundary(corpus, tmp_path, monkeypatch, event, after_turn, accepted):
     _, _, responses, paths = corpus
     request = native.advance_semantic_run(source_path=paths["source"], run_dir=tmp_path / "run",
         max_prompt_bytes=80000, max_evidence_per_work_unit=2)["judgment_requests"][0]
@@ -293,16 +309,30 @@ def test_tool_escape_is_rejected_at_role_boundary_not_an_unrelated_hash_check(co
         path = Path(command[command.index("--result-out") + 1])
         saved = native._load_object(path)
         attempt = Path(saved["attempt_dir"])
-        (attempt / "events.jsonl").write_text(json.dumps({"type": "item.completed", "item": {"type": "command_execution"}}), encoding="utf-8")
+        events = [{"type": "thread.started", "thread_id": "offline"}]
+        if after_turn:
+            events.append({"type": "turn.started"})
+        events.append(event)
+        if not after_turn:
+            events.append({"type": "turn.started"})
+        events.append({"type": "turn.completed"})
+        (attempt / "events.jsonl").write_text("\n".join(json.dumps(row) for row in events) + "\n", encoding="utf-8")
         saved["execution_receipt"]["events_sha256"] = hash_file(attempt / "events.jsonl")
         write(attempt / "execution_receipt.json", saved["execution_receipt"])
         write(path, saved)
         return result
     monkeypatch.setattr(execution.subprocess, "run", escaped)
-    with pytest.raises(ValueError, match="non-judgment item: command_execution"):
-        execution.execute_judgment_job(job_path=Path(request["job_path"]), job_sha256=request["job_sha256"],
-            provider_root=tmp_path / "provider", model="offline-model", reasoning_effort="high", timeout_seconds=60)
-    assert len(calls) == 1 and not Path(request["response_path"]).exists()
+    kwargs = dict(job_path=Path(request["job_path"]), job_sha256=request["job_sha256"],
+        provider_root=tmp_path / "provider", model="offline-model", reasoning_effort="high", timeout_seconds=60)
+    if accepted:
+        assert execution.execute_judgment_job(**kwargs)["status"] == "SEMANTIC_JUDGMENT_SUBMITTED"
+        assert native._load_object(Path(request["response_path"])) == responses[0]
+        assert execution.execute_judgment_job(**kwargs)["disposition"] == "reused"
+    else:
+        with pytest.raises(ValueError, match="direct judgment"):
+            execution.execute_judgment_job(**kwargs)
+        assert not Path(request["response_path"]).exists()
+    assert len(calls) == 1
 
 
 def test_job_count_reports_provider_attempts_not_reuse(corpus, tmp_path, monkeypatch):

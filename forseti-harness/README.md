@@ -183,8 +183,11 @@ The semantic runner's `--direct-judgment` role additionally disables automatic
 project instruction discovery (`project_doc_max_bytes=0`) because its exact
 required instructions are already supplied. It explicitly requests restrictions
 on shell, delegation, connector, plugin, browser, computer, image and code-mode
-capabilities at launch; the saved-attempt validator checks those settings, and semantic
-submission rejects any observed non-judgment event. Default provider launches
+capabilities at launch, including `--disable view_image`; the saved-attempt
+validator checks those settings. Semantic submission permits only the exact
+pre-turn notice that the deliberately disabled code-mode host fails closed.
+Unrecognized settings, other errors, and actual tool use still block submission.
+Default provider launches
 and ordinary `--preload-context` behavior are unchanged. Runtime overhead and
 actual model usage still require native observations, not an inference from
 these settings.

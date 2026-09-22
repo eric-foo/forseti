@@ -58,10 +58,10 @@ DIRECT_JUDGMENT_INSTRUCTION = (
 # automatic project discovery and unrelated capabilities out of this role.
 DIRECT_JUDGMENT_DISABLED_FEATURES = (
     "shell_tool", "unified_exec", "multi_agent", "apps", "plugins",
-    "browser_use", "computer_use", "image_generation", "code_mode_host", "tool_suggest",
+    "browser_use", "computer_use", "image_generation", "view_image", "code_mode_host", "tool_suggest",
 )
 DIRECT_JUDGMENT_CONFIG = (
-    "project_doc_max_bytes=0", "tools.view_image=false", 'web_search="disabled"',
+    "project_doc_max_bytes=0", 'web_search="disabled"',
 )
 
 

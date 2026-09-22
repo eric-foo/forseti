@@ -35,6 +35,31 @@ def _attempt_dir(provider_root, job_sha256):
     return Path(provider_root).resolve() / job_sha256 / "attempts" / "job-attempt-001"
 
 
+def _validate_judgment_events(path):
+    # Codex 0.155 emits this expected fail-closed startup notice as an error
+    # item. The receipt check has already verified code_mode_host is disabled.
+    disabled_host_notice = (
+        "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; "
+        "enable `features.code_mode_host` and install `codex-code-mode-host`."
+    )
+    before_turn = True
+    for line in path.read_text(encoding="utf-8").splitlines():
+        event = json.loads(line)
+        event_type = event.get("type")
+        if event_type in {"error", "turn.failed"}:
+            raise ValueError(f"direct judgment provider failure: {event_type}")
+        if event_type in {"turn.started", "turn.completed"}:
+            before_turn = False
+        if event_type in {"item.started", "item.completed", "item.updated"}:
+            item = event.get("item", {})
+            kind = item.get("type")
+            if kind in {"reasoning", "agent_message"}:
+                before_turn = False
+            elif not (before_turn and event_type == "item.completed" and kind == "error"
+                      and item.get("message") == disabled_host_notice):
+                raise ValueError(f"direct judgment used a non-judgment item: {kind}")
+
+
 def execute_judgment_job(*, job_path, job_sha256, provider_root, model, reasoning_effort,
                          timeout_seconds, codex_executable=None):
     """One provider attempt; restart reuses the existing provider job/answer.
@@ -118,12 +143,7 @@ def execute_judgment_job(*, job_path, job_sha256, provider_root, model, reasonin
         if receipt != result.get("execution_receipt") or receipt.get("outcome") != "PROCESS_COMPLETED":
             raise ValueError("direct provider result differs from its execution receipt")
         # Fail visibly if a provider ever escapes the supplied-input role.
-        for line in (attempt / "events.jsonl").read_text(encoding="utf-8").splitlines():
-            event = json.loads(line)
-            if event.get("type") in {"item.started", "item.completed", "item.updated"}:
-                kind = event.get("item", {}).get("type")
-                if kind not in {"reasoning", "agent_message"}:
-                    raise ValueError(f"direct judgment used a non-judgment item: {kind}")
+        _validate_judgment_events(attempt / "events.jsonl")
         submitted = native.submit_judgment_job(job_path=job_path, expected_sha256=job_sha256,
                                              response_path=attempt / "response.json")
         submitted.pop("model_api_calls", None)

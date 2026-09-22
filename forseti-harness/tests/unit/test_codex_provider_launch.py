@@ -118,8 +118,9 @@ def test_direct_judgment_restricts_capabilities_and_discovery_preserving_input(l
     assert call["launch_metadata"]["direct_judgment"] is True
     disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
     assert {"shell_tool", "unified_exec", "multi_agent", "apps", "plugins", "browser_use",
-            "computer_use", "image_generation", "code_mode_host", "tool_suggest"}.issubset(disabled)
-    for setting in ("project_doc_max_bytes=0", "tools.view_image=false", 'web_search="disabled"'):
+            "computer_use", "image_generation", "view_image", "code_mode_host", "tool_suggest"}.issubset(disabled)
+    assert "tools.view_image=false" not in call["command"]
+    for setting in ("project_doc_max_bytes=0", 'web_search="disabled"'):
         assert call["command"].count(setting) == 1
     setting = next(p for p in call["command"] if p.startswith("developer_instructions="))
     if with_context:
