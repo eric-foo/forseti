@@ -704,7 +704,13 @@ capacity failures. The same command can begin with an explicit `--bundle` /
 `--verified` pair for the same source after native full-provenance validation.
 Consumer jobs use the established intake/submit handoff, preserve unchanged
 accepted work across process restarts, and support one classified exact answer
-repair plus independent recheck. The existing point/axis readers keep their
+repair plus independent recheck. Larger final inventories use bounded question
+folds with explicit support/opposition/condition reconciliation, compiler-derived
+source-role/origin metadata for cited handles, a shared answer budget,
+cross-question composition, and independent checks of the exact
+final answer against every checked batch. All unused/reused dispositions remain
+in scope; unresolved objections survive the local union. Reopened originals and
+corrected answers use the same bounded checking boundary. The existing point/axis readers keep their
 validated pack and selected-display semantics; no axis pack is fabricated from
 the complete inventory. This does not promote the optional finite route.
 

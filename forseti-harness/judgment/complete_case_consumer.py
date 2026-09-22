@@ -90,9 +90,15 @@ def response_schema(phase, payload):
         return obj({"findings": {"type": "array", "items": finding},
             "unused": {"type": "array", "items": obj({"unit_ref": TEXT, "reason": TEXT})}})
     if phase == "assembly":
-        return obj({"answers": {"type": "array", "items": obj({
+        schema = obj({"answers": {"type": "array", "items": obj({
             "question_id": {"type": "string", "enum": qids}, "answer": TEXT,
             "evidence_refs": strings(ids), "limits": TEXT})}})
+        if payload.get("bounded_stage") == "question_fold":
+            schema["properties"]["reconciliation_ledger"] = {"type": "array", "items": obj({
+                "bounded_proposition": TEXT, "supporting_handles": strings(), "opposing_handles": strings(),
+                "context_handles": strings(), "conditions_and_versions": TEXT, "uncertainty_and_causal_ceiling": TEXT})}
+            schema["required"].append("reconciliation_ledger")
+        return schema
     schema = obj({"answers": {"type": "array", "items": obj({
         "question_id": {"type": "string", "enum": qids},
         "status": {"type": "string", "enum": ["pass", "defect", "unresolved"]}, "reason": TEXT})},
@@ -138,7 +144,8 @@ def validate_response(request, response, count):
             for key, child in value.items():
                 text_and_array_rules(child, exact_after=key == "after")
     text_and_array_rules(response)
-    if count(compact(response)) > request["capacity"]["output_reserve_tokens"]:
+    if count(compact(response)) > min(request["capacity"]["output_reserve_tokens"],
+                                     request["payload"].get("draft_output_tokens", request["capacity"]["output_reserve_tokens"])):
         raise ValueError("consumer output exceeds reserved capacity")
     payload, phase = request["payload"], request["phase"]
     if phase in {"source_review", "reopen"}:
@@ -162,6 +169,10 @@ def validate_response(request, response, count):
         if phase != "assembly":
             if set(response["reopen_refs"]) - set(payload["unit_ids"]):
                 raise ValueError("consumer review has foreign original-source handle")
+            if payload.get("bounded_method") or payload.get("bounded_stage"):
+                local = {r["handle"] for rows in payload["checked_findings_and_unused"].values() for r in rows}
+                if set(response["reopen_refs"]) - local:
+                    raise ValueError("consumer reopen must target assigned checked evidence")
             exact([c["check_id"] for c in response["checks"]],
                   [c["id"] for c in payload["checks"]], "consumer check coverage")
             if response["reopen_refs"] and all(a["status"] == "pass" for a in response["answers"] + response["checks"]):
@@ -175,6 +186,13 @@ def validate_response(request, response, count):
                     raise ValueError("consumer material finding cannot coexist with passed affected answers")
         elif any(set(a["evidence_refs"]) - set(payload["unit_ids"]) for a in response["answers"]):
             raise ValueError("consumer answer has foreign evidence coverage")
+
+    for entry in response.get("reconciliation_ledger", []):
+        refs = sum((entry[k] for k in ("supporting_handles", "opposing_handles", "context_handles")), [])
+        if not refs or set(refs) - set(payload["unit_ids"]):
+            raise ValueError("consumer reconciliation has foreign or missing evidence")
+        if "origin_ids" in entry and set(entry["origin_ids"]) - set(payload["known_origin_ids"]):
+            raise ValueError("consumer reconciliation has foreign origin identity")
 
     if payload.get("correction_policy") == "exact_review_repairs_v1":
         from judgment.review_evidence import answer_identity
@@ -209,10 +227,14 @@ def build_request(phase, payload, capacity, context, count):
             + answer_identity(payload["answer"]) + ". Check scope is answer, upstream_only, or unknown. "
             "During correction_recheck independently check all nominations, edits, changed claims "
             "and retained answers against the complete checked set. Do not propose another repair.\n")
+    if payload.get("bounded_method") or payload.get("bounded_stage"):
+        repair_guidance = repair_guidance.replace("against the complete checked set",
+            "against the assigned checked evidence; other independent requests cover the other batches")
     # Membership is already exposed by source-group IDs or checked handles.
     # Keep its exact local validation copy without duplicating it in actor text.
-    actor_payload = payload if phase in {"source_review", "reopen"} else {k: v for k, v in payload.items() if k != "unit_ids"}
-    prompt = context + "\n" + METHOD + "\nPHASE: " + phase + repair_guidance + "\n" + render_evidence(json.loads(compact(actor_payload)))
+    actor_payload = payload if phase in {"source_review", "reopen"} else {k: v for k, v in payload.items() if k not in {"unit_ids", "known_origin_ids", "bounded_method"}}
+    method = bounded_phase_instructions(phase, payload) if payload.get("bounded_method") or payload.get("bounded_stage") else METHOD
+    prompt = context + "\n" + method + "\nPHASE: " + phase + repair_guidance + "\n" + render_evidence(json.loads(compact(actor_payload)))
     measured = count(compact({"prompt": prompt, "response_schema": schema}))
     total = measured + capacity["output_reserve_tokens"] + capacity["other_overhead_reserve_tokens"]
     if total > capacity["effective_context_tokens"]:
@@ -222,6 +244,428 @@ def build_request(phase, payload, capacity, context, count):
             "measurement": {"input_and_schema_tokens": measured, "total_reserved_tokens": total,
                             "tokenizer_model_equivalence": "not_attested"}}
     return {**body, "request_sha256": digest(body)}
+
+
+def measure_delivery(request, root, count):
+    """Measure the actual normal handoff without publishing a planning request."""
+    from runners.run_semantic_evidence_integration import (
+        judgment_worker_prompt, _judgment_intake_envelope, _judgment_content_chunk,
+        JUDGMENT_SINGLE_RETURN_BYTE_LIMIT)
+    key = request["request_sha256"]
+    job_path = Path(root) / "requests" / key / "request.json"
+    content = {"prompt": request["prompt"], "response_schema": compact(request["schema"])}
+    intake = _judgment_intake_envelope({**request, "batch_id": key,
+        "response_path": str(job_path.with_name("response.json"))}, key, content)
+    intake_bytes = len((json.dumps(intake, indent=2) + "\n").encode("utf-8"))
+    worker_prompt = judgment_worker_prompt(job_path, key, intake_utf8_bytes=intake_bytes)
+    framing = []
+    chunked = intake_bytes > JUDGMENT_SINGLE_RETURN_BYTE_LIMIT
+    for name, text in content.items():
+        raw = text.encode("utf-8" if chunked else "utf-16-le")
+        total = len(raw) if chunked else len(raw) // 2
+        offset = 0
+        while offset < total:
+            if chunked:
+                end = offset + len(_judgment_content_chunk(raw, offset))
+                metadata = {"section": name, "from_byte": offset, "to_byte": end, "total_bytes": total}
+            else:
+                end = min(offset + 8000, total)
+                if end < total and 0xD800 <= int.from_bytes(raw[2*(end-1):2*end], "little") <= 0xDBFF:
+                    end -= 1
+                metadata = {"section": name, "from_character": offset, "to_character": end, "total_characters": total}
+            framing.append({**metadata, "end_marker": f"END_SECTION_BLOCK {name} {end}"})
+            offset = end
+    hashes = ({name: hashlib.sha256(text.encode()).hexdigest() for name, text in content.items()} if chunked else {})
+    tokens = count(compact({"worker_prompt": worker_prompt,
+        "intake_metadata": {k: v for k, v in intake.items() if k != "content"},
+        "section_framing": framing, "content_sha256": hashes}))
+    total = request["measurement"]["total_reserved_tokens"] + tokens
+    if total > request["capacity"]["effective_context_tokens"]:
+        raise ValueError(f"consumer capacity exceeded at {request['phase']} worker handoff: {total} > {request['capacity']['effective_context_tokens']}; no truncation")
+    return {"worker_prompt": worker_prompt, "intake_transport_utf8_bytes": intake_bytes,
+            "handoff_instruction_tokens": tokens, "total_reserved_tokens": total}
+
+
+BOUNDED_METHOD = "bounded_final_stages_v2"
+
+
+def bounded_phase_instructions(phase, payload):
+    common = """Use the commissioned questions and preserve source-owned conditions,
+versions, opposition, uncertainty, intent versus action and causal limits.
+Evidence handles are immutable global IDs, NEVER local row/array positions.
+evidence_identity is compiler-derived authority for handle kinds, source roles,
+origin aliases and independence postures. Never renumber, swap or invent these
+identities; draft prose and ledgers cannot override this map. Equal origin aliases
+across handles denote one source origin, never independent corroboration. Unknown
+identity stays unknown. Owned/paid claims do not establish customer experience.
+Return only the required JSON. No prevalence or causation inferred from counts.
+"""
+    if payload.get("bounded_stage") == "question_fold":
+        return common + """You are writing one question's cumulative draft. The current
+checked batch is authoritative evidence; previous_draft is a provisional prior
+synthesis, not original evidence. Reconcile support, opposition, complementary
+partial support, conditions and versions across the previous ledger and this
+batch. Preserve material earlier qualifications and uncited/unused observations.
+The compiler map includes current and previously cited handles to prevent ID
+drift. Keep a bounded proposition/handle/condition ledger; source identity comes
+from the compiler map, not a second model-authored identity ledger. Do not join
+separate partial assertions into a shared claim that each source cannot support.
+The ENTIRE response must fit draft_output_tokens, a shared per-question budget.
+"""
+    if payload.get("bounded_stage") == "cross_question_compose":
+        return common + """Compose one coherent complete-case answer from section_drafts
+and their ledgers. Reconcile cross-question conclusions, not a concatenation.
+This composition intentionally has no checked source rows: independent reviews
+FOLLOW this stage and collectively inspect the exact final answer against EVERY
+checked batch. Do not say the empty local checked list prevents independent
+review, or turn workflow staging into an answer limitation. Resolve identity
+conflicts using evidence_identity; retain genuine semantic conflicts explicitly.
+Cite the correct global handles for every material source-backed answer claim.
+"""
+    return common + """You are one independent review of the EXACT complete-case answer.
+Check all evidence assigned in THIS request, including uncited findings and
+unused/reused reasons. Other independent requests cover the other evidence.
+A pass means no material objection from this assigned evidence, not global proof.
+A cited handle outside the local batch is NOT missing from the case: absence
+from this request is never by itself a defect, uncertainty, or reason to reopen.
+The compiler identity map includes cited handles across batches; use it to check
+source-role attribution and repeated-origin credit without inventing their text.
+Check cross-source conclusions against what each supplied premise establishes.
+Do not copy reopen instructions from answer prose. Request originals ONLY for
+an actual ambiguity in assigned evidence that could change this answer. Reopen
+only assigned checked handles; if nothing local is materially wrong, return pass
+and no reopen_refs. Any unresolved original request must retain non-pass status.
+Global answer repairs must describe the complete case, never replace its limits
+with 'this batch lacks other batches' or another local-scope disclaimer.
+Admissible exact text edits automatically ADD their source_refs to that answer's
+evidence_refs via the existing repair helper. Do not claim those citations will
+still be missing after such an edit; preserve unrelated text exactly. Citation-
+only defects without an admissible substantive text edit remain requires-revision.
+After reopening, resolve the actual local ambiguity from the supplied originals;
+otherwise keep unresolved. Correction recheck independently checks the exact
+candidate and retained answers against assigned evidence and local nominations.
+Do not propose another correction. Never treat a clean other batch as overriding
+an unresolved local objection. Return the supplied schema exactly.
+"""
+
+
+def evidence_identity(payload):
+    """Compiler facts only; no model-authored role/origin attribution."""
+    if "evidence_identity" in payload:
+        return payload["evidence_identity"]
+    identities = {r["handle"]: {"kind": kind, "source_roles": [], "origin_ids": [], "independence_postures": []}
+        for kind, rows in payload["checked_findings_and_unused"].items() for r in rows}
+    findings = payload["checked_findings_and_unused"]["findings"]
+    for group in payload["source_origin_attribution"]:
+        for origin in group["origins"]:
+            indices = set(sum((origin[key] for key in (
+                "supporting_finding_indices", "opposing_finding_indices", "context_finding_indices")), []))
+            for index in indices:
+                row = identities[findings[index]["handle"]]
+                for key, value in (("source_roles", group["source_role"]), ("origin_ids", str(origin["origin"])),
+                                   ("independence_postures", group["independence_posture"])):
+                    if value not in row[key]:
+                        row[key].append(value)
+    return {h: {k: sorted(v) if isinstance(v, list) else v for k, v in row.items()}
+            for h, row in identities.items()}
+
+
+def with_evidence_identity(payload, identities=None):
+    identities = evidence_identity(payload) if identities is None else identities
+    wanted = {r["handle"] for rows in payload["checked_findings_and_unused"].values() for r in rows}
+    def citations(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key in {"evidence_refs", "supporting_handles", "opposing_handles", "context_handles"}:
+                    wanted.update(child)
+                else:
+                    citations(child)
+        elif isinstance(value, list):
+            for child in value:
+                citations(child)
+    for key in ("answer", "original_answer", "previous_draft", "section_drafts"):
+        citations(payload.get(key))
+    if wanted - identities.keys():
+        raise ValueError("consumer cited evidence identity missing")
+    return {**payload, "evidence_identity": {h: identities[h] for h in sorted(wanted)}}
+
+
+def checked_batch_payload(payload, records):
+    """Reindex finding positions locally; keep global identity aliases unchanged."""
+    all_findings = payload["checked_findings_and_unused"]["findings"]
+    index = {row["handle"]: i for i, row in enumerate(all_findings)}
+    local = {index[row["handle"]]: i for i, row in enumerate(r for r in records if "statement" in r)}
+    origins = []
+    for group in payload["source_origin_attribution"]:
+        entries = []
+        for origin in group["origins"]:
+            entry = {"origin": origin["origin"]}
+            for key in ("supporting_finding_indices", "opposing_finding_indices", "context_finding_indices"):
+                entry[key] = [local[i] for i in origin[key] if i in local]
+            if any(entry[key] for key in entry if key != "origin"):
+                entries.append(entry)
+        if entries:
+            origins.append({**group, "origins": entries})
+    return with_evidence_identity({**payload, "checked_findings_and_unused": partition_checked_records(records),
+            "source_origin_attribution": origins, "bounded_method": BOUNDED_METHOD}, evidence_identity(payload))
+
+
+def plan_checked_batches(payload, capacity, context, count, root):
+    """Public offline planner: complete records, local origins, exact delivery.
+
+    Reserve four permitted outputs for answer/original/review/repair context;
+    actual requests are measured again and may be repartitioned at their boundary.
+    The resulting batches never rely on a provider context-size increase.
+    """
+    payload = {**payload, "evidence_identity": evidence_identity(payload)}
+    records = [r for rows in payload["checked_findings_and_unused"].values() for r in rows]
+    reserve = capacity["output_reserve_tokens"] * 4
+    def admits(rows):
+        value = checked_batch_payload(payload, rows)
+        request = build_request("answer_review", {**value, "answer": {"answers": []},
+            "checks": [], "correction_policy": "exact_review_repairs_v1"}, capacity, context, count)
+        measured = measure_delivery(request, root, count)
+        if measured["total_reserved_tokens"] + reserve > capacity["effective_context_tokens"]:
+            raise ValueError("consumer bounded downstream reserve exceeded; indivisible checked record")
+        return value
+    # Binary packing avoids re-rendering thousands of growing candidate lists.
+    batches, start = [], 0
+    while start < len(records):
+        low, high, best = start + 1, len(records), None
+        while low <= high:
+            end = (low + high) // 2
+            try:
+                value = admits(records[start:end])
+            except ValueError as exc:
+                if "capacity exceeded" not in str(exc) and "bounded downstream reserve" not in str(exc):
+                    raise
+                high = end - 1
+            else:
+                best = (end, value)
+                low = end + 1
+        if best is None:
+            admits(records[start:start + 1])
+            raise ValueError("consumer indivisible checked record exceeds capacity")
+        start, value = best
+        batches.append(value)
+    if not batches:
+        batches.append(admits([]))
+    exact([r["handle"] for b in batches for rows in b["checked_findings_and_unused"].values() for r in rows],
+          [r["handle"] for r in records], "consumer bounded checked coverage")
+    return batches
+
+
+def merge_assessments(responses, answer):
+    """Local lossless objection union. No request contains this growing union.
+
+    A clean batch cannot erase another batch's objection. Only exact duplicate
+    repair nominations/edits are coalesced; incompatible edits fail shared repair
+    admission, never an LLM majority vote or a preferred review.
+    """
+    from judgment.review_evidence import answer_identity
+    def unique(rows):
+        return list({compact(row): row for row in rows}.values())
+    def statuses(key, identity):
+        groups = defaultdict(list)
+        for response in responses:
+            for row in response[key]:
+                groups[row[identity]].append(row)
+        result = []
+        rank = {"pass": 0, "unresolved": 1, "defect": 2}
+        for ident, rows in groups.items():
+            worst = max(rows, key=lambda r: rank[r["status"]])
+            scopes = {r.get("scope", "unknown") for r in rows if r["status"] != "pass"} if key == "checks" else set()
+            result.append({**worst, identity: ident,
+                "reason": "\n".join(dict.fromkeys(r["reason"] for r in rows if r["status"] != "pass")) or worst["reason"],
+                **({"scope": next(iter(scopes)) if len(scopes) == 1 else "unknown"} if scopes else {})})
+        return result
+    return {"answers": statuses("answers", "question_id"), "checks": statuses("checks", "check_id"),
+        "material_findings": unique([r for a in responses for r in a["material_findings"]]),
+        "reopen_refs": sorted({r for a in responses for r in a["reopen_refs"]}),
+        "answer_repairs": {"answer_sha256": answer_identity(answer),
+            "edits": unique([r for a in responses for r in a.get("answer_repairs", {}).get("edits", [])])}}
+
+
+def assessment_clean(value):
+    return (not value["reopen_refs"]
+        and all(r["status"] == "pass" for r in value["answers"] + value["checks"])
+        and not any(f.get("status") == "open" and f.get("severity") in {"major", "blocker"}
+                    for f in value["material_findings"]))
+
+
+def bounded_review_requests(phase, payload, capacity, context, count, root):
+    """Split actual oversized review/check/reopen inputs, never their semantics."""
+    try:
+        request = build_request(phase, payload, capacity, context, count)
+        measure_delivery(request, root, count)
+        return [request]
+    except ValueError as exc:
+        if "capacity exceeded" not in str(exc):
+            raise
+        error = exc
+    records = [r for rows in payload["checked_findings_and_unused"].values() for r in rows]
+    # Cross product preserves every answer/evidence/check/original dependency.
+    for key, values in (("source_groups", payload.get("source_groups", [])),
+                        ("reopened_original_judgments", payload.get("reopened_original_judgments", [])),
+                        ("records", records), ("checks", payload.get("checks", []))):
+        if len(values) > 1:
+            half = len(values) // 2
+            children = []
+            for subset in (values[:half], values[half:]):
+                child = checked_batch_payload(payload, subset) if key == "records" else with_evidence_identity({
+                    **payload, key: subset, "bounded_method": BOUNDED_METHOD})
+                if key == "source_groups":
+                    local_refs = {ref for g in subset for ref in g["unit_ids"]}
+                    child["reopened_handle_membership"] = {h: [ref for ref in refs if ref in local_refs]
+                        for h, refs in payload["reopened_handle_membership"].items() if local_refs.intersection(refs)}
+                children.extend(bounded_review_requests(phase, child, capacity, context, count, root))
+            return children
+    raise error
+
+
+def advance_bounded(payload, checks, capacity, context, count, root, groups, membership,
+                    consume, waiting, source, verified, view, commission, source_results, active, inactive):
+    """Bounded question folds, exact-answer checks, reopen and one exact repair."""
+    batches = plan_checked_batches(payload, capacity, context, count, root)
+    questions = payload["commission"]["questions"]
+    budget = (capacity["output_reserve_tokens"] - count('{"answers":[]}') - 8 * len(questions)) // len(questions)
+    if budget <= 0:
+        raise ValueError("consumer question sections exceed shared output capacity")
+    identities = evidence_identity(payload)
+    drafts, assembly_ids, missing_all = [], [], []
+    for question in questions:
+        previous, seen = None, []
+        for index, batch in enumerate(batches):
+            seen.extend(r["handle"] for rows in batch["checked_findings_and_unused"].values() for r in rows)
+            request = build_request("assembly", with_evidence_identity({**batch,
+                "commission": {**payload["commission"], "questions": [question]},
+                "unit_ids": seen[:], "bounded_stage": "question_fold", "batch_index": index,
+                "batch_count": len(batches), "draft_output_tokens": budget,
+                "previous_draft": previous}, identities), capacity, context, count)
+            measure_delivery(request, root, count)
+            missing, responses = consume([request])
+            if missing:
+                missing_all.extend(missing)
+                break
+            request, previous = responses[0]
+            assembly_ids.append(request["request_sha256"])
+        else:
+            drafts.append(previous)
+    if missing_all:
+        return waiting(missing_all)
+    # Shared question budgets bound the entire composition input. There are no
+    # checked records or growing membership/origin arrays in the actor envelope.
+    composition_payload = {**checked_batch_payload(payload, []), "section_drafts": drafts,
+        "bounded_stage": "cross_question_compose"}
+    composition = build_request("assembly", with_evidence_identity(composition_payload, identities), capacity, context, count)
+    measure_delivery(composition, root, count)
+    missing, responses = consume([composition])
+    if missing:
+        return waiting(missing)
+    composition, answer = responses[0]
+    assembly_ids.append(composition["request_sha256"])
+    reviews = []
+    for batch in batches:
+        reviews.extend(bounded_review_requests("answer_review", with_evidence_identity({**batch, "answer": answer,
+            "checks": checks, "correction_policy": "exact_review_repairs_v1",
+            "bounded_stage": "exact_answer_batch_review"}, identities), capacity, context, count, root))
+    missing, results = consume(reviews)
+    if missing:
+        return waiting(missing)
+    initial_results = results
+    effective, reopened_jobs, missing_all = [], [], []
+    for request, assessment in results:
+        if not assessment["reopen_refs"]:
+            effective.append((request, assessment))
+            continue
+        selected = {ref for handle in assessment["reopen_refs"] for ref in membership[handle]}
+        reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
+        # Originals accompany independent checks directly, without aggregation of
+        # reopened responses and without another extraction/consolidation pass.
+        reopened_payload = {**request["payload"], "source_groups": reopened,
+            "original_review": assessment, "bounded_stage": "exact_answer_original_context_review",
+            "reopened_handle_membership": {h: membership[h] for h in assessment["reopen_refs"]}}
+        jobs = bounded_review_requests("answer_review_after_reopen", reopened_payload,
+                                      capacity, context, count, root)
+        exact(sorted({ref for job in jobs for g in job["payload"]["source_groups"] for ref in g["unit_ids"]}),
+              sorted({ref for g in reopened for ref in g["unit_ids"]}), "consumer reopened original coverage")
+        missing, rereviews = consume(jobs)
+        missing_all.extend(missing)
+        reopened_jobs.extend(jobs)
+        effective.extend(rereviews)
+    if missing_all:
+        return waiting(missing_all)
+    assessment = merge_assessments([a for _, a in effective], answer)
+    correction = {}
+    if not assessment_clean(assessment) and not assessment["reopen_refs"] and assessment["answer_repairs"]["edits"]:
+        from judgment.review_evidence import (apply_exact_answer_repairs, material_answer_findings,
+                                              compose_answer_patch, correction_selection)
+        nominations = assessment["material_findings"]
+        eligible = material_answer_findings(nominations)
+        affected = {r.removeprefix("current_answer:") for f in eligible
+                    for r in f["artifact_refs"] if r.startswith("current_answer:")}
+        failing = {r["question_id"] for r in assessment["answers"] if r["status"] != "pass"}
+        classified = all(c["status"] == "pass" or c.get("scope") == "answer" for c in assessment["checks"])
+        if eligible and failing <= affected and classified:
+            try:
+                candidate = apply_exact_answer_repairs(answer, assessment["answer_repairs"], nominations, set(membership))
+                candidate = compose_answer_patch(answer, {"answers": [r for r in candidate["answers"]
+                    if r["question_id"] in affected]}, affected)
+                validate_response(composition, candidate, count)
+            except (ValueError, ValidationError) as exc:
+                correction = {"status": "inadmissible", "error": str(exc), "original_answer": answer}
+            else:
+                correction = {"status": "pending_recheck", "original_answer": answer,
+                    "candidate_answer": candidate, "original_assessment": assessment}
+                correction_path = root / "corrections" / (digest(correction) + ".json")
+                retain(correction_path, correction)
+                rechecks = []
+                # Revisit all original batches and reopened context. The local
+                # growing objection union is never placed in a worker request.
+                for request, local_assessment in effective:
+                    rechecks.extend(bounded_review_requests("correction_recheck", with_evidence_identity({**request["payload"],
+                        "answer": candidate, "original_answer": answer,
+                        "repair_nominations": local_assessment["material_findings"],
+                        "exact_repairs": local_assessment["answer_repairs"],
+                        "bounded_stage": "exact_corrected_answer_batch_review"}, identities), capacity, context, count, root))
+                missing, rechecked = consume(rechecks)
+                if missing:
+                    return {**waiting(missing), "correction_path": str(correction_path)}
+                checked = merge_assessments([a for _, a in rechecked], candidate)
+                def shared(value):
+                    return {"material_findings": value["material_findings"], "check_results": [
+                        {"check_id": "answer:" + r["question_id"], "scope": "answer",
+                         "status": {"pass": "pass", "defect": "fail", "unresolved": "uncertain"}[r["status"]]}
+                        for r in value["answers"]] + [{**r,
+                         "status": {"pass": "pass", "defect": "fail", "unresolved": "uncertain"}[r["status"]]}
+                        for r in value["checks"]]}
+                selection = correction_selection(answer, candidate, shared(assessment), shared(checked))
+                accepted = assessment_clean(checked) and selection["answer_correction_status"] == "accepted"
+                correction.update(status="accepted" if accepted else "rejected", selection=selection,
+                    recheck_requests=[r["request_sha256"] for r, _ in rechecked], recheck=checked)
+                if accepted:
+                    answer, assessment, effective = candidate, checked, rechecked
+    status = "COMPLETE_CASE_ANSWER_CHECKED" if assessment_clean(assessment) else "COMPLETE_CASE_ANSWER_REQUIRES_REVISION"
+    result = {"schema_version": "complete_case_answer_v1", "status": status,
+        "source_sha256": digest(source), "verified_sha256": digest(verified), "view_sha256": digest(view),
+        "commission_sha256": digest(commission), "source_review_requests": [r["request_sha256"] for r, _ in source_results],
+        "assembly_request": composition["request_sha256"], "assembly_requests": assembly_ids,
+        "review_requests": [r["request_sha256"] for r, _ in effective],
+        "initial_review_requests": [r["request_sha256"] for r, _ in initial_results],
+        "reopened_review_requests": [r["request_sha256"] for r in reopened_jobs],
+        "answer": {"answers": [{**row, "checked_finding_refs": row["evidence_refs"],
+            "evidence_refs": sorted({ref for handle in row["evidence_refs"] for ref in membership[handle]})}
+            for row in answer["answers"]]}, "assessment": assessment,
+        **({"correction": correction} if correction else {}),
+        "coverage": {"source_rows": len(groups), "verified_units": len(verified["semantic_units"]),
+            "consumer_units": sum(len(g["unit_ids"]) for g in groups), "source_review_rows": len(active),
+            "reused_nonclaim_rows": len(inactive), "mode": "complete_bound_inventory_not_sample",
+            "final_stage_mode": "bounded_question_folds_and_exact_answer_batch_reviews",
+            "checked_batches": len(batches), "membership_sha256": payload["membership_sha256"]}}
+    target = root / "results" / (digest(result) + ".json")
+    retain(target, result)
+    return {"status": status, "phase": "consumer", "answer_path": str(target),
+            "answer_sha256": digest(result), "judgment_requests": [], "model_api_calls": 0}
 
 
 def source_groups(source, verified, view):
@@ -273,14 +717,17 @@ def source_groups(source, verified, view):
     return result
 
 
-def prepare_source_requests(groups, commission, capacity, context, count, *, phase="source_review", extra=None):
+def prepare_source_requests(groups, commission, capacity, context, count, *, phase="source_review", extra=None, root=None):
     """Pack whole source rows; never split a row or silently drop overflow."""
     requests, pending = [], []
 
     def build(items):
-        return build_request(phase, {"commission": commission,
+        request = build_request(phase, {"commission": commission,
             "unit_ids": [i for g in items for i in g["unit_ids"]], "source_groups": items,
             **(extra or {})}, capacity, context, count)
+        if root is not None:
+            measure_delivery(request, root, count)  # pack against the actual worker handoff
+        return request
 
     for group in groups:
         candidate = pending + [group]
@@ -519,38 +966,13 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                 validate_response(request, response, count)
                 responses.append((request, response))
             else:
-                from runners.run_semantic_evidence_integration import judgment_worker_prompt, intake_judgment_job
                 job_path = directory / "request.json"
-                intake = intake_judgment_job(job_path=job_path, expected_sha256=key)
+                delivery = measure_delivery(request, root, count)
+                worker_prompt = delivery["worker_prompt"]
+                intake_bytes = delivery["intake_transport_utf8_bytes"]
+                handoff_tokens = delivery["handoff_instruction_tokens"]
+                total = delivery["total_reserved_tokens"]
                 from runners.run_semantic_evidence_integration import JUDGMENT_SINGLE_RETURN_BYTE_LIMIT
-                intake_bytes = len((json.dumps(intake, indent=2) + "\n").encode("utf-8"))
-                worker_prompt = judgment_worker_prompt(job_path, key, intake_utf8_bytes=intake_bytes)
-                from runners.run_semantic_evidence_integration import _judgment_content_chunk
-                framing = []
-                chunked = intake_bytes > JUDGMENT_SINGLE_RETURN_BYTE_LIMIT
-                for name, content in intake["content"].items():
-                    raw = content.encode("utf-8" if chunked else "utf-16-le")
-                    total = len(raw) if chunked else len(raw) // 2
-                    offset = 0
-                    while offset < total:
-                        if chunked:
-                            end = offset + len(_judgment_content_chunk(raw, offset))
-                            metadata = {"section": name, "from_byte": offset, "to_byte": end, "total_bytes": total}
-                        else:
-                            end = min(offset + 8000, total)
-                            if end < total and 0xD800 <= int.from_bytes(raw[2*(end-1):2*end], "little") <= 0xDBFF:
-                                end -= 1
-                            metadata = {"section": name, "from_character": offset, "to_character": end, "total_characters": total}
-                        framing.append({**metadata, "end_marker": f"END_SECTION_BLOCK {name} {end}"})
-                        offset = end
-                delivery_hashes = ({name: hashlib.sha256(content.encode()).hexdigest()
-                    for name, content in intake["content"].items()} if chunked else {})
-                handoff_tokens = count(compact({"worker_prompt": worker_prompt,
-                    "intake_metadata": {k: v for k, v in intake.items() if k != "content"},
-                    "section_framing": framing, "content_sha256": delivery_hashes}))
-                total = request["measurement"]["total_reserved_tokens"] + handoff_tokens
-                if total > capacity["effective_context_tokens"]:
-                    raise ValueError(f"consumer capacity exceeded at {request['phase']} worker handoff: {total} > {capacity['effective_context_tokens']}; no truncation")
                 missing.append({"phase": request["phase"], "job_path": str(job_path),
                     "job_sha256": key, "response_path": str(target), "worker_context": "fresh_per_request",
                     "intake_command": "intake-judgment-job", "submit_command": "submit-judgment-job",
@@ -571,7 +993,8 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
         raise ValueError("consumer check has unknown source anchor")
     active = [g for g in groups if g["verified_units"] or g["source_row"]["evidence_id"] in anchors]
     inactive = [g for g in groups if not g["verified_units"] and g["source_row"]["evidence_id"] not in anchors]
-    requests = prepare_source_requests(active, base, capacity, context, count, extra={"source_context": context_source})
+    requests = prepare_source_requests(active, base, capacity, context, count,
+        extra={"source_context": context_source}, root=root)
     missing, results = consume(requests)
     if missing:
         return waiting(missing)
@@ -591,38 +1014,99 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                "source_origin_attribution": origins,
                "origin_indexing": "Finding indices are zero-based positions in checked_findings_and_unused.findings. "
                "Numeric origins preserve equal/distinct source identity, not independent corroboration; unknown remains unknown."}
+    # Preserve small legacy completion. Larger inventories enter the bounded
+    # continuation before publishing a final job that cannot admit later output.
+    try:
+        probe = build_request("answer_review", {**payload, "answer": {"answers": []},
+            "checks": checks, "correction_policy": "exact_review_repairs_v1"}, capacity, context, count)
+        measured = measure_delivery(probe, root, count)
+        bounded = measured["total_reserved_tokens"] + capacity["output_reserve_tokens"] > capacity["effective_context_tokens"]
+    except ValueError as exc:
+        if "capacity exceeded" not in str(exc):
+            raise
+        bounded = True
+    if bounded:
+        # A planning reserve for hypothetical future output must not reauthor a
+        # completed legacy answer whose actual requests already fit. The saved
+        # result selects only its route; the normal path below still revalidates
+        # every request, response, receipt and actual output before returning.
+        binding = None
+        for path in sorted((root / "results").glob("*.json")):
+            if not re.fullmatch(r"[0-9a-f]{64}", path.stem):
+                continue
+            previous = read(path)
+            if "review_request" not in previous:
+                continue
+            if binding is None:
+                binding = {"source_sha256": digest(source), "verified_sha256": digest(verified),
+                    "view_sha256": digest(view), "commission_sha256": digest(commission),
+                    "source_review_requests": [r["request_sha256"] for r, _ in results]}
+            if all(previous.get(key) == value for key, value in binding.items()):
+                if digest(previous) != path.stem:
+                    raise ValueError("saved consumer result identity mismatch")
+                bounded = False
+                break
+    if bounded:
+        # Resume an accepted legacy assembly even before a final result exists.
+        # Route through consume so missing, changed or staged responses still fail;
+        # actual downstream review can split without reauthoring this answer.
+        try:
+            prior_assembly = build_request("assembly", payload, capacity, context, count)
+        except ValueError as exc:
+            if "capacity exceeded" not in str(exc):
+                raise
+        else:
+            prior_assembly = saved_request(prior_assembly)
+            directory = root / "requests" / prior_assembly["request_sha256"]
+            if any((directory / name).exists() for name in ("response.json", "response.receipt.json", "response.json.tmp")):
+                bounded = False
+    if bounded:
+        return advance_bounded(payload, checks, capacity, context, count, root, groups, membership,
+            consume, waiting, source, verified, view, commission, results, active, inactive)
     assembly = build_request("assembly", payload, capacity, context, count)
     missing, answers = consume([assembly])
     if missing:
         return waiting(missing)
     assembly, answer = answers[0]
     review_payload = {**payload, "answer": answer, "checks": checks}
-    def review_request(phase, value):
-        legacy = build_request(phase, value, capacity, context, count)
-        saved = saved_request(legacy)
-        if (root / "requests" / saved["request_sha256"] / "request.json").exists():
-            return saved
-        return build_request(phase, {**value, "correction_policy": "exact_review_repairs_v1"}, capacity, context, count)
+    def review_requests(phase, value):
+        try:
+            legacy = build_request(phase, value, capacity, context, count)
+            saved = saved_request(legacy)
+            if (root / "requests" / saved["request_sha256"] / "request.json").exists():
+                measure_delivery(saved, root, count)
+                return [saved]
+        except ValueError as exc:
+            if "capacity exceeded" not in str(exc):
+                raise
+        return bounded_review_requests(phase, {**value, "correction_policy": "exact_review_repairs_v1"},
+                                       capacity, context, count, root)
 
-    review = review_request("answer_review", review_payload)
-    missing, reviews = consume([review])
+    missing, reviews = consume(review_requests("answer_review", review_payload))
     if missing:
         return waiting(missing)
     review, assessment = reviews[0]
+    if len(reviews) > 1:
+        assessment = merge_assessments([value for _, value in reviews], answer)
     if assessment["reopen_refs"]:
-        selected = {ref for handle in assessment["reopen_refs"] for ref in membership[handle]}
-        reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
-        requests = prepare_source_requests(reopened, base, capacity, context, count, phase="reopen",
-            extra={"answer": answer, "review": assessment, "source_context": context_source})
+        requests = []
+        for local_request, local_assessment in reviews:
+            if not local_assessment["reopen_refs"]:
+                continue
+            selected = {ref for handle in local_assessment["reopen_refs"] for ref in membership[handle]}
+            reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
+            requests.extend(prepare_source_requests(reopened, base, capacity, context, count, phase="reopen",
+                extra={"answer": answer, "review": local_assessment, "source_context": context_source}, root=root))
         missing, reopened_results = consume(requests)
         if missing:
             return waiting(missing)
-        review = review_request("answer_review_after_reopen", {**review_payload,
-            "reopened_original_judgments": [response for _, response in reopened_results]})
-        missing, reviews = consume([review])
+        missing, reviews = consume(review_requests("answer_review_after_reopen", {**review_payload,
+            "reopened_original_judgments": [response for _, response in reopened_results]}))
         if missing:
             return waiting(missing)
         review, assessment = reviews[0]
+        if len(reviews) > 1:
+            assessment = merge_assessments([value for _, value in reviews], answer)
     status = "COMPLETE_CASE_ANSWER_CHECKED" if not assessment["reopen_refs"] and all(
         r["status"] == "pass" for r in assessment["answers"] + assessment["checks"]) else "COMPLETE_CASE_ANSWER_REQUIRES_REVISION"
     correction = {}
@@ -650,13 +1134,20 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                               "candidate_answer": candidate, "original_assessment": assessment}
                 correction_path = root / "corrections" / (digest(correction) + ".json")
                 retain(correction_path, correction)
-                recheck = build_request("correction_recheck", {**review["payload"], "answer": candidate,
-                    "original_answer": answer, "repair_nominations": nominations,
-                    "exact_repairs": assessment["answer_repairs"]}, capacity, context, count)
-                missing, responses = consume([recheck])
+                rechecks = []
+                for local_request, local_assessment in reviews:
+                    value = {**local_request["payload"], "answer": candidate, "original_answer": answer,
+                        "repair_nominations": local_assessment["material_findings"],
+                        "exact_repairs": local_assessment["answer_repairs"]}
+                    if value.get("bounded_method"):
+                        value = with_evidence_identity(value, evidence_identity(payload))
+                    rechecks.extend(bounded_review_requests("correction_recheck", value, capacity, context, count, root))
+                missing, responses = consume(rechecks)
                 if missing:
                     return {**waiting(missing), "correction_path": str(correction_path)}
                 recheck, checked = responses[0]
+                if len(responses) > 1:
+                    checked = merge_assessments([value for _, value in responses], candidate)
                 def shared_assessment(value):
                     return {"material_findings": value["material_findings"], "check_results": [
                         {"check_id": "answer:" + row["question_id"], "scope": "answer",
@@ -671,14 +1162,17 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                             and not selected["remaining_material_answer_findings"])
                 correction.update(selection=selected, status="accepted" if accepted else "rejected",
                                   recheck_request=recheck["request_sha256"], recheck=checked)
+                if len(responses) > 1:
+                    correction["recheck_requests"] = [request["request_sha256"] for request, _ in responses]
                 if accepted:
-                    answer, assessment, review = candidate, checked, recheck
+                    answer, assessment, review, reviews = candidate, checked, recheck, responses
                     status = "COMPLETE_CASE_ANSWER_CHECKED"
     result = {"schema_version": "complete_case_answer_v1", "status": status,
         "source_sha256": digest(source), "verified_sha256": digest(verified), "view_sha256": digest(view),
         **({"correction": correction} if correction else {}),
         "commission_sha256": digest(commission), "source_review_requests": [r["request_sha256"] for r, _ in results],
         "assembly_request": assembly["request_sha256"], "review_request": review["request_sha256"],
+        **({"review_requests": [request["request_sha256"] for request, _ in reviews]} if len(reviews) > 1 else {}),
         "answer": {"answers": [{**row, "checked_finding_refs": row["evidence_refs"],
             "evidence_refs": sorted({ref for handle in row["evidence_refs"] for ref in membership[handle]})}
             for row in answer["answers"]]}, "assessment": assessment,
