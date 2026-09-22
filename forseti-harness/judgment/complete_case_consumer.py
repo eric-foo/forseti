@@ -247,7 +247,11 @@ def build_request(phase, payload, capacity, context, count):
 
 
 def measure_delivery(request, root, count):
-    """Measure the actual normal handoff without publishing a planning request."""
+    """Admit direct delivery while preserving the existing partition on restart.
+
+    The historical handoff bound remains a conservative packing ceiling only;
+    its worker script is never dispatched. Also check the actual direct input.
+    """
     from runners.run_semantic_evidence_integration import (
         judgment_worker_prompt, _judgment_intake_envelope, _judgment_content_chunk,
         JUDGMENT_SINGLE_RETURN_BYTE_LIMIT)
@@ -280,10 +284,15 @@ def measure_delivery(request, root, count):
         "intake_metadata": {k: v for k, v in intake.items() if k != "content"},
         "section_framing": framing, "content_sha256": hashes}))
     total = request["measurement"]["total_reserved_tokens"] + tokens
+    from runners.semantic_execution import direct_input_tokens, execution_request
+    direct = direct_input_tokens(request["prompt"], request["schema"], count)
+    direct_total = direct + request["capacity"]["output_reserve_tokens"] + request["capacity"]["other_overhead_reserve_tokens"]
+    total = max(total, direct_total)
     if total > request["capacity"]["effective_context_tokens"]:
         raise ValueError(f"consumer capacity exceeded at {request['phase']} worker handoff: {total} > {request['capacity']['effective_context_tokens']}; no truncation")
-    return {"worker_prompt": worker_prompt, "intake_transport_utf8_bytes": intake_bytes,
-            "handoff_instruction_tokens": tokens, "total_reserved_tokens": total}
+    return {"execution": execution_request(job_path, key), "intake_transport_utf8_bytes": intake_bytes,
+            "handoff_instruction_tokens": tokens, "direct_input_tokens": direct,
+            "total_reserved_tokens": total}
 
 
 BOUNDED_METHOD = "bounded_final_stages_v2"
@@ -968,19 +977,18 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
             else:
                 job_path = directory / "request.json"
                 delivery = measure_delivery(request, root, count)
-                worker_prompt = delivery["worker_prompt"]
                 intake_bytes = delivery["intake_transport_utf8_bytes"]
                 handoff_tokens = delivery["handoff_instruction_tokens"]
                 total = delivery["total_reserved_tokens"]
-                from runners.run_semantic_evidence_integration import JUDGMENT_SINGLE_RETURN_BYTE_LIMIT
                 missing.append({"phase": request["phase"], "job_path": str(job_path),
                     "job_sha256": key, "response_path": str(target), "worker_context": "fresh_per_request",
                     "intake_command": "intake-judgment-job", "submit_command": "submit-judgment-job",
                     "max_concurrent_workers": 3,
-                    "worker_prompt": worker_prompt,
+                    "execution": delivery["execution"],
                     "measurement": {**request["measurement"], "handoff_instruction_tokens": handoff_tokens,
                                     "intake_transport_utf8_bytes": intake_bytes,
-                                    "intake_transport_mode": ("bounded_sections_v1" if intake_bytes > JUDGMENT_SINGLE_RETURN_BYTE_LIMIT else "single_return"),
+                                    "intake_transport_mode": "direct_provider_v1",
+                                    "direct_input_tokens": delivery["direct_input_tokens"],
                                     "total_reserved_tokens": total}})
         return missing, responses
 

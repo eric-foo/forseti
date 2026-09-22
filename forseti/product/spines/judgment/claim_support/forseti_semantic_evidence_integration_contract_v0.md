@@ -2503,11 +2503,15 @@ bind their hashes.
 From `forseti-harness/`, run the existing composed command:
 
 ```text
-python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT
+python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT --execute --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS --max-jobs JOB_LIMIT
 ```
 
 Replace the uppercase placeholders with the bound materialized source and run
-directory. Reuse the task's resolved Python interpreter and working copy. Use that same
+directory and explicit execution settings. Select effort under the model-tiering
+doctrine. `JOB_LIMIT` bounds judgments in this invocation; reaching it returns
+`SEMANTIC_EXECUTION_LIMIT_REACHED` without launching another job. Omit `--execute`
+and its execution options for provider-free preparation. Reuse the task's resolved
+Python interpreter and working copy. Use that same
 invocation, including its packing options, for initial preparation and every
 resume. It composes operations 7–14 below: extraction compilation, independent
 whole-row verification, policy-v2 reconciliation levels and convergence/retention,
@@ -2521,11 +2525,38 @@ Keep execution, waits and mechanical checks together under
 Ordinary runs do not repeat comparison setup, negative-test seeding or token
 accounting; those belong to a separately commissioned measurement or validation.
 
-Dispatch the complete compatible `judgment_requests` set in fresh contexts, one
-per independent request and at most three concurrently. Preserve independent
-extraction and verifier judgments. Forward the returned `worker_prompt` instead
-of rebuilding its intake or writing per-worker validation scripts, then call
-`advance` again after the accepted responses are published.
+The ordinary executor consumes `judgment_requests` in code, with one fresh
+provider context per request and independent extraction and verifier judgments.
+It uses the maintained subscription-only provider runner with shell execution
+disabled, supplies the complete prompt/schema and required context, then invokes
+the native submission validator itself. There is no model dispatcher, polling
+agent, file-writing agent, or fallback to that workflow. Requests carry a compact
+`execution` descriptor instead of a worker script. Execution is sequential;
+concurrency is not part of judgment identity. Provider attempts, failed raw
+answers and native usage remain under `RUN_ROOT/provider/`; a failed or unknown
+attempt stops the invocation with no automatic retry. A restart reuses completed
+attempts and accepted responses. Existing `run_efficiency` observation/reporting
+remains the owner of aggregate accounting; execution itself adds no model report.
+
+For an owner-selected subset of completed extraction batches, prepare a new
+selection without modifying the original run:
+
+```text
+python -m runners.run_semantic_evidence_integration select-extracted-batches --source ORIGINAL_SOURCE --bundle ORIGINAL_BUNDLE --response ACCEPTED_RESPONSE_1 --response ACCEPTED_RESPONSE_2 --output-dir NEW_SELECTION
+python -m runners.run_semantic_evidence_integration advance --source NEW_SELECTION/source.json --bundle NEW_SELECTION/bundle.json --extracted-selection NEW_SELECTION/selection.json --run-dir NEW_RUN_ROOT
+```
+
+Repeat `--response` only for the explicitly selected complete saved batches.
+The provider-free selector validates their original source/bundle ownership and
+exact batch coverage, preserves original files, and deterministically rebinds
+unchanged decisions into the smaller bundle. Its saved selection records original
+file hashes, original batch ownership, selected/excluded row counts and derived
+response hashes. Every start/resume reproduces that derivation before reusing it.
+Derived envelopes are not new model answers or verified evidence. This start
+goes to independent verification, never back to extraction or directly to
+reconciliation. Adding the execution options above runs only within its selected
+scope and explicit job bound. `--verified` and `--extracted-selection` are mutually
+exclusive; the former's existing verification requirement is unchanged.
 
 The run root contains `bundle.json`, `extraction/`, `verification/`,
 `reconciliation/level-NNNN/`, and `view.json`. Each stage uses its existing
@@ -2669,20 +2700,15 @@ review outcome, not source completeness outside the bound inventory, universal
 semantic correctness, or owner acceptance.
 
 Consumer requests and accepted responses live under `consumer/requests/` by
-content identity. The generated `judgment_worker_prompt` uses the normal
-`intake-judgment-job` / `submit-judgment-job` handoff. Intake emits the measured
-prompt and schema once; the prompt already includes project context, and the
-separate local-validation payload is not redelivered. Small/default intake remains
-unchanged. When serialized intake exceeds a conservative 60,000-byte single-return
-threshold, the generated worker automatically uses the same intake command's
-`--delivery-manifest` and byte-offset `--delivery-section` delivery. Every section
-return is at most 8,000 UTF-8 bytes with intact codepoints, and revalidates the
-same job/input hashes before reading. The generated script verifies per-chunk
-and complete-section SHA256, contiguous byte offsets and totals before the final
-`intake_end`; missing, truncated, corrupt or changed input fails incomplete.
-Chunking occurs before the tool's stdout capture, so a fitting model request no
-longer depends on capturing its entire JSON intake in one 60,000-token return.
-This threshold selects transport; it does not cap or truncate evidence. The
+content identity. The normal executor delivers the complete prompt directly to
+the provider's file input and the schema to its structured-output option. The
+prompt already includes project context; it is not supplied a second time.
+Direct developer instructions, prompt and schema are measured before launch,
+with the existing output/overhead reserves. The historical handoff admission
+ceiling is retained conservatively to preserve existing request partitions and
+restart identities; its generated script is not dispatched. The old chunked
+intake remains available for historical replay and scoped repair consumers,
+never as an automatic execution fallback. The
 legacy `submit-consumer-response` command remains compatible. Shared staged/no-replace
 publication retains invalid/incomplete staging as an explicit recovery state;
 a complete validated response missing only its receipt recovers without another
@@ -2744,20 +2770,16 @@ descriptor. An older descriptor remains usable only while all of its pinned
 inputs remain unchanged; issuing a newer descriptor does not revoke it.
 `intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` verifies
 the descriptor and every input, then returns the entire prompt, schema and
-necessary role guidance with byte counts and a final `intake_end` marker. A
-controller forwards the generated `worker_prompt`, which binds both nested
-tool output budgets and emits all content as separate bounded `notify` outputs
-within one tool invocation, with contiguous offsets and no model turn between
-pieces. Accumulated `text` items can share an aggregate truncation limit;
-separate outputs preserve complete delivery without clipping evidence.
-The worker checks truncation
-warnings and metadata at both layers; a marker alone can survive middle
-truncation and does not establish complete intake. Before emitting content, the
-generated delivery compares each parsed section's UTF-8 bytes with the intake
-counts and stops with `INCOMPLETE_INTAKE` on any difference. A
-truncated tool return is incomplete intake; the worker must retrieve the whole
-input before judging. `submit-judgment-job` with the same binding and
-`--response <raw-answer.json>` preserves exact raw bytes, checks the assigned
+necessary role guidance with byte counts and a final `intake_end` marker for
+offline inspection and historical replay. Normal `advance --execute` consumes
+the descriptor directly in code, checks its hashes and writes exact local input
+copies for the maintained provider runner. The model returns one structured
+judgment with no file/command task. Its context never contains prior-job answers.
+Standalone `execute-judgment-job` takes the descriptor/hash, provider root and
+the same explicit model/effort/timeout settings. The runner binds them, disables
+shell execution, records attempts, and refuses unknown outcomes or changed
+inputs instead of relaunching. Code invokes `submit-judgment-job` with the same binding and
+`--response <raw-answer.json>`. Submission preserves exact raw bytes, checks the assigned
 batch identity, applies the native phase validator and atomically publishes
 without replacement. Its compact durable receipt identifies the job, accepted
 response hash and validated batch. Identical accepted bytes may be revalidated

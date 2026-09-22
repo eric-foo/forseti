@@ -46,6 +46,15 @@ CONTEXT_STDIN_INSTRUCTION = (
 CONFIG_LOAD_FAILURE = "Error loading config"
 
 
+DIRECT_JUDGMENT_INSTRUCTION = (
+    "Perform one independent judgment using only the complete supplied request. "
+    "Return only the JSON required by the response schema. Do not invoke tools, "
+    "delegate, write files, submit results, or inspect previous answers. The caller "
+    "owns validation and persistence. Missing required evidence is a failure, not "
+    "permission to invent it."
+)
+
+
 def desktop_process_context():
     """Read this runner's actual ancestry, not PATH or installation caches."""
     if sys.platform != "win32" or not os.environ.get("SystemRoot"):
@@ -274,6 +283,8 @@ def main() -> int:
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
                         help="Supply a required UTF-8 instruction file verbatim; repeat for multiple files. Disables shell_tool for this self-contained job.")
     parser.add_argument("--expected-context-sha256", help=argparse.SUPPRESS)
+    parser.add_argument("--direct-judgment", action="store_true",
+                        help="One supplied-input judgment; disable shell and require a JSON-only return.")
     # Require the caller's task assessment before reservation or provider access.
     parser.add_argument("--reasoning-effort", choices=REASONING_EFFORTS, required=True,
                         help="Explicit task-assessed effort supported by the selected model; no default")
@@ -337,8 +348,13 @@ def main() -> int:
             metadata["authentication_observed"] = "chatgpt"
             # Enforce again inside Codex to close credential changes after status.
             config += ["--config", 'forced_login_method="chatgpt"']
-        if context:
+        if context or args.direct_judgment:
             config += ["--disable", "shell_tool"]
+        if args.direct_judgment:
+            metadata["direct_judgment"] = True
+            if not context:
+                config += ["--config", "developer_instructions=" + json.dumps(DIRECT_JUDGMENT_INSTRUCTION)]
+        if context:
             metadata["preloaded_context_sha256"] = context_sha
             metadata["preloaded_context_files"] = json.dumps(context_files, ensure_ascii=False)
         if hash_file(Path(executable)) != selected["sha256"]:

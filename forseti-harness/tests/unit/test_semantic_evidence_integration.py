@@ -11958,13 +11958,10 @@ def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, caps
             assert json.loads(intake["content"]["response_schema"]) == json.loads(Path(request["response_schema_path"]).read_text())
             assert "Causal and motivational boundary" in intake["content"]["claim_support"]
             assert request["worker_context"] == "fresh_per_request" and request["max_concurrent_workers"] == 3
-            worker = request["worker_prompt"]
-            assert '\n// @exec: {"max_output_tokens": 60000}\n' in worker
-            assert '"max_output_tokens": 60000' in worker and 'JSON.parse(result.output)' in worker
-            assert 'Object.entries(intake.content)' in worker and 'offset + 8000' in worker
-            assert 'notify(JSON.stringify' in worker and 'content.slice(offset, end)' in worker
-            assert 'END_SECTION_BLOCK' in worker and 'notify({intake_end:' in worker
-            assert "truncation warnings/metadata" in worker and "ONE functions.exec invocation" in worker
+            assert "worker_prompt" not in request
+            assert request["execution"] == {"command": "execute-judgment-job",
+                "job_path": request["job_path"], "job_sha256": request["job_sha256"],
+                "transport": "direct_provider_v1"}
             raw = tmp_path / "raw.json"
             raw.write_text(json.dumps(response), encoding="utf-8")
             receipt = submit_judgment_job(**kwargs, response_path=raw)

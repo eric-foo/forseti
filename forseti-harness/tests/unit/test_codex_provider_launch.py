@@ -105,6 +105,30 @@ def test_required_context_is_verbatim_without_shell_or_prompt_mutation(launch):
     assert "project_doc_max_bytes=0" not in call["command"]
 
 
+@pytest.mark.parametrize("with_context", [False, True])
+def test_direct_judgment_disables_shell_preserves_input_and_records_mode(launch, with_context):
+    launch.argv += ["--direct-judgment"]
+    if with_context:
+        source = launch.root / "authority.md"
+        source.write_text("Complete required authority", encoding="utf-8")
+        launch.argv += ["--preload-context", str(source)]
+    assert runner.main() == 0
+    assert len(launch.launches) == 1
+    call = launch.launches[0]
+    assert call["launch_metadata"]["direct_judgment"] is True
+    disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
+    assert "shell_tool" in disabled
+    setting = next(p for p in call["command"] if p.startswith("developer_instructions="))
+    if with_context:
+        packet = json.loads(call["prompt_path"].read_text(encoding="utf-8"))
+        assert packet["task_prompt"] == "exact prompt"
+        assert packet["required_context"].count("Complete required authority") == 1
+        assert json.loads(setting.split("=", 1)[1]) == runner.CONTEXT_STDIN_INSTRUCTION
+    else:
+        assert call["prompt_path"].read_text(encoding="utf-8") == "exact prompt"
+        assert json.loads(setting.split("=", 1)[1]) == runner.DIRECT_JUDGMENT_INSTRUCTION
+
+
 def test_large_context_does_not_expand_windows_command(launch):
     source = launch.root / "large.md"
     source.write_text('begin\n' + 'required context 🐳\n' * 9000 + 'end\n', encoding='utf-8')

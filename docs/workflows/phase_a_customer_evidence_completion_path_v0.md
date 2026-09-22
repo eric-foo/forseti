@@ -716,7 +716,9 @@ the complete inventory. This does not promote the optional finite route.
 
 Follow the owning [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
 section for normal starts and resumes. It binds the command, complete request set,
-generated worker protocol, accepted-artifact reuse and stopping conditions.
+direct program-owned execution, accepted-artifact reuse and stopping conditions.
+Its selected-extraction entry preserves completed batches while requiring their
+independent verification; it does not resume excluded extraction work.
 For an explicitly commissioned prepared-level checkpoint with existing verified
 inputs, use [Preparation from verified inputs](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
 These entries replace reconstructing the sequence from the history in this file.
