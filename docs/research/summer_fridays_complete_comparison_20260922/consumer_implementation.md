@@ -466,6 +466,11 @@ independent review, reopening and correction bounded. Runtime proof below binds
 `3f62e865572b587875671deb28506d0b0743a4f526c39beeb3a22a76f62f2bd3`
 and runner SHA256
 `914ea8f1849272a815403c3ad165ca4bfaff7e733b0d9c7c66465cceec1948b6`.
+The consumer hash is the validated Windows working-copy byte identity. Git
+normalizes its CRLF line endings; the implementation commit
+`7cb6a042c35b3546068e462b8650f23900744f51` stores LF blob SHA256
+`5438506fa537b69156bb1f8375643c883c92095256da41cee252d2ab26e8611d`.
+Fresh comparison found only that normalization, across all six committed files.
 The live owning method is **Bounded complete-case answer and review** in the
 semantic integration contract; the supported operating route points there.
 
@@ -622,7 +627,10 @@ report. No source evidence, saved historical output, provider configuration or
 finite-route implementation changed. No commit, push, PR, merge or delegated
 review was executed by the implementer. The parent owns publication/CI and
 bounded courier-only review of the oversized original-context/correction
-partition boundary: **courier preparation pending parent closeout**. No controller
-dispatch or completed review is asserted, and merge waits for review/adjudication.
+partition boundary. The courier commission is prepared at
+`docs/prompts/reviews/bounded_final_stages_review_patch_prompt_v0.md`; it is the
+run-authoritative input for the independent receiver and the review-routing
+gate. No controller dispatch or completed review is asserted, and merge waits
+for review/adjudication.
 Historical sections above retain their original authority and results; their
 prior closeout does not attest this new change.
