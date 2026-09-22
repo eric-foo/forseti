@@ -28,6 +28,43 @@ def rehash(value, field):
     value[field] = semantic._sha256(value)
 
 
+def test_normal_advance_reuses_selected_verification_and_rejects_changed_originals(originals, tmp_path):
+    dependencies, ids, _ = originals
+    selected = selection.derive_verified_selection(dependencies, ids)
+    paths = {name: tmp_path / "selected" / (name + ".json") for name in ("source", "bundle", "verified")}
+    for (name, path), value in zip(paths.items(), selected):
+        write(path, value)
+    kwargs = dict(source_path=paths["source"], bundle_path=paths["bundle"], verified_path=paths["verified"], run_dir=tmp_path / "run")
+    first = native.advance_semantic_run(**kwargs)
+    assert first["status"] == "SEMANTIC_JUDGMENT_REQUIRED" and first["phase"] == "reconciliation", first.get("error")
+    assert all(r["phase"] == "reconciliation" for r in first["judgment_requests"])
+    assert not (tmp_path / "run/extraction").exists()
+    proof = Path(dependencies["verified"]["path"])
+    original = json.loads(proof.read_text())
+    original["evidence_dispositions"][0]["disposition_reason"] += " Coherently changed."
+    rehash(original, "compilation_sha256")
+    write(proof, original)
+    failed = native.advance_semantic_run(**kwargs)
+    assert failed["status"] == "SEMANTIC_ADVANCE_BLOCKED" and not failed["judgment_requests"]
+    assert "dependency changed" in failed["error"]
+    proof.unlink()
+    failed = native.advance_semantic_run(**kwargs)
+    assert "dependency unavailable" in failed["error"] and not failed["judgment_requests"]
+
+
+def test_normal_advance_rejects_paired_wrong_source_before_new_judgments(originals, tmp_path):
+    dependencies, ids, _ = originals
+    source, bundle, verified = selection.derive_verified_selection(dependencies, ids)
+    source["captured_items"][0]["text"] += " Altered source meaning."
+    rehash(source, "source_sha256")
+    paths = {name: tmp_path / (name + ".json") for name in ("source", "bundle", "verified")}
+    for (name, path), value in zip(paths.items(), (source, bundle, verified)):
+        write(path, value)
+    failed = native.advance_semantic_run(source_path=paths["source"], bundle_path=paths["bundle"], verified_path=paths["verified"], run_dir=tmp_path / "run")
+    assert failed["status"] == "SEMANTIC_ADVANCE_BLOCKED" and not failed["judgment_requests"]
+    assert "differs" in failed["error"] and not (tmp_path / "run").exists()
+
+
 @pytest.fixture
 def originals(tmp_path):
     source = _source_v7(count=6)

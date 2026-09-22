@@ -26,10 +26,11 @@ def load_original(path, expected):
     return json.loads(raw.decode("utf-8-sig"), object_pairs_hook=unique_json_object)
 
 
-def _derive(originals, dependencies, evidence_ids, *, max_prompt_bytes, max_evidence_per_work_unit):
-    source, bundle, verified = (originals[k] for k in ("source", "bundle", "verified"))
+def validate_verified_inputs(source, bundle, verified):
+    """Validate exact source ownership and native complete/selected verification."""
     if "verified_row_selection" in verified:
-        raise semantic.SemanticIntegrationError("verified selection requires original verification, not a nested selection")
+        validate_verified_selection(bundle, verified, source=source)
+        return
     semantic._validate_verification_input_compilation(bundle, verified)
     semantic._verify_row_verification_manifest(bundle, verified)
     if not verified.get("row_verification_manifest"):
@@ -45,6 +46,13 @@ def _derive(originals, dependencies, evidence_ids, *, max_prompt_bytes, max_evid
             or any(rebuilt["semantic_work_unit_projection"].get(k) != bundle["semantic_work_unit_projection"].get(k)
                    for k in ("context_registry", "semantic_execution_identity"))):
         raise semantic.SemanticIntegrationError("verified selection original source does not match original bundle")
+
+
+def _derive(originals, dependencies, evidence_ids, *, max_prompt_bytes, max_evidence_per_work_unit):
+    source, bundle, verified = (originals[k] for k in ("source", "bundle", "verified"))
+    if "verified_row_selection" in verified:
+        raise semantic.SemanticIntegrationError("verified selection requires original verification, not a nested selection")
+    validate_verified_inputs(source, bundle, verified)
     if (not isinstance(evidence_ids, list) or not evidence_ids
             or any(not isinstance(i, str) or not i for i in evidence_ids)
             or len(evidence_ids) != len(set(evidence_ids))):

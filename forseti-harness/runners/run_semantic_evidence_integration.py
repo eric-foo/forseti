@@ -1146,6 +1146,11 @@ def _retain_advance_artifact(path: Path, value: Any, *, raw: bool = False) -> bo
 def _load_judgment_job(job_path: Path, expected_sha256: str) -> tuple[dict[str, Any], dict[str, bytes]]:
     """Read each pinned input once; callers consume the bytes that were verified."""
     raw = job_path.read_bytes()
+    candidate = json.loads(raw, object_pairs_hook=unique_json_object)
+    if candidate.get("version") == "complete_case_consumer_request_v1":
+        from judgment.complete_case_consumer import validate_request
+        validate_request(candidate, expected_sha256)
+        return candidate, {}
     if hashlib.sha256(raw).hexdigest() != expected_sha256:
         raise ValueError("judgment job hash mismatch")
     job = json.loads(raw, object_pairs_hook=unique_json_object)
@@ -1160,12 +1165,35 @@ def _load_judgment_job(job_path: Path, expected_sha256: str) -> tuple[dict[str, 
     return job, inputs
 
 
-def intake_judgment_job(*, job_path: Path, expected_sha256: str) -> dict[str, Any]:
+JUDGMENT_SINGLE_RETURN_BYTE_LIMIT = 60000
+JUDGMENT_DELIVERY_CHUNK_BYTES = 8000
+
+
+def _judgment_content_chunk(raw: bytes, offset: int) -> bytes:
+    raw[:offset].decode("utf-8")  # require a complete codepoint boundary
+    chunk = raw[offset:offset + JUDGMENT_DELIVERY_CHUNK_BYTES]
+    try:
+        chunk.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        chunk = chunk[:exc.start]
+    return chunk
+
+
+def intake_judgment_job(*, job_path: Path, expected_sha256: str,
+                        delivery_manifest: bool = False, delivery_section: str | None = None,
+                        delivery_offset: int = 0) -> dict[str, Any]:
     """Deliver the complete semantic input in one operation, without clipping."""
     job, inputs = _load_judgment_job(job_path, expected_sha256)
-    content = {name: inputs[name].decode("utf-8-sig") for name in
+    if job.get("version") == "complete_case_consumer_request_v1":
+        from judgment.complete_case_consumer import compact
+        # The measured prompt already contains required project context once.
+        content = {"prompt": job["prompt"], "response_schema": compact(job["schema"])}
+        job = {**job, "batch_id": job["request_sha256"],
+               "response_path": str(job_path.with_name("response.json"))}
+    else:
+        content = {name: inputs[name].decode("utf-8-sig") for name in
                ["agents", "overlay", "preflight_defaults", "claim_support", "prompt", "response_schema"]}
-    return {
+    result = {
         "status": "SEMANTIC_JUDGMENT_INTAKE_COMPLETE", "job_sha256": expected_sha256,
         "phase": job["phase"], "batch_id": job["batch_id"],
         "response_path": job["response_path"],
@@ -1185,6 +1213,28 @@ def intake_judgment_job(*, job_path: Path, expected_sha256: str) -> dict[str, An
         "content": content, "model_api_calls": 0,
         "intake_end": expected_sha256,
     }
+
+    if delivery_manifest and delivery_section is not None:
+        raise ValueError("intake delivery manifest and section are mutually exclusive")
+    if delivery_offset < 0 or (delivery_section is None and delivery_offset):
+        raise ValueError("invalid intake delivery byte offset")
+    hashes = {name: hashlib.sha256(value.encode("utf-8")).hexdigest() for name, value in content.items()}
+    if delivery_manifest:
+        return {k: v for k, v in {**result, "delivery_mode": "bounded_sections_v1",
+                "content_sha256": hashes}.items() if k != "content"}
+    if delivery_section is not None:
+        if delivery_section not in content:
+            raise ValueError("unknown intake delivery section")
+        raw = content[delivery_section].encode("utf-8")
+        if delivery_offset >= len(raw) and not (delivery_offset == 0 and not raw):
+            raise ValueError("intake delivery offset outside section")
+        chunk = _judgment_content_chunk(raw, delivery_offset)
+        return {"status": "SEMANTIC_JUDGMENT_INTAKE_CHUNK", "job_sha256": expected_sha256,
+            "section": delivery_section, "from_byte": delivery_offset,
+            "to_byte": delivery_offset + len(chunk), "total_bytes": len(raw),
+            "section_sha256": hashes[delivery_section], "content": chunk.decode("utf-8"),
+            "chunk_sha256": hashlib.sha256(chunk).hexdigest()}
+    return result
 
 
 def _judgment_delivery_script(execution: dict[str, Any], store_key: str) -> str:
@@ -1212,7 +1262,60 @@ def _judgment_delivery_script(execution: dict[str, Any], store_key: str) -> str:
     )
 
 
-def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
+def _chunked_judgment_delivery_script(execution: dict[str, Any], store_key: str, expected_sha256: str) -> str:
+    """Retrieve bounded stdout chunks before emitting complete verified sections."""
+    script = r"""// @exec: {"max_output_tokens": 60000}
+const execution = __EXECUTION__;
+const expectedJob = __EXPECTED__;
+const utf8bytes = s => { const a = []; for (const ch of s) { const c = ch.codePointAt(0); if(c<128)a.push(c); else if(c<2048)a.push(192|(c>>6),128|(c&63)); else if(c<65536)a.push(224|(c>>12),128|((c>>6)&63),128|(c&63)); else a.push(240|(c>>18),128|((c>>12)&63),128|((c>>6)&63),128|(c&63)); } return a; };
+const sha256 = text => {
+  const data = utf8bytes(text), bits = data.length * 8, primes = [];
+  for(let n=2;primes.length<64;n++) if(!primes.some(p=>n%p===0))primes.push(n);
+  const k=primes.map(p=>Math.floor((Math.cbrt(p)%1)*4294967296)>>>0);
+  const state=primes.slice(0,8).map(p=>Math.floor((Math.sqrt(p)%1)*4294967296)>>>0);
+  data.push(128); while(data.length%64!==56)data.push(0);
+  for(const n of [Math.floor(bits/4294967296),bits>>>0])for(let j=3;j>=0;j--)data.push((n>>>(j*8))&255);
+  const ro=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let off=0;off<data.length;off+=64){
+    const w=[];for(let j=0;j<16;j++)w[j]=(data[off+4*j]<<24)|(data[off+4*j+1]<<16)|(data[off+4*j+2]<<8)|data[off+4*j+3];
+    for(let j=16;j<64;j++){const x=w[j-15],y=w[j-2];w[j]=(w[j-16]+(ro(x,7)^ro(x,18)^(x>>>3))+w[j-7]+(ro(y,17)^ro(y,19)^(y>>>10)))>>>0;}
+    let [a,b,c,d,e,f,g,h]=state;
+    for(let j=0;j<64;j++){const t1=(h+(ro(e,6)^ro(e,11)^ro(e,25))+((e&f)^(~e&g))+k[j]+w[j])>>>0,t2=((ro(a,2)^ro(a,13)^ro(a,22))+((a&b)^(a&c)^(b&c)))>>>0;h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}
+    [a,b,c,d,e,f,g,h].forEach((v,j)=>state[j]=(state[j]+v)>>>0);
+  }
+  return state.map(v=>v.toString(16).padStart(8,'0')).join('');
+};
+const fail = reason => { notify({status:'INCOMPLETE_INTAKE', reason}); exit(); };
+const fetch = async suffix => {
+  const result=await tools.exec_command({...execution,cmd:execution.cmd+suffix});
+  if(result.exit_code!==0 || result.session_id || (result.original_token_count||0)>execution.max_output_tokens)fail('failed or truncated intake command');
+  try{return JSON.parse(result.output);}catch(_){fail('intake stdout is incomplete JSON');}
+};
+const manifest=await fetch(' --delivery-manifest');
+if(manifest.intake_end!==expectedJob || manifest.delivery_mode!=='bounded_sections_v1')fail('manifest identity mismatch');
+const content={};
+notify({status:manifest.status,content_bytes:manifest.content_bytes,instructions:manifest.instructions});
+for(const [section,total] of Object.entries(manifest.content_bytes)){
+  let offset=0,parts=[];
+  while(offset<total){
+    const chunk=await fetch(" --delivery-section '"+section.replace(/'/g,"''")+"' --delivery-offset "+offset);
+    if(chunk.status!=='SEMANTIC_JUDGMENT_INTAKE_CHUNK' || chunk.job_sha256!==expectedJob || chunk.section!==section || chunk.from_byte!==offset || chunk.total_bytes!==total || chunk.to_byte<=offset || chunk.to_byte>total || utf8bytes(chunk.content).length!==chunk.to_byte-offset || chunk.section_sha256!==manifest.content_sha256[section] || sha256(chunk.content)!==chunk.chunk_sha256)fail('missing, changed or corrupt intake chunk');
+    parts.push(chunk.content);
+    notify(JSON.stringify({section,from_byte:offset,to_byte:chunk.to_byte,total_bytes:total})+'\n'+chunk.content+'\nEND_SECTION_BLOCK '+section+' '+chunk.to_byte);
+    offset=chunk.to_byte;
+  }
+  content[section]=parts.join('');
+  if(utf8bytes(content[section]).length!==total || sha256(content[section])!==manifest.content_sha256[section])fail('complete section hash mismatch');
+}
+store(__STORE__,{...manifest,content});
+notify({intake_end:expectedJob,content_sha256:manifest.content_sha256});
+"""
+    return (script.replace("__EXECUTION__", json.dumps(execution))
+            .replace("__EXPECTED__", json.dumps(expected_sha256))
+            .replace("__STORE__", json.dumps(store_key)))
+
+
+def judgment_worker_prompt(job_path: Path, job_sha256: str, *, intake_utf8_bytes: int = 0) -> str:
     """The controller forwards this executable intake, including both output bounds."""
     runner = Path(__file__).resolve()
     raw_path = job_path.with_suffix(".raw.json")
@@ -1223,6 +1326,9 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
     intake = command("intake-judgment-job")
     # PowerShell's call operator is required when the executable itself is quoted.
     execution = {"cmd": "& " + intake, "workdir": str(runner.parents[2]), "max_output_tokens": 60000}
+    delivery = (_chunked_judgment_delivery_script(execution, "judgment_intake", job_sha256)
+        if intake_utf8_bytes > JUDGMENT_SINGLE_RETURN_BYTE_LIMIT
+        else _judgment_delivery_script(execution, "judgment_intake"))
     return (
         "One independent semantic judgment; launch in a fresh context at high effort, "
         "without prior-job history. Output mode file-write. Repository read-only; "
@@ -1233,7 +1339,7 @@ def judgment_worker_prompt(job_path: Path, job_sha256: str) -> str:
         "First execute exactly this complete intake with both wrapper output allowances. "
         "Emit every content byte via separate notify outputs within this SAME tool invocation; "
         "accumulated text items can be truncated as one result despite a high allowance:\n"
-        + _judgment_delivery_script(execution, "judgment_intake") +
+        + delivery +
         "Check exit status and both tools' truncation warnings/metadata as well as the final "
         "intake_end marker. INCOMPLETE_INTAKE means parsed section bytes differ from the "
         "intake counts. A marker can survive middle truncation: any truncation means "
@@ -1580,6 +1686,12 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
                         response_path: Path) -> dict[str, Any]:
     """Validate exactly one raw answer and publish without replacing accepted work."""
     job, inputs = _load_judgment_job(job_path, expected_sha256)
+    if job.get("version") == "complete_case_consumer_request_v1":
+        from judgment.complete_case_consumer import submit
+        from runners.finite_preparation import offline_tokenizer
+        tokenizer, _ = offline_tokenizer(job["capacity"]["encoding"])
+        return submit(job_path, expected_sha256, response_path,
+                      lambda value: len(tokenizer.encode(value, disallowed_special=())))
     if job["phase"] == "reconciliation_repair":
         # The repair schema has request identity, not a normal batch envelope.
         # Keep the existing repair consumer responsible for composition and readback.
@@ -1646,10 +1758,13 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
 
 def advance_semantic_run(
     *, source_path: Path, run_dir: Path,
+    bundle_path: Path | None = None, verified_path: Path | None = None,
     max_batch_chars: int = 80_000, max_prompt_bytes: int | None = None,
     max_evidence_per_work_unit: int = 120,
     reconciliation_packing: str = "input_order",
     reconciliation_authoring_revision: str = RECONCILIATION_AUTHORING_IDENTITY_V4,
+    answer_commission_path: Path | None = None,
+    answer_capacity_path: Path | None = None,
 ) -> dict[str, Any]:
     """Carry the supported provider-free route to its next real judgment boundary.
 
@@ -1796,57 +1911,74 @@ def advance_semantic_run(
         source = _load_object(source_path)
         if source.get("schema_version") != SOURCE_VERSION_V3 or "source_sha256" not in source:
             raise ValueError("advance requires Collection's hash-bound materialized v3 source")
-        bundle = build_bundle(source, max_batch_chars=max_batch_chars,
-            max_prompt_bytes=max_prompt_bytes, max_evidence_per_work_unit=max_evidence_per_work_unit)
+        if (bundle_path is None) != (verified_path is None):
+            raise ValueError("advance requires --bundle and --verified together")
+        if bundle_path is not None:
+            from judgment.verified_evidence_selection import validate_verified_inputs
+            bundle, verified = _load_object(bundle_path), _load_object(verified_path)
+            validate_verified_inputs(source, bundle, verified)
+            start = {"mode": "existing_verified", "inputs": {
+                name: {"path": str(path.resolve()), "sha256": hash_file(path)}
+                for name, path in {"source": source_path, "bundle": bundle_path,
+                                   "verified": verified_path}.items()}}
+        else:
+            bundle = build_bundle(source, max_batch_chars=max_batch_chars,
+                max_prompt_bytes=max_prompt_bytes, max_evidence_per_work_unit=max_evidence_per_work_unit)
+            start = {"mode": "extraction", "source_sha256": source["source_sha256"]}
+        retain("start", run_dir / "start.json", start, "bind-start")
         if bundle.get("method_version") not in SEMANTIC_METHODS_V7_PLUS:
             raise ValueError("advance requires a row-verified semantic method (v7 or later)")
         state.update(bundle_sha256=bundle["bundle_sha256"], corpus_sha256=bundle["corpus_sha256"])
         artifacts["source"] = {"path": str(source_path.resolve()), "sha256": hash_file(source_path)}
         bundle_path = run_dir / "bundle.json"
         retain("bundle", bundle_path, bundle, "prepare-batches")
-        directory = run_dir / "extraction"
-        requests = requests_for("extraction", directory, build_batch_prompts(bundle), bundle_path, bundle["bundle_sha256"])
-        responses, problems = read_responses(directory, requests)
-        # Keep run_status the authority for extraction states. It verifies the
-        # immutable bundle/projection once, even when no response exists yet.
-        status = run_status(bundle=bundle, batch_responses=[*responses, *(
-            {"batch_id": row.get("batch_id"), "staged_artifact": True}
-            for row in problems if row["kind"] == "staged"
-        ), *(
-            {"batch_id": row.get("batch_id"), "invalid_file_error": row["error"]}
-            for row in problems if row["kind"] == "invalid"
-        )])
-        state["extraction_status"] = status
-        invalid = {row["batch_id"]: row["error"] for row in status["invalid_responses"]}
+        if verified_path is not None:
+            directory = run_dir / "verification"
+            retain("verified_compilation", directory / "compilation.json", verified, "reuse-verified")
+        else:
+            directory = run_dir / "extraction"
+            requests = requests_for("extraction", directory, build_batch_prompts(bundle), bundle_path, bundle["bundle_sha256"])
+            responses, problems = read_responses(directory, requests)
+            # Keep run_status the authority for extraction states. It verifies the
+            # immutable bundle/projection once, even when no response exists yet.
+            status = run_status(bundle=bundle, batch_responses=[*responses, *(
+                {"batch_id": row.get("batch_id"), "staged_artifact": True}
+                for row in problems if row["kind"] == "staged"
+            ), *(
+                {"batch_id": row.get("batch_id"), "invalid_file_error": row["error"]}
+                for row in problems if row["kind"] == "invalid"
+            )])
+            state["extraction_status"] = status
+            invalid = {row["batch_id"]: row["error"] for row in status["invalid_responses"]}
 
-        def validate_extraction(rows: list[dict[str, Any]]) -> None:
-            for row in rows:
-                if row["batch_id"] in invalid:
-                    raise ValueError(invalid[row["batch_id"]])
+            def validate_extraction(rows: list[dict[str, Any]]) -> None:
+                for row in rows:
+                    if row["batch_id"] in invalid:
+                        raise ValueError(invalid[row["batch_id"]])
 
-        if boundary("extraction", requests, responses, problems, validate_extraction,
-                    directory / "compilation.json"):
-            return state
-        compiled = validate_batch_responses(bundle, responses)
-        retain("batch_compilation", directory / "compilation.json", compiled, "submit-batches")
-        directory = run_dir / "verification"
-        stage_path = directory / "stage.json"
-        saved_stage = _load_object(stage_path) if stage_path.exists() else None
-        stage, prompts = prepare_row_verification(
-            bundle, compiled,
-            _legacy_prompt_rendering=(
-                saved_stage is not None and "prompt_rendering_version" not in saved_stage
-            ),
-        )
-        retain("verification_stage", stage_path, stage, "prepare-row-verification")
-        requests = requests_for("verification", directory, prompts, stage_path, stage["stage_sha256"])
-        verification_responses, problems = read_responses(directory, requests)
-        if boundary("verification", requests, verification_responses, problems,
-                    lambda rows: apply_row_verification(bundle, compiled, stage, rows, require_all=False),
-                    directory / "compilation.json"):
-            return state
-        verified = apply_row_verification(bundle, compiled, stage, verification_responses)
-        retain("verified_compilation", directory / "compilation.json", verified, "submit-row-verification")
+            if boundary("extraction", requests, responses, problems, validate_extraction,
+                        directory / "compilation.json"):
+                return state
+            compiled = validate_batch_responses(bundle, responses)
+            retain("batch_compilation", directory / "compilation.json", compiled, "submit-batches")
+            directory = run_dir / "verification"
+            stage_path = directory / "stage.json"
+            saved_stage = _load_object(stage_path) if stage_path.exists() else None
+            stage, prompts = prepare_row_verification(
+                bundle, compiled,
+                _legacy_prompt_rendering=(
+                    saved_stage is not None and "prompt_rendering_version" not in saved_stage
+                ),
+            )
+            retain("verification_stage", stage_path, stage, "prepare-row-verification")
+            requests = requests_for("verification", directory, prompts, stage_path, stage["stage_sha256"])
+            verification_responses, problems = read_responses(directory, requests)
+            if boundary("verification", requests, verification_responses, problems,
+                        lambda rows: apply_row_verification(bundle, compiled, stage, rows, require_all=False),
+                        directory / "compilation.json"):
+                return state
+            verified = apply_row_verification(bundle, compiled, stage, verification_responses)
+            retain("verified_compilation", directory / "compilation.json", verified, "submit-row-verification")
         if not verified["semantic_units"]:
             state.update(status="SEMANTIC_ADVANCE_BLOCKED", phase="verification",
                 blocker_code="NO_CLAIM_BEARING_EVIDENCE", judgment_requests=[],
@@ -1863,6 +1995,9 @@ def advance_semantic_run(
                 authoring_revision=(reconciliation_authoring_revision
                     if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
                     else RECONCILIATION_AUTHORING_LEGACY))
+            if any("response_schema" not in prompt for prompt in prompts):
+                prompts = prepare_reconciliation_prompts(bundle, stage,
+                    authoring_revision=RECONCILIATION_AUTHORING_LEGACY, include_legacy_schema=True)
             stage_path = directory / "stage.json"
             retain("reconciliation_stage", stage_path, stage, "prepare-reconciliation-level")
             requests = requests_for("reconciliation", directory, prompts, stage_path, stage["stage_sha256"])
@@ -1881,6 +2016,21 @@ def advance_semantic_run(
         state.update(status="SEMANTIC_EVIDENCE_INTEGRATION_COMPLETE", phase="complete",
                      view_sha256=view["view_sha256"], judgment_requests=[],
                      action="Use the current-corpus view under existing seal and synthesis authorization.")
+        if answer_commission_path is not None:
+            if answer_capacity_path is None:
+                raise ValueError("answer commission requires explicit answer capacity")
+            from judgment.complete_case_consumer import advance as advance_consumer
+            from runners.finite_preparation import offline_tokenizer
+            from runners.run_codex_provider_attempt import preloaded_context
+            from runners.run_finite_semantic_consolidation import CONTEXT
+            capacity = _load_object(answer_capacity_path)
+            tokenizer, _ = offline_tokenizer(capacity["encoding"])
+            context, _ = preloaded_context(CONTEXT)
+            state.update(advance_consumer(source, verified, view, _load_object(answer_commission_path),
+                capacity, run_dir / "consumer", context=context,
+                count=lambda value: len(tokenizer.encode(value, disallowed_special=()))))
+        elif answer_capacity_path is not None:
+            raise ValueError("answer capacity requires an answer commission")
     except (OSError, ValueError, SemanticIntegrationError) as exc:
         state.update(status="SEMANTIC_ADVANCE_BLOCKED", error=str(exc), judgment_requests=[],
                      action="Resolve the named input or persisted-artifact failure; rerun the same advance invocation.")
@@ -3454,9 +3604,15 @@ def _parser() -> argparse.ArgumentParser:
     advance = sub.add_parser("advance", help="Advance supported consolidation to all ready judgments or the final view.")
     advance.add_argument("--source", type=Path, required=True)
     advance.add_argument("--run-dir", type=Path, required=True)
+    advance.add_argument("--bundle", type=Path, help="Existing native bundle, paired with --verified.")
+    advance.add_argument("--verified", type=Path, help="Existing complete or selected verification for the source.")
     advance.add_argument("--max-batch-chars", type=int, default=80_000)
     advance.add_argument("--max-prompt-bytes", type=int)
     advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
+    advance.add_argument("--answer-commission", type=Path,
+        help="Continue the normal completed view into bounded complete-case answer/review jobs.")
+    advance.add_argument("--answer-capacity", type=Path,
+        help="Explicit offline encoding, context/output/overhead budgets and max_rows_per_slice JSON.")
     advance.add_argument("--reconciliation-packing", choices=["input_order", "group_aware_v1"],
         default="input_order", help="Experimental preparation only; keep the same option on every resume.")
     advance.add_argument("--reconciliation-authoring-revision",
@@ -3464,11 +3620,20 @@ def _parser() -> argparse.ArgumentParser:
         default=RECONCILIATION_AUTHORING_IDENTITY_V4,
         help="Opt-in v5 adds source-row aliases; v6 clarifies uncertainty and completion. Keep the same revision on resume.")
 
+    consumer_submit = sub.add_parser("submit-consumer-response")
+    consumer_submit.add_argument("--job", type=Path, required=True)
+    consumer_submit.add_argument("--job-sha256", required=True)
+    consumer_submit.add_argument("--response", type=Path, required=True)
+
     for command in ("intake-judgment-job", "submit-judgment-job",
                     "intake-reconciliation-repair-coordinator", "review-reconciliation-repair"):
         job = sub.add_parser(command, help="Hash-bound intake, native submission or read-only saved repair review.")
         job.add_argument("--job", type=Path, required=True)
         job.add_argument("--job-sha256", required=True)
+        if command == "intake-judgment-job":
+            job.add_argument("--delivery-manifest", action="store_true")
+            job.add_argument("--delivery-section")
+            job.add_argument("--delivery-offset", type=int, default=0)
         if command in {"submit-judgment-job", "review-reconciliation-repair"}:
             job.add_argument("--response", type=Path, required=True)
         if command == "review-reconciliation-repair":
@@ -4067,14 +4232,24 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         if args.command == "advance":
-            result = advance_semantic_run(source_path=args.source,
+            result = advance_semantic_run(source_path=args.source, bundle_path=args.bundle, verified_path=args.verified,
                 run_dir=args.run_dir, max_batch_chars=args.max_batch_chars,
                 max_prompt_bytes=args.max_prompt_bytes,
                 max_evidence_per_work_unit=args.max_evidence_per_work_unit,
                 reconciliation_packing=args.reconciliation_packing,
-                reconciliation_authoring_revision=args.reconciliation_authoring_revision)
+                reconciliation_authoring_revision=args.reconciliation_authoring_revision,
+                answer_commission_path=args.answer_commission, answer_capacity_path=args.answer_capacity)
+        elif args.command == "submit-consumer-response":
+            from judgment.complete_case_consumer import read, submit
+            from runners.finite_preparation import offline_tokenizer
+            request = read(args.job)
+            tokenizer, _ = offline_tokenizer(request["capacity"]["encoding"])
+            result = submit(args.job, args.job_sha256, args.response,
+                lambda value: len(tokenizer.encode(value, disallowed_special=())))
         elif args.command == "intake-judgment-job":
-            result = intake_judgment_job(job_path=args.job, expected_sha256=args.job_sha256)
+            result = intake_judgment_job(job_path=args.job, expected_sha256=args.job_sha256,
+                delivery_manifest=args.delivery_manifest, delivery_section=args.delivery_section,
+                delivery_offset=args.delivery_offset)
         elif args.command == "submit-judgment-job":
             result = submit_judgment_job(job_path=args.job, expected_sha256=args.job_sha256,
                 response_path=args.response)
