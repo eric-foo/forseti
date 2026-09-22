@@ -2593,8 +2593,24 @@ context, or current question makes that necessary.
 Source judgments partition the complete supplied unit inventory into used and
 reasoned unused evidence. A used unit may legitimately inform several findings;
 duplicate findings, duplicate unused dispositions, foreign references, missing
-units, and a used/unused overlap are rejected. Final assembly receives all checked
+units, and a used/unused overlap are rejected. Final writing consumes all checked
 findings, limits, and distinct unused/reused-disposition reasons across slices.
+When the complete review envelope cannot reserve a permitted final answer, the
+same normal consumer partitions the complete checked inventory into bounded
+batches. Each commissioned question folds every batch into a revised draft and
+an explicit reconciliation ledger: bounded propositions, supporting/opposing/
+context handles, conditions/versions, and uncertainty/causal limits. Source roles,
+origin aliases and independence postures come from compiler-derived
+`evidence_identity` metadata, not a second model-authored identity ledger. This
+map accompanies current and cited handles through question folds, cross-question
+composition, exact-answer reviews and corrected-answer rechecks; equal origins
+remain visible even when their cited findings occupy different batches. Global
+handles never become local array indices or acquire a new source's role. Each fold reconciles prior and new conclusions; it is
+not an independent summary to concatenate. Question responses share one output
+budget. A bounded cross-question composition reconciles those drafts and ledgers
+into the final answer without reaggregating checked records. Trusted phase-specific
+instructions make this absence intentional: complete-inventory independent review
+follows composition. It is not evidence that independent review is unavailable.
 Short local handles resolve through an immutable exact membership manifest.
 Source-origin aliases preserve known equal/distinct identity across slices,
 source role, and independence posture; unknown identity never becomes a new
@@ -2602,15 +2618,44 @@ independent person. Origin identity is not independent corroboration by itself.
 Homogeneous transport lists preserve every record while enabling the existing
 lossless renderer to factor repeated fields.
 
-The independent answer review receives the complete checked set, actual answer,
-and exact commissioned checks. It may nominate material findings and reopen
-implicated originals. One bounded original-source reinspection and recheck is
-supported. New reviews use the existing assessment finding classifications
+The independent answer review receives the exact final answer and exact
+commissioned checks against every checked batch, including uncited findings and
+unused/reused dispositions. The same final answer bytes go to every batch; draft
+reviews cannot substitute. A valid cited premise located in another batch is not
+itself an objection or a reason to request originals. Trusted review instructions
+replace the generic complete-set assembly/review instruction for these stages.
+A bounded review may reopen only its assigned checked handles, for a material
+ambiguity requiring their original context; answer-prose reopen requests do not
+automatically become reviewer obligations. The review must still challenge this batch's opposition,
+conditions, role limits, unjustified cross-source promotion and material omissions.
+A local, lossless union preserves every objection and failed/unresolved answer or
+check; clean batches cannot outvote a failure. This union is never dispatched as
+an unbounded combine request. Exact duplicate nominations/edits can be coalesced;
+conflicting exact edits fail shared repair admission.
+
+One round may reopen exact implicated original handles. On the bounded route,
+original whole-row context accompanies independent answer checks directly;
+original-group, checked-record and check partitions retain their complete cross
+product when actual envelopes need further splitting. Reopened responses never
+form a hidden all-record request. A checker unable to resolve an objection from
+its supplied context must retain it unresolved; a second automatic reopen round
+is not authorized. New reviews use the existing assessment finding classifications
 (`severity`, `introduced_at`, `status`, `source_refs`, `artifact_refs`) and exact
 `answer_repairs` bound to the actual answer hash; checks explicitly name scope.
-The shared `review_evidence` helpers apply admissible review-authored edits only
-to nominated current answers, compose unchanged answers exactly, then require
-one independent `correction_recheck`. Clean-only `correction_selection` may
+The shared `review_evidence` helpers apply admissible review-authored text edits
+only to nominated current answers and automatically add their supporting
+`source_refs` to that answer's `evidence_refs`. Reviewers must account for those
+added citations when writing replacement text. Citation-only defects without an
+admissible substantive text repair remain requires-revision; no arbitrary citation
+rewrite or repair-policy expansion is introduced. Helpers compose unchanged
+answers exactly, then require
+independent `correction_recheck` of the exact candidate against every checked
+batch and every reopened original context. Each recheck carries its local review
+nominations/edits plus original and candidate answers; the growing union of
+objections is retained locally, not sent to an actor. The fitting legacy route
+also partitions an actually oversized reopened-judgment list and rechecks a
+correction against each accepted local review. A small checked inventory with a
+large grouped original-source reopen cannot create an unbounded final request. Clean-only `correction_selection` may
 select the candidate; an upstream-only, unclassified, ambiguous, inapplicable,
 or failed correction leaves the original and failure visible. Original and
 candidate answers, review and recheck are retained. No extra rewrite, automatic
@@ -2660,13 +2705,23 @@ empty capacity encoding return the existing structured failure before publicatio
 or tokenizer lookup, respectively.
 Evidence changes invalidate dependent source slices and downstream work;
 check-only changes retain unchanged source judgments and assembly. Changed
-answers invalidate review. Original inputs, prior results, and the historical
-finite route remain untouched. No provider calls are launched by `advance`.
+answers invalidate review. Already completed legacy answers with unchanged
+source, verification, view, commission and source-job bindings keep their prior
+route even if new hypothetical-output reserve planning would select batches.
+Their content-addressed result only selects that route; the actual requests,
+responses and immutable receipts still revalidate before a result is returned.
+Original inputs, prior results, and the historical finite route remain untouched. No provider calls are launched by `advance`.
 
-Oversized rows, generated findings, final assembly, review, reopening, schema,
-and output reservations fail visibly at their actual boundary. Nothing is
-sampled or silently shortened to fit. A source request fitting does not establish
-that generated downstream requests fit. The historical sizing and synthetic
+The bounded planner reserves downstream answer/review context and uses the same
+pure intake-envelope construction as actual delivery. Every actual composition,
+review, reopen and correction request is remeasured with schema and normal worker
+handoff; oversized review inputs split across whole records, original groups or
+checks. An indivisible row/record, required fixed context, schema or permitted
+output that still cannot fit fails visibly at its actual boundary. Nothing is
+sampled or silently shortened to fit. Question ledgers and final answers remain
+bounded outputs; material omissions in those outputs must be caught by independent
+complete-inventory checks. Structural coverage alone is not semantic-quality proof.
+A source request fitting does not establish that downstream requests fit. The historical sizing and synthetic
 quality evidence, including limitations, are recorded in
 `docs/research/summer_fridays_complete_comparison_20260922/consumer_implementation.md`.
 

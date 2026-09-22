@@ -1179,20 +1179,8 @@ def _judgment_content_chunk(raw: bytes, offset: int) -> bytes:
     return chunk
 
 
-def intake_judgment_job(*, job_path: Path, expected_sha256: str,
-                        delivery_manifest: bool = False, delivery_section: str | None = None,
-                        delivery_offset: int = 0) -> dict[str, Any]:
-    """Deliver the complete semantic input in one operation, without clipping."""
-    job, inputs = _load_judgment_job(job_path, expected_sha256)
-    if job.get("version") == "complete_case_consumer_request_v1":
-        from judgment.complete_case_consumer import compact
-        # The measured prompt already contains required project context once.
-        content = {"prompt": job["prompt"], "response_schema": compact(job["schema"])}
-        job = {**job, "batch_id": job["request_sha256"],
-               "response_path": str(job_path.with_name("response.json"))}
-    else:
-        content = {name: inputs[name].decode("utf-8-sig") for name in
-               ["agents", "overlay", "preflight_defaults", "claim_support", "prompt", "response_schema"]}
+def _judgment_intake_envelope(job, expected_sha256, content):
+    """Shared exact intake shape for delivery and offline capacity admission."""
     result = {
         "status": "SEMANTIC_JUDGMENT_INTAKE_COMPLETE", "job_sha256": expected_sha256,
         "phase": job["phase"], "batch_id": job["batch_id"],
@@ -1213,6 +1201,25 @@ def intake_judgment_job(*, job_path: Path, expected_sha256: str,
         "content": content, "model_api_calls": 0,
         "intake_end": expected_sha256,
     }
+
+    return result
+
+
+def intake_judgment_job(*, job_path: Path, expected_sha256: str,
+                        delivery_manifest: bool = False, delivery_section: str | None = None,
+                        delivery_offset: int = 0) -> dict[str, Any]:
+    """Deliver the complete semantic input in one operation, without clipping."""
+    job, inputs = _load_judgment_job(job_path, expected_sha256)
+    if job.get("version") == "complete_case_consumer_request_v1":
+        from judgment.complete_case_consumer import compact
+        # The measured prompt already contains required project context once.
+        content = {"prompt": job["prompt"], "response_schema": compact(job["schema"])}
+        job = {**job, "batch_id": job["request_sha256"],
+               "response_path": str(job_path.with_name("response.json"))}
+    else:
+        content = {name: inputs[name].decode("utf-8-sig") for name in
+               ["agents", "overlay", "preflight_defaults", "claim_support", "prompt", "response_schema"]}
+    result = _judgment_intake_envelope(job, expected_sha256, content)
 
     if delivery_manifest and delivery_section is not None:
         raise ValueError("intake delivery manifest and section are mutually exclusive")
