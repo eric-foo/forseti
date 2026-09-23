@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v128
+version: v129
 effective_date: 2026-09-23
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v128
+# Semantic Evidence Integration Contract v129
 
 ## Purpose
 
@@ -2599,16 +2599,24 @@ python -m runners.run_semantic_evidence_integration advance-provisional-experime
 ```
 
 The commission must name
-`experimental_method: single_pass_provisional_experiment_v1`. This route admits
-at most twelve source-hash-bound v13 rows in one extraction batch. It uses the
-existing native extraction schema and validator, then the complete-case
-consumer's answer writing and exact-answer review interfaces. Its separately
-hashed experimental instructions qualify extraction as provisional and prohibit
-unsupported specificity while retaining legitimate contextual inference.
-Historical v13 method text, hashes and the normal mandatory verification route
-are unchanged.
+`experimental_method: single_pass_provisional_experiment_v2`. This route admits
+at most twelve source-hash-bound v13 rows in one source bundle. V2 uses the
+complete-case consumer's existing source-linked `findings` / `unused` shape for
+provisional notes, followed by its answer writing and exact-answer review
+interfaces. Every actor receives the actual commission and complete original
+rows with supplied context. Notes retain potentially material product, brand,
+entity and uncataloged-subject meanings, including distinct reasons, mixed
+attitudes, conditions and attributed claims; a catalog match is not required.
+Catalogs aid identity without authorizing invented specificity. The shared
+validator checks source and question identities, complete row participation,
+nonempty findings and unused reasons. It does not certify meaning recall.
+Historical v13 product schemas, method text, hashes and mandatory row verification
+are unchanged. Saved v1 native responses remain locally validatable, but a new
+run requires the v2 commission and a fresh immutable root; v1 results are not
+reinterpreted or continued under v2.
 
-`provisional-notes.json` is `PROVISIONAL_UNVERIFIED`. It contains no invented
+`provisional-notes.json` is `PROVISIONAL_UNVERIFIED`. Its findings and unused
+reasons are not a native semantic compilation. It contains no invented
 verification receipt and is inadmissible as a verified compilation. Both writer
 and reviewer receive every original source row and supplied context, including
 uncited and no-unit rows. Review failure blocks delivery; clean review yields

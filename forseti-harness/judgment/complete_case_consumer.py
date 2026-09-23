@@ -81,13 +81,13 @@ def strings(choices=None):
 
 
 def response_schema(phase, payload):
-    if phase == "provisional_extraction":
+    if phase == "provisional_extraction" and payload.get("experimental_method") == LEGACY_PROVISIONAL_METHOD:
         from judgment.semantic_evidence_integration import build_batch_response_schema
         bundle = payload["bundle"]
         return build_batch_response_schema(bundle, bundle["batches"][0]["batch_id"])
     ids = payload["unit_ids"]
     qids = [q["id"] for q in payload["commission"]["questions"]]
-    if phase in {"source_review", "reopen"}:
+    if phase in {"source_review", "reopen", "provisional_extraction"}:
         finding = obj({"statement": TEXT, "question_ids": strings(qids),
             "supporting_refs": strings(ids), "opposing_refs": strings(ids),
             "context_refs": strings(ids), "limits": TEXT})
@@ -136,7 +136,8 @@ def validate_response(request, response, count):
     except ValidationError as exc:
         # Callers report ValueError as a preserved failure, never a crash.
         raise ValueError(f"consumer response schema violation: {exc.message}") from exc
-    if request["phase"] == "provisional_extraction":
+    if (request["phase"] == "provisional_extraction"
+            and request["payload"].get("experimental_method") == LEGACY_PROVISIONAL_METHOD):
         from judgment.semantic_evidence_integration import validate_batch_responses
         validate_batch_responses(request["payload"]["bundle"], [response])
         if count(compact(response)) > request["capacity"]["output_reserve_tokens"]:
@@ -158,7 +159,7 @@ def validate_response(request, response, count):
                                      request["payload"].get("draft_output_tokens", request["capacity"]["output_reserve_tokens"])):
         raise ValueError("consumer output exceeds reserved capacity")
     payload, phase = request["payload"], request["phase"]
-    if phase in {"source_review", "reopen"}:
+    if phase in {"source_review", "reopen", "provisional_extraction"}:
         used = []
         if len({digest(f) for f in response["findings"]}) != len(response["findings"]):
             raise ValueError("consumer duplicate finding coverage")
@@ -246,9 +247,6 @@ def build_request(phase, payload, capacity, context, count):
     method = bounded_phase_instructions(phase, payload) if payload.get("bounded_method") or payload.get("bounded_stage") else METHOD
     if payload.get("experimental_method") == PROVISIONAL_METHOD:
         method = PROVISIONAL_INSTRUCTIONS
-        if phase == "provisional_extraction":
-            from judgment.semantic_evidence_integration import build_batch_prompts
-            actor_payload = {"native_extraction": build_batch_prompts(payload["bundle"])[0]["prompt"]}
     prompt = context + "\n" + method + "\nPHASE: " + phase + repair_guidance + "\n" + render_evidence(json.loads(compact(actor_payload)))
     measured = count(compact({"prompt": prompt, "response_schema": schema}))
     total = measured + capacity["output_reserve_tokens"] + capacity["other_overhead_reserve_tokens"]
@@ -1230,16 +1228,28 @@ def submit(request_path, expected_sha256, response_path, count):
 
 # Separate experiment identity: never change historical v13 method text/hashes or
 # manufacture a row_verification_manifest to enter the normal completion route.
-PROVISIONAL_METHOD = "single_pass_provisional_experiment_v1"
+LEGACY_PROVISIONAL_METHOD = "single_pass_provisional_experiment_v1"
+PROVISIONAL_METHOD = "single_pass_provisional_experiment_v2"
 PROVISIONAL_INSTRUCTIONS = """EXPERIMENTAL route. Extraction is provisional,
 unverified working notes, never verified evidence or a completed semantic corpus.
-Read the supplied original text/context before applying the native extraction
-instructions. Preserve every material meaning, qualification and contradiction.
+Use the commissioned questions and supplied original text/context in every phase.
+Extraction: work through every source row. Preserve each distinct potentially
+material meaning in source-linked findings before comparing across sources.
+Coverage includes product experience, brand/entity positions and motives,
+uncataloged products, reported behavior, and attributed company/editorial claims.
+A catalog match is not required for a finding. A product catalog is an identity
+aid, never a reason to omit a meaning or force an uncataloged reference into a SKU.
+Preserve qualifications, contradictions, mixed attitudes, explicit reasons,
+comparators, conditions, time/scope, uncertainty and attribution in statements
+and limits. Cite original evidence IDs in supporting_refs, opposing_refs or
+context_refs according to their role; question_ids must name commissioned
+questions. Every row must appear in findings or unused, never both. Unused needs
+a concrete reason why the row cannot affect these questions; uncertain relevance
+belongs in a finding with limits. Row coverage alone does not prove meaning recall.
 Do not infer an attribute's type from a name alone, an exact product from a generic
 reference, repurchase from use, objective causality from sequence, or independent
 fact from an attributed statement. Keep valid context-supported interpretations
-and explicit attribute evidence. Unknown specificity stays unknown. These limits
-also govern the embedded native extraction instructions.
+and explicit attribute evidence. Unknown specificity stays unknown.
 Assembly: write a useful bounded answer to the commissioned questions using the
 originals and provisional notes. Cite source evidence IDs. Check source roles,
 contrary evidence and excluded rows; notes are retrieval aids, not authority.
@@ -1254,7 +1264,7 @@ Return only the required JSON.
 
 
 def advance_provisional(source, commission, capacity, root, *, context, count):
-    """Opt-in, <=12-row experiment using native extraction and exact-answer review.
+    """Opt-in, <=12-row provisional findings and exact-answer review experiment.
 
     Preparation only. The existing direct job runner executes each ready request;
     the experiment operator inspects semantics before launching a dependent job.
@@ -1267,7 +1277,7 @@ def advance_provisional(source, commission, capacity, root, *, context, count):
     if not 1 <= len(rows) <= 12:
         raise ValueError("provisional experiment requires 1..12 source rows")
     if source.get("semantic_method_version") != semantic.METHOD_VERSION_V13:
-        raise ValueError("provisional experiment requires pinned v13 extraction base")
+        raise ValueError("provisional experiment requires pinned v13 source base")
     semantic._verify_stored_hash(source, field="source_sha256", label="experiment source")
     ids = [r["evidence_id"] for r in rows]
     exact(ids, list(dict.fromkeys(ids)), "experiment source coverage")
@@ -1313,14 +1323,7 @@ def advance_provisional(source, commission, capacity, root, *, context, count):
             raise ValueError("experiment response binding changed")
         return response, None
 
-    extraction, waiting = consume("provisional_extraction", {**base, "bundle": bundle})
-    if waiting:
-        return waiting
-    compiled = semantic.validate_batch_responses(bundle, [extraction])
-    notes = {"status": "PROVISIONAL_UNVERIFIED", "experimental_method": PROVISIONAL_METHOD,
-             "source_sha256": source["source_sha256"], "compilation": compiled}
-    retain(root / "provisional-notes.json", notes)
-    # Every original row is present even if extraction called it context-only.
+    # Every phase receives every original row, including rows marked unused.
     # Deliver row and container provenance, not the full-capture inventory.
     # Catalog authority IDs stay lookup bindings; the full source remains above.
     artifact_ids = set()
@@ -1339,7 +1342,14 @@ def advance_provisional(source, commission, capacity, root, *, context, count):
     referenced_artifacts(source["containers"])
     originals = {k: v for k, v in source.items() if k not in {"source_sha256", "source_artifacts"}}
     originals["source_artifacts"] = [a for a in source["source_artifacts"] if a["artifact_id"] in artifact_ids]
-    payload = {**base, "original_source": originals, "provisional_notes": notes}
+    payload = {**base, "original_source": originals}
+    extraction, waiting = consume("provisional_extraction", payload)
+    if waiting:
+        return waiting
+    notes = {"status": "PROVISIONAL_UNVERIFIED", "experimental_method": PROVISIONAL_METHOD,
+             "source_sha256": source["source_sha256"], **extraction}
+    retain(root / "provisional-notes.json", notes)
+    payload = {**payload, "provisional_notes": notes}
     answer, waiting = consume("assembly", payload)
     if waiting:
         return waiting

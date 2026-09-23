@@ -24,6 +24,14 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-23 v129 — experimental single-pass v2 carries the actual commission
+  into every actor prompt and reuses source-linked findings/unused notes so
+  brand, entity and uncataloged-product meanings are not excluded by native
+  product-ID requirements. All originals and notes reach writing and exact-answer
+  review. New runs use fresh roots; saved v1 response validation and normal v13
+  product extraction/verification remain unchanged. This expands experimental
+  representation, not proven recall or production completion.
+
 - 2026-09-23 v128 — owner-commissioned, unpromoted twelve-row single-pass
   experiment reuses native extraction and complete-case answer interfaces with
   explicitly provisional notes and source review of the exact answer. Preserves

@@ -9,8 +9,8 @@ from judgment import semantic_evidence_integration as s
 from test_semantic_evidence_integration import _source_v10, _keyed_responses
 
 
-def fixture():
-    source = _source_v10(count=2)
+def fixture(count=2):
+    source = _source_v10(count=count)
     source["semantic_method_version"] = s.METHOD_VERSION_V13
     source["captured_items"][0]["text"] = "The explicitly pink shade suits me; vanilla smells nice."
     source["captured_items"][1]["text"] = "Burned my skin; never buying again."
@@ -39,7 +39,16 @@ def request(state):
 
 
 def extraction(state):
-    return _keyed_responses(request(state)["payload"]["bundle"])[0]
+    rows = request(state)["payload"]["original_source"]["captured_items"]
+    return {"findings": [finding(rows[0])], "unused": [
+        {"unit_ref": r["evidence_id"], "reason": "Misclassified as irrelevant to this question."}
+        for r in rows[1:]]}
+
+
+def finding(row):
+    return {"statement": row["text"], "question_ids": ["q"],
+        "supporting_refs": [row["evidence_id"]], "opposing_refs": [],
+        "context_refs": [], "limits": "Attributed to this source; no independent corroboration."}
 
 
 def reach_review(args, root, tmp_path):
@@ -88,21 +97,28 @@ def test_clean_review_is_only_experimental_and_restart_reuses_exact_result(tmp_p
     assert advance(args, tmp_path / "run") == result
     notes = c.read(tmp_path / "run/provisional-notes.json")
     bundle = c.read(tmp_path / "run/bundle.json")
-    with pytest.raises(s.SemanticIntegrationError, match="verification"):
-        s.validate_row_verified_compilation(bundle, notes["compilation"], notes["compilation"])
+    with pytest.raises(s.SemanticIntegrationError, match="compilation_sha256"):
+        s.validate_row_verified_compilation(bundle, notes, notes)
 
 
-@pytest.mark.parametrize("mutation", ["missing", "foreign", "wrong_bundle"])
+@pytest.mark.parametrize("mutation", ["missing", "foreign", "duplicate_unused", "used_and_unused", "foreign_question", "empty_refs", "fake_product_field"])
 def test_extraction_identity_rejected_at_submission(tmp_path, mutation):
     state = advance(fixture(), tmp_path / "run")
     response = extraction(state)
-    decisions = response["decisions_by_evidence_id"]
     if mutation == "missing":
-        decisions.pop(next(iter(decisions)))
+        response["unused"] = []
     elif mutation == "foreign":
-        decisions["foreign"] = decisions.pop(next(iter(decisions)))
-    else:
-        response["bundle_sha256"] = "f" * 64
+        response["unused"][0]["unit_ref"] = "foreign"
+    elif mutation == "duplicate_unused":
+        response["unused"] *= 2
+    elif mutation == "used_and_unused":
+        response["unused"][0]["unit_ref"] = response["findings"][0]["supporting_refs"][0]
+    elif mutation == "foreign_question":
+        response["findings"][0]["question_ids"] = ["foreign"]
+    elif mutation == "empty_refs":
+        response["findings"][0]["supporting_refs"] = []
+    elif mutation == "fake_product_field":
+        response["findings"][0]["subject_product_ids"] = ["invented-brand-product"]
     with pytest.raises(ValueError):
         publish(state, response, tmp_path)
     assert not list((tmp_path / "run").glob("requests/*/response.receipt.json"))
@@ -112,7 +128,7 @@ def test_duplicate_raw_key_is_rejected_before_last_key_wins(tmp_path):
     state = advance(fixture(), tmp_path / "run")
     raw = tmp_path / "duplicate.json"
     text = json.dumps(extraction(state))
-    raw.write_text(text[:-1] + ', "batch_id": "duplicate"}', encoding="utf-8")
+    raw.write_text(text[:-1] + ', "unused": []}', encoding="utf-8")
     info = state["judgment_requests"][0]
     with pytest.raises(ValueError, match="duplicate JSON key"):
         c.submit(info["job_path"], info["job_sha256"], raw, len)
@@ -148,6 +164,9 @@ def test_explicit_opt_in_and_duplicate_source_rows(tmp_path):
     args[1].pop("experimental_method")
     with pytest.raises(ValueError, match="explicit"):
         advance(args, tmp_path / "run")
+    args[1]["experimental_method"] = c.LEGACY_PROVISIONAL_METHOD
+    with pytest.raises(ValueError, match="explicit"):
+        advance(args, tmp_path / "run")
     args = fixture()
     args[0]["captured_items"].append(deepcopy(args[0]["captured_items"][0]))
     args[0].pop("source_sha256")
@@ -166,6 +185,60 @@ def test_v13_method_and_verifier_text_unchanged_by_experiment(tmp_path):
     assert before == after
     assert s.build_batch_prompts(after) == prompts
     assert s._verification_method(after) == verification
+
+
+def test_broad_meanings_and_commission_reach_every_actor_without_product_coercion(tmp_path):
+    source, commission, capacity = fixture(count=4)
+    meanings = [
+        "I like the founders but avoid the brand because I think they are already wealthy.",
+        "I have not tried this brand. An uncataloged competitor's Moon Mask is my favorite moisturizer.",
+        "The founder describes a lifestyle strategy rather than clinical claims; an editorial report cites a 2025 US retailer ranking.",
+        "It burned after use on my sensitive skin; sequence does not establish causality.",
+    ]
+    for row, meaning in zip(source["captured_items"], meanings):
+        row["text"] = meaning
+    source.pop("source_sha256")
+    source["source_sha256"] = s._sha256(source)
+    commission["questions"][0]["question"] = "What do the sources support about product experience, limits and brand positioning?"
+    args = source, commission, capacity
+    root = tmp_path / "run"
+    state = advance(args, root)
+    notes = {"findings": [finding(row) for row in source["captured_items"]], "unused": []}
+    for phase in ("provisional_extraction", "assembly", "answer_review"):
+        current = request(state)
+        assert current["phase"] == phase
+        assert current["payload"]["commission"] == commission
+        assert commission["questions"][0]["question"] in current["prompt"]
+        assert "Every semantic unit requires" not in current["prompt"]
+        assert current["payload"]["original_source"]["captured_items"] == source["captured_items"]
+        for meaning in meanings:
+            assert meaning in current["prompt"]
+        from pathlib import Path
+        actor = c.read(Path(state["judgment_requests"][0]["job_path"]).with_name("actor-input.json"))
+        assert actor == {"prompt": current["prompt"], "response_schema": current["schema"]}
+        if phase == "provisional_extraction":
+            publish(state, notes, tmp_path)
+        else:
+            assert current["payload"]["provisional_notes"]["findings"] == notes["findings"]
+            if phase == "assembly":
+                publish(state, {"answers": [{"question_id": "q", "answer": " ".join(meanings),
+                    "evidence_refs": [r["evidence_id"] for r in source["captured_items"]],
+                    "limits": "These selected sources do not establish prevalence."}]}, tmp_path)
+            else:
+                publish(state, review("pass"), tmp_path)
+        state = advance(args, root)
+    assert state["status"] == "EXPERIMENTAL_ANSWER_SOURCE_CHECKED"
+    assert state["answer"]["answers"][0]["answer"] == " ".join(meanings)
+
+
+def test_saved_v1_native_response_still_validates_without_reinterpreting_it():
+    source, commission, capacity = fixture()
+    commission["experimental_method"] = c.LEGACY_PROVISIONAL_METHOD
+    bundle = s.build_bundle(source, max_prompt_bytes=400000, max_evidence_per_work_unit=12)
+    payload = {"experimental_method": c.LEGACY_PROVISIONAL_METHOD, "bundle": bundle}
+    saved_request = {"phase": "provisional_extraction", "payload": payload,
+        "capacity": capacity, "schema": c.response_schema("provisional_extraction", payload)}
+    c.validate_response(saved_request, _keyed_responses(bundle)[0], len)
 
 
 def test_source_delivery_keeps_all_rows_but_omits_unreferenced_artifact_inventory(tmp_path):
