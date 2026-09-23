@@ -195,6 +195,11 @@ def _check_attempt(path, binding):
         raise ValueError("provider attempt input binding changed")
     if binding.get("direct_judgment"):
         from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_CONFIG, DIRECT_JUDGMENT_DISABLED_FEATURES
+        from runners.codex_judgment_profile import verify_receipt
+        try:
+            verify_receipt(path, receipt)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ValueError("provider attempt direct judgment restriction changed: preventive profile invalid") from exc
         disabled = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--disable"]
         settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
         if (receipt.get("launch_metadata", {}).get("direct_judgment") is not True

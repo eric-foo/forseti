@@ -19,6 +19,7 @@ if str(HARNESS_ROOT) not in sys.path:
 from harness_utils import hash_file
 from provider_attempts import reserve_provider_attempt  # noqa: E402
 from provider_execution import execute_provider_attempt  # noqa: E402
+from runners import codex_judgment_profile  # noqa: E402
 
 
 # Recognized labels, not a claim that every model supports every effort.
@@ -56,13 +57,8 @@ DIRECT_JUDGMENT_INSTRUCTION = (
 
 # Direct judgments already carry their required authority and evidence. Keep
 # automatic project discovery and unrelated capabilities out of this role.
-DIRECT_JUDGMENT_DISABLED_FEATURES = (
-    "shell_tool", "unified_exec", "multi_agent", "apps", "plugins",
-    "browser_use", "computer_use", "image_generation", "view_image", "code_mode_host", "tool_suggest",
-)
-DIRECT_JUDGMENT_CONFIG = (
-    "project_doc_max_bytes=0", 'web_search="disabled"',
-)
+DIRECT_JUDGMENT_DISABLED_FEATURES = codex_judgment_profile.DISABLED_FEATURES
+DIRECT_JUDGMENT_CONFIG = codex_judgment_profile.CONFIG
 
 
 def desktop_process_context():
@@ -294,12 +290,14 @@ def main() -> int:
                         help="Supply a required UTF-8 instruction file verbatim; repeat for multiple files. Disables shell_tool for this self-contained job.")
     parser.add_argument("--expected-context-sha256", help=argparse.SUPPRESS)
     parser.add_argument("--direct-judgment", action="store_true",
-                        help="One supplied-input judgment; disable shell and require a JSON-only return.")
+                        help="One supplied-input judgment using the audited empty-tool native profile.")
     # Require the caller's task assessment before reservation or provider access.
     parser.add_argument("--reasoning-effort", choices=REASONING_EFFORTS, required=True,
                         help="Explicit task-assessed effort supported by the selected model; no default")
     parser.add_argument("--timeout-seconds", type=float, required=True)
     args = parser.parse_args()
+    if args.direct_judgment and not args.require_chatgpt:
+        parser.error("--direct-judgment requires --require-chatgpt")
     if not math.isfinite(args.timeout_seconds) or args.timeout_seconds <= 0:
         parser.error("--timeout-seconds must be finite and positive")
     if not args.prompt_file.is_file() or not args.output_schema.is_file() or not args.worktree.is_dir():
@@ -359,9 +357,12 @@ def main() -> int:
             # Enforce again inside Codex to close credential changes after status.
             config += ["--config", 'forced_login_method="chatgpt"']
         if args.direct_judgment:
+            profile, source_model, catalog = codex_judgment_profile.prepare(
+                selected, env, args.worktree, args.model, args.reasoning_effort)
             config += [part for feature in DIRECT_JUDGMENT_DISABLED_FEATURES for part in ("--disable", feature)]
             config += [part for value in DIRECT_JUDGMENT_CONFIG for part in ("--config", value)]
             metadata["direct_judgment"] = True
+            metadata["judgment_tool_profile"] = profile
             if not context:
                 config += ["--config", "developer_instructions=" + json.dumps(DIRECT_JUDGMENT_INSTRUCTION)]
         elif context:
@@ -377,6 +378,9 @@ def main() -> int:
     attempt_dir = Path(reserved["attempt_dir"])
     try:
         actual_input, input_args, input_metadata = _context_input(context, args.prompt_file, attempt_dir)
+        if args.direct_judgment:
+            config += ["--strict-config", "--config", codex_judgment_profile.retain(
+                attempt_dir, profile, source_model, catalog)]
         command = [
             executable, "exec", "--ephemeral", "--ignore-user-config", "--ignore-rules",
             "--json", "--sandbox", "read-only", "-C", str(args.worktree),
@@ -386,13 +390,15 @@ def main() -> int:
             "--output-last-message", str(attempt_dir / "response.json"), "-",
         ]
         metadata.update(input_metadata)
+        if args.direct_judgment:
+            codex_judgment_profile.recheck(selected, env, args.worktree, profile, attempt_dir)
         print(f"FORSETI_PROVIDER_ATTEMPT_STARTED {args.attempt_id}; limit={args.timeout_seconds}s", file=sys.stderr, flush=True)
         receipt = execute_provider_attempt(
             command=command, prompt_path=actual_input, attempt_dir=attempt_dir,
             timeout_seconds=args.timeout_seconds, response_schema_path=args.output_schema,
             env=env, launch_metadata=metadata,
         )
-    except (OSError, UnicodeError) as exc:
+    except (OSError, UnicodeError, ValueError) as exc:
         parser.error(f"execution file access failed ({type(exc).__name__}: {exc}); inspect preserved attempt {attempt_dir}; do not retry its ID")
     # Receipt paths and metadata can exceed a Windows console's encoding. JSON
     # escapes preserve the completed attempt report and its actual exit status.

@@ -116,6 +116,12 @@ def simulated_provider(monkeypatch, tmp_path, responses, calls, *, before_launch
     """Use the real job state machine with an explicitly simulated model boundary."""
     codex = tmp_path / "simulated-codex"
     codex.write_text("offline simulation", encoding="utf-8")
+    from runners import codex_judgment_profile as profile
+    monkeypatch.setattr(profile, "NATIVE_SHA256", hash_file(codex))
+    monkeypatch.setattr(profile, "program_data_path", lambda: tmp_path / "program-data")
+    monkeypatch.setattr(profile, "personal_account", lambda *args: {"type": "chatgpt", "plan": "pro"})
+    monkeypatch.setattr(profile, "read_catalog", lambda *args: {"models": [{"slug": "offline-model",
+        "supported_reasoning_levels": [{"effort": "high"}]}]})
     def invoke(command, **kwargs):
         assert "run_codex_provider_job.py" in command[1]
         assert "--direct-judgment" in command
@@ -143,11 +149,19 @@ def simulated_provider(monkeypatch, tmp_path, responses, calls, *, before_launch
             (attempt / "stderr.log").write_text("", encoding="utf-8")
             from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_CONFIG, DIRECT_JUDGMENT_DISABLED_FEATURES
             launch_command = [str(codex), "exec", "--model", binding["model"], "-C", binding["worktree"],
+                "--strict-config", "--ephemeral", "--ignore-user-config", "--ignore-rules", "--json", "--sandbox", "read-only",
+                *[part for value in profile.AUTH_CONFIG for part in ("--config", value)],
                 *[part for feature in DIRECT_JUDGMENT_DISABLED_FEATURES for part in ("--disable", feature)],
                 *[part for value in DIRECT_JUDGMENT_CONFIG for part in ("--config", value)],
                 "--config", f'model_reasoning_effort="{binding["reasoning_effort"]}"',
                 "--config", "developer_instructions=" + json.dumps(context or DIRECT_JUDGMENT_INSTRUCTION)]
             metadata = {"authentication_observed": "chatgpt", "direct_judgment": True}
+            selection = {"path": str(codex), "sha256": hash_file(codex), "version": profile.NATIVE_VERSION}
+            simulated_env = {"CODEX_HOME": str(tmp_path / "synthetic-home")}
+            tool_profile, source, catalog = profile.prepare(selection, simulated_env, binding["worktree"],
+                binding["model"], binding["reasoning_effort"])
+            launch_command += ["--config", profile.retain(attempt, tool_profile, source, catalog)]
+            metadata.update(codex_selection=selection, judgment_tool_profile=tool_profile)
             if context:
                 metadata["preloaded_context_sha256"] = binding["preloaded_context_sha256"]
             receipt = {"outcome": "PROCESS_COMPLETED", "command": launch_command,

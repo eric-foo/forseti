@@ -50,6 +50,14 @@ def launch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(runner.subprocess, "run", local_check)
     monkeypatch.setattr(runner, "execute_provider_attempt", execute)
+    # Native profile I/O is independently tested; this fixture captures launcher wiring.
+    profile = runner.codex_judgment_profile
+    monkeypatch.setattr(profile, "NATIVE_VERSION", "codex-cli 0.153.1")
+    monkeypatch.setattr(profile, "NATIVE_SHA256", hashlib.sha256(executable.read_bytes()).hexdigest())
+    monkeypatch.setattr(profile, "program_data_path", lambda: tmp_path / "program-data")
+    monkeypatch.setattr(profile, "personal_account", lambda *args: {"type": "chatgpt", "plan": "pro"})
+    monkeypatch.setattr(profile, "read_catalog", lambda *args: {"models": [{"slug": "test-model",
+        "supported_reasoning_levels": [{"effort": "medium"}], "model_messages": {"instructions": "preserve"}}]})
     return state
 
 
@@ -116,6 +124,10 @@ def test_direct_judgment_restricts_capabilities_and_discovery_preserving_input(l
     assert len(launch.launches) == 1
     call = launch.launches[0]
     assert call["launch_metadata"]["direct_judgment"] is True
+    assert call["env"]["CODEX_EXEC_SERVER_URL"] == "none"
+    assert call["launch_metadata"]["judgment_tool_profile"]["account"] == {"type": "chatgpt", "plan": "pro"}
+    runner.codex_judgment_profile.verify_receipt(call["attempt_dir"], {
+        "command": call["command"], "launch_metadata": call["launch_metadata"]})
     disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
     assert {"shell_tool", "unified_exec", "multi_agent", "apps", "plugins", "browser_use",
             "computer_use", "image_generation", "view_image", "code_mode_host", "tool_suggest"}.issubset(disabled)

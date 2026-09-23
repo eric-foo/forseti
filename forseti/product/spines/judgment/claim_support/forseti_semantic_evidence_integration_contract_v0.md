@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v131
-effective_date: 2026-09-23
+version: v132
+effective_date: 2026-09-24
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v131
+# Semantic Evidence Integration Contract v132
 
 ## Purpose
 
@@ -2857,8 +2857,8 @@ the descriptor directly in code, checks its hashes and writes exact local input
 copies for the maintained provider runner. The model returns one structured
 judgment with no file/command task. Its context never contains prior-job answers.
 Standalone `execute-judgment-job` takes the descriptor/hash, provider root and
-the same explicit model/effort/timeout settings. The runner binds them, requests
-the direct-judgment feature restrictions, records attempts, and refuses unknown outcomes or changed
+the same explicit model/effort/timeout settings. The runner binds them, enforces
+the audited direct-judgment profile, records attempts, and refuses unknown outcomes or changed
 inputs instead of relaunching. Code invokes `submit-judgment-job` with the same binding and
 `--response <raw-answer.json>`. Submission preserves exact raw bytes, checks the assigned
 batch identity, applies the native phase validator and atomically publishes
@@ -2872,16 +2872,29 @@ versions, semantic validation, reconciliation meaning or termination policy.
 
 The direct worker remains a supplied-input, judgment-only role: it must not
 invoke tools, delegate, inspect prior answers or perform file/command work.
-Feature-disable arguments and a backend feature-state listing do not by themselves
-prove which tools the model can call. The saved direct-profile listing reports
-`shell_tool=false` but `unified_exec=true`; that mismatch is neither proof of tool
-access nor proof of isolation. Actual callable-tool exposure must be checked
-against the selected native executable and exact launch profile before claiming
-preventive isolation. The event validator rejects non-judgment events after they
-occur; it is a publication guard, not preventive isolation. A startup/authentication
-failure or model self-report cannot establish absent callable tools. Native
-capability verification remains unresolved while the selected runtime cannot be
-executed; preserve that blocker rather than adding unverified feature flags.
+The supported launcher enforces an empty native tool registry using an audited
+model-catalog projection, configuration restrictions and disabled executor
+access. It preserves the selected model's non-tool metadata and disables hooks
+and automatic skill dependencies. Native dispatch rejects attempted tool calls
+before handlers execute. The receipt binds the exact native hash, command,
+configuration attestations and catalog files; saved-result consumers revalidate
+those bindings before accepting a judgment. The event validator remains a
+publication guard against non-judgment events, separate from this preventive
+boundary.
+
+Support is limited to the pinned Windows native binary, built-in OpenAI provider,
+file-backed personal ChatGPT authentication and checked configuration domain.
+Unknown binaries, account plans, executor routes or inherited configuration
+layers fail closed before generation. The boundary trusts the controller and OS,
+including configuration stability between the immediate prelaunch check and
+native loading; it does not claim protection against a hostile host. The
+acceptance domain and offline native regression command are maintained in
+`forseti-harness/README.md`. The regression observes empty callable-tool exposure,
+rejected forged calls and valid structured output, with a working async-handler
+control. Feature flags, startup failures, model self-report and post-event
+rejection alone do not establish tool absence. Native upgrades require a new
+source audit and preventive proof; a successful judgment does not widen the
+supported domain or establish general semantic accuracy.
 
 Stop before judgment when complete input cannot be made visible; an intact
 native log does not establish model-visible delivery. A changed transport still

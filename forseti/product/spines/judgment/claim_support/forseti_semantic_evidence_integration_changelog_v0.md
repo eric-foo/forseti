@@ -24,6 +24,18 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-24 v132 — direct judgments now enforce the audited empty native tool
+  registry, disable executor access and lifecycle hooks, and bind saved results
+  to the exact command, native hash, configuration attestations and model catalog.
+  The real-native offline control executes the async handler; the enforced
+  profile rejects forged calls while preserving valid structured output. A fresh
+  production judgment reached `SEMANTIC_JUDGMENT_SUBMITTED`. This supersedes
+  v131's active native-execution blocker within the supported Windows/personal
+  ChatGPT/configuration domain. The boundary trusts the controller and OS;
+  unaudited natives or configurations fail closed. Acceptance limits and the
+  reproducible native check live in `forseti-harness/README.md`. Semantic prompts,
+  response identities and historical outputs remain unchanged.
+
 - 2026-09-23 v131 — normal run v12 selects integration method v14 and verifier
   v13. Both require source/context-supported variant typing before type-specific
   axes, preserving ambiguous names, preference and comparisons and genuine shade

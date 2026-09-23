@@ -274,7 +274,29 @@ per-batch network probe is required. Permission denials, model/client
 incompatibility, and provider failures retain their real errors in the attempt
 logs. Local version/login checks precede the generation budget, have ten-second
 limits, and make no model call;
-each attempt pays only these local checks and the existing file I/O.
+ordinary attempts pay only these local checks and the existing file I/O.
+
+Supplied-input semantic jobs use `--direct-judgment`, which requires the audited
+Windows Codex 0.156.1 binary hash and file-backed personal ChatGPT authentication.
+The launcher checks the account without refreshing credentials and obtains the
+current native model catalog before generation. It preserves the selected model's
+non-tool metadata while projecting an empty tool registry, disables hooks and
+automatic skill dependencies, and starts without an executor environment.
+Unknown binaries, account plans, executor overrides, or inherited system/project
+configuration fail before generation. User configuration that could redirect the
+account/catalog diagnostics also fails. The saved receipt binds the exact command,
+configuration attestations, native hash, and source/projected catalog; consumers
+revalidate these bindings. This boundary trusts the controller and OS, including
+configuration stability between the immediate prelaunch check and native loading.
+It does not claim isolation from a hostile host. Native upgrades require a new
+source audit and empty-registry proof before acceptance.
+
+The offline native regression uses fake credentials and loopback transport only:
+set `FORSETI_TEST_CODEX_NATIVE` to the audited executable, then run
+`python -m pytest tests/integration/test_codex_empty_registry_native.py -q` from
+`forseti-harness`. It checks a working async-tool positive control, empty advertised
+tools, rejected byte-identical forged calls, and successful structured output using
+the production profile generator. Without that environment variable it skips.
 
 The timeout is one finite, workload-appropriate budget for the entire attempt;
 reconnects and additional client turns do not reset it. Logs go directly to
