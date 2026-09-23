@@ -1233,7 +1233,15 @@ PROVISIONAL_METHOD = "single_pass_provisional_experiment_v2"
 PROVISIONAL_INSTRUCTIONS = """EXPERIMENTAL route. Extraction is provisional,
 unverified working notes, never verified evidence or a completed semantic corpus.
 Use the commissioned questions and supplied original text/context in every phase.
-Extraction: work through every source row. Preserve each distinct potentially
+A row includes its body AND supplied context; it is not a single-speaker claim.
+An irrelevant body does not make an attached speaker's relevant statement
+irrelevant. Preserve that meaning under its own attribution (unknown when absent),
+citing the enclosing evidence ID and identifying the context in statement/limits.
+Questions and stated criteria remain questions or intent, not experience, action
+or demonstrated equivalence. A topic label alone does not establish a motive.
+Repeated shared context is one underlying observation, not independent support
+from each row carrying it. Do not transfer its speaker or position to the body.
+Extraction: work through each complete row. Preserve each distinct potentially
 material meaning in source-linked findings before comparing across sources.
 Coverage includes product experience, brand/entity positions and motives,
 uncataloged products, reported behavior, and attributed company/editorial claims.
@@ -1243,9 +1251,11 @@ Preserve qualifications, contradictions, mixed attitudes, explicit reasons,
 comparators, conditions, time/scope, uncertainty and attribution in statements
 and limits. Cite original evidence IDs in supporting_refs, opposing_refs or
 context_refs according to their role; question_ids must name commissioned
-questions. Every row must appear in findings or unused, never both. Unused needs
-a concrete reason why the row cannot affect these questions; uncertain relevance
-belongs in a finding with limits. Row coverage alone does not prove meaning recall.
+questions. Every row must appear in findings or unused, never both. A finding
+from context makes the row used even if its body adds no claim. Unused requires
+that neither body nor supplied context can affect these questions; explain why.
+Uncertain relevance belongs in a finding with limits. Row coverage alone does
+not prove meaning recall.
 Do not infer an attribute's type from a name alone, an exact product from a generic
 reference, repurchase from use, objective causality from sequence, or independent
 fact from an attributed statement. Keep valid context-supported interpretations

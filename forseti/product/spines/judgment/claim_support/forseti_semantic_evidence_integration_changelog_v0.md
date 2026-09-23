@@ -24,6 +24,14 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-23 v130 — experimental v2 makes whole-row relevance explicit across
+  body and supplied context, retaining context-only meanings under their own
+  attribution and counting repeated shared context once. An irrelevant body no
+  longer licenses exclusion of its relevant context. Frozen evaluator coverage
+  uses the same boundary. Existing findings/unused schema, exact-answer blocking,
+  normal v13 methods and saved-response identities remain unchanged; this is an
+  instruction clarification, not a deterministic guarantee of semantic recall.
+
 - 2026-09-23 v129 — experimental single-pass v2 carries the actual commission
   into every actor prompt and reuses source-linked findings/unused notes so
   brand, entity and uncataloged-product meanings are not excluded by native

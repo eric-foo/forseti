@@ -241,6 +241,64 @@ def test_saved_v1_native_response_still_validates_without_reinterpreting_it():
     c.validate_response(saved_request, _keyed_responses(bundle)[0], len)
 
 
+def test_context_only_finding_and_unused_envelope_reach_exact_review(tmp_path):
+    source, commission, capacity = fixture(count=3)
+    rows = source["captured_items"]
+    context = {"context_type": "post_text", "source_artifact_id": rows[0]["source_artifact_id"],
+        "source_ref": "fixture://thread/post",
+        "text": "Is A or B closer to the original formula? I want that texture."}
+    for row, body in zip(rows, ("Automated posting-rules notice.", "Thanks!", "Please follow forum rules.")):
+        row["text"] = body
+        row["parent_context"] = []
+    rows[0]["product_context"] = [deepcopy(context)]
+    rows[1]["product_context"] = [deepcopy(context)]
+    rows[2]["product_context"] = [{**context, "context_type": "thread_title",
+        "source_ref": "fixture://rules", "text": "Community rules"}]
+    source.pop("source_sha256")
+    source["source_sha256"] = s._sha256(source)
+    args = source, commission, capacity
+    root = tmp_path / "run"
+    state = advance(args, root)
+    note = {"statement": "The unidentified thread author seeks original-formula texture when comparing A and B.",
+        "question_ids": ["q"], "supporting_refs": [row["evidence_id"] for row in rows[:2]],
+        "opposing_refs": [], "context_refs": [],
+        "limits": "One shared post, not two independent observations or either reply author's preference. Question only; no trial or equivalence established."}
+    notes = {"findings": [note], "unused": [{"unit_ref": rows[2]["evidence_id"],
+        "reason": "Both body and attached title concern forum rules, with no product-choice meaning."}]}
+    publish(state, notes, tmp_path)
+    state = advance(args, root)
+    assert request(state)["payload"]["provisional_notes"]["findings"] == [note]
+    assert request(state)["payload"]["provisional_notes"]["unused"] == notes["unused"]
+    publish(state, {"answers": [{"question_id": "q", "answer": "No choice criterion is supplied.",
+        "evidence_refs": [], "limits": "Selected rows."}]}, tmp_path)
+    state = advance(args, root)
+    payload = request(state)["payload"]
+    assert payload["original_source"]["captured_items"] == rows
+    assert payload["provisional_notes"]["findings"] == [note]
+    assert payload["answer"]["answers"][0]["answer"] == "No choice criterion is supplied."
+    defect = review("defect")
+    defect["material_findings"] = [{"question_ids": ["q"], "evidence_refs": [rows[0]["evidence_id"]],
+        "reason": "The answer omits the thread author's context-supported comparison criterion."}]
+    defect["reopen_refs"] = [rows[0]["evidence_id"]]
+    publish(state, defect, tmp_path)
+    assert advance(args, root)["status"] == "EXPERIMENTAL_ANSWER_BLOCKED"
+
+
+def test_instruction_change_requires_fresh_root_but_saved_response_still_validates(tmp_path, monkeypatch):
+    args = fixture()
+    root = tmp_path / "run"
+    state = advance(args, root)
+    saved_request = request(state)
+    saved_response = extraction(state)
+    publish(state, saved_response, tmp_path)
+    monkeypatch.setattr(c, "PROVISIONAL_INSTRUCTIONS", c.PROVISIONAL_INSTRUCTIONS + "\nChanged interpretation.")
+    with pytest.raises(ValueError, match="overwrite|differ"):
+        advance(args, root)
+    assert request(state) == saved_request
+    c.validate_response(saved_request, saved_response, len)
+    assert not (root / "result.json").exists()
+
+
 def test_source_delivery_keeps_all_rows_but_omits_unreferenced_artifact_inventory(tmp_path):
     args = fixture()
     args[0]["source_artifacts"].append({"artifact_id": "unrelated", "locator": "unused.json", "sha256": "a" * 64})

@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v129
+version: v130
 effective_date: 2026-09-23
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v129
+# Semantic Evidence Integration Contract v130
 
 ## Purpose
 
@@ -2610,6 +2610,18 @@ attitudes, conditions and attributed claims; a catalog match is not required.
 Catalogs aid identity without authorizing invented specificity. The shared
 validator checks source and question identities, complete row participation,
 nonempty findings and unused reasons. It does not certify meaning recall.
+A row includes its body and supplied context, which may belong to different
+speakers. Relevant context remains usable when the body is irrelevant: cite the
+enclosing evidence ID, identify the context and its own speaker or unknown
+attribution, and preserve questions or criteria without inventing experience,
+action or equivalence. A topic label alone establishes no motive. Repeated shared
+context is one underlying observation, not independent support from each row.
+Context-only findings make the enclosing row used; `unused` requires that neither
+body nor context affects the commission, with uncertain relevance retained under
+limits. Evaluator expectations must assess these same boundaries across the
+complete supplied row; an irrelevant body is not a whole-row irrelevance control.
+Changed instructions require a fresh immutable run root; historical responses
+remain assessable against their saved requests without being restamped.
 Historical v13 product schemas, method text, hashes and mandatory row verification
 are unchanged. Saved v1 native responses remain locally validatable, but a new
 run requires the v2 commission and a fresh immutable root; v1 results are not
