@@ -24,6 +24,13 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-23 v128 — owner-commissioned, unpromoted twelve-row single-pass
+  experiment reuses native extraction and complete-case answer interfaces with
+  explicitly provisional notes and source review of the exact answer. Preserves
+  every original for downstream assessment, fails on review defects and changed
+  bindings, and makes no normal completion or extraction-recall claim. Historical
+  v13 identities, normal verification and full-corpus Phase A are unchanged.
+
 - 2026-09-21 v127 — exact-repair composition v2 permits a nonempty supported
   proposal to leave nominated questions unchanged while preserving every
   nomination in the independent affected recheck. Remaining material defects

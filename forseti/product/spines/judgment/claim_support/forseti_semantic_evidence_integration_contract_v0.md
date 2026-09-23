@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v127
-effective_date: 2026-09-21
+version: v128
+effective_date: 2026-09-23
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v127
+# Semantic Evidence Integration Contract v128
 
 ## Purpose
 
@@ -2589,6 +2589,46 @@ a judgment-required return supplies every currently ready request and never
 credits a missing answer. No semantic retry, response selection, identity reset,
 new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
+
+### Single-pass provisional experiment (unpromoted)
+
+The owner-commissioned 2026-09-23 experiment has a separate explicit entry:
+
+```text
+python -m runners.run_semantic_evidence_integration advance-provisional-experiment --source SOURCE_JSON --commission QUESTIONS_JSON --capacity CAPACITY_JSON --run-dir RUN_ROOT
+```
+
+The commission must name
+`experimental_method: single_pass_provisional_experiment_v1`. This route admits
+at most twelve source-hash-bound v13 rows in one extraction batch. It uses the
+existing native extraction schema and validator, then the complete-case
+consumer's answer writing and exact-answer review interfaces. Its separately
+hashed experimental instructions qualify extraction as provisional and prohibit
+unsupported specificity while retaining legitimate contextual inference.
+Historical v13 method text, hashes and the normal mandatory verification route
+are unchanged.
+
+`provisional-notes.json` is `PROVISIONAL_UNVERIFIED`. It contains no invented
+verification receipt and is inadmissible as a verified compilation. Both writer
+and reviewer receive every original source row and supplied context, including
+uncited and no-unit rows. Review failure blocks delivery; clean review yields
+only `EXPERIMENTAL_ANSWER_SOURCE_CHECKED`, never normal semantic completion or
+proof of extraction recall. Inputs, requests, accepted responses and the result
+are immutable within the experiment root. Changed source identities, incomplete
+extraction participation, stale response bindings and missing accepted responses
+fail visibly. Capacity failure does not truncate or drop evidence.
+
+Preparation makes no model call. Each ready request uses the existing
+`execute-judgment-job` direct provider route, one fresh attempt at a time. The
+bound experiment permits at most three model calls: extraction, writing and
+source review; no automatic semantic reruns. Before dependent calls, the
+operator evaluates the prior output against frozen, source-supported
+expectations held outside actor inputs and stops on a material defect. Final
+claim review alone cannot establish recall: evaluate working-note omissions
+separately against originals and compare with saved two-pass outputs. Historical
+costs for larger batches are not matched per-row costs. No small-sample result
+promotes this route to the production default. Full-corpus Phase A and normal
+`advance` remain on their existing supported route.
 
 ### Bounded complete-case answer and review
 

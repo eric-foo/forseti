@@ -81,6 +81,10 @@ def strings(choices=None):
 
 
 def response_schema(phase, payload):
+    if phase == "provisional_extraction":
+        from judgment.semantic_evidence_integration import build_batch_response_schema
+        bundle = payload["bundle"]
+        return build_batch_response_schema(bundle, bundle["batches"][0]["batch_id"])
     ids = payload["unit_ids"]
     qids = [q["id"] for q in payload["commission"]["questions"]]
     if phase in {"source_review", "reopen"}:
@@ -132,6 +136,12 @@ def validate_response(request, response, count):
     except ValidationError as exc:
         # Callers report ValueError as a preserved failure, never a crash.
         raise ValueError(f"consumer response schema violation: {exc.message}") from exc
+    if request["phase"] == "provisional_extraction":
+        from judgment.semantic_evidence_integration import validate_batch_responses
+        validate_batch_responses(request["payload"]["bundle"], [response])
+        if count(compact(response)) > request["capacity"]["output_reserve_tokens"]:
+            raise ValueError("consumer output reserve exceeded")
+        return
     def text_and_array_rules(value, *, exact_after=False):
         if isinstance(value, str) and not value.strip() and not exact_after:
             raise ValueError("consumer response contains empty text")
@@ -234,6 +244,11 @@ def build_request(phase, payload, capacity, context, count):
     # Keep its exact local validation copy without duplicating it in actor text.
     actor_payload = payload if phase in {"source_review", "reopen"} else {k: v for k, v in payload.items() if k not in {"unit_ids", "known_origin_ids", "bounded_method"}}
     method = bounded_phase_instructions(phase, payload) if payload.get("bounded_method") or payload.get("bounded_stage") else METHOD
+    if payload.get("experimental_method") == PROVISIONAL_METHOD:
+        method = PROVISIONAL_INSTRUCTIONS
+        if phase == "provisional_extraction":
+            from judgment.semantic_evidence_integration import build_batch_prompts
+            actor_payload = {"native_extraction": build_batch_prompts(payload["bundle"])[0]["prompt"]}
     prompt = context + "\n" + method + "\nPHASE: " + phase + repair_guidance + "\n" + render_evidence(json.loads(compact(actor_payload)))
     measured = count(compact({"prompt": prompt, "response_schema": schema}))
     total = measured + capacity["output_reserve_tokens"] + capacity["other_overhead_reserve_tokens"]
@@ -1211,3 +1226,131 @@ def submit(request_path, expected_sha256, response_path, count):
     retain(target, response)
     retain(target.with_name("response.receipt.json"), {"request_sha256": expected_sha256, "response_sha256": digest(response)})
     return {"status": "CONSUMER_RESPONSE_ACCEPTED", "response_path": str(target), "response_sha256": digest(read(target))}
+
+
+# Separate experiment identity: never change historical v13 method text/hashes or
+# manufacture a row_verification_manifest to enter the normal completion route.
+PROVISIONAL_METHOD = "single_pass_provisional_experiment_v1"
+PROVISIONAL_INSTRUCTIONS = """EXPERIMENTAL route. Extraction is provisional,
+unverified working notes, never verified evidence or a completed semantic corpus.
+Read the supplied original text/context before applying the native extraction
+instructions. Preserve every material meaning, qualification and contradiction.
+Do not infer an attribute's type from a name alone, an exact product from a generic
+reference, repurchase from use, objective causality from sequence, or independent
+fact from an attributed statement. Keep valid context-supported interpretations
+and explicit attribute evidence. Unknown specificity stays unknown. These limits
+also govern the embedded native extraction instructions.
+Assembly: write a useful bounded answer to the commissioned questions using the
+originals and provisional notes. Cite source evidence IDs. Check source roles,
+contrary evidence and excluded rows; notes are retrieval aids, not authority.
+Answer review: check this exact answer against ALL supplied originals, including
+rows with no notes and uncited contrary evidence. Assess unsupported additions,
+material omissions, qualifications, attribution and contradictions. Return defect
+or unresolved for a material issue; do not silently repair or pass it. A clean
+review supports only this answer within this selected source set, not extraction
+accuracy, exhaustive recall, production readiness or normal semantic completion.
+Return only the required JSON.
+"""
+
+
+def advance_provisional(source, commission, capacity, root, *, context, count):
+    """Opt-in, <=12-row experiment using native extraction and exact-answer review.
+
+    Preparation only. The existing direct job runner executes each ready request;
+    the experiment operator inspects semantics before launching a dependent job.
+    """
+    from judgment import semantic_evidence_integration as semantic
+    validate_capacity(capacity)
+    if commission.get("experimental_method") != PROVISIONAL_METHOD:
+        raise ValueError("explicit single-pass experiment commission required")
+    rows = source.get("captured_items", [])
+    if not 1 <= len(rows) <= 12:
+        raise ValueError("provisional experiment requires 1..12 source rows")
+    if source.get("semantic_method_version") != semantic.METHOD_VERSION_V13:
+        raise ValueError("provisional experiment requires pinned v13 extraction base")
+    semantic._verify_stored_hash(source, field="source_sha256", label="experiment source")
+    ids = [r["evidence_id"] for r in rows]
+    exact(ids, list(dict.fromkeys(ids)), "experiment source coverage")
+    questions = commission.get("questions", [])
+    if not questions or any(not q.get("question", "").strip() for q in questions):
+        raise ValueError("experiment requires nonempty questions")
+    exact([q["id"] for q in questions], list(dict.fromkeys(q["id"] for q in questions)), "experiment questions")
+    if "assessment_only" in commission:
+        raise ValueError("keep frozen evaluator expectations outside model commission")
+    root = Path(root)
+    # An immutable root cannot adopt stale responses after source or policy drift.
+    retain(root / "binding.json", {"method": PROVISIONAL_METHOD,
+        "instructions_sha256": digest(PROVISIONAL_INSTRUCTIONS), "source": source,
+        "commission": commission, "capacity": capacity, "context_sha256": digest(context)})
+    bundle = semantic.build_bundle(source, max_prompt_bytes=400000, max_evidence_per_work_unit=12)
+    if len(bundle["batches"]) != 1 or set(ids) != {r["evidence_id"] for r in bundle["evidence_units"]}:
+        raise ValueError("experiment requires one complete extraction batch; no dropped rows")
+    retain(root / "bundle.json", bundle)
+    base = {"experimental_method": PROVISIONAL_METHOD, "commission": commission,
+            "unit_ids": ids, "source_sha256": source["source_sha256"]}
+
+    def consume(phase, payload):
+        request = build_request(phase, payload, capacity, context, count)
+        key = request["request_sha256"]
+        directory = root / "requests" / key
+        retain(directory / "request.json", request)
+        retain(directory / "actor-input.json", {"prompt": request["prompt"], "response_schema": request["schema"]})
+        target = directory / "response.json"
+        receipt = directory / "response.receipt.json"
+        if not target.exists():
+            if receipt.exists() or target.with_name("response.json.tmp").exists():
+                raise ValueError("missing or staged experiment response requires recovery; do not rejudge")
+            delivery = measure_delivery(request, root, count)
+            return None, {"status": "SEMANTIC_JUDGMENT_REQUIRED", "phase": phase,
+                "experimental_method": PROVISIONAL_METHOD, "row_verification": "not_performed",
+                "judgment_requests": [{"phase": phase, "job_path": str(directory / "request.json"),
+                    "job_sha256": key, "response_path": str(target), **delivery}]}
+        response = read(target)
+        validate_response(request, response, count)
+        if not receipt.exists():
+            submit(directory / "request.json", key, target, count)
+        if read(receipt) != {"request_sha256": key, "response_sha256": digest(response)}:
+            raise ValueError("experiment response binding changed")
+        return response, None
+
+    extraction, waiting = consume("provisional_extraction", {**base, "bundle": bundle})
+    if waiting:
+        return waiting
+    compiled = semantic.validate_batch_responses(bundle, [extraction])
+    notes = {"status": "PROVISIONAL_UNVERIFIED", "experimental_method": PROVISIONAL_METHOD,
+             "source_sha256": source["source_sha256"], "compilation": compiled}
+    retain(root / "provisional-notes.json", notes)
+    # Every original row is present even if extraction called it context-only.
+    # Deliver referenced provenance, not the unrelated full-capture artifact
+    # inventory. The immutable binding above retains the complete input source.
+    artifact_ids = set()
+
+    def referenced_artifacts(value):
+        if isinstance(value, dict):
+            if "source_artifact_id" in value:
+                artifact_ids.add(value["source_artifact_id"])
+            for child in value.values():
+                referenced_artifacts(child)
+        elif isinstance(value, list):
+            for child in value:
+                referenced_artifacts(child)
+
+    referenced_artifacts(rows)
+    referenced_artifacts(source["containers"])
+    originals = {k: v for k, v in source.items() if k not in {"source_sha256", "source_artifacts"}}
+    originals["source_artifacts"] = [a for a in source["source_artifacts"] if a["artifact_id"] in artifact_ids]
+    payload = {**base, "original_source": originals, "provisional_notes": notes}
+    answer, waiting = consume("assembly", payload)
+    if waiting:
+        return waiting
+    review, waiting = consume("answer_review", {**payload, "answer": answer, "checks": []})
+    if waiting:
+        return waiting
+    clean = assessment_clean(review) and not review["material_findings"]
+    result = {"status": "EXPERIMENTAL_ANSWER_SOURCE_CHECKED" if clean else "EXPERIMENTAL_ANSWER_BLOCKED",
+        "experimental_method": PROVISIONAL_METHOD, "row_verification": "not_performed",
+        "normal_semantic_completion": False, "extraction_recall_proven": False,
+        "source_sha256": source["source_sha256"], "notes_sha256": digest(notes),
+        "answer": answer, "review": review, "judgment_requests": []}
+    retain(root / "result.json", result)
+    return read(root / "result.json")

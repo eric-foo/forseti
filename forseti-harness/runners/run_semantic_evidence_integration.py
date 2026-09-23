@@ -3624,6 +3624,10 @@ def finalize_evidence_selection_quotes_run(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    provisional = sub.add_parser("advance-provisional-experiment",
+        help="Prepare an explicit <=12-row single-pass experiment; never normal completion.")
+    for flag in ("source", "commission", "capacity", "run-dir"):
+        provisional.add_argument("--" + flag, type=Path, required=True)
     advance = sub.add_parser("advance", help="Advance supported consolidation to all ready judgments or the final view.")
     advance.add_argument("--source", type=Path, required=True)
     advance.add_argument("--run-dir", type=Path, required=True)
@@ -4276,7 +4280,16 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        if args.command == "advance":
+        if args.command == "advance-provisional-experiment":
+            from judgment.complete_case_consumer import advance_provisional, read
+            from runners.finite_preparation import offline_tokenizer
+            capacity = read(args.capacity)
+            tokenizer, _ = offline_tokenizer(capacity["encoding"])
+            contract = Path(__file__).resolve().parents[2] / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"
+            result = advance_provisional(read(args.source), read(args.commission), capacity,
+                args.run_dir.resolve(), context=contract.read_text(encoding="utf-8-sig"),
+                count=lambda value: len(tokenizer.encode(value, disallowed_special=())))
+        elif args.command == "advance":
             advance_kwargs = dict(source_path=args.source, bundle_path=args.bundle, verified_path=args.verified,
                 run_dir=args.run_dir, max_batch_chars=args.max_batch_chars,
                 max_prompt_bytes=args.max_prompt_bytes,
