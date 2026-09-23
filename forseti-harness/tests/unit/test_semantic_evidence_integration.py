@@ -2603,7 +2603,7 @@ def test_current_reconciliation_preserves_literal_conditions_and_bounded_scope(m
         validate_reconciliation_stage(bundle, stage, wrong_kind)
 
 
-@pytest.mark.parametrize("method", [semantic_module.METHOD_VERSION_V12, semantic_module.METHOD_VERSION_V13])
+@pytest.mark.parametrize("method", [semantic_module.METHOD_VERSION_V12, semantic_module.METHOD_VERSION_V13, semantic_module.METHOD_VERSION_V14])
 def test_current_reconciliation_schema_is_persisted_at_public_prepare(tmp_path: Path, method: str) -> None:
     from runners.run_semantic_evidence_integration import prepare_reconciliation_level
 
@@ -8752,9 +8752,10 @@ def test_method_v7_flat_finalization_also_refuses_an_unverified_compilation() ->
     assert len(view["propositions"]) == len(verified["semantic_units"])
 
 
-def _calibration_spec(source: dict, *, forbidden_product: str | None = None) -> dict:
+def _calibration_spec(source: dict, *, forbidden_product: str | None = None,
+                      max_prompt_bytes: int = 16_000) -> dict:
     evidence_ids = [row["evidence_id"] for row in source["captured_items"]]
-    route_bundle = build_bundle(source, max_prompt_bytes=16_000)
+    route_bundle = build_bundle(source, max_prompt_bytes=max_prompt_bytes)
     spec = {
         "schema_version": CALIBRATION_SPEC_VERSION,
         "required_adjudication_version": CALIBRATION_ADJUDICATION_VERSION,
@@ -8781,7 +8782,7 @@ def _calibration_spec(source: dict, *, forbidden_product: str | None = None) -> 
                 "slice_id": "semantic-core",
                 "purpose": "controlled semantic calibration fixture",
                 "evidence_ids": evidence_ids,
-                "max_prompt_bytes": 16_000,
+                "max_prompt_bytes": max_prompt_bytes,
                 "max_evidence_per_work_unit": 120,
                 "minimum_largest_prompt_bytes": 1_000,
                 "axis_repetition_warning": {
@@ -8893,10 +8894,10 @@ def test_calibration_current_methods_require_verified_primary_and_repeat(method,
     source = _source_v7(count=2)
     source["semantic_method_version"] = method
     source = materialize_source_v3(source)
-    spec = _calibration_spec(source)
+    spec = _calibration_spec(source, max_prompt_bytes=24_000)
     spec["cold_repeat_case_ids"] = ["drying-after-week"]
     spec["cold_repeat"] = {
-        "max_prompt_bytes": 16_000,
+        "max_prompt_bytes": 24_000,
         "max_evidence_per_work_unit": 120,
         "minimum_largest_prompt_bytes": 1_000,
     }
@@ -10466,6 +10467,7 @@ def test_v10_schema_requires_one_subject_without_changing_v9_replay() -> None:
     (semantic_module.METHOD_VERSION_V11, semantic_module.ROW_VERIFICATION_METHOD_VERSION_V10),
     (semantic_module.METHOD_VERSION_V12, semantic_module.ROW_VERIFICATION_METHOD_VERSION_V11),
     (semantic_module.METHOD_VERSION_V13, semantic_module.ROW_VERIFICATION_METHOD_VERSION_V12),
+    (semantic_module.METHOD_VERSION_V14, semantic_module.ROW_VERIFICATION_METHOD_VERSION_V13),
 ])
 def test_supplied_axis_vocabulary_reaches_all_current_consumers(axis_id, label, method, verifier) -> None:
     source = _source_v10(count=1)
@@ -12609,3 +12611,31 @@ def test_advance_reuses_legacy_row_review_stage_and_saved_response(tmp_path, cap
     assert code == 0 and resumed["phase"] == "verification"
     assert resumed["response_state"]["valid_batch_ids"] == [stage["batches"][0]["batch_id"]]
     assert all(p.read_bytes() == data for p, data in frozen.items())
+
+
+def test_v14_variant_guidance_reaches_extraction_verification_and_repair():
+    # This proves instruction delivery, not that a model obeys the instructions.
+    source = _source_v10(count=1)
+    source["semantic_method_version"] = semantic_module.METHOD_VERSION_V14
+    bundle = build_bundle(source, max_prompt_bytes=40_000)
+    responses = _keyed_responses(bundle)
+    evidence_id = bundle["evidence_units"][0]["evidence_id"]
+    row = _claim_row(evidence_id)
+    row["semantic_units"][0]["subject_product_ids"] = ["summer-fridays-lip-butter-balm"]
+    row.pop("evidence_id")
+    responses[0]["decisions_by_evidence_id"][evidence_id] = row
+    primary = validate_batch_responses(bundle, responses)
+    stage, checks = prepare_row_verification(bundle, primary)
+    assert stage["verification_method_version"] == semantic_module.ROW_VERIFICATION_METHOD_VERSION_V13
+    verified = apply_row_verification(bundle, primary, stage, _row_verification_responses(stage))
+    _, repairs = prepare_row_repair(bundle, verified, evidence_ids=[evidence_id])
+    for prompt in [*build_batch_prompts(bundle), *checks, *repairs]:
+        assert semantic_module.VARIANT_TYPE_GUIDANCE in prompt["prompt"]
+    for prompt in [*checks, *repairs]:
+        assert "the proposed row is not evidence of that type" in prompt["prompt"]
+    assert hashlib.sha256(semantic_module.METHOD_TEXT_V13.encode()).hexdigest() == (
+        "4419e56bd797ab453da187fa109b08af7cf675abee669dfca5583dcb29b1cc85"
+    )
+    assert hashlib.sha256(semantic_module.ROW_VERIFICATION_METHOD_TEXT_V12.encode()).hexdigest() == (
+        "5ac9e34ccb2e0c591675d9eae157e75f404a6f136b4ac2687fe8ef07266bc634"
+    )

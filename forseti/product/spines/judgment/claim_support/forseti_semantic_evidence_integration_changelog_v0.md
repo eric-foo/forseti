@@ -24,6 +24,14 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-23 v131 — normal run v12 selects integration method v14 and verifier
+  v13. Both require source/context-supported variant typing before type-specific
+  axes, preserving ambiguous names, preference and comparisons and genuine shade
+  behavior. Old prompt identities and provisional v13 remain unchanged. Direct
+  native isolation is explicitly unproven by disable flags or post-event rejection;
+  exact callable-tool verification remains blocked by native execution denial.
+  Offline route/compatibility checks do not prove model semantics or tool absence.
+
 - 2026-09-23 v130 — experimental v2 makes whole-row relevance explicit across
   body and supplied context, retaining context-only meanings under their own
   attribution and counting repeated shared context once. An irrelevant body no

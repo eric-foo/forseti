@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v130
+version: v131
 effective_date: 2026-09-23
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v130
+# Semantic Evidence Integration Contract v131
 
 ## Purpose
 
@@ -167,8 +167,8 @@ shape requires one exact stored subject/comparator orientation; retain opposite
 orientations separately without relabeling child identity. This is a transport
 constraint, not a claim that the meanings differ or represent separate events.
 
-Current authoring uses run v11 / integration method v13 / row-verification
-method v12. `CURRENT_AXES` alone supplies valid output axis IDs. Category names
+Current authoring uses run v12 / integration method v14 / row-verification
+method v13. `CURRENT_AXES` alone supplies valid output axis IDs. Category names
 in the semantic examples below describe meaning, not fixed identifiers or
 mandatory assignments across companies. The agent selects supplied IDs by the
 unit's meaning and the supplied labels; it never imports Summer Fridays IDs
@@ -416,6 +416,18 @@ records the behavioral subject and does not infer that the shade fit well. When
 sale timing or price is expressly a condition of an intended or hypothetical
 purchase, it also carries `value_and_quantity`; an incidental past sale mention
 does not create that judgment.
+Method v14 and verifier v13 require the exact source or supplied context to
+establish a named variant's type before applying this shade exception or any
+other type-specific axis. A name alone establishes neither shade, scent nor
+flavor. Preserve an ambiguous name, favorite/preference, ownership/selection and
+comparison without inventing a type in statements, conditions, axes or emerging
+labels. Known type alone supplies no reason, quality or sensory experience.
+Explicit scent/flavor judgments retain the corresponding supplied axis when it
+fits their meaning; ordinary context-supported ellipsis and adoption remain
+usable. The existing verifier independently checks type against the original
+source/context and replaces unsupported typing while preserving all supported
+meanings. The proposal itself is not evidence of type. Historical v13 and older
+prompt bytes and response replay stay exact; no new schema or model stage is added.
 Non-claim rows pass through unchanged.
 Whole-row verification and selective repair bind decisions by explicit evidence
 ID, not response-list position. Every assigned ID must occur exactly once;
@@ -423,7 +435,7 @@ missing, duplicate, foreign, and mismatched replacement identities fail.
 Application follows source order, while the actual response order remains in
 raw-response hash lineage. Order tolerance alone does not prove the chosen
 meaning correct or change method or stage identity.
-Current keyed-v3 methods v10 through v13 emit row-review response v2 for both
+Current keyed-v3 methods v10 through v14 emit row-review response v2 for both
 verification and selective repair: one required object key per assigned evidence
 ID, with replacements constrained to that same ID. The public preparation
 runners persist each prompt's `.schema.json`; provider execution must use it.
@@ -878,7 +890,7 @@ still apply. A row-repair manifest may carry the frozen v8 identity only when
 its parent row-verification manifest carries it; a v9 verification still
 requires a v9 repair, while a v9 repair authored over a frozen v8 verification
 stays valid. New verification continues to author v9; integration methods v11
-through v13 still require their own v10 through v12 verifiers. Older verifier policies,
+through v14 still require their own v10 through v13 verifiers. Older verifier policies,
 unknown hashes, or a version/hash substitution remain rejected.
 
 Contract v78 adds `phase_a_semantic_integration_run_v9` and integration method
@@ -2845,8 +2857,8 @@ the descriptor directly in code, checks its hashes and writes exact local input
 copies for the maintained provider runner. The model returns one structured
 judgment with no file/command task. Its context never contains prior-job answers.
 Standalone `execute-judgment-job` takes the descriptor/hash, provider root and
-the same explicit model/effort/timeout settings. The runner binds them, disables
-shell execution, records attempts, and refuses unknown outcomes or changed
+the same explicit model/effort/timeout settings. The runner binds them, requests
+the direct-judgment feature restrictions, records attempts, and refuses unknown outcomes or changed
 inputs instead of relaunching. Code invokes `submit-judgment-job` with the same binding and
 `--response <raw-answer.json>`. Submission preserves exact raw bytes, checks the assigned
 batch identity, applies the native phase validator and atomically publishes
@@ -2857,6 +2869,19 @@ Invalid raw answers remain visible at the normal staged-response boundary.
 Publication or cleanup failure remains a blocker, including a crash after the
 final link was created. These operations do not change accepted response
 versions, semantic validation, reconciliation meaning or termination policy.
+
+The direct worker remains a supplied-input, judgment-only role: it must not
+invoke tools, delegate, inspect prior answers or perform file/command work.
+Feature-disable arguments and a backend feature-state listing do not by themselves
+prove which tools the model can call. The saved direct-profile listing reports
+`shell_tool=false` but `unified_exec=true`; that mismatch is neither proof of tool
+access nor proof of isolation. Actual callable-tool exposure must be checked
+against the selected native executable and exact launch profile before claiming
+preventive isolation. The event validator rejects non-judgment events after they
+occur; it is a publication guard, not preventive isolation. A startup/authentication
+failure or model self-report cannot establish absent callable tools. Native
+capability verification remains unresolved while the selected runtime cannot be
+executed; preserve that blocker rather than adding unverified feature flags.
 
 Stop before judgment when complete input cannot be made visible; an intact
 native log does not establish model-visible delivery. A changed transport still
@@ -3637,7 +3662,7 @@ Current-route operations are the individually callable seams:
     method and exact method hash, so this is explicit method comparison rather
     than fallback. It makes no model call and cannot authorize a corpus run.
     Supported targets are historical methods v5/v6 and the production-owned
-    `SEMANTIC_METHODS_V7_PLUS` set (currently v7-v13). Every target in that set
+    `SEMANTIC_METHODS_V7_PLUS` set (currently v7-v14). Every target in that set
     requires a provenance-bound row-verified compilation for both primary and
     configured cold-repeat evaluation. A new keyed response transport does not
     waive verification; historical v5/v6 replay behavior remains unchanged.

@@ -17,6 +17,7 @@ from judgment.semantic_evidence_integration import (  # noqa: E402
     BUNDLE_VERSION_V4,
     METHOD_VERSION_V12,
     METHOD_VERSION_V13,
+    METHOD_VERSION_V14,
     RECONCILIATION_AUTHORING_LEGACY,
     RECONCILIATION_AUTHORING_IDENTITY_V1,
     RECONCILIATION_AUTHORING_IDENTITY_V2,
@@ -2015,7 +2016,7 @@ def advance_semantic_run(
                 reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
                 packing_strategy=reconciliation_packing,
                 authoring_revision=(reconciliation_authoring_revision
-                    if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
+                    if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
                     else RECONCILIATION_AUTHORING_LEGACY))
             if any("response_schema" not in prompt for prompt in prompts):
                 prompts = prepare_reconciliation_prompts(bundle, stage,
@@ -2392,7 +2393,7 @@ def prepare_reconciliation_level(
         authoring_revision = (
             RECONCILIATION_AUTHORING_IDENTITY_V4
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
-            or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
+            or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
                 and response_version != RECONCILIATION_RESPONSE_VERSION_V2)
             else RECONCILIATION_AUTHORING_LEGACY
         )
