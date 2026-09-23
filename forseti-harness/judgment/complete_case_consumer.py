@@ -1321,8 +1321,8 @@ def advance_provisional(source, commission, capacity, root, *, context, count):
              "source_sha256": source["source_sha256"], "compilation": compiled}
     retain(root / "provisional-notes.json", notes)
     # Every original row is present even if extraction called it context-only.
-    # Deliver referenced provenance, not the unrelated full-capture artifact
-    # inventory. The immutable binding above retains the complete input source.
+    # Deliver row and container provenance, not the full-capture inventory.
+    # Catalog authority IDs stay lookup bindings; the full source remains above.
     artifact_ids = set()
 
     def referenced_artifacts(value):

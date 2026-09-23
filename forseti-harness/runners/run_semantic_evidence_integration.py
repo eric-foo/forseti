@@ -4863,6 +4863,8 @@ def main(argv: list[str] | None = None) -> int:
         "start-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
     if args.command == "advance" and result.get("status") in {"SEMANTIC_ADVANCE_BLOCKED", "SEMANTIC_EXECUTION_BLOCKED"}:
         return 2
+    if args.command == "advance-provisional-experiment" and result.get("status") == "EXPERIMENTAL_ANSWER_BLOCKED":
+        return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":
         return 3
     return 0

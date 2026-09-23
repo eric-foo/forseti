@@ -182,6 +182,36 @@ def test_source_delivery_keeps_all_rows_but_omits_unreferenced_artifact_inventor
     assert c.read(tmp_path / "run/binding.json")["source"] == args[0]
 
 
+@pytest.mark.parametrize(("status", "outcome", "code"), [
+    ("defect", "EXPERIMENTAL_ANSWER_BLOCKED", 2), ("pass", "EXPERIMENTAL_ANSWER_SOURCE_CHECKED", 0)])
+def test_cli_exit_status_reports_failed_answer_review(tmp_path, monkeypatch, capsys, status, outcome, code):
+    from runners import finite_preparation
+    from runners import run_semantic_evidence_integration as cli
+
+    class Characters:
+        def encode(self, value, disallowed_special=()):
+            return value
+    # Same length counter as the API fixtures; no tokenizer download.
+    monkeypatch.setattr(finite_preparation, "offline_tokenizer", lambda encoding: (Characters(), None))
+    argv = ["advance-provisional-experiment", "--run-dir", str(tmp_path / "run")]
+    for name, value in zip(("source", "commission", "capacity"), fixture()):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+        argv += ["--" + name, str(tmp_path / f"{name}.json")]
+
+    def step(expected):
+        assert cli.main(argv) == expected
+        return json.loads(capsys.readouterr().out)
+    state = step(0)
+    publish(state, extraction(state), tmp_path)
+    state = step(0)
+    publish(state, {"answers": [{"question_id": "q", "answer": "Only positive experiences.",
+        "evidence_refs": [], "limits": "Selected rows."}]}, tmp_path)
+    state = step(0)
+    assert state["phase"] == "answer_review"
+    publish(state, review(status), tmp_path)
+    assert step(code)["status"] == outcome
+
+
 def test_stale_accepted_answer_cannot_reuse_passed_review(tmp_path):
     args = fixture()
     state = reach_review(args, tmp_path / "run", tmp_path)
