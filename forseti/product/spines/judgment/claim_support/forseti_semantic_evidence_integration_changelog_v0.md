@@ -24,6 +24,13 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-24 v135 — new normal bundles use a 120,000-byte prompt ceiling across
+  library and CLI preparation. Omitted resume limits reuse the existing bundle's
+  ceiling; explicit limits and artifact identity checks remain binding. Whole
+  rows still fail if oversized. This adopts the capacity used by the successful
+  bounded verification recovery, without changing semantic methods, consumer
+  token budgets or claiming fresh end-to-end validation at the new default.
+
 - 2026-09-24 v134 — new complete-case consumer requests bind an explicit
   source-body/attached-context citation inventory separately from exact required
   semantic-unit accounting. All originally assessed rows receive downstream
