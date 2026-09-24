@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -113,6 +114,30 @@ def test_capture_records_deleted_post_as_unavailable_without_retry(tmp_path: Pat
     assert gone["evidence"] == "Sorry, this post was deleted by the person who originally posted it"
 
 
+def test_capture_records_deleted_post_discovered_on_retry(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    (run / "capture-batches").mkdir(parents=True)
+    (run / "capture-batches" / "batch_001.json").write_text(
+        json.dumps([{"slot_id": "deep_0001", "url": "u1"}]), encoding="utf-8")
+    gone_packet = tmp_path / "deleted_packet"
+    (gone_packet / "raw").mkdir(parents=True)
+    (gone_packet / "raw" / "visible_text.txt").write_text(
+        "Sorry, this post was deleted by the person who originally posted it.", encoding="utf-8")
+    calls = []
+
+    def fake_run(url_list: Path, output_root: Path, resume: bool) -> None:
+        calls.append(output_root)
+        output_root.mkdir(parents=True)
+        result = {"slot_id": "deep_0001", "url": "u1", "capture_exit": 2}
+        if len(calls) == 2:
+            result["packet_dir"] = str(gone_packet)
+        (output_root / "batch_summary.json").write_text(json.dumps(_summary([result])), encoding="utf-8")
+
+    pipe.capture(run, fake_run, first=None, last=None)
+    assert len(calls) == 2
+    assert json.loads((run / "captures" / "unavailable_slots.json").read_text(encoding="utf-8"))[0]["slot_id"] == "deep_0001"
+
+
 def test_scope_drops_unavailable_slots_and_records_them(tmp_path: Path) -> None:
     run = tmp_path / "run"
     (run / "capture-batches").mkdir(parents=True)
@@ -147,6 +172,33 @@ def test_capture_stops_on_refusal_without_retrying(tmp_path: Path) -> None:
 
     with pytest.raises(pipe.PipelineError, match="refused"):
         pipe.capture(run, fake_run, first=None, last=None)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("access_diagnostic_count", 1),
+    ("access_diagnostic_failure_count", 1),
+    ("navigation_http_status", 403),
+])
+def test_capture_refusal_signals_stop_before_retry(tmp_path: Path, field: str, value: int) -> None:
+    run = tmp_path / "run"
+    (run / "capture-batches").mkdir(parents=True)
+    (run / "capture-batches" / "batch_001.json").write_text(
+        json.dumps([{"slot_id": "deep_0001", "url": "u"}]), encoding="utf-8")
+    calls = []
+
+    def fake_run(url_list: Path, output_root: Path, resume: bool) -> None:
+        calls.append(output_root)
+        output_root.mkdir(parents=True)
+        summary = _summary([{"slot_id": "deep_0001", "capture_exit": 2}])
+        if field == "navigation_http_status":
+            summary["results"][0][field] = value
+        else:
+            summary[field] = value
+        (output_root / "batch_summary.json").write_text(json.dumps(summary), encoding="utf-8")
+
+    with pytest.raises(pipe.PipelineError, match="refused"):
+        pipe.capture(run, fake_run, first=None, last=None)
+    assert len(calls) == 1
 
 
 def _read_fixture(tmp_path: Path) -> Path:
@@ -226,3 +278,71 @@ def test_read_skips_batches_that_already_have_extracts(tmp_path: Path) -> None:
         raise AssertionError("model must not be called for a finished batch")
 
     assert pipe.read(run, fake, first=None, last=None, workers=1)["batches_read"] == 0
+
+
+def test_read_repairs_duplicate_judgments_instead_of_accepting_last(tmp_path: Path) -> None:
+    run = _read_fixture(tmp_path)
+    calls = []
+
+    def fake(prompt: str, schema: dict) -> dict:
+        calls.append(prompt)
+        threads = [_judgment(["c1", "c2"])]
+        if len(calls) == 1:
+            threads.append(_judgment(["c1", "c2"]))
+        return {"output": {"threads": threads}, "usage": {}}
+
+    assert pipe.read(run, fake, first=None, last=None, workers=1)["repaired_threads"] == 1
+    assert len(calls) == 2
+
+
+def test_read_empty_capture_batch_writes_empty_extract_without_model(tmp_path: Path) -> None:
+    run = _read_fixture(tmp_path)
+    (run / "captures" / "batch_001_index.json").write_text("{}", encoding="utf-8")
+
+    def fake(prompt: str, schema: dict) -> dict:
+        raise AssertionError("no captured threads to read")
+
+    assert pipe.read(run, fake, first=None, last=None, workers=1)["batches_read"] == 1
+    assert (run / "batch_001_extracts_v1.jsonl").read_text(encoding="utf-8") == ""
+
+
+def test_reused_receipt_recovers_missing_usage_without_duplicate(tmp_path: Path) -> None:
+    calls = []
+
+    def fake(prompt: str, schema: dict) -> dict:
+        calls.append(prompt)
+        return {"output": {"decisions": []}, "usage": {"input_tokens": 5}}
+
+    fake.receipt_identity = {"model": "one"}
+    path = tmp_path / "calls" / "one.json"
+    receipt = pipe.receipted_call(fake, path, "prompt", pipe.ADJUDICATE_SCHEMA)
+    assert not (tmp_path / "model_usage_log.jsonl").exists()
+    reused = pipe.receipted_call(fake, path, "prompt", pipe.ADJUDICATE_SCHEMA)
+    row = {"stage": "adjudicate", "unit": "chunk_001", "prompt_sha256": reused["prompt_sha256"], **reused["usage"]}
+    pipe._append_usage(tmp_path, row)
+    pipe._append_usage(tmp_path, row)
+    assert len((tmp_path / "model_usage_log.jsonl").read_text(encoding="utf-8").splitlines()) == 1
+    fake.receipt_identity = {"model": "two"}
+    changed = pipe.receipted_call(fake, path, "prompt", pipe.ADJUDICATE_SCHEMA)
+    assert changed["prompt_sha256"] != receipt["prompt_sha256"]
+    assert len(calls) == 2
+
+
+def test_fresh_call_with_same_prompt_is_still_logged(tmp_path: Path) -> None:
+    row = {"stage": "read", "unit": "batch_001_repair", "prompt_sha256": "abc", "output_tokens": 10, "duration_ms": 5}
+    pipe._append_usage(tmp_path, row)
+    pipe._append_usage(tmp_path, {**row, "output_tokens": 12, "duration_ms": 7})  # discarded receipt, re-called
+    assert len((tmp_path / "model_usage_log.jsonl").read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_model_nonzero_exit_rejects_structured_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_run(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(args, 1, stdout=json.dumps({
+            "structured_output": {"decisions": []}, "usage": {}, "result": "CLI failed"
+        }), stderr="")
+
+    monkeypatch.setattr(pipe.subprocess, "run", fake_run)
+    call = pipe.claude_structured_call_factory(
+        model="sonnet", effort="medium", timeout=1, executable="claude", bare=False, cwd=tmp_path)
+    with pytest.raises(pipe.PipelineError, match="model call failed"):
+        call("prompt", pipe.ADJUDICATE_SCHEMA)

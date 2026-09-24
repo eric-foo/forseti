@@ -31,6 +31,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Callable, Sequence
@@ -178,7 +179,7 @@ def claude_structured_call_factory(
         if not lines:
             raise PipelineError(f"model call returned no JSON (exit {process.returncode}): {process.stderr.strip()[:300]}")
         payload = json.loads(lines[-1])
-        if payload.get("is_error") or not isinstance(payload.get("structured_output"), dict):
+        if process.returncode != 0 or payload.get("is_error") or not isinstance(payload.get("structured_output"), dict):
             raise PipelineError(f"model call failed: {str(payload.get('result'))[:300]}")
         usage = payload.get("usage") or {}
         return {
@@ -195,12 +196,16 @@ def claude_structured_call_factory(
             },
         }
 
+    call.receipt_identity = {"model": model, "effort": effort, "system_prompt": SYSTEM_PROMPT, "bare": bare}
     return call
 
 
 def receipted_call(call: ModelCall, receipt_path: Path, prompt: str, schema: dict) -> dict:
     """Reuse a stored response for an identical prompt; otherwise call and store it."""
-    digest = hashlib.sha256((prompt + json.dumps(schema, sort_keys=True)).encode("utf-8")).hexdigest()
+    identity = getattr(call, "receipt_identity", None)
+    digest = hashlib.sha256(json.dumps(
+        {"prompt": prompt, "schema": schema, "identity": identity}, sort_keys=True
+    ).encode("utf-8")).hexdigest()
     if receipt_path.is_file():
         stored = json.loads(receipt_path.read_text(encoding="utf-8"))
         if stored.get("prompt_sha256") == digest:
@@ -212,12 +217,22 @@ def receipted_call(call: ModelCall, receipt_path: Path, prompt: str, schema: dic
     return receipt
 
 
-def _append_usage(run_dir: Path, row: dict, *, reused: bool = False) -> None:
-    """Log one fresh model call; a reused receipt was already logged when it was made."""
-    if reused:
-        return
-    with (run_dir / "model_usage_log.jsonl").open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+_USAGE_LOCK = threading.Lock()
+
+
+def _append_usage(run_dir: Path, row: dict) -> None:
+    """Log each receipt once, including one persisted before an interrupted append.
+
+    A reused receipt reproduces its logged row exactly; a deliberate fresh call with the
+    same prompt carries different usage, so it is still logged as real spend.
+    """
+    path = run_dir / "model_usage_log.jsonl"
+    with _USAGE_LOCK:
+        if path.is_file():
+            if any(json.loads(line) == row for line in path.read_text(encoding="utf-8").splitlines()):
+                return
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def _flat(value: object) -> str:
@@ -327,15 +342,15 @@ def adjudicate(run_dir: Path, reader_path: Path, call: ModelCall, *, chunk_rows:
     def run_chunk(index: int, chunk: list[dict]) -> list[dict]:
         prompt = ADJUDICATE_BRIEF + "\n".join(r["line"] for r in chunk) + "\n"
         receipt = receipted_call(call, run_dir / "calls" / "adjudicate" / f"chunk_{index:03d}.json", prompt, ADJUDICATE_SCHEMA)
-        _append_usage(run_dir, {"stage": "adjudicate", "unit": f"chunk_{index:03d}", "rows": len(chunk), **receipt["usage"]},
-                      reused=receipt.get("reused", False))
+        _append_usage(run_dir, {"stage": "adjudicate", "unit": f"chunk_{index:03d}", "rows": len(chunk),
+                                "prompt_sha256": receipt["prompt_sha256"], **receipt["usage"]})
         decisions = _dedupe(receipt["output"]["decisions"])
         problems = _check_chunk(chunk, decisions)
         if problems:
             repair_prompt = prompt + "\nYour previous answer was rejected: " + "; ".join(problems) + ". Return exactly one decision for every row above.\n"
             receipt = receipted_call(call, run_dir / "calls" / "adjudicate" / f"chunk_{index:03d}_repair.json", repair_prompt, ADJUDICATE_SCHEMA)
-            _append_usage(run_dir, {"stage": "adjudicate", "unit": f"chunk_{index:03d}_repair", "rows": len(chunk), **receipt["usage"]},
-                          reused=receipt.get("reused", False))
+            _append_usage(run_dir, {"stage": "adjudicate", "unit": f"chunk_{index:03d}_repair", "rows": len(chunk),
+                                    "prompt_sha256": receipt["prompt_sha256"], **receipt["usage"]})
             decisions = _dedupe(receipt["output"]["decisions"])
             problems = _check_chunk(chunk, decisions)
             if problems:
@@ -430,7 +445,12 @@ def _successes(summary: dict) -> dict[str, str]:
 
 
 def _refused(summary: dict) -> bool:
-    return bool(summary.get("circuit_breaker", {}).get("tripped")) or bool(summary.get("access_diagnostic_failure_count"))
+    return (bool(summary.get("circuit_breaker", {}).get("tripped"))
+            or bool(summary.get("access_diagnostic_count"))
+            or bool(summary.get("access_diagnostic_failure_count"))
+            or any(r.get("navigation_http_status") is not None
+                   or r.get("access_diagnostic_status") in {"preserved", "failed"}
+                   for r in summary.get("results", [])))
 
 
 RunBatch = Callable[[Path, Path, bool], None]
@@ -484,6 +504,7 @@ def capture(run_dir: Path, run_batch: RunBatch, *, first: int | None, last: int 
             if retry is None or _refused(retry):
                 raise PipelineError(f"capture batch {tag} retry refused; stop and inspect {retry_root}")
             found.update(_successes(retry))
+            gone.update({k: v for k, v in _source_unavailable(retry).items() if k not in found})
         still = [s["slot_id"] for s in slots if s["slot_id"] not in found and s["slot_id"] not in gone]
         if still:
             raise PipelineError(f"capture batch {tag} still missing {still} after one retry")
@@ -607,8 +628,10 @@ def build_extract(judgment: dict, row: dict, packet_dir: str, content_record: Pa
     for cid in judgment["quote_comment_ids"]:
         if cid not in by_id:
             raise PipelineError(f"quote comment {cid} is not in the content record")
-        words = _flat(by_id[cid].get("body_text")).split()
-        quotes.append({"comment_id": cid, "text": " ".join(words[:30]) + (" …" if len(words) > 30 else "")})
+        body = str(by_id[cid].get("body_text") or "")
+        words = list(re.finditer(r"\S+", body))
+        end = words[min(len(words), 30) - 1].end() if words else 0
+        quotes.append({"comment_id": cid, "text": body[:end] + (" …" if len(words) > 30 else "")})
     completeness = record.get("comment_completeness", {})
     caveats = list(judgment["caveats"])
     caveats.append(f"surface capture: {completeness.get('comments_captured')} of {completeness.get('declared_total_comments')} comments")
@@ -650,16 +673,26 @@ def read_batch(run_dir: Path, tag: str, call: ModelCall) -> dict:
             raise PipelineError(f"{slot_id} content record thread mismatch")
         items.append((slot_id, row, packet_dir, content_record, record))
 
-    def ask(subset: list[tuple], name: str, note: str = "") -> dict[str, dict]:
+    if not items:
+        (run_dir / f"batch_{tag}_extracts_v1.jsonl").write_text("", encoding="utf-8")
+        return {"batch": tag, "yes": 0, "no": 0, "repaired_threads": 0}
+
+    def ask(subset: list[tuple], name: str, note: str = "") -> tuple[dict[str, dict], str | None]:
         prompt = READ_BRIEF + "\n\n".join(render_thread(s, r, rec) for s, r, _, _, rec in subset) + "\n" + note
         receipt = receipted_call(call, run_dir / "calls" / "read" / f"batch_{tag}{name}.json", prompt, READ_SCHEMA)
-        _append_usage(run_dir, {"stage": "read", "unit": f"batch_{tag}{name}", "threads": len(subset), **receipt["usage"]},
-                      reused=receipt.get("reused", False))
-        return {j["thread_id"]: j for j in receipt["output"]["threads"]}
+        _append_usage(run_dir, {"stage": "read", "unit": f"batch_{tag}{name}", "threads": len(subset),
+                                "prompt_sha256": receipt["prompt_sha256"], **receipt["usage"]})
+        returned = receipt["output"]["threads"]
+        ids = [j["thread_id"] for j in returned]
+        expected = {r["thread_id"] for _, r, _, _, _ in subset}
+        coverage_error = ("model judgments do not cover threads exactly"
+                          if len(ids) != len(set(ids)) or set(ids) != expected else None)
+        return {j["thread_id"]: j for j in returned}, coverage_error
 
-    judgments = ask(items, "")
+    judgments, coverage_error = ask(items, "")
     extracts: dict[str, dict] = {}
-    errors: dict[str, str] = {}
+    errors: dict[str, str] = ({row["thread_id"]: coverage_error for _, row, _, _, _ in items}
+                              if coverage_error else {})
     for slot_id, row, packet_dir, content_record, record in items:
         judgment = judgments.get(row["thread_id"])
         try:
@@ -671,7 +704,9 @@ def read_batch(run_dir: Path, tag: str, call: ModelCall) -> dict:
     if errors:
         retry_items = [item for item in items if item[1]["thread_id"] in errors]
         note = "\nYour previous answer for these threads was rejected:\n" + "\n".join(f"- {t}: {e}" for t, e in errors.items()) + "\nFix exactly these problems.\n"
-        judgments = ask(retry_items, "_repair", note)
+        judgments, coverage_error = ask(retry_items, "_repair", note)
+        if coverage_error:
+            raise PipelineError(f"batch {tag} repair {coverage_error}")
         for slot_id, row, packet_dir, content_record, record in retry_items:
             judgment = judgments.get(row["thread_id"])
             if judgment is None:
