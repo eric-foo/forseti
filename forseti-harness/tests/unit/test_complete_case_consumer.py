@@ -70,7 +70,9 @@ def respond(request):
         for group in payload["source_groups"]:
             refs = group["unit_ids"]
             if not group["verified_units"] and payload.get("citation_contract"):
-                unused.extend({"unit_ref": ref, "reason": group["dispositions"][0]["disposition_reason"]} for ref in refs)
+                reason = (group["dispositions"][0]["disposition_reason"] if group["dispositions"]
+                          else group["source_row"]["accounting_reason"])
+                unused.extend({"unit_ref": ref, "reason": reason} for ref in refs)
                 continue
             counter = group["source_row"]["evidence_id"] == "b"
             findings.append({"statement": group["source_row"]["text"], "question_ids": ["q"],
@@ -292,6 +294,72 @@ def test_tampered_contract_fails_before_writes_and_mechanical_exclusions_remain(
     with pytest.raises(ValueError, match="request identity mismatch"):
         consumer.advance(*args, root, context="", count=count)
     assert before == {str(p): p.read_bytes() for p in root.rglob("*.json")}
+
+
+@pytest.mark.parametrize("reopen", [False, True])
+def test_anchored_textless_exclusion_keeps_context_and_required_marker(tmp_path, reopen):
+    # Non-assessed rows need not carry body text; a commission anchor still reviews
+    # the row, so its attached context and exact source:ROW accounting must survive.
+    args, root, seen = context_fixture(), tmp_path / "consumer", []
+    row = args[0]["captured_items"][3]
+    del row["text"]
+    row.update(accounting_disposition="excluded", accounting_reason="Body deleted before capture")
+    args[1]["evidence_dispositions"] = [d for d in args[1]["evidence_dispositions"] if d["evidence_id"] != "d"]
+    args[3]["assessment_only"]["checks"][0]["source_rows"] = ["b", "d"]
+    for _ in range(8):
+        state = consumer.advance(*args, root, context="", count=count)
+        for info in state["judgment_requests"]:
+            request = consumer.read(info["job_path"])
+            seen.append(request)
+            response = context_response(request)
+            if any(group["source_row"]["evidence_id"] == "d"
+                   for group in request["payload"].get("source_groups", [])):
+                response["unused"] = [item for item in response["unused"] if item["unit_ref"] != "source:d"]
+                response["findings"][-1]["context_refs"] = ["source:d"]
+                response["findings"][-1]["limits"] += " Enclosing body was deleted before capture."
+            if reopen and request["phase"] == "answer_review":
+                response["answers"][0].update(status="unresolved", reason="Check the shared post against originals.")
+                response["reopen_refs"] = ["f1"]
+            publish(info, response, tmp_path)
+        if not state["judgment_requests"]:
+            break
+    assert state["status"] == "COMPLETE_CASE_ANSWER_CHECKED"
+    request = next(r for r in seen if r["phase"] == "source_review"
+                   and r["payload"]["source_groups"][0]["source_row"]["evidence_id"] == "d")
+    group = request["payload"]["source_groups"][0]
+    assert [value["kind"] for value in group["citation_inventory"].values()] == ["post_text"]
+    context_ref = next(iter(group["citation_inventory"]))
+    result = consumer.read(state["answer_path"])
+    assert result["coverage"]["source_review_rows"] == 4
+    assert context_ref in result["answer"]["answers"][0]["evidence_refs"]
+    assert len(result["citation_inventory"][context_ref]["locations"]) == 2
+    assert "source:d" in result["answer"]["answers"][0]["evidence_refs"]
+    assembly = next(r for r in seen if r["phase"] == "assembly")["payload"]
+    finding = next(f for f in assembly["checked_findings_and_unused"]["findings"]
+                   if f["source_observations"]["context_refs"] == ["source:d"])
+    bounded = consumer.checked_batch_payload(assembly, [finding])
+    reviews = [r["payload"] for r in seen if r["phase"] in {"answer_review", "answer_review_after_reopen"}]
+    for payload in [assembly, bounded, *reviews]:
+        identity = payload["evidence_identity"][finding["handle"]]
+        assert identity["source_observations"] == {"supporting_refs": [context_ref], "opposing_refs": [],
+                                                    "context_refs": ["source:d"]}
+        assert identity["observation_kinds"] == {"supporting_refs": ["post_text"], "opposing_refs": [],
+                                                  "context_refs": ["source_body_unavailable"]}
+    if reopen:
+        review = next(r for r in seen if r["phase"] == "answer_review_after_reopen")
+        judgments = review["payload"]["reopened_original_judgments"]
+        assert {"source:d": "source:d"} in [j["unit_observations"] for j in judgments]
+        assert all(context_ref in j["citation_inventory"] for j in judgments)
+
+
+def test_conflicting_shared_context_attribution_fails_before_any_request(tmp_path):
+    # One observation identity cannot carry two speakers; rows land in separate
+    # requests, so only a whole-inventory check can stop judgment being spent.
+    args, root = context_fixture(), tmp_path / "consumer"
+    args[0]["captured_items"][3]["product_context"][0].update(source_role="owned_claim")
+    with pytest.raises(ValueError, match="shared observation identity differs"):
+        consumer.advance(*args, root, context="", count=count)
+    assert not root.exists() or not any(root.rglob("*"))
 
 
 def test_compiled_membership_seeded_omission_rejected(tmp_path, monkeypatch):

@@ -2413,11 +2413,13 @@ def prepare_reconciliation_level(
     bundle = _load_object(bundle_path)
     compilation = _load_object(compilation_path)
     if authoring_revision is None and completion_strategy is None:
+        # Current methods default to v5 source rows; older response-v3 keeps v4.
         authoring_revision = (
             RECONCILIATION_AUTHORING_IDENTITY_V5
+            if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
+            and response_version != RECONCILIATION_RESPONSE_VERSION_V2
+            else RECONCILIATION_AUTHORING_IDENTITY_V4
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
-            or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
-                and response_version != RECONCILIATION_RESPONSE_VERSION_V2)
             else RECONCILIATION_AUTHORING_LEGACY
         )
     if existing_stage_path is None:
