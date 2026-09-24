@@ -15,6 +15,7 @@ if __package__ in {None, ""}:
 
 from judgment.semantic_evidence_integration import (  # noqa: E402
     BUNDLE_VERSION_V4,
+    DEFAULT_MAX_PROMPT_BYTES,
     METHOD_VERSION_V12,
     METHOD_VERSION_V13,
     METHOD_VERSION_V14,
@@ -1767,7 +1768,7 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
 def advance_semantic_run(
     *, source_path: Path, run_dir: Path,
     bundle_path: Path | None = None, verified_path: Path | None = None,
-    max_batch_chars: int = 80_000, max_prompt_bytes: int | None = None,
+    max_batch_chars: int | None = None, max_prompt_bytes: int | None = None,
     max_evidence_per_work_unit: int = 120,
     reconciliation_packing: str = "input_order",
     reconciliation_authoring_revision: str | None = None,
@@ -1963,7 +1964,15 @@ def advance_semantic_run(
                 for name, path in {"source": source_path, "bundle": bundle_path,
                                    **extra}.items()}}
         else:
-            bundle = build_bundle(source, max_batch_chars=max_batch_chars,
+            # Omitted limits resume the immutable bundle's ceiling, including
+            # runs created before the default increased. Explicit changes still
+            # fail the normal artifact identity check below.
+            if saved_start is not None and max_batch_chars is None and max_prompt_bytes is None:
+                max_prompt_bytes = _load_object(run_dir / "bundle.json").get("max_prompt_bytes")
+                if not isinstance(max_prompt_bytes, int) or max_prompt_bytes < 1_000:
+                    raise ValueError("saved bundle lacks a valid prompt byte ceiling")
+            bundle = build_bundle(source, max_batch_chars=(
+                DEFAULT_MAX_PROMPT_BYTES if max_batch_chars is None else max_batch_chars),
                 max_prompt_bytes=max_prompt_bytes, max_evidence_per_work_unit=max_evidence_per_work_unit)
             start = {"mode": "extraction", "source_sha256": source["source_sha256"]}
         if saved_start is None or "reconciliation_authoring_revision" in saved_start:
@@ -3666,7 +3675,8 @@ def _parser() -> argparse.ArgumentParser:
     advance.add_argument("--timeout-seconds", type=float)
     advance.add_argument("--max-jobs", type=int, help="Explicit maximum judgments for this invocation; no automatic continuation.")
     advance.add_argument("--codex-executable", type=Path)
-    advance.add_argument("--max-batch-chars", type=int, default=80_000)
+    advance.add_argument("--max-batch-chars", type=int,
+        help="Legacy ceiling alias; new runs default to 120000, resumes retain the saved limit.")
     advance.add_argument("--max-prompt-bytes", type=int)
     advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
     advance.add_argument("--answer-commission", type=Path,
@@ -3799,7 +3809,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare.add_argument("--repo-root", type=Path, required=True)
     prepare.add_argument("--bundle-out", type=Path, required=True)
     prepare.add_argument("--prompt-dir", type=Path, required=True)
-    prepare.add_argument("--max-batch-chars", type=int, default=80_000)
+    prepare.add_argument("--max-batch-chars", type=int, default=DEFAULT_MAX_PROMPT_BYTES)
     prepare.add_argument("--max-prompt-bytes", type=int)
     prepare.add_argument("--max-evidence-per-work-unit", type=int, default=120)
 

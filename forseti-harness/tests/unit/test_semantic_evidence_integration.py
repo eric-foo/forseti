@@ -12081,6 +12081,72 @@ def _advance_cli(source_path, run_dir, capsys, *, rows_per_batch=2):
     return code, json.loads(capsys.readouterr().out)
 
 
+@pytest.mark.parametrize("entrypoint", ["api", "advance-cli", "prepare-cli"])
+def test_default_ceiling_admits_complete_verification_above_old_limit(tmp_path, capsys, entrypoint):
+    # Synthetic transport fixture: extraction plus its proposal exceeds 80 KB.
+    from runners.run_semantic_evidence_integration import advance_semantic_run, main
+    source = _source_v10(count=1)
+    source["semantic_method_version"] = semantic_module.METHOD_VERSION_V14
+    row = next(r for r in source["captured_items"] if r["accounting_disposition"] == "assess")
+    row["text"] = "Complete source context: " + " ".join(f"fact{i:05d}" for i in range(6000))
+    source = materialize_source_v3(source)
+    source_path = tmp_path / "source.json"
+    source_path.write_text(json.dumps(source), encoding="utf-8")
+    run = tmp_path / "run"
+    if entrypoint == "api":
+        result = advance_semantic_run(source_path=source_path, run_dir=run)
+        assert result["phase"] == "extraction"
+    elif entrypoint == "advance-cli":
+        assert main(["advance", "--source", str(source_path), "--run-dir", str(run)]) == 0
+        assert json.loads(capsys.readouterr().out)["phase"] == "extraction"
+    else:
+        assert main(["prepare-batches", "--source", str(source_path), "--repo-root", str(tmp_path),
+                     "--bundle-out", str(run / "bundle.json"), "--prompt-dir", str(run / "prompts")]) == 0
+        capsys.readouterr()
+    bundle = json.loads((run / "bundle.json").read_text(encoding="utf-8"))
+    assert bundle == build_bundle(source)
+    responses = _keyed_responses(bundle)
+    for response in responses:
+        for eid in response["decisions_by_evidence_id"]:
+            claim = _claim_row(eid)
+            claim.pop("evidence_id")
+            claim["semantic_units"][0].update(
+                subject_product_ids=["summer-fridays-lip-butter-balm"],
+                statement="Bounded proposal: " + " ".join(f"detail{i:05d}" for i in range(1500)))
+            response["decisions_by_evidence_id"][eid] = claim
+    compiled = validate_batch_responses(bundle, responses)
+    with pytest.raises(SemanticIntegrationError, match="exceeds rendered prompt byte ceiling"):
+        prepare_row_verification(bundle, compiled, max_prompt_bytes=80_000)
+    stage, prompts = prepare_row_verification(bundle, compiled)
+    assert stage["max_prompt_bytes"] == 120_000
+    assert len(stage["verification_rows"]) == 1
+    assert 80_000 < prompts[0]["prompt_utf8_bytes"] <= 120_000
+    if entrypoint != "prepare-cli":
+        _publish_advance_replay(run, "extraction", responses)
+        result = advance_semantic_run(source_path=source_path, run_dir=run)
+        assert result["phase"] == "verification" and result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
+        assert json.loads((run / "verification/stage.json").read_text(encoding="utf-8")) == stage
+
+
+@pytest.mark.parametrize("flag", ["--max-prompt-bytes", "--max-batch-chars"])
+def test_advance_omitted_limit_preserves_saved_bundle_and_rejects_repacking(tmp_path, capsys, flag):
+    from runners.run_semantic_evidence_integration import main
+    source_path, _, _ = _advance_replay_fixture(tmp_path)
+    run = tmp_path / "run"
+    args = ["advance", "--source", str(source_path), "--run-dir", str(run)]
+    assert main([*args, flag, "80000"]) == 0
+    first = json.loads(capsys.readouterr().out)
+    assert json.loads((run / "bundle.json").read_text(encoding="utf-8"))["max_prompt_bytes"] == 80_000
+    frozen = {p: p.read_bytes() for p in run.rglob("*") if p.is_file()}
+    assert main(args) == 0
+    resumed = json.loads(capsys.readouterr().out)
+    assert resumed["judgment_requests"] == first["judgment_requests"]
+    assert all(p.read_bytes() == data for p, data in frozen.items())
+    assert main([*args, flag, "120000"]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert {p: p.read_bytes() for p in run.rglob("*") if p.is_file()} == frozen
+
+
 def test_judgment_jobs_complete_intake_submit_and_native_terminal(tmp_path, capsys):
     from runners.run_semantic_evidence_integration import intake_judgment_job, submit_judgment_job
     source, replay, expected = _advance_replay_fixture(tmp_path)

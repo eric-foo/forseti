@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v134
+version: v135
 effective_date: 2026-09-24
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v134
+# Semantic Evidence Integration Contract v135
 
 ## Purpose
 
@@ -2542,7 +2542,14 @@ doctrine. `JOB_LIMIT` bounds judgments in this invocation; reaching it returns
 and its execution options for provider-free preparation. Reuse the task's resolved
 Python interpreter and working copy. Use that same
 invocation, including its packing options, for initial preparation and every
-resume. It composes operations 7–14 below: extraction compilation, independent
+resume. New normal bundles default to a 120,000-byte UTF-8 prompt ceiling,
+shared by extraction, whole-row verification and reconciliation. Explicit byte
+limits (including the legacy `--max-batch-chars` alias) remain authoritative.
+When neither limit is supplied on resume, `advance` reuses the ceiling in its
+saved bundle; changing the default does not repack existing runs. A complete
+row that exceeds the selected ceiling still fails without truncation. This
+transport setting does not change the complete-case consumer's token budget.
+It composes operations 7–14 below: extraction compilation, independent
 whole-row verification, policy-v2 reconciliation levels and convergence/retention,
 then the native final view. Each invocation carries all deterministically ready
 steps to the complete next judgment request set, an actionable blocker, or the
@@ -3681,7 +3688,7 @@ Current-route operations are the individually callable seams:
     instructions and response schemas remain unchanged. Packing includes the
     persisted prompt newline and bounds both supported response layouts; the
     larger v1 layout keeps immutable membership independent of keyed transport.
-    The byte ceiling is unchanged and an oversized complete row still fails.
+    The selected byte ceiling remains binding and an oversized complete row still fails.
     Stages bind `prompt_rendering_version`; saved unmarked stages retain their
     original rendering, partition, hashes and response replay. Stored evidence
     and verified compilation schemas remain ordinary, complete JSON.

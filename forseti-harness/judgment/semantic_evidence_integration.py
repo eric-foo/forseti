@@ -24,6 +24,7 @@ from judgment.claim_meaning import CLAIM_FORMATION_GUIDANCE
 from judgment.review_evidence import render_evidence
 
 
+DEFAULT_MAX_PROMPT_BYTES = 120_000
 BUNDLE_VERSION = "semantic_evidence_bundle_v1"
 BUNDLE_VERSION_V2 = "semantic_evidence_bundle_v2"
 BUNDLE_VERSION_V3 = "semantic_evidence_bundle_v3"
@@ -2606,7 +2607,7 @@ def _semantic_execution_identity(
 def build_bundle(
     source: Mapping[str, Any],
     *,
-    max_batch_chars: int = 80_000,
+    max_batch_chars: int = DEFAULT_MAX_PROMPT_BYTES,
     max_prompt_bytes: int | None = None,
     max_evidence_per_work_unit: int = 120,
     worker_count: int = 3,
