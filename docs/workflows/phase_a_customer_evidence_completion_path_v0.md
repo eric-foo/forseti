@@ -63,15 +63,17 @@ This is a conceptual and completion boundary between acquisition and Deliver,
 not a new globally numbered phase: historical Phase A, Phase B, Turn B,
 Understanding, and Deliver vocabulary is not renumbered or migrated.
 
-For new cross-company authoring, use `phase_a_semantic_integration_run_v11`
-(integration method v13, verifier v12). The supplied `CURRENT_AXES` inventory
+For new cross-company authoring, use `phase_a_semantic_integration_run_v12`
+(integration method v14, verifier v13). The supplied `CURRENT_AXES` inventory
 owns output IDs; shared examples describe concepts, never another company's
 required IDs. Preserve a supported meaning even when it needs an emerging-axis
 label instead of an existing axis. See the semantic-integration contract v81
 for the owning rule. Contract v122 adds meaning-boundary guidance to the existing
 producer and verifier and versions new Decision State prompts as manifest v2;
-old v1 manifests retain their original batching prompts. Historical run v10 /
-method v12 and earlier artifacts keep
+old v1 manifests retain their original batching prompts. Contract v131 requires source/context-supported variant typing before any
+type-specific axis while preserving ambiguous names, preferences and comparisons.
+Genuine shade choices and context-supported typing remain available. Historical
+run v11 / method v13 and earlier artifacts keep
 their original identity and replay; do not edit frozen outputs or relabel old
 responses as a new-method proof. This correction does not establish the cause
 of Dieux's provider timeout. All new model attempts use `high` under the
@@ -105,7 +107,7 @@ execution or semantic truth and requires no provider re-verification merely to
 change a version label.
 
 The existing calibration entry point follows the production-owned
-`SEMANTIC_METHODS_V7_PLUS` set, including current method v13, rather than a
+`SEMANTIC_METHODS_V7_PLUS` set, including current method v14, rather than a
 separate historical allowlist. Primary and cold-repeat evaluation both require
 their own exact row-verified compilation for those methods. Contract v79 owns
 this compatibility correction; it neither changes semantic prompts nor makes
@@ -716,7 +718,9 @@ the complete inventory. This does not promote the optional finite route.
 
 Follow the owning [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
 section for normal starts and resumes. It binds the command, complete request set,
-generated worker protocol, accepted-artifact reuse and stopping conditions.
+direct program-owned execution, accepted-artifact reuse and stopping conditions.
+Its selected-extraction entry preserves completed batches while requiring their
+independent verification; it does not resume excluded extraction work.
 For an explicitly commissioned prepared-level checkpoint with existing verified
 inputs, use [Preparation from verified inputs](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
 These entries replace reconstructing the sequence from the history in this file.

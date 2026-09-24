@@ -35,6 +35,13 @@ def validate_verified_inputs(source, bundle, verified):
     semantic._verify_row_verification_manifest(bundle, verified)
     if not verified.get("row_verification_manifest"):
         raise semantic.SemanticIntegrationError("verified selection requires row verification")
+    validate_source_bundle(source, bundle)
+
+
+def validate_source_bundle(source, bundle):
+    """Verify source ownership without requiring completed row verification."""
+    semantic._verify_stored_hash(bundle, field="bundle_sha256", label="bundle")
+    semantic._validate_projection(bundle)
     # Rebuild source-owned content without repacking the entire original corpus.
     # Existing projection validation above owns its frozen work-unit partition.
     rebuilt = semantic.build_bundle(source, max_prompt_bytes=bundle["max_prompt_bytes"],

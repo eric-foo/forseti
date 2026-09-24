@@ -35,6 +35,7 @@ def main():
                         help="Explicit completed identical repeat of a stopped read-only timeout; consumes one retry")
     parser.add_argument("--preload-context", type=Path, action="append", default=[],
                         help="Required context supplied verbatim with shell_tool disabled; repeat per file")
+    parser.add_argument("--direct-judgment", action="store_true")
     args = parser.parse_args()
     if args.result_out is not None and args.result_out.exists():
         parser.error("refusing to replace provider result output")
@@ -57,6 +58,8 @@ def main():
             codex_sha256=selected["sha256"], runner_path=str(native),runner_sha256=hash_file(native))
         if saved is None or "codex_version" in saved:
             binding["codex_version"] = selected["version"]
+        if args.direct_judgment:
+            binding["direct_judgment"] = True
         context, context_files = preloaded_context(args.preload_context)
         if context:
             binding["preloaded_context_sha256"] = hashlib.sha256(context.encode("utf-8")).hexdigest()
@@ -71,6 +74,8 @@ def main():
                 command += ["--expected-context-sha256", binding["preloaded_context_sha256"]]
                 for record in context_files:
                     command += ["--preload-context", record["path"]]
+            if args.direct_judgment:
+                command += ["--direct-judgment"]
             subprocess.run(command, check=False)
         result = run_provider_job(job_dir=args.job_dir, attempt_root=args.attempt_root, binding=binding,
             launch=launch, retry_budget_dir=args.retry_budget_dir, run_retry_limit=args.run_retry_limit,

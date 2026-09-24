@@ -210,7 +210,7 @@ def test_worker_handoff_capacity_blocks_before_dispatch(tmp_path):
         consumer.advance(*args, tmp_path / "bounded", context="", count=count)
 
 
-def test_model_fitting_oversized_intake_automatically_uses_bounded_transport(tmp_path):
+def test_model_fitting_oversized_intake_uses_direct_transport_without_worker_script(tmp_path):
     import subprocess
     import sys
     args = fixture()
@@ -219,8 +219,9 @@ def test_model_fitting_oversized_intake_automatically_uses_bounded_transport(tmp
     root = tmp_path / "consumer"
     state = consumer.advance(*args, root, context="", count=count)
     info = state["judgment_requests"][0]
-    assert info["measurement"]["intake_transport_mode"] == "bounded_sections_v1"
-    assert "--delivery-manifest" in info["worker_prompt"]
+    assert info["measurement"]["intake_transport_mode"] == "direct_provider_v1"
+    assert "worker_prompt" not in info
+    assert info["execution"]["command"] == "execute-judgment-job"
     path = Path(info["job_path"])
     request = consumer.read(path)
     assert request["measurement"]["total_reserved_tokens"] < args[4]["effective_context_tokens"]

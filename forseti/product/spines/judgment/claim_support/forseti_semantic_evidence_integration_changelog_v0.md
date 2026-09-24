@@ -24,6 +24,49 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-24 v132 — direct judgments now enforce the audited empty native tool
+  registry, disable executor access and lifecycle hooks, and bind saved results
+  to the exact command, native hash, configuration attestations and model catalog.
+  The real-native offline control executes the async handler; the enforced
+  profile rejects forged calls while preserving valid structured output. A fresh
+  production judgment reached `SEMANTIC_JUDGMENT_SUBMITTED`. This supersedes
+  v131's active native-execution blocker within the supported Windows/personal
+  ChatGPT/configuration domain. The boundary trusts the controller and OS;
+  unaudited natives or configurations fail closed. Acceptance limits and the
+  reproducible native check live in `forseti-harness/README.md`. Semantic prompts,
+  response identities and historical outputs remain unchanged.
+
+- 2026-09-23 v131 — normal run v12 selects integration method v14 and verifier
+  v13. Both require source/context-supported variant typing before type-specific
+  axes, preserving ambiguous names, preference and comparisons and genuine shade
+  behavior. Old prompt identities and provisional v13 remain unchanged. Direct
+  native isolation is explicitly unproven by disable flags or post-event rejection;
+  exact callable-tool verification remains blocked by native execution denial.
+  Offline route/compatibility checks do not prove model semantics or tool absence.
+
+- 2026-09-23 v130 — experimental v2 makes whole-row relevance explicit across
+  body and supplied context, retaining context-only meanings under their own
+  attribution and counting repeated shared context once. An irrelevant body no
+  longer licenses exclusion of its relevant context. Frozen evaluator coverage
+  uses the same boundary. Existing findings/unused schema, exact-answer blocking,
+  normal v13 methods and saved-response identities remain unchanged; this is an
+  instruction clarification, not a deterministic guarantee of semantic recall.
+
+- 2026-09-23 v129 — experimental single-pass v2 carries the actual commission
+  into every actor prompt and reuses source-linked findings/unused notes so
+  brand, entity and uncataloged-product meanings are not excluded by native
+  product-ID requirements. All originals and notes reach writing and exact-answer
+  review. New runs use fresh roots; saved v1 response validation and normal v13
+  product extraction/verification remain unchanged. This expands experimental
+  representation, not proven recall or production completion.
+
+- 2026-09-23 v128 — owner-commissioned, unpromoted twelve-row single-pass
+  experiment reuses native extraction and complete-case answer interfaces with
+  explicitly provisional notes and source review of the exact answer. Preserves
+  every original for downstream assessment, fails on review defects and changed
+  bindings, and makes no normal completion or extraction-recall claim. Historical
+  v13 identities, normal verification and full-corpus Phase A are unchanged.
+
 - 2026-09-21 v127 — exact-repair composition v2 permits a nonempty supported
   proposal to leave nominated questions unchanged while preserving every
   nomination in the independent affected recheck. Remaining material defects

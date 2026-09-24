@@ -50,6 +50,14 @@ def launch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(runner.subprocess, "run", local_check)
     monkeypatch.setattr(runner, "execute_provider_attempt", execute)
+    # Native profile I/O is independently tested; this fixture captures launcher wiring.
+    profile = runner.codex_judgment_profile
+    monkeypatch.setattr(profile, "NATIVE_VERSION", "codex-cli 0.153.1")
+    monkeypatch.setattr(profile, "NATIVE_SHA256", hashlib.sha256(executable.read_bytes()).hexdigest())
+    monkeypatch.setattr(profile, "program_data_path", lambda: tmp_path / "program-data")
+    monkeypatch.setattr(profile, "personal_account", lambda *args: {"type": "chatgpt", "plan": "pro"})
+    monkeypatch.setattr(profile, "read_catalog", lambda *args: {"models": [{"slug": "test-model",
+        "supported_reasoning_levels": [{"effort": "medium"}], "model_messages": {"instructions": "preserve"}}]})
     return state
 
 
@@ -103,6 +111,38 @@ def test_required_context_is_verbatim_without_shell_or_prompt_mutation(launch):
     assert json.loads(call["launch_metadata"]["preloaded_context_files"]) == manifest
     assert manifest[0]["sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
     assert "project_doc_max_bytes=0" not in call["command"]
+
+
+@pytest.mark.parametrize("with_context", [False, True])
+def test_direct_judgment_restricts_capabilities_and_discovery_preserving_input(launch, with_context):
+    launch.argv += ["--direct-judgment"]
+    if with_context:
+        source = launch.root / "authority.md"
+        source.write_text("Complete required authority", encoding="utf-8")
+        launch.argv += ["--preload-context", str(source)]
+    assert runner.main() == 0
+    assert len(launch.launches) == 1
+    call = launch.launches[0]
+    assert call["launch_metadata"]["direct_judgment"] is True
+    assert call["env"]["CODEX_EXEC_SERVER_URL"] == "none"
+    assert call["launch_metadata"]["judgment_tool_profile"]["account"] == {"type": "chatgpt", "plan": "pro"}
+    runner.codex_judgment_profile.verify_receipt(call["attempt_dir"], {
+        "command": call["command"], "launch_metadata": call["launch_metadata"]})
+    disabled = [call["command"][i+1] for i, value in enumerate(call["command"][:-1]) if value == "--disable"]
+    assert {"shell_tool", "unified_exec", "multi_agent", "apps", "plugins", "browser_use",
+            "computer_use", "image_generation", "view_image", "code_mode_host", "tool_suggest"}.issubset(disabled)
+    assert "tools.view_image=false" not in call["command"]
+    for setting in ("project_doc_max_bytes=0", 'web_search="disabled"'):
+        assert call["command"].count(setting) == 1
+    setting = next(p for p in call["command"] if p.startswith("developer_instructions="))
+    if with_context:
+        packet = json.loads(call["prompt_path"].read_text(encoding="utf-8"))
+        assert packet["task_prompt"] == "exact prompt"
+        assert packet["required_context"].count("Complete required authority") == 1
+        assert json.loads(setting.split("=", 1)[1]) == runner.CONTEXT_STDIN_INSTRUCTION
+    else:
+        assert call["prompt_path"].read_text(encoding="utf-8") == "exact prompt"
+        assert json.loads(setting.split("=", 1)[1]) == runner.DIRECT_JUDGMENT_INSTRUCTION
 
 
 def test_large_context_does_not_expand_windows_command(launch):

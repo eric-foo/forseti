@@ -1,4 +1,4 @@
-"""Prepare and compile one agent-run semantic evidence integration job."""
+"""Prepare, execute and validate native semantic evidence integration jobs."""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +17,7 @@ from judgment.semantic_evidence_integration import (  # noqa: E402
     BUNDLE_VERSION_V4,
     METHOD_VERSION_V12,
     METHOD_VERSION_V13,
+    METHOD_VERSION_V14,
     RECONCILIATION_AUTHORING_LEGACY,
     RECONCILIATION_AUTHORING_IDENTITY_V1,
     RECONCILIATION_AUTHORING_IDENTITY_V2,
@@ -1772,6 +1773,7 @@ def advance_semantic_run(
     reconciliation_authoring_revision: str = RECONCILIATION_AUTHORING_IDENTITY_V4,
     answer_commission_path: Path | None = None,
     answer_capacity_path: Path | None = None,
+    extracted_selection_path: Path | None = None,
 ) -> dict[str, Any]:
     """Carry the supported provider-free route to its next real judgment boundary.
 
@@ -1845,7 +1847,8 @@ def advance_semantic_run(
         request.update(job_path=str(job_path), job_sha256=hash_file(job_path),
             worker_context="fresh_per_request", max_concurrent_workers=3,
             intake_command="intake-judgment-job", submit_command="submit-judgment-job")
-        request["worker_prompt"] = judgment_worker_prompt(job_path, request["job_sha256"])
+        from runners.semantic_execution import execution_request
+        request["execution"] = execution_request(job_path, request["job_sha256"])
 
     def read_responses(directory: Path, requests: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         expected = {row["batch_id"] for row in requests}
@@ -1910,7 +1913,7 @@ def advance_semantic_run(
             state.update(status="SEMANTIC_ADVANCE_BLOCKED", action="Resolve the named invalid/staged artifacts explicitly; do not retry or replace accepted answers.")
             return True
         if pending:
-            state.update(status="SEMANTIC_JUDGMENT_REQUIRED", action="Dispatch each ready request in a fresh context, at most three concurrently. Each worker uses intake-judgment-job then submit-judgment-job; advance again after results. Never reuse prior-job conversations.")
+            state.update(status="SEMANTIC_JUDGMENT_REQUIRED", action="Use advance --execute with explicit model, effort, timeout and max-jobs. Code delivers, waits and submits; each judgment has fresh context. Do not dispatch mechanical worker agents.")
             return True
         return False
 
@@ -1918,16 +1921,26 @@ def advance_semantic_run(
         source = _load_object(source_path)
         if source.get("schema_version") != SOURCE_VERSION_V3 or "source_sha256" not in source:
             raise ValueError("advance requires Collection's hash-bound materialized v3 source")
-        if (bundle_path is None) != (verified_path is None):
-            raise ValueError("advance requires --bundle and --verified together")
+        reused_responses = []
+        if verified_path is not None and extracted_selection_path is not None:
+            raise ValueError("verified and extracted selection starts are mutually exclusive")
+        if (bundle_path is None) != (verified_path is None and extracted_selection_path is None):
+            raise ValueError("advance requires --bundle paired with --verified or --extracted-selection")
         if bundle_path is not None:
-            from judgment.verified_evidence_selection import validate_verified_inputs
-            bundle, verified = _load_object(bundle_path), _load_object(verified_path)
-            validate_verified_inputs(source, bundle, verified)
-            start = {"mode": "existing_verified", "inputs": {
+            bundle = _load_object(bundle_path)
+            if verified_path is not None:
+                from judgment.verified_evidence_selection import validate_verified_inputs
+                verified = _load_object(verified_path)
+                validate_verified_inputs(source, bundle, verified)
+                mode, extra = "existing_verified", {"verified": verified_path}
+            else:
+                from judgment.extracted_evidence_selection import validate
+                reused_responses = validate(extracted_selection_path, source, bundle)
+                mode, extra = "existing_extracted_selection", {"extracted_selection": extracted_selection_path}
+            start = {"mode": mode, "inputs": {
                 name: {"path": str(path.resolve()), "sha256": hash_file(path)}
                 for name, path in {"source": source_path, "bundle": bundle_path,
-                                   "verified": verified_path}.items()}}
+                                   **extra}.items()}}
         else:
             bundle = build_bundle(source, max_batch_chars=max_batch_chars,
                 max_prompt_bytes=max_prompt_bytes, max_evidence_per_work_unit=max_evidence_per_work_unit)
@@ -1945,6 +1958,9 @@ def advance_semantic_run(
         else:
             directory = run_dir / "extraction"
             requests = requests_for("extraction", directory, build_batch_prompts(bundle), bundle_path, bundle["bundle_sha256"])
+            for response in reused_responses:
+                retain("reused_extraction_" + response["batch_id"], directory / "responses" / (response["batch_id"] + ".json"),
+                       response, "reuse-extraction-not-verification")
             responses, problems = read_responses(directory, requests)
             # Keep run_status the authority for extraction states. It verifies the
             # immutable bundle/projection once, even when no response exists yet.
@@ -2000,7 +2016,7 @@ def advance_semantic_run(
                 reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
                 packing_strategy=reconciliation_packing,
                 authoring_revision=(reconciliation_authoring_revision
-                    if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
+                    if bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
                     else RECONCILIATION_AUTHORING_LEGACY))
             if any("response_schema" not in prompt for prompt in prompts):
                 prompts = prepare_reconciliation_prompts(bundle, stage,
@@ -2377,7 +2393,7 @@ def prepare_reconciliation_level(
         authoring_revision = (
             RECONCILIATION_AUTHORING_IDENTITY_V4
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
-            or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13}
+            or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
                 and response_version != RECONCILIATION_RESPONSE_VERSION_V2)
             else RECONCILIATION_AUTHORING_LEGACY
         )
@@ -3609,11 +3625,22 @@ def finalize_evidence_selection_quotes_run(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    provisional = sub.add_parser("advance-provisional-experiment",
+        help="Prepare an explicit <=12-row single-pass experiment; never normal completion.")
+    for flag in ("source", "commission", "capacity", "run-dir"):
+        provisional.add_argument("--" + flag, type=Path, required=True)
     advance = sub.add_parser("advance", help="Advance supported consolidation to all ready judgments or the final view.")
     advance.add_argument("--source", type=Path, required=True)
     advance.add_argument("--run-dir", type=Path, required=True)
-    advance.add_argument("--bundle", type=Path, help="Existing native bundle, paired with --verified.")
+    advance.add_argument("--bundle", type=Path, help="Existing native bundle, paired with --verified or --extracted-selection.")
     advance.add_argument("--verified", type=Path, help="Existing complete or selected verification for the source.")
+    advance.add_argument("--extracted-selection", type=Path, help="Validated selected extraction reuse; verification remains required.")
+    advance.add_argument("--execute", action="store_true", help="Run ready judgments directly through the maintained provider runner.")
+    advance.add_argument("--model")
+    advance.add_argument("--reasoning-effort")
+    advance.add_argument("--timeout-seconds", type=float)
+    advance.add_argument("--max-jobs", type=int, help="Explicit maximum judgments for this invocation; no automatic continuation.")
+    advance.add_argument("--codex-executable", type=Path)
     advance.add_argument("--max-batch-chars", type=int, default=80_000)
     advance.add_argument("--max-prompt-bytes", type=int)
     advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
@@ -3627,6 +3654,21 @@ def _parser() -> argparse.ArgumentParser:
         choices=[RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6],
         default=RECONCILIATION_AUTHORING_IDENTITY_V4,
         help="Opt-in v5 adds source-row aliases; v6 clarifies uncertainty and completion. Keep the same revision on resume.")
+
+    selected_extraction = sub.add_parser("select-extracted-batches", help="Reuse explicit complete saved batches; never claim verification.")
+    selected_extraction.add_argument("--source", type=Path, required=True)
+    selected_extraction.add_argument("--bundle", type=Path, required=True)
+    selected_extraction.add_argument("--response", type=Path, action="append", required=True)
+    selected_extraction.add_argument("--output-dir", type=Path, required=True)
+
+    direct = sub.add_parser("execute-judgment-job", help="Directly execute and submit one native judgment; no automatic retry.")
+    for flag in ("job", "provider-root"):
+        direct.add_argument("--" + flag, type=Path, required=True)
+    direct.add_argument("--job-sha256", required=True)
+    direct.add_argument("--model", required=True)
+    direct.add_argument("--reasoning-effort", required=True)
+    direct.add_argument("--timeout-seconds", type=float, required=True)
+    direct.add_argument("--codex-executable", type=Path)
 
     consumer_submit = sub.add_parser("submit-consumer-response")
     consumer_submit.add_argument("--job", type=Path, required=True)
@@ -4239,14 +4281,51 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        if args.command == "advance":
-            result = advance_semantic_run(source_path=args.source, bundle_path=args.bundle, verified_path=args.verified,
+        if args.command == "advance-provisional-experiment":
+            from judgment.complete_case_consumer import advance_provisional, read
+            from runners.finite_preparation import offline_tokenizer
+            capacity = read(args.capacity)
+            tokenizer, _ = offline_tokenizer(capacity["encoding"])
+            contract = Path(__file__).resolve().parents[2] / "forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md"
+            result = advance_provisional(read(args.source), read(args.commission), capacity,
+                args.run_dir.resolve(), context=contract.read_text(encoding="utf-8-sig"),
+                count=lambda value: len(tokenizer.encode(value, disallowed_special=())))
+        elif args.command == "advance":
+            advance_kwargs = dict(source_path=args.source, bundle_path=args.bundle, verified_path=args.verified,
                 run_dir=args.run_dir, max_batch_chars=args.max_batch_chars,
                 max_prompt_bytes=args.max_prompt_bytes,
                 max_evidence_per_work_unit=args.max_evidence_per_work_unit,
                 reconciliation_packing=args.reconciliation_packing,
                 reconciliation_authoring_revision=args.reconciliation_authoring_revision,
-                answer_commission_path=args.answer_commission, answer_capacity_path=args.answer_capacity)
+                answer_commission_path=args.answer_commission, answer_capacity_path=args.answer_capacity,
+                extracted_selection_path=args.extracted_selection)
+            if args.execute:
+                from runners.semantic_execution import execute_semantic_run
+                result = execute_semantic_run(advance_kwargs=advance_kwargs, model=args.model,
+                    reasoning_effort=args.reasoning_effort, timeout_seconds=args.timeout_seconds,
+                    max_jobs=args.max_jobs, codex_executable=args.codex_executable)
+                # Bulky planning inventories stay in the native run artifacts;
+                # a controller needs only the result, the bounded remainder and
+                # any named invalid/staged artifacts a blocker refers to.
+                problems = result.get("response_state", {}).get("problems")
+                result = {**{key: result[key] for key in ("status", "phase", "executed_job_count",
+                    "provider_root", "answer_path", "answer_sha256", "view_sha256", "error", "failed_job", "action")
+                    if key in result}, "run_dir": str(args.run_dir.resolve()),
+                    "pending_job_count": len(result.get("judgment_requests", [])),
+                    **({"problems": problems} if problems else {})}
+            else:
+                if any(value is not None for value in (args.model, args.reasoning_effort, args.timeout_seconds, args.max_jobs, args.codex_executable)):
+                    raise ValueError("execution options require --execute; no model launched")
+                result = advance_semantic_run(**advance_kwargs)
+        elif args.command == "select-extracted-batches":
+            from judgment.extracted_evidence_selection import prepare
+            result = prepare(source_path=args.source, bundle_path=args.bundle,
+                             response_paths=args.response, output_dir=args.output_dir)
+        elif args.command == "execute-judgment-job":
+            from runners.semantic_execution import execute_judgment_job
+            result = execute_judgment_job(job_path=args.job, job_sha256=args.job_sha256,
+                provider_root=args.provider_root, model=args.model, reasoning_effort=args.reasoning_effort,
+                timeout_seconds=args.timeout_seconds, codex_executable=args.codex_executable)
         elif args.command == "submit-consumer-response":
             from judgment.complete_case_consumer import read, submit, validate_request
             from runners.finite_preparation import offline_tokenizer
@@ -4783,7 +4862,9 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps(result, indent=2, sort_keys=args.command not in {
         "intake-judgment-job", "intake-reconciliation-repair-coordinator",
         "start-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
-    if args.command == "advance" and result.get("status") == "SEMANTIC_ADVANCE_BLOCKED":
+    if args.command == "advance" and result.get("status") in {"SEMANTIC_ADVANCE_BLOCKED", "SEMANTIC_EXECUTION_BLOCKED"}:
+        return 2
+    if args.command == "advance-provisional-experiment" and result.get("status") == "EXPERIMENTAL_ANSWER_BLOCKED":
         return 2
     if args.command == "evaluate-calibration" and result.get("status") != "SEMANTIC_CALIBRATION_PASS":
         return 3

@@ -17,7 +17,7 @@ from test_semantic_evidence_integration import (
 def test_new_run_selects_preventive_method_without_restamping_previous_run(tmp_path):
     spec = _spec_v8(tmp_path)
     bindings = []
-    for run_version in ("phase_a_semantic_integration_run_v10", "phase_a_semantic_integration_run_v11"):
+    for run_version in ("phase_a_semantic_integration_run_v10", "phase_a_semantic_integration_run_v11", "phase_a_semantic_integration_run_v12"):
         spec["schema_version"] = run_version
         source, _ = materialize_phase_a_v3(spec, repo_root=tmp_path)
         bundle = semantic.build_bundle(source, max_prompt_bytes=30_000)
@@ -28,6 +28,7 @@ def test_new_run_selects_preventive_method_without_restamping_previous_run(tmp_p
     assert bindings == [
         (semantic.METHOD_VERSION_V12, semantic.ROW_VERIFICATION_METHOD_VERSION_V11),
         (semantic.METHOD_VERSION_V13, semantic.ROW_VERIFICATION_METHOD_VERSION_V12),
+        (semantic.METHOD_VERSION_V14, semantic.ROW_VERIFICATION_METHOD_VERSION_V13),
     ]
 
 

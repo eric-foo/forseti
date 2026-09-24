@@ -193,6 +193,28 @@ def _check_attempt(path, binding):
             raise ValueError("provider attempt preloaded context or shell restriction changed")
     if task_prompt_sha != binding["prompt_sha256"] or receipt.get("response_schema_sha256") != binding["schema_sha256"]:
         raise ValueError("provider attempt input binding changed")
+    if binding.get("direct_judgment"):
+        from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_CONFIG, DIRECT_JUDGMENT_DISABLED_FEATURES
+        from runners.codex_judgment_profile import verify_receipt
+        try:
+            verify_receipt(path, receipt)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ValueError("provider attempt direct judgment restriction changed: preventive profile invalid") from exc
+        disabled = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--disable"]
+        settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
+        if (receipt.get("launch_metadata", {}).get("direct_judgment") is not True
+                or not set(DIRECT_JUDGMENT_DISABLED_FEATURES).issubset(disabled)
+                or any(flag in command for flag in ("--enable", "-c", "--profile", "-p"))
+                or any(value.startswith(("features=", "features.", "tools=")) for value in settings)
+                or any([value for value in settings if value.split("=", 1)[0] == required.split("=", 1)[0]]
+                       != [required] for required in DIRECT_JUDGMENT_CONFIG)):
+            raise ValueError("provider attempt direct judgment restriction changed")
+        if "preloaded_context_sha256" not in binding:
+            from runners.run_codex_provider_attempt import DIRECT_JUDGMENT_INSTRUCTION
+            settings = [command[i+1] for i, part in enumerate(command[:-1]) if part == "--config"]
+            instructions = [x.split("=", 1)[1] for x in settings if x.startswith("developer_instructions=")]
+            if len(instructions) != 1 or json.loads(instructions[0]) != DIRECT_JUDGMENT_INSTRUCTION:
+                raise ValueError("provider attempt direct judgment instruction changed")
     for name, key in (("events.jsonl", "events_sha256"), ("stderr.log", "stderr_sha256")):
         if hash_file(path / name) != receipt.get(key):
             raise ValueError("provider attempt diagnostic bytes changed")

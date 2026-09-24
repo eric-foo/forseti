@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v127
-effective_date: 2026-09-21
+version: v132
+effective_date: 2026-09-24
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v127
+# Semantic Evidence Integration Contract v132
 
 ## Purpose
 
@@ -167,8 +167,8 @@ shape requires one exact stored subject/comparator orientation; retain opposite
 orientations separately without relabeling child identity. This is a transport
 constraint, not a claim that the meanings differ or represent separate events.
 
-Current authoring uses run v11 / integration method v13 / row-verification
-method v12. `CURRENT_AXES` alone supplies valid output axis IDs. Category names
+Current authoring uses run v12 / integration method v14 / row-verification
+method v13. `CURRENT_AXES` alone supplies valid output axis IDs. Category names
 in the semantic examples below describe meaning, not fixed identifiers or
 mandatory assignments across companies. The agent selects supplied IDs by the
 unit's meaning and the supplied labels; it never imports Summer Fridays IDs
@@ -416,6 +416,18 @@ records the behavioral subject and does not infer that the shade fit well. When
 sale timing or price is expressly a condition of an intended or hypothetical
 purchase, it also carries `value_and_quantity`; an incidental past sale mention
 does not create that judgment.
+Method v14 and verifier v13 require the exact source or supplied context to
+establish a named variant's type before applying this shade exception or any
+other type-specific axis. A name alone establishes neither shade, scent nor
+flavor. Preserve an ambiguous name, favorite/preference, ownership/selection and
+comparison without inventing a type in statements, conditions, axes or emerging
+labels. Known type alone supplies no reason, quality or sensory experience.
+Explicit scent/flavor judgments retain the corresponding supplied axis when it
+fits their meaning; ordinary context-supported ellipsis and adoption remain
+usable. The existing verifier independently checks type against the original
+source/context and replaces unsupported typing while preserving all supported
+meanings. The proposal itself is not evidence of type. Historical v13 and older
+prompt bytes and response replay stay exact; no new schema or model stage is added.
 Non-claim rows pass through unchanged.
 Whole-row verification and selective repair bind decisions by explicit evidence
 ID, not response-list position. Every assigned ID must occur exactly once;
@@ -423,7 +435,7 @@ missing, duplicate, foreign, and mismatched replacement identities fail.
 Application follows source order, while the actual response order remains in
 raw-response hash lineage. Order tolerance alone does not prove the chosen
 meaning correct or change method or stage identity.
-Current keyed-v3 methods v10 through v13 emit row-review response v2 for both
+Current keyed-v3 methods v10 through v14 emit row-review response v2 for both
 verification and selective repair: one required object key per assigned evidence
 ID, with replacements constrained to that same ID. The public preparation
 runners persist each prompt's `.schema.json`; provider execution must use it.
@@ -878,7 +890,7 @@ still apply. A row-repair manifest may carry the frozen v8 identity only when
 its parent row-verification manifest carries it; a v9 verification still
 requires a v9 repair, while a v9 repair authored over a frozen v8 verification
 stays valid. New verification continues to author v9; integration methods v11
-through v13 still require their own v10 through v12 verifiers. Older verifier policies,
+through v14 still require their own v10 through v13 verifiers. Older verifier policies,
 unknown hashes, or a version/hash substitution remain rejected.
 
 Contract v78 adds `phase_a_semantic_integration_run_v9` and integration method
@@ -2503,11 +2515,15 @@ bind their hashes.
 From `forseti-harness/`, run the existing composed command:
 
 ```text
-python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT
+python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT --execute --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS --max-jobs JOB_LIMIT
 ```
 
 Replace the uppercase placeholders with the bound materialized source and run
-directory. Reuse the task's resolved Python interpreter and working copy. Use that same
+directory and explicit execution settings. Select effort under the model-tiering
+doctrine. `JOB_LIMIT` bounds judgments in this invocation; reaching it returns
+`SEMANTIC_EXECUTION_LIMIT_REACHED` without launching another job. Omit `--execute`
+and its execution options for provider-free preparation. Reuse the task's resolved
+Python interpreter and working copy. Use that same
 invocation, including its packing options, for initial preparation and every
 resume. It composes operations 7–14 below: extraction compilation, independent
 whole-row verification, policy-v2 reconciliation levels and convergence/retention,
@@ -2521,11 +2537,47 @@ Keep execution, waits and mechanical checks together under
 Ordinary runs do not repeat comparison setup, negative-test seeding or token
 accounting; those belong to a separately commissioned measurement or validation.
 
-Dispatch the complete compatible `judgment_requests` set in fresh contexts, one
-per independent request and at most three concurrently. Preserve independent
-extraction and verifier judgments. Forward the returned `worker_prompt` instead
-of rebuilding its intake or writing per-worker validation scripts, then call
-`advance` again after the accepted responses are published.
+The ordinary executor consumes `judgment_requests` in code, with one fresh
+provider context per request and independent extraction and verifier judgments.
+It uses the maintained subscription-only provider runner with explicit launch
+restrictions for the direct role's named capabilities, supplies the complete prompt/schema and
+required context, and disables automatic project instruction discovery to avoid
+duplicating that context. Saved receipts must retain those restrictions; any
+observed non-judgment event blocks submission. The native submission validator
+still decides acceptance. There is no model dispatcher, polling
+agent, file-writing agent, or fallback to that workflow. Requests carry a compact
+`execution` descriptor instead of a worker script. Execution is sequential;
+concurrency is not part of judgment identity. Provider attempts, failed raw
+answers and native usage remain under `RUN_ROOT/provider/`; a failed or unknown
+attempt stops the invocation with no automatic retry. A restart reuses completed
+attempts and accepted responses. Existing `run_efficiency` observation/reporting
+remains the owner of aggregate accounting; execution itself adds no model report.
+`executed_job_count` counts newly recorded provider launch attempts in this
+invocation, including failed or unknown launches; reuse counts zero. A launch
+intent without its attempt directory remains unknown. This operational count
+is neither model-call count nor a token-usage estimate. The configured job bound
+also counts reused submissions. Blocked compact output preserves the named
+invalid/staged artifact paths needed for recovery.
+
+For an owner-selected subset of completed extraction batches, prepare a new
+selection without modifying the original run:
+
+```text
+python -m runners.run_semantic_evidence_integration select-extracted-batches --source ORIGINAL_SOURCE --bundle ORIGINAL_BUNDLE --response ACCEPTED_RESPONSE_1 --response ACCEPTED_RESPONSE_2 --output-dir NEW_SELECTION
+python -m runners.run_semantic_evidence_integration advance --source NEW_SELECTION/source.json --bundle NEW_SELECTION/bundle.json --extracted-selection NEW_SELECTION/selection.json --run-dir NEW_RUN_ROOT
+```
+
+Repeat `--response` only for the explicitly selected complete saved batches.
+The provider-free selector validates their original source/bundle ownership and
+exact batch coverage, preserves original files, and deterministically rebinds
+unchanged decisions into the smaller bundle. Its saved selection records original
+file hashes, original batch ownership, selected/excluded row counts and derived
+response hashes. Every start/resume reproduces that derivation before reusing it.
+Derived envelopes are not new model answers or verified evidence. This start
+goes to independent verification, never back to extraction or directly to
+reconciliation. Adding the execution options above runs only within its selected
+scope and explicit job bound. `--verified` and `--extracted-selection` are mutually
+exclusive; the former's existing verification requirement is unchanged.
 
 The run root contains `bundle.json`, `extraction/`, `verification/`,
 `reconciliation/level-NNNN/`, and `view.json`. Each stage uses its existing
@@ -2549,6 +2601,66 @@ a judgment-required return supplies every currently ready request and never
 credits a missing answer. No semantic retry, response selection, identity reset,
 new acquisition, synthesis authorization, or global relation-closure claim is
 implied. Finalization still applies its native terminal and completeness gates.
+
+### Single-pass provisional experiment (unpromoted)
+
+The owner-commissioned 2026-09-23 experiment has a separate explicit entry:
+
+```text
+python -m runners.run_semantic_evidence_integration advance-provisional-experiment --source SOURCE_JSON --commission QUESTIONS_JSON --capacity CAPACITY_JSON --run-dir RUN_ROOT
+```
+
+The commission must name
+`experimental_method: single_pass_provisional_experiment_v2`. This route admits
+at most twelve source-hash-bound v13 rows in one source bundle. V2 uses the
+complete-case consumer's existing source-linked `findings` / `unused` shape for
+provisional notes, followed by its answer writing and exact-answer review
+interfaces. Every actor receives the actual commission and complete original
+rows with supplied context. Notes retain potentially material product, brand,
+entity and uncataloged-subject meanings, including distinct reasons, mixed
+attitudes, conditions and attributed claims; a catalog match is not required.
+Catalogs aid identity without authorizing invented specificity. The shared
+validator checks source and question identities, complete row participation,
+nonempty findings and unused reasons. It does not certify meaning recall.
+A row includes its body and supplied context, which may belong to different
+speakers. Relevant context remains usable when the body is irrelevant: cite the
+enclosing evidence ID, identify the context and its own speaker or unknown
+attribution, and preserve questions or criteria without inventing experience,
+action or equivalence. A topic label alone establishes no motive. Repeated shared
+context is one underlying observation, not independent support from each row.
+Context-only findings make the enclosing row used; `unused` requires that neither
+body nor context affects the commission, with uncertain relevance retained under
+limits. Evaluator expectations must assess these same boundaries across the
+complete supplied row; an irrelevant body is not a whole-row irrelevance control.
+Changed instructions require a fresh immutable run root; historical responses
+remain assessable against their saved requests without being restamped.
+Historical v13 product schemas, method text, hashes and mandatory row verification
+are unchanged. Saved v1 native responses remain locally validatable, but a new
+run requires the v2 commission and a fresh immutable root; v1 results are not
+reinterpreted or continued under v2.
+
+`provisional-notes.json` is `PROVISIONAL_UNVERIFIED`. Its findings and unused
+reasons are not a native semantic compilation. It contains no invented
+verification receipt and is inadmissible as a verified compilation. Both writer
+and reviewer receive every original source row and supplied context, including
+uncited and no-unit rows. Review failure blocks delivery; clean review yields
+only `EXPERIMENTAL_ANSWER_SOURCE_CHECKED`, never normal semantic completion or
+proof of extraction recall. Inputs, requests, accepted responses and the result
+are immutable within the experiment root. Changed source identities, incomplete
+extraction participation, stale response bindings and missing accepted responses
+fail visibly. Capacity failure does not truncate or drop evidence.
+
+Preparation makes no model call. Each ready request uses the existing
+`execute-judgment-job` direct provider route, one fresh attempt at a time. The
+bound experiment permits at most three model calls: extraction, writing and
+source review; no automatic semantic reruns. Before dependent calls, the
+operator evaluates the prior output against frozen, source-supported
+expectations held outside actor inputs and stops on a material defect. Final
+claim review alone cannot establish recall: evaluate working-note omissions
+separately against originals and compare with saved two-pass outputs. Historical
+costs for larger batches are not matched per-row costs. No small-sample result
+promotes this route to the production default. Full-corpus Phase A and normal
+`advance` remain on their existing supported route.
 
 ### Bounded complete-case answer and review
 
@@ -2669,20 +2781,15 @@ review outcome, not source completeness outside the bound inventory, universal
 semantic correctness, or owner acceptance.
 
 Consumer requests and accepted responses live under `consumer/requests/` by
-content identity. The generated `judgment_worker_prompt` uses the normal
-`intake-judgment-job` / `submit-judgment-job` handoff. Intake emits the measured
-prompt and schema once; the prompt already includes project context, and the
-separate local-validation payload is not redelivered. Small/default intake remains
-unchanged. When serialized intake exceeds a conservative 60,000-byte single-return
-threshold, the generated worker automatically uses the same intake command's
-`--delivery-manifest` and byte-offset `--delivery-section` delivery. Every section
-return is at most 8,000 UTF-8 bytes with intact codepoints, and revalidates the
-same job/input hashes before reading. The generated script verifies per-chunk
-and complete-section SHA256, contiguous byte offsets and totals before the final
-`intake_end`; missing, truncated, corrupt or changed input fails incomplete.
-Chunking occurs before the tool's stdout capture, so a fitting model request no
-longer depends on capturing its entire JSON intake in one 60,000-token return.
-This threshold selects transport; it does not cap or truncate evidence. The
+content identity. The normal executor delivers the complete prompt directly to
+the provider's file input and the schema to its structured-output option. The
+prompt already includes project context; it is not supplied a second time.
+Direct developer instructions, prompt and schema are measured before launch,
+with the existing output/overhead reserves. The historical handoff admission
+ceiling is retained conservatively to preserve existing request partitions and
+restart identities; its generated script is not dispatched. The old chunked
+intake remains available for historical replay and scoped repair consumers,
+never as an automatic execution fallback. The
 legacy `submit-consumer-response` command remains compatible. Shared staged/no-replace
 publication retains invalid/incomplete staging as an explicit recovery state;
 a complete validated response missing only its receipt recovers without another
@@ -2744,20 +2851,16 @@ descriptor. An older descriptor remains usable only while all of its pinned
 inputs remain unchanged; issuing a newer descriptor does not revoke it.
 `intake-judgment-job --job <job_path> --job-sha256 <job_sha256>` verifies
 the descriptor and every input, then returns the entire prompt, schema and
-necessary role guidance with byte counts and a final `intake_end` marker. A
-controller forwards the generated `worker_prompt`, which binds both nested
-tool output budgets and emits all content as separate bounded `notify` outputs
-within one tool invocation, with contiguous offsets and no model turn between
-pieces. Accumulated `text` items can share an aggregate truncation limit;
-separate outputs preserve complete delivery without clipping evidence.
-The worker checks truncation
-warnings and metadata at both layers; a marker alone can survive middle
-truncation and does not establish complete intake. Before emitting content, the
-generated delivery compares each parsed section's UTF-8 bytes with the intake
-counts and stops with `INCOMPLETE_INTAKE` on any difference. A
-truncated tool return is incomplete intake; the worker must retrieve the whole
-input before judging. `submit-judgment-job` with the same binding and
-`--response <raw-answer.json>` preserves exact raw bytes, checks the assigned
+necessary role guidance with byte counts and a final `intake_end` marker for
+offline inspection and historical replay. Normal `advance --execute` consumes
+the descriptor directly in code, checks its hashes and writes exact local input
+copies for the maintained provider runner. The model returns one structured
+judgment with no file/command task. Its context never contains prior-job answers.
+Standalone `execute-judgment-job` takes the descriptor/hash, provider root and
+the same explicit model/effort/timeout settings. The runner binds them, enforces
+the audited direct-judgment profile, records attempts, and refuses unknown outcomes or changed
+inputs instead of relaunching. Code invokes `submit-judgment-job` with the same binding and
+`--response <raw-answer.json>`. Submission preserves exact raw bytes, checks the assigned
 batch identity, applies the native phase validator and atomically publishes
 without replacement. Its compact durable receipt identifies the job, accepted
 response hash and validated batch. Identical accepted bytes may be revalidated
@@ -2766,6 +2869,32 @@ Invalid raw answers remain visible at the normal staged-response boundary.
 Publication or cleanup failure remains a blocker, including a crash after the
 final link was created. These operations do not change accepted response
 versions, semantic validation, reconciliation meaning or termination policy.
+
+The direct worker remains a supplied-input, judgment-only role: it must not
+invoke tools, delegate, inspect prior answers or perform file/command work.
+The supported launcher enforces an empty native tool registry using an audited
+model-catalog projection, configuration restrictions and disabled executor
+access. It preserves the selected model's non-tool metadata and disables hooks
+and automatic skill dependencies. Native dispatch rejects attempted tool calls
+before handlers execute. The receipt binds the exact native hash, command,
+configuration attestations and catalog files; saved-result consumers revalidate
+those bindings before accepting a judgment. The event validator remains a
+publication guard against non-judgment events, separate from this preventive
+boundary.
+
+Support is limited to the pinned Windows native binary, built-in OpenAI provider,
+file-backed personal ChatGPT authentication and checked configuration domain.
+Unknown binaries, account plans, executor routes or inherited configuration
+layers fail closed before generation. The boundary trusts the controller and OS,
+including configuration stability between the immediate prelaunch check and
+native loading; it does not claim protection against a hostile host. The
+acceptance domain and offline native regression command are maintained in
+`forseti-harness/README.md`. The regression observes empty callable-tool exposure,
+rejected forged calls and valid structured output, with a working async-handler
+control. Feature flags, startup failures, model self-report and post-event
+rejection alone do not establish tool absence. Native upgrades require a new
+source audit and preventive proof; a successful judgment does not widen the
+supported domain or establish general semantic accuracy.
 
 Stop before judgment when complete input cannot be made visible; an intact
 native log does not establish model-visible delivery. A changed transport still
@@ -3546,7 +3675,7 @@ Current-route operations are the individually callable seams:
     method and exact method hash, so this is explicit method comparison rather
     than fallback. It makes no model call and cannot authorize a corpus run.
     Supported targets are historical methods v5/v6 and the production-owned
-    `SEMANTIC_METHODS_V7_PLUS` set (currently v7-v13). Every target in that set
+    `SEMANTIC_METHODS_V7_PLUS` set (currently v7-v14). Every target in that set
     requires a provenance-bound row-verified compilation for both primary and
     configured cold-repeat evaluation. A new keyed response transport does not
     waive verification; historical v5/v6 replay behavior remains unchanged.

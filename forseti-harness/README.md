@@ -29,9 +29,12 @@ Cleaning, or Judgment behavior.
 ## Unattended Model Attempts
 
 Use the semantic contract's [Consolidation execution](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
-for normal starts and resumes. It owns the complete `advance` command, independent
-worker dispatch, generated `worker_prompt`, intake/submit protocol and failure
-boundaries. Run from `forseti-harness/` as shown there.
+for normal starts and resumes. It owns `advance --execute` with an explicit
+job bound: code delivers each independent judgment directly through the existing
+provider runner, waits, validates and saves it. No worker agent performs file
+delivery or submission. Omit `--execute` for provider-free preparation only.
+The same entry owns selected completed-batch reuse with verification still
+pending. Run from `forseti-harness/` as shown there.
 
 For a commissioned checkpoint with an existing bundle and verified compilation,
 use [Preparation from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
@@ -176,6 +179,19 @@ active; select every required source for the bounded task, and report missing
 context rather than manufacturing an answer. Do not use this mode for a task
 that needs further file discovery or shell execution.
 
+The semantic runner's `--direct-judgment` role additionally disables automatic
+project instruction discovery (`project_doc_max_bytes=0`) because its exact
+required instructions are already supplied. It explicitly requests restrictions
+on shell, delegation, connector, plugin, browser, computer, image and code-mode
+capabilities at launch, including `--disable view_image`; the saved-attempt
+validator checks those settings. Semantic submission permits only the exact
+pre-turn notice that the deliberately disabled code-mode host fails closed.
+Unrecognized settings, other errors, and actual tool use still block submission.
+Default provider launches
+and ordinary `--preload-context` behavior are unchanged. Runtime overhead and
+actual model usage still require native observations, not an inference from
+these settings.
+
 Preloaded text and the original task travel through standard input in the
 attempt's `context-input.json`, keeping document text out of the launch command.
 A short developer instruction explicitly delegates developer-level authority to
@@ -258,7 +274,29 @@ per-batch network probe is required. Permission denials, model/client
 incompatibility, and provider failures retain their real errors in the attempt
 logs. Local version/login checks precede the generation budget, have ten-second
 limits, and make no model call;
-each attempt pays only these local checks and the existing file I/O.
+ordinary attempts pay only these local checks and the existing file I/O.
+
+Supplied-input semantic jobs use `--direct-judgment`, which requires the audited
+Windows Codex 0.156.1 binary hash and file-backed personal ChatGPT authentication.
+The launcher checks the account without refreshing credentials and obtains the
+current native model catalog before generation. It preserves the selected model's
+non-tool metadata while projecting an empty tool registry, disables hooks and
+automatic skill dependencies, and starts without an executor environment.
+Unknown binaries, account plans, executor overrides, or inherited system/project
+configuration fail before generation. User configuration that could redirect the
+account/catalog diagnostics also fails. The saved receipt binds the exact command,
+configuration attestations, native hash, and source/projected catalog; consumers
+revalidate these bindings. This boundary trusts the controller and OS, including
+configuration stability between the immediate prelaunch check and native loading.
+It does not claim isolation from a hostile host. Native upgrades require a new
+source audit and empty-registry proof before acceptance.
+
+The offline native regression uses fake credentials and loopback transport only:
+set `FORSETI_TEST_CODEX_NATIVE` to the audited executable, then run
+`python -m pytest tests/integration/test_codex_empty_registry_native.py -q` from
+`forseti-harness`. It checks a working async-tool positive control, empty advertised
+tools, rejected byte-identical forged calls, and successful structured output using
+the production profile generator. Without that environment variable it skips.
 
 The timeout is one finite, workload-appropriate budget for the entire attempt;
 reconnects and additional client turns do not reset it. Logs go directly to
