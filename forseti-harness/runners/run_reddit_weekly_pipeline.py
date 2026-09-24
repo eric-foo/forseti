@@ -12,8 +12,11 @@ Stages (each resumable; every model call keeps a receipt under the run directory
   attention order, asks the model for judgment fields only, fills fixed fields and
   verbatim quote text from the content record, validates every receipt with the
   weekly finalizer's own check, repairs failing threads once, and logs usage.
-- ``scope``: writes a narrowed finalize directory when the owner stops before the
-  full admitted set.
+- ``scope``: writes the finalize directory for batches 1..N (the full set or an
+  owner stop), excluding threads recorded as unavailable at capture.
+- ``delta`` / ``evidence`` / ``check``: script-only consolidation aids over a
+  finalized catalog (card candidates, card-ready claims and quotes, and a
+  fail-loud check that the weekly read cites only yes threads and verbatim quotes).
 
 Model transport is the Claude Code CLI in headless print mode with structured
 output and no tools. Judgment stays run-scoped; nothing here writes to the lake
@@ -762,6 +765,108 @@ def scope(run_dir: Path, last_batch: int) -> dict:
     return {"finalize_dir": str(out), "threads": len(pending)}
 
 
+# ---------------------------------------------------------------- consolidate
+# Script-only aids for writing the weekly read from a finalized catalog: no model call, no lake write.
+
+PROBLEM_CONTEXTS = {"failure", "alleged_problem", "switching", "substitution", "price", "access"}
+
+
+def _catalog(finalize_dir: Path) -> list[dict]:
+    paths = sorted(finalize_dir.glob("reddit_top100_*_threads.jsonl"))
+    if len(paths) != 1:
+        raise PipelineError(f"expected one finalized catalog in {finalize_dir}, found {len(paths)}")
+    return [json.loads(line) for line in paths[0].read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _reporters(row: dict) -> int:
+    """Best finalizer-derived independent-reporter count over the row's recurrence claims."""
+    return max((c["independent_reporters"]["count"] for c in row.get("evidence_read_receipt", {}).get("claims", [])
+                if c["evidence_kind"] == "recurrence"), default=0)
+
+
+def delta(finalize_dir: Path, previous: Path | None = None) -> str:
+    """Card candidates a catalog adds over an earlier one (all of it without one); old threads by ID only."""
+    rows = _catalog(finalize_dir)
+    old_ids = {r["thread_id"] for r in _catalog(previous)} if previous else set()
+    new_yes = [r for r in rows if r["thread_id"] not in old_ids and r["admission"] == "yes"]
+    out = [json.dumps({"threads": len(rows), "new": sum(r["thread_id"] not in old_ids for r in rows), "new_yes": len(new_yes),
+                       "new_contribution": dict(Counter(r.get("contribution_class") for r in new_yes))})]
+    brands: dict[str, dict[str, list[dict]]] = defaultdict(lambda: {"old": [], "new": []})
+    for r in rows:
+        if r["admission"] != "yes":
+            continue
+        names = {str(b.get("brand", "")).strip().lower() for b in r.get("named_brands") or [] if b.get("context") in PROBLEM_CONTEXTS}
+        for name in names - {""}:
+            brands[name]["old" if r["thread_id"] in old_ids else "new"].append(r)
+    out.append("\n== brands where new threads add >=2 threads or a >=3-reporter thread")
+    for name, hits in sorted(brands.items(), key=lambda kv: (-len(kv[1]["new"]), kv[0])):
+        if len(hits["new"]) >= 2 or any(_reporters(r) >= 3 for r in hits["new"]):
+            out.append(f"-- {name}: new {len(hits['new'])}, old {len(hits['old'])} [{' '.join(r['thread_id'] for r in hits['old'][:8])}]")
+            out += [f"   {r['thread_id']} r/{r['subreddit']} n={_reporters(r)} :: {r['core_problem'][:110]}" for r in hits["new"]]
+    shown = [r for r in new_yes if _reporters(r) >= 2 or r.get("contribution_class") == "material_addition"]
+    out.append(f"\n== new yes threads with n>=2 or material_addition ({len(shown)} of {len(new_yes)})")
+    out += [f"{r['thread_id']} r/{r['subreddit']} n={_reporters(r)} {r.get('contribution_class')} :: {r['core_problem'][:130]}"
+            for r in sorted(shown, key=lambda r: (r["subreddit"].lower(), -_reporters(r)))]
+    return "\n".join(out) + "\n"
+
+
+def evidence(finalize_dir: Path, thread_ids: Sequence[str]) -> str:
+    """Card-ready evidence per thread: claims with reporter handles, verbatim quotes, caveats."""
+    rows = {r["thread_id"]: r for r in _catalog(finalize_dir)}
+    out = []
+    for tid in thread_ids:
+        r = rows.get(tid)
+        if r is None:
+            out.append(f"== {tid}: NOT IN CATALOG")
+            continue
+        listing, completeness = r["listing"], r.get("comment_completeness", {})
+        out.append(f"== {tid} r/{listing['subreddit']} [{r['admission']}] comments={listing['comments']} "
+                   f"captured={completeness.get('comments_captured')} :: {listing['title'][:90]}")
+        out.append(f"  problem: {r['core_problem']}")
+        out.append(f"  go: {r.get('where_customers_go')}")
+        for c in r.get("evidence_read_receipt", {}).get("claims", []):
+            reporters = c["independent_reporters"]
+            if c["evidence_kind"] in {"recurrence", "factual_or_safety", "dispute"} or reporters["count"] >= 2:
+                out.append(f"  claim[{c['evidence_kind']}/{c['corroboration_status']}] n={reporters['count']} "
+                           f"{reporters['handles']}: {c['statement']}")
+        out += [f"  quote {q['comment_id']}: \"{q['text']}\"" for q in r.get("quotes", [])[:2]]
+        caveats = [c for c in r.get("caveats", []) if "surface capture" not in c.lower()][:2]
+        if caveats:
+            out.append(f"  caveats: {caveats}")
+    return "\n".join(out) + "\n"
+
+
+def _normalized(text: str) -> str:
+    return re.sub(r"\s+", " ", text.replace("’", "'").replace("…", "...")).strip()
+
+
+def check(finalize_dir: Path, read_path: Path) -> dict:
+    """Fail unless every cited thread is a yes row and every card quote is verbatim source text."""
+    rows = {r["thread_id"]: r for r in _catalog(finalize_dir)}
+    text = read_path.read_text(encoding="utf-8")
+    id_lengths = {len(t) for t in rows}
+    cited = sorted({t for t in re.findall(r"`([a-z0-9]+)`", text)
+                    if t in rows or (len(t) in id_lengths and any(ch.isdigit() for ch in t))})
+    problems = [f"cited thread {t} is not in the catalog" for t in cited if t not in rows]
+    problems += [f"cited thread {t} is admission={rows[t]['admission']}, not yes"
+                 for t in cited if t in rows and rows[t]["admission"] != "yes"]
+    corpus = []
+    for r in rows.values():
+        corpus += [_normalized(q["text"]) for q in r.get("quotes", [])]
+        record = Path(r.get("content_record") or "")
+        if record.is_file():
+            corpus += [_normalized(c.get("body_text") or "") for c in _read_json(record).get("comments", [])]
+    quotes = [q for line in text.splitlines() if "**Quotes:**" in line
+              for q in re.findall(r"\"(.+?)\"(?: ·|$)", line.split("**Quotes:**", 1)[1])]
+    problems += [f"quote is not verbatim source text: {q[:80]}" for q in quotes
+                 if not any(_normalized(q).rstrip(".").rstrip("…") in c for c in corpus)]
+    if problems:
+        raise PipelineError("weekly read check failed: " + "; ".join(problems))
+    yes = [r for r in rows.values() if r["admission"] == "yes"]
+    return {"cited_threads": len(cited), "quotes": len(quotes), "yes": len(yes), "no": len(rows) - len(yes),
+            "contribution": dict(Counter(r.get("contribution_class") for r in yes))}
+
+
 # ---------------------------------------------------------------- CLI
 
 
@@ -796,6 +901,15 @@ def _parser() -> argparse.ArgumentParser:
     s = sub.add_parser("scope")
     s.add_argument("--run-dir", type=Path, required=True)
     s.add_argument("--last-batch", type=int, required=True)
+    d = sub.add_parser("delta", help="Print card candidates from a finalized catalog (script only).")
+    d.add_argument("--finalize-dir", type=Path, required=True)
+    d.add_argument("--previous", type=Path, help="An earlier finalize dir of the same run; its threads are cited by ID only.")
+    e = sub.add_parser("evidence", help="Print card-ready claims, reporter handles and quotes for thread IDs.")
+    e.add_argument("--finalize-dir", type=Path, required=True)
+    e.add_argument("thread_ids", nargs="+")
+    k = sub.add_parser("check", help="Fail unless the weekly read cites only yes threads and verbatim quotes.")
+    k.add_argument("--finalize-dir", type=Path, required=True)
+    k.add_argument("--read", type=Path, required=True)
     return parser
 
 
@@ -804,6 +918,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     with exit_on_failure(parser, runner_name="reddit weekly pipeline",
                          expected=(PipelineError, OSError, ValueError, json.JSONDecodeError)):
+        if args.command in {"delta", "evidence"}:
+            sys.stdout.reconfigure(encoding="utf-8")
+            print(delta(args.finalize_dir, args.previous) if args.command == "delta"
+                  else evidence(args.finalize_dir, args.thread_ids), end="")
+            return 0
+        if args.command == "check":
+            print(json.dumps(check(args.finalize_dir, args.read), indent=2))
+            return 0
         run_dir = args.run_dir.resolve()
         run_dir.mkdir(parents=True, exist_ok=True)
         if args.command in {"adjudicate", "read"}:

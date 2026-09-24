@@ -212,7 +212,9 @@ without a retry, and `scope` excludes it with its evidence under
 attention order, takes judgment fields only from one structured model call per
 batch, fills fixed fields and verbatim quote text from the content record,
 validates every receipt with the finalizer's own check, repairs failing threads
-once), and `scope` (a narrowed finalize directory when the owner stops early).
+once), and `scope` (the finalize directory for batches 1..N, whether that is the
+full set or an owner stop). E.2 gives the full operator sequence and the
+consolidation step.
 Model calls use the Claude Code CLI in headless print mode with no tools; every
 call keeps a receipt under the run directory, so each stage resumes, and token
 usage is logged to `model_usage_log.jsonl`. This replaced an agent-supervised
@@ -351,6 +353,87 @@ its evidence floors, two-family material-exhaustion test, final semantic
 adjudication, delegated seal review, or authority to close/reopen Phase A.
 Weekly counts are captured-sample observations, never customer-population
 prevalence.
+
+### E.2 Weekly run and weekly read (operator sequence)
+
+The standing weekly run, as executed for the 2026-09-23 week. `<run>` is a run
+directory. The default is `%LOCALAPPDATA%\Forseti\reddit_weekly\<as-of date>\`.
+`C:\tmp` survived that week but is not a durable home. `<as-of>` is the listing
+week's closing date. Each stage resumes from its own receipts, so re-running a
+stage after a stop is safe.
+
+1. **Browser.** The operator's real Chrome serves CDP on a dedicated profile,
+   for example `chrome.exe --remote-debugging-address=127.0.0.1
+   --remote-debugging-port=9223 --user-data-dir=<profile> --no-first-run`. The
+   operator clears any Reddit challenge; the agent stops and pings.
+2. **Listing grid.** Run `run_reddit_grid_capture.py --roster --listing top
+   --time-window week --transport www_realchrome --cdp-endpoint
+   http://127.0.0.1:9223 --cadence-basis cycle --retention-mode content
+   --data-root F:\forseti-data-lake --output-root <run>\grid
+   --decision-question "<week> weekly latent-problem GTM discovery: ..."`.
+   Cadence follows `capture_spine/reddit_capture_cadence.py` unless the owner
+   sets a per-run override.
+3. **Reader queue.** Run `run_reddit_weekly_demand_read.py --data-root
+   F:\forseti-data-lake --as-of <as-of> --output <run>\weekly_reader_v1.json`.
+4. **Model and capture stages**, all via `run_reddit_weekly_pipeline.py`:
+   - `adjudicate --run-dir <run> --reader-json <run>\weekly_reader_v1.json`.
+   - `capture --run-dir <run> --cdp-endpoint http://127.0.0.1:9223 --data-root
+     F:\forseti-data-lake`. This is long-running; run it in the background.
+   - `read --run-dir <run>`, which may run repeatedly while capture continues.
+     It reads every captured batch that has no extracts yet.
+   - `scope --run-dir <run> --last-batch <N>`. `N` is the last batch number, or
+     the owner's stop. Always scope, because it also excludes threads recorded as
+     unavailable.
+5. **Finalize.** Run `run_reddit_weekly_finalizer.py --deep-dive-dir
+   <run>\finalize-<M> --as-of <as-of>`.
+6. **Consolidate** into `<run>\finalize-<M>\weekly_read_<as-of>.md`:
+   - `delta --finalize-dir <run>\finalize-<M>` lists card candidates. When
+     extending an earlier read of the same run, pass `--previous
+     <earlier finalize dir>`; earlier threads then appear by ID only.
+   - `evidence --finalize-dir <run>\finalize-<M> <thread ids>` prints claims,
+     reporter handles and quotes for each candidate card.
+   - Write or extend the read. When extending, edit the earlier read in place;
+     do not retype unchanged cards.
+   - `check --finalize-dir <run>\finalize-<M> --read <weekly read>` must pass
+     before the read is delivered.
+
+All three consolidation commands are scripts only. They make no model call and
+write nothing to the lake.
+
+**Weekly read shape.** Evidence synthesis follows
+`forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md`.
+The read contains the following sections, in order:
+
+- scope and coverage;
+- how to read the counts;
+- **wound cards**, one named brand losing customers now;
+- a short "also strong" list of single-thread items;
+- **opportunity cards**, one unserved gap each;
+- the E.1 materiality handoff;
+- caveats;
+- cost.
+
+A wound card carries these fields:
+
+- **Problem:** one bounded proposition.
+- **Within-thread reporters:** the finalizer-derived distinct non-OP handles, capped at 5 ("sufficient").
+- **Cross-thread:** the independent threads, with their subreddits. Same-OP threads are not independent.
+- **Quotes:** two verbatim quotes.
+- **Where they go.**
+- **Why the brand would pay:** optional.
+- **Caveats.**
+
+An opportunity card carries these fields:
+
+- **Gap.**
+- **Reporters:** per thread.
+- **Cross-thread:** including venue concentration.
+- **Who's positioned.**
+- **Conflict:** `mixed` whenever opposing reports exist.
+
+Counts are observations from the captured sample, never prevalence. A card
+shares a proposition across threads only when each thread supports it on its
+own; a shared brand or axis is not enough.
 
 ### F. Roster discovery sweep (SERP), and its pacing contract
 
