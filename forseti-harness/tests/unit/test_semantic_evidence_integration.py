@@ -2621,13 +2621,13 @@ def test_current_reconciliation_schema_is_persisted_at_public_prepare(tmp_path: 
     verification, _ = prepare_row_verification(bundle, raw)
     verified = apply_row_verification(bundle, raw, verification, _row_verification_responses(verification))
     stage, prompts = prepare_reconciliation_stage(bundle, verified,
-        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
     bp, cp = tmp_path / "bundle.json", tmp_path / "compiled.json"
     bp.write_text(json.dumps(bundle), encoding="utf-8")
     cp.write_text(json.dumps(verified), encoding="utf-8")
     prepared = prepare_reconciliation_level(bundle_path=bp, compilation_path=cp,
         stage_out=tmp_path / "stage.json", prompt_dir=tmp_path / "prompts")
-    assert prepared["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4
+    assert prepared["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
     assert json.loads((tmp_path / "stage.json").read_text()) == stage
     for prompt in prompts:
         assert prompt["prompt"].count(semantic_module.CLAIM_FORMATION_GUIDANCE) == 1
@@ -3002,7 +3002,9 @@ def test_reconciliation_diagnostic_keeps_valid_response_clean_and_public_output_
         )
 
 
-def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4():
+@pytest.mark.parametrize("via_cli", [False, True])
+def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4(tmp_path, capsys, via_cli):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level, main
     source = _source_v10(count=2)
     source["semantic_method_version"] = semantic_module.METHOD_VERSION_V13
     bundle = build_bundle(source, max_prompt_bytes=30_000)
@@ -3027,6 +3029,24 @@ def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4()
         authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
     new = semantic_module.prepare_reconciliation_prompts(bundle, stage,
         authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    for name, value in (("bundle", bundle), ("nodes", nodes), ("stage", stage)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    # Exercise the public default with a real convergence input, including the
+    # existing-stage route; metadata alone cannot satisfy this assertion.
+    if via_cli:
+        assert main(["prepare-reconciliation-level", "--bundle", str(tmp_path / "bundle.json"),
+            "--compilation", str(tmp_path / "nodes.json"), "--existing-stage", str(tmp_path / "stage.json"),
+            "--stage-out", str(tmp_path / "out.json"), "--prompt-dir", str(tmp_path / "prompts")]) == 0
+        result = json.loads(capsys.readouterr().out)
+    else:
+        result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+            compilation_path=tmp_path / "nodes.json", stage_out=tmp_path / "out.json",
+            prompt_dir=tmp_path / "prompts")
+    assert result["authoring_revision"] == "exact_identity_namespaces_v5"
+    assert json.loads((tmp_path / "out.json").read_text()) == stage
+    for record in new:
+        assert (tmp_path / "prompts" / f"{record['batch_id']}.md").read_bytes() == (record["prompt"] + "\n").encode()
+        assert record["prompt_utf8_bytes"] <= bundle["max_prompt_bytes"]
     assert "CONVERGENCE_SOURCE_ROWS" not in old[0]["prompt"]
     assert new[0]["response_schema"] == old[0]["response_schema"]
     rows = json.loads(new[0]["prompt"].split("CONVERGENCE_SOURCE_ROWS\n")[1].split("\n", 1)[1])
@@ -3044,10 +3064,12 @@ def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4()
 
 
 @pytest.mark.parametrize("revision", [
+    None,
+    semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4,
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
     semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V6,
 ])
-def test_advance_authoring_is_opt_in_and_immutable_on_resume(tmp_path, revision):
+def test_advance_authoring_is_pinned_and_immutable_on_resume(tmp_path, revision):
     from runners.run_semantic_evidence_integration import advance_semantic_run
     source, replay, _ = _advance_replay_fixture(tmp_path)
     run = tmp_path / "run"
@@ -3059,10 +3081,84 @@ def test_advance_authoring_is_opt_in_and_immutable_on_resume(tmp_path, revision)
     assert result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
     prompt = Path(result["judgment_requests"][0]["prompt_path"])
     frozen = prompt.read_bytes()
-    assert revision.encode() in frozen
+    effective = revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+    assert effective.encode() in frozen
+    assert json.loads((run / "start.json").read_text())["reconciliation_authoring_revision"] == effective
     assert advance_semantic_run(**kwargs, reconciliation_authoring_revision=revision)["judgment_requests"] == result["judgment_requests"]
-    assert advance_semantic_run(**kwargs)["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert advance_semantic_run(**kwargs)["judgment_requests"] == result["judgment_requests"]
+    before = {p.relative_to(run): p.read_bytes() for p in run.rglob("*") if p.is_file()}
+    conflict = (semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4
+                if effective != semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4
+                else semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+    blocked = advance_semantic_run(**kwargs, reconciliation_authoring_revision=conflict)
+    assert blocked["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert "conflicts with pinned run revision" in blocked["error"]
+    assert {p.relative_to(run): p.read_bytes() for p in run.rglob("*") if p.is_file()} == before
     assert prompt.read_bytes() == frozen
+
+
+@pytest.mark.parametrize("revision", [None, "exact_identity_namespaces_v5", "exact_identity_namespaces_v6"])
+def test_advance_unmarked_historical_start_retains_explicit_resume_behavior(tmp_path, revision):
+    from runners.run_semantic_evidence_integration import advance_semantic_run
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run = tmp_path / "run"
+    for phase in ("extraction", "verification", "reconciliation/level-0001"):
+        _publish_advance_replay(run, phase, replay[phase])
+    # Historical start shape, independently of the new default-selection code.
+    start = run / "start.json"
+    start.write_text(json.dumps({"mode": "extraction", "source_sha256": json.loads(source.read_text())["source_sha256"]}), encoding="utf-8")
+    kwargs = dict(source_path=source, run_dir=run, max_prompt_bytes=30_000,
+                  max_evidence_per_work_unit=2, reconciliation_authoring_revision=revision)
+    result = advance_semantic_run(**kwargs)
+    assert result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
+    prompt = Path(result["judgment_requests"][0]["prompt_path"]).read_text(encoding="utf-8")
+    assert ("CONVERGENCE_SOURCE_ROWS" in prompt) == (revision is not None)
+    assert (revision or "exact_identity_namespaces_v4") in prompt
+    before = {p.relative_to(run): p.read_bytes() for p in run.rglob("*") if p.is_file()}
+    assert advance_semantic_run(**kwargs)["judgment_requests"] == result["judgment_requests"]
+    if revision is not None:
+        assert advance_semantic_run(**{**kwargs, "reconciliation_authoring_revision": None})["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert {p.relative_to(run): p.read_bytes() for p in run.rglob("*") if p.is_file()} == before
+    assert "reconciliation_authoring_revision" not in json.loads(start.read_text())
+
+
+@pytest.mark.parametrize("pin", [None, [], "future-revision"])
+def test_advance_invalid_authoring_pin_fails_before_mutation(tmp_path, pin):
+    from runners.run_semantic_evidence_integration import advance_semantic_run
+    run = tmp_path / "run"
+    run.mkdir()
+    start = run / "start.json"
+    start.write_text(json.dumps({"reconciliation_authoring_revision": pin}), encoding="utf-8")
+    before = start.read_bytes()
+    result = advance_semantic_run(source_path=tmp_path / "nonexistent.json", run_dir=run)
+    assert result["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+    assert result["error"] == "unsupported pinned reconciliation authoring revision"
+    assert start.read_bytes() == before and list(run.iterdir()) == [start]
+
+
+@pytest.mark.parametrize("via_cli", [False, True])
+def test_new_advance_default_delivers_source_rows_to_convergence_job(tmp_path, capsys, via_cli):
+    from runners.run_semantic_evidence_integration import advance_semantic_run, main
+    source, replay, _ = _advance_replay_fixture(tmp_path)
+    run = tmp_path / "run"
+    for phase in ("extraction", "verification", "reconciliation/level-0001"):
+        _publish_advance_replay(run, phase, replay[phase])
+    if via_cli:
+        assert main(["advance", "--source", str(source), "--run-dir", str(run),
+                     "--max-prompt-bytes", "30000", "--max-evidence-per-work-unit", "2"]) == 0
+        result = json.loads(capsys.readouterr().out)
+    else:
+        result = advance_semantic_run(source_path=source, run_dir=run,
+            max_prompt_bytes=30_000, max_evidence_per_work_unit=2)
+    assert result["status"] == "SEMANTIC_JUDGMENT_REQUIRED"
+    for request in result["judgment_requests"]:
+        job = json.loads(Path(request["job_path"]).read_text())
+        prompt = Path(job["inputs"]["prompt"]["path"]).read_text(encoding="utf-8")
+        assert "CONVERGENCE_SOURCE_ROWS" in prompt
+        assert "source rows, not independent people" in prompt
+        rows = json.loads(prompt.split("CONVERGENCE_SOURCE_ROWS\n")[1].split("\n", 1)[1])
+        assert len({alias for relations in rows.values() for alias in relations["support"]}) == 4
+        assert len(prompt.rstrip("\n").encode("utf-8")) <= 30_000
 
 
 def test_reconciliation_diagnostic_covers_convergence_repeated_support_failure():
@@ -3207,12 +3303,12 @@ def test_public_normal_authoring_default_and_legacy_replay_are_separate(tmp_path
             compilation_path=tmp_path/"compiled.json", existing_stage_path=tmp_path/"stage.json",
             stage_out=directory/"stage.json", prompt_dir=directory/"prompts", authoring_revision=revision)
         expected = semantic_module.prepare_reconciliation_prompts(bundle, stage,
-            authoring_revision=revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+            authoring_revision=revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
         assert json.loads((directory/"stage.json").read_text()) == stage
         for row in expected:
             assert (directory/"prompts"/f"{row['batch_id']}.md").read_bytes() == (row["prompt"] + "\n").encode()
             assert json.loads((directory/"prompts"/f"{row['batch_id']}.schema.json").read_text()) == row["response_schema"]
-        assert result["authoring_revision"] == (revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+        assert result["authoring_revision"] == (revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
     assert semantic_module.prepare_reconciliation_prompts(bundle, stage,
         authoring_revision=semantic_module.RECONCILIATION_AUTHORING_LEGACY) == legacy
     new_stage, new_prompts = prepare_reconciliation_stage(bundle, compiled,
@@ -7672,21 +7768,32 @@ def test_finite_completion_replays_real_consumer_and_rejects_false_completion(re
             finalize_v3_view(bundle, verified, bad)
 
 
-def _finite_row_identity_fixture(*, revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5):
+def _finite_row_identity_fixture(*, revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5,
+                                 normal=False):
     source = _source_v7(count=3)
+    if normal:
+        source["semantic_method_version"] = semantic_module.METHOD_VERSION_V13
     for row in source["captured_items"]:
         row["independence_key"] = "reddit:one-actor"
     bundle = build_bundle(source, max_prompt_bytes=80_000)
     responses = _v5_responses(bundle, detailed_per_batch=3)
     first = responses[0]["evidence"][0]["semantic_units"]
     first.append({**deepcopy(first[0]), "semantic_unit_key": "second-claim"})
+    if normal:
+        keyed = _keyed_responses(bundle)
+        for target, legacy in zip(keyed, responses):
+            target["decisions_by_evidence_id"] = {row["evidence_id"]:
+                {k: v for k, v in row.items() if k != "evidence_id"}
+                for row in legacy["evidence"]}
+        responses = keyed
     compiled = validate_batch_responses(bundle, responses)
     verification, _ = prepare_row_verification(bundle, compiled)
     verified = apply_row_verification(bundle, compiled, verification,
         _row_verification_responses(verification))
     formation, _ = prepare_reconciliation_stage(bundle, verified,
         reconciliation_policy_version=RECONCILIATION_POLICY_VERSION_V2,
-        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY, authoring_revision=revision)
+        completion_strategy=None if normal else semantic_module.FINITE_COMPLETION_STRATEGY,
+        authoring_revision=revision)
     return bundle, verified, formation
 
 
@@ -7716,8 +7823,9 @@ def _finite_decision_response(stage, groups, *, terminal):
 
 
 @pytest.mark.parametrize("parent_relation", ["support", "counter"])
-def test_finite_source_rows_compose_relations_without_inventing_people(parent_relation):
-    bundle, verified, formation = _finite_row_identity_fixture()
+@pytest.mark.parametrize("normal", [False, True])
+def test_source_rows_compose_relations_without_inventing_people(parent_relation, normal):
+    bundle, verified, formation = _finite_row_identity_fixture(normal=normal)
     by_row = {}
     for candidate in formation["candidates"]:
         ref = candidate["candidate_ref"]
@@ -7728,10 +7836,17 @@ def test_finite_source_rows_compose_relations_without_inventing_people(parent_re
         [(by_row[row0][1], "support")], [(by_row[row2][0], "support")],
     ], terminal=False)
     formed = validate_reconciliation_stage(bundle, formation, [formation_response])
-    finish, prompts = prepare_reconciliation_stage(bundle, formed,
-        completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
-        packing_strategy="group_aware_v1")
-    assert finish["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
+    if normal:
+        intermediate, _ = prepare_reconciliation_stage(bundle, formed)
+        formed = validate_reconciliation_stage(bundle, intermediate, _singleton_reconciliation_responses(intermediate))
+        finish, prompts = prepare_reconciliation_stage(bundle, formed,
+            authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5)
+        assert finish["reconciliation_mode"] == "convergence"
+    else:
+        finish, prompts = prepare_reconciliation_stage(bundle, formed,
+            completion_strategy=semantic_module.FINITE_COMPLETION_STRATEGY,
+            packing_strategy="group_aware_v1")
+        assert finish["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5
     aliases = json.loads(prompts[0]["prompt"].split("CONVERGENCE_SOURCE_ROWS\n")[1].split("\n", 1)[1])
     mixed = next(c for c in finish["candidates"] if len(c["leaf_relations"]) == 2)
     other = [c for c in finish["candidates"] if len(c["leaf_relations"]) == 1]
@@ -7762,7 +7877,7 @@ def test_finite_source_rows_compose_relations_without_inventing_people(parent_re
     assert proposition["claim_support"]["support_posture"] == "isolated"
     packet = project_evidence_packet_v1(view, bundle, verified, completed,
         proposition_ids=[proposition["proposition_id"]])
-    assert packet["source_bindings"]["completion_strategy"] == semantic_module.FINITE_COMPLETION_STRATEGY
+    assert packet["source_bindings"].get("completion_strategy") == (None if normal else semantic_module.FINITE_COMPLETION_STRATEGY)
     represented = {leaf["semantic_unit_ref"] for node in completed["semantic_nodes"] for leaf in node["leaf_relations"]}
     residual = {row["semantic_unit_ref"] for row in completed["unmerged_semantic_units"]}
     assert represented | residual == {row["semantic_unit_ref"] for row in verified["semantic_units"]}

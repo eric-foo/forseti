@@ -1770,7 +1770,7 @@ def advance_semantic_run(
     max_batch_chars: int = 80_000, max_prompt_bytes: int | None = None,
     max_evidence_per_work_unit: int = 120,
     reconciliation_packing: str = "input_order",
-    reconciliation_authoring_revision: str = RECONCILIATION_AUTHORING_IDENTITY_V4,
+    reconciliation_authoring_revision: str | None = None,
     answer_commission_path: Path | None = None,
     answer_capacity_path: Path | None = None,
     extracted_selection_path: Path | None = None,
@@ -1918,6 +1918,27 @@ def advance_semantic_run(
         return False
 
     try:
+        # New runs pin authoring at their existing immutable restart boundary.
+        # Unmarked starts predate that pin: omission must still mean historical
+        # v4, while an old explicit v5/v6 run keeps its explicit resume choice.
+        start_path = run_dir / "start.json"
+        saved_start = _load_object(start_path) if start_path.exists() else None
+        pinned_revision = (saved_start.get("reconciliation_authoring_revision")
+                           if saved_start is not None else None)
+        allowed_revisions = {RECONCILIATION_AUTHORING_IDENTITY_V4,
+                             RECONCILIATION_AUTHORING_IDENTITY_V5,
+                             RECONCILIATION_AUTHORING_IDENTITY_V6}
+        if saved_start is not None and "reconciliation_authoring_revision" in saved_start:
+            if not isinstance(pinned_revision, str) or pinned_revision not in allowed_revisions:
+                raise ValueError("unsupported pinned reconciliation authoring revision")
+            if reconciliation_authoring_revision is not None and reconciliation_authoring_revision != pinned_revision:
+                raise ValueError("explicit reconciliation authoring revision conflicts with pinned run revision")
+        reconciliation_authoring_revision = (
+            pinned_revision or reconciliation_authoring_revision
+            or (RECONCILIATION_AUTHORING_IDENTITY_V4 if saved_start is not None
+                else RECONCILIATION_AUTHORING_IDENTITY_V5))
+        if reconciliation_authoring_revision not in allowed_revisions:
+            raise ValueError("unsupported reconciliation authoring revision")
         source = _load_object(source_path)
         if source.get("schema_version") != SOURCE_VERSION_V3 or "source_sha256" not in source:
             raise ValueError("advance requires Collection's hash-bound materialized v3 source")
@@ -1945,7 +1966,9 @@ def advance_semantic_run(
             bundle = build_bundle(source, max_batch_chars=max_batch_chars,
                 max_prompt_bytes=max_prompt_bytes, max_evidence_per_work_unit=max_evidence_per_work_unit)
             start = {"mode": "extraction", "source_sha256": source["source_sha256"]}
-        retain("start", run_dir / "start.json", start, "bind-start")
+        if saved_start is None or "reconciliation_authoring_revision" in saved_start:
+            start["reconciliation_authoring_revision"] = reconciliation_authoring_revision
+        retain("start", start_path, start, "bind-start")
         if bundle.get("method_version") not in SEMANTIC_METHODS_V7_PLUS:
             raise ValueError("advance requires a row-verified semantic method (v7 or later)")
         state.update(bundle_sha256=bundle["bundle_sha256"], corpus_sha256=bundle["corpus_sha256"])
@@ -2391,7 +2414,7 @@ def prepare_reconciliation_level(
     compilation = _load_object(compilation_path)
     if authoring_revision is None and completion_strategy is None:
         authoring_revision = (
-            RECONCILIATION_AUTHORING_IDENTITY_V4
+            RECONCILIATION_AUTHORING_IDENTITY_V5
             if response_version == RECONCILIATION_RESPONSE_VERSION_V3
             or (bundle.get("method_version") in {METHOD_VERSION_V12, METHOD_VERSION_V13, METHOD_VERSION_V14}
                 and response_version != RECONCILIATION_RESPONSE_VERSION_V2)
@@ -3652,8 +3675,8 @@ def _parser() -> argparse.ArgumentParser:
         default="input_order", help="Experimental preparation only; keep the same option on every resume.")
     advance.add_argument("--reconciliation-authoring-revision",
         choices=[RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6],
-        default=RECONCILIATION_AUTHORING_IDENTITY_V4,
-        help="Opt-in v5 adds source-row aliases; v6 clarifies uncertainty and completion. Keep the same revision on resume.")
+        default=None,
+        help="New runs pin v5 source-row aliases. Resume uses the pin; unmarked historical runs default to v4 and require their old explicit opt-in revision. V6 remains opt-in.")
 
     selected_extraction = sub.add_parser("select-extracted-batches", help="Reuse explicit complete saved batches; never claim verification.")
     selected_extraction.add_argument("--source", type=Path, required=True)
@@ -3893,7 +3916,7 @@ def _parser() -> argparse.ArgumentParser:
             RECONCILIATION_AUTHORING_IDENTITY_V6,
             RECONCILIATION_AUTHORING_FINITE_V1,
         ],
-        help="Normal requests only: defaults to exact identity namespaces for method-v12 response-v3; legacy reproduces historical requests.")
+        help="Normal response-v3 requests default to v5 source-row aliases for current methods; select an explicit older revision for historical replay.")
     reconcile_level.add_argument(
         "--reconciliation-policy",
         choices=[RECONCILIATION_POLICY_VERSION_V2],

@@ -73,6 +73,58 @@ def obj(fields):
 
 TEXT = {"type": "string"}
 
+CITATION_CONTRACT = "source_context_citations_v1"
+SOURCE_CITATION_INSTRUCTIONS = """
+The citation contract separates required accounting from allowed citations.
+Account for every unit_ids entry in findings or unused, even when citing context.
+Also allowed in findings are the exact keys of each source group's citation_inventory.
+These identify source bodies or attached context at source_path in source_row.
+Never cite raw URLs, locators, native proposition IDs, or other undeclared aliases.
+Assess EVERY original row's body AND attached context for these questions. Upstream
+no-claim dispositions are extraction facts, not downstream irrelevance judgments.
+A context-only finding is legitimate; do not attach an unrelated semantic unit to
+make it admissible. Account separately for required units with their actual roles.
+For a no-unit row, source:ROW is the required body-accounting marker; a reasoned
+unused body may coexist with a useful separately cited attached-context finding.
+"""
+CITATION_INSTRUCTIONS = """Context has its own speaker and source role: unavailable means unknown, never the
+enclosing leaf author. Retailer/owned copy establishes claims, not customer use.
+Equal observation IDs identify shared evidence, not multiple observations or people.
+Semantic units and their body citation refer to the same preserved source body;
+they do not establish extra observations. Preserve opposition, intent versus action,
+conditions and causal limits. Reopen exact checked handles when needed.
+"""
+
+
+def group_refs(group):
+    return set(group["unit_ids"]) | set(group.get("citation_inventory", {}))
+
+
+def citation_inventory(groups):
+    """Resolve each observation to all of its exact original source locations."""
+    inventory = {}
+    for group in groups:
+        for ref, metadata in group.get("citation_inventory", {}).items():
+            value = {k: v for k, v in metadata.items() if k != "source_path"}
+            location = {"evidence_id": group["source_row"]["evidence_id"],
+                        "source_path": metadata["source_path"]}
+            if ref in inventory and value != {k: v for k, v in inventory[ref].items() if k != "locations"}:
+                raise ValueError("consumer shared observation identity differs")
+            inventory.setdefault(ref, {**value, "locations": []})["locations"].append(location)
+    return inventory
+
+
+def consumer_citation_contract(root):
+    """Existing immutable requests pin the boundary; no migration or sidecar."""
+    versions = set()
+    for path in sorted((root / "requests").glob("*/request.json")):
+        request = read(path)
+        validate_request(request, path.parent.name)
+        versions.add(request["payload"].get("citation_contract"))
+    if len(versions) > 1 or versions - {None, CITATION_CONTRACT}:
+        raise ValueError("consumer citation contract differs across saved requests")
+    return next(iter(versions)) if versions else CITATION_CONTRACT
+
 
 def strings(choices=None):
     # Provider structured-output schemas reject uniqueItems and cap enum size.
@@ -173,7 +225,11 @@ def validate_response(request, response, count):
         unused = [r["unit_ref"] for r in response["unused"]]
         if set(used).intersection(unused):
             raise ValueError("consumer unit cannot be used and unused")
-        exact(sorted(set(used)) + unused, payload["unit_ids"], "consumer unit coverage")
+        required = set(payload["unit_ids"])
+        permitted = required | set(citation_inventory(payload.get("source_groups", []))) if payload.get("citation_contract") else required
+        if set(used) - permitted:
+            raise ValueError("consumer foreign citation coverage")
+        exact(sorted(set(used) & required) + unused, payload["unit_ids"], "consumer unit coverage")
     else:
         exact([a["question_id"] for a in response["answers"]],
               [q["id"] for q in payload["commission"]["questions"]], "consumer question coverage")
@@ -247,6 +303,8 @@ def build_request(phase, payload, capacity, context, count):
     method = bounded_phase_instructions(phase, payload) if payload.get("bounded_method") or payload.get("bounded_stage") else METHOD
     if payload.get("experimental_method") == PROVISIONAL_METHOD:
         method = PROVISIONAL_INSTRUCTIONS
+    if payload.get("citation_contract") == CITATION_CONTRACT:
+        method += (SOURCE_CITATION_INSTRUCTIONS if phase in {"source_review", "reopen"} else "\n") + CITATION_INSTRUCTIONS
     prompt = context + "\n" + method + "\nPHASE: " + phase + repair_guidance + "\n" + render_evidence(json.loads(compact(actor_payload)))
     measured = count(compact({"prompt": prompt, "response_schema": schema}))
     total = measured + capacity["output_reserve_tokens"] + capacity["other_overhead_reserve_tokens"]
@@ -378,6 +436,10 @@ def evidence_identity(payload):
     identities = {r["handle"]: {"kind": kind, "source_roles": [], "origin_ids": [], "independence_postures": []}
         for kind, rows in payload["checked_findings_and_unused"].items() for r in rows}
     findings = payload["checked_findings_and_unused"]["findings"]
+    for finding in findings:
+        if "source_observations" in finding:
+            identities[finding["handle"]]["source_observations"] = finding["source_observations"]
+            identities[finding["handle"]]["observation_kinds"] = finding["observation_kinds"]
     for group in payload["source_origin_attribution"]:
         for origin in group["origins"]:
             indices = set(sum((origin[key] for key in (
@@ -537,7 +599,7 @@ def bounded_review_requests(phase, payload, capacity, context, count, root):
                 child = checked_batch_payload(payload, subset) if key == "records" else with_evidence_identity({
                     **payload, key: subset, "bounded_method": BOUNDED_METHOD})
                 if key == "source_groups":
-                    local_refs = {ref for g in subset for ref in g["unit_ids"]}
+                    local_refs = {ref for g in subset for ref in group_refs(g)}
                     child["reopened_handle_membership"] = {h: [ref for ref in refs if ref in local_refs]
                         for h, refs in payload["reopened_handle_membership"].items() if local_refs.intersection(refs)}
                 children.extend(bounded_review_requests(phase, child, capacity, context, count, root))
@@ -601,7 +663,7 @@ def advance_bounded(payload, checks, capacity, context, count, root, groups, mem
             effective.append((request, assessment))
             continue
         selected = {ref for handle in assessment["reopen_refs"] for ref in membership[handle]}
-        reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
+        reopened = [g for g in groups if selected.intersection(group_refs(g))]
         # Originals accompany independent checks directly, without aggregation of
         # reopened responses and without another extraction/consolidation pass.
         reopened_payload = {**request["payload"], "source_groups": reopened,
@@ -684,13 +746,15 @@ def advance_bounded(payload, checks, capacity, context, count, root, groups, mem
             "reused_nonclaim_rows": len(inactive), "mode": "complete_bound_inventory_not_sample",
             "final_stage_mode": "bounded_question_folds_and_exact_answer_batch_reviews",
             "checked_batches": len(batches), "membership_sha256": payload["membership_sha256"]}}
+    if payload.get("citation_contract"):
+        result.update(citation_contract=CITATION_CONTRACT, citation_inventory=citation_inventory(groups))
     target = root / "results" / (digest(result) + ".json")
     retain(target, result)
     return {"status": status, "phase": "consumer", "answer_path": str(target),
             "answer_sha256": digest(result), "judgment_requests": [], "model_api_calls": 0}
 
 
-def source_groups(source, verified, view):
+def source_groups(source, verified, view, *, citation_contract=None):
     """Lossless row atoms: all verified meanings, all relations, all residuals."""
     rows = source["captured_items"]
     exact([r["evidence_id"] for r in rows], list({r["evidence_id"]: None for r in rows}), "source identity")
@@ -736,6 +800,24 @@ def source_groups(source, verified, view):
             "container": containers.get(row.get("container_id")),
             "native_findings": related[row_id], "dispositions": dispositions[row_id],
             "residuals": [residuals[i] for i in ids if i in residuals]})
+        if citation_contract:
+            inventory = {}
+            observations = [(["text"], row, "source_body")] if row.get("text") else []
+            for field in ("parent_context", "product_context"):
+                observations.extend(([field, index], item, item.get("context_type", "parent_text"))
+                                    for index, item in enumerate(row.get(field, [])))
+            for path, observation, kind in observations:
+                artifact = observation.get("source_artifact_id", row["source_artifact_id"])
+                locator = observation.get("source_ref", row_id if path == ["text"] else None)
+                identity = {"source_artifact_id": artifact, "source_ref": locator,
+                            "text": observation["text"], "kind": kind}
+                ref = "observation:" + digest(identity)
+                inventory[ref] = {"source_path": path, "kind": kind,
+                    "source_artifact_id": artifact, "source_ref": locator,
+                    "source_role": observation.get("source_role", "unavailable"),
+                    "independence_key": observation.get("independence_key") or observation.get("public_identity_key") or "unknown",
+                    "independence_posture": observation.get("independence_posture", "unavailable")}
+            result[-1].update(citation_contract=citation_contract, citation_inventory=inventory)
     return result
 
 
@@ -746,6 +828,7 @@ def prepare_source_requests(groups, commission, capacity, context, count, *, pha
     def build(items):
         request = build_request(phase, {"commission": commission,
             "unit_ids": [i for g in items for i in g["unit_ids"]], "source_groups": items,
+            **({"citation_contract": CITATION_CONTRACT} if any(g.get("citation_contract") for g in items) else {}),
             **(extra or {})}, capacity, context, count)
         if root is not None:
             measure_delivery(request, root, count)  # pack against the actual worker handoff
@@ -794,6 +877,17 @@ def checked_projection(results):
             membership[handle] = sorted(set(sum(roles.values(), [])))
             records.append({"handle": handle, **{k: v for k, v in finding.items() if k not in roles},
                             "relation_counts": {k: len(v) for k, v in roles.items()}})
+            if request["payload"].get("citation_contract"):
+                observations = {}
+                inventory = citation_inventory(request["payload"]["source_groups"])
+                for group in request["payload"]["source_groups"]:
+                    body = next(ref for ref, value in group["citation_inventory"].items() if value["kind"] == "source_body")
+                    observations.update({ref: body for ref in group["unit_ids"]})
+                    observations.update({ref: ref for ref in group["citation_inventory"]})
+                records[-1]["source_observations"] = {role: sorted({observations[ref] for ref in refs})
+                                                      for role, refs in roles.items()}
+                records[-1]["observation_kinds"] = {role: sorted({inventory[observations[ref]]["kind"] for ref in refs})
+                                                    for role, refs in roles.items()}
         # Equal reasons can share transport, without erasing any distinct reason.
         unused = defaultdict(list)
         for row in response["unused"]:
@@ -816,6 +910,7 @@ def origin_projection(results, membership):
         for group in request["payload"]["source_groups"]:
             for ref in group["unit_ids"]:
                 units[ref] = group["source_row"]
+            units.update(group.get("citation_inventory", {}))
     identity_handles, original_identities = {}, {}
     attribution = defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
     finding_index = 0
@@ -915,7 +1010,8 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     exact([c["id"] for c in checks], list({c["id"] for c in checks}), "commission check identity")
     base = {k: v for k, v in commission.items() if k != "assessment_only"}
     root = Path(root)
-    groups = source_groups(source, verified, view)
+    citation_contract = consumer_citation_contract(root)
+    groups = source_groups(source, verified, view, citation_contract=citation_contract)
     all_ids = [i for g in groups for i in g["unit_ids"]]
     context_source = {k: v for k, v in source.items()
                       if k not in {"captured_items", "source_artifacts", "containers", "source_sha256"}}
@@ -1012,8 +1108,9 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     anchors = {r for check in checks for r in check.get("source_rows", [])}
     if anchors - {g["source_row"]["evidence_id"] for g in groups}:
         raise ValueError("consumer check has unknown source anchor")
-    active = [g for g in groups if g["verified_units"] or g["source_row"]["evidence_id"] in anchors]
-    inactive = [g for g in groups if not g["verified_units"] and g["source_row"]["evidence_id"] not in anchors]
+    active = [g for g in groups if (citation_contract and g["source_row"].get("accounting_disposition") == "assess")
+              or g["verified_units"] or g["source_row"]["evidence_id"] in anchors]
+    inactive = [g for g in groups if g not in active]
     requests = prepare_source_requests(active, base, capacity, context, count,
         extra={"source_context": context_source}, root=root)
     missing, results = consume(requests)
@@ -1024,10 +1121,16 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     reused, reused_membership = reused_nonclaims(inactive)
     checked.extend(reused)
     membership.update(reused_membership)
-    exact(sorted({ref for refs in membership.values() for ref in refs}), all_ids, "consumer compiled membership")
+    compiled_refs = {ref for refs in membership.values() for ref in refs}
+    inventory = citation_inventory(groups)
+    if compiled_refs - set(all_ids) - set(inventory):
+        raise ValueError("consumer compiled membership has foreign citations")
+    exact(sorted(compiled_refs & set(all_ids)), all_ids, "consumer compiled membership")
     manifest = {"membership": membership, "original_origin_identities": original_identities, "source_responses": [
         {"request_sha256": request["request_sha256"], "response_sha256": digest(response)}
         for request, response in results], "reused_dispositions": reused}
+    if citation_contract:
+        manifest.update(citation_contract=citation_contract, citation_inventory=inventory)
     manifest_hash = digest(manifest)
     retain(root / "membership" / (manifest_hash + ".json"), manifest)
     payload = {"commission": base, "unit_ids": list(membership), "membership_sha256": manifest_hash,
@@ -1035,6 +1138,9 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
                "source_origin_attribution": origins,
                "origin_indexing": "Finding indices are zero-based positions in checked_findings_and_unused.findings. "
                "Numeric origins preserve equal/distinct source identity, not independent corroboration; unknown remains unknown."}
+    if citation_contract:
+        payload["citation_contract"] = citation_contract
+        payload = with_evidence_identity(payload)
     # Preserve small legacy completion. Larger inventories enter the bounded
     # continuation before publishing a final job that cannot admit later output.
     try:
@@ -1115,14 +1221,22 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
             if not local_assessment["reopen_refs"]:
                 continue
             selected = {ref for handle in local_assessment["reopen_refs"] for ref in membership[handle]}
-            reopened = [g for g in groups if selected.intersection(g["unit_ids"])]
+            reopened = [g for g in groups if selected.intersection(group_refs(g))]
             requests.extend(prepare_source_requests(reopened, base, capacity, context, count, phase="reopen",
                 extra={"answer": answer, "review": local_assessment, "source_context": context_source}, root=root))
         missing, reopened_results = consume(requests)
         if missing:
             return waiting(missing)
+        original_judgments = [response for _, response in reopened_results]
+        if citation_contract:
+            original_judgments = [{"judgment": response,
+                "citation_inventory": citation_inventory(request["payload"]["source_groups"]),
+                "unit_observations": {ref: next(key for key, value in group["citation_inventory"].items()
+                    if value["kind"] == "source_body") for group in request["payload"]["source_groups"]
+                    for ref in group["unit_ids"]}}
+                for request, response in reopened_results]
         missing, reviews = consume(review_requests("answer_review_after_reopen", {**review_payload,
-            "reopened_original_judgments": [response for _, response in reopened_results]}))
+            "reopened_original_judgments": original_judgments}))
         if missing:
             return waiting(missing)
         review, assessment = reviews[0]
@@ -1200,6 +1314,8 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
         "coverage": {"source_rows": len(groups), "verified_units": len(verified["semantic_units"]),
                      "consumer_units": len(all_ids), "source_review_rows": len(active),
                      "reused_nonclaim_rows": len(inactive), "mode": "complete_bound_inventory_not_sample"}}
+    if citation_contract:
+        result.update(citation_contract=citation_contract, citation_inventory=inventory)
     target = root / "results" / (digest(result) + ".json")
     retain(target, result)
     return {"status": status, "phase": "consumer", "answer_path": str(target),

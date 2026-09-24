@@ -24,6 +24,28 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-24 v134 — new complete-case consumer requests bind an explicit
+  source-body/attached-context citation inventory separately from exact required
+  semantic-unit accounting. All originally assessed rows receive downstream
+  review, including no-unit bodies with useful context; upstream reasons and
+  mechanical exclusions remain visible. Context-only findings preserve their
+  own known or unknown speaker/role, shared observation identity, checked
+  membership, ordinary/bounded review and reopening. Existing requests pin their
+  original contract and bytes; new semantics require a fresh consumer root.
+  No raw locator aliases, inferred speaker identity, semantic repair loop or
+  added provider retry is admitted.
+
+- 2026-09-24 v133 — new normal `advance` runs and public normal reconciliation
+  preparation select existing v5 source-row aliases, making shared original
+  rows visible before convergence decisions. New runs pin the choice in existing
+  `start.json`; omitted resumes reuse the pin and explicit conflicts fail before
+  writes. Unmarked historical starts preserve their bytes and prior v4 omission
+  or explicit v5/v6 resume behavior. Explicit historical rendering remains
+  available. Support floors, relation composition, person-count limits, byte
+  ceilings, schemas and low-level replay defaults are unchanged. This narrowly
+  adopts row visibility, not v6 guidance, alternative packing, finite completion
+  or the broader experiments' model/scale claims.
+
 - 2026-09-24 v132 — direct judgments now enforce the audited empty native tool
   registry, disable executor access and lifecycle hooks, and bind saved results
   to the exact command, native hash, configuration attestations and model catalog.

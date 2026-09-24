@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v132
+version: v134
 effective_date: 2026-09-24
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v132
+# Semantic Evidence Integration Contract v134
 
 ## Purpose
 
@@ -1971,8 +1971,8 @@ responses share the existing validator and downstream node-compilation-v2
 shape, without replacing raw provider artifacts. No normal-path semantic provider
 stage is added. Mechanical assembly does not prove that chosen meanings belong together.
 
-Normal method-v12/v13 response-v3 preparation now selects
-`exact_identity_namespaces_v4` at the public `prepare-reconciliation-level`
+Normal method-v12/v13/v14 response-v3 preparation selects
+`exact_identity_namespaces_v5` at the public `prepare-reconciliation-level`
 entrypoint. The separately selected `authoring_revision` is not a response or
 stage schema revision. Each exact tuple of subject, comparator and version
 **sets, with their roles preserved**, gets a code-derived opaque prefix. Every
@@ -2002,9 +2002,21 @@ or `exact_identity_namespaces_v3` to reproduce the corresponding prior
 namespaced normal requests, or `--authoring-revision legacy` to reproduce the
 older unrestricted normal requests.
 The low-level Python preparation APIs retain their historical default for replay;
-current callers explicitly select `RECONCILIATION_AUTHORING_IDENTITY_V4`.
+current public callers select `RECONCILIATION_AUTHORING_IDENTITY_V5`.
 V4 uses its role-specific shared formation instruction once; v13's explicit
 prior authoring revisions retain their original full-method preamble.
+V5 retains v4 guidance and adds the existing convergence source-row table
+described below. Explicit v4 remains available for historical replay, including
+public preparation of an existing stage; omitted public authoring selects v5
+without changing that stage's frozen membership. A stage alone does not record
+the normal authoring choice, so replay of prior requests supplies it explicitly.
+New `advance` runs bind their selected revision (v5 when omitted) in the existing
+immutable `start.json`. Resuming such a run uses the pinned revision when the
+option is omitted and rejects an explicit conflict or invalid pin before writes.
+Historical starts without the field keep their exact bytes: omission retains
+v4, while old explicit v5/v6 runs retain the requirement to supply that revision.
+No resumed run is silently restamped. This adopts source-row visibility only;
+v6 uncertainty guidance, alternative packing and finite completion stay opt-in.
 Explicit response-v2 and older methods retain historical public defaults.
 Missing-definition and local-repair requests use the unchanged historical
 renderer/schema and can preserve existing opaque keys. Accepted work keeps its
@@ -2181,7 +2193,8 @@ alone is not unfinished analysis. Unsupported claims, invented resolutions,
 source-role changes and retention relaxation remain forbidden.
 V6 changes prompt guidance only. Schemas, validators, completion predicates,
 normal/convergence routing and historical authoring bytes remain unchanged.
-Use the same explicit revision on resume; default authoring remains v4.
+Use the same explicit revision on unmarked historical resumes; v6 remains
+opt-in. Current v5 defaults and new-run pins are defined above.
 The fresh matched 44-candidate frontier test passed with both v5 and v6:
 undecided repurchase stayed separate, unknown agreement target remained explicit
 in a terminal finding, and a genuine value objection remained counterevidence.
@@ -2257,9 +2270,11 @@ qualification or automatic error detection. Evidence, costs and the observed
 closing-message receipt-path defect:
 `docs/research/judgment-spine/harness/worker-efficiency-20260912/evidence.json` (record `forseti-repair-expanded-20260912-v1/RESULT.md`).
 
-The subsequent convergence qualification separately exposes opt-in
+The subsequent convergence qualification originally exposed opt-in
 `exact_identity_namespaces_v5` via `advance --reconciliation-authoring-revision`
-and explicit reconciliation prompt preparation. V4 remains the default.
+and explicit reconciliation prompt preparation. The 2026-09-24 narrow default
+change adopts this existing row-visibility mechanism for new normal runs and
+public preparation; it does not adopt the broader experiment's other choices.
 V5 retains v4 formation/identity guidance and adds `CONVERGENCE_SOURCE_ROWS`
 only in convergence mode: deterministic, batch-consistent aliases for original
 source rows by candidate and leaf relation. Workers union effective supporting
@@ -2267,10 +2282,10 @@ row aliases rather than adding candidate counts. Two claims in one row remain
 one row. Aliases grant no semantic equivalence, corroboration or independent
 person count; repeated-support validation still traces original leaves.
 This table is distinct from semantic-unit overlap restrictions. The rendered
-table counts toward the existing byte ceiling. Use a new run root and retain
-the authoring revision on resume; prompt immutability rejects a changed revision.
-Historical authoring bytes and response schemas remain replayable. This option
-is an unpromoted experiment, not worker-model or scale qualification.
+table counts toward the existing byte ceiling. New runs pin the authoring
+revision as described above; prompt immutability still protects historical runs.
+Historical authoring bytes and response schemas remain replayable. Default
+source-row visibility is not worker-model or scale qualification.
 The 2026-09-11 Sol/high qualification passed the isolated same-row convergence
 case. The fresh 45-row control then reached native completion after six normal
 levels. An initial controller assessment rejected its explicitly unresolved
@@ -2294,8 +2309,10 @@ until the last round was the unchanged ambiguous agreement in both arms.
 This one comparison does not establish that packing caused earlier completion.
 The experiment fails its adoption signals. At that checkpoint the 121-row confirmation and
 conditional delegated patch review had not been commissioned. Subsequent scale
-and repair experiments and the bounded code review are recorded above; defaults
-remain unchanged. Native completion alone does not establish semantic correctness.
+and repair experiments and the bounded code review are recorded above; they did
+not promote defaults. The later narrow v5 default change does not overturn those
+broader failed adoption signals. Native completion alone does not establish
+semantic correctness.
 
 The 2026-09-11 owner-commissioned experiment exposes `group_aware_v1` through
 `advance --reconciliation-packing`; `input_order` remains the default and
@@ -2695,10 +2712,13 @@ unattested; these are declared planning bounds, not a provider limit inference.
 `judgment/complete_case_consumer.py` consumes existing verified meanings and
 native finding relations. Whole source rows form bounded review slices, with
 original context, all same-row meanings, relation ownership, and residuals.
-All compatible commissioned questions share each slice. Verified no-unit
-dispositions are reused with their exact distinct reasons; mechanically excluded
-rows remain excluded with their original reasons. Commissioned source anchors
-reopen their raw rows. Reuse does not prove downstream irrelevance: final review
+All compatible commissioned questions share each slice. New consumer roots review
+every originally assessed row, including rows with no verified units, with its
+body and attached context. Verified no-unit reasons remain upstream extraction
+facts, not downstream irrelevance decisions. Mechanically excluded rows retain
+their original reasons and boundaries. Commissioned source anchors reopen their
+raw rows. Historical unmarked consumer roots retain no-unit disposition reuse.
+Reuse does not prove downstream irrelevance: final review
 can request exact original-source handles when an exclusion, conflict, missing
 context, or current question makes that necessary.
 
@@ -2707,6 +2727,26 @@ reasoned unused evidence. A used unit may legitimately inform several findings;
 duplicate findings, duplicate unused dispositions, foreign references, missing
 units, and a used/unused overlap are rejected. Final writing consumes all checked
 findings, limits, and distinct unused/reused-disposition reasons across slices.
+New requests bind `source_context_citations_v1` in their existing payloads.
+Their explicit per-row `citation_inventory` permits compiler-bound source-body
+and attached-context observations in findings alongside required `unit_ids`.
+Context-only findings need no unrelated semantic-unit citation. Required semantic
+units still receive exact used/unused accounting; a `source:ROW` marker accounts
+for a no-unit body independently of useful attached context. Arbitrary URLs,
+native proposition IDs and source locators are not citation aliases. Original
+source paths, artifact/locator bindings, source role and known origin identity
+remain resolvable through request state, membership and final result inventories.
+Attached context uses only its own explicit speaker/role metadata; missing facts
+remain unknown and never inherit the enclosing commenter. Retailer copy remains
+copy, not customer experience. Shared context retains one observation identity
+across enclosing rows. Semantic units and a citation to their same source body
+also share one observation, never extra people or events. Relation-owned observation
+identities accompany checked handles through ordinary and bounded assembly,
+exact-answer review, reopening and correction. The existing request inventory
+pins the citation contract on resume; mixed, unknown or hash-invalid saved state
+fails before writes. Unmarked historical requests retain their prior acceptance
+semantics and bytes, including rejected responses; the new contract requires a
+fresh consumer root rather than a migration or source-judgment retry.
 When the complete review envelope cannot reserve a permitted final answer, the
 same normal consumer partitions the complete checked inventory into bounded
 batches. Each commissioned question folds every batch into a revised draft and
