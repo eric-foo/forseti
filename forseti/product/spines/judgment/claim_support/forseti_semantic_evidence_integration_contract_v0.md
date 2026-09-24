@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v133
+version: v134
 effective_date: 2026-09-24
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v133
+# Semantic Evidence Integration Contract v134
 
 ## Purpose
 
@@ -2712,10 +2712,13 @@ unattested; these are declared planning bounds, not a provider limit inference.
 `judgment/complete_case_consumer.py` consumes existing verified meanings and
 native finding relations. Whole source rows form bounded review slices, with
 original context, all same-row meanings, relation ownership, and residuals.
-All compatible commissioned questions share each slice. Verified no-unit
-dispositions are reused with their exact distinct reasons; mechanically excluded
-rows remain excluded with their original reasons. Commissioned source anchors
-reopen their raw rows. Reuse does not prove downstream irrelevance: final review
+All compatible commissioned questions share each slice. New consumer roots review
+every originally assessed row, including rows with no verified units, with its
+body and attached context. Verified no-unit reasons remain upstream extraction
+facts, not downstream irrelevance decisions. Mechanically excluded rows retain
+their original reasons and boundaries. Commissioned source anchors reopen their
+raw rows. Historical unmarked consumer roots retain no-unit disposition reuse.
+Reuse does not prove downstream irrelevance: final review
 can request exact original-source handles when an exclusion, conflict, missing
 context, or current question makes that necessary.
 
@@ -2724,6 +2727,26 @@ reasoned unused evidence. A used unit may legitimately inform several findings;
 duplicate findings, duplicate unused dispositions, foreign references, missing
 units, and a used/unused overlap are rejected. Final writing consumes all checked
 findings, limits, and distinct unused/reused-disposition reasons across slices.
+New requests bind `source_context_citations_v1` in their existing payloads.
+Their explicit per-row `citation_inventory` permits compiler-bound source-body
+and attached-context observations in findings alongside required `unit_ids`.
+Context-only findings need no unrelated semantic-unit citation. Required semantic
+units still receive exact used/unused accounting; a `source:ROW` marker accounts
+for a no-unit body independently of useful attached context. Arbitrary URLs,
+native proposition IDs and source locators are not citation aliases. Original
+source paths, artifact/locator bindings, source role and known origin identity
+remain resolvable through request state, membership and final result inventories.
+Attached context uses only its own explicit speaker/role metadata; missing facts
+remain unknown and never inherit the enclosing commenter. Retailer copy remains
+copy, not customer experience. Shared context retains one observation identity
+across enclosing rows. Semantic units and a citation to their same source body
+also share one observation, never extra people or events. Relation-owned observation
+identities accompany checked handles through ordinary and bounded assembly,
+exact-answer review, reopening and correction. The existing request inventory
+pins the citation contract on resume; mixed, unknown or hash-invalid saved state
+fails before writes. Unmarked historical requests retain their prior acceptance
+semantics and bytes, including rejected responses; the new contract requires a
+fresh consumer root rather than a migration or source-judgment retry.
 When the complete review envelope cannot reserve a permitted final answer, the
 same normal consumer partitions the complete checked inventory into bounded
 batches. Each commissioned question folds every batch into a revised draft and

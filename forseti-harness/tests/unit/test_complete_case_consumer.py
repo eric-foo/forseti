@@ -13,6 +13,33 @@ def count(text):
     return len(text.encode("utf-8"))
 
 
+def context_fixture():
+    args = fixture()
+    # Preserved 2026-09-24 failure: reddit 1fp9vm3/loy0lal was a no-unit
+    # leaf, but its supplied post explicitly reported gift-set trial/purchase.
+    # Text below is an exact bounded excerpt of that frozen post, not a model oracle.
+    context = {"context_type": "post_text", "source_artifact_id": "raw",
+        "source_ref": "reddit_native_records.jsonl#line=351/record/post",
+        "text": "I just recently jumped on the band wagon for Tower 28 and Summer Fridays so I had to pick up these sets."}
+    for index in (0, 3):
+        args[0]["captured_items"][index].update(product_context=[deepcopy(context)],
+            independence_key="enclosing-leaf-" + str(index), source_role="community_post")
+    args[0]["captured_items"][3]["text"] = "It’s not old so maybe I got a bad batch? I think I’m outside the return window :("
+    return args
+
+
+def context_response(request):
+    response = respond(request)
+    if request["phase"] in {"source_review", "reopen"}:
+        for group in request["payload"]["source_groups"]:
+            refs = [ref for ref, item in group.get("citation_inventory", {}).items() if item["kind"] == "post_text"]
+            if refs:
+                response["findings"].append({"statement": "The supplied post reports picking up Tower 28 and Summer Fridays sets.",
+                    "question_ids": ["q"], "supporting_refs": refs, "opposing_refs": [], "context_refs": [],
+                    "limits": "Post author unavailable; does not establish the enclosing comment author's purchase or causation."})
+    return response
+
+
 def fixture():
     source = {"question": "reported experience", "captured_items": [
         {"evidence_id": key, "source_artifact_id": "raw", "text": text, "accounting_disposition": "assess"}
@@ -39,14 +66,17 @@ def fixture():
 def respond(request):
     payload = request["payload"]
     if request["phase"] in {"source_review", "reopen"}:
-        findings = []
+        findings, unused = [], []
         for group in payload["source_groups"]:
             refs = group["unit_ids"]
+            if not group["verified_units"] and payload.get("citation_contract"):
+                unused.extend({"unit_ref": ref, "reason": group["dispositions"][0]["disposition_reason"]} for ref in refs)
+                continue
             counter = group["source_row"]["evidence_id"] == "b"
             findings.append({"statement": group["source_row"]["text"], "question_ids": ["q"],
                 "supporting_refs": [] if counter else refs, "opposing_refs": refs if counter else [],
                 "context_refs": [], "limits": "One source; condition-specific."})
-        return {"findings": findings, "unused": []}
+        return {"findings": findings, "unused": unused}
     if request["phase"] == "assembly":
         records = payload["checked_findings_and_unused"]
         if isinstance(records, dict):
@@ -84,19 +114,19 @@ def complete(args, root, tmp_path):
     raise AssertionError("did not complete")
 
 
-def test_complete_split_opposition_residual_and_nonclaim_reuse(tmp_path):
+def test_complete_split_opposition_residual_and_no_unit_review(tmp_path):
     args = fixture()
     state, seen = complete(args, tmp_path / "consumer", tmp_path)
     assert state["status"] == "COMPLETE_CASE_ANSWER_CHECKED"
     source_jobs = [r for r in seen if r["phase"] == "source_review"]
-    assert len(source_jobs) == 3  # no raw re-review of verified no-claim row d
+    assert len(source_jobs) == 4  # current runs assess original no-unit body/context too
     assert source_jobs[0]["payload"]["unit_ids"] == ["a::u"]
     assert source_jobs[1]["payload"]["source_groups"][0]["native_findings"][0]["semantic_relations"]["counter"] == ["b::u"]
     assembly = next(r for r in seen if r["phase"] == "assembly")
     text = consumer.compact(assembly["payload"])
     assert "stopped using" in text and "New cap" in text and "Greeting has no product" in text
     result = consumer.read(state["answer_path"])
-    assert result["coverage"]["reused_nonclaim_rows"] == 1
+    assert result["coverage"]["reused_nonclaim_rows"] == 0
     assert result["answer"]["answers"][0]["evidence_refs"] == ["a::u", "b::u", "c::u"]
     repeated, new = complete(args, tmp_path / "consumer", tmp_path)
     assert repeated == state and new == []
@@ -132,6 +162,136 @@ def test_provider_schema_uses_supported_subset_and_local_identity_enforcement(tm
     consumer.Draft202012Validator(request["schema"]).validate(response)
     with pytest.raises(ValueError, match="foreign question"):
         consumer.validate_response(request, response, count)
+
+
+@pytest.mark.parametrize("reopen", [False, True])
+def test_context_only_finding_survives_normal_consumer_and_original_reopen(tmp_path, reopen):
+    args, root, seen = context_fixture(), tmp_path / "consumer", []
+    for _ in range(8):
+        state = consumer.advance(*args, root, context="", count=count)
+        for info in state["judgment_requests"]:
+            request = consumer.read(info["job_path"])
+            seen.append(request)
+            response = context_response(request)
+            if reopen and request["phase"] == "answer_review":
+                # f1 cites ONLY the post context, never a required semantic unit.
+                response["answers"][0].update(status="unresolved", reason="Check the post author's identity.")
+                response["reopen_refs"] = ["f1"]
+            publish(info, response, tmp_path)
+        if not state["judgment_requests"]:
+            break
+    assert state["status"] == "COMPLETE_CASE_ANSWER_CHECKED"
+    result = consumer.read(state["answer_path"])
+    first = seen[0]["payload"]["source_groups"][0]
+    context_ref = next(ref for ref, value in first["citation_inventory"].items() if value["kind"] == "post_text")
+    assert context_ref in result["answer"]["answers"][0]["evidence_refs"]
+    assert len(result["citation_inventory"][context_ref]["locations"]) == 2
+    assert result["citation_inventory"][context_ref]["independence_key"] == "unknown"
+    assembly = next(r for r in seen if r["phase"] == "assembly")
+    meta = assembly["payload"]["evidence_identity"]["f1"]
+    assert "Also allowed in findings are the exact keys" not in assembly["prompt"]
+    assert "Account for every unit_ids entry" not in assembly["prompt"]
+    assert "Context has its own speaker and source role" in assembly["prompt"]
+    assert "Also allowed in findings are the exact keys" in seen[0]["prompt"]
+    assert meta["origin_ids"] == ["unknown"] and meta["source_roles"] == ["unavailable"]
+    assert meta["source_observations"]["supporting_refs"] == [context_ref]
+    assert result["coverage"]["source_review_rows"] == 4
+    if reopen:
+        reopened = [g for r in seen if r["phase"] == "reopen" for g in r["payload"]["source_groups"]]
+        assert {g["source_row"]["evidence_id"] for g in reopened} == {"a", "d"}
+        review = next(r for r in seen if r["phase"] == "answer_review_after_reopen")
+        assert context_ref in review["payload"]["reopened_original_judgments"][0]["citation_inventory"]
+    before = {str(p): p.read_bytes() for p in root.rglob("*.json")}
+    assert consumer.advance(*args, root, context="", count=count) == state
+    assert before == {str(p): p.read_bytes() for p in root.rglob("*.json")}
+
+
+@pytest.mark.parametrize("fault", ["url", "native_prop", "foreign_ref", "missing_unit", "overlap"])
+def test_context_citations_do_not_relax_124_required_unit_accounting(tmp_path, fault):
+    args = context_fixture()
+    source, verified, view = args[:3]
+    source["captured_items"] = source["captured_items"][:1]
+    verified["semantic_units"] = [{"semantic_unit_ref": f"a::u{i}", "evidence_id": "a", "statement": "Preserved meaning"} for i in range(124)]
+    view.update(propositions=[], unmerged_semantic_units=[{"semantic_unit_ref": u["semantic_unit_ref"], "reason": "Bounded singleton"}
+                for u in verified["semantic_units"]])
+    args[3]["assessment_only"]["checks"] = []
+    state = consumer.advance(*args, tmp_path / "consumer", context="", count=count)
+    request = consumer.read(state["judgment_requests"][0]["job_path"])
+    response = context_response(request)
+    consumer.validate_response(request, response, count)
+    assert len(request["payload"]["unit_ids"]) == 124
+    if fault in {"url", "native_prop", "foreign_ref"}:
+        response["findings"][-1]["context_refs"] = [{"url": "https://www.summerfridays.com/", "native_prop": "prop:native-p17", "foreign_ref": "observation:foreign"}[fault]]
+    elif fault == "missing_unit":
+        response["findings"][0]["supporting_refs"].pop()
+    else:
+        response["unused"] = [{"unit_ref": "a::u0", "reason": "Unused body"}]
+    consumer.Draft202012Validator(request["schema"]).validate(response)
+    with pytest.raises(ValueError, match="foreign citation coverage|consumer unit coverage|used and unused"):
+        consumer.validate_response(request, response, count)
+
+
+def test_body_units_shared_context_and_explicit_context_origins_are_distinct(tmp_path):
+    args = context_fixture()
+    args[0]["captured_items"][0]["parent_context"] = [{"source_ref": "parent:separate", "text": "I stopped using it.",
+        "source_role": "community_post", "independence_key": "parent-author", "independence_posture": "credited"}]
+    args[0]["captured_items"][0]["product_context"].append({"context_type": "product_page", "source_ref": "retailer:page",
+        "text": "Helps reduce stretch marks.", "source_role": "owned_claim", "independence_key": "retailer"})
+    args[1]["semantic_units"].append({"semantic_unit_ref": "a::u2", "evidence_id": "a", "statement": "Another meaning from the same body."})
+    args[2]["unmerged_semantic_units"].append({"semantic_unit_ref": "a::u2", "reason": "Separate meaning"})
+    state = consumer.advance(*args, tmp_path / "consumer", context="", count=count)
+    request = consumer.read(state["judgment_requests"][0]["job_path"])
+    group = request["payload"]["source_groups"][0]
+    kinds = {value["kind"]: ref for ref, value in group["citation_inventory"].items()}
+    response = context_response(request)
+    response["findings"][0]["supporting_refs"].append(kinds["source_body"])
+    response["findings"][0]["opposing_refs"] = [kinds["parent_text"]]
+    response["findings"][0]["context_refs"] = [kinds["product_page"]]
+    consumer.validate_response(request, response, count)
+    checked, membership = consumer.checked_projection([(request, response)])
+    assert checked[0]["source_observations"]["supporting_refs"] == [kinds["source_body"]]
+    origins, originals = consumer.origin_projection([(request, response)], membership)
+    assert set(originals.values()) == {"enclosing-leaf-0", "parent-author", "retailer"}
+    retailer = next(g for g in origins if g["source_role"] == "owned_claim")
+    assert retailer["origins"][0]["context_finding_indices"] == [0]
+    assert retailer["origins"][0]["supporting_finding_indices"] == []
+
+
+@pytest.mark.parametrize("accepted", [False, True])
+def test_saved_legacy_contract_replays_without_context_admission_or_rewrites(tmp_path, accepted):
+    args, root = context_fixture(), tmp_path / "consumer"
+    groups = consumer.source_groups(*args[:3])
+    base = {k: v for k, v in args[3].items() if k != "assessment_only"}
+    request = consumer.prepare_source_requests(groups[:1], base, args[4], "", count,
+        extra={"source_context": {"question": args[0]["question"]}}, root=root)[0]
+    path = root / "requests" / request["request_sha256"] / "request.json"
+    consumer.retain(path, request)
+    response = respond(request)
+    if accepted:
+        publish({"job_path": str(path), "job_sha256": request["request_sha256"]}, response, tmp_path)
+    before = {str(p): p.read_bytes() for p in root.rglob("*.json")}
+    state = consumer.advance(*args, root, context="", count=count)
+    assert all(Path(p).read_bytes() == data for p, data in before.items())
+    assert len(state["judgment_requests"]) == (2 if accepted else 3)
+    assert all("citation_contract" not in consumer.read(info["job_path"])["payload"] for info in state["judgment_requests"])
+    response["findings"][0]["context_refs"] = ["reddit_native_records.jsonl#line=351/record/post"]
+    with pytest.raises(ValueError, match="foreign citation coverage"):
+        consumer.validate_response(request, response, count)
+
+
+def test_tampered_contract_fails_before_writes_and_mechanical_exclusions_remain(tmp_path):
+    args, root = context_fixture(), tmp_path / "consumer"
+    args[0]["captured_items"][-1].update(accounting_disposition="excluded", accounting_reason="Outside captured body boundary")
+    state = consumer.advance(*args, root, context="", count=count)
+    assert len(state["judgment_requests"]) == 3
+    path = Path(state["judgment_requests"][0]["job_path"])
+    request = consumer.read(path)
+    request["payload"]["source_groups"][0]["citation_inventory"] = {}
+    path.write_text(json.dumps(request), encoding="utf-8")
+    before = {str(p): p.read_bytes() for p in root.rglob("*.json")}
+    with pytest.raises(ValueError, match="request identity mismatch"):
+        consumer.advance(*args, root, context="", count=count)
+    assert before == {str(p): p.read_bytes() for p in root.rglob("*.json")}
 
 
 def test_compiled_membership_seeded_omission_rejected(tmp_path, monkeypatch):
@@ -350,7 +510,8 @@ def test_indivisible_and_aggregate_capacity_and_output(tmp_path):
     for info in state["judgment_requests"]:
         request = consumer.read(info["job_path"])
         response = respond(request)
-        response["findings"][0]["statement"] = "z" * 13000
+        if response["findings"]:
+            response["findings"][0]["statement"] = "z" * 13000
         publish(info, response, tmp_path)
     args[4]["effective_context_tokens"] = 30000
     # Capacity is part of request identity; same accepted source results cannot
@@ -424,6 +585,9 @@ def test_public_normal_advance_reaches_consumer_end_to_end(tmp_path, capsys, mon
             assert intake["intake_end"] == info["job_sha256"]
             request = consumer.read(info["job_path"])
             assert intake["content"]["prompt"] == request["prompt"]
+            assert request["payload"]["citation_contract"] == consumer.CITATION_CONTRACT
+            if request["phase"] == "source_review":
+                assert all(g["citation_inventory"] for g in request["payload"]["source_groups"])
             phases.append(request["phase"])
             response = respond(request)
             if request["phase"] == "answer_review":
@@ -516,7 +680,7 @@ def test_exact_correction_recheck_reuses_sources_and_retains_original(tmp_path, 
                 source_bytes[info["response_path"]] = Path(info["response_path"]).read_bytes()
         if not state["judgment_requests"]:
             break
-    assert phases == ["source_review"] * 3 + ["assembly", "answer_review", "correction_recheck"]
+    assert phases == ["source_review"] * 4 + ["assembly", "answer_review", "correction_recheck"]
     result = consumer.read(state["answer_path"])
     assert result["correction"]["original_answer"] == originals
     assert result["correction"]["candidate_answer"] == candidate
@@ -659,7 +823,7 @@ def test_legacy_ordered_transport_reuse_and_conflicting_judgments_fail(tmp_path)
     info = {"job_path": str(directory / "request.json"), "job_sha256": legacy["request_sha256"]}
     publish(info, respond(legacy), tmp_path)
     resumed = consumer.advance(*args, root, context="", count=count)
-    assert len(resumed["judgment_requests"]) == 2  # old accepted source not rejudged
+    assert len(resumed["judgment_requests"]) == 3  # accepted source not rejudged
     different = respond(current)
     different["findings"][0]["limits"] = "A different accepted judgment."
     publish(state["judgment_requests"][0], different, tmp_path)
@@ -781,6 +945,38 @@ def bounded_respond(request):
             "uncertainty_and_causal_ceiling": "Descriptive only; company claims do not prove customer experience."}]}
 
 
+def test_bounded_context_only_handle_retains_observation_identity_through_reopen(tmp_path):
+    args = large_final_fixture()
+    shared = context_fixture()[0]["captured_items"][0]["product_context"]
+    for index in (0, 17):
+        args[0]["captured_items"][index]["product_context"] = deepcopy(shared)
+    root, seen = tmp_path / "consumer", []
+    for _ in range(40):
+        state = consumer.advance(*args, root, context="", count=count)
+        for info in state["judgment_requests"]:
+            request = consumer.read(info["job_path"])
+            seen.append(request)
+            response = context_response(request) if request["phase"] in {"source_review", "reopen"} else bounded_respond(request)
+            if request["phase"] == "answer_review" and "f1" in {
+                    r["handle"] for r in request["payload"]["checked_findings_and_unused"]["findings"]}:
+                response["answers"][0].update(status="unresolved", reason="Check shared post speaker against originals.")
+                response["reopen_refs"] = ["f1"]
+            publish(info, response, tmp_path)
+        if not state["judgment_requests"]:
+            break
+    assert state["status"] == "COMPLETE_CASE_ANSWER_CHECKED"
+    result = consumer.read(state["answer_path"])
+    context_ref = next(ref for ref, item in result["citation_inventory"].items() if item["kind"] == "post_text")
+    assert len(result["citation_inventory"][context_ref]["locations"]) == 2
+    assert context_ref in result["answer"]["answers"][0]["evidence_refs"]
+    composition = next(r for r in seen if r["payload"].get("bounded_stage") == "cross_question_compose")
+    assert composition["payload"]["evidence_identity"]["f1"]["source_observations"]["supporting_refs"] == [context_ref]
+    assert composition["payload"]["evidence_identity"]["f1"]["origin_ids"] == ["unknown"]
+    reopened = [r for r in seen if r["phase"] == "answer_review_after_reopen"]
+    assert {g["source_row"]["evidence_id"] for r in reopened for g in r["payload"]["source_groups"]} == {"0", "17"}
+    assert all(context_ref in r["payload"]["reopened_handle_membership"]["f1"] for r in reopened)
+
+
 @pytest.mark.parametrize("mode", ["clean", "defect", "reopen", "repair", "citation_repair", "failed_correction"])
 def test_bounded_complete_final_pipeline_exact_review_and_repair(tmp_path, mode):
     args = large_final_fixture()
@@ -822,7 +1018,7 @@ def test_bounded_complete_final_pipeline_exact_review_and_repair(tmp_path, mode)
     assert folds[1]["payload"]["previous_draft"]["reconciliation_ledger"]
     initial = [r for r in seen if r["phase"] == "answer_review"]
     handles = [r["handle"] for request in initial for rows in request["payload"]["checked_findings_and_unused"].values() for r in rows]
-    assert sorted(handles) == sorted(["f" + str(i) for i in range(18)] + ["n0"])
+    assert sorted(handles) == sorted(["f" + str(i) for i in range(18)] + ["u18"])
     # Every independent check gets the exact final answer, not its local draft.
     assert len({consumer.digest(r["payload"]["answer"]) for r in initial}) == 1
     for request in initial:
@@ -1114,6 +1310,10 @@ def test_small_legacy_inventory_bounds_large_original_reopen_and_correction(tmp_
         verified["evidence_dispositions"].append({"evidence_id": eid, "disposition": "out_of_scope",
             "disposition_reason": "One reused no-claim reason; relevance may need original context."})
     root = tmp_path / "consumer"
+    # Existing unmarked requests keep the historical no-unit reuse contract.
+    legacy_groups = consumer.source_groups(*args[:3])
+    legacy_request = consumer.prepare_source_requests(legacy_groups[:1], args[3], args[4], "", count)[0]
+    consumer.retain(root / "requests" / legacy_request["request_sha256"] / "request.json", legacy_request)
     seen, final_review_count = [], 0
     for _ in range(12):
         state = consumer.advance(*args, root, context="", count=count)
@@ -1186,7 +1386,7 @@ def test_source_packing_uses_complete_handoff_and_preserves_accepted_rows(tmp_pa
     requests = [consumer.read(info["job_path"]) for info in jobs]
     assert 1 < len(jobs) < 18
     assert max(len(r["payload"]["source_groups"]) for r in requests) > 1
-    assert [g["source_row"]["evidence_id"] for r in requests for g in r["payload"]["source_groups"]] == [str(i) for i in range(18)]
+    assert [g["source_row"]["evidence_id"] for r in requests for g in r["payload"]["source_groups"]] == [str(i) for i in range(18)] + ["d"]
     for info, request in zip(jobs, requests):
         assert info["measurement"]["total_reserved_tokens"] <= args[4]["effective_context_tokens"]
         response = respond(request)
@@ -1212,6 +1412,11 @@ def test_unfinished_legacy_assembly_resumes_without_rewriting_or_bypassing_damag
     view["unmerged_semantic_units"] = view["unmerged_semantic_units"][:10]
     commission["assessment_only"]["checks"][0]["source_rows"] = ["9"]
     root = tmp_path / "consumer"
+    groups = consumer.source_groups(source, verified, view)
+    base = {k: v for k, v in commission.items() if k != "assessment_only"}
+    legacy_request = consumer.prepare_source_requests(groups[:1], base, capacity, "", count,
+        extra={"source_context": {"question": source["question"]}}, root=root)[0]
+    consumer.retain(root / "requests" / legacy_request["request_sha256"] / "request.json", legacy_request)
     state = consumer.advance(*args, root, context="", count=count)
     for info in state["judgment_requests"]:
         publish(info, respond(consumer.read(info["job_path"])), tmp_path)

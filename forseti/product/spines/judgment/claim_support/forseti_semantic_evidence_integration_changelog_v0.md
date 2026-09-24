@@ -24,6 +24,17 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-24 v134 — new complete-case consumer requests bind an explicit
+  source-body/attached-context citation inventory separately from exact required
+  semantic-unit accounting. All originally assessed rows receive downstream
+  review, including no-unit bodies with useful context; upstream reasons and
+  mechanical exclusions remain visible. Context-only findings preserve their
+  own known or unknown speaker/role, shared observation identity, checked
+  membership, ordinary/bounded review and reopening. Existing requests pin their
+  original contract and bytes; new semantics require a fresh consumer root.
+  No raw locator aliases, inferred speaker identity, semantic repair loop or
+  added provider retry is admitted.
+
 - 2026-09-24 v133 — new normal `advance` runs and public normal reconciliation
   preparation select existing v5 source-row aliases, making shared original
   rows visible before convergence decisions. New runs pin the choice in existing
