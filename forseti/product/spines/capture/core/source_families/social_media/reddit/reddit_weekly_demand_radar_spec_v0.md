@@ -205,7 +205,10 @@ then the deep-dive manifest and 10-URL capture batches with `?sort=confidence`
 thread URLs, because a fresh browser profile otherwise renders comments
 newest-first), `capture` (drives `run_reddit_old_http_batch.py` per batch; one
 retry for non-access failures, and any refusal, access diagnostic, or tripped
-breaker stops the run), `read` (renders each batch in the read policy's
+breaker stops the run; a failed slot whose preserved page text is Reddit's own
+deleted/removed-post notice is recorded in `captures/unavailable_slots.json`
+without a retry, and `scope` excludes it with its evidence under
+`source_unavailable_at_capture`), `read` (renders each batch in the read policy's
 attention order, takes judgment fields only from one structured model call per
 batch, fills fixed fields and verbatim quote text from the content record,
 validates every receipt with the finalizer's own check, repairs failing threads

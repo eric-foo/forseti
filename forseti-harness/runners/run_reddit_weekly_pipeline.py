@@ -434,6 +434,27 @@ def _refused(summary: dict) -> bool:
 
 
 RunBatch = Callable[[Path, Path, bool], None]
+# Reddit's own notice on a thread page whose post is gone. A block or challenge page never carries it.
+SOURCE_UNAVAILABLE = re.compile(r"Sorry, this post (?:was|has been) (?:deleted|removed)[^.\n]*")
+UNAVAILABLE_SLOTS = "unavailable_slots.json"
+
+
+def _source_unavailable(summary: dict) -> dict[str, dict]:
+    """Failed slots whose preserved page text is Reddit's deleted/removed-post notice."""
+    out = {}
+    for r in summary.get("results", []):
+        if r.get("capture_exit") == 0 or not r.get("packet_dir"):
+            continue
+        for path in Path(r["packet_dir"]).glob("raw/*visible_text.txt"):
+            if match := SOURCE_UNAVAILABLE.search(path.read_text(encoding="utf-8", errors="replace")):
+                out[r["slot_id"]] = {"slot_id": r["slot_id"], "url": r.get("url"), "status": "source_deleted_or_removed",
+                                     "evidence": match.group(0), "packet_dir": r["packet_dir"]}
+    return out
+
+
+def _unavailable(run_dir: Path) -> list[dict]:
+    path = run_dir / "captures" / UNAVAILABLE_SLOTS
+    return _read_json(path) if path.is_file() else []
 
 
 def capture(run_dir: Path, run_batch: RunBatch, *, first: int | None, last: int | None) -> dict:
@@ -452,7 +473,8 @@ def capture(run_dir: Path, run_batch: RunBatch, *, first: int | None, last: int 
         if summary is None or _refused(summary):
             raise PipelineError(f"capture batch {tag} refused or produced no summary; stop and inspect {surface}")
         found = _successes(summary)
-        missing = [s for s in slots if s["slot_id"] not in found]
+        gone = {k: v for k, v in _source_unavailable(summary).items() if k not in found}
+        missing = [s for s in slots if s["slot_id"] not in found and s["slot_id"] not in gone]
         if missing:
             retry_root = run_dir / "captures" / f"batch_{tag}_retry"
             retry_list = run_dir / "captures" / f"batch_{tag}_retry_urls.json"
@@ -462,10 +484,14 @@ def capture(run_dir: Path, run_batch: RunBatch, *, first: int | None, last: int 
             if retry is None or _refused(retry):
                 raise PipelineError(f"capture batch {tag} retry refused; stop and inspect {retry_root}")
             found.update(_successes(retry))
-        still = [s["slot_id"] for s in slots if s["slot_id"] not in found]
+        still = [s["slot_id"] for s in slots if s["slot_id"] not in found and s["slot_id"] not in gone]
         if still:
             raise PipelineError(f"capture batch {tag} still missing {still} after one retry")
-        _write_json(index_path, {s["slot_id"]: found[s["slot_id"]] for s in slots})
+        if gone:
+            known = {u["slot_id"] for u in _unavailable(run_dir)}
+            _write_json(run_dir / "captures" / UNAVAILABLE_SLOTS,
+                        _unavailable(run_dir) + [{**u, "batch": tag} for k, u in gone.items() if k not in known])
+        _write_json(index_path, {s["slot_id"]: found[s["slot_id"]] for s in slots if s["slot_id"] in found})
         captured += 1
     return {"batches_captured": captured}
 
@@ -685,12 +711,15 @@ def scope(run_dir: Path, last_batch: int) -> dict:
         slots.update(s["slot_id"] for s in _read_json(run_dir / "capture-batches" / f"batch_{n:03d}.json"))
         if not (run_dir / f"batch_{n:03d}_extracts_v1.jsonl").is_file():
             raise PipelineError(f"batch {n:03d} has no extracts")
+    gone = [u for u in _unavailable(run_dir) if u["slot_id"] in slots]
+    slots -= {u["slot_id"] for u in gone}
     pending = [r for r in manifest["pending"] if f"deep_{int(r['deep_dive_order']):04d}" in slots]
     out = run_dir / f"finalize-{len(pending)}"
     narrowed = {**manifest, "pending": pending, "coverage": {
         **manifest["coverage"], "admitted": len(pending), "pending_capture": len(pending),
         "full_admitted_before_scope_reduction": manifest["coverage"]["admitted"],
         "owner_dive_scope": f"owner scope: batches 1-{last_batch} ({len(pending)} threads) in manifest order",
+        "source_unavailable_at_capture": [{k: u[k] for k in ("slot_id", "url", "status", "evidence")} for u in gone],
     }}
     _write_json(out / "deep_dive_manifest_v1.json", narrowed)
     for n in range(1, last_batch + 1):

@@ -86,6 +86,56 @@ def test_capture_retries_failed_slots_once_and_merges_index(tmp_path: Path) -> N
     assert index == {"deep_0001": "P/deep_0001", "deep_0002": "P/deep_0002"}
 
 
+def test_capture_records_deleted_post_as_unavailable_without_retry(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    (run / "capture-batches").mkdir(parents=True)
+    slots = [{"slot_id": "deep_0001", "url": "u1"}, {"slot_id": "deep_0002", "url": "u2"}]
+    (run / "capture-batches" / "batch_001.json").write_text(json.dumps(slots), encoding="utf-8")
+    gone_packet = tmp_path / "P" / "deep_0002"
+    (gone_packet / "raw").mkdir(parents=True)
+    (gone_packet / "raw" / "02_02_realchrome_visible_text.txt").write_text(
+        "r/FancyFollicles\n[deleted]\nSorry, this post was deleted by the person who originally posted it.\nShare", encoding="utf-8")
+    runs: list[Path] = []
+
+    def fake_run(url_list: Path, output_root: Path, resume: bool) -> None:
+        runs.append(output_root)
+        output_root.mkdir(parents=True, exist_ok=True)
+        results = [{"slot_id": "deep_0001", "url": "u1", "capture_exit": 0, "content_record_preserved": True, "packet_dir": "P/deep_0001"},
+                   {"slot_id": "deep_0002", "url": "u2", "capture_exit": 4, "content_record_preserved": False, "packet_dir": str(gone_packet)}]
+        (output_root / "batch_summary.json").write_text(json.dumps(_summary(results)), encoding="utf-8")
+
+    pipe.capture(run, fake_run, first=None, last=None)
+
+    assert [p.name for p in runs] == ["batch_001_surface"]  # no retry for a post Reddit says is gone
+    assert json.loads((run / "captures" / "batch_001_index.json").read_text(encoding="utf-8")) == {"deep_0001": "P/deep_0001"}
+    [gone] = json.loads((run / "captures" / "unavailable_slots.json").read_text(encoding="utf-8"))
+    assert gone["slot_id"] == "deep_0002" and gone["batch"] == "001" and gone["status"] == "source_deleted_or_removed"
+    assert gone["evidence"] == "Sorry, this post was deleted by the person who originally posted it"
+
+
+def test_scope_drops_unavailable_slots_and_records_them(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    (run / "capture-batches").mkdir(parents=True)
+    (run / "captures").mkdir()
+    (run / "capture-batches" / "batch_001.json").write_text(
+        json.dumps([{"slot_id": "deep_0001", "url": "u1"}, {"slot_id": "deep_0002", "url": "u2"}]), encoding="utf-8")
+    pending = [{"deep_dive_order": i, "thread_id": f"t{i}"} for i in (1, 2, 3)]
+    manifest = {"coverage": {"admitted": 3}, "pending": pending}
+    (run / "deep_dive_manifest_v1.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (run / "batch_001_extracts_v1.jsonl").write_text("{}\n", encoding="utf-8")
+    (run / "captures" / "unavailable_slots.json").write_text(json.dumps([
+        {"slot_id": "deep_0002", "url": "u2", "status": "source_deleted_or_removed", "evidence": "Sorry, this post was deleted", "batch": "001"}]),
+        encoding="utf-8")
+
+    result = pipe.scope(run, 1)
+
+    narrowed = json.loads((Path(result["finalize_dir"]) / "deep_dive_manifest_v1.json").read_text(encoding="utf-8"))
+    assert [r["thread_id"] for r in narrowed["pending"]] == ["t1"]
+    assert narrowed["coverage"]["admitted"] == 1
+    assert narrowed["coverage"]["source_unavailable_at_capture"] == [
+        {"slot_id": "deep_0002", "url": "u2", "status": "source_deleted_or_removed", "evidence": "Sorry, this post was deleted"}]
+
+
 def test_capture_stops_on_refusal_without_retrying(tmp_path: Path) -> None:
     run = tmp_path / "run"
     (run / "capture-batches").mkdir(parents=True)

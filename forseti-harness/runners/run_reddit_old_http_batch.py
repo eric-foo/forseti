@@ -326,7 +326,13 @@ def run_reddit_old_http_batch(
                 row["packet_dir"] = str(packet_dir)
             if packet_dir is not None:
                 row["content_record_preserved"] = _packet_preserves_content_record(packet_dir)
-            if capture_exit == CONTENT_EXTRACTION_FAILED_EXIT_CODE and packet_dir is not None:
+            # The block-shell diagnostic is derived from preserved HTTP response
+            # bytes, which only the direct-HTTP transport writes.
+            if (
+                capture_exit == CONTENT_EXTRACTION_FAILED_EXIT_CODE
+                and packet_dir is not None
+                and transport == OLD_HTTP_TRANSPORT
+            ):
                 try:
                     diagnostic = _preserve_block_shell_diagnostic(
                         packet_dir=packet_dir,

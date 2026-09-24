@@ -210,6 +210,36 @@ def test_non_block_shell_extraction_failure_does_not_fake_diagnostic(
     assert summary["access_diagnostic_count"] == 0
 
 
+def test_www_extraction_failure_is_not_an_access_diagnostic_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from runners import run_source_capture_realchrome_cdp_packet as cdp
+
+    def capture(**kwargs):
+        packet_dir = Path(kwargs["output_directory"])
+        (packet_dir / "raw").mkdir(parents=True)
+        (packet_dir / "raw" / "02_02_realchrome_visible_text.txt").write_text(
+            "Sorry, this post was deleted by the person who originally posted it.", encoding="utf-8"
+        )
+        return CONTENT_EXTRACTION_FAILED_EXIT_CODE, str(packet_dir)
+
+    monkeypatch.setattr(cdp, "run_source_capture_realchrome_cdp_packet", capture)
+    _exit_code, message = run_reddit_old_http_batch(
+        slots=[BatchSlot("slot_a", "https://www.reddit.com/r/Sephora/comments/1v87d9a/talc/")],
+        output_root=tmp_path / "out",
+        decision_question="What source-visible content was present?",
+        transport="www_realchrome",
+        cadence_mode="fixed",
+        delay_seconds=0,
+    )
+
+    summary = json.loads(Path(message).read_text(encoding="utf-8"))
+    row = summary["results"][0]
+    assert row["content_extraction_failed"] is True
+    assert row["access_diagnostic_status"] == "not_applicable"
+    assert summary["access_diagnostic_failure_count"] == 0
+
+
 @pytest.mark.parametrize(
     "slot",
     [
