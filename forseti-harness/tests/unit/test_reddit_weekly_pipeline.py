@@ -346,3 +346,62 @@ def test_model_nonzero_exit_rejects_structured_output(tmp_path: Path, monkeypatc
         model="sonnet", effort="medium", timeout=1, executable="claude", bare=False, cwd=tmp_path)
     with pytest.raises(pipe.PipelineError, match="model call failed"):
         call("prompt", pipe.ADJUDICATE_SCHEMA)
+
+
+def _catalog_row(tmp_path: Path, tid: str, admission: str, reporters: int, brand: str | None = None) -> dict:
+    record = tmp_path / f"{tid}_content_record.json"
+    record.write_text(json.dumps({"comments": [{"comment_id": "c1", "body_text": f"My {tid}  foundation turned orange."}]}),
+                      encoding="utf-8")
+    return {
+        "thread_id": tid, "admission": admission, "subreddit": "palemua", "contribution_class": "material_addition",
+        "core_problem": f"problem {tid}", "where_customers_go": [], "caveats": [], "content_record": str(record),
+        "listing": {"subreddit": "palemua", "comments": 40, "title": f"title {tid}"},
+        "comment_completeness": {"comments_captured": 30},
+        "named_brands": [{"brand": brand, "context": "failure"}] if brand else [],
+        "quotes": [{"comment_id": "c1", "text": f"My {tid} foundation turned orange."}],
+        "evidence_read_receipt": {"claims": [{"evidence_kind": "recurrence", "corroboration_status": "corroborated",
+                                              "statement": "It oxidizes.", "independent_reporters":
+                                              {"count": reporters, "handles": [f"u{i}" for i in range(reporters)]}}]},
+    }
+
+
+def _finalized(tmp_path: Path, name: str, rows: list[dict]) -> Path:
+    out = tmp_path / name
+    out.mkdir()
+    (out / "reddit_top100_2026-09-23_threads.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    return out
+
+
+def test_delta_lists_only_what_new_threads_add(tmp_path: Path) -> None:
+    old_rows = [_catalog_row(tmp_path, "1old001", "yes", 5, "Dior")]
+    new_rows = old_rows + [_catalog_row(tmp_path, "1new001", "yes", 3, "Dior"), _catalog_row(tmp_path, "1new002", "no", 0)]
+    text = pipe.delta(_finalized(tmp_path, "b", new_rows), _finalized(tmp_path, "a", old_rows))
+
+    assert json.loads(text.splitlines()[0]) == {"threads": 3, "new": 2, "new_yes": 1, "new_contribution": {"material_addition": 1}}
+    assert "-- dior: new 1, old 1 [1old001]" in text
+    assert "problem 1old001" not in text  # old evidence is referenced by ID, never reprinted
+    assert "1new001 r/palemua n=3 material_addition" in text and "1new002" not in text
+
+
+def test_evidence_prints_claims_handles_and_quotes(tmp_path: Path) -> None:
+    fin = _finalized(tmp_path, "f", [_catalog_row(tmp_path, "1new001", "yes", 2)])
+    text = pipe.evidence(fin, ["1new001", "1gone01"])
+    assert "claim[recurrence/corroborated] n=2 ['u0', 'u1']: It oxidizes." in text
+    assert 'quote c1: "My 1new001 foundation turned orange."' in text
+    assert "== 1gone01: NOT IN CATALOG" in text
+
+
+def test_check_passes_a_faithful_read_and_fails_loudly_otherwise(tmp_path: Path) -> None:
+    fin = _finalized(tmp_path, "f", [_catalog_row(tmp_path, "1new001", "yes", 3), _catalog_row(tmp_path, "1new002", "no", 0)])
+    read = tmp_path / "weekly_read.md"
+    read.write_text("### 1. Card\n- **Cross-thread:** `1new001`\n"
+                    "- **Quotes:** \"My 1new001 foundation turned orange.\" · \"My 1new001  foundation\"\n", encoding="utf-8")
+    assert pipe.check(fin, read) == {"cited_threads": 1, "quotes": 2, "yes": 1, "no": 1,
+                                     "contribution": {"material_addition": 1}}
+
+    read.write_text("- **Cross-thread:** `1new002` `1miss01` `run.json`\n- **Quotes:** \"It turned green.\"\n", encoding="utf-8")
+    with pytest.raises(pipe.PipelineError) as failure:
+        pipe.check(fin, read)
+    message = str(failure.value)
+    assert "1new002 is admission=no" in message and "1miss01 is not in the catalog" in message
+    assert "not verbatim source text: It turned green." in message
