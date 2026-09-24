@@ -2649,6 +2649,27 @@ def test_current_reconciliation_schema_is_persisted_at_public_prepare(tmp_path: 
         validate_reconciliation_stage(bundle, stage, response)
 
 
+def test_public_default_keeps_historical_v4_for_older_method_response_v3(tmp_path):
+    from runners.run_semantic_evidence_integration import prepare_reconciliation_level
+    bundle = build_bundle(_source_v7(count=2), max_prompt_bytes=30_000)
+    compiled = validate_batch_responses(bundle, _v5_responses(bundle, detailed_per_batch=2))
+    verification, _ = prepare_row_verification(bundle, compiled)
+    verified = apply_row_verification(bundle, compiled, verification, _row_verification_responses(verification))
+    for name, value in (("bundle", bundle), ("verified", verified)):
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    version = semantic_module.RECONCILIATION_RESPONSE_VERSION_V3
+    result = prepare_reconciliation_level(bundle_path=tmp_path / "bundle.json",
+        compilation_path=tmp_path / "verified.json", stage_out=tmp_path / "stage.json",
+        prompt_dir=tmp_path / "prompts", response_version=version)
+    # The v5 default is scoped to current v12-v14 methods; older methods keep v4.
+    assert result["authoring_revision"] == semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4
+    stage, prompts = prepare_reconciliation_stage(bundle, verified, response_version=version,
+        authoring_revision=semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V4)
+    assert json.loads((tmp_path / "stage.json").read_text()) == stage
+    for row in prompts:
+        assert (tmp_path / "prompts" / f"{row['batch_id']}.md").read_bytes() == (row["prompt"] + "\n").encode()
+
+
 def test_explicit_v7_decision_authoring_preserves_source_and_legacy_replay(tmp_path):
     bundle = build_bundle(_source_v7(count=2), max_prompt_bytes=30_000)
     responses = _v5_responses(bundle, detailed_per_batch=2)

@@ -100,6 +100,15 @@ def group_refs(group):
     return set(group["unit_ids"]) | set(group.get("citation_inventory", {}))
 
 
+def unit_observations(groups):
+    """Units share their row-body observation; an uncaptured body keeps its marker."""
+    result = {}
+    for group in groups:
+        body = [ref for ref, value in group["citation_inventory"].items() if value["kind"] == "source_body"]
+        result.update({ref: body[0] if body else ref for ref in group["unit_ids"]})
+    return result
+
+
 def citation_inventory(groups):
     """Resolve each observation to all of its exact original source locations."""
     inventory = {}
@@ -878,15 +887,14 @@ def checked_projection(results):
             records.append({"handle": handle, **{k: v for k, v in finding.items() if k not in roles},
                             "relation_counts": {k: len(v) for k, v in roles.items()}})
             if request["payload"].get("citation_contract"):
-                observations = {}
                 inventory = citation_inventory(request["payload"]["source_groups"])
-                for group in request["payload"]["source_groups"]:
-                    body = next(ref for ref, value in group["citation_inventory"].items() if value["kind"] == "source_body")
-                    observations.update({ref: body for ref in group["unit_ids"]})
-                    observations.update({ref: ref for ref in group["citation_inventory"]})
+                observations = {**unit_observations(request["payload"]["source_groups"]),
+                                **{ref: ref for ref in inventory}}
+                kinds = {ref: inventory[ref]["kind"] if ref in inventory else "source_body_unavailable"
+                         for ref in observations.values()}
                 records[-1]["source_observations"] = {role: sorted({observations[ref] for ref in refs})
                                                       for role, refs in roles.items()}
-                records[-1]["observation_kinds"] = {role: sorted({inventory[observations[ref]]["kind"] for ref in refs})
+                records[-1]["observation_kinds"] = {role: sorted({kinds[observations[ref]] for ref in refs})
                                                     for role, refs in roles.items()}
         # Equal reasons can share transport, without erasing any distinct reason.
         unused = defaultdict(list)
@@ -1012,6 +1020,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     root = Path(root)
     citation_contract = consumer_citation_contract(root)
     groups = source_groups(source, verified, view, citation_contract=citation_contract)
+    inventory = citation_inventory(groups)  # conflicting shared attribution fails before judgment
     all_ids = [i for g in groups for i in g["unit_ids"]]
     context_source = {k: v for k, v in source.items()
                       if k not in {"captured_items", "source_artifacts", "containers", "source_sha256"}}
@@ -1122,7 +1131,6 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
     checked.extend(reused)
     membership.update(reused_membership)
     compiled_refs = {ref for refs in membership.values() for ref in refs}
-    inventory = citation_inventory(groups)
     if compiled_refs - set(all_ids) - set(inventory):
         raise ValueError("consumer compiled membership has foreign citations")
     exact(sorted(compiled_refs & set(all_ids)), all_ids, "consumer compiled membership")
@@ -1231,9 +1239,7 @@ def advance(source, verified, view, commission, capacity, root, *, context, coun
         if citation_contract:
             original_judgments = [{"judgment": response,
                 "citation_inventory": citation_inventory(request["payload"]["source_groups"]),
-                "unit_observations": {ref: next(key for key, value in group["citation_inventory"].items()
-                    if value["kind"] == "source_body") for group in request["payload"]["source_groups"]
-                    for ref in group["unit_ids"]}}
+                "unit_observations": unit_observations(request["payload"]["source_groups"])}
                 for request, response in reopened_results]
         missing, reviews = consume(review_requests("answer_review_after_reopen", {**review_payload,
             "reopened_original_judgments": original_judgments}))
