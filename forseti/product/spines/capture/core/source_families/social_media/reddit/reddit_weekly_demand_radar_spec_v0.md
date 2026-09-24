@@ -198,6 +198,31 @@ The same reader exposes `read_policy_id: reddit_weekly_value_bounded_read_v1`;
 this identifies the within-thread attention policy and does not replace or
 version the Top100 listing methodology.
 
+**Execution (2026-09-24).** `run_reddit_weekly_pipeline.py` runs the weekly
+model and thread-capture stages unattended, in order: `adjudicate` (row-level
+listing adjudication of the reader queue, one structured model call per chunk,
+then the deep-dive manifest and 10-URL capture batches with `?sort=confidence`
+thread URLs, because a fresh browser profile otherwise renders comments
+newest-first), `capture` (drives `run_reddit_old_http_batch.py` per batch; one
+retry for non-access failures, and any refusal, access diagnostic, or tripped
+breaker stops the run), `read` (renders each batch in the read policy's
+attention order, takes judgment fields only from one structured model call per
+batch, fills fixed fields and verbatim quote text from the content record,
+validates every receipt with the finalizer's own check, repairs failing threads
+once), and `scope` (a narrowed finalize directory when the owner stops early).
+Model calls use the Claude Code CLI in headless print mode with no tools; every
+call keeps a receipt under the run directory, so each stage resumes, and token
+usage is logged to `model_usage_log.jsonl`. This replaced an agent-supervised
+loop that measured ~137-179k tokens per 10-thread batch (2026-09-23 run).
+Measured on the 2026-09-23 corpus (Sonnet, medium effort; one week, so not an
+out-of-sample result): `read` used ~50k input and ~15k output tokens per batch
+(about $0.35 and 2.5 minutes, one thread repaired) and matched the agent
+reader's yes/no on 10 of 10 threads; `adjudicate` over 2,730 rows took ~5 minutes
+and ~$2, admitted 1,271 rows (the one-pass agent review admitted 1,044), and
+kept 93.7% of the threads later read as yes and 54 of the 58 threads that backed
+that week's cards. Recall is measured against that one-pass review, not ground
+truth; re-measure when the brief changes.
+
 After all admitted threads have final deep-dive extracts, run
 `run_reddit_weekly_finalizer.py`. Completion emits exactly two deterministic
 access artifacts: `run.json` and
