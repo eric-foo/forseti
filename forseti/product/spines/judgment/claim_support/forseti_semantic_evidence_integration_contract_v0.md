@@ -2,13 +2,13 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v136
+version: v137
 effective_date: 2026-09-25
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v136
+# Semantic Evidence Integration Contract v137
 
 ## Purpose
 
@@ -2135,7 +2135,7 @@ artifact.
 #### Lean source consolidation (current)
 
 New `advance --source ... --run-dir ...` runs use
-`lean_evidence_consolidation_v1`. This is the owner-accepted simplification of
+`lean_evidence_consolidation_v2`. This hardens the owner-accepted simplification of
 2026-09-25, implemented in `judgment/lean_evidence_consolidation.py` and the
 existing native runner. It is distinct from the provisional experiment and
 from a verified atomic compilation. Saved runs keep their original method;
@@ -2145,8 +2145,12 @@ historical route. Never restamp an old result as a lean result or vice versa.
 The routine has three stages:
 
 1. Independent bounded reads of complete original bodies and attached context.
-   Each supplied row must contribute a source-linked finding or a concrete
-   exclusion reason. Context retains its own speaker, role and uncertainty.
+   Each supplied row's body must be cited by a finding or the row needs a concrete
+   exclusion reason. A shared context citation cannot account for uncited bodies.
+   This is explicit accounting, not proof of semantic recall; the independent
+   omission audit checks for missed meaning. Context retains its own speaker,
+   role and uncertainty. Saved v1 runs retain their historical context-based
+   accounting, which does not establish that each body's contribution was used.
    Accounting uses the union of cited and reasoned rows once: shared context or
    a redundant exclusion label cannot create extra observations. A complete
    original may contain both support and opposition under different conditions;
@@ -2156,6 +2160,9 @@ The routine has three stages:
    A known literal citation in finding prose also remains reachable and reviewed
    when no relation list repeats it. Reachability grants no support, opposition,
    context or independent-origin credit; those relations are not inferred by code.
+   Routing identifiers are not prose citations. A located statement represented
+   as both body and context retains both reference records but counts once per
+   evidence relation; unknown attribution is not filled from another record.
 2. Cross-batch synthesis over compact findings. Every input finding remains
    accounted for, including reasoned exclusions; the final fold authors coherent
    answers to all commissioned questions. Counts, provenance and literal source
@@ -2164,6 +2171,11 @@ The routine has three stages:
    cited originals, plus an omission audit. Only material exceptions trigger one
    bounded repair and independent recheck. An unresolved material exception is
    a visible incomplete result, never a checked answer.
+   Repair selects one complete enclosing record per required original, avoiding
+   sibling expansion through shared context. Replacements may retain their own
+   question routes; new findings stay within nominated questions. Recheck receives
+   the original minor notes as well as material objections, so it can resolve or
+   retain them against the corrected output.
 
 Large inputs require multiple bounded calls within a stage. A complete original
 envelope is never silently truncated. Read/review slices may execute in parallel
@@ -2193,10 +2205,14 @@ well-formed response, empty exception list or receipt alone is not that status.
 deterministically; it does not pay for another synthesis. Historical v3 packet
 consumers retain their own contracts and are not fed invented semantic units.
 
-The start pins source, commission, capacity and delivery layout. Saved starts
-retain their original layout and exact reviewed requests. Resume reuses accepted responses
-without a new judgment; changed inputs or a missing accepted artifact fail
-locally. Provider failures have no automatic retry. Full Collection lineage and
+The start pins method, source, commission, capacity and delivery layout. Saved v1
+starts retain their original layout, accounting, requests, packets and delivered
+method identity; they are not upgraded in place. Resume reuses accepted responses
+without a new judgment. Changed inputs, a missing start or accepted artifact, or
+a saved request the pinned method no longer reproduces fail locally before new
+requests are written. New v2 commissions reject unknown or misplaced top-level
+settings and malformed assessment configuration. Provider failures have no
+automatic retry. Full Collection lineage and
 acquisition obligations remain separate from the consolidation result.
 
 The seal admits this distinct checked packet as semantic integration against
@@ -2210,6 +2226,9 @@ in the exact output reviewed against originals. The comparison consumer rejects
 different scope or direction, insufficient/isolated support and incompatible
 conflict/source roles; it does not infer axis or product identities from prose.
 This adds no field or model call to ordinary unscoped consolidation.
+For v2, compiler-known source-role or origin violations enter the existing repair
+path before independent review is launched. The corrected answer still requires
+independent recheck; unresolved violations never become usable comparison packets.
 
 The remaining method-specific preparation, calibration and reconciliation
 sections describe historical/prepared-input routes unless they explicitly name
@@ -2678,7 +2697,8 @@ python -m runners.run_semantic_evidence_integration consume-evidence-packet --pa
 
 Optional `--question-id` selects commissioned questions without rewriting them.
 The consumer preserves the packet hash, locator, review scope and resolvable
-original citations. A material review failure cannot be delivered as checked.
+original citations. A material review failure cannot be delivered as checked
+or projected as a ready packet.
 
 Historical bundles retain their saved byte ceilings (120,000 by default for the
 last atomic method); omitted resume limits never repack them. The continuation

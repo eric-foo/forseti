@@ -11,7 +11,7 @@ from judgment import lean_evidence_consolidation as lean
 from judgment.phase_a_evidence_consumer import consume_checked_packet
 from runners import run_semantic_evidence_integration as native
 from runners import semantic_execution as execution
-from test_lean_evidence_consolidation import fixture, respond
+from test_lean_evidence_consolidation import complete, fixture, respond
 from test_semantic_execution import simulated_provider, write
 
 
@@ -144,6 +144,23 @@ def test_cli_projection_delivery_and_pin_rejections(tmp_path, capsys):
     write(kwargs["answer_commission_path"], changed)
     assert native.advance_semantic_run(**kwargs)["status"] == "SEMANTIC_ADVANCE_BLOCKED"
     assert native.advance_semantic_run(**{**inputs(tmp_path / "fresh"), "max_prompt_bytes": 120000})["status"] == "SEMANTIC_ADVANCE_BLOCKED"
+
+
+def test_revision_packet_is_not_projected_as_ready(tmp_path, capsys):
+    def failing(request):
+        response = respond(request)
+        if request["phase"] in {"lean_review", "lean_recheck"} and request["payload"]["findings"]:
+            response["exceptions"] = [{"severity": "material", "question_ids": ["q"], "finding_ids": ["f0"],
+                                       "source_refs": request["payload"]["allowed_refs"], "reason": "Still unsupported."}]
+        return response
+
+    state, _ = complete(fixture(), tmp_path / "run", tmp_path, failing)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_REQUIRES_REVISION", state
+    projected = tmp_path / "projected.json"
+    assert native.main(["project-evidence-packet", "--view", state["packet_path"],
+                        "--packet-out", str(projected)]) == 2
+    assert "requires revision" in json.loads(capsys.readouterr().out)["error"]
+    assert not projected.exists()
 
 
 def test_unknown_saved_method_cannot_fall_back_to_history(tmp_path):

@@ -13,7 +13,9 @@ from jsonschema import Draft202012Validator, ValidationError
 
 from judgment.complete_case_consumer import compact, digest, obj, read, retain, validate_capacity
 
-METHOD_VERSION = "lean_evidence_consolidation_v1"
+LEGACY_METHOD_VERSION = "lean_evidence_consolidation_v1"
+METHOD_VERSION = "lean_evidence_consolidation_v2"
+METHOD_VERSIONS = {LEGACY_METHOD_VERSION, METHOD_VERSION}
 REQUEST_VERSION = "lean_evidence_request_v1"
 RESULT_VERSION = "lean_evidence_result_v1"
 PACKET_VERSION = "lean_evidence_packet_v1"
@@ -150,8 +152,24 @@ def response_schema(phase, payload):
     return obj(fields)
 
 
-def _commission(commission):
+def _method(value):
+    version = value.get("method_version", LEGACY_METHOD_VERSION)
+    if version not in METHOD_VERSIONS:
+        raise ValueError("unknown lean method version")
+    return version
+
+
+def _method_fields(version):
+    return {} if version == LEGACY_METHOD_VERSION else {"method_version": version}
+
+
+def _commission(commission, *, method_version=LEGACY_METHOD_VERSION):
     value = deepcopy(DEFAULT_COMMISSION if commission is None else commission)
+    if not isinstance(value, dict):
+        raise ValueError("lean commission must be an object")
+    if method_version == METHOD_VERSION and set(value) - {
+            "questions", "worker_instructions", "coverage", "comparison_scope", "review", "assessment_only"}:
+        raise ValueError("unknown or misplaced lean commission field")
     questions = value.get("questions", [])
     if not questions or any(not isinstance(q, dict) or not isinstance(q.get("id"), str)
                             or not q["id"] or not isinstance(q.get("question"), str) or not q["question"] for q in questions):
@@ -180,9 +198,13 @@ def _commission(commission):
     if (review["omission_mode"] not in {"sample", "all"} or type(review["sample_size"]) is not int
             or review["sample_size"] < 1 or not isinstance(review["seed"], str)):
         raise ValueError("invalid lean omission sample")
-    checks = value.get("assessment_only", {}).get("checks", [])
-    if not isinstance(checks, list) or any(not isinstance(c, dict) or not c.get("id")
-                                         or not isinstance(c.get("source_rows", []), list) for c in checks):
+    assessment = value.get("assessment_only", {})
+    if not isinstance(assessment, dict):
+        raise ValueError("invalid lean assessment configuration")
+    checks = assessment.get("checks", [])
+    if not isinstance(checks, list) or any(not isinstance(c, dict) or not isinstance(c.get("id"), str) or not c["id"]
+                                         or not isinstance(c.get("source_rows", []), list)
+                                         or any(not isinstance(row, str) for row in c.get("source_rows", [])) for c in checks):
         raise ValueError("invalid lean commissioned checks")
     _exact([c["id"] for c in checks], [c["id"] for c in checks], "check")
     return value
@@ -344,8 +366,12 @@ def _catalogue(source, records):
 
 def _make_request(phase, payload, capacity):
     _validate_payload_layout(phase, payload)
+    method_version = _method(payload)
     schema = response_schema(phase, payload)
     instructions = BASE + "\n" + PHASE[phase]
+    if method_version == METHOD_VERSION and phase == "lean_read":
+        instructions += ("\nAccount for each record's BODY: cite its body_ref in a finding or give that row an "
+                         "unused_rows reason. Citing shared context never accounts for an uncited body.\n")
     if _layout(payload) == DELIVERY_LAYOUT:
         if "captures" in payload:
             instructions += "\nEach record's capture_ref resolves its complete shared capture metadata in captures.\n"
@@ -377,7 +403,7 @@ or insufficient evidence requires parity_or_unresolved. Independent reviewers
 must assess these exact verdicts as material answer claims, including their
 source competence and whether the specified product pair/axis is supported.
 """
-    return {"version": REQUEST_VERSION, "method_version": METHOD_VERSION, "phase": phase,
+    return {"version": REQUEST_VERSION, "method_version": method_version, "phase": phase,
             "payload": payload, "prompt": prompt, "schema": schema, "capacity": capacity}
 
 
@@ -395,7 +421,7 @@ def build_request(phase, payload, capacity, count):
 
 
 def validate_request(request, expected_sha256):
-    if request.get("version") != REQUEST_VERSION or request.get("method_version") != METHOD_VERSION:
+    if request.get("version") != REQUEST_VERSION or request.get("method_version") not in METHOD_VERSIONS:
         raise ValueError("invalid lean request identity")
     if request.get("phase") not in PHASE:
         raise ValueError("invalid lean request phase")
@@ -408,6 +434,19 @@ def validate_request(request, expected_sha256):
     return request
 
 
+def _prose(value):
+    """Yield textual values without treating routing identifiers as citations."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if key not in {"question_id", "question_ids", "axis_id", "finding_id", "finding_ids", "input_refs"}:
+                yield from _prose(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _prose(item)
+
+
 def _text_refs(value, allowed):
     if isinstance(value, str):
         refs = set(re.findall(r"\b[e]\d+\b", value))
@@ -416,7 +455,7 @@ def _text_refs(value, allowed):
         if re.search(r"\]\(https?://", value):
             raise ValueError("lean prose citations must use bound observation handles")
     elif isinstance(value, dict):
-        for item in value.values():
+        for item in _prose(value):
             _text_refs(item, allowed)
     elif isinstance(value, list):
         for item in value:
@@ -491,11 +530,26 @@ def _validate_comparison_support(packet):
                 raise ValueError("lean directional comparison lacks attributed support")
 
 
-def _compile_answers(answers, allowed):
+def _comparison_exceptions(answers, registry):
+    """Route known compiler-bound failures through the existing one-repair path."""
+    exceptions = []
+    for answer in answers:
+        for verdict in answer.get("comparison_verdicts", []):
+            try:
+                _validate_comparison_support({"answers": [{"comparison_verdicts": [verdict]}], "registry": registry})
+            except ValueError as exc:
+                exceptions.append({"severity": "material", "question_ids": [answer["question_id"]],
+                    "finding_ids": ["answer:" + answer["question_id"]],
+                    "source_refs": sorted(_refs(verdict)), "reason": str(exc)})
+    return exceptions
+
+
+def _compile_answers(answers, allowed, *, method_version=LEGACY_METHOD_VERSION):
     """Normalize flat citations without guessing support/opposition meaning."""
     result = deepcopy(answers)
     for answer in result:
-        literal = set(re.findall(r"\be\d+\b", compact(answer)))
+        text = compact(answer) if method_version == LEGACY_METHOD_VERSION else "\n".join(_prose(answer))
+        literal = set(re.findall(r"\be\d+\b", text))
         structured = {ref for verdict in answer.get("comparison_verdicts", []) for ref in _refs(verdict)}
         if (literal | structured) - set(allowed):
             raise ValueError("foreign lean answer citation")
@@ -521,7 +575,8 @@ def validate_response(request, response, count):
         # standalone contribution is called unused. Preserve that reason in the
         # accepted response; coverage is a union, never extra evidence credit.
         used_rows = {r["row_id"] for r in p["records"] if r["row_id"] not in unused
-                     and used & {r["body_ref"], *r["context_refs"]}}
+                     and (r["body_ref"] in used if _method(p) == METHOD_VERSION
+                          else bool(used & {r["body_ref"], *r["context_refs"]}))}
         _exact([*used_rows, *unused], [r["row_id"] for r in p["records"]], "read row")
     elif phase == "lean_synthesis":
         _validate_findings(response["findings"], allowed, questions)
@@ -538,7 +593,13 @@ def validate_response(request, response, count):
     elif phase == "lean_repair":
         replacements = [r["finding_id"] for r in response["replacements"]]
         _exact(replacements + response["remove_finding_ids"], p["target_findings"], "repair finding")
-        _validate_findings([r["finding"] for r in response["replacements"]] + response["new_findings"], allowed, set(p["target_questions"]))
+        targets = set(p["target_questions"])
+        # A corrected finding keeps its own question routes even when the
+        # exception named only one; recovered new findings stay nominated.
+        routes = {f["finding_id"]: set(f["question_ids"]) for f in p["findings"]}
+        for row in response["replacements"]:
+            _validate_findings([row["finding"]], allowed, targets | routes[row["finding_id"]])
+        _validate_findings(response["new_findings"], allowed, targets)
         _validate_answers(response["answers"], p["target_questions"], allowed, p["commission"])
     else:
         _validate_review_response(p, response)
@@ -624,7 +685,15 @@ def _pack(items, build, maximum):
     return batches
 
 
-def _compile_findings(findings, registry):
+def _compile_findings(findings, registry, *, method_version=LEGACY_METHOD_VERSION):
+    def observation_key(ref):
+        metadata = registry[ref]
+        location = metadata["locations"][0]
+        # A located original may be delivered as both a body and context. Keep
+        # both attribution records reachable, but count that statement once.
+        return (digest([location["source_artifact_id"], location["source_ref"], metadata["text_sha256"]])
+                if method_version == METHOD_VERSION and location.get("source_ref") else ref)
+
     result = []
     for index, finding in enumerate(findings):
         value = {k: v for k, v in finding.items() if k not in {"input_refs", "accounting"}}
@@ -633,8 +702,8 @@ def _compile_findings(findings, registry):
         for role in RELATIONS:
             refs = set(value[role])
             known = sorted({registry[r]["origin_ref"] for r in refs if registry[r]["origin_ref"] is not None})
-            value["accounting"][role] = {"source_observation_count": len(refs), "known_origin_refs": known,
-                "known_origin_count": len(known), "unknown_origin_observation_count": sum(registry[r]["origin_ref"] is None for r in refs),
+            value["accounting"][role] = {"source_observation_count": len({observation_key(ref) for ref in refs}), "known_origin_refs": known,
+                "known_origin_count": len(known), "unknown_origin_observation_count": len({observation_key(r) for r in refs if registry[r]["origin_ref"] is None}),
                 "source_roles": sorted({registry[r]["source_role"] for r in refs})}
         result.append(value)
     return result
@@ -664,14 +733,18 @@ def _omission_rows(inventory, commission):
     return selected
 
 
+def _rows_for_refs(inventory, refs):
+    """Deliver each required original once, with its complete enclosing context."""
+    evidence = {inventory["registry"][ref]["locations"][0]["evidence_id"] for ref in refs}
+    return [row for row in inventory["records"] if row["evidence_id"] in evidence]
+
+
 def _review_selection(inventory, commission, findings, answers, *, extra_refs=()):
     original_rows = inventory["records"]
     omission = _omission_rows(inventory, commission)
     cited = set(ref for f in findings for ref in finding_refs(f)) | set(ref for a in answers for ref in a["evidence_refs"]) | set(extra_refs)
     selected = set(omission)
-    for ref in cited:
-        location = inventory["registry"][ref]["locations"][0]["evidence_id"]
-        selected.add(next(r["row_id"] for r in original_rows if r["evidence_id"] == location))
+    selected.update(row["row_id"] for row in _rows_for_refs(inventory, cited))
     checks = commission.get("assessment_only", {}).get("checks", [])
     by_evidence = {r["evidence_id"]: r["row_id"] for r in original_rows}
     for check in checks:
@@ -682,7 +755,7 @@ def _review_selection(inventory, commission, findings, answers, *, extra_refs=()
     return [r for r in original_rows if r["row_id"] in selected], omission
 
 
-def _review_payload(inventory, commission, findings, answers, rows, omission, prior_exceptions=None, *, delivery_layout=LEGACY_DELIVERY_LAYOUT):
+def _review_payload(inventory, commission, findings, answers, rows, omission, prior_exceptions=None, *, delivery_layout=LEGACY_DELIVERY_LAYOUT, method_version=LEGACY_METHOD_VERSION):
     originals = _originals(inventory, rows, delivery_layout=delivery_layout)
     refs = [o["ref"] for o in originals["observations"]]
     local_findings = [f for f in findings if finding_refs(f) & set(refs)]
@@ -692,7 +765,7 @@ def _review_payload(inventory, commission, findings, answers, rows, omission, pr
                "findings": local_findings, "findings_sha256": digest(findings),
                "claim_ids": ["answer:" + a["question_id"] for a in answers] + [f["finding_id"] for f in local_findings],
                "checks": local_checks, "omission_row_ids": [r["row_id"] for r in rows if r["row_id"] in omission],
-               "allowed_refs": refs, **originals}
+               "allowed_refs": refs, **originals, **_method_fields(method_version)}
     if prior_exceptions is not None:
         payload["prior_exceptions"] = prior_exceptions
     if delivery_layout == DELIVERY_LAYOUT:
@@ -703,13 +776,13 @@ def _review_payload(inventory, commission, findings, answers, rows, omission, pr
     return payload
 
 
-def _review_requests(inventory, commission, capacity, findings, answers, count, *, phase="lean_review", prior_exceptions=None, delivery_layout=LEGACY_DELIVERY_LAYOUT):
+def _review_requests(inventory, commission, capacity, findings, answers, count, *, phase="lean_review", prior_exceptions=None, delivery_layout=LEGACY_DELIVERY_LAYOUT, method_version=LEGACY_METHOD_VERSION):
     extra_refs = {ref for exception in prior_exceptions or [] for ref in exception["source_refs"]} if delivery_layout == DELIVERY_LAYOUT else set()
     rows, omission = _review_selection(inventory, commission, findings, answers, extra_refs=extra_refs)
 
     def build(selected):
         return build_request(phase, _review_payload(inventory, commission, findings, answers, selected, omission, prior_exceptions,
-                                                   delivery_layout=delivery_layout), capacity, count)
+                                                   delivery_layout=delivery_layout, method_version=method_version), capacity, count)
 
     requests = _pack(rows, build, capacity["max_rows_per_slice"])
     original_rows = inventory["records"]
@@ -725,7 +798,7 @@ def project_packet(result, source):
     inventory = _source_inventory(source)
     if result.get("schema_version") != RESULT_VERSION or result.get("source_sha256") != source["source_sha256"]:
         raise ValueError("lean result/source identity differs")
-    packet = {"schema_version": PACKET_VERSION, "method_version": METHOD_VERSION,
+    packet = {"schema_version": PACKET_VERSION, "method_version": _method(result),
               "source_sha256": source["source_sha256"], **inventory,
               **{key: result[key] for key in ("commission", "capacity", "findings", "answers", "review", "status")},
               "result_sha256": digest(result), **_layout_fields(_layout(result))}
@@ -735,21 +808,22 @@ def project_packet(result, source):
 
 
 def validate_packet(packet):
-    if packet.get("schema_version") != PACKET_VERSION or packet.get("method_version") != METHOD_VERSION:
+    if packet.get("schema_version") != PACKET_VERSION or packet.get("method_version") not in METHOD_VERSIONS:
         raise ValueError("invalid lean packet version")
     if digest({k: v for k, v in packet.items() if k != "packet_sha256"}) != packet.get("packet_sha256"):
         raise ValueError("lean packet hash mismatch")
     inventory = _source_inventory(packet["source"])
     delivery_layout = _layout(packet)
+    method_version = _method(packet)
     if packet["source_sha256"] != packet["source"]["source_sha256"] or any(packet[k] != inventory[k] for k in ("registry", "origins", "records")):
         raise ValueError("lean packet provenance differs from original source")
-    if _compile_findings(packet["findings"], packet["registry"]) != packet["findings"]:
+    if _compile_findings(packet["findings"], packet["registry"], method_version=method_version) != packet["findings"]:
         raise ValueError("lean packet evidence accounting differs")
-    commission = _commission(packet["commission"])
+    commission = _commission(packet["commission"], method_version=method_version)
     questions = {q["id"] for q in commission["questions"]}
     _validate_findings(packet["findings"], set(packet["registry"]), questions)
     _validate_answers(packet["answers"], questions, set(packet["registry"]), commission)
-    if _compile_answers(packet["answers"], packet["registry"]) != packet["answers"]:
+    if _compile_answers(packet["answers"], packet["registry"], method_version=method_version) != packet["answers"]:
         raise ValueError("lean packet answer citation inventory differs from prose")
     _validate_comparison_support(packet)
     _exact([f["finding_id"] for f in packet["findings"]], [f["finding_id"] for f in packet["findings"]], "packet finding")
@@ -774,7 +848,7 @@ def validate_packet(packet):
             raise ValueError("lean packet has non-review proof")
         rows = [by_row[key] for key in proof["row_ids"]]
         payload = _review_payload(inventory, commission, packet["findings"], packet["answers"], rows, omission, review["prior_exceptions"],
-                                  delivery_layout=delivery_layout)
+                                  delivery_layout=delivery_layout, method_version=method_version)
         request = _make_request(proof["phase"], payload, packet["capacity"])
         request["measurement"] = proof["measurement"]
         if digest(request) != proof["request_sha256"] or digest(proof["response"]) != proof["response_sha256"]:
@@ -801,26 +875,43 @@ def advance(source, commission, capacity, root, *, count):
     state = {"status": "SEMANTIC_ADVANCE_BLOCKED", "method_version": METHOD_VERSION,
              "run_dir": str(root), "judgment_requests": [], "model_api_calls": 0}
     try:
-        commission = _commission(commission)
+        start_path = root / "start.json"
+        saved_start = read(start_path) if start_path.exists() else None
+        method_version = _method(saved_start) if saved_start is not None else METHOD_VERSION
+        state["method_version"] = method_version
+        commission = _commission(commission, method_version=method_version)
         capacity = deepcopy(DEFAULT_CAPACITY if capacity is None else capacity)
         validate_capacity(capacity)
         inventory = _source_inventory(source)
-        start_path = root / "start.json"
-        saved_start = read(start_path) if start_path.exists() else None
         delivery_layout = _layout(saved_start) if saved_start is not None else DELIVERY_LAYOUT
-        if saved_start is None and ((root / "requests").exists() or (root / "result.json").exists()):
+        if saved_start is None and any((root / name).exists() for name in ("requests", "result.json", "packet.json", "bundle.json")):
             raise ValueError("lean start binding missing; restore immutable run")
         for path in (root / "requests").glob("*/request.json"):
             if _layout(read(path)["payload"]) != delivery_layout:
                 raise ValueError("lean delivery layout pin differs from saved requests; do not rejudge")
-        pins = {"method_version": METHOD_VERSION, "source_sha256": source["source_sha256"],
+        pins = {"method_version": method_version, "source_sha256": source["source_sha256"],
                 "source_object_sha256": digest(source), "commission_sha256": digest(commission), "capacity_sha256": digest(capacity)}
         if saved_start is None or "delivery_layout" in saved_start:
             pins["delivery_layout"] = delivery_layout
         retain(start_path, pins)
-        accepted = []
+        accepted, reproduced = [], set()
+        saved_request_ids = set()
+        if (root / "result.json").exists():
+            saved_request_ids.update(row["request_sha256"] for row in read(root / "result.json")["accepted_responses"])
+        if (root / "packet.json").exists():
+            saved_request_ids.update(row["request_sha256"] for row in read(root / "packet.json")["review"]["responses"])
+
+        def saved_requests_reproduced():
+            # Saved requests precede any new one, so the pinned method must have
+            # rebuilt them all first. Otherwise method drift would re-judge silently.
+            saved = {p.name for p in (root / "requests").iterdir()} if (root / "requests").exists() else set()
+            if (saved | saved_request_ids) - reproduced:
+                raise ValueError("saved lean request is not reproduced by this method; restore the pinned method, do not rejudge")
 
         def consume(requests):
+            reproduced.update(request["request_sha256"] for request in requests)
+            if any(not (root / "requests" / request["request_sha256"]).exists() for request in requests):
+                saved_requests_reproduced()
             missing, results = [], []
             for request in requests:
                 info, response = _consume(request, root, count)
@@ -836,7 +927,8 @@ def advance(source, commission, capacity, root, *, count):
         def source_request(rows):
             originals = _originals(inventory, rows, delivery_layout=delivery_layout)
             return build_request("lean_read", {"commission": _actor_commission(commission), **originals,
-                "allowed_refs": [o["ref"] for o in originals["observations"]], "catalogue": _catalogue(source, rows)}, capacity, count)
+                "allowed_refs": [o["ref"] for o in originals["observations"]], "catalogue": _catalogue(source, rows),
+                **_method_fields(method_version)}, capacity, count)
 
         requests = _pack(inventory["records"], source_request, capacity["max_rows_per_slice"])
         missing, reads = consume(requests)
@@ -855,7 +947,8 @@ def advance(source, commission, capacity, root, *, count):
                 inputs = prior + notes[cursor:end]
                 allowed = sorted(set(ref for item in inputs for ref in finding_refs(item)))
                 payload = {"commission": _actor_commission(commission), "inputs": inputs, "allowed_refs": allowed,
-                           "excluded_rows": unused_rows, "final": end == len(notes), **_layout_fields(delivery_layout)}
+                           "excluded_rows": unused_rows, "final": end == len(notes), **_layout_fields(delivery_layout),
+                           **_method_fields(method_version)}
                 try:
                     request = build_request("lean_synthesis", payload, capacity, count)
                 except ValueError:
@@ -873,14 +966,17 @@ def advance(source, commission, capacity, root, *, count):
             current = [{k: v for k, v in f.items() if k != "input_refs"} for f in response["findings"]]
             cursor = end
             if request["payload"]["final"]:
-                answers = _compile_answers(response["answers"], inventory["registry"])
+                answers = _compile_answers(response["answers"], inventory["registry"], method_version=method_version)
                 break
-        findings = _compile_findings(current, inventory["registry"])
-        reviews, coverage = _review_requests(inventory, commission, capacity, findings, answers, count, delivery_layout=delivery_layout)
-        missing, assessed = consume(reviews)
-        if missing:
-            return state
-        exceptions = [e for _, response in assessed for e in response["exceptions"]]
+        findings = _compile_findings(current, inventory["registry"], method_version=method_version)
+        exceptions = _comparison_exceptions(answers, inventory["registry"]) if method_version == METHOD_VERSION else []
+        if not exceptions:
+            reviews, coverage = _review_requests(inventory, commission, capacity, findings, answers, count,
+                                                delivery_layout=delivery_layout, method_version=method_version)
+            missing, assessed = consume(reviews)
+            if missing:
+                return state
+            exceptions = [e for _, response in assessed for e in response["exceptions"]]
         material = [e for e in exceptions if e["severity"] == "material"]
         if material:
             finding_ids = {f["finding_id"] for f in findings}
@@ -892,11 +988,13 @@ def advance(source, commission, capacity, root, *, count):
             refs = {ref for e in material for ref in e["source_refs"]}
             refs |= {ref for f in findings if f["finding_id"] in targets for ref in finding_refs(f)}
             refs |= {ref for a in answers if a["question_id"] in questions for ref in a["evidence_refs"]}
-            rows = [r for r in inventory["records"] if refs & {r["body_ref"], *r["context_refs"]}]
+            rows = (_rows_for_refs(inventory, refs) if method_version == METHOD_VERSION else
+                    [r for r in inventory["records"] if refs & {r["body_ref"], *r["context_refs"]}])
             originals = _originals(inventory, rows, delivery_layout=delivery_layout)
             payload = {"commission": _actor_commission(commission), "findings": findings, "answers": answers,
                        "target_findings": targets, "target_questions": questions, "exceptions": material,
-                       "allowed_refs": [o["ref"] for o in originals["observations"]], **originals}
+                       "allowed_refs": [o["ref"] for o in originals["observations"]], **originals,
+                       **_method_fields(method_version)}
             repair = build_request("lean_repair", payload, capacity, count)
             missing, repaired = consume([repair])
             if missing:
@@ -907,21 +1005,25 @@ def advance(source, commission, capacity, root, *, count):
                          for f in findings if f["finding_id"] not in response["remove_finding_ids"]]
             next_id = max([int(f["finding_id"][1:]) for f in findings], default=-1) + 1
             candidate.extend({**f, "finding_id": "f" + str(next_id + i)} for i, f in enumerate(response["new_findings"]))
-            findings = _compile_findings(candidate, inventory["registry"])
-            answer_map = {a["question_id"]: a for a in _compile_answers(response["answers"], inventory["registry"])}
+            findings = _compile_findings(candidate, inventory["registry"], method_version=method_version)
+            answer_map = {a["question_id"]: a for a in _compile_answers(response["answers"], inventory["registry"], method_version=method_version)}
             answers = [answer_map.get(a["question_id"], a) for a in answers]
+            if method_version == METHOD_VERSION:
+                _validate_comparison_support({"answers": answers, "registry": inventory["registry"]})
             rechecks, coverage = _review_requests(inventory, commission, capacity, findings, answers, count,
-                                                  phase="lean_recheck", prior_exceptions=material, delivery_layout=delivery_layout)
+                                                  phase="lean_recheck", prior_exceptions=(exceptions if method_version == METHOD_VERSION else material),
+                                                  delivery_layout=delivery_layout, method_version=method_version)
             missing, assessed = consume(rechecks)
             if missing:
                 return state
             exceptions = [e for _, response in assessed for e in response["exceptions"]]
+        saved_requests_reproduced()
         status = "LEAN_EVIDENCE_CONSOLIDATION_REQUIRES_REVISION" if any(e["severity"] == "material" for e in exceptions) else "LEAN_EVIDENCE_CONSOLIDATION_CHECKED"
         coverage.update(exceptions=exceptions, responses=[{"request_sha256": r["request_sha256"],
             "response_sha256": digest(a), "response": a, "phase": r["phase"], "measurement": r["measurement"],
             "row_ids": [row["row_id"] for row in r["payload"]["records"]]} for r, a in assessed],
             checked_claim_ids=sorted({claim for r, _ in assessed for claim in r["payload"]["claim_ids"]}))
-        result = {"schema_version": RESULT_VERSION, "method_version": METHOD_VERSION, "status": status,
+        result = {"schema_version": RESULT_VERSION, "method_version": method_version, "status": status,
                   "source_sha256": source["source_sha256"], "commission": commission, "capacity": capacity,
                   "findings": findings, "answers": answers, "review": coverage, "accepted_responses": accepted,
                   **_layout_fields(delivery_layout)}

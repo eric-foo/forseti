@@ -222,8 +222,29 @@ def test_comparison_source_competence_and_independence_are_not_actor_authored(tm
             verdict["support_posture"] = "independently_repeated"
         elif mutation == "role":
             verdict.update(claim_kind="customer_experience", support_posture="independently_repeated")
-    state, _ = _run(tmp_path, change_source=source_change, change_verdict=verdict_change)
+    state, requests = _run(tmp_path, change_source=source_change, change_verdict=verdict_change)
     assert state["status"] == "SEMANTIC_ADVANCE_BLOCKED" and expected in state["error"]
+    assert [request["phase"] for request in requests] == ["lean_read", "lean_synthesis", "lean_repair"]
+
+
+def test_compiler_comparison_failure_repairs_before_paid_review_and_still_rechecks(tmp_path):
+    authored = []
+
+    def once(verdict):
+        if not authored:
+            verdict.update(claim_kind="customer_experience", support_posture="independently_repeated")
+        authored.append(deepcopy(verdict))
+
+    state, requests = _run(tmp_path, change_verdict=once)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    phases = [r["phase"] for r in requests]
+    assert phases == ["lean_read", "lean_synthesis", "lean_repair", "lean_recheck"]
+    repair = next(r for r in requests if r["phase"] == "lean_repair")
+    assert repair["payload"]["target_questions"] == ["q"]
+    assert "source-role competence" in repair["payload"]["exceptions"][0]["reason"]
+    packet = lean.validate_packet(lean.read(state["packet_path"]))
+    assert packet["answers"][0]["comparison_verdicts"][0]["claim_kind"] == "observable_fact"
+    assert packet["review"]["responses"][0]["phase"] == "lean_recheck"
 
 
 @pytest.mark.parametrize("mutation", ["isolated", "insufficient", "unchecked", "mixed", "wrong_axis"])
