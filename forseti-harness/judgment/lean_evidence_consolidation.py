@@ -1008,6 +1008,8 @@ def advance(source, commission, capacity, root, *, count):
             findings = _compile_findings(candidate, inventory["registry"], method_version=method_version)
             answer_map = {a["question_id"]: a for a in _compile_answers(response["answers"], inventory["registry"], method_version=method_version)}
             answers = [answer_map.get(a["question_id"], a) for a in answers]
+            if method_version == METHOD_VERSION:
+                _validate_comparison_support({"answers": answers, "registry": inventory["registry"]})
             rechecks, coverage = _review_requests(inventory, commission, capacity, findings, answers, count,
                                                   phase="lean_recheck", prior_exceptions=(exceptions if method_version == METHOD_VERSION else material),
                                                   delivery_layout=delivery_layout, method_version=method_version)

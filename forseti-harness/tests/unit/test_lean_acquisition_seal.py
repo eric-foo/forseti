@@ -222,8 +222,9 @@ def test_comparison_source_competence_and_independence_are_not_actor_authored(tm
             verdict["support_posture"] = "independently_repeated"
         elif mutation == "role":
             verdict.update(claim_kind="customer_experience", support_posture="independently_repeated")
-    state, _ = _run(tmp_path, change_source=source_change, change_verdict=verdict_change)
+    state, requests = _run(tmp_path, change_source=source_change, change_verdict=verdict_change)
     assert state["status"] == "SEMANTIC_ADVANCE_BLOCKED" and expected in state["error"]
+    assert [request["phase"] for request in requests] == ["lean_read", "lean_synthesis", "lean_repair"]
 
 
 def test_compiler_comparison_failure_repairs_before_paid_review_and_still_rechecks(tmp_path):
