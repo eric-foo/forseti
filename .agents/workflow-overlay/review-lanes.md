@@ -164,6 +164,39 @@ routing, and Chief Architect consumption rules.
   same-vendor substitution; same-vendor sanity remains available only for
   ordinary bounded review outside that commissioned lane.
 
+### Source-label materiality
+
+For source-row labels and source-backed summaries, reviewers, evaluators and
+home adjudicators use the same calibration. Apply the meaning-preserving
+interpretation boundary in
+`forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md`:
+judge the strongest reading supported by the full source and label. An absent
+literal phrase, defensible paraphrase or different broad tag is not by itself
+a defect.
+
+A material finding explains, in its existing rationale, what the correction
+changes in the supported takeaway, attribution or useful retrieval for the
+commissioned task, and why the defensible reading fails. Merely naming an
+omitted action, product, condition or recommendation does not establish that
+effect. Do not invent a narrower question to justify severity; state a
+conditional impact as conditional. Invented experience, transferred speakers
+and reversed outcomes change the evidence even when an aggregate conclusion
+would stay the same. Minor losses remain reportable; optional clarification is
+not a material miss or a reason for another review round.
+
+Calibration examples, not string-matching tests: in a comment mixing personal
+routine and advice, "reporting seven-day curls" need not assert a measured trial;
+read the whole label before alleging one. "Waiting prevents pilling" becoming
+"still pills after waiting" reverses the result. Omitting an upgrade
+recommendation while retaining "has not tried it" can be minor in broad
+labelling, but consequential when the commissioned question concerns upgrades.
+
+Future run-local author, reviewer and evaluator rules carry this same
+calibration; do not copy a historical rubric that makes every distinct omission
+material. Keep closed runs and their original grades intact, recording any
+later reassessment separately. This changes judgment within the existing pass,
+not coverage, finding quotas, output schemas or the number of review calls.
+
 ## Template Retrieval Binding
 
 Forseti does not bind executor or reviewer lanes to runtime model identifiers.

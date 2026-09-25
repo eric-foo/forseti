@@ -742,6 +742,18 @@ only its prompt-specific deltas: which formal outputs, if any, it explicitly
 binds, and a prompt-specific severity contract when it departs from the
 Forseti-bound severity set.
 
+Source-label and source-backed-summary commissions also bind
+`review-lanes.md` -> **Source-label materiality** for review, evaluation and home
+adjudication. When constructing shared run-local rules, carry that calibration
+into the author, reviewer and evaluator inputs; a pointer outside the inputs a
+model actually receives is insufficient. Preserve the rule when binding a
+prompt-specific severity vocabulary.
+
+For new opt-in source-row batches, `.agents/tools/source_row_labelling.py --help`
+owns the preparation, paired review-view and accepted-edit commands. It embeds the
+current calibration in all role inputs, then freezes those inputs per run. It
+does not launch models, dispatch reviewers or replace normal consolidation.
+
 Every Forseti adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
 skill is unavailable, unresolved, or not applied, the run may return only a
