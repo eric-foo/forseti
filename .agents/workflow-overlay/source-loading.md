@@ -536,8 +536,9 @@ Start with:
   for provenance, engagement-as-resonance, independent recurrence, cross-venue
   corroboration, counterevidence, scope, and causal ceilings.
 - `forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md`
-  for compiling Collection's hash-bound materialized source into the
-  meaning-aware proposition view; it defers claim-support semantics to the
+  for consolidating Collection's hash-bound materialized source into checked
+  answers and source-linked findings, or replaying historical proposition views;
+  it defers claim-support semantics to the
   contract above. Routine reads use the current contract. Follow its companion
   changelog only for a named version, compatibility exception, or historical
   decision; do not load the history as part of the normal compilation pack.

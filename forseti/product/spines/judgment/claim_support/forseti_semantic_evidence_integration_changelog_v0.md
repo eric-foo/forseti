@@ -24,6 +24,17 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-25 v136 — fresh source consolidation uses bounded original reads,
+  cross-batch synthesis and independent exact-answer/source review. Compiler-owned
+  provenance and distinct lean packets replace the mandatory atomic preparation
+  stack for new runs. Checked-answer delivery is deterministic; independent slices
+  execute within a bounded parallel window. Fresh delivery deduplicates capture
+  metadata losslessly and makes review-slice source assignments explicit; saved
+  delivery layouts remain replayable. Review coverage is disclosed, with
+  full review for small inputs and a stratified omission audit for larger ones;
+  no exhaustive-recall guarantee is implied. Saved methods and prepared-input
+  continuations retain their original identities and acceptance requirements.
+
 - 2026-09-24 v135 — new normal bundles use a 120,000-byte prompt ceiling across
   library and CLI preparation. Omitted resume limits reuse the existing bundle's
   ceiling; explicit limits and artifact identity checks remain binding. Whole

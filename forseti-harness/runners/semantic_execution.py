@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from jsonschema.exceptions import ValidationError
 
 from harness_utils import hash_file
@@ -74,7 +75,7 @@ def execute_judgment_job(*, job_path, job_sha256, provider_root, model, reasonin
     job, inputs = native._load_judgment_job(job_path, job_sha256)
     directory = Path(provider_root).resolve() / job_sha256
     with _lock(directory / "execution.lock"):
-        consumer = job.get("version") == "complete_case_consumer_request_v1"
+        consumer = job.get("version") in {"complete_case_consumer_request_v1", "lean_evidence_request_v1"}
         target = job_path.with_name("response.json") if consumer else Path(job["response_path"])
         if target.exists():
             result = native.submit_judgment_job(job_path=job_path, expected_sha256=job_sha256, response_path=target)
@@ -177,6 +178,32 @@ def execute_semantic_run(*, advance_kwargs, model, reasoning_effort, timeout_sec
                 state.update(status="SEMANTIC_EXECUTION_LIMIT_REACHED",
                     action="Configured job bound reached; no further judgments launched.")
                 return state
+            if state.get("phase") in {"lean_read", "lean_review", "lean_recheck"} and len(requests) > 1:
+                # Independent source/review slices share no mutable response. A
+                # failed slice stops dependent phases; already launched peers
+                # finish into their own immutable receipts, never disappear.
+                window = requests[:min(3, max_jobs - len(completed))]
+                intents = [root / "provider" / r["job_sha256"] / "job" / "launch-001.json" for r in window]
+                existed = [p.exists() for p in intents]
+                failures = []
+                with ThreadPoolExecutor(max_workers=len(window)) as pool:
+                    futures = [pool.submit(execute_judgment_job,
+                        job_path=Path(r["job_path"]), job_sha256=r["job_sha256"],
+                        provider_root=root / "provider", model=model,
+                        reasoning_effort=reasoning_effort, timeout_seconds=timeout_seconds,
+                        codex_executable=codex_executable) for r in window]
+                    for request, future in zip(window, futures):
+                        try:
+                            completed.append(future.result())
+                        except (OSError, ValueError, ValidationError) as exc:
+                            failures.append({"job_path": request["job_path"], "error": str(exc)})
+                launched += sum(not before and path.exists() for before, path in zip(existed, intents))
+                if failures:
+                    return {"status": "SEMANTIC_EXECUTION_BLOCKED", "error": failures[0]["error"],
+                            "failed_job": failures[0]["job_path"], "failed_jobs": failures,
+                            "executed_job_count": launched, "provider_root": str(root / "provider"),
+                            "judgment_requests": []}
+                continue
             for request in requests[:max_jobs - len(completed)]:
                 intent = root / "provider" / request["job_sha256"] / "job" / "launch-001.json"
                 existed = intent.exists()

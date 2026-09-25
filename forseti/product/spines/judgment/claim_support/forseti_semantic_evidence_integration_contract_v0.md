@@ -2,18 +2,18 @@
 artifact_role: authority
 status: current
 owner: Judgment / claim support
-version: v135
-effective_date: 2026-09-24
+version: v136
+effective_date: 2026-09-25
 depends_on:
   - forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md
 ---
 
-# Semantic Evidence Integration Contract v135
+# Semantic Evidence Integration Contract v136
 
 ## Purpose
 
 Semantic Evidence Integration turns Collection's final output into a
-meaning-aware proposition view before downstream synthesis. It exists because
+source-linked findings and commissioned answers for downstream use. It exists because
 a large, well-captured corpus can still be underused, misbound to the wrong
 product or competitor, or summarized from a convenient handful of citations.
 
@@ -33,9 +33,14 @@ ceiling.
 
 Semantic Evidence Integration is the runtime capability inside the named
 **Evidence Consolidation** stage. That stage starts from Collection's immutable,
-completely accounted materialized source and owns semantic leaf triage, atomic
-evidence structuring, meaning-based cross-source reconciliation, and
-evidence-packet projection. `prepare-batches` verifies that the source content
+completely accounted materialized source. New source runs use bounded original
+reads, cross-batch synthesis and independent review of the exact final answers;
+code preserves provenance and projects a distinct checked evidence packet.
+The [current route](#lean-source-consolidation-current) replaces the mandatory
+atomic extraction/verification/reconciliation preparation stack for new runs.
+The atomic interfaces described below remain pinned historical and explicit
+prepared-input consumers; they do not define the new default.
+`prepare-batches` verifies that the source content
 matches its stored `source_sha256`; it does not reopen the Collection locators
 embedded for provenance. Current selection consumers likewise keep missing
 publication times unavailable instead of reopening those locators. Historical
@@ -2127,6 +2132,86 @@ artifact.
 
 ### Supported operating route and owner-only reopen boundary
 
+#### Lean source consolidation (current)
+
+New `advance --source ... --run-dir ...` runs use
+`lean_evidence_consolidation_v1`. This is the owner-accepted simplification of
+2026-09-25, implemented in `judgment/lean_evidence_consolidation.py` and the
+existing native runner. It is distinct from the provisional experiment and
+from a verified atomic compilation. Saved runs keep their original method;
+explicit prepared extraction/verification inputs continue through their pinned
+historical route. Never restamp an old result as a lean result or vice versa.
+
+The routine has three stages:
+
+1. Independent bounded reads of complete original bodies and attached context.
+   Each supplied row must contribute a source-linked finding or a concrete
+   exclusion reason. Context retains its own speaker, role and uncertainty.
+   Accounting uses the union of cited and reasoned rows once: shared context or
+   a redundant exclusion label cannot create extra observations. A complete
+   original may contain both support and opposition under different conditions;
+   the independent review judges that relationship. Invented refs and missing
+   rows remain validation failures. Code derives flat answer citation membership
+   from both literal prose handles and the supplied list before exact-answer review.
+2. Cross-batch synthesis over compact findings. Every input finding remains
+   accounted for, including reasoned exclusions; the final fold authors coherent
+   answers to all commissioned questions. Counts, provenance and literal source
+   retrieval are compiler work, not model-authored bookkeeping.
+3. Independent review of the exact final answers and findings against their
+   cited originals, plus an omission audit. Only material exceptions trigger one
+   bounded repair and independent recheck. An unresolved material exception is
+   a visible incomplete result, never a checked answer.
+
+Large inputs require multiple bounded calls within a stage. A complete original
+envelope is never silently truncated. Read/review slices may execute in parallel
+within the invocation's job bound; synthesis folds remain ordered. Models receive
+the short semantic rules, relevant identity hints and their evidence, without
+full project operating documents or the entire product catalogue. Unknown
+products remain unknown. Retailer/owned positioning and creator promotion do
+not become independent customer experience; intent does not become action.
+Fresh delivery sends each identical capture-metadata object once with explicit
+row references; expansion must reproduce every original field. Each review and
+recheck identifies cited originals assigned to other slices. Their absence from
+this slice is not a missing-source defect; aggregate source coverage remains a
+compiler check. Neither compact delivery nor partitioning removes original text.
+
+Up to twelve input rows receive full original review. Larger runs default to a
+deterministic sample of at least 24 rows, covering source-role/family strata,
+alongside every cited original. `commission.review.omission_mode: all` selects
+full original review. The packet discloses actual coverage and never certifies
+exhaustive recall, prevalence, causality or semantic truth from structural checks.
+
+`lean_evidence_packet_v1` retains the unchanged full source once, short observation
+handles, original locations, known/shared origin identities, findings, exact
+answers and review coverage. Its distinct `LEAN_EVIDENCE_CONSOLIDATION_CHECKED`
+status means the commissioned answer passed that disclosed review. A source hash,
+well-formed response, empty exception list or receipt alone is not that status.
+`consume-evidence-packet` selects reviewed questions and rehydrates citations
+deterministically; it does not pay for another synthesis. Historical v3 packet
+consumers retain their own contracts and are not fed invented semantic units.
+
+The start pins source, commission, capacity and delivery layout. Saved starts
+retain their original layout and exact reviewed requests. Resume reuses accepted responses
+without a new judgment; changed inputs or a missing accepted artifact fail
+locally. Provider failures have no automatic retry. Full Collection lineage and
+acquisition obligations remain separate from the consolidation result.
+
+The seal admits this distinct checked packet as semantic integration against
+its materialized source hash. It retains independent acquisition/ledger checks
+and cannot treat a bounded regression slice as final acquisition. A generic
+answer does not authorize a directional competitor claim. When that downstream
+decision is commissioned, optional `comparison_scope` maps question IDs to
+explicit `axis_ids`, `subject_product_ids` and `comparator_product_ids`. Only
+those scoped answers author structured comparison verdicts, which are included
+in the exact output reviewed against originals. The comparison consumer rejects
+different scope or direction, insufficient/isolated support and incompatible
+conflict/source roles; it does not infer axis or product identities from prose.
+This adds no field or model call to ordinary unscoped consolidation.
+
+The remaining method-specific preparation, calibration and reconciliation
+sections describe historical/prepared-input routes unless they explicitly name
+the lean method. They must not be added to the new routine by default.
+
 #### Experimental reconciliation packing (unpromoted)
 
 The owner-commissioned 2026-09-15 small-sample experiment adds opt-in
@@ -2532,7 +2617,7 @@ bind their hashes.
 From `forseti-harness/`, run the existing composed command:
 
 ```text
-python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT --execute --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS --max-jobs JOB_LIMIT
+python -m runners.run_semantic_evidence_integration advance --source SOURCE_JSON --run-dir RUN_ROOT --answer-commission COMMISSION_JSON --execute --model MODEL --reasoning-effort EFFORT --timeout-seconds SECONDS --max-jobs JOB_LIMIT
 ```
 
 Replace the uppercase placeholders with the bound materialized source and run
@@ -2541,28 +2626,24 @@ doctrine. `JOB_LIMIT` bounds judgments in this invocation; reaching it returns
 `SEMANTIC_EXECUTION_LIMIT_REACHED` without launching another job. Omit `--execute`
 and its execution options for provider-free preparation. Reuse the task's resolved
 Python interpreter and working copy. Use that same
-invocation, including its packing options, for initial preparation and every
-resume. New normal bundles default to a 120,000-byte UTF-8 prompt ceiling,
-shared by extraction, whole-row verification and reconciliation. Explicit byte
-limits (including the legacy `--max-batch-chars` alias) remain authoritative.
-When neither limit is supplied on resume, `advance` reuses the ceiling in its
-saved bundle; changing the default does not repack existing runs. A complete
-row that exceeds the selected ceiling still fails without truncation. This
-transport setting does not change the complete-case consumer's token budget.
-It composes operations 7–14 below: extraction compilation, independent
-whole-row verification, policy-v2 reconciliation levels and convergence/retention,
-then the native final view. Each invocation carries all deterministically ready
-steps to the complete next judgment request set, an actionable blocker, or the
-current-corpus final view. A command returning is not itself a reason for a new
-controller turn. The lower-level commands remain available for historical replay
-and explicitly scoped checkpoints or recovery; they are not the normal controller sequence.
+invocation, including its commission and capacity, for initial preparation and
+every resume. `COMMISSION_JSON` contains `questions` with `id` and `question`,
+and optional `worker_instructions`, `coverage` and `review`. Omitting the
+commission selects the built-in useful-findings question. New runs default to
+40 complete rows per slice and an `o200k_base` budget of 180,000 context tokens,
+12,000 output tokens and 4,000 other overhead tokens. Override these through
+`--answer-capacity`; an oversized single envelope fails without truncation.
+Byte-limit/reconciliation options belong to historical runs and are rejected on
+new lean runs. Each invocation advances to the next missing judgments, a named
+blocker, or the checked answer and packet. Lower-level atomic operations remain
+available for historical replay and explicitly prepared-input continuation.
 Keep execution, waits and mechanical checks together under
 [Orchestrator Context Economy](../../../../../.agents/workflow-overlay/decision-routing.md#orchestrator-context-economy).
 Ordinary runs do not repeat comparison setup, negative-test seeding or token
 accounting; those belong to a separately commissioned measurement or validation.
 
 The ordinary executor consumes `judgment_requests` in code, with one fresh
-provider context per request and independent extraction and verifier judgments.
+provider context per request and an independent final-answer review.
 It uses the maintained subscription-only provider runner with explicit launch
 restrictions for the direct role's named capabilities, supplies the complete prompt/schema and
 required context, and disables automatic project instruction discovery to avoid
@@ -2570,7 +2651,8 @@ duplicating that context. Saved receipts must retain those restrictions; any
 observed non-judgment event blocks submission. The native submission validator
 still decides acceptance. There is no model dispatcher, polling
 agent, file-writing agent, or fallback to that workflow. Requests carry a compact
-`execution` descriptor instead of a worker script. Execution is sequential;
+`execution` descriptor instead of a worker script. Independent lean read/review
+slices run in windows of at most three, limited by the remaining job allowance;
 concurrency is not part of judgment identity. Provider attempts, failed raw
 answers and native usage remain under `RUN_ROOT/provider/`; a failed or unknown
 attempt stops the invocation with no automatic retry. A restart reuses completed
@@ -2582,6 +2664,22 @@ intent without its attempt directory remains unknown. This operational count
 is neither model-call count nor a token-usage estimate. The configured job bound
 also counts reused submissions. Blocked compact output preserves the named
 invalid/staged artifact paths needed for recovery.
+
+On `LEAN_EVIDENCE_CONSOLIDATION_CHECKED`, the returned `packet_path` is the
+complete evidence package. Deliver its exact checked answers without another
+model call:
+
+```text
+python -m runners.run_semantic_evidence_integration consume-evidence-packet --packet RUN_ROOT/packet.json --artifact-out ANSWER_JSON
+```
+
+Optional `--question-id` selects commissioned questions without rewriting them.
+The consumer preserves the packet hash, locator, review scope and resolvable
+original citations. A material review failure cannot be delivered as checked.
+
+Historical bundles retain their saved byte ceilings (120,000 by default for the
+last atomic method); omitted resume limits never repack them. The continuation
+below is an explicit reuse route, not a prerequisite for a fresh lean run.
 
 For an owner-selected subset of completed extraction batches, prepare a new
 selection without modifying the original run:
@@ -2687,6 +2785,10 @@ promotes this route to the production default. Full-corpus Phase A and normal
 `advance` remain on their existing supported route.
 
 ### Bounded complete-case answer and review
+
+This section governs saved atomic/complete-case runs. New source runs use
+[Lean source consolidation](#lean-source-consolidation-current), whose final
+synthesis and review already produce the deliverable answer.
 
 An explicitly commissioned answer can continue the supported normal `advance`
 route after its native view, without adopting finite formation-plus-finish:

@@ -80,6 +80,44 @@ def _verify_packet(packet: Mapping[str, Any]) -> None:
         raise EvidenceConsumerError("packet_verification", "packet hash mismatch")
 
 
+def consume_checked_packet(
+    packet: Mapping[str, Any], *, question_ids: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    """Deliver an already reviewed answer without a second synthesis call.
+
+    This is a distinct consumer contract, not a projection into historical
+    verified semantic units. Exact answer text and disclosed review scope travel
+    with the selected questions; every cited original remains resolvable.
+    """
+    from judgment import lean_evidence_consolidation as lean
+    lean.validate_packet(packet)
+    if packet.get("status") != "LEAN_EVIDENCE_CONSOLIDATION_CHECKED":
+        raise EvidenceConsumerError("packet_verification", "lean answer still requires revision")
+    by_id = {row["question_id"]: row for row in packet["answers"]}
+    selected = list(by_id) if question_ids is None else list(question_ids)
+    if not selected or len(set(selected)) != len(selected) or set(selected) - set(by_id):
+        raise EvidenceConsumerError("question_selection", "unknown, empty or repeated question selection")
+    answers = [copy.deepcopy(by_id[qid]) for qid in selected]
+    findings = [copy.deepcopy(row) for row in packet["findings"]
+                if set(row["question_ids"]) & set(selected)]
+    refs = {ref for answer in answers for ref in answer["evidence_refs"]}
+    refs.update(ref for row in findings for role in lean.RELATIONS for ref in row[role])
+    artifact = {
+        "schema_version": "phase_a_checked_evidence_answer_v1",
+        "method_version": lean.METHOD_VERSION,
+        "packet_sha256": packet["packet_sha256"],
+        "source_sha256": packet["source_sha256"],
+        "selected_question_ids": selected,
+        "answers": answers, "findings": findings,
+        "original_observations": lean.resolve_refs(packet, sorted(refs)),
+        "review": copy.deepcopy(packet["review"]),
+        "coverage_note": "Selection from the checked packet; original review scope is retained. "
+                         "This is not an atomic compilation or a claim of exhaustive recall.",
+    }
+    artifact["artifact_sha256"] = _canonical_json_sha256(artifact)
+    return artifact
+
+
 def _decision_case_schema() -> dict[str, Any]:
     string_array = {"type": "array", "items": {"type": "string"}}
     synthesis = {
