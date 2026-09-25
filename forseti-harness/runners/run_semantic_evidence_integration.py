@@ -1149,6 +1149,10 @@ def _load_judgment_job(job_path: Path, expected_sha256: str) -> tuple[dict[str, 
     """Read each pinned input once; callers consume the bytes that were verified."""
     raw = job_path.read_bytes()
     candidate = json.loads(raw, object_pairs_hook=unique_json_object)
+    if candidate.get("version") == "lean_evidence_request_v1":
+        from judgment.lean_evidence_consolidation import validate_request
+        validate_request(candidate, expected_sha256)
+        return candidate, {}
     if candidate.get("version") == "complete_case_consumer_request_v1":
         from judgment.complete_case_consumer import validate_request
         validate_request(candidate, expected_sha256)
@@ -1212,7 +1216,7 @@ def intake_judgment_job(*, job_path: Path, expected_sha256: str,
                         delivery_offset: int = 0) -> dict[str, Any]:
     """Deliver the complete semantic input in one operation, without clipping."""
     job, inputs = _load_judgment_job(job_path, expected_sha256)
-    if job.get("version") == "complete_case_consumer_request_v1":
+    if job.get("version") in {"complete_case_consumer_request_v1", "lean_evidence_request_v1"}:
         from judgment.complete_case_consumer import compact
         # The measured prompt already contains required project context once.
         content = {"prompt": job["prompt"], "response_schema": compact(job["schema"])}
@@ -1695,6 +1699,12 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
                         response_path: Path) -> dict[str, Any]:
     """Validate exactly one raw answer and publish without replacing accepted work."""
     job, inputs = _load_judgment_job(job_path, expected_sha256)
+    if job.get("version") == "lean_evidence_request_v1":
+        from judgment.lean_evidence_consolidation import submit
+        from runners.finite_preparation import offline_tokenizer
+        tokenizer, _ = offline_tokenizer(job["capacity"]["encoding"])
+        return submit(job_path, expected_sha256, response_path,
+                      lambda value: len(tokenizer.encode(value, disallowed_special=())))
     if job.get("version") == "complete_case_consumer_request_v1":
         from judgment.complete_case_consumer import submit
         from runners.finite_preparation import offline_tokenizer
@@ -1766,6 +1776,54 @@ def submit_judgment_job(*, job_path: Path, expected_sha256: str,
 
 
 def advance_semantic_run(
+    *, source_path: Path, run_dir: Path,
+    bundle_path: Path | None = None, verified_path: Path | None = None,
+    max_batch_chars: int | None = None, max_prompt_bytes: int | None = None,
+    max_evidence_per_work_unit: int | None = None,
+    reconciliation_packing: str = "input_order",
+    reconciliation_authoring_revision: str | None = None,
+    answer_commission_path: Path | None = None,
+    answer_capacity_path: Path | None = None,
+    extracted_selection_path: Path | None = None,
+) -> dict[str, Any]:
+    """Use lean source findings for new runs; replay pinned historical work."""
+    arguments = dict(locals())
+    try:
+        from judgment import lean_evidence_consolidation as lean
+        start_path = run_dir.resolve() / "start.json"
+        saved = _load_object(start_path) if start_path.exists() else None
+        if saved is not None and saved.get("method_version") not in {None, lean.METHOD_VERSION}:
+            raise ValueError("unsupported pinned consolidation method")
+        historical = (saved is not None and saved.get("method_version") != lean.METHOD_VERSION)
+        prepared = any(p is not None for p in (bundle_path, verified_path, extracted_selection_path))
+        if historical or (saved is None and prepared):
+            arguments["max_evidence_per_work_unit"] = (
+                120 if max_evidence_per_work_unit is None else max_evidence_per_work_unit)
+            return _advance_legacy_semantic_run(**arguments)
+        if prepared:
+            raise ValueError("lean source runs cannot resume from historical extraction/verification inputs")
+        if (max_batch_chars is not None or max_prompt_bytes is not None
+                or reconciliation_packing != "input_order" or reconciliation_authoring_revision is not None):
+            raise ValueError("new lean runs use --answer-capacity; legacy reconciliation/byte options apply only to historical runs")
+        from runners.finite_preparation import offline_tokenizer
+        commission = (_load_object(answer_commission_path) if answer_commission_path is not None
+                      else lean.DEFAULT_COMMISSION)
+        capacity = dict(_load_object(answer_capacity_path) if answer_capacity_path is not None
+                        else lean.DEFAULT_CAPACITY)
+        if max_evidence_per_work_unit is not None:
+            if (answer_capacity_path is not None
+                    and capacity.get("max_rows_per_slice") != max_evidence_per_work_unit):
+                raise ValueError("row bound conflicts with explicit answer capacity")
+            capacity["max_rows_per_slice"] = max_evidence_per_work_unit
+        tokenizer, _ = offline_tokenizer(capacity["encoding"])
+        return lean.advance(_load_object(source_path), commission, capacity, run_dir.resolve(),
+                            count=lambda value: len(tokenizer.encode(value, disallowed_special=())))
+    except (OSError, ValueError, KeyError, SemanticIntegrationError) as exc:
+        return {"status": "SEMANTIC_ADVANCE_BLOCKED", "run_dir": str(run_dir),
+                "error": str(exc), "judgment_requests": [], "model_api_calls": 0}
+
+
+def _advance_legacy_semantic_run(
     *, source_path: Path, run_dir: Path,
     bundle_path: Path | None = None, verified_path: Path | None = None,
     max_batch_chars: int | None = None, max_prompt_bytes: int | None = None,
@@ -2906,16 +2964,34 @@ def finalize_relation_closed(
 def project_evidence_packet_run(
     *,
     view_path: Path,
-    bundle_path: Path,
-    batch_compilation_path: Path,
-    node_compilation_path: Path,
+    bundle_path: Path | None,
+    batch_compilation_path: Path | None,
+    node_compilation_path: Path | None,
     axis_ids: list[str],
     proposition_ids: list[str],
     packet_out: Path,
-    packet_version: str = "v3",
+    packet_version: str = "auto",
     all_propositions: bool = False,
 ) -> dict[str, Any]:
     view = _load_object(view_path)
+    from judgment import lean_evidence_consolidation as lean
+    if view.get("schema_version") == lean.PACKET_VERSION:
+        lean.validate_packet(view)
+        if packet_version not in {"auto", "lean"} or axis_ids or proposition_ids or all_propositions:
+            raise ValueError("lean packets retain checked findings; historical proposition selection is not applicable")
+        if any(path is not None for path in (bundle_path, batch_compilation_path, node_compilation_path)):
+            raise ValueError("lean projection does not accept historical compilation inputs")
+        _write_json(packet_out, view)
+        return {"status": "PHASE_A_EVIDENCE_PACKET_READY", "packet_schema_version": lean.PACKET_VERSION,
+                "packet_sha256": view["packet_sha256"], "finding_count": len(view["findings"]),
+                "returned_evidence_item_count": len(view["records"]), "packet_out": str(packet_out),
+                "model_api_calls": 0}
+    if any(path is None for path in (bundle_path, batch_compilation_path, node_compilation_path)):
+        raise ValueError("historical projection requires bundle, batch compilation and node compilation")
+    if not (axis_ids or proposition_ids or all_propositions):
+        raise ValueError("historical projection requires axis or proposition selection")
+    if packet_version == "auto":
+        packet_version = "v3"
     bundle = _load_object(bundle_path)
     batch_compilation = _load_object(batch_compilation_path)
     node_compilation = _load_object(node_compilation_path)
@@ -2954,6 +3030,19 @@ def project_evidence_packet_run(
         "packet_out": str(packet_out),
         "model_api_calls": 0,
     }
+
+
+def consume_evidence_packet_run(*, packet_path: Path, question_ids: list[str], artifact_out: Path) -> dict[str, Any]:
+    from judgment.phase_a_evidence_consumer import consume_checked_packet
+    from judgment.complete_case_consumer import digest
+    artifact = consume_checked_packet(_load_object(packet_path), question_ids=question_ids or None)
+    # The final consumer can recover every original from this immutable packet.
+    artifact["packet_locator"] = str(packet_path.resolve(strict=True))
+    artifact.pop("artifact_sha256")
+    artifact["artifact_sha256"] = digest(artifact)
+    _write_json(artifact_out, artifact)
+    return {"status": "CHECKED_EVIDENCE_ANSWER_READY", "artifact_out": str(artifact_out),
+            "artifact_sha256": artifact["artifact_sha256"], "model_api_calls": 0}
 
 
 def prepare_evidence_consumer_batch_run(
@@ -3663,7 +3752,7 @@ def _parser() -> argparse.ArgumentParser:
         help="Prepare an explicit <=12-row single-pass experiment; never normal completion.")
     for flag in ("source", "commission", "capacity", "run-dir"):
         provisional.add_argument("--" + flag, type=Path, required=True)
-    advance = sub.add_parser("advance", help="Advance supported consolidation to all ready judgments or the final view.")
+    advance = sub.add_parser("advance", help="Advance source consolidation to ready judgments or a checked answer; replay saved methods.")
     advance.add_argument("--source", type=Path, required=True)
     advance.add_argument("--run-dir", type=Path, required=True)
     advance.add_argument("--bundle", type=Path, help="Existing native bundle, paired with --verified or --extracted-selection.")
@@ -3676,11 +3765,12 @@ def _parser() -> argparse.ArgumentParser:
     advance.add_argument("--max-jobs", type=int, help="Explicit maximum judgments for this invocation; no automatic continuation.")
     advance.add_argument("--codex-executable", type=Path)
     advance.add_argument("--max-batch-chars", type=int,
-        help="Legacy ceiling alias; new runs default to 120000, resumes retain the saved limit.")
+        help="Historical byte-ceiling alias; new source runs use --answer-capacity.")
     advance.add_argument("--max-prompt-bytes", type=int)
-    advance.add_argument("--max-evidence-per-work-unit", type=int, default=120)
+    advance.add_argument("--max-evidence-per-work-unit", type=int,
+        help="Source rows per lean read batch (default 40); historical runs keep their pinned preparation.")
     advance.add_argument("--answer-commission", type=Path,
-        help="Continue the normal completed view into bounded complete-case answer/review jobs.")
+        help="Questions for lean source reading, synthesis and independent review; saved historical runs retain their consumer.")
     advance.add_argument("--answer-capacity", type=Path,
         help="Explicit offline encoding, context/output/overhead budgets and max_rows_per_slice JSON.")
     advance.add_argument("--reconciliation-packing", choices=["input_order", "group_aware_v1"],
@@ -3688,7 +3778,7 @@ def _parser() -> argparse.ArgumentParser:
     advance.add_argument("--reconciliation-authoring-revision",
         choices=[RECONCILIATION_AUTHORING_IDENTITY_V4, RECONCILIATION_AUTHORING_IDENTITY_V5, RECONCILIATION_AUTHORING_IDENTITY_V6],
         default=None,
-        help="New runs pin v5 source-row aliases. Resume uses the pin; unmarked historical runs default to v4 and require their old explicit opt-in revision. V6 remains opt-in.")
+        help="Historical prepared-input runs only. Resume retains the saved revision; unmarked historical runs require their old explicit opt-in revision.")
 
     selected_extraction = sub.add_parser("select-extracted-batches", help="Reuse explicit complete saved batches; never claim verification.")
     selected_extraction.add_argument("--source", type=Path, required=True)
@@ -4033,18 +4123,23 @@ def _parser() -> argparse.ArgumentParser:
     finish_closed.add_argument("--view-out", type=Path, required=True)
 
     evidence_packet = sub.add_parser("project-evidence-packet")
-    evidence_packet.add_argument("--view", type=Path, required=True)
-    evidence_packet.add_argument("--bundle", type=Path, required=True)
-    evidence_packet.add_argument("--batch-compilation", type=Path, required=True)
-    evidence_packet.add_argument("--node-compilation", type=Path, required=True)
-    selection = evidence_packet.add_mutually_exclusive_group(required=True)
+    evidence_packet.add_argument("--view", type=Path, required=True, help="Checked lean packet or historical integration view")
+    evidence_packet.add_argument("--bundle", type=Path)
+    evidence_packet.add_argument("--batch-compilation", type=Path)
+    evidence_packet.add_argument("--node-compilation", type=Path)
+    selection = evidence_packet.add_mutually_exclusive_group()
     selection.add_argument("--axis-id", action="append", default=[])
     selection.add_argument("--proposition-id", action="append", default=[])
     selection.add_argument("--all-propositions", action="store_true")
     evidence_packet.add_argument("--packet-out", type=Path, required=True)
     evidence_packet.add_argument(
-        "--packet-version", choices=("v1", "v2", "v3"), default="v3"
+        "--packet-version", choices=("auto", "lean", "v1", "v2", "v3"), default="auto"
     )
+
+    checked_consumer = sub.add_parser("consume-evidence-packet", help="Deliver exact reviewed lean answers with original citations; no model call")
+    checked_consumer.add_argument("--packet", type=Path, required=True)
+    checked_consumer.add_argument("--question-id", action="append", default=[])
+    checked_consumer.add_argument("--artifact-out", type=Path, required=True)
 
     consumer_prepare = sub.add_parser("prepare-evidence-consumer-batch")
     consumer_prepare.add_argument("--spec", type=Path, required=True)
@@ -4344,7 +4439,8 @@ def main(argv: list[str] | None = None) -> int:
                 # any named invalid/staged artifacts a blocker refers to.
                 problems = result.get("response_state", {}).get("problems")
                 result = {**{key: result[key] for key in ("status", "phase", "executed_job_count",
-                    "provider_root", "answer_path", "answer_sha256", "view_sha256", "error", "failed_job", "action")
+                    "provider_root", "answer_path", "answer_sha256", "view_sha256", "packet_path", "packet_sha256",
+                    "result_path", "error", "failed_job", "failed_jobs", "action")
                     if key in result}, "run_dir": str(args.run_dir.resolve()),
                     "pending_job_count": len(result.get("judgment_requests", [])),
                     **({"problems": problems} if problems else {})}
@@ -4716,6 +4812,9 @@ def main(argv: list[str] | None = None) -> int:
                 packet_version=args.packet_version,
                 all_propositions=args.all_propositions,
             )
+        elif args.command == "consume-evidence-packet":
+            result = consume_evidence_packet_run(packet_path=args.packet, question_ids=args.question_id,
+                                                 artifact_out=args.artifact_out)
         elif args.command == "prepare-evidence-consumer-batch":
             result = prepare_evidence_consumer_batch_run(
                 spec_path=args.spec,
@@ -4897,7 +4996,7 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps(result, indent=2, sort_keys=args.command not in {
         "intake-judgment-job", "intake-reconciliation-repair-coordinator",
         "start-reconciliation-repair-coordinator", "review-reconciliation-repair"}))
-    if args.command == "advance" and result.get("status") in {"SEMANTIC_ADVANCE_BLOCKED", "SEMANTIC_EXECUTION_BLOCKED"}:
+    if args.command == "advance" and result.get("status") in {"SEMANTIC_ADVANCE_BLOCKED", "SEMANTIC_EXECUTION_BLOCKED", "LEAN_EVIDENCE_CONSOLIDATION_REQUIRES_REVISION"}:
         return 2
     if args.command == "advance-provisional-experiment" and result.get("status") == "EXPERIMENTAL_ANSWER_BLOCKED":
         return 2

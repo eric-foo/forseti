@@ -16,6 +16,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harness_utils import hash_file, sha256_bytes  # noqa: E402
+from judgment import lean_evidence_consolidation as lean  # noqa: E402
 from judgment.phase_a_semantic_run import (  # noqa: E402
     SemanticIntegrationError,
     derive_serp_job_packet_inventory,
@@ -4645,10 +4646,68 @@ def _validate_final_semantic_source_review(
     for field, expected in (
         ("reviewed_ledger_sha256", ledger_ref["sha256"]),
         ("reviewed_view_sha256", view_ref["sha256"]),
-        ("corpus_sha256", view.get("corpus_sha256")),
+        ("corpus_sha256", view.get("source_sha256") if view.get("schema_version") == lean.PACKET_VERSION else view.get("corpus_sha256")),
     ):
         if not expected or review.get(field) != expected:
             findings.append(prefix + field + "_mismatch")
+
+
+class _LeanAnswerIndex(dict):
+    """Reviewed commissioned answers, deliberately not atomic propositions."""
+
+    def __init__(self, packet: Mapping[str, Any]):
+        super().__init__(("answer:" + answer["question_id"], answer) for answer in packet["answers"])
+        self.packet = packet
+
+
+def _validate_lean_semantic_integration(
+    packet: Mapping[str, Any], value: Mapping[str, Any], *,
+    seal: Mapping[str, Any], route_version: str, findings: list[str],
+) -> dict[str, Mapping[str, Any]]:
+    """Admit the distinct checked packet; retain final-capture accounting."""
+    before = len(findings)
+    if route_version != CURRENT_UNDERSTANDING_ROUTE_VERSION:
+        findings.append("lean_semantic_integration_requires_current_route")
+    try:
+        lean.validate_packet(packet)
+    except (ValueError, KeyError, TypeError, lean.ValidationError) as exc:
+        findings.append("invalid_lean_semantic_integration_packet:" + str(exc))
+        return {}
+    if packet["status"] != "LEAN_EVIDENCE_CONSOLIDATION_CHECKED":
+        findings.append("lean_semantic_integration_requires_checked_output")
+    source = packet["source"]
+    if value.get("corpus_sha256") != packet["source_sha256"]:
+        findings.append("semantic_integration_corpus_hash_mismatch")
+    if source.get("corpus_profile") != "phase_a_final_acquisition":
+        findings.append("invalid_semantic_integration_corpus_profile")
+    if not source.get("cycle_id") or source["cycle_id"] != seal.get("cycle_id"):
+        findings.append("lean_semantic_integration_cycle_mismatch")
+    from judgment.semantic_evidence_integration import _validate_v3_containers
+    try:
+        containers = _validate_v3_containers(source.get("containers"), artifact_ids={
+            artifact["artifact_id"] for artifact in source["source_artifacts"]})
+    except (ValueError, KeyError, TypeError) as exc:
+        findings.append("invalid_lean_semantic_capture_envelopes:" + str(exc))
+        return {}
+    by_container = {row["container_id"]: row for row in containers}
+    counts = {key: 0 for key in by_container}
+    captured = source["captured_items"]
+    if not captured:
+        findings.append("incomplete_semantic_integration_coverage")
+    for row in captured:
+        container = by_container.get(row.get("container_id"))
+        if container is None or row.get("source_artifact_id") != container["source_artifact_id"]:
+            findings.append("invalid_lean_semantic_capture_membership")
+            continue
+        counts[container["container_id"]] += 1
+        if (row.get("accounting_disposition") not in {"assess", "mechanically_excluded"}
+                or not isinstance(row.get("accounting_reason"), str) or not row["accounting_reason"]):
+            findings.append("incomplete_semantic_integration_coverage")
+    if any(counts[key] != row["captured_leaf_count"] for key, row in by_container.items()):
+        findings.append("semantic_integration_capture_envelope_leaf_mismatch")
+    if value.get("unresolved_material_evidence_ids"):
+        findings.append("lean_checked_output_has_unresolved_material_evidence")
+    return _LeanAnswerIndex(packet) if len(findings) == before else {}
 
 
 def _validate_semantic_evidence_integration(
@@ -4706,6 +4765,9 @@ def _validate_semantic_evidence_integration(
     if not isinstance(view, dict):
         findings.append("invalid_semantic_integration_view")
         return {}
+    if view.get("schema_version") == lean.PACKET_VERSION:
+        return _validate_lean_semantic_integration(
+            view, value, seal=seal, route_version=route_version, findings=findings)
     expected_view_version = (
         SEMANTIC_EVIDENCE_INTEGRATION_VIEW_VERSION_V2
         if route_version in _ROUTE_REVISION_1_6_OBLIGATION_VERSIONS
@@ -5385,6 +5447,45 @@ def _validate_comparator_prefanout_qualification(
             )
 
 
+def _validate_lean_comparator_axis(
+    axis_row: Mapping[str, Any], *, index: _LeanAnswerIndex,
+    candidate_id: str, subject_product_id: Any, competitor_product_id: Any,
+    promoted: bool, status: Any, findings: list[str],
+) -> None:
+    """Resolve a reviewed verdict, never derive direction from answer prose."""
+    prefix = "lean_comparator_"
+    refs = axis_row.get("answer_refs")
+    if not isinstance(refs, list) or len(refs) != 1 or not isinstance(refs[0], str) or refs[0] not in index:
+        findings.append(prefix + "requires_one_reviewed_answer:" + candidate_id)
+        return
+    answer = index[refs[0]]
+    scope = index.packet["commission"].get("comparison_scope", {}).get(answer["question_id"])
+    if (not isinstance(scope, dict) or axis_row.get("axis_id") not in scope["axis_ids"]
+            or scope["subject_product_ids"] != [subject_product_id]
+            or scope["comparator_product_ids"] != [competitor_product_id]):
+        findings.append(prefix + "commission_scope_mismatch:" + candidate_id)
+        return
+    verdict = next((row for row in answer.get("comparison_verdicts", []) if row["axis_id"] == axis_row.get("axis_id")), None)
+    if verdict is None:
+        findings.append(prefix + "missing_reviewed_verdict:" + candidate_id)
+        return
+    for field in ("choice_posture", "why", "conditions", "limits"):
+        if axis_row.get(field) != verdict[field]:
+            findings.append(prefix + "reviewed_verdict_mismatch:" + candidate_id + ":" + field)
+    expected_refs = {ref for relation in lean.RELATIONS for ref in verdict[relation]}
+    evidence_refs = axis_row.get("evidence_refs")
+    if (not isinstance(evidence_refs, list) or any(not isinstance(ref, str) for ref in evidence_refs)
+            or len(evidence_refs) != len(set(evidence_refs)) or set(evidence_refs) != expected_refs):
+        findings.append(prefix + "reviewed_evidence_mismatch:" + candidate_id)
+    if "claim_support" in axis_row or "proposition_refs" in axis_row:
+        findings.append(prefix + "cannot_claim_atomic_proposition_authority:" + candidate_id)
+    if status == "observed" and verdict["conflict_posture"] == "not_checked":
+        findings.append(prefix + "observed_without_conflict_check:" + candidate_id)
+    if promoted and (verdict["support_posture"] in {"insufficient", "isolated"}
+                     or verdict["conflict_posture"] == "not_checked"):
+        findings.append(prefix + "promotion_exceeds_reviewed_support:" + candidate_id)
+
+
 def _validate_comparator_choice_explanation(
     explanation: Any,
     *,
@@ -5421,6 +5522,10 @@ def _validate_comparator_choice_explanation(
     )
     if final_role != "unresolved" and not valid_role_refs:
         findings.append(f"missing_comparator_final_role_evidence:{candidate_id}")
+    if isinstance(proposition_index, _LeanAnswerIndex) and valid_role_refs and any(
+        ref not in proposition_index.packet["registry"] for ref in role_refs
+    ):
+        findings.append(f"lean_comparator_foreign_role_evidence:{candidate_id}")
 
     axis_findings = explanation.get("axis_findings")
     if not isinstance(axis_findings, list):
@@ -5477,6 +5582,12 @@ def _validate_comparator_choice_explanation(
                 f"missing_comparator_choice_axis_evidence:{candidate_id}"
             )
 
+        if isinstance(proposition_index, _LeanAnswerIndex):
+            _validate_lean_comparator_axis(
+                axis_row, index=proposition_index, candidate_id=candidate_id,
+                subject_product_id=subject_product_id, competitor_product_id=competitor_product_id,
+                promoted=promoted, status=status, findings=findings)
+            continue
         if proposition_index is not None:
             proposition_refs = axis_row.get("proposition_refs")
             if (

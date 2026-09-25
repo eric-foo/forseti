@@ -44,6 +44,11 @@ def corpus(tmp_path):
         path = tmp_path / "original" / (response["batch_id"] + ".json")
         write(path, response)
         paths["responses"].append(path)
+    # These transport fixtures exercise replay of the historical atomic method.
+    # Fresh-source default coverage lives in test_lean_semantic_execution.py.
+    write(tmp_path / "run" / "start.json", {"mode": "extraction",
+        "source_sha256": source["source_sha256"],
+        "reconciliation_authoring_revision": semantic.RECONCILIATION_AUTHORING_IDENTITY_V5})
     return source, bundle, responses, paths
 
 

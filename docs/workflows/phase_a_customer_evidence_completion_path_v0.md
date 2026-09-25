@@ -44,8 +44,8 @@ material saturation or a fresh need for acquisition. That loop reassesses the
 affected evidence before choosing more collection; it does not wait for the
 final Evidence Consolidation output described below.
 
-Semantic leaf assessment, atomic evidence structuring, meaning-based
-reconciliation, and evidence-packet projection together form the named
+Bounded source reading, cross-batch synthesis, independent final-answer review
+and deterministic evidence-packet delivery form the current named
 **Evidence Consolidation** stage. It begins from Collection's immutable,
 completely accounted materialized source and ends only when the final corpus
 hash has a complete, reproducible evidence packet or a visible unresolved
@@ -63,7 +63,23 @@ This is a conceptual and completion boundary between acquisition and Deliver,
 not a new globally numbered phase: historical Phase A, Phase B, Turn B,
 Understanding, and Deliver vocabulary is not renumbered or migrated.
 
-For new cross-company authoring, use `phase_a_semantic_integration_run_v12`
+New source runs use the contract's
+[Lean source consolidation](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#lean-source-consolidation-current)
+through `advance --source ... --run-dir ... --answer-commission ...`.
+Complete original bodies and attached context remain retrievable. The final
+answer is checked against cited originals plus the disclosed omission audit;
+small inputs receive full original review. `consume-evidence-packet` delivers
+the checked answer without another model pass. This reduces recurring model
+work without making full recall, customer independence or causal claims from
+structural accounting. Choose effort for the task under the current model-tiering
+doctrine; a historical `high` setting is not a standing requirement.
+
+The following atomic extraction, calibration, reconciliation and selection
+procedures apply to historical or explicitly prepared-input continuations.
+They are not extra steps on the fresh lean route and their semantic-unit
+guarantees must not be attributed to lean packets.
+
+For historical cross-company atomic authoring, use `phase_a_semantic_integration_run_v12`
 (integration method v14, verifier v13). The supplied `CURRENT_AXES` inventory
 owns output IDs; shared examples describe concepts, never another company's
 required IDs. Preserve a supported meaning even when it needs an emerging-axis
@@ -76,10 +92,10 @@ Genuine shade choices and context-supported typing remain available. Historical
 run v11 / method v13 and earlier artifacts keep
 their original identity and replay; do not edit frozen outputs or relabel old
 responses as a new-method proof. This correction does not establish the cause
-of Dieux's provider timeout. All new model attempts use `high` under the
-operator rule in `docs/decisions/subagent_model_tiering_doctrine_v0.md`.
+of Dieux's provider timeout. These historical attempts used `high`; current
+effort selection follows `docs/decisions/subagent_model_tiering_doctrine_v0.md`.
 
-Current reconciliation preserves child condition strings verbatim and asks
+Historical reconciliation preserves child condition strings verbatim and asks
 for one genuinely shared bounded meaning per merge, not a broad bucket of
 different outcomes or behavior states. Shared product IDs alone do not prove
 equivalent scope. Contract v81 owns this clarification; the existing literal

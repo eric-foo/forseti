@@ -30,11 +30,14 @@ Cleaning, or Judgment behavior.
 
 Use the semantic contract's [Consolidation execution](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
 for normal starts and resumes. It owns `advance --execute` with an explicit
-job bound: code delivers each independent judgment directly through the existing
-provider runner, waits, validates and saves it. No worker agent performs file
+job bound. Fresh source runs read originals, combine findings and independently
+review the finished answer; code handles provenance and delivers checked answers
+through `consume-evidence-packet` without another writing call. Independent read
+and review slices execute in bounded parallel windows. The existing provider
+runner waits, validates and saves each judgment; no worker agent performs file
 delivery or submission. Omit `--execute` for provider-free preparation only.
-The same entry owns selected completed-batch reuse with verification still
-pending. Run from `forseti-harness/` as shown there.
+Saved atomic runs retain their pinned method, including selected completed-batch
+reuse with verification still pending. Run from `forseti-harness/` as shown there.
 
 For a commissioned checkpoint with an existing bundle and verified compilation,
 use [Preparation from verified inputs](../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).

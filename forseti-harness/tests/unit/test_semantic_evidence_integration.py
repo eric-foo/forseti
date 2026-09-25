@@ -3092,7 +3092,7 @@ def test_convergence_v5_distinguishes_claims_from_source_rows_and_preserves_v4(t
 ])
 def test_advance_authoring_is_pinned_and_immutable_on_resume(tmp_path, revision):
     from runners.run_semantic_evidence_integration import advance_semantic_run
-    source, replay, _ = _advance_replay_fixture(tmp_path)
+    source, replay, _ = _advance_replay_fixture(tmp_path, revision=revision)
     run = tmp_path / "run"
     for phase in ("extraction", "verification"):
         _publish_advance_replay(run, phase, replay[phase])
@@ -11940,7 +11940,8 @@ def test_v5_flows_through_unchanged_v2_downstream_interfaces() -> None:
     assert packet["model_api_calls"] == 0
 
 
-def _advance_replay_fixture(tmp_path, *, count=4, rows_per_batch=2, alternate=False):
+def _advance_replay_fixture(tmp_path, *, count=4, rows_per_batch=2, alternate=False,
+                            revision=None, seed_run=True):
     """Capture native-valid orchestration fixtures; these are not model-quality proof."""
     source = _source_v10(count=count)
     source["semantic_method_version"] = semantic_module.METHOD_VERSION_V13
@@ -11987,6 +11988,14 @@ def _advance_replay_fixture(tmp_path, *, count=4, rows_per_batch=2, alternate=Fa
         replay[f"reconciliation/level-{level:04d}"] = level_responses
     assert is_terminal_reconciliation_compilation(nodes)
     expected = finalize_v3_view(bundle, verified, nodes)
+    # Explicit historical start: fresh sources now take the lean route. Keep
+    # exercising the public replay/submit boundary without changing old answers.
+    if seed_run:
+        run = tmp_path / "run"
+        run.mkdir(exist_ok=True)
+        (run / "start.json").write_text(json.dumps({"mode": "extraction",
+            "source_sha256": source["source_sha256"], "reconciliation_authoring_revision":
+            revision or semantic_module.RECONCILIATION_AUTHORING_IDENTITY_V5}), encoding="utf-8")
     return source_path, replay, expected
 
 
@@ -12093,6 +12102,10 @@ def test_default_ceiling_admits_complete_verification_above_old_limit(tmp_path, 
     source_path = tmp_path / "source.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
     run = tmp_path / "run"
+    if entrypoint != "prepare-cli":
+        from runners.run_semantic_evidence_integration import _advance_legacy_semantic_run
+        historical = _advance_legacy_semantic_run(source_path=source_path, run_dir=run)
+        assert historical["phase"] == "extraction"
     if entrypoint == "api":
         result = advance_semantic_run(source_path=source_path, run_dir=run)
         assert result["phase"] == "extraction"

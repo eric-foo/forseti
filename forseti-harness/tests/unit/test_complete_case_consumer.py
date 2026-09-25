@@ -623,12 +623,12 @@ def test_public_normal_advance_reaches_consumer_end_to_end(tmp_path, capsys, mon
         def encode(self, text, **_):
             return text.encode("utf-8")
     monkeypatch.setattr(preparation, "offline_tokenizer", lambda _: (Tokenizer(), "fixture"))
-    source, replay, expected = native._advance_replay_fixture(tmp_path)
-    from runners.run_semantic_evidence_integration import advance_semantic_run
+    source, replay, expected = native._advance_replay_fixture(tmp_path, seed_run=False)
+    from runners.run_semantic_evidence_integration import _advance_legacy_semantic_run
     saved = tmp_path / "saved"
     for phase, responses in replay.items():
         native._publish_advance_replay(saved, phase, responses)
-    assert advance_semantic_run(source_path=source, run_dir=saved, max_prompt_bytes=30000,
+    assert _advance_legacy_semantic_run(source_path=source, run_dir=saved, max_prompt_bytes=30000,
         max_evidence_per_work_unit=2)["status"] == "SEMANTIC_EVIDENCE_INTEGRATION_COMPLETE"
     run = tmp_path / "run"
     for phase, responses in replay.items():
