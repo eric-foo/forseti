@@ -99,6 +99,14 @@ def _refs(finding):
     return set(ref for role in RELATIONS for ref in finding[role])
 
 
+def finding_refs(finding):
+    """All reachable originals; prose-only refs receive no relation credit."""
+    refs = _refs(finding)
+    for field in ("statement", "conditions", "limits"):
+        refs.update(re.findall(r"\be\d+\b", finding.get(field, "")))
+    return refs
+
+
 def _finding_schema(*, inputs=False):
     fields = {"question_ids": STRINGS, "statement": TEXT,
               **{role: STRINGS for role in RELATIONS}, "conditions": {"type": "string"}, "limits": TEXT}
@@ -320,7 +328,7 @@ def _validate_payload_layout(phase, payload):
         _exact(scope["elsewhere_source_refs"], scope["elsewhere_source_refs"], "review elsewhere source")
         local, elsewhere = set(scope["local_source_refs"]), set(scope["elsewhere_source_refs"])
         required = {ref for answer in payload["answers"] for ref in answer["evidence_refs"]}
-        required |= {ref for finding in payload["findings"] for ref in _refs(finding)}
+        required |= {ref for finding in payload["findings"] for ref in finding_refs(finding)}
         required |= {ref for exception in payload.get("prior_exceptions", []) for ref in exception["source_refs"]}
         if local & elsewhere or required - (local | elsewhere):
             raise ValueError("lean review source assignment coverage differs")
@@ -419,13 +427,13 @@ def _validate_findings(findings, allowed, questions):
     for finding in findings:
         if not finding["question_ids"] or set(finding["question_ids"]) - questions:
             raise ValueError("lean finding has foreign or missing question")
-        if not _refs(finding) or _refs(finding) - allowed:
+        if not finding_refs(finding) or finding_refs(finding) - allowed:
             raise ValueError("lean finding has foreign or missing source citation")
         for role in RELATIONS:
             _exact(finding[role], finding[role], "finding reference")
         # A complete original can contain both support and opposition under
         # different conditions. These are observation refs, not atomic claims.
-        _text_refs(finding, _refs(finding))
+        _text_refs(finding, finding_refs(finding))
 
 
 def _validate_answers(answers, questions, allowed, commission=None):
@@ -507,7 +515,7 @@ def validate_response(request, response, count):
     allowed = set(p["allowed_refs"])
     if phase == "lean_read":
         _validate_findings(response["findings"], allowed, questions)
-        used = set().union(*(_refs(f) for f in response["findings"])) if response["findings"] else set()
+        used = set().union(*(finding_refs(f) for f in response["findings"])) if response["findings"] else set()
         unused = [r["row_id"] for r in response["unused_rows"]]
         # The source may be cited as a qualification or duplicate while its
         # standalone contribution is called unused. Preserve that reason in the
@@ -659,7 +667,7 @@ def _omission_rows(inventory, commission):
 def _review_selection(inventory, commission, findings, answers, *, extra_refs=()):
     original_rows = inventory["records"]
     omission = _omission_rows(inventory, commission)
-    cited = set(ref for f in findings for ref in _refs(f)) | set(ref for a in answers for ref in a["evidence_refs"]) | set(extra_refs)
+    cited = set(ref for f in findings for ref in finding_refs(f)) | set(ref for a in answers for ref in a["evidence_refs"]) | set(extra_refs)
     selected = set(omission)
     for ref in cited:
         location = inventory["registry"][ref]["locations"][0]["evidence_id"]
@@ -677,7 +685,7 @@ def _review_selection(inventory, commission, findings, answers, *, extra_refs=()
 def _review_payload(inventory, commission, findings, answers, rows, omission, prior_exceptions=None, *, delivery_layout=LEGACY_DELIVERY_LAYOUT):
     originals = _originals(inventory, rows, delivery_layout=delivery_layout)
     refs = [o["ref"] for o in originals["observations"]]
-    local_findings = [f for f in findings if _refs(f) & set(refs)]
+    local_findings = [f for f in findings if finding_refs(f) & set(refs)]
     checks = commission.get("assessment_only", {}).get("checks", [])
     local_checks = [c for c in checks if not c.get("source_rows") or set(c["source_rows"]) & {r["evidence_id"] for r in rows}]
     payload = {"commission": _actor_commission(commission), "answers": answers, "answer_sha256": digest(answers),
@@ -688,7 +696,7 @@ def _review_payload(inventory, commission, findings, answers, rows, omission, pr
     if prior_exceptions is not None:
         payload["prior_exceptions"] = prior_exceptions
     if delivery_layout == DELIVERY_LAYOUT:
-        required = {ref for finding in findings for ref in _refs(finding)}
+        required = {ref for finding in findings for ref in finding_refs(finding)}
         required |= {ref for answer in answers for ref in answer["evidence_refs"]}
         required |= {ref for exception in prior_exceptions or [] for ref in exception["source_refs"]}
         payload["review_scope"] = {"local_source_refs": refs, "elsewhere_source_refs": sorted(required - set(refs))}
@@ -845,7 +853,7 @@ def advance(source, commission, capacity, root, *, count):
             chosen = None
             for end in range(cursor + (1 if notes else 0), len(notes) + 1):
                 inputs = prior + notes[cursor:end]
-                allowed = sorted(set(ref for item in inputs for ref in _refs(item)))
+                allowed = sorted(set(ref for item in inputs for ref in finding_refs(item)))
                 payload = {"commission": _actor_commission(commission), "inputs": inputs, "allowed_refs": allowed,
                            "excluded_rows": unused_rows, "final": end == len(notes), **_layout_fields(delivery_layout)}
                 try:
@@ -882,7 +890,7 @@ def advance(source, commission, capacity, root, *, count):
             questions = sorted({qid for e in material for qid in e["question_ids"]}
                                | {answer_questions[ref] for ref in target_claims if ref in answer_questions})
             refs = {ref for e in material for ref in e["source_refs"]}
-            refs |= {ref for f in findings if f["finding_id"] in targets for ref in _refs(f)}
+            refs |= {ref for f in findings if f["finding_id"] in targets for ref in finding_refs(f)}
             refs |= {ref for a in answers if a["question_id"] in questions for ref in a["evidence_refs"]}
             rows = [r for r in inventory["records"] if refs & {r["body_ref"], *r["context_refs"]}]
             originals = _originals(inventory, rows, delivery_layout=delivery_layout)

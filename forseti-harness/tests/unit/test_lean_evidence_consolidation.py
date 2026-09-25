@@ -648,3 +648,67 @@ def test_reviewed_compact_layout_cannot_be_downgraded_in_rehashed_packet(tmp_pat
     packet["packet_sha256"] = lean.digest({k: v for k, v in packet.items() if k != "packet_sha256"})
     with pytest.raises(ValueError, match="review proof differs"):
         lean.validate_packet(packet)
+
+
+def test_unclassified_known_prose_original_reaches_review_and_repair_without_support_credit(tmp_path):
+    source, commission, capacity = fixture(2)
+    for row in source["captured_items"]:
+        row["product_context"] = []
+    source["captured_items"][0]["text"] = "I use foundation only on my nose."
+    source["captured_items"][1].update(text="Full face foundation feels uncomfortable, despite good coverage.", source_role="retailer_review")
+    source.pop("source_sha256")
+    source["source_sha256"] = _sha256(source)
+
+    def conditional(request):
+        response = respond(request)
+        p, phase = request["payload"], request["phase"]
+        if phase == "lean_read" and p["records"][0]["row_id"] == "r1":
+            response["findings"] = [finding([], "Full-face coverage can feel unwelcome [e1].")]
+        elif phase == "lean_synthesis":
+            response["findings"] = [finding(["e0"], "Coverage preference differs; full-face feel can be unwelcome [e1].",
+                                             inputs=[f["input_ref"] for f in p["inputs"]])]
+            if p["final"]:
+                response["answers"] = [{"question_id": "q", "answer": "Preferences differ by application.",
+                                          "evidence_refs": ["e0"], "limits": "Captured accounts only."}]
+        elif phase == "lean_review" and p["records"][0]["row_id"] == "r0":
+            response["exceptions"] = [{"severity": "material", "question_ids": ["q"], "finding_ids": ["f0"],
+                                       "source_refs": ["e0"], "reason": "Preserve the application qualification."}]
+        elif phase == "lean_repair":
+            response["replacements"] = [{"finding_id": "f0", "finding": finding(["e0"],
+                "Application is conditional; full-face feel can be unwelcome [e1].")}]
+            response["answers"][0]["evidence_refs"] = ["e0"]
+        return response
+
+    state, requests = complete((source, commission, capacity), tmp_path / "run", tmp_path, conditional)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    synthesis = next(r for r in requests if r["phase"] == "lean_synthesis")
+    assert "e1" in synthesis["payload"]["allowed_refs"]
+    raw_read = next(r for r in requests if r["phase"] == "lean_read" and r["payload"]["records"][0]["row_id"] == "r1")
+    accepted = lean.read(lean.Path(tmp_path / "run" / "requests" / raw_read["request_sha256"] / "response.json"))
+    assert all(accepted["findings"][0][relation] == [] for relation in lean.RELATIONS)
+    remote_review = next(r for r in requests if r["phase"] == "lean_review" and r["payload"]["records"][0]["row_id"] == "r1")
+    assert remote_review["payload"]["findings"][0]["finding_id"] == "f0"
+    assert "e1" in remote_review["payload"]["review_scope"]["local_source_refs"]
+    repair = next(r for r in requests if r["phase"] == "lean_repair")
+    assert "e1" in repair["payload"]["allowed_refs"]  # Neither exception nor answer cites it.
+    packet = lean.validate_packet(lean.read(state["packet_path"]))
+    result = packet["findings"][0]
+    assert lean.finding_refs(result) == {"e0", "e1"}
+    assert lean.resolve_refs(packet, ["e1"])[0]["text"] == source["captured_items"][1]["text"]
+    assert result["accounting"]["supporting_refs"]["known_origin_refs"] == ["o0"]
+    assert all("o1" not in row["known_origin_refs"] for row in result["accounting"].values())
+    bad = conditional(raw_read)
+    bad["findings"][0]["statement"] += " Foreign original [e999]."
+    with pytest.raises(ValueError, match="foreign or missing source citation"):
+        lean.validate_response(raw_read, bad, count)
+
+    # A reachable prose original is not a second credited support for comparison.
+    packet["commission"]["comparison_scope"] = {"q": {"axis_ids": ["comfort"], "subject_product_ids": ["subject"], "comparator_product_ids": ["competitor"]}}
+    packet["answers"][0]["evidence_refs"] = ["e0", "e1"]
+    packet["answers"][0]["comparison_verdicts"] = [{"axis_id": "comfort", "choice_posture": "subject_advantage",
+        "claim_kind": "customer_experience", "support_posture": "independently_repeated", "conflict_posture": "none_observed",
+        "why": "Another detail is reachable [e1].", "supporting_refs": ["e0"], "opposing_refs": [], "context_refs": [],
+        "conditions": [], "limits": "Captured accounts only."}]
+    packet["packet_sha256"] = lean.digest({k: v for k, v in packet.items() if k != "packet_sha256"})
+    with pytest.raises(ValueError, match="lacks two credited origins"):
+        lean.validate_packet(packet)

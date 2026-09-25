@@ -2153,6 +2153,9 @@ The routine has three stages:
    the independent review judges that relationship. Invented refs and missing
    rows remain validation failures. Code derives flat answer citation membership
    from both literal prose handles and the supplied list before exact-answer review.
+   A known literal citation in finding prose also remains reachable and reviewed
+   when no relation list repeats it. Reachability grants no support, opposition,
+   context or independent-origin credit; those relations are not inferred by code.
 2. Cross-batch synthesis over compact findings. Every input finding remains
    accounted for, including reasoned exclusions; the final fold authors coherent
    answers to all commissioned questions. Counts, provenance and literal source

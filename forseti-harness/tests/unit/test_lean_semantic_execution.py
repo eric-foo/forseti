@@ -24,7 +24,7 @@ def inputs(tmp_path, rows=40):
                 answer_commission_path=paths["commission"], answer_capacity_path=paths["capacity"])
 
 
-def offline_complete(kwargs, tmp_path):
+def offline_complete(kwargs, tmp_path, responder=respond):
     for _ in range(20):
         state = native.advance_semantic_run(**kwargs)
         if not state["judgment_requests"]:
@@ -32,7 +32,7 @@ def offline_complete(kwargs, tmp_path):
             return state
         for item in state["judgment_requests"]:
             candidate = tmp_path / (item["job_sha256"] + ".json")
-            write(candidate, respond(lean.read(item["job_path"])))
+            write(candidate, responder(lean.read(item["job_path"])))
             native.submit_judgment_job(job_path=Path(item["job_path"]),
                 expected_sha256=item["job_sha256"], response_path=candidate)
     raise AssertionError("did not complete")
@@ -143,3 +143,29 @@ def test_unknown_saved_method_cannot_fall_back_to_history(tmp_path):
     assert result["status"] == "SEMANTIC_ADVANCE_BLOCKED"
     assert "unsupported pinned" in result["error"]
     assert not (kwargs["run_dir"] / "requests").exists()
+
+
+def test_consumer_retrieves_unclassified_finding_citation_without_support_credit(tmp_path):
+    kwargs = inputs(tmp_path)
+    mentioned = []
+
+    def unclassified(request):
+        response = respond(request)
+        if request["phase"] == "lean_synthesis" and request["payload"]["final"]:
+            finding = response["findings"][0]
+            ref = finding["supporting_refs"].pop(0)
+            mentioned.append(ref)
+            finding["limits"] += " Additional original available for inspection [" + ref + "]."
+            response["answers"][0]["evidence_refs"] = [
+                value for value in response["answers"][0]["evidence_refs"] if value != ref]
+        return response
+
+    state = offline_complete(kwargs, tmp_path, responder=unclassified)
+    packet = lean.read(state["packet_path"])
+    artifact = consume_checked_packet(packet)
+    ref = mentioned[0]
+    assert ref not in packet["answers"][0]["evidence_refs"]
+    assert all(ref not in row[role] for row in packet["findings"] for role in lean.RELATIONS)
+    assert ref in {row["ref"] for row in artifact["original_observations"]}
+    finding = packet["findings"][0]
+    assert finding["accounting"]["supporting_refs"]["source_observation_count"] == len(finding["supporting_refs"])

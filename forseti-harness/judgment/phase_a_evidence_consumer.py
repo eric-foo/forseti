@@ -101,7 +101,7 @@ def consume_checked_packet(
     findings = [copy.deepcopy(row) for row in packet["findings"]
                 if set(row["question_ids"]) & set(selected)]
     refs = {ref for answer in answers for ref in answer["evidence_refs"]}
-    refs.update(ref for row in findings for role in lean.RELATIONS for ref in row[role])
+    refs.update(ref for row in findings for ref in lean.finding_refs(row))
     artifact = {
         "schema_version": "phase_a_checked_evidence_answer_v1",
         "method_version": lean.METHOD_VERSION,
