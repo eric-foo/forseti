@@ -3,6 +3,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 from threading import Barrier, Lock
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,6 +13,15 @@ from runners import run_semantic_evidence_integration as native
 from runners import semantic_execution as execution
 from test_lean_evidence_consolidation import fixture, respond
 from test_semantic_execution import simulated_provider, write
+
+
+@pytest.fixture(autouse=True)
+def simulated_tokenizer(monkeypatch):
+    # Structural transport tests run without optional preparation dependencies.
+    # Actual token-fit/usage evidence comes from the bounded native model runs.
+    from runners import finite_preparation
+    monkeypatch.setattr(finite_preparation, "offline_tokenizer",
+        lambda encoding: (SimpleNamespace(encode=lambda text, **kw: text.encode("utf-8")), {}))
 
 
 def inputs(tmp_path, rows=40):
