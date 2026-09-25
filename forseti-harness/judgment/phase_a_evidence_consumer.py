@@ -104,7 +104,7 @@ def consume_checked_packet(
     refs.update(ref for row in findings for ref in lean.finding_refs(row))
     artifact = {
         "schema_version": "phase_a_checked_evidence_answer_v1",
-        "method_version": lean.METHOD_VERSION,
+        "method_version": packet["method_version"],
         "packet_sha256": packet["packet_sha256"],
         "source_sha256": packet["source_sha256"],
         "selected_question_ids": selected,

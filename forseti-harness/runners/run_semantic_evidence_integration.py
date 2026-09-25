@@ -1792,9 +1792,9 @@ def advance_semantic_run(
         from judgment import lean_evidence_consolidation as lean
         start_path = run_dir.resolve() / "start.json"
         saved = _load_object(start_path) if start_path.exists() else None
-        if saved is not None and saved.get("method_version") not in {None, lean.METHOD_VERSION}:
+        if saved is not None and saved.get("method_version") not in {None, *lean.METHOD_VERSIONS}:
             raise ValueError("unsupported pinned consolidation method")
-        historical = (saved is not None and saved.get("method_version") != lean.METHOD_VERSION)
+        historical = (saved is not None and saved.get("method_version") is None)
         prepared = any(p is not None for p in (bundle_path, verified_path, extracted_selection_path))
         if historical or (saved is None and prepared):
             arguments["max_evidence_per_work_unit"] = (
@@ -2977,6 +2977,8 @@ def project_evidence_packet_run(
     from judgment import lean_evidence_consolidation as lean
     if view.get("schema_version") == lean.PACKET_VERSION:
         lean.validate_packet(view)
+        if view["status"] != "LEAN_EVIDENCE_CONSOLIDATION_CHECKED":
+            raise ValueError("lean packet still requires revision; it is not a ready evidence packet")
         if packet_version not in {"auto", "lean"} or axis_ids or proposition_ids or all_propositions:
             raise ValueError("lean packets retain checked findings; historical proposition selection is not applicable")
         if any(path is not None for path in (bundle_path, batch_compilation_path, node_compilation_path)):

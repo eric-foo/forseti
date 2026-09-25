@@ -24,6 +24,17 @@ contract or its linked owning source. This history creates no new review step.
 
 ## Changelog
 
+- 2026-09-25 v137 — adjudicated PR #1643 review: fresh lean v2 runs require
+  body-specific accounting, select repair originals without shared-context sibling
+  expansion, carry minor objections into recheck, and route compiler-known
+  comparison failures through repair before spending independent-review calls.
+  Routing IDs are not citations; a located statement represented as body and
+  context counts once. Corrected findings keep their question routes; projections
+  reject revision-required packets; method drift blocks before new requests are
+  persisted. Malformed commissions and orphaned run artifacts fail locally.
+  Saved lean v1 identities and zero-call replay remain unchanged. These are
+  correctness and bounded-cost fixes, not thousand-thread economics proof.
+
 - 2026-09-25 v136 — fresh source consolidation uses bounded original reads,
   cross-batch synthesis and independent exact-answer/source review. Compiler-owned
   provenance and distinct lean packets replace the mandatory atomic preparation

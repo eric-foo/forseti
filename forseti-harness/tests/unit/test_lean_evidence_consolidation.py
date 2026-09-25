@@ -421,6 +421,170 @@ def test_recheck_material_failure_is_revision_not_success_or_retry(tmp_path):
     assert [r["phase"] for r in seen].count("lean_repair") == 1
 
 
+def test_repair_keeps_corrected_finding_question_routes_but_not_new_scope(tmp_path):
+    args = fixture()
+    args[1]["questions"].append({"id": "other", "question": "What remains uncertain?"})
+    args[2]["max_rows_per_slice"] = 4
+
+    def routed(request):
+        response = respond(request)
+        p, phase = request["payload"], request["phase"]
+        if phase == "lean_synthesis":
+            response["findings"][0]["question_ids"] = ["q", "other"]
+            if p["final"]:
+                response["answers"].append({"question_id": "other", "answer": "Uncertainty remains.",
+                                            "evidence_refs": [], "limits": "Captured accounts only."})
+        elif phase == "lean_review":
+            response["exceptions"] = [{"severity": "material", "question_ids": ["q"], "finding_ids": ["f0"],
+                                       "source_refs": [p["allowed_refs"][0]], "reason": "A condition is missing."}]
+        elif phase == "lean_repair":
+            for row in response["replacements"]:
+                row["finding"]["question_ids"] = ["q", "other"]
+        return response
+
+    state, seen = complete(args, tmp_path / "run", tmp_path, routed)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    repair = next(r for r in seen if r["phase"] == "lean_repair")
+    assert repair["payload"]["target_questions"] == ["q"]
+    assert lean.read(state["packet_path"])["findings"][0]["question_ids"] == ["q", "other"]
+    widened = routed(repair)
+    widened["new_findings"] = [finding(repair["payload"]["allowed_refs"][:1], "Recovered evidence.")]
+    widened["new_findings"][0]["question_ids"] = ["other"]
+    with pytest.raises(ValueError, match="foreign or missing question"):
+        lean.validate_response(repair, widened, count)
+
+
+def test_method_drift_cannot_orphan_saved_requests_and_rejudge(tmp_path, monkeypatch):
+    args, root = fixture(), tmp_path / "run"
+    state, _ = complete(args, root, tmp_path)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    saved = set((root / "requests").iterdir())
+    monkeypatch.setitem(lean.PHASE, "lean_review", lean.PHASE["lean_review"] + "Drifted wording.\n")
+    blocked = lean.advance(*args, root, count=count)
+    assert blocked["status"] == "SEMANTIC_ADVANCE_BLOCKED" and "not reproduced" in blocked["error"]
+    assert not blocked["judgment_requests"] and set((root / "requests").iterdir()) == saved
+    monkeypatch.undo()
+    assert lean.advance(*args, root, count=count)["packet_sha256"] == state["packet_sha256"]
+
+
+def seed_v1(root, args):
+    source, commission, capacity = args
+    lean.retain(root / "start.json", {"method_version": lean.LEGACY_METHOD_VERSION,
+        "source_sha256": source["source_sha256"], "source_object_sha256": lean.digest(source),
+        "commission_sha256": lean.digest(lean._commission(commission)), "capacity_sha256": lean.digest(capacity),
+        "delivery_layout": lean.DELIVERY_LAYOUT})
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_shared_context_cannot_account_for_uncited_body_in_new_runs(tmp_path, legacy):
+    args, root = fixture(2), tmp_path / "run"
+    args[2]["max_rows_per_slice"] = 4
+    if legacy:
+        seed_v1(root, args)
+    state = lean.advance(*args, root, count=count)
+    request = lean.read(state["judgment_requests"][0]["job_path"])
+    response = respond(request)
+    response["findings"].pop()  # r1's body is absent; its shared context is still cited.
+    assert request["payload"]["records"][1]["context_refs"] == response["findings"][0]["context_refs"]
+    if legacy:
+        lean.validate_response(request, response, count)
+    else:
+        with pytest.raises(ValueError, match="read row coverage differs"):
+            lean.validate_response(request, response, count)
+        response["unused_rows"] = [{"row_id": "r1", "reason": "No separate contribution to this question."}]
+        lean.validate_response(request, response, count)
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_repair_shared_context_uses_one_enclosing_record_and_replays(tmp_path, legacy):
+    args, root = fixture(32), tmp_path / "run"
+    source, _, capacity = args
+    for row in source["captured_items"]:
+        row["product_context"] = deepcopy(source["captured_items"][0]["product_context"])
+    source.pop("source_sha256")
+    source["source_sha256"] = _sha256(source)
+    capacity["max_rows_per_slice"] = 40
+    if legacy:
+        seed_v1(root, args)
+
+    def sparse(request):
+        response = respond(request)
+        p = request["payload"]
+        if request["phase"] == "lean_read":
+            response["findings"] = response["findings"][:1]
+            response["unused_rows"] = [{"row_id": row["row_id"], "reason": "No additional contribution."}
+                                       for row in p["records"][1:]]
+        elif request["phase"] == "lean_review":
+            response["exceptions"] = [
+                {"severity": severity, "question_ids": ["q"], "finding_ids": ["f0"],
+                 "source_refs": p["findings"][0]["supporting_refs"][:1], "reason": reason}
+                for severity, reason in [("material", "Missing condition."), ("minor", "Imprecise attribution.")]]
+        return response
+
+    state, requests = complete(args, root, tmp_path, sparse)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    repair = next(r for r in requests if r["phase"] == "lean_repair")
+    assert len(repair["payload"]["records"]) == (32 if legacy else 1)
+    assert "avoid waste" in lean.compact(repair["payload"]["observations"])
+    recheck = next(r for r in requests if r["phase"] == "lean_recheck")
+    assert {e["severity"] for e in recheck["payload"]["prior_exceptions"]} == ({"material"} if legacy else {"material", "minor"})
+    expected_method = lean.LEGACY_METHOD_VERSION if legacy else lean.METHOD_VERSION
+    assert all(r["method_version"] == expected_method for r in requests)
+    from judgment.phase_a_evidence_consumer import consume_checked_packet
+    assert consume_checked_packet(lean.read(state["packet_path"]))["method_version"] == expected_method
+    before = {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+    resumed, calls = complete(args, root, tmp_path, sparse)
+    assert resumed == state and calls == []
+    assert before == {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+
+def test_question_and_axis_identifiers_are_not_prose_citations():
+    value = finding(["e0"], "One account.")
+    value["question_ids"] = ["fit-e999"]
+    lean._validate_findings([value], {"e0"}, {"fit-e999"})
+    answer = {"question_id": "fit-e999", "answer": "One account [e0].", "evidence_refs": ["e0"], "limits": "Bounded."}
+    lean._validate_answers([answer], ["fit-e999"], {"e0"})
+    answer["comparison_verdicts"] = [{"axis_id": "e998", "supporting_refs": ["e0"], "opposing_refs": [], "context_refs": []}]
+    assert lean._compile_answers([answer], {"e0"}, method_version=lean.METHOD_VERSION)[0]["evidence_refs"] == ["e0"]
+    answer["answer"] += " Missing source [e997]."
+    with pytest.raises(ValueError, match="foreign lean answer citation"):
+        lean._compile_answers([answer], {"e0"}, method_version=lean.METHOD_VERSION)
+
+
+def test_same_located_statement_as_body_and_context_counts_once():
+    source, _, _ = fixture(2)
+    first, second = source["captured_items"]
+    second["product_context"] = [{"text": first["text"], "source_artifact_id": "raw", "source_ref": first["source_ref"],
+                                   "context_type": "post_text", "independence_key": first["independence_key"]}]
+    source.pop("source_sha256")
+    source["source_sha256"] = _sha256(source)
+    inventory = lean._source_inventory(source)
+    refs = [inventory["records"][0]["body_ref"], inventory["records"][1]["context_refs"][0]]
+    assert len(set(refs)) == 2  # Both original attribution/location records remain reachable.
+    old = lean._compile_findings([finding(refs, "One statement.")], inventory["registry"])[0]["accounting"]["supporting_refs"]
+    new = lean._compile_findings([finding(refs, "One statement.")], inventory["registry"], method_version=lean.METHOD_VERSION)[0]["accounting"]["supporting_refs"]
+    assert old["source_observation_count"] == 2 and new["source_observation_count"] == 1
+    assert old["known_origin_count"] == new["known_origin_count"] == 1
+
+
+@pytest.mark.parametrize("bad", [{"omission_mode": "all"}, {"assessment_only": []}, {"assessment_only": {"checks": [{"id": []}]}}])
+def test_bad_commission_blocks_before_persisting_a_run(tmp_path, bad):
+    source, commission, capacity = fixture()
+    commission.update(bad)
+    state = lean.advance(source, commission, capacity, tmp_path / "run", count=count)
+    assert state["status"] == "SEMANTIC_ADVANCE_BLOCKED" and not state["judgment_requests"]
+    assert not (tmp_path / "run" / "start.json").exists()
+
+
+@pytest.mark.parametrize("artifact", ["bundle.json", "packet.json"])
+def test_deleted_start_cannot_start_a_fresh_method_over_an_existing_run(tmp_path, artifact):
+    root = tmp_path / "run"
+    lean.retain(root / artifact, {"preserved": True})
+    state = lean.advance(*fixture(), root, count=count)
+    assert state["status"] == "SEMANTIC_ADVANCE_BLOCKED" and "start binding missing" in state["error"]
+    assert not (root / "start.json").exists()
+
+
 def test_large_sample_is_source_independent_and_discloses_actual_coverage(tmp_path):
     source, commission, capacity = fixture(60)
     commission["review"] = {"omission_mode": "sample", "sample_size": 7, "seed": "bound"}
