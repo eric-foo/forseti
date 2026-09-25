@@ -895,12 +895,17 @@ def advance(source, commission, capacity, root, *, count):
             pins["delivery_layout"] = delivery_layout
         retain(start_path, pins)
         accepted, reproduced = [], set()
+        saved_request_ids = set()
+        if (root / "result.json").exists():
+            saved_request_ids.update(row["request_sha256"] for row in read(root / "result.json")["accepted_responses"])
+        if (root / "packet.json").exists():
+            saved_request_ids.update(row["request_sha256"] for row in read(root / "packet.json")["review"]["responses"])
 
         def saved_requests_reproduced():
             # Saved requests precede any new one, so the pinned method must have
             # rebuilt them all first. Otherwise method drift would re-judge silently.
             saved = {p.name for p in (root / "requests").iterdir()} if (root / "requests").exists() else set()
-            if saved - reproduced:
+            if (saved | saved_request_ids) - reproduced:
                 raise ValueError("saved lean request is not reproduced by this method; restore the pinned method, do not rejudge")
 
         def consume(requests):

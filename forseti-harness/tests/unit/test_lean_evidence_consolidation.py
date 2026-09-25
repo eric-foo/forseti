@@ -467,6 +467,21 @@ def test_method_drift_cannot_orphan_saved_requests_and_rejudge(tmp_path, monkeyp
     assert lean.advance(*args, root, count=count)["packet_sha256"] == state["packet_sha256"]
 
 
+@pytest.mark.parametrize("lost_summary", [None, "result.json", "packet.json"])
+def test_completed_result_cannot_rejudge_after_all_request_directories_are_lost(tmp_path, lost_summary):
+    import shutil
+    args, root = fixture(), tmp_path / "run"
+    state, _ = complete(args, root, tmp_path)
+    assert state["status"] == "LEAN_EVIDENCE_CONSOLIDATION_CHECKED", state
+    shutil.rmtree(root / "requests")  # Only this test's generated temporary fixtures.
+    if lost_summary:
+        (root / lost_summary).unlink()
+    before = {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+    blocked = lean.advance(*args, root, count=count)
+    assert blocked["status"] == "SEMANTIC_ADVANCE_BLOCKED" and not blocked["judgment_requests"], blocked
+    assert before == {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+
 def seed_v1(root, args):
     source, commission, capacity = args
     lean.retain(root / "start.json", {"method_version": lean.LEGACY_METHOD_VERSION,
@@ -729,7 +744,7 @@ def test_pre_layout_start_and_default_capacity_packet_replay_without_restamping(
     source, commission, _ = fixture()
     root = tmp_path / "run"
     # Historical starts did not carry a layout field, including default-capacity runs.
-    lean.retain(root / "start.json", {"method_version": lean.METHOD_VERSION, "source_sha256": source["source_sha256"],
+    lean.retain(root / "start.json", {"method_version": lean.LEGACY_METHOD_VERSION, "source_sha256": source["source_sha256"],
         "source_object_sha256": lean.digest(source), "commission_sha256": lean.digest(lean._commission(commission)),
         "capacity_sha256": lean.digest(lean.DEFAULT_CAPACITY)})
     args = (source, commission, None)
