@@ -231,6 +231,18 @@ when a known source unit needs a different bound; it is not permission to
 bulk-load unrelated instructions. Existing full-read requirements still apply
 through appropriately scoped successive reads.
 
+For a required full read of the intelligence claim-support contract, the
+default is too small. Use this complete-read command from the repository root:
+
+```text
+node .agents/tools/read_source.mjs --file forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md --max-output-bytes 32768
+```
+
+Carry this command and its delivery allowance into intakes requiring that
+contract. Allow enough tool output to deliver the complete JSON separately from
+unrelated output: the reader's byte cap does not cap a combined tool response,
+and several individually bounded reads can exceed that response's delivery cap.
+
 The guard covers this reader, not arbitrary tool output or automatically
 supplied app context. Keep command execution buffers separate from emitted
 output budgets: restricting a child process buffer can terminate useful work.

@@ -348,6 +348,8 @@ def _report_codex(args: argparse.Namespace) -> int:
               "accounting": accounting, "comparisons": compared}
     path = write_verified(result, destination / "report.json")
     returned = {"status": result["status"], "record_path": str(path), "record_readback_matched": True,
+                "return_view": "summary", "accounting_view": "summary_without_threads",
+                "record_readback_scope": "full_saved_report",
                 "accounting": {key: value for key, value in accounting.items() if key != "threads"},
                 "runs": [{key: row[key] for key in ("label", "thread_id", "turn_id", "exit_code", "outcome", "quality", "usage", "usage_coverage",
                          "model_responses", "elapsed_seconds", "record_path", "diagnostic_path", "error") if key in row}

@@ -59,6 +59,18 @@ def test_real_native_parent_child_union_preserves_failed_selected_run(tmp_path, 
     assert saved["runs"][2]["quality"] == "failed"
     assert saved["comparisons"][0]["overall"] == "inconclusive"
     assert returned["record_readback_matched"] is True
+    assert returned["return_view"] == "summary"
+    assert returned["accounting_view"] == "summary_without_threads"
+    assert returned["record_readback_scope"] == "full_saved_report"
+    assert returned["accounting"] == {key: value for key, value in accounting.items() if key != "threads"}
+    assert set(accounting["threads"]) == {"root", "child", "failed"}
+    for thread, total in (("root", 13), ("child", 23), ("failed", 33)):
+        assert accounting["threads"][thread]["observed_usage"]["coverage"] == "complete"
+        assert accounting["threads"][thread]["observed_usage"]["total_tokens"] == total
+        assert accounting["threads"][thread]["model_responses"] == 1
+    assert returned["status"] == "failed"
+    assert returned["runs"][2]["quality"] == "failed"
+    assert returned["runs"][2]["exit_code"] == 7
     assert returned["runs"][0]["usage"]["total_tokens"] == 36
     assert returned["runs"][0]["thread_id"] == "root"
 
