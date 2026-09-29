@@ -754,6 +754,17 @@ owns the preparation, paired review-view and accepted-edit commands. It embeds t
 current calibration in all role inputs, then freezes those inputs per run. It
 does not launch models, dispatch reviewers or replace normal consolidation.
 
+For every new operator-led customer-evidence consolidation report, use
+`docs/workflows/customer_evidence_consolidation_baseline_v0.md` as the default
+across brands and admitted source families. It owns the current helper defaults,
+fresh final-writing context and proposal-only review scope. Bind
+the applicable role inputs from its baseline method and installed report helper;
+the full cost history is for comparison work. Per-row labelling remains a separate commissioned
+deliverable; do not add it, repeated same-family reviews or historical
+reconciliation stages to a report commission. Use the baseline's current result
+and limits for verification and cost claims. The helper issues no checked packet
+and does not launch reviewers.
+
 Every Forseti adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
 skill is unavailable, unresolved, or not applied, the run may return only a

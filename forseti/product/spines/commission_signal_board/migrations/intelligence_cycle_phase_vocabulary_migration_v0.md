@@ -4,9 +4,9 @@
 retrieval_header_version: 1
 artifact_role: Spine migration note (vocabulary mapping)
 scope: >
-  Maps the Forseti Intelligence Cycle's historical phase and turn vocabulary to
-  the current vocabulary adopted 2026-08-05, so historical seals, handoffs, and
-  run records remain interpretable without rewriting them.
+  Preserves the 2026-08-05 phase/turn mapping and points to the current
+  Gathering, Consolidation and Delivery identity, so historical seals,
+  handoffs and run records remain interpretable without rewriting them.
 use_when:
   - Reading a historical seal, handoff, or run record that uses Problem Framing or Deliver-as-turn vocabulary.
   - Verifying which vocabulary a cycle artifact was authored under.
@@ -24,7 +24,13 @@ phase enum nor the turn name, so no executable surface changed.
 
 ## Mapping
 
-| Historical vocabulary | Current vocabulary |
+The current public phases, adopted **2026-09-29**, are **Gathering →
+Consolidation → Delivery**. Their meanings and the retained profile/turn
+identifiers are owned by the
+[operating authority](../authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract).
+The table below records the earlier migration; it is not the current phase list.
+
+| Historical vocabulary | Vocabulary adopted 2026-08-05 |
 | --- | --- |
 | Phase `problem_framing` / "Problem Framing" | Phase `deliver` / "Deliver" |
 | Informal phase shorthand "Problem" | Phase `deliver` |
@@ -42,4 +48,6 @@ method.
   them would falsify provenance. `phase: understanding` in existing seals
   remains valid; a historical `phase: problem_framing` value, if ever
   encountered, reads as `deliver`.
-- New commissions use the current vocabulary only.
+- New commissions use Gathering, Consolidation and Delivery for their public
+  phase identity. Existing schema fields keep their compatibility spellings
+  under the operating authority; this does not rewrite historical artifacts.

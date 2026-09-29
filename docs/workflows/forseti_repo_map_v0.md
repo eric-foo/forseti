@@ -82,7 +82,7 @@ not changes to source precedence.
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
 | One-company intelligence information requirements, paid-access choice, decision modules, and Company Surface boundary | `docs/decisions/forseti_company_intelligence_information_architecture_v0.md` |
-| Commission or execute a Forseti Intelligence Cycle | `forseti/product/spines/commission_signal_board/README.md`, then `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
+| Commission or execute a Forseti Intelligence Cycle: Gathering, Consolidation, Delivery | `forseti/product/spines/commission_signal_board/README.md`, then `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, start with `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area. Buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |
@@ -94,6 +94,7 @@ not changes to source precedence.
 | Source-capture access / anti-blocking components | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
+| Operator-led customer-evidence report, direct synthesis, Sol/Claude review baseline, or consolidation process-cost comparison | `docs/workflows/customer_evidence_consolidation_baseline_v0.md` |
 | Phase A evidence machinery (`lean_evidence_consolidation.py`, `phase_a_evidence_selection.py` or `phase_a_evidence_axis_consolidation.py`): evidence consolidation, checked-answer delivery, or historical selection/quotes, point pack, generic axis pack, projection and consolidated axis view | `docs/workflows/phase_a_customer_evidence_completion_path_v0.md` |
 | Creator ideal audience or commercial creator-fit method | `forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md` |
 | Pack a judgment view or author a packing adapter | `forseti/product/spines/packing/README.md`, then `forseti/product/spines/packing/authority/packing_spine_v0_serialization_contract_v0.md` |

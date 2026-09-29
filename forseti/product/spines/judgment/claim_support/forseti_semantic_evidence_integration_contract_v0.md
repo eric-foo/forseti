@@ -33,13 +33,23 @@ ceiling.
 
 Semantic Evidence Integration is the runtime capability inside the named
 **Evidence Consolidation** stage. That stage starts from Collection's immutable,
-completely accounted materialized source. New source runs use bounded original
+completely accounted materialized source. New source CLI runs use bounded original
 reads, cross-batch synthesis and independent review of the exact final answers;
 code preserves provenance and projects a distinct checked evidence packet.
 The [current route](#lean-source-consolidation-current) replaces the mandatory
 atomic extraction/verification/reconciliation preparation stack for new runs.
 The atomic interfaces described below remain pinned historical and explicit
 prepared-input consumers; they do not define the new default.
+
+For every new operator-led customer-evidence consolidation report, the owner-adopted
+[customer-evidence consolidation baseline](../../../../../docs/workflows/customer_evidence_consolidation_baseline_v0.md)
+is the default across brands and admitted source families. It owns current
+helper defaults, source reading, notes, final writing and proposal-only external review.
+That report route does not issue this contract's checked packet or satisfy the
+acquisition seal. The baseline's current result and limits own verification and
+cost claims. This does not change the maintained checked-packet CLI below.
+Do not add the historical atomic stages below to a report commission.
+
 `prepare-batches` verifies that the source content
 matches its stored `source_sha256`; it does not reopen the Collection locators
 embedded for provenance. Current selection consumers likewise keep missing
@@ -57,10 +67,11 @@ cannot become a successful replay; new materialized manifests never use this
 fallback. Historical replay may therefore still depend on its pinned Collection
 artifacts, but does not rerun Collection or establish current-method execution.
 Consolidation's output is the complete
-evidence retrieval surface consumed by the acquisition seal and later Deliver
-work. This stage boundary does not create or rename a globally numbered phase;
-historical Phase A, Phase B, Turn B, Understanding, and Deliver vocabulary
-remains unchanged.
+evidence retrieval surface consumed by the acquisition seal and later Delivery
+work. The [cycle authority](../../commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract)
+places this capability in **Consolidation**, between **Gathering** and
+**Delivery**, and owns compatibility with existing phase/turn names. Historical
+artifacts, schema identifiers and acquisition-seal obligations remain unchanged.
 
 It is not a market conclusion, recommendation, sentiment score, representative
 estimate, causal model, custom-trained model, embeddings service, vector store,
@@ -2133,6 +2144,11 @@ artifact.
 ### Supported operating route and owner-only reopen boundary
 
 #### Lean source consolidation (current)
+
+This section owns the maintained CLI route. Operator-led report commissions use
+the [report baseline](../../../../../docs/workflows/customer_evidence_consolidation_baseline_v0.md);
+its one-review/home-correction procedure does not replace this route's checked
+packet, repair/recheck or seal requirements.
 
 New `advance --source ... --run-dir ...` runs use
 `lean_evidence_consolidation_v2`. This hardens the owner-accepted simplification of

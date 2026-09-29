@@ -10,11 +10,20 @@ use_when:
   - Proposing an optimization to evidence comparison, retention, or consolidation completion.
 authority_boundary: retrieval_only
 open_next:
+  - docs/workflows/customer_evidence_consolidation_baseline_v0.md
   - forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md
   - docs/research/summer_fridays_understanding_dogfood_20260802_p11r7/semantic_integration_customer_cross_source_proof_20260809_v0/README.md
 ---
 
 # Phase A customer-evidence completion path v0
+
+For every new operator-led customer-evidence consolidation report, start with the
+[customer-evidence consolidation baseline](customer_evidence_consolidation_baseline_v0.md).
+It owns the current helper defaults and direct source-to-report, one Claude
+proposal review and home adjudication workflow across brands and admitted
+source families, including community content and retailer reviews. Its current
+result and limits own quality and cost claims. The maintained CLI and historical
+prepared-input routes below retain their existing contracts and statuses.
 
 Before proposing or testing a consolidation-method optimization, read
 [Supported operating route and owner-only reopen boundary](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#supported-operating-route-and-owner-only-reopen-boundary).
@@ -59,11 +68,13 @@ Historical selection v1 and no-frontier manifest v2 replay either pre-existing
 date projection only against their complete original inventory hash; the legacy
 projection verifies its source-artifact bytes. Never restamp a frozen inventory
 to bypass a date mismatch. Contract v119 owns this compatibility boundary.
-This is a conceptual and completion boundary between acquisition and Deliver,
-not a new globally numbered phase: historical Phase A, Phase B, Turn B,
-Understanding, and Deliver vocabulary is not renumbered or migrated.
+The [cycle authority](../../forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract)
+places this work in **Consolidation**, between **Gathering** and **Delivery**.
+It owns the current phase identity and compatibility mapping. Historical
+Phase A, Phase B, Turn B, Understanding and Deliver artifacts keep their names;
+the new vocabulary does not change their schema, gate or completion status.
 
-New source runs use the contract's
+New maintained CLI source runs use the contract's
 [Lean source consolidation](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#lean-source-consolidation-current)
 through `advance --source ... --run-dir ... --answer-commission ...`.
 Complete original bodies and attached context remain retrievable. The final
@@ -713,34 +724,32 @@ ID through `source_groups` and preserve its truth-support or influence layer.
 
 ### Supported operating route
 
-When the owner also commissions a complete-case answer, the normal `advance`
-entry accepts `--answer-commission` and `--answer-capacity` after its unchanged
-policy-v2 completion. The semantic-integration contract's **Bounded complete-case
-answer and review** section owns this continuation, its exact inventory/reuse
-boundaries, measured actor envelope, original-source reopening, and explicit
-capacity failures. The same command can begin with an explicit `--bundle` /
-`--verified` pair for the same source after native full-provenance validation.
-Consumer jobs use the established intake/submit handoff, preserve unchanged
-accepted work across process restarts, and support one classified exact answer
-repair plus independent recheck. Larger final inventories use bounded question
-folds with explicit support/opposition/condition reconciliation, compiler-derived
-source-role/origin metadata for cited handles, a shared answer budget,
-cross-question composition, and independent checks of the exact
-final answer against every checked batch. All unused/reused dispositions remain
-in scope; unresolved objections survive the local union. Reopened originals and
-corrected answers use the same bounded checking boundary. The existing point/axis readers keep their
-validated pack and selected-display semantics; no axis pack is fabricated from
-the complete inventory. This does not promote the optional finite route.
+Choose the route by its commissioned consumer; do not concatenate them:
 
-Follow the owning [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
-section for normal starts and resumes. It binds the command, complete request set,
-direct program-owned execution, accepted-artifact reuse and stopping conditions.
-Its selected-extraction entry preserves completed batches while requiring their
-independent verification; it does not resume excluded extraction work.
-For an explicitly commissioned prepared-level checkpoint with existing verified
-inputs, use [Preparation from verified inputs](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
-These entries replace reconstructing the sequence from the history in this file.
-Phase A's [experimental route options](#experimental-route-options) remain opt-in.
+- **Operator-led research report:** the
+  [customer-evidence consolidation baseline](customer_evidence_consolidation_baseline_v0.md)
+  is the default across brands and admitted source families. It owns current
+  helper defaults, complete source reading, notes, fresh final writing, one
+  proposal-only external review and home corrections. Consult its current
+  result and limits for quality and cost evidence. This report is not a checked
+  CLI packet.
+- **New maintained CLI source run:** follow
+  [Lean source consolidation (current)](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#lean-source-consolidation-current).
+  It owns bounded original reads, cross-batch synthesis, exact-answer review,
+  material repair/recheck and the distinct checked packet. Historical atomic
+  preparation is not a prerequisite for this route either.
+- **Explicit prepared inputs or historical replay:** follow the owning
+  [Consolidation execution](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#consolidation-execution)
+  and, when applicable,
+  [Preparation from verified inputs](../../forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md#preparation-from-verified-inputs).
+  The contract's **Bounded complete-case answer and review** section owns the
+  optional answer continuation after policy-v2 completion. Preserve those
+  pinned routes and accepted artifacts; do not import their stages into the
+  operator report or new lean source run.
+
+The sections below retain explicit packet consumers and historical method/cost
+evidence. They are not additional steps for the report baseline. Phase A's
+[experimental route options](#experimental-route-options) remain opt-in.
 
 ### Evidence flow and method context
 
@@ -752,13 +761,18 @@ SERP map
   -> Collection materialization
        -> hash-bound semantic source + matching lineage receipt
   -> Evidence Consolidation (verify materialized source hash)
-       -> semantic leaf assessment
-       -> atomic evidence structuring
-       -> meaning-based cross-source reconciliation
-       -> proposition/axis evidence packets
+       -> bounded original reads
+       -> compact cross-batch synthesis
+       -> independent exact-answer review
+       -> lean checked evidence packet
   -> acquisition seal when the current route contract is satisfied
   -> Synthesize / Deliver judgment
 ```
+
+This diagram describes the maintained CLI/seal route. Operator-led research
+reports follow the baseline linked above. The method-v4/v5 and proposition/axis
+descriptions below explain explicit historical consumers, not mandatory stages
+for either new route.
 
 For each company, Phase A first verifies its products and the source-native IDs
 used by each retailer or community coding artifact. The run then supplies a
@@ -844,6 +858,9 @@ rather than requiring one command-line argument per proposition; it cannot be
 combined with axis or explicit proposition selection.
 
 ### Adopted token-cost baseline
+
+This is the historical packet-serialization comparison. The current operator
+report baseline and its cost limitations are owned by the linked report guide.
 
 On 2026-08-16, `phase_a_evidence_packet_v2` was adopted as the provisional
 Phase A token-cost baseline. A matched model experiment compared v1 and v2 on three
