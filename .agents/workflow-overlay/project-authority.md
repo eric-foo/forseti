@@ -13,6 +13,7 @@ authority_boundary: retrieval_only
 ## Identity
 
 - Project/workspace: Forseti
+- Intelligence Cycle: **Gathering → Consolidation → Delivery**; phase meanings and compatibility are owned by `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md` -> **Forseti Intelligence Cycle Operating Contract**.
 - Legacy name: Orca; rename policy: `docs/decisions/forseti_rename_migration_policy_v0.md`
 - Stage: bounded implementation permitted when explicitly authorized; otherwise docs/decision work remains the default
 - Relationship to `jb`: separate workspace; no inherited project authority

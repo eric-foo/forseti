@@ -59,8 +59,10 @@ scaffolds; those are not board outputs.
 For `company_competitive_intelligence`, this prompt prepares the
 commission-board portion of **Acquire & Seal** in a **Forseti Intelligence
 Cycle**. It does not itself claim that scanning/capture ran or that the phase
-acquisition seal passed. The playbook owns the complete two-phase/two-turn
-contract and the fresh-context synthesis gate. For company Understanding, the
+acquisition seal passed. The playbook routes the **Gathering → Consolidation →
+Delivery** cycle and owns the existing acquisition and synthesis gates.
+`Understanding` / `Deliver` remain compatibility profiles, not the public
+phase list. For company Understanding, the
 validated board precedes SERP Phase 1; Phase 1 feeds the `CO1`-`CO3` specialist
 fan-out; Reddit/community acquisition stays inside `CO3`; and the targeted SERP
 Phase 2 return begins only after the specialist terminal returns. These SERP
@@ -231,16 +233,19 @@ with a declared period and rationale. Do not invent missing inputs. Intake-only
 output is not a validator target.
 
 For `company_competitive_intelligence`, also require `commission_id`,
-`cycle_id`, the canonical `phase`, `bound_question`, `intended_consumer`,
+`cycle_id`, the schema `phase`, `bound_question`, `intended_consumer`,
 `intended_use`, `phase_scope`, and `understanding_completion_profile`. Select
 `broad_consumer_brand_understanding_v3` when the subject is a consumer brand and
 product/customer experience is material; otherwise select
 `broad_company_understanding_v1`. The only valid turn at commission-board
 generation is `acquire_and_seal`. Missing required company-cycle fields return
 `NEEDS_COMMISSION_INTAKE`; do not fall back to bare `Phase 1` / `Phase 2`
-language.
+language. The schema retains `phase: understanding | deliver`; bind the requested
+Gathering, Consolidation or Delivery scope in the existing `phase_scope`,
+question and use fields under the playbook's compatibility mapping. A schema
+tag never expands the owner's commissioned scope or marks a later phase complete.
 
-Within the Forseti Intelligence Cycle, an owner request for `Understanding` or
+Within the Forseti Intelligence Cycle, a legacy owner request for `Understanding` or
 historical `Phase A` that does not explicitly name a synthesis deliverable
 commissions `acquire_and_seal` only and stops after the acquisition seal. Do
 not infer a Synthesize turn from the phase name, a passing seal, a request for

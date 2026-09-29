@@ -742,6 +742,29 @@ only its prompt-specific deltas: which formal outputs, if any, it explicitly
 binds, and a prompt-specific severity contract when it departs from the
 Forseti-bound severity set.
 
+Source-label and source-backed-summary commissions also bind
+`review-lanes.md` -> **Source-label materiality** for review, evaluation and home
+adjudication. When constructing shared run-local rules, carry that calibration
+into the author, reviewer and evaluator inputs; a pointer outside the inputs a
+model actually receives is insufficient. Preserve the rule when binding a
+prompt-specific severity vocabulary.
+
+For new opt-in source-row batches, `.agents/tools/source_row_labelling.py --help`
+owns the preparation, paired review-view and accepted-edit commands. It embeds the
+current calibration in all role inputs, then freezes those inputs per run. It
+does not launch models, dispatch reviewers or replace normal consolidation.
+
+For every new operator-led customer-evidence consolidation report, use
+`docs/workflows/customer_evidence_consolidation_baseline_v0.md` as the default
+across brands and admitted source families. It owns the current helper defaults,
+fresh final-writing context and proposal-only review scope. Bind
+the applicable role inputs from its baseline method and installed report helper;
+the full cost history is for comparison work. Per-row labelling remains a separate commissioned
+deliverable; do not add it, repeated same-family reviews or historical
+reconciliation stages to a report commission. Use the baseline's current result
+and limits for verification and cost claims. The helper issues no checked packet
+and does not launch reviewers.
+
 Every Forseti adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
 skill is unavailable, unresolved, or not applied, the run may return only a

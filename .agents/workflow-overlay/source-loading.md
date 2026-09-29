@@ -535,8 +535,20 @@ Start with:
 - `forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md`
   for provenance, engagement-as-resonance, independent recurrence, cross-venue
   corroboration, counterevidence, scope, and causal ceilings.
+
+Then select the commissioned consumer; this is not a requirement to load both
+operating routes:
+
+- For every new operator-led customer-evidence consolidation report, use
+  `docs/workflows/customer_evidence_consolidation_baseline_v0.md` as the default
+  across brands and admitted source families. It owns the current helper
+  defaults, source-to-notes-to-report procedure, external review and home corrections.
+  Load its baseline method and installed report helper for operation; the cost
+  history is relevant only to comparison work. Its current result and limits
+  distinguish verified mechanics, bounded semantic review and measured cost. Per-row
+  labelling and historical compilation are not report prerequisites.
 - `forseti/product/spines/judgment/claim_support/forseti_semantic_evidence_integration_contract_v0.md`
-  for consolidating Collection's hash-bound materialized source into checked
+  for maintained CLI consolidation of Collection's materialized source into checked
   answers and source-linked findings, or replaying historical proposition views;
   it defers claim-support semantics to the
   contract above. Routine reads use the current contract. Follow its companion

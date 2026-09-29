@@ -35,8 +35,10 @@ stale_if:
 
 ## Entry Gate
 
-This method is the Deliver phase's synthesis method for decision-bearing
-artifacts. Enter only as a Synthesize turn under the playbook, with the
+This method serves the **Delivery** phase's decision-bearing output (the
+existing `deliver` profile). The [cycle authority](../authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract)
+owns the Gathering → Consolidation → Delivery boundary and compatibility names.
+Enter only as a Synthesize turn under the playbook, with the
 Deliver phase's governing acquisition gate passed: a passing Understanding
 phase seal verified in fresh context, plus a durable bounded capture-return
 artifact for every supplement the memorandum consumes.

@@ -6,7 +6,7 @@ artifact_role: Spine README
 scope: Entry point for the live Commission Signal Board spine and the Forseti Intelligence Cycle operating contract.
 use_when:
   - Starting Commission Signal Board prompt, playbook, validator, or migration work.
-  - Commissioning an Understanding or Deliver phase of a Forseti Intelligence Cycle.
+  - Commissioning Gathering, Consolidation or Delivery in a Forseti Intelligence Cycle.
   - Checking which CSB artifacts are canonical after the spine-first pilot authorization.
   - Distinguishing the live CSB pilot from the staged global docs migration.
 authority_boundary: retrieval_only
@@ -66,38 +66,24 @@ continue to use the existing standard Sections 1-10 and classifier handoff.
 
 ## Forseti Intelligence Cycle
 
-Future one-company intelligence work is commissioned as a **Forseti
-Intelligence Cycle**, not by an unqualified `Phase 1` or `Phase 2` label. Its
-canonical phases are **Understanding** and **Deliver**, in that order.
-`Problem Framing` is the Deliver phase's historical name; historical artifacts
-keep it, and problem framing survives as the Deliver phase's first synthesis
-step (decision frame and target screen). Each phase has two possible
-operator/model turns. An owner instruction that says **Understanding** or uses
-historical **Phase A** language without also naming a synthesis deliverable
-commissions **Acquire & Seal only** and stops after the seal. Passing the seal
-makes the Synthesize turn eligible but never starts it; synthesis requires an
-explicit current commission or a separately authorized follow-up.
+Commission one-company intelligence work as a **Forseti Intelligence Cycle**:
+**Gathering → Consolidation → Delivery**. The
+[operating authority](authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract)
+owns their meanings, completion boundaries and compatibility with existing
+`Understanding` / `Deliver` profiles and `Acquire & Seal` / `Synthesize`
+operations. Phase names do not prescribe extra model calls or duplicate reviews.
 
-The two possible turns are:
+Gathering preserves the source collection; Consolidation produces reviewed,
+source-linked understanding; Delivery answers the commissioned reader's question.
+For the customer-evidence report route, use the
+[adopted consolidation baseline](../../../../docs/workflows/customer_evidence_consolidation_baseline_v0.md).
+Its accepted report can be delivered directly when it already fits the commission.
+The playbook retains the typed acquisition gates and bounded supplement rules
+for profiles that require them. Completing one phase does not authorize the next.
 
-1. **Acquire & Seal** — bind the phase question and intended use, resolve
-   canonical source routes before capture, run authorized Scanning/Capture, and
-   preserve the resulting route receipts, provenance, failures, and seal state
-   in a durable phase artifact. In the Deliver phase this turn is bounded to
-   decision-specific supplements to the Understanding substrate, never a
-   general re-scan.
-2. **Synthesize** — start in fresh context from that artifact, verify its
-   acquisition gate, then synthesize and hand off without claiming evidence,
-   coverage, provenance, or route exhaustion the seal does not support.
-   Understanding synthesis produces the decision-neutral company-intelligence
-   substrate; Deliver synthesis produces the explicitly commissioned
-   decision-bearing artifact under the Deliver decision-memorandum method.
-
-Both turns consume the shared intelligence claim-support contract before they
-turn evidence into a finding. Acquire & Seal preserves the support and conflict
-postures needed downstream; Synthesize and Deliver may not silently promote an
-isolated or resonance-only observation into independent recurrence,
-cross-venue corroboration, representative prevalence, or causation.
+The shared intelligence claim-support contract governs every interpretation of
+evidence across all three phases; changing the phase name never strengthens
+what a source supports.
 
 Use the phase-specific owners below; the playbook remains the operating
 contract. Open the source for the current job rather than loading every owner.
@@ -113,9 +99,7 @@ contract. Open the source for the current job rather than loading every owner.
 | Commissioned Deliver memorandum | [Deliver decision-memorandum method](workflows/deliver_decision_memorandum_method_v0.md) |
 | Post-delivery review handoff | [Current review boundary and inputs](workflows/commission_signal_board_playbook_v0.md#post-delivery-adversarial-review-handoff) |
 
-When both turns are explicitly commissioned, two turns are the normal budget,
-not permission to convert a blocked acquisition into apparent completion. The
-playbook owns the full contract and the six non-numeric outcome signals.
+The playbook owns the execution gates and six non-numeric outcome signals.
 Historical artifact names containing `phase1` or `Phase 1` remain historically
 accurate provenance and are not executable names for a future cycle.
 

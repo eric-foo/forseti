@@ -104,31 +104,59 @@ pending, or not-required result that the coverage ledger does not show.
 
 ## Forseti Intelligence Cycle Operating Contract
 
-The future-facing operating name is **Forseti Intelligence Cycle**. Its
-canonical phases are:
+The operating name is **Forseti Intelligence Cycle**. Its owner-adopted
+phase identity, updated **2026-09-29**, is **Gathering → Consolidation → Delivery**.
+This section owns the phase meanings; playbooks and prompts route here.
 
-1. **Understanding** — produce a decision-neutral understanding of the subject.
-2. **Deliver** — frame the consequential problem or decision from that
-   understanding and produce the commissioned decision-bearing artifact.
-   `Problem Framing` is this phase's historical name (`Problem` its informal
-   shorthand); problem framing survives as the phase's first synthesis step.
+| Phase | Responsibility | Output boundary |
+| --- | --- | --- |
+| **Gathering** | Bind the question and scope, discover and capture the relevant sources, reconcile source identity, and preserve original bodies, context, provenance and limitations. | The admitted source collection is frozen and accounted for, with material gaps and failed acquisition jobs visible. Capture alone does not establish what the evidence proves or a passing acquisition seal. |
+| **Consolidation** | Read the admitted evidence, connect and reconcile findings, preserve conditions and counterevidence, and review and correct the resulting understanding under the commissioned consumer's method. | A usable, source-linked evidence report or required typed packet for that exact corpus and question, with coverage and limits disclosed and material review findings resolved. An unreviewed draft or a successful packing check is not completion. |
+| **Delivery** | Answer the intended reader's question and produce the commissioned report, brief or decision memorandum from that consolidated understanding. Make recommendations only when commissioned. | The intended reader receives the verified artifact, its decisive support, uncertainty and any requested next action. Reuse an accepted report directly when it already satisfies the delivery commission. |
+
+These are responsibility and output boundaries, not a prescribed number of
+model calls, chat turns, agents or reviews. Moving between them does not itself
+require another full source read, synthesis or review. A newly authored claim
+or changed input still receives the checks required by its owning method.
+Material missing evidence returns to the affected Gathering work and its
+dependent Consolidation; it does not justify silently filling the gap.
+
+For operator-led customer-evidence reports, the
+[adopted consolidation baseline](../../../../../docs/workflows/customer_evidence_consolidation_baseline_v0.md)
+owns the default method and helper. Its evidence covers the admitted customer
+corpus, including community content and retailer reviews; it does not certify
+completion of other source families or a whole company cycle. A consumer that
+requires a checked packet or acquisition seal retains that contract.
+
+**Compatibility with existing operations and records.** `Understanding` is
+the existing acquisition/understanding profile, spanning Gathering and any
+required pre-seal Consolidation. Its separately commissioned synthesis produces
+a decision-neutral Delivery artifact. `Deliver` and historical `Problem Framing`
+name the decision-bearing Delivery profile; problem framing remains that
+profile's first synthesis step. Existing `phase: understanding | deliver`,
+completion-profile names, seal states and filenames keep their spellings.
+They are compatibility identifiers, not the public phase list. Use existing
+scope/question fields to bind the commissioned work; add no new phase field,
+receipt or gate for this vocabulary change.
 
 Do not commission future work with an unqualified `Phase 1` or `Phase 2` label.
 Reading rule for this document: a bare `Phase 2` always denotes the internal
-SERP Phase 2 lane, never the Deliver phase. Historical filenames, reports,
+SERP Phase 2 lane, never the Delivery phase. Historical filenames, reports,
 handoffs, and receipts retain their original phase language because changing
 it would falsify provenance.
 
-Each phase has two possible operator/model turns, but a phase name does not
-commission both. Within the Forseti Intelligence Cycle, an owner instruction
-that says **Understanding** or uses historical **Phase A** language without
+Commissioning one phase does not automatically commission the next. A
+Gathering-only instruction stops at its source output; it does not claim the
+broader Acquire & Seal job is complete. Existing explicit Acquire & Seal
+commissions retain any required pre-seal Consolidation. For compatibility, an
+owner instruction that says **Understanding** or uses historical **Phase A** language without
 also naming a synthesis deliverable commissions **Acquire & Seal only**. The
 task stops after the acquisition seal whether it passes or blocks. A passing
 seal makes a later Synthesize turn eligible; it does not authorize or start
 that turn. Synthesis requires an explicit current commission or a separately
 authorized follow-up.
 
-The two possible turns are:
+The existing internal operations are:
 
 1. **Acquire & Seal.** Bind the phase-specific question, intended consumer and
    use, scope, and outcome signals. Complete prerequisite and authority checks
@@ -147,7 +175,7 @@ The two possible turns are:
    Scanning and Capture then execute under their own authority and return
    inspectable receipts or typed failures. The turn finishes only by writing a
    durable phase acquisition seal that carries the commission identity,
-   canonical phase, bound question and use, resolved route identities,
+   compatibility phase, bound question and use, resolved route identities,
    scan/capture receipts, source/provenance identifiers, material gaps and
    failures, and seal state. Live chat memory is not part of the seal.
    Before sealing, a material load-bearing route/capture failure with a
@@ -187,8 +215,7 @@ SERP Phase 2 responsibility. A missing or materially blocked SERP Phase 2 result
 visible in the existing route, receipt, provenance, and gap fields and forces
 the blocked seal state; a non-material typed Phase 2 limitation stays honestly
 recorded without being promoted into a material blocker. The SERP phase
-labels are lane-local and do not replace the canonical Understanding and
-Deliver phase names.
+labels are lane-local and do not replace Gathering, Consolidation and Delivery.
 
 Treat the Phase 1-to-fan-out boundary as a hard dispatch lock. `CO1`-`CO3` work
 must not be dispatched or started until `CO0` fresh-reads durable artifacts for

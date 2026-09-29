@@ -5,12 +5,12 @@ retrieval_header_version: 1
 artifact_role: Workflow playbook
 scope: >
   Operating sequence for standard signal-board and one-company competitive-
-  intelligence commissions, plus the two-phase/two-turn Forseti Intelligence
+  intelligence commissions, plus the three-phase Forseti Intelligence
   Cycle contract, without confusing CSB profiling with retrieval, capture,
   classification, or proof.
 use_when:
   - Dispatching or rerunning the Commission Signal Board prompt.
-  - Commissioning or executing an Understanding or Deliver phase.
+  - Commissioning or executing Gathering, Consolidation or Delivery.
   - Deciding whether a standard board is ready for classifier-handoff routing or a company report is mechanically complete.
   - Diagnosing validator failures on Commission Signal Board outputs.
 authority_boundary: retrieval_only
@@ -41,8 +41,8 @@ This playbook keeps these objects distinct:
 | Standard signal board | Existing standard Sections 1-10 with classifier handoff | Yes |
 | Commission-stage company board | Conditional company Sections 1-10 sealed before scanning: `run_boundary: COMMISSION_SEALED_PRE_SCAN`, `not_checked` coverage rows as the commissioned scan routes, scout statuses may be `commissioned_not_yet_run` | Yes |
 | Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers, earned scout statuses, and no classifier handoff | Yes |
-| Phase acquisition seal | Durable fresh-context handoff for one Intelligence Cycle phase; binds routes, receipts, provenance, failures, and acquisition-gate state | No |
-| Phase deliverable | Understanding or Deliver synthesis produced only from its governing acquisition gate: Understanding requires its own passing phase seal; Deliver requires the passing Understanding seal plus a typed capture return for every consumed supplement | Profile-dependent |
+| Phase acquisition seal | Durable fresh-context handoff for an existing acquisition profile; binds routes, receipts, provenance, failures, and acquisition-gate state | No |
+| Phase deliverable | Delivery artifact under its governing profile's acquisition gate: the `understanding` profile requires its own passing seal; the `deliver` profile requires the passing Understanding seal plus a typed capture return for every consumed supplement | Profile-dependent |
 | Scanning, Capture, or classifier work | Downstream execution under its owning spine | No |
 
 CSB owns the commission profile, source-family requirements, time posture, and
@@ -54,19 +54,25 @@ acquisition complete.
 
 ## Forseti Intelligence Cycle
 
-Commission future one-company intelligence work as a **Forseti Intelligence
-Cycle**. The phases are **Understanding** followed by **Deliver**. `Problem
-Framing` is the Deliver phase's historical name (`Problem` was its informal
-shorthand); problem framing survives as the Deliver phase's first synthesis
-step. Do not use bare `Phase 1` / `Phase 2` language for a future commission.
-Reading rule for this document set: a bare `Phase 2` always denotes the
-internal SERP Phase 2 lane, never the Deliver phase; `Phase A` appears only in
-historical names and glosses, never as a live phase. Historical artifacts keep
-their original names and phase labels.
+Commission one-company intelligence work as a **Forseti Intelligence Cycle**:
+**Gathering → Consolidation → Delivery**. The
+[operating authority](../authority/forseti_commission_signal_board_prompt_structure_rules_v0.md#forseti-intelligence-cycle-operating-contract)
+owns the phase meanings, output boundaries and compatibility mapping. This
+playbook owns execution within those boundaries. For a customer-evidence
+consolidation report, use the
+[adopted baseline](../../../../../docs/workflows/customer_evidence_consolidation_baseline_v0.md);
+the phase boundary adds no automatic model pass or repeated review.
 
-Each phase has two possible operator/model turns. Scope does not auto-expand:
-an owner instruction that says **Understanding** or uses historical **Phase A**
-language without also naming a synthesis deliverable commissions **Acquire &
+The `Understanding` and `Deliver` profiles and the `Acquire & Seal` and
+`Synthesize` operations below remain compatibility names for their existing
+contracts. In particular, the broad Acquire & Seal operation can span Gathering
+and required pre-seal Consolidation; Gathering alone is not a passing seal.
+Bare `Phase 1` / `Phase 2` names are not cycle commissions: they refer to
+internal SERP work. Historical artifacts retain their original labels.
+
+Scope does not auto-expand. An instruction naming one current phase commissions
+that phase's output only. For legacy requests, **Understanding** or historical
+**Phase A** language without also naming a synthesis deliverable commissions **Acquire &
 Seal only** and stops after the seal. A passing seal makes the Synthesize turn
 eligible but does not authorize or start it. Synthesis requires an explicit
 current commission or a separately authorized follow-up.
@@ -85,8 +91,8 @@ The turns optimize different things:
   action while removing repetition and audit detail that does not belong in the
   decision surface.
 
-Turn A/Turn B are turns inside each canonical phase; they do not rename
-Understanding and Deliver as unqualified Phase A/Phase B.
+Turn A/Turn B are existing execution operations, not the cycle's phase names
+or a requirement to run two model calls inside each phase.
 
 ### Turn A — Acquire & Seal
 
@@ -568,7 +574,7 @@ phase_acquisition_seal:
   schema_version: phase_acquisition_seal_v3
   cycle_id:
   commission_id:
-  phase: understanding | deliver
+  phase: understanding | deliver # retained compatibility identifiers
   turn: acquire_and_seal
   bound_question:
   intended_consumer:
@@ -1370,7 +1376,7 @@ Do not enter it from an unqualified Understanding or historical Phase A request
 merely because the acquisition seal passes.
 
 Start in fresh context and load the phase acquisition seal, not the accumulated
-capture chat. Verify its identity, canonical phase, bound question/use, seal
+capture chat. Verify its identity, compatibility phase, bound question/use, seal
 state, route receipts, provenance, and material gaps before synthesis. Where
 the completion profile requires a semantic source review (currently the broad
 consumer-brand profile), also verify that a durable semantic-review
@@ -1709,8 +1715,9 @@ If an agent sees "Commission Signal Board", "commissioning board", or
 "commission board output", it should open this playbook before running or
 validating the board.
 
-If an agent sees "Forseti Intelligence Cycle", "Understanding phase", "Deliver
-phase", historical "Problem Framing phase", "Acquire & Seal", or "Synthesize",
+If an agent sees "Forseti Intelligence Cycle", "Gathering", "Consolidation" or
+"Delivery" as a cycle phase, legacy "Understanding" / "Deliver", historical
+"Problem Framing phase", "Acquire & Seal", or "Synthesize",
 it should open this playbook before commissioning or executing the phase. An
 unqualified Understanding or historical Phase A request follows the
 acquisition-only default above; it does not enter the Synthesize turn.
