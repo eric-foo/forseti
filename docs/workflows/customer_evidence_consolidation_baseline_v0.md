@@ -108,7 +108,11 @@ not multiplying full reviews.
 
 ## Demonstrated quality
 
-The current result is the [fresh-context Dieux report](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/full-report/adjudication-001/report-originals.md),
+Historical evidence links throughout this document point to files retained
+only in the author checkout. Their availability limits are stated below;
+new runs use the repository-linked method and helper above.
+
+The current result is the [fresh-context Dieux report](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/full-report/adjudication-001/report-originals.md), <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 completed and home-adjudicated on **2026-09-29**. All **6,908 admitted records**
 were covered once across 35 accepted source notes: 5,918 Reddit posts/comments
 in 115 conversations, 913 Sephora reviews and 77 Soko Glam reviews. One fresh
@@ -125,8 +129,8 @@ Other corrections tighten source links, identity and wording; home also
 rejected or narrowed reviewer overstatement. No material finding remains
 unresolved within that adjudication. Coverage is bounded, not exhaustive.
 
-The [adjudication and verification](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/full-report/adjudication-001/adjudication.md)
-record the exact dispositions and preservation checks. The [current closeout](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/closeout.md)
+The [adjudication and verification](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/full-report/adjudication-001/adjudication.md) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
+record the exact dispositions and preservation checks. The [current closeout](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/code-owned-citations-next-unread-20260928/closeout.md) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 owns this benchmark's result pointer. Observed authoring cost was 37 attempts
 and **2,002,732 native-turn plus startup tokens**, including the failed reading
 attempt and its replacement. Home, development and external-review usage are
@@ -140,7 +144,7 @@ live document advances. Historical manifests remain unchanged; their old
 live-authority freshness check is not claimed to pass against this new version.
 Use the saved snapshot to reproduce the historical source binding.
 
-The [earlier corrected Dieux report](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/report-originals.md)
+The [earlier corrected Dieux report](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/report-originals.md) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 remains the historical comparison artifact: **6,908 admitted records**, comprising
 5,918 Reddit posts/comments across 115 conversations, 913 Sephora reviews and
 77 Soko Glam reviews. Its 28 source notes support 13 findings with 157 cited
@@ -156,7 +160,7 @@ attribution, conditions and support strength. The review does not establish
 three major failures of the overall answer or a changed investigation ranking.
 No unresolved material item remains among the adjudicated findings.
 
-The [adjudication](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/adjudication.md)
+The [adjudication](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/adjudication.md) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 records both accepted findings and pushback. The reviewer reports reading all
 154 initially cited originals, 48 fixed uncited sample rows, all 28 notes and
 22 additional targeted rows; home checked contested originals. Unchecked raw
@@ -170,7 +174,7 @@ Historical evidence is local to the author checkout at
 that actual location; these artifacts are not copied into review checkouts. They are not
 published or guaranteed available in another checkout. Their missing bytes
 block reproducing the comparison, not permission to invent its result. The
-[validation receipt](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/validation.json)
+[validation receipt](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/validation.json) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 binds the corrected files; report-originals SHA256 at adoption is
 `e9b1cb7f2d5eb64d78cc42d6114354c55fdbb433f1166ca3364278675deea0af`.
 
@@ -178,13 +182,13 @@ binds the corrected files; report-originals SHA256 at adoption is
 
 | Cost source | Observed evidence | Consequence for this baseline |
 | --- | --- | --- |
-| Repeated extraction, row verification and reconciliation | The [historical partial Dieux ledger](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-benchmark-evaluation-20260926/old-cost-baseline.json) records 240 attempts and 13,281,738 completed-attempt tokens. Verification alone used 114 attempts / 6,429,185 tokens, versus extraction's 107 / 5,677,231. It was not a completed whole-process bill. | Do not make that stack, or per-row labels, a prerequisite when the requested consumer is a research report. Preserve the useful source review at the final answer. |
-| Growing conversational history and compaction | The [full direct run](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/closeout.md) reached 64 operations, seven compactions and 24 of 28 notes before its original bound. [Broader accounting](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/completion-003/closeout.json) shows 7,597,669 reported tokens including 1,565,203 omitted by the narrower counter. | Keep durable notes and resume only missing work; avoid treating one perpetual session as one call or free memory. A clean final-writing context is a candidate for containing repeated input. |
-| Reopening context during final writing and file work | On the same eight notes, [the notes-only comparison](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-notes-synthesis-20260927/closeout.md) used 41,334 tokens in one operation versus 495,684 across five operations for the earlier notes-reload-through-delivery interval. Most removed tokens were cached; elapsed time increased from about 211 to 259 seconds. | Prefer one bounded final-writing stage with deterministic mapping and saving outside semantic work. The observed 91.66% total-token reduction is not a dollar/quota or whole-run saving. |
-| Redundant source serialization | An early [1,469-record preparation](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-direct-continuation-20260926/closeout.md) expanded to 1,012,933 packet tokens; its corrected native-context representation was 318,025. The later full input was still [1,215,608 estimated tokens](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/local-accounting.json), versus 372,313 for literal bodies alone. | Reuse the compact, losslessly reconstructible representation. Share identical context/metadata within a reading unit, retaining explicit ownership. The difference from body-only size includes necessary context and is not all removable waste. |
+| Repeated extraction, row verification and reconciliation | The [historical partial Dieux ledger](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-benchmark-evaluation-20260926/old-cost-baseline.json) records 240 attempts and 13,281,738 completed-attempt tokens. Verification alone used 114 attempts / 6,429,185 tokens, versus extraction's 107 / 5,677,231. It was not a completed whole-process bill. | Do not make that stack, or per-row labels, a prerequisite when the requested consumer is a research report. Preserve the useful source review at the final answer. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
+| Growing conversational history and compaction | The [full direct run](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/closeout.md) reached 64 operations, seven compactions and 24 of 28 notes before its original bound. [Broader accounting](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/completion-003/closeout.json) shows 7,597,669 reported tokens including 1,565,203 omitted by the narrower counter. | Keep durable notes and resume only missing work; avoid treating one perpetual session as one call or free memory. A clean final-writing context is a candidate for containing repeated input. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
+| Reopening context during final writing and file work | On the same eight notes, [the notes-only comparison](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-notes-synthesis-20260927/closeout.md) used 41,334 tokens in one operation versus 495,684 across five operations for the earlier notes-reload-through-delivery interval. Most removed tokens were cached; elapsed time increased from about 211 to 259 seconds. | Prefer one bounded final-writing stage with deterministic mapping and saving outside semantic work. The observed 91.66% total-token reduction is not a dollar/quota or whole-run saving. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
+| Redundant source serialization | An early [1,469-record preparation](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-direct-continuation-20260926/closeout.md) expanded to 1,012,933 packet tokens; its corrected native-context representation was 318,025. The later full input was still [1,215,608 estimated tokens](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/local-accounting.json), versus 372,313 for literal bodies alone. | Reuse the compact, losslessly reconstructible representation. Share identical context/metadata within a reading unit, retaining explicit ownership. The difference from body-only size includes necessary context and is not all removable waste. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
 | Setup checks that missed the actual consumer | The first three direct attempts checkpointed zero rows: wrong launch/setup choices, a disabled code-mode host, then truncated model-visible output. Their known native usage totals at least 204,117 tokens; preparation/controller work is extra. | Reuse the working launch and display path. Check the exact nested tool return and resume boundary locally instead of repeatedly paying for full model attempts to discover the same setup defect. Upstream connection failures remain a separate uncertainty. |
-| Repeated governance reads, prompts and lifecycle explanations | The live semantic contract and completion guide contain extensive historical procedures; [the small-run closeouts](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-direct-continuation-20260926/v5/closeout.md) also document redundant prose guards. This audit itself initially used overbroad searches that produced truncated returns and additional reads. | Load the current route and triggered rule once while unchanged. Point to the existing authority instead of copying history into every author prompt. Keep receipts concise and generated; do not turn one-off recovery experiments into recurring stages. No measured token total is assigned to this overhead. |
-| Review churn and severity inflation | [Home adjudication](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/adjudication.md) narrowed several major/invented-condition claims, while retaining genuine corrections. | Keep one proposal-only external review and source-backed home judgment. Apply local corrections together; optional detail and stylistic preferences do not trigger another full pass. |
+| Repeated governance reads, prompts and lifecycle explanations | The live semantic contract and completion guide contain extensive historical procedures; [the small-run closeouts](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-direct-continuation-20260926/v5/closeout.md) also document redundant prose guards. This audit itself initially used overbroad searches that produced truncated returns and additional reads. | Load the current route and triggered rule once while unchanged. Point to the existing authority instead of copying history into every author prompt. Keep receipts concise and generated; do not turn one-off recovery experiments into recurring stages. No measured token total is assigned to this overhead. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
+| Review churn and severity inflation | [Home adjudication](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-full-direct-20260927/adjudication-004/adjudication.md) narrowed several major/invented-condition claims, while retaining genuine corrections. | Keep one proposal-only external review and source-backed home judgment. Apply local corrections together; optional detail and stylistic preferences do not trigger another full pass. <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository --> |
 | Repeated candidate/model experiments | The thread tested multiple model/effort combinations and successive recovery variants to choose a workable approach. Their full orchestration cost is unmeasured. | Treat those as development work, not the normal per-company recipe. Start from Sol/medium and the accepted route; reopen an alternative for a concrete quality, capability or cost failure. |
 
 Source deduplication is a different question. A fresh mechanical check of the
@@ -294,7 +298,7 @@ fields and all native retailer metadata still reach the reader. Coverage is a co
 or declaration for every row. Request bytes, exact reconstruction, native receipt
 bindings and output bytes are rechecked on resumption.
 
-The [fixed-assignment offline comparison](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/metadata-efficiency-20260929/corpus-comparison.json) reconstructed all
+The [fixed-assignment offline comparison](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/metadata-efficiency-20260929/corpus-comparison.json) reconstructed all <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 4,002 Experiment originals in their unchanged 26 reading requests. With the
 same complete prompt and schema boundary, estimated `o200k_base` input fell
 from 2,977,950 to 2,714,608 tokens (263,342, or 8.84%). Twenty requests used
@@ -461,7 +465,7 @@ numeric/boolean citation-format boundary is fixed in the helper and checked
 locally against the preserved failed responses before another run.
 The checkpoints below preserve how this completed result was reached.
 
-The first live helper benchmark's 2026-09-28 [incomplete checkpoint](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-report-helper-benchmark-20260928/closeout.md)
+The first live helper benchmark's 2026-09-28 [incomplete checkpoint](C:/Users/vmon7/.codex/worktrees/8319/forseti/_scratch/dieux-report-helper-benchmark-20260928/closeout.md) <!-- # nonresolving: historical evidence retained only in the author checkout, not shipped with the repository -->
 remains unchanged as history.
 After the initial read-002 wrong-source links, the three unchanged recurrence
 requests passed: 561 records, 71 citations, zero wrong-source links. The owner
