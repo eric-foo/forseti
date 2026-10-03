@@ -562,11 +562,13 @@ Destruction Archons**. Krix's suggested Hugo-then-rune order does not add a
 database prerequisite. Follow the MSQ for automatic story rewards rather than
 expanding each reward into another guide step.
 
-The corrected arithmetic is **560 / 4 = 140 pickups from zero**, not one feather
-per point. Relative to 559 mapped markers, 140 is about 25%, so older "33%"
-advice is not used as the calculation. Neither percentage predicts this
-companion's pickup yield. The historical fourth-pass report predates this
-correction and is superseded for current use; its bytes remain preserved.
+At the owner's stated four-point rate, the arithmetic is **560 / 4 = 140
+pickups from zero**. Relative to 559 mapped markers, 140 is about 25%, so "33%"
+is not used as the calculation. The external review identified conflicting
+captured datamine counts; those do not establish a current Global 1:1 rate.
+The corrected companion retains the conditional calculation and uses observed
+Monolith level 30 as its stopping rule. Neither percentage predicts its pickup
+yield. The fourth-pass report is superseded for current use; its bytes remain.
 
 ### Capture receipts and friction
 
@@ -591,11 +593,11 @@ eight image assets. Invalid capture-enum attempts failed before capture and
 remain logged. AION2 Hub's successful packet write preserves a 403 shell, not
 successful article access. No new Discord login or capture was required.
 
-### Consolidation, delivery and remaining review
+### Consolidation and reviewed delivery
 
-**Current candidate:** the [illustrated MSQ companion](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.html), with [editable text](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.md) and [delivery provenance](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/delivery-receipt.json). <!-- # nonresolving: retained local research outputs, not shipped in Git -->
-This is a source-derived draft awaiting the baseline external source review,
-not an accepted or playtested route. It has eight checklist rows, four travel
+**Current delivery:** the [mobile Page](https://chatgpt.com/space/page_ea1e650770e481918ef002796bd0c27a) and [illustrated MSQ companion](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.html), with [editable text](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.md) and [delivery provenance](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/delivery-receipt.json). <!-- # nonresolving: retained local research outputs, not shipped in Git -->
+External source review and home corrections are complete. This remains a
+source-derived, unplaytested draft. It has eight checklist rows, four travel
 rows, four nearby feather maps and eight source-authored route maps. Ordinary
 story rewards are collapsed to following the MSQ. Source maps expand on demand;
 their bytes and attributions are preserved.
@@ -628,25 +630,64 @@ preserves the actual calls, failures and corrections.
 The native synthesis remains unchanged at SHA256
 `d49787d64be13350678ecf89843f2ba9ce4f61e14b226ec30055f9b0f4dbba53`.
 The separate reader edition reduces repetition, restores the source-supported
-zone locks and conditional Fire Temple choice, retains energy-saving
-exceptions, and removes an unsupported middle-Altgard placement for later
-named travel checkpoints. It omits unplaced rift/cube/endgame advice and
-conflicting enhancement prescriptions rather than making them mandatory. The
-delivery receipt records these home changes; full notes, source roles,
-conflicts and excluded advice remain available for review.
+zone locks and conditional Fire Temple choice, and removes an unsupported
+middle-Altgard placement for later named travel checkpoints. The submitted
+edition's one-sided energy exceptions were corrected after review, as below.
+Unplaced rift/cube/endgame advice remains outside this companion. The delivery
+receipt records the initial edits and their subsequent adjudication; full
+notes, source roles, conflicts and excluded advice remain available.
 
 Saved-delivery [verification](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/verification.json) <!-- # nonresolving: retained local verification output, not shipped in Git -->
-passed 64 mechanical checks: document pins, twelve embedded image hashes, seven
+initially passed 64 mechanical checks: document pins, twelve embedded image hashes, seven
 guide-source URLs and the map URL, four local appendix links, row/disclosure
-counts and three historical report/corpus pins. The reader text is 475 words
+counts and three historical report/corpus pins. The submitted reader text was 475 words
 before maps, excluding its header, markup, URLs and standalone punctuation.
 Home inspected the checklist and an expanded attributed map in Chrome; all
 twelve images loaded with nonzero dimensions. These checks establish delivery
 and preservation, not source meaning or gameplay truth.
 
-The baseline requires one Claude proposal-only source review of the saved
-answer, cited originals, all notes and a declared sample of uncited sources.
-Forseti's operator-courier rule requires returning its prompt to the owner,
-not launching that reviewer here. That review and subsequent home adjudication
-remain outstanding. The report is not promoted to reviewed status or the
-work-unit PR merged before those requirements close.
+### External review and home corrections
+
+The owner returned the Claude Opus 5.5 read-only review of revision `62c9ff65`.
+It covered the submitted reader edition, all cited originals and batch notes,
+all twelve images, and a declared sample of uncited source families. That
+sample does not establish exhaustive recall. The [review return](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/source-review-return.txt) and [finding-by-finding adjudication](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/adjudication.json) preserve its actual claims and home decisions. <!-- # nonresolving: retained local review evidence, not shipped in Git -->
+
+Home reopened the contested native passages rather than rerunning the author:
+
+- **AR-01:** preserve conditional four-point arithmetic and expose conflicting
+  counts; use the Monolith's level. Reject the review's stronger claim that
+  140 is a proven minimum under every reading.
+- **AR-02–05:** restore the opposing dungeon-reward advice, optional timing,
+  nearby Stronghold belt rewards, Krix's wider Safe Haven accessory sweep and
+  earlier/later Sealed Dungeon stages. Keep the named ring-quest gap visible.
+  Do not identify Krix's map icons with a separate dungeon prerequisite chain
+  without evidence connecting them.
+- **AR-06–10:** disclose both Safe Haven return trips, mixed-faction guide
+  ancestry and Krix's prelaunch date; fix the crystals citation; include the
+  rune destruction warning conditionally, without mandating enhancement.
+- **AR-11:** link the Markdown to illustrated/mobile copies, label the local
+  audit appendix, qualify map outlines and update source-review status.
+
+Both consumer copies carry these corrections. The submitted text, HTML,
+receipts, renderer and mobile Page snapshot are preserved in `submitted-review/`;
+the native synthesis and frozen corpus are unchanged. The courier is retired
+after adjudication. No additional provider read/synthesis or full review was
+commissioned. This demonstrates bounded correction of this case, not measured
+cost savings, exhaustive accuracy or unattended reliability.
+
+Current saved-consumer verification passed **131 checks with no failures**:
+ten source URLs resolve to the full frozen corpus, twelve embedded image
+hashes and twelve cloud image references match, all local links resolve, and
+the eight checklist/four travel rows and eight stage captions are present.
+The revised reader body is **527 words**, excluding header and maps, below
+the 650-word cap. The original 64-check result remains in the submission
+archive. The mobile Page preserves
+all twelve native image references and the revised action/benefit text in one
+column. Home checked a 390-pixel phone viewport without horizontal overflow;
+the nearby map and an expanded creator map loaded. The [mobile receipt](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/mobile-copy-receipt.json) retains the transfer and preview evidence. <!-- # nonresolving: retained local mobile delivery receipt, not shipped in Git -->
+
+Remaining limits are gameplay and coverage: no current Asmodian pickup-to-
+Monolith transaction recording, no ending-route pickup count, no validated
+optimality, provisional creator timing and Fire Temple choice, and incomplete
+named ring-quest coverage. None is silently promoted by the source review.

@@ -101,10 +101,13 @@ prelaunch video, and preserves an Altgard Power Shard recipe screenshot. Its
 separate home update has not had external source review. The fifth pass adopts
 the owner's simpler MSQ-stage companion, captures creator maps and six Global
 quest pages, and records a fresh 98-record consolidation with all three reads
-requiring logged quote corrections. Its concise illustrated draft supersedes
-the fourth-pass brief for current use, preserves the 140-pickup/560-point
-correction, and awaits external source review. The trial record owns its
-delivery and evidence links. Ending pickup yield and route optimality remain
+requiring logged quote corrections. Its illustrated draft supersedes the
+fourth-pass brief. External source review and home adjudication are complete:
+the local and mobile copies now expose source disagreements, omitted optional
+stops, return trips and map stages. The 140-pickup/560-point arithmetic stays
+conditional on four points per pickup; Monolith level is the stopping rule.
+The trial record owns current delivery, review and evidence links. Ending
+pickup yield and route optimality remain
 unverified; a complete gameplay recording is not required for this bounded
 source-recommended checklist.
 Questlog and the publisher's official server
