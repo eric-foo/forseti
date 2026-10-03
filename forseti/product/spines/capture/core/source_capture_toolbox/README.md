@@ -87,7 +87,10 @@ route has been verified. Map its actual channel names and access first;
 prioritize relevant help, class, build/progression, and tool-feedback
 conversations where present. The first trial reached the guide and in-game help
 channels through the owner's entitled session; its exact scope and limitations
-are in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`. Questlog and the publisher's official server
+are in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`. Its second
+pass adds seven selected messages, public-source cross-checks and a conditional
+Global route; it establishes neither optimality nor improved search speed.
+Questlog and the publisher's official server
 are possible claim-specific cross-checks, not automatic additional targets.
 
 **First research question and improvement loop (owner, 2026-10-03).** For a
