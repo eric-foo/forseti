@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Owner-adopted operator workflow and measured comparison reference
-scope: Direct synthesis of a frozen customer corpus, one proposal-only external review, and targeted home corrections.
+scope: Direct synthesis of a frozen admitted source corpus, one proposal-only external review, and targeted home corrections.
 use_when:
   - Preparing a customer-evidence consolidation report for any brand or admitted source family.
   - Comparing consolidation quality, repeated work, or execution cost against this baseline.
@@ -16,8 +16,8 @@ Owner adopted this method as the working baseline on **2026-09-28**, after the
 full Dieux report's external review and home adjudication, and reaffirmed its
 current helper defaults on **2026-09-29**. This is the default for every new
 operator-led customer-evidence consolidation report, across brands and admitted
-source families, including community content and retailer reviews, unless the
-commission requires another output. It covers the admitted source collection
+source families, including community content, retailer reviews and mixed
+publisher/guide/map records, unless the commission requires another output. It covers the admitted source collection
 and commissioned questions; it does not claim to cover every captured source
 family.
 
@@ -309,7 +309,7 @@ An independent offline `prepare` with the same 120,000-token unit budget formed
 23 complete reading requests at 2,685,284 estimated input tokens; its changed
 grouping is not the fixed-assignment size comparison above.
 
-New runs freeze `paragraph_evidence_v2`. Readers return `paragraphs`, each with
+New runs freeze `paragraph_evidence_v3`. Readers return `paragraphs`, each with
 finished Markdown `text` and its `evidence` array. Each evidence selection contains
 `handle`, `owner`, literal `quote` and semantic `role`. A body uses the T identifier
 already beside its text, with empty `owner` unless `ambiguous_text_owners` lists
@@ -330,29 +330,57 @@ or boolean, `quote` is the entire canonical JSON value (`14`, `1.0`, `true`,
 object and nonfinite values cannot be cited. No separate prose R citations or
 parallel citation list is authored.
 Code compiles native source bindings, speaker categories and rendered references.
-Customer bodies used as background remain customer speech; parent/product and
-other metadata remain context; retailer reply fields remain retailer speech.
+For mixed sources, preserve the original `source_role` and `source_family` and
+supply an attributed `body_speaker` when known: `customer`, `community`,
+`community_testimony`, `community_advice`, `publisher`, `guide_author`,
+`map_author`, `retailer_reply` or `unknown`. This field describes the body author,
+not the analyst's use of the evidence, and does not certify its attribution.
+An explicit `unknown` stays unknown; unsupported values fail preparation.
+Without this field, the helper maps only exact matching speaker names,
+`retailer_review`/`customer_review` to `customer`, and
+`community_post`/`community_comment` to `community`. Every other role stays
+`unknown`; a venue or arbitrary role name never establishes customer testimony.
+These fallbacks are source labels, not automatic testimony/advice judgments.
+
+Keep standalone publisher, guide and map records in their own native containers,
+with empty parent/product context references unless those edges actually exist;
+do not attach unrelated records to a community thread. Image references remain
+pointers. The text-only helper cannot claim pixel inspection; any separately
+supplied visual observation must retain its actual observer attribution and
+limitations. Bodies used as background keep their attributed speaker;
+parent/product and other metadata remain context, and retailer reply fields
+remain retailer speech.
 
 Composition receives all compiled notes and a code-issued `evidence_catalog`.
 The writer returns the same paragraph shape with E-handle strings as evidence;
 code copies the accepted literal citation rather than asking the writer to
 repeat its tuple. The saved `paragraphs.json` binds each paragraph to its citations
-and customer observation/known-origin counts. Unknown origins remain explicit;
-known identity keys do not certify independent people. `source-bindings.json`
-maps originals and actors to paragraph uses, exposing repeated use of one original.
-Its identity fields describe the carrying record and apply only to `paragraphs`,
-where that record's customer body is cited. Context or retailer uses of the same
-record are listed separately as `non_customer_paragraphs`, present only when they
-exist, and do not inherit that customer's identity or origin credit.
-Two excerpts from one customer original count as one native observation; equal
-text from different records does not collapse their identities. Context and
-retailer speech do not add customer observations. These are mechanical source
-facts, not automatic corroboration, entailment or causal judgments.
+and counts of cited original bodies across source roles. `source_observation_count`,
+`known_origin_identity_count`, `unknown_origin_observations` and `body_sources`
+cover all cited bodies. `customer_observation_count`,
+`customer_known_origin_identity_count` and `customer_sources` cover only bodies
+attributed to customers; `observations_by_speaker` separates the remaining roles.
+Two excerpts from one original count as one observation, and multiple records
+with the same supplied origin key count as one known origin. Unknown origins
+remain explicit; known identity keys do not certify independent people.
+`source-bindings.json` maps originals and actors to paragraph uses, exposing
+repeated use of one original. Its identity fields describe the carrying record
+and apply to `paragraphs`, where that record's body is cited, with `body_speaker`,
+`source_role` and `source_family` retained. Other fields from that record are
+listed separately as `non_body_paragraphs` and do not inherit its actor or origin
+credit. Citations and the synthesis reference table preserve source roles and
+body speakers. Context and nested retailer replies add no body observations;
+a retailer-authored standalone body adds a retailer observation, never a customer.
+These are mechanical source facts, not automatic corroboration, entailment or
+causal judgments.
 
-Runs without the frozen v2 marker retain their original Markdown-plus-citations
+Saved `paragraph_evidence_v2` runs retain their original body-as-customer
+semantics, customer-only counts, `non_customer_paragraphs` and exact saved bytes.
+Runs without a paragraph marker retain their original Markdown-plus-citations
 contract and exact reconstruction. Their accepted notes, explicit corrections,
 case restorations and failures remain reusable without regeneration or migration.
-Legacy continuation retains its frozen contract; a new contract needs a new run.
+Legacy continuation retains its frozen contract; mixed-source attribution needs
+a new v3 run, not relabeling an existing report.
 
 In legacy runs every prose reference needs a validated citation. Additional source-valid
 citations may preserve context without appearing in the prose; they do not
@@ -378,8 +406,8 @@ be revised through this option. Keep the current model/input method for an
 isolated defect; reassess if the same error recurs rather than accumulating
 manual fixes or adding a standing rereview of every note.
 
-For v2, a correction that changes a paragraph's linked handles/owners must also
-revise that paragraph's prose explicitly. Paragraphs are matched by their native
+For paragraph contracts, a correction that changes a paragraph's linked
+handles/owners must also revise that paragraph's prose explicitly. Paragraphs are matched by their native
 text, not position, so inserting or dropping paragraphs does not exempt unchanged
 prose. A source-only repair is rejected with
 the paragraph and before/after evidence selections; the helper cannot silently
