@@ -332,7 +332,7 @@ admitted. Thus this set cannot establish exhaustive contrary-advice coverage.
 
 ### Map deliverable and limits
 
-The [Asmodian zone atlas](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/atlas/asmodian-zone-atlas.html)
+The [Asmodian zone atlas](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/atlas/asmodian-zone-atlas.html) <!-- # nonresolving: retained local research output, not shipped in Git -->
 embeds four unchanged source screenshots and a searchable area table. Saved
 asset bytes match their lake originals. Its 58 source-defined area rows sum to
 **559 Empyrean Trace markers**. The Altgard row contributes four Traces; its
@@ -371,7 +371,7 @@ clean pass.
 The second reading unit and fresh-context synthesis were accepted without home
 correction. The helper delivered **`REPORT_SAVED_UNREVIEWED`**, with all 86
 assignments accounted for exactly once and no pending reads or attempts needing
-attention. The [consolidated draft](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run/synthesis/report.md)
+attention. The [consolidated draft](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run/synthesis/report.md) <!-- # nonresolving: retained local research output, not shipped in Git -->
 was freshly read from disk. Its 46 compiled citations retain source roles,
 native locators and quoted originals in the adjacent `citations.json`,
 `cited-originals.json`, `report-originals.md` and `source-bindings.json`.
