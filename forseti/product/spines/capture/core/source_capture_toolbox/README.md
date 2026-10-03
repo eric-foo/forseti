@@ -92,8 +92,11 @@ pass adds seven selected messages, public-source cross-checks and a conditional
 Global route; it establishes neither optimality nor improved search speed.
 The third pass (October 4 Singapore time) narrows application to Asmodian,
 preserves source maps and screenshots, and records a mixed-source consolidation
-draft with its source-role fix, assisted recovery and pending external review.
-The same trial record owns the latest report and map-atlas pointers.
+with its source-role fix and assisted recovery. The external source review is
+adjudicated; a separate corrected brief restores omitted gates, rewards and
+alternative advice while preserving the submitted original. The same trial
+record owns current brief, provenance and map-atlas pointers. Ending feather
+inventory and route optimality remain unverified.
 Questlog and the publisher's official server
 are possible claim-specific cross-checks, not automatic additional targets.
 
