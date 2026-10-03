@@ -371,7 +371,7 @@ clean pass.
 The second reading unit and fresh-context synthesis were accepted without home
 correction. The helper delivered **`REPORT_SAVED_UNREVIEWED`**, with all 86
 assignments accounted for exactly once and no pending reads or attempts needing
-attention. The [consolidated draft](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run/synthesis/report.md) <!-- # nonresolving: retained local research output, not shipped in Git -->
+attention. The [submitted original draft](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run/synthesis/report.md) <!-- # nonresolving: retained local research output, not shipped in Git -->
 was freshly read from disk. Its 46 compiled citations retain source roles,
 native locators and quoted originals in the adjacent `citations.json`,
 `cited-originals.json`, `report-originals.md` and `source-bindings.json`.
@@ -387,9 +387,53 @@ artifacts remain beside the run. The brief is 837 whitespace-delimited words,
 above the commissioned approximate 500–700-word target; it remains an internal
 consolidation draft, not the concise player-facing guide.
 
-The required external source review is still pending. The owning baseline
-requires a proposal-only review through operator courier, then source-backed
-home adjudication; structural acceptance alone does not certify a guide. No
-efficiency gain, dollar saving, gameplay accuracy or optimal route is claimed
-from this differently scoped trial. The next review must check source meaning,
-material omissions and faction/unit boundaries before a final guide is built.
+### Source review, home adjudication and current consumer
+
+The owner returned the commissioned read-only review on October 4. The
+[preserved return](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/review-inputs/source-review-return.txt) <!-- # nonresolving: retained local research output, not shipped in Git -->
+self-reports `reviewed_by: Anthropic claude-opus-5-5` (tooling-supplied), against
+`authored_by: OpenAI gpt-6-sol medium`. It reports reading all 86 records and
+checking all 46 citations, beyond the declared six-record sample; it did not
+open lake files or images and searched rather than fully read the embedded
+rules. These are the reviewer's reported actions, not independently certified
+coverage. Its findings were proposals, with no formal verdict or patch.
+
+**Current consumer:** the separate [corrected consolidation brief](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-corrected/report.md). <!-- # nonresolving: retained local research output, not shipped in Git -->
+Home checked the affected native source wording and closed the source-backed
+corrections below. The corrected brief is **659 whitespace-delimited words**
+before its generated reference footer. Its [provenance file](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-corrected/provenance.json) <!-- # nonresolving: retained local research output, not shipped in Git -->
+binds its 9 cited text units to 22 frozen source records, preserves source roles,
+times, native locators, context and identity limits, and adds 44 literal support
+anchors. It records the full adjudications and required next observations.
+The original report, native responses, helper state and atlas remain unchanged;
+the helper's original `REPORT_SAVED_UNREVIEWED` is not relabeled as a new native
+success. The corrected consumer is home-adjudicated after external source
+review, not gameplay-verified.
+
+| Finding | Home disposition and closure |
+| --- | --- |
+| AR-01 | Accept with correction: restore story gates, native item-level units, Farewells weapon and later Koro guard/district unlock. The original Discord attribution was true but incomplete, not a wrong source. Two advisers' gear-score wording is kept distinct; the asker's faction stays unknown. Approximate activity counts from one source are not fixed prerequisites. |
+| AR-02 | Accept with correction: restore the undefined 33% claim, at-45 cleanup, can-wait/never-expires labels, collect-all-but-last and level-30 advice. Mixed recommendations are not proof of contradictory mechanics when completion goals differ. |
+| AR-03 | Accept: group story power rewards under MSQ. Couga's Global-datamine claims stay attributed; its Taiwan alternative is excluded. Belt/amulet award timing is not settled by preferring one page. |
+| AR-04 | Accept: attribute the Abyss PvP board to one guide and retain Reddit's separate-collection correction. Surplus/cap replies come from an Abyss-feather thread, not verified Altgard rules. |
+| AR-05 | Accept: use the Global-datamine accessory lead; do not transfer the Asian-release rationale. Preserve consequential per-claim evidence labels. |
+| AR-06 | Accept with correction: state Trace-marker units and 4 + 61 mixed aggregate. Both threshold claims concern amulet upgrades; their exact minimum remains unknown. The 560-versus-559 mismatch assumes an unverified one-to-one conversion; it proves no particular explanation. |
+| AR-07 | Accept: add capture, guide and Discord dates; retain exact source times in provenance. Publisher excerpts remain available in the corpus without additional route claims. |
+| AR-08 | Accept: remove repeated caveats and bring the brief within 500–700 words. |
+
+Fresh verification matched the original report and corpus hashes above, all 13
+distinct native-file/hash pairs used by the corpus, all 58 map rows, and all four
+embedded image hashes. The area rows total 559 Traces and 61 sealed dungeons;
+the Altgard mixed row is 4 + 61 = 65. The corrected report's references and
+literal anchors were checked against its actual saved consumer and the frozen
+corpus. No new native model call or capture was needed. The ignored courier was
+renamed `source-review-courier.retired.txt`, preserving its original bytes; it is
+no longer an active commission.
+
+The trial exposed a substantive limitation: structural acceptance preserved
+citations but missed story gates, rewards and alternative collection advice
+already present in the reading material. External review and home correction
+recovered them. No efficiency gain, dollar saving, gameplay accuracy or optimal
+route is claimed. The next material evidence is a Global Asmodian quest/reward
+and pickup/Monolith screen check, followed by a logged path; ending feather
+inventory, conversion and travel savings remain unknown.
