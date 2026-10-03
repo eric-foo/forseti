@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Bounded research trial and operational closeout
-scope: Aion2Global capture trials, claim checks and a conditional Global leveling route as of 2026-10-03.
+scope: Aion2Global capture trials and an Asmodian-only consolidation follow-up through 2026-10-04 Singapore time.
 use_when:
   - Resuming the RaidRelay Global leveling research trial.
   - Comparing later Discord capture methods with this bounded first attempt.
@@ -21,7 +21,10 @@ The first trial below tested acquisition and the research diary. It did not prod
 or verify an optimal leveling route. Its follow-up called for checking current
 Global applicability, prerequisites and the benefit/cost of proposed steps.
 The second pass, recorded below, supplies a conditional route and the remaining
-checks. Neither pass includes a character playthrough or establishes optimality.
+checks. The latest pass below narrows application to **Asmodian only**, adds
+source maps and uses the maintained consolidation helper. Earlier passes remain
+historical records. No pass includes a character playthrough or establishes
+optimality.
 
 ## What actually ran
 
@@ -270,3 +273,123 @@ permanent progress earned, detours and later return trips. A later route change
 must be compared on the same goal and comparable class/faction/build. That
 playthrough has not happened; this pass neither controls a game account nor
 starts ongoing monitoring.
+
+## Third pass: Asmodian maps and mixed-source consolidation
+
+Owner selected Asmodian first to prevent faction mixing, asked for a targeted
+capture followed by the latest PR'd consolidation method, and explicitly
+authorized fixing source attribution before running it. PR
+[1645](https://github.com/eric-foo/forseti/pull/1645) was freshly checked as merged
+on September 29, with zero review threads returned and no further page. Its
+baseline is `docs/workflows/customer_evidence_consolidation_baseline_v0.md`.
+
+The current helper had treated every main text as customer testimony. The
+bounded fix preserves explicit body speaker, original source role and family
+through reading, citations, synthesis and saved outputs. New runs use
+`paragraph_evidence_v3`; frozen legacy and v2 reconstruction stays unchanged.
+Fifty-five focused offline tests passed after integration, including mixed-role
+saved reports, same-origin guide/map counting, unknown attribution, image
+pointers and frozen v2 bytes. This verifies the attribution mechanism, not the
+truth of the source advice.
+
+### Targeted capture and admission
+
+Five supplementary lake packets retain the new captures. Each member preserves
+its own source time and locator; a packet's packaging time is not a source
+publication date. All preserved member sizes and hashes were read back from the
+lake. Source content remains internal candidate evidence under the retention
+limits above.
+
+| Packet | Preserved material |
+| --- | --- |
+| `F:/forseti-data-lake/raw/c84/01M41DNNTWQY83PVJVB5DBP12V` | Asmodian Altgard/Ishalgen map DOM, 58 area rows, label positions, original and focused native screenshots, capture limits. |
+| `F:/forseti-data-lake/raw/41e/01M41DNQA3HQK2TMR7QB783CDH` | Three complete Aion2Maps guide main bodies, source metadata and native screenshots; bounded community/guide excerpts remain distinct from analyst observations. |
+| `F:/forseti-data-lake/raw/6b8/01M41DNRTM06HNY8GMSJK9V6JV` | Publisher notice excerpt and official prelaunch showcase frames at 21:58 and 22:15. Frames are not live-client or Asmodian quest tests. |
+| `F:/forseti-data-lake/raw/dd5/01M41EEHHXNB796V7R402SMY08` | Complete Couga progression guide, native footer/source links, unobscured screenshots, and transparently marked obstructed attempts. Replaces earlier disconnected snippets in this corpus. |
+| `F:/forseti-data-lake/raw/004/01M41EENQ6WYY6NH125ZCBRCCE` | Fresh Discord search/activity records and one native Asmodian Safe Haven question. Login failures remain in the record. |
+
+After the owner signed in again in their Chrome, two intended searches ran in
+`ingame-help`: `monolith after:2026-09-29` (5 displayed hits) and
+`feathers after:2026-09-29` (15). All displayed hits were read; sort was not
+verified. Existing advice was re-observed, not credited as new origins. The new
+Safe Haven question explicitly states Asmodian; no answer was observed in the
+bounded recovered window. Nearby unrelated replies were not attached to it.
+An attempted query replacement retained Discord's old tokenized filters and
+returned zero hits; that invalid combined query was corrected and is not
+evidence of source absence. A failed named-button lookup was also retained.
+No messages, reactions or further account-role changes were made.
+
+The frozen corpus contains **86 native records**: 16 Discord messages, four
+complete guide texts, three Reddit excerpts, 58 map area rows, two map DOM
+transcripts, two publisher transcript excerpts and one publisher notice excerpt.
+Fourteen source containers and two true quoted-parent contexts are preserved.
+All 86 body values were checked against their decoded originals, with 54 file
+pins across seven packets. The same guide author and maps share one origin;
+account handles are not verified people. Repeated map records are not
+independent corroboration. Historical Taiwan/Elyos advice, analyst prose,
+duplicate search mentions and the unavailable GreekSaladTV original were not
+admitted. Thus this set cannot establish exhaustive contrary-advice coverage.
+
+### Map deliverable and limits
+
+The [Asmodian zone atlas](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/atlas/asmodian-zone-atlas.html)
+embeds four unchanged source screenshots and a searchable area table. Saved
+asset bytes match their lake originals. Its 58 source-defined area rows sum to
+**559 Empyrean Trace markers**. The Altgard row contributes four Traces; its
+other 61 entries are sealed dungeons and are not added to the Trace total.
+The site labels the maps Asmodian and Global client data; its client files were
+not inspected. Area groupings are not independently verified zone boundaries.
+Browser preview of the local HTML was blocked, so rendering remains uninspected.
+
+These are map inventory counts, not a count earned by following the MSQ.
+No ordered quest path, unique on-route pickup list, pickup-to-point conversion
+or ending feather inventory was established. Ishalgen's absent Collect tab
+does not establish zero feathers. The atlas therefore draws no invented route
+arrows. Native clipped screenshots preserve the original overview alongside
+the tighter view; no generative image editing was used.
+
+### Consolidation execution and current result
+
+Run directory:
+`C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run`.
+Its question, corpus, semantic rules, assignments and source bindings are frozen.
+Corpus SHA256:
+`9cfac980ae18bbe124a1dad5caac9f686dbfb7a746a181ae9e363c1e6d5f9976`.
+The installed helper prepared two complete reading units under its default
+45,000-token request budget. Image references remain pointers; these text-only
+model calls do not inspect image pixels.
+
+The first native reading response failed exact-source
+validation: one quotation changed "Your" to "The", one joined noncontiguous
+table cells, and a later validation step found a scalar quote pointing at an
+array. Home checked the frozen originals, restored literal text and the exact
+array-element pointer, and explicitly revised the affected prose. The native
+response remains unchanged; a separate source-bound home correction was
+accepted. No paid reread was used. This is assisted recovery, not an autonomous
+clean pass.
+
+The second reading unit and fresh-context synthesis were accepted without home
+correction. The helper delivered **`REPORT_SAVED_UNREVIEWED`**, with all 86
+assignments accounted for exactly once and no pending reads or attempts needing
+attention. The [consolidated draft](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-run/synthesis/report.md)
+was freshly read from disk. Its 46 compiled citations retain source roles,
+native locators and quoted originals in the adjacent `citations.json`,
+`cited-originals.json`, `report-originals.md` and `source-bindings.json`.
+Report SHA256:
+`8ecfc68c9a94ea4418dc902cb98dbb72757bff494fb507b76e779793a12bc079`.
+
+Three native calls reported 80,591 input tokens (zero cached), 6,560 output
+tokens, and 781 reasoning-output tokens in the separate native field. Summed
+native wall time was 174.329 seconds; this excludes capture, setup, home repairs
+and review. These completed-turn fields do not measure the whole research cost,
+hidden provider usage or dollars. The saved metrics and failed/native/corrected
+artifacts remain beside the run. The brief is 837 whitespace-delimited words,
+above the commissioned approximate 500–700-word target; it remains an internal
+consolidation draft, not the concise player-facing guide.
+
+The required external source review is still pending. The owning baseline
+requires a proposal-only review through operator courier, then source-backed
+home adjudication; structural acceptance alone does not certify a guide. No
+efficiency gain, dollar saving, gameplay accuracy or optimal route is claimed
+from this differently scoped trial. The next review must check source meaning,
+material omissions and faction/unit boundaries before a final guide is built.
