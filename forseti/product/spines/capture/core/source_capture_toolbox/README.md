@@ -70,7 +70,7 @@ catalog. The Source Capture Playbook still owns access, probe, and packet rules.
 
 | Candidate | Intended use | Current state / next source |
 | --- | --- | --- |
-| Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-requested 2026-10-03; navigation and extraction unprobed. Use the bounded method below, then promote only with observed route evidence. |
+| Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-selected first target: Aion2Global, 2026-10-03. Navigation and extraction remain unprobed; use the bounded method below, then promote only with observed route evidence. |
 
 ### Discord — RaidRelay research and SEO discovery
 
@@ -79,6 +79,61 @@ to examine product needs, complaints, workarounds, alternatives, repeated
 questions, and customer vocabulary. SEO output is a candidate question/topic
 with its supporting conversation references. Raid/event scheduling, signup
 processing, and other operational information feeds are outside this request.
+
+**Selected first target (owner, 2026-10-03).** The Aion2Global community at
+[discord.gg/aion2global](https://discord.gg/aion2global). This is the selected
+research venue, not a claim that its internal information quality or capture
+route has been verified. Map its actual channel names and access first;
+prioritize relevant help, class, build/progression, and tool-feedback
+conversations where present. Exact channels, research time window, and entitled
+access remain to be established. Questlog and the publisher's official server
+are possible claim-specific cross-checks, not automatic additional targets.
+
+**Information to extract.** Preserve source messages and their response context
+for these research questions; downstream interpretation remains Judgment-owned.
+
+| Research question | Source information to preserve | Intended use / limit |
+| --- | --- | --- |
+| What are players struggling to achieve? | Stated goal, obstacle, time or effort cost, consequence, and class/progression context; retain region, game version/patch, and date when exposed. | Candidate product needs and content gaps. A novice's confusion is relevant even if their explanation of its cause is wrong. |
+| What have they tried instead? | Self-play, guides, tools, guild help, carries or piloting when actually mentioned; steps tried, reported result, abandonment/switching, and why. | Understand workarounds and alternatives; keep actual behavior separate from hypothetical preference. |
+| What would make them accept or reject help? | Expressed price/value concerns, trust, account access, proof of completion, timing, refunds, and reported service experiences when present. | Candidate service objections and requirements; a complaint or stated willingness to pay does not prove a purchase or market-wide demand. |
+| Which questions need better answers? | Exact question wording, competing answers, unanswered follow-ups, corrections, and conditions that change the answer. | Source-linked SEO topic candidates; preserve distinct origins and repeated observations, then check search demand and current answer quality separately. |
+
+**Poster credibility is claim-specific.** Do not exclude unknown or novice
+posters by default, or assign a universal author score. A poster may
+be a good source for their own difficulty and a poor source for its technical
+cause. Being unknown means expertise is unestablished, not that the person has
+no knowledge. Apply the existing claim-support contract linked below:
+
+- **Fit to the statement:** distinguish a firsthand experience report, a
+  technical explanation, an official announcement, an opinion, hearsay, and
+  promotion. Experience in one class, region, patch, or activity does not
+  automatically transfer to another. A tool author is well placed to explain
+  their own tool, not automatically every game mechanic or customer motive.
+- **Demonstrated basis:** retain linked tests, logs, calculations, dated
+  gameplay examples, source citations, and relevant guide/tool authorship.
+  Preserve how the account is visibly linked to that work; a claimed rank or
+  credential remains self-reported unless supported. An impressive screenshot
+  alone does not establish the explanation or that it applies to this case.
+- **Challenge and correction:** preserve substantive replies, counterexamples,
+  corrections, and the poster's response. For a claim that will materially
+  affect a recommendation or published answer, inspect a bounded amount of
+  relevant same-topic history and check the linked evidence or an independent
+  competent source. Do not collect everyone's posting history as a precondition.
+- **Reputation and interests:** retain relevant visible roles or affiliations
+  and disclosed seller/affiliate/tool-owner interests. Moderator status,
+  popularity, confident language, message count, and reactions do not establish
+  technical expertise. An interest is context, not automatic disqualification;
+  copied agreement and unknown account overlap do not establish independence.
+
+Capture preserves these observable cues alongside the message and marks missing
+basis as unavailable; it does not certify experts or infer real-world identity.
+Judgment records the scope of competence, evidence basis, conflicts, uncertainty,
+and allowed use in the existing evidence explanation. Unsupported technical
+advice stays a lead to verify. A specific firsthand difficulty remains usable
+as that person's reported difficulty, without becoming a general finding.
+This adds no standing poster registry, person-level dossier, or credibility
+schema; reuse the existing provenance and claim-support surfaces.
 
 **Access and route choice.** Name the target server, channel/thread set, research
 question, time window, and access basis before a live probe. Apply Step 0 of
@@ -149,8 +204,9 @@ but search demand, existing answer quality, and ranking opportunity require
 their own search evidence. Research access does not by itself authorize public
 republication of member messages; preserve source visibility in that handoff.
 
-**Capability proof still needed.** No RaidRelay server, entitled session, bot,
-export, or live packet is bound by this addition. On a named accessible slice,
+**Capability proof still needed.** Aion2Global is the selected server, but no
+entitled session, bot, export, or live packet is established. On a named
+accessible slice,
 demonstrate search-to-message navigation, context/reply recovery, and exact
 packet readback; compare extracted messages with the visible originals. Record
 elapsed time, requests/actions, unique usable conversation windows, duplicate
