@@ -398,7 +398,7 @@ open lake files or images and searched rather than fully read the embedded
 rules. These are the reviewer's reported actions, not independently certified
 coverage. Its findings were proposals, with no formal verdict or patch.
 
-**Current consumer:** the separate [corrected consolidation brief](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-corrected/report.md). <!-- # nonresolving: retained local research output, not shipped in Git -->
+**Prior reviewed consumer:** the separate [corrected consolidation brief](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-corrected/report.md); the targeted follow-up below owns the current pointer. <!-- # nonresolving: retained local research output, not shipped in Git -->
 Home checked the affected native source wording and closed the source-backed
 corrections below. The corrected brief is **659 whitespace-delimited words**
 before its generated reference footer. Its [provenance file](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-corrected/provenance.json) <!-- # nonresolving: retained local research output, not shipped in Git -->
@@ -437,3 +437,98 @@ recovered them. No efficiency gain, dollar saving, gameplay accuracy or optimal
 route is claimed. The next material evidence is a Global Asmodian quest/reward
 and pickup/Monolith screen check, followed by a logged path; ending feather
 inventory, conversion and travel savings remain unknown.
+
+## Fourth pass: pickup proof and original-source follow-up
+
+On October 4 Singapore time, the owner authorized the next targeted pass and
+the same consolidation process if required, then restored Discord access in
+their Chrome. The bound question remained a fresh Global Asmodian's pickup
+yield, Monolith consumption and ordered-route total. No qualifying recording
+showing that whole sequence was established in the inspected material.
+
+**Current consumer:** the [updated research brief](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-followup/report.md), with [source bindings](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-followup/provenance.json). <!-- # nonresolving: retained local research outputs, not shipped in Git -->
+This is a targeted home source update of the prior reviewed brief, not a fresh
+full-corpus consolidation or a newly externally reviewed report. Its three
+changes resolve attribution or add a bounded image observation; the proposed
+route and unknown ending inventory remain unchanged. The prior reviewed brief,
+original synthesis and frozen 86-record corpus remain available unchanged.
+The new brief is 700 whitespace-delimited words before its reference footer;
+the source image appears after that footer.
+
+### What the new evidence changes
+
+| Question | Source and disposition |
+| --- | --- |
+| What does Tito's 33% mean? | Message `1555651051024289863`, October 2 at 18:41:53 UTC, explicitly says **33% of total feather spawns to max the Monolith**. Its quoted parent asks whether feathers are limited. This clarifies the denominator and purpose; faction/build remain unstated. It is another observation from the same adviser, not another independent origin. The moderator badge supplies no gameplay verification. |
+| Where did 95/11 come from? | Couga's linked sanya_jacuzzi video, published September 30, says at least 95 feathers for Monolith 11 and green-amulet upgrade materials at 4:37–4:48. The full Russian auto-generated transcript was preserved and read; English wording is a paraphrase. The opening and ending frame it as conditional prelaunch datamine advice. It does not explicitly say green-to-blue, and it supplies no pickup/turn-in test. Couga and this video share that evidence lineage. |
+| Do Altgard leftovers have a use? | Keydrason's message `1555157893999759380`, October 1 at 10:02:15 UTC, carries an image showing **Empyrean Trace: Altgard (Bound), 217/1**, **Power Shard (Bound) ×10**, and **100%** success. This supports a displayed 1-to-10 recipe, not an executed conversion or an established pickup yield. Region/build and original screenshot authorship remain unverified. The unchanged Discord-served WebP is retained; it is not claimed byte-identical to the uploaded PNG. |
+
+### Capture coverage, exclusions and friction
+
+The guild-wide `monolith after:2026-09-29` search displayed 51 results over three
+pages; all displayed result text was read, with Newest explicitly checked.
+A focused `"33%" after:2026-09-29` search displayed 15 results and recovered a
+stable source card. `feathers has:image after:2026-09-29` displayed seven results;
+their text was read and only the relevant Keydrason conversion image's pixels
+were inspected. Sort was not freshly checked for those latter searches. These
+are overlapping search results, not unique records or exhaustive channel
+coverage. No messages, reactions or account-role changes were made.
+
+Complete captions from three videos were read by a bounded extraction delegate;
+home checked the cited Sanya spans and inspected one relevant frame per video.
+TheWhelps' October 2 video repeats roughly one-third/Monolith-30 advice, but its
+4:14 frame is written notes over a crafting screen. Its description has a KR
+profile, and faction/build and independence from Discord advice are unresolved.
+Madsin's September 18 Global LST comparison is explicitly a test-build source;
+the isolated 26:51 reward-panel frame does not safely identify which comparison
+client is shown. Neither becomes current Global Asmodian pickup proof.
+
+Route scouting nominated the [Krix Asmodian guide](https://www.daewa.eu/guides/leveling/general/aion-2-level-145-ultimate-speedrun-guide-for-asmodians)
+and [FRESHY's Asmodian speedrun](https://www.youtube.com/watch?v=ZtQv6rBBFew).
+These remain uncaptured discovery leads, excluded from the consumer: the former
+did not establish the requested current build, and the latter was presented as
+Taiwan. A streamer index was also insufficient to bind an actual recording's
+faction and build. No borrowed route was drawn onto the existing atlas.
+
+Failures are retained: initial sign-in loss, one loading-only page capture, an
+empty search slice, ambiguous chat/search selectors, two incorrect main-chat
+crops after viewport repositioning, and a failed download against an unloaded
+link. The successful claim screenshot uses the stable search-result card; the
+game image came from the displayed media viewer. Incorrect crops and the
+partially clipped image-viewer attempt are not evidence for their intended
+claims. Image filtering produced a useful recipe screenshot in this pass;
+there was no matched comparison establishing faster or better overall research.
+No comparable whole-process elapsed-time, token or dollar total was measured.
+
+### Durable captures and next observation
+
+The existing armory local-file runner published four supplementary packets.
+All 29 member files were read back through the canonical lake and checked for
+stored size/hash agreement. Packaging time remains distinct from source dates.
+Exact commands, source/member mappings and hashes are in the
+[packet receipts](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/followup-proof/packet-receipts.json). <!-- # nonresolving: retained local capture receipt, not shipped in Git -->
+
+| Packet | Material |
+| --- | --- |
+| `F:/forseti-data-lake/raw/a15/01M41KBV5SAX2BHK6N31PW4XKC` | Discord search/context captures, two admitted source units, original served image, clipped claim screenshot, explicit failure/selection metadata; 16 files. |
+| `F:/forseti-data-lake/raw/c31/01M41KC081GKXZ1T8R9PB982NK` | Sanya complete captions, publication metadata, inspected slide and earlier viewport attempt; 5 files. |
+| `F:/forseti-data-lake/raw/176/01M41KC1S0RPZBHGY15EVTY2DP` | Madsin complete captions, publication metadata and 26:51 comparison frame; 4 files. |
+| `F:/forseti-data-lake/raw/f09/01M41KC37R409Z3EX89HBAV0HV` | TheWhelps complete captions, publication metadata and 4:14 notes frame; 4 files. |
+
+Saved-consumer [verification](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/consolidation-followup/verification.json) <!-- # nonresolving: retained local verification output, not shipped in Git -->
+matched all 25 references, 10 line bindings, 44 inherited support anchors,
+four new caption spans, source JSON values, new packet members and prior report
+and corpus pins. Atlas embedded assets and arithmetic match their prior pins;
+there is no prior whole-HTML hash for a byte-identical HTML claim. These checks
+certify preservation and reference mechanics, not translation, image meaning or
+gameplay accuracy. Current report SHA256:
+`092bbcfc4808d2def27ce3cefb660ce7ae879f574b3b7f479fb56959d6bea81a`.
+
+The source-bound update preserves all earlier claim references and adds three
+units, without promoting the excluded videos to gameplay evidence. Its new
+claims have no external review return. A full baseline rerun was not needed to
+resolve these narrow attribution/image observations; it would not supply the
+missing gameplay trace. Before stating an ending feather total or a tested
+route, obtain a dated Global Asmodian recording with region/build, inventory
+before/after one pickup, Monolith before/after turn-in, and an ordered pickup
+log. The current atlas remains an inventory map rather than a verified route.

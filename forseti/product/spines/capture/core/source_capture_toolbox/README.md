@@ -95,8 +95,11 @@ preserves source maps and screenshots, and records a mixed-source consolidation
 with its source-role fix and assisted recovery. The external source review is
 adjudicated; a separate corrected brief restores omitted gates, rewards and
 alternative advice while preserving the submitted original. The same trial
-record owns current brief, provenance and map-atlas pointers. Ending feather
-inventory and route optimality remain unverified.
+record owns current brief, provenance and map-atlas pointers. A fourth targeted
+pass clarifies the feather-spawn denominator, traces the 95/11 claim to its
+prelaunch video, and preserves an Altgard Power Shard recipe screenshot. Its
+separate home update has not had external source review. Ending feather
+inventory, pickup yield and route optimality remain unverified.
 Questlog and the publisher's official server
 are possible claim-specific cross-checks, not automatic additional targets.
 
