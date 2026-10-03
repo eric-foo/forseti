@@ -70,7 +70,7 @@ catalog. The Source Capture Playbook still owns access, probe, and packet rules.
 
 | Candidate | Intended use | Current state / next source |
 | --- | --- | --- |
-| Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-selected first target: Aion2Global, 2026-10-03. Navigation and extraction remain unprobed; use the bounded method below, then promote only with observed route evidence. |
+| Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-selected first target: Aion2Global, 2026-10-03. First attended text-capture trial recorded in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`; repeatability, wider coverage and gameplay accuracy remain unproven. |
 
 ### Discord — RaidRelay research and SEO discovery
 
@@ -85,9 +85,22 @@ processing, and other operational information feeds are outside this request.
 research venue, not a claim that its internal information quality or capture
 route has been verified. Map its actual channel names and access first;
 prioritize relevant help, class, build/progression, and tool-feedback
-conversations where present. Exact channels, research time window, and entitled
-access remain to be established. Questlog and the publisher's official server
+conversations where present. The first trial reached the guide and in-game help
+channels through the owner's entitled session; its exact scope and limitations
+are in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`. Questlog and the publisher's official server
 are possible claim-specific cross-checks, not automatic additional targets.
+
+**First research question and improvement loop (owner, 2026-10-03).** For a
+fresh Global character, investigate a general leveling route that also earns
+worthwhile stats, unlocks and collections with the least total wasted effort,
+including later catch-up. Keep class-specific exceptions visible. Reuse the
+existing run record for query/filter/channel/date scope, meaningful actions and
+failures, elapsed time with its measurement limits, retained source references,
+and why advice was kept, rejected, corrected or left unresolved. Keep source
+text separate from these researcher decisions. Compare a method change on
+comparable inputs and fresh cases; check correctness and missing important
+steps before speed or volume. No dashboard or standing author-score registry
+is needed for this trial.
 
 **Information to extract.** Preserve source messages and their response context
 for these research questions; downstream interpretation remains Judgment-owned.
@@ -204,10 +217,12 @@ but search demand, existing answer quality, and ranking opportunity require
 their own search evidence. Research access does not by itself authorize public
 republication of member messages; preserve source visibility in that handoff.
 
-**Capability proof still needed.** Aion2Global is the selected server, but no
-entitled session, bot, export, or live packet is established. On a named
-accessible slice,
-demonstrate search-to-message navigation, context/reply recovery, and exact
+**Capability proof still needed.** The first attended Aion2Global trial observed
+search-to-message navigation and context recovery on one selected conversation;
+it also exposed quoted-parent identity and screenshot-framing defects. The
+linked trial record owns the bounded evidence and retention state. No installed
+bot, reusable export route or automated Discord adapter is established. Before
+calling the route reusable, extend the source checks beyond that sample and verify exact
 packet readback; compare extracted messages with the visible originals. Record
 elapsed time, requests/actions, unique usable conversation windows, duplicate
 work, and missing context in the existing run receipt. Judge efficiency against
