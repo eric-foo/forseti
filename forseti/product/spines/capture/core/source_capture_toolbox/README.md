@@ -98,8 +98,15 @@ alternative advice while preserving the submitted original. The same trial
 record owns current brief, provenance and map-atlas pointers. A fourth targeted
 pass clarifies the feather-spawn denominator, traces the 95/11 claim to its
 prelaunch video, and preserves an Altgard Power Shard recipe screenshot. Its
-separate home update has not had external source review. Ending feather
-inventory, pickup yield and route optimality remain unverified.
+separate home update has not had external source review. The fifth pass adopts
+the owner's simpler MSQ-stage companion, captures creator maps and six Global
+quest pages, and records a fresh 98-record consolidation with all three reads
+requiring logged quote corrections. Its concise illustrated draft supersedes
+the fourth-pass brief for current use, preserves the 140-pickup/560-point
+correction, and awaits external source review. The trial record owns its
+delivery and evidence links. Ending pickup yield and route optimality remain
+unverified; a complete gameplay recording is not required for this bounded
+source-recommended checklist.
 Questlog and the publisher's official server
 are possible claim-specific cross-checks, not automatic additional targets.
 
