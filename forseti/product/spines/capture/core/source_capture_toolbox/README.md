@@ -62,6 +62,105 @@ catalog points to the family README, runner/projection/lake/cleaning seams, and
 accepted residuals. It does not restate Data Lake raw admission, derived layout,
 Silver, ECR, Cleaning, or Judgment authority.
 
+## Optional Capture Candidates
+
+These are requested capabilities awaiting source-specific route evidence. They
+are selectable research candidates, not landed lanes in the source-family
+catalog. The Source Capture Playbook still owns access, probe, and packet rules.
+
+| Candidate | Intended use | Current state / next source |
+| --- | --- | --- |
+| Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-requested 2026-10-03; navigation and extraction unprobed. Use the bounded method below, then promote only with observed route evidence. |
+
+### Discord — RaidRelay research and SEO discovery
+
+**Bound outcome.** Find and preserve relevant conversations efficiently enough
+to examine product needs, complaints, workarounds, alternatives, repeated
+questions, and customer vocabulary. SEO output is a candidate question/topic
+with its supporting conversation references. Raid/event scheduling, signup
+processing, and other operational information feeds are outside this request.
+
+**Access and route choice.** Name the target server, channel/thread set, research
+question, time window, and access basis before a live probe. Apply Step 0 of
+`source_capture_playbook_v0.md` and the source-access boundary decision linked
+below: a public invite does not establish access to every channel, and an
+entitled account does not establish bot access. Use the cheapest fitting route:
+
+- For an accessible community without a cooperating bot installation, start
+  with native search in the entitled browser session or an entitled
+  operator-supplied excerpt/export. Preserve only the selected conversation
+  windows through the Armory packet path; verify export scope and completeness.
+- Where a server permits an installed app with the required access, evaluate
+  the official bot API for structured search and message retrieval. Confirm
+  channel/history permission and message-content availability with actual
+  source content before relying on it. Do not create a bot service, scheduler,
+  whole-server mirror, or new database just to add this optional source.
+- Native-session automation remains subject to the existing source-access
+  posture; it is not equivalent to platform-sanctioned bot access. Discord's
+  [self-bot policy](https://support.discord.com/hc/en-us/articles/115002192352-Automated-User-Accounts-Self-Bots)
+  prohibits automating ordinary accounts outside its bot/OAuth2 API and names
+  account termination risk. Do not extract user tokens or copy session secrets
+  into capture artifacts. No new access exception is granted here.
+
+**Search, then expand context.** Inspect the relevant channel names, descriptions,
+pins, and forum/thread structure once. Reuse that small map within the research
+run. Search product/problem terms and observed synonyms with channel and date
+filters; use `has:` or author type only when useful to the question. Discord's
+[search guide](https://support.discord.com/hc/en-us/articles/115000468588-How-to-Use-Search-on-Discord)
+documents channel/content filters, date ranges, sort choices, and jumping from
+a result to its message. Search each selected server; no global Discord search
+coverage is implied. Open useful hits in context, including the question,
+answer, correction, and relevant replies. Follow linked threads and inspect
+accessible archived threads when material; the active channel view alone is
+not a history inventory. Avoid scrolling entire chat histories by default.
+
+For an API probe, Discord's
+[message reference](https://docs.discord.com/developers/resources/message)
+documents guild search, channel-history pagination, and message lookup. Search
+omits reactions and surrounding context, so retrieve selected messages and
+their conversation window separately. Missing content permission, search
+indexing (HTTP 202), and exhausted history are distinct states. Short search
+pages and mutable result totals do not establish exhaustion. Respect
+[rate-limit retry guidance](https://docs.discord.com/developers/topics/rate-limits)
+and the run's declared request/time bounds; preserve unfinished coverage.
+[Archived threads](https://docs.discord.com/developers/topics/threads) need
+explicit attention because they are not synced up-front through the Gateway.
+These documentation reads, checked 2026-10-03, guide a probe; they are not a
+Forseti live-capture receipt. Recheck the chosen route before implementation.
+
+**Preservation and handoff.** The useful capture unit is a conversation window,
+with individual source messages still addressable. Preserve message links and
+server/channel/thread/message IDs when exposed; source text; source-visible
+author and user/bot/webhook distinction; source and capture times; edit markers;
+reply relationships; relevant embeds/attachments; and observed reaction kinds
+and counts or explicit unavailability. Keep IDs as strings. Record the query,
+filters, selection window, paging position, access restrictions, and truncation
+in the existing packet/receipt rather than inventing a parallel schema. Dedup
+overlapping windows by message identity while retaining observed edits and
+provenance. A repeated post or forwarded copy does not become another origin.
+
+Keep captured text separate from downstream topic grouping and proposed article
+angles. The
+`forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md`
+owns recurrence, resonance, independence, and claim strength. Bot announcements,
+promotions, and human experience reports remain distinguishable; reactions are
+not independent customer counts. Discord questions can nominate SEO topics,
+but search demand, existing answer quality, and ranking opportunity require
+their own search evidence. Research access does not by itself authorize public
+republication of member messages; preserve source visibility in that handoff.
+
+**Capability proof still needed.** No RaidRelay server, entitled session, bot,
+export, or live packet is bound by this addition. On a named accessible slice,
+demonstrate search-to-message navigation, context/reply recovery, and exact
+packet readback; compare extracted messages with the visible originals. Record
+elapsed time, requests/actions, unique usable conversation windows, duplicate
+work, and missing context in the existing run receipt. Judge efficiency against
+that research question and a manual path over the same slice, without equating
+speed or volume with coverage. Explicitly test permission/empty-content and
+partial-history handling before calling the route usable. Until then,
+navigation durability, extraction fidelity, historical/thread coverage, and
+efficiency remain unproven. Do not add Discord to the landed-lane catalog yet.
+
 ## Controlling Sources
 
 | Source | What It Controls |

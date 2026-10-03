@@ -1606,6 +1606,7 @@ noise, provenance, independence, and graph behavior.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit/Quora as explicit search-hygiene considerations, but commission external scouting only for a named decision-material job with no equal-or-better included substitute. Record dominated, non-material, blocked, and zero-yield routes without treating them as completion. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
+| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Optional when the commission has a material research job. Open the Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md`. Public or legitimately entitled access, bounded selection, conversation context, provenance, and noise controls must be established before capture. Navigation/extraction remain unprobed; no operational raid/event feed, standing monitoring, or scraping by default. Discord recurrence is not search-volume or ranking evidence. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -1811,8 +1812,11 @@ feeds:
    gaps, and handoff notes are the recommended schema.
 3. Ratify the initial source-family/subfamily map, including ATS/careers pages
    as the preferred movement source, Reddit as a forums/community subfamily,
-   AEO as visibility annotation, and Discord as noisy/deferred unless a public
-   repeatable bounded slice exists.
+   AEO as visibility annotation. The 2026-10-03 owner direction adds Discord as
+   an optional research candidate, initially for RaidRelay product research and
+   SEO topic discovery, as specified in the Source-Family Map above. Without an
+   established public or legitimately entitled, bounded, repeatable,
+   noise-controlled slice it remains noisy/deferred; capability is not proven.
 4. Decide whether the temporary prompt's fragrance-specific playbooks are the
    first signal-board satellite or only an example deck for a broader beauty
    signal board.

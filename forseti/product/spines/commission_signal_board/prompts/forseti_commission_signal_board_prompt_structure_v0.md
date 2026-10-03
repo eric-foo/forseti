@@ -448,6 +448,7 @@ requires them.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit and Quora as explicit search-hygiene considerations. Commission external scouting only when the venue performs a named decision-material job and is not dominated by an equal-or-better included route; otherwise record the exclusion or `not_applicable` rationale. Zero yield is a route result, not completion. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
+| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Consider only for a material research job. Open the Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md`; preserve its access, context, provenance, and unproven-capability limits. This is an optional research candidate, not an operational raid/event feed or standing monitor. Topic leads do not establish search volume or ranking opportunity. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -1600,8 +1601,12 @@ venue, or a non-selection row recorded as `not_applicable` / `not_applicable`.
 - Treat AEO as visibility annotation only.
 - For backtests, treat post-cutoff source surfaces as `excluded_future_info`
   rather than normal retrieval routes.
-- Treat Discord as noisy_deferred unless public, repeatable, bounded, and
-  noise-controlled.
+- Treat Discord as an optional research candidate under the Source-Family Map,
+  initially for RaidRelay product research and SEO topic discovery. Keep access
+  or capability gaps explicit: `noisy_deferred` until the selected slice has
+  established public or legitimately entitled access and is repeatable, bounded,
+  and noise-controlled. Naming the candidate does not prove navigation or
+  extraction capability; use the Armory candidate method before capture.
 - Treat LinkedIn as no-live/planning-only unless explicitly routed; prefer
   ATS/careers pages for movement.
 - Treat creator surfaces as graph-rich but never demand proof by themselves.
