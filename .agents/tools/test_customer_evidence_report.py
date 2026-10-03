@@ -803,7 +803,8 @@ class ParagraphEvidence(unittest.TestCase):
         save(self.base / "question.txt", "What experience and objections recur?")
         with patch.object(tool, "rules", return_value="FIXTURE: preserve source identity and uncertainty"):
             tool.prepare(self.base / "corpus.json", self.base / "question.txt", self.root,
-                         {**tool.DEFAULTS, "unit_input_tokens": 15000})
+                         {**tool.DEFAULTS, "unit_input_tokens": 15000},
+                         citation_contract=tool.LEGACY_PARAGRAPH_CONTRACT)
         self.rid = "read-001"
         self.registry = tool.validate_corpus(self.corpus)
         self.payload = tool.load(self.root / self.rid / "payload.json")
@@ -1146,6 +1147,147 @@ class ParagraphEvidence(unittest.TestCase):
         bad["citations"] = []
         with self.assertRaises(tool.ValidationError):
             tool.accept(self.root, "synthesis", self.attempt(bad, "synthesis"))
+
+
+class MixedSourceEvidence(unittest.TestCase):
+    def test_mixed_roles_survive_saved_read_synthesis_counts_and_resume(self):
+        with tempfile.TemporaryDirectory(prefix="forseti-mixed-source-") as directory:
+            base = Path(directory)
+            corpus = corpus_fixture()
+            roles = [("customer_review", None), ("community_post", "community_testimony"),
+                     ("community_comment", "community_advice"), ("publisher", None),
+                     ("guide_author", None), ("map_author", None), ("unrecognized_native_role", None),
+                     ("analyst_observation", "unknown")]
+            rows = []
+            for i, (role, speaker) in enumerate(roles):
+                row = copy.deepcopy(corpus["original_rows"][0])
+                row.update(evidence_id=f"mixed:{i}", text=f"Source {i} states its bounded assertion.",
+                           source_ref=f"https://example.test/mixed/{i}", source_role=role,
+                           source_family="mixed_native_venue", container_id=f"own:{i}",
+                           parent_context_refs=[], product_context_refs=[],
+                           public_identity_key=f"author:{i}", independence_key=f"origin:{i}")
+                if speaker:
+                    row["body_speaker"] = speaker
+                if i in (4, 5):
+                    row["independence_key"] = "one-guide-and-map-origin"
+                if i >= 6:
+                    row["public_identity_key"] = "unknown"
+                    row["independence_key"] = "unavailable"
+                row["image_references"] = [f"source-pointer-{i}.png"]
+                rows.append(row)
+            rows[0]["retailer_reply"] = "Retailer reply stays retailer speech."
+            corpus = {"original_rows": rows, "original_context": {},
+                      "original_containers": {row["container_id"]: {"capture": "own source"} for row in rows}}
+            save(base / "corpus.json", corpus)
+            save(base / "question.txt", "What do these differently attributed sources establish?")
+            root = base / "run"
+            with patch.object(tool, "rules", return_value="FIXTURE source attribution authority"):
+                tool.prepare(base / "corpus.json", base / "question.txt", root)
+            manifest = tool.load(root / "manifest.json")
+            self.assertEqual(manifest["citation_contract"], tool.CITATION_CONTRACT)
+            payload = tool.load(root / "read-001/payload.json")
+            expected = ["customer", "community_testimony", "community_advice", "publisher",
+                        "guide_author", "map_author", "unknown", "unknown"]
+            self.assertEqual(list(payload["body_speakers"].values()), expected)
+            self.assertEqual(payload["context"], {})
+            prompt = (root / "read-001/prompt.txt").read_text(encoding="utf-8")
+            self.assertNotIn("Body testimony remains customer", prompt)
+            self.assertIn("Image references are pointers only", prompt)
+            registry = tool.validate_corpus(corpus)
+            evidence = [{"handle": ref + "/record/text", "owner": "", "quote": row["text"],
+                         "role": "background"} for ref, row in registry.items()]
+            evidence.append({**evidence[0], "quote": "states its bounded assertion.", "role": "second excerpt"})
+            response = {"paragraphs": [{"text": "Mixed attributed assertions.", "evidence": evidence},
+                {"text": "A retailer reply.", "evidence": [{"handle": "R0001/record/retailer_reply",
+                    "owner": "", "quote": rows[0]["retailer_reply"], "role": "retailer reply"}]},
+                {"text": "A map image pointer is present.", "evidence": [{"handle": "R0006/record/image_references/0",
+                    "owner": "", "quote": "source-pointer-5.png", "role": "pointer only"}]}]}
+            attempt = root / "read-001/attempts/initial"
+            native_fixture(root, "read-001", attempt, response)
+            tool.accept(root, "read-001", attempt)
+            compiled = tool.load(root / "read-001/paragraphs.json")
+            self.assertEqual([c["speaker"] for c in compiled[0]["citations"][:8]], expected)
+            self.assertEqual([c["source_role"] for c in compiled[0]["citations"][:8]], [r[0] for r in roles])
+            support = compiled[0]["support"]
+            self.assertEqual(support["source_observation_count"], 8)
+            self.assertEqual(support["known_origin_identity_count"], 5)
+            self.assertEqual(support["unknown_origin_observations"], ["R0007", "R0008"])
+            self.assertEqual(support["customer_sources"], ["R0001"])
+            self.assertEqual(support["customer_observation_count"], 1)
+            self.assertEqual(support["customer_known_origin_identity_count"], 1)
+            self.assertEqual(support["observations_by_speaker"]["unknown"], 2)
+            self.assertEqual(compiled[1]["citations"][0]["speaker"], "retailer_reply")
+            self.assertEqual(compiled[2]["citations"][0]["speaker"], "context")
+            for paragraph in compiled[1:]:
+                self.assertEqual(paragraph["support"]["source_observation_count"], 0)
+            tool.compose(root)
+            synthesis = tool.load(root / "synthesis/payload.json")
+            self.assertEqual(synthesis["reference_columns"][-1], "body_speaker")
+            self.assertEqual([v[-1] for v in synthesis["reference_context"].values()], expected)
+            self.assertEqual(synthesis["reference_context"]["R0005"][1],
+                             synthesis["reference_context"]["R0006"][1])
+            self.assertIsNone(synthesis["reference_context"]["R0007"][1])
+            final = {"paragraphs": [{"text": "Preserved mixed source evidence.",
+                                     "evidence": list(synthesis["evidence_catalog"])}]}
+            attempt = root / "synthesis/attempts/initial"
+            native_fixture(root, "synthesis", attempt, final)
+            tool.accept(root, "synthesis", attempt)
+            citations = tool.load(root / "synthesis/citations.json")
+            final_support = tool.load(root / "synthesis/paragraphs.json")[0]["support"]
+            self.assertEqual(final_support["source_observation_count"], 8)
+            self.assertEqual(final_support["known_origin_identity_count"], 5)
+            self.assertEqual(final_support["customer_known_origin_identity_count"], 1)
+            for citation in citations:
+                row = registry[citation["source"]]
+                self.assertEqual(citation["source_role"], row["source_role"])
+                if citation["pointer"] == "/record/text":
+                    self.assertEqual(citation["public_identity_key"], row["public_identity_key"])
+                else:
+                    self.assertIsNone(citation["public_identity_key"])
+                    self.assertIsNone(citation["independence_key"])
+            bindings = tool.load(root / "read-001/source-bindings.json")
+            self.assertEqual(bindings["R0006"]["body_speaker"], "map_author")
+            self.assertEqual(bindings["R0006"]["paragraphs"], [1])
+            self.assertEqual(bindings["R0006"]["non_body_paragraphs"], [3])
+            saved = {str(path.relative_to(root)): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+            tool.check(root)
+            self.assertEqual(saved, {str(path.relative_to(root)): path.read_bytes()
+                                     for path in root.rglob("*") if path.is_file()})
+
+    def test_explicit_role_is_authoritative_and_unrecognized_roles_are_unknown(self):
+        self.assertEqual(tool.body_speaker({"source_role": "retailer_review"}), "customer")
+        self.assertEqual(tool.body_speaker({"source_role": "community_post"}), "community")
+        self.assertEqual(tool.body_speaker({"source_role": "retailer_review", "body_speaker": "unknown"}), "unknown")
+        for role in ("news_customer_review", "GUIDE", "", None, []):
+            self.assertEqual(tool.body_speaker({"source_role": role}), "unknown")
+        for invalid in ("custmer", None, []):
+            with self.assertRaisesRegex(ValueError, "unsupported body_speaker"):
+                tool.body_speaker({"source_role": "publisher", "body_speaker": invalid})
+
+    def test_v2_frozen_bytes_match_pre_change_contract(self):
+        # Hashes computed from 309f37ed before this change, not from v3 outputs.
+        corpus = corpus_fixture()
+        registry = tool.validate_corpus(corpus)
+        contract = tool.LEGACY_PARAGRAPH_CONTRACT
+        payload = tool.source_payload(list(registry), registry, corpus, contract=contract)
+        request = {"stage": "read", "refs": list(registry), "citation_contract": contract,
+                   "capacity": {"output_and_reasoning_reserve_tokens": 12000}}
+        response = {"paragraphs": [{"text": "Historical frozen output.", "evidence": [
+            {"handle": "R0001/record/text", "owner": "", "quote": registry["R0001"]["text"][:45], "role": "background"},
+            {"handle": "R0003/record/retailer_native_metadata/ClientResponses/0/Response", "owner": "",
+             "quote": "We replaced the damaged tube.", "role": "reply"}]}]}
+        compiled = tool.validate_response(response, request, registry, corpus)
+        values = {"payload": payload,
+                  "read_prompt": tool.prompt_for("read", "Frozen question", "Frozen authority", [], payload, 12000, contract),
+                  "compiled": compiled,
+                  "synthesis_input": tool.synthesis_input([{"unit": "read-001", "accepted_sha256": "fixture", **compiled}], registry, contract),
+                  "outputs": tool.derived_outputs(compiled, request, registry, corpus)}
+        expected = {"payload": "0ebac30e9f789fe0a6513181458c104780b4162ae445ac86c33f517daf984bfe",
+                    "read_prompt": "fd5dc3032b3cd1887625ad50528c882db9660c59c4bed0690bf508ec1b75e335",
+                    "compiled": "1b5e2aedcca3946756003b74c52d5972bac89e3488c92e899750917bdf4a2765",
+                    "synthesis_input": "fd12a45fdc7ffb440a7057cebedbf15cb92d589bb656b844351de363ea3f554e",
+                    "outputs": "0d21342838166367ab5d559e45d8a4ca5a80157a0aaaf14b378e49101f22eed1"}
+        self.assertEqual({key: tool.digest(tool.encoded(value)) for key, value in values.items()}, expected)
 
 
 if __name__ == "__main__":
