@@ -1606,7 +1606,7 @@ noise, provenance, independence, and graph behavior.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit/Quora as explicit search-hygiene considerations, but commission external scouting only for a named decision-material job with no equal-or-better included substitute. Record dominated, non-material, blocked, and zero-yield routes without treating them as completion. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
-| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Selectable at cycle intake for a material research job, using existing source constraints. Open the Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md`. Public or legitimately entitled access, bounded selection, conversation context, provenance, and noise controls must be established before capture. Bounded attended navigation/capture has trial evidence; repeatability, broad coverage and an automated adapter remain unestablished. No operational raid/event feed, standing monitoring, or scraping by default. Discord recurrence is not search-volume or ranking evidence. |
+| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Optional at intake; apply **Discord capture posture** below. The Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md` owns the bounded capture procedure and proof limits. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -1623,6 +1623,23 @@ then `docs/research/answer_engine/` as research/probe evidence only. Do not rout
 through legacy search-lane history, and do not treat AEO as product authority,
 gate-recordable, validation/readiness/proof, capture authorization, scraping,
 scaling, or implementation authorization.
+
+### Discord capture posture
+
+The 2026-10-05 owner direction makes Discord selectable when starting an
+Intelligence Cycle. Use `capture_posture: manual_only` for a named, bounded,
+noise-controlled slice with public or legitimately entitled access and an
+available attended or operator-supplied capture path. This describes current
+execution support; the Armory still classifies source access separately.
+Case-by-case use does not require proof that the route is generally repeatable.
+
+If access, context or a workable bounded capture path is unresolved, retain the
+specific gap and `noisy_deferred`; use `not_authorized` when access is not
+authorized. A server nomination alone cannot clear these conditions. Follow
+the Armory's per-slice fidelity checks before using the captured evidence.
+General repeatability, historical/thread coverage, efficiency and an automated
+adapter remain unproven. No operational feed, standing monitor or scraping
+default is introduced; community recurrence is not search-demand evidence.
 
 ### Search-Surface MGT Standing Route Card
 
@@ -1814,9 +1831,10 @@ feeds:
    as the preferred movement source, Reddit as a forums/community subfamily,
    AEO as visibility annotation. The 2026-10-03 owner direction adds Discord as
    an optional research candidate, initially for RaidRelay product research and
-   SEO topic discovery, as specified in the Source-Family Map above. Without an
-   established public or legitimately entitled, bounded, repeatable,
-   noise-controlled slice it remains noisy/deferred; capability is not proven.
+   SEO topic discovery. The 2026-10-05 owner direction extends its visibility
+   to cycle intake; **Discord capture posture** above owns the current
+   `manual_only` versus deferred/access-limited distinction. General reusable
+   capture capability remains unproven.
 4. Decide whether the temporary prompt's fragrance-specific playbooks are the
    first signal-board satellite or only an example deck for a broader beauty
    signal board.

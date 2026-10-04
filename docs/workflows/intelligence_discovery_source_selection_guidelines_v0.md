@@ -93,11 +93,9 @@ packet's provenance and limitations. Preserve the native actor, role, dates,
 version, location and engagement, with explicit unavailability where needed.
 Separate source statements from researcher interpretation.
 
-For Discord, use a bounded server/channel/date/topic search, then open useful
-hits with their question, replies and corrections. Preserve message permalinks
-and IDs when exposed; a search-result extract alone can hide quoted parents or
-the answer's conditions. Follow the Armory access route; a blocked login,
-hidden channel or incomplete history is an access/coverage gap, not zero demand.
+For Discord, follow the Armory's **Start a selected Discord search** and
+**Preservation and handoff** procedures. They own access, conversation context
+and excerpt packaging; a blocked or incomplete slice is a coverage gap.
 
 For screenshots or maps, retain the original and its source reference. A useful
 crop can remove browser chrome and empty space, but must retain the evidence's
@@ -107,7 +105,10 @@ Map proximity alone does not prove a walkable shortcut, pickup access or order.
 
 For a performance claim, capture the relevant start and finish, visible timer
 and its meaning, completion outcome, character/loadout, region/build and run
-rules. Check relevant cuts, pauses or omitted stages. A displayed timer is
+rules. Keep author-stated rules and claims such as "uncut" or "repeatable"
+separate from what the footage actually verifies. Distinguish video playback
+positions from the run timer and retain any observed offset. Check relevant
+cuts, pauses or omitted stages. A displayed timer is
 valuable direct evidence; it is not automatically elapsed wall time. Sampled
 frames can confirm a local action without establishing the whole run's duration
 or continuity. Collect more only when the proposed claim needs it.
@@ -136,7 +137,8 @@ Check independence for the particular claim. A guide, its author's video and
 a Discord repost can have one origin while supplying different useful
 observations. Preserve those observations; do not invent three independent
 endorsements. Different venues alone do not satisfy the contract's cross-venue
-posture, which requires independent origins in competent source roles.
+posture: the contract requires at least two different competent source roles,
+with at least one independent credited origin in each.
 Unknown account overlap remains unknown. Relevant affiliations and commercial
 interests are context, not automatic disqualification.
 
@@ -198,26 +200,20 @@ review is introduced by this guide.
 
 The [trial record](discord_raidrelay_leveling_trial_20261003.md), fourth and
 fifth passes, records route scouting, initial exclusion for build uncertainty,
-then selection of Krix's Asmodian guide for the narrower MSQ companion. It does
-not preserve the exact first query/referrer, and does not establish that Discord
-discovered or endorsed Krix. Discord contributed questions and advice to check.
+then selection of Krix's Asmodian guide for the narrower MSQ companion.
+The Global build remained unstated at selection; the changed question allowed
+bounded use of creator advice, rather than resolving build compatibility.
+The record does not preserve the exact first query/referrer or establish that
+Discord discovered or endorsed Krix. Discord contributed questions and advice
+to check. No comprehensive comparison or recorded head-to-head reason for
+preferring Krix to FRESHY is asserted here.
 
 The [Krix guide](https://www.daewa.eu/guides/leveling/general/aion-2-level-145-ultimate-speedrun-guide-for-asmodians)
 supplied the route structure. Database pages supported specific quest facts,
 not a general upgrade in route quality. The original guide capture explicitly
-excluded its embedded video; later local work sampled footage separately.
-
-The later [recording](https://www.youtube.com/watch?v=IEUfONykrMI) was described
-by its author as a Global-launch simulation and credited Excalul for pathing.
-The retained local observations at player times 1:38:34 and 1:39:34 show story
-objectives in the interior/altar area. They support why those local movements
-were present, not every bend or the proposed shortcut. The timer makes the
-recording useful for performance verification; those two sampled frames do not
-verify a complete timed run. Local evidence is in the RaidRelay worktree
-`private/route-companion/uruthumheim/sources/video-observations.json` and
-`krix-video-description.json` under
-`C:/Users/vmon7/.codex/worktrees/uruthumheim-msq-pass/raid-relay/`.
-If unavailable, reopen the primary video before relying on those observations.
+excluded its embedded video. This method guide makes no historical footage
+verification claim; the performance-evidence procedure above applies when a
+run is captured and evaluated for that purpose.
 
 Independent actual-use praise across venues would be useful additional evidence
 when captured and attributed. It is not a finding established by this method

@@ -1554,10 +1554,10 @@ Do not assume an automated adapter or whole-server coverage. Record an access
 gap if the selected slice cannot be reached and continue unrelated authorized
 research. Do not silently turn the gap into zero useful evidence.
 
-For discovery, evidence comparison and primary-reference selection, load
+When commissioning discovery or primary-reference selection, point that
+downstream worker to
 `docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
-It applies the existing claim-support and Scanning contracts without adding a
-source quota or a universal author score.
+CSB intake need not load the full guide merely to choose a source family.
 
 ## Operating Sequence
 

@@ -26,6 +26,10 @@ stale_if:
 
 `OWNER_ADOPTED_V0` on 2026-08-07.
 
+2026-10-05 owner-requested clarification: distinguish creator-recorded timed
+performance, database fact checks and audience feedback when judging guides.
+These apply the existing claim-specific and directly-observed support rules.
+
 This contract governs the support carried by an underlying intelligence claim.
 It is not the Judgment Spine evidence ladder, which separately governs what a
 completed Forseti run or proof artifact may claim about product learning, buyer
@@ -199,9 +203,7 @@ optimality.
 Likewise, a matching database record may verify a guide's prerequisite or reward
 without establishing its route efficiency or usability. Generic praise supports
 approval; a specific firsthand report supports the reported use and result.
-Neither transfers blanket confidence to every recommendation. For the applied
-discovery-to-selection procedure, see
-`docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
+Neither transfers blanket confidence to every recommendation.
 
 ## Counterevidence and conflict
 

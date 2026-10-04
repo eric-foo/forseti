@@ -164,8 +164,9 @@ For the applied discovery-to-selection procedure, use
 Select sources for the proposition they can inform: a mechanics record, timed
 demonstration and actual-use report answer different questions. The linked
 claim-support contract owns their evidentiary force; Scanning only nominates.
-Preserve the actual query or referral when a source is discovered in the
-existing route record, including an unknown first-discovery route when absent.
+For meaningful discovery moves, preserve the actual query or referral in the
+existing route record; keep the first-discovery route unknown when absent.
+This is decision-relevant provenance, not an entry for every clicked result.
 
 Choose the next frontier by its expected contribution to the outcome the scan
 was commissioned to inform, not by crawl coverage. For an Intelligence Cycle,
