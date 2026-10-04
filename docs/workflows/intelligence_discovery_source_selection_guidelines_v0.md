@@ -56,7 +56,7 @@ of platforms or sources.
 | Information needed | Useful place to look |
 | --- | --- |
 | Current rules, changes and unlock conditions | Publisher material and version-matched records; inspect a fan database's provenance rather than calling it official. |
-| A practical sequence or demonstrated result | Detailed creator guides, maps, recordings, tests and run logs. |
+| A practical sequence or demonstrated result | Detailed guides, maps, recordings, tests and run logs, including substantive forum guides and Discord guide indexes/pins. |
 | Confusing steps, workarounds and actual use | Relevant forums, comments, reviews and optionally Discord conversations. |
 | Whether an article opportunity has search demand | SERP and search-interest evidence; community questions supply language and candidate topics. |
 
@@ -148,21 +148,87 @@ one verified quest to the rest of a guide.
 
 ## 6. Select a reference and bound the recommendation
 
-Choose the reference best fitted to the intended artifact and support each
-load-bearing recommendation separately. A useful route reference may combine
-clear sequencing, relevant scope, demonstrated execution and adequate evidence
-for the particular stops being recommended. It need not be proven globally
-optimal to support an attributed, source-recommended companion.
+### Check the candidate set before weighing it
+
+For a venue explicitly requested by the owner or selected for likely material
+value, distinguish substantive guides, mechanics evidence and player reports.
+Inspect plausible guide candidates as well as questions and reactions when
+choosing a guide. Reading community difficulties does not establish that
+community-authored guides were compared. Follow a linked guide to its original;
+a Discord nomination and its linked video remain connected observations.
+
+State the actual coverage in the existing decision record: guides inspected,
+only reports inspected, or guide access/discovery incomplete, with the material
+limit. No guide found in a bounded search does not mean none exists. There is
+no platform quota, obligation to select from every venue, or exhaustive-history
+requirement; use Scanning's continuation rules for remaining material leads.
+
+### Weigh evidence for the decision it can carry
+
+Apply section 5 and the claim-support contract first. A source below the
+provenance floor remains a lead. Unknown currentness or a scope mismatch limits
+the affected recommendation; it need not disqualify the source's other useful
+observations. Then compare candidates in this order, using only criteria that
+could change the choice:
+
+| Priority | What to weigh | How it affects selection |
+| --- | --- | --- |
+| 1. Owner outcome and conditions | Intended result, audience, version/region, starting state and ordered resource constraints. | Prefer advice fitted to the commissioned task. A faster or higher-result route is not better if it violates a load-bearing constraint. Newer publication alone does not establish version compatibility. |
+| 2. Support for consequential instructions | Competent direct records, inspected execution, explicit reasons, current corrections and material contradictions. | Support each load-bearing step separately. Clarity, fame or many endorsements cannot repair a contradicted mechanic or an unverified instruction whose error would change the decision. Hold that step, narrow it or make it conditional. |
+| 3. Result evidence and applicability | Observed results, comparable independent use, starting inventory, spending, skill, subscription/boosts, luck and omitted stages. | For result claims, prefer inspectable execution and comparable independent outcomes over unsupported promises. A creator's own run counts for what it demonstrates. An unexplained self-report remains a self-report; missing conditions cannot become typical-player reproducibility. |
+| 4. Usefulness as a reference | Clear order, costs, prerequisites, shortfall branches and ability to follow or adapt the advice. | Among adequately supported candidates, prefer the reference that helps the intended reader act. Specific actual-use feedback strengthens usability; presentation polish and generic praise do not establish correctness. |
+
+These priorities are not an additive score or a fixed source-prestige ladder.
+Do not assign arbitrary percentages or turn unknowns into zeroes. The strongest
+evidence depends on the proposition: a current rule record can decide a cost;
+a detailed written guide can explain a sequence; a novice can expose a confusing
+step. Relevant expertise informs interpretation, not automatic truth. Likes,
+views, badges and platform reputation cannot outweigh a material defect.
+
+Check credible opposition against its scope and consequence, not just its
+count. One directly fitted correction can defeat an instruction despite many
+positive reactions. One person struggling does not defeat a route for everyone.
+Preserve independent successful and unsuccessful outcomes; identify conditions
+that explain the difference only when the evidence supports them. Otherwise
+keep the split visible. An unverified loss warning can justify withholding a
+risky instruction pending a check without proving the warning true.
+
+### Select roles and explain the decisive tradeoff
+
+Choose a primary reference for the relevant phase or purpose, supporting
+references for distinct contributions, and alternatives or held instructions
+where evidence splits. A single whole-guide winner is unnecessary. Explain
+why the closest viable alternative loses for this task, or keep both conditional
+when the evidence cannot separate them. Do not manufacture a winner from
+incomparable results. Unknown authors, reposts and AI-assisted material remain
+eligible for bounded useful content; trace origin and inspect support rather
+than rejecting or promoting them by label.
 
 Explain the choice in the existing decision record: selected source and purpose,
 decisive evidence, alternatives actually considered and why not selected,
-unresolved limits, and the evidence that would change the choice. Do not imply
-a comprehensive creator comparison when none was performed. A primary reference
-is a working basis for this scope; its other maps and claims still require the
-checks their intended use demands.
+unresolved limits, coverage of the requested venues, and the evidence that would
+change the choice. Attach evidence references to the reasons that decide the
+comparison. Unknown is different from worse; rejected is different from held.
+A primary reference is a working basis for this scope, not proof of every claim
+in the source or a comprehensive creator comparison.
+
+This adds a short comparison and coverage statement to the existing selection
+record, not a new scoring sheet, registry or compulsory review. It catches an
+omitted candidate role, an unexplained preference and a polished or popular
+guide winning despite a material unsupported instruction.
+
+For the gearing application, bind the owner's no-energy-first order before
+comparing routes. A guide that spends energy early may supply a later fallback
+without becoming phase one's primary. Compare reward timing, omitted no-energy
+sources and resource conditions; do not award a guaranteed 1400 result from a
+headline. A community Rune correction or conflicting first-upgrade warning
+requires revising or holding that instruction even if the broad route stays
+selected. These are selection rules, not newly verified game mechanics.
 
 Stop or redirect collection under Scanning's materiality rules: when a further
-read cannot materially change the answer, it need not be captured. A material
+read cannot add material value to the commissioned answer, it need not be
+captured. Do not stop merely because a plausible primary was found; another
+practical lead may materially strengthen, qualify or contradict it. A material
 unanswered issue stays a named gap. Record the chosen limit rather than calling
 an access-limited or budget-limited search exhaustive.
 
