@@ -596,11 +596,12 @@ successful article access. No new Discord login or capture was required.
 ### Consolidation and reviewed delivery
 
 **Current delivery:** the [mobile Page](https://chatgpt.com/space/page_ea1e650770e481918ef002796bd0c27a) and [illustrated MSQ companion](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.html), with [editable text](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/companion.md) and [delivery provenance](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/delivery-receipt.json). <!-- # nonresolving: retained local research outputs, not shipped in Git -->
-External source review and home corrections are complete. This remains a
-source-derived, unplaytested draft. It has eight checklist rows, four travel
-rows, four nearby feather maps and eight source-authored route maps. Ordinary
-story rewards are collapsed to following the MSQ. Source maps expand on demand;
-their bytes and attributions are preserved.
+The current reader edition has five stages through level 45, with twelve
+source maps grouped beside the relevant stops. The earlier edition received
+external source review and home corrections; the presentation and level-45
+completion below were checked at home. This remains a source-derived,
+unplaytested draft. Ordinary story rewards are collapsed to following the MSQ.
+Source maps expand on demand; their bytes and attributions are preserved.
 
 The current maintained helper was loaded from merged main `f74a1400` after
 confirming prior PR1653 had merged. It froze **98 records**: the original 86
@@ -676,18 +677,64 @@ after adjudication. No additional provider read/synthesis or full review was
 commissioned. This demonstrates bounded correction of this case, not measured
 cost savings, exhaustive accuracy or unattended reliability.
 
-Current saved-consumer verification passed **131 checks with no failures**:
+Before the presentation update below, saved-consumer verification passed
+**131 checks with no failures**:
 ten source URLs resolve to the full frozen corpus, twelve embedded image
 hashes and twelve cloud image references match, all local links resolve, and
 the eight checklist/four travel rows and eight stage captions are present.
-The revised reader body is **527 words**, excluding header and maps, below
+That reader body was **527 words**, excluding header and maps, below
 the 650-word cap. The original 64-check result remains in the submission
-archive. The mobile Page preserves
+archive. That mobile edition preserved
 all twelve native image references and the revised action/benefit text in one
 column. Home checked a 390-pixel phone viewport without horizontal overflow;
-the nearby map and an expanded creator map loaded. The [mobile receipt](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/mobile-copy-receipt.json) retains the transfer and preview evidence. <!-- # nonresolving: retained local mobile delivery receipt, not shipped in Git -->
+the nearby map and an expanded creator map loaded. The [archived mobile receipt](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/before-presentation/mobile-copy-receipt.json) retains that transfer and preview evidence. <!-- # nonresolving: retained local mobile delivery receipt, not shipped in Git -->
 
 Remaining limits are gameplay and coverage: no current Asmodian pickup-to-
 Monolith transaction recording, no ending-route pickup count, no validated
 optimality, provisional creator timing and Fire Temple choice, and incomplete
 named ring-quest coverage. None is silently promoted by the source review.
+
+### Five-stage presentation and level-45 completion
+
+The owner accepted adding the missing 33–45 finish and an attributed combined-map
+direction, then requested maximum presentation value. The same private Page and
+local companion now use five sections: **1–16, 17–21, 22–32, 33–45 and at 45**.
+Actions and benefits stay visible; six map galleries sit beside their stages,
+and numerical/source background is expandable. Reward-cube disagreement and
+the rune enhancement warning remain beside the affected decisions. The local
+HTML also has stage jump links. No additional site or progress-tracking system
+is needed for this reading task.
+
+Frozen Krix evidence R0087 supplies the written 33–45 MSQ, second-rune and
+travel checkpoints; its captured route images stop at 32. R0017 supplies the
+approximate Fire Temple timing with the existing mixed-faction limitation.
+R0018 supplies the Asmodian **Farewells** weapon and continuation through
+Draupnir and the Abyss hand-in. Reaching 45 alone is not presented as completing
+the story. These additions received home source checks, not a new independent
+review or gameplay test. The native 98-record corpus and synthesis are unchanged.
+
+The map direction is **RaidRelay compilation with creator/map-data credits**.
+All twelve original images remain; route and feather views are paired where
+available. No merged overlay was produced. The current Safe Haven and Silent
+Hill crops omit much of the wider creator routes; Briskwind lacks a matched
+creator route, and Uruthumheim supports only a short approximate landmark
+match. A useful full overlay still needs matching map coverage and verified
+alignment. Public republication also needs an adequate reuse basis; source
+credit does not transfer ownership. Proximity never proves pickup access.
+
+The current [presentation record](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/presentation-update.json) owns the bounded additions, layout decision and overlay limits. <!-- # nonresolving: retained local research record, not shipped in Git -->
+The prior reader edition is preserved in `before-presentation/`; the earlier
+`submitted-review/` archive and review adjudication also remain unchanged.
+
+Saved-consumer [presentation verification](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/presentation-verification.json) passed **531 checks with no failures**, including all 118 frozen source-file pins. <!-- # nonresolving: retained local verification output, not shipped in Git -->
+The Page's 98 blocks match the intended text/order, retaining all 81 original
+block IDs and twelve image references. MD/HTML content and image bytes match;
+eleven cited source URLs bind to the frozen corpus. Current main prose is
+543 words, plus 184 words of expandable source notes; this count includes
+stage headings and excludes map headings/credits, navigation and the local
+audit appendix. It is not directly comparable to the prior count's scope.
+The [updated mobile receipt](C:/Users/vmon7/Desktop/projects/forseti/forseti-harness/_test_runs/raidrelay_asmodian_20261004/msq-advice/mobile-copy-receipt.json) records fresh Page readback and 390-pixel browser previews. <!-- # nonresolving: retained local mobile delivery receipt, not shipped in Git -->
+Both copies had no horizontal overflow; all twelve source images loaded, and
+the Silent Hill paired gallery and level-45 handoff were inspected. This
+verifies delivery and preservation, not gameplay truth or a measured increase
+in usability.

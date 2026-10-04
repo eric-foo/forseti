@@ -104,7 +104,12 @@ quest pages, and records a fresh 98-record consolidation with all three reads
 requiring logged quote corrections. Its illustrated draft supersedes the
 fourth-pass brief. External source review and home adjudication are complete:
 the local and mobile copies now expose source disagreements, omitted optional
-stops, return trips and map stages. The 140-pickup/560-point arithmetic stays
+stops, return trips and map stages. A subsequent home-checked presentation
+update organizes the same private/mobile guide into five stages through 45,
+adds the story handoff, and pairs attributed route/feather maps beside stops;
+a geometrically aligned combined overlay remains unimplemented. The earlier
+external review does not certify these new additions. The 140-pickup/560-point
+arithmetic stays
 conditional on four points per pickup; Monolith level is the stopping rule.
 The trial record owns current delivery, review and evidence links. Ending
 pickup yield and route optimality remain
