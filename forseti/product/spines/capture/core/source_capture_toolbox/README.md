@@ -72,7 +72,34 @@ catalog. The Source Capture Playbook still owns access, probe, and packet rules.
 | --- | --- | --- |
 | Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-selected first target: Aion2Global, 2026-10-03. First attended text-capture trial recorded in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`; repeatability, wider coverage and gameplay accuracy remain unproven. |
 
-### Discord — RaidRelay research and SEO discovery
+### Discord — community research and SEO discovery
+
+**Choose this at cycle start.** Discord is available as an optional attended
+research route for a material community information job. It is not restricted
+to RaidRelay; RaidRelay supplies the bounded trial evidence below. Record the
+source preference/access limits in CSB's existing `known_source_constraints`.
+The cycle playbook's **Choosing research sources at cycle start** owns intake.
+
+**Start a selected Discord search.**
+
+1. Bind the question and time/version scope. If the server is unknown, nominate
+   venues through public discovery first; do not assume access from an invite.
+2. Under **Access and route choice** below, identify the entitled server and
+   channel/thread slice. Use an attended session or an operator-supplied excerpt;
+   an access failure remains a gap and does not block unrelated research.
+3. Map relevant channels/pins once, search with topic/date/channel filters, and
+   open useful results with their question, replies and corrections. Preserve
+   useful counterexamples, not just agreeing answers.
+4. Preserve selected conversation windows and attachments using **Preservation
+   and handoff** below. For already-local excerpts, the existing packet entry is
+   `forseti-harness/docs/source_capture_agent_runbook.md` -> **Commands** ->
+   **Local file packet**. This packages supplied evidence; it does not fetch
+   Discord or prove the excerpt is complete. Read back the packet and compare
+   the load-bearing messages to the source before using them.
+5. Return the evidence references, query/scope, source roles and missing context
+   in the existing capture/run records. Use
+   `docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`
+   for downstream evaluation; Capture does not certify the posters or advice.
 
 **Bound outcome.** Find and preserve relevant conversations efficiently enough
 to examine product needs, complaints, workarounds, alternatives, repeated
@@ -256,7 +283,7 @@ elapsed time, requests/actions, unique usable conversation windows, duplicate
 work, and missing context in the existing run receipt. Judge efficiency against
 that research question and a manual path over the same slice, without equating
 speed or volume with coverage. Explicitly test permission/empty-content and
-partial-history handling before calling the route usable. Until then,
+partial-history handling before calling an automated route reusable. Until then,
 navigation durability, extraction fidelity, historical/thread coverage, and
 efficiency remain unproven. Do not add Discord to the landed-lane catalog yet.
 

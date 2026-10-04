@@ -1532,6 +1532,33 @@ readiness gate unless separately adopted. This handoff defines only the seam
 and required inputs; it does not create the numerical rubric, authorize the
 reviewer to patch, or change the report layout.
 
+## Choosing research sources at cycle start
+
+Use the prompt's **Source-Family Map** when choosing where the cycle should
+look. Carry owner-selected or excluded venues and access limits in the existing
+`known_source_constraints`; do not add a mandatory source-choice interview.
+When preferences are absent, nominate sources for a named information job.
+
+**Discord is an optional community research choice**, alongside relevant forums,
+reviews, search and creator material. Use it for product questions, workarounds,
+conflicting advice, actual-use reports and candidate SEO topics when those
+conversations could materially help the bound question. It is not required in
+every cycle. A named server is not necessary to nominate Discord: Scanning may
+discover a relevant venue first; Capture needs a bounded accessible slice before
+collection. Existing access restrictions still apply.
+
+For Discord, route to **Optional Capture Candidates** in
+`forseti/product/spines/capture/core/source_capture_toolbox/README.md` for the
+attended search/excerpt path, source preservation and current capability limits.
+Do not assume an automated adapter or whole-server coverage. Record an access
+gap if the selected slice cannot be reached and continue unrelated authorized
+research. Do not silently turn the gap into zero useful evidence.
+
+For discovery, evidence comparison and primary-reference selection, load
+`docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
+It applies the existing claim-support and Scanning contracts without adding a
+source quota or a universal author score.
+
 ## Operating Sequence
 
 Use this sequence to create the CSB inside Acquire & Seal. The broader cycle
@@ -1547,7 +1574,8 @@ gate above controls whether the Synthesize turn may begin.
    declares both a period and rationale.
 4. Check profile-specific required inputs. Return the prompt's intake scaffold
    if any are missing; intake-only output is not a validator target.
-5. Include an item only when its named job can materially change the action,
+5. Apply **Choosing research sources at cycle start** above. Include an item
+   only when its named job can materially change the action,
    action ceiling, rival assessment, or hold condition and no equal-or-better
    included item performs that job. Use exclusion or `not_applicable` records
    for dominated routes.

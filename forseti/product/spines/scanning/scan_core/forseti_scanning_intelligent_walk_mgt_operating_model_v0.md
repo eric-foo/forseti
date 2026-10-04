@@ -159,6 +159,14 @@ Scanning owns, inside an authorized run:
 A frontier is a next-read candidate: a URL, venue, search phrase, hub, thread,
 byline trail, source-family surface, or cross-reference the walk may inspect.
 
+For the applied discovery-to-selection procedure, use
+`docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
+Select sources for the proposition they can inform: a mechanics record, timed
+demonstration and actual-use report answer different questions. The linked
+claim-support contract owns their evidentiary force; Scanning only nominates.
+Preserve the actual query or referral when a source is discovered in the
+existing route record, including an unknown first-discovery route when absent.
+
 Choose the next frontier by its expected contribution to the outcome the scan
 was commissioned to inform, not by crawl coverage. For an Intelligence Cycle,
 that outcome is the bound phase question; for a gate-run scan, it is the action,

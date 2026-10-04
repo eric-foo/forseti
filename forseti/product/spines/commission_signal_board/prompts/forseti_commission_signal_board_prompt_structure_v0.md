@@ -219,6 +219,16 @@ intelligence_cycle:
   phase_scope:
 ```
 
+Use `known_source_constraints` for requested or excluded venues and known
+access limits. Discord may be selected here for bounded community/product
+research or SEO topic discovery; if no venue is named, nominate a relevant
+server through Scanning before Capture binds the accessible slice. It is an
+optional route, not an additional required input or a mandatory intake question.
+Apply the playbook's **Choosing research sources at cycle start** section at
+`forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`,
+then use the Source-Family Map below. Its Armory pointer supplies the attended
+Discord route and limitations; selection does not assert automated support.
+
 If `candidate_or_subject`, `decision_context`, or `mode` is missing, do not
 produce the board sections. Return the **Missing-Input Intake Output** below
 with `next_authorized_step: NEEDS_COMMISSION_INTAKE`. If `mode: backtest` is

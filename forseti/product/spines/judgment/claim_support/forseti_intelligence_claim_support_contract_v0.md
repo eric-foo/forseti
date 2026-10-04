@@ -187,6 +187,22 @@ Rules:
   establish actor strategy, not customer experience; creator-authored promotion
   is not independent customer corroboration.
 
+Authorship and direct observation are separate dimensions. A creator's own
+inspectable recording, test or timed run can directly demonstrate actions,
+timing and results under its observed conditions. It is not reduced to mere
+promotion because the creator supplied it. Preserve the measurement boundaries,
+version, starting conditions and outcome; sampled footage supports only the
+sampled observations. Comparison requires comparable conditions and outcomes.
+One demonstrated run does not by itself establish general repeatability or
+optimality.
+
+Likewise, a matching database record may verify a guide's prerequisite or reward
+without establishing its route efficiency or usability. Generic praise supports
+approval; a specific firsthand report supports the reported use and result.
+Neither transfers blanket confidence to every recommendation. For the applied
+discovery-to-selection procedure, see
+`docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
+
 ## Counterevidence and conflict
 
 Every synthesized claim carries one `conflict_posture`:
