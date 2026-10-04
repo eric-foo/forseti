@@ -72,7 +72,35 @@ catalog. The Source Capture Playbook still owns access, probe, and packet rules.
 | --- | --- | --- |
 | Discord | Optional community capture, initially for RaidRelay product research and SEO topic discovery | Owner-selected first target: Aion2Global, 2026-10-03. First attended text-capture trial recorded in `docs/workflows/discord_raidrelay_leveling_trial_20261003.md`; repeatability, wider coverage and gameplay accuracy remain unproven. |
 
-### Discord — RaidRelay research and SEO discovery
+### Discord — community research and SEO discovery
+
+**Choose this at cycle start.** Discord is available as an optional attended
+research route for a material community information job. It is not restricted
+to RaidRelay; RaidRelay supplies the bounded trial evidence below. Record the
+source preference/access limits in CSB's existing `known_source_constraints`.
+The cycle playbook's **Choosing research sources at cycle start** owns intake.
+
+**Start a selected Discord search.**
+
+1. Bind the question and time/version scope. If the server is unknown, nominate
+   venues through public discovery first; do not assume access from an invite.
+2. Under **Access and route choice** below, identify the entitled server and
+   channel/thread slice. Record whether a human or agent drives the attended
+   session and the permitted access route, or use an operator-supplied excerpt;
+   an access failure remains a gap and does not block unrelated research.
+3. Map relevant channels/pins once, search with topic/date/channel filters, and
+   open useful results with their question, replies and corrections. Preserve
+   useful counterexamples, not just agreeing answers.
+4. Preserve selected conversation windows and attachments using **Preservation
+   and handoff** below. For already-local excerpts, the existing packet entry is
+   `forseti-harness/docs/source_capture_agent_runbook.md` -> **Commands** ->
+   **Local file packet**. This packages supplied evidence; it does not fetch
+   Discord or prove the excerpt is complete. Read back the packet and compare
+   the load-bearing messages to the source before using them.
+5. Return the evidence references, query/scope, source roles and missing context
+   in the existing capture/run records. Use
+   `docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`
+   for downstream evaluation; Capture does not certify the posters or advice.
 
 **Bound outcome.** Find and preserve relevant conversations efficiently enough
 to examine product needs, complaints, workarounds, alternatives, repeated
@@ -121,14 +149,9 @@ are possible claim-specific cross-checks, not automatic additional targets.
 **First research question and improvement loop (owner, 2026-10-03).** For a
 fresh Global character, investigate a general leveling route that also earns
 worthwhile stats, unlocks and collections with the least total wasted effort,
-including later catch-up. Keep class-specific exceptions visible. Reuse the
-existing run record for query/filter/channel/date scope, meaningful actions and
-failures, elapsed time with its measurement limits, retained source references,
-and why advice was kept, rejected, corrected or left unresolved. Keep source
-text separate from these researcher decisions. Compare a method change on
-comparable inputs and fresh cases; check correctness and missing important
-steps before speed or volume. No dashboard or standing author-score registry
-is needed for this trial.
+including later catch-up. Keep class-specific exceptions visible. For the
+activity-record and comparison procedure, use **Improve the method from the run
+record** in `docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`.
 
 **Information to extract.** Preserve source messages and their response context
 for these research questions; downstream interpretation remains Judgment-owned.
@@ -140,47 +163,26 @@ for these research questions; downstream interpretation remains Judgment-owned.
 | What would make them accept or reject help? | Expressed price/value concerns, trust, account access, proof of completion, timing, refunds, and reported service experiences when present. | Candidate service objections and requirements; a complaint or stated willingness to pay does not prove a purchase or market-wide demand. |
 | Which questions need better answers? | Exact question wording, competing answers, unanswered follow-ups, corrections, and conditions that change the answer. | Source-linked SEO topic candidates; preserve distinct origins and repeated observations, then check search demand and current answer quality separately. |
 
-**Poster credibility is claim-specific.** Do not exclude unknown or novice
-posters by default, or assign a universal author score. A poster may
-be a good source for their own difficulty and a poor source for its technical
-cause. Being unknown means expertise is unestablished, not that the person has
-no knowledge. Apply the existing claim-support contract linked below:
-
-- **Fit to the statement:** distinguish a firsthand experience report, a
-  technical explanation, an official announcement, an opinion, hearsay, and
-  promotion. Experience in one class, region, patch, or activity does not
-  automatically transfer to another. A tool author is well placed to explain
-  their own tool, not automatically every game mechanic or customer motive.
-- **Demonstrated basis:** retain linked tests, logs, calculations, dated
-  gameplay examples, source citations, and relevant guide/tool authorship.
-  Preserve how the account is visibly linked to that work; a claimed rank or
-  credential remains self-reported unless supported. An impressive screenshot
-  alone does not establish the explanation or that it applies to this case.
-- **Challenge and correction:** preserve substantive replies, counterexamples,
-  corrections, and the poster's response. For a claim that will materially
-  affect a recommendation or published answer, inspect a bounded amount of
-  relevant same-topic history and check the linked evidence or an independent
-  competent source. Do not collect everyone's posting history as a precondition.
-- **Reputation and interests:** retain relevant visible roles or affiliations
-  and disclosed seller/affiliate/tool-owner interests. Moderator status,
-  popularity, confident language, message count, and reactions do not establish
-  technical expertise. An interest is context, not automatic disqualification;
-  copied agreement and unknown account overlap do not establish independence.
-
-Capture preserves these observable cues alongside the message and marks missing
-basis as unavailable; it does not certify experts or infer real-world identity.
-Judgment records the scope of competence, evidence basis, conflicts, uncertainty,
-and allowed use in the existing evidence explanation. Unsupported technical
-advice stays a lead to verify. A specific firsthand difficulty remains usable
-as that person's reported difficulty, without becoming a general finding.
-This adds no standing poster registry, person-level dossier, or credibility
-schema; reuse the existing provenance and claim-support surfaces.
+**Poster evidence to preserve.** Alongside decision-bearing messages, retain
+linked tests, logs, gameplay examples and citations; visible account-to-work
+links; relevant class/region/build context; roles, affiliations and disclosed
+interests; substantive challenges, corrections and responses. Claimed credentials
+remain self-reported unless supported. Mark absent basis as unavailable.
+Capture records these cues, not expert certification or inferred identity.
+For claim-specific evaluation, use **Discover candidates** and **Evaluate what
+each item actually supports** in
+`docs/workflows/intelligence_discovery_source_selection_guidelines_v0.md`;
+the claim-support contract remains the authority for their evidentiary force.
 
 **Access and route choice.** Name the target server, channel/thread set, research
 question, time window, and access basis before a live probe. Apply Step 0 of
 `source_capture_playbook_v0.md` and the source-access boundary decision linked
 below: a public invite does not establish access to every channel, and an
-entitled account does not establish bot access. Use the cheapest fitting route:
+entitled account does not establish bot access. Here, attended means a bounded,
+operator-initiated run, not necessarily human-operated navigation. Agent-driven
+navigation must independently fit Step 0 and the existing source-access posture;
+the word attended supplies no additional permission. If that route is unavailable,
+use entitled operator-supplied excerpts. Use the cheapest fitting route:
 
 - For an accessible community without a cooperating bot installation, start
   with native search in the entitled browser session or an entitled
@@ -235,6 +237,21 @@ in the existing packet/receipt rather than inventing a parallel schema. Dedup
 overlapping windows by message identity while retaining observed edits and
 provenance. A repeated post or forwarded copy does not become another origin.
 
+For the attended-to-local path, copy the selected visible messages into a UTF-8
+source excerpt without paraphrasing, ordered with the question, answer and
+corrections. Pair each message with its visible author/time and copied message
+link; derive IDs only when exposed by that link or the UI. Mark missing fields
+unavailable. Keep quoted-parent text and its author separate from the replying
+message. Save relevant attachments and a context screenshot when available;
+retain the original if a cropped copy is made. Record selection scope, capture
+time and limitations alongside the excerpt, separate from analyst conclusions.
+Then use **Local file packet** with the excerpt and any accompanying local
+files; supply the original capture time explicitly so packet-generation time
+does not stand in for observation time. Read back and compare the load-bearing
+text and reply attribution before synthesis. The packet runner does not fetch
+Discord; availability of `authenticated_browser_snapshot` is not itself a
+Discord route authorization or proof of capture fidelity.
+
 Keep captured text separate from downstream topic grouping and proposed article
 angles. The
 `forseti/product/spines/judgment/claim_support/forseti_intelligence_claim_support_contract_v0.md`
@@ -249,14 +266,19 @@ republication of member messages; preserve source visibility in that handoff.
 search-to-message navigation and context recovery on one selected conversation;
 it also exposed quoted-parent identity and screenshot-framing defects. The
 linked trial record owns the bounded evidence and retention state. No installed
-bot, reusable export route or automated Discord adapter is established. Before
-calling the route reusable, extend the source checks beyond that sample and verify exact
-packet readback; compare extracted messages with the visible originals. Record
+bot, reusable export route or automated Discord adapter is established.
+Case-by-case attended use checks access and visible content on the selected
+slice, compares packet readback with the originals, and records unavailable
+history or threads rather than claiming completeness. A failure leaves that
+slice blocked or incomplete; unrelated research may continue. This supports
+bounded use under CSB's `manual_only` posture, not general route reliability.
+Before calling either an attended or automated route reusable, extend the source
+checks beyond the original sample and test permission/empty-content and
+partial-history/archived-thread handling. Record
 elapsed time, requests/actions, unique usable conversation windows, duplicate
 work, and missing context in the existing run receipt. Judge efficiency against
 that research question and a manual path over the same slice, without equating
-speed or volume with coverage. Explicitly test permission/empty-content and
-partial-history handling before calling the route usable. Until then,
+speed or volume with coverage. Until then,
 navigation durability, extraction fidelity, historical/thread coverage, and
 efficiency remain unproven. Do not add Discord to the landed-lane catalog yet.
 

@@ -219,6 +219,16 @@ intelligence_cycle:
   phase_scope:
 ```
 
+Use `known_source_constraints` for requested or excluded venues and known
+access limits. Discord may be selected here for bounded community/product
+research or SEO topic discovery; if no venue is named, nominate a relevant
+server through Scanning before Capture binds the accessible slice. It is an
+optional route, not an additional required input or a mandatory intake question.
+Apply the playbook's **Choosing research sources at cycle start** section at
+`forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`,
+then use the Source-Family Map below. Its Armory pointer supplies the attended
+Discord route and limitations; selection does not assert automated support.
+
 If `candidate_or_subject`, `decision_context`, or `mode` is missing, do not
 produce the board sections. Return the **Missing-Input Intake Output** below
 with `next_authorized_step: NEEDS_COMMISSION_INTAKE`. If `mode: backtest` is
@@ -448,7 +458,7 @@ requires them.
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit and Quora as explicit search-hygiene considerations. Commission external scouting only when the venue performs a named decision-material job and is not dominated by an equal-or-better included route; otherwise record the exclusion or `not_applicable` rationale. Zero yield is a route result, not completion. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
-| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Consider only for a material research job. Open the Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md`; preserve its access, context, provenance, and unproven-capability limits. This is an optional research candidate, not an operational raid/event feed or standing monitor. Topic leads do not establish search volume or ranking opportunity. Execution stays with Scanning/Capture. |
+| Forums / community — optional Discord | Named Discord server/channel/thread slices; initially RaidRelay product research and SEO topic discovery | needs, complaints, workarounds, alternatives, repeated questions, and customer vocabulary; source-linked candidate content topics | Optional at intake; apply **Discord capture posture** in `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md`. The Armory's **Optional Capture Candidates** section at `forseti/product/spines/capture/core/source_capture_toolbox/README.md` owns the bounded capture procedure and proof limits. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars. Preserve recency, source conventions, row-level incentive labels, corpus size, captured count, selection route, and truncation. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -1602,11 +1612,11 @@ venue, or a non-selection row recorded as `not_applicable` / `not_applicable`.
 - For backtests, treat post-cutoff source surfaces as `excluded_future_info`
   rather than normal retrieval routes.
 - Treat Discord as an optional research candidate under the Source-Family Map,
-  initially for RaidRelay product research and SEO topic discovery. Keep access
-  or capability gaps explicit: `noisy_deferred` until the selected slice has
-  established public or legitimately entitled access and is repeatable, bounded,
-  and noise-controlled. Naming the candidate does not prove navigation or
-  extraction capability; use the Armory candidate method before capture.
+  applying **Discord capture posture** in
+  `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md`.
+  That rule allows `manual_only` for a bounded accessible slice without claiming
+  general repeatability. Preserve its deferred and access-limited cases; use
+  the Armory procedure before capture.
 - Treat LinkedIn as no-live/planning-only unless explicitly routed; prefer
   ATS/careers pages for movement.
 - Treat creator surfaces as graph-rich but never demand proof by themselves.

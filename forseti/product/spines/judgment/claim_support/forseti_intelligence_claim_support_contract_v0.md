@@ -26,6 +26,10 @@ stale_if:
 
 `OWNER_ADOPTED_V0` on 2026-08-07.
 
+2026-10-05 owner-requested clarification: distinguish creator-recorded timed
+performance, database fact checks and audience feedback when judging guides.
+These apply the existing claim-specific and directly-observed support rules.
+
 This contract governs the support carried by an underlying intelligence claim.
 It is not the Judgment Spine evidence ladder, which separately governs what a
 completed Forseti run or proof artifact may claim about product learning, buyer
@@ -186,6 +190,20 @@ Rules:
   tests may corroborate observable performance; owned claims and advertisements
   establish actor strategy, not customer experience; creator-authored promotion
   is not independent customer corroboration.
+
+Authorship and direct observation are separate dimensions. A creator's own
+inspectable recording, test or timed run can directly demonstrate actions,
+timing and results under its observed conditions. It is not reduced to mere
+promotion because the creator supplied it. Preserve the measurement boundaries,
+version, starting conditions and outcome; sampled footage supports only the
+sampled observations. Comparison requires comparable conditions and outcomes.
+One demonstrated run does not by itself establish general repeatability or
+optimality.
+
+Likewise, a matching database record may verify a guide's prerequisite or reward
+without establishing its route efficiency or usability. Generic praise supports
+approval; a specific firsthand report supports the reported use and result.
+Neither transfers blanket confidence to every recommendation.
 
 ## Counterevidence and conflict
 
